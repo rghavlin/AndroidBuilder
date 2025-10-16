@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gzdist-electron/
+node_modules/
+build/
+dist/
+.next/
+*.asar
+*.exe
+*.AppImage
+*.zip
+*.dmg
+*.apk
+*.aab

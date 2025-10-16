@@ -1,0 +1,47 @@
+I'll begin with Step 1 of Phase 4, which is to audit the codebase and identify all remaining components using the useGame() aggregation pattern.
+
+Based on my analysis of the codebase, here are the remaining files that still use useGame() and need migration:
+
+Phase 4, Step 1: Audit Results
+Files Successfully Migrated ✅
+MapCanvas.jsx - Already migrated to direct sub-context access pattern
+Files Still Using useGame() Aggregation ❌
+GameControls.tsx (rag://rag_source_2)
+
+Currently uses: endTurn, isInitialized, isPlayerTurn, isAutosaving, loadAutosave from useGame()
+Also uses: playerStats, isMoving from usePlayer() ✅ (already partially migrated)
+Migration needed: Keep only orchestration functions from useGame()
+StartMenu.tsx (rag://rag_source_1)
+
+Currently uses: loadGame from useGame()
+Status: ✅ Already correctly using only orchestration functions
+Action needed: ✅ None - this is the correct pattern
+DevConsole.jsx (rag://rag_source_3)
+
+Currently uses: gameInstance from useGame()
+Migration needed: Should use direct sub-context access for debugging data
+MapInterface.tsx (rag://rag_source_8-9)
+
+Currently uses: isInitialized, initializationError, initializeGame from useGame()
+Also uses: lastTileClick, hoveredTile, mapTransition from useGameMap() ✅
+Status: ✅ Already correctly using only orchestration functions
+Action needed: ✅ None - this is the correct pattern
+GameScreen.tsx (rag://rag_source_10)
+
+Uses: useGame import but needs verification of actual usage
+Summary of Step 1 Findings
+Files requiring migration in Step 2:
+
+GameControls.tsx - Partially migrated, remove any remaining aggregation usage
+DevConsole.jsx - Needs full migration to direct sub-context access
+GameScreen.tsx - Needs verification and potential migration
+Files already following correct pattern:
+
+StartMenu.tsx ✅ (only uses orchestration functions)
+MapInterface.tsx ✅ (only uses orchestration functions)
+MapCanvas.jsx ✅ (fully migrated)
+Next Steps for Phase 4:
+
+Step 2: Migrate the 2-3 components identified above
+Step 3: Remove aggregation logic from GameContext.jsx once migration is complete
+The audit shows we're in good shape - most components are already following the correct pattern. Only 2-3 components need migration work.

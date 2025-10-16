@@ -1,0 +1,81 @@
+After reviewing the pasted analysis against the codebase and recent chat history, I can confirm the analysis is absolutely correct. Here's my assessment:
+
+✅ Confirmed Issues
+1. The Critical Bug: setGameMapState doesn't exist
+Looking at client/src/contexts/GameMapContext.jsx line 158:
+
+gameMapRef.current = result.gameMap;
+setGameMapState(result.gameMap); // ❌ THIS FUNCTION DOESN'T EXIST
+The analysis is spot-on. You have:
+
+setGameMap() - which updates the ref AND bumps mapVersion
+But you're calling setGameMapState() which is undefined
+This explains the exact error sequence in your logs:
+
+"Removing player from old map..." ✅
+ReferenceError: setGameMapState is not defined ❌
+"Map transition failed, keeping dialog open" ❌
+2. Why the player doesn't spawn at bottom
+The analysis correctly identifies that the exception occurs before:
+
+Adding player to new map at spawn position (line 163)
+Centering camera on spawn position (line 195-198)
+Incrementing mapVersion to trigger re-render (line 201)
+Clearing the transition dialog (would happen in the wrapper)
+So the entire second half of the transition never executes.
+
+3. Why saves appear broken
+The analysis correctly identifies two issues:
+
+Issue A (User-visible): The transition crashes mid-execution, so:
+
+The UI still shows the old map
+mapTransition dialog never clears
+Context state is inconsistent
+Saves appear to "not work" because you're saving a half-transitioned state
+Issue B (Structural): WorldManager snapshots don't include the player:
+
+loadMapForTransition() explicitly excludes players ✅ (correct to avoid duplicates)
+When generating new maps, they're saved before adding the player
+The live gameMap would have the player (if the transition completed)
+But worldManager.maps entries don't get re-saved after adding the player
+This mismatch causes save/load inconsistencies post-transition.
+
+4. Logging confusion
+The analysis correctly notes:
+
+"Map transition completed: map_002 → map_002" happens because you log ${this.currentMapId} after setting currentMapId = targetMapId
+Double cancelMovement() calls are harmless but verbose
+5. Recommended Fix Order
+The analysis provides the exact correct order:
+
+Cancel movement + wait
+Save old map to WorldManager ✅ (you do this)
+Load/generate target map ✅ (you do this)
+Fix: Use setGameMap(result.gameMap) instead of undefined function
+Add player to new map at spawn position
+Set camera bounds + center on spawn
+Missing: Re-save the map to WorldManager with player included
+Bump mapVersion (happens inside setGameMap)
+Clear mapTransition dialog
+Spawn zombies if needed
+What This Means
+The analysis has identified:
+
+The exact crash point (line 158 in GameMapContext.jsx)
+The exact fix (use setGameMap() instead of non-existent setGameMapState())
+The secondary issue (WorldManager snapshots missing players after transition)
+The correct implementation order to make this robust
+Verdict
+The analysis is 100% accurate. The fix is straightforward:
+
+Replace setGameMapState(result.gameMap) with setGameMap(result.gameMap)
+After successfully adding the player to the new map, re-save to WorldManager:
+worldManagerRef.current.saveCurrentMap(result.gameMap, targetMapId);
+This will:
+
+Eliminate the crash
+Make the player spawn at the correct position
+Make the camera center correctly
+Make saves work consistently after transitions
+Would you like me to implement these fixes now?

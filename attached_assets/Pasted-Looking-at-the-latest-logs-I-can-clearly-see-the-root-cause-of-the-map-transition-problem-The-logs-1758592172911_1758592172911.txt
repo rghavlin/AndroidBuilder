@@ -1,0 +1,42 @@
+Looking at the latest logs, I can clearly see the root cause of the map transition problem. The logs reveal a critical sequence that explains why the player spawns at the top instead of the bottom:
+
+Key Evidence from the Logs
+Camera Position During Initialization: The logs show the camera moving from Y position 39 → 38 → 31 → 30 → 28 → 27 → 26 → 25 → 23 → 17, which indicates continuous downward camera movement that should have been stopped.
+
+Final Camera Position Issue: After initialization completes, the camera ends up at (17, 120) but the player should be at (17, 123). This 3-unit discrepancy is the smoking gun.
+
+Double Initialization: The logs show GameInitializationManager completing initialization TWICE:
+
+[GameInitializationManager] State transition: world_population → complete
+[GameContext] Initialization state changed to: complete
+This happens twice in the logs, indicating multiple initialization managers are running.
+
+Missing Game Objects: After the second initialization completion, the logs show:
+
+[MapCanvas] Missing components: {"gameMap":false,"camera":false}
+This suggests the contexts are getting reset or overwritten.
+
+Root Cause Analysis
+The problem is multiple GameInitializationManager instances running simultaneously. Here's what's happening:
+
+First Initialization: Creates player at correct position (17, 123) and camera at (17, 120)
+Second Initialization: Overwrites the contexts, but with incorrect positioning
+Camera Animation Still Running: The animation system from the first initialization continues running, moving the camera upward
+Position Conflict: When map transition occurs, the player gets placed based on the incorrect camera position rather than the correct spawn position
+The Critical Issue
+The logs show that during the gradual migration (Phase 2), there are multiple player instances and multiple initialization managers being created. This is evident from:
+
+GameInitializationManager creating multiple instances with different IDs
+Player instances being tracked globally showing duplicates
+Context references getting overwritten during the second initialization
+Solution Direction
+The issue is not with the map transition logic itself, but with the initialization system running multiple times. This causes:
+
+Conflicting player references between contexts
+Animation systems from different initialization cycles interfering
+Camera position calculations based on stale/incorrect player positions
+The cancelMovement() function is failing because there are multiple animation loops running from different initialization cycles, and it can only cancel one of them.
+
+This explains why the player ends up at the wrong spawn position - the map transition is working correctly, but it's receiving incorrect player position data from the conflicted context state.
+
+To fix this, you need to ensure that only one GameInitializationManager instance runs during the entire application lifecycle, and prevent the double initialization that's causing the context conflicts.

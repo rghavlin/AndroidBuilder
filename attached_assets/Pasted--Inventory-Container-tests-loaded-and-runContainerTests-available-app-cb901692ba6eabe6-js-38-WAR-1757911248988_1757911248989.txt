@@ -1,0 +1,72 @@
+[Inventory] Container tests loaded and runContainerTests() available
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from uncontrolled to controlled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+u_ @ framework-adb5a967cc46ded8.js:1
+r6 @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+uO @ framework-adb5a967cc46ded8.js:1
+uS @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1Understand this warning
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from controlled to uncontrolled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1Understand this warning
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from uncontrolled to controlled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+u_ @ framework-adb5a967cc46ded8.js:1
+r6 @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+uO @ framework-adb5a967cc46ded8.js:1
+uS @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1Understand this warning
+runContainerTests()
+VM2405:1 Uncaught ReferenceError: runContainerTests is not defined
+    at <anonymous>:1:1
+(anonymous) @ VM2405:1Understand this error
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from uncontrolled to controlled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+u_ @ framework-adb5a967cc46ded8.js:1
+r6 @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+uO @ framework-adb5a967cc46ded8.js:1
+uS @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1Understand this warning
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from controlled to uncontrolled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1Understand this warning
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from uncontrolled to controlled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+u_ @ framework-adb5a967cc46ded8.js:1
+r6 @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+uO @ framework-adb5a967cc46ded8.js:1
+uS @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1Understand this warning
+window.runContainerTests()
+VM2413:1 Uncaught TypeError: window.runContainerTests is not a function
+    at <anonymous>:1:8

@@ -1,0 +1,78 @@
+Based on the analysis in the attached file and reviewing the codebase, I can create a comprehensive plan for implementing proper map transition loading that includes zombies but excludes the player. This aligns perfectly with the State Machine Project Phase 4 goals and Universal Goals.
+
+Plan for Context-Specific Map Loading
+Current Problem Analysis
+The root issue is that map transitions are using the same GameMap.fromJSON() method as game loading, which restores ALL entities including the player. This creates duplicate players during transitions.
+
+Solution Architecture
+1. Create Selective Entity Restoration Method
+Add a new method to GameMap.js that allows selective entity restoration:
+
+/**
+ * Create GameMap from JSON data with selective entity restoration
+ * @param {Object} data - Serialized map data
+ * @param {Object} options - Restoration options
+ * @param {Array<string>} options.excludeEntityTypes - Entity types to exclude (e.g., ['player'])
+ * @param {Array<string>} options.includeEntityTypes - Only include these entity types
+ * @returns {Promise<GameMap>} - Restored GameMap instance
+ */
+static async fromJSONSelective(data, options = {})
+2. Map Transition Specific Loading
+Create a dedicated method in WorldManager.js for map transitions:
+
+/**
+ * Load map for transitions - includes zombies but excludes player
+ * @param {string} mapId - Map identifier to load
+ * @returns {Promise<Object>} - Map data with zombies but no player
+ */
+async loadMapForTransition(mapId)
+3. Clean Transition Flow
+Update GameMapContext.executeMapTransition() to follow the correct sequence:
+
+Pre-transition: Remove player from current map
+Save current map: Save with all entities (including zombies)
+Load target map: Use selective loading (zombies yes, player no)
+Post-transition: Add player to new map at spawn position
+Implementation Plan
+Phase 1: Add Selective Loading Method
+File: client/src/game/map/GameMap.js
+
+Add fromJSONSelective() static method
+Use entity type filtering during restoration
+Maintain full compatibility with existing fromJSON()
+Phase 2: Update WorldManager
+File: client/src/game/WorldManager.js
+
+Add loadMapForTransition() method
+Use selective loading with excludeEntityTypes: ['player']
+Keep existing loadMap() for save/load functionality
+Phase 3: Fix Transition Logic
+File: client/src/contexts/GameMapContext.jsx
+
+Update executeMapTransition() to:
+Remove player from current map FIRST
+Use WorldManager.loadMapForTransition()
+Add player cleanly to new map
+Key Benefits
+Separation of Concerns: Different loading paths for different use cases
+Preserves Zombies: Maintains zombie state and positions between transitions
+Eliminates Duplicates: No more duplicate player entities
+Maintains Save/Load: Existing game save/load functionality unchanged
+Clear Intent: Method names explicitly indicate their purpose
+Entity Restoration Logic
+For Map Transitions:
+
+✅ Terrain and tiles
+✅ Zombies (with full AI state)
+✅ Items and NPCs
+❌ Player entity (added separately)
+For Game Loading:
+
+✅ Everything (existing behavior preserved)
+Alignment with Project Goals
+This plan perfectly aligns with:
+
+Universal Goals: Modular, focused, single responsibility
+Phase 4: Clean context separation and proper initialization flow
+Event-Driven Architecture: Clear data flow without circular dependencies
+The solution treats map transitions as a distinct operation from game loading, giving each use case its own appropriate restoration method while maintaining full backward compatibility.

@@ -1,0 +1,38 @@
+Looking at the logs and code, I can see the issue causing the "Loading game..." freeze when clicking "New Game".
+
+Root Cause Analysis
+The problem is in Phase 1's dual state management removal. Here's what's happening:
+
+GameMapContext.jsx still has setGameMapState(gameMap) in the setGameMap function (line 41)
+CameraContext.jsx correctly removed state management and exposes cameraRef.current directly
+MapCanvas.jsx expects both gameMap and camera to be available for rendering
+The mismatch between contexts causes MapCanvas to never receive a valid gameMap object
+The Issue
+In GameMapContext.jsx, the context value exposes:
+
+// Map data - use state instead of ref to trigger re-renders
+gameMap: gameMapState,  // This becomes null because setGameMapState triggers re-renders
+But gameMapState starts as null and the state update pattern conflicts with the ref-only approach.
+
+In CameraContext.jsx, the context correctly exposes:
+
+camera: cameraRef.current,  // Direct ref access - works correctly
+The Fix
+The GameMapContext needs to be updated to match the CameraContext pattern - expose the ref directly instead of using state.
+
+MapCanvas is getting:
+
+camera: Valid Camera object (from ref)
+gameMap: null (from broken state management)
+This causes MapCanvas to show "Loading game components..." indefinitely because !gameMap is always true.
+
+Specific Problem in GameMapContext
+The issue is on line 47 in client/src/contexts/GameMapContext.jsx:
+
+// Map data - use state instead of ref to trigger re-renders
+gameMap: gameMapState,  // ❌ This should be gameMapRef.current
+And the setGameMap function still calls setGameMapState(gameMap) on line 41, which triggers React re-renders - exactly what Phase 1 was supposed to eliminate.
+
+Solution: Change GameMapContext to expose gameMapRef.current directly, just like CameraContext does, and remove the state management completely.
+
+This single change will fix the freeze and complete the Phase 1 implementation correctly.

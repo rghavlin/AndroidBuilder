@@ -1,0 +1,155 @@
+Short version: your transition code is passing a React click event where it expects a Player, and (separately) the transition helpers have their parameters mis-declared, so the player argument is always undefined. That’s why:
+
+the dialog logs show: “Player object type: … SyntheticBaseEvent”
+
+an undefined entity gets added at the spawn tile (Entity undefined added to tile (17, 123)), which you see as a generic object at 17,124
+
+the real player stays at 17,0 (old map state), so the next move fails and transitions stop making sense
+
+Below is the surgical fix.
+
+What’s going wrong (traced from your logs)
+
+You click the north edge and move to (17,0) — all good.
+
+Transition dialog opens. When you hit “Yes”:
+
+onClick={onConfirm} invokes your handler with the click event.
+
+GameMapContext logs:
+Starting map transition confirmation with player: undefined
+Player object type: object constructor: SyntheticBaseEvent
+➜ The handler thinks the event object is the “player”.
+
+Transition runs anyway and creates the next map, but then tries to place that bogus player:
+
+Tile] Entity undefined added to tile (17, 123)
+
+So a generic/undefined thing appears at the spawn, while your actual player instance remains on the previous coordinates.
+
+Afterward, UI still reads the pre-transition player state:
+
+Tile clicked at: (18, 10), Player currently at: (17, 0)
+
+GameMap] Movement failed for entity player-1: { … } (because the active map’s entityMap doesn’t have the right player entity)
+
+You also see: PlayerContext setPlayerPosition not available, using direct update
+That’s fallout from splitting contexts — the transition code expects a setter it no longer receives, so it “best-efforts” a direct update and ends up desynced.
+
+Minimal code fixes
+1) Don’t pass the click event into your confirm handler
+
+File: client/src/components/Game/MapTransitionDialog.tsx
+
+Change the confirm button so it doesn’t forward the event:
+
+- <Button onClick={onConfirm}>
++ <Button type="button" onClick={() => onConfirm()}>
+    Yes
+  </Button>
+
+
+(Adding type="button" also avoids accidental form submits.)
+
+2) Stop taking “player” as a parameter; read it from PlayerContext
+
+Right now your GameMapContext confirm/execute functions are written to accept player (and other helpers) as parameters. Between the dialog and the rest-parameter mishap, the wiring breaks. The robust fix is: pull what you need from contexts directly.
+
+File: client/src/contexts/GameMapContext.jsx
+
+At the top, import the helpers:
+
++ import { usePlayer } from './PlayerContext.jsx';
++ import { useCamera } from './CameraContext.jsx';
+
+
+Inside GameMapProvider, grab them:
+
++ const { player, updatePlayerCardinalPositions, cancelMovement } = usePlayer();
++ const { camera } = useCamera();
+
+A) Make the confirm handler zero-arg and self-contained
+- const handleMapTransitionConfirm = useCallback(async (player, ...PlayerCardinalPositions, setPlayerPosition, cancelMovement) => {
+-   console.log('[GameMapContext] Starting map transition confirmation with player:', player ? `${player.id} at (${player.x}, ${player.y})` : 'null');
+-   const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, setPlayerPosition, cancelMovement);
++ const handleMapTransitionConfirm = useCallback(async () => {
++   console.log('[GameMapContext] Starting map transition confirmation with player:',
++     player ? `${player.id} at (${player.x}, ${player.y})` : 'null');
++   const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement);
+    if (success) {
+      setMapTransition(null);
+      console.log('[GameMapContext] Map transition completed successfully, dialog closed');
+    } else {
+      console.error('[GameMapContext] Map transition failed, keeping dialog open');
+    }
+- }, [mapTransition, executeMapTransition]);
++ }, [mapTransition, player, updatePlayerCardinalPositions, cancelMovement, executeMapTransition]);
+
+B) Fix the transition executor signature and logic
+
+Your current function is effectively:
+
+const executeMapTransition = async (transitionInfo, ...PlayerCardinalPositions, setPlayerPosition, cancelMovement) => { /* uses `player` anyway */ }
+
+
+That rest-param in the middle eats all later args, so player is never received, and you also shadow real variables. Replace it with a straight, named-arg version and keep updates synchronized:
+
+- const executeMapTransition = useCallback(async (transitionInfo, ...PlayerCardinalPositions, setPlayerPosition, cancelMovement) => {
+-   if (!worldManagerRef.current || !player) { /* ... */ }
++ const executeMapTransition = useCallback(async (transitionInfo, player, updatePlayerCardinalPositions, cancelMovement) => {
++   if (!worldManagerRef.current || !player) {
++     console.error('[GameMapContext] Cannot execute transition - missing refs');
++     return false;
++   }
+    try {
+      console.log('[GameMapContext] ========== STARTING MAP TRANSITION ==========');
+      console.log('[GameMapContext] Transition info:', transitionInfo);
+      console.log('[GameMapContext] Player at start:', `${player.id} at (${player.x}, ${player.y})`);
+      console.log('[GameMapContext] Current map:', worldManagerRef.current?.currentMapId || 'unknown');
+
++     // Cancel any ongoing movement to avoid animation state fighting the swap
++     cancelMovement?.();
+
+      // Save current map & perform transition
+-     // (your existing save current map code)
+-     // (your existing worldManagerRef.current.executeTransition(...))
++     const targetMapId = transitionInfo.nextMapId ?? transitionInfo.targetMapId;
++     const result = await worldManagerRef.current.executeTransition(targetMapId, transitionInfo.spawnPosition);
+
+      // Make the new map current in both the ref and the render state
+-     gameMapRef.current = result.gameMap; // if not already
+-     setGameMapState(result.gameMap);
++     gameMapRef.current = result.gameMap;
++     setGameMapState(result.gameMap);
+
+      // Place the SAME player instance on the spawn tile of the new map
++     const spawn = result.spawnPosition; // e.g., (17,123)
++     const spawnTile = result.gameMap.getTile(spawn.x, spawn.y);
++     if (spawnTile) {
++       // clean out stale duplicates on the tile
++       spawnTile.contents = spawnTile.contents.filter(e => e.id !== player.id);
++     }
++     // Ensure the map’s entityMap knows this player instance
++     result.gameMap.entityMap.delete(player.id);
++     result.gameMap.addEntity(player, spawn.x, spawn.y);
++     player.x = spawn.x;
++     player.y = spawn.y;
+
+      // Keep helpers in sync (cardinals, camera, etc.)
++     updatePlayerCardinalPositions(result.gameMap);
++     camera?.centerOn?.(player.x, player.y);
+
+      console.log(`[GameMapContext] Player successfully placed at (${player.x}, ${player.y}) on new map`);
+      console.log(`[GameMapContext] Map transition completed successfully to ${result.mapId}`);
+      console.log(`[GameMapContext] Player spawned at (${spawn.x}, ${spawn.y})`);
+      return true;
+    } catch (error) {
+      console.error('[GameMapContext] Map transition error:', error);
+      console.error('[GameMapContext] Error stack:', error.stack);
+      return false;
+    }
+- }, []);
++ }, [camera]);
+
+
+Note: after your context split, there’s no setPlayerPosition anymore, so don’t try to call it. Moving the player via GameMap.addEntity/moveEntity, updating player.x/y, and then calling updatePlayerCardinalPositions is the correct, serializable path.

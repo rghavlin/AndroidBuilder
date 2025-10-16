@@ -1,0 +1,221 @@
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+_app-cb901692ba6eabe6.js:38 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+ZombieSurvival:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+ZombieSurvival:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+ZombieSurvival:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+_app-cb901692ba6eabe6.js:38 [LaunchDarkly] LaunchDarkly client initialized
+ZombieSurvival:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+framework-adb5a967cc46ded8.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'battery'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-adb5a967cc46ded8.js:1
+framework-adb5a967cc46ded8.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-adb5a967cc46ded8.js:1
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar4k%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+_app-cb901692ba6eabe6.js:38 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 commitComplete listeners added. Use emitter.setMaxListeners() to increase limit
+    at c (6041-85fa3a1c8f0e7f75.js:1:82941)
+    at r.<anonymous> (6041-85fa3a1c8f0e7f75.js:1:85827)
+    at h (7276-df305ef096f44d10.js:1:41756)
+    at Object.watchTextFile (7276-df305ef096f44d10.js:1:47534)
+    at 4859-92ed8beb056c2011.js:1:1479217
+    at Array.map (<anonymous>)
+    at 4859-92ed8beb056c2011.js:1:1479192
+    at oO (framework-adb5a967cc46ded8.js:1:125387)
+    at uB (framework-adb5a967cc46ded8.js:1:154382)
+    at framework-adb5a967cc46ded8.js:1:152768
+    at uO (framework-adb5a967cc46ded8.js:1:152834)
+    at u_ (framework-adb5a967cc46ded8.js:1:137498)
+    at r6 (framework-adb5a967cc46ded8.js:1:86196)
+    at framework-adb5a967cc46ded8.js:1:134876
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+_app-cb901692ba6eabe6.js:38 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 fileDirty listeners added. Use emitter.setMaxListeners() to increase limit
+    at c (6041-85fa3a1c8f0e7f75.js:1:82941)
+    at r.<anonymous> (6041-85fa3a1c8f0e7f75.js:1:85827)
+    at h (7276-df305ef096f44d10.js:1:41876)
+    at Object.watchTextFile (7276-df305ef096f44d10.js:1:47534)
+    at 4859-92ed8beb056c2011.js:1:1479217
+    at Array.map (<anonymous>)
+    at 4859-92ed8beb056c2011.js:1:1479192
+    at oO (framework-adb5a967cc46ded8.js:1:125387)
+    at uB (framework-adb5a967cc46ded8.js:1:154382)
+    at framework-adb5a967cc46ded8.js:1:152768
+    at uO (framework-adb5a967cc46ded8.js:1:152834)
+    at u_ (framework-adb5a967cc46ded8.js:1:137498)
+    at r6 (framework-adb5a967cc46ded8.js:1:86196)
+    at framework-adb5a967cc46ded8.js:1:134876
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+_app-cb901692ba6eabe6.js:38 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 fileClean listeners added. Use emitter.setMaxListeners() to increase limit
+    at c (6041-85fa3a1c8f0e7f75.js:1:82941)
+    at r.<anonymous> (6041-85fa3a1c8f0e7f75.js:1:85827)
+    at h (7276-df305ef096f44d10.js:1:41991)
+    at Object.watchTextFile (7276-df305ef096f44d10.js:1:47534)
+    at 4859-92ed8beb056c2011.js:1:1479217
+    at Array.map (<anonymous>)
+    at 4859-92ed8beb056c2011.js:1:1479192
+    at oO (framework-adb5a967cc46ded8.js:1:125387)
+    at uB (framework-adb5a967cc46ded8.js:1:154382)
+    at framework-adb5a967cc46ded8.js:1:152768
+    at uO (framework-adb5a967cc46ded8.js:1:152834)
+    at u_ (framework-adb5a967cc46ded8.js:1:137498)
+    at r6 (framework-adb5a967cc46ded8.js:1:86196)
+    at framework-adb5a967cc46ded8.js:1:134876
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+_app-cb901692ba6eabe6.js:38 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 commitStart listeners added. Use emitter.setMaxListeners() to increase limit
+    at c (6041-85fa3a1c8f0e7f75.js:1:82941)
+    at r.<anonymous> (6041-85fa3a1c8f0e7f75.js:1:85827)
+    at h (7276-df305ef096f44d10.js:1:42108)
+    at Object.watchTextFile (7276-df305ef096f44d10.js:1:47534)
+    at 4859-92ed8beb056c2011.js:1:1479217
+    at Array.map (<anonymous>)
+    at 4859-92ed8beb056c2011.js:1:1479192
+    at oO (framework-adb5a967cc46ded8.js:1:125387)
+    at uB (framework-adb5a967cc46ded8.js:1:154382)
+    at framework-adb5a967cc46ded8.js:1:152768
+    at uO (framework-adb5a967cc46ded8.js:1:152834)
+    at u_ (framework-adb5a967cc46ded8.js:1:137498)
+    at r6 (framework-adb5a967cc46ded8.js:1:86196)
+    at framework-adb5a967cc46ded8.js:1:134876
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+_app-cb901692ba6eabe6.js:38 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 promptUserReconnect listeners added. Use emitter.setMaxListeners() to increase limit
+    at c (6041-85fa3a1c8f0e7f75.js:1:82941)
+    at r.<anonymous> (6041-85fa3a1c8f0e7f75.js:1:85827)
+    at h (7276-df305ef096f44d10.js:1:43382)
+    at Object.watchTextFile (7276-df305ef096f44d10.js:1:47534)
+    at 4859-92ed8beb056c2011.js:1:1479217
+    at Array.map (<anonymous>)
+    at 4859-92ed8beb056c2011.js:1:1479192
+    at oO (framework-adb5a967cc46ded8.js:1:125387)
+    at uB (framework-adb5a967cc46ded8.js:1:154382)
+    at framework-adb5a967cc46ded8.js:1:152768
+    at uO (framework-adb5a967cc46ded8.js:1:152834)
+    at u_ (framework-adb5a967cc46ded8.js:1:137498)
+    at r6 (framework-adb5a967cc46ded8.js:1:86196)
+    at framework-adb5a967cc46ded8.js:1:134876
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+Console.js:61 [ImageLoader] Base path set to: /images/entities/
+Console.js:61 [Container Tests] Test function exported to global scope
+Console.js:61 [Inventory] Container tests loaded successfully
+Console.js:61 [GameContext] Container tests function available as window.runContainerTests()
+window.runContainerTests()
+VM2195:1 Uncaught TypeError: window.runContainerTests is not a function
+    at <anonymous>:1:8
+(anonymous) @ VM2195:1
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from uncontrolled to controlled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+u_ @ framework-adb5a967cc46ded8.js:1
+r6 @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+uO @ framework-adb5a967cc46ded8.js:1
+uS @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from controlled to uncontrolled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1
+_app-cb901692ba6eabe6.js:38 WARN: A component changed from uncontrolled to controlled.
+(anonymous) @ _app-cb901692ba6eabe6.js:38
+(anonymous) @ _app-cb901692ba6eabe6.js:40
+oO @ framework-adb5a967cc46ded8.js:1
+uB @ framework-adb5a967cc46ded8.js:1
+u_ @ framework-adb5a967cc46ded8.js:1
+r6 @ framework-adb5a967cc46ded8.js:1
+(anonymous) @ framework-adb5a967cc46ded8.js:1
+uO @ framework-adb5a967cc46ded8.js:1
+uS @ framework-adb5a967cc46ded8.js:1
+C @ framework-adb5a967cc46ded8.js:1
+z @ framework-adb5a967cc46ded8.js:1
+runContainerTests()
+VM2202:1 Uncaught ReferenceError: runContainerTests is not defined
+    at <anonymous>:1:1
+(anonymous) @ VM2202:1

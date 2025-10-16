@@ -1,0 +1,45 @@
+Looking at the console logs and the codebase, I can identify the exact issue causing the map transition spawn problem during Phase 4 migration.
+
+Root Cause Analysis
+The problem is in GameMapContext.jsx in the executeMapTransition function around line 280. The issue is related to how the player reference is being passed and handled during transitions after the migration to direct sub-context access.
+
+The Issue
+In the console logs, I can see:
+
+Map transitions are executing successfully
+The player position is being updated to spawn coordinates
+But the camera is not following the player to the new spawn position properly
+Looking at the executeMapTransition function in GameMapContext.jsx, there are multiple issues:
+
+Player Reference Confusion: The function is trying to access player from usePlayer() but also receives playerEntity as a parameter, creating confusion about which player instance to use.
+
+Camera Centering Problem: The camera centering is happening before the player position is fully updated in all contexts.
+
+Context Synchronization: The migration to direct sub-context access has created a timing issue where the camera updates before the player position is properly synchronized across contexts.
+
+Specific Problem Areas
+In executeMapTransition (GameMapContext.jsx, lines ~280-350):
+
+// ISSUE 1: Multiple player references causing confusion
+const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement) => {
+  // Later in the function:
+  const { gameMap, spawnPosition, mapId } = result || {};
+  if (gameMap && spawnPosition && player) { // <-- This 'player' comes from usePlayer(), not the passed playerEntity
+The function is using player from the usePlayer() hook instead of the playerEntity parameter that was passed in, causing a mismatch.
+
+Should We Fix This Now or Wait?
+Recommendation: Fix this now for the following reasons:
+
+Core Functionality: Map transitions are a core game feature that needs to work for basic gameplay testing
+Migration Impact: This is directly caused by our Phase 4 migration and represents a fundamental issue with how context data flows during transitions
+Testing Blocker: We can't properly test other migration aspects if basic map transitions don't work
+Simple Fix: The solution is straightforward and aligns with Phase 4 goals of using direct sub-context access consistently
+The Fix
+The issue can be resolved by:
+
+Consistent Player Reference: Use the passed playerEntity parameter consistently throughout the function instead of mixing it with the player from usePlayer()
+Proper Camera Sequencing: Ensure camera centering happens after all player position updates are complete
+Context Synchronization: Make sure all contexts are updated in the correct order
+This fix aligns perfectly with Phase 4's goal of using direct sub-context access rather than aggregated data from useGame(). The transition function should rely on the explicitly passed player entity rather than pulling player data from multiple sources.
+
+This is not a complex architectural change - it's a straightforward parameter usage fix that will restore the pre-migration functionality while maintaining the new Phase 4 architecture patterns.

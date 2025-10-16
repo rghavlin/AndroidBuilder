@@ -1,0 +1,131 @@
+1) Why the player doesn’t spawn at the bottom after transition
+The hard failure (crash mid-transition)
+
+In client/src/contexts/GameMapContext.jsx, inside executeMapTransition(...), there’s a call to setGameMapState(result.gameMap), but setGameMapState doesn’t exist in this provider. You have a setGameMap(...) helper (which sets the ref and bumps a mapVersion counter), but not setGameMapState.
+
+You can see the call here (around where you log “Removing player from old map…”):
+
+gameMapRef.current = result.gameMap;
+setGameMapState(result.gameMap); // ❌ ReferenceError
+
+
+Your logs line up with this perfectly:
+
+“Removing player from old map…” ✅
+
+Immediately after: Map transition error: ReferenceError: setGameMapState is not defined ❌
+
+Then: “Map transition failed, keeping dialog open” ❌
+
+Impact: the function throws before it:
+
+puts the player onto the new map at the spawn point,
+
+centers the camera,
+
+increments mapVersion to force a structural re-render, and
+
+clears the mapTransition dialog.
+
+So the UI keeps showing the old map (player stuck at the top), and the transition “never finishes” from the app’s perspective.
+
+Minimal fix: replace that undefined call with the real setter you already have, or just rely on mapVersion:
+
+- gameMapRef.current = result.gameMap;
+- setGameMapState(result.gameMap); // ❌
++ setGameMap(result.gameMap);      // ✅ (this updates the ref + bumps mapVersion)
+
+
+(If you prefer to assign the ref manually there, then immediately setMapVersion(v => v + 1) after you’ve successfully added the player and centered the camera.)
+
+A migration landmine you already started to fix
+
+Earlier you hit ReferenceError: camera is not defined in the same function. You’ve since introduced a cameraOperations parameter (with setWorldBounds and centerOn) and the wrapper in GameContext now passes those in. Good—that’s the Phase-4 way. The only remaining blocker for the spawn is the setGameMapState crash above.
+
+2) Why saving “stops working” after a transition
+
+There are two issues here—one user-visible, one structural.
+
+2a) User-visible: you crash before committing the transition
+
+Because executeMapTransition throws before it calls setMapTransition(null) and before it bumps mapVersion, the UI doesn’t switch to the new map. If you try saving right then, it can look like “it saved nothing” when you reload—because the previous state is still on screen, and the transition never committed in context.
+
+In short: the crash makes it appear that saves don’t work. Fixing the crash will make your save/load look correct again.
+
+2b) Structural: the WorldManager snapshot is stale (no player)
+
+Your WorldManager persists a serialized snapshot of each map in its maps collection. During transition:
+
+If the target map already exists, you call loadMapForTransition(targetMapId) which deliberately excludes players (to avoid duplicates).
+
+If the target map does not exist, you generate it and immediately save it via saveCurrentMap(gameMap, targetMapId)—that snapshot is also without any player (because you haven’t added the player yet).
+
+Then, in GameMapContext.executeMapTransition, you (should) add the player to the new gameMap and proceed—but you never re-save that updated map back into WorldManager after the player is added.
+
+Impact: when you later call GameSaveSystem.saveToLocalStorage, it serializes both:
+
+gameMap (the live gameMapRef.current, which would include the player if the transition had completed), and
+
+worldManager (whose maps entries do not include the player for the current map).
+
+That mismatch can bite you on load (and certainly on later transitions), and is a second reason the save/load flow feels inconsistent post-transition.
+
+3) Smaller but relevant details
+
+Confusing “Map transition completed: map_002 → map_002” log.
+In WorldManager, you log ${this.currentMapId} -> ${targetMapId} after you’ve already set currentMapId = targetMapId in the “generate new map” branch. That’s why both sides show map_002. It’s only a logging issue, but it made the trace harder to follow.
+
+Double cancelMovement() call is harmless noise.
+Your logs show you call it twice; both times there’s nothing to cancel. Not harmful, just verbose.
+
+Phase-4 consistency: you’re already passing cameraOperations from GameContext into GameMapContext (good). Keep dependencies flowing into GameMapContext as parameters rather than importing other contexts there.
+
+4) Exact commit order that will make this robust
+
+Inside executeMapTransition(...):
+
+cancelMovement() and wait a tick
+
+Save old map to WorldManager (you’re already doing this)
+
+Load or generate the target map
+
+Set the new map in context (use setGameMap(result.gameMap) not the undefined function)
+
+Add the player to the new map at spawnPosition
+
+cameraOperations.setWorldBounds(...) then cameraOperations.centerOn(spawn.x, spawn.y)
+
+Re-save the current map to WorldManager so the snapshot includes the player
+
+Bump mapVersion (structural re-render)
+
+Clear mapTransition (close dialog)
+
+(Optional) spawn zombies on empty maps
+
+This order removes races and ensures both the live map and the world snapshot are correct.
+
+5) Why your current logs map exactly to the diagnosis
+
+From your paste:
+
+Movement cancelled → ✅ OK
+
+*** MAP SAVED: map_001 *** → old map snapshot stored
+
+Generating new map: map_002 → new map created and saved without a player
+
+“Removing player from old map…” → ✅ OK
+
+Map transition error: ReferenceError: setGameMapState is not defined → ❌ hard stop
+
+“Map transition failed, keeping dialog open” → ❌ nothing else runs
+
+Because of that single exception:
+
+The player is never added to the new map → you keep seeing the player at the top edge.
+
+The transition never commits in context → save/load looks like it didn’t change anything.
+
+The WorldManager snapshot remains player-less even if you try to continue afterward.

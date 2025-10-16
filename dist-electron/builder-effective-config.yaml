@@ -1,0 +1,32 @@
+directories:
+  output: dist-electron
+  buildResources: build
+appId: com.yourcompany.yourgame
+productName: Your Game
+files:
+  - filter:
+      - electron/**/*
+      - dist/**/*
+      - '!dist/.vite'
+      - node_modules/**/*
+      - package.json
+extraFiles:
+  - from: dist
+    to: app
+    filter:
+      - '**/*'
+  - from: client/public/images
+    to: resources/images
+    filter:
+      - '**/*'
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: client/public/favicon.ico
+  requestedExecutionLevel: asInvoker
+electronVersion: 31.7.7

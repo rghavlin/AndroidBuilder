@@ -1,0 +1,47 @@
+Please fix the provider composition and remove duplicates to resolve
+"useCamera must be used within a CameraProvider" and prevent future ordering bugs.
+
+Goals:
+1) Only mount providers in ONE place: components/Game/Game.tsx.
+2) Provider order (strict): 
+   <CameraProvider>
+     <GameMapProvider>
+       <PlayerProvider>
+         <GameProvider>
+           <GameScreen />
+         </GameProvider>
+       </PlayerProvider>
+     </GameMapProvider>
+   </CameraProvider>
+3) Make each provider pure: CameraProvider, GameMapProvider, PlayerProvider, and GameProvider
+   should not wrap any other providers internally. If GameProvider currently wraps others,
+   refactor it to only provide GameContext.
+4) Remove ANY provider mounting from App.tsx, GameScreen.tsx, and main.tsx.
+   - App.tsx: keep routing only (e.g., route /game → <Game />).
+   - GameScreen.tsx: should render UI only; no providers.
+   - main.tsx: minimal React root; no Router and no providers.
+5) Ensure GameMapContext uses useCamera safely (it will be inside CameraProvider due to the new order).
+   Do NOT call useCamera in files that can be imported by CameraContext to avoid cycles.
+6) Verify that the initialization flow still runs:
+   - Start → New Game shows the state machine progressing through phases and reaching "complete".
+   - No "useCamera must be used within a CameraProvider" errors.
+   - No duplicate mounting of providers (no duplicate "initialized" logs).
+7) Keep the init-manager import stable via alias:
+   import { GameInitializationManager } from "@/engine/init/GameInitializationManager";
+   (Make sure vite alias "@" → "./src" is configured.)
+8) Optional cleanup: If there are dev-only logs like container test hooks, guard them with
+   `if (import.meta.env.DEV && typeof window !== "undefined") { ... }`.
+
+Acceptance criteria:
+- Console shows Camera initialized BEFORE GameMapProvider logs.
+- Starting a new game no longer freezes at "Loading Game".
+- No provider-order runtime errors. No duplicate provider logs.
+- Navigating between routes (if any) doesn’t remount providers unexpectedly.
+
+Make the changes and show me the diffs for:
+- components/Game/Game.tsx (new single composition point)
+- contexts/GameContext.(ts|tsx|jsx) (provider no longer wraps others)
+- App.tsx (routing only)
+- components/Game/GameScreen.tsx (no providers)
+- main.tsx (minimal, no Router or providers)
+Also report any other files you had to touch to remove duplicate provider mounts.

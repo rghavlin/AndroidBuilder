@@ -1,0 +1,32 @@
+c:\Games\zgame2>npm run electron-pack-win
+
+> rest-express@1.0.0 electron-pack-win
+> npm run build-electron && electron-builder --win --x64
+
+
+> rest-express@1.0.0 build-electron
+> vite build --config vite.config.electron.ts
+
+vite v5.4.20 building for production...
+transforming (2) ..\vite\modulepreload-polyfill.jsBrowserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+../../../C:/Games/zgame2/client/src/game/map/TemplateMapGenerator.js (461:26): Use of eval in "../../../C:/Games/zgame2/client/src/game/map/TemplateMapGenerator.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+../../../C:/Games/zgame2/client/src/game/map/TemplateMapGenerator.js (483:15): Use of eval in "../../../C:/Games/zgame2/client/src/game/map/TemplateMapGenerator.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+✓ 1612 modules transformed.
+[plugin:vite:reporter] [plugin vite:reporter]
+(!) C:/Games/zgame2/client/src/game/entities/Player.js is dynamically imported by C:/Games/zgame2/client/src/game/map/GameMap.js but also statically imported by C:/Games/zgame2/client/src/components/Game/DevConsole.jsx, C:/Games/zgame2/client/src/contexts/GameContext.jsx, dynamic import will not move module into another chunk.
+
+../dist/index.html                   2.20 kB │ gzip:  0.86 kB
+../dist/assets/index-DScDCnFJ.css   58.86 kB │ gzip: 10.55 kB
+../dist/assets/index-BCEI_jcU.js   246.04 kB │ gzip: 75.79 kB
+✓ built in 2.34s
+  • electron-builder  version=24.13.3 os=10.0.26100
+  • loaded configuration  file=package.json ("build" field)
+  • writing effective config  file=dist-electron\builder-effective-config.yaml
+  • rebuilding native dependencies  dependencies=bufferutil@4.0.8 platform=win32 arch=x64
+  • packaging       platform=win32 arch=x64 electron=31.7.7 appOutDir=dist-electron\win-unpacked
+  • default Electron icon is used  reason=application icon is not set
+  • building        target=nsis file=dist-electron\Your Game Setup 1.0.0.exe archs=x64 oneClick=true perMachine=false
+  • building block map  blockMapFile=dist-electron\Your Game Setup 1.0.0.exe.blockmap
+  • building        target=portable file=dist-electron\Your Game 1.0.0.exe archs=x64
