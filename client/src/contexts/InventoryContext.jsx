@@ -12,9 +12,14 @@ export const useInventory = () => {
       return {
         inventoryRef: { current: null },
         inventoryVersion: 0,
+        getContainer: () => null,
         getEquippedBackpackContainer: () => null,
         getEncumbranceModifiers: () => ({ evade: 0, ap: 0 }),
-        canOpenContainer: () => false
+        canOpenContainer: () => false,
+        equipItem: () => ({ success: false, reason: 'Context not available' }),
+        unequipItem: () => ({ success: false, reason: 'Context not available' }),
+        moveItem: () => ({ success: false, reason: 'Context not available' }),
+        dropItemToGround: () => false
       };
     }
     throw new Error('useInventory must be used within an InventoryProvider');
@@ -52,14 +57,66 @@ export const InventoryProvider = ({ children }) => {
     return inventoryRef.current.canOpenContainer(item);
   }, [inventoryVersion]);
 
+  const getContainer = useCallback((containerId) => {
+    if (!inventoryRef.current) return null;
+    return inventoryRef.current.getContainer(containerId);
+  }, [inventoryVersion]);
+
+  const equipItem = useCallback((item, slot) => {
+    if (!inventoryRef.current) {
+      return { success: false, reason: 'Inventory not initialized' };
+    }
+    const result = inventoryRef.current.equipItem(item, slot);
+    if (result.success) {
+      setInventoryVersion(prev => prev + 1);
+    }
+    return result;
+  }, []);
+
+  const unequipItem = useCallback((slot) => {
+    if (!inventoryRef.current) {
+      return { success: false, reason: 'Inventory not initialized' };
+    }
+    const result = inventoryRef.current.unequipItem(slot);
+    if (result.success) {
+      setInventoryVersion(prev => prev + 1);
+    }
+    return result;
+  }, []);
+
+  const moveItem = useCallback((itemId, fromContainerId, toContainerId, x, y) => {
+    if (!inventoryRef.current) {
+      return { success: false, reason: 'Inventory not initialized' };
+    }
+    const result = inventoryRef.current.moveItem(itemId, fromContainerId, toContainerId, x, y);
+    if (result.success) {
+      setInventoryVersion(prev => prev + 1);
+    }
+    return result;
+  }, []);
+
+  const dropItemToGround = useCallback((item, x, y) => {
+    if (!inventoryRef.current) return false;
+    const result = inventoryRef.current.dropItemToGround(item, x, y);
+    if (result) {
+      setInventoryVersion(prev => prev + 1);
+    }
+    return result;
+  }, []);
+
   const contextValue = useMemo(() => ({
     inventoryRef,
     inventoryVersion,
     setInventory,
+    getContainer,
     getEquippedBackpackContainer,
     getEncumbranceModifiers,
-    canOpenContainer
-  }), [inventoryVersion, setInventory, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer]);
+    canOpenContainer,
+    equipItem,
+    unequipItem,
+    moveItem,
+    dropItemToGround
+  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround]);
 
   return (
     <InventoryContext.Provider value={contextValue}>
