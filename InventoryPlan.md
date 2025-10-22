@@ -6,17 +6,18 @@ Scope: Phased UI integration of existing inventory system
 Small, reversible diffs per phase
 No scope creep
 Global grid size fixed at startup (snapped to [24, 32, 40, 48, 56, 64])
+The ground grid should have a default size of 6 wide by 50 tall. This will be expandable by height, but the width of 6 will not change unless otherwise specified.
 Seven equipment slots only: backpack, upper_body, lower_body, melee, handgun, long_gun, flashlight
 Backpacks open only when equipped; specialty containers with OPENABLE_WHEN_NESTED trait can open inline
 Order of operations: Save/Load after world/player initialization
 Dev-console validation before merging
-2) Terminology (Updated)
+3) Terminology (Updated)
 Item Definition (defId): Blueprint in ItemDefs.js describing traits, size, stackability
 Item Instance (instanceId): Concrete instance with instanceId, stackCount, condition, rotation state
 Container: Grid-based storage (Container class) with collision detection
 Equipment Slot: One of seven slots in InventoryManager.equipment
 Grid Slot Size: Pixel size from GridSizeContext.scalableSlotSize or fixedSlotSize
-3) Data Model (Current Implementation)
+4) Data Model (Current Implementation)
 // Item Instance (from Item.js)
 interface ItemInstance {
   instanceId: string;           // Unique ID per instance
@@ -58,7 +59,7 @@ interface Equipment {
   long_gun: Item | null;
   flashlight: Item | null;
 }
-4) InventoryContext API (To Be Implemented)
+5) InventoryContext API (To Be Implemented)
 Current state: Basic context exists but needs these methods exposed:
 
 // Read operations
