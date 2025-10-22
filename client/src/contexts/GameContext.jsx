@@ -8,6 +8,7 @@ import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from './GameMapContext.jsx';
 import { CameraProvider, useCamera } from './CameraContext.jsx';
+import { InventoryProvider } from './InventoryContext.jsx';
 import '../game/inventory/index.js';
 
 // Test functions are imported via inventory system
@@ -50,6 +51,9 @@ const GameContextInner = ({ children }) => {
   const { playerRef, setPlayerRef, setPlayerPosition, setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, startAnimatedMovement, cancelMovement, isMoving: isAnimatingMovement } = usePlayer();
   const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
   const { cameraRef, camera, setCamera, setCameraWorldBounds } = useCamera();
+
+  // Phase 5A: Store inventoryManager from initialization
+  const [inventoryManager, setInventoryManager] = useState(null);
 
   // Refs for internal use
   const initManagerRef = useRef(null);
@@ -113,7 +117,8 @@ const GameContextInner = ({ children }) => {
       // Set synchronization phase to updating to prevent operations during state changes
       setContextSyncPhase('updating');
 
-      // Set up context references synchronously
+      // Set up context references synchronously (Phase 5A: includes inventoryManager)
+      setInventoryManager(gameObjects.inventoryManager);
       setGameMap(gameObjects.gameMap);
       setPlayerRef(gameObjects.player); // Use version-bump pattern
       setCamera(gameObjects.camera);
@@ -580,7 +585,9 @@ const GameContextInner = ({ children }) => {
 
   return (
     <GameContext.Provider value={contextValue}>
-      {children}
+      <InventoryProvider manager={inventoryManager}>
+        {children}
+      </InventoryProvider>
     </GameContext.Provider>
   );
 };

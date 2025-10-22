@@ -27,15 +27,33 @@ export const useInventory = () => {
   return context;
 };
 
-export const InventoryProvider = ({ children }) => {
+export const InventoryProvider = ({ children, manager }) => {
   const inventoryRef = useRef(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
 
-  // Initialize inventory manager
-  if (!inventoryRef.current) {
-    inventoryRef.current = new InventoryManager();
-    console.log('[InventoryContext] InventoryManager initialized');
+  // Phase 5A: Accept external manager, never construct internally
+  if (!inventoryRef.current && manager) {
+    inventoryRef.current = manager;
+    console.log('[InventoryContext] InventoryManager received from provider props');
   }
+
+  if (!manager) {
+    console.error('[InventoryContext] No manager prop provided - InventoryProvider requires a manager!');
+  }
+
+  // Dev-console bridge (Phase 5A)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && inventoryRef.current) {
+      (window as any).inventoryManager = inventoryRef.current;
+      (window as any).inv = {
+        getContainer: (id: string) => inventoryRef.current?.getContainer(id),
+        equipItem: (item: any, slot: string) => inventoryRef.current?.equipItem(item, slot),
+        moveItem: (itemId: string, from: string, to: string, x: number, y: number) =>
+          inventoryRef.current?.moveItem(itemId, from, to, x, y),
+      };
+      console.log('[InventoryContext] Dev console bridge established: window.inventoryManager, window.inv');
+    }
+  }, []);
 
   const setInventory = useCallback((inventory) => {
     inventoryRef.current = inventory;
