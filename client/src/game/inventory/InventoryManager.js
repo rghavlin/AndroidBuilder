@@ -28,8 +28,8 @@ export class InventoryManager {
       id: 'ground',
       type: 'ground',
       name: 'Ground Items',
-      width: 10,
-      height: 10,
+      width: 6,
+      height: 50,
       autoExpand: true,
       autoSort: true
     });
