@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useRef, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { InventoryManager } from '../game/inventory/InventoryManager.js';
 
 const InventoryContext = createContext();
