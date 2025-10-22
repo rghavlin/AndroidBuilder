@@ -1,8 +1,14 @@
 
+import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
+import { Button } from "@/components/ui/button";
 
 export default function GroundItemsGrid() {
-  // TODO: Connect to real InventoryManager ground container
+  const { getContainer, inventoryVersion, inventoryRef } = useInventory();
+  
+  // Get ground container (triggers re-render when inventoryVersion changes)
+  const groundContainer = getContainer('ground');
+  
   const handleSlotClick = (x: number, y: number) => {
     console.log(`Ground slot (${x}, ${y}) clicked`);
   };
@@ -10,26 +16,78 @@ export default function GroundItemsGrid() {
   const handleSlotDrop = (x: number, y: number, event: React.DragEvent) => {
     event.preventDefault();
     console.log(`Item dropped on ground slot (${x}, ${y})`);
+    // TODO: Implement moveItem call in next phase
   };
+
+  const handleOrganize = () => {
+    if (inventoryRef.current) {
+      const result = inventoryRef.current.organizeGroundItems();
+      console.log('Ground items organized:', result);
+    }
+  };
+
+  const handleQuickPickup = (category: string) => {
+    if (inventoryRef.current) {
+      const result = inventoryRef.current.quickPickupByCategory(category);
+      console.log(`Quick pickup ${category}:`, result);
+    }
+  };
+
+  // Show empty state if no ground container
+  if (!groundContainer) {
+    return (
+      <div className="w-1/2 p-3 flex flex-col h-full items-center justify-center" data-testid="ground-items-grid">
+        <div className="text-muted-foreground text-sm">
+          No ground container available
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
-      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center justify-between flex-shrink-0">
-        GROUND ITEMS
-        <span className="text-xs text-accent">6-wide grid</span>
-      </h3>
+      <div className="flex items-center justify-between mb-3 flex-shrink-0">
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          GROUND ITEMS
+          <span className="text-xs text-accent ml-2">
+            {groundContainer.width}x{groundContainer.height} grid
+          </span>
+        </h3>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleOrganize}
+            className="text-xs h-7"
+          >
+            Organize
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleQuickPickup('weapons')}
+            className="text-xs h-7"
+          >
+            Quick Pickup
+          </Button>
+        </div>
+      </div>
 
       <div className="flex-1 min-h-0">
         <UniversalGrid
-          containerId="ground"
-          width={6}
-          height={25}
-          gridType="scalable" // Explicitly use scalable for ground
+          containerId={groundContainer.id}
+          width={groundContainer.width}
+          height={groundContainer.height}
+          items={groundContainer.items}
+          grid={groundContainer.grid}
+          gridType="scalable"
           maxHeight="100%"
           maxWidth="100%"
           enableScroll={true}
           enableHorizontalScroll={true}
           onSlotClick={handleSlotClick}
+          onSlotDrop={handleSlotDrop}
           className="h-full"
         />
       </div>

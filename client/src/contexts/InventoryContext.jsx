@@ -104,6 +104,26 @@ export const InventoryProvider = ({ children }) => {
     return result;
   }, []);
 
+  const organizeGroundItems = useCallback(() => {
+    if (!inventoryRef.current) return false;
+    const result = inventoryRef.current.organizeGroundItems();
+    if (result) {
+      setInventoryVersion(prev => prev + 1);
+    }
+    return result;
+  }, []);
+
+  const quickPickupByCategory = useCallback((category) => {
+    if (!inventoryRef.current) {
+      return { success: false, reason: 'Inventory not initialized' };
+    }
+    const result = inventoryRef.current.quickPickupByCategory(category);
+    if (result.success) {
+      setInventoryVersion(prev => prev + 1);
+    }
+    return result;
+  }, []);
+
   const contextValue = useMemo(() => ({
     inventoryRef,
     inventoryVersion,
@@ -115,8 +135,10 @@ export const InventoryProvider = ({ children }) => {
     equipItem,
     unequipItem,
     moveItem,
-    dropItemToGround
-  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround]);
+    dropItemToGround,
+    organizeGroundItems,
+    quickPickupByCategory
+  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory]);
 
   return (
     <InventoryContext.Provider value={contextValue}>
