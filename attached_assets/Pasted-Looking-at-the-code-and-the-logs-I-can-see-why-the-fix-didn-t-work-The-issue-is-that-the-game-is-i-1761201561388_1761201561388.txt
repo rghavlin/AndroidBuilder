@@ -1,0 +1,47 @@
+Looking at the code and the logs, I can see why the fix didn't work. The issue is that the game is initializing automatically on page load, before the user even clicks "New Game".
+
+Root Cause Analysis
+The logs show:
+
+["[GameScreen] Provider composition order: PlayerProvider → CameraProvider → GameMapProvider → GameProvider"]
+["[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER..."]
+["[GameContext] ✅ Creating NEW GameInitializationManager..."]
+This happens immediately when the page loads, not when the user clicks "New Game". This means:
+
+First initialization happens automatically (not from user click)
+State becomes 'complete'
+User clicks "New Game"
+The isExplicitNewGame reset logic runs
+BUT then the idempotency guard at line check still blocks because there's a race condition - the state hasn't fully propagated back to 'idle' before the second guard check runs
+The Problem in the Code
+In GameContext.jsx, after resetting the state:
+
+if (isExplicitNewGame && (initializationState === 'complete' || initializationState === 'error')) {
+  console.log('[GameContext] Explicit new game requested - resetting initialization state');
+  setInitializationState('idle');
+  setIsGameReady(false);
+  setInitializationError(null);
+  setContextSyncPhase('idle');
+  // Small delay to let state update propagate
+  await new Promise(resolve => setTimeout(resolve, 50));
+}
+// Idempotency guard: prevent concurrent initialization
+if (initializationState !== 'idle') {  // ⚠️ STILL READS OLD STATE!
+  console.warn('[GameContext] Ignoring initializeGame call - already initializing. Current state:', initializationState);
+  return;
+}
+React state updates are asynchronous! Even after setInitializationState('idle'), the local initializationState variable still holds the old value 'complete'. The 50ms delay doesn't help because we're checking the closure variable, not the updated state.
+
+Additional Issue: Auto-Initialization
+Looking at GameScreen.tsx, there's no auto-initialization code visible, which means the game is initializing somewhere else automatically. The StartMenu is shown first, but initialization is happening in the background.
+
+The real issue is that GameContext creates the initialization manager immediately when it mounts, before the user interacts with anything. This is why initializationState is already 'complete' when "New Game" is clicked.
+
+Why This Happens
+The useEffect in GameContext.jsx that creates the GameInitializationManager runs as soon as the context mounts, which happens when GameScreen loads. The game doesn't wait for user input - it starts initializing immediately.
+
+The fix needs to:
+
+Prevent auto-initialization - don't create/start the initialization manager until the user clicks a button
+OR use a ref-based approach to check the actual current state instead of the closure variable
+The isExplicitNewGame parameter approach won't work because of React's asynchronous state updates and the closure capture issue.

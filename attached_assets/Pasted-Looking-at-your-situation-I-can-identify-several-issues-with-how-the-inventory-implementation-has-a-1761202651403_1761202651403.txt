@@ -1,0 +1,101 @@
+Looking at your situation, I can identify several issues with how the inventory implementation has affected the game initialization flow:
+
+Core Problems Identified
+1. Inventory Manager Creation Timing
+The inventory manager is being created in GameInitializationManager._executePreloading() before the user clicks "New Game". This violates the principle that initialization should only start when explicitly requested.
+
+From GameInitializationManager.js:
+
+async _executePreloading() {
+  // This runs during initialization, not on page load
+  const { InventoryManager } = await import('./inventory/InventoryManager.js');
+  const inventoryManager = new InventoryManager();
+  // ...
+}
+This is actually correct - the inventory manager is created during the initialization phase, not on page load.
+
+2. The Real Problem: Stale State Closure
+The pasted analysis is correct. The issue is in GameContext.jsx where initializeGame() reads initializationState from a closure, which becomes stale:
+
+const initializeGame = useCallback(async (...) => {
+  // This reads the OLD value from when the callback was created
+  if (initializationState !== 'idle') {
+    console.warn('[GameContext] Ignoring initializeGame call...');
+    return;
+  }
+  // ...
+}, []); // Empty deps = closure never updates
+After the first initialization completes, initializationState becomes 'complete', but subsequent calls to initializeGame() still read the stale captured value from the initial render.
+
+3. What's Wrong with the Inventory Plan (Scope Violation)
+Looking at InventoryPlan.md, Phase 5A states:
+
+"Create the InventoryManager instance in GameInitializationManager._executePreloading()"
+
+This is fine - it keeps inventory creation within the initialization flow, not affecting page load.
+
+However, the plan doesn't address:
+
+React state closure issues in the orchestration layer
+Idempotency guard implementation using refs instead of state
+Event listener cleanup between resets
+The inventory plan focuses on what to build but doesn't guard against React-specific pitfalls in the GameContext orchestration.
+
+Should You Follow the Pasted Fix Plan?
+YES, with one clarification: The pasted plan correctly identifies the problem and provides a solid solution. Here's why:
+
+✅ Correct Diagnosis
+Stale closure captures in async guards
+Need for ref-based state tracking
+Run ID pattern to ignore zombie events
+✅ Correct Solution Architecture
+Mirror state into refs for non-stale reads
+Explicit reset capability for "New Game" clicks
+Event filtering by run ID
+⚠️ Minor Addition Needed
+The plan suggests dispose() method on the manager, but your current GameInitializationManager uses removeAllListeners(). Use that instead.
+
+Recommendations
+1. Implement the Pasted Fix (High Priority)
+The ref-based guard pattern solves the immediate "New Game button doesn't work" issue.
+
+2. Update InventoryPlan.md (Medium Priority)
+Add a new section after Phase 5A:
+
+### 5A.1 — Context Orchestration Guardrails
+**React-Specific Pitfalls:**
+- Context state used in async callbacks must be mirrored to refs
+- Idempotency guards must read current state, not closure-captured state
+- Event listeners must filter by run ID to prevent zombie updates
+**Implementation:**
+- Add `initStateRef`, `runIdRef` to GameContext
+- Wrap manager event wiring in `wireManagerEvents(manager, runId)`
+- Guard all state updates with `if (evtRunId !== runIdRef.current) return`
+3. Add to UniversalGoals.md (Low Priority)
+Add a React-specific section:
+
+## 🔄 React State Management
+**Context Orchestration:**
+- Never read context state in async callbacks - use refs
+- Mirror critical state to refs for non-stale reads: `useEffect(() => { ref.current = state }, [state])`
+- Implement run IDs for multi-step async operations
+- Filter events by run ID to prevent zombie listener updates
+4. Verify No Other Scope Violations
+The inventory system itself is properly scoped - it:
+
+✅ Stays in pure JS (InventoryManager.js)
+✅ Only creates during initialization phase
+✅ Doesn't directly couple to other systems
+✅ Provides serialization
+The problem is in the React orchestration layer, not the inventory design.
+
+Summary
+What's wrong: React closure captures in GameContext.jsx create stale state reads that break idempotency guards.
+
+Is it an inventory problem? No - the inventory manager is properly scoped. The bug is in how GameContext orchestrates initialization.
+
+Should you use the pasted fix? Yes - it correctly solves the ref-based guard issue with minimal changes.
+
+Future prevention: Add orchestration guardrails to InventoryPlan.md and UniversalGoals.md so this pattern is documented for future phases.
+
+The inventory implementation itself hasn't violated scope - the React orchestration layer needs hardening against async state capture issues.
