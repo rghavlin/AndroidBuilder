@@ -1,0 +1,93 @@
+based on the current codebase.txt, all “non–in-game” tests are confined to the inventory area, and they’re wired in three places:
+
+client/src/game/inventory/__tests__/Container.test.js — a standalone test module that defines runContainerTests() and even assigns it to window.runContainerTests.
+
+client/src/game/inventory/index.js — a dev-only dynamic import that loads __tests__/Container.test.js and exposes window.runContainerTests (with a console log).
+
+client/src/components/Game/DevConsole.jsx — an “inventory test” command that calls window.runContainerTests() and prints results.
+
+There are no Jest/Vitest/Cypress/Playwright frameworks in the dump (no describe(), it(), jest, vitest, etc.). So removing this inventory harness is all it takes to “get rid of all other kinds of tests” and switch fully to the in-game console workflow.
+
+Minimal changes to remove external tests
+1) Stop importing the tests at all
+
+File: client/src/game/inventory/index.js
+Remove the dev-only block that imports ./__tests__/Container.test.js and writes window.runContainerTests:
+
+-// Import and expose tests for development
+-if (process.env.NODE_ENV === 'development') {
+-  // Import tests and immediately make them available
+-  import('./__tests__/Container.test.js')
+-    .then((module) => {
+-      if (module.runContainerTests && typeof window !== 'undefined') {
+-        // Force the function to be available globally
+-        Object.defineProperty(window, 'runContainerTests', {
+-          value: module.runContainerTests,
+-          writable: false,
+-          enumerable: true,
+-          configurable: false
+-        });
+-        console.log('[Inventory] Container tests loaded and runContainerTests() is now available');
+-      }
+-    })
+-    .catch(err => {
+-      console.warn('[Inventory] Failed to load container tests:', err);
+-    });
+-}
+
+
+Why: Eliminates the dynamic import that pulls test code into the runtime and removes the global test hook.
+
+2) Remove the test module
+
+Delete this file: client/src/game/inventory/__tests__/Container.test.js
+
+Why: It won’t be referenced anymore, and deleting it avoids accidental re-introduction.
+
+3) Remove the “inventory test” command from the dev console
+
+File: client/src/components/Game/DevConsole.jsx
+Delete the subcommand branch that checks window.runContainerTests and prints “Tests completed …”.
+
+-            case 'test':
+-              try {
+-                if (typeof window.runContainerTests === 'function') {
+-                  addToConsole('Running container tests...', 'info');
+-                  const results = window.runContainerTests();
+-                  // ... print pass/fail summary ...
+-                } else {
+-                  addToConsole('Container tests not available', 'error');
+-                }
+-              } catch (error) {
+-                addToConsole(`Test execution failed: ${error.message}`, 'error');
+-              }
+-              break;
+
+
+(Optional) Replace it with in-game sanity helpers (no dynamic imports, no new managers), e.g.:
+
+inventory sanity → check ground container exists, print counts
+
+inv.create, inv.equip, inv.move → the commands you’ll use going forward
+
+Nice-to-have cleanups (keeps everything “in-game”)
+
+In DevConsole.jsx, the demo branches currently do const manager = new InventoryManager();. Change those to reuse the real instance:
+
+-const manager = new InventoryManager();
++const manager = window.inventoryManager ?? managerFromContext;
+
+
+This avoids confusing “second manager” state during demos.
+
+Keep your future tests as in-game console commands (no import() at runtime), so they can’t trigger module re-execs or HMR.
+
+Acceptance checklist
+
+Searching the codebase shows no references to __tests__/Container.test.js or runContainerTests.
+
+The dev console no longer exposes or calls “inventory test”.
+
+All validation flows run through the in-game console commands you control (e.g., inv.status, inv.create, inv.equip, inv.move).
+
+Starting a new game and running console commands produces no extra dynamic imports and no new InventoryManager instances.
