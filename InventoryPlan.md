@@ -1,7 +1,7 @@
 # Inventory Plan (v0.3)
 
-**Project:** Zombie Road  
-**Date:** 2025‑10‑22  
+**Project:** Zombie Road
+**Date:** 2025‑10‑22
 **Status:** Phases **0–4 complete**. Phase **5 (Redo)** begins here with a safe, incremental approach.
 
 ---
@@ -61,11 +61,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 ```
 
-**Acceptance (console‑driven):**
-- `window.inventoryManager` exists and `getContainer('ground')` returns a grid snapshot.
-- Ground grid UI appears with **6×50** dimensions (no “no ground container available” message).
+**Acceptance (DevConsole‑driven):**
+- In-game DevConsole shows inventory manager is initialized (`inventory status` command).
+- Ground grid UI appears with **6×50** dimensions (no "no ground container available" message).
 - Resizing the window does **not** change slot pixel size across any inventory grid.
-- Only **one** `InventoryManager` instance exists (verify with console logs).
+- Only **one** `InventoryManager` instance exists (verify with game initialization logs).
 
 ---
 
@@ -81,7 +81,7 @@ if (process.env.NODE_ENV === 'development') {
 - No click logic yet (or just `console.debug`).
 
 **Acceptance:**
-- Equipping via console updates slot visuals (occupied vs empty).
+- Equipping via DevConsole updates slot visuals (occupied vs empty).
 - Tooltip displays item name on hover.
 - No changes to fonts, emojis/icons, or layout dimensions.
 - All seven slots (`backpack`, `upper_body`, `lower_body`, `melee`, `handgun`, `long_gun`, `flashlight`) display correctly.
@@ -109,7 +109,7 @@ window.inventoryManager.equipItem(bp, 'backpack');
 - Ensure grids read slot size from `GridSizeContext.fixedSlotSize`.
 
 **Acceptance:**
-- Equipping a backpack via console displays the container grid.
+- Equipping a backpack via DevConsole displays the container grid.
 - Unequipping shows “No backpack equipped”.
 - Grid slot pixel size matches the ground grid exactly.
 - No layout shifts or CSS changes.
@@ -224,7 +224,7 @@ Each change is deliberately small, easy to review, and easy to revert.
 |---|---|---|
 | Ground grid missing | `window.inventoryManager` undefined; provider still constructs its own manager; provider mounted before GameContext initializes | Unify creation in preload; pass via callback; mount provider after init with provided instance |
 | Multiple managers detected | Duplicate initialization paths | Audit init path; ensure **one** creation; log address/identity in dev |
-| Backpack grid not showing | No equipped backpack; `getEquippedBackpackContainer()` returns `null` | Equip via console; verify equipment state; check slot mapping |
+| Backpack grid not showing | No equipped backpack; `getEquippedBackpackContainer()` returns `null` | Equip via DevConsole; verify equipment state; check slot mapping |
 | Nested panel opens for backpacks | `canOpenContainer` not enforcing rule | Ensure it returns **false** for backpacks unless equipped |
 | Drag drops do nothing | Drop handler not calling `moveItem`; missing `dataTransfer` payload | Wire handlers in both grids; set `itemId`/`fromContainerId` on drag start |
 | Slot size inconsistent | Component not using `GridSizeContext.fixedSlotSize` | Replace local calc with context value across all grids |
@@ -249,4 +249,3 @@ window.inventoryManager.equipItem(bp, 'backpack');
 ---
 
 **End of plan.**
-

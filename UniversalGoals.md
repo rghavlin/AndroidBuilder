@@ -59,7 +59,7 @@ Before Writing Code - Ask Yourself:
 
 "Will this work at 1366x768 and 1920x1080?"
 
-"How will I test this works before integrating with React?"
+"How will I test this using the in-game DevConsole?"
 
 Red Flags - Stop and Ask:
 
@@ -73,7 +73,7 @@ Making assumptions about UI layout or interaction patterns
 
 Implementing complex features in a single large change
 
-Skipping console/demo testing for non-UI code
+Skipping DevConsole testing for game systems (use `inventory test`, `inventory demo`, etc.)
 
 Code Style Consistency:
 
