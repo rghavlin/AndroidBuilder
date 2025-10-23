@@ -44,11 +44,11 @@ export const InventoryProvider = ({ children, manager }) => {
   // Dev-console bridge (Phase 5A)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && inventoryRef.current) {
-      (window as any).inventoryManager = inventoryRef.current;
-      (window as any).inv = {
-        getContainer: (id: string) => inventoryRef.current?.getContainer(id),
-        equipItem: (item: any, slot: string) => inventoryRef.current?.equipItem(item, slot),
-        moveItem: (itemId: string, from: string, to: string, x: number, y: number) =>
+      window.inventoryManager = inventoryRef.current;
+      window.inv = {
+        getContainer: (id) => inventoryRef.current?.getContainer(id),
+        equipItem: (item, slot) => inventoryRef.current?.equipItem(item, slot),
+        moveItem: (itemId, from, to, x, y) =>
           inventoryRef.current?.moveItem(itemId, from, to, x, y),
       };
       console.log('[InventoryContext] Dev console bridge established: window.inventoryManager, window.inv');
