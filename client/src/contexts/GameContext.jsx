@@ -585,13 +585,9 @@ const GameContextInner = ({ children }) => {
 
   return (
     <GameContext.Provider value={contextValue}>
-      {inventoryManager ? (
-        <InventoryProvider manager={inventoryManager}>
-          {children}
-        </InventoryProvider>
-      ) : (
-        children
-      )}
+      <InventoryProvider manager={inventoryManager}>
+        {children}
+      </InventoryProvider>
     </GameContext.Provider>
   );
 };
