@@ -17,8 +17,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     setIsLoading(true);
     console.log('[StartMenu] Initializing new game...');
     
-    // Initialize the game first
-    const { initializeGame } = useGame();
+    // Initialize the game first (using initializeGame from top-level useGame())
     await initializeGame(false); // false = no post-load
     
     console.log('[StartMenu] Game initialized, starting...');
