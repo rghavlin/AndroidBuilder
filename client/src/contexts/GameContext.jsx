@@ -64,6 +64,12 @@ const GameContextInner = ({ children }) => {
   // State machine state
   const [initializationState, setInitializationState] = useState('idle');
   const [initializationError, setInitializationError] = useState(null);
+  
+  // Mirror state to refs for non-stale reads in async callbacks (React closure fix)
+  const initStateRef = useRef('idle');
+  useEffect(() => {
+    initStateRef.current = initializationState;
+  }, [initializationState]);
 
   // Context synchronization state
   const [contextSyncPhase, setContextSyncPhase] = useState('idle'); // 'idle', 'updating', 'ready'
@@ -200,7 +206,7 @@ const GameContextInner = ({ children }) => {
     }
 
     // Allow explicit new game to reset from 'complete' or 'error' states
-    if (isExplicitNewGame && (initializationState === 'complete' || initializationState === 'error')) {
+    if (isExplicitNewGame && (initStateRef.current === 'complete' || initStateRef.current === 'error')) {
       console.log('[GameContext] Explicit new game requested - resetting initialization state');
       setInitializationState('idle');
       setIsGameReady(false);
@@ -210,9 +216,9 @@ const GameContextInner = ({ children }) => {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
 
-    // Idempotency guard: prevent concurrent initialization
-    if (initializationState !== 'idle') {
-      console.warn('[GameContext] Ignoring initializeGame call - already initializing. Current state:', initializationState);
+    // Idempotency guard: prevent concurrent initialization (using ref for non-stale read)
+    if (initStateRef.current !== 'idle') {
+      console.warn('[GameContext] Ignoring initializeGame call - already initializing. Current state:', initStateRef.current);
       return;
     }
 

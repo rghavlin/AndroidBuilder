@@ -49,6 +49,34 @@ CSS best practices - modern techniques, avoid fixed pixels where possible
 
 Mouse-driven interface - left-click primary, right-click context menus
 
+🔄 React State Management
+
+**Context Orchestration:**
+
+Never read context state in async callbacks - use refs for non-stale reads
+
+Mirror critical state to refs: `useEffect(() => { ref.current = state }, [state])`
+
+Implement run IDs for multi-step async operations when needed
+
+Guard idempotency checks with refs, not closure-captured state
+
+Event listeners from managers should filter by run ID to prevent zombie updates
+
+**Example Pattern:**
+```javascript
+const [initState, setInitState] = useState('idle');
+const initStateRef = useRef('idle');
+useEffect(() => { initStateRef.current = initState }, [initState]);
+
+const startAsync = useCallback(async () => {
+  // ❌ BAD: if (initState !== 'idle') return; // Reads stale closure value
+  // ✅ GOOD: if (initStateRef.current !== 'idle') return; // Reads current value
+  if (initStateRef.current !== 'idle') return;
+  // ... async operations
+}, []); // Empty deps OK because ref always has current value
+```
+
 Before Writing Code - Ask Yourself:
 
 "Am I implementing exactly what was asked, nothing more?"
