@@ -21,18 +21,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { isInitialized, initializationError, initializeGame } = useGame();
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
 
-  // Initialize game when component mounts
-  useEffect(() => {
-    if (!isInitialized && !initializationError) {
-      // Small delay to ensure provider is ready after hot reloads
-      const timer = setTimeout(() => {
-        console.log('[MapInterface] Initializing game...');
-        initializeGame();
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isInitialized, initializationError, initializeGame]);
+  // Initialization is now controlled by StartMenu - no auto-init here
 
   // Log tile interactions for debugging
   useEffect(() => {

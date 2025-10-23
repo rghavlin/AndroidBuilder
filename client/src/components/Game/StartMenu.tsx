@@ -10,14 +10,22 @@ interface StartMenuProps {
 
 export default function StartMenu({ onStartGame }: StartMenuProps) {
   // Phase 2: Only use GameContext for game lifecycle methods
-  const { loadGame } = useGame();
+  const { initializeGame, loadGame } = useGame();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleNewGame = () => {
-    console.log('[StartMenu] Starting new game...');
+  const handleNewGame = async () => {
+    setIsLoading(true);
+    console.log('[StartMenu] Initializing new game...');
+    
+    // Initialize the game first
+    const { initializeGame } = useGame();
+    await initializeGame(false); // false = no post-load
+    
+    console.log('[StartMenu] Game initialized, starting...');
     if (onStartGame) {
       onStartGame(false); // Indicate this is a new game
     }
+    setIsLoading(false);
   };
 
   const handleLoadGame = async () => {
@@ -44,7 +52,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
             data-testid="button-new-game"
           >
-            New Game
+            {isLoading ? 'Initializing...' : 'New Game'}
           </Button>
           
           <Button
