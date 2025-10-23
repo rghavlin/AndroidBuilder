@@ -61,7 +61,6 @@ export class Camera {
         viewportWidth: this.viewportWidth,
         viewportHeight: this.viewportHeight
       });
-      console.log('[Camera] Zoom set to:', this.zoomLevel, 'viewport now:', this.viewportWidth, 'x', this.viewportHeight);
     }
   }
 
