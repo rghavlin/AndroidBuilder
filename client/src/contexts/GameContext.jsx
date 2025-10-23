@@ -198,6 +198,13 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] GameInitializationManager not available');
       return;
     }
+
+    // Idempotency guard: ignore if not in idle state
+    if (initializationState !== 'idle') {
+      console.warn('[GameContext] Ignoring initializeGame call - already initializing or complete. Current state:', initializationState);
+      return;
+    }
+
     console.log('[GameContext] Starting game initialization via state machine...');
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
