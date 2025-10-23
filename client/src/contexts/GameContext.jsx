@@ -193,15 +193,26 @@ const GameContextInner = ({ children }) => {
 
 
 
-  const initializeGame = useCallback(async (loadGameAfterInit = false, slotName = 'autosave') => {
+  const initializeGame = useCallback(async (loadGameAfterInit = false, slotName = 'autosave', isExplicitNewGame = false) => {
     if (!initManagerRef.current) {
       console.error('[GameContext] GameInitializationManager not available');
       return;
     }
 
-    // Idempotency guard: ignore if not in idle state
+    // Allow explicit new game to reset from 'complete' or 'error' states
+    if (isExplicitNewGame && (initializationState === 'complete' || initializationState === 'error')) {
+      console.log('[GameContext] Explicit new game requested - resetting initialization state');
+      setInitializationState('idle');
+      setIsGameReady(false);
+      setInitializationError(null);
+      setContextSyncPhase('idle');
+      // Small delay to let state update propagate
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    // Idempotency guard: prevent concurrent initialization
     if (initializationState !== 'idle') {
-      console.warn('[GameContext] Ignoring initializeGame call - already initializing or complete. Current state:', initializationState);
+      console.warn('[GameContext] Ignoring initializeGame call - already initializing. Current state:', initializationState);
       return;
     }
 

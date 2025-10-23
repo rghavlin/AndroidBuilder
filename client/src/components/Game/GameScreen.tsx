@@ -68,7 +68,7 @@ function GameScreenContent() {
     try {
       if (mode === 'load') {
         console.log('[GameScreenContent] Starting new game with post-initialization loading...');
-        await initializeGame(true, 'autosave');
+        await initializeGame(true, 'autosave', true); // Explicit new game
         setShowStartMenu(false);
         return;
       }
@@ -83,7 +83,7 @@ function GameScreenContent() {
       // Only initialize a new game if no game was loaded and game is not already ready
       if (!isGameReady && !initializationError) {
         console.log('[GameScreenContent] Starting new game - initializing...');
-        await initializeGame();
+        await initializeGame(false, 'autosave', true); // Explicit new game
         setShowStartMenu(false); // Hide menu AFTER init starts
       } else if (isGameReady) {
         console.log('[GameScreenContent] Game already ready, proceeding to game view');
