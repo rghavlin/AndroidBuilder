@@ -40,7 +40,7 @@ Each subphase is a **single PR** with a short acceptance checklist and no visual
 **Goal:** The **same** `InventoryManager` instance is used by initialization, context, and UI.
 
 **Implementation (tiny and safe):**
-1. **Create, don't duplicate:** Create the `InventoryManager` instance in `GameInitializationManager._executePreloading()` (next to `WorldManager`). Store it in `this.preloadData` for later phases.
+1. **Create, don’t duplicate:** Create the `InventoryManager` instance in `GameInitializationManager._executePreloading()` (next to `WorldManager`). Store it in `this.preloadData` for later phases.
 2. **Pass to GameContext:** Modify `GameInitializationManager.startInitialization()` to accept an optional callback. After `COMPLETE`, call the callback with `this.gameObjects`, which now includes `inventoryManager`.
 3. **Plumb into InventoryProvider:**
    - Change `InventoryProvider` to accept a **required** `manager` prop.
@@ -66,54 +66,6 @@ if (process.env.NODE_ENV === 'development') {
 - Ground grid UI appears with **6×50** dimensions (no "no ground container available" message).
 - Resizing the window does **not** change slot pixel size across any inventory grid.
 - Only **one** `InventoryManager` instance exists (verify with game initialization logs).
-
----
-
-### 5A.1 — React Context Orchestration Guardrails
-
-**React-Specific Pitfalls to Avoid:**
-
-- Context state used in async callbacks create **stale closures** - the callback captures the state value at creation time, not current time
-- Idempotency guards that read state directly will fail after the first run (state changes, but closure still reads old value)
-- Event listeners wired during initialization can fire after a reset, causing zombie updates
-
-**Required Implementation Pattern:**
-
-1. **Mirror critical state to refs** for non-stale reads:
-```javascript
-const [initState, setInitState] = useState('idle');
-const initStateRef = useRef('idle');
-useEffect(() => { initStateRef.current = initState }, [initState]);
-```
-
-2. **Use refs in idempotency guards**, not state:
-```javascript
-// ❌ BAD: if (initState !== 'idle') return;
-// ✅ GOOD: if (initStateRef.current !== 'idle') return;
-```
-
-3. **Optional run ID pattern** for complex multi-step operations (if needed later):
-```javascript
-const runIdRef = useRef(0);
-const startOperation = () => {
-  const currentRunId = ++runIdRef.current;
-  manager.on('event', (data) => {
-    if (data.runId !== currentRunId) return; // Ignore zombie events
-    // ... handle event
-  });
-};
-```
-
-**Why This Matters:**
-
-The "New Game" button regression was caused by `initializeGame()` reading a stale `initializationState` value from its closure. After the first initialization completed, `initializationState` became `'complete'`, but the callback still saw `'idle'` from when it was created. Using `initStateRef.current` reads the **actual current value**.
-
-This pattern is documented in **UniversalGoals.md** under "React State Management" and must be applied to any context method that:
-- Has async operations
-- Needs idempotency guards
-- Wires/unwires event listeners
-- Can be called multiple times with state changes in between
-</new_str>
 
 ---
 

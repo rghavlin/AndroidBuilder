@@ -64,12 +64,6 @@ const GameContextInner = ({ children }) => {
   // State machine state
   const [initializationState, setInitializationState] = useState('idle');
   const [initializationError, setInitializationError] = useState(null);
-  
-  // Mirror state to refs for non-stale reads in async callbacks (React closure fix)
-  const initStateRef = useRef('idle');
-  useEffect(() => {
-    initStateRef.current = initializationState;
-  }, [initializationState]);
 
   // Context synchronization state
   const [contextSyncPhase, setContextSyncPhase] = useState('idle'); // 'idle', 'updating', 'ready'
@@ -199,29 +193,11 @@ const GameContextInner = ({ children }) => {
 
 
 
-  const initializeGame = useCallback(async (loadGameAfterInit = false, slotName = 'autosave', isExplicitNewGame = false) => {
+  const initializeGame = useCallback(async (loadGameAfterInit = false, slotName = 'autosave') => {
     if (!initManagerRef.current) {
       console.error('[GameContext] GameInitializationManager not available');
       return;
     }
-
-    // Allow explicit new game to reset from 'complete' or 'error' states
-    if (isExplicitNewGame && (initStateRef.current === 'complete' || initStateRef.current === 'error')) {
-      console.log('[GameContext] Explicit new game requested - resetting initialization state');
-      setInitializationState('idle');
-      setIsGameReady(false);
-      setInitializationError(null);
-      setContextSyncPhase('idle');
-      // Small delay to let state update propagate
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
-
-    // Idempotency guard: prevent concurrent initialization (using ref for non-stale read)
-    if (initStateRef.current !== 'idle') {
-      console.warn('[GameContext] Ignoring initializeGame call - already initializing. Current state:', initStateRef.current);
-      return;
-    }
-
     console.log('[GameContext] Starting game initialization via state machine...');
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization

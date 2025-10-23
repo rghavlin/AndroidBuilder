@@ -19,7 +19,6 @@ function GameScreenContent() {
   // - GameMapContext for map/world data  
   // - GameContext only for initialization lifecycle
   const [showStartMenu, setShowStartMenu] = useState(true);
-  const [isInitializing, setIsInitializing] = useState(false);
   const [gameState, setGameState] = useState({
     turn: 15,
     playerName: "Alex Chen",
@@ -57,40 +56,26 @@ function GameScreenContent() {
   } = useGame();
 
   const handleStartGame = async (mode?: boolean | string) => {
-    // Prevent re-entry if already initializing or game is ready
-    if (isInitializing || isGameReady || initializationError) {
-      console.log('[GameScreenContent] Ignoring start game - already initializing or ready');
+    setShowStartMenu(false);
+
+    if (mode === 'load') {
+      console.log('[GameScreenContent] Starting new game with post-initialization loading...');
+      await initializeGame(true, 'autosave');
       return;
     }
 
-    setIsInitializing(true);
+    if (mode === true) {
+      console.log('[GameScreenContent] Game was loaded from save, proceeding to game view');
+      // Don't initialize - game is already loaded
+      return;
+    }
 
-    try {
-      if (mode === 'load') {
-        console.log('[GameScreenContent] Starting new game with post-initialization loading...');
-        await initializeGame(true, 'autosave', true); // Explicit new game
-        setShowStartMenu(false);
-        return;
-      }
-
-      if (mode === true) {
-        console.log('[GameScreenContent] Game was loaded from save, proceeding to game view');
-        setShowStartMenu(false);
-        // Don't initialize - game is already loaded
-        return;
-      }
-
-      // Only initialize a new game if no game was loaded and game is not already ready
-      if (!isGameReady && !initializationError) {
-        console.log('[GameScreenContent] Starting new game - initializing...');
-        await initializeGame(false, 'autosave', true); // Explicit new game
-        setShowStartMenu(false); // Hide menu AFTER init starts
-      } else if (isGameReady) {
-        console.log('[GameScreenContent] Game already ready, proceeding to game view');
-        setShowStartMenu(false);
-      }
-    } finally {
-      setIsInitializing(false);
+    // Only initialize a new game if no game was loaded and game is not already ready
+    if (!isGameReady && !initializationError) {
+      console.log('[GameScreenContent] Starting new game - initializing...');
+      await initializeGame();
+    } else if (isGameReady) {
+      console.log('[GameScreenContent] Game already ready, proceeding to game view');
     }
   };
 
