@@ -1,7 +1,10 @@
 import { cn } from "@/lib/utils";
 import EquipmentSlot from "./EquipmentSlot";
+import { useInventory } from "@/contexts/InventoryContext";
 
 export default function EquipmentSlots() {
+  const { inventoryRef, inventoryVersion } = useInventory();
+
   // Match exact slots from InventoryManager.js
   const equipmentSlots = [
     { id: 'backpack', name: 'Backpack', icon: '🎒' },
@@ -13,21 +16,33 @@ export default function EquipmentSlots() {
     { id: 'flashlight', name: 'Flashlight', icon: '🔦' },
   ];
 
+  // Read equipped items from inventory manager
+  const getEquippedItem = (slotId: string) => {
+    if (!inventoryRef.current) return null;
+    return inventoryRef.current.equipment[slotId] || null;
+  };
+
+  const handleSlotClick = (slotId: string) => {
+    console.debug(`Equipment slot ${slotId} clicked`);
+    // No interaction yet in Phase 5B
+  };
+
   return (
     <div className="border-b border-border p-3" data-testid="equipment-slots">
       <h2 className="text-sm font-semibold text-muted-foreground mb-3">EQUIPMENT</h2>
       <div className="flex gap-1.5 justify-start flex-nowrap overflow-x-auto">
-        {equipmentSlots.map((slot) => (
-          <div
-            key={slot.id}
-            className="w-12 h-12 flex-shrink-0 bg-secondary border-2 border-border rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-accent transition-colors"
-            data-testid={`equipment-slot-${slot.id}`}
-            title={slot.name}
-          >
-            <span className="text-base">{slot.icon}</span>
-            <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">{slot.name}</span>
-          </div>
-        ))}
+        {equipmentSlots.map((slot) => {
+          const equippedItem = getEquippedItem(slot.id);
+          return (
+            <EquipmentSlot
+              key={slot.id}
+              slotId={slot.id}
+              item={equippedItem}
+              isEquipped={!!equippedItem}
+              onClick={() => handleSlotClick(slot.id)}
+            />
+          );
+        })}
       </div>
     </div>
   );
