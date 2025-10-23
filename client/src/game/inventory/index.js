@@ -11,7 +11,7 @@ export { GroundManager } from './GroundManager.js';
 export { ItemDefs, createItemFromDef } from './ItemDefs.js';
 export * from './traits.js';
 
-// Make classes available globally in development for tests and demos
+// Make classes available globally in development for demos
 if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   import('./Item.js').then(({ Item }) => {
     window.Item = Item;
@@ -22,28 +22,6 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   import('./InventoryManager.js').then(({ InventoryManager }) => {
     window.InventoryManager = InventoryManager;
   });
-}
-
-// Import and expose tests for development
-if (process.env.NODE_ENV === 'development') {
-  // Import tests and immediately make them available
-  import('./__tests__/Container.test.js')
-    .then((module) => {
-      if (module.runContainerTests && typeof window !== 'undefined') {
-        window.runContainerTests = module.runContainerTests;
-        // Force the function to be available globally
-        Object.defineProperty(window, 'runContainerTests', {
-          value: module.runContainerTests,
-          writable: false,
-          enumerable: true,
-          configurable: false
-        });
-        console.log('[Inventory] Container tests loaded and runContainerTests() is now available');
-      }
-    })
-    .catch(err => {
-      console.warn('[Inventory] Failed to load container tests:', err);
-    });
 }
 
 // Enhanced item templates with equipment and container properties
