@@ -651,30 +651,10 @@ const terrainColors = {
 
 
 
-  // Debug logging to identify the issue
   const gameMap = gameMapRef.current;
   const camera = cameraRef.current;
 
-  console.log('[MapCanvas] Render check:', {
-    isInitialized,
-    gameMapExists: !!gameMap,
-    cameraExists: !!camera,
-    gameMapType: typeof gameMap,
-    cameraType: typeof camera,
-    gameMapWidth: gameMap?.width,
-    gameMapHeight: gameMap?.height,
-    cameraX: camera?.x,
-    cameraY: camera?.y,
-    gameMapValue: gameMap,
-    cameraValue: camera,
-    gameMapIsNull: gameMap === null,
-    gameMapIsUndefined: gameMap === undefined,
-    cameraIsNull: camera === null,
-    cameraIsUndefined: camera === undefined
-  });
-
   if (!isInitialized) {
-    console.log('[MapCanvas] Not initialized yet');
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
         <p className="text-sm">Initializing map canvas...</p>
@@ -683,7 +663,6 @@ const terrainColors = {
   }
 
   if (!gameMap || !camera) {
-    console.log('[MapCanvas] Missing components:', { gameMap: !!gameMap, camera: !!camera });
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
         <p className="text-sm">Loading game components...</p>

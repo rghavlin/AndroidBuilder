@@ -115,11 +115,6 @@ export class GameMap {
       this.entityMap.set(entity.id, entity);
       tile.addEntity(entity);
 
-      console.log(`[GameMap] ✅ Entity added: ${entity.id} (${entity.type}) at (${x}, ${y})`);
-      if (entity.type === 'player') {
-        console.log(`[GameMap] 🎮 PLAYER ADDED TO MAP - Total players now: ${this.getEntitiesByType('player').length}`);
-      }
-
       this.emit('entityAdded', {
         entity: { id: entity.id, type: entity.type },
         position: { x, y }
@@ -163,18 +158,14 @@ export class GameMap {
       // Store old position for event
       const oldPosition = { x: entity.x, y: entity.y };
 
-      console.log(`[GameMap] Moving entity ${entityId} from (${oldPosition.x}, ${oldPosition.y}) to (${newX}, ${newY})`);
-
       // Skip movement if already at target position
       if (oldPosition.x === newX && oldPosition.y === newY) {
-        console.log(`[GameMap] Entity ${entityId} already at target position (${newX}, ${newY}), skipping move`);
         return true;
       }
 
       // Remove from old tile FIRST (while entity still has old coordinates)
       const oldTile = this.getTile(entity.x, entity.y);
       if (oldTile) {
-        console.log(`[GameMap] Removing entity ${entityId} from old tile (${oldTile.x}, ${oldTile.y})`);
         const removedEntity = oldTile.removeEntity(entityId);
         if (!removedEntity) {
           console.error(`[GameMap] Failed to remove entity ${entityId} from old tile`);
@@ -189,7 +180,6 @@ export class GameMap {
       entity.y = newY;
 
       // Finally add to new tile
-      console.log(`[GameMap] Adding entity ${entityId} to new tile (${newX}, ${newY})`);
       newTile.addEntity(entity);
 
       // Verify the move was successful
@@ -206,14 +196,7 @@ export class GameMap {
         newPosition: { x: newX, y: newY }
       });
 
-      console.log(`[GameMap] Entity ${entityId} movement completed successfully`);
       return true;
-    } else {
-      console.warn(`[GameMap] Movement failed for entity ${entityId}:`, {
-        entityExists: !!entity,
-        newTileExists: !!newTile,
-        newTileWalkable: newTile ? newTile.isWalkable() : false
-      });
     }
     return false;
   }
