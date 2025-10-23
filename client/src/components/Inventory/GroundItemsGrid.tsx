@@ -58,6 +58,14 @@ export default function GroundItemsGrid() {
           <Button 
             variant="outline" 
             size="sm"
+            onClick={handleOrganize}
+            className="text-xs h-7"
+          >
+            Organize
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
             onClick={() => handleQuickPickup('weapons')}
             className="text-xs h-7"
           >

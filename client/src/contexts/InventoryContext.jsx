@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useRef, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useRef, useState, useCallback, useMemo } from 'react';
 import { InventoryManager } from '../game/inventory/InventoryManager.js';
 
 const InventoryContext = createContext();
@@ -27,33 +27,15 @@ export const useInventory = () => {
   return context;
 };
 
-export const InventoryProvider = ({ children, manager }) => {
+export const InventoryProvider = ({ children }) => {
   const inventoryRef = useRef(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
 
-  // Phase 5A: Accept external manager, never construct internally
-  if (!inventoryRef.current && manager) {
-    inventoryRef.current = manager;
-    console.log('[InventoryContext] InventoryManager received from provider props');
+  // Initialize inventory manager
+  if (!inventoryRef.current) {
+    inventoryRef.current = new InventoryManager();
+    console.log('[InventoryContext] InventoryManager initialized');
   }
-
-  if (!manager) {
-    console.error('[InventoryContext] No manager prop provided - InventoryProvider requires a manager!');
-  }
-
-  // Dev-console bridge (Phase 5A)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && inventoryRef.current) {
-      window.inventoryManager = inventoryRef.current;
-      window.inv = {
-        getContainer: (id) => inventoryRef.current?.getContainer(id),
-        equipItem: (item, slot) => inventoryRef.current?.equipItem(item, slot),
-        moveItem: (itemId, from, to, x, y) =>
-          inventoryRef.current?.moveItem(itemId, from, to, x, y),
-      };
-      console.log('[InventoryContext] Dev console bridge established: window.inventoryManager, window.inv');
-    }
-  }, []);
 
   const setInventory = useCallback((inventory) => {
     inventoryRef.current = inventory;

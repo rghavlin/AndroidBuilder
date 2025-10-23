@@ -67,8 +67,11 @@ export const GameMapProvider = ({ children }) => {
   // Check path for zombie visibility changes during player movement
   const checkPathForZombieVisibility = useCallback((path, player) => {
     if (!gameMapRef.current || !player || !path || path.length === 0) {
+      console.log('[GameMapContext] Invalid parameters for zombie visibility check');
       return;
     }
+
+    console.log(`[GameMapContext] Checking ${path.length} tiles in path for zombie visibility changes`);
 
     if (zombieTrackerRef.current) {
       const zombies = gameMapRef.current.getEntitiesByType('zombie');
@@ -102,6 +105,7 @@ export const GameMapProvider = ({ children }) => {
           } else if (zombieData.wasVisible && !canStillSeePlayer) {
             // Zombie lost sight - set LastSeen position
             if (zombieData.lastVisiblePosition) {
+              console.log(`[GameMapContext] Zombie ${zombie.id} lost sight of player at path step ${i}, setting LastSeen to (${zombieData.lastVisiblePosition.x}, ${zombieData.lastVisiblePosition.y})`);
               zombie.setTargetSighted(zombieData.lastVisiblePosition.x, zombieData.lastVisiblePosition.y);
             }
             zombieData.wasVisible = false;
@@ -109,22 +113,34 @@ export const GameMapProvider = ({ children }) => {
         });
       }
     }
+
+    console.log(`[GameMapContext] Path visibility check complete for ${path.length} tiles`);
   }, []);
 
   // Handle tile click for movement
   const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement) => {
     if (!gameMapRef.current || !player) {
+      console.warn('[GameMapContext] Cannot handle tile click - game map or player not available');
       return;
     }
 
-    if (!isPlayerTurn || isAutosaving || isMoving) {
+    if (!isPlayerTurn || isAutosaving) {
+      console.log('[GameMapContext] Not player turn or autosaving, ignoring click');
+      return;
+    }
+
+    if (isMoving) {
+      console.log('[GameMapContext] Movement already in progress, ignoring click');
       return;
     }
 
     try {
       const currentPlayerPosition = { x: player.x, y: player.y };
+      console.log(`[GameMapContext] Tile clicked at coordinates: (${x}, ${y}), Player currently at: (${currentPlayerPosition.x}, ${currentPlayerPosition.y})`);
+
       const targetTile = gameMapRef.current.getTile(x, y);
       if (!targetTile) {
+        console.log('[GameMapContext] Target tile does not exist');
         return;
       }
 
@@ -136,6 +152,7 @@ export const GameMapProvider = ({ children }) => {
       };
 
       if (!Pathfinding.isTileWalkable(targetTile, entityFilter)) {
+        console.log('[GameMapContext] Target tile is not walkable');
         return;
       }
 
@@ -148,17 +165,19 @@ export const GameMapProvider = ({ children }) => {
         {
           allowDiagonal: true,
           entityFilter: entityFilter,
-          debug: false
+          debug: true
         }
       );
 
       if (path.length === 0) {
+        console.log('[GameMapContext] No path found to target location');
         return;
       }
 
       const movementCost = Pathfinding.calculateMovementCost(path);
 
       if (movementCost > player.ap) {
+        console.log('[GameMapContext] Insufficient AP for movement:', { cost: movementCost, available: player.ap });
         return;
       }
 
@@ -176,10 +195,13 @@ export const GameMapProvider = ({ children }) => {
           gameMapRef.current
         );
         if (transitionInfo) {
-          console.log('[GameMapContext] Map transition detected:', transitionInfo.direction, 'to', transitionInfo.nextMapId);
+          console.log('[GameMapContext] Transition point detected:', transitionInfo);
           setMapTransition(transitionInfo);
         }
       }
+
+      // Update last tile click
+      // setLastTileClick({ x, y, timestamp: Date.now() });
 
     } catch (error) {
       console.error('[GameMapContext] Error handling tile click:', error);

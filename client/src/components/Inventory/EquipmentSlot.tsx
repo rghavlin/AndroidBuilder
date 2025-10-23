@@ -1,61 +1,72 @@
-
 import { cn } from "@/lib/utils";
+import { useInventory } from "@/contexts/InventoryContext";
 
 interface EquipmentSlotProps {
-  slotId: string;
-  item?: any;
-  isEquipped?: boolean;
-  onClick?: () => void;
+  slot: string;
+  label: string;
+  item?: any | null;
   className?: string;
 }
 
-// Slot display names and default icons
-const SLOT_INFO: Record<string, { name: string; icon: string }> = {
-  backpack: { name: 'Backpack', icon: '🎒' },
-  upper_body: { name: 'Upper Body', icon: '👕' },
-  lower_body: { name: 'Lower Body', icon: '👖' },
-  melee: { name: 'Melee', icon: '🔪' },
-  handgun: { name: 'Handgun', icon: '🔫' },
-  long_gun: { name: 'Long Gun', icon: '🔫' },
-  flashlight: { name: 'Flashlight', icon: '🔦' },
-};
-
 export default function EquipmentSlot({
-  slotId,
-  item,
-  isEquipped = false,
-  onClick,
-  className
+  slot,
+  label,
+  item = null,
+  className,
 }: EquipmentSlotProps) {
-  const slotInfo = SLOT_INFO[slotId] || { name: slotId, icon: '?' };
-  
-  // Build tooltip text
-  const tooltipText = item ? item.name : slotInfo.name;
+  const { unequipItem } = useInventory();
+  const isEmpty = !item;
+
+  const handleRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (item) {
+      const result = unequipItem(slot);
+      if (result.success) {
+        console.log(`Unequipped ${item.name} from ${slot}, placed in ${result.placedIn}`);
+      } else {
+        console.warn(`Failed to unequip from ${slot}:`, result.reason);
+      }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    // TODO: Implement drag-drop equip in next iteration
+    console.log(`Item dropped on ${slot} slot`);
+  };
 
   return (
     <div
       className={cn(
-        "w-12 h-12 bg-secondary border-2 border-border rounded-md",
-        "flex flex-col items-center justify-center cursor-pointer",
-        "hover:border-accent transition-colors",
-        isEquipped && "border-accent bg-accent/10",
+        "flex items-center justify-center",
+        "border-2 rounded",
+        isEmpty
+          ? "border-dashed border-muted-foreground/30 bg-muted/20"
+          : "border-accent bg-accent/10",
+        "transition-colors hover:border-accent/50",
+        "cursor-pointer",
         className
       )}
-      onClick={onClick}
-      data-testid={`equipment-slot-${slotId}`}
-      title={tooltipText}
+      data-testid={`equipment-slot-${slot}`}
+      title={isEmpty ? label : `${item.name} (right-click to unequip)`}
+      onContextMenu={handleRightClick}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
-      {item && (
-        <span className="text-base">
-          {slotInfo.icon}
+      {isEmpty ? (
+        <span className="text-xs text-muted-foreground select-none">
+          {label}
+        </span>
+      ) : (
+        <span className="text-xs font-semibold text-accent select-none">
+          {item.name.substring(0, 3).toUpperCase()}
         </span>
       )}
-      {!item && (
-        <span className="text-base">{slotInfo.icon}</span>
-      )}
-      <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
-        {slotInfo.name}
-      </span>
     </div>
   );
 }

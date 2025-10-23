@@ -125,11 +125,6 @@ class GameInitializationManager extends EventEmitter {
       console.error('[GameInitializationManager] ❌ Failed to load item catalog:', error);
     }
 
-    // Create InventoryManager (Phase 5A: single source of truth)
-    const { InventoryManager } = await import('./inventory/InventoryManager.js');
-    const inventoryManager = new InventoryManager();
-    console.log('[GameInitializationManager] InventoryManager created:', inventoryManager);
-
     // Create WorldManager
     const worldManager = new WorldManager();
     console.log('[GameInitializationManager] WorldManager created');
@@ -144,7 +139,6 @@ class GameInitializationManager extends EventEmitter {
 
     // Store preload data for next phase
     this.preloadData = {
-      inventoryManager,
       worldManager,
       templateMapGenerator,
       mapData
@@ -158,7 +152,7 @@ class GameInitializationManager extends EventEmitter {
     console.log('[GameInitializationManager] Executing CORE_SETUP phase...');
 
     try {
-      const { inventoryManager, worldManager, templateMapGenerator, mapData } = this.preloadData;
+      const { worldManager, templateMapGenerator, mapData } = this.preloadData;
 
       // Create GameMap with template dimensions
       const gameMap = new GameMap(mapData.width, mapData.height);
@@ -231,7 +225,6 @@ class GameInitializationManager extends EventEmitter {
 
       // Store core game objects
       this.gameObjects = {
-        inventoryManager,
         worldManager,
         gameMap,
         player,

@@ -55,10 +55,12 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  help - Show this help message', 'info');
           addToConsole('  clear - Clear console', 'info');
           addToConsole('  game status - Show game status', 'info');
+          addToConsole('  inventory test - Run inventory tests', 'info');
           addToConsole('  inventory demo - Run inventory demo', 'info');
           addToConsole('  entity spawn <type> - Spawn an entity', 'info');
           addToConsole('  entity list - List all entities', 'info');
-          addToConsole('  ground/phase4 - Run Phase 4 ground management demo', 'info');
+          addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
+          addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
 
         case 'clear':
@@ -101,6 +103,37 @@ const DevConsole = ({ isOpen, onClose }) => {
         case 'inventory':
         case 'inv':
           switch (subCommand) {
+            case 'test':
+              try {
+                if (typeof window.runContainerTests === 'function') {
+                  addToConsole('Running container tests...', 'info');
+                  const results = window.runContainerTests();
+
+                  // Results are string messages, parse them
+                  if (Array.isArray(results)) {
+                    results.forEach(result => {
+                      if (typeof result === 'string') {
+                        const isPass = result.includes('PASSED');
+                        const status = isPass ? '✅' : '❌';
+                        const message = result.replace('✅ ', '').replace('❌ ', '');
+                        addToConsole(`${status} ${message}`, isPass ? 'success' : 'error');
+                      }
+                    });
+
+                    const passed = results.filter(r => r.includes('PASSED')).length;
+                    const total = results.length;
+                    addToConsole(`Tests completed: ${passed}/${total} passed`, passed === total ? 'success' : 'error');
+                  } else {
+                    addToConsole('Test results format unexpected', 'error');
+                  }
+                } else {
+                  addToConsole('Container tests not available', 'error');
+                }
+              } catch (error) {
+                addToConsole(`Test execution failed: ${error.message}`, 'error');
+              }
+              break;
+
             case 'demo':
               try {
                 // Import inventory classes for demonstration (avoiding name conflict with TestEntity Item)
@@ -234,7 +267,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               break;
 
             default:
-              addToConsole('Unknown inventory command. Try: inventory demo, ground/phase4', 'error');
+              addToConsole('Unknown inventory command. Try: inventory test, inventory demo', 'error');
           }
           break;
 

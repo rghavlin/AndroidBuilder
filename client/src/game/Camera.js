@@ -32,7 +32,7 @@ export class Camera {
     // Event system
     this.listeners = new Map();
 
-    //console.log('[Camera] Camera initialized with viewport:', this.viewportWidth, 'x', this.viewportHeight);
+    console.log('[Camera] Camera initialized with viewport:', this.viewportWidth, 'x', this.viewportHeight);
   }
 
   /**
@@ -61,6 +61,7 @@ export class Camera {
         viewportWidth: this.viewportWidth,
         viewportHeight: this.viewportHeight
       });
+      console.log('[Camera] Zoom set to:', this.zoomLevel, 'viewport now:', this.viewportWidth, 'x', this.viewportHeight);
     }
   }
 
