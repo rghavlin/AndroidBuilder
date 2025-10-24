@@ -1,0 +1,125 @@
+Please always refer Universal Development Guidelines.txt, StateMachineProject.md, and inventoryplan.md.
+Do NOT change grid sizes, CSS/layout, camera math, map generation, or any initialization logic beyond what’s specified below.
+
+Task: Finish Phase 5A properly, then start 5B (read-only equipment)
+Files you may change (only these)
+
+client/src/components/Game/GameScreen.tsx (or wherever the main game UI is composed)
+
+client/src/contexts/GameContext.jsx (expose inventoryManager on context value)
+
+client/src/contexts/InventoryContext.jsx (InventoryProvider validation only)
+
+(for 5B) client/src/components/Inventory/EquipmentSlots.tsx, client/src/components/Inventory/EquipmentSlot.tsx
+
+5A — Complete the provider wiring (no visual changes)
+A) Mount InventoryProvider only when ready
+
+In GameScreen.tsx, read isGameReady and inventoryManager from useGame() and conditionally mount the provider around the inventory UI only:
+
+// pseudo-structure
+const { isGameReady, inventoryManager } = useGame();
+
+return (
+  <>
+    {/* existing providers & world UI stay as-is */}
+    {/* ... world/camera/map UI ... */}
+
+    {isGameReady && inventoryManager ? (
+      <InventoryProvider manager={inventoryManager}>
+        {/* Inventory UI: InventoryPanel, Inventory Extension Window, etc. */}
+        <InventoryPanel />
+      </InventoryProvider>
+    ) : null}
+  </>
+);
+
+
+Do not wrap the whole app. Do not mount the provider before isGameReady && inventoryManager.
+
+B) Ensure GameContext exposes the manager
+
+In GameContext.jsx, the context value must include inventoryManager. Do not mount InventoryProvider here.
+
+// return (
+- <GameContext.Provider value={contextValue}>
+-   <InventoryProvider manager={inventoryManager}>{children}</InventoryProvider>
+- </GameContext.Provider>
++ <GameContext.Provider value={{ ...contextValue, inventoryManager }}>
++   {children}
++ </GameContext.Provider>
+
+C) Add a simple validation guard inside InventoryProvider
+
+In InventoryContext.jsx (InventoryProvider component), add a minimal dev-only warning and render nothing if manager is missing. (We’re already gating mount, this is just a belt-and-suspenders.)
+
+export function InventoryProvider({ manager, children }) {
+  if (!manager) {
+    if (import.meta?.env?.DEV) console.warn('[InventoryProvider] waiting for manager');
+    return null;
+  }
+  // existing provider logic...
+  return <InventoryContext.Provider value={/* ... */}>{children}</InventoryContext.Provider>;
+}
+
+
+Do not construct a new InventoryManager here.
+
+5B — Equipment slots (read-only, zero visual/layout changes)
+D) Read equipped state from the manager
+
+In EquipmentSlots.tsx: call useInventory() (from the provider) or read via useGame() → pass equippedItem per slot to EquipmentSlot.
+
+The seven canonical slots are: backpack, upper_body, lower_body, melee, handgun, long_gun, flashlight.
+(If you’re using the Inventory Extension Window for upper_body/lower_body, just keep the render split—no layout changes.)
+
+E) Show a tooltip only
+
+In EquipmentSlot.tsx: do not change icons or dimensions. Add a title attribute with equippedItem?.name ?? ''. Optionally add a subtle occupied border.
+
+No click/drag logic in 5B.
+
+Acceptance (must all pass)
+
+Init & provider
+
+On page load, Start Menu shows; no preloading logs yet.
+
+Click New Game once → init runs; no flicker; menu hides as init starts.
+
+After init completes, InventoryProvider is mounted (once), and the inventory UI renders.
+
+window.inventoryManager (if your dev bridge is enabled) exists after init; window.inv.getContainer('ground') returns a snapshot.
+
+Provider placement
+
+Grep check shows no <InventoryProvider> in GameContext.jsx. It is mounted only in GameScreen (or equivalent) under the isGameReady && inventoryManager condition.
+
+5B (read-only equipment)
+
+Equipping a backpack via your in-game console commands updates the backpack slot to “occupied” and shows a tooltip with the item name.
+
+No visual/layout/slot-size changes occurred.
+
+Grep checks to run
+
+rg -n "initializeGame\\(" client/src | sed 's/^/CALLSITE: /'         # expect only Start Menu call
+rg -n "<InventoryProvider" client/src | sed 's/^/PROVIDER: /'        # expect only in GameScreen (or equivalent)
+
+Hard guardrails
+
+Do not add any useEffect(... initializeGame() ...) anywhere (no auto-init).
+
+Do not construct new InventoryManager outside GameInitializationManager._executePreloading().
+
+Do not touch grid slot sizes, CSS/layout, or camera/map code.
+
+Keep all feature tests in the in-game dev console (no dynamic imports, no extra managers).
+
+Commit titles
+
+feat(inventory): mount InventoryProvider post-init; pass manager from GameContext
+
+feat(inventory-ui): equipment slots read-only (no visual changes)
+
+If anything here requires touching files beyond those listed, stop and ask.

@@ -1,0 +1,85 @@
+Please refer to universalgoals.md and inventoryplan.md Please refer to recent chat.Do NOT change grid sizes, CSS/layout, camera math, map generation, or any initialization logic beyond what’s specified below.
+
+Task: Finish Phase 5A correctly (single provider mount) and add provider validation
+Files you may change (only these)
+
+client/src/contexts/InventoryContext.jsx ← add graceful fallback & remove stale import
+
+(Confirm only) client/src/contexts/GameContext.jsx ← provider already mounted here conditionally; no structural changes
+
+Do NOT touch client/src/components/Game/GameScreen.tsx for provider mounting (keep as-is)
+
+A) Keep a single InventoryProvider mount (no duplicates)
+
+Do NOT add <InventoryProvider> in GameScreen.tsx or elsewhere.
+
+The app already mounts <InventoryProvider manager={inventoryManager}> conditionally inside GameContext.jsx when the manager exists. Keep that single mount and its condition intact.
+
+Sanity check (after changes):
+rg -n "<InventoryProvider" client/src ⇒ exactly one occurrence (in GameContext.jsx).
+
+B) Add graceful fallback in InventoryContext.jsx
+
+Implement the validation pattern so the provider doesn’t render when manager is missing, and logs once in dev. Also remove any stale import of InventoryManager here (the manager is injected, not constructed).
+
+Edits in client/src/contexts/InventoryContext.jsx:
+
+Remove unused import (if present):
+
+- import { InventoryManager } from '.../InventoryManager';
+
+
+Guard and early return when manager is absent:
+
+ export function InventoryProvider({ manager, children }) {
++  // Graceful degradation: do not mount without a manager.
++  if (!manager) {
++    if (import.meta?.env?.DEV) {
++      console.warn('[InventoryProvider] waiting for manager');
++    }
++    return null; // Non-critical UI withheld until manager exists
++  }
+
+   // existing provider logic plus dev-console bridge remains unchanged
+   return (
+     <InventoryContext.Provider value={/* existing context value using manager */}>
+       {children}
+     </InventoryContext.Provider>
+   );
+ }
+
+
+Do not construct a new InventoryManager here. Do not alter the dev-console bridge logic you already have.
+
+C) Leave Phase 5B UI as-is
+
+EquipmentSlots.tsx and EquipmentSlot.tsx (read-only, tooltip) are already correct. No changes needed.
+
+Acceptance criteria (must all pass)
+
+Single provider mount
+
+rg -n "<InventoryProvider" client/src → exactly one match (in GameContext.jsx).
+
+No <InventoryProvider> added in GameScreen.tsx.
+
+Graceful fallback works
+
+Before starting a new game: Inventory UI doesn’t mount; no crashes; (dev) console shows [InventoryProvider] waiting for manager at most once.
+
+After initialization completes: provider mounts; inventory UI renders; no warnings.
+
+Dev console bridge still good
+
+After game start: window.inventoryManager exists; window.inv.getContainer('ground') returns a snapshot.
+
+No regressions
+
+Start Menu: single click starts init, no flicker.
+
+No changes to grid sizes, layout, or visuals.
+
+Commit title:
+fix(inventory): keep single provider mount; add null-manager fallback and remove stale import
+
+If anything requires touching files outside the list above, stop and ask.
