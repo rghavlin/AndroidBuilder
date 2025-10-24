@@ -63,6 +63,8 @@ const GameContextInner = ({ children }) => {
 
   // State machine state
   const [initializationState, setInitializationState] = useState('idle');
+  const initRef = useRef('idle'); // Mirror state in ref to avoid closure issues
+  const runIdRef = useRef(0); // Track initialization runs
   const [initializationError, setInitializationError] = useState(null);
 
   // Context synchronization state
@@ -73,11 +75,68 @@ const GameContextInner = ({ children }) => {
   
   // Computed from state machine and explicit gate
   const isInitialized = initializationState === 'complete' && isGameReady;
+  
+  // Sync ref whenever state changes
+  useEffect(() => { 
+    initRef.current = initializationState; 
+  }, [initializationState]);
   const [turn, setTurn] = useState(1);
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAutosaving, setIsAutosaving] = useState(false);
 
 
+
+  const wireManagerEvents = useCallback((manager, runId) => {
+    const handleStateChanged = ({ current }) => {
+      // Ignore events from old runs
+      if (runIdRef.current !== runId) {
+        console.log(`[GameContext] Ignoring stale state change from run ${runId}, current run is ${runIdRef.current}`);
+        return;
+      }
+      setInitializationState(current);
+      console.log('[GameContext] Initialization state changed to:', current);
+    };
+
+    const handleInitializationComplete = (gameObjects) => {
+      if (runIdRef.current !== runId) {
+        console.log(`[GameContext] Ignoring stale completion from run ${runId}`);
+        return;
+      }
+      
+      console.log('[GameContext] State machine initialization completed');
+      setContextSyncPhase('updating');
+
+      // Set up context references synchronously (Phase 5A: includes inventoryManager)
+      setInventoryManager(gameObjects.inventoryManager);
+      setGameMap(gameObjects.gameMap);
+      setPlayerRef(gameObjects.player);
+      setCamera(gameObjects.camera);
+      setWorldManager(gameObjects.worldManager);
+
+      // Set up camera and player
+      const { gameMap, player, camera } = gameObjects;
+      camera.setWorldBounds(gameMap.width, gameMap.height);
+      camera.centerOn(player.x, player.y);
+      setupPlayerEventListeners();
+      
+      setIsGameReady(true);
+      console.log('[GameContext] Game is ready - UI gate opened');
+    };
+
+    const handleInitializationError = (error) => {
+      if (runIdRef.current !== runId) {
+        console.log(`[GameContext] Ignoring stale error from run ${runId}`);
+        return;
+      }
+      console.error('[GameContext] State machine initialization failed:', error);
+      setInitializationError(error.message);
+    };
+
+    manager.removeAllListeners(); // Clean slate
+    manager.on('stateChanged', handleStateChanged);
+    manager.on('initializationComplete', handleInitializationComplete);
+    manager.on('initializationError', handleInitializationError);
+  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners]);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
@@ -106,45 +165,7 @@ const GameContextInner = ({ children }) => {
 
     const manager = initManagerRef.current;
 
-    const handleStateChanged = ({ current }) => {
-      setInitializationState(current);
-      console.log('[GameContext] Initialization state changed to:', current);
-    };
-
-    const handleInitializationComplete = (gameObjects) => {
-      console.log('[GameContext] State machine initialization completed');
-      
-      // Set synchronization phase to updating to prevent operations during state changes
-      setContextSyncPhase('updating');
-
-      // Set up context references synchronously (Phase 5A: includes inventoryManager)
-      setInventoryManager(gameObjects.inventoryManager);
-      setGameMap(gameObjects.gameMap);
-      setPlayerRef(gameObjects.player); // Use version-bump pattern
-      setCamera(gameObjects.camera);
-      setWorldManager(gameObjects.worldManager);
-
-      // Set up camera world bounds and center on player
-      const { gameMap, player, camera } = gameObjects;
-      camera.setWorldBounds(gameMap.width, gameMap.height);
-      camera.centerOn(player.x, player.y);
-
-      // Set up player event listeners
-      setupPlayerEventListeners();
-      
-      // Mark game as ready for UI
-      setIsGameReady(true);
-      console.log('[GameContext] Game is ready - UI gate opened');
-    };
-
-    const handleInitializationError = (error) => {
-      console.error('[GameContext] State machine initialization failed:', error);
-      setInitializationError(error.message);
-    };
-
-    manager.on('stateChanged', handleStateChanged);
-    manager.on('initializationComplete', handleInitializationComplete);
-    manager.on('initializationError', handleInitializationError);
+    wireManagerEvents(manager, runIdRef.current);
 
     return () => {
       console.log('[GameContext] 🧹 CLEANUP: Removing initialization manager listeners');
@@ -198,7 +219,32 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] GameInitializationManager not available');
       return;
     }
-    console.log('[GameContext] Starting game initialization via state machine...');
+    
+    const now = initRef.current; // Use ref, not captured state
+    
+    // Block if actively initializing
+    if (now === 'preloading' || now === 'core_setup' || now === 'world_population') {
+      console.warn('[GameContext] Initialization already in progress, ignoring duplicate call');
+      return;
+    }
+    
+    // Allow restart from terminal states
+    if (now === 'complete' || now === 'error') {
+      console.log('[GameContext] Restarting from terminal state:', now);
+      runIdRef.current += 1; // Invalidate old event handlers
+      setIsGameReady(false);
+      setInitializationError(null);
+      
+      // Reset existing manager instead of creating new one
+      if (initManagerRef.current.reset) {
+        initManagerRef.current.reset();
+      }
+      
+      setInitializationState('idle');
+      wireManagerEvents(initManagerRef.current, runIdRef.current);
+    }
+    
+    console.log(`[GameContext] Starting game initialization (run ${runIdRef.current})...`);
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
 
@@ -220,7 +266,7 @@ const GameContextInner = ({ children }) => {
       const error = initManagerRef.current.getError();
       setInitializationError(error || 'Unknown initialization error');
     }
-  }, []);
+  }, [wireManagerEvents, loadGame]);
 
 
 
@@ -585,9 +631,13 @@ const GameContextInner = ({ children }) => {
 
   return (
     <GameContext.Provider value={contextValue}>
-      <InventoryProvider manager={inventoryManager}>
-        {children}
-      </InventoryProvider>
+      {inventoryManager ? (
+        <InventoryProvider manager={inventoryManager}>
+          {children}
+        </InventoryProvider>
+      ) : (
+        children
+      )}
     </GameContext.Provider>
   );
 };

@@ -48,6 +48,7 @@ function GameScreenContent() {
   const { 
     isInitialized, 
     isGameReady,
+    initializationState,
     initializationError, 
     turn, 
     endTurn, 
@@ -55,8 +56,16 @@ function GameScreenContent() {
     handleMapTransitionConfirmWrapper
   } = useGame();
 
+  // Hide start menu when initialization actually starts
+  useEffect(() => {
+    if (initializationState === 'preloading' && showStartMenu) {
+      console.log('[GameScreenContent] Hiding start menu - initialization began');
+      setShowStartMenu(false);
+    }
+  }, [initializationState, showStartMenu]);
+
   const handleStartGame = async (mode?: boolean | string) => {
-    setShowStartMenu(false);
+    // Don't hide menu here - let the effect above do it when state changes
 
     if (mode === 'load') {
       console.log('[GameScreenContent] Starting new game with post-initialization loading...');

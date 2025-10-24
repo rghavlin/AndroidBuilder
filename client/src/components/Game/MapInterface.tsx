@@ -18,21 +18,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { lastTileClick, hoveredTile, mapTransition } = useGameMap();
 
   // Get initialization state from GameContext (still needed for initialization control)
-  const { isInitialized, initializationError, initializeGame } = useGame();
+  const { isInitialized, initializationError } = useGame();
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
-
-  // Initialize game when component mounts
-  useEffect(() => {
-    if (!isInitialized && !initializationError) {
-      // Small delay to ensure provider is ready after hot reloads
-      const timer = setTimeout(() => {
-        console.log('[MapInterface] Initializing game...');
-        initializeGame();
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isInitialized, initializationError, initializeGame]);
 
   // Log tile interactions for debugging
   useEffect(() => {
