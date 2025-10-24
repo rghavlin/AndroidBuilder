@@ -177,7 +177,7 @@ export function runContainerTests() {
       subtype: 'rifle',
       width: 1, 
       height: 4, 
-      equippableSlot: 'rifle' 
+      equippableSlot: 'long_gun' 
     });
     
     const result = manager.equipItem(rifle);
@@ -185,7 +185,7 @@ export function runContainerTests() {
       throw new Error('Equipment failed: ' + result.reason);
     }
     
-    if (manager.equipment.rifle !== rifle || !rifle.isEquipped) {
+    if (manager.equipment.long_gun !== rifle || !rifle.isEquipped) {
       throw new Error('Item not properly equipped');
     }
   });
@@ -198,19 +198,19 @@ export function runContainerTests() {
       subtype: 'vest',
       width: 2, 
       height: 3,
-      equippableSlot: 'body',
+      equippableSlot: 'upper_body',
       containerGrid: { width: 4, height: 2 }
     });
     
     manager.equipItem(vest);
     
     // Should create a dynamic container
-    const bodyContainer = manager.containers.get('body-container');
-    if (!bodyContainer) {
+    const upperBodyContainer = manager.containers.get('upper_body-container');
+    if (!upperBodyContainer) {
       throw new Error('Dynamic container not created for equipped vest');
     }
     
-    if (bodyContainer.width !== 4 || bodyContainer.height !== 2) {
+    if (upperBodyContainer.width !== 4 || upperBodyContainer.height !== 2) {
       throw new Error('Dynamic container dimensions incorrect');
     }
   });
@@ -221,13 +221,13 @@ export function runContainerTests() {
       id: 'helmet1', 
       type: 'armor', 
       subtype: 'helmet',
-      equippableSlot: 'head' 
+      equippableSlot: 'upper_body' 
     });
     const helmet2 = new Item({ 
       id: 'helmet2', 
       type: 'armor', 
       subtype: 'helmet',
-      equippableSlot: 'head' 
+      equippableSlot: 'upper_body' 
     });
     
     // Add first helmet to backpack, then equip
@@ -242,7 +242,7 @@ export function runContainerTests() {
       throw new Error('Equipment replacement failed');
     }
     
-    if (manager.equipment.head !== helmet2) {
+    if (manager.equipment.upper_body !== helmet2) {
       throw new Error('New helmet not equipped');
     }
     
@@ -321,7 +321,7 @@ export function runContainerTests() {
     const rifle = new Item({ 
       id: 'test-rifle', 
       type: 'weapon', 
-      equippableSlot: 'rifle' 
+      equippableSlot: 'long_gun' 
     });
     const ammo = new Item({ 
       id: 'test-ammo', 
@@ -338,7 +338,7 @@ export function runContainerTests() {
     const restored = InventoryManager.fromJSON(json);
     
     // Check equipment
-    if (!restored.equipment.rifle || restored.equipment.rifle.id !== 'test-rifle') {
+    if (!restored.equipment.long_gun || restored.equipment.long_gun.id !== 'test-rifle') {
       throw new Error('Equipment not properly restored');
     }
     
