@@ -1,0 +1,73 @@
+Task: Remove black screen by making InventoryProvider a pass-through when manager is missing, and/or conditionally mounting it
+Files you may change (only these)
+
+client/src/contexts/InventoryContext.jsx
+
+client/src/contexts/GameContext.jsx
+
+1) InventoryProvider: pass children through (don’t return null)
+
+File: client/src/contexts/InventoryContext.jsx
+
+ export function InventoryProvider({ manager, children }) {
+-  if (!manager) {
+-    if (import.meta?.env?.DEV) console.warn('[InventoryProvider] waiting for manager');
+-    return null; // blocks the whole subtree → black screen
+-  }
++  if (!manager) {
++    if (import.meta?.env?.DEV) console.warn('[InventoryProvider] waiting for manager (pass-through)');
++    return <>{children}</>; // render app without inventory until manager exists
++  }
+
+   // existing provider logic (dev console bridge etc.)
+   return (
+     <InventoryContext.Provider value={/* existing value using manager */}>
+       {children}
+     </InventoryContext.Provider>
+   );
+ }
+
+
+Keep the dev-console bridge inside the “has manager” path only.
+
+2) GameContext: ensure conditional mount (belt & suspenders)
+
+File: client/src/contexts/GameContext.jsx
+Wrap children with <InventoryProvider> only when a manager exists; otherwise render children as-is.
+
+- return (
+-  <GameContext.Provider value={contextValue}>
+-    <InventoryProvider manager={inventoryManager}>
+-      {children}
+-    </InventoryProvider>
+-  </GameContext.Provider>
+- );
++ return (
++  <GameContext.Provider value={contextValue}>
++    {inventoryManager ? (
++      <InventoryProvider manager={inventoryManager}>{children}</InventoryProvider>
++    ) : (
++      children
++    )}
++  </GameContext.Provider>
++ );
+
+
+This guarantees the Start Menu renders even before inventory is ready. Combined with step 1, it’s robust against future refactors.
+
+Acceptance (must all pass)
+
+On first load: Start Menu renders immediately (no black screen, no preloading logs).
+
+Click New Game once: normal init sequence; when the manager appears, InventoryProvider activates; dev bridge logs (in dev).
+
+No duplicate mounts:
+
+rg -n "<InventoryProvider" client/src
+
+
+→ exactly one occurrence (in GameContext.jsx).
+
+No regressions: No auto-init effects anywhere; no grid/visual changes.
+
+Commit title: fix(inventory): provider pass-through w/o manager; conditional mount in GameContext
