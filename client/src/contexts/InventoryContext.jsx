@@ -27,12 +27,12 @@ export const useInventory = () => {
 };
 
 export const InventoryProvider = ({ children, manager }) => {
-  // Graceful degradation: do not mount without a manager.
+  // Graceful degradation: render children without inventory context until manager exists
   if (!manager) {
     if (import.meta?.env?.DEV) {
-      console.warn('[InventoryProvider] waiting for manager');
+      console.warn('[InventoryProvider] No manager available - rendering without inventory context (game will load, inventory disabled until init completes)');
     }
-    return null; // Non-critical UI withheld until manager exists
+    return <>{children}</>; // Pass-through: render app without inventory until manager exists
   }
 
   const inventoryRef = useRef(null);
