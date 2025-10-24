@@ -4,6 +4,7 @@ import EquipmentSlot from "@/components/Inventory/EquipmentSlot";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import CraftingPanel from "@/components/Inventory/CraftingPanel";
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
+import { useInventory } from "@/contexts/InventoryContext";
 
 interface InventoryExtensionWindowProps {
   isOpen: boolean;
@@ -14,7 +15,13 @@ export default function InventoryExtensionWindow({
   isOpen, 
   onClose 
 }: InventoryExtensionWindowProps) {
+  const { inventoryRef } = useInventory();
+  
   if (!isOpen) return null;
+
+  // Read equipped items for upper_body and lower_body
+  const upperBodyItem = inventoryRef.current?.equipment.upper_body || null;
+  const lowerBodyItem = inventoryRef.current?.equipment.lower_body || null;
 
   return (
     <div className="fixed inset-0 z-50">
@@ -38,8 +45,16 @@ export default function InventoryExtensionWindow({
           {/* Equipment Section - minimal height */}
           <div className="flex-shrink-0 p-2 border-b border-border">
             <div className="flex justify-center gap-6">
-              <EquipmentSlot slotId="body" />
-              <EquipmentSlot slotId="legs" />
+              <EquipmentSlot 
+                slotId="upper_body" 
+                item={upperBodyItem}
+                isEquipped={!!upperBodyItem}
+              />
+              <EquipmentSlot 
+                slotId="lower_body" 
+                item={lowerBodyItem}
+                isEquipped={!!lowerBodyItem}
+              />
             </div>
           </div>
 

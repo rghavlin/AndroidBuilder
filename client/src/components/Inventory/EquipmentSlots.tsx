@@ -5,7 +5,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 export default function EquipmentSlots() {
   const { inventoryRef, inventoryVersion } = useInventory();
 
-  // Match exact slots from InventoryManager.js
+  // Match exact slots from InventoryManager.js (canonical seven slots)
   const equipmentSlots = [
     { id: 'backpack', name: 'Backpack', icon: '🎒' },
     { id: 'upper_body', name: 'Upper Body', icon: '👕' },
@@ -16,14 +16,8 @@ export default function EquipmentSlots() {
     { id: 'flashlight', name: 'Flashlight', icon: '🔦' },
   ];
 
-  // Read equipped items from inventory manager
-  const getEquippedItem = (slotId: string) => {
-    if (!inventoryRef.current) return null;
-    return inventoryRef.current.equipment[slotId] || null;
-  };
-
   const handleSlotClick = (slotId: string) => {
-    console.debug(`Equipment slot ${slotId} clicked`);
+    console.debug(`[EquipmentSlots] Slot ${slotId} clicked - Phase 5B (read-only)`);
     // No interaction yet in Phase 5B
   };
 
@@ -32,7 +26,9 @@ export default function EquipmentSlots() {
       <h2 className="text-sm font-semibold text-muted-foreground mb-3">EQUIPMENT</h2>
       <div className="flex gap-1.5 justify-start flex-nowrap overflow-x-auto">
         {equipmentSlots.map((slot) => {
-          const equippedItem = getEquippedItem(slot.id);
+          // Read equipped item from inventory manager (reactive to inventoryVersion)
+          const equippedItem = inventoryRef.current?.equipment[slot.id] || null;
+          
           return (
             <EquipmentSlot
               key={slot.id}

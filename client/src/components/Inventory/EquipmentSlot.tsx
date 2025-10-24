@@ -29,8 +29,11 @@ export default function EquipmentSlot({
 }: EquipmentSlotProps) {
   const slotInfo = SLOT_INFO[slotId] || { name: slotId, icon: '?' };
   
-  // Build tooltip text
+  // Build tooltip text - show item name if equipped, slot name if empty
   const tooltipText = item ? item.name : slotInfo.name;
+  
+  // Check if slot is occupied
+  const hasItem = !!item;
 
   return (
     <div
@@ -38,21 +41,14 @@ export default function EquipmentSlot({
         "w-12 h-12 bg-secondary border-2 border-border rounded-md",
         "flex flex-col items-center justify-center cursor-pointer",
         "hover:border-accent transition-colors",
-        isEquipped && "border-accent bg-accent/10",
+        hasItem && "border-accent bg-accent/10",
         className
       )}
       onClick={onClick}
       data-testid={`equipment-slot-${slotId}`}
       title={tooltipText}
     >
-      {item && (
-        <span className="text-base">
-          {slotInfo.icon}
-        </span>
-      )}
-      {!item && (
-        <span className="text-base">{slotInfo.icon}</span>
-      )}
+      <span className="text-base">{slotInfo.icon}</span>
       <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
         {slotInfo.name}
       </span>
