@@ -214,6 +214,49 @@ const GameContextInner = ({ children }) => {
 
 
 
+  const loadGame = useCallback(async (slotName = 'quicksave') => {
+    try {
+      const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
+      if (!loadedState) {
+        console.warn(`[GameContext] No save found in slot: ${slotName}`);
+        return false;
+      }
+      console.log('[GameContext] Applying loaded state...');
+
+      // Set up loaded state in contexts
+      setGameMap(loadedState.gameMap);
+      setPlayerRef(loadedState.player);
+      setCamera(loadedState.camera);
+      setWorldManager(loadedState.worldManager);
+
+      setTurn(loadedState.turn);
+      setIsPlayerTurn(true);
+      setIsAutosaving(false);
+      lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
+
+      console.log('[GameContext] Setting up event listeners for loaded player...');
+      setupPlayerEventListeners();
+
+      // Recenter camera on loaded player position
+      if (loadedState.camera && loadedState.player) {
+        loadedState.camera.centerOn(loadedState.player.x, loadedState.player.y);
+        console.log(`[GameContext] Camera recentered on loaded player position (${loadedState.player.x}, ${loadedState.player.y})`);
+      }
+
+      setTimeout(() => {
+        updatePlayerFieldOfView(loadedState.gameMap);
+        updatePlayerCardinalPositions(loadedState.gameMap);
+        console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
+        console.log(`[GameContext] Player position after load: (${loadedState.player.x}, ${loadedState.player.y})`);
+      }, 50);
+
+      return true;
+    } catch (error) {
+      console.error('[GameContext] Failed to load game:', error);
+      return false;
+    }
+  }, [setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+
   const initializeGame = useCallback(async (loadGameAfterInit = false, slotName = 'autosave') => {
     if (!initManagerRef.current) {
       console.error('[GameContext] GameInitializationManager not available');
@@ -474,49 +517,6 @@ const GameContextInner = ({ children }) => {
       return false;
     }
   }, [isInitialized, contextSyncPhase, turn]);
-
-  const loadGame = useCallback(async (slotName = 'quicksave') => {
-    try {
-      const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
-      if (!loadedState) {
-        console.warn(`[GameContext] No save found in slot: ${slotName}`);
-        return false;
-      }
-      console.log('[GameContext] Applying loaded state...');
-
-      // Set up loaded state in contexts
-      setGameMap(loadedState.gameMap);
-      setPlayerRef(loadedState.player);
-      setCamera(loadedState.camera);
-      setWorldManager(loadedState.worldManager);
-
-      setTurn(loadedState.turn);
-      setIsPlayerTurn(true);
-      setIsAutosaving(false);
-      lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
-
-      console.log('[GameContext] Setting up event listeners for loaded player...');
-      setupPlayerEventListeners();
-
-      // Recenter camera on loaded player position
-      if (loadedState.camera && loadedState.player) {
-        loadedState.camera.centerOn(loadedState.player.x, loadedState.player.y);
-        console.log(`[GameContext] Camera recentered on loaded player position (${loadedState.player.x}, ${loadedState.player.y})`);
-      }
-
-      setTimeout(() => {
-        updatePlayerFieldOfView(loadedState.gameMap);
-        updatePlayerCardinalPositions(loadedState.gameMap);
-        console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
-        console.log(`[GameContext] Player position after load: (${loadedState.player.x}, ${loadedState.player.y})`);
-      }, 50);
-
-      return true;
-    } catch (error) {
-      console.error('[GameContext] Failed to load game:', error);
-      return false;
-    }
-  }, [setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
   const loadAutosave = useCallback(async () => {
     return await loadGame('autosave');
