@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useRef, useState, useCallback, useMemo, useEffect } from 'react';
-import { InventoryManager } from '../game/inventory/InventoryManager.js';
 
 const InventoryContext = createContext();
 
@@ -28,6 +27,14 @@ export const useInventory = () => {
 };
 
 export const InventoryProvider = ({ children, manager }) => {
+  // Graceful degradation: do not mount without a manager.
+  if (!manager) {
+    if (import.meta?.env?.DEV) {
+      console.warn('[InventoryProvider] waiting for manager');
+    }
+    return null; // Non-critical UI withheld until manager exists
+  }
+
   const inventoryRef = useRef(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
 
@@ -35,10 +42,6 @@ export const InventoryProvider = ({ children, manager }) => {
   if (!inventoryRef.current && manager) {
     inventoryRef.current = manager;
     console.log('[InventoryContext] InventoryManager received from provider props');
-  }
-
-  if (!manager) {
-    console.error('[InventoryContext] No manager prop provided - InventoryProvider requires a manager!');
   }
 
   // Dev-console bridge (Phase 5A)
