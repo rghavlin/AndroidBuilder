@@ -1,6 +1,95 @@
 Universal Development Guidelines
 
-Do not make any code changes without expressly being told to. Do not change any UI layouts unless specifically instructed to do so. Especially do not change any inventory grid formating or layouts. 
+Do not make any code changes without expressly being told to. Do not change any UI layouts unless specifically instructed to do so. Especially do not change any inventory grid formating or layouts.
+
+## 🧪 Testing & Debugging Protocol
+
+**All testing must use the in-game Dev Console (`~` key), NOT the browser console.**
+
+### Why This Matters:
+- **Browser console**: Has access to `window` scope but NOT to game-specific contexts
+- **In-game console**: Has full access to game state, managers, and React contexts
+- **Timing issues**: Browser console may try to access objects before initialization completes
+
+### Console Testing Rules:
+1. **Always use `~` key** to open the in-game dev console for testing game systems
+2. **Verify managers exist** before testing: `window.inventoryManager`, `window.gameMap`, etc.
+3. **Check initialization state** if objects are undefined: Game may still be loading
+4. **Use dev-only globals** exposed in development builds (these are wrapped in `process.env.NODE_ENV === 'development'`)
+
+### Example Testing Pattern:
+```javascript
+// ✅ CORRECT - Use in-game console
+// Press ~ key, then:
+window.inventoryManager.getContainer('ground');
+window.inv.equipItem(someItem, 'backpack');
+
+// ❌ WRONG - Browser console won't have access to game context
+// This will fail or show undefined
+``` 
+
+## 💥 Blast Radius Rules - Critical vs Non-Critical Systems
+
+**Core Principle**: Non-critical systems MUST fail gracefully without breaking the game.
+
+### Critical Systems (Cannot Break):
+These systems are **essential** for the game to function. If any fail, the entire game should halt with a clear error:
+- **Initialization**: GameInitializationManager, core game loop
+- **Player**: Player entity, movement, stats, turn management
+- **Map**: GameMap, WorldManager, tile system, camera
+- **Turn Management**: Turn counter, turn transitions, AP system
+
+### Non-Critical Systems (Must Fail Gracefully):
+These systems enhance gameplay but are **not required** for basic operation. They must handle failures without crashing:
+- **Inventory UI**: Grid rendering, drag/drop, equipment display
+- **Sound**: Audio playback, music, sound effects
+- **Achievements**: Tracking, notifications, unlocks
+- **Visual Effects**: Particles, animations, UI polish
+
+### Implementation Requirements:
+
+**Non-critical providers MUST:**
+1. **Validate dependencies** before mounting
+2. **Provide fallback UI** when dependencies are missing
+3. **Log warnings** in development mode (not errors)
+4. **Never throw exceptions** that could crash the game
+5. **Gracefully degrade** functionality when unavailable
+
+**Example Pattern for Non-Critical Providers:**
+```jsx
+// ✅ CORRECT - Graceful degradation
+export const InventoryProvider = ({ children, manager }) => {
+  if (!manager) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[InventoryProvider] No manager provided - waiting for initialization');
+    }
+    // Return children without inventory context
+    return <>{children}</>;
+  }
+  // ... normal provider logic
+};
+
+// ❌ WRONG - Throwing error crashes the game
+export const InventoryProvider = ({ children, manager }) => {
+  if (!manager) {
+    throw new Error('Manager required!'); // This breaks everything!
+  }
+};
+```
+
+**Mounting Order Rule:**
+Non-critical providers should be children of critical providers and gate on their dependencies:
+```jsx
+// ✅ CORRECT - Gated on dependency
+<GameProvider>
+  {inventoryManager && (
+    <InventoryProvider manager={inventoryManager}>
+      {children}
+    </InventoryProvider>
+  )}
+  {!inventoryManager && children}
+</GameProvider>
+```
 
 Core Principles - Apply to ALL Code Changes
 

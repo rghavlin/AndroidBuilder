@@ -42,9 +42,18 @@ Each subphase is a **single PR** with a short acceptance checklist and no visual
 **Implementation (tiny and safe):**
 1. **Create, don’t duplicate:** Create the `InventoryManager` instance in `GameInitializationManager._executePreloading()` (next to `WorldManager`). Store it in `this.preloadData` for later phases.
 2. **Pass to GameContext:** Modify `GameInitializationManager.startInitialization()` to accept an optional callback. After `COMPLETE`, call the callback with `this.gameObjects`, which now includes `inventoryManager`.
-3. **Plumb into InventoryProvider:**
+3. **Plumb into InventoryProvider with validation:**
    - Change `InventoryProvider` to accept a **required** `manager` prop.
    - **Remove** any internal `new InventoryManager()` construction.
+   - **Add validation** at the top of the provider:
+   ```jsx
+   if (!manager) {
+     if (process.env.NODE_ENV === 'development') {
+       console.warn('[InventoryProvider] No manager provided - waiting for initialization');
+     }
+     return <>{children}</>;
+   }
+   ```
    - Use the provided `manager` for all context operations.
 4. **Mount order:** In `GameScreen.tsx`, ensure `InventoryProvider` is mounted **after** `GameContext` initializes, passing the `manager` from `GameContext` state.
 5. **Dev‑console bridge:** In a `useEffect` inside `InventoryProvider`, expose:
@@ -223,19 +232,29 @@ Each change is deliberately small, easy to review, and easy to revert.
 | Symptom | Likely Cause | Fix |
 |---|---|---|
 | Ground grid missing | `window.inventoryManager` undefined; provider still constructs its own manager; provider mounted before GameContext initializes | Unify creation in preload; pass via callback; mount provider after init with provided instance |
+| "No manager provided" warning in console | InventoryProvider mounted before manager created; GameContext not passing manager prop | Check GameContext passes `manager` prop; ensure provider is child of GameProvider; verify initialization order |
 | Multiple managers detected | Duplicate initialization paths | Audit init path; ensure **one** creation; log address/identity in dev |
+| Inventory UI completely missing | Provider validation failing and returning children only | Check dev console for warning; verify manager created in GameInitializationManager; confirm provider receives manager prop |
 | Backpack grid not showing | No equipped backpack; `getEquippedBackpackContainer()` returns `null` | Equip via console; verify equipment state; check slot mapping |
 | Nested panel opens for backpacks | `canOpenContainer` not enforcing rule | Ensure it returns **false** for backpacks unless equipped |
 | Drag drops do nothing | Drop handler not calling `moveItem`; missing `dataTransfer` payload | Wire handlers in both grids; set `itemId`/`fromContainerId` on drag start |
 | Slot size inconsistent | Component not using `GridSizeContext.fixedSlotSize` | Replace local calc with context value across all grids |
+| Testing in browser console shows undefined | Wrong testing scope - browser console vs in-game console | **Always use in-game console (`~` key)** for testing; browser console lacks game context access |
 
 ---
 
 ## Dev‑console snippets (reference)
 
+**IMPORTANT**: These commands must be run in the **in-game Dev Console** (press `~` key), NOT the browser console.
+
 ```js
-// Foundation check
+// Foundation check - verify manager exists
 window.inventoryManager && window.inventoryManager.getContainer('ground');
+
+// Check if manager is undefined (game may still be initializing)
+if (!window.inventoryManager) {
+  console.log('Manager not yet available - check initialization state');
+}
 
 // Create and equip a backpack (adjust IDs/defs to your project)
 const { Item } = await import('./game/inventory/Item.js');
@@ -244,6 +263,9 @@ window.inventoryManager.equipItem(bp, 'backpack');
 
 // Move an item (example API; adapt to your moveItem signature)
 // window.inventoryManager.moveItem(itemId, 'ground', '<targetContainerId>', x, y);
+
+// Verify provider is receiving manager
+// Check React DevTools or add temporary logging to InventoryProvider
 ```
 
 ---
