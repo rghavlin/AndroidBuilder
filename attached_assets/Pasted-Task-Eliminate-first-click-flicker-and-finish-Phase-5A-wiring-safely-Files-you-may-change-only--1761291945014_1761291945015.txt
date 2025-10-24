@@ -1,0 +1,212 @@
+Task: Eliminate "first-click flicker" and finish Phase 5A wiring safely
+Files you may change (only these):
+
+client/src/contexts/GameContext.jsx
+client/src/components/Game/GameScreen.tsx
+client/src/contexts/InventoryContext.jsx
+You must NOT change: grid sizes/CSS/layout, equipment slot definitions, or files not listed above.
+
+0) Pre-flight: Prove there's only one init trigger
+Run in terminal:
+
+rg -n "initializeGame\(" client/src | sed 's/^/CALLSITE: /'
+rg -n "useEffect.*initializeGame" client/src | sed 's/^/AUTO-INIT: /'
+rg -n "useEffect.*\[\].*GameInitializationManager" client/src/contexts/GameContext.jsx
+Expected results:
+
+Exactly one CALLSITE (Start Menu handler in GameScreen.tsx)
+Zero AUTO-INIT calls in useEffect hooks elsewhere
+One useEffect with empty deps in GameContext.jsx that creates the manager (but does NOT call startInitialization())
+If any useEffect(...initializeGame()) exists elsewhere (e.g., MapInterface.tsx), remove it.
+
+1) Make initializeGame() race-proof (ref-based, restartable)
+File: client/src/contexts/GameContext.jsx
+
+Changes:
+A. Add ref-based state tracking:
+
+// Add these alongside existing state
+const [initState, setInitState] = useState('idle'); // 'idle'|'preloading'|'core_setup'|'world_population'|'complete'|'error'
+const initRef = useRef('idle'); // Mirror state in ref to avoid closure issues
+const runIdRef = useRef(0); // Track initialization runs
+// Sync ref whenever state changes
+useEffect(() => { 
+  initRef.current = initState; 
+}, [initState]);
+B. Wire manager events with runId:
+
+const wireManagerEvents = useCallback((manager, runId) => {
+  const handleStateChanged = ({ current }) => {
+    // Ignore events from old runs
+    if (runIdRef.current !== runId) {
+      console.log(`[GameContext] Ignoring stale state change from run ${runId}, current run is ${runIdRef.current}`);
+      return;
+    }
+    setInitState(current);
+    console.log('[GameContext] Initialization state changed to:', current);
+  };
+  const handleInitializationComplete = (gameObjects) => {
+    if (runIdRef.current !== runId) {
+      console.log(`[GameContext] Ignoring stale completion from run ${runId}`);
+      return;
+    }
+    
+    console.log('[GameContext] State machine initialization completed');
+    setContextSyncPhase('updating');
+    // Set up context references synchronously
+    setInventoryManager(gameObjects.inventoryManager);
+    setGameMap(gameObjects.gameMap);
+    setPlayerRef(gameObjects.player);
+    setCamera(gameObjects.camera);
+    setWorldManager(gameObjects.worldManager);
+    // Set up camera and player
+    const { gameMap, player, camera } = gameObjects;
+    camera.setWorldBounds(gameMap.width, gameMap.height);
+    camera.centerOn(player.x, player.y);
+    setupPlayerEventListeners();
+    
+    setIsGameReady(true);
+    console.log('[GameContext] Game is ready - UI gate opened');
+  };
+  const handleInitializationError = (error) => {
+    if (runIdRef.current !== runId) {
+      console.log(`[GameContext] Ignoring stale error from run ${runId}`);
+      return;
+    }
+    console.error('[GameContext] State machine initialization failed:', error);
+    setInitializationError(error.message);
+  };
+  manager.removeAllListeners(); // Clean slate
+  manager.on('stateChanged', handleStateChanged);
+  manager.on('initializationComplete', handleInitializationComplete);
+  manager.on('initializationError', handleInitializationError);
+}, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners]);
+C. Update initializeGame() to be restartable:
+
+const initializeGame = useCallback(async (loadGameAfterInit = false, slotName = 'autosave') => {
+  if (!initManagerRef.current) {
+    console.error('[GameContext] GameInitializationManager not available');
+    return;
+  }
+  const now = initRef.current; // Use ref, not captured state
+  // Block if actively initializing
+  if (now === 'preloading' || now === 'core_setup' || now === 'world_population') {
+    console.warn('[GameContext] Initialization already in progress, ignoring duplicate call');
+    return;
+  }
+  // Allow restart from terminal states
+  if (now === 'complete' || now === 'error') {
+    console.log('[GameContext] Restarting from terminal state:', now);
+    runIdRef.current += 1; // Invalidate old event handlers
+    setIsGameReady(false);
+    setInitializationError(null);
+    
+    // Reset existing manager instead of creating new one
+    if (initManagerRef.current.reset) {
+      initManagerRef.current.reset();
+    }
+    
+    setInitState('idle');
+    wireManagerEvents(initManagerRef.current, runIdRef.current);
+  }
+  console.log(`[GameContext] Starting game initialization (run ${runIdRef.current})...`);
+  setInitializationError(null);
+  setContextSyncPhase('idle');
+  let postInitCallback = null;
+  if (loadGameAfterInit) {
+    postInitCallback = async (gameObjects) => {
+      console.log('[GameContext] Post-init: Loading save data...');
+      const success = await loadGame(slotName);
+      if (!success) {
+        console.warn('[GameContext] Post-init: Failed to load save data');
+      }
+    };
+  }
+  const success = await initManagerRef.current.startInitialization(postInitCallback);
+  if (!success) {
+    const error = initManagerRef.current.getError();
+    setInitializationError(error || 'Unknown initialization error');
+  }
+}, [wireManagerEvents, loadGame]);
+D. Preserve dual-gate system:
+
+Keep both isGameReady and contextSyncPhase === 'ready' checks. The computed isInitialized should respect both:
+
+const isInitialized = initState === 'complete' && isGameReady;
+E. Preserve cleanup and postInitCallback:
+
+The existing cleanup logic in the useEffect return and postInitCallback support should remain unchanged.
+
+2) Start Menu hides on actual state change (not on click)
+File: client/src/components/Game/GameScreen.tsx
+
+// Add effect to hide menu when initialization actually starts
+useEffect(() => {
+  if (initializationState === 'preloading' && showStartMenu) {
+    console.log('[GameScreenContent] Hiding start menu - initialization began');
+    setShowStartMenu(false);
+  }
+}, [initializationState, showStartMenu]);
+// In handleStartGame, just trigger init (don't hide menu immediately)
+const handleStartGame = async (mode?: boolean | string) => {
+  // Don't hide menu here - let the effect above do it when state changes
+  // setShowStartMenu(false); // REMOVE THIS LINE
+  if (mode === 'load') {
+    console.log('[GameScreenContent] Starting with load...');
+    await initializeGame(true, 'autosave');
+    return;
+  }
+  if (mode === true) {
+    console.log('[GameScreenContent] Game already loaded');
+    return;
+  }
+  if (!isGameReady && !initializationError) {
+    console.log('[GameScreenContent] Starting new game...');
+    await initializeGame();
+  }
+};
+3) Keep InventoryProvider where it is (with conditional gate)
+File: client/src/contexts/GameContext.jsx
+
+The InventoryProvider is already in GameContext wrapping children. Keep it there, but add the conditional gate:
+
+// In GameContextInner's return statement
+return (
+  <GameContext.Provider value={contextValue}>
+    {inventoryManager ? (
+      <InventoryProvider manager={inventoryManager}>
+        {children}
+      </InventoryProvider>
+    ) : (
+      children
+    )}
+  </GameContext.Provider>
+);
+Acceptance Checklist
+Before merging, verify:
+
+✅ First "New Game" click shows preloading state immediately (no flicker)
+✅ Start menu disappears when initializationState becomes 'preloading'
+✅ Second "New Game" click (during init) is blocked with console warning
+✅ "New Game" click after completion restarts successfully
+✅ No duplicate GameInitializationManager instances created
+✅ InventoryProvider receives manager after init completes
+✅ Both isGameReady and contextSyncPhase === 'ready' gates work
+✅ postInitCallback (Load Game flow) still works
+✅ Cleanup on unmount still works
+Visual Feedback Enhancement (Optional)
+If user clicks "New Game" while state is 'preloading'|'core_setup'|'world_population', you could optionally show a toast/alert:
+
+if (now === 'preloading' || now === 'core_setup' || now === 'world_population') {
+  console.warn('[GameContext] Initialization already in progress');
+  // Optional: Show user feedback here
+  return;
+}
+This refined plan addresses all the issues you identified while preserving the dual-gate system, postInitCallback support, and existing cleanup logic. The key improvements are:
+
+✅ Uses reset() instead of dispose()/destroy()
+✅ Keeps InventoryProvider in GameContext.jsx (where it already is)
+✅ Preserves dual-gate system (isGameReady + contextSyncPhase)
+✅ Adds visual feedback consideration for blocked double-clicks
+✅ Maintains postInitCallback for "Load Game" flow
+✅ Uses ref-based guards to prevent race conditions
