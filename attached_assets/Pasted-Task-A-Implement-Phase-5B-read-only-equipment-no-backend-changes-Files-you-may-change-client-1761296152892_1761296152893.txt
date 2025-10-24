@@ -1,0 +1,82 @@
+Task A — Implement Phase 5B (read-only equipment), no backend changes
+
+Files you may change:
+
+client/src/components/Inventory/EquipmentSlots.tsx
+
+client/src/components/Inventory/EquipmentSlot.tsx
+
+(If needed for slot placement only) client/src/components/Inventory/InventoryExtensionWindow.tsx
+
+Requirements
+
+Read-only display, no interactions.
+
+Use useInventory() to read inventoryRef.current.equipment.
+
+Enumerate the seven canonical slots exactly:
+backpack, upper_body, lower_body, melee, handgun, long_gun, flashlight.
+
+Pass equippedItem to each EquipmentSlot.
+
+Visual parity.
+
+Do not change icons, sizes, or layout.
+
+In EquipmentSlot.tsx, add title={equippedItem?.name ?? ''} and an optional subtle “occupied” border class. No click handlers.
+
+Slot placement rule.
+
+Main strip: backpack, melee, handgun, long_gun, flashlight.
+
+Inventory Extension Window (IEW): upper_body, lower_body.
+(If IEW already renders these, just ensure IDs are canonical.)
+
+Acceptance
+
+Equipping via in-game console updates the correct slot (occupied vs empty).
+
+Tooltip shows the item’s name.
+
+No visual/layout/slot-size changes.
+
+Task B — Open a “Stabilization Hotlist” (no immediate code unless trivial)
+
+Create issues (or tiny PRs) for these, in this order:
+
+Canonical slot names in tests/demos (trivial).
+Update any test/demo code still using non-canonical slots (e.g., rifle) to: long_gun, etc.
+
+Item.getCategory() (tiny).
+Implement a simple getter that returns a category from ItemDefs/metadata so the ground “organize” features don’t error.
+
+Stacking merge (small, self-contained).
+In Container (and/or InventoryManager.moveItem), implement:
+
+merge into existing stack up to max_stack,
+
+overflow creates/merges into additional stacks,
+
+partial stacking works ([25, 50] kind of result).
+
+Serialization of equipment (small).
+Ensure InventoryManager.toJSON()/fromJSON() round-trip equipped items by slot (slot→itemId), and re-link containers.
+
+Firearm attachments (defer or stub).
+If attachments aren’t needed for 5B–5D, add a no-op addAttachment/removeAttachment on non-firearm items that returns a clear error; implement real logic later.
+
+Guardrails
+
+No new managers instantiated outside GameInitializationManager._executePreloading().
+
+No auto-init (useEffect(... initializeGame())) anywhere.
+
+Keep a single <InventoryProvider> mount, gated post-init.
+
+Console checks
+
+inv.status shows one manager, ground container present.
+
+inv.create backpack_basic + inv.equip <id> backpack → backpack slot shows occupied, tooltip visible.
+
+No errors when calling item.getCategory() in organize code (after Task B-2).
