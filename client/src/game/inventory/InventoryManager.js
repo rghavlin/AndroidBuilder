@@ -47,16 +47,7 @@ export class InventoryManager {
    * Initialize default containers
    */
   initializeDefaultContainers() {
-    // Basic backpack container (will be replaced when backpack is equipped)
-    const defaultBackpack = new Container({
-      id: 'backpack-default',
-      type: 'backpack',
-      name: 'Default Backpack',
-      width: 6,
-      height: 6
-    });
-    
-    this.containers.set('backpack-default', defaultBackpack);
+    // No default containers needed - backpack only shows when equipped (Phase 5C)
   }
 
   /**
@@ -259,8 +250,8 @@ export class InventoryManager {
       return this.equipment.backpack.getContainerGrid();
     }
     
-    // Default container if no backpack equipped
-    return this.containers.get('backpack-default');
+    // Return null if no backpack equipped (Phase 5C requirement)
+    return null;
   }
 
   /**
