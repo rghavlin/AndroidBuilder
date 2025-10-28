@@ -15,6 +15,7 @@ Authoritative plan for wiring the Inventory system into the UI without visual/la
 - **Single source of truth:** Exactly **one** `InventoryManager` per session. Context **receives** it; context never constructs its own.
 - **Seven equipment slots only:** `backpack`, `upper_body`, `lower_body`, `melee`, `handgun`, `long_gun`, `flashlight`.
 - **No grid/layout changes:** Do **not** alter grid slot pixel size, CSS, or container dimensions unless explicitly requested.
+- **Maximum container width:** No container may exceed **6 grid squares wide**. Containers may be taller to compensate for capacity.
 - **Backpacks vs specialty containers:** Backpacks open **only when equipped**. Specialty containers may open inline **even when nested**.
 - **Console‑first QA:** Every subphase includes dev‑console checks before merging.
 - **Dev‑only globals:** `window.inventoryManager`/`window.inv` exposed **only** in development builds.

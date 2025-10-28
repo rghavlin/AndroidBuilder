@@ -93,15 +93,16 @@ const ITEM_TEMPLATES = {
   },
 
   // Backpacks (equippable containers)
+  // Container grids limited to max 6 width per project constraints
   'container.backpack': { 
     width: 3, height: 4, condition: 100, 
     equippableSlot: 'backpack',
-    containerGrid: { width: 8, height: 10 } 
+    containerGrid: { width: 6, height: 14 } // Was 8x10 (80 slots), now 6x14 (84 slots)
   },
   'container.tactical-backpack': { 
     width: 3, height: 4, condition: 100, 
     equippableSlot: 'backpack',
-    containerGrid: { width: 10, height: 12 } 
+    containerGrid: { width: 6, height: 20 } // Was 10x12 (120 slots), now 6x20 (120 slots)
   },
 
   // Tools (some equippable)
