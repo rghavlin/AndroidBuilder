@@ -182,21 +182,31 @@ export class Item {
 
   // Container grid
   getContainerGrid() {
-    // Container already created synchronously in constructor when data was present
-    return this.containerGrid || null;
+    // Return existing container if available
+    if (this.containerGrid) {
+      return this.containerGrid;
+    }
+    
+    // Attempt lazy initialization if we have data but no container yet
+    if (this._containerGridData) {
+      return this.initializeContainerGrid();
+    }
+    
+    return null;
   }
 
   initializeContainerGrid() {
-    // No-op if container already created synchronously
+    // No-op if container already created successfully
     if (this.containerGrid) {
-      return;
+      return this.containerGrid;
     }
     
-    // Fallback lazy initialization for edge cases
+    // Can't initialize without data
     if (!this._containerGridData) {
-      return;
+      return null;
     }
     
+    // Try to create the container
     try {
       const { Container } = require('./Container.js');
       this.containerGrid = new Container({
@@ -208,8 +218,11 @@ export class Item {
         autoExpand: this._containerGridData.autoExpand,
         autoSort: this._containerGridData.autoSort
       });
+      console.debug('[Item] Lazy-initialized container for', this.name, this.instanceId);
+      return this.containerGrid;
     } catch (err) {
       console.warn('[Item] Failed to initialize Container class', this.instanceId, err);
+      return null;
     }
   }
 
