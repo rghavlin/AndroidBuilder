@@ -1,10 +1,12 @@
 
 import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
+import FloatingContainer from "./FloatingContainer";
+import ContainerGrid from "./ContainerGrid";
 import { Button } from "@/components/ui/button";
 
 export default function GroundItemsGrid() {
-  const { getContainer, inventoryVersion, inventoryRef } = useInventory();
+  const { getContainer, inventoryVersion, inventoryRef, openContainers, closeContainer } = useInventory();
   
   // Get ground container (triggers re-render when inventoryVersion changes)
   const groundContainer = getContainer('ground');
@@ -45,44 +47,71 @@ export default function GroundItemsGrid() {
   }
 
   return (
-    <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
-      <div className="flex items-center justify-between mb-3 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-muted-foreground">
-          GROUND ITEMS
-          <span className="text-xs text-accent ml-2">
-            {groundContainer.width}x{groundContainer.height} grid
-          </span>
-        </h3>
-        
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => handleQuickPickup('weapons')}
-            className="text-xs h-7"
-          >
-            Quick Pickup
-          </Button>
+    <>
+      <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
+          <h3 className="text-sm font-semibold text-muted-foreground">
+            GROUND ITEMS
+            <span className="text-xs text-accent ml-2">
+              {groundContainer.width}x{groundContainer.height} grid
+            </span>
+          </h3>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleQuickPickup('weapons')}
+              className="text-xs h-7"
+            >
+              Quick Pickup
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0">
+          <UniversalGrid
+            containerId={groundContainer.id}
+            width={groundContainer.width}
+            height={groundContainer.height}
+            items={groundContainer.items}
+            grid={groundContainer.grid}
+            gridType="scalable"
+            maxHeight="100%"
+            maxWidth="100%"
+            enableScroll={true}
+            enableHorizontalScroll={true}
+            onSlotClick={handleSlotClick}
+            onSlotDrop={handleSlotDrop}
+            className="h-full"
+          />
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
-        <UniversalGrid
-          containerId={groundContainer.id}
-          width={groundContainer.width}
-          height={groundContainer.height}
-          items={groundContainer.items}
-          grid={groundContainer.grid}
-          gridType="scalable"
-          maxHeight="100%"
-          maxWidth="100%"
-          enableScroll={true}
-          enableHorizontalScroll={true}
-          onSlotClick={handleSlotClick}
-          onSlotDrop={handleSlotDrop}
-          className="h-full"
-        />
-      </div>
-    </div>
+      {/* Floating Containers for opened items */}
+      {Array.from(openContainers).map((containerId, index) => {
+        const container = getContainer(containerId);
+        if (!container) return null;
+
+        return (
+          <FloatingContainer
+            key={containerId}
+            id={containerId}
+            title={container.name}
+            isOpen={true}
+            onClose={() => closeContainer(containerId)}
+            initialPosition={{ x: 100 + index * 30, y: 100 + index * 30 }}
+            minWidth={250}
+            minHeight={200}
+          >
+            <ContainerGrid
+              containerId={containerId}
+              enableScroll={true}
+              maxHeight="400px"
+            />
+          </FloatingContainer>
+        );
+      })}
+    </>
   );
 }
