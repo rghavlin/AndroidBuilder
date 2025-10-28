@@ -56,8 +56,12 @@ export class Item {
     this.containerGrid = null;
 
     // Initialize container grid immediately if data exists
+    // Note: This is async but we don't await in constructor
+    // The container will be available shortly after construction
     if (this._containerGridData) {
-      this.initializeContainerGrid();
+      this.initializeContainerGrid().catch(err => {
+        console.warn('[Item] Container grid initialization failed in constructor', err);
+      });
     }
 
     // Container reference (not serialized)
@@ -169,17 +173,20 @@ export class Item {
   // Container grid
   getContainerGrid() {
     if (!this.containerGrid && this._containerGridData) {
-      this.initializeContainerGrid();
+      // Trigger async initialization if not already done
+      this.initializeContainerGrid().catch(err => {
+        console.warn('[Item] Container grid lazy initialization failed', err);
+      });
     }
     return this.containerGrid;
   }
 
-  initializeContainerGrid() {
+  async initializeContainerGrid() {
     if (!this._containerGridData) {
       return;
     }
     try {
-      const { Container } = require('./Container.js');
+      const { Container } = await import('./Container.js');
       this.containerGrid = new Container({
         id: `${this.instanceId}-container`,
         type: 'item-container',
