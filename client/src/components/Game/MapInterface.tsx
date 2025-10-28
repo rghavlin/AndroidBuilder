@@ -35,7 +35,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   }, [hoveredTile]);
 
   // Debug: Log the actual isInitialized value
-  console.log('[MapInterface] isInitialized value:', isInitialized, 'type:', typeof isInitialized);
+  //console.log('[MapInterface] isInitialized value:', isInitialized, 'type:', typeof isInitialized);
 
   // Show initialization error if present
   if (initializationError) {
