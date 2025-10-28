@@ -1,0 +1,140 @@
+I'll analyze the issues and present a comprehensive plan to fix both the container click problem and the multi-icon rendering issue.
+
+Analysis Summary
+Issue 1: Container Clicks Not Working
+Root Cause: The Item constructor creates containers synchronously, but the containerGrid property may be null when clicked because:
+
+Container creation is deferred with the message: [Item] Container initialization deferred (will be created by manager)
+When handleItemClick calls item.getContainerGrid(), it returns null
+The click handler tries to access item.getContainerGrid().id, which throws an error on null
+Evidence from logs:
+
+["[Item] Container initialization deferred (will be created by manager)","toolbox-1761691054090"]
+["[Item] Container initialization deferred (will be created by manager)","lunchbox-1761691130841"]
+Issue 2: Multiple Icons for Multi-Cell Items
+Root Cause: UniversalGrid renders a GridSlot for every grid cell. When an item occupies multiple cells (2×2 toolbox = 4 cells, 2×1 lunchbox = 2 cells), each cell independently checks if it contains an item and renders it. This creates duplicate icons.
+
+Current rendering logic (line ~89 in UniversalGrid.tsx):
+
+const item = grid[y]?.[x] ? items.get(grid[y][x]) : null;
+Each cell with the same itemId renders the same item, causing 4 separate toolbox icons instead of 1 stretched icon.
+
+Fix Plan
+Fix 1: Container Click Issue (Critical)
+Problem: item.getContainerGrid() returns null because container initialization failed.
+
+Solution: Ensure containers are created synchronously in the Item constructor, and add fallback logic in InventoryManager.canOpenContainer().
+
+Changes Required:
+
+Item.js Constructor - Remove the try/catch that defers initialization. The Container class should always be available since it's imported at the top of InventoryManager.
+
+InventoryManager.updateDynamicContainers() - The fallback logic here already handles missing containers, but we need to ensure this is called when items are added to ground.
+
+UniversalGrid.tsx handleItemClick - Add defensive null check before accessing containerGrid.id:
+
+const handleItemClick = (item: any, x: number, y: number) => {
+  onSlotClick?.(x, y);
+  if (item && canOpenContainer(item)) {
+    const itemContainer = item.getContainerGrid();
+    if (itemContainer) {
+      openContainer(itemContainer.id);
+      console.log('[UniversalGrid] Opening container:', item.name, itemContainer.id);
+    } else {
+      console.warn('[UniversalGrid] Container has no grid:', item.name);
+    }
+  } else if (item) {
+    console.debug('[UniversalGrid] Item cannot be opened inline:', item.name);
+  }
+};
+DevConsole.jsx - Ensure created items have their containers properly initialized by calling initializeContainerGrid() after creation.
+Fix 2: Multi-Icon Rendering Issue (Visual Bug)
+Problem: Each grid cell occupied by an item renders the item independently, creating duplicate icons.
+
+Solution: Only render the item once at its top-left corner (origin position), and skip rendering in other occupied cells.
+
+Rendering Strategy:
+
+Check if current cell (x, y) matches the item's origin (item.x, item.y)
+Only render if it's the origin cell
+Apply CSS to stretch the icon across all occupied cells
+Changes Required:
+
+UniversalGrid.tsx - Modify the grid rendering logic (around line 89):
+
+{Array.from({ length: totalSlots }, (_, index) => {
+  const x = index % width;
+  const y = Math.floor(index / width);
+  const itemId = grid[y]?.[x];
+  const item = itemId ? items.get(itemId) : null;
+  
+  // Only render item at its origin position (top-left corner)
+  const isOriginCell = item && item.x === x && item.y === y;
+  const displayItem = isOriginCell ? item : null;
+  return (
+    <GridSlot
+      key={`${x}-${y}`}
+      item={displayItem}
+      isEmpty={!itemId}
+      gridType={gridType}
+      onClick={() => handleItemClick(item, x, y)} // Pass full item for click
+      onDrop={(e) => onSlotDrop?.(x, y, e)}
+      onDragOver={(e) => e.preventDefault()}
+      data-testid={`${containerId}-slot-${x}-${y}`}
+    />
+  );
+})}
+GridSlot.tsx - Add CSS to stretch icons across occupied cells:
+
+// Calculate grid-column and grid-row span based on item dimensions
+const itemWidth = item?.getActualWidth?.() || 1;
+const itemHeight = item?.getActualHeight?.() || 1;
+<div
+  style={{
+    gridColumn: itemWidth > 1 ? `span ${itemWidth}` : undefined,
+    gridRow: itemHeight > 1 ? `span ${itemHeight}` : undefined,
+  }}
+  className={cn(
+    "relative w-full h-full border rounded flex items-center justify-center",
+    // ... other classes
+  )}
+>
+Alternative simpler approach (if grid-span doesn't work):
+
+Render item only at origin
+Use absolute positioning with calculated width/height
+Set width: ${itemWidth * slotSize}px and height: ${itemHeight * slotSize}px
+Implementation Order
+Phase 1: Fix Container Clicks (Highest Priority)
+Add null check in UniversalGrid.tsx handleItemClick
+Ensure Item.js constructor creates containers synchronously
+Call initializeContainerGrid() in DevConsole after item creation
+Test with create toolbox and create lunchbox commands
+Phase 2: Fix Multi-Icon Rendering
+Modify UniversalGrid.tsx to only render items at origin cells
+Add grid-span styling to GridSlot.tsx
+Test visual appearance with 2×2 toolbox and 2×1 lunchbox
+Phase 3: Verification
+Run phase5d test in dev console
+Verify toolbox/lunchbox clicks open containers
+Verify single icon stretches across all cells
+Verify backpacks still don't open inline
+Risk Assessment
+Low Risk:
+
+Null check in handleItemClick - pure defensive coding
+Origin-cell rendering logic - isolated change in one component
+Medium Risk:
+
+Grid-span styling - may need CSS adjustments for proper alignment
+Container initialization timing - needs testing with various item types
+Testing Checklist:
+
+ Toolbox (2×2) shows single icon across 4 cells
+ Lunchbox (2×1) shows single icon across 2 cells
+ Clicking toolbox/lunchbox opens floating container
+ Backpack items don't open inline (must be equipped)
+ Multi-container opening works (toolbox + lunchbox simultaneously)
+ Close buttons work on floating containers
+ No console errors when clicking containers
+This plan addresses both issues with minimal code changes, focusing on defensive programming for the click issue and proper origin-based rendering for the visual issue. Would you like me to proceed with implementing these fixes?

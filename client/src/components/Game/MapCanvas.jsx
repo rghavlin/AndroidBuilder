@@ -654,7 +654,7 @@ const terrainColors = {
   // Debug logging to identify the issue
   const gameMap = gameMapRef.current;
   const camera = cameraRef.current;
-
+/*
   console.log('[MapCanvas] Render check:', {
     isInitialized,
     gameMapExists: !!gameMap,
@@ -671,7 +671,7 @@ const terrainColors = {
     gameMapIsUndefined: gameMap === undefined,
     cameraIsNull: camera === null,
     cameraIsUndefined: camera === undefined
-  });
+  });*/
 
   if (!isInitialized) {
     console.log('[MapCanvas] Not initialized yet');
