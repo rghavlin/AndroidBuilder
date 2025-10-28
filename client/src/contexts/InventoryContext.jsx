@@ -45,6 +45,11 @@ export const InventoryProvider = ({ children, manager }) => {
     console.log('[InventoryContext] InventoryManager received from provider props');
   }
 
+  // Dev-only: Force refresh for console testing (Phase 5C/5D workaround until Phase 5E)
+  const forceRefresh = useCallback(() => {
+    setInventoryVersion(prev => prev + 1);
+  }, []);
+
   // Dev-console bridge (Phase 5A)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && inventoryRef.current) {
@@ -145,11 +150,6 @@ export const InventoryProvider = ({ children, manager }) => {
       setInventoryVersion(prev => prev + 1);
     }
     return result;
-  }, []);
-
-  // Dev-only: Force refresh for console testing (Phase 5C/5D workaround until Phase 5E)
-  const forceRefresh = useCallback(() => {
-    setInventoryVersion(prev => prev + 1);
   }, []);
 
   const contextValue = useMemo(() => ({
