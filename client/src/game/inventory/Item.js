@@ -164,19 +164,26 @@ export class Item {
   // Container grid
   getContainerGrid() {
     if (!this.containerGrid && this._containerGridData) {
-      try {
-        const { Container } = require('./Container.js');
-        this.containerGrid = new Container({
-          id: `${this.instanceId}-container`,
-          type: 'item-container',
-          name: `${this.name} Storage`,
-          ...this._containerGridData
-        });
-      } catch (err) {
-        console.warn('[Item] Failed to load Container class', this.instanceId, err);
-      }
+      this.initializeContainerGrid();
     }
     return this.containerGrid;
+  }
+
+  initializeContainerGrid() {
+    if (!this._containerGridData) {
+      return;
+    }
+    try {
+      const { Container } = require('./Container.js');
+      this.containerGrid = new Container({
+        id: `${this.instanceId}-container`,
+        type: 'item-container',
+        name: `${this.name} Storage`,
+        ...this._containerGridData
+      });
+    } catch (err) {
+      console.warn('[Item] Failed to load Container class', this.instanceId, err);
+    }
   }
 
   // Serialization
