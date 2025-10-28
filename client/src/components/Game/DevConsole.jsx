@@ -19,6 +19,12 @@ const DevConsole = ({ isOpen, onClose }) => {
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
   
+  // Draggable state
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const consoleRef = useRef(null);
+  
   // Phase 4: Direct sub-context access for debugging data
   const { playerRef, playerStats } = usePlayer();
   const { gameMapRef, worldManagerRef } = useGameMap();
@@ -36,6 +42,41 @@ const DevConsole = ({ isOpen, onClose }) => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [history]);
+
+  // Drag handlers
+  const handleMouseDown = (e) => {
+    if (e.target.closest('.console-header')) {
+      setIsDragging(true);
+      setDragOffset({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
 
   const addToConsole = (message, type = 'info') => {
     const timestamp = new Date().toLocaleTimeString();
@@ -529,12 +570,12 @@ const DevConsole = ({ isOpen, onClose }) => {
             
             const equipResult = window.inventoryManager.equipItem(testBackpack, 'backpack');
             
-            // Force UI refresh after console mutation
-            if (window.inv?.refresh) {
-              window.inv.refresh();
-            }
-            
             if (equipResult.success) {
+              // Force UI refresh after console mutation (Phase 5C workaround until Phase 5E)
+              if (window.inv?.refresh) {
+                window.inv.refresh();
+                addToConsole('  - UI refreshed to show backpack grid', 'log');
+              }
               addToConsole('  ✅ Backpack equipped successfully', 'success');
               
               // Verify container is now accessible
@@ -562,12 +603,12 @@ const DevConsole = ({ isOpen, onClose }) => {
             
             const unequipResult = window.inventoryManager.unequipItem('backpack');
             
-            // Force UI refresh after console mutation
-            if (window.inv?.refresh) {
-              window.inv.refresh();
-            }
-            
             if (unequipResult.success) {
+              // Force UI refresh after console mutation (Phase 5C workaround until Phase 5E)
+              if (window.inv?.refresh) {
+                window.inv.refresh();
+                addToConsole('  - UI refreshed to hide backpack grid', 'log');
+              }
               addToConsole('  ✅ Backpack unequipped successfully', 'success');
               addToConsole(`  - Item placed in: ${unequipResult.placedIn}`, 'log');
               
@@ -766,12 +807,24 @@ const DevConsole = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-3/4 h-3/4 bg-gray-900 border-gray-700">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 pointer-events-none">
+      <Card 
+        ref={consoleRef}
+        className="w-3/4 h-3/4 bg-gray-900 border-gray-700 pointer-events-auto"
+        style={{
+          position: 'absolute',
+          left: position.x || '12.5%',
+          top: position.y || '12.5%',
+          cursor: isDragging ? 'grabbing' : 'default'
+        }}
+      >
+        <CardHeader 
+          className="console-header flex flex-row items-center justify-between pb-2 cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+        >
           <CardTitle className="flex items-center gap-2 text-green-400">
             <Terminal className="w-5 h-5" />
-            Developer Console
+            Developer Console (Drag to move)
           </CardTitle>
           <Button
             variant="ghost"
