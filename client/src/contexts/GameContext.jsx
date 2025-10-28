@@ -148,7 +148,13 @@ const GameContextInner = ({ children }) => {
       return;
     }
     
-    // Check global instances to prevent race conditions
+    // HMR Fix: Clear stale global instances on development hot reload
+    if (process.env.NODE_ENV === 'development' && window.gameInitInstances && window.gameInitInstances.size > 0) {
+      console.warn('[GameContext] 🔄 HMR detected - clearing stale global instances');
+      window.gameInitInstances.clear();
+    }
+    
+    // Check global instances to prevent race conditions (after HMR cleanup)
     if (window.gameInitInstances && window.gameInitInstances.size > 0) {
       console.error('[GameContext] 🚨 GLOBAL INSTANCES ALREADY EXIST! Preventing duplicate creation');
       console.error('[GameContext] - Existing instances:', Array.from(window.gameInitInstances));
