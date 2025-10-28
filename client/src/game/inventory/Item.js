@@ -55,6 +55,11 @@ export class Item {
     this._containerGridData = _containerGridData || containerGrid;
     this.containerGrid = null;
 
+    // Initialize container grid immediately if data exists
+    if (this._containerGridData) {
+      this.initializeContainerGrid();
+    }
+
     // Container reference (not serialized)
     this._container = null;
   }
