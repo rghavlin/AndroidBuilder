@@ -9,6 +9,7 @@ import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
+import { ItemTrait } from '../../game/inventory/traits.js';
 
 const DevConsole = ({ isOpen, onClose }) => {
   const [input, setInput] = useState('');
@@ -160,7 +161,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                   width: 1,
                   height: 4,
                   equippableSlot: 'long_gun',
-                  traits: ['equippable']
+                  traits: [ItemTrait.EQUIPPABLE]
                 });
 
                 const vest = new InventoryItem({
@@ -171,7 +172,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                   height: 3,
                   equippableSlot: 'upper_body',
                   containerGrid: { width: 4, height: 2 },
-                  traits: ['equippable', 'container']
+                  traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
                 });
 
                 const backpack = new InventoryItem({
@@ -182,7 +183,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                   height: 4,
                   equippableSlot: 'backpack',
                   containerGrid: { width: 8, height: 10 },
-                  traits: ['equippable', 'container']
+                  traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
                 });
 
                 // Demonstrate equipment system
@@ -216,7 +217,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                   height: 1,
                   stackCount: 30,
                   stackMax: 50,
-                  traits: ['stackable']
+                  traits: [ItemTrait.STACKABLE]
                 });
 
                 const medkit = new InventoryItem({
@@ -227,7 +228,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                   height: 1,
                   stackCount: 5,
                   stackMax: 10,
-                  traits: ['stackable']
+                  traits: [ItemTrait.STACKABLE]
                 });
 
                 const ammoResult = manager.addItem(ammo);
@@ -407,7 +408,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               width: 1,
               height: 2,
               equippableSlot: 'melee',
-              traits: ['equippable']
+              traits: [ItemTrait.EQUIPPABLE]
             });
             
             const testFlashlight = new Item({
@@ -417,7 +418,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               width: 1,
               height: 2,
               equippableSlot: 'flashlight',
-              traits: ['equippable']
+              traits: [ItemTrait.EQUIPPABLE]
             });
             
             // Equip items
@@ -523,7 +524,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               height: 4,
               equippableSlot: 'backpack',
               containerGrid: { width: 8, height: 10 },
-              traits: ['equippable', 'container']
+              traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
             });
             
             const equipResult = window.inventoryManager.equipItem(testBackpack, 'backpack');
@@ -612,31 +613,31 @@ const DevConsole = ({ isOpen, onClose }) => {
                 // Create diverse ground items for testing organization
                 const groundItems = [
                   // Weapons
-                  new InventoryItem({ id: 'ground-rifle-1', name: 'Assault Rifle', defId: 'weapon.rifle', width: 1, height: 4, equippableSlot: 'long_gun', traits: ['equippable'] }),
-                  new InventoryItem({ id: 'ground-pistol-1', name: 'Combat Pistol', defId: 'weapon.pistol', width: 1, height: 2, equippableSlot: 'handgun', traits: ['equippable'] }),
-                  new InventoryItem({ id: 'ground-knife-1', name: 'Combat Knife', defId: 'weapon.melee', width: 1, height: 2, equippableSlot: 'melee', traits: ['equippable'] }),
+                  new InventoryItem({ id: 'ground-rifle-1', name: 'Assault Rifle', defId: 'weapon.rifle', width: 1, height: 4, equippableSlot: 'long_gun', traits: [ItemTrait.EQUIPPABLE] }),
+                  new InventoryItem({ id: 'ground-pistol-1', name: 'Combat Pistol', defId: 'weapon.pistol', width: 1, height: 2, equippableSlot: 'handgun', traits: [ItemTrait.EQUIPPABLE] }),
+                  new InventoryItem({ id: 'ground-knife-1', name: 'Combat Knife', defId: 'weapon.melee', width: 1, height: 2, equippableSlot: 'melee', traits: [ItemTrait.EQUIPPABLE] }),
 
                   // Ammunition
-                  new InventoryItem({ id: 'ammo-9mm-1', defId: 'ammo.9mm', name: '9mm Ammo', width: 1, height: 1, stackCount: 30, stackMax: 50, traits: ['stackable'] }),
-                  new InventoryItem({ id: 'ammo-762-1', defId: 'ammo.762mm', name: '7.62mm Ammo', width: 1, height: 1, stackCount: 25, stackMax: 30, traits: ['stackable'] }),
-                  new InventoryItem({ id: 'ammo-shotgun-1', defId: 'ammo.shotgun', name: 'Shotgun Shells', width: 1, height: 1, stackCount: 15, stackMax: 25, traits: ['stackable'] }),
+                  new InventoryItem({ id: 'ammo-9mm-1', defId: 'ammo.9mm', name: '9mm Ammo', width: 1, height: 1, stackCount: 30, stackMax: 50, traits: [ItemTrait.STACKABLE] }),
+                  new InventoryItem({ id: 'ammo-762-1', defId: 'ammo.762mm', name: '7.62mm Ammo', width: 1, height: 1, stackCount: 25, stackMax: 30, traits: [ItemTrait.STACKABLE] }),
+                  new InventoryItem({ id: 'ammo-shotgun-1', defId: 'ammo.shotgun', name: 'Shotgun Shells', width: 1, height: 1, stackCount: 15, stackMax: 25, traits: [ItemTrait.STACKABLE] }),
 
                   // Medical supplies
-                  new InventoryItem({ id: 'med-bandage-1', defId: 'medical.bandage', name: 'Bandage', width: 1, height: 1, stackCount: 8, stackMax: 10, traits: ['stackable'] }),
-                  new InventoryItem({ id: 'med-pills-1', defId: 'medical.pills', name: 'Pills', width: 1, height: 1, stackCount: 12, stackMax: 20, traits: ['stackable'] }),
-                  new InventoryItem({ id: 'med-syringe-1', defId: 'medical.syringe', name: 'Syringe', width: 1, height: 1, stackCount: 3, stackMax: 5, traits: ['stackable'] }),
+                  new InventoryItem({ id: 'med-bandage-1', defId: 'medical.bandage', name: 'Bandage', width: 1, height: 1, stackCount: 8, stackMax: 10, traits: [ItemTrait.STACKABLE] }),
+                  new InventoryItem({ id: 'med-pills-1', defId: 'medical.pills', name: 'Pills', width: 1, height: 1, stackCount: 12, stackMax: 20, traits: [ItemTrait.STACKABLE] }),
+                  new InventoryItem({ id: 'med-syringe-1', defId: 'medical.syringe', name: 'Syringe', width: 1, height: 1, stackCount: 3, stackMax: 5, traits: [ItemTrait.STACKABLE] }),
 
                   // Tools
-                  new InventoryItem({ id: 'tool-flashlight-1', defId: 'tool.flashlight', name: 'LED Flashlight', width: 1, height: 2, equippableSlot: 'flashlight', traits: ['equippable'] }),
+                  new InventoryItem({ id: 'tool-flashlight-1', defId: 'tool.flashlight', name: 'LED Flashlight', width: 1, height: 2, equippableSlot: 'flashlight', traits: [ItemTrait.EQUIPPABLE] }),
                   new InventoryItem({ id: 'tool-hammer-1', defId: 'tool.hammer', name: 'Claw Hammer', width: 2, height: 1, traits: [] }),
                   new InventoryItem({ id: 'tool-screwdriver-1', defId: 'tool.screwdriver', name: 'Screwdriver Set', width: 1, height: 1, traits: [] }),
 
                   // Containers
-                  new InventoryItem({ id: 'container-backpack-1', defId: 'container.backpack', name: 'Hiking Backpack', width: 3, height: 4, equippableSlot: 'backpack', containerGrid: { width: 8, height: 10 }, traits: ['equippable', 'container'] }),
+                  new InventoryItem({ id: 'container-backpack-1', defId: 'container.backpack', name: 'Hiking Backpack', width: 3, height: 4, equippableSlot: 'backpack', containerGrid: { width: 8, height: 10 }, traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER] }),
 
                   // Food
-                  new InventoryItem({ id: 'food-canned-1', defId: 'food.canned', name: 'Canned Beans', width: 1, height: 1, stackCount: 4, stackMax: 6, traits: ['stackable'] }),
-                  new InventoryItem({ id: 'food-water-1', defId: 'food.water', name: 'Water Bottle', width: 1, height: 2, stackCount: 2, stackMax: 4, traits: ['stackable'] })
+                  new InventoryItem({ id: 'food-canned-1', defId: 'food.canned', name: 'Canned Beans', width: 1, height: 1, stackCount: 4, stackMax: 6, traits: [ItemTrait.STACKABLE] }),
+                  new InventoryItem({ id: 'food-water-1', defId: 'food.water', name: 'Water Bottle', width: 1, height: 2, stackCount: 2, stackMax: 4, traits: [ItemTrait.STACKABLE] })
                 ];
 
                 // Add items to ground randomly
