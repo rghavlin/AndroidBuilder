@@ -529,6 +529,11 @@ const DevConsole = ({ isOpen, onClose }) => {
             
             const equipResult = window.inventoryManager.equipItem(testBackpack, 'backpack');
             
+            // Force UI refresh after console mutation
+            if (window.inv?.refresh) {
+              window.inv.refresh();
+            }
+            
             if (equipResult.success) {
               addToConsole('  ✅ Backpack equipped successfully', 'success');
               
@@ -556,6 +561,11 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('Test 4: Unequipping backpack...', 'info');
             
             const unequipResult = window.inventoryManager.unequipItem('backpack');
+            
+            // Force UI refresh after console mutation
+            if (window.inv?.refresh) {
+              window.inv.refresh();
+            }
             
             if (unequipResult.success) {
               addToConsole('  ✅ Backpack unequipped successfully', 'success');

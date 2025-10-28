@@ -18,7 +18,8 @@ export const useInventory = () => {
         equipItem: () => ({ success: false, reason: 'Context not available' }),
         unequipItem: () => ({ success: false, reason: 'Context not available' }),
         moveItem: () => ({ success: false, reason: 'Context not available' }),
-        dropItemToGround: () => false
+        dropItemToGround: () => false,
+        forceRefresh: () => {}
       };
     }
     throw new Error('useInventory must be used within an InventoryProvider');
@@ -53,10 +54,11 @@ export const InventoryProvider = ({ children, manager }) => {
         equipItem: (item, slot) => inventoryRef.current?.equipItem(item, slot),
         moveItem: (itemId, from, to, x, y) =>
           inventoryRef.current?.moveItem(itemId, from, to, x, y),
+        refresh: forceRefresh
       };
       console.log('[InventoryContext] Dev console bridge established: window.inventoryManager, window.inv');
     }
-  }, []);
+  }, [forceRefresh]);
 
   const setInventory = useCallback((inventory) => {
     inventoryRef.current = inventory;
@@ -145,6 +147,11 @@ export const InventoryProvider = ({ children, manager }) => {
     return result;
   }, []);
 
+  // Dev-only: Force refresh for console testing (Phase 5C/5D workaround until Phase 5E)
+  const forceRefresh = useCallback(() => {
+    setInventoryVersion(prev => prev + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     inventoryRef,
     inventoryVersion,
@@ -158,8 +165,9 @@ export const InventoryProvider = ({ children, manager }) => {
     moveItem,
     dropItemToGround,
     organizeGroundItems,
-    quickPickupByCategory
-  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory]);
+    quickPickupByCategory,
+    forceRefresh
+  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh]);
 
   return (
     <InventoryContext.Provider value={contextValue}>
