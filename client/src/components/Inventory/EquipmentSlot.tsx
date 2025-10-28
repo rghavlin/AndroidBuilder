@@ -34,6 +34,10 @@ export default function EquipmentSlot({
   
   // Check if slot is occupied
   const hasItem = !!item;
+  
+  // Determine what to display
+  const displayIcon = hasItem && item.name ? item.name.substring(0, 2).toUpperCase() : slotInfo.icon;
+  const displayLabel = hasItem && item.name ? '' : slotInfo.name;
 
   return (
     <div
@@ -48,10 +52,16 @@ export default function EquipmentSlot({
       data-testid={`equipment-slot-${slotId}`}
       title={tooltipText}
     >
-      <span className="text-base">{slotInfo.icon}</span>
-      <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
-        {slotInfo.name}
-      </span>
+      {hasItem ? (
+        <span className="text-xs font-bold text-accent">{displayIcon}</span>
+      ) : (
+        <>
+          <span className="text-base">{slotInfo.icon}</span>
+          <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
+            {displayLabel}
+          </span>
+        </>
+      )}
     </div>
   );
 }
