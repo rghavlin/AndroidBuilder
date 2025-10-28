@@ -59,6 +59,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  inventory demo - Run inventory demo', 'info');
           addToConsole('  entity spawn <type> - Spawn an entity', 'info');
           addToConsole('  entity list - List all entities', 'info');
+          addToConsole('  phase5 - Verify Phase 5A completion status', 'info');
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
@@ -282,6 +283,102 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('Entity list command not implemented yet', 'info');
           } else {
             addToConsole('Unknown entity command. Try: entity spawn <type>, entity list', 'error');
+          }
+          break;
+
+        case 'phase5':
+          try {
+            addToConsole('=== Phase 5A Verification ===', 'info');
+            
+            // Test 1: Check if inventoryManager exists from initialization
+            addToConsole('Test 1: InventoryManager created during initialization?', 'info');
+            if (window.inventoryManager) {
+              addToConsole('  ✅ window.inventoryManager exists', 'success');
+              addToConsole(`  - Manager type: ${window.inventoryManager.constructor.name}`, 'log');
+            } else {
+              addToConsole('  ❌ window.inventoryManager NOT FOUND', 'error');
+              addToConsole('  - This indicates Phase 5A is incomplete', 'error');
+            }
+            
+            // Test 2: Check if ground container is accessible
+            addToConsole('Test 2: Ground container accessible?', 'info');
+            if (window.inventoryManager) {
+              const groundContainer = window.inventoryManager.getContainer('ground');
+              if (groundContainer) {
+                addToConsole('  ✅ Ground container accessible', 'success');
+                addToConsole(`  - Container ID: ${groundContainer.id}`, 'log');
+                addToConsole(`  - Dimensions: ${groundContainer.width}x${groundContainer.height}`, 'log');
+                addToConsole(`  - Item count: ${groundContainer.getItemCount()}`, 'log');
+              } else {
+                addToConsole('  ❌ Ground container NOT ACCESSIBLE', 'error');
+              }
+            } else {
+              addToConsole('  ⏭️  Skipped (no manager)', 'log');
+            }
+            
+            // Test 3: Check if manager is same instance across contexts
+            addToConsole('Test 3: Manager instance consistency?', 'info');
+            if (window.inventoryManager) {
+              // Check if window.inv helper exists
+              if (window.inv) {
+                addToConsole('  ✅ window.inv helper exists', 'success');
+                
+                // Test if both references point to same ground container
+                const groundViaManager = window.inventoryManager.getContainer('ground');
+                const groundViaHelper = window.inv.getContainer('ground');
+                
+                if (groundViaManager === groundViaHelper) {
+                  addToConsole('  ✅ Same instance across all access methods', 'success');
+                } else {
+                  addToConsole('  ❌ DIFFERENT INSTANCES detected', 'error');
+                  addToConsole('  - This indicates multiple managers exist', 'error');
+                }
+              } else {
+                addToConsole('  ⚠️  window.inv helper not set up', 'log');
+              }
+              
+              // Check equipment slots
+              addToConsole('Test 4: Equipment system initialized?', 'info');
+              const equipment = window.inventoryManager.equipment;
+              if (equipment) {
+                const slots = Object.keys(equipment);
+                addToConsole(`  ✅ Equipment object exists with ${slots.length} slots`, 'success');
+                addToConsole(`  - Slots: ${slots.join(', ')}`, 'log');
+                
+                // Count equipped items
+                const equippedCount = Object.values(equipment).filter(item => item !== null).length;
+                addToConsole(`  - Currently equipped: ${equippedCount} items`, 'log');
+              } else {
+                addToConsole('  ❌ Equipment object NOT FOUND', 'error');
+              }
+            } else {
+              addToConsole('  ⏭️  Skipped (no manager)', 'log');
+            }
+            
+            // Summary
+            addToConsole('--- Phase 5A Status ---', 'info');
+            if (window.inventoryManager) {
+              const groundExists = window.inventoryManager.getContainer('ground') !== null;
+              const helperExists = window.inv !== undefined;
+              const equipmentExists = window.inventoryManager.equipment !== undefined;
+              
+              if (groundExists && helperExists && equipmentExists) {
+                addToConsole('✅ Phase 5A appears COMPLETE', 'success');
+                addToConsole('All core infrastructure in place', 'success');
+              } else {
+                addToConsole('⚠️  Phase 5A partially complete', 'log');
+                if (!groundExists) addToConsole('  - Missing: ground container', 'error');
+                if (!helperExists) addToConsole('  - Missing: dev console helpers', 'error');
+                if (!equipmentExists) addToConsole('  - Missing: equipment system', 'error');
+              }
+            } else {
+              addToConsole('❌ Phase 5A NOT STARTED', 'error');
+              addToConsole('InventoryManager not created during initialization', 'error');
+            }
+            
+          } catch (error) {
+            addToConsole(`Error in Phase 5A verification: ${error.message}`, 'error');
+            console.error('Phase 5A Verification Error:', error);
           }
           break;
 
