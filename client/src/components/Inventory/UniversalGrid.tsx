@@ -60,6 +60,8 @@ export default function UniversalGrid({
       if (itemContainer) {
         openContainer(itemContainer.id);
         console.log('[UniversalGrid] Opening container:', item.name, itemContainer.id);
+      } else {
+        console.warn('[UniversalGrid] Container has no grid:', item.name);
       }
     } else if (item) {
       console.debug('[UniversalGrid] Item cannot be opened inline:', item.name);

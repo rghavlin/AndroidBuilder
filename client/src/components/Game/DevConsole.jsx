@@ -726,6 +726,10 @@ const DevConsole = ({ isOpen, onClose }) => {
               traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
             });
             
+            // Ensure container grids are initialized
+            toolbox.initializeContainerGrid();
+            lunchbox.initializeContainerGrid();
+            
             const groundContainer = window.inventoryManager.getContainer('ground');
             if (groundContainer) {
               groundContainer.addItem(toolbox);
@@ -813,6 +817,9 @@ const DevConsole = ({ isOpen, onClose }) => {
                 traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
               });
               
+              // Ensure container grid is initialized
+              toolbox.initializeContainerGrid();
+              
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(toolbox)) {
                 window.inv?.refresh();
@@ -837,6 +844,9 @@ const DevConsole = ({ isOpen, onClose }) => {
                 containerGrid: { width: 3, height: 2 },
                 traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
               });
+              
+              // Ensure container grid is initialized
+              lunchbox.initializeContainerGrid();
               
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(lunchbox)) {
