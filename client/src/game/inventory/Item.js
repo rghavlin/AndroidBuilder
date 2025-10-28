@@ -69,8 +69,8 @@ export class Item {
           autoSort: this._containerGridData.autoSort
         });
       } catch (err) {
-        console.warn('[Item] Container initialization failed in constructor', err);
-        // Keep _containerGridData for potential lazy init
+        console.debug('[Item] Container initialization deferred (will be created by manager)', this.instanceId);
+        // Keep _containerGridData for fallback creation by InventoryManager
       }
     }
 

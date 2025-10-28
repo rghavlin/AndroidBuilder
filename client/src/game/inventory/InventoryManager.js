@@ -205,7 +205,34 @@ export class InventoryManager {
     // Add containers from equipped items
     Object.entries(this.equipment).forEach(([slot, item]) => {
       if (item && item.isContainer && item.isContainer()) {
-        const containerGrid = item.getContainerGrid();
+        // Ensure a real container exists (constructor may have failed due to circular import)
+        let containerGrid = item.getContainerGrid();
+        
+        // Fallback: Create container if missing but data exists
+        if (!containerGrid && item._containerGridData) {
+          try {
+            const data = item._containerGridData;
+            const ownerId = item.instanceId || item.id || `item-${Date.now()}`;
+            
+            containerGrid = new Container({
+              id: `${ownerId}-container`,
+              type: 'item-container',
+              name: `${item.name} Storage`,
+              width: data.width,
+              height: data.height,
+              autoExpand: data.autoExpand,
+              autoSort: data.autoSort
+            });
+            
+            // Assign it back to the item so future calls work
+            item.containerGrid = containerGrid;
+            
+            console.debug('[InventoryManager] Created fallback container for', item.name);
+          } catch (err) {
+            console.warn('[InventoryManager] Failed to create fallback container for', item.name, err);
+          }
+        }
+        
         if (containerGrid) {
           const containerId = `${slot}-container`;
           containerGrid.id = containerId;
@@ -221,10 +248,18 @@ export class InventoryManager {
    * Get the main backpack container
    */
   getBackpackContainer() {
-    // Return equipped backpack container or default
+    // Check managed container map first (most authoritative)
+    const managedContainer = this.containers.get('backpack-container');
+    if (managedContainer) {
+      return managedContainer;
+    }
+    
+    // Fallback: check equipped backpack item directly
     if (this.equipment.backpack && this.equipment.backpack.isContainer && this.equipment.backpack.isContainer()) {
       return this.equipment.backpack.getContainerGrid();
     }
+    
+    // Default container if no backpack equipped
     return this.containers.get('backpack-default');
   }
 
