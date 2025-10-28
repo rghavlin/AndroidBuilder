@@ -1,11 +1,10 @@
 
+import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
 
 interface ContainerGridProps {
   containerId: string;
   title?: string;
-  width: number;
-  height: number;
   className?: string;
   enableScroll?: boolean;
   maxHeight?: string;
@@ -16,15 +15,15 @@ interface ContainerGridProps {
 export default function ContainerGrid({
   containerId,
   title,
-  width,
-  height,
   className = "",
   enableScroll = false,
   maxHeight = "200px",
   maxWidth = "100%",
   enableHorizontalScroll = false
 }: ContainerGridProps) {
-  // TODO: Connect to real Container system from inventory
+  const { getContainer } = useInventory();
+  const container = getContainer(containerId);
+
   const handleSlotClick = (x: number, y: number) => {
     console.log(`Container ${containerId} slot (${x}, ${y}) clicked`);
   };
@@ -32,15 +31,28 @@ export default function ContainerGrid({
   const handleSlotDrop = (x: number, y: number, event: React.DragEvent) => {
     event.preventDefault();
     console.log(`Item dropped on ${containerId} slot (${x}, ${y})`);
+    // Phase 5F will implement actual moveItem logic
   };
+
+  if (!container) {
+    return (
+      <div className={className}>
+        <div className="text-sm text-muted-foreground p-2">
+          Container not found: {containerId}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
       <UniversalGrid
         containerId={containerId}
-        title={title}
-        width={width}
-        height={height}
+        title={title || container.name}
+        width={container.width}
+        height={container.height}
+        items={container.items}
+        grid={container.grid}
         gridType="fixed" // Always use fixed size for containers
         maxHeight={maxHeight}
         maxWidth={maxWidth}

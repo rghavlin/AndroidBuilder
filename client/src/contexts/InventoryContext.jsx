@@ -38,6 +38,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const inventoryRef = useRef(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
+  const [openContainers, setOpenContainers] = useState(new Set());
 
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
@@ -152,6 +153,22 @@ export const InventoryProvider = ({ children, manager }) => {
     return result;
   }, []);
 
+  const openContainer = useCallback((containerId) => {
+    setOpenContainers(prev => new Set([...prev, containerId]));
+  }, []);
+
+  const closeContainer = useCallback((containerId) => {
+    setOpenContainers(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(containerId);
+      return newSet;
+    });
+  }, []);
+
+  const isContainerOpen = useCallback((containerId) => {
+    return openContainers.has(containerId);
+  }, [openContainers]);
+
   const contextValue = useMemo(() => ({
     inventoryRef,
     inventoryVersion,
@@ -166,8 +183,12 @@ export const InventoryProvider = ({ children, manager }) => {
     dropItemToGround,
     organizeGroundItems,
     quickPickupByCategory,
-    forceRefresh
-  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh]);
+    forceRefresh,
+    openContainers,
+    openContainer,
+    closeContainer,
+    isContainerOpen
+  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

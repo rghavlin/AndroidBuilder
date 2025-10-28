@@ -104,8 +104,11 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  phase5 - Verify Phase 5A completion status', 'info');
           addToConsole('  phase5b - Verify Phase 5B equipment display', 'info');
           addToConsole('  phase5c - Verify Phase 5C backpack visibility', 'info');
+          addToConsole('  phase5d - Verify Phase 5D specialty container opening', 'info');
           addToConsole('  equip backpack - Equip a test backpack (visual test)', 'info');
           addToConsole('  unequip backpack - Unequip backpack (visual test)', 'info');
+          addToConsole('  create toolbox - Create test toolbox item on ground', 'info');
+          addToConsole('  create lunchbox - Create test lunchbox item on ground', 'info');
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
@@ -686,6 +689,167 @@ const DevConsole = ({ isOpen, onClose }) => {
             }
           } else {
             addToConsole('Usage: unequip backpack', 'error');
+          }
+          break;
+
+        case 'phase5d':
+          try {
+            addToConsole('=== Phase 5D Verification (Specialty Container Opening) ===', 'info');
+            
+            if (!window.inventoryManager) {
+              addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
+              break;
+            }
+            
+            // Test 1: Create specialty containers on ground
+            addToConsole('Test 1: Creating specialty container items...', 'info');
+            
+            const { Item } = await import('../../game/inventory/Item.js');
+            
+            const toolbox = new Item({
+              instanceId: 'test-toolbox-5d',
+              defId: 'container.toolbox',
+              name: 'Tool Box',
+              width: 2,
+              height: 2,
+              containerGrid: { width: 4, height: 3 },
+              traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
+            });
+            
+            const lunchbox = new Item({
+              instanceId: 'test-lunchbox-5d',
+              defId: 'container.lunchbox',
+              name: 'Lunch Box',
+              width: 2,
+              height: 1,
+              containerGrid: { width: 3, height: 2 },
+              traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
+            });
+            
+            const groundContainer = window.inventoryManager.getContainer('ground');
+            if (groundContainer) {
+              groundContainer.addItem(toolbox);
+              groundContainer.addItem(lunchbox);
+              window.inv?.refresh();
+              addToConsole('  ✅ Created toolbox and lunchbox on ground', 'success');
+            } else {
+              addToConsole('  ❌ Ground container not found', 'error');
+              break;
+            }
+            
+            // Test 2: Verify canOpenContainer for specialty containers
+            addToConsole('Test 2: Checking container open permissions...', 'info');
+            
+            const toolboxCanOpen = window.inventoryManager.canOpenContainer(toolbox);
+            const lunchboxCanOpen = window.inventoryManager.canOpenContainer(lunchbox);
+            
+            addToConsole(`  - Toolbox can open: ${toolboxCanOpen ? '✅ YES' : '❌ NO'}`, toolboxCanOpen ? 'success' : 'error');
+            addToConsole(`  - Lunchbox can open: ${lunchboxCanOpen ? '✅ YES' : '❌ NO'}`, lunchboxCanOpen ? 'success' : 'error');
+            
+            // Test 3: Create backpack item (should NOT open inline)
+            addToConsole('Test 3: Verifying backpack prevention...', 'info');
+            
+            const testBackpackItem = new Item({
+              instanceId: 'test-bp-item-5d',
+              defId: 'container.backpack',
+              name: 'Backpack Item',
+              width: 3,
+              height: 4,
+              equippableSlot: 'backpack',
+              containerGrid: { width: 8, height: 10 },
+              traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
+            });
+            
+            groundContainer.addItem(testBackpackItem);
+            window.inv?.refresh();
+            
+            const backpackCanOpen = window.inventoryManager.canOpenContainer(testBackpackItem);
+            addToConsole(`  - Backpack (unequipped) can open: ${backpackCanOpen ? '❌ YES (WRONG!)' : '✅ NO (CORRECT)'}`, backpackCanOpen ? 'error' : 'success');
+            
+            // Test 4: Visual verification instructions
+            addToConsole('Test 4: Visual verification steps...', 'info');
+            addToConsole('  ℹ️  Click on the toolbox in the ground grid:', 'info');
+            addToConsole('     - Should open a floating panel with 4×3 grid', 'log');
+            addToConsole('  ℹ️  Click on the lunchbox in the ground grid:', 'info');
+            addToConsole('     - Should open a floating panel with 3×2 grid', 'log');
+            addToConsole('  ℹ️  Click on the backpack item in the ground grid:', 'info');
+            addToConsole('     - Should NOT open inline (must be equipped first)', 'log');
+            addToConsole('  ℹ️  Each floating panel should have:', 'info');
+            addToConsole('     - Title bar with container name', 'log');
+            addToConsole('     - Close button (X)', 'log');
+            addToConsole('     - Draggable header (can reposition)', 'log');
+            addToConsole('     - Grid using fixed slot size', 'log');
+            
+            // Summary
+            addToConsole('--- Phase 5D Status ---', 'info');
+            if (toolboxCanOpen && lunchboxCanOpen && !backpackCanOpen) {
+              addToConsole('✅ Phase 5D Implementation Complete', 'success');
+              addToConsole('Specialty containers can be opened inline', 'success');
+              addToConsole('Backpacks correctly prevented from inline opening', 'success');
+              addToConsole('Click containers in ground grid to test UI', 'success');
+            } else {
+              addToConsole('⚠️  Phase 5D has issues - check canOpenContainer logic', 'log');
+            }
+            
+          } catch (error) {
+            addToConsole(`Error in Phase 5D verification: ${error.message}`, 'error');
+            console.error('Phase 5D Verification Error:', error);
+          }
+          break;
+
+        case 'create':
+          if (subCommand === 'toolbox') {
+            try {
+              addToConsole('Creating toolbox on ground...', 'info');
+              const { Item } = await import('../../game/inventory/Item.js');
+              
+              const toolbox = new Item({
+                instanceId: `toolbox-${Date.now()}`,
+                defId: 'container.toolbox',
+                name: 'Tool Box',
+                width: 2,
+                height: 2,
+                containerGrid: { width: 4, height: 3 },
+                traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
+              });
+              
+              const ground = window.inventoryManager.getContainer('ground');
+              if (ground && ground.addItem(toolbox)) {
+                window.inv?.refresh();
+                addToConsole('✅ Toolbox created - click it in ground grid to open', 'success');
+              } else {
+                addToConsole('❌ Failed to add toolbox to ground', 'error');
+              }
+            } catch (error) {
+              addToConsole(`Error: ${error.message}`, 'error');
+            }
+          } else if (subCommand === 'lunchbox') {
+            try {
+              addToConsole('Creating lunchbox on ground...', 'info');
+              const { Item } = await import('../../game/inventory/Item.js');
+              
+              const lunchbox = new Item({
+                instanceId: `lunchbox-${Date.now()}`,
+                defId: 'container.lunchbox',
+                name: 'Lunch Box',
+                width: 2,
+                height: 1,
+                containerGrid: { width: 3, height: 2 },
+                traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
+              });
+              
+              const ground = window.inventoryManager.getContainer('ground');
+              if (ground && ground.addItem(lunchbox)) {
+                window.inv?.refresh();
+                addToConsole('✅ Lunchbox created - click it in ground grid to open', 'success');
+              } else {
+                addToConsole('❌ Failed to add lunchbox to ground', 'error');
+              }
+            } catch (error) {
+              addToConsole(`Error: ${error.message}`, 'error');
+            }
+          } else {
+            addToConsole('Usage: create toolbox OR create lunchbox', 'error');
           }
           break;
 

@@ -2,6 +2,7 @@
 import { cn } from "@/lib/utils";
 import GridSlot from "./GridSlot";
 import { useGridSize } from "@/contexts/GridSizeContext";
+import { useInventory } from "@/contexts/InventoryContext";
 
 interface UniversalGridProps {
   containerId: string;
@@ -44,9 +45,26 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
+  const { canOpenContainer, openContainer } = useInventory();
   
   // Choose slot size based on grid type
   const slotSize = gridType === 'fixed' ? fixedSlotSize : scalableSlotSize;
+
+  const handleItemClick = (item: any, x: number, y: number) => {
+    // First call any custom slot click handler
+    onSlotClick?.(x, y);
+
+    // Then check if this item is a container that can be opened
+    if (item && canOpenContainer(item)) {
+      const itemContainer = item.getContainerGrid();
+      if (itemContainer) {
+        openContainer(itemContainer.id);
+        console.log('[UniversalGrid] Opening container:', item.name, itemContainer.id);
+      }
+    } else if (item) {
+      console.debug('[UniversalGrid] Item cannot be opened inline:', item.name);
+    }
+  };
   
   // Dynamic grid dimensions based on calculated slot size
   const gridWidth = width * slotSize;
@@ -92,7 +110,7 @@ export default function UniversalGrid({
             item={item}
             isEmpty={!item}
             gridType={gridType}
-            onClick={() => onSlotClick?.(x, y)}
+            onClick={() => handleItemClick(item, x, y)}
             onDrop={(e) => onSlotDrop?.(x, y, e)}
             onDragOver={(e) => e.preventDefault()}
             data-testid={`${containerId}-slot-${x}-${y}`}
