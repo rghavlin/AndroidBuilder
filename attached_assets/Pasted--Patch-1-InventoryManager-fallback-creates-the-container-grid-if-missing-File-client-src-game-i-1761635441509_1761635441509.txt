@@ -1,0 +1,134 @@
+✅ Patch 1 — InventoryManager fallback creates the container grid if missing
+
+File: client/src/game/inventory/InventoryManager.js
+Locate: function updateDynamicContainers()
+Anchor (codebase.txt lines): ~200–220 in this file section
+
+Current (for reference)
+208:   Object.entries(this.equipment).forEach(([slot, item]) => {
+209:     if (item && item.isContainer && item.isContainer()) {
+210:       const containerGrid = item.getContainerGrid();
+211:       if (containerGrid) {
+212:         const containerId = `${slot}-container`;
+213:         containerGrid.id = containerId;
+214:         containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
+215:         containerGrid.name = `${item.name} Storage`;
+216:         this.containers.set(containerId, containerGrid);
+217:       }
+218:     }
+219:   });
+
+Replace lines 208–217 with:
+  Object.entries(this.equipment).forEach(([slot, item]) => {
+    if (item && item.isContainer && item.isContainer()) {
+      // Ensure a real container exists (constructor may have failed due to circular import)
+      let containerGrid = item.getContainerGrid();
+      if (!containerGrid && item._containerGridData) {
+        try {
+          const data = item._containerGridData;
+          // Create a container grid on the fly (InventoryManager can safely import Container)
+          const ownerId = item.instanceId || item.id || `item-${Date.now()}`;
+          containerGrid = new Container({
+            id: `${ownerId}-container`,
+            type: 'item-container',
+            name: `${item.name} Storage`,
+            width: data.width,
+            height: data.height,
+            autoExpand: data.autoExpand,
+            autoSort: data.autoSort
+          });
+          item.containerGrid = containerGrid;
+        } catch (err) {
+          console.warn('[Inventory] Failed to synthesize container grid for equipped item', err, item);
+        }
+      }
+
+      if (containerGrid) {
+        const containerId = `${slot}-container`;
+        containerGrid.id = containerId;
+        containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
+        containerGrid.name = `${item.name} Storage`;
+        this.containers.set(containerId, containerGrid);
+      }
+    }
+  });
+
+
+Why here: InventoryManager already imports Container at the top and isn’t in a circular import bind. This guarantees that when a container item is equipped, we synchronously produce a grid if the Item constructor didn’t.
+
+🟨 Optional Patch 2 — Prefer the dynamic map for backpack container (extra resilience)
+
+File: client/src/game/inventory/InventoryManager.js
+Locate: function getBackpackContainer()
+Anchor (codebase.txt lines): ~225–232 in this file section
+
+Current
+225: getBackpackContainer() {
+226:   // Return equipped backpack container or default
+227:   if (this.equipment.backpack && this.equipment.backpack.isContainer && this.equipment.backpack.isContainer()) {
+228:     return this.equipment.backpack.getContainerGrid();
+229:   }
+230:   return this.containers.get('backpack-default');
+231: }
+
+Replace with:
+getBackpackContainer() {
+  // Prefer the dynamic container if we registered it this tick
+  const dyn = this.containers.get('backpack-container');
+  if (dyn) return dyn;
+
+  if (this.equipment.backpack && this.equipment.backpack.isContainer && this.equipment.backpack.isContainer()) {
+    const grid = this.equipment.backpack.getContainerGrid();
+    if (grid) return grid;
+  }
+  return this.containers.get('backpack-default');
+}
+
+
+This is a belt-and-suspenders tweak. Patch 1 should already make 5C pass; this just makes the lookup bulletproof.
+
+(No changes required) Item constructor already captures container data
+
+File: client/src/game/inventory/Item.js
+You already have:
+
+_containerGridData assignment in constructor (line ~58):
+this._containerGridData = _containerGridData || containerGrid;
+
+Synchronous attempt to construct a container via require('./Container.js') (~61–77). If that fails due to circular import, Patch 1 above now provides a reliable fallback on equip.
+
+If you’d like to reduce console noise, you can soften the constructor warning at ~75 from console.warn to console.debug, but that’s optional and not required for 5C.
+
+✅ Acceptance (run from the in-game dev console)
+// 1) Create a real backpack from your defs (preferred)
+const { Item } = await import('./game/inventory/Item.js');
+const { createItemFromDef } = await import('./game/inventory/ItemDefs.js');
+const bp = new Item(createItemFromDef('backpack.hiking'));
+
+// 2) Equip
+window.inventoryManager.equipItem(bp, 'backpack');
+
+// 3) Verify now resolves a real grid (not the default)
+window.inventoryManager.getBackpackContainer(); // => Container { id: 'backpack-container', ... }
+
+// 4) UI: BackpackGrid shows the 8x10 grid instantly; unequip returns to placeholder
+
+
+Phase 5C test should flip from:
+
+❌ “Equipped backpack container not found”
+to
+
+✅ Backpack grid visible when equipped, placeholder when not.
+
+Guardrails (do not change)
+
+No new managers; only the unified InventoryManager created in initialization.
+
+No auto-init useEffect(... initializeGame()).
+
+No changes to grid sizes, CSS, camera, or layout.
+
+Keep a single <InventoryProvider> mount and all 5A orchestration intact.
+
+If you want me to also provide a quick rg/grep script to verify these exact insertions before commit, I can include that too.
