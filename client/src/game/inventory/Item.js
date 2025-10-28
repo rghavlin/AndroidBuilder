@@ -55,13 +55,23 @@ export class Item {
     this._containerGridData = _containerGridData || containerGrid;
     this.containerGrid = null;
 
-    // Initialize container grid immediately if data exists
-    // Note: This is async but we don't await in constructor
-    // The container will be available shortly after construction
+    // Initialize container grid synchronously if data exists
     if (this._containerGridData) {
-      this.initializeContainerGrid().catch(err => {
-        console.warn('[Item] Container grid initialization failed in constructor', err);
-      });
+      try {
+        const { Container } = require('./Container.js');
+        this.containerGrid = new Container({
+          id: this._containerGridData.id || `${this.instanceId}-container`,
+          type: 'item-container',
+          name: `${this.name} Storage`,
+          width: this._containerGridData.width,
+          height: this._containerGridData.height,
+          autoExpand: this._containerGridData.autoExpand,
+          autoSort: this._containerGridData.autoSort
+        });
+      } catch (err) {
+        console.warn('[Item] Container initialization failed in constructor', err);
+        // Keep _containerGridData for potential lazy init
+      }
     }
 
     // Container reference (not serialized)
@@ -172,29 +182,34 @@ export class Item {
 
   // Container grid
   getContainerGrid() {
-    if (!this.containerGrid && this._containerGridData) {
-      // Trigger async initialization if not already done
-      this.initializeContainerGrid().catch(err => {
-        console.warn('[Item] Container grid lazy initialization failed', err);
-      });
-    }
-    return this.containerGrid;
+    // Container already created synchronously in constructor when data was present
+    return this.containerGrid || null;
   }
 
-  async initializeContainerGrid() {
+  initializeContainerGrid() {
+    // No-op if container already created synchronously
+    if (this.containerGrid) {
+      return;
+    }
+    
+    // Fallback lazy initialization for edge cases
     if (!this._containerGridData) {
       return;
     }
+    
     try {
-      const { Container } = await import('./Container.js');
+      const { Container } = require('./Container.js');
       this.containerGrid = new Container({
-        id: `${this.instanceId}-container`,
+        id: this._containerGridData.id || `${this.instanceId}-container`,
         type: 'item-container',
         name: `${this.name} Storage`,
-        ...this._containerGridData
+        width: this._containerGridData.width,
+        height: this._containerGridData.height,
+        autoExpand: this._containerGridData.autoExpand,
+        autoSort: this._containerGridData.autoSort
       });
     } catch (err) {
-      console.warn('[Item] Failed to load Container class', this.instanceId, err);
+      console.warn('[Item] Failed to initialize Container class', this.instanceId, err);
     }
   }
 
