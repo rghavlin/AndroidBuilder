@@ -502,7 +502,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole(`  - Unequipped existing backpack: ${unequipResult.success}`, 'log');
             }
             
-            const initialBackpack = window.inventoryManager.getEquippedBackpackContainer();
+            const initialBackpack = window.inventoryManager.getBackpackContainer();
             if (!initialBackpack || initialBackpack.id === 'backpack-default') {
               addToConsole('  ✅ No backpack equipped - should show "No backpack equipped"', 'success');
               addToConsole('  ℹ️  Check BackpackGrid UI: should show placeholder message', 'info');
@@ -532,7 +532,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole('  ✅ Backpack equipped successfully', 'success');
               
               // Verify container is now accessible
-              const equippedBackpack = window.inventoryManager.getEquippedBackpackContainer();
+              const equippedBackpack = window.inventoryManager.getBackpackContainer();
               if (equippedBackpack && equippedBackpack.id !== 'backpack-default') {
                 addToConsole(`  ✅ Equipped backpack container accessible`, 'success');
                 addToConsole(`  - Container ID: ${equippedBackpack.id}`, 'log');
@@ -560,7 +560,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole('  ✅ Backpack unequipped successfully', 'success');
               addToConsole(`  - Item placed in: ${unequipResult.placedIn}`, 'log');
               
-              const afterUnequip = window.inventoryManager.getEquippedBackpackContainer();
+              const afterUnequip = window.inventoryManager.getBackpackContainer();
               if (!afterUnequip || afterUnequip.id === 'backpack-default') {
                 addToConsole('  ✅ Backpack visibility toggled off', 'success');
                 addToConsole('  ℹ️  Check BackpackGrid UI: should show "No backpack equipped" again', 'info');
