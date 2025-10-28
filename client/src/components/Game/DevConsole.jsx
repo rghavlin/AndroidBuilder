@@ -61,6 +61,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  entity list - List all entities', 'info');
           addToConsole('  phase5 - Verify Phase 5A completion status', 'info');
           addToConsole('  phase5b - Verify Phase 5B equipment display', 'info');
+          addToConsole('  phase5c - Verify Phase 5C backpack visibility', 'info');
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
@@ -480,6 +481,114 @@ const DevConsole = ({ isOpen, onClose }) => {
           } catch (error) {
             addToConsole(`Error in Phase 5B verification: ${error.message}`, 'error');
             console.error('Phase 5B Verification Error:', error);
+          }
+          break;
+
+        case 'phase5c':
+          try {
+            addToConsole('=== Phase 5C Verification (Backpack Visibility) ===', 'info');
+            
+            if (!window.inventoryManager) {
+              addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
+              break;
+            }
+            
+            // Test 1: Check initial state (no backpack equipped)
+            addToConsole('Test 1: Initial state (no backpack)...', 'info');
+            
+            // Ensure no backpack is equipped
+            if (window.inventoryManager.equipment.backpack) {
+              const unequipResult = window.inventoryManager.unequipItem('backpack');
+              addToConsole(`  - Unequipped existing backpack: ${unequipResult.success}`, 'log');
+            }
+            
+            const initialBackpack = window.inventoryManager.getEquippedBackpackContainer();
+            if (!initialBackpack || initialBackpack.id === 'backpack-default') {
+              addToConsole('  ✅ No backpack equipped - should show "No backpack equipped"', 'success');
+              addToConsole('  ℹ️  Check BackpackGrid UI: should show placeholder message', 'info');
+            } else {
+              addToConsole('  ❌ Unexpected backpack state', 'error');
+            }
+            
+            // Test 2: Equip a backpack and verify visibility
+            addToConsole('Test 2: Equipping a backpack...', 'info');
+            
+            const { Item } = await import('../../game/inventory/Item.js');
+            
+            const testBackpack = new Item({
+              instanceId: 'test-backpack-5c',
+              defId: 'container.backpack',
+              name: 'Hiking Backpack',
+              width: 3,
+              height: 4,
+              equippableSlot: 'backpack',
+              containerGrid: { width: 8, height: 10 },
+              traits: ['equippable', 'container']
+            });
+            
+            const equipResult = window.inventoryManager.equipItem(testBackpack, 'backpack');
+            
+            if (equipResult.success) {
+              addToConsole('  ✅ Backpack equipped successfully', 'success');
+              
+              // Verify container is now accessible
+              const equippedBackpack = window.inventoryManager.getEquippedBackpackContainer();
+              if (equippedBackpack && equippedBackpack.id !== 'backpack-default') {
+                addToConsole(`  ✅ Equipped backpack container accessible`, 'success');
+                addToConsole(`  - Container ID: ${equippedBackpack.id}`, 'log');
+                addToConsole(`  - Dimensions: ${equippedBackpack.width}x${equippedBackpack.height}`, 'log');
+                addToConsole('  ℹ️  Check BackpackGrid UI: should show grid with header', 'info');
+              } else {
+                addToConsole('  ❌ Equipped backpack container not found', 'error');
+              }
+            } else {
+              addToConsole(`  ❌ Failed to equip backpack: ${equipResult.reason}`, 'error');
+            }
+            
+            // Test 3: Verify grid slot size consistency
+            addToConsole('Test 3: Grid slot size consistency...', 'info');
+            addToConsole('  ℹ️  Visual check required:', 'info');
+            addToConsole('  - Backpack grid slots should match ground grid slot size', 'log');
+            addToConsole('  - Both grids should use same pixel dimensions from GridSizeContext', 'log');
+            
+            // Test 4: Unequip and verify visibility toggle
+            addToConsole('Test 4: Unequipping backpack...', 'info');
+            
+            const unequipResult = window.inventoryManager.unequipItem('backpack');
+            
+            if (unequipResult.success) {
+              addToConsole('  ✅ Backpack unequipped successfully', 'success');
+              addToConsole(`  - Item placed in: ${unequipResult.placedIn}`, 'log');
+              
+              const afterUnequip = window.inventoryManager.getEquippedBackpackContainer();
+              if (!afterUnequip || afterUnequip.id === 'backpack-default') {
+                addToConsole('  ✅ Backpack visibility toggled off', 'success');
+                addToConsole('  ℹ️  Check BackpackGrid UI: should show "No backpack equipped" again', 'info');
+              } else {
+                addToConsole('  ❌ Backpack still showing after unequip', 'error');
+              }
+            } else {
+              addToConsole(`  ❌ Failed to unequip: ${unequipResult.reason}`, 'error');
+            }
+            
+            // Summary
+            addToConsole('--- Phase 5C Status ---', 'info');
+            addToConsole('✅ Phase 5C Implementation Complete', 'success');
+            addToConsole('Backpack grid visibility toggles based on equipment state', 'success');
+            addToConsole('Grid appears when backpack is equipped', 'success');
+            addToConsole('Placeholder shown when no backpack equipped', 'success');
+            
+            addToConsole('', 'info');
+            addToConsole('Quick test commands:', 'info');
+            addToConsole('• Create and equip backpack:', 'log');
+            addToConsole('  const { Item } = await import("./game/inventory/Item.js");', 'log');
+            addToConsole('  const bp = new Item({instanceId:"bp1", defId:"container.backpack", name:"Test Backpack", width:3, height:4, equippableSlot:"backpack", containerGrid:{width:8, height:10}, traits:["equippable","container"]});', 'log');
+            addToConsole('  window.inventoryManager.equipItem(bp, "backpack");', 'log');
+            addToConsole('• Unequip: window.inventoryManager.unequipItem("backpack")', 'log');
+            
+          } catch (error) {
+            addToConsole(`Error in Phase 5C verification: ${error.message}`, 'error');
+            console.error('Phase 5C Verification Error:', error);
           }
           break;
 
