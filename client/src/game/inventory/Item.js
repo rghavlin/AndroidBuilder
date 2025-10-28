@@ -1,3 +1,4 @@
+
 import { ItemTrait } from './traits.js';
 
 /**
@@ -57,21 +58,9 @@ export class Item {
 
     // Initialize container grid synchronously if data exists
     if (this._containerGridData) {
-      try {
-        const { Container } = require('./Container.js');
-        this.containerGrid = new Container({
-          id: this._containerGridData.id || `${this.instanceId}-container`,
-          type: 'item-container',
-          name: `${this.name} Storage`,
-          width: this._containerGridData.width,
-          height: this._containerGridData.height,
-          autoExpand: this._containerGridData.autoExpand,
-          autoSort: this._containerGridData.autoSort
-        });
-      } catch (err) {
-        console.debug('[Item] Container initialization deferred (will be created by manager)', this.instanceId);
-        // Keep _containerGridData for fallback creation by InventoryManager
-      }
+      // Defer initialization to avoid circular import issues
+      // Container will be created on first access via getContainerGrid()
+      console.debug('[Item] Container initialization deferred (will be created on first access)', this.instanceId);
     }
 
     // Container reference (not serialized)
@@ -195,7 +184,7 @@ export class Item {
     return null;
   }
 
-  initializeContainerGrid() {
+  async initializeContainerGrid() {
     // No-op if container already created successfully
     if (this.containerGrid) {
       return this.containerGrid;
@@ -206,9 +195,9 @@ export class Item {
       return null;
     }
     
-    // Try to create the container
+    // Try to create the container using dynamic import
     try {
-      const { Container } = require('./Container.js');
+      const { Container } = await import('./Container.js');
       this.containerGrid = new Container({
         id: this._containerGridData.id || `${this.instanceId}-container`,
         type: 'item-container',
@@ -253,7 +242,7 @@ export class Item {
     return data;
   }
 
-  static fromJSON(data) {
+  static async fromJSON(data) {
     let containerGrid = null;
     if (data.containerGrid) {
       containerGrid = data.containerGrid;
@@ -267,7 +256,7 @@ export class Item {
 
     if (containerGrid) {
       try {
-        const { Container } = require('./Container.js');
+        const { Container } = await import('./Container.js');
         item.containerGrid = Container.fromJSON(containerGrid);
       } catch (err) {
         item._containerGridData = containerGrid;

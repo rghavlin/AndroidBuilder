@@ -50,13 +50,13 @@ export default function UniversalGrid({
   // Choose slot size based on grid type
   const slotSize = gridType === 'fixed' ? fixedSlotSize : scalableSlotSize;
 
-  const handleItemClick = (item: any, x: number, y: number) => {
+  const handleItemClick = async (item: any, x: number, y: number) => {
     // First call any custom slot click handler
     onSlotClick?.(x, y);
 
     // Then check if this item is a container that can be opened
     if (item && canOpenContainer(item)) {
-      const itemContainer = item.getContainerGrid();
+      const itemContainer = await item.getContainerGrid();
       if (itemContainer) {
         openContainer(itemContainer.id);
         console.log('[UniversalGrid] Opening container:', item.name, itemContainer.id);
