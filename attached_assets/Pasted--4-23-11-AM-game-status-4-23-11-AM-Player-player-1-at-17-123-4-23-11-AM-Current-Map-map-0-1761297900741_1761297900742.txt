@@ -1,0 +1,51 @@
+[4:23:11 AM]> game status
+[4:23:11 AM]Player: player-1 at (17, 123)
+[4:23:11 AM]Current Map: map_001
+[4:23:11 AM]Map Size: 35x125
+[4:23:11 AM]Turn: 1
+[4:23:11 AM]Player Turn: Yes
+[4:23:11 AM]HP: 100/100
+[4:23:11 AM]AP: 100/100
+[4:23:11 AM]Camera: (17.0, 120.0)
+[4:23:11 AM]Zoom: 0.50
+[4:23:11 AM]Entities: 10 zombies, 0 items, 0 NPCs
+[4:23:29 AM]> inventory test
+[4:23:29 AM]Running container tests...
+[4:23:29 AM]✅ Container creation: PASSED
+[4:23:29 AM]✅ Item creation: PASSED
+[4:23:29 AM]✅ Item placement: PASSED
+[4:23:29 AM]✅ Collision detection: PASSED
+[4:23:29 AM]❌ Item stacking: FAILED - Item stacking failed
+[4:23:29 AM]✅ Container serialization: PASSED
+[4:23:29 AM]✅ Item rotation: PASSED
+[4:23:29 AM]✅ Drag-and-drop validation: PASSED
+[4:23:29 AM]❌ Partial stacking with overflow: FAILED - Expected stacks [25, 50], got [30, 45]
+[4:23:29 AM]✅ Auto-expanding ground container: PASSED
+[4:23:29 AM]✅ Equipment slot assignment: PASSED
+[4:23:29 AM]❌ Dynamic container creation from equipment: FAILED - Dynamic container not created for equipped vest
+[4:23:29 AM]✅ Equipment replacement: PASSED
+[4:23:29 AM]❌ Firearm attachment system: FAILED - rifle.addAttachment is not a function
+[4:23:29 AM]❌ Equipment unequipping with inventory placement: FAILED - Unequipped item not placed in inventory
+[4:23:29 AM]❌ Inventory manager serialization: FAILED - Equipment not properly restored
+[4:23:29 AM]Tests completed: 10/16 passed
+[4:23:49 AM]> inventory demo
+[4:23:49 AM]Creating Phase 3 demo - Equipment & Dynamic Containers...
+[4:23:49 AM]Equipping items...
+[4:23:49 AM]Rifle equipped: true
+[4:23:49 AM]Vest equipped: true
+[4:23:49 AM]Backpack equipped: true
+[4:23:49 AM]Dynamic containers created: 0
+[4:23:49 AM]Adding items to containers...
+[4:23:49 AM]Ammo stored in: ground
+[4:23:49 AM]Medkit stored in: ground
+[4:23:49 AM]Testing serialization...
+[4:23:49 AM]Serialization test: rifle restored
+[4:23:49 AM]Phase 3 demo complete!
+[4:23:49 AM]Manager available as window.inventoryManager
+[4:23:49 AM]Backpack container available as window.inventoryDemo
+[4:23:49 AM]Error in Phase 3 demo: item.hasAttachments is not a function
+[4:24:32 AM]> phase4
+[4:24:32 AM]Creating Phase 4 demo - Advanced Ground Management...
+[4:24:32 AM]✓ Added 15 diverse items to ground
+[4:24:32 AM]--- Phase 4 Ground Management Features ---
+[4:24:32 AM]Error in Phase 4 demo: item.getCategory is not a function
