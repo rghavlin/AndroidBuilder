@@ -10,6 +10,7 @@ import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { ItemTrait } from '../../game/inventory/traits.js';
+import { createItem } from '../../game/inventory/index.js';
 
 const DevConsole = ({ isOpen, onClose }) => {
   const [input, setInput] = useState('');
@@ -717,31 +718,9 @@ const DevConsole = ({ isOpen, onClose }) => {
             // Test 1: Create specialty containers on ground
             addToConsole('Test 1: Creating specialty container items...', 'info');
 
-            const { Item } = await import('../../game/inventory/Item.js');
-
-            const toolbox = new Item({
-              instanceId: 'test-toolbox-5d',
-              defId: 'container.toolbox',
-              name: 'Tool Box',
-              width: 2,
-              height: 2,
-              containerGrid: { width: 4, height: 3 },
-              traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
-            });
-
-            const lunchbox = new Item({
-              instanceId: 'test-lunchbox-5d',
-              defId: 'container.lunchbox',
-              name: 'Lunch Box',
-              width: 2,
-              height: 1,
-              containerGrid: { width: 3, height: 2 },
-              traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
-            });
-
-            // Ensure container grids are initialized
-            toolbox.initializeContainerGrid();
-            lunchbox.initializeContainerGrid();
+            // Use factory to create items with imageId from defs
+            const toolbox = createItem('container', 'toolbox');
+            const lunchbox = createItem('container', 'lunchbox');
 
             const groundContainer = window.inventoryManager.getContainer('ground');
             if (groundContainer) {
@@ -766,16 +745,8 @@ const DevConsole = ({ isOpen, onClose }) => {
             // Test 3: Create backpack item (should NOT open inline)
             addToConsole('Test 3: Verifying backpack prevention...', 'info');
 
-            const testBackpackItem = new Item({
-              instanceId: 'test-bp-item-5d',
-              defId: 'container.backpack',
-              name: 'Backpack Item',
-              width: 3,
-              height: 4,
-              equippableSlot: 'backpack',
-              containerGrid: { width: 8, height: 10 },
-              traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
-            });
+            // Use factory to create backpack with imageId from defs
+            const testBackpackItem = createItem('backpack', 'school');
 
             groundContainer.addItem(testBackpackItem);
             window.inv?.refresh();
@@ -818,20 +789,9 @@ const DevConsole = ({ isOpen, onClose }) => {
           if (subCommand === 'toolbox') {
             try {
               addToConsole('Creating toolbox on ground...', 'info');
-              const { Item } = await import('../../game/inventory/Item.js');
-
-              const toolbox = new Item({
-                instanceId: `toolbox-${Date.now()}`,
-                defId: 'container.toolbox',
-                name: 'Tool Box',
-                width: 2,
-                height: 2,
-                containerGrid: { width: 4, height: 3 },
-                traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
-              });
-
-              // Ensure container grid is initialized
-              toolbox.initializeContainerGrid();
+              
+              // Use factory to create item with imageId from defs
+              const toolbox = createItem('container', 'toolbox');
 
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(toolbox)) {
@@ -846,20 +806,9 @@ const DevConsole = ({ isOpen, onClose }) => {
           } else if (subCommand === 'lunchbox') {
             try {
               addToConsole('Creating lunchbox on ground...', 'info');
-              const { Item } = await import('../../game/inventory/Item.js');
-
-              const lunchbox = new Item({
-                instanceId: `lunchbox-${Date.now()}`,
-                defId: 'container.lunchbox',
-                name: 'Lunch Box',
-                width: 2,
-                height: 1,
-                containerGrid: { width: 3, height: 2 },
-                traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
-              });
-
-              // Ensure container grid is initialized
-              lunchbox.initializeContainerGrid();
+              
+              // Use factory to create item with imageId from defs
+              const lunchbox = createItem('container', 'lunchbox');
 
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(lunchbox)) {
