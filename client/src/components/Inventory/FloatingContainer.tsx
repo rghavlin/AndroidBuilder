@@ -1,5 +1,6 @@
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { X, Move } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -68,11 +69,12 @@ export default function FloatingContainer({
 
   if (!isOpen) return null;
 
-  return (
+  // Render using Portal at document root to escape stacking context
+  return createPortal(
     <div
       ref={containerRef}
       className={cn(
-        "fixed z-50 bg-card border border-border rounded-lg shadow-xl",
+        "fixed z-[9999] bg-card border border-border rounded-lg shadow-xl",
         "select-none",
         isDragging && "cursor-grabbing",
         className
@@ -108,6 +110,7 @@ export default function FloatingContainer({
       <div className="p-3">
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
