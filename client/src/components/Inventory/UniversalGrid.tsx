@@ -55,12 +55,16 @@ export default function UniversalGrid({
 
     // Then check if this item is a container that can be opened
     if (item && canOpenContainer(item)) {
-      const itemContainer = await item.getContainerGrid();
-      if (itemContainer) {
-        openContainer(itemContainer.id);
-        console.log('[UniversalGrid] Opening container:', item.name, itemContainer.id);
-      } else {
-        console.warn('[UniversalGrid] Container has no grid:', item.name);
+      try {
+        const itemContainer = await item.getContainerGrid();
+        if (itemContainer) {
+          console.log('[UniversalGrid] Opening container:', item.name, 'ID:', itemContainer.id);
+          openContainer(itemContainer.id);
+        } else {
+          console.warn('[UniversalGrid] Container has no grid:', item.name);
+        }
+      } catch (error) {
+        console.error('[UniversalGrid] Error getting container grid:', item.name, error);
       }
     } else if (item) {
       console.debug('[UniversalGrid] Item cannot be opened inline:', item.name);
