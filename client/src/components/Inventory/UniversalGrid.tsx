@@ -63,6 +63,7 @@ export default function UniversalGrid({
           try {
             const img = await imageLoader.getItemImage(item.imageId);
             if (img) {
+              // Store using itemId (the Map key), not item.instanceId
               imageMap.set(itemId, img.src);
             }
           } catch (error) {
@@ -123,82 +124,102 @@ export default function UniversalGrid({
   }
 
   const renderGrid = () => {
-    // Track which cells we've already rendered images for
-    const renderedImageCells = new Set<string>();
+    const GAP_SIZE = 2; // Must match grid gap in style
+    const overlays: JSX.Element[] = [];
 
-    return (
-      <div
-        className="grid flex-shrink-0"
-        style={{
-          gridTemplateColumns: `repeat(${width}, ${slotSize}px)`,
-          gridTemplateRows: `repeat(${height}, ${slotSize}px)`,
-          width: `${gridWidth}px`,
-          height: `${gridHeight}px`,
-          gap: '2px',
-        }}
-        data-testid={testId || `grid-${containerId}`}
-      >
-        {Array.from({ length: totalSlots }, (_, index) => {
-          const x = index % width;
-          const y = Math.floor(index / width);
-          const itemId = grid[y]?.[x];
-          const item = itemId ? items.get(itemId) : null;
+    const gridSlots = Array.from({ length: totalSlots }, (_, index) => {
+      const x = index % width;
+      const y = Math.floor(index / width);
+      const itemId = grid[y]?.[x];
+      const item = itemId ? items.get(itemId) : null;
 
-          // Determine if this is the top-left cell for this item
-          // We need to scan the grid to find where this item starts
-          let isTopLeft = false;
-          let topLeftX = x;
-          let topLeftY = y;
+      // Determine if this is the top-left cell for this item
+      let isTopLeft = false;
+      let topLeftX = x;
+      let topLeftY = y;
 
-          if (item && itemId) {
-            // Find the top-left occurrence of this item in the grid
-            let foundTopLeft = false;
-            for (let scanY = 0; scanY < height && !foundTopLeft; scanY++) {
-              for (let scanX = 0; scanX < width && !foundTopLeft; scanX++) {
-                if (grid[scanY]?.[scanX] === itemId) {
-                  topLeftX = scanX;
-                  topLeftY = scanY;
-                  foundTopLeft = true;
-                }
-              }
+      if (item && itemId) {
+        // Find the top-left occurrence of this item in the grid
+        let foundTopLeft = false;
+        for (let scanY = 0; scanY < height && !foundTopLeft; scanY++) {
+          for (let scanX = 0; scanX < width && !foundTopLeft; scanX++) {
+            if (grid[scanY]?.[scanX] === itemId) {
+              topLeftX = scanX;
+              topLeftY = scanY;
+              foundTopLeft = true;
             }
-            isTopLeft = (x === topLeftX && y === topLeftY);
           }
+        }
+        isTopLeft = (x === topLeftX && y === topLeftY);
+      }
 
-          // Calculate image dimensions if this is top-left
-          let imageWidth = 0;
-          let imageHeight = 0;
-          const GAP_SIZE = 2; // Must match grid gap in style
-          if (item && isTopLeft) {
-            const itemActualWidth = item.getActualWidth();
-            const itemActualHeight = item.getActualHeight();
-            // Total width = (slots * slotSize) + (gaps between slots)
-            imageWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
-            imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
-          }
+      // Calculate image dimensions and create overlay if this is top-left
+      if (item && isTopLeft && itemId) {
+        const itemActualWidth = item.getActualWidth();
+        const itemActualHeight = item.getActualHeight();
+        // Total width = (slots * slotSize) + (gaps between slots)
+        const imageWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
+        const imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
+        
+        // Use itemId from grid cell for image lookup
+        const itemImageSrc = itemImages.get(itemId) || null;
 
-          const itemImageSrc = item ? (itemImages.get(item.instanceId) || null) : null;
-
-        return (
-            <GridSlot
-              key={`${x}-${y}`}
-              item={item}
-              isEmpty={!item}
-              gridType={gridType}
-              isTopLeft={isTopLeft}
-              itemImageSrc={itemImageSrc}
-              imageWidth={imageWidth}
-              imageHeight={imageHeight}
-              isHovered={item?.instanceId === hoveredItem}
-              onClick={() => handleItemClick(item, x, y)}
-              onDrop={(e) => onSlotDrop?.(x, y, e)}
-              onDragOver={(e) => e.preventDefault()}
-              onMouseEnter={() => item && setHoveredItem(item.instanceId)}
-              onMouseLeave={() => setHoveredItem(null)}
-              data-testid={`${containerId}-slot-${x}-${y}`}
+        if (itemImageSrc) {
+          overlays.push(
+            <img
+              key={itemId}
+              src={itemImageSrc}
+              className="absolute pointer-events-none select-none"
+              style={{
+                left: `${topLeftX * (slotSize + GAP_SIZE)}px`,
+                top: `${topLeftY * (slotSize + GAP_SIZE)}px`,
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
+                objectFit: 'contain',
+              }}
+              alt={item.name}
             />
           );
-        })}
+        }
+      }
+
+      return (
+        <GridSlot
+          key={`${x}-${y}`}
+          item={item}
+          isEmpty={!item}
+          gridType={gridType}
+          isTopLeft={isTopLeft}
+          itemImageSrc={null}
+          imageWidth={0}
+          imageHeight={0}
+          isHovered={item?.instanceId === hoveredItem}
+          onClick={() => handleItemClick(item, x, y)}
+          onDrop={(e) => onSlotDrop?.(x, y, e)}
+          onDragOver={(e) => e.preventDefault()}
+          onMouseEnter={() => item && setHoveredItem(item.instanceId)}
+          onMouseLeave={() => setHoveredItem(null)}
+          data-testid={`${containerId}-slot-${x}-${y}`}
+        />
+      );
+    });
+
+    return (
+      <div className="relative overflow-visible">
+        <div
+          className="grid flex-shrink-0"
+          style={{
+            gridTemplateColumns: `repeat(${width}, ${slotSize}px)`,
+            gridTemplateRows: `repeat(${height}, ${slotSize}px)`,
+            width: `${gridWidth}px`,
+            height: `${gridHeight}px`,
+            gap: '2px',
+          }}
+          data-testid={testId || `grid-${containerId}`}
+        >
+          {gridSlots}
+        </div>
+        {overlays}
       </div>
     );
   };

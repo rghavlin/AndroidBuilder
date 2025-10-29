@@ -790,9 +790,10 @@ const DevConsole = ({ isOpen, onClose }) => {
             try {
               addToConsole('Creating toolbox on ground...', 'info');
               
-              // Use factory to create item with imageId from defs
+              // Use async imports to match existing DevConsole pattern
               const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
               const { Item } = await import('../../game/inventory/Item.js');
+              
               const itemData = createItemFromDef('container.toolbox');
               const toolbox = new Item(itemData);
 
@@ -810,9 +811,10 @@ const DevConsole = ({ isOpen, onClose }) => {
             try {
               addToConsole('Creating lunchbox on ground...', 'info');
               
-              // Use factory to create item with imageId from defs
+              // Use async imports to match existing DevConsole pattern
               const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
               const { Item } = await import('../../game/inventory/Item.js');
+              
               const itemData = createItemFromDef('container.lunchbox');
               const lunchbox = new Item(itemData);
 
