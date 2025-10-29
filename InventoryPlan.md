@@ -214,6 +214,79 @@ useEffect(() => {
 
 ---
 
+### 5G — Advanced drag interactions (cursor-following with rotation)
+**Goal:** Implement a cursor-following drag system where items stick to the cursor, can be rotated mid-drag, and provide visual feedback for valid/invalid placement.
+
+**Pattern Overview:**
+This replaces standard HTML5 drag/drop with a custom system inspired by games like Escape from Tarkov:
+1. **Left-click on item** → Item "attaches" to cursor (rendered at cursor position)
+2. **Right-click while dragging** → Rotate item preview 90° (visual only, doesn't commit)
+3. **Move mouse** → Item follows cursor; grid shows valid/invalid placement zones
+4. **Left-click to place** → Attempt placement at cursor position; if invalid, return to origin
+5. **Escape/cancel** → Return item to original position without placement attempt
+
+**Implementation:**
+
+**New state management in InventoryContext:**
+```jsx
+// Add to InventoryProvider
+const [draggedItem, setDraggedItem] = useState(null);
+const [dragRotation, setDragRotation] = useState(0);
+const [dragOrigin, setDragOrigin] = useState(null); // { containerId, x, y }
+```
+
+**Drag lifecycle handlers:**
+- `startDrag(item, originContainer, x, y)`: Remove item from origin, store origin info, attach to cursor
+- `rotateDraggedItem()`: Increment rotation by 90° (visual only, doesn't affect original item)
+- `updateDragPosition(mouseX, mouseY)`: Track cursor position for rendering
+- `commitDragPlacement(targetContainer, x, y)`: Attempt placement; if fails, return to origin
+- `cancelDrag()`: Return item to origin without attempting placement
+
+**Visual feedback system:**
+- **Valid placement zone**: Green semi-transparent overlay on target grid cells
+- **Invalid placement zone**: Red semi-transparent overlay (out of bounds or occupied)
+- **Item preview**: Render at cursor position with current rotation, semi-transparent
+- **Origin ghost**: Optional faded outline at original position to show where item came from
+
+**Grid slot validation:**
+- `UniversalGrid` calculates mouse position → grid coordinates in real-time
+- On mouse move over grid, check `Container.validatePlacement(item, x, y)` for visual feedback
+- Only commit placement on left-click if validation passes
+
+**Right-click rotation:**
+- Attach `onContextMenu` handler to document while dragging
+- Call `event.preventDefault()` to suppress browser context menu
+- Rotate preview item by 90° without affecting original item or grid
+- Validation re-runs with new rotation to update visual feedback
+
+**Keyboard shortcuts:**
+- `R` key: Rotate item (alternative to right-click)
+- `Escape`: Cancel drag and return to origin
+- `Space`: Attempt auto-place in nearest valid position
+
+**Touch support (optional):**
+- Long-press to pick up item
+- Two-finger tap to rotate
+- Tap empty area to place
+
+**Acceptance:**
+- Left-click item in any container → Item follows cursor with semi-transparent preview
+- Right-click while dragging → Item rotates 90°, visual feedback updates
+- Mouse over valid grid cells → Green highlight appears
+- Mouse over invalid cells → Red highlight appears
+- Left-click on valid cell → Item places at cursor position
+- Left-click on invalid cell → Item returns to origin, brief error flash
+- Escape key → Item returns to origin, no placement attempt
+- Rotation state resets between drag operations
+
+**Edge cases to handle:**
+- Dragging off-screen: Item preview clamps to viewport edges or cancels drag
+- Container closes during drag: Auto-cancel and return to origin
+- Item stacking during drag: If target cell has stackable item, show stack preview
+- Multi-monitor: Cursor position calculations account for window bounds
+
+---
+
 ## Suggested commit slices
 - `feat(inventory): create InventoryManager in GameInitializationManager preload phase`
 - `feat(inventory): provider accepts external manager prop; remove internal construction`
@@ -223,6 +296,9 @@ useEffect(() => {
 - `feat(inventory-ui): open nested specialty containers read-only`
 - `feat(inventory): grid moveItem wiring (ground↔backpack)`
 - `feat(inventory): moves for open specialty containers`
+- `feat(inventory-ui): cursor-following drag system foundation`
+- `feat(inventory-ui): drag rotation and visual feedback`
+- `feat(inventory-ui): drag placement validation and commit logic`
 
 Each change is deliberately small, easy to review, and easy to revert.
 
@@ -241,6 +317,10 @@ Each change is deliberately small, easy to review, and easy to revert.
 | Drag drops do nothing | Drop handler not calling `moveItem`; missing `dataTransfer` payload | Wire handlers in both grids; set `itemId`/`fromContainerId` on drag start |
 | Slot size inconsistent | Component not using `GridSizeContext.fixedSlotSize` | Replace local calc with context value across all grids |
 | Testing in browser console shows undefined | Wrong testing scope - browser console vs in-game console | **Always use in-game console (`~` key)** for testing; browser console lacks game context access |
+| Item doesn't follow cursor during drag | Mouse position not tracked or render layer missing | Verify drag state updates on mouse move; check z-index of preview layer |
+| Rotation doesn't work during drag | Context menu not prevented or rotation handler not attached | Add `event.preventDefault()` on `onContextMenu`; verify right-click listener active |
+| Item placement shows wrong position | Grid coordinate calculation incorrect | Debug mouse-to-grid conversion; account for scroll offset and container position |
+| Drag persists after placement | Drag state not cleared on successful placement | Ensure `setDraggedItem(null)` called after commit |
 
 ---
 
