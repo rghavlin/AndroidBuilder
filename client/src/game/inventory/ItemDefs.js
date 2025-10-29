@@ -11,6 +11,7 @@ export const ItemDefs = {
   'backpack.school': {
     id: 'backpack.school',
     name: 'School Backpack',
+    imageId: 'bookBag',
     width: 3,
     height: 3,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
@@ -21,6 +22,7 @@ export const ItemDefs = {
   'backpack.hiking': {
     id: 'backpack.hiking',
     name: 'Hiking Backpack',
+    imageId: 'hikingBackpack',
     width: 3,
     height: 4,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
@@ -86,6 +88,7 @@ export const ItemDefs = {
   'weapon.knife': {
     id: 'weapon.knife',
     name: 'Knife',
+    imageId: 'knife',
     width: 1,
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
@@ -96,6 +99,7 @@ export const ItemDefs = {
   'weapon.baseball_bat': {
     id: 'weapon.baseball_bat',
     name: 'Baseball Bat',
+    imageId: 'woodbat',
     width: 1,
     height: 3,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
@@ -137,6 +141,7 @@ export const ItemDefs = {
   'container.lunchbox': {
     id: 'container.lunchbox',
     name: 'Lunchbox',
+    imageId: 'toolbox',
     width: 2,
     height: 1,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
@@ -146,6 +151,7 @@ export const ItemDefs = {
   'container.ammo_box': {
     id: 'container.ammo_box',
     name: 'Ammo Box',
+    imageId: 'toolbox',
     width: 2,
     height: 2,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],

@@ -254,6 +254,113 @@ export class ImageLoader {
   }
 
   /**
+   * Get item image (from items folder)
+   * @param {string} imageId - ID of the item image (without extension)
+   * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
+   */
+  async getItemImage(imageId) {
+    const imageKey = `item_${imageId}`;
+
+    // Return cached image if available
+    if (this.imageCache.has(imageKey)) {
+      return this.imageCache.get(imageKey);
+    }
+
+    // Return existing loading promise if already loading
+    if (this.loadingPromises.has(imageKey)) {
+      return this.loadingPromises.get(imageKey);
+    }
+
+    // Start loading the item image
+    const loadPromise = this.loadItemImage(imageId);
+    this.loadingPromises.set(imageKey, loadPromise);
+
+    try {
+      const image = await loadPromise;
+      this.imageCache.set(imageKey, image);
+      this.loadingPromises.delete(imageKey);
+      return image;
+    } catch (error) {
+      // Try to load default image as fallback
+      console.log(`[ImageLoader] Item image not found: ${imageId}, trying default...`);
+      const defaultPromise = this.loadItemImage('default');
+      try {
+        const defaultImage = await defaultPromise;
+        this.imageCache.set(imageKey, defaultImage);
+        this.loadingPromises.delete(imageKey);
+        return defaultImage;
+      } catch (defaultError) {
+        // Cache null result to avoid repeated failed attempts
+        this.imageCache.set(imageKey, null);
+        this.loadingPromises.delete(imageKey);
+        return null;
+      }
+    }
+  }
+
+  /**
+   * Load item image from file system
+   * @param {string} imageId - ID of the item image
+   * @returns {Promise<HTMLImageElement>} - Promise that resolves to image element
+   */
+  loadItemImage(imageId) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      // Try different file extensions
+      const extensions = ['png', 'jpg', 'jpeg', 'gif', 'svg'];
+      let extensionIndex = 0;
+      let basePathIndex = 0;
+
+      // Use same path structure as entity and UI images
+      const basePaths = [
+        '/images/items/',
+        './images/items/',
+        '../images/items/',
+        './client/public/images/items/',
+        '../client/public/images/items/'
+      ];
+
+      const tryNextPath = () => {
+        if (basePathIndex >= basePaths.length) {
+          reject(new Error(`No item image found for: ${imageId}`));
+          return;
+        }
+
+        const currentBasePath = basePaths[basePathIndex];
+        extensionIndex = 0;
+        tryNextExtension(currentBasePath);
+      };
+
+      const tryNextExtension = (currentBasePath) => {
+        if (extensionIndex >= extensions.length) {
+          basePathIndex++;
+          tryNextPath();
+          return;
+        }
+
+        const extension = extensions[extensionIndex];
+        const fullPath = `${currentBasePath}${imageId}.${extension}`;
+
+        img.src = fullPath;
+        extensionIndex++;
+      };
+
+      img.onload = () => {
+        console.log(`[ImageLoader] Successfully loaded item image: ${img.src}`);
+        resolve(img);
+      };
+
+      img.onerror = () => {
+        tryNextExtension(basePaths[basePathIndex]);
+      };
+
+      // Start with first base path and extension
+      tryNextPath();
+    });
+  }
+
+  /**
    * Clear the image cache
    */
   clearCache() {

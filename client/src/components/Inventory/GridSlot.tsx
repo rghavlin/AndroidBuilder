@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { useGridSize } from "@/contexts/GridSizeContext";
 
@@ -11,7 +12,14 @@ interface GridSlotProps {
   onClick?: () => void;
   onDrop?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   children?: React.ReactNode;
+  itemImageSrc?: string | null;
+  imageWidth?: number;
+  imageHeight?: number;
+  isTopLeft?: boolean;
+  isHovered?: boolean;
   "data-testid"?: string;
 }
 
@@ -25,7 +33,14 @@ export default function GridSlot({
   onClick,
   onDrop,
   onDragOver,
+  onMouseEnter,
+  onMouseLeave,
   children,
+  itemImageSrc,
+  imageWidth,
+  imageHeight,
+  isTopLeft = false,
+  isHovered = false,
   "data-testid": testId,
 }: GridSlotProps) {
   const { scalableSlotSize, fixedSlotSize } = useGridSize();
@@ -37,7 +52,7 @@ export default function GridSlot({
     <div
       className={cn(
         // Dynamic size
-        "flex-shrink-0 flex items-center justify-center text-sm",
+        "flex-shrink-0 flex items-center justify-center text-sm relative",
         "cursor-pointer transition-colors duration-200",
 
         // Subtle borders like backpack grids
@@ -60,13 +75,35 @@ export default function GridSlot({
       onClick={onClick}
       onDrop={onDrop}
       onDragOver={onDragOver}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       data-testid={testId}
     >
-      {item && (
+      {/* Multi-cell image rendering (only in top-left cell) */}
+      {item && isTopLeft && itemImageSrc && imageWidth && imageHeight && (
+        <img
+          src={itemImageSrc}
+          alt={item.name || "Item"}
+          className={cn(
+            "absolute top-0 left-0 pointer-events-none select-none",
+            "transition-all duration-150",
+            isHovered && "ring-2 ring-primary/50 ring-offset-1"
+          )}
+          style={{
+            width: `${imageWidth}px`,
+            height: `${imageHeight}px`,
+            objectFit: 'contain',
+          }}
+        />
+      )}
+
+      {/* Fallback icon for items without images (only in top-left) */}
+      {item && isTopLeft && !itemImageSrc && (
         <span className="text-sm opacity-80 select-none">
           {item.icon || "📦"}
         </span>
       )}
+
       {children}
     </div>
   );

@@ -1,0 +1,3 @@
+
+This is a placeholder comment. You should add a default.png image file to client/public/images/items/ folder.
+The image should be 64x64 pixels and serve as a fallback for items without specific images.
