@@ -79,32 +79,39 @@ export default function GridSlot({
       onMouseLeave={onMouseLeave}
       data-testid={testId}
     >
-      {/* Multi-cell image rendering (only in top-left cell) */}
-      {item && isTopLeft && itemImageSrc && imageWidth > 0 && imageHeight > 0 && (
-        <img
-          src={itemImageSrc}
-          alt={item.name || "Item"}
-          className={cn(
-            "absolute top-0 left-0 pointer-events-none select-none",
-            "transition-all duration-150",
-            isHovered && "ring-2 ring-primary/60"
+      {/* Only render in top-left cell of multi-cell items */}
+      {isTopLeft && (
+        <>
+          {/* Multi-cell image rendering */}
+          {item && itemImageSrc && imageWidth > 0 && imageHeight > 0 && (
+            <img
+              src={itemImageSrc}
+              alt={item.name || "Item"}
+              className={cn(
+                "absolute top-0 left-0 pointer-events-none select-none",
+                "transition-all duration-150",
+                isHovered && "ring-2 ring-primary/60"
+              )}
+              style={{
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
+                objectFit: 'contain',
+                zIndex: 10
+              }}
+            />
           )}
-          style={{
-            width: `${imageWidth}px`,
-            height: `${imageHeight}px`,
-            objectFit: 'contain',
-            zIndex: 10
-          }}
-        />
+
+          {/* Fallback icon for items without images */}
+          {item && !itemImageSrc && (
+            <span className="text-sm opacity-80 select-none">
+              {item.icon || "📦"}
+            </span>
+          )}
+        </>
       )}
 
-      {/* Fallback icon for items without images (only in top-left) */}
-      {item && isTopLeft && !itemImageSrc && (
-        <span className="text-sm opacity-80 select-none">
-          {item.icon || "📦"}
-        </span>
-      )}
-
+      {/* Non-top-left cells of multi-cell items remain visually empty */}
+      
       {children}
     </div>
   );

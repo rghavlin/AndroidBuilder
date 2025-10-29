@@ -123,67 +123,86 @@ export default function UniversalGrid({
     );
   }
 
-  // Helper to check if a slot is the top-left corner of an item
-  const isTopLeftOfItem = (x: number, y: number, item: any): boolean => {
-    return item && item.x === x && item.y === y;
-  };
+  const renderGrid = () => {
+    // Track which cells we've already rendered images for
+    const renderedImageCells = new Set<string>();
 
-  const renderGrid = () => (
-    <div
-      className="grid flex-shrink-0"
-      style={{
-        gridTemplateColumns: `repeat(${width}, ${slotSize}px)`,
-        gridTemplateRows: `repeat(${height}, ${slotSize}px)`,
-        width: `${gridWidth}px`,
-        height: `${gridHeight}px`,
-        gap: '2px',
-      }}
-      data-testid={testId || `grid-${containerId}`}
-    >
-      {Array.from({ length: totalSlots }, (_, index) => {
-        const x = index % width;
-        const y = Math.floor(index / width);
-        const item = grid[y]?.[x] ? items.get(grid[y][x]) : null;
-        
-        // Check if this is the top-left cell of the item
-        const isTopLeft = item ? isTopLeftOfItem(x, y, item) : false;
-        
-        // Calculate image dimensions if this is top-left
-        let imageWidth = 0;
-        let imageHeight = 0;
-        const GAP_SIZE = 2; // Must match grid gap in style
-        if (item && isTopLeft) {
-          const itemActualWidth = item.getActualWidth();
-          const itemActualHeight = item.getActualHeight();
-          // Total width = (slots * slotSize) + (gaps between slots)
-          imageWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
-          imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
-        }
+    return (
+      <div
+        className="grid flex-shrink-0"
+        style={{
+          gridTemplateColumns: `repeat(${width}, ${slotSize}px)`,
+          gridTemplateRows: `repeat(${height}, ${slotSize}px)`,
+          width: `${gridWidth}px`,
+          height: `${gridHeight}px`,
+          gap: '2px',
+        }}
+        data-testid={testId || `grid-${containerId}`}
+      >
+        {Array.from({ length: totalSlots }, (_, index) => {
+          const x = index % width;
+          const y = Math.floor(index / width);
+          const itemId = grid[y]?.[x];
+          const item = itemId ? items.get(itemId) : null;
+          
+          // Determine if this is the top-left cell for this item
+          // We need to scan the grid to find where this item starts
+          let isTopLeft = false;
+          let topLeftX = x;
+          let topLeftY = y;
+          
+          if (item && itemId) {
+            // Find the top-left occurrence of this item in the grid
+            let foundTopLeft = false;
+            for (let scanY = 0; scanY < height && !foundTopLeft; scanY++) {
+              for (let scanX = 0; scanX < width && !foundTopLeft; scanX++) {
+                if (grid[scanY]?.[scanX] === itemId) {
+                  topLeftX = scanX;
+                  topLeftY = scanY;
+                  foundTopLeft = true;
+                }
+              }
+            }
+            isTopLeft = (x === topLeftX && y === topLeftY);
+          }
+          
+          // Calculate image dimensions if this is top-left
+          let imageWidth = 0;
+          let imageHeight = 0;
+          const GAP_SIZE = 2; // Must match grid gap in style
+          if (item && isTopLeft) {
+            const itemActualWidth = item.getActualWidth();
+            const itemActualHeight = item.getActualHeight();
+            // Total width = (slots * slotSize) + (gaps between slots)
+            imageWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
+            imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
+          }
 
-        const itemImageSrc = item ? itemImages.get(item.instanceId) || null : null;
+          const itemImageSrc = item ? itemImages.get(item.instanceId) || null : null;
 
         return (
-          <GridSlot
-            key={`${x}-${y}`}
-            item={item}
-            isEmpty={!item}
-            gridType={gridType}
-            isTopLeft={isTopLeft}
-            itemImageSrc={itemImageSrc}
-            imageWidth={imageWidth}
-            imageHeight={imageHeight}
-            isHovered={item?.instanceId === hoveredItem}
-            onClick={() => handleItemClick(item, x, y)}
-            onDrop={(e) => onSlotDrop?.(x, y, e)}
-            onDragOver={(e) => e.preventDefault()}
-            onMouseEnter={() => item && setHoveredItem(item.instanceId)}
-            onMouseLeave={() => setHoveredItem(null)}
-            data-testid={`${containerId}-slot-${x}-${y}`}
-          />
-        );
-      })}
-    </div>
-  );
+            <GridSlot
+              key={`${x}-${y}`}
+              item={item}
+              isEmpty={!item}
+              gridType={gridType}
+              isTopLeft={isTopLeft}
+              itemImageSrc={itemImageSrc}
+              imageWidth={imageWidth}
+              imageHeight={imageHeight}
+              isHovered={item?.instanceId === hoveredItem}
+              onClick={() => handleItemClick(item, x, y)}
+              onDrop={(e) => onSlotDrop?.(x, y, e)}
+              onDragOver={(e) => e.preventDefault()}
+              onMouseEnter={() => item && setHoveredItem(item.instanceId)}
+              onMouseLeave={() => setHoveredItem(null)}
+              data-testid={`${containerId}-slot-${x}-${y}`}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className={cn("flex flex-col", gridType === 'fixed' ? 'flex-shrink-0' : 'h-full', className)}>
