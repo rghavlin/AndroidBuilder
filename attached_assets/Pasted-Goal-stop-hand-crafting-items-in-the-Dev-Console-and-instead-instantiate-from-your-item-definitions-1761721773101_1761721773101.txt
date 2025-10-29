@@ -1,0 +1,69 @@
+Goal: stop hand-crafting items in the Dev Console and instead instantiate from your item definitions, which already include imageId, size, traits, etc. This guarantees the grid has an imageId to load and stretch the correct image.
+
+What to change (Dev Console only)
+
+Import the factory alongside Item:
+
+// in client/src/components/Game/DevConsole.jsx (or wherever the create commands live)
+import { Item } from '../../game/inventory/Item.js';
++import { createItemFromDef } from '../../game/inventory/ItemDefs.js';
+
+
+Replace the manual constructors for toolbox/lunchbox with factory-based ones:
+
+-// TOOLBOX (old)
+-const toolbox = new Item({
+-  instanceId: `toolbox-${Date.now()}`,
+-  defId: 'container.toolbox',
+-  name: 'Tool Box',
+-  width: 2, height: 2,
+-  containerGrid: { width: 4, height: 3 },
+-  traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
+-});
+
++// TOOLBOX (new — from defs, carries imageId automatically)
++{
++  const base = createItemFromDef('container.toolbox'); // includes imageId: 'toolbox'
++  const toolbox = new Item({ ...base, instanceId: `toolbox-${Date.now()}` });
++  // ...place/spawn as you already do
++}
+
+-// LUNCHBOX (old)
+-const lunchbox = new Item({
+-  instanceId: `lunchbox-${Date.now()}`,
+-  defId: 'container.lunchbox',
+-  name: 'Lunch Box',
+-  width: 2, height: 1,
+-  containerGrid: { width: 3, height: 2 },
+-  traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
+-});
+
++// LUNCHBOX (new — from defs, carries imageId automatically)
++{
++  const base = createItemFromDef('container.lunchbox'); // includes imageId: 'lunchbox'
++  const lunchbox = new Item({ ...base, instanceId: `lunchbox-${Date.now()}` });
++  // ...place/spawn as you already do
++}
+
+
+If your factory already returns a unique instanceId, you can omit the spread/override and just new Item(base).
+
+Why this fixes your issue
+
+Items now always have imageId (e.g., 'toolbox', 'lunchbox') straight from the defs.
+
+The grid’s image loader can resolve /images/items/<imageId>.(png|jpg|…) and, if missing, falls back to default.png—which still stretches across the full footprint.
+
+No UI churn; this only changes how dev-spawned items are constructed.
+
+Quick test
+
+Reload, open Dev Console, create toolbox/lunchbox with the new commands.
+
+Click the container in the ground grid.
+
+Expect console lines like:
+
+Successfully loaded item image: …/images/items/toolbox.png (or a fallback to default.png)
+
+Visually, the icon renders once in the top-left cell but stretches across all cells the item occupies (2×2 toolbox, 2×1 lunchbox), with your hover ring.
