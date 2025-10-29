@@ -139,9 +139,19 @@ const ITEM_TEMPLATES = {
 };
 
 // Convenience function to create common item types
+// Now delegates to createItemFromDef to ensure imageId consistency
 export function createItem(type, subtype, options = {}) {
   // Handle case where subtype might be an object (extract actual subtype)
   const actualSubtype = typeof subtype === 'string' ? subtype : subtype?.subtype || 'generic';
+  const defId = `${type}.${actualSubtype}`;
+  
+  // Try to use ItemDefs factory first for consistent imageId
+  const item = createItemFromDef(defId, options);
+  if (item) {
+    return item;
+  }
+  
+  // Fallback to legacy template-based creation if no def exists
   const templateKey = `${type}.${actualSubtype}`;
   const template = ITEM_TEMPLATES[templateKey] || {};
 
@@ -189,6 +199,9 @@ export function createTool(subtype, options = {}) {
 export function createAttachment(subtype, options = {}) {
   return createItem('attachment', subtype, options);
 }
+
+// Direct access to createItemFromDef for items defined in ItemDefs
+export { createItemFromDef } from './ItemDefs.js';
 
 // Convenience function to create containers
 export function createContainer(type, options = {}) {

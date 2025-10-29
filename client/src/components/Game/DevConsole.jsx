@@ -18,13 +18,13 @@ const DevConsole = ({ isOpen, onClose }) => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
-  
+
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const consoleRef = useRef(null);
-  
+
   // Phase 4: Direct sub-context access for debugging data
   const { playerRef, playerStats } = usePlayer();
   const { gameMapRef, worldManagerRef } = useGameMap();
@@ -90,6 +90,18 @@ const DevConsole = ({ isOpen, onClose }) => {
     const mainCommand = parts[0];
     const subCommand = parts[1];
 
+    // Helper function to get available ItemDefs keys for the spawn command
+    const getAvailableItemDefs = async () => {
+      try {
+        const { ItemDefs } = await import('../../game/inventory/ItemDefs.js');
+        // Return a sample of keys or all keys depending on desired verbosity
+        return Object.keys(ItemDefs).filter(key => !key.includes('.icon') && !key.includes('.sprite')); // Exclude icon/sprite defs
+      } catch (error) {
+        console.error("Error fetching ItemDefs:", error);
+        return [];
+      }
+    };
+
     try {
       switch (mainCommand) {
         case 'help':
@@ -109,6 +121,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  unequip backpack - Unequip backpack (visual test)', 'info');
           addToConsole('  create toolbox - Create test toolbox item on ground', 'info');
           addToConsole('  create lunchbox - Create test lunchbox item on ground', 'info');
+          addToConsole('  spawn <item-type> [count] - Spawn item(s) on ground', 'info');
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
@@ -124,7 +137,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               const gameMap = gameMapRef.current;
               const worldManager = worldManagerRef.current;
               const camera = cameraRef.current;
-              
+
               addToConsole(`Player: ${player.id} at (${player.x}, ${player.y})`, 'info');
               addToConsole(`Current Map: ${worldManager?.currentMapId || 'unknown'}`, 'info');
               addToConsole(`Map Size: ${gameMap ? `${gameMap.width}x${gameMap.height}` : 'unknown'}`, 'info');
@@ -134,7 +147,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole(`AP: ${playerStats.ap}/${playerStats.maxAp}`, 'info');
               addToConsole(`Camera: (${camera ? `${camera.x.toFixed(1)}, ${camera.y.toFixed(1)}` : 'null'})`, 'info');
               addToConsole(`Zoom: ${camera ? camera.zoomLevel.toFixed(2) : 'unknown'}`, 'info');
-              
+
               // Entity counts
               if (gameMap) {
                 const zombies = gameMap.getEntitiesByType('zombie');
@@ -338,7 +351,7 @@ const DevConsole = ({ isOpen, onClose }) => {
         case 'phase5':
           try {
             addToConsole('=== Phase 5A Verification ===', 'info');
-            
+
             // Test 1: Check if inventoryManager exists from initialization
             addToConsole('Test 1: InventoryManager created during initialization?', 'info');
             if (window.inventoryManager) {
@@ -348,7 +361,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole('  ❌ window.inventoryManager NOT FOUND', 'error');
               addToConsole('  - This indicates Phase 5A is incomplete', 'error');
             }
-            
+
             // Test 2: Check if ground container is accessible
             addToConsole('Test 2: Ground container accessible?', 'info');
             if (window.inventoryManager) {
@@ -364,18 +377,18 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole('  ⏭️  Skipped (no manager)', 'log');
             }
-            
+
             // Test 3: Check if manager is same instance across contexts
             addToConsole('Test 3: Manager instance consistency?', 'info');
             if (window.inventoryManager) {
               // Check if window.inv helper exists
               if (window.inv) {
                 addToConsole('  ✅ window.inv helper exists', 'success');
-                
+
                 // Test if both references point to same ground container
                 const groundViaManager = window.inventoryManager.getContainer('ground');
                 const groundViaHelper = window.inv.getContainer('ground');
-                
+
                 if (groundViaManager === groundViaHelper) {
                   addToConsole('  ✅ Same instance across all access methods', 'success');
                 } else {
@@ -385,7 +398,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               } else {
                 addToConsole('  ⚠️  window.inv helper not set up', 'log');
               }
-              
+
               // Check equipment slots
               addToConsole('Test 4: Equipment system initialized?', 'info');
               const equipment = window.inventoryManager.equipment;
@@ -393,7 +406,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                 const slots = Object.keys(equipment);
                 addToConsole(`  ✅ Equipment object exists with ${slots.length} slots`, 'success');
                 addToConsole(`  - Slots: ${slots.join(', ')}`, 'log');
-                
+
                 // Count equipped items
                 const equippedCount = Object.values(equipment).filter(item => item !== null).length;
                 addToConsole(`  - Currently equipped: ${equippedCount} items`, 'log');
@@ -403,14 +416,14 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole('  ⏭️  Skipped (no manager)', 'log');
             }
-            
+
             // Summary
             addToConsole('--- Phase 5A Status ---', 'info');
             if (window.inventoryManager) {
               const groundExists = window.inventoryManager.getContainer('ground') !== null;
               const helperExists = window.inv !== undefined;
               const equipmentExists = window.inventoryManager.equipment !== undefined;
-              
+
               if (groundExists && helperExists && equipmentExists) {
                 addToConsole('✅ Phase 5A appears COMPLETE', 'success');
                 addToConsole('All core infrastructure in place', 'success');
@@ -424,7 +437,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole('❌ Phase 5A NOT STARTED', 'error');
               addToConsole('InventoryManager not created during initialization', 'error');
             }
-            
+
           } catch (error) {
             addToConsole(`Error in Phase 5A verification: ${error.message}`, 'error');
             console.error('Phase 5A Verification Error:', error);
@@ -434,18 +447,18 @@ const DevConsole = ({ isOpen, onClose }) => {
         case 'phase5b':
           try {
             addToConsole('=== Phase 5B Verification (Equipment Display) ===', 'info');
-            
+
             if (!window.inventoryManager) {
               addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
               break;
             }
-            
+
             // Test: Create and equip test items
             addToConsole('Test 1: Equipping items to test display...', 'info');
-            
+
             const { Item } = await import('../../game/inventory/Item.js');
             const { ItemDefs } = await import('../../game/inventory/ItemDefs.js');
-            
+
             // Create test items for different slots
             const testKnife = new Item({
               instanceId: 'test-knife-5b',
@@ -456,7 +469,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               equippableSlot: 'melee',
               traits: [ItemTrait.EQUIPPABLE]
             });
-            
+
             const testFlashlight = new Item({
               instanceId: 'test-flashlight-5b',
               defId: 'tool.flashlight',
@@ -466,11 +479,11 @@ const DevConsole = ({ isOpen, onClose }) => {
               equippableSlot: 'flashlight',
               traits: [ItemTrait.EQUIPPABLE]
             });
-            
+
             // Equip items
             const knifeResult = window.inventoryManager.equipItem(testKnife, 'melee');
             const flashlightResult = window.inventoryManager.equipItem(testFlashlight, 'flashlight');
-            
+
             if (knifeResult.success && flashlightResult.success) {
               addToConsole('  ✅ Test items equipped successfully', 'success');
               addToConsole('  - Knife equipped to melee slot', 'log');
@@ -478,7 +491,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole('  ⚠️  Some items failed to equip', 'log');
             }
-            
+
             // Test 2: Verify UI display
             addToConsole('Test 2: Equipment slot UI display...', 'info');
             addToConsole('  ℹ️  Check the equipment slots visually:', 'info');
@@ -486,31 +499,31 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('  - Flashlight slot should show "LE" (LED Flashlight)', 'log');
             addToConsole('  - Hover over slots to see tooltips with item names', 'log');
             addToConsole('  - Equipped slots should have accent border/background', 'log');
-            
+
             // Test 3: Verify tooltips
             addToConsole('Test 3: Tooltip functionality...', 'info');
             const equipment = window.inventoryManager.equipment;
             let tooltipCount = 0;
-            
+
             Object.entries(equipment).forEach(([slot, item]) => {
               if (item) {
                 addToConsole(`  ✅ ${slot}: "${item.name}" (should show on hover)`, 'success');
                 tooltipCount++;
               }
             });
-            
+
             addToConsole(`  - ${tooltipCount} equipped slots with tooltips`, 'log');
-            
+
             // Test 4: Verify click behavior (console.debug only)
             addToConsole('Test 4: Click behavior...', 'info');
             addToConsole('  ℹ️  Click any equipment slot and check browser console', 'info');
             addToConsole('  - Should see debug message: "[EquipmentSlots] Slot {id} clicked - Phase 5B (read-only)"', 'log');
             addToConsole('  - No actual interaction should occur (read-only)', 'log');
-            
+
             // Summary
             addToConsole('--- Phase 5B Status ---', 'info');
             const hasEquippedItems = Object.values(equipment).some(item => item !== null);
-            
+
             if (hasEquippedItems) {
               addToConsole('✅ Phase 5B Implementation Complete', 'success');
               addToConsole('Equipment slots are displaying equipped items', 'success');
@@ -519,12 +532,12 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole('⚠️  No items equipped - equip items to test display', 'log');
             }
-            
+
             addToConsole('', 'info');
             addToConsole('Quick test commands:', 'info');
             addToConsole('• Unequip melee: window.inventoryManager.unequipItem("melee")', 'log');
             addToConsole('• Unequip flashlight: window.inventoryManager.unequipItem("flashlight")', 'log');
-            
+
           } catch (error) {
             addToConsole(`Error in Phase 5B verification: ${error.message}`, 'error');
             console.error('Phase 5B Verification Error:', error);
@@ -534,21 +547,21 @@ const DevConsole = ({ isOpen, onClose }) => {
         case 'phase5c':
           try {
             addToConsole('=== Phase 5C Verification (Backpack Visibility) ===', 'info');
-            
+
             if (!window.inventoryManager) {
               addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
               break;
             }
-            
+
             // Test 1: Check initial state (no backpack equipped)
             addToConsole('Test 1: Initial state (no backpack)...', 'info');
-            
+
             // Ensure no backpack is equipped
             if (window.inventoryManager.equipment.backpack) {
               const unequipResult = window.inventoryManager.unequipItem('backpack');
               addToConsole(`  - Unequipped existing backpack: ${unequipResult.success}`, 'log');
             }
-            
+
             const initialBackpack = window.inventoryManager.getBackpackContainer();
             if (!initialBackpack) {
               addToConsole('  ✅ No backpack equipped - should show "No backpack equipped"', 'success');
@@ -556,12 +569,12 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole('  ❌ Unexpected backpack state', 'error');
             }
-            
+
             // Test 2: Equip a backpack and verify visibility
             addToConsole('Test 2: Equipping a backpack...', 'info');
-            
+
             const { Item } = await import('../../game/inventory/Item.js');
-            
+
             const testBackpack = new Item({
               instanceId: 'test-backpack-5c',
               defId: 'container.backpack',
@@ -572,9 +585,9 @@ const DevConsole = ({ isOpen, onClose }) => {
               containerGrid: { width: 8, height: 10 },
               traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
             });
-            
+
             const equipResult = window.inventoryManager.equipItem(testBackpack, 'backpack');
-            
+
             if (equipResult.success) {
               // Force UI refresh after console mutation (Phase 5C workaround until Phase 5E)
               if (window.inv?.refresh) {
@@ -582,7 +595,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                 addToConsole('  - UI refreshed to show backpack grid', 'log');
               }
               addToConsole('  ✅ Backpack equipped successfully', 'success');
-              
+
               // Verify container is now accessible
               const equippedBackpack = window.inventoryManager.getBackpackContainer();
               if (equippedBackpack) {
@@ -596,18 +609,18 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole(`  ❌ Failed to equip backpack: ${equipResult.reason}`, 'error');
             }
-            
+
             // Test 3: Verify grid slot size consistency
             addToConsole('Test 3: Grid slot size consistency...', 'info');
             addToConsole('  ℹ️  Visual check required:', 'info');
             addToConsole('  - Backpack grid slots should match ground grid slot size', 'log');
             addToConsole('  - Both grids should use same pixel dimensions from GridSizeContext', 'log');
-            
+
             // Test 4: Unequip and verify visibility toggle
             addToConsole('Test 4: Unequipping backpack...', 'info');
-            
+
             const unequipResult = window.inventoryManager.unequipItem('backpack');
-            
+
             if (unequipResult.success) {
               // Force UI refresh after console mutation (Phase 5C workaround until Phase 5E)
               if (window.inv?.refresh) {
@@ -616,7 +629,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               }
               addToConsole('  ✅ Backpack unequipped successfully', 'success');
               addToConsole(`  - Item placed in: ${unequipResult.placedIn}`, 'log');
-              
+
               const afterUnequip = window.inventoryManager.getBackpackContainer();
               if (!afterUnequip) {
                 addToConsole('  ✅ Backpack visibility toggled off', 'success');
@@ -627,14 +640,14 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole(`  ❌ Failed to unequip: ${unequipResult.reason}`, 'error');
             }
-            
+
             // Summary
             addToConsole('--- Phase 5C Status ---', 'info');
             addToConsole('✅ Phase 5C Implementation Complete', 'success');
             addToConsole('Backpack grid visibility toggles based on equipment state', 'success');
             addToConsole('Grid appears when backpack is equipped', 'success');
             addToConsole('Placeholder shown when no backpack equipped', 'success');
-            
+
           } catch (error) {
             addToConsole(`Error in Phase 5C verification: ${error.message}`, 'error');
             console.error('Phase 5C Verification Error:', error);
@@ -646,7 +659,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             try {
               addToConsole('Equipping test backpack...', 'info');
               const { Item } = await import('../../game/inventory/Item.js');
-              
+
               const testBackpack = new Item({
                 instanceId: 'manual-test-bp',
                 defId: 'container.backpack',
@@ -657,7 +670,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                 containerGrid: { width: 8, height: 10 },
                 traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
               });
-              
+
               const result = window.inventoryManager.equipItem(testBackpack, 'backpack');
               if (result.success) {
                 window.inv?.refresh();
@@ -695,17 +708,17 @@ const DevConsole = ({ isOpen, onClose }) => {
         case 'phase5d':
           try {
             addToConsole('=== Phase 5D Verification (Specialty Container Opening) ===', 'info');
-            
+
             if (!window.inventoryManager) {
               addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
               break;
             }
-            
+
             // Test 1: Create specialty containers on ground
             addToConsole('Test 1: Creating specialty container items...', 'info');
-            
+
             const { Item } = await import('../../game/inventory/Item.js');
-            
+
             const toolbox = new Item({
               instanceId: 'test-toolbox-5d',
               defId: 'container.toolbox',
@@ -715,7 +728,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               containerGrid: { width: 4, height: 3 },
               traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
             });
-            
+
             const lunchbox = new Item({
               instanceId: 'test-lunchbox-5d',
               defId: 'container.lunchbox',
@@ -725,11 +738,11 @@ const DevConsole = ({ isOpen, onClose }) => {
               containerGrid: { width: 3, height: 2 },
               traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
             });
-            
+
             // Ensure container grids are initialized
             toolbox.initializeContainerGrid();
             lunchbox.initializeContainerGrid();
-            
+
             const groundContainer = window.inventoryManager.getContainer('ground');
             if (groundContainer) {
               groundContainer.addItem(toolbox);
@@ -740,19 +753,19 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole('  ❌ Ground container not found', 'error');
               break;
             }
-            
+
             // Test 2: Verify canOpenContainer for specialty containers
             addToConsole('Test 2: Checking container open permissions...', 'info');
-            
+
             const toolboxCanOpen = window.inventoryManager.canOpenContainer(toolbox);
             const lunchboxCanOpen = window.inventoryManager.canOpenContainer(lunchbox);
-            
+
             addToConsole(`  - Toolbox can open: ${toolboxCanOpen ? '✅ YES' : '❌ NO'}`, toolboxCanOpen ? 'success' : 'error');
             addToConsole(`  - Lunchbox can open: ${lunchboxCanOpen ? '✅ YES' : '❌ NO'}`, lunchboxCanOpen ? 'success' : 'error');
-            
+
             // Test 3: Create backpack item (should NOT open inline)
             addToConsole('Test 3: Verifying backpack prevention...', 'info');
-            
+
             const testBackpackItem = new Item({
               instanceId: 'test-bp-item-5d',
               defId: 'container.backpack',
@@ -763,13 +776,13 @@ const DevConsole = ({ isOpen, onClose }) => {
               containerGrid: { width: 8, height: 10 },
               traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
             });
-            
+
             groundContainer.addItem(testBackpackItem);
             window.inv?.refresh();
-            
+
             const backpackCanOpen = window.inventoryManager.canOpenContainer(testBackpackItem);
             addToConsole(`  - Backpack (unequipped) can open: ${backpackCanOpen ? '❌ YES (WRONG!)' : '✅ NO (CORRECT)'}`, backpackCanOpen ? 'error' : 'success');
-            
+
             // Test 4: Visual verification instructions
             addToConsole('Test 4: Visual verification steps...', 'info');
             addToConsole('  ℹ️  Click on the toolbox in the ground grid:', 'info');
@@ -783,7 +796,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('     - Close button (X)', 'log');
             addToConsole('     - Draggable header (can reposition)', 'log');
             addToConsole('     - Grid using fixed slot size', 'log');
-            
+
             // Summary
             addToConsole('--- Phase 5D Status ---', 'info');
             if (toolboxCanOpen && lunchboxCanOpen && !backpackCanOpen) {
@@ -794,7 +807,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             } else {
               addToConsole('⚠️  Phase 5D has issues - check canOpenContainer logic', 'log');
             }
-            
+
           } catch (error) {
             addToConsole(`Error in Phase 5D verification: ${error.message}`, 'error');
             console.error('Phase 5D Verification Error:', error);
@@ -806,7 +819,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             try {
               addToConsole('Creating toolbox on ground...', 'info');
               const { Item } = await import('../../game/inventory/Item.js');
-              
+
               const toolbox = new Item({
                 instanceId: `toolbox-${Date.now()}`,
                 defId: 'container.toolbox',
@@ -816,10 +829,10 @@ const DevConsole = ({ isOpen, onClose }) => {
                 containerGrid: { width: 4, height: 3 },
                 traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
               });
-              
+
               // Ensure container grid is initialized
               toolbox.initializeContainerGrid();
-              
+
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(toolbox)) {
                 window.inv?.refresh();
@@ -834,7 +847,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             try {
               addToConsole('Creating lunchbox on ground...', 'info');
               const { Item } = await import('../../game/inventory/Item.js');
-              
+
               const lunchbox = new Item({
                 instanceId: `lunchbox-${Date.now()}`,
                 defId: 'container.lunchbox',
@@ -844,10 +857,10 @@ const DevConsole = ({ isOpen, onClose }) => {
                 containerGrid: { width: 3, height: 2 },
                 traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED]
               });
-              
+
               // Ensure container grid is initialized
               lunchbox.initializeContainerGrid();
-              
+
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(lunchbox)) {
                 window.inv?.refresh();
@@ -973,6 +986,75 @@ const DevConsole = ({ isOpen, onClose }) => {
               }
               break;
 
+        case 'spawn':
+          if (!parts[1]) { // Use parts[1] to check for the item type argument
+            output = 'Usage: spawn <item-type> [count]';
+            break;
+          }
+
+          try {
+            const itemType = parts[1]; // Correctly get itemType from parts[1]
+            const count = parseInt(parts[2]) || 1; // Correctly get count from parts[2]
+
+            // Map common aliases to ItemDefs keys
+            const defIdMap = {
+              'knife': 'weapon.knife',
+              'bat': 'weapon.baseball_bat',
+              'pistol': 'weapon.pistol',
+              'rifle': 'weapon.rifle',
+              'backpack': 'backpack.school',
+              'school-backpack': 'backpack.school',
+              'hiking-backpack': 'backpack.hiking',
+              'toolbox': 'container.toolbox',
+              'lunchbox': 'container.lunchbox',
+              'ammobox': 'container.ammo_box',
+              'bandage': 'medical.bandage',
+              'ammo': 'ammo.9mm',
+              'food': 'food.canned',
+              'tshirt': 'clothing.tshirt',
+              'jacket': 'clothing.jacket',
+              'vest': 'clothing.tactical_vest',
+              'jeans': 'clothing.jeans',
+              'cargo-pants': 'clothing.cargo_pants',
+              'flashlight': 'tool.flashlight'
+            };
+
+            const defId = defIdMap[itemType] || itemType;
+
+            // Ensure ItemDefs is loaded to check for valid defId
+            const { ItemDefs, createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+
+            // Verify if the defId exists in ItemDefs
+            if (!ItemDefs[defId]) {
+              const availableDefs = Object.keys(defIdMap).join(', ');
+              output = `Unknown item definition: ${defId}. Available: ${availableDefs}`;
+              break;
+            }
+
+            const groundContainer = window.inventoryManager.getContainer('ground');
+            if (!groundContainer) {
+              output = 'Ground container not available';
+              break;
+            }
+
+            let spawned = 0;
+            for (let i = 0; i < count; i++) {
+              const item = createItemFromDef(defId);
+              if (!item) { // Additional check in case createItemFromDef returns null for valid defId (shouldn't happen but good practice)
+                output = `Failed to create item from definition: ${defId}`;
+                break;
+              }
+              if (groundContainer.addItem(item)) {
+                spawned++;
+              }
+            }
+
+            output = `Spawned ${spawned}/${count} ${itemType}(s) to ground`;
+          } catch (error) {
+            output = `Error spawning item: ${error.message}`;
+          }
+          break;
+
         default:
           addToConsole(`Unknown command: ${mainCommand}. Type 'help' for available commands.`, 'error');
       }
@@ -1027,7 +1109,7 @@ const DevConsole = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 pointer-events-none">
-      <Card 
+      <Card
         ref={consoleRef}
         className="w-3/4 h-3/4 bg-gray-900 border-gray-700 pointer-events-auto"
         style={{
@@ -1037,7 +1119,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           cursor: isDragging ? 'grabbing' : 'default'
         }}
       >
-        <CardHeader 
+        <CardHeader
           className="console-header flex flex-row items-center justify-between pb-2 cursor-grab active:cursor-grabbing"
           onMouseDown={handleMouseDown}
         >
