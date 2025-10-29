@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import GridSlot from "./GridSlot";
 import { useGridSize } from "@/contexts/GridSizeContext";
@@ -46,7 +45,7 @@ export default function UniversalGrid({
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { canOpenContainer, openContainer } = useInventory();
-  
+
   // Choose slot size based on grid type
   const slotSize = gridType === 'fixed' ? fixedSlotSize : scalableSlotSize;
 
@@ -67,7 +66,7 @@ export default function UniversalGrid({
       console.debug('[UniversalGrid] Item cannot be opened inline:', item.name);
     }
   };
-  
+
   // Dynamic grid dimensions based on calculated slot size
   const gridWidth = width * slotSize;
   const gridHeight = height * slotSize;

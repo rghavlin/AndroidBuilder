@@ -5,7 +5,6 @@ import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import FloatingContainer from "@/components/Inventory/FloatingContainer";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import { useInventory } from "@/contexts/InventoryContext";
-import { createPortal } from "react-dom";
 
 export default function InventoryPanel() {
   const { openContainers, getContainer, closeContainer } = useInventory();
@@ -26,12 +25,12 @@ export default function InventoryPanel() {
           <GroundItemsGrid />
         </div>
 
-        {/* Floating Containers - rendered via Portal at document.body */}
+        {/* Floating Containers - FloatingContainer uses Portal internally */}
         {Array.from(openContainers).map((containerId, index) => {
           const container = getContainer(containerId);
           if (!container) return null;
 
-          return createPortal(
+          return (
             <FloatingContainer
               key={containerId}
               id={containerId}
@@ -47,8 +46,7 @@ export default function InventoryPanel() {
                 enableScroll={true}
                 maxHeight="400px"
               />
-            </FloatingContainer>,
-            document.body
+            </FloatingContainer>
           );
         })}
       </div>
