@@ -1,7 +1,7 @@
 import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { GroundManager } from './GroundManager.js';
-import { ItemTrait, EquipmentSlot } from './ItemTrait.js'; // Import necessary enums
+import { ItemTrait, EquipmentSlot } from './traits.js'; // Import necessary enums
 
 /**
  * InventoryManager coordinates all containers in the game
