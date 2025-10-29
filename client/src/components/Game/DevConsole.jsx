@@ -791,7 +791,10 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole('Creating toolbox on ground...', 'info');
               
               // Use factory to create item with imageId from defs
-              const toolbox = createItem('container', 'toolbox');
+              const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+              const { Item } = await import('../../game/inventory/Item.js');
+              const itemData = createItemFromDef('container.toolbox');
+              const toolbox = new Item(itemData);
 
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(toolbox)) {
@@ -808,7 +811,10 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole('Creating lunchbox on ground...', 'info');
               
               // Use factory to create item with imageId from defs
-              const lunchbox = createItem('container', 'lunchbox');
+              const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+              const { Item } = await import('../../game/inventory/Item.js');
+              const itemData = createItemFromDef('container.lunchbox');
+              const lunchbox = new Item(itemData);
 
               const ground = window.inventoryManager.getContainer('ground');
               if (ground && ground.addItem(lunchbox)) {
