@@ -138,10 +138,20 @@ export const ItemDefs = {
   },
 
   // Specialty Containers (openable when nested)
+  'container.toolbox': {
+    id: 'container.toolbox',
+    name: 'Tool Box',
+    imageId: 'toolbox',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    containerGrid: { width: 4, height: 3 }
+  },
+
   'container.lunchbox': {
     id: 'container.lunchbox',
-    name: 'Lunchbox',
-    imageId: 'toolbox',
+    name: 'Lunch Box',
+    imageId: 'toolbox', // TODO: Replace with actual lunchbox image when available
     width: 2,
     height: 1,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
@@ -151,7 +161,7 @@ export const ItemDefs = {
   'container.ammo_box': {
     id: 'container.ammo_box',
     name: 'Ammo Box',
-    imageId: 'toolbox',
+    imageId: 'toolbox', // TODO: Replace with actual ammo box image when available
     width: 2,
     height: 2,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],

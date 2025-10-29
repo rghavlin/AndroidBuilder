@@ -151,11 +151,13 @@ export default function UniversalGrid({
         // Calculate image dimensions if this is top-left
         let imageWidth = 0;
         let imageHeight = 0;
+        const GAP_SIZE = 2; // Must match grid gap in style
         if (item && isTopLeft) {
           const itemActualWidth = item.getActualWidth();
           const itemActualHeight = item.getActualHeight();
-          imageWidth = itemActualWidth * slotSize + (itemActualWidth - 1) * 2; // Account for gaps
-          imageHeight = itemActualHeight * slotSize + (itemActualHeight - 1) * 2;
+          // Total width = (slots * slotSize) + (gaps between slots)
+          imageWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
+          imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
         }
 
         const itemImageSrc = item ? itemImages.get(item.instanceId) || null : null;

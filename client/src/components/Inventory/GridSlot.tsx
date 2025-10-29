@@ -80,19 +80,20 @@ export default function GridSlot({
       data-testid={testId}
     >
       {/* Multi-cell image rendering (only in top-left cell) */}
-      {item && isTopLeft && itemImageSrc && imageWidth && imageHeight && (
+      {item && isTopLeft && itemImageSrc && imageWidth > 0 && imageHeight > 0 && (
         <img
           src={itemImageSrc}
           alt={item.name || "Item"}
           className={cn(
             "absolute top-0 left-0 pointer-events-none select-none",
             "transition-all duration-150",
-            isHovered && "ring-2 ring-primary/50 ring-offset-1"
+            isHovered && "ring-2 ring-primary/60"
           )}
           style={{
             width: `${imageWidth}px`,
             height: `${imageHeight}px`,
             objectFit: 'contain',
+            zIndex: 10
           }}
         />
       )}

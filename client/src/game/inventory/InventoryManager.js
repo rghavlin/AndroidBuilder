@@ -1,7 +1,7 @@
-
 import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { GroundManager } from './GroundManager.js';
+import { ItemTrait, EquipmentSlot } from './ItemTrait.js'; // Import necessary enums
 
 /**
  * InventoryManager coordinates all containers in the game
@@ -11,7 +11,7 @@ export class InventoryManager {
   constructor() {
     // Core containers
     this.containers = new Map(); // containerId -> Container
-    
+
     // Equipment slots (exactly as specified)
     this.equipment = {
       backpack: null,
@@ -33,12 +33,12 @@ export class InventoryManager {
       autoExpand: true,
       autoSort: true
     });
-    
+
     this.containers.set('ground', this.groundContainer);
-    
+
     // Ground management system
     this.groundManager = new GroundManager(this.groundContainer);
-    
+
     // Initialize with basic backpack container
     this.initializeDefaultContainers();
   }
@@ -93,10 +93,10 @@ export class InventoryManager {
     // Handle dynamic container addition
     this.updateDynamicContainers();
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       unequippedItem,
-      sourceContainer: sourceContainer?.id 
+      sourceContainer: sourceContainer?.id
     };
   }
 
@@ -198,13 +198,13 @@ export class InventoryManager {
       if (item && item.isContainer && item.isContainer()) {
         // Get container grid (may trigger lazy initialization)
         let containerGrid = await item.getContainerGrid();
-        
+
         // Fallback: Create container if missing but data exists
         if (!containerGrid && item._containerGridData) {
           try {
             const data = item._containerGridData;
             const ownerId = item.instanceId || item.id || `item-${Date.now()}`;
-            
+
             containerGrid = new Container({
               id: `${ownerId}-container`,
               type: 'item-container',
@@ -214,16 +214,16 @@ export class InventoryManager {
               autoExpand: data.autoExpand,
               autoSort: data.autoSort
             });
-            
+
             // Assign it back to the item so future calls work
             item.containerGrid = containerGrid;
-            
+
             console.debug('[InventoryManager] Created fallback container for', item.name);
           } catch (err) {
             console.warn('[InventoryManager] Failed to create fallback container for', item.name, err);
           }
         }
-        
+
         if (containerGrid) {
           const containerId = `${slot}-container`;
           containerGrid.id = containerId;
@@ -245,12 +245,12 @@ export class InventoryManager {
     if (managedContainer) {
       return managedContainer;
     }
-    
+
     // Fallback: check equipped backpack item directly
     if (this.equipment.backpack && this.equipment.backpack.isContainer && this.equipment.backpack.isContainer()) {
       return this.equipment.backpack.getContainerGrid();
     }
-    
+
     // Return null if no backpack equipped (Phase 5C requirement)
     return null;
   }
@@ -260,19 +260,19 @@ export class InventoryManager {
    */
   getPocketContainers() {
     const pockets = [];
-    
+
     // Check upper body equipment for pockets
     if (this.equipment.upper_body && this.equipment.upper_body.isContainer && this.equipment.upper_body.isContainer()) {
       const upperContainer = this.equipment.upper_body.getContainerGrid();
       if (upperContainer) pockets.push(upperContainer);
     }
-    
+
     // Check lower body equipment for pockets
     if (this.equipment.lower_body && this.equipment.lower_body.isContainer && this.equipment.lower_body.isContainer()) {
       const lowerContainer = this.equipment.lower_body.getContainerGrid();
       if (lowerContainer) pockets.push(lowerContainer);
     }
-    
+
     return pockets;
   }
 
@@ -346,13 +346,13 @@ export class InventoryManager {
    */
   setGroundItems(items) {
     this.groundContainer.clear();
-    
+
     if (items && items.length > 0) {
       for (const itemData of items) {
         const item = Item.fromJSON(itemData);
         this.groundManager.addItemSmart(item);
       }
-      
+
       // Optimize layout for better organization
       this.groundManager.optimizeIfNeeded();
     }
@@ -373,12 +373,12 @@ export class InventoryManager {
     if (item._container) {
       item._container.removeItem(item.id);
     }
-    
+
     const result = this.groundManager.addItemSmart(item, preferredX, preferredY);
     if (result) {
       this.groundManager.optimizeIfNeeded();
     }
-    
+
     return result;
   }
 
@@ -399,16 +399,16 @@ export class InventoryManager {
     }
 
     const result = this.groundManager.collectItemsByCategory(category, backpack);
-    
+
     // Try pockets if backpack is full
     if (result.failed > 0) {
       const pockets = this.getPocketContainers();
       for (const pocket of pockets) {
         const remainingItems = this.groundContainer.getAllItems()
           .filter(item => item.getCategory() === category);
-        
+
         if (remainingItems.length === 0) break;
-        
+
         const pocketResult = this.groundManager.collectItemsByCategory(category, pocket);
         result.collected += pocketResult.collected;
         result.failed = Math.max(0, result.failed - pocketResult.collected);
@@ -434,7 +434,7 @@ export class InventoryManager {
     }
 
     const result = this.groundManager.quickPickup({ type: 'valuable' }, backpack);
-    
+
     return {
       success: true,
       collected: result.collected,
@@ -511,7 +511,7 @@ export class InventoryManager {
   moveItem(itemId, fromContainerId, toContainerId, x = null, y = null) {
     const fromContainer = this.containers.get(fromContainerId);
     const toContainer = this.containers.get(toContainerId);
-    
+
     if (!fromContainer || !toContainer) {
       return { success: false, reason: 'Container not found' };
     }
@@ -554,7 +554,7 @@ export class InventoryManager {
       if (item && item.id === itemId) {
         return { item, equipment: slot };
       }
-      
+
       // Check attachments on equipped items
       if (item && item.hasAttachments()) {
         for (const [attachSlot, attachment] of item.attachments.entries()) {
@@ -573,17 +573,17 @@ export class InventoryManager {
    */
   getTotalItemCount() {
     let total = 0;
-    
+
     // Count container items
     for (const container of this.containers.values()) {
       total += container.getItemCount();
     }
-    
+
     // Count equipped items
     for (const item of Object.values(this.equipment)) {
       if (item) {
         total += item.stackCount;
-        
+
         // Count attachments
         if (item.hasAttachments()) {
           for (const attachment of item.attachments.values()) {
@@ -592,7 +592,7 @@ export class InventoryManager {
         }
       }
     }
-    
+
     return total;
   }
 
@@ -619,23 +619,23 @@ export class InventoryManager {
    */
   static fromJSON(data) {
     const manager = new InventoryManager();
-    
+
     // Clear default containers
     manager.containers.clear();
-    
+
     // Restore containers
     if (data.containers) {
       for (const [id, containerData] of data.containers) {
         const container = Container.fromJSON(containerData);
         manager.containers.set(id, container);
-        
+
         // Update ground container reference
         if (id === 'ground') {
           manager.groundContainer = container;
         }
       }
     }
-    
+
     // Restore equipment
     if (data.equipment) {
       for (const [slot, itemData] of Object.entries(data.equipment)) {
@@ -650,7 +650,7 @@ export class InventoryManager {
 
     // Update dynamic containers based on restored equipment
     manager.updateDynamicContainers();
-    
+
     return manager;
   }
 }
