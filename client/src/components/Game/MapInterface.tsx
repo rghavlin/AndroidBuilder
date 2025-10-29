@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
+import { useInventory } from '../../contexts/InventoryContext';
 import MapCanvas from './MapCanvas.jsx';
 import InventoryExtensionWindow from './InventoryExtensionWindow';
+import FloatingContainer from '../Inventory/FloatingContainer';
+import ContainerGrid from '../Inventory/ContainerGrid';
 
 interface MapInterfaceProps {
   gameState: {
@@ -19,6 +22,10 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Get initialization state from GameContext (still needed for initialization control)
   const { isInitialized, initializationError } = useGame();
+  
+  // Get inventory context for floating containers
+  const { openContainers, closeContainer, getContainer } = useInventory();
+  
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
 
   // Log tile interactions for debugging
@@ -92,6 +99,31 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         isOpen={isInventoryExtensionOpen}
         onClose={() => setIsInventoryExtensionOpen(false)}
       />
+
+      {/* Floating Containers - rendered at MapInterface level for proper visibility */}
+      {Array.from(openContainers).map((containerId, index) => {
+        const container = getContainer(containerId);
+        if (!container) return null;
+
+        return (
+          <FloatingContainer
+            key={containerId}
+            id={containerId}
+            title={container.name}
+            isOpen={true}
+            onClose={() => closeContainer(containerId)}
+            initialPosition={{ x: 100 + index * 30, y: 100 + index * 30 }}
+            minWidth={250}
+            minHeight={200}
+          >
+            <ContainerGrid
+              containerId={containerId}
+              enableScroll={true}
+              maxHeight="400px"
+            />
+          </FloatingContainer>
+        );
+      })}
     </div>
   );
 }
