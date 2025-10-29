@@ -207,7 +207,15 @@ export class Item {
         autoExpand: this._containerGridData.autoExpand,
         autoSort: this._containerGridData.autoSort
       });
-      console.debug('[Item] Lazy-initialized container for', this.name, this.instanceId);
+      
+      // Register with InventoryManager if available (maintains single source of truth)
+      if (window.inventoryManager) {
+        window.inventoryManager.addContainer(this.containerGrid);
+        console.debug('[Item] Lazy-initialized container registered with manager:', this.name, this.containerGrid.id);
+      } else {
+        console.debug('[Item] Lazy-initialized container (manager not available yet):', this.name, this.instanceId);
+      }
+      
       return this.containerGrid;
     } catch (err) {
       console.warn('[Item] Failed to initialize Container class', this.instanceId, err);

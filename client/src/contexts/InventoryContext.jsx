@@ -153,15 +153,31 @@ export const InventoryProvider = ({ children, manager }) => {
     return result;
   }, []);
 
-  const openContainer = useCallback((containerId) => {
-    setOpenContainers(prev => new Set([...prev, containerId]));
+  const openContainer = useCallback((containerOrId) => {
+    // Accept either a container object or an id
+    const cid = typeof containerOrId === 'string'
+      ? containerOrId
+      : containerOrId?.id;
+    
+    if (!cid) {
+      if (import.meta?.env?.DEV) {
+        console.warn('[Inventory] openContainer called without valid id');
+      }
+      return;
+    }
+    
+    setOpenContainers(prev => {
+      const next = new Set(prev);
+      next.add(cid);
+      return next;
+    });
   }, []);
 
   const closeContainer = useCallback((containerId) => {
     setOpenContainers(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(containerId);
-      return newSet;
+      const next = new Set(prev);
+      next.delete(containerId);
+      return next;
     });
   }, []);
 

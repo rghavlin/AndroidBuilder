@@ -194,10 +194,10 @@ export class InventoryManager {
     toRemove.forEach(id => this.containers.delete(id));
 
     // Add containers from equipped items
-    Object.entries(this.equipment).forEach(([slot, item]) => {
+    Object.entries(this.equipment).forEach(async ([slot, item]) => {
       if (item && item.isContainer && item.isContainer()) {
-        // Ensure a real container exists (constructor may have failed due to circular import)
-        let containerGrid = item.getContainerGrid();
+        // Get container grid (may trigger lazy initialization)
+        let containerGrid = await item.getContainerGrid();
         
         // Fallback: Create container if missing but data exists
         if (!containerGrid && item._containerGridData) {
@@ -230,6 +230,7 @@ export class InventoryManager {
           containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
           containerGrid.name = `${item.name} Storage`;
           this.containers.set(containerId, containerGrid);
+          console.debug('[InventoryManager] Registered dynamic container:', containerId);
         }
       }
     });
