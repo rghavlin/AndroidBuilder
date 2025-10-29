@@ -201,28 +201,3 @@ export function createContainer(type, options = {}) {
 
   return new Container(defaults);
 }
-
-export function createItemFromDef(defId, overrides = {}) {
-  const def = ItemDefs[defId];
-  if (!def) {
-    console.warn(`[ItemFactory] Unknown item definition: ${defId}`);
-    return null;
-  }
-
-  return new Item({
-    instanceId: `${defId}-${Date.now()}`,
-    defId: defId,
-    name: def.name || defId,
-    imageId: def.imageId || null,
-    width: def.width || 1,
-    height: def.height || 1,
-    traits: def.traits || [],
-    stackCount: def.stackable ? 1 : 1,
-    stackMax: def.stackMax || 1,
-    condition: def.condition || null,
-    equippableSlot: def.equippableSlot || null,
-    encumbranceTier: def.encumbranceTier || null,
-    _containerGridData: def.containerGrid || null,
-    ...overrides
-  });
-}
