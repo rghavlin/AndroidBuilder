@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import GridSlot from "./GridSlot";
@@ -58,7 +57,7 @@ export default function UniversalGrid({
   useEffect(() => {
     const loadImages = async () => {
       const imageMap = new Map<string, string>();
-      
+
       for (const [itemId, item] of items.entries()) {
         if (item.imageId) {
           try {
@@ -71,7 +70,7 @@ export default function UniversalGrid({
           }
         }
       }
-      
+
       setItemImages(imageMap);
     };
 
@@ -144,13 +143,13 @@ export default function UniversalGrid({
           const y = Math.floor(index / width);
           const itemId = grid[y]?.[x];
           const item = itemId ? items.get(itemId) : null;
-          
+
           // Determine if this is the top-left cell for this item
           // We need to scan the grid to find where this item starts
           let isTopLeft = false;
           let topLeftX = x;
           let topLeftY = y;
-          
+
           if (item && itemId) {
             // Find the top-left occurrence of this item in the grid
             let foundTopLeft = false;
@@ -165,7 +164,7 @@ export default function UniversalGrid({
             }
             isTopLeft = (x === topLeftX && y === topLeftY);
           }
-          
+
           // Calculate image dimensions if this is top-left
           let imageWidth = 0;
           let imageHeight = 0;
@@ -212,7 +211,7 @@ export default function UniversalGrid({
         </h4>
       )}
 
-      <div 
+      <div
         className={cn(
           gridType === 'fixed' ? 'flex-shrink-0' : 'flex-1 min-h-0'
         )}
