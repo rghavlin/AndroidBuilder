@@ -718,9 +718,13 @@ const DevConsole = ({ isOpen, onClose }) => {
             // Test 1: Create specialty containers on ground
             addToConsole('Test 1: Creating specialty container items...', 'info');
 
+            // Use async imports to match existing DevConsole pattern
+            const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+            const { Item } = await import('../../game/inventory/Item.js');
+
             // Use factory to create items with imageId from defs
-            const toolbox = createItem('container', 'toolbox');
-            const lunchbox = createItem('container', 'lunchbox');
+            const toolbox = new Item(createItemFromDef('container.toolbox'));
+            const lunchbox = new Item(createItemFromDef('container.lunchbox'));
 
             const groundContainer = window.inventoryManager.getContainer('ground');
             if (groundContainer) {
@@ -746,7 +750,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('Test 3: Verifying backpack prevention...', 'info');
 
             // Use factory to create backpack with imageId from defs
-            const testBackpackItem = createItem('backpack', 'school');
+            const testBackpackItem = new Item(createItemFromDef('backpack.school'));
 
             groundContainer.addItem(testBackpackItem);
             window.inv?.refresh();

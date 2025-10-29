@@ -103,9 +103,17 @@ export default function GridSlot({
 
           {/* Fallback icon for items without images */}
           {item && !itemImageSrc && (
-            <span className="text-sm opacity-80 select-none">
-              {item.icon || "📦"}
-            </span>
+            <div
+              className="absolute top-0 left-0 flex items-center justify-center select-none border border-dashed border-muted-foreground/30"
+              style={{
+                width: '100%',
+                height: '100%'
+              }}
+            >
+              <span className="text-sm opacity-80">
+                {item.icon || "📦"}
+              </span>
+            </div>
           )}
         </>
       )}
