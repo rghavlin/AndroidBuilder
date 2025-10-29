@@ -10,6 +10,7 @@ export class Item {
     defId,
     id, // legacy support
     name = '',
+    imageId = null,
     width = 1,
     height = 1,
     rotation = 0,
@@ -29,6 +30,7 @@ export class Item {
     this.instanceId = instanceId || id || `item-${Date.now()}`;
     this.defId = defId;
     this.name = name;
+    this.imageId = imageId;
 
     // Grid properties
     this.width = width;
@@ -229,6 +231,7 @@ export class Item {
       instanceId: this.instanceId,
       defId: this.defId,
       name: this.name,
+      imageId: this.imageId,
       width: this.width,
       height: this.height,
       rotation: this.rotation,

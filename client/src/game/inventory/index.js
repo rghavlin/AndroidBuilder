@@ -1,4 +1,3 @@
-
 /**
  * Inventory System - Phase 3
  * Equipment slots and dynamic container system
@@ -49,16 +48,16 @@ if (process.env.NODE_ENV === 'development') {
 // Enhanced item templates with equipment and container properties
 const ITEM_TEMPLATES = {
   // Weapons (equippable)
-  'weapon.pistol': { 
-    width: 2, height: 1, condition: 100, 
+  'weapon.pistol': {
+    width: 2, height: 1, condition: 100,
     equippableSlot: 'pistol',
     attachmentSlots: [
       { name: 'muzzle', compatibleTypes: ['suppressor', 'compensator'] },
       { name: 'rail', compatibleTypes: ['flashlight', 'laser'] }
     ]
   },
-  'weapon.rifle': { 
-    width: 1, height: 4, condition: 100, 
+  'weapon.rifle': {
+    width: 1, height: 4, condition: 100,
     equippableSlot: 'rifle',
     attachmentSlots: [
       { name: 'muzzle', compatibleTypes: ['suppressor', 'compensator', 'flash-hider'] },
@@ -67,62 +66,62 @@ const ITEM_TEMPLATES = {
       { name: 'stock', compatibleTypes: ['adjustable-stock', 'fixed-stock'] }
     ]
   },
-  'weapon.knife': { 
-    width: 1, height: 2, condition: 100, 
-    equippableSlot: 'meleeWeapon' 
+  'weapon.knife': {
+    width: 1, height: 2, condition: 100,
+    equippableSlot: 'meleeWeapon'
   },
-  'weapon.axe': { 
-    width: 2, height: 3, condition: 100, 
-    equippableSlot: 'meleeWeapon' 
+  'weapon.axe': {
+    width: 2, height: 3, condition: 100,
+    equippableSlot: 'meleeWeapon'
   },
 
   // Armor & Clothing (equippable with potential containers)
-  'armor.helmet': { 
-    width: 2, height: 2, condition: 100, 
-    equippableSlot: 'head' 
+  'armor.helmet': {
+    width: 2, height: 2, condition: 100,
+    equippableSlot: 'head'
   },
-  'armor.vest': { 
-    width: 2, height: 3, condition: 100, 
+  'armor.vest': {
+    width: 2, height: 3, condition: 100,
     equippableSlot: 'body',
     containerGrid: { width: 4, height: 2 } // Vest pockets
   },
-  'clothing.pants': { 
-    width: 2, height: 3, condition: 100, 
+  'clothing.pants': {
+    width: 2, height: 3, condition: 100,
     equippableSlot: 'legs',
     containerGrid: { width: 2, height: 2 } // Pants pockets
   },
 
   // Backpacks (equippable containers)
   // Container grids limited to max 6 width per project constraints
-  'container.backpack': { 
-    width: 3, height: 4, condition: 100, 
+  'container.backpack': {
+    width: 3, height: 4, condition: 100,
     equippableSlot: 'backpack',
     containerGrid: { width: 6, height: 14 } // Was 8x10 (80 slots), now 6x14 (84 slots)
   },
-  'container.tactical-backpack': { 
-    width: 3, height: 4, condition: 100, 
+  'container.tactical-backpack': {
+    width: 3, height: 4, condition: 100,
     equippableSlot: 'backpack',
     containerGrid: { width: 6, height: 20 } // Was 10x12 (120 slots), now 6x20 (120 slots)
   },
 
   // Tools (some equippable)
-  'tool.flashlight': { 
-    width: 1, height: 2, condition: 100, 
-    equippableSlot: 'flashlight' 
+  'tool.flashlight': {
+    width: 1, height: 2, condition: 100,
+    equippableSlot: 'flashlight'
   },
   'tool.hammer': { width: 2, height: 1, condition: 100 },
   'tool.screwdriver': { width: 1, height: 1, condition: 100 },
-  
+
   // Ammunition (stackable)
   'ammo.9mm': { width: 1, height: 1, stackable: true, stackMax: 50 },
   'ammo.762mm': { width: 1, height: 1, stackable: true, stackMax: 30 },
   'ammo.shotgun': { width: 1, height: 1, stackable: true, stackMax: 25 },
-  
+
   // Medical (stackable)
   'medical.bandage': { width: 1, height: 1, stackable: true, stackMax: 10 },
   'medical.pills': { width: 1, height: 1, stackable: true, stackMax: 20 },
   'medical.syringe': { width: 1, height: 1, stackable: true, stackMax: 5 },
-  
+
   // Food (stackable)
   'food.canned': { width: 1, height: 1, stackable: true, stackMax: 6 },
   'food.water': { width: 1, height: 2, stackable: true, stackMax: 4 },
@@ -134,9 +133,9 @@ const ITEM_TEMPLATES = {
   'attachment.flashlight': { width: 1, height: 1, condition: 100 },
 
   // Containers (non-equippable)
-  'container.toolbox': { width: 2, height: 2, containerGrid: { width: 4, height: 4 } },
-  'container.ammobox': { width: 2, height: 1, containerGrid: { width: 6, height: 3 } },
-  'container.medkit': { width: 2, height: 2, containerGrid: { width: 3, height: 3 } }
+  'container.toolbox': { width: 2, height: 2, containerGrid: { width: 4, height: 4 }, imageId: 'toolbox.png' },
+  'container.ammobox': { width: 2, height: 1, containerGrid: { width: 6, height: 3 }, imageId: 'ammobox.png' },
+  'container.medkit': { width: 2, height: 2, containerGrid: { width: 3, height: 3 }, imageId: 'medkit.png' }
 };
 
 // Convenience function to create common item types
@@ -145,7 +144,7 @@ export function createItem(type, subtype, options = {}) {
   const actualSubtype = typeof subtype === 'string' ? subtype : subtype?.subtype || 'generic';
   const templateKey = `${type}.${actualSubtype}`;
   const template = ITEM_TEMPLATES[templateKey] || {};
-  
+
   const defaults = {
     id: `${type}-${actualSubtype}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
     type,
@@ -154,7 +153,7 @@ export function createItem(type, subtype, options = {}) {
     ...template,
     ...options
   };
-  
+
   return new Item(defaults);
 }
 
@@ -199,6 +198,31 @@ export function createContainer(type, options = {}) {
     name: `${type} Container`,
     ...options
   };
-  
+
   return new Container(defaults);
+}
+
+export function createItemFromDef(defId, overrides = {}) {
+  const def = ItemDefs[defId];
+  if (!def) {
+    console.warn(`[ItemFactory] Unknown item definition: ${defId}`);
+    return null;
+  }
+
+  return new Item({
+    instanceId: `${defId}-${Date.now()}`,
+    defId: defId,
+    name: def.name || defId,
+    imageId: def.imageId || null,
+    width: def.width || 1,
+    height: def.height || 1,
+    traits: def.traits || [],
+    stackCount: def.stackable ? 1 : 1,
+    stackMax: def.stackMax || 1,
+    condition: def.condition || null,
+    equippableSlot: def.equippableSlot || null,
+    encumbranceTier: def.encumbranceTier || null,
+    _containerGridData: def.containerGrid || null,
+    ...overrides
+  });
 }

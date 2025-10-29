@@ -178,7 +178,7 @@ export default function UniversalGrid({
             imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
           }
 
-          const itemImageSrc = item ? itemImages.get(item.instanceId) || null : null;
+          const itemImageSrc = item ? (itemImages.get(item.instanceId) || null) : null;
 
         return (
             <GridSlot

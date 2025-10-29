@@ -1,4 +1,3 @@
-
 /**
  * Item Definitions Catalog
  * Static item templates following trait-based model
@@ -18,7 +17,7 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.BACKPACK,
     containerGrid: { width: 6, height: 8 }
   },
-  
+
   'backpack.hiking': {
     id: 'backpack.hiking',
     name: 'Hiking Backpack',
@@ -151,7 +150,7 @@ export const ItemDefs = {
   'container.lunchbox': {
     id: 'container.lunchbox',
     name: 'Lunch Box',
-    imageId: 'toolbox', // TODO: Replace with actual lunchbox image when available
+    imageId: 'lunchbox',
     width: 2,
     height: 1,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
