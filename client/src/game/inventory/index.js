@@ -200,9 +200,6 @@ export function createAttachment(subtype, options = {}) {
   return createItem('attachment', subtype, options);
 }
 
-// Direct access to createItemFromDef for items defined in ItemDefs
-export { createItemFromDef } from './ItemDefs.js';
-
 // Convenience function to create containers
 export function createContainer(type, options = {}) {
   const defaults = {
