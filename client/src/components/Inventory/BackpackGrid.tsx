@@ -5,7 +5,7 @@ import UniversalGrid from "./UniversalGrid";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function BackpackGrid() {
-  const { getEquippedBackpackContainer, inventoryVersion, moveItem } = useInventory();
+  const { getEquippedBackpackContainer, getContainer, inventoryVersion, moveItem } = useInventory();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Get equipped backpack container (triggers re-render when inventoryVersion changes)
