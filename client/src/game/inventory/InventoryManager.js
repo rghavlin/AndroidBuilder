@@ -228,7 +228,8 @@ export class InventoryManager {
           const containerId = `${slot}-container`;
           containerGrid.id = containerId;
           containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
-          containerGrid.name = `${item.name} Storage`;
+          // Ensure container has a name (fallback to default if item name is missing)
+          containerGrid.name = item.name ? `${item.name} Storage` : 'Backpack Storage';
           this.containers.set(containerId, containerGrid);
           console.debug('[InventoryManager] Registered dynamic container:', containerId);
         }
