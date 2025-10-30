@@ -242,7 +242,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                   width: 3,
                   height: 4,
                   equippableSlot: 'backpack',
-                  containerGrid: { width: 8, height: 10 },
+                  containerGrid: { width: 6, height: 10 },
                   traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
                 });
 
@@ -668,7 +668,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                 width: 3,
                 height: 4,
                 equippableSlot: 'backpack',
-                containerGrid: { width: 8, height: 10 },
+                containerGrid: { width: 6, height: 10 },
                 traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
               });
 
