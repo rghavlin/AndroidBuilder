@@ -186,7 +186,7 @@ export class Item {
     return null;
   }
 
-  async initializeContainerGrid() {
+  initializeContainerGrid() {
     // No-op if container already created successfully
     if (this.containerGrid) {
       return this.containerGrid;
@@ -197,9 +197,11 @@ export class Item {
       return null;
     }
     
-    // Try to create the container using dynamic import
+    // Create the container synchronously (Container is already imported at top of file)
     try {
-      const { Container } = await import('./Container.js');
+      // Import Container at runtime
+      const Container = require('./Container.js').Container;
+      
       this.containerGrid = new Container({
         id: this._containerGridData.id || `${this.instanceId}-container`,
         type: 'item-container',
@@ -210,13 +212,7 @@ export class Item {
         autoSort: this._containerGridData.autoSort
       });
       
-      // Register with InventoryManager if available (maintains single source of truth)
-      if (window.inventoryManager) {
-        window.inventoryManager.addContainer(this.containerGrid);
-        console.debug('[Item] Lazy-initialized container registered with manager:', this.name, this.containerGrid.id);
-      } else {
-        console.debug('[Item] Lazy-initialized container (manager not available yet):', this.name, this.instanceId);
-      }
+      console.debug('[Item] Lazy-initialized container:', this.name, this.instanceId);
       
       return this.containerGrid;
     } catch (err) {
@@ -253,7 +249,7 @@ export class Item {
     return data;
   }
 
-  static async fromJSON(data) {
+  static fromJSON(data) {
     let containerGrid = null;
     if (data.containerGrid) {
       containerGrid = data.containerGrid;
@@ -267,7 +263,7 @@ export class Item {
 
     if (containerGrid) {
       try {
-        const { Container } = await import('./Container.js');
+        const Container = require('./Container.js').Container;
         item.containerGrid = Container.fromJSON(containerGrid);
       } catch (err) {
         item._containerGridData = containerGrid;

@@ -194,10 +194,10 @@ export class InventoryManager {
     toRemove.forEach(id => this.containers.delete(id));
 
     // Add containers from equipped items
-    Object.entries(this.equipment).forEach(async ([slot, item]) => {
+    Object.entries(this.equipment).forEach(([slot, item]) => {
       if (item && item.isContainer && item.isContainer()) {
-        // Get container grid (may trigger lazy initialization)
-        let containerGrid = await item.getContainerGrid();
+        // Get container grid synchronously (must already exist or be created)
+        let containerGrid = item.containerGrid;
 
         // Fallback: Create container if missing but data exists
         if (!containerGrid && item._containerGridData) {
@@ -249,7 +249,7 @@ export class InventoryManager {
 
     // Fallback: check equipped backpack item directly
     if (this.equipment.backpack && this.equipment.backpack.isContainer && this.equipment.backpack.isContainer()) {
-      return this.equipment.backpack.getContainerGrid();
+      return this.equipment.backpack.containerGrid;
     }
 
     // Return null if no backpack equipped (Phase 5C requirement)
