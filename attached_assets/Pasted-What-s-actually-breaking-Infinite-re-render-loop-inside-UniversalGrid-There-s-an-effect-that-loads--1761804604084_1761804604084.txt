@@ -1,0 +1,82 @@
+What’s actually breaking
+
+Infinite re-render loop inside UniversalGrid
+There’s an effect that loads item images and sets local state. Its dependency references an object (items Map) whose identity keeps changing, so the effect re-fires, which sets state, which re-renders… repeat → “Maximum update depth exceeded.” You can see this called out in prior notes about the items/effect dependency and the resulting loop.
+
+ID mismatch = stacking + “both items drag together”
+Some code paths have treated grid cells by item.id while others use item.instanceId. When the grid writes/reads with inconsistent keys, multiple items resolve to the “same” occupant → they overlap, drag selects the wrong/combined item, and later moves act on the wrong one. This exact inconsistency was previously identified and fixed conceptually (always use instanceId), because mixing id with instanceId lets different items collide in the grid.
+
+Top-left math looks right, but it relies on correct x,y and stable images
+The current overlay logic renders a single image for the top-left cell and sizes it to span the item footprint. That’s the right approach, but it only works if the item’s authoritative x,y on the container are correct and if the effect that loads images isn’t thrashing. The overlay code shows it uses item.x,item.y for the origin, and then positions the <img> via left/top against a relative wrapper (which is correct). If x,y are stale or images keep reloading due to the loop, you’ll see “shifted to bottom/right”, duplicates, or flicker.
+
+“Items vanish” on drop
+When the drop handler fires during the re-render storm (and with overlapped identity), moveItem can remove from source, fail to place in target (position/ID confusion), then attempt “restore”; but if the source state you restore to is already stale (because the grid re-rendered multiple times), it looks like the item disappeared. Prior notes mention this restore path and why it can mislead when identity is off.
+
+The shortest safe path to green
+
+Do these in order; each step reduces noise so the next one is diagnosable.
+
+A) Stop the re-render loop (root cause of most symptoms)
+
+Make the image-loading effect depend on a stable signature, not the Map reference.
+In UniversalGrid.tsx, build a stable key from the visible items (e.g., instanceId|x,y|imageId for each) and use that in the effect dependency. This prevents a new Map identity from retriggering the effect when nothing material changed. (This is exactly the place that’s been tripping the “depth exceeded” warning.)
+
+Alternatively (even simpler): depend on a container/inventory “version” number.
+You already bubble an inventoryVersion for remounts; pass that into UniversalGrid and use it as the dependency for image loading instead of the Map reference. Prior checkpoints used this to force re-mounts reliably.
+
+Outcome: grid renders once per logical inventory change; image state is stable; drag/drop won’t double-fire due to thrash.
+
+B) Enforce identity consistency end-to-end
+
+Grid cell storage and lookups must be instanceId only — no fallback to id.
+Earlier analysis pinpointed the bug precisely (fallback instanceId || id caused collisions). The fix was to store and read with instanceId exclusively, and reject items that lack one. Keep that rule tight everywhere: Container grid writes, reads, remove, DnD payloads, and items Map keys.
+
+When rendering overlays, use the cell’s key (which should be instanceId) to read from the items Map and from the image cache.
+The current overlay code already uses the grid cell’s key (itemId) to fetch the image, which is good — that stays aligned with the container’s truth.
+
+Outcome: no more stacking; “drag one, move two” disappears; drops act on the right item.
+
+C) Keep the top-left overlay logic, but guarantee coordinates
+
+The overlay code is already correct if item.x,item.y reflect the placed origin, and the wrapper is relative. Your current UniversalGrid wrapper and the absolute <img> position are correct for spanning multiple slots. Lock that in by ensuring placeItemAt updates item.x,item.y only when placement succeeds (and never on failure), which was part of the earlier container placement guardrails.
+
+Outcome: single stretched image per item at the true top-left.
+
+D) One more guard for “vanish on drop”
+
+After A & B, this usually disappears. If you still see it, add a single-shot drop guard in the grid (useRef boolean) to ignore re-entrant drops within the same tick, and make moveItem restore atomically (you already logged/considered that path earlier). The prior analysis mentions item restoration and better logging to verify this.
+
+What to change (surgically), with exact touchpoints
+
+client/src/components/Inventory/UniversalGrid.tsx
+
+Replace the effect dependency on items (or on items.size) with a memoized signature or inventoryVersion. The earlier infinite-loop callout is tied to this effect.
+
+Keep the existing overlay block that positions <img> using left/top/width/height and the relative wrapper. That block is already correct.
+
+client/src/game/inventory/Container.js
+
+Ensure all grid writes/reads use item.instanceId. Do not fallback to id. This exact fix was already identified as the reason stacking occurred.
+
+client/src/components/Inventory/GridSlot.tsx
+
+No behavioral change needed if A–C are done; but it’s fine to keep draggable={!isEmpty} (drag from any occupied cell) as previously discussed, now that identity is consistent.
+
+client/src/contexts/InventoryContext.jsx (or where you expose the version)
+
+Expose a stable inventoryVersion / container version and pass it down to UniversalGrid so the image-loading effect can depend on a number, not a Map.
+
+Quick validation checklist (what you should see)
+
+No more “Maximum update depth exceeded” once the UniversalGrid effect depends on a stable key/version. (That warning was happening precisely in UniversalGrid.tsx.)
+
+Items appear in separate cells and drag independently once instanceId is enforced everywhere.
+
+Overlays align to the top-left and span footprint (the code already computes left/top and imageWidth/height against a relative container).
+
+Why the current console output matches the diagnosis
+
+Repeated “Maximum update depth exceeded” traces pointing at UniversalGrid.tsx → exactly the image-loading effect loop.
+(Matches prior notes calling out the dependency issue.)
+
+Interleaved “Move successful” then “Failed to place… restoring” → classic symptom of identity/placement thrash during a re-render storm; the move path executes, but subsequent renders invalidate the assumptions before placement completes.
