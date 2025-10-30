@@ -12,6 +12,7 @@ interface GridSlotProps {
   onClick?: () => void;
   onDrop?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
+  onDragStart?: (item: any, event: React.DragEvent) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   children?: React.ReactNode;
@@ -33,6 +34,7 @@ export default function GridSlot({
   onClick,
   onDrop,
   onDragOver,
+  onDragStart,
   onMouseEnter,
   onMouseLeave,
   children,
@@ -47,6 +49,12 @@ export default function GridSlot({
 
   // Choose slot size based on grid type
   const slotSize = gridType === 'fixed' ? fixedSlotSize : scalableSlotSize;
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (item && onDragStart) {
+      onDragStart(item, e);
+    }
+  };
 
   return (
     <div
@@ -72,9 +80,11 @@ export default function GridSlot({
         width: `${slotSize}px`,
         height: `${slotSize}px`,
       }}
+      draggable={!isEmpty && isTopLeft}
       onClick={onClick}
       onDrop={onDrop}
       onDragOver={onDragOver}
+      onDragStart={handleDragStart}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       data-testid={testId}

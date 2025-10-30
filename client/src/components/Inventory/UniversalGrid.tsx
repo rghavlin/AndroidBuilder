@@ -85,7 +85,7 @@ export default function UniversalGrid({
       // Clear images when container is empty
       setItemImages(new Map());
     }
-  }, [items, items.size]); // Re-run when items Map changes OR when size changes
+  }, [items.size]); // Only re-run when item count changes, not the Map reference itself
 
   const handleItemClick = async (item: any, x: number, y: number) => {
     // First call any custom slot click handler
@@ -224,6 +224,7 @@ export default function UniversalGrid({
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
           }}
+          onDragStart={handleDragStart}
           onMouseEnter={() => item && setHoveredItem(item.instanceId)}
           onMouseLeave={() => setHoveredItem(null)}
           data-testid={`${containerId}-slot-${x}-${y}`}
