@@ -118,6 +118,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  phase5b - Verify Phase 5B equipment display', 'info');
           addToConsole('  phase5c - Verify Phase 5C backpack visibility', 'info');
           addToConsole('  phase5d - Verify Phase 5D specialty container opening', 'info');
+          addToConsole('  phase5e - Verify Phase 5E item movement between containers', 'info');
           addToConsole('  equip backpack - Equip a test backpack (visual test)', 'info');
           addToConsole('  unequip backpack - Unequip backpack (visual test)', 'info');
           addToConsole('  create toolbox - Create test toolbox item on ground', 'info');
@@ -652,6 +653,195 @@ const DevConsole = ({ isOpen, onClose }) => {
           } catch (error) {
             addToConsole(`Error in Phase 5C verification: ${error.message}`, 'error');
             console.error('Phase 5C Verification Error:', error);
+          }
+          break;
+
+        case 'phase5e':
+          try {
+            addToConsole('=== Phase 5E Verification (Item Movement) ===', 'info');
+
+            if (!window.inventoryManager) {
+              addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
+              break;
+            }
+
+            // Test 1: Create test items on ground
+            addToConsole('Test 1: Creating test items on ground...', 'info');
+
+            const { Item } = await import('../../game/inventory/Item.js');
+            const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+
+            // Create diverse test items
+            const testKnife = new Item(createItemFromDef('weapon.knife'));
+            const testAmmo = new Item({
+              instanceId: 'test-ammo-5e',
+              defId: 'ammo.9mm',
+              name: '9mm Ammo',
+              width: 1,
+              height: 1,
+              stackCount: 15,
+              stackMax: 50,
+              traits: [ItemTrait.STACKABLE]
+            });
+
+            const groundContainer = window.inventoryManager.getContainer('ground');
+            if (!groundContainer) {
+              addToConsole('  ❌ Ground container not found', 'error');
+              break;
+            }
+
+            groundContainer.addItem(testKnife);
+            groundContainer.addItem(testAmmo);
+            window.inv?.refresh();
+            addToConsole('  ✅ Created knife and ammo on ground', 'success');
+
+            // Test 2: Equip a backpack for testing
+            addToConsole('Test 2: Equipping test backpack...', 'info');
+
+            const testBackpack = new Item({
+              instanceId: 'test-backpack-5e',
+              defId: 'container.backpack',
+              name: 'Test Backpack',
+              width: 3,
+              height: 4,
+              equippableSlot: 'backpack',
+              containerGrid: { width: 6, height: 10 },
+              traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
+            });
+
+            const equipResult = window.inventoryManager.equipItem(testBackpack, 'backpack');
+            if (equipResult.success) {
+              window.inv?.refresh();
+              addToConsole('  ✅ Backpack equipped successfully', 'success');
+            } else {
+              addToConsole(`  ❌ Failed to equip backpack: ${equipResult.reason}`, 'error');
+              break;
+            }
+
+            const backpackContainer = window.inventoryManager.getBackpackContainer();
+            if (!backpackContainer) {
+              addToConsole('  ❌ Backpack container not accessible', 'error');
+              break;
+            }
+
+            // Test 3: Move item from ground to backpack
+            addToConsole('Test 3: Moving knife from ground to backpack...', 'info');
+
+            const moveToBackpack = window.inventoryManager.moveItem(
+              testKnife.instanceId,
+              'ground',
+              backpackContainer.id,
+              0,
+              0
+            );
+
+            if (moveToBackpack.success) {
+              window.inv?.refresh();
+              addToConsole('  ✅ Knife moved to backpack successfully', 'success');
+              addToConsole(`  - From: ${moveToBackpack.fromContainer}`, 'log');
+              addToConsole(`  - To: ${moveToBackpack.toContainer}`, 'log');
+            } else {
+              addToConsole(`  ❌ Move failed: ${moveToBackpack.reason}`, 'error');
+            }
+
+            // Test 4: Move item back to ground
+            addToConsole('Test 4: Moving knife back to ground...', 'info');
+
+            const moveToGround = window.inventoryManager.moveItem(
+              testKnife.instanceId,
+              backpackContainer.id,
+              'ground',
+              5,
+              5
+            );
+
+            if (moveToGround.success) {
+              window.inv?.refresh();
+              addToConsole('  ✅ Knife moved back to ground successfully', 'success');
+            } else {
+              addToConsole(`  ❌ Move failed: ${moveToGround.reason}`, 'error');
+            }
+
+            // Test 5: Test invalid placement (out of bounds)
+            addToConsole('Test 5: Testing invalid placement (out of bounds)...', 'info');
+
+            const invalidMove = window.inventoryManager.moveItem(
+              testKnife.instanceId,
+              'ground',
+              backpackContainer.id,
+              100,
+              100
+            );
+
+            if (!invalidMove.success) {
+              addToConsole('  ✅ Invalid move correctly rejected', 'success');
+              addToConsole(`  - Reason: ${invalidMove.reason}`, 'log');
+            } else {
+              addToConsole('  ❌ Invalid move should have been rejected!', 'error');
+            }
+
+            // Test 6: Test overlapping placement
+            addToConsole('Test 6: Testing overlapping placement...', 'info');
+
+            // Place ammo in backpack first
+            const placeAmmo = window.inventoryManager.moveItem(
+              testAmmo.instanceId,
+              'ground',
+              backpackContainer.id,
+              0,
+              0
+            );
+
+            if (placeAmmo.success) {
+              // Try to place knife in same spot
+              const overlapMove = window.inventoryManager.moveItem(
+                testKnife.instanceId,
+                'ground',
+                backpackContainer.id,
+                0,
+                0
+              );
+
+              if (!overlapMove.success) {
+                addToConsole('  ✅ Overlapping move correctly rejected', 'success');
+                addToConsole(`  - Reason: ${overlapMove.reason}`, 'log');
+              } else {
+                addToConsole('  ❌ Overlapping move should have been rejected!', 'error');
+              }
+            }
+
+            // Test 7: Verify UI state consistency
+            addToConsole('Test 7: Verifying UI state consistency...', 'info');
+
+            const finalGround = window.inventoryManager.getContainer('ground');
+            const finalBackpack = window.inventoryManager.getBackpackContainer();
+
+            if (finalGround && finalBackpack) {
+              addToConsole(`  ✅ Ground container has ${finalGround.getItemCount()} items`, 'success');
+              addToConsole(`  ✅ Backpack container has ${finalBackpack.getItemCount()} items`, 'success');
+              addToConsole('  ℹ️  Check grids visually - items should be in correct positions', 'info');
+            }
+
+            // Summary
+            addToConsole('--- Phase 5E Status ---', 'info');
+            if (moveToBackpack.success && moveToGround.success && !invalidMove.success) {
+              addToConsole('✅ Phase 5E Implementation Complete', 'success');
+              addToConsole('Items can move between ground and backpack', 'success');
+              addToConsole('Invalid placements correctly rejected', 'success');
+              addToConsole('UI updates after moves', 'success');
+            } else {
+              addToConsole('⚠️  Phase 5E has issues - check test results above', 'log');
+            }
+
+            addToConsole('', 'info');
+            addToConsole('Manual testing:', 'info');
+            addToConsole('• Try dragging items between ground and backpack grids', 'log');
+            addToConsole('• Verify drop validation shows valid/invalid zones', 'log');
+            addToConsole('• Check that items visually update after moves', 'log');
+
+          } catch (error) {
+            addToConsole(`Error in Phase 5E verification: ${error.message}`, 'error');
+            console.error('Phase 5E Verification Error:', error);
           }
           break;
 

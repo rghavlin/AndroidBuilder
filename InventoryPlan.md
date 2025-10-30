@@ -96,17 +96,12 @@ if (process.env.NODE_ENV === 'development') {
 - No changes to fonts, emojis/icons, or layout dimensions.
 - All seven slots (`backpack`, `upper_body`, `lower_body`, `melee`, `handgun`, `long_gun`, `flashlight`) display correctly.
 
-**Console quick test:**
-```js
-// Ensure foundation
-window.inventoryManager && window.inventoryManager.getContainer('ground');
-// Create + equip a backpack (adjust to your ItemDefs)
-const { Item } = await import('./game/inventory/Item.js');
-const { ItemDefs } = await import('./game/inventory/ItemDefs.js');
-const bp = Item.createFromDef('backpack_basic'); // or use your helper
-window.inventoryManager.equipItem(bp, 'backpack');
-// The backpack slot shows occupied; tooltip shows the name
+**In-game console quick test:**
+Use the **in-game Dev Console** (press `~` key):
 ```
+phase5b
+```
+This will automatically create and equip test items to verify equipment slot display.
 
 ---
 
@@ -178,9 +173,15 @@ const handleSlotDrop = (x, y, event) => {
 - Add drag‑start handlers that set `dataTransfer` fields: `itemId` and `fromContainerId`.
 
 **Acceptance:**
-- Move one item ground → backpack and back without errors.
-- Invalid overlaps/out‑of‑bounds rejected with a reason (no partial moves).
-- Item visibly relocates; `inventoryVersion` increments and triggers UI refresh.
+Use the **in-game Dev Console** (press `~` key):
+```
+phase5e
+```
+This command will:
+- Create test items on ground
+- Move items between ground and backpack
+- Test invalid placements
+- Verify UI updates correctly
 
 ---
 
@@ -324,30 +325,34 @@ Each change is deliberately small, easy to review, and easy to revert.
 
 ---
 
-## Dev‑console snippets (reference)
+## In-game console test commands (reference)
 
-**IMPORTANT**: These commands must be run in the **in-game Dev Console** (press `~` key), NOT the browser console.
+**CRITICAL**: All testing MUST use the **in-game Dev Console** (press `~` key).
 
-```js
-// Foundation check - verify manager exists
-window.inventoryManager && window.inventoryManager.getContainer('ground');
+**Never use the browser console** - it triggers hot reloads and breaks the test environment.
 
-// Check if manager is undefined (game may still be initializing)
-if (!window.inventoryManager) {
-  console.log('Manager not yet available - check initialization state');
-}
-
-// Create and equip a backpack (adjust IDs/defs to your project)
-const { Item } = await import('./game/inventory/Item.js');
-const bp = Item.createFromDef('backpack_basic');
-window.inventoryManager.equipItem(bp, 'backpack');
-
-// Move an item (example API; adapt to your moveItem signature)
-// window.inventoryManager.moveItem(itemId, 'ground', '<targetContainerId>', x, y);
-
-// Verify provider is receiving manager
-// Check React DevTools or add temporary logging to InventoryProvider
+### Available test commands:
 ```
+help           - Show all available commands
+phase5         - Verify Phase 5A (foundation & manager initialization)
+phase5b        - Verify Phase 5B (equipment display)
+phase5c        - Verify Phase 5C (backpack visibility)
+phase5d        - Verify Phase 5D (specialty container opening)
+phase5e        - Verify Phase 5E (move items between containers)
+
+equip backpack     - Equip a test backpack
+unequip backpack   - Unequip backpack
+create toolbox     - Create toolbox on ground
+create lunchbox    - Create lunchbox on ground
+
+spawn <type> [count] - Spawn items on ground (knife, pistol, backpack, etc.)
+```
+
+### Quick verification pattern:
+1. Press `~` to open in-game console
+2. Type `phase5` to verify foundation
+3. Type specific phase commands to test features
+4. Never type JavaScript code directly - use the predefined commands
 
 ---
 
