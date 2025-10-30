@@ -727,10 +727,11 @@ const DevConsole = ({ isOpen, onClose }) => {
             // Test 3: Move item from ground to backpack
             addToConsole('Test 3: Moving knife from ground to backpack...', 'info');
 
+            // Use 'backpack-container' which is the registered ID in containers Map
             const moveToBackpack = window.inventoryManager.moveItem(
               testKnife.instanceId,
               'ground',
-              backpackContainer.id,
+              'backpack-container',
               0,
               0
             );
@@ -738,8 +739,6 @@ const DevConsole = ({ isOpen, onClose }) => {
             if (moveToBackpack.success) {
               window.inv?.refresh();
               addToConsole('  ✅ Knife moved to backpack successfully', 'success');
-              addToConsole(`  - From: ${moveToBackpack.fromContainer}`, 'log');
-              addToConsole(`  - To: ${moveToBackpack.toContainer}`, 'log');
             } else {
               addToConsole(`  ❌ Move failed: ${moveToBackpack.reason}`, 'error');
             }
@@ -749,7 +748,7 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             const moveToGround = window.inventoryManager.moveItem(
               testKnife.instanceId,
-              backpackContainer.id,
+              'backpack-container',
               'ground',
               5,
               5
@@ -768,7 +767,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             const invalidMove = window.inventoryManager.moveItem(
               testKnife.instanceId,
               'ground',
-              backpackContainer.id,
+              'backpack-container',
               100,
               100
             );
@@ -787,7 +786,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             const placeAmmo = window.inventoryManager.moveItem(
               testAmmo.instanceId,
               'ground',
-              backpackContainer.id,
+              'backpack-container',
               0,
               0
             );
@@ -797,7 +796,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               const overlapMove = window.inventoryManager.moveItem(
                 testKnife.instanceId,
                 'ground',
-                backpackContainer.id,
+                'backpack-container',
                 0,
                 0
               );
@@ -814,12 +813,15 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('Test 7: Verifying UI state consistency...', 'info');
 
             const finalGround = window.inventoryManager.getContainer('ground');
-            const finalBackpack = window.inventoryManager.getBackpackContainer();
+            const finalBackpack = window.inventoryManager.getContainer('backpack-container');
 
             if (finalGround && finalBackpack) {
               addToConsole(`  ✅ Ground container has ${finalGround.getItemCount()} items`, 'success');
               addToConsole(`  ✅ Backpack container has ${finalBackpack.getItemCount()} items`, 'success');
               addToConsole('  ℹ️  Check grids visually - items should be in correct positions', 'info');
+            } else {
+              if (!finalGround) addToConsole('  ❌ Ground container not found', 'error');
+              if (!finalBackpack) addToConsole('  ❌ Backpack container not found', 'error');
             }
 
             // Summary
