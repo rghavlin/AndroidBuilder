@@ -191,14 +191,27 @@ export default function UniversalGrid({
         const itemImageSrc = itemImages.get(itemId) || null;
 
         if (itemImageSrc) {
+          // Calculate position accounting for grid gap
+          // Position = (coordinate * slotSize) + (coordinate * gap) = coordinate * (slotSize + gap)
+          const leftPos = topLeftX * (slotSize + GAP_SIZE);
+          const topPos = topLeftY * (slotSize + GAP_SIZE);
+          
+          console.debug('[UniversalGrid] Rendering overlay:', {
+            itemName: item.name,
+            topLeftX, topLeftY,
+            slotSize, GAP_SIZE,
+            leftPos, topPos,
+            imageWidth, imageHeight
+          });
+
           overlays.push(
             <img
               key={itemId}
               src={itemImageSrc}
               className="absolute pointer-events-none select-none"
               style={{
-                left: `${topLeftX * (slotSize + GAP_SIZE)}px`,
-                top: `${topLeftY * (slotSize + GAP_SIZE)}px`,
+                left: `${leftPos}px`,
+                top: `${topPos}px`,
                 width: `${imageWidth}px`,
                 height: `${imageHeight}px`,
                 objectFit: 'contain',

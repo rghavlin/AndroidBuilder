@@ -98,6 +98,7 @@ export class Container {
     for (let y = 0; y <= this.height - height; y++) {
       for (let x = 0; x <= this.width - width; x++) {
         if (this.isAreaFree(x, y, width, height)) {
+          console.debug('[Container] Found available position:', { x, y }, 'for item size:', { width, height });
           return { x, y };
         }
       }
@@ -219,6 +220,9 @@ export class Container {
     this.items.set(itemId, item);
     
     console.debug('[Container] Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`, 'instanceId:', itemId);
+    console.debug('[Container] Grid state after placement - occupied cells:', 
+      this.grid.map((row, y) => row.map((cell, x) => cell ? `(${x},${y})` : null).filter(Boolean)).flat()
+    );
     return true;
   }
 
