@@ -58,13 +58,18 @@ export default function UniversalGrid({
     const loadImages = async () => {
       const imageMap = new Map<string, string>();
 
-      for (const [itemId, item] of items.entries()) {
+      console.debug(`[UniversalGrid] Loading images for ${items.size} items in container ${containerId}`);
+
+      for (const [mapKey, item] of items.entries()) {
+        console.debug(`[UniversalGrid] Item Map entry - key: ${mapKey}, item.instanceId: ${item.instanceId}, item.id: ${item.id}, item.name: ${item.name}`);
+        
         if (item.imageId) {
           try {
             const img = await imageLoader.getItemImage(item.imageId);
             if (img) {
-              // Store using itemId (the Map key), not item.instanceId
-              imageMap.set(itemId, img.src);
+              // CRITICAL: Store using the Map key (which should be instanceId)
+              imageMap.set(mapKey, img.src);
+              console.debug(`[UniversalGrid] Stored image for key: ${mapKey}`);
             }
           } catch (error) {
             console.warn('[UniversalGrid] Failed to load image for item:', item.name, error);
@@ -72,6 +77,7 @@ export default function UniversalGrid({
         }
       }
 
+      console.debug(`[UniversalGrid] Image map populated with ${imageMap.size} images`);
       setItemImages(imageMap);
     };
 
@@ -81,7 +87,7 @@ export default function UniversalGrid({
       // Clear images when container is empty
       setItemImages(new Map());
     }
-  }, [inventoryVersion]); // Use inventoryVersion for stable dependency
+  }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
 
   const handleItemClick = async (item: any, x: number, y: number) => {
     // First call any custom slot click handler

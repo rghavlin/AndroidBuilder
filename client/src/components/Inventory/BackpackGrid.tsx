@@ -21,11 +21,29 @@ export default function BackpackGrid() {
     const fromContainerId = event.dataTransfer.getData('fromContainerId');
     
     if (!itemId || !fromContainerId || !backpackContainer) {
-      console.warn('[BackpackGrid] Invalid drop data - drop rejected');
+      console.warn('[BackpackGrid] Invalid drop data - drop rejected', { itemId, fromContainerId, hasContainer: !!backpackContainer });
+      return;
+    }
+
+    // Verify item exists in source container before attempting move
+    const sourceContainer = getContainer(fromContainerId);
+    if (!sourceContainer) {
+      console.error('[BackpackGrid] Source container not found:', fromContainerId);
+      return;
+    }
+
+    const item = sourceContainer.items.get(itemId);
+    if (!item) {
+      console.error('[BackpackGrid] Item not found in source container:', itemId);
+      return;
+    }
+
+    if (!item.instanceId) {
+      console.error('[BackpackGrid] REJECT DROP: Item has no instanceId:', item.name);
       return;
     }
     
-    console.log(`[BackpackGrid] Attempting move: item ${itemId} from ${fromContainerId} to backpack at (${x}, ${y})`);
+    console.log(`[BackpackGrid] Attempting move: item ${itemId} (${item.name}) from ${fromContainerId} to backpack at (${x}, ${y})`);
     const result = moveItem(itemId, fromContainerId, backpackContainer.id, x, y);
     
     if (!result.success) {

@@ -3,7 +3,7 @@ import UniversalGrid from "./UniversalGrid";
 import { Button } from "@/components/ui/button";
 
 export default function GroundItemsGrid() {
-  const { getContainer, inventoryVersion, moveItem } = useInventory();
+  const { getContainer, inventoryVersion, moveItem, inventoryRef } = useInventory();
 
   // Get ground container (triggers re-render when inventoryVersion changes)
   const groundContainer = getContainer('ground');
@@ -18,11 +18,29 @@ export default function GroundItemsGrid() {
     const fromContainerId = event.dataTransfer.getData('fromContainerId');
 
     if (!itemId || !fromContainerId || !groundContainer) {
-      console.warn('[GroundItemsGrid] Invalid drop data - drop rejected');
+      console.warn('[GroundItemsGrid] Invalid drop data - drop rejected', { itemId, fromContainerId, hasContainer: !!groundContainer });
       return;
     }
 
-    console.log(`[GroundItemsGrid] Attempting move: item ${itemId} from ${fromContainerId} to ground at (${x}, ${y})`);
+    // Verify item exists in source container before attempting move
+    const sourceContainer = getContainer(fromContainerId);
+    if (!sourceContainer) {
+      console.error('[GroundItemsGrid] Source container not found:', fromContainerId);
+      return;
+    }
+
+    const item = sourceContainer.items.get(itemId);
+    if (!item) {
+      console.error('[GroundItemsGrid] Item not found in source container:', itemId);
+      return;
+    }
+
+    if (!item.instanceId) {
+      console.error('[GroundItemsGrid] REJECT DROP: Item has no instanceId:', item.name);
+      return;
+    }
+
+    console.log(`[GroundItemsGrid] Attempting move: item ${itemId} (${item.name}) from ${fromContainerId} to ground at (${x}, ${y})`);
     const result = moveItem(itemId, fromContainerId, groundContainer.id, x, y);
 
     if (!result.success) {
