@@ -5,7 +5,7 @@ import UniversalGrid from "./UniversalGrid";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function BackpackGrid() {
-  const { getEquippedBackpackContainer, inventoryVersion } = useInventory();
+  const { getEquippedBackpackContainer, inventoryVersion, moveItem } = useInventory();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Get equipped backpack container (triggers re-render when inventoryVersion changes)
@@ -17,8 +17,22 @@ export default function BackpackGrid() {
 
   const handleSlotDrop = (x: number, y: number, event: React.DragEvent) => {
     event.preventDefault();
-    console.log(`Item dropped on backpack slot (${x}, ${y})`);
-    // TODO: Implement moveItem call in next phase
+    const itemId = event.dataTransfer.getData('itemId');
+    const fromContainerId = event.dataTransfer.getData('fromContainerId');
+    
+    if (!itemId || !fromContainerId || !backpackContainer) {
+      console.warn('[BackpackGrid] Invalid drop data');
+      return;
+    }
+    
+    console.log(`[BackpackGrid] Moving item ${itemId} from ${fromContainerId} to backpack at (${x}, ${y})`);
+    const result = moveItem(itemId, fromContainerId, backpackContainer.id, x, y);
+    
+    if (!result.success) {
+      console.warn('[BackpackGrid] Move failed:', result.reason);
+    } else {
+      console.log('[BackpackGrid] Move successful');
+    }
   };
 
   // Show "No backpack equipped" state
@@ -60,6 +74,7 @@ export default function BackpackGrid() {
             enableScroll={true}
             enableHorizontalScroll={true}
             onSlotClick={handleSlotClick}
+            onSlotDrop={handleSlotDrop}
             className="h-full"
           />
         </div>

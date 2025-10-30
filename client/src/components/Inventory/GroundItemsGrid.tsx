@@ -1,22 +1,35 @@
-
 import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
 import { Button } from "@/components/ui/button";
 
 export default function GroundItemsGrid() {
-  const { getContainer, inventoryVersion, inventoryRef } = useInventory();
-  
+  const { getContainer, inventoryVersion, moveItem } = useInventory();
+
   // Get ground container (triggers re-render when inventoryVersion changes)
   const groundContainer = getContainer('ground');
-  
+
   const handleSlotClick = (x: number, y: number) => {
     console.log(`Ground slot (${x}, ${y}) clicked`);
   };
 
   const handleSlotDrop = (x: number, y: number, event: React.DragEvent) => {
     event.preventDefault();
-    console.log(`Item dropped on ground slot (${x}, ${y})`);
-    // TODO: Implement moveItem call in next phase
+    const itemId = event.dataTransfer.getData('itemId');
+    const fromContainerId = event.dataTransfer.getData('fromContainerId');
+
+    if (!itemId || !fromContainerId || !groundContainer) {
+      console.warn('[GroundItemsGrid] Invalid drop data');
+      return;
+    }
+
+    console.log(`[GroundItemsGrid] Moving item ${itemId} from ${fromContainerId} to ground at (${x}, ${y})`);
+    const result = moveItem(itemId, fromContainerId, groundContainer.id, x, y);
+
+    if (!result.success) {
+      console.warn('[GroundItemsGrid] Move failed:', result.reason);
+    } else {
+      console.log('[GroundItemsGrid] Move successful');
+    }
   };
 
   const handleOrganize = () => {
@@ -53,7 +66,7 @@ export default function GroundItemsGrid() {
             {groundContainer.width}x{groundContainer.height} grid
           </span>
         </h3>
-        
+
         <div className="flex gap-2">
           <Button 
             variant="outline" 

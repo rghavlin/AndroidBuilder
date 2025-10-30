@@ -109,6 +109,23 @@ export default function UniversalGrid({
     }
   };
 
+  const handleItemMouseDown = (item: any, x: number, y: number, event: React.MouseEvent) => {
+    // Prevent text selection during drag
+    event.preventDefault();
+
+    if (onSlotClick) { // Changed from onItemClick to onSlotClick as per common usage
+      onSlotClick(x, y);
+    }
+  };
+
+  const handleDragStart = (item: any, event: React.DragEvent) => {
+    // Set drag data for drop handlers
+    event.dataTransfer.setData('itemId', item.instanceId);
+    event.dataTransfer.setData('fromContainerId', containerId);
+    event.dataTransfer.effectAllowed = 'move';
+    console.log(`[UniversalGrid] Drag started: ${item.instanceId} from ${containerId}`);
+  };
+
   // Dynamic grid dimensions based on calculated slot size
   const gridWidth = width * slotSize;
   const gridHeight = height * slotSize;
@@ -167,7 +184,7 @@ export default function UniversalGrid({
         // Total width = (slots * slotSize) + (gaps between slots)
         const imageWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
         const imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
-        
+
         // Use itemId from grid cell for image lookup
         const itemImageSrc = itemImages.get(itemId) || null;
 
@@ -203,7 +220,10 @@ export default function UniversalGrid({
           isHovered={item?.instanceId === hoveredItem}
           onClick={() => handleItemClick(item, x, y)}
           onDrop={(e) => onSlotDrop?.(x, y, e)}
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
           onMouseEnter={() => item && setHoveredItem(item.instanceId)}
           onMouseLeave={() => setHoveredItem(null)}
           data-testid={`${containerId}-slot-${x}-${y}`}
