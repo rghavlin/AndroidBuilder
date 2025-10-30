@@ -51,8 +51,6 @@ export default function ContainerGrid({
         title={title || container.name}
         width={container.width}
         height={container.height}
-        items={container.items}
-        grid={container.grid}
         gridType="fixed" // Always use fixed size for containers
         maxHeight={maxHeight}
         maxWidth={maxWidth}

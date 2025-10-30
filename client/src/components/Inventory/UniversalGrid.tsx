@@ -10,8 +10,6 @@ interface UniversalGridProps {
   title?: string;
   width: number;
   height: number;
-  items?: Map<string, any>;
-  grid?: any[][];
   maxHeight?: string;
   maxWidth?: string;
   minVisibleRows?: number;
@@ -30,8 +28,6 @@ export default function UniversalGrid({
   title,
   width,
   height,
-  items = new Map(),
-  grid = [],
   maxHeight = "400px",
   maxWidth = "100%",
   minVisibleRows = 3,
@@ -46,9 +42,14 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { canOpenContainer, openContainer, inventoryVersion } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
+  // Get fresh container data from context on every render
+  const container = getContainer(containerId);
+  const items = container?.items || new Map();
+  const grid = container?.grid || [];
 
   // Choose slot size based on grid type
   const slotSize = gridType === 'fixed' ? fixedSlotSize : scalableSlotSize;

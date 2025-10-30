@@ -103,8 +103,6 @@ export default function GroundItemsGrid() {
           containerId={groundContainer.id}
           width={groundContainer.width}
           height={groundContainer.height}
-          items={groundContainer.items}
-          grid={groundContainer.grid}
           gridType="scalable"
           maxHeight="100%"
           maxWidth="100%"
