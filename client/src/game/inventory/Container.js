@@ -181,9 +181,11 @@ export class Container {
     const itemId = item.instanceId;
 
     if (!itemId) {
-      console.error('[Container] Cannot place item without instanceId:', item);
+      console.error('[Container] REJECT: No instanceId', item);
       return false;
     }
+
+    console.debug('[Container] Using instanceId:', itemId, 'for item:', item.name);
 
     // Validate bounds first
     if (!this.isValidPosition(x, y, width, height)) {
@@ -216,7 +218,7 @@ export class Container {
     // Only add to items Map after successful grid placement
     this.items.set(itemId, item);
     
-    console.debug('[Container] Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`);
+    console.debug('[Container] Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`, 'instanceId:', itemId);
     return true;
   }
 
@@ -316,6 +318,8 @@ export class Container {
       return null;
     }
 
+    console.debug('[Container] Removing item:', item.name, 'instanceId:', item.instanceId);
+    
     this.removeItemFromGrid(item);
     this.items.delete(item.instanceId); // Use instanceId for deletion
     item._container = null;

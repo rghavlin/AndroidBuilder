@@ -18,17 +18,17 @@ export default function GroundItemsGrid() {
     const fromContainerId = event.dataTransfer.getData('fromContainerId');
 
     if (!itemId || !fromContainerId || !groundContainer) {
-      console.warn('[GroundItemsGrid] Invalid drop data');
+      console.warn('[GroundItemsGrid] Invalid drop data - drop rejected');
       return;
     }
 
-    console.log(`[GroundItemsGrid] Moving item ${itemId} from ${fromContainerId} to ground at (${x}, ${y})`);
+    console.log(`[GroundItemsGrid] Attempting move: item ${itemId} from ${fromContainerId} to ground at (${x}, ${y})`);
     const result = moveItem(itemId, fromContainerId, groundContainer.id, x, y);
 
     if (!result.success) {
-      console.warn('[GroundItemsGrid] Move failed:', result.reason);
+      console.error('[GroundItemsGrid] Move FAILED:', result.reason, '- item should remain in source container');
     } else {
-      console.log('[GroundItemsGrid] Move successful');
+      console.log('[GroundItemsGrid] Move SUCCESS - item now on ground');
     }
   };
 

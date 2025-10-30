@@ -46,14 +46,14 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { canOpenContainer, openContainer } = useInventory();
+  const { canOpenContainer, openContainer, inventoryVersion } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   // Choose slot size based on grid type
   const slotSize = gridType === 'fixed' ? fixedSlotSize : scalableSlotSize;
 
-  // Load item images
+  // Load item images when inventory changes (using inventoryVersion for stable dependency)
   useEffect(() => {
     const loadImages = async () => {
       const imageMap = new Map<string, string>();
@@ -81,7 +81,7 @@ export default function UniversalGrid({
       // Clear images when container is empty
       setItemImages(new Map());
     }
-  }, [items]); // React to items Map changes
+  }, [inventoryVersion]); // Use inventoryVersion for stable dependency
 
   const handleItemClick = async (item: any, x: number, y: number) => {
     // First call any custom slot click handler
@@ -117,15 +117,16 @@ export default function UniversalGrid({
   const handleDragStart = (item: any, event: React.DragEvent) => {
     // ALWAYS use instanceId for drag operations
     if (!item.instanceId) {
-      console.error('[UniversalGrid] Cannot drag item without instanceId:', item);
+      console.error('[UniversalGrid] REJECT DRAG: No instanceId', item);
       event.preventDefault();
       return;
     }
     
+    console.debug('[UniversalGrid] Drag started:', item.name, 'instanceId:', item.instanceId, 'from:', containerId);
+    
     event.dataTransfer.setData('itemId', item.instanceId);
     event.dataTransfer.setData('fromContainerId', containerId);
     event.dataTransfer.effectAllowed = 'move';
-    console.log(`[UniversalGrid] Drag started: ${item.instanceId} from ${containerId}`);
   };
 
   // Dynamic grid dimensions based on calculated slot size

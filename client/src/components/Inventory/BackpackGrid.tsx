@@ -21,17 +21,17 @@ export default function BackpackGrid() {
     const fromContainerId = event.dataTransfer.getData('fromContainerId');
     
     if (!itemId || !fromContainerId || !backpackContainer) {
-      console.warn('[BackpackGrid] Invalid drop data');
+      console.warn('[BackpackGrid] Invalid drop data - drop rejected');
       return;
     }
     
-    console.log(`[BackpackGrid] Moving item ${itemId} from ${fromContainerId} to backpack at (${x}, ${y})`);
+    console.log(`[BackpackGrid] Attempting move: item ${itemId} from ${fromContainerId} to backpack at (${x}, ${y})`);
     const result = moveItem(itemId, fromContainerId, backpackContainer.id, x, y);
     
     if (!result.success) {
-      console.warn('[BackpackGrid] Move failed:', result.reason);
+      console.error('[BackpackGrid] Move FAILED:', result.reason, '- item should remain in source container');
     } else {
-      console.log('[BackpackGrid] Move successful');
+      console.log('[BackpackGrid] Move SUCCESS - item now in backpack');
     }
   };
 
