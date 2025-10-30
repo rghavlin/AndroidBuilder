@@ -674,8 +674,12 @@ const DevConsole = ({ isOpen, onClose }) => {
               break;
             }
 
+            // Import necessary classes and functions
+            const { Item } = await import('../../game/inventory/Item.js');
+            const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+
             // CRITICAL: Ensure unique instanceIds by using timestamp + random
-            const uniqueKnife = new Item(createItemFromDef('melee.knife'));
+            const uniqueKnife = new Item(createItemFromDef('weapon.knife'));
             uniqueKnife.instanceId = `knife-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
             const uniqueAmmo = new Item(createItemFromDef('ammo.9mm'));
