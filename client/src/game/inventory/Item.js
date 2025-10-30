@@ -27,10 +27,12 @@ export class Item {
     _containerGridData = null
   }) {
     // Core identity
-    this.instanceId = instanceId || id || `item-${Date.now()}`;
+    this.instanceId = instanceId || id || `item-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     this.defId = defId;
     this.name = name;
     this.imageId = imageId;
+    
+    console.debug('[Item] Created:', this.name, 'instanceId:', this.instanceId, 'at position:', `(${x}, ${y})`);
 
     // Grid properties
     this.width = width;

@@ -186,21 +186,38 @@ export class Container {
       return false;
     }
 
-    console.debug('[Container] Using instanceId:', itemId, 'for item:', item.name);
+    console.debug('[Container] ===== PLACEMENT ATTEMPT =====');
+    console.debug('[Container] Item:', item.name, 'instanceId:', itemId);
+    console.debug('[Container] Target position:', `(${x}, ${y})`, 'Size:', `${width}x${height}`);
+    console.debug('[Container] Current items in container:', this.items.size);
+    console.debug('[Container] Existing instanceIds:', Array.from(this.items.keys()));
 
     // Validate bounds first
     if (!this.isValidPosition(x, y, width, height)) {
-      console.warn('[Container] Invalid position for item:', item.name, 'at', x, y, 'size:', width, 'x', height);
+      console.warn('[Container] REJECT: Invalid position for item:', item.name, 'at', x, y, 'size:', width, 'x', height);
       return false;
     }
 
-    if (!this.isAreaFree(x, y, width, height, itemId)) {
-      console.warn('[Container] Area not free for item:', item.name, 'at', x, y);
+    // Check what's currently occupying the area
+    const occupants = [];
+    for (let dy = 0; dy < height; dy++) {
+      for (let dx = 0; dx < width; dx++) {
+        const cellContent = this.grid[y + dy]?.[x + dx];
+        if (cellContent && cellContent !== itemId) {
+          occupants.push({ pos: `(${x + dx}, ${y + dy})`, itemId: cellContent });
+        }
+      }
+    }
+
+    if (occupants.length > 0) {
+      console.warn('[Container] REJECT: Area not free for item:', item.name, 'at', x, y);
+      console.warn('[Container] Occupied cells:', occupants);
       return false;
     }
 
     // Remove from old position if already placed
     if (this.items.has(itemId)) {
+      console.debug('[Container] Item already in container, removing from old position');
       this.removeItemFromGrid(item);
     }
 
@@ -219,10 +236,11 @@ export class Container {
     // Only add to items Map after successful grid placement
     this.items.set(itemId, item);
     
-    console.debug('[Container] Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`, 'instanceId:', itemId);
-    console.debug('[Container] Grid state after placement - occupied cells:', 
-      this.grid.map((row, y) => row.map((cell, x) => cell ? `(${x},${y})` : null).filter(Boolean)).flat()
-    );
+    console.debug('[Container] ✅ SUCCESS: Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`, 'instanceId:', itemId);
+    console.debug('[Container] Total items now:', this.items.size);
+    console.debug('[Container] Grid occupancy:', this.grid.slice(0, 10).map((row, y) => 
+      `Row ${y}: [` + row.map((cell, x) => cell ? `${x}:${cell.substring(0, 8)}` : '.').join(' ') + ']'
+    ).join('\n'));
     return true;
   }
 
