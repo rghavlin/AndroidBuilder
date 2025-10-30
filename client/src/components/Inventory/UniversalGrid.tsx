@@ -115,12 +115,17 @@ export default function UniversalGrid({
   };
 
   const handleDragStart = (item: any, event: React.DragEvent) => {
-    // Set drag data for drop handlers - use the ID that's actually stored in the grid
-    const itemId = item.instanceId || item.id;
-    event.dataTransfer.setData('itemId', itemId);
+    // ALWAYS use instanceId for drag operations
+    if (!item.instanceId) {
+      console.error('[UniversalGrid] Cannot drag item without instanceId:', item);
+      event.preventDefault();
+      return;
+    }
+    
+    event.dataTransfer.setData('itemId', item.instanceId);
     event.dataTransfer.setData('fromContainerId', containerId);
     event.dataTransfer.effectAllowed = 'move';
-    console.log(`[UniversalGrid] Drag started: ${itemId} from ${containerId}`);
+    console.log(`[UniversalGrid] Drag started: ${item.instanceId} from ${containerId}`);
   };
 
   // Dynamic grid dimensions based on calculated slot size

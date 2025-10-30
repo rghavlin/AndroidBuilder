@@ -177,7 +177,13 @@ export class Container {
   placeItemAt(item, x, y) {
     const width = item.getActualWidth();
     const height = item.getActualHeight();
-    const itemId = item.instanceId || item.id;
+    // ALWAYS use instanceId for grid tracking
+    const itemId = item.instanceId;
+
+    if (!itemId) {
+      console.error('[Container] Cannot place item without instanceId:', item);
+      return false;
+    }
 
     if (!this.isAreaFree(x, y, width, height, itemId)) {
       return false;
@@ -193,7 +199,7 @@ export class Container {
     item.y = y;
     item._container = this;
 
-    // Mark grid cells as occupied
+    // Mark grid cells as occupied using instanceId
     for (let dy = 0; dy < height; dy++) {
       for (let dx = 0; dx < width; dx++) {
         this.grid[y + dy][x + dx] = itemId;
@@ -285,14 +291,16 @@ export class Container {
    * Remove item from container
    */
   removeItem(itemId) {
-    const item = this.items.get(itemId);
+    // Try to find by the provided ID (should be instanceId)
+    let item = this.items.get(itemId);
+    
     if (!item) {
       console.warn('[Container] Item not found for removal:', itemId, 'Available items:', Array.from(this.items.keys()));
       return null;
     }
 
     this.removeItemFromGrid(item);
-    this.items.delete(itemId);
+    this.items.delete(item.instanceId); // Use instanceId for deletion
     item._container = null;
 
     return item;
@@ -304,7 +312,13 @@ export class Container {
   removeItemFromGrid(item) {
     const width = item.getActualWidth();
     const height = item.getActualHeight();
-    const itemId = item.instanceId || item.id;
+    // ALWAYS use instanceId for grid tracking
+    const itemId = item.instanceId;
+
+    if (!itemId) {
+      console.error('[Container] Cannot remove item without instanceId:', item);
+      return;
+    }
 
     for (let dy = 0; dy < height; dy++) {
       for (let dx = 0; dx < width; dx++) {
