@@ -61,13 +61,14 @@ export default function GridSlot({
       className={cn(
         // Dynamic size
         "flex-shrink-0 flex items-center justify-center text-sm relative",
-        "cursor-pointer transition-colors duration-200",
+        !isEmpty ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+        "transition-colors duration-200",
 
         // Subtle borders like backpack grids
         "border border-border/20 bg-muted/10",
 
         // Hover state
-        "hover:bg-muted/50",
+        !isEmpty ? "hover:bg-muted/40" : "hover:bg-muted/50",
 
         // Conditional states
         isHighlighted && "bg-accent/20",
@@ -80,7 +81,7 @@ export default function GridSlot({
         width: `${slotSize}px`,
         height: `${slotSize}px`,
       }}
-      draggable={!isEmpty && isTopLeft}
+      draggable={!isEmpty}
       onClick={onClick}
       onDrop={onDrop}
       onDragOver={onDragOver}

@@ -514,13 +514,23 @@ export class InventoryManager {
     const toContainer = this.containers.get(toContainerId);
 
     if (!fromContainer || !toContainer) {
+      console.warn('[InventoryManager] Container not found:', { fromContainerId, toContainerId });
       return { success: false, reason: 'Container not found' };
     }
 
     const item = fromContainer.removeItem(itemId);
     if (!item) {
+      console.warn('[InventoryManager] Item not found in source container:', itemId);
       return { success: false, reason: 'Item not found' };
     }
+
+    console.log('[InventoryManager] Moving item:', {
+      itemId,
+      itemName: item.name,
+      from: fromContainerId,
+      to: toContainerId,
+      position: x !== null && y !== null ? `(${x}, ${y})` : 'auto'
+    });
 
     let success = false;
     if (x !== null && y !== null) {
@@ -530,11 +540,13 @@ export class InventoryManager {
     }
 
     if (!success) {
-      // Restore item to original container
-      fromContainer.addItem(item);
+      console.warn('[InventoryManager] Failed to place item, restoring to original container');
+      // Restore item to original container at its original position
+      fromContainer.placeItemAt(item, item.x, item.y);
       return { success: false, reason: 'Cannot place item' };
     }
 
+    console.log('[InventoryManager] Move successful');
     return { success: true };
   }
 

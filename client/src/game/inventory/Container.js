@@ -286,7 +286,10 @@ export class Container {
    */
   removeItem(itemId) {
     const item = this.items.get(itemId);
-    if (!item) return null;
+    if (!item) {
+      console.warn('[Container] Item not found for removal:', itemId, 'Available items:', Array.from(this.items.keys()));
+      return null;
+    }
 
     this.removeItemFromGrid(item);
     this.items.delete(itemId);
