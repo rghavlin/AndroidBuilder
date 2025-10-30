@@ -665,24 +665,8 @@ const DevConsole = ({ isOpen, onClose }) => {
               break;
             }
 
-            // Test 1: Create test items on ground
+            // Test 1: Create test items on ground with UNIQUE instanceIds
             addToConsole('Test 1: Creating test items on ground...', 'info');
-
-            const { Item } = await import('../../game/inventory/Item.js');
-            const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
-
-            // Create diverse test items
-            const testKnife = new Item(createItemFromDef('weapon.knife'));
-            const testAmmo = new Item({
-              instanceId: 'test-ammo-5e',
-              defId: 'ammo.9mm',
-              name: '9mm Ammo',
-              width: 1,
-              height: 1,
-              stackCount: 15,
-              stackMax: 50,
-              traits: [ItemTrait.STACKABLE]
-            });
 
             const groundContainer = window.inventoryManager.getContainer('ground');
             if (!groundContainer) {
@@ -690,10 +674,30 @@ const DevConsole = ({ isOpen, onClose }) => {
               break;
             }
 
-            groundContainer.addItem(testKnife);
-            groundContainer.addItem(testAmmo);
+            // CRITICAL: Ensure unique instanceIds by using timestamp + random
+            const uniqueKnife = new Item(createItemFromDef('melee.knife'));
+            uniqueKnife.instanceId = `knife-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+            const uniqueAmmo = new Item(createItemFromDef('ammo.9mm'));
+            uniqueAmmo.instanceId = `ammo-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+            addToConsole(`  - Knife instanceId: ${uniqueKnife.instanceId}`, 'log');
+            addToConsole(`  - Ammo instanceId: ${uniqueAmmo.instanceId}`, 'log');
+
+            const knifeAdded = groundContainer.addItem(uniqueKnife);
+            const ammoAdded = groundContainer.addItem(uniqueAmmo);
             window.inv?.refresh();
-            addToConsole('  ✅ Created knife and ammo on ground', 'success');
+
+            addToConsole('  ✅ Created knife and ammo on ground with unique IDs', 'success');
+            addToConsole(`  - Knife placed: ${knifeAdded}, position: (${uniqueKnife.x}, ${uniqueKnife.y})`, 'log');
+            addToConsole(`  - Ammo placed: ${ammoAdded}, position: (${uniqueAmmo.x}, ${uniqueAmmo.y})`, 'log');
+
+            // Verify they're in different positions
+            if (uniqueKnife.x === uniqueAmmo.x && uniqueKnife.y === uniqueAmmo.y) {
+              addToConsole('  ⚠️  WARNING: Items are at the same position!', 'error');
+            } else {
+              addToConsole(`  ✅ Items are at different positions (${uniqueKnife.x},${uniqueKnife.y}) vs (${uniqueAmmo.x},${uniqueAmmo.y})`, 'success');
+            }
 
             // Test 2: Equip a backpack for testing
             addToConsole('Test 2: Equipping test backpack...', 'info');
@@ -724,48 +728,47 @@ const DevConsole = ({ isOpen, onClose }) => {
               break;
             }
 
-            // Test 3: Move item from ground to backpack
+            // Test 3: Move knife from ground to backpack
             addToConsole('Test 3: Moving knife from ground to backpack...', 'info');
 
-            // Use 'backpack-container' which is the registered ID in containers Map
-            const moveToBackpack = window.inventoryManager.moveItem(
-              testKnife.instanceId,
+            const moveResult = window.inventoryManager.moveItem(
+              uniqueKnife.instanceId,
               'ground',
               'backpack-container',
               0,
               0
             );
 
-            if (moveToBackpack.success) {
+            if (moveResult.success) {
               window.inv?.refresh();
               addToConsole('  ✅ Knife moved to backpack successfully', 'success');
             } else {
-              addToConsole(`  ❌ Move failed: ${moveToBackpack.reason}`, 'error');
+              addToConsole(`  ❌ Move failed: ${moveResult.reason}`, 'error');
             }
 
-            // Test 4: Move item back to ground
-            addToConsole('Test 4: Moving knife back to ground...', 'info');
+            // Test 4: Move knife back to ground at different position
+            addToConsole('Test 4: Moving knife back to ground at position (2, 2)...', 'info');
 
-            const moveToGround = window.inventoryManager.moveItem(
-              testKnife.instanceId,
+            const moveBackResult = window.inventoryManager.moveItem(
+              uniqueKnife.instanceId,
               'backpack-container',
               'ground',
-              5,
-              5
+              2,
+              2
             );
 
-            if (moveToGround.success) {
+            if (moveBackResult.success) {
               window.inv?.refresh();
               addToConsole('  ✅ Knife moved back to ground successfully', 'success');
             } else {
-              addToConsole(`  ❌ Move failed: ${moveToGround.reason}`, 'error');
+              addToConsole(`  ❌ Move failed: ${moveBackResult.reason}`, 'error');
             }
 
             // Test 5: Test invalid placement (out of bounds)
             addToConsole('Test 5: Testing invalid placement (out of bounds)...', 'info');
 
             const invalidMove = window.inventoryManager.moveItem(
-              testKnife.instanceId,
+              uniqueKnife.instanceId,
               'ground',
               'backpack-container',
               100,
@@ -784,7 +787,7 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             // Place ammo in backpack first
             const placeAmmo = window.inventoryManager.moveItem(
-              testAmmo.instanceId,
+              uniqueAmmo.instanceId,
               'ground',
               'backpack-container',
               0,
@@ -794,7 +797,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             if (placeAmmo.success) {
               // Try to place knife in same spot
               const overlapMove = window.inventoryManager.moveItem(
-                testKnife.instanceId,
+                uniqueKnife.instanceId,
                 'ground',
                 'backpack-container',
                 0,
@@ -826,7 +829,7 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             // Summary
             addToConsole('--- Phase 5E Status ---', 'info');
-            if (moveToBackpack.success && moveToGround.success && !invalidMove.success) {
+            if (moveResult.success && moveBackResult.success && !invalidMove.success) {
               addToConsole('✅ Phase 5E Implementation Complete', 'success');
               addToConsole('Items can move between ground and backpack', 'success');
               addToConsole('Invalid placements correctly rejected', 'success');
@@ -985,11 +988,11 @@ const DevConsole = ({ isOpen, onClose }) => {
           if (subCommand === 'toolbox') {
             try {
               addToConsole('Creating toolbox on ground...', 'info');
-              
+
               // Use async imports to match existing DevConsole pattern
               const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
               const { Item } = await import('../../game/inventory/Item.js');
-              
+
               const itemData = createItemFromDef('container.toolbox');
               const toolbox = new Item(itemData);
 
@@ -1006,11 +1009,11 @@ const DevConsole = ({ isOpen, onClose }) => {
           } else if (subCommand === 'lunchbox') {
             try {
               addToConsole('Creating lunchbox on ground...', 'info');
-              
+
               // Use async imports to match existing DevConsole pattern
               const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
               const { Item } = await import('../../game/inventory/Item.js');
-              
+
               const itemData = createItemFromDef('container.lunchbox');
               const lunchbox = new Item(itemData);
 
