@@ -185,7 +185,14 @@ export class Container {
       return false;
     }
 
+    // Validate bounds first
+    if (!this.isValidPosition(x, y, width, height)) {
+      console.warn('[Container] Invalid position for item:', item.name, 'at', x, y, 'size:', width, 'x', height);
+      return false;
+    }
+
     if (!this.isAreaFree(x, y, width, height, itemId)) {
+      console.warn('[Container] Area not free for item:', item.name, 'at', x, y);
       return false;
     }
 
@@ -194,7 +201,7 @@ export class Container {
       this.removeItemFromGrid(item);
     }
 
-    // Update item position
+    // Update item position BEFORE marking grid
     item.x = x;
     item.y = y;
     item._container = this;
@@ -206,7 +213,10 @@ export class Container {
       }
     }
 
+    // Only add to items Map after successful grid placement
     this.items.set(itemId, item);
+    
+    console.debug('[Container] Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`);
     return true;
   }
 
@@ -214,15 +224,19 @@ export class Container {
    * Add item to container (auto-position)
    */
   addItem(item, preferredX = null, preferredY = null) {
+    console.debug('[Container] addItem called:', item.name, 'preferred:', preferredX, preferredY);
+    
     // Try stacking first if item is stackable
     if (item.stackable) {
       const result = this.attemptStacking(item);
       if (result.success && !result.remainingItem) {
+        console.debug('[Container] Item fully stacked:', item.name);
         return true; // Fully stacked
       }
       // If partial stacking occurred, continue with remaining item
       if (result.remainingItem) {
         item = result.remainingItem;
+        console.debug('[Container] Partial stack, remaining:', item.stackCount);
       }
     }
 
@@ -230,7 +244,10 @@ export class Container {
     if (item && item.stackCount > 0) {
       const position = this.findAvailablePosition(item, preferredX, preferredY);
       if (position) {
+        console.debug('[Container] Found position:', position.x, position.y, 'for', item.name);
         return this.placeItemAt(item, position.x, position.y);
+      } else {
+        console.warn('[Container] No available position for:', item.name, 'size:', item.getActualWidth(), 'x', item.getActualHeight());
       }
     }
 
