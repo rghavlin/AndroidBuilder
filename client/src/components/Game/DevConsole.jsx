@@ -656,6 +656,94 @@ const DevConsole = ({ isOpen, onClose }) => {
           }
           break;
 
+        case 'phase5e2':
+          try {
+            addToConsole('=== Phase 5E2: Isolated Placement Test ===', 'info');
+            addToConsole('(No movement - just placement verification)', 'info');
+
+            if (!window.inventoryManager) {
+              addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
+              break;
+            }
+
+            const groundContainer = window.inventoryManager.getContainer('ground');
+            if (!groundContainer) {
+              addToConsole('  ❌ Ground container not found', 'error');
+              break;
+            }
+
+            // Clear ground first for clean test
+            groundContainer.clear();
+            addToConsole('✓ Ground container cleared', 'log');
+
+            // Import necessary classes and functions
+            const { Item } = await import('../../game/inventory/Item.js');
+            const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+
+            // Create items with unique instanceIds
+            const uniqueKnife = new Item(createItemFromDef('weapon.knife'));
+            uniqueKnife.instanceId = `knife-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+            const uniqueAmmo = new Item(createItemFromDef('ammo.9mm'));
+            uniqueAmmo.instanceId = `ammo-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+            // Log creation to browser console for debugging
+            console.log('[Phase5E2] Created knife:', {
+              instanceId: uniqueKnife.instanceId,
+              name: uniqueKnife.name,
+              imageId: uniqueKnife.imageId,
+              size: `${uniqueKnife.width}x${uniqueKnife.height}`
+            });
+            console.log('[Phase5E2] Created ammo:', {
+              instanceId: uniqueAmmo.instanceId,
+              name: uniqueAmmo.name,
+              imageId: uniqueAmmo.imageId,
+              size: `${uniqueAmmo.width}x${uniqueAmmo.height}`
+            });
+
+            // Place items on ground
+            const knifeAdded = groundContainer.addItem(uniqueKnife);
+            const ammoAdded = groundContainer.addItem(uniqueAmmo);
+
+            // Log placement results to browser console
+            console.log('[Phase5E2] Knife placement result:', knifeAdded, 'position:', `(${uniqueKnife.x}, ${uniqueKnife.y})`);
+            console.log('[Phase5E2] Ammo placement result:', ammoAdded, 'position:', `(${uniqueAmmo.x}, ${uniqueAmmo.y})`);
+            console.log('[Phase5E2] Ground container items:', Array.from(groundContainer.items.keys()));
+
+            // Refresh UI
+            window.inv?.refresh();
+
+            // Report results
+            addToConsole('--- Placement Results ---', 'info');
+            addToConsole(`Knife (${uniqueKnife.instanceId.substring(0, 12)}...):`, 'log');
+            addToConsole(`  - Added: ${knifeAdded ? '✅ YES' : '❌ NO'}`, knifeAdded ? 'success' : 'error');
+            addToConsole(`  - Position: (${uniqueKnife.x}, ${uniqueKnife.y})`, 'log');
+            addToConsole(`  - ImageId: ${uniqueKnife.imageId || 'MISSING'}`, uniqueKnife.imageId ? 'log' : 'error');
+
+            addToConsole(`Ammo (${uniqueAmmo.instanceId.substring(0, 12)}...):`, 'log');
+            addToConsole(`  - Added: ${ammoAdded ? '✅ YES' : '❌ NO'}`, ammoAdded ? 'success' : 'error');
+            addToConsole(`  - Position: (${uniqueAmmo.x}, ${uniqueAmmo.y})`, 'log');
+            addToConsole(`  - ImageId: ${uniqueAmmo.imageId || 'MISSING'}`, uniqueAmmo.imageId ? 'log' : 'error');
+
+            // Verify positions are different
+            if (uniqueKnife.x === uniqueAmmo.x && uniqueKnife.y === uniqueAmmo.y) {
+              addToConsole('⚠️  Items at SAME position - collision issue!', 'error');
+            } else {
+              addToConsole('✅ Items at DIFFERENT positions - correct!', 'success');
+            }
+
+            addToConsole('', 'info');
+            addToConsole('Next: Check ground grid visually', 'info');
+            addToConsole('• Both items should appear with images', 'log');
+            addToConsole('• Ammo should be 1x1 with ammo.png', 'log');
+            addToConsole('• Knife should be 1x2 with knife.png', 'log');
+
+          } catch (error) {
+            addToConsole(`Error in Phase 5E2: ${error.message}`, 'error');
+            console.error('Phase 5E2 Error:', error);
+          }
+          break;
+
         case 'phase5e':
           try {
             addToConsole('=== Phase 5E Verification (Item Movement) ===', 'info');
