@@ -216,12 +216,13 @@ export class Container {
     }
 
     // Remove from old position if already placed
+    // CRITICAL: Must do this BEFORE updating item.x/item.y coordinates
     if (this.items.has(itemId)) {
-      console.debug('[Container] Item already in container, removing from old position');
+      console.debug('[Container] Item already in container, removing from old position:', `(${item.x}, ${item.y})`);
       this.removeItemFromGrid(item);
     }
 
-    // Update item position BEFORE marking grid
+    // Update item position AFTER clearing old cells
     item.x = x;
     item.y = y;
     item._container = this;
