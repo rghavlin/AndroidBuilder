@@ -273,6 +273,39 @@ Before adding new features with assets or file access:
 - **Menu removal side effects**: Add manual keyboard shortcuts when removing default menu
 - **Asset packaging**: Ensure all assets are included in `extraFiles` configuration
 
+## 🖼️ Item Image Orientation Standard
+
+**All rectangular item images MUST be landscape/horizontal orientation (width > height).**
+
+### Rules:
+- **Square items (1×1, 2×2)**: No orientation constraint
+- **Rectangular items**: Image width MUST be greater than image height
+- **All images**: Should be square canvas with transparent padding as needed
+
+### Examples:
+```
+✅ CORRECT:
+- Pistol (2×1): Image is landscape/horizontal
+- Rifle (4×1): Image is landscape/horizontal  
+- Knife (2×1): Image is landscape/horizontal
+- Baseball bat (3×1): Image is landscape/horizontal
+
+❌ WRONG:
+- Knife (1×2): Image is portrait/vertical
+- Rifle (1×4): Image is portrait/vertical
+```
+
+### Why This Matters:
+- **Consistency**: All rectangular items follow the same visual pattern
+- **Rotation Logic**: Items rotate from horizontal (default) to vertical (90°)
+- **Asset Creation**: Artists have one clear rule: make rectangular items wider than tall
+- **Code Simplification**: Item definitions align with image orientation
+
+### Implementation:
+- Item definitions use `width` and `height` matching the image orientation
+- When rotated 90°, `getActualWidth()` and `getActualHeight()` swap dimensions
+- A 2×1 item becomes 1×2 when rotated (horizontal → vertical)
+
 Model for Future Objects: Serializtion/Deserialization for game saving
 Follow This Pattern:
 Only save persistent state - data that defines the object's current condition

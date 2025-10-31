@@ -19,8 +19,58 @@ Authoritative plan for wiring the Inventory system into the UI without visual/la
 - **Backpacks vs specialty containers:** Backpacks open **only when equipped**. Specialty containers may open inline **even when nested**.
 - **Console‑first QA:** Every subphase includes dev‑console checks before merging.
 - **Dev‑only globals:** `window.inventoryManager`/`window.inv` exposed **only** in development builds.
+- **Item image orientation:** All rectangular item images MUST be landscape/horizontal (width > height). Square items have no orientation constraint. This ensures consistency across all item types and simplifies asset creation.
 
 ---
+
+## Item Image Orientation Standard
+
+**CRITICAL RULE: All rectangular item images must be landscape/horizontal (width > height).**
+
+### Image Creation Guidelines
+
+**For Artists/Asset Creators:**
+1. **Square items (1×1, 2×2)**: No orientation constraint
+2. **Rectangular items**: Create image with width > height
+3. **All images**: Use square canvas with transparent padding as needed
+
+**Item Definition Pattern:**
+```javascript
+// ✅ CORRECT - All rectangular items are landscape
+'weapon.pistol': { width: 2, height: 1 }      // Horizontal
+'weapon.rifle': { width: 4, height: 1 }       // Horizontal  
+'weapon.knife': { width: 2, height: 1 }       // Horizontal
+'weapon.baseball_bat': { width: 3, height: 1 } // Horizontal
+'tool.flashlight': { width: 2, height: 1 }    // Horizontal
+'food.water': { width: 2, height: 1 }         // Horizontal
+
+// ❌ WRONG - These violate the standard
+'weapon.knife': { width: 1, height: 2 }       // Vertical - DON'T DO THIS
+'weapon.rifle': { width: 1, height: 4 }       // Vertical - DON'T DO THIS
+```
+
+### Why This Standard Exists
+
+**Before standardization:**
+- Mixed orientations (some 1×2, some 2×1)
+- Artists had to check each item's definition before creating images
+- No consistent visual pattern
+- Asset creation dependent on scattered code
+
+**After standardization:**
+- **One simple rule**: Rectangular items = wider than tall
+- **Visual consistency**: All items start horizontal, rotate to vertical
+- **Asset pipeline**: Artists can create hundreds of images without checking code
+- **Intuitive rotation**: Horizontal (default) → Vertical (90° rotation)
+
+### Rotation Behavior
+
+Items can be rotated 90° during placement:
+- A 2×1 item (horizontal) becomes 1×2 when rotated (vertical)
+- A 4×1 rifle (horizontal) becomes 1×4 when rotated (vertical)
+- The image rotates visually but always starts as landscape
+
+This matches player expectations: pick up a rifle horizontally, rotate it to fit vertically in backpack.
 
 ## Quick recap (Phases 0–4)
 - **P0:** Global grid slot pixel size picked once, snapped to allowed values, shared by all grids.
