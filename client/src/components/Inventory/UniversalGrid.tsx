@@ -173,9 +173,19 @@ export default function UniversalGrid({
       let topLeftY = y;
 
       if (item && itemId) {
-        // Use the item's stored position as the authoritative top-left
-        topLeftX = item.x;
-        topLeftY = item.y;
+        // Find the top-left cell of this item in the grid
+        // Scan backwards to find where this itemId first appears
+        let foundTopLeft = false;
+        for (let scanY = 0; scanY <= y && !foundTopLeft; scanY++) {
+          for (let scanX = 0; scanX < width; scanX++) {
+            if (grid[scanY]?.[scanX] === itemId) {
+              topLeftX = scanX;
+              topLeftY = scanY;
+              foundTopLeft = true;
+              break;
+            }
+          }
+        }
         isTopLeft = (x === topLeftX && y === topLeftY);
       }
 
