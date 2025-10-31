@@ -171,6 +171,7 @@ export const ItemDefs = {
   'ammo.9mm': {
     id: 'ammo.9mm',
     name: '9mm Ammo',
+    imageId: 'ammo', // No extension - loader will append .png
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE],
