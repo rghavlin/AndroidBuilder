@@ -89,47 +89,7 @@ export default function GridSlot({
       onMouseLeave={onMouseLeave}
       data-testid={testId}
     >
-      {/* Only render in top-left cell of multi-cell items */}
-      {isTopLeft && (
-        <>
-          {/* Multi-cell image rendering */}
-          {item && itemImageSrc && imageWidth > 0 && imageHeight > 0 && (
-            <img
-              src={itemImageSrc}
-              alt={item.name || "Item"}
-              className={cn(
-                "absolute top-0 left-0 pointer-events-none select-none",
-                "transition-all duration-150",
-                isHovered && "ring-2 ring-primary/60"
-              )}
-              style={{
-                width: `${imageWidth}px`,
-                height: `${imageHeight}px`,
-                objectFit: 'contain',
-                zIndex: 10
-              }}
-            />
-          )}
-
-          {/* Fallback icon for items without images */}
-          {item && !itemImageSrc && (
-            <div
-              className="absolute top-0 left-0 flex items-center justify-center select-none border border-dashed border-muted-foreground/30"
-              style={{
-                width: '100%',
-                height: '100%'
-              }}
-            >
-              <span className="text-sm opacity-80">
-                {item.icon || "📦"}
-              </span>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Non-top-left cells of multi-cell items remain visually empty */}
-
+      {/* All image rendering handled by UniversalGrid overlays */}
       {children}
 
       {/* Stack count indicator - only show for items with actual images */}
