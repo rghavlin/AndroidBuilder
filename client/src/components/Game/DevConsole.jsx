@@ -685,12 +685,21 @@ const DevConsole = ({ isOpen, onClose }) => {
             const uniqueAmmo = new Item(createItemFromDef('ammo.9mm'));
             uniqueAmmo.instanceId = `ammo-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
+            // Log instanceIds to both console and dev console
+            console.log('[Phase5E] Created knife with instanceId:', uniqueKnife.instanceId);
+            console.log('[Phase5E] Created ammo with instanceId:', uniqueAmmo.instanceId);
+            
             addToConsole(`  - Knife instanceId: ${uniqueKnife.instanceId}`, 'log');
             addToConsole(`  - Ammo instanceId: ${uniqueAmmo.instanceId}`, 'log');
 
             const knifeAdded = groundContainer.addItem(uniqueKnife);
             const ammoAdded = groundContainer.addItem(uniqueAmmo);
             window.inv?.refresh();
+
+            // Log placement results to browser console
+            console.log('[Phase5E] Knife added to ground:', knifeAdded, 'at position:', `(${uniqueKnife.x}, ${uniqueKnife.y})`);
+            console.log('[Phase5E] Ammo added to ground:', ammoAdded, 'at position:', `(${uniqueAmmo.x}, ${uniqueAmmo.y})`);
+            console.log('[Phase5E] Ground container items after adding:', Array.from(groundContainer.items.keys()));
 
             addToConsole('  ✅ Created knife and ammo on ground with unique IDs', 'success');
             addToConsole(`  - Knife placed: ${knifeAdded}, position: (${uniqueKnife.x}, ${uniqueKnife.y})`, 'log');
@@ -716,6 +725,8 @@ const DevConsole = ({ isOpen, onClose }) => {
               containerGrid: { width: 6, height: 10 },
               traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER]
             });
+
+            console.log('[Phase5E] Created test backpack with instanceId:', testBackpack.instanceId);
 
             const equipResult = window.inventoryManager.equipItem(testBackpack, 'backpack');
             if (equipResult.success) {
