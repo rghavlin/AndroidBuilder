@@ -132,20 +132,8 @@ export default function GridSlot({
 
       {children}
 
-      {/* Item display - only show fallback if no imageId, otherwise UniversalGrid handles overlay */}
-      {item && !item.imageId && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          {/* Fallback: show full-size generic item icon */}
-          <img
-            src="/images/entities/item.png"
-            className="w-full h-full object-contain"
-            alt={item.name || 'Item'}
-          />
-        </div>
-      )}
-
-      {/* Stack count indicator (if item has imageId, overlay handles image) */}
-      {item && item.imageId && item.stackCount > 1 && (
+      {/* Stack count indicator - only show for items with actual images */}
+      {item && item.stackCount > 1 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span className="absolute bottom-0 right-0 text-[0.6rem] font-bold bg-black/70 px-1 rounded z-10">
             {item.stackCount}
