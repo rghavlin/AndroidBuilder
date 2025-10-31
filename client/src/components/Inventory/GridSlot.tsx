@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { useGridSize } from "@/contexts/GridSizeContext";
 
@@ -130,8 +129,29 @@ export default function GridSlot({
       )}
 
       {/* Non-top-left cells of multi-cell items remain visually empty */}
-      
+
       {children}
+
+      {/* Item display - only show fallback if no imageId, otherwise UniversalGrid handles overlay */}
+      {item && !item.imageId && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* Fallback: show full-size generic item icon */}
+          <img
+            src="/images/entities/item.png"
+            className="w-full h-full object-contain"
+            alt={item.name || 'Item'}
+          />
+        </div>
+      )}
+
+      {/* Stack count indicator (if item has imageId, overlay handles image) */}
+      {item && item.imageId && item.stackCount > 1 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="absolute bottom-0 right-0 text-[0.6rem] font-bold bg-black/70 px-1 rounded z-10">
+            {item.stackCount}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
