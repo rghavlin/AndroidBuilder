@@ -110,8 +110,13 @@ export default function UniversalGrid({
       event.preventDefault();
       event.stopPropagation();
       
-      // Initialize drag with current cursor position
-      beginDrag(item, containerId, item.x, item.y, event.clientX, event.clientY);
+      console.debug('[UniversalGrid] Starting drag:', item.name, 'at cursor:', event.clientX, event.clientY);
+      
+      // Initialize drag with current cursor position - THIS IS CRITICAL
+      const success = beginDrag(item, containerId, item.x, item.y, event.clientX, event.clientY);
+      if (!success) {
+        console.warn('[UniversalGrid] Failed to begin drag');
+      }
     } else {
       onSlotClick?.(x, y);
     }
@@ -198,10 +203,11 @@ export default function UniversalGrid({
   // Recalculate preview when rotation changes
   useEffect(() => {
     if (dragState && previewOverlay) {
+      console.debug('[UniversalGrid] Rotation changed, recalculating preview overlay');
       const preview = getPlacementPreview(containerId, previewOverlay.gridX, previewOverlay.gridY);
       setPreviewOverlay(preview);
     }
-  }, [dragState?.rotation]);
+  }, [dragState?.rotation, containerId, getPlacementPreview, previewOverlay]);
 
   // Dynamic grid dimensions based on calculated slot size
   const gridWidth = width * slotSize;

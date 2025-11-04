@@ -20,22 +20,13 @@ export default function DragPreviewLayer() {
     }
   }, [dragState?.item?.imageId]);
 
-  // Track mouse position and initialize on drag start
+  // Track mouse position
   useEffect(() => {
     if (!dragState) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       updateDragPosition(e.clientX, e.clientY);
     };
-
-    // Immediately capture initial position if not set
-    if (dragState.cursorX === 0 && dragState.cursorY === 0) {
-      const handleInitialMove = (e: MouseEvent) => {
-        updateDragPosition(e.clientX, e.clientY);
-        document.removeEventListener('mousemove', handleInitialMove);
-      };
-      document.addEventListener('mousemove', handleInitialMove);
-    }
 
     document.addEventListener('mousemove', handleMouseMove);
     return () => document.removeEventListener('mousemove', handleMouseMove);
@@ -69,9 +60,21 @@ export default function DragPreviewLayer() {
     };
   }, [dragState, rotateDrag, cancelDrag]);
 
-  if (!dragState || !itemImage) return null;
+  if (!dragState) return null;
 
   const { item, rotation, cursorX, cursorY } = dragState;
+  
+  // Don't render if we don't have a valid cursor position yet
+  if (cursorX === 0 && cursorY === 0) {
+    console.debug('[DragPreviewLayer] Waiting for cursor position...');
+    return null;
+  }
+
+  if (!itemImage) {
+    console.debug('[DragPreviewLayer] Waiting for item image...');
+    return null;
+  }
+
   const GAP_SIZE = 2;
 
   // Calculate dimensions based on rotation
@@ -85,6 +88,15 @@ export default function DragPreviewLayer() {
   // Center the preview on cursor
   const left = cursorX - pixelWidth / 2;
   const top = cursorY - pixelHeight / 2;
+
+  console.debug('[DragPreviewLayer] Rendering preview:', {
+    item: item.name,
+    rotation,
+    cursorPos: `(${cursorX}, ${cursorY})`,
+    displaySize: `${displayWidth}x${displayHeight}`,
+    pixelSize: `${pixelWidth}x${pixelHeight}`,
+    position: `(${left}, ${top})`
+  });
 
   return (
     <div

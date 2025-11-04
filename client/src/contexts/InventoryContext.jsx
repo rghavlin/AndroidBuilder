@@ -201,7 +201,13 @@ export const InventoryProvider = ({ children, manager }) => {
       return false;
     }
 
-    console.debug('[InventoryContext] Begin drag:', item.name, 'from', originContainerId, 'at', originX, originY);
+    console.debug('[InventoryContext] Begin drag:', {
+      name: item.name,
+      from: originContainerId,
+      gridPos: `(${originX}, ${originY})`,
+      cursorPos: `(${initialCursorX}, ${initialCursorY})`,
+      rotation: item.rotation || 0
+    });
     
     setDragState({
       item,
