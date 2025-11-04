@@ -342,9 +342,6 @@ export default function UniversalGrid({
         y >= previewOverlay.gridY && 
         y < previewOverlay.gridY + previewOverlay.height;
 
-      // Highlight selected item
-      const isSelected = selectedItem && item && item.instanceId === selectedItem.item.instanceId;
-
       return (
         <GridSlot
           key={`${x}-${y}`}
@@ -362,8 +359,7 @@ export default function UniversalGrid({
           onMouseLeave={() => setHoveredItem(null)}
           data-testid={`${containerId}-slot-${x}-${y}`}
           className={cn(
-            isPreviewCell && (previewOverlay.valid ? 'bg-green-500/20' : 'bg-red-500/20'),
-            isSelected && 'ring-4 ring-yellow-400 ring-inset bg-yellow-400/20'
+            isPreviewCell && (previewOverlay.valid ? 'bg-green-500/20' : 'bg-red-500/20')
           )}
         />
       );
