@@ -66,8 +66,10 @@ export default function InventoryPanel() {
       })}
 
       {/* Cursor-following drag preview */}
-      {console.log('[InventoryPanel] *** MOUNTING DragPreviewLayer ***')}
+      {console.log('[InventoryPanel] *** RENDERING - About to mount DragPreviewLayer ***')}
+      {console.log('[InventoryPanel] dragState from context:', dragState)}
       <DragPreviewLayer />
+      {console.log('[InventoryPanel] *** DragPreviewLayer JSX created ***')}
     </div>
   );
 }

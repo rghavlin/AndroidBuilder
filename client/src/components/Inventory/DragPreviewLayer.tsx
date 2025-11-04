@@ -6,18 +6,25 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGridSize } from "@/contexts/GridSizeContext";
 
+// Render counter outside component to persist across renders
+let renderCount = 0;
+
 export default function DragPreviewLayer() {
+  renderCount++;
   console.log('[DragPreviewLayer] ========================================');
-  console.log('[DragPreviewLayer] === COMPONENT RENDER START ===');
+  console.log('[DragPreviewLayer] === COMPONENT RENDER #' + renderCount + ' ===');
   console.log('[DragPreviewLayer] Timestamp:', new Date().toISOString());
   
   const inventoryContext = useInventory();
+  console.log('[DragPreviewLayer] *** RAW CONTEXT OBJECT ***:', inventoryContext);
+  
   const { dragState, updateDragPosition, rotateDrag, cancelDrag } = inventoryContext;
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
 
-  console.log('[DragPreviewLayer] *** INVENTORY CONTEXT ***:', inventoryContext);
   console.log('[DragPreviewLayer] *** DRAG STATE FROM CONTEXT ***:', dragState);
+  console.log('[DragPreviewLayer] dragState is null?', dragState === null);
+  console.log('[DragPreviewLayer] dragState is undefined?', dragState === undefined);
   console.log('[DragPreviewLayer] Hook values:', {
     hasDragState: !!dragState,
     dragStateValue: dragState,

@@ -417,34 +417,37 @@ export const InventoryProvider = ({ children, manager }) => {
     };
   }, [inventoryRef.current]);
 
-  const contextValue = useMemo(() => ({
-    inventoryRef,
-    inventoryVersion,
-    setInventory,
-    getContainer,
-    getEquippedBackpackContainer,
-    getEncumbranceModifiers,
-    canOpenContainer,
-    equipItem,
-    unequipItem,
-    moveItem,
-    dropItemToGround,
-    organizeGroundItems,
-    quickPickupByCategory,
-    forceRefresh,
-    openContainers,
-    openContainer,
-    closeContainer,
-    isContainerOpen,
-    // Phase 5G: Drag system
-    dragState,
-    beginDrag,
-    rotateDrag,
-    updateDragPosition,
-    cancelDrag,
-    tryPlaceDrag,
-    getPlacementPreview
-  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, dragState, beginDrag, rotateDrag, updateDragPosition, cancelDrag, tryPlaceDrag, getPlacementPreview]);
+  const contextValue = useMemo(() => {
+    console.log('[InventoryContext] Creating new context value with dragState:', dragState);
+    return {
+      inventoryRef,
+      inventoryVersion,
+      setInventory,
+      getContainer,
+      getEquippedBackpackContainer,
+      getEncumbranceModifiers,
+      canOpenContainer,
+      equipItem,
+      unequipItem,
+      moveItem,
+      dropItemToGround,
+      organizeGroundItems,
+      quickPickupByCategory,
+      forceRefresh,
+      openContainers,
+      openContainer,
+      closeContainer,
+      isContainerOpen,
+      // Phase 5G: Drag system
+      dragState,
+      beginDrag,
+      rotateDrag,
+      updateDragPosition,
+      cancelDrag,
+      tryPlaceDrag,
+      getPlacementPreview
+    };
+  }, [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, dragState, beginDrag, rotateDrag, updateDragPosition, cancelDrag, tryPlaceDrag, getPlacementPreview]);
 
   return (
     <InventoryContext.Provider value={contextValue}>
