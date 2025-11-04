@@ -47,10 +47,9 @@ export const InventoryProvider = ({ children, manager }) => {
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [openContainers, setOpenContainers] = useState(new Set());
   
-  // Phase 5G: Cursor-following drag state
-  const [dragState, setDragState] = useState(null); // { item, originContainer, originX, originY, rotation, cursorX, cursorY }
-  const [dragVersion, setDragVersion] = useState(0); // Force re-render on drag state changes
-  const dragActiveRef = useRef(false); // Guard against accidental clears during active drag
+  // Phase 5G: Selection-based drag state (simpler than cursor-following)
+  const [selectedItem, setSelectedItem] = useState(null); // { item, originContainerId, originX, originY, rotation }
+  const [dragVersion, setDragVersion] = useState(0); // Force re-render on selection changes
 
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
@@ -204,77 +203,36 @@ export const InventoryProvider = ({ children, manager }) => {
     return openContainers.has(containerId);
   }, [openContainers]);
 
-  // Phase 5G: Drag actions
-  const beginDrag = useCallback((item, originContainerId, originX, originY, initialCursorX = 0, initialCursorY = 0) => {
-    console.log('[InventoryContext] === BEGIN DRAG DEBUG ===');
-    console.log('[InventoryContext] Arguments:', {
-      item: item ? { name: item.name, instanceId: item.instanceId, imageId: item.imageId } : null,
-      originContainerId,
-      originX,
-      originY,
-      initialCursorX,
-      initialCursorY
-    });
-    
+  // Phase 5G: Selection actions (simpler than cursor-following)
+  const selectItem = useCallback((item, originContainerId, originX, originY) => {
     if (!item || !item.instanceId) {
-      console.warn('[InventoryContext] Cannot begin drag without valid item');
+      console.warn('[InventoryContext] Cannot select without valid item');
       return false;
     }
-    
-    // Ensure we have valid cursor coordinates
-    if (initialCursorX === 0 && initialCursorY === 0) {
-      console.warn('[InventoryContext] beginDrag called without cursor position - drag preview may not render immediately');
-    }
 
-    console.debug('[InventoryContext] Begin drag:', {
+    console.debug('[InventoryContext] Select item:', {
       name: item.name,
       from: originContainerId,
       gridPos: `(${originX}, ${originY})`,
-      cursorPos: `(${initialCursorX}, ${initialCursorY})`,
-      rotation: item.rotation || 0,
-      imageId: item.imageId
+      rotation: item.rotation || 0
     });
     
-    // Remove item from its container during drag
-    const originContainer = inventoryRef.current?.getContainer(originContainerId);
-    if (originContainer) {
-      originContainer.removeItem(item.instanceId);
-      console.debug('[InventoryContext] Removed item from container during drag');
-    }
-    
-    const newDragState = {
+    setSelectedItem({
       item,
       originContainerId,
       originX,
       originY,
-      rotation: item.rotation || 0,
-      cursorX: initialCursorX,
-      cursorY: initialCursorY
-    };
-    
-    console.log('[InventoryContext] *** CRITICAL DEBUG ***');
-    console.log('[InventoryContext] Current dragState before update:', dragState);
-    console.log('[InventoryContext] NEW DRAG STATE OBJECT:', newDragState);
-    console.log('[InventoryContext] Object identity check - different object?', newDragState !== dragState);
-    console.log('[InventoryContext] Setting dragActiveRef.current = true');
-    console.log('[InventoryContext] Calling setDragState NOW...');
-    
-    dragActiveRef.current = true; // Guard against accidental clears
-    setDragState(newDragState);
-    setDragVersion(prev => prev + 1); // Force context consumers to re-render
-    
-    console.log('[InventoryContext] setDragState called - state update scheduled');
-    console.log('[InventoryContext] React should re-render DragPreviewLayer on next tick');
-    
-    console.log('[InventoryContext] === END BEGIN DRAG ===');
+      rotation: item.rotation || 0
+    });
+    setDragVersion(prev => prev + 1);
     return true;
-  }, []); // No dependencies needed - we set new state, don't read old state
+  }, []);
 
-  const rotateDrag = useCallback(() => {
-    setDragState(prev => {
+  const rotateSelected = useCallback(() => {
+    setSelectedItem(prev => {
       if (!prev) return null;
       const newRotation = (prev.rotation + 90) % 360;
-      console.debug('[InventoryContext] Rotate drag to:', newRotation);
+      console.debug('[InventoryContext] Rotate selected to:', newRotation);
       return {
         ...prev,
         rotation: newRotation
@@ -283,68 +241,40 @@ export const InventoryProvider = ({ children, manager }) => {
     setDragVersion(prev => prev + 1);
   }, []);
 
-  const updateDragPosition = useCallback((cursorX, cursorY) => {
-    setDragState(prev => {
-      if (!prev) {
-        console.log('[InventoryContext] updateDragPosition: no previous dragState');
-        return null;
-      }
-      const updated = {
-        ...prev,
-        cursorX,
-        cursorY
-      };
-      // Only log occasionally to avoid spam
-      if (Math.random() < 0.01) {
-        console.log('[InventoryContext] updateDragPosition:', cursorX, cursorY);
-      }
-      return updated;
-    });
+  const clearSelected = useCallback(() => {
+    console.debug('[InventoryContext] Clear selection');
+    setSelectedItem(null);
+    setDragVersion(prev => prev + 1);
   }, []);
 
-  const cancelDrag = useCallback(() => {
-    if (!dragState || !inventoryRef.current) {
-      dragActiveRef.current = false;
-      setDragState(null);
-      return;
+  const placeSelected = useCallback((targetContainerId, targetX, targetY) => {
+    if (!selectedItem || !inventoryRef.current) {
+      return { success: false, reason: 'No item selected' };
     }
 
-    const { item, originContainerId, originX, originY } = dragState;
+    const { item, originContainerId, originX, originY, rotation } = selectedItem;
     
-    console.debug('[InventoryContext] Cancel drag - restoring item to origin');
+    console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation);
+
+    // Update item rotation to match selection state
+    item.rotation = rotation;
     
-    // Restore item to original position
+    // Remove from origin container
     const originContainer = inventoryRef.current.getContainer(originContainerId);
     if (originContainer) {
-      // Restore original rotation
-      item.rotation = dragState.rotation;
-      originContainer.placeItemAt(item, originX, originY);
-      setInventoryVersion(prev => prev + 1);
+      originContainer.removeItem(item.instanceId);
     }
-    
-    dragActiveRef.current = false;
-    setDragState(null);
-    setDragVersion(prev => prev + 1);
-  }, [dragState]);
-
-  const tryPlaceDrag = useCallback((targetContainerId, targetX, targetY) => {
-    if (!dragState || !inventoryRef.current) {
-      return { success: false, reason: 'No drag in progress' };
-    }
-
-    const { item, originContainerId, originX, originY, rotation } = dragState;
-    
-    console.debug('[InventoryContext] Try place drag:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation);
-
-    // Update item rotation to match drag state
-    item.rotation = rotation;
     
     // Validate placement
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
     if (!targetContainer) {
       console.warn('[InventoryContext] Target container not found:', targetContainerId);
       // Restore to origin on failure
-      cancelDrag();
+      if (originContainer) {
+        originContainer.placeItemAt(item, originX, originY);
+      }
+      setSelectedItem(null);
+      setInventoryVersion(prev => prev + 1);
       return { success: false, reason: 'Target container not found' };
     }
 
@@ -352,14 +282,10 @@ export const InventoryProvider = ({ children, manager }) => {
     if (!validation.valid) {
       console.warn('[InventoryContext] Invalid placement:', validation.reason);
       // Restore to origin on failure
-      const originContainer = inventoryRef.current.getContainer(originContainerId);
       if (originContainer) {
-        // Reset rotation to original
-        item.rotation = dragState.rotation;
+        item.rotation = selectedItem.rotation;
         originContainer.placeItemAt(item, originX, originY);
       }
-      dragActiveRef.current = false;
-      setDragState(null);
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: validation.reason };
     }
@@ -370,31 +296,27 @@ export const InventoryProvider = ({ children, manager }) => {
     if (!placed) {
       console.warn('[InventoryContext] Failed to place item');
       // Restore to origin on failure
-      const originContainer = inventoryRef.current.getContainer(originContainerId);
       if (originContainer) {
-        item.rotation = dragState.rotation;
+        item.rotation = selectedItem.rotation;
         originContainer.placeItemAt(item, originX, originY);
       }
-      dragActiveRef.current = false;
-      setDragState(null);
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: 'Failed to place item' };
     }
 
     console.debug('[InventoryContext] Successfully placed item');
-    dragActiveRef.current = false;
-    setDragState(null);
+    setSelectedItem(null);
     setDragVersion(prev => prev + 1);
     setInventoryVersion(prev => prev + 1);
     return { success: true };
-  }, [dragState, cancelDrag]);
+  }, [selectedItem]);
 
   const getPlacementPreview = useCallback((targetContainerId, gridX, gridY) => {
-    if (!dragState || !inventoryRef.current) {
+    if (!selectedItem || !inventoryRef.current) {
       return null;
     }
 
-    const { item, rotation } = dragState;
+    const { item, rotation } = selectedItem;
     
     // Calculate dimensions based on rotation
     const isRotated = rotation === 90 || rotation === 270;
@@ -418,7 +340,7 @@ export const InventoryProvider = ({ children, manager }) => {
       width,
       height
     };
-  }, [dragState]);
+  }, [selectedItem]);
 
   useEffect(() => {
     if (inventoryRef.current) {
@@ -432,7 +354,7 @@ export const InventoryProvider = ({ children, manager }) => {
   }, [inventoryRef.current]);
 
   const contextValue = useMemo(() => {
-    console.log('[InventoryContext] Creating new context value - dragVersion:', dragVersion, 'dragState:', dragState);
+    console.log('[InventoryContext] Creating new context value - dragVersion:', dragVersion, 'selectedItem:', selectedItem?.item?.name || 'none');
     return {
       inventoryRef,
       inventoryVersion,
@@ -452,16 +374,15 @@ export const InventoryProvider = ({ children, manager }) => {
       openContainer,
       closeContainer,
       isContainerOpen,
-      // Phase 5G: Drag system
-      dragState,
-      beginDrag,
-      rotateDrag,
-      updateDragPosition,
-      cancelDrag,
-      tryPlaceDrag,
+      // Phase 5G: Selection-based drag system
+      selectedItem,
+      selectItem,
+      rotateSelected,
+      clearSelected,
+      placeSelected,
       getPlacementPreview
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, dragState, beginDrag, rotateDrag, updateDragPosition, cancelDrag, tryPlaceDrag, getPlacementPreview]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

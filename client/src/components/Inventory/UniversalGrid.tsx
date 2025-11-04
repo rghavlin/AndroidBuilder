@@ -42,7 +42,7 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, dragState, beginDrag, tryPlaceDrag, getPlacementPreview } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -55,6 +55,26 @@ export default function UniversalGrid({
 
   // Choose slot size based on grid type
   const slotSize = gridType === 'fixed' ? fixedSlotSize : scalableSlotSize;
+
+  // Handle rotation with R key
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        console.log('[UniversalGrid] R key - rotating selected item');
+        rotateSelected();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        console.log('[UniversalGrid] Escape - clearing selection');
+        clearSelected();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedItem, rotateSelected, clearSelected]);
 
   // Load item images when inventory changes (using inventoryVersion for stable dependency)
   useEffect(() => {
@@ -93,41 +113,34 @@ export default function UniversalGrid({
   }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
 
   const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
-    // Only treat as click-to-place if we're already dragging AND clicking on empty space
-    if (dragState && !item) {
-      event.preventDefault();
-      event.stopPropagation();
-      
-      const result = tryPlaceDrag(containerId, x, y);
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // If clicking empty space with item selected, try to place
+    if (selectedItem && !item) {
+      const result = placeSelected(containerId, x, y);
       if (!result.success) {
-        console.warn('[UniversalGrid] Drop failed:', result.reason);
+        console.warn('[UniversalGrid] Placement failed:', result.reason);
       }
       return;
     }
     
-    // If clicking on an item (even while dragging), start a new drag
+    // If clicking an item
     if (item && item.instanceId) {
-      event.preventDefault();
-      event.stopPropagation();
-      
-      const cursorX = event.clientX;
-      const cursorY = event.clientY;
-      
-      console.debug('[UniversalGrid] Starting drag:', item.name, 'at cursor:', cursorX, cursorY, 'from grid pos:', item.x, item.y);
-      
-      // Initialize drag with current cursor position - THIS IS CRITICAL
-      const success = beginDrag(item, containerId, item.x, item.y, cursorX, cursorY);
-      if (!success) {
-        console.warn('[UniversalGrid] Failed to begin drag');
+      // If this is the already-selected item, deselect it
+      if (selectedItem && selectedItem.item.instanceId === item.instanceId) {
+        console.debug('[UniversalGrid] Deselecting item:', item.name);
+        clearSelected();
       } else {
-        console.debug('[UniversalGrid] Drag started successfully');
+        // Select this item
+        console.debug('[UniversalGrid] Selecting item:', item.name, 'at grid pos:', item.x, item.y);
+        selectItem(item, containerId, item.x, item.y);
       }
-      
-      // CRITICAL: Stop propagation to prevent parent click handlers from clearing drag
-      event.stopPropagation();
-    } else {
-      onSlotClick?.(x, y);
+      return;
     }
+    
+    // Clicking empty space with no selection
+    onSlotClick?.(x, y);
   };
 
   const handleItemContextMenu = async (item: any, x: number, y: number, event: React.MouseEvent) => {
@@ -188,7 +201,7 @@ export default function UniversalGrid({
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragState) {
+    if (!selectedItem) {
       setPreviewOverlay(null);
       return;
     }
@@ -204,7 +217,7 @@ export default function UniversalGrid({
     const gridY = Math.floor(y / slotWithGap);
 
     if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height) {
-      // Always recalculate preview with current drag rotation
+      // Recalculate preview with current selection rotation
       const preview = getPlacementPreview(containerId, gridX, gridY);
       setPreviewOverlay(preview);
     } else {
@@ -323,6 +336,9 @@ export default function UniversalGrid({
         y >= previewOverlay.gridY && 
         y < previewOverlay.gridY + previewOverlay.height;
 
+      // Highlight selected item
+      const isSelected = selectedItem && item && item.instanceId === selectedItem.item.instanceId;
+
       return (
         <GridSlot
           key={`${x}-${y}`}
@@ -339,7 +355,10 @@ export default function UniversalGrid({
           onMouseEnter={() => item && setHoveredItem(item.instanceId)}
           onMouseLeave={() => setHoveredItem(null)}
           data-testid={`${containerId}-slot-${x}-${y}`}
-          className={isPreviewCell ? (previewOverlay.valid ? 'bg-green-500/20' : 'bg-red-500/20') : undefined}
+          className={cn(
+            isPreviewCell && (previewOverlay.valid ? 'bg-green-500/20' : 'bg-red-500/20'),
+            isSelected && 'ring-2 ring-yellow-400 ring-inset'
+          )}
         />
       );
     });

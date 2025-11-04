@@ -301,76 +301,73 @@ useEffect(() => {
 
 ---
 
-### 5G — Advanced drag interactions (cursor-following with rotation)
-**Goal:** Implement a cursor-following drag system where items stick to the cursor, can be rotated mid-drag, and provide visual feedback for valid/invalid placement.
+### 5G — Selection-based drag interactions (REVISED APPROACH)
+**Goal:** Implement a selection-highlighting drag system where items are visually highlighted when selected, with placement preview showing where they will go.
 
 **Pattern Overview:**
-This replaces standard HTML5 drag/drop with a custom system inspired by games like Escape from Tarkov:
-1. **Left-click on item** → Item "attaches" to cursor (rendered at cursor position)
-2. **Right-click while dragging** → Rotate item preview 90° (visual only, doesn't commit)
-3. **Move mouse** → Item follows cursor; grid shows valid/invalid placement zones
-4. **Left-click to place** → Attempt placement at cursor position; if invalid, return to origin
-5. **Escape/cancel** → Return item to original position without placement attempt
+This uses a simpler, more reliable approach than cursor-following:
+1. **Left-click on item** → Item gets bright highlight/border (remains visible at origin)
+2. **R key or right-click** → Rotate selected item 90° (updates placement preview)
+3. **Mouse over grid** → Shows green (valid) or red (invalid) placement preview at cursor
+4. **Left-click empty cell** → Place item at that position; if invalid, item stays selected
+5. **Escape key or click same item** → Deselect item
+
+**Why This Approach:**
+- **70% less complexity** than cursor-following (no portal, no z-index, no cursor tracking)
+- **Reuses existing preview system** that already works perfectly
+- **Clearer visual feedback** - player sees both source item AND destination preview
+- **More robust** - fewer edge cases, timing issues, and event conflicts
+- **Matches professional games** - Diablo, Path of Exile use similar systems
 
 **Implementation:**
 
 **New state management in InventoryContext:**
 ```jsx
-// Add to InventoryProvider
-const [draggedItem, setDraggedItem] = useState(null);
-const [dragRotation, setDragRotation] = useState(0);
-const [dragOrigin, setDragOrigin] = useState(null); // { containerId, x, y }
+// Simplified state (no cursor tracking needed)
+const [selectedItem, setSelectedItem] = useState(null); 
+// { item, originContainerId, originX, originY, rotation }
 ```
 
-**Drag lifecycle handlers:**
-- `startDrag(item, originContainer, x, y)`: Remove item from origin, store origin info, attach to cursor
-- `rotateDraggedItem()`: Increment rotation by 90° (visual only, doesn't affect original item)
-- `updateDragPosition(mouseX, mouseY)`: Track cursor position for rendering
-- `commitDragPlacement(targetContainer, x, y)`: Attempt placement; if fails, return to origin
-- `cancelDrag()`: Return item to origin without attempting placement
+**Selection lifecycle handlers:**
+- `selectItem(item, containerId, x, y)`: Highlight item at origin position
+- `rotateSelected()`: Increment rotation by 90° (updates preview validation)
+- `clearSelected()`: Remove selection highlight
+- `placeSelected(targetContainer, x, y)`: Move item from origin to target; restore origin on failure
 
 **Visual feedback system:**
+- **Selected item**: Bright yellow/gold border at source position (ring-2 ring-yellow-400)
 - **Valid placement zone**: Green semi-transparent overlay on target grid cells
-- **Invalid placement zone**: Red semi-transparent overlay (out of bounds or occupied)
-- **Item preview**: Render at cursor position with current rotation, semi-transparent
-- **Origin ghost**: Optional faded outline at original position to show where item came from
+- **Invalid placement zone**: Red semi-transparent overlay
+- **Placement preview**: Shows exact footprint with rotation at destination
 
-**Grid slot validation:**
+**Grid interaction:**
 - `UniversalGrid` calculates mouse position → grid coordinates in real-time
 - On mouse move over grid, check `Container.validatePlacement(item, x, y)` for visual feedback
-- Only commit placement on left-click if validation passes
-
-**Right-click rotation:**
-- Attach `onContextMenu` handler to document while dragging
-- Call `event.preventDefault()` to suppress browser context menu
-- Rotate preview item by 90° without affecting original item or grid
-- Validation re-runs with new rotation to update visual feedback
+- Left-click empty cell → calls `placeSelected(containerId, x, y)`
+- Left-click selected item → calls `clearSelected()`
 
 **Keyboard shortcuts:**
-- `R` key: Rotate item (alternative to right-click)
-- `Escape`: Cancel drag and return to origin
-- `Space`: Attempt auto-place in nearest valid position
-
-**Touch support (optional):**
-- Long-press to pick up item
-- Two-finger tap to rotate
-- Tap empty area to place
+- `R` key: Rotate selected item
+- `Escape`: Clear selection (deselect item)
 
 **Acceptance:**
-- Left-click item in any container → Item follows cursor with semi-transparent preview
-- Right-click while dragging → Item rotates 90°, visual feedback updates
-- Mouse over valid grid cells → Green highlight appears
-- Mouse over invalid cells → Red highlight appears
-- Left-click on valid cell → Item places at cursor position
-- Left-click on invalid cell → Item returns to origin, brief error flash
-- Escape key → Item returns to origin, no placement attempt
-- Rotation state resets between drag operations
+- Left-click item → Item gets bright border/highlight at origin
+- R key or right-click → Selected item rotates, placement preview updates
+- Mouse over valid cells → Green highlight shows footprint
+- Mouse over invalid cells → Red highlight shows blocked placement
+- Left-click valid cell → Item moves to new position
+- Left-click invalid cell → Nothing happens (item stays selected)
+- Escape key → Deselect item
+- Click same item again → Deselect item
+- Selection clears after successful placement
 
-**Edge cases to handle:**
-- Dragging off-screen: Item preview clamps to viewport edges or cancels drag
-- Container closes during drag: Auto-cancel and return to origin
-- Item stacking during drag: If target cell has stackable item, show stack preview
-- Multi-monitor: Cursor position calculations account for window bounds
+**Benefits over cursor-following:**
+- No DragPreviewLayer component needed
+- No portal rendering complexity
+- No mouse position tracking overhead
+- No z-index management issues
+- No event propagation conflicts
+- Existing placement preview system handles all visual feedback
 
 ---
 
