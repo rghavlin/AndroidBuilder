@@ -7,15 +7,22 @@ import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGridSize } from "@/contexts/GridSizeContext";
 
 export default function DragPreviewLayer() {
+  console.log('[DragPreviewLayer] ========================================');
   console.log('[DragPreviewLayer] === COMPONENT RENDER START ===');
+  console.log('[DragPreviewLayer] Timestamp:', new Date().toISOString());
   
-  const { dragState, updateDragPosition, rotateDrag, cancelDrag } = useInventory();
+  const inventoryContext = useInventory();
+  const { dragState, updateDragPosition, rotateDrag, cancelDrag } = inventoryContext;
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
 
+  console.log('[DragPreviewLayer] *** INVENTORY CONTEXT ***:', inventoryContext);
+  console.log('[DragPreviewLayer] *** DRAG STATE FROM CONTEXT ***:', dragState);
   console.log('[DragPreviewLayer] Hook values:', {
     hasDragState: !!dragState,
     dragStateValue: dragState,
+    dragStateType: typeof dragState,
+    dragStateKeys: dragState ? Object.keys(dragState) : [],
     fixedSlotSize,
     itemImage
   });

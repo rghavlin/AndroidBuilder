@@ -242,10 +242,16 @@ export const InventoryProvider = ({ children, manager }) => {
       cursorY: initialCursorY
     };
     
+    console.log('[InventoryContext] *** CRITICAL DEBUG ***');
+    console.log('[InventoryContext] Current dragState before update:', dragState);
     console.log('[InventoryContext] NEW DRAG STATE OBJECT:', newDragState);
-    console.log('[InventoryContext] Calling setDragState with new object...');
+    console.log('[InventoryContext] Object identity check - different object?', newDragState !== dragState);
+    console.log('[InventoryContext] Calling setDragState NOW...');
+    
     setDragState(newDragState);
-    console.log('[InventoryContext] setDragState called (state update scheduled)');
+    
+    console.log('[InventoryContext] setDragState called - state update scheduled');
+    console.log('[InventoryContext] React should re-render DragPreviewLayer on next tick');
     
     // Force UI update
     console.log('[InventoryContext] Incrementing inventoryVersion to force re-render...');
@@ -256,7 +262,7 @@ export const InventoryProvider = ({ children, manager }) => {
     
     console.log('[InventoryContext] === END BEGIN DRAG ===');
     return true;
-  }, []);
+  }, [dragState]);
 
   const rotateDrag = useCallback(() => {
     setDragState(prev => {

@@ -66,6 +66,7 @@ export default function InventoryPanel() {
       })}
 
       {/* Cursor-following drag preview */}
+      {console.log('[InventoryPanel] *** MOUNTING DragPreviewLayer ***')}
       <DragPreviewLayer />
     </div>
   );
