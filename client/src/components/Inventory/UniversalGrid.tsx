@@ -108,10 +108,19 @@ export default function UniversalGrid({
     // Right-click opens container if applicable
     if (item && canOpenContainer(item)) {
       try {
+        console.debug('[UniversalGrid] Opening container item:', {
+          name: item.name,
+          instanceId: item.instanceId,
+          hasContainerGrid: !!item.containerGrid,
+          hasContainerGridData: !!item._containerGridData,
+          containerGridData: item._containerGridData
+        });
+
         // Force container initialization if needed
         if (item.isContainer() && !item.containerGrid) {
           console.debug('[UniversalGrid] Container grid not initialized, initializing now:', item.name);
-          item.initializeContainerGrid();
+          const result = item.initializeContainerGrid();
+          console.debug('[UniversalGrid] Initialization result:', result);
         }
 
         const itemContainer = item.getContainerGrid();
@@ -119,7 +128,8 @@ export default function UniversalGrid({
         if (!itemContainer) {
           console.error('[UniversalGrid] Failed to get container grid for:', item.name, {
             hasContainerGridData: !!item._containerGridData,
-            containerGridValue: item.containerGrid
+            containerGridValue: item.containerGrid,
+            containerGridDataContent: item._containerGridData
           });
           return;
         }

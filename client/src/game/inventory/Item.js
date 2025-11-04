@@ -197,18 +197,34 @@ export class Item {
     
     // Can't initialize without data
     if (!this._containerGridData) {
+      console.warn('[Item] No container data to initialize for:', this.name);
       return null;
     }
     
     // Use Container.fromJSON to properly restore the full container with items
     try {
+      // Ensure Container class is available
+      if (typeof Container === 'undefined') {
+        console.error('[Item] Container class not available - circular import issue');
+        return null;
+      }
+      
+      console.debug('[Item] Initializing container for:', this.name, 'instanceId:', this.instanceId);
+      console.debug('[Item] Container data:', this._containerGridData);
+      
       this.containerGrid = Container.fromJSON(this._containerGridData);
       
-      console.debug('[Item] Lazy-initialized container:', this.name, this.instanceId, 'with', this.containerGrid.items.size, 'items');
+      if (!this.containerGrid) {
+        console.error('[Item] Container.fromJSON returned null/undefined');
+        return null;
+      }
+      
+      console.debug('[Item] ✅ Lazy-initialized container:', this.name, this.instanceId, 'with', this.containerGrid.items.size, 'items');
       
       return this.containerGrid;
     } catch (err) {
-      console.warn('[Item] Failed to initialize Container from data', this.instanceId, err);
+      console.error('[Item] Failed to initialize Container from data', this.instanceId, err);
+      console.error('[Item] Container data was:', this._containerGridData);
       return null;
     }
   }
