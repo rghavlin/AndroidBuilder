@@ -1,5 +1,6 @@
 
 import { ItemTrait } from './traits.js';
+import { Container } from './Container.js';
 
 /**
  * Item Instance - Runtime item with state
@@ -182,7 +183,8 @@ export class Item {
     
     // Attempt lazy initialization if we have data but no container yet
     if (this._containerGridData) {
-      return this.initializeContainerGrid();
+      this.initializeContainerGrid();
+      return this.containerGrid;
     }
     
     return null;
@@ -201,9 +203,6 @@ export class Item {
     
     // Create the container synchronously (Container is already imported at top of file)
     try {
-      // Import Container at runtime
-      const Container = require('./Container.js').Container;
-      
       this.containerGrid = new Container({
         id: this._containerGridData.id || `${this.instanceId}-container`,
         type: 'item-container',
@@ -265,7 +264,6 @@ export class Item {
 
     if (containerGrid) {
       try {
-        const Container = require('./Container.js').Container;
         item.containerGrid = Container.fromJSON(containerGrid);
       } catch (err) {
         item._containerGridData = containerGrid;

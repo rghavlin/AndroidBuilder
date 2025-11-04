@@ -95,13 +95,14 @@ export default function UniversalGrid({
     onSlotClick?.(x, y);
   };
 
-  const handleItemContextMenu = async (item: any, x: number, y: number, event: React.MouseEvent) => {
+  const handleItemContextMenu = (item: any, x: number, y: number, event: React.MouseEvent) => {
     event.preventDefault(); // Prevent browser context menu
 
     // Right-click opens container if applicable
     if (item && canOpenContainer(item)) {
       try {
-        const itemContainer = await item.getContainerGrid();
+        // getContainerGrid is synchronous, not async
+        const itemContainer = item.getContainerGrid();
         if (itemContainer) {
           console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
           openContainer(itemContainer.id);
