@@ -90,16 +90,20 @@ export default function UniversalGrid({
     }
   }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
 
-  const handleItemClick = async (item: any, x: number, y: number) => {
-    // First call any custom slot click handler
+  const handleItemClick = (item: any, x: number, y: number) => {
+    // Left-click just calls custom slot click handler (if any)
     onSlotClick?.(x, y);
+  };
 
-    // Then check if this item is a container that can be opened
+  const handleItemContextMenu = async (item: any, x: number, y: number, event: React.MouseEvent) => {
+    event.preventDefault(); // Prevent browser context menu
+
+    // Right-click opens container if applicable
     if (item && canOpenContainer(item)) {
       try {
         const itemContainer = await item.getContainerGrid();
         if (itemContainer) {
-          console.log('[UniversalGrid] Opening container:', item.name, 'ID:', itemContainer.id);
+          console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
           openContainer(itemContainer.id);
         } else {
           console.warn('[UniversalGrid] Container has no grid:', item.name);
@@ -108,7 +112,7 @@ export default function UniversalGrid({
         console.error('[UniversalGrid] Error getting container grid:', item.name, error);
       }
     } else if (item) {
-      console.debug('[UniversalGrid] Item cannot be opened inline:', item.name);
+      console.debug('[UniversalGrid] Item cannot be opened (not a container or not permitted):', item.name);
     }
   };
 
@@ -244,6 +248,7 @@ export default function UniversalGrid({
           imageHeight={0}
           isHovered={item?.instanceId === hoveredItem}
           onClick={() => handleItemClick(item, x, y)}
+          onContextMenu={(e) => handleItemContextMenu(item, x, y, e)}
           onDrop={(e) => onSlotDrop?.(x, y, e)}
           onDragOver={(e) => {
             e.preventDefault();

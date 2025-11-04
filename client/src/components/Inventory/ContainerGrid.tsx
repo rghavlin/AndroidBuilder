@@ -21,7 +21,7 @@ export default function ContainerGrid({
   maxWidth = "100%",
   enableHorizontalScroll = false
 }: ContainerGridProps) {
-  const { getContainer } = useInventory();
+  const { getContainer, moveItem } = useInventory();
   const container = getContainer(containerId);
 
   const handleSlotClick = (x: number, y: number) => {
@@ -30,8 +30,41 @@ export default function ContainerGrid({
 
   const handleSlotDrop = (x: number, y: number, event: React.DragEvent) => {
     event.preventDefault();
-    console.log(`Item dropped on ${containerId} slot (${x}, ${y})`);
-    // Phase 5F will implement actual moveItem logic
+    const itemId = event.dataTransfer.getData('itemId');
+    const fromContainerId = event.dataTransfer.getData('fromContainerId');
+
+    if (!itemId || !fromContainerId || !container) {
+      console.warn('[ContainerGrid] Invalid drop data - drop rejected', { itemId, fromContainerId, hasContainer: !!container });
+      return;
+    }
+
+    // Verify item exists in source container before attempting move
+    const sourceContainer = getContainer(fromContainerId);
+    if (!sourceContainer) {
+      console.error('[ContainerGrid] Source container not found:', fromContainerId);
+      return;
+    }
+
+    const item = sourceContainer.items.get(itemId);
+    if (!item) {
+      console.error('[ContainerGrid] Item not found in source container:', itemId);
+      return;
+    }
+
+    if (!item.instanceId) {
+      console.error('[ContainerGrid] REJECT DROP: Item has no instanceId:', item.name);
+      return;
+    }
+
+    console.log(`[ContainerGrid] Attempting move: item ${itemId} (${item.name}) from ${fromContainerId} to ${containerId} at (${x}, ${y})`);
+    
+    const result = moveItem(itemId, fromContainerId, containerId, x, y);
+
+    if (!result.success) {
+      console.error('[ContainerGrid] Move FAILED:', result.reason, '- item should remain in source container');
+    } else {
+      console.log('[ContainerGrid] Move SUCCESS - item now in', containerId);
+    }
   };
 
   if (!container) {

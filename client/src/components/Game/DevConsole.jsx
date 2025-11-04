@@ -119,6 +119,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  phase5c - Verify Phase 5C backpack visibility', 'info');
           addToConsole('  phase5d - Verify Phase 5D specialty container opening', 'info');
           addToConsole('  phase5e - Verify Phase 5E item movement between containers', 'info');
+          addToConsole('  phase5f - Verify Phase 5F (nested container interactions)', 'info');
           addToConsole('  equip backpack - Equip a test backpack (visual test)', 'info');
           addToConsole('  unequip backpack - Unequip backpack (visual test)', 'info');
           addToConsole('  create toolbox - Create test toolbox item on ground', 'info');
@@ -776,7 +777,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             // Log instanceIds to both console and dev console
             console.log('[Phase5E] Created knife with instanceId:', uniqueKnife.instanceId);
             console.log('[Phase5E] Created ammo with instanceId:', uniqueAmmo.instanceId);
-            
+
             addToConsole(`  - Knife instanceId: ${uniqueKnife.instanceId}`, 'log');
             addToConsole(`  - Ammo instanceId: ${uniqueAmmo.instanceId}`, 'log');
 

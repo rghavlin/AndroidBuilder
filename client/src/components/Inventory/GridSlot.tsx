@@ -9,6 +9,7 @@ interface GridSlotProps {
   className?: string;
   gridType?: 'scalable' | 'fixed';
   onClick?: () => void;
+  onContextMenu?: (event: React.MouseEvent) => void;
   onDrop?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
   onDragStart?: (item: any, event: React.DragEvent) => void;
@@ -31,6 +32,7 @@ export default function GridSlot({
   className,
   gridType = 'scalable',
   onClick,
+  onContextMenu,
   onDrop,
   onDragOver,
   onDragStart,
@@ -82,6 +84,7 @@ export default function GridSlot({
       }}
       draggable={!isEmpty}
       onClick={onClick}
+      onContextMenu={onContextMenu}
       onDrop={onDrop}
       onDragOver={onDragOver}
       onDragStart={handleDragStart}
