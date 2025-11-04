@@ -311,11 +311,17 @@ export default function UniversalGrid({
             imageWidth, imageHeight
           });
 
+          // Check if this item is selected for movement
+          const isItemSelected = selectedItem && item.instanceId === selectedItem.item.instanceId;
+
           overlays.push(
             <img
               key={itemId}
               src={itemImageSrc}
-              className="absolute pointer-events-none select-none"
+              className={cn(
+                "absolute pointer-events-none select-none transition-opacity duration-200",
+                isItemSelected && "opacity-40"
+              )}
               style={{
                 left: `${leftPos}px`,
                 top: `${topPos}px`,
@@ -357,7 +363,7 @@ export default function UniversalGrid({
           data-testid={`${containerId}-slot-${x}-${y}`}
           className={cn(
             isPreviewCell && (previewOverlay.valid ? 'bg-green-500/20' : 'bg-red-500/20'),
-            isSelected && 'ring-2 ring-yellow-400 ring-inset'
+            isSelected && 'ring-4 ring-yellow-400 ring-inset bg-yellow-400/20'
           )}
         />
       );
