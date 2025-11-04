@@ -262,7 +262,7 @@ export const InventoryProvider = ({ children, manager }) => {
     
     console.log('[InventoryContext] === END BEGIN DRAG ===');
     return true;
-  }, [dragState]);
+  }, []); // No dependencies needed - we set new state, don't read old state
 
   const rotateDrag = useCallback(() => {
     setDragState(prev => {
