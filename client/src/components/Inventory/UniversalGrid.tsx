@@ -180,7 +180,10 @@ export default function UniversalGrid({
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragState || dragState.item.instanceId === undefined) return;
+    if (!dragState) {
+      setPreviewOverlay(null);
+      return;
+    }
 
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -203,11 +206,10 @@ export default function UniversalGrid({
   // Recalculate preview when rotation changes
   useEffect(() => {
     if (dragState && previewOverlay) {
-      console.debug('[UniversalGrid] Rotation changed, recalculating preview overlay');
       const preview = getPlacementPreview(containerId, previewOverlay.gridX, previewOverlay.gridY);
       setPreviewOverlay(preview);
     }
-  }, [dragState?.rotation, containerId, getPlacementPreview, previewOverlay]);
+  }, [dragState?.rotation]);
 
   // Dynamic grid dimensions based on calculated slot size
   const gridWidth = width * slotSize;

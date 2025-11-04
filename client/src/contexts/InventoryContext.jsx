@@ -223,26 +223,27 @@ export const InventoryProvider = ({ children, manager }) => {
   }, []);
 
   const rotateDrag = useCallback(() => {
-    if (!dragState) return;
-    
-    const newRotation = (dragState.rotation + 90) % 360;
-    console.debug('[InventoryContext] Rotate drag to:', newRotation);
-    
-    setDragState(prev => ({
-      ...prev,
-      rotation: newRotation
-    }));
-  }, [dragState]);
+    setDragState(prev => {
+      if (!prev) return null;
+      const newRotation = (prev.rotation + 90) % 360;
+      console.debug('[InventoryContext] Rotate drag to:', newRotation);
+      return {
+        ...prev,
+        rotation: newRotation
+      };
+    });
+  }, []);
 
   const updateDragPosition = useCallback((cursorX, cursorY) => {
-    if (!dragState) return;
-    
-    setDragState(prev => ({
-      ...prev,
-      cursorX,
-      cursorY
-    }));
-  }, [dragState]);
+    setDragState(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        cursorX,
+        cursorY
+      };
+    });
+  }, []);
 
   const cancelDrag = useCallback(() => {
     console.debug('[InventoryContext] Cancel drag');

@@ -64,14 +64,12 @@ export default function DragPreviewLayer() {
 
   const { item, rotation, cursorX, cursorY } = dragState;
   
-  // Don't render if we don't have a valid cursor position yet
-  if (cursorX === 0 && cursorY === 0) {
-    console.debug('[DragPreviewLayer] Waiting for cursor position...');
+  if (!itemImage) {
     return null;
   }
-
-  if (!itemImage) {
-    console.debug('[DragPreviewLayer] Waiting for item image...');
+  
+  // Don't render until we have a cursor position from mouse movement
+  if (cursorX === 0 && cursorY === 0) {
     return null;
   }
 
@@ -88,15 +86,6 @@ export default function DragPreviewLayer() {
   // Center the preview on cursor
   const left = cursorX - pixelWidth / 2;
   const top = cursorY - pixelHeight / 2;
-
-  console.debug('[DragPreviewLayer] Rendering preview:', {
-    item: item.name,
-    rotation,
-    cursorPos: `(${cursorX}, ${cursorY})`,
-    displaySize: `${displayWidth}x${displayHeight}`,
-    pixelSize: `${pixelWidth}x${pixelHeight}`,
-    position: `(${left}, ${top})`
-  });
 
   return (
     <div
