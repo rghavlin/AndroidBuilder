@@ -41,6 +41,7 @@ export const InventoryProvider = ({ children, manager }) => {
   
   // Phase 5G: Cursor-following drag state
   const [dragState, setDragState] = useState(null); // { item, originContainer, originX, originY, rotation, cursorX, cursorY }
+  const [dragVersion, setDragVersion] = useState(0); // Force re-render on drag state changes
 
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
@@ -249,16 +250,10 @@ export const InventoryProvider = ({ children, manager }) => {
     console.log('[InventoryContext] Calling setDragState NOW...');
     
     setDragState(newDragState);
+    setDragVersion(prev => prev + 1); // Force context consumers to re-render
     
     console.log('[InventoryContext] setDragState called - state update scheduled');
     console.log('[InventoryContext] React should re-render DragPreviewLayer on next tick');
-    
-    // Force UI update
-    console.log('[InventoryContext] Incrementing inventoryVersion to force re-render...');
-    setInventoryVersion(prev => {
-      console.log('[InventoryContext] inventoryVersion:', prev, '->', prev + 1);
-      return prev + 1;
-    });
     
     console.log('[InventoryContext] === END BEGIN DRAG ===');
     return true;
@@ -274,6 +269,7 @@ export const InventoryProvider = ({ children, manager }) => {
         rotation: newRotation
       };
     });
+    setDragVersion(prev => prev + 1);
   }, []);
 
   const updateDragPosition = useCallback((cursorX, cursorY) => {
@@ -315,6 +311,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
     
     setDragState(null);
+    setDragVersion(prev => prev + 1);
   }, [dragState]);
 
   const tryPlaceDrag = useCallback((targetContainerId, targetX, targetY) => {
@@ -371,6 +368,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
     console.debug('[InventoryContext] Successfully placed item');
     setDragState(null);
+    setDragVersion(prev => prev + 1);
     setInventoryVersion(prev => prev + 1);
     return { success: true };
   }, [dragState, cancelDrag]);
@@ -418,7 +416,7 @@ export const InventoryProvider = ({ children, manager }) => {
   }, [inventoryRef.current]);
 
   const contextValue = useMemo(() => {
-    console.log('[InventoryContext] Creating new context value with dragState:', dragState);
+    console.log('[InventoryContext] Creating new context value - dragVersion:', dragVersion, 'dragState:', dragState);
     return {
       inventoryRef,
       inventoryVersion,
@@ -447,7 +445,7 @@ export const InventoryProvider = ({ children, manager }) => {
       tryPlaceDrag,
       getPlacementPreview
     };
-  }, [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, dragState, beginDrag, rotateDrag, updateDragPosition, cancelDrag, tryPlaceDrag, getPlacementPreview]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, dragState, beginDrag, rotateDrag, updateDragPosition, cancelDrag, tryPlaceDrag, getPlacementPreview]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

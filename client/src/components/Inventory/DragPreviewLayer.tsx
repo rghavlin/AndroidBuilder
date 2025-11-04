@@ -11,21 +11,13 @@ let renderCount = 0;
 
 export default function DragPreviewLayer() {
   renderCount++;
-  console.log('[DragPreviewLayer] ========================================');
-  console.log('[DragPreviewLayer] === COMPONENT RENDER #' + renderCount + ' ===');
-  console.log('[DragPreviewLayer] Timestamp:', new Date().toISOString());
   
   const inventoryContext = useInventory();
-  console.log('[DragPreviewLayer] *** RAW CONTEXT OBJECT ***:', inventoryContext);
-  
   const { dragState, updateDragPosition, rotateDrag, cancelDrag } = inventoryContext;
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
 
-  console.log('[DragPreviewLayer] *** DRAG STATE FROM CONTEXT ***:', dragState);
-  console.log('[DragPreviewLayer] dragState is null?', dragState === null);
-  console.log('[DragPreviewLayer] dragState is undefined?', dragState === undefined);
-  console.log('[DragPreviewLayer] Hook values:', {
+  console.log('[DragPreviewLayer] RENDER #' + renderCount, {
     hasDragState: !!dragState,
     dragStateValue: dragState,
     dragStateType: typeof dragState,

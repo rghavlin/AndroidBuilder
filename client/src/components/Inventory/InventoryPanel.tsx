@@ -8,7 +8,7 @@ import ContainerGrid from "./ContainerGrid";
 import DragPreviewLayer from "./DragPreviewLayer";
 
 export default function InventoryPanel() {
-  const { openContainers, closeContainer, getContainer, inventoryVersion } = useInventory();
+  const { openContainers, closeContainer, getContainer, inventoryVersion, dragState } = useInventory();
 
   // Clean up containers that no longer exist
   useEffect(() => {
@@ -66,10 +66,7 @@ export default function InventoryPanel() {
       })}
 
       {/* Cursor-following drag preview */}
-      {console.log('[InventoryPanel] *** RENDERING - About to mount DragPreviewLayer ***')}
-      {console.log('[InventoryPanel] dragState from context:', dragState)}
       <DragPreviewLayer />
-      {console.log('[InventoryPanel] *** DragPreviewLayer JSX created ***')}
     </div>
   );
 }
