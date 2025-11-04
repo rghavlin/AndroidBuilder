@@ -65,7 +65,7 @@ export default function InventoryPanel() {
         );
       })}
 
-      {/* Phase 5G: Cursor-following drag preview */}
+      {/* Cursor-following drag preview */}
       <DragPreviewLayer />
     </div>
   );
