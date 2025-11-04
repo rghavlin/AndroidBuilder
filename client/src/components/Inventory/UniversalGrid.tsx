@@ -249,7 +249,6 @@ export default function UniversalGrid({
           imageHeight={0}
           isHovered={item?.instanceId === hoveredItem}
           onClick={() => handleItemClick(item, x, y)}
-          onContextMenu={(e) => handleItemContextMenu(item, x, y, e)}
           onDrop={(e) => onSlotDrop?.(x, y, e)}
           onDragOver={(e) => {
             e.preventDefault();
@@ -258,6 +257,8 @@ export default function UniversalGrid({
           onDragStart={handleDragStart}
           onMouseEnter={() => item && setHoveredItem(item.instanceId)}
           onMouseLeave={() => setHoveredItem(null)}
+          onMouseDown={(e) => handleItemMouseDown(item, x, y, e)}
+          onContextMenu={(e) => handleItemContextMenu(item, x, y, e)}
           data-testid={`${containerId}-slot-${x}-${y}`}
         />
       );
