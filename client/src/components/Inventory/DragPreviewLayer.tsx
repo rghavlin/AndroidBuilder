@@ -12,8 +12,14 @@ export default function DragPreviewLayer() {
   // Load item image when drag starts
   useEffect(() => {
     if (dragState?.item?.imageId) {
+      setItemImage(null); // Clear old image first
       imageLoader.getItemImage(dragState.item.imageId).then(img => {
-        if (img) setItemImage(img.src);
+        if (img) {
+          console.debug('[DragPreviewLayer] Item image loaded:', dragState.item.name);
+          setItemImage(img.src);
+        } else {
+          console.warn('[DragPreviewLayer] Failed to load image for:', dragState.item.name);
+        }
       });
     } else {
       setItemImage(null);
@@ -66,10 +72,6 @@ export default function DragPreviewLayer() {
   if (!dragState) return null;
 
   const { item, rotation, cursorX, cursorY } = dragState;
-  
-  if (!itemImage) {
-    return null;
-  }
 
   const GAP_SIZE = 2;
 
@@ -95,14 +97,21 @@ export default function DragPreviewLayer() {
         height: `${pixelHeight}px`,
       }}
     >
-      <img
-        src={itemImage}
-        alt={item.name}
-        className="w-full h-full object-contain opacity-80"
-        style={{
-          transform: `rotate(${rotation}deg)`,
-        }}
-      />
+      {itemImage ? (
+        <img
+          src={itemImage}
+          alt={item.name}
+          className="w-full h-full object-contain opacity-80"
+          style={{
+            transform: `rotate(${rotation}deg)`,
+          }}
+        />
+      ) : (
+        // Show placeholder while image loads
+        <div className="w-full h-full border-2 border-dashed border-white/50 bg-white/10 flex items-center justify-center">
+          <span className="text-xs text-white/70">Loading...</span>
+        </div>
+      )}
       
       {/* Rotation indicator */}
       <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-white bg-black/75 px-2 py-1 rounded whitespace-nowrap">

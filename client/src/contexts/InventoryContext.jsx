@@ -211,7 +211,8 @@ export const InventoryProvider = ({ children, manager }) => {
       from: originContainerId,
       gridPos: `(${originX}, ${originY})`,
       cursorPos: `(${initialCursorX}, ${initialCursorY})`,
-      rotation: item.rotation || 0
+      rotation: item.rotation || 0,
+      imageId: item.imageId
     });
     
     // Remove item from its container during drag
@@ -221,7 +222,7 @@ export const InventoryProvider = ({ children, manager }) => {
       console.debug('[InventoryContext] Removed item from container during drag');
     }
     
-    setDragState({
+    const newDragState = {
       item,
       originContainerId,
       originX,
@@ -229,7 +230,10 @@ export const InventoryProvider = ({ children, manager }) => {
       rotation: item.rotation || 0,
       cursorX: initialCursorX,
       cursorY: initialCursorY
-    });
+    };
+    
+    console.debug('[InventoryContext] Setting drag state:', newDragState);
+    setDragState(newDragState);
     
     // Force UI update
     setInventoryVersion(prev => prev + 1);
