@@ -212,14 +212,20 @@ export class Item {
       console.debug('[Item] Initializing container for:', this.name, 'instanceId:', this.instanceId);
       console.debug('[Item] Container data:', this._containerGridData);
       
-      this.containerGrid = Container.fromJSON(this._containerGridData);
+      // Ensure the container data has a stable ID based on item instanceId
+      const containerData = {
+        ...this._containerGridData,
+        id: this._containerGridData.id || `${this.instanceId}-container`
+      };
+      
+      this.containerGrid = Container.fromJSON(containerData);
       
       if (!this.containerGrid) {
         console.error('[Item] Container.fromJSON returned null/undefined');
         return null;
       }
       
-      console.debug('[Item] ✅ Lazy-initialized container:', this.name, this.instanceId, 'with', this.containerGrid.items.size, 'items');
+      console.debug('[Item] ✅ Lazy-initialized container:', this.name, this.instanceId, 'ID:', this.containerGrid.id, 'with', this.containerGrid.items.size, 'items');
       
       return this.containerGrid;
     } catch (err) {
