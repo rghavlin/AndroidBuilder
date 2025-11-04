@@ -42,9 +42,11 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, dragState, beginDrag, tryPlaceDrag, getPlacementPreview } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [previewOverlay, setPreviewOverlay] = useState<any>(null);
+  const gridRef = useState<HTMLDivElement | null>(null);
 
   // Get fresh container data from context on every render
   const container = getContainer(containerId);
@@ -90,9 +92,26 @@ export default function UniversalGrid({
     }
   }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
 
-  const handleItemClick = (item: any, x: number, y: number) => {
-    // Left-click just calls custom slot click handler (if any)
-    onSlotClick?.(x, y);
+  const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
+    // If we're in drag mode, this is a drop attempt
+    if (dragState) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const result = tryPlaceDrag(containerId, x, y);
+      if (!result.success) {
+        console.warn('[UniversalGrid] Drop failed:', result.reason);
+      }
+      return;
+    }
+    
+    // Otherwise, begin drag
+    if (item && item.instanceId) {
+      event.preventDefault();
+      beginDrag(item, containerId, item.x, item.y);
+    } else {
+      onSlotClick?.(x, y);
+    }
   };
 
   const handleItemContextMenu = async (item: any, x: number, y: number, event: React.MouseEvent) => {
@@ -152,37 +171,25 @@ export default function UniversalGrid({
     }
   };
 
-  const handleItemMouseDown = (item: any, x: number, y: number, event: React.MouseEvent) => {
-    // Prevent text selection during drag
-    event.preventDefault();
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!dragState || dragState.item.instanceId === undefined) return;
 
-    if (onSlotClick) { // Changed from onItemClick to onSlotClick as per common usage
-      onSlotClick(x, y);
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const GAP_SIZE = 2;
+    const slotWithGap = slotSize + GAP_SIZE;
+    
+    const gridX = Math.floor(x / slotWithGap);
+    const gridY = Math.floor(y / slotWithGap);
+
+    if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height) {
+      const preview = getPlacementPreview(containerId, gridX, gridY);
+      setPreviewOverlay(preview);
+    } else {
+      setPreviewOverlay(null);
     }
-  };
-
-  const handleDragStart = (item: any, event: React.DragEvent) => {
-    // ALWAYS use instanceId for drag operations
-    if (!item.instanceId) {
-      console.error('[UniversalGrid] REJECT DRAG: No instanceId', item);
-      event.preventDefault();
-      return;
-    }
-
-    console.debug('[UniversalGrid] Drag started:', item.name, 'instanceId:', item.instanceId, 'from:', containerId);
-
-    // If dragging a container item, close its window
-    if (item.isContainer && item.isContainer()) {
-      const containerGrid = item.getContainerGrid();
-      if (containerGrid) {
-        console.debug('[UniversalGrid] Closing container window for dragged item:', containerGrid.id);
-        closeContainer(containerGrid.id);
-      }
-    }
-
-    event.dataTransfer.setData('itemId', item.instanceId);
-    event.dataTransfer.setData('fromContainerId', containerId);
-    event.dataTransfer.effectAllowed = 'move';
   };
 
   // Dynamic grid dimensions based on calculated slot size
@@ -289,6 +296,13 @@ export default function UniversalGrid({
         }
       }
 
+      // Show preview overlay for valid/invalid placement
+      const isPreviewCell = previewOverlay && 
+        x >= previewOverlay.gridX && 
+        x < previewOverlay.gridX + previewOverlay.width &&
+        y >= previewOverlay.gridY && 
+        y < previewOverlay.gridY + previewOverlay.height;
+
       return (
         <GridSlot
           key={`${x}-${y}`}
@@ -300,17 +314,12 @@ export default function UniversalGrid({
           imageWidth={0}
           imageHeight={0}
           isHovered={item?.instanceId === hoveredItem}
-          onClick={() => handleItemClick(item, x, y)}
+          onClick={(e) => handleItemClick(item, x, y, e)}
           onContextMenu={(e) => handleItemContextMenu(item, x, y, e)}
-          onDrop={(e) => onSlotDrop?.(x, y, e)}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-          }}
-          onDragStart={handleDragStart}
           onMouseEnter={() => item && setHoveredItem(item.instanceId)}
           onMouseLeave={() => setHoveredItem(null)}
           data-testid={`${containerId}-slot-${x}-${y}`}
+          className={isPreviewCell ? (previewOverlay.valid ? 'bg-green-500/20' : 'bg-red-500/20') : undefined}
         />
       );
     });
@@ -326,6 +335,8 @@ export default function UniversalGrid({
             height: `${gridHeight}px`,
             gap: '2px',
           }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setPreviewOverlay(null)}
           data-testid={testId || `grid-${containerId}`}
         >
           {gridSlots}

@@ -3,8 +3,9 @@ import { useInventory } from '@/contexts/InventoryContext';
 import EquipmentSlots from './EquipmentSlots';
 import BackpackGrid from './BackpackGrid';
 import GroundItemsGrid from './GroundItemsGrid';
-import FloatingContainer from './FloatingContainer';
-import ContainerGrid from './ContainerGrid';
+import FloatingContainer from "./FloatingContainer";
+import ContainerGrid from "./ContainerGrid";
+import DragPreviewLayer from "./DragPreviewLayer";
 
 export default function InventoryPanel() {
   const { openContainers, closeContainer, getContainer, inventoryVersion } = useInventory();
@@ -63,6 +64,9 @@ export default function InventoryPanel() {
           </FloatingContainer>
         );
       })}
-    </>
+
+      {/* Phase 5G: Cursor-following drag preview */}
+      <DragPreviewLayer />
+    </div>
   );
 }

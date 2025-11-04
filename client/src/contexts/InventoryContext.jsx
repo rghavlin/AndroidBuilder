@@ -38,6 +38,9 @@ export const InventoryProvider = ({ children, manager }) => {
   const inventoryRef = useRef(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [openContainers, setOpenContainers] = useState(new Set());
+  
+  // Phase 5G: Cursor-following drag state
+  const [dragState, setDragState] = useState(null); // { item, originContainer, originX, originY, rotation, cursorX, cursorY }
 
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
@@ -191,6 +194,129 @@ export const InventoryProvider = ({ children, manager }) => {
     return openContainers.has(containerId);
   }, [openContainers]);
 
+  // Phase 5G: Drag actions
+  const beginDrag = useCallback((item, originContainerId, originX, originY) => {
+    if (!item || !item.instanceId) {
+      console.warn('[InventoryContext] Cannot begin drag without valid item');
+      return false;
+    }
+
+    console.debug('[InventoryContext] Begin drag:', item.name, 'from', originContainerId, 'at', originX, originY);
+    
+    setDragState({
+      item,
+      originContainerId,
+      originX,
+      originY,
+      rotation: item.rotation || 0,
+      cursorX: 0,
+      cursorY: 0
+    });
+    
+    return true;
+  }, []);
+
+  const rotateDrag = useCallback(() => {
+    if (!dragState) return;
+    
+    const newRotation = (dragState.rotation + 90) % 360;
+    console.debug('[InventoryContext] Rotate drag to:', newRotation);
+    
+    setDragState(prev => ({
+      ...prev,
+      rotation: newRotation
+    }));
+  }, [dragState]);
+
+  const updateDragPosition = useCallback((cursorX, cursorY) => {
+    if (!dragState) return;
+    
+    setDragState(prev => ({
+      ...prev,
+      cursorX,
+      cursorY
+    }));
+  }, [dragState]);
+
+  const cancelDrag = useCallback(() => {
+    console.debug('[InventoryContext] Cancel drag');
+    setDragState(null);
+  }, []);
+
+  const tryPlaceDrag = useCallback((targetContainerId, targetX, targetY) => {
+    if (!dragState || !inventoryRef.current) {
+      return { success: false, reason: 'No drag in progress' };
+    }
+
+    const { item, originContainerId, originX, originY, rotation } = dragState;
+    
+    console.debug('[InventoryContext] Try place drag:', item.name, 'to', targetContainerId, 'at', targetX, targetY);
+
+    // Create a temporary item with the drag rotation for validation
+    const tempItem = { ...item, rotation };
+    
+    // Validate placement
+    const targetContainer = inventoryRef.current.getContainer(targetContainerId);
+    if (!targetContainer) {
+      console.warn('[InventoryContext] Target container not found:', targetContainerId);
+      setDragState(null);
+      return { success: false, reason: 'Target container not found' };
+    }
+
+    const validation = targetContainer.validatePlacement(tempItem, targetX, targetY);
+    if (!validation.valid) {
+      console.warn('[InventoryContext] Invalid placement:', validation.reason);
+      setDragState(null);
+      return { success: false, reason: validation.reason };
+    }
+
+    // Update item rotation if changed
+    if (rotation !== item.rotation) {
+      item.rotation = rotation;
+    }
+
+    // Perform the move
+    const result = inventoryRef.current.moveItem(
+      item.instanceId,
+      originContainerId,
+      targetContainerId,
+      targetX,
+      targetY
+    );
+
+    if (result.success) {
+      setInventoryVersion(prev => prev + 1);
+    }
+
+    setDragState(null);
+    return result;
+  }, [dragState]);
+
+  const getPlacementPreview = useCallback((targetContainerId, gridX, gridY) => {
+    if (!dragState || !inventoryRef.current) {
+      return null;
+    }
+
+    const { item, rotation } = dragState;
+    const tempItem = { ...item, rotation };
+    
+    const targetContainer = inventoryRef.current.getContainer(targetContainerId);
+    if (!targetContainer) {
+      return null;
+    }
+
+    const validation = targetContainer.validatePlacement(tempItem, gridX, gridY);
+    
+    return {
+      valid: validation.valid,
+      reason: validation.reason,
+      gridX,
+      gridY,
+      width: tempItem.getActualWidth ? tempItem.getActualWidth() : (rotation === 90 || rotation === 270) ? tempItem.height : tempItem.width,
+      height: tempItem.getActualHeight ? tempItem.getActualHeight() : (rotation === 90 || rotation === 270) ? tempItem.width : tempItem.height
+    };
+  }, [dragState]);
+
   useEffect(() => {
     if (inventoryRef.current) {
       console.debug('[InventoryContext] InventoryManager initialized');
@@ -220,8 +346,16 @@ export const InventoryProvider = ({ children, manager }) => {
     openContainers,
     openContainer,
     closeContainer,
-    isContainerOpen
-  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen]);
+    isContainerOpen,
+    // Phase 5G: Drag system
+    dragState,
+    beginDrag,
+    rotateDrag,
+    updateDragPosition,
+    cancelDrag,
+    tryPlaceDrag,
+    getPlacementPreview
+  }), [inventoryVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, dragState, beginDrag, rotateDrag, updateDragPosition, cancelDrag, tryPlaceDrag, getPlacementPreview]);
 
   return (
     <InventoryContext.Provider value={contextValue}>
