@@ -298,22 +298,28 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     const { item, rotation } = dragState;
-    const tempItem = { ...item, rotation };
+    
+    // Calculate dimensions based on rotation
+    const isRotated = rotation === 90 || rotation === 270;
+    const width = isRotated ? item.height : item.width;
+    const height = isRotated ? item.width : item.height;
     
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
     if (!targetContainer) {
       return null;
     }
 
-    const validation = targetContainer.validatePlacement(tempItem, gridX, gridY);
+    // Create item object with current rotation for validation
+    const itemForValidation = { ...item, rotation };
+    const validation = targetContainer.validatePlacement(itemForValidation, gridX, gridY);
     
     return {
       valid: validation.valid,
       reason: validation.reason,
       gridX,
       gridY,
-      width: tempItem.getActualWidth ? tempItem.getActualWidth() : (rotation === 90 || rotation === 270) ? tempItem.height : tempItem.width,
-      height: tempItem.getActualHeight ? tempItem.getActualHeight() : (rotation === 90 || rotation === 270) ? tempItem.width : tempItem.height
+      width,
+      height
     };
   }, [dragState]);
 

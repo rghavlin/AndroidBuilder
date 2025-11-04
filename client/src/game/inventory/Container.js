@@ -116,16 +116,29 @@ export class Container {
    * Validate if an item can be placed at a specific position (for drag-and-drop)
    */
   validatePlacement(item, x, y) {
-    const width = item.getActualWidth();
-    const height = item.getActualHeight();
+    // Calculate dimensions, accounting for rotation
+    // Use methods if available, otherwise calculate directly
+    const rotation = item.rotation || 0;
+    const isRotated = rotation === 90 || rotation === 270;
+    
+    let width, height;
+    if (typeof item.getActualWidth === 'function') {
+      width = item.getActualWidth();
+      height = item.getActualHeight();
+    } else {
+      // Fallback for plain objects without methods
+      width = isRotated ? item.height : item.width;
+      height = isRotated ? item.width : item.height;
+    }
     
     // Check bounds
     if (!this.isValidPosition(x, y, width, height)) {
       return { valid: false, reason: 'Out of bounds' };
     }
     
-    // Check for collisions
-    if (!this.isAreaFree(x, y, width, height, item.id)) {
+    // Check for collisions (use instanceId for proper identification)
+    const itemId = item.instanceId || item.id;
+    if (!this.isAreaFree(x, y, width, height, itemId)) {
       return { valid: false, reason: 'Position occupied' };
     }
     
