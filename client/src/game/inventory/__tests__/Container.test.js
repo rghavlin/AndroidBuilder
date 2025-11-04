@@ -101,7 +101,7 @@ export function runContainerTests() {
   // Phase 2 Tests
   runTest('Item rotation', () => {
     const container = new Container({ id: 'test-container', width: 5, height: 5 });
-    const item = new Item({ id: 'rifle', type: 'weapon', width: 1, height: 4 });
+    const item = new Item({ id: 'rifle', type: 'weapon', width: 4, height: 1 });
     
     container.placeItemAt(item, 1, 1);
     
@@ -111,8 +111,8 @@ export function runContainerTests() {
       throw new Error('Item rotation failed when space was available');
     }
     
-    // After rotation, dimensions should be swapped
-    if (item.getActualWidth() !== 4 || item.getActualHeight() !== 1) {
+    // After rotation, dimensions should be swapped (4×1 becomes 1×4 when rotated)
+    if (item.getActualWidth() !== 1 || item.getActualHeight() !== 4) {
       throw new Error('Item dimensions not updated after rotation');
     }
   });

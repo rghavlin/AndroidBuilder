@@ -106,7 +106,7 @@ const ITEM_TEMPLATES = {
 
   // Tools (some equippable)
   'tool.flashlight': {
-    width: 1, height: 2, condition: 100,
+    width: 2, height: 1, condition: 100,
     equippableSlot: 'flashlight'
   },
   'tool.hammer': { width: 2, height: 1, condition: 100 },
@@ -124,7 +124,7 @@ const ITEM_TEMPLATES = {
 
   // Food (stackable)
   'food.canned': { width: 1, height: 1, stackable: true, stackMax: 6 },
-  'food.water': { width: 1, height: 2, stackable: true, stackMax: 4 },
+  'food.water': { width: 2, height: 1, stackable: true, stackMax: 4 },
 
   // Attachments (for firearms)
   'attachment.suppressor': { width: 1, height: 2, condition: 100 },

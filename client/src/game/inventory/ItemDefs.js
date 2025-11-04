@@ -88,8 +88,8 @@ export const ItemDefs = {
     id: 'weapon.knife',
     name: 'Knife',
     imageId: 'knife', // No extension - loader will append .png
-    width: 1,
-    height: 2,
+    width: 2,
+    height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
     condition: 100
@@ -99,8 +99,8 @@ export const ItemDefs = {
     id: 'weapon.baseball_bat',
     name: 'Baseball Bat',
     imageId: 'woodbat', // No extension - loader will append .png
-    width: 1,
-    height: 3,
+    width: 3,
+    height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
     condition: 100
@@ -119,8 +119,8 @@ export const ItemDefs = {
   'weapon.rifle': {
     id: 'weapon.rifle',
     name: 'Rifle',
-    width: 1,
-    height: 4,
+    width: 4,
+    height: 1,
     traits: [ItemTrait.EQUIPPABLE],
     equippableSlot: EquipmentSlot.LONG_GUN
   },
@@ -129,8 +129,8 @@ export const ItemDefs = {
   'tool.flashlight': {
     id: 'tool.flashlight',
     name: 'Flashlight',
-    width: 1,
-    height: 2,
+    width: 2,
+    height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.FLASHLIGHT,
     condition: 100
