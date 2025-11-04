@@ -70,11 +70,6 @@ export default function DragPreviewLayer() {
   if (!itemImage) {
     return null;
   }
-  
-  // Don't render until we have a cursor position from mouse movement
-  if (cursorX === 0 && cursorY === 0) {
-    return null;
-  }
 
   const GAP_SIZE = 2;
 

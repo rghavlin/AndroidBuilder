@@ -200,6 +200,11 @@ export const InventoryProvider = ({ children, manager }) => {
       console.warn('[InventoryContext] Cannot begin drag without valid item');
       return false;
     }
+    
+    // Ensure we have valid cursor coordinates
+    if (initialCursorX === 0 && initialCursorY === 0) {
+      console.warn('[InventoryContext] beginDrag called without cursor position - drag preview may not render immediately');
+    }
 
     console.debug('[InventoryContext] Begin drag:', {
       name: item.name,

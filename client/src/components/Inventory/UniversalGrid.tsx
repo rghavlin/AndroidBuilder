@@ -110,12 +110,17 @@ export default function UniversalGrid({
       event.preventDefault();
       event.stopPropagation();
       
-      console.debug('[UniversalGrid] Starting drag:', item.name, 'at cursor:', event.clientX, event.clientY);
+      const cursorX = event.clientX;
+      const cursorY = event.clientY;
+      
+      console.debug('[UniversalGrid] Starting drag:', item.name, 'at cursor:', cursorX, cursorY, 'from grid pos:', item.x, item.y);
       
       // Initialize drag with current cursor position - THIS IS CRITICAL
-      const success = beginDrag(item, containerId, item.x, item.y, event.clientX, event.clientY);
+      const success = beginDrag(item, containerId, item.x, item.y, cursorX, cursorY);
       if (!success) {
         console.warn('[UniversalGrid] Failed to begin drag');
+      } else {
+        console.debug('[UniversalGrid] Drag started successfully');
       }
     } else {
       onSlotClick?.(x, y);
