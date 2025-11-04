@@ -1,0 +1,50 @@
+the right-click handler is firing, but it dies inside Item.initializeContainerGrid() because that function tries to use require(...) in the browser. Since your app is ESM (Vite) and not Node, require is undefined, the init throws, and the UI concludes “container has no grid,” so nothing opens.
+
+Why I’m confident:
+
+Your log shows the exact path:
+onContextMenu → handleItemContextMenu (UniversalGrid.tsx:104/251) → Item.getContainerGrid() → Item.initializeContainerGrid() and then:
+ReferenceError: require is not defined (Item.js:205/221).
+Immediately after, UniversalGrid logs: “Container has no grid: Tool Box / Lunch Box”.
+That’s the entire right-click flow aborting at container-grid creation.
+
+Left-click/drag works because that path never touches initializeContainerGrid()—it just moves the item via InventoryManager.moveItem.
+
+What’s happening in code (inference from the stack & naming):
+
+initializeContainerGrid() likely does something like “lazy load the container class” with const Container = require('./.../Container') (or a dynamic require based on the item’s type). In the browser, require doesn’t exist, so the first attempt to create the nested container throws.
+
+What will unblock it (conceptual, not a code diff):
+
+Stop using require in browser code. Use one of these patterns:
+
+Prefer a static ESM import at the top of Item.js (import Container from '.../Container.js') and instantiate it directly in initializeContainerGrid(). This is simplest and synchronous (matches your current call sites).
+
+If you used require to dodge a circular import, move the responsibility to a neutral place: let InventoryManager (or an ItemFactory) instantiate item.innerContainer = new Container(...) when it creates items with the container trait. Then Item.getContainerGrid() just returns this.innerContainer.grid—no dynamic loading at all.
+
+Least ideal: convert to an async dynamic import (await import('.../Container.js')). That would force getContainerGrid()/handlers to become async and ripple through the UI.
+
+Keep the error visible until it’s fixed. Your current catch/log in Item is good, but right now it swallows the failure and UniversalGrid just bails. Once you remove require, that log should disappear and getContainerGrid() should return a 2D array.
+
+Quick confirmations you can run in the Dev Console (no code edits):
+
+Right-click an item that’s a container and watch for either:
+
+✅ No error + a truthy grid printed if you temporarily instrument getContainerGrid() to console.log(this._containerGrid).
+
+❌ The same “require is not defined” again (means the lazy load path is still executing).
+
+Sanity check the trait on the item you’re right-clicking (just to be sure the UI is picking the container branch):
+
+const inv = window.inventoryManager;
+const bp = inv.getContainer('backpack-container');
+[...bp.items.values()].map(i => ({ name: i.name, instanceId: i.instanceId, hasContainerTrait: !!i.containerSpec }))
+
+
+You should see the lunch box / tool box with a truthy container spec.
+
+Why Replit’s earlier attempts didn’t fix it
+
+Any UI tweaks in UniversalGrid won’t matter as long as Item.initializeContainerGrid() is throwing before a grid exists. The bug is squarely in the item’s nested-container initialization path, not the context-menu wiring.
+
+Once you eliminate require (or move the creation out of Item), right-clicking should open the nested grid as expected.
