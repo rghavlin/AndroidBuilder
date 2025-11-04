@@ -42,7 +42,7 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
@@ -63,7 +63,7 @@ export default function UniversalGrid({
 
       for (const [mapKey, item] of items.entries()) {
         console.debug(`[UniversalGrid] Item Map entry - key: ${mapKey}, item.instanceId: ${item.instanceId}, item.id: ${item.id}, item.name: ${item.name}`);
-        
+
         if (item.imageId) {
           try {
             const img = await imageLoader.getItemImage(item.imageId);
@@ -124,7 +124,7 @@ export default function UniversalGrid({
         }
 
         const itemContainer = item.getContainerGrid();
-        
+
         if (!itemContainer) {
           console.error('[UniversalGrid] Failed to get container grid for:', item.name, {
             hasContainerGridData: !!item._containerGridData,
@@ -135,14 +135,14 @@ export default function UniversalGrid({
         }
 
         console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
-        
+
         // Register container with InventoryManager if not already registered
         const manager = (window as any).__inventoryManager;
         if (manager && !manager.getContainer(itemContainer.id)) {
           console.debug('[UniversalGrid] Registering container:', itemContainer.id);
           manager.addContainer(itemContainer);
         }
-        
+
         openContainer(itemContainer.id);
       } catch (error) {
         console.error('[UniversalGrid] Error getting container grid:', item.name, error);
@@ -168,9 +168,18 @@ export default function UniversalGrid({
       event.preventDefault();
       return;
     }
-    
+
     console.debug('[UniversalGrid] Drag started:', item.name, 'instanceId:', item.instanceId, 'from:', containerId);
-    
+
+    // If dragging a container item, close its window
+    if (item.isContainer && item.isContainer()) {
+      const containerGrid = item.getContainerGrid();
+      if (containerGrid) {
+        console.debug('[UniversalGrid] Closing container window for dragged item:', containerGrid.id);
+        closeContainer(containerGrid.id);
+      }
+    }
+
     event.dataTransfer.setData('itemId', item.instanceId);
     event.dataTransfer.setData('fromContainerId', containerId);
     event.dataTransfer.effectAllowed = 'move';
@@ -206,6 +215,14 @@ export default function UniversalGrid({
       const y = Math.floor(index / width);
       const itemId = grid[y]?.[x];
       const item = itemId ? items.get(itemId) : null;
+
+      // Prevent containers from being placed inside themselves
+      // Check if the current item being rendered is a container and if its parent container's ID matches its own ID
+      if (item && item.isContainer && item.isContainer() && item.getContainerGrid().id === containerId) {
+        console.warn('[UniversalGrid] Preventing container from being placed inside itself:', item.name, 'containerId:', containerId);
+        // Optionally, you could mark this slot as invalid or visually indicate the issue
+        // For now, we'll just log a warning and let the drag/drop logic handle prevention
+      }
 
       // Determine if this is the top-left cell for this item
       let isTopLeft = false;
@@ -245,7 +262,7 @@ export default function UniversalGrid({
           // Position = (coordinate * slotSize) + (coordinate * gap) = coordinate * (slotSize + gap)
           const leftPos = topLeftX * (slotSize + GAP_SIZE);
           const topPos = topLeftY * (slotSize + GAP_SIZE);
-          
+
           console.debug('[UniversalGrid] Rendering overlay:', {
             itemName: item.name,
             topLeftX, topLeftY,

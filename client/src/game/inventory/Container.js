@@ -192,6 +192,15 @@ export class Container {
     console.debug('[Container] Current items in container:', this.items.size);
     console.debug('[Container] Existing instanceIds:', Array.from(this.items.keys()));
 
+    // Prevent container from being placed inside itself
+    if (item.isContainer && item.isContainer()) {
+      const itemContainer = item.getContainerGrid();
+      if (itemContainer && itemContainer.id === this.id) {
+        console.warn('[Container] REJECT: Cannot place container inside itself:', item.name);
+        return false;
+      }
+    }
+
     // Validate bounds first
     if (!this.isValidPosition(x, y, width, height)) {
       console.warn('[Container] REJECT: Invalid position for item:', item.name, 'at', x, y, 'size:', width, 'x', height);
