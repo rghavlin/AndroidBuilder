@@ -195,7 +195,7 @@ export const InventoryProvider = ({ children, manager }) => {
   }, [openContainers]);
 
   // Phase 5G: Drag actions
-  const beginDrag = useCallback((item, originContainerId, originX, originY) => {
+  const beginDrag = useCallback((item, originContainerId, originX, originY, initialCursorX = 0, initialCursorY = 0) => {
     if (!item || !item.instanceId) {
       console.warn('[InventoryContext] Cannot begin drag without valid item');
       return false;
@@ -209,8 +209,8 @@ export const InventoryProvider = ({ children, manager }) => {
       originX,
       originY,
       rotation: item.rotation || 0,
-      cursorX: 0,
-      cursorY: 0
+      cursorX: initialCursorX,
+      cursorY: initialCursorY
     });
     
     return true;

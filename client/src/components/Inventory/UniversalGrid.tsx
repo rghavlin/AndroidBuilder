@@ -93,8 +93,8 @@ export default function UniversalGrid({
   }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
 
   const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
-    // If we're in drag mode, this is a drop attempt
-    if (dragState) {
+    // Only treat as click-to-place if we're already dragging AND clicking on empty space
+    if (dragState && !item) {
       event.preventDefault();
       event.stopPropagation();
       
@@ -105,10 +105,13 @@ export default function UniversalGrid({
       return;
     }
     
-    // Otherwise, begin drag
+    // If clicking on an item (even while dragging), start a new drag
     if (item && item.instanceId) {
       event.preventDefault();
-      beginDrag(item, containerId, item.x, item.y);
+      event.stopPropagation();
+      
+      // Initialize drag with current cursor position
+      beginDrag(item, containerId, item.x, item.y, event.clientX, event.clientY);
     } else {
       onSlotClick?.(x, y);
     }
@@ -191,6 +194,14 @@ export default function UniversalGrid({
       setPreviewOverlay(null);
     }
   };
+
+  // Recalculate preview when rotation changes
+  useEffect(() => {
+    if (dragState && previewOverlay) {
+      const preview = getPlacementPreview(containerId, previewOverlay.gridX, previewOverlay.gridY);
+      setPreviewOverlay(preview);
+    }
+  }, [dragState?.rotation]);
 
   // Dynamic grid dimensions based on calculated slot size
   const gridWidth = width * slotSize;

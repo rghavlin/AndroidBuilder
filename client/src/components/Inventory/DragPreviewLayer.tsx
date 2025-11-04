@@ -20,13 +20,22 @@ export default function DragPreviewLayer() {
     }
   }, [dragState?.item?.imageId]);
 
-  // Track mouse position
+  // Track mouse position and initialize on drag start
   useEffect(() => {
     if (!dragState) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       updateDragPosition(e.clientX, e.clientY);
     };
+
+    // Immediately capture initial position if not set
+    if (dragState.cursorX === 0 && dragState.cursorY === 0) {
+      const handleInitialMove = (e: MouseEvent) => {
+        updateDragPosition(e.clientX, e.clientY);
+        document.removeEventListener('mousemove', handleInitialMove);
+      };
+      document.addEventListener('mousemove', handleInitialMove);
+    }
 
     document.addEventListener('mousemove', handleMouseMove);
     return () => document.removeEventListener('mousemove', handleMouseMove);
@@ -98,7 +107,7 @@ export default function DragPreviewLayer() {
       
       {/* Rotation indicator */}
       <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-white bg-black/75 px-2 py-1 rounded whitespace-nowrap">
-        {item.name} ({rotation}°)
+        {item.name} ({displayWidth}×{displayHeight}) {rotation}°
       </div>
     </div>
   );
