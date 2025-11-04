@@ -200,23 +200,15 @@ export class Item {
       return null;
     }
     
-    // Create the container synchronously using imported Container class
+    // Use Container.fromJSON to properly restore the full container with items
     try {
-      this.containerGrid = new Container({
-        id: this._containerGridData.id || `${this.instanceId}-container`,
-        type: 'item-container',
-        name: `${this.name} Storage`,
-        width: this._containerGridData.width,
-        height: this._containerGridData.height,
-        autoExpand: this._containerGridData.autoExpand,
-        autoSort: this._containerGridData.autoSort
-      });
+      this.containerGrid = Container.fromJSON(this._containerGridData);
       
-      console.debug('[Item] Lazy-initialized container:', this.name, this.instanceId);
+      console.debug('[Item] Lazy-initialized container:', this.name, this.instanceId, 'with', this.containerGrid.items.size, 'items');
       
       return this.containerGrid;
     } catch (err) {
-      console.warn('[Item] Failed to initialize Container class', this.instanceId, err);
+      console.warn('[Item] Failed to initialize Container from data', this.instanceId, err);
       return null;
     }
   }

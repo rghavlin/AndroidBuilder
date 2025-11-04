@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useRef, useState, useCallback, useMemo, useEffect } from 'react';
 
 const InventoryContext = createContext();
@@ -158,20 +157,27 @@ export const InventoryProvider = ({ children, manager }) => {
     const cid = typeof containerOrId === 'string'
       ? containerOrId
       : containerOrId?.id;
-    
+
     if (!cid) {
       if (import.meta?.env?.DEV) {
         console.warn('[Inventory] openContainer called without valid id');
       }
       return;
     }
-    
-    setOpenContainers(prev => {
-      const next = new Set(prev);
-      next.add(cid);
-      return next;
-    });
-  }, []);
+
+    // Ensure container is registered in the manager
+    const container = inventoryRef.current.getContainer(cid);
+    if (container) {
+      console.debug('[InventoryContext] Opening container:', cid);
+      setOpenContainers(prev => {
+        const next = new Set(prev);
+        next.add(cid);
+        return next;
+      });
+    } else {
+      console.warn('[InventoryContext] Cannot open unregistered container:', cid);
+    }
+  }, [inventoryVersion]); // Dependency on inventoryVersion to ensure we get the latest manager state if it changes
 
   const closeContainer = useCallback((containerId) => {
     setOpenContainers(prev => {
@@ -184,6 +190,17 @@ export const InventoryProvider = ({ children, manager }) => {
   const isContainerOpen = useCallback((containerId) => {
     return openContainers.has(containerId);
   }, [openContainers]);
+
+  useEffect(() => {
+    if (inventoryRef.current) {
+      console.debug('[InventoryContext] InventoryManager initialized');
+      // Expose globally for container registration from UniversalGrid
+      (window as any).__inventoryManager = inventoryRef.current;
+    }
+    return () => {
+      (window as any).__inventoryManager = null;
+    };
+  }, [inventoryRef.current]);
 
   const contextValue = useMemo(() => ({
     inventoryRef,

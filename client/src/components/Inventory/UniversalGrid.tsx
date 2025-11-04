@@ -101,9 +101,17 @@ export default function UniversalGrid({
     // Right-click opens container if applicable
     if (item && canOpenContainer(item)) {
       try {
-        const itemContainer = await item.getContainerGrid();
+        const itemContainer = item.getContainerGrid();
         if (itemContainer) {
           console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
+          
+          // Register container with InventoryManager if not already registered
+          const manager = (window as any).__inventoryManager;
+          if (manager && !manager.getContainer(itemContainer.id)) {
+            console.debug('[UniversalGrid] Registering container:', itemContainer.id);
+            manager.addContainer(itemContainer);
+          }
+          
           openContainer(itemContainer.id);
         } else {
           console.warn('[UniversalGrid] Container has no grid:', item.name);
