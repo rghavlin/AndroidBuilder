@@ -9,22 +9,50 @@ export default function DragPreviewLayer() {
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
 
+  // Debug: Log when component mounts/unmounts
+  useEffect(() => {
+    console.debug('[DragPreviewLayer] Component mounted');
+    return () => console.debug('[DragPreviewLayer] Component unmounted');
+  }, []);
+
+  // Debug: Log drag state changes
+  useEffect(() => {
+    console.debug('[DragPreviewLayer] Drag state changed:', {
+      hasDragState: !!dragState,
+      itemName: dragState?.item?.name,
+      imageId: dragState?.item?.imageId,
+      cursorPos: dragState ? `(${dragState.cursorX}, ${dragState.cursorY})` : 'N/A'
+    });
+  }, [dragState]);
+
   // Load item image when drag starts
   useEffect(() => {
     if (dragState?.item?.imageId) {
+      console.debug('[DragPreviewLayer] Starting image load for:', dragState.item.imageId);
       setItemImage(null); // Clear old image first
-      imageLoader.getItemImage(dragState.item.imageId).then(img => {
-        if (img) {
-          console.debug('[DragPreviewLayer] Item image loaded:', dragState.item.name);
-          setItemImage(img.src);
-        } else {
-          console.warn('[DragPreviewLayer] Failed to load image for:', dragState.item.name);
-        }
-      });
+      
+      imageLoader.getItemImage(dragState.item.imageId)
+        .then(img => {
+          if (img) {
+            console.debug('[DragPreviewLayer] Image loaded successfully:', {
+              name: dragState.item.name,
+              src: img.src,
+              width: img.width,
+              height: img.height
+            });
+            setItemImage(img.src);
+          } else {
+            console.warn('[DragPreviewLayer] Image loader returned null for:', dragState.item.name);
+          }
+        })
+        .catch(err => {
+          console.error('[DragPreviewLayer] Image load error:', err);
+        });
     } else {
+      console.debug('[DragPreviewLayer] No imageId, clearing image');
       setItemImage(null);
     }
-  }, [dragState?.item?.imageId]);
+  }, [dragState?.item?.imageId, dragState?.item?.name]);
 
   // Track mouse position
   useEffect(() => {
@@ -69,9 +97,20 @@ export default function DragPreviewLayer() {
     };
   }, [dragState, rotateDrag, cancelDrag]);
 
-  if (!dragState) return null;
+  if (!dragState) {
+    console.debug('[DragPreviewLayer] Not rendering - no drag state');
+    return null;
+  }
 
   const { item, rotation, cursorX, cursorY } = dragState;
+
+  console.debug('[DragPreviewLayer] Rendering preview:', {
+    itemName: item.name,
+    rotation,
+    cursorPos: `(${cursorX}, ${cursorY})`,
+    hasImage: !!itemImage,
+    imageUrl: itemImage
+  });
 
   const GAP_SIZE = 2;
 
@@ -89,7 +128,7 @@ export default function DragPreviewLayer() {
 
   return (
     <div
-      className="fixed pointer-events-none z-[10000]"
+      className="fixed pointer-events-none z-[10000] border-2 border-yellow-400"
       style={{
         left: `${left}px`,
         top: `${top}px`,
@@ -105,11 +144,13 @@ export default function DragPreviewLayer() {
           style={{
             transform: `rotate(${rotation}deg)`,
           }}
+          onLoad={() => console.debug('[DragPreviewLayer] Image rendered in DOM')}
+          onError={(e) => console.error('[DragPreviewLayer] Image render error:', e)}
         />
       ) : (
-        // Show placeholder while image loads
-        <div className="w-full h-full border-2 border-dashed border-white/50 bg-white/10 flex items-center justify-center">
-          <span className="text-xs text-white/70">Loading...</span>
+        // Show bright placeholder while image loads
+        <div className="w-full h-full border-2 border-dashed border-yellow-400 bg-yellow-400/20 flex items-center justify-center">
+          <span className="text-sm text-yellow-400 font-bold">Loading {item.name}...</span>
         </div>
       )}
       
