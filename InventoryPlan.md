@@ -238,8 +238,41 @@ This command will:
 ### 5F — Minimal interactions (2): nested specialty containers
 **Goal:** Allow moves into/out of an **open** specialty container panel (same `moveItem` API). Still no visual redesign.
 
+**Design Decision: Click vs Drag Interaction**
+- **Left-click:** Initiates drag for moving container items (uses existing `onDragStart` handler)
+- **Right-click:** Opens container panels (uses `onContextMenu` handler, prevents browser context menu)
+- **Why:** Resolves the conflict between "click to open" and "drag to move" - standard game inventory pattern
+
 **Implementation:**
-- The floating panel’s `ContainerGrid` participates in the same drag/drop handlers.
+
+**1. Right-click to open containers:**
+```ts
+// In UniversalGrid.tsx
+const handleItemContextMenu = (item: any, x: number, y: number, event: React.MouseEvent) => {
+  event.preventDefault(); // Prevent browser context menu
+
+  if (item && canOpenContainer(item)) {
+    const containerGrid = await item.getContainerGrid();
+    if (containerGrid) {
+      openContainer(containerGrid.id);
+    }
+  }
+};
+
+// Wire through GridSlot
+<GridSlot
+  onContextMenu={(e) => handleItemContextMenu(item, x, y, e)}
+  // ... other props
+/>
+```
+
+**2. Left-click drag (existing behavior):**
+- Items remain draggable via the `draggable` attribute
+- `onDragStart` handler sets `itemId` and `fromContainerId` in dataTransfer
+- No changes needed - already working from Phase 5E
+
+**3. Floating panel drag/drop:**
+- The floating panel's `ContainerGrid` participates in the same drag/drop handlers.
 - Panel cleanup: listen to `inventoryVersion`; if `getContainer(containerId)` returns falsy, call `onClose()`.
 
 ```ts
@@ -250,9 +283,12 @@ useEffect(() => {
 ```
 
 **Acceptance:**
+- Right-click on a lunchbox/toolbox item opens its grid in a floating panel.
+- Left-click and drag moves the container item itself (same as any other item).
 - Drag an item from backpack into an open lunchbox panel and back.
 - Closing the panel or removing the lunchbox removes its panel cleanly.
 - Moving the lunchbox itself to ground closes its panel.
+- Right-click on non-container items does nothing (browser context menu prevented).
 
 ---
 
@@ -407,4 +443,3 @@ spawn <type> [count] - Spawn items on ground (knife, pistol, backpack, etc.)
 ---
 
 **End of plan.**
-
