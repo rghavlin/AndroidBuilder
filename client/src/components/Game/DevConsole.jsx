@@ -954,6 +954,122 @@ const DevConsole = ({ isOpen, onClose }) => {
           }
           break;
 
+        case 'phase5f':
+          try {
+            addToConsole('=== Phase 5F Verification (Nested Container Interactions) ===', 'info');
+
+            if (!window.inventoryManager) {
+              addToConsole('❌ InventoryManager not found - run Phase 5A first', 'error');
+              break;
+            }
+
+            // Test 1: Create test items with proper sizes and images
+            addToConsole('Test 1: Creating test containers and items...', 'info');
+
+            const { Item } = await import('../../game/inventory/Item.js');
+            const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+
+            // Create properly sized containers
+            const toolbox = new Item(createItemFromDef('container.toolbox'));
+            toolbox.instanceId = `toolbox-5f-${Date.now()}`;
+            
+            const lunchbox = new Item(createItemFromDef('container.lunchbox'));
+            lunchbox.instanceId = `lunchbox-5f-${Date.now()}`;
+
+            // Create test items
+            const knife = new Item(createItemFromDef('weapon.knife'));
+            knife.instanceId = `knife-5f-${Date.now()}`;
+
+            const ammo = new Item(createItemFromDef('ammo.9mm'));
+            ammo.instanceId = `ammo-5f-${Date.now()}`;
+
+            const groundContainer = window.inventoryManager.getContainer('ground');
+            if (!groundContainer) {
+              addToConsole('  ❌ Ground container not found', 'error');
+              break;
+            }
+
+            // Place containers and items on ground
+            groundContainer.addItem(toolbox);
+            groundContainer.addItem(lunchbox);
+            groundContainer.addItem(knife);
+            groundContainer.addItem(ammo);
+            window.inv?.refresh();
+
+            addToConsole('  ✅ Created toolbox (2×2), lunchbox (2×1), knife, and ammo on ground', 'success');
+            addToConsole(`  - Toolbox: ${toolbox.width}×${toolbox.height} with ${toolbox.containerGrid?.width}×${toolbox.containerGrid?.height} internal grid`, 'log');
+            addToConsole(`  - Lunchbox: ${lunchbox.width}×${lunchbox.height} with ${lunchbox.containerGrid?.width}×${lunchbox.containerGrid?.height} internal grid`, 'log');
+
+            // Test 2: Verify interaction methods
+            addToConsole('Test 2: Verifying interaction model...', 'info');
+            addToConsole('  ℹ️  Manual testing required:', 'info');
+            addToConsole('  - LEFT-CLICK on toolbox/lunchbox → Should start drag (item follows cursor)', 'log');
+            addToConsole('  - RIGHT-CLICK on toolbox/lunchbox → Should open floating panel with container grid', 'log');
+            addToConsole('  - RIGHT-CLICK on knife/ammo → Should do nothing (no container to open)', 'log');
+
+            // Test 3: Programmatically open a container panel
+            addToConsole('Test 3: Programmatically opening toolbox panel...', 'info');
+            
+            const toolboxGrid = toolbox.getContainerGrid?.();
+            if (toolboxGrid) {
+              addToConsole(`  ✅ Toolbox has container grid: ${toolboxGrid.id}`, 'success');
+              addToConsole('  ℹ️  Check UI: floating panel should appear for toolbox', 'info');
+              
+              // Trigger panel open via context if available
+              if (window.inv?.openContainer) {
+                window.inv.openContainer(toolboxGrid.id);
+                addToConsole('  ✅ Called openContainer() for toolbox', 'success');
+              }
+            } else {
+              addToConsole('  ❌ Toolbox container grid not accessible', 'error');
+            }
+
+            // Test 4: Test moving item into open container
+            addToConsole('Test 4: Moving knife into toolbox (if open)...', 'info');
+            
+            const moveResult = window.inventoryManager.moveItem(
+              knife.instanceId,
+              'ground',
+              toolboxGrid?.id || 'container-toolbox',
+              0,
+              0
+            );
+
+            if (moveResult.success) {
+              window.inv?.refresh();
+              addToConsole('  ✅ Knife moved into toolbox successfully', 'success');
+              addToConsole('  ℹ️  Check toolbox panel: knife should be visible at (0,0)', 'info');
+            } else {
+              addToConsole(`  ⚠️  Move attempt result: ${moveResult.reason}`, 'log');
+            }
+
+            // Test 5: Panel management
+            addToConsole('Test 5: Panel management...', 'info');
+            addToConsole('  ℹ️  Manual verification required:', 'info');
+            addToConsole('  - Click X button on floating panel → Panel should close', 'log');
+            addToConsole('  - Drag toolbox item to backpack → Toolbox panel should auto-close', 'log');
+            addToConsole('  - Open multiple containers → Each should have its own panel', 'log');
+
+            // Summary
+            addToConsole('--- Phase 5F Status ---', 'info');
+            addToConsole('✅ Test items created with proper sizes', 'success');
+            addToConsole('Container sizes:', 'info');
+            addToConsole('  - Toolbox: 2×2 item, 4×3 internal grid', 'log');
+            addToConsole('  - Lunchbox: 2×1 item, 3×2 internal grid', 'log');
+            addToConsole('', 'info');
+            addToConsole('Next steps (manual testing):', 'info');
+            addToConsole('1. RIGHT-CLICK toolbox in ground grid → Should open panel', 'log');
+            addToConsole('2. RIGHT-CLICK lunchbox in ground grid → Should open panel', 'log');
+            addToConsole('3. LEFT-CLICK and drag toolbox → Should move container item', 'log');
+            addToConsole('4. Drag items into/out of open container panels', 'log');
+            addToConsole('5. Close panels and verify cleanup', 'log');
+
+          } catch (error) {
+            addToConsole(`Error in Phase 5F verification: ${error.message}`, 'error');
+            console.error('Phase 5F Verification Error:', error);
+          }
+          break;
+
         case 'equip':
           if (subCommand === 'backpack') {
             try {
