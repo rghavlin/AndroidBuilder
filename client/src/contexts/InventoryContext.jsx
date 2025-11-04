@@ -196,6 +196,16 @@ export const InventoryProvider = ({ children, manager }) => {
 
   // Phase 5G: Drag actions
   const beginDrag = useCallback((item, originContainerId, originX, originY, initialCursorX = 0, initialCursorY = 0) => {
+    console.log('[InventoryContext] === BEGIN DRAG DEBUG ===');
+    console.log('[InventoryContext] Arguments:', {
+      item: item ? { name: item.name, instanceId: item.instanceId, imageId: item.imageId } : null,
+      originContainerId,
+      originX,
+      originY,
+      initialCursorX,
+      initialCursorY
+    });
+    
     if (!item || !item.instanceId) {
       console.warn('[InventoryContext] Cannot begin drag without valid item');
       return false;
@@ -232,12 +242,19 @@ export const InventoryProvider = ({ children, manager }) => {
       cursorY: initialCursorY
     };
     
-    console.debug('[InventoryContext] Setting drag state:', newDragState);
+    console.log('[InventoryContext] NEW DRAG STATE OBJECT:', newDragState);
+    console.log('[InventoryContext] Calling setDragState with new object...');
     setDragState(newDragState);
+    console.log('[InventoryContext] setDragState called (state update scheduled)');
     
     // Force UI update
-    setInventoryVersion(prev => prev + 1);
+    console.log('[InventoryContext] Incrementing inventoryVersion to force re-render...');
+    setInventoryVersion(prev => {
+      console.log('[InventoryContext] inventoryVersion:', prev, '->', prev + 1);
+      return prev + 1;
+    });
     
+    console.log('[InventoryContext] === END BEGIN DRAG ===');
     return true;
   }, []);
 
@@ -255,12 +272,20 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const updateDragPosition = useCallback((cursorX, cursorY) => {
     setDragState(prev => {
-      if (!prev) return null;
-      return {
+      if (!prev) {
+        console.log('[InventoryContext] updateDragPosition: no previous dragState');
+        return null;
+      }
+      const updated = {
         ...prev,
         cursorX,
         cursorY
       };
+      // Only log occasionally to avoid spam
+      if (Math.random() < 0.01) {
+        console.log('[InventoryContext] updateDragPosition:', cursorX, cursorY);
+      }
+      return updated;
     });
   }, []);
 

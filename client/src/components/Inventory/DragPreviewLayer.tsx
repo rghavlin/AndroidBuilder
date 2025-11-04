@@ -1,4 +1,5 @@
 
+```typescript
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -6,36 +7,55 @@ import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGridSize } from "@/contexts/GridSizeContext";
 
 export default function DragPreviewLayer() {
+  console.log('[DragPreviewLayer] === COMPONENT RENDER START ===');
+  
   const { dragState, updateDragPosition, rotateDrag, cancelDrag } = useInventory();
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
 
+  console.log('[DragPreviewLayer] Hook values:', {
+    hasDragState: !!dragState,
+    dragStateValue: dragState,
+    fixedSlotSize,
+    itemImage
+  });
+
   // Debug: Log when component mounts/unmounts
   useEffect(() => {
-    console.debug('[DragPreviewLayer] Component mounted');
-    return () => console.debug('[DragPreviewLayer] Component unmounted');
+    console.log('[DragPreviewLayer] *** Component MOUNTED ***');
+    return () => console.log('[DragPreviewLayer] *** Component UNMOUNTED ***');
   }, []);
 
-  // Debug: Log drag state changes
+  // Debug: Log drag state changes with VERY DETAILED output
   useEffect(() => {
-    console.debug('[DragPreviewLayer] Drag state changed:', {
+    console.log('[DragPreviewLayer] === DRAG STATE EFFECT TRIGGERED ===');
+    console.log('[DragPreviewLayer] dragState value:', dragState);
+    console.log('[DragPreviewLayer] Drag state details:', {
       hasDragState: !!dragState,
       itemName: dragState?.item?.name,
+      itemInstanceId: dragState?.item?.instanceId,
       imageId: dragState?.item?.imageId,
-      cursorPos: dragState ? `(${dragState.cursorX}, ${dragState.cursorY})` : 'N/A'
+      cursorPos: dragState ? `(${dragState.cursorX}, ${dragState.cursorY})` : 'N/A',
+      rotation: dragState?.rotation,
+      originContainerId: dragState?.originContainerId,
+      originPos: dragState ? `(${dragState.originX}, ${dragState.originY})` : 'N/A'
     });
+    console.log('[DragPreviewLayer] === END DRAG STATE EFFECT ===');
   }, [dragState]);
 
   // Load item image when drag starts
   useEffect(() => {
+    console.log('[DragPreviewLayer] === IMAGE LOAD EFFECT TRIGGERED ===');
+    console.log('[DragPreviewLayer] dragState?.item?.imageId:', dragState?.item?.imageId);
+    
     if (dragState?.item?.imageId) {
-      console.debug('[DragPreviewLayer] Starting image load for:', dragState.item.imageId);
+      console.log('[DragPreviewLayer] Starting image load for:', dragState.item.imageId, 'item:', dragState.item.name);
       setItemImage(null); // Clear old image first
       
       imageLoader.getItemImage(dragState.item.imageId)
         .then(img => {
           if (img) {
-            console.debug('[DragPreviewLayer] Image loaded successfully:', {
+            console.log('[DragPreviewLayer] ✓ Image loaded successfully:', {
               name: dragState.item.name,
               src: img.src,
               width: img.width,
@@ -43,28 +63,37 @@ export default function DragPreviewLayer() {
             });
             setItemImage(img.src);
           } else {
-            console.warn('[DragPreviewLayer] Image loader returned null for:', dragState.item.name);
+            console.warn('[DragPreviewLayer] ✗ Image loader returned null for:', dragState.item.name);
           }
         })
         .catch(err => {
-          console.error('[DragPreviewLayer] Image load error:', err);
+          console.error('[DragPreviewLayer] ✗ Image load error:', err);
         });
     } else {
-      console.debug('[DragPreviewLayer] No imageId, clearing image');
+      console.log('[DragPreviewLayer] No imageId, clearing image');
       setItemImage(null);
     }
+    console.log('[DragPreviewLayer] === END IMAGE LOAD EFFECT ===');
   }, [dragState?.item?.imageId, dragState?.item?.name]);
 
   // Track mouse position
   useEffect(() => {
-    if (!dragState) return;
+    if (!dragState) {
+      console.log('[DragPreviewLayer] Mouse tracking: No dragState, not attaching listener');
+      return;
+    }
 
+    console.log('[DragPreviewLayer] Mouse tracking: Attaching mousemove listener');
+    
     const handleMouseMove = (e: MouseEvent) => {
       updateDragPosition(e.clientX, e.clientY);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      console.log('[DragPreviewLayer] Mouse tracking: Removing mousemove listener');
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
   }, [dragState, updateDragPosition]);
 
   // Handle rotation (right-click or R key) and cancel (Escape)
@@ -73,18 +102,18 @@ export default function DragPreviewLayer() {
 
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      console.debug('[DragPreviewLayer] Right-click - rotating');
+      console.log('[DragPreviewLayer] Right-click - rotating');
       rotateDrag();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
-        console.debug('[DragPreviewLayer] R key - rotating');
+        console.log('[DragPreviewLayer] R key - rotating');
         rotateDrag();
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        console.debug('[DragPreviewLayer] Escape - canceling drag');
+        console.log('[DragPreviewLayer] Escape - canceling drag');
         cancelDrag();
       }
     };
@@ -98,14 +127,17 @@ export default function DragPreviewLayer() {
     };
   }, [dragState, rotateDrag, cancelDrag]);
 
+  console.log('[DragPreviewLayer] Checking early return condition...');
   if (!dragState) {
-    console.debug('[DragPreviewLayer] Not rendering - no drag state');
+    console.log('[DragPreviewLayer] EARLY RETURN: No drag state - returning null');
+    console.log('[DragPreviewLayer] === COMPONENT RENDER END (NULL) ===');
     return null;
   }
 
   const { item, rotation, cursorX, cursorY } = dragState;
 
-  console.debug('[DragPreviewLayer] Rendering preview:', {
+  console.log('[DragPreviewLayer] *** RENDERING PREVIEW ***');
+  console.log('[DragPreviewLayer] Rendering preview:', {
     itemName: item.name,
     rotation,
     cursorPos: `(${cursorX}, ${cursorY})`,
@@ -127,6 +159,15 @@ export default function DragPreviewLayer() {
   const left = cursorX - pixelWidth / 2;
   const top = cursorY - pixelHeight / 2;
 
+  console.log('[DragPreviewLayer] Preview dimensions:', {
+    isRotated,
+    displayWidth,
+    displayHeight,
+    pixelWidth,
+    pixelHeight,
+    position: { left, top }
+  });
+
   const previewContent = (
     <div
       className="fixed pointer-events-none z-[10000] border-2 border-yellow-400"
@@ -145,8 +186,8 @@ export default function DragPreviewLayer() {
           style={{
             transform: `rotate(${rotation}deg)`,
           }}
-          onLoad={() => console.debug('[DragPreviewLayer] Image rendered in DOM')}
-          onError={(e) => console.error('[DragPreviewLayer] Image render error:', e)}
+          onLoad={() => console.log('[DragPreviewLayer] ✓ Image rendered in DOM')}
+          onError={(e) => console.error('[DragPreviewLayer] ✗ Image render error:', e)}
         />
       ) : (
         // Show bright placeholder while image loads
@@ -162,6 +203,10 @@ export default function DragPreviewLayer() {
     </div>
   );
 
+  console.log('[DragPreviewLayer] Creating portal to document.body');
+  console.log('[DragPreviewLayer] === COMPONENT RENDER END (WITH PREVIEW) ===');
+  
   // Render as portal to document body to escape stacking context
   return createPortal(previewContent, document.body);
 }
+```
