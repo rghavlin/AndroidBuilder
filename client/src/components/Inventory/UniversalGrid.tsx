@@ -122,6 +122,9 @@ export default function UniversalGrid({
       } else {
         console.debug('[UniversalGrid] Drag started successfully');
       }
+      
+      // CRITICAL: Stop propagation to prevent parent click handlers from clearing drag
+      event.stopPropagation();
     } else {
       onSlotClick?.(x, y);
     }

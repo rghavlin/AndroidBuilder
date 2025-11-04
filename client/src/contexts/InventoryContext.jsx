@@ -50,6 +50,7 @@ export const InventoryProvider = ({ children, manager }) => {
   // Phase 5G: Cursor-following drag state
   const [dragState, setDragState] = useState(null); // { item, originContainer, originX, originY, rotation, cursorX, cursorY }
   const [dragVersion, setDragVersion] = useState(0); // Force re-render on drag state changes
+  const dragActiveRef = useRef(false); // Guard against accidental clears during active drag
 
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
@@ -255,8 +256,10 @@ export const InventoryProvider = ({ children, manager }) => {
     console.log('[InventoryContext] Current dragState before update:', dragState);
     console.log('[InventoryContext] NEW DRAG STATE OBJECT:', newDragState);
     console.log('[InventoryContext] Object identity check - different object?', newDragState !== dragState);
+    console.log('[InventoryContext] Setting dragActiveRef.current = true');
     console.log('[InventoryContext] Calling setDragState NOW...');
     
+    dragActiveRef.current = true; // Guard against accidental clears
     setDragState(newDragState);
     setDragVersion(prev => prev + 1); // Force context consumers to re-render
     
@@ -301,6 +304,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const cancelDrag = useCallback(() => {
     if (!dragState || !inventoryRef.current) {
+      dragActiveRef.current = false;
       setDragState(null);
       return;
     }
@@ -318,6 +322,7 @@ export const InventoryProvider = ({ children, manager }) => {
       setInventoryVersion(prev => prev + 1);
     }
     
+    dragActiveRef.current = false;
     setDragState(null);
     setDragVersion(prev => prev + 1);
   }, [dragState]);
@@ -353,6 +358,7 @@ export const InventoryProvider = ({ children, manager }) => {
         item.rotation = dragState.rotation;
         originContainer.placeItemAt(item, originX, originY);
       }
+      dragActiveRef.current = false;
       setDragState(null);
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: validation.reason };
@@ -369,12 +375,14 @@ export const InventoryProvider = ({ children, manager }) => {
         item.rotation = dragState.rotation;
         originContainer.placeItemAt(item, originX, originY);
       }
+      dragActiveRef.current = false;
       setDragState(null);
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: 'Failed to place item' };
     }
 
     console.debug('[InventoryContext] Successfully placed item');
+    dragActiveRef.current = false;
     setDragState(null);
     setDragVersion(prev => prev + 1);
     setInventoryVersion(prev => prev + 1);
