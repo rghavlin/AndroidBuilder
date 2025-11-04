@@ -3,6 +3,7 @@ import { GameProvider, useGame } from '../../contexts/GameContext.jsx';
 import { PlayerProvider, usePlayer } from '../../contexts/PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from '../../contexts/GameMapContext.jsx';
 import { CameraProvider } from '../../contexts/CameraContext.jsx';
+import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
 import MapInterface from './MapInterface';
 import InventoryPanel from './InventoryPanel';
 import GameControls from './GameControls';
@@ -53,7 +54,8 @@ function GameScreenContent() {
     turn, 
     endTurn, 
     initializeGame,
-    handleMapTransitionConfirmWrapper
+    handleMapTransitionConfirmWrapper,
+    inventoryManager
   } = useGame();
 
   // Hide start menu when initialization starts OR when game is already ready
@@ -134,38 +136,40 @@ function GameScreenContent() {
   const currentState = isGameReady ? { ...gameState, turn } : gameState;
 
   return (
-    <div className="game-container h-screen flex" data-testid="game-screen">
-      {/* Left Side: Map + Controls */}
-      <div className="w-1/2 flex flex-col h-full">
-        <MapInterface gameState={currentState} />
-        <div className="flex-shrink-0">
-          <GameControls
-            playerStats={currentStats}
-            gameState={currentState}
-            onEndTurn={handleEndTurn}
-            onRest={handleRest}
-          />
+    <InventoryProvider manager={inventoryManager}>
+      <div className="game-container h-screen flex" data-testid="game-screen">
+        {/* Left Side: Map + Controls */}
+        <div className="w-1/2 flex flex-col h-full">
+          <MapInterface gameState={currentState} />
+          <div className="flex-shrink-0">
+            <GameControls
+              playerStats={currentStats}
+              gameState={currentState}
+              onEndTurn={handleEndTurn}
+              onRest={handleRest}
+            />
+          </div>
         </div>
+
+        {/* Right Side: Inventory (Full Height) */}
+        <InventoryPanel />
+
+        {/* Development Console */}
+        <DevConsole />
+
+        {/* Map Transition Dialog */}
+        {mapTransition && (
+          <MapTransitionDialog
+            open={!!mapTransition}
+            onOpenChange={(open) => !open && handleMapTransitionCancel()}
+            onConfirm={handleMapTransitionConfirmWrapper}
+            direction={mapTransition.direction}
+            currentMapId={worldManager?.currentMapId || 'unknown'}
+            nextMapId={mapTransition.nextMapId}
+          />
+        )}
       </div>
-
-      {/* Right Side: Inventory (Full Height) */}
-      <InventoryPanel />
-
-      {/* Development Console */}
-      <DevConsole />
-
-      {/* Map Transition Dialog */}
-      {mapTransition && (
-        <MapTransitionDialog
-          open={!!mapTransition}
-          onOpenChange={(open) => !open && handleMapTransitionCancel()}
-          onConfirm={handleMapTransitionConfirmWrapper}
-          direction={mapTransition.direction}
-          currentMapId={worldManager?.currentMapId || 'unknown'}
-          nextMapId={mapTransition.nextMapId}
-        />
-      )}
-    </div>
+    </InventoryProvider>
   );
 }
 

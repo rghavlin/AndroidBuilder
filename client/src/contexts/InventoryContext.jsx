@@ -27,6 +27,14 @@ export const useInventory = () => {
 };
 
 export const InventoryProvider = ({ children, manager }) => {
+  // TEMP DIAGNOSTIC: Detect duplicate provider instances
+  const __instanceId = useMemo(() => Math.random().toString(36).slice(2, 7), []);
+  
+  useEffect(() => {
+    console.log(`[InventoryProvider] MOUNT id=${__instanceId}`);
+    return () => console.log(`[InventoryProvider] UNMOUNT id=${__instanceId}`);
+  }, [__instanceId]);
+
   // Graceful degradation: render children without inventory context until manager exists
   if (!manager) {
     if (import.meta?.env?.DEV) {
