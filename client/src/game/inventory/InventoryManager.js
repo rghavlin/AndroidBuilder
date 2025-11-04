@@ -351,6 +351,10 @@ export class InventoryManager {
     if (items && items.length > 0) {
       for (const itemData of items) {
         const item = Item.fromJSON(itemData);
+        // Ensure container items have their grids initialized
+        if (item.isContainer() && !item.containerGrid) {
+          item.initializeContainerGrid();
+        }
         this.groundManager.addItemSmart(item);
       }
 
@@ -522,6 +526,11 @@ export class InventoryManager {
     if (!item) {
       console.warn('[InventoryManager] Item not found in source container:', itemId);
       return { success: false, reason: 'Item not found' };
+    }
+
+    // Ensure container items have their grids initialized
+    if (item.isContainer() && !item.containerGrid) {
+      item.initializeContainerGrid();
     }
 
     console.log('[InventoryManager] Moving item:', {

@@ -98,24 +98,42 @@ export default function UniversalGrid({
   const handleItemContextMenu = async (item: any, x: number, y: number, event: React.MouseEvent) => {
     event.preventDefault(); // Prevent browser context menu
 
+    console.debug('[UniversalGrid] Right-click on item:', {
+      name: item?.name,
+      instanceId: item?.instanceId,
+      isContainer: item?.isContainer?.(),
+      canOpen: item ? canOpenContainer(item) : false
+    });
+
     // Right-click opens container if applicable
     if (item && canOpenContainer(item)) {
       try {
-        const itemContainer = item.getContainerGrid();
-        if (itemContainer) {
-          console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
-          
-          // Register container with InventoryManager if not already registered
-          const manager = (window as any).__inventoryManager;
-          if (manager && !manager.getContainer(itemContainer.id)) {
-            console.debug('[UniversalGrid] Registering container:', itemContainer.id);
-            manager.addContainer(itemContainer);
-          }
-          
-          openContainer(itemContainer.id);
-        } else {
-          console.warn('[UniversalGrid] Container has no grid:', item.name);
+        // Force container initialization if needed
+        if (item.isContainer() && !item.containerGrid) {
+          console.debug('[UniversalGrid] Container grid not initialized, initializing now:', item.name);
+          item.initializeContainerGrid();
         }
+
+        const itemContainer = item.getContainerGrid();
+        
+        if (!itemContainer) {
+          console.error('[UniversalGrid] Failed to get container grid for:', item.name, {
+            hasContainerGridData: !!item._containerGridData,
+            containerGridValue: item.containerGrid
+          });
+          return;
+        }
+
+        console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
+        
+        // Register container with InventoryManager if not already registered
+        const manager = (window as any).__inventoryManager;
+        if (manager && !manager.getContainer(itemContainer.id)) {
+          console.debug('[UniversalGrid] Registering container:', itemContainer.id);
+          manager.addContainer(itemContainer);
+        }
+        
+        openContainer(itemContainer.id);
       } catch (error) {
         console.error('[UniversalGrid] Error getting container grid:', item.name, error);
       }
