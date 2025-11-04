@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGridSize } from "@/contexts/GridSizeContext";
@@ -126,7 +127,7 @@ export default function DragPreviewLayer() {
   const left = cursorX - pixelWidth / 2;
   const top = cursorY - pixelHeight / 2;
 
-  return (
+  const previewContent = (
     <div
       className="fixed pointer-events-none z-[10000] border-2 border-yellow-400"
       style={{
@@ -160,4 +161,7 @@ export default function DragPreviewLayer() {
       </div>
     </div>
   );
+
+  // Render as portal to document body to escape stacking context
+  return createPortal(previewContent, document.body);
 }
