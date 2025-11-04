@@ -95,14 +95,13 @@ export default function UniversalGrid({
     onSlotClick?.(x, y);
   };
 
-  const handleItemContextMenu = (item: any, x: number, y: number, event: React.MouseEvent) => {
+  const handleItemContextMenu = async (item: any, x: number, y: number, event: React.MouseEvent) => {
     event.preventDefault(); // Prevent browser context menu
 
     // Right-click opens container if applicable
     if (item && canOpenContainer(item)) {
       try {
-        // getContainerGrid is synchronous, not async
-        const itemContainer = item.getContainerGrid();
+        const itemContainer = await item.getContainerGrid();
         if (itemContainer) {
           console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
           openContainer(itemContainer.id);
@@ -249,6 +248,7 @@ export default function UniversalGrid({
           imageHeight={0}
           isHovered={item?.instanceId === hoveredItem}
           onClick={() => handleItemClick(item, x, y)}
+          onContextMenu={(e) => handleItemContextMenu(item, x, y, e)}
           onDrop={(e) => onSlotDrop?.(x, y, e)}
           onDragOver={(e) => {
             e.preventDefault();
@@ -257,8 +257,6 @@ export default function UniversalGrid({
           onDragStart={handleDragStart}
           onMouseEnter={() => item && setHoveredItem(item.instanceId)}
           onMouseLeave={() => setHoveredItem(null)}
-          onMouseDown={(e) => handleItemMouseDown(item, x, y, e)}
-          onContextMenu={(e) => handleItemContextMenu(item, x, y, e)}
           data-testid={`${containerId}-slot-${x}-${y}`}
         />
       );

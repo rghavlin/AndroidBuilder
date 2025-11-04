@@ -15,7 +15,6 @@ interface GridSlotProps {
   onDragStart?: (item: any, event: React.DragEvent) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
-  onMouseDown?: (event: React.MouseEvent) => void;
   children?: React.ReactNode;
   itemImageSrc?: string | null;
   imageWidth?: number;
@@ -39,7 +38,6 @@ export default function GridSlot({
   onDragStart,
   onMouseEnter,
   onMouseLeave,
-  onMouseDown,
   children,
   itemImageSrc,
   imageWidth,
@@ -92,9 +90,6 @@ export default function GridSlot({
       onDragStart={handleDragStart}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onMouseDown={onMouseDown}
-      onClick={onClick}
-      onContextMenu={onContextMenu}
       data-testid={testId}
     >
       {/* All image rendering handled by UniversalGrid overlays */}
