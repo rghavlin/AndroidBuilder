@@ -195,10 +195,10 @@ export const InventoryProvider = ({ children, manager }) => {
     if (inventoryRef.current) {
       console.debug('[InventoryContext] InventoryManager initialized');
       // Expose globally for container registration from UniversalGrid
-      (window as any).__inventoryManager = inventoryRef.current;
+      window.__inventoryManager = inventoryRef.current;
     }
     return () => {
-      (window as any).__inventoryManager = null;
+      window.__inventoryManager = null;
     };
   }, [inventoryRef.current]);
 
