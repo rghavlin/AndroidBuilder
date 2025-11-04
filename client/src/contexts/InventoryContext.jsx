@@ -209,6 +209,13 @@ export const InventoryProvider = ({ children, manager }) => {
       rotation: item.rotation || 0
     });
     
+    // Remove item from its container during drag
+    const originContainer = inventoryRef.current?.getContainer(originContainerId);
+    if (originContainer) {
+      originContainer.removeItem(item.instanceId);
+      console.debug('[InventoryContext] Removed item from container during drag');
+    }
+    
     setDragState({
       item,
       originContainerId,
@@ -218,6 +225,9 @@ export const InventoryProvider = ({ children, manager }) => {
       cursorX: initialCursorX,
       cursorY: initialCursorY
     });
+    
+    // Force UI update
+    setInventoryVersion(prev => prev + 1);
     
     return true;
   }, []);
@@ -246,9 +256,26 @@ export const InventoryProvider = ({ children, manager }) => {
   }, []);
 
   const cancelDrag = useCallback(() => {
-    console.debug('[InventoryContext] Cancel drag');
+    if (!dragState || !inventoryRef.current) {
+      setDragState(null);
+      return;
+    }
+
+    const { item, originContainerId, originX, originY } = dragState;
+    
+    console.debug('[InventoryContext] Cancel drag - restoring item to origin');
+    
+    // Restore item to original position
+    const originContainer = inventoryRef.current.getContainer(originContainerId);
+    if (originContainer) {
+      // Restore original rotation
+      item.rotation = dragState.rotation;
+      originContainer.placeItemAt(item, originX, originY);
+      setInventoryVersion(prev => prev + 1);
+    }
+    
     setDragState(null);
-  }, []);
+  }, [dragState]);
 
   const tryPlaceDrag = useCallback((targetContainerId, targetX, targetY) => {
     if (!dragState || !inventoryRef.current) {
@@ -257,47 +284,56 @@ export const InventoryProvider = ({ children, manager }) => {
 
     const { item, originContainerId, originX, originY, rotation } = dragState;
     
-    console.debug('[InventoryContext] Try place drag:', item.name, 'to', targetContainerId, 'at', targetX, targetY);
+    console.debug('[InventoryContext] Try place drag:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation);
 
-    // Create a temporary item with the drag rotation for validation
-    const tempItem = { ...item, rotation };
+    // Update item rotation to match drag state
+    item.rotation = rotation;
     
     // Validate placement
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
     if (!targetContainer) {
       console.warn('[InventoryContext] Target container not found:', targetContainerId);
-      setDragState(null);
+      // Restore to origin on failure
+      cancelDrag();
       return { success: false, reason: 'Target container not found' };
     }
 
-    const validation = targetContainer.validatePlacement(tempItem, targetX, targetY);
+    const validation = targetContainer.validatePlacement(item, targetX, targetY);
     if (!validation.valid) {
       console.warn('[InventoryContext] Invalid placement:', validation.reason);
+      // Restore to origin on failure
+      const originContainer = inventoryRef.current.getContainer(originContainerId);
+      if (originContainer) {
+        // Reset rotation to original
+        item.rotation = dragState.rotation;
+        originContainer.placeItemAt(item, originX, originY);
+      }
       setDragState(null);
+      setInventoryVersion(prev => prev + 1);
       return { success: false, reason: validation.reason };
     }
 
-    // Update item rotation if changed
-    if (rotation !== item.rotation) {
-      item.rotation = rotation;
-    }
-
-    // Perform the move
-    const result = inventoryRef.current.moveItem(
-      item.instanceId,
-      originContainerId,
-      targetContainerId,
-      targetX,
-      targetY
-    );
-
-    if (result.success) {
+    // Place in target container
+    const placed = targetContainer.placeItemAt(item, targetX, targetY);
+    
+    if (!placed) {
+      console.warn('[InventoryContext] Failed to place item');
+      // Restore to origin on failure
+      const originContainer = inventoryRef.current.getContainer(originContainerId);
+      if (originContainer) {
+        item.rotation = dragState.rotation;
+        originContainer.placeItemAt(item, originX, originY);
+      }
+      setDragState(null);
       setInventoryVersion(prev => prev + 1);
+      return { success: false, reason: 'Failed to place item' };
     }
 
+    console.debug('[InventoryContext] Successfully placed item');
     setDragState(null);
-    return result;
-  }, [dragState]);
+    setInventoryVersion(prev => prev + 1);
+    return { success: true };
+  }, [dragState, cancelDrag]);
 
   const getPlacementPreview = useCallback((targetContainerId, gridX, gridY) => {
     if (!dragState || !inventoryRef.current) {

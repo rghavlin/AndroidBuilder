@@ -32,21 +32,24 @@ export default function DragPreviewLayer() {
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, [dragState, updateDragPosition]);
 
-  // Handle rotation (right-click or R key)
+  // Handle rotation (right-click or R key) and cancel (Escape)
   useEffect(() => {
     if (!dragState) return;
 
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
+      console.debug('[DragPreviewLayer] Right-click - rotating');
       rotateDrag();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
+        console.debug('[DragPreviewLayer] R key - rotating');
         rotateDrag();
       } else if (e.key === 'Escape') {
         e.preventDefault();
+        console.debug('[DragPreviewLayer] Escape - canceling drag');
         cancelDrag();
       }
     };

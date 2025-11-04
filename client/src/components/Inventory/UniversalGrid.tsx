@@ -196,20 +196,13 @@ export default function UniversalGrid({
     const gridY = Math.floor(y / slotWithGap);
 
     if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height) {
+      // Always recalculate preview with current drag rotation
       const preview = getPlacementPreview(containerId, gridX, gridY);
       setPreviewOverlay(preview);
     } else {
       setPreviewOverlay(null);
     }
   };
-
-  // Recalculate preview when rotation changes
-  useEffect(() => {
-    if (dragState && previewOverlay) {
-      const preview = getPlacementPreview(containerId, previewOverlay.gridX, previewOverlay.gridY);
-      setPreviewOverlay(preview);
-    }
-  }, [dragState?.rotation]);
 
   // Dynamic grid dimensions based on calculated slot size
   const gridWidth = width * slotSize;
