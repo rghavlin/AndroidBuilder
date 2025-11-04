@@ -93,6 +93,8 @@ export default function GridSlot({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onMouseDown={onMouseDown}
+      onClick={onClick}
+      onContextMenu={onContextMenu}
       data-testid={testId}
     >
       {/* All image rendering handled by UniversalGrid overlays */}
