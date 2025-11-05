@@ -112,7 +112,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         onClick={handleMapAreaClick}
       >
         {isInitialized ? (
-          <MapCanvas onCellClick={onCellClick} />
+          <MapCanvas onCellClick={onCellClick} selectedItem={selectedItem} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-muted-foreground text-sm">Initializing game...</p>

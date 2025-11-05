@@ -10,7 +10,7 @@ import { imageLoader } from '../../game/utils/ImageLoader.js';
  * Renders the game map with proper terrain colors and entity positioning
  * Phase 1: Now uses direct sub-context access instead of useGame() aggregation
  */
-export default function MapCanvas() {
+export default function MapCanvas({ onCellClick, selectedItem }) {
   const canvasRef = useRef(null);
 
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
@@ -549,10 +549,16 @@ const terrainColors = {
   }, [renderMap, cameraRef]); // Include cameraRef in dependencies
 
   // Handle canvas click events
-  const handleCanvasClick = useCallback((event) => {
+  const handleCanvasClick = useCallback((event, selectedItem) => {
     const gameMap = gameMapRef.current;
     const camera = cameraRef.current;
     const player = playerRef.current;
+
+    // Block all map clicks when an item is selected for inventory movement
+    if (selectedItem) {
+      console.debug('[MapCanvas] Map click blocked - item selected for inventory movement');
+      return;
+    }
 
     if (!gameMap || !camera || isDragging || hasDragged) {
       return;
@@ -696,7 +702,7 @@ const terrainColors = {
       <canvas
         ref={canvasRef}
         className={`${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        onClick={handleCanvasClick}
+        onClick={(e) => handleCanvasClick(e, selectedItem)}
         onMouseDown={handleMouseDown}
         onMouseMove={handleCanvasHover}
         style={{
