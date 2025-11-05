@@ -108,7 +108,18 @@ export class Item {
 
   rotate(checkContainer = true) {
     const oldRotation = this.rotation;
-    const newRotation = (this.rotation + 90) % 360;
+    
+    // Smart rotation: toggle between landscape and portrait
+    // Landscape items (width > height) rotate 90° clockwise
+    // Portrait items (width < height) rotate 90° counter-clockwise
+    const currentWidth = this.getActualWidth();
+    const currentHeight = this.getActualHeight();
+    const isLandscape = currentWidth > currentHeight;
+    
+    // Toggle rotation: landscape rotates clockwise, portrait rotates counter-clockwise
+    const newRotation = isLandscape 
+      ? (this.rotation + 90) % 360  // Clockwise
+      : (this.rotation - 90 + 360) % 360;  // Counter-clockwise
 
     if (checkContainer && this._container) {
       this.rotation = newRotation;

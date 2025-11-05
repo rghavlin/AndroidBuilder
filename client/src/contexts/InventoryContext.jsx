@@ -232,8 +232,28 @@ export const InventoryProvider = ({ children, manager }) => {
   const rotateSelected = useCallback(() => {
     setSelectedItem(prev => {
       if (!prev) return null;
-      const newRotation = (prev.rotation + 90) % 360;
-      console.debug('[InventoryContext] Rotate preview to:', newRotation, '(item not mutated)');
+      
+      // Smart rotation: toggle between landscape and portrait
+      // Landscape items (width > height) rotate 90° clockwise
+      // Portrait items (width < height) rotate 90° counter-clockwise
+      const item = prev.item;
+      const currentRotation = prev.rotation;
+      
+      // Determine if item is currently in landscape or portrait orientation
+      const currentWidth = (currentRotation === 90 || currentRotation === 270) ? item.height : item.width;
+      const currentHeight = (currentRotation === 90 || currentRotation === 270) ? item.width : item.height;
+      const isLandscape = currentWidth > currentHeight;
+      
+      // Toggle rotation: landscape rotates clockwise, portrait rotates counter-clockwise
+      const newRotation = isLandscape 
+        ? (currentRotation + 90) % 360  // Clockwise
+        : (currentRotation - 90 + 360) % 360;  // Counter-clockwise
+      
+      console.debug('[InventoryContext] Rotate preview:', {
+        from: currentRotation,
+        to: newRotation,
+        orientation: isLandscape ? 'landscape→portrait' : 'portrait→landscape'
+      });
       
       // ✅ DO NOT mutate the item - only track rotation in state for preview
       // The actual item.rotation will be updated only on successful placement
