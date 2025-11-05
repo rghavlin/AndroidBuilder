@@ -83,8 +83,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     if (selectedItem) {
       event.preventDefault();
       event.stopPropagation();
-      console.debug('[MapInterface] Map area clicked while item selected - canceling selection');
+      console.debug('[MapInterface] Map area clicked while item selected - canceling selection and blocking propagation');
       clearSelected();
+      return; // Ensure no further processing
     }
   };
 
@@ -112,7 +113,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         onClick={handleMapAreaClick}
       >
         {isInitialized ? (
-          <MapCanvas onCellClick={onCellClick} selectedItem={selectedItem} />
+          <div className={selectedItem ? 'pointer-events-none' : ''}>
+            <MapCanvas onCellClick={onCellClick} selectedItem={selectedItem} />
+          </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-muted-foreground text-sm">Initializing game...</p>
