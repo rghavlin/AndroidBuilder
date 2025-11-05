@@ -313,11 +313,11 @@ export default function UniversalGrid({
 
       // Calculate image dimensions and create overlay if this is top-left
       if (item && isTopLeft && itemId) {
-        const itemActualWidth = item.getActualWidth();
-        const itemActualHeight = item.getActualHeight();
+        // CRITICAL: Always use item.width and item.height (the ORIGINAL dimensions)
+        // for the image container. CSS transform: rotate() handles the visual rotation.
         // Total width = (slots * slotSize) + (gaps between slots)
-        const imageWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
-        const imageHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
+        const imageWidth = (item.width * slotSize) + ((item.width - 1) * GAP_SIZE);
+        const imageHeight = (item.height * slotSize) + ((item.height - 1) * GAP_SIZE);
 
         // Use itemId from grid cell for image lookup
         const itemImageSrc = itemImages.get(itemId) || null;
@@ -331,34 +331,33 @@ export default function UniversalGrid({
           // Get rotation for CSS transform
           const rotation = item.rotation || 0;
           
-          // For rotated items (90° or 270°), we need to:
-          // 1. Use the ORIGINAL dimensions for the image container (before rotation)
-          // 2. Apply CSS rotation transform
-          // 3. Adjust position to account for rotation pivot
-          const isRotated = rotation === 90 || rotation === 270;
-          const originalWidth = isRotated ? ((item.height * slotSize) + ((item.height - 1) * GAP_SIZE)) : imageWidth;
-          const originalHeight = isRotated ? ((item.width * slotSize) + ((item.width - 1) * GAP_SIZE)) : imageHeight;
+          // Calculate grid footprint dimensions (what space the item actually occupies)
+          const itemActualWidth = item.getActualWidth();
+          const itemActualHeight = item.getActualHeight();
+          const gridWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
+          const gridHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
           
           // Calculate transform origin and position adjustments for rotation
+          // Position adjustments based on grid footprint (actual occupied space)
           let transformStyle = '';
           let adjustedLeft = leftPos;
           let adjustedTop = topPos;
           
           if (rotation === 90) {
-            // Rotate 90° clockwise - pivot from top-left, then shift right
+            // Rotate 90° clockwise - pivot from top-left, then shift right by grid width
             transformStyle = 'rotate(90deg)';
-            adjustedLeft = leftPos + imageWidth;
+            adjustedLeft = leftPos + gridWidth;
             adjustedTop = topPos;
           } else if (rotation === 180) {
-            // Rotate 180° - pivot from center
+            // Rotate 180° - shift right and down by grid dimensions
             transformStyle = 'rotate(180deg)';
-            adjustedLeft = leftPos + imageWidth;
-            adjustedTop = topPos + imageHeight;
+            adjustedLeft = leftPos + gridWidth;
+            adjustedTop = topPos + gridHeight;
           } else if (rotation === 270) {
             // Rotate 270° clockwise (90° counter-clockwise) - pivot from top-left, then shift down
             transformStyle = 'rotate(270deg)';
             adjustedLeft = leftPos;
-            adjustedTop = topPos + imageHeight;
+            adjustedTop = topPos + gridHeight;
           }
 
           console.debug('[UniversalGrid] Rendering overlay:', {
@@ -369,7 +368,7 @@ export default function UniversalGrid({
             leftPos, topPos,
             adjustedLeft, adjustedTop,
             imageWidth, imageHeight,
-            originalWidth, originalHeight
+            gridWidth, gridHeight
           });
 
           // Check if this item is selected for movement
@@ -386,8 +385,8 @@ export default function UniversalGrid({
               style={{
                 left: `${adjustedLeft}px`,
                 top: `${adjustedTop}px`,
-                width: `${originalWidth}px`,
-                height: `${originalHeight}px`,
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
                 objectFit: 'contain',
                 transform: transformStyle,
                 transformOrigin: 'top left',
