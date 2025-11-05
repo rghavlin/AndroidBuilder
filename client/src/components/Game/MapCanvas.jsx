@@ -712,7 +712,8 @@ const terrainColors = {
           height: '100%',
           padding: 0,
           margin: 0,
-          border: 'none'
+          border: 'none',
+          pointerEvents: selectedItem ? 'none' : 'auto' // Disable all mouse events when item selected
         }}
       />
     </div>
