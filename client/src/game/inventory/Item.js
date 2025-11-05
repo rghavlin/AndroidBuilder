@@ -107,6 +107,12 @@ export class Item {
   }
 
   rotate(checkContainer = true) {
+    // Skip rotation for square items (1×1, 2×2, etc.)
+    if (this.width === this.height) {
+      console.debug('[Item] Skipping rotation - item is square:', this.name, `${this.width}×${this.height}`);
+      return false;
+    }
+
     const oldRotation = this.rotation;
     
     // Smart rotation: toggle between landscape and portrait

@@ -233,10 +233,17 @@ export const InventoryProvider = ({ children, manager }) => {
     setSelectedItem(prev => {
       if (!prev) return null;
       
+      const item = prev.item;
+      
+      // Skip rotation for square items (1×1, 2×2, etc.)
+      if (item.width === item.height) {
+        console.debug('[InventoryContext] Skipping rotation - item is square:', item.name, `${item.width}×${item.height}`);
+        return prev; // Return unchanged
+      }
+      
       // Smart rotation: toggle between landscape and portrait
       // Landscape items (width > height) rotate 90° clockwise
       // Portrait items (width < height) rotate 90° counter-clockwise
-      const item = prev.item;
       const currentRotation = prev.rotation;
       
       // Determine if item is currently in landscape or portrait orientation
