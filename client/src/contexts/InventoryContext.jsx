@@ -63,8 +63,9 @@ export const InventoryProvider = ({ children, manager }) => {
   }, []);
 
   // Dev-console bridge (Phase 5A)
+  // Note: Works in both dev and production builds for testing/debugging
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && inventoryRef.current) {
+    if (inventoryRef.current) {
       window.inventoryManager = inventoryRef.current;
       window.inv = {
         getContainer: (id) => inventoryRef.current?.getContainer(id),
