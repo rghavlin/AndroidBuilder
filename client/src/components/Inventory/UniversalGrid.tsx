@@ -451,7 +451,10 @@ export default function UniversalGrid({
   };
 
   return (
-    <div className={cn("flex flex-col", gridType === 'fixed' ? 'flex-shrink-0' : 'h-full', className)}>
+    <div 
+      className={cn("flex flex-col", gridType === 'fixed' ? 'flex-shrink-0' : 'h-full', className)}
+      data-inventory-ui="true"
+    >
       {title && (
         <h4 className="text-xs font-medium text-muted-foreground mb-2 text-center flex-shrink-0">
           {title}

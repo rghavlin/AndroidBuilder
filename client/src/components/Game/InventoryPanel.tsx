@@ -5,15 +5,34 @@ import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import FloatingContainer from "@/components/Inventory/FloatingContainer";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useEffect } from "react";
 
 export default function InventoryPanel() {
-  const { openContainers, getContainer, closeContainer } = useInventory();
+  const { openContainers, getContainer, closeContainer, clearItemSelection } = useInventory();
+
+  // Add a global click listener to clear item selection when clicking outside the inventory UI
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if the click is outside the inventory UI
+      const inventoryUI = event.target.closest('[data-inventory-ui="true"]');
+      if (!inventoryUI) {
+        clearItemSelection();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [clearItemSelection]);
+
 
   return (
     <GridSizeProvider>
       <div
         className="w-1/2 bg-card flex flex-col h-full"
         data-testid="inventory-panel"
+        data-inventory-ui="true" // Mark this div as part of the inventory UI
       >
         <div className="flex-shrink-0">
           <EquipmentSlots />

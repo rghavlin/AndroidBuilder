@@ -28,7 +28,7 @@ export default function EquipmentSlots() {
         {equipmentSlots.map((slot) => {
           // Read equipped item from inventory manager (reactive to inventoryVersion)
           const equippedItem = inventoryRef.current?.equipment[slot.id] || null;
-          
+
           return (
             <EquipmentSlot
               key={slot.id}

@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,7 @@ export default function FloatingContainer({
     if (isDragging) {
       const newX = Math.max(0, Math.min(window.innerWidth - minWidth, e.clientX - dragStart.x));
       const newY = Math.max(0, Math.min(window.innerHeight - minHeight, e.clientY - dragStart.y));
-      
+
       setPosition({ x: newX, y: newY });
     }
   };
@@ -105,7 +104,7 @@ export default function FloatingContainer({
           <X className="w-4 h-4" />
         </Button>
       </div>
-      
+
       {/* Content */}
       <div className="p-3">
         {children}

@@ -369,6 +369,37 @@ export const InventoryProvider = ({ children, manager }) => {
     };
   }, [selectedItem]);
 
+  // Clear selection on clicks outside inventory UI
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const handleGlobalClick = (event) => {
+      // Check if click is inside any inventory UI element
+      const inventoryElements = document.querySelectorAll('[data-inventory-ui]');
+      let clickedInsideInventory = false;
+
+      for (const element of inventoryElements) {
+        if (element.contains(event.target)) {
+          clickedInsideInventory = true;
+          break;
+        }
+      }
+
+      // If clicked outside all inventory UI, clear selection
+      if (!clickedInsideInventory) {
+        console.debug('[InventoryContext] Click outside inventory - clearing selection');
+        clearSelected();
+      }
+    };
+
+    // Add listener with capture phase to intercept before grid handlers
+    document.addEventListener('click', handleGlobalClick, true);
+    
+    return () => {
+      document.removeEventListener('click', handleGlobalClick, true);
+    };
+  }, [selectedItem, clearSelected]);
+
   useEffect(() => {
     if (inventoryRef.current) {
       console.debug('[InventoryContext] InventoryManager initialized');
