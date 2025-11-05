@@ -129,7 +129,7 @@ export const ItemDefs = {
     id: 'weapon.sniper_rifle',
     name: 'Sniper Rifle',
     imageId: 'sniper rifle', // Note: space in filename
-    width: 4,
+    width: 5,
     height: 2,
     traits: [ItemTrait.EQUIPPABLE],
     equippableSlot: EquipmentSlot.LONG_GUN
