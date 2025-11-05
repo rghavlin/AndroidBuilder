@@ -222,7 +222,8 @@ export const InventoryProvider = ({ children, manager }) => {
       originContainerId,
       originX,
       originY,
-      rotation: item.rotation || 0
+      rotation: item.rotation || 0,
+      originalRotation: item.rotation || 0 // Store for restoration if placement fails
     });
     setDragVersion(prev => prev + 1);
     return true;
@@ -232,10 +233,10 @@ export const InventoryProvider = ({ children, manager }) => {
     setSelectedItem(prev => {
       if (!prev) return null;
       const newRotation = (prev.rotation + 90) % 360;
-      console.debug('[InventoryContext] Rotate selected to:', newRotation);
+      console.debug('[InventoryContext] Rotate preview to:', newRotation, '(item not mutated)');
       
-      // Update the item's rotation directly (Item instance stays intact with all methods)
-      prev.item.rotation = newRotation;
+      // ✅ DO NOT mutate the item - only track rotation in state for preview
+      // The actual item.rotation will be updated only on successful placement
       
       return {
         ...prev,
@@ -256,14 +257,13 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'No item selected' };
     }
 
-    const { item, originContainerId, originX, originY, rotation } = selectedItem;
+    const { item, originContainerId, originX, originY, rotation, originalRotation } = selectedItem;
     
     console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation);
 
-    // Store original state for potential restore
-    const originalRotation = item.rotation;
-    const originalX = item.x;
-    const originalY = item.y;
+    // Store original position for potential restore
+    const originalX = originX;
+    const originalY = originY;
     
     const originContainer = inventoryRef.current.getContainer(originContainerId);
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
@@ -275,24 +275,27 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'Target container not found' };
     }
 
-    // CRITICAL: Remove from origin container FIRST (clears grid cells completely)
+    // CRITICAL: Remove from origin container FIRST with ORIGINAL rotation intact
+    // This ensures correct grid cell clearing based on item's current state
     if (originContainer) {
       const removed = originContainer.removeItem(item.instanceId);
       if (!removed) {
         console.error('[InventoryContext] Failed to remove item from origin container');
         return { success: false, reason: 'Failed to remove from origin' };
       }
-      console.debug('[InventoryContext] Removed item from origin:', originContainerId);
+      console.debug('[InventoryContext] Removed item from origin:', originContainerId, 'with rotation:', item.rotation);
     }
     
-    // Apply rotation AFTER removal (item is now free-floating)
+    // NOW apply the new rotation (item is free-floating, no grid conflicts)
+    const previousRotation = item.rotation;
     item.rotation = rotation;
+    console.debug('[InventoryContext] Applied rotation:', previousRotation, '→', rotation);
     
     // Validate placement with rotated item
     const validation = targetContainer.validatePlacement(item, targetX, targetY);
     if (!validation.valid) {
       console.warn('[InventoryContext] Invalid placement:', validation.reason);
-      // Restore to origin on failure
+      // Restore item to original state and position
       item.rotation = originalRotation;
       if (originContainer) {
         originContainer.placeItemAt(item, originalX, originalY);
@@ -301,12 +304,12 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: validation.reason };
     }
     
-    // Place in target container at new position
+    // Place in target container at new position with new rotation
     const placed = targetContainer.placeItemAt(item, targetX, targetY);
     
     if (!placed) {
       console.warn('[InventoryContext] Failed to place item');
-      // Restore to origin on failure
+      // Restore item to original state and position
       item.rotation = originalRotation;
       if (originContainer) {
         originContainer.placeItemAt(item, originalX, originalY);
@@ -336,7 +339,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
     const { item, rotation } = selectedItem;
     
-    // Calculate dimensions based on rotation
+    // Calculate dimensions based on PREVIEW rotation (not item.rotation which hasn't changed)
     const isRotated = rotation === 90 || rotation === 270;
     const width = isRotated ? item.height : item.width;
     const height = isRotated ? item.width : item.height;
@@ -346,8 +349,14 @@ export const InventoryProvider = ({ children, manager }) => {
       return null;
     }
 
-    // Create item object with current rotation for validation
-    const itemForValidation = { ...item, rotation };
+    // Create temporary validation object with preview rotation
+    // DO NOT use item.rotation - use the preview rotation from state
+    const itemForValidation = { 
+      ...item, 
+      rotation,
+      getActualWidth: () => width,
+      getActualHeight: () => height
+    };
     const validation = targetContainer.validatePlacement(itemForValidation, gridX, gridY);
     
     return {
