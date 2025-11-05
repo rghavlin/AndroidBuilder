@@ -20,6 +20,11 @@ const DevConsole = ({ isOpen, onClose }) => {
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
 
+  // Item spawn UI state
+  const [selectedItemDef, setSelectedItemDef] = useState('');
+  const [spawnQuantity, setSpawnQuantity] = useState(1);
+  const [availableItems, setAvailableItems] = useState([]);
+
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -37,6 +42,27 @@ const DevConsole = ({ isOpen, onClose }) => {
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Load available item definitions when console opens
+  useEffect(() => {
+    if (isOpen && availableItems.length === 0) {
+      const loadItems = async () => {
+        try {
+          const { ItemDefs } = await import('../../game/inventory/ItemDefs.js');
+          const items = Object.keys(ItemDefs)
+            .filter(key => !key.includes('.icon') && !key.includes('.sprite'))
+            .sort();
+          setAvailableItems(items);
+          if (items.length > 0) {
+            setSelectedItemDef(items[0]);
+          }
+        } catch (error) {
+          console.error('Failed to load item definitions:', error);
+        }
+      };
+      loadItems();
+    }
+  }, [isOpen, availableItems.length]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -82,6 +108,42 @@ const DevConsole = ({ isOpen, onClose }) => {
   const addToConsole = (message, type = 'info') => {
     const timestamp = new Date().toLocaleTimeString();
     setHistory(prev => [...prev, { message, type, timestamp }]);
+  };
+
+  const handleSpawnItem = async () => {
+    if (!selectedItemDef) {
+      addToConsole('No item selected', 'error');
+      return;
+    }
+
+    try {
+      const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+      const { Item } = await import('../../game/inventory/Item.js');
+
+      const groundContainer = window.inventoryManager?.getContainer('ground');
+      if (!groundContainer) {
+        addToConsole('Ground container not available', 'error');
+        return;
+      }
+
+      let spawned = 0;
+      for (let i = 0; i < spawnQuantity; i++) {
+        const itemData = createItemFromDef(selectedItemDef);
+        if (!itemData) {
+          addToConsole(`Failed to create item from definition: ${selectedItemDef}`, 'error');
+          break;
+        }
+        const item = new Item(itemData);
+        if (groundContainer.addItem(item)) {
+          spawned++;
+        }
+      }
+
+      window.inv?.refresh();
+      addToConsole(`Spawned ${spawned}/${spawnQuantity} ${selectedItemDef} to ground`, spawned > 0 ? 'success' : 'error');
+    } catch (error) {
+      addToConsole(`Error spawning item: ${error.message}`, 'error');
+    }
   };
 
   const executeCommand = async (command) => {
@@ -1531,6 +1593,42 @@ const DevConsole = ({ isOpen, onClose }) => {
               ))}
             </div>
           </ScrollArea>
+          {/* Item Spawn UI */}
+          <div className="mb-3 p-3 bg-gray-800 rounded border border-gray-700">
+            <div className="text-xs text-gray-400 mb-2 font-mono">Quick Item Spawn</div>
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <label className="text-xs text-gray-400 block mb-1">Item Type</label>
+                <select
+                  value={selectedItemDef}
+                  onChange={(e) => setSelectedItemDef(e.target.value)}
+                  className="w-full bg-gray-700 border-gray-600 text-white text-sm rounded px-2 py-1.5 font-mono"
+                >
+                  {availableItems.map(item => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="w-20">
+                <label className="text-xs text-gray-400 block mb-1">Qty</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={spawnQuantity}
+                  onChange={(e) => setSpawnQuantity(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                  className="bg-gray-700 border-gray-600 text-white text-sm h-8"
+                />
+              </div>
+              <Button 
+                onClick={handleSpawnItem}
+                className="bg-blue-600 hover:bg-blue-700 h-8"
+              >
+                Spawn to Ground
+              </Button>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="flex gap-2">
             <div className="flex-1 relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400 font-mono">
