@@ -150,8 +150,16 @@ export default function UniversalGrid({
       name: item?.name,
       instanceId: item?.instanceId,
       isContainer: item?.isContainer?.(),
-      canOpen: item ? canOpenContainer(item) : false
+      canOpen: item ? canOpenContainer(item) : false,
+      isSelected: selectedItem && item && item.instanceId === selectedItem.item.instanceId
     });
+
+    // If an item is selected, right-click rotates it
+    if (selectedItem && item && item.instanceId === selectedItem.item.instanceId) {
+      console.debug('[UniversalGrid] Right-click on selected item - rotating');
+      rotateSelected();
+      return;
+    }
 
     // Right-click opens container if applicable
     if (item && canOpenContainer(item)) {
