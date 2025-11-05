@@ -21,11 +21,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { lastTileClick, hoveredTile, mapTransition } = useGameMap();
 
   // Get initialization state from GameContext (still needed for initialization control)
-  const { isInitialized, initializationError } = useGame();
-  
-  // Get inventory context for floating containers
-  const { openContainers, closeContainer, getContainer } = useInventory();
-  
+  const { isInitialized, initializationError, initializeGame } = useGame(); // Added initializeGame for retry button
+
+  // Get inventory context for floating containers and selection management
+  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected } = useInventory();
+
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
 
   // Log tile interactions for debugging
@@ -52,8 +52,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <div className="absolute inset-4 flex items-center justify-center">
             <div className="text-center">
               <p className="text-destructive text-sm mb-2">Failed to initialize game</p>
-              <p className="text-muted-foreground text-xs">{initializationError}</p>
-              <button 
+              <p className="text-muted-foreground text-sm">{initializationError}</p>
+              <button
                 onClick={initializeGame}
                 className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded text-sm"
               >
@@ -66,6 +66,18 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     );
   }
 
+  // Handler for map cell clicks
+  const onCellClick = (x: number, y: number) => {
+    // If an item is selected for movement, cancel it and don't process map click
+    if (selectedItem) {
+      console.debug('[MapInterface] Map clicked while item selected - canceling selection');
+      clearSelected(); // This should be the action for canceling the move
+      return; // Do not proceed to handle the map click for movement
+    }
+    // Otherwise, proceed with normal map click handling
+    // handleCellClick(x, y); // This function needs to be passed down or accessed differently
+  };
+
   return (
     <div className="flex-1 bg-secondary border-r border-border flex flex-col min-h-0" data-testid="map-interface">
       {/* Header Area */}
@@ -73,7 +85,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         <div className="text-sm text-muted-foreground">
           Map Information Panel - Placeholder Text
         </div>
-        <button 
+        <button
           className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
           title={isInventoryExtensionOpen ? "Close Inventory Extension" : "Open Inventory Extension"}
           data-testid="inventory-extension-button"
@@ -86,7 +98,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       {/* Map Display Area */}
       <div className="flex-1 relative overflow-hidden min-h-0" style={{ padding: 0, margin: 0 }}>
         {isInitialized ? (
-          <MapCanvas />
+          <MapCanvas onCellClick={onCellClick} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-muted-foreground text-sm">Initializing game...</p>
@@ -95,7 +107,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       </div>
 
       {/* Inventory Extension Window */}
-      <InventoryExtensionWindow 
+      <InventoryExtensionWindow
         isOpen={isInventoryExtensionOpen}
         onClose={() => setIsInventoryExtensionOpen(false)}
       />

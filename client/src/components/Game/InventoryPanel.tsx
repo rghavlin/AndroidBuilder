@@ -27,14 +27,25 @@ export default function InventoryPanel() {
   }, [clearSelected]);
 
 
+  // Handle clicks on inventory panel background (not on grids)
+  const handlePanelClick = (event) => {
+    // If click target is the panel itself or equipment area (not a grid), clear selection
+    if (event.target.hasAttribute('data-inventory-panel') || 
+        event.target.closest('[data-equipment-area]')) {
+      clearSelected();
+    }
+  };
+
   return (
     <GridSizeProvider>
       <div
         className="w-1/2 bg-card flex flex-col h-full"
         data-testid="inventory-panel"
         data-inventory-ui="true" // Mark this div as part of the inventory UI
+        data-inventory-panel="true" // Mark as panel background
+        onClick={handlePanelClick}
       >
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0" data-equipment-area="true">
           <EquipmentSlots />
         </div>
 

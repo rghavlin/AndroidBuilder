@@ -369,36 +369,10 @@ export const InventoryProvider = ({ children, manager }) => {
     };
   }, [selectedItem]);
 
-  // Clear selection on clicks outside inventory UI
-  useEffect(() => {
-    if (!selectedItem) return;
-
-    const handleGlobalClick = (event) => {
-      // Check if click is inside any inventory UI element
-      const inventoryElements = document.querySelectorAll('[data-inventory-ui]');
-      let clickedInsideInventory = false;
-
-      for (const element of inventoryElements) {
-        if (element.contains(event.target)) {
-          clickedInsideInventory = true;
-          break;
-        }
-      }
-
-      // If clicked outside all inventory UI, clear selection
-      if (!clickedInsideInventory) {
-        console.debug('[InventoryContext] Click outside inventory - clearing selection');
-        clearSelected();
-      }
-    };
-
-    // Add listener with capture phase to intercept before grid handlers
-    document.addEventListener('click', handleGlobalClick, true);
-    
-    return () => {
-      document.removeEventListener('click', handleGlobalClick, true);
-    };
-  }, [selectedItem, clearSelected]);
+  // Note: Selection clearing is now handled by:
+  // 1. MapInterface for map clicks
+  // 2. InventoryPanel for inventory panel background clicks
+  // 3. UniversalGrid for grid-specific item interactions
 
   useEffect(() => {
     if (inventoryRef.current) {
