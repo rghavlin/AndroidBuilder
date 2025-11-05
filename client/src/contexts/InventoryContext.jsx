@@ -260,45 +260,48 @@ export const InventoryProvider = ({ children, manager }) => {
     
     console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation);
 
-    // Store original rotation for potential restore
+    // Store original state for potential restore
     const originalRotation = item.rotation;
+    const originalX = item.x;
+    const originalY = item.y;
     
-    // Remove from origin container
     const originContainer = inventoryRef.current.getContainer(originContainerId);
-    if (originContainer) {
-      originContainer.removeItem(item.instanceId);
-    }
-    
-    // Apply rotation to item BEFORE validation
-    item.rotation = rotation;
-    
-    // Validate placement with rotated item
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
+    
     if (!targetContainer) {
       console.warn('[InventoryContext] Target container not found:', targetContainerId);
-      // Restore to origin on failure
-      item.rotation = originalRotation;
-      if (originContainer) {
-        originContainer.placeItemAt(item, originX, originY);
-      }
       setSelectedItem(null);
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: 'Target container not found' };
     }
 
+    // CRITICAL: Remove from origin container FIRST (clears grid cells completely)
+    if (originContainer) {
+      const removed = originContainer.removeItem(item.instanceId);
+      if (!removed) {
+        console.error('[InventoryContext] Failed to remove item from origin container');
+        return { success: false, reason: 'Failed to remove from origin' };
+      }
+      console.debug('[InventoryContext] Removed item from origin:', originContainerId);
+    }
+    
+    // Apply rotation AFTER removal (item is now free-floating)
+    item.rotation = rotation;
+    
+    // Validate placement with rotated item
     const validation = targetContainer.validatePlacement(item, targetX, targetY);
     if (!validation.valid) {
       console.warn('[InventoryContext] Invalid placement:', validation.reason);
       // Restore to origin on failure
       item.rotation = originalRotation;
       if (originContainer) {
-        originContainer.placeItemAt(item, originX, originY);
+        originContainer.placeItemAt(item, originalX, originalY);
       }
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: validation.reason };
     }
     
-    // Place in target container (rotation already applied)
+    // Place in target container at new position
     const placed = targetContainer.placeItemAt(item, targetX, targetY);
     
     if (!placed) {
@@ -306,13 +309,20 @@ export const InventoryProvider = ({ children, manager }) => {
       // Restore to origin on failure
       item.rotation = originalRotation;
       if (originContainer) {
-        originContainer.placeItemAt(item, originX, originY);
+        originContainer.placeItemAt(item, originalX, originalY);
       }
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: 'Failed to place item' };
     }
 
-    console.debug('[InventoryContext] Successfully placed item with rotation:', rotation);
+    console.debug('[InventoryContext] Successfully placed item:', {
+      name: item.name,
+      instanceId: item.instanceId,
+      container: targetContainerId,
+      position: `(${targetX}, ${targetY})`,
+      rotation: rotation
+    });
+    
     setSelectedItem(null);
     setDragVersion(prev => prev + 1);
     setInventoryVersion(prev => prev + 1);
