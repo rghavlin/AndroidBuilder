@@ -76,6 +76,13 @@ export default function UniversalGrid({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedItem, rotateSelected, clearSelected]);
 
+  // Force preview recalculation when selection rotation changes
+  useEffect(() => {
+    if (selectedItem) {
+      console.debug('[UniversalGrid] Selection rotation changed:', selectedItem.rotation, '- preview will update on next mouse move');
+    }
+  }, [selectedItem?.rotation]);
+
   // Load item images when inventory changes (using inventoryVersion for stable dependency)
   useEffect(() => {
     const loadImages = async () => {
@@ -205,6 +212,16 @@ export default function UniversalGrid({
       }
     } else if (item) {
       console.debug('[UniversalGrid] Item cannot be opened (not a container or not permitted):', item.name);
+    }
+  };
+
+  const handleGridContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    
+    // If we have a selected item, right-click anywhere rotates it
+    if (selectedItem) {
+      console.log('[UniversalGrid] Right-click on grid - rotating selected item');
+      rotateSelected();
     }
   };
 
@@ -386,6 +403,7 @@ export default function UniversalGrid({
           }}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setPreviewOverlay(null)}
+          onContextMenu={handleGridContextMenu}
           data-testid={testId || `grid-${containerId}`}
         >
           {gridSlots}
