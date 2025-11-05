@@ -234,11 +234,13 @@ export const InventoryProvider = ({ children, manager }) => {
       const newRotation = (prev.rotation + 90) % 360;
       console.debug('[InventoryContext] Rotate selected to:', newRotation);
       
-      // Update the actual item's rotation property
-      prev.item.rotation = newRotation;
+      // Create new item reference with updated rotation (immutable update)
+      const updatedItem = { ...prev.item };
+      updatedItem.rotation = newRotation;
       
       return {
         ...prev,
+        item: updatedItem,
         rotation: newRotation
       };
     });
@@ -260,8 +262,8 @@ export const InventoryProvider = ({ children, manager }) => {
     
     console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation);
 
-    // Update item rotation to match selection state
-    item.rotation = rotation;
+    // Create a working copy with the correct rotation
+    const itemToPlace = { ...item, rotation };
     
     // Remove from origin container
     const originContainer = inventoryRef.current.getContainer(originContainerId);
@@ -282,26 +284,28 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'Target container not found' };
     }
 
-    const validation = targetContainer.validatePlacement(item, targetX, targetY);
+    const validation = targetContainer.validatePlacement(itemToPlace, targetX, targetY);
     if (!validation.valid) {
       console.warn('[InventoryContext] Invalid placement:', validation.reason);
       // Restore to origin on failure
       if (originContainer) {
-        item.rotation = selectedItem.rotation;
         originContainer.placeItemAt(item, originX, originY);
       }
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: validation.reason };
     }
 
+    // Apply rotation to the actual item before placing
+    item.rotation = rotation;
+    
     // Place in target container
     const placed = targetContainer.placeItemAt(item, targetX, targetY);
     
     if (!placed) {
       console.warn('[InventoryContext] Failed to place item');
-      // Restore to origin on failure
+      // Restore to origin on failure (restore original rotation)
       if (originContainer) {
-        item.rotation = selectedItem.rotation;
+        item.rotation = selectedItem.item.rotation || 0;
         originContainer.placeItemAt(item, originX, originY);
       }
       setInventoryVersion(prev => prev + 1);
