@@ -234,13 +234,11 @@ export const InventoryProvider = ({ children, manager }) => {
       const newRotation = (prev.rotation + 90) % 360;
       console.debug('[InventoryContext] Rotate selected to:', newRotation);
       
-      // Create new item reference with updated rotation (immutable update)
-      const updatedItem = { ...prev.item };
-      updatedItem.rotation = newRotation;
+      // Update the item's rotation directly (Item instance stays intact with all methods)
+      prev.item.rotation = newRotation;
       
       return {
         ...prev,
-        item: updatedItem,
         rotation: newRotation
       };
     });
