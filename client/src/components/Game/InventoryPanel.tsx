@@ -8,7 +8,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { useEffect } from "react";
 
 export default function InventoryPanel() {
-  const { openContainers, getContainer, closeContainer, clearItemSelection } = useInventory();
+  const { openContainers, getContainer, closeContainer, clearSelected } = useInventory();
 
   // Add a global click listener to clear item selection when clicking outside the inventory UI
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function InventoryPanel() {
       // Check if the click is outside the inventory UI
       const inventoryUI = event.target.closest('[data-inventory-ui="true"]');
       if (!inventoryUI) {
-        clearItemSelection();
+        clearSelected();
       }
     };
 
@@ -24,7 +24,7 @@ export default function InventoryPanel() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [clearItemSelection]);
+  }, [clearSelected]);
 
 
   return (
