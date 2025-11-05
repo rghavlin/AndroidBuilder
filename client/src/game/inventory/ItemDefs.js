@@ -125,6 +125,16 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.LONG_GUN
   },
 
+  'weapon.sniper_rifle': {
+    id: 'weapon.sniper_rifle',
+    name: 'Sniper Rifle',
+    imageId: 'sniper rifle', // Note: space in filename
+    width: 5,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE],
+    equippableSlot: EquipmentSlot.LONG_GUN
+  },
+
   // Flashlight
   'tool.flashlight': {
     id: 'tool.flashlight',

@@ -963,25 +963,12 @@ const DevConsole = ({ isOpen, onClose }) => {
               break;
             }
 
-            // Test 1: Create test items with proper sizes and images
-            addToConsole('Test 1: Creating test containers and items...', 'info');
+            // Create test items with proper sizes and images
+            addToConsole('Test 1: Creating test items on ground...', 'info');
 
             const { Item } = await import('../../game/inventory/Item.js');
             const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
-
-            // Create properly sized containers
-            const toolbox = new Item(createItemFromDef('container.toolbox'));
-            toolbox.instanceId = `toolbox-5f-${Date.now()}`;
-            
-            const lunchbox = new Item(createItemFromDef('container.lunchbox'));
-            lunchbox.instanceId = `lunchbox-5f-${Date.now()}`;
-
-            // Create test items
-            const knife = new Item(createItemFromDef('weapon.knife'));
-            knife.instanceId = `knife-5f-${Date.now()}`;
-
-            const ammo = new Item(createItemFromDef('ammo.9mm'));
-            ammo.instanceId = `ammo-5f-${Date.now()}`;
+            const { ItemTrait } = await import('../../game/inventory/traits.js');
 
             const groundContainer = window.inventoryManager.getContainer('ground');
             if (!groundContainer) {
@@ -989,16 +976,35 @@ const DevConsole = ({ isOpen, onClose }) => {
               break;
             }
 
-            // Place containers and items on ground
-            groundContainer.addItem(toolbox);
-            groundContainer.addItem(lunchbox);
-            groundContainer.addItem(knife);
-            groundContainer.addItem(ammo);
-            window.inv?.refresh();
+            // Clear ground first
+            groundContainer.clear();
 
-            addToConsole('  ✅ Created toolbox (2×2), lunchbox (2×1), knife, and ammo on ground', 'success');
-            addToConsole(`  - Toolbox: ${toolbox.width}×${toolbox.height} with ${toolbox.containerGrid?.width}×${toolbox.containerGrid?.height} internal grid`, 'log');
-            addToConsole(`  - Lunchbox: ${lunchbox.width}×${lunchbox.height} with ${lunchbox.containerGrid?.width}×${lunchbox.containerGrid?.height} internal grid`, 'log');
+            // Create toolbox (2×2 item with 4×3 internal grid)
+            const toolboxDef = createItemFromDef('container.toolbox');
+            const toolbox = new Item(toolboxDef);
+
+            // Create lunchbox (2×1 item with 3×2 internal grid)
+            const lunchboxDef = createItemFromDef('container.lunchbox');
+            const lunchbox = new Item(lunchboxDef);
+
+            // Create sniper rifle (5×2 item - large weapon for testing)
+            const sniperDef = createItemFromDef('weapon.sniper_rifle');
+            const sniper = new Item(sniperDef);
+
+            // Add to ground
+            const toolboxAdded = groundContainer.addItem(toolbox);
+            const lunchboxAdded = groundContainer.addItem(lunchbox);
+            const sniperAdded = groundContainer.addItem(sniper);
+
+            if (toolboxAdded && lunchboxAdded && sniperAdded) {
+              addToConsole('  ✅ Created test items on ground', 'success');
+              addToConsole(`  - Toolbox: 2×2 item at (${toolbox.x}, ${toolbox.y})`, 'log');
+              addToConsole(`  - Lunchbox: 2×1 item at (${lunchbox.x}, ${lunchbox.y})`, 'log');
+              addToConsole(`  - Sniper Rifle: 5×2 item at (${sniper.x}, ${sniper.y})`, 'log');
+            } else {
+              addToConsole('  ❌ Failed to add items to ground', 'error');
+              break;
+            }
 
             // Test 2: Verify interaction methods
             addToConsole('Test 2: Verifying interaction model...', 'info');
@@ -1009,12 +1015,12 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             // Test 3: Programmatically open a container panel
             addToConsole('Test 3: Programmatically opening toolbox panel...', 'info');
-            
+
             const toolboxGrid = toolbox.getContainerGrid?.();
             if (toolboxGrid) {
               addToConsole(`  ✅ Toolbox has container grid: ${toolboxGrid.id}`, 'success');
               addToConsole('  ℹ️  Check UI: floating panel should appear for toolbox', 'info');
-              
+
               // Trigger panel open via context if available
               if (window.inv?.openContainer) {
                 window.inv.openContainer(toolboxGrid.id);
@@ -1026,7 +1032,7 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             // Test 4: Test moving item into open container
             addToConsole('Test 4: Moving knife into toolbox (if open)...', 'info');
-            
+
             const moveResult = window.inventoryManager.moveItem(
               knife.instanceId,
               'ground',
@@ -1056,13 +1062,15 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('Container sizes:', 'info');
             addToConsole('  - Toolbox: 2×2 item, 4×3 internal grid', 'log');
             addToConsole('  - Lunchbox: 2×1 item, 3×2 internal grid', 'log');
+            addToConsole('  - Sniper Rifle: 5×2 item', 'log');
             addToConsole('', 'info');
             addToConsole('Next steps (manual testing):', 'info');
             addToConsole('1. RIGHT-CLICK toolbox in ground grid → Should open panel', 'log');
             addToConsole('2. RIGHT-CLICK lunchbox in ground grid → Should open panel', 'log');
-            addToConsole('3. LEFT-CLICK and drag toolbox → Should move container item', 'log');
-            addToConsole('4. Drag items into/out of open container panels', 'log');
-            addToConsole('5. Close panels and verify cleanup', 'log');
+            addToConsole('3. RIGHT-CLICK sniper rifle in ground grid → Should NOT open panel', 'log');
+            addToConsole('4. LEFT-CLICK and drag toolbox → Should move container item', 'log');
+            addToConsole('5. Drag items into/out of open container panels', 'log');
+            addToConsole('6. Close panels and verify cleanup', 'log');
 
           } catch (error) {
             addToConsole(`Error in Phase 5F verification: ${error.message}`, 'error');
