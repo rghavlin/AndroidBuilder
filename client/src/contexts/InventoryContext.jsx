@@ -233,6 +233,10 @@ export const InventoryProvider = ({ children, manager }) => {
       if (!prev) return null;
       const newRotation = (prev.rotation + 90) % 360;
       console.debug('[InventoryContext] Rotate selected to:', newRotation);
+      
+      // Update the actual item's rotation property
+      prev.item.rotation = newRotation;
+      
       return {
         ...prev,
         rotation: newRotation
