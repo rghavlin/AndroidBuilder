@@ -328,12 +328,48 @@ export default function UniversalGrid({
           const leftPos = topLeftX * (slotSize + GAP_SIZE);
           const topPos = topLeftY * (slotSize + GAP_SIZE);
 
+          // Get rotation for CSS transform
+          const rotation = item.rotation || 0;
+          
+          // For rotated items (90° or 270°), we need to:
+          // 1. Use the ORIGINAL dimensions for the image container (before rotation)
+          // 2. Apply CSS rotation transform
+          // 3. Adjust position to account for rotation pivot
+          const isRotated = rotation === 90 || rotation === 270;
+          const originalWidth = isRotated ? ((item.height * slotSize) + ((item.height - 1) * GAP_SIZE)) : imageWidth;
+          const originalHeight = isRotated ? ((item.width * slotSize) + ((item.width - 1) * GAP_SIZE)) : imageHeight;
+          
+          // Calculate transform origin and position adjustments for rotation
+          let transformStyle = '';
+          let adjustedLeft = leftPos;
+          let adjustedTop = topPos;
+          
+          if (rotation === 90) {
+            // Rotate 90° clockwise - pivot from top-left, then shift right
+            transformStyle = 'rotate(90deg)';
+            adjustedLeft = leftPos + imageWidth;
+            adjustedTop = topPos;
+          } else if (rotation === 180) {
+            // Rotate 180° - pivot from center
+            transformStyle = 'rotate(180deg)';
+            adjustedLeft = leftPos + imageWidth;
+            adjustedTop = topPos + imageHeight;
+          } else if (rotation === 270) {
+            // Rotate 270° clockwise (90° counter-clockwise) - pivot from top-left, then shift down
+            transformStyle = 'rotate(270deg)';
+            adjustedLeft = leftPos;
+            adjustedTop = topPos + imageHeight;
+          }
+
           console.debug('[UniversalGrid] Rendering overlay:', {
             itemName: item.name,
+            rotation,
             topLeftX, topLeftY,
             slotSize, GAP_SIZE,
             leftPos, topPos,
-            imageWidth, imageHeight
+            adjustedLeft, adjustedTop,
+            imageWidth, imageHeight,
+            originalWidth, originalHeight
           });
 
           // Check if this item is selected for movement
@@ -348,11 +384,13 @@ export default function UniversalGrid({
                 isItemSelected && "opacity-40"
               )}
               style={{
-                left: `${leftPos}px`,
-                top: `${topPos}px`,
-                width: `${imageWidth}px`,
-                height: `${imageHeight}px`,
+                left: `${adjustedLeft}px`,
+                top: `${adjustedTop}px`,
+                width: `${originalWidth}px`,
+                height: `${originalHeight}px`,
                 objectFit: 'contain',
+                transform: transformStyle,
+                transformOrigin: 'top left',
               }}
               alt={item.name}
             />
