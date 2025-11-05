@@ -8,7 +8,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { useEffect } from "react";
 
 export default function InventoryPanel() {
-  const { openContainers, getContainer, closeContainer, clearSelected } = useInventory();
+  const { openContainers, getContainer, closeContainer, clearSelected, selectedItem } = useInventory();
 
   // Add a global click listener to clear item selection when clicking outside the inventory UI
   useEffect(() => {
@@ -27,11 +27,17 @@ export default function InventoryPanel() {
   }, [clearSelected]);
 
 
-  // Handle clicks on inventory panel background (not on grids)
+  // Handle clicks on inventory panel - cancel selection if clicking outside grids
   const handlePanelClick = (event) => {
-    // If click target is the panel itself or equipment area (not a grid), clear selection
-    if (event.target.hasAttribute('data-inventory-panel') || 
-        event.target.closest('[data-equipment-area]')) {
+    // Only process if there's a selected item
+    if (!selectedItem) return;
+    
+    // Check if the click is on a grid (grids have data-inventory-ui and specific grid classes)
+    const clickedGrid = event.target.closest('[data-testid*="grid-"]');
+    
+    // If not clicking on a grid, cancel the selection
+    if (!clickedGrid) {
+      console.debug('[InventoryPanel] Clicked outside grid while item selected - canceling');
       clearSelected();
     }
   };

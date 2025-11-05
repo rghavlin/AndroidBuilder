@@ -71,11 +71,21 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     // If an item is selected for movement, cancel it and don't process map click
     if (selectedItem) {
       console.debug('[MapInterface] Map clicked while item selected - canceling selection');
-      clearSelected(); // This should be the action for canceling the move
+      clearSelected();
       return; // Do not proceed to handle the map click for movement
     }
     // Otherwise, proceed with normal map click handling
     // handleCellClick(x, y); // This function needs to be passed down or accessed differently
+  };
+
+  // Block all map area clicks when item is selected
+  const handleMapAreaClick = (event: React.MouseEvent) => {
+    if (selectedItem) {
+      event.preventDefault();
+      event.stopPropagation();
+      console.debug('[MapInterface] Map area clicked while item selected - canceling selection');
+      clearSelected();
+    }
   };
 
   return (
@@ -96,7 +106,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       </div>
 
       {/* Map Display Area */}
-      <div className="flex-1 relative overflow-hidden min-h-0" style={{ padding: 0, margin: 0 }}>
+      <div 
+        className="flex-1 relative overflow-hidden min-h-0" 
+        style={{ padding: 0, margin: 0 }}
+        onClick={handleMapAreaClick}
+      >
         {isInitialized ? (
           <MapCanvas onCellClick={onCellClick} />
         ) : (
