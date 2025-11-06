@@ -42,18 +42,9 @@ export default function FloatingContainer({
       const container = getContainer(id);
       if (!container) {
         console.warn('[FloatingContainer] Container not registered:', id);
-      } else {
-        console.debug('[FloatingContainer] Container registered:', id, 'type:', container.type);
-        console.debug('[FloatingContainer] isGroundBackpack prop:', isGroundBackpack);
-        console.debug('[FloatingContainer] Should show Quick Move button:', isGroundBackpack);
       }
     }
-  }, [isOpen, id, getContainer, isGroundBackpack]);
-  
-  // Debug log whenever isGroundBackpack changes
-  useEffect(() => {
-    console.debug('[FloatingContainer] isGroundBackpack changed to:', isGroundBackpack, 'for container:', id);
-  }, [isGroundBackpack, id]);
+  }, [isOpen, id, getContainer]);
   
   // Phase 5H: Quick Move All handler
   const handleQuickMove = () => {

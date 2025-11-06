@@ -45,62 +45,37 @@ export default function InventoryPanel() {
         const container = getContainer(containerId);
         if (!container) return null;
 
-        // Check if this is a backpack from the ground
-        // Find the item that owns this container by checking ground items
+        // Check if this is a backpack from the ground (SYNCHRONOUS)
         let isGroundBackpack = false;
         const groundContainer = getContainer('ground');
+        
         if (groundContainer) {
           const allGroundItems = groundContainer.getAllItems();
-          console.debug('[InventoryPanel] Checking for ground backpack owner of container:', containerId);
-          console.debug('[InventoryPanel] Ground items:', allGroundItems.map(i => ({
-            name: i.name,
-            instanceId: i.instanceId,
-            equippableSlot: i.equippableSlot,
-            hasContainer: !!i.containerGrid,
-            containerGridId: i.containerGrid?.id,
-            expectedContainerId: `${i.instanceId}-container`,
-            matches: containerId === `${i.instanceId}-container`
-          })));
           
+          // Find the backpack item that owns this container
           const ownerItem = allGroundItems.find(item => {
-            // Only check items that are backpacks
-            if (item.equippableSlot !== 'backpack') {
-              return false;
-            }
+            // Only backpacks can be ground backpacks
+            if (item.equippableSlot !== 'backpack') return false;
 
-            // Initialize container if not already done
+            // Initialize container if needed
             if (!item.containerGrid && item._containerGridData) {
               item.initializeContainerGrid();
             }
             
-            // Check if container ID matches directly
-            if (item.containerGrid && item.containerGrid.id === containerId) {
-              return true;
-            }
+            // Match by container ID directly
+            if (item.containerGrid?.id === containerId) return true;
             
-            // For backpacks, the container ID pattern is: {instanceId}-container
-            // Example: backpack.standard-1762408941075-p9guz-container
-            if (item.instanceId && containerId === `${item.instanceId}-container`) {
-              return true;
-            }
-            
-            // Also try checking if the containerId starts with instanceId
-            if (item.instanceId && containerId.startsWith(item.instanceId)) {
-              return true;
-            }
+            // Match by instanceId pattern: {instanceId}-container
+            if (item.instanceId && containerId === `${item.instanceId}-container`) return true;
             
             return false;
           });
           
-          console.debug('[InventoryPanel] Owner item found:', ownerItem?.name, 'equippableSlot:', ownerItem?.equippableSlot);
-          
-          if (ownerItem && ownerItem.equippableSlot === 'backpack') {
+          if (ownerItem) {
             isGroundBackpack = true;
-            console.debug('[InventoryPanel] ✅ Container identified as ground backpack:', containerId);
+            console.debug('[InventoryPanel] ✅ Ground backpack detected:', ownerItem.name, 'container:', containerId);
           }
         }
-
-        console.debug('[InventoryPanel] Rendering FloatingContainer:', containerId, 'isGroundBackpack:', isGroundBackpack);
 
         return (
           <FloatingContainer
