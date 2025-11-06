@@ -53,7 +53,6 @@ export default function InventoryPanel() {
             title={container.name || 'Container'}
             isOpen={true}
             onClose={() => closeContainer(containerId)}
-            isGroundBackpack={isGroundBackpack}
           >
             <ContainerGrid containerId={containerId} />
           </FloatingContainer>

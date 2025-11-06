@@ -15,7 +15,6 @@ interface FloatingContainerProps {
   minWidth?: number;
   minHeight?: number;
   className?: string;
-  isGroundBackpack?: boolean; // Phase 5H: Flag for backpack on ground
 }
 
 export default function FloatingContainer({
@@ -28,7 +27,6 @@ export default function FloatingContainer({
   minWidth = 200,
   minHeight = 150,
   className,
-  isGroundBackpack = false,
 }: FloatingContainerProps) {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
@@ -155,8 +153,8 @@ export default function FloatingContainer({
       <div className="p-3">
         {children}
         
-        {/* Phase 5H: Quick Move button for ground backpacks */}
-        {isGroundBackpack && (
+        {/* Phase 5H: Quick Move button for backpack containers */}
+        {id.includes('backpack') && (
           <Button 
             onClick={handleQuickMove}
             variant="secondary"
