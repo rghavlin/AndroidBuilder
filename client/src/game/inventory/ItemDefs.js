@@ -7,26 +7,40 @@ import { EncumbranceTier, EquipmentSlot, ItemTrait } from './traits.js';
 
 export const ItemDefs = {
   // Backpacks (containers, equippable)
+  // Book bag: 3×3 item footprint → 4×5 internal storage
   'backpack.school': {
     id: 'backpack.school',
-    name: 'School Backpack',
+    name: 'Book Bag',
     imageId: 'bookBag', // No extension - loader will append .png
     width: 3,
     height: 3,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
-    containerGrid: { width: 6, height: 8 }
+    containerGrid: { width: 4, height: 5 }
   },
 
+  // Standard backpack: 4×4 item footprint → 5×7 internal storage
+  'backpack.standard': {
+    id: 'backpack.standard',
+    name: 'Standard Backpack',
+    imageId: 'standardBackpack', // No extension - loader will append .png
+    width: 4,
+    height: 4,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.BACKPACK,
+    containerGrid: { width: 5, height: 7 }
+  },
+
+  // Hiking backpack: 5×5 item footprint → 6×10 internal storage
   'backpack.hiking': {
     id: 'backpack.hiking',
     name: 'Hiking Backpack',
     imageId: 'hikingBackpack', // No extension - loader will append .png
-    width: 3,
-    height: 4,
+    width: 5,
+    height: 5,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
-    containerGrid: { width: 8, height: 10 }
+    containerGrid: { width: 6, height: 10 }
   },
 
   // Clothing - Upper Body

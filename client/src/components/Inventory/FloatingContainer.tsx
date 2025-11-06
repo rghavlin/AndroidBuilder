@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { X, Move } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useInventory } from "@/contexts/InventoryContext";
 
 interface FloatingContainerProps {
   id: string;
@@ -14,6 +15,7 @@ interface FloatingContainerProps {
   minWidth?: number;
   minHeight?: number;
   className?: string;
+  isGroundBackpack?: boolean; // Phase 5H: Flag for backpack on ground
 }
 
 export default function FloatingContainer({
@@ -26,11 +28,42 @@ export default function FloatingContainer({
   minWidth = 200,
   minHeight = 150,
   className,
+  isGroundBackpack = false,
 }: FloatingContainerProps) {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const { inventoryRef, moveItem } = useInventory();
+  
+  // Phase 5H: Quick Move All handler
+  const handleQuickMove = () => {
+    if (!inventoryRef.current) return;
+    
+    const equippedBackpack = inventoryRef.current.getBackpackContainer();
+    const groundBackpack = inventoryRef.current.getContainer(id);
+    
+    if (!equippedBackpack || !groundBackpack) {
+      console.warn('[FloatingContainer] Cannot quick move - missing backpack containers');
+      return;
+    }
+    
+    const items = equippedBackpack.getAllItems();
+    let moved = 0;
+    
+    for (const item of items) {
+      const result = moveItem(
+        item.instanceId, 
+        equippedBackpack.id, 
+        groundBackpack.id,
+        null,
+        null
+      );
+      if (result.success) moved++;
+    }
+    
+    console.log(`[FloatingContainer] Quick moved ${moved}/${items.length} items`);
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget || (e.target as Element).closest('.drag-handle')) {
@@ -108,6 +141,18 @@ export default function FloatingContainer({
       {/* Content */}
       <div className="p-3">
         {children}
+        
+        {/* Phase 5H: Quick Move button for ground backpacks */}
+        {isGroundBackpack && (
+          <Button 
+            onClick={handleQuickMove}
+            variant="secondary"
+            size="sm"
+            className="mt-2 w-full"
+          >
+            Quick Move All from Equipped Backpack
+          </Button>
+        )}
       </div>
     </div>,
     document.body

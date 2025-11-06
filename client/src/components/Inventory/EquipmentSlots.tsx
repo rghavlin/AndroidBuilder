@@ -3,7 +3,7 @@ import EquipmentSlot from "./EquipmentSlot";
 import { useInventory } from "@/contexts/InventoryContext";
 
 export default function EquipmentSlots() {
-  const { inventoryRef, inventoryVersion } = useInventory();
+  const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected } = useInventory();
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
   const equipmentSlots = [
@@ -17,8 +17,18 @@ export default function EquipmentSlots() {
   ];
 
   const handleSlotClick = (slotId: string) => {
-    console.debug(`[EquipmentSlots] Slot ${slotId} clicked - Phase 5B (read-only)`);
-    // No interaction yet in Phase 5B
+    const equippedItem = inventoryRef.current?.equipment[slotId];
+    
+    if (!equippedItem) return; // Empty slot, nothing to do
+    
+    // If this item is already selected, deselect it (cancel)
+    if (selectedItem?.item?.instanceId === equippedItem.instanceId) {
+      clearSelected();
+      return;
+    }
+    
+    // Select equipment item for unequipping (Phase 5H)
+    selectItem(equippedItem, `equipment-${slotId}`, 0, 0, true);
   };
 
   return (
@@ -28,6 +38,10 @@ export default function EquipmentSlots() {
         {equipmentSlots.map((slot) => {
           // Read equipped item from inventory manager (reactive to inventoryVersion)
           const equippedItem = inventoryRef.current?.equipment[slot.id] || null;
+          
+          // Check if this item is selected for unequipping
+          const isSelected = selectedItem?.isEquipment && 
+                           selectedItem?.item?.instanceId === equippedItem?.instanceId;
 
           return (
             <EquipmentSlot
@@ -35,6 +49,7 @@ export default function EquipmentSlots() {
               slotId={slot.id}
               item={equippedItem}
               isEquipped={!!equippedItem}
+              isSelected={isSelected}
               onClick={() => handleSlotClick(slot.id)}
             />
           );

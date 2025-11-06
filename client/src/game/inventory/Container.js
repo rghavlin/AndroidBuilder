@@ -131,6 +131,15 @@ export class Container {
       height = isRotated ? item.width : item.height;
     }
     
+    // Phase 5H: Backpack placement rules
+    if (item.equippableSlot === 'backpack' && this.type === 'equipped-backpack') {
+      // Check if backpack has items - can't place in another backpack if it does
+      const itemCount = item.containerGrid?.getItemCount?.() || 0;
+      if (itemCount > 0) {
+        return { valid: false, reason: 'Empty backpack before storing in another backpack' };
+      }
+    }
+    
     // Check bounds
     if (!this.isValidPosition(x, y, width, height)) {
       return { valid: false, reason: 'Out of bounds' };

@@ -159,16 +159,22 @@ export class InventoryManager {
   }
 
   /**
-   * Check if a container can be opened (backpack only if equipped, specialty containers always)
+   * Check if a container can be opened
+   * Phase 5H: Backpacks open only when on ground, not nested, not equipped
    */
   canOpenContainer(item) {
     if (!item || !item.isContainer()) {
       return false;
     }
 
-    // Backpacks can only be opened when equipped
+    // Backpack-specific rules (Phase 5H)
     if (item.equippableSlot === 'backpack') {
-      return item.isEquipped;
+      // Only allow opening when on ground, not nested, not equipped
+      const isOnGround = item._container?.id === 'ground';
+      const isNested = item._container?.type === 'equipped-backpack';
+      const isEquipped = item.isEquipped;
+      
+      return isOnGround && !isNested && !isEquipped;
     }
 
     // Specialty containers with openableWhenNested trait can always be opened

@@ -204,8 +204,8 @@ export const InventoryProvider = ({ children, manager }) => {
     return openContainers.has(containerId);
   }, [openContainers]);
 
-  // Phase 5G: Selection actions (simpler than cursor-following)
-  const selectItem = useCallback((item, originContainerId, originX, originY) => {
+  // Phase 5G/5H: Selection actions (simpler than cursor-following)
+  const selectItem = useCallback((item, originContainerId, originX, originY, isEquipment = false) => {
     if (!item || !item.instanceId) {
       console.warn('[InventoryContext] Cannot select without valid item');
       return false;
@@ -215,7 +215,8 @@ export const InventoryProvider = ({ children, manager }) => {
       name: item.name,
       from: originContainerId,
       gridPos: `(${originX}, ${originY})`,
-      rotation: item.rotation || 0
+      rotation: item.rotation || 0,
+      isEquipment
     });
     
     setSelectedItem({
@@ -224,7 +225,8 @@ export const InventoryProvider = ({ children, manager }) => {
       originX,
       originY,
       rotation: item.rotation || 0,
-      originalRotation: item.rotation || 0 // Store for restoration if placement fails
+      originalRotation: item.rotation || 0, // Store for restoration if placement fails
+      isEquipment // NEW: flag for equipment slot selection
     });
     setDragVersion(prev => prev + 1);
     return true;
@@ -285,9 +287,25 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'No item selected' };
     }
 
-    const { item, originContainerId, originX, originY, rotation, originalRotation } = selectedItem;
+    const { item, originContainerId, originX, originY, rotation, originalRotation, isEquipment } = selectedItem;
     
-    console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation);
+    console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation, 'isEquipment:', isEquipment);
+
+    // Phase 5H: Handle unequipping
+    if (isEquipment) {
+      const slot = originContainerId.replace('equipment-', '');
+      const result = inventoryRef.current.unequipItem(slot);
+      
+      if (result.success) {
+        // Item was unequipped and placed automatically
+        setSelectedItem(null);
+        setDragVersion(prev => prev + 1);
+        setInventoryVersion(prev => prev + 1);
+        return { success: true };
+      }
+      
+      return result;
+    }
 
     // Store original position for potential restore
     const originalX = originX;

@@ -5,6 +5,7 @@ interface EquipmentSlotProps {
   slotId: string;
   item?: any;
   isEquipped?: boolean;
+  isSelected?: boolean;
   onClick?: () => void;
   className?: string;
 }
@@ -24,6 +25,7 @@ export default function EquipmentSlot({
   slotId,
   item,
   isEquipped = false,
+  isSelected = false,
   onClick,
   className
 }: EquipmentSlotProps) {
@@ -46,6 +48,7 @@ export default function EquipmentSlot({
         "flex flex-col items-center justify-center cursor-pointer",
         "hover:border-accent transition-colors",
         hasItem && "border-accent bg-accent/10",
+        isSelected && "ring-2 ring-red-500 animate-pulse", // Phase 5H: Red highlight when selected
         className
       )}
       onClick={onClick}

@@ -122,7 +122,7 @@ export default function UniversalGrid({
   const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    
+
     // If clicking empty space with item selected, try to place
     if (selectedItem && !item) {
       const result = placeSelected(containerId, x, y);
@@ -131,7 +131,7 @@ export default function UniversalGrid({
       }
       return;
     }
-    
+
     // If clicking an item
     if (item && item.instanceId) {
       // If this is the already-selected item, deselect it
@@ -145,7 +145,7 @@ export default function UniversalGrid({
       }
       return;
     }
-    
+
     // Clicking empty space with no selection
     onSlotClick?.(x, y);
   };
@@ -217,7 +217,7 @@ export default function UniversalGrid({
 
   const handleGridContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
-    
+
     // If we have a selected item, right-click anywhere rotates it
     if (selectedItem) {
       console.log('[UniversalGrid] Right-click on grid - rotating selected item');
@@ -237,7 +237,7 @@ export default function UniversalGrid({
 
     const GAP_SIZE = 2;
     const slotWithGap = slotSize + GAP_SIZE;
-    
+
     const gridX = Math.floor(x / slotWithGap);
     const gridY = Math.floor(y / slotWithGap);
 
@@ -330,19 +330,19 @@ export default function UniversalGrid({
 
           // Get rotation for CSS transform
           const rotation = item.rotation || 0;
-          
+
           // Calculate grid footprint dimensions (what space the item actually occupies)
           const itemActualWidth = item.getActualWidth();
           const itemActualHeight = item.getActualHeight();
           const gridWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
           const gridHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
-          
+
           // Calculate transform origin and position adjustments for rotation
           // Position adjustments based on grid footprint (actual occupied space)
           let transformStyle = '';
           let adjustedLeft = leftPos;
           let adjustedTop = topPos;
-          
+
           if (rotation === 90) {
             // Rotate 90° clockwise - pivot from top-left, then shift right by grid width
             transformStyle = 'rotate(90deg)';
