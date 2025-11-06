@@ -45,9 +45,15 @@ export default function FloatingContainer({
       } else {
         console.debug('[FloatingContainer] Container registered:', id, 'type:', container.type);
         console.debug('[FloatingContainer] isGroundBackpack prop:', isGroundBackpack);
+        console.debug('[FloatingContainer] Should show Quick Move button:', isGroundBackpack);
       }
     }
   }, [isOpen, id, getContainer, isGroundBackpack]);
+  
+  // Debug log whenever isGroundBackpack changes
+  useEffect(() => {
+    console.debug('[FloatingContainer] isGroundBackpack changed to:', isGroundBackpack, 'for container:', id);
+  }, [isGroundBackpack, id]);
   
   // Phase 5H: Quick Move All handler
   const handleQuickMove = () => {
@@ -156,19 +162,16 @@ export default function FloatingContainer({
         {children}
         
         {/* Phase 5H: Quick Move button for ground backpacks */}
-        {(() => {
-          console.debug('[FloatingContainer] Rendering Quick Move button check - isGroundBackpack:', isGroundBackpack);
-          return isGroundBackpack && (
-            <Button 
-              onClick={handleQuickMove}
-              variant="secondary"
-              size="sm"
-              className="mt-2 w-full"
-            >
-              Quick Move All from Equipped Backpack
-            </Button>
-          );
-        })()}
+        {isGroundBackpack && (
+          <Button 
+            onClick={handleQuickMove}
+            variant="secondary"
+            size="sm"
+            className="mt-2 w-full"
+          >
+            Quick Move All from Equipped Backpack
+          </Button>
+        )}
       </div>
     </div>,
     document.body
