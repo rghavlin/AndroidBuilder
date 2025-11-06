@@ -45,32 +45,20 @@ export default function InventoryPanel() {
         const container = getContainer(containerId);
         if (!container) return null;
 
-        // Check if this is a backpack container on the ground
-        let isGroundBackpack = false;
+        // Check if this container belongs to a backpack
+        // Since backpacks can only open when on ground, if it's open it must be a ground backpack
         const groundContainer = getContainer('ground');
+        let isGroundBackpack = false;
         
         if (groundContainer) {
-          const allGroundItems = groundContainer.getAllItems();
-          
-          // Find the item that owns this container
-          for (const item of allGroundItems) {
-            // Initialize container if needed
-            if (!item.containerGrid && item._containerGridData) {
-              item.initializeContainerGrid();
-            }
-            
-            // Get the container for this item
+          const ownerItem = groundContainer.getAllItems().find(item => {
             const itemContainer = item.containerGrid || item.getContainerGrid?.();
-            
-            // Check if this item's container matches the open container
-            if (itemContainer?.id === containerId) {
-              // If the owner is a backpack, show the quick-move button
-              if (item.equippableSlot === 'backpack') {
-                isGroundBackpack = true;
-                console.debug('[InventoryPanel] ✅ Detected ground backpack:', item.name, 'container:', containerId);
-              }
-              break;
-            }
+            return itemContainer?.id === containerId;
+          });
+          
+          // If owner is a backpack, it's a ground backpack (backpacks only open when on ground)
+          if (ownerItem?.equippableSlot === 'backpack') {
+            isGroundBackpack = true;
           }
         }
 
