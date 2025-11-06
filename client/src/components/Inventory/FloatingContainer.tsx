@@ -75,6 +75,9 @@ export default function FloatingContainer({
     console.log(`[FloatingContainer] Quick moved ${moved}/${items.length} items`);
   };
 
+  // Check if there's an equipped backpack to enable/disable button
+  const hasEquippedBackpack = inventoryRef.current?.getBackpackContainer() !== null;
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget || (e.target as Element).closest('.drag-handle')) {
       setIsDragging(true);
@@ -159,6 +162,8 @@ export default function FloatingContainer({
             variant="secondary"
             size="sm"
             className="mt-2 w-full"
+            disabled={!hasEquippedBackpack}
+            title={hasEquippedBackpack ? "Move all items from equipped backpack" : "No backpack currently equipped"}
           >
             Quick Move All from Equipped Backpack
           </Button>
