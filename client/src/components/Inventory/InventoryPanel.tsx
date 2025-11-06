@@ -45,8 +45,7 @@ export default function InventoryPanel() {
         const container = getContainer(containerId);
         if (!container) return null;
 
-        // Check if this is a backpack container (simplified logic)
-        // If a backpack can only be opened when on ground, we just need to check if it's a backpack
+        // Check if this is a backpack container on the ground
         let isGroundBackpack = false;
         const groundContainer = getContainer('ground');
         
@@ -54,22 +53,24 @@ export default function InventoryPanel() {
           const allGroundItems = groundContainer.getAllItems();
           
           // Find the item that owns this container
-          const ownerItem = allGroundItems.find(item => {
+          for (const item of allGroundItems) {
             // Initialize container if needed
             if (!item.containerGrid && item._containerGridData) {
               item.initializeContainerGrid();
             }
             
-            // Match by container ID
-            if (item.containerGrid?.id === containerId) return true;
-            if (item.instanceId && containerId === `${item.instanceId}-container`) return true;
+            // Get the container for this item
+            const itemContainer = item.containerGrid || item.getContainerGrid?.();
             
-            return false;
-          });
-          
-          // If the owner is a backpack, show the quick-move button
-          if (ownerItem?.equippableSlot === 'backpack') {
-            isGroundBackpack = true;
+            // Check if this item's container matches the open container
+            if (itemContainer?.id === containerId) {
+              // If the owner is a backpack, show the quick-move button
+              if (item.equippableSlot === 'backpack') {
+                isGroundBackpack = true;
+                console.debug('[InventoryPanel] ✅ Detected ground backpack:', item.name, 'container:', containerId);
+              }
+              break;
+            }
           }
         }
 
