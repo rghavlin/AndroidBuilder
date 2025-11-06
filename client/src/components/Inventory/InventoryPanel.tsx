@@ -40,27 +40,26 @@ export default function InventoryPanel() {
         </div>
       </div>
 
-      {/* Floating Containers */}
-      {Array.from(openContainers).map((containerId, index) => {
+      {/* Floating Container Panels */}
+      {Array.from(openContainers).map(containerId => {
         const container = getContainer(containerId);
         if (!container) return null;
+
+        // Check if this is a backpack from the ground
+        const isGroundBackpack = containerId.includes('backpack') &&
+                                 container.type !== 'equipped-backpack' &&
+                                 containerId !== 'backpack-container';
 
         return (
           <FloatingContainer
             key={containerId}
             id={containerId}
-            title={container.name}
+            title={container.name || 'Container'}
             isOpen={true}
             onClose={() => closeContainer(containerId)}
-            initialPosition={{ x: 100 + index * 30, y: 100 + index * 30 }}
-            minWidth={250}
-            minHeight={200}
+            isGroundBackpack={isGroundBackpack}
           >
-            <ContainerGrid
-              containerId={containerId}
-              enableScroll={true}
-              maxHeight="400px"
-            />
+            <ContainerGrid containerId={containerId} />
           </FloatingContainer>
         );
       })}
