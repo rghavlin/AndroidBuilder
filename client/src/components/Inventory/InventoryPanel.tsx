@@ -51,14 +51,35 @@ export default function InventoryPanel() {
         const groundContainer = getContainer('ground');
         if (groundContainer) {
           const allGroundItems = groundContainer.getAllItems();
-          const ownerItem = allGroundItems.find(item => 
-            item.containerGrid && item.containerGrid.id === containerId
-          );
+          console.debug('[InventoryPanel] Checking for ground backpack owner of container:', containerId);
+          console.debug('[InventoryPanel] Ground items:', allGroundItems.map(i => ({
+            name: i.name,
+            instanceId: i.instanceId,
+            equippableSlot: i.equippableSlot,
+            hasContainer: !!i.containerGrid,
+            containerGridId: i.containerGrid?.id
+          })));
+          
+          const ownerItem = allGroundItems.find(item => {
+            // Initialize container if not already done
+            if (!item.containerGrid && item._containerGridData) {
+              item.initializeContainerGrid();
+            }
+            
+            const hasMatchingContainer = item.containerGrid && item.containerGrid.id === containerId;
+            console.debug('[InventoryPanel] Checking item:', item.name, 'containerGrid.id:', item.containerGrid?.id, 'matches:', hasMatchingContainer);
+            return hasMatchingContainer;
+          });
+          
+          console.debug('[InventoryPanel] Owner item found:', ownerItem?.name, 'equippableSlot:', ownerItem?.equippableSlot);
           
           if (ownerItem && ownerItem.equippableSlot === 'backpack') {
             isGroundBackpack = true;
+            console.debug('[InventoryPanel] ✅ Container identified as ground backpack:', containerId);
           }
         }
+
+        console.debug('[InventoryPanel] Rendering FloatingContainer:', containerId, 'isGroundBackpack:', isGroundBackpack);
 
         return (
           <FloatingContainer
