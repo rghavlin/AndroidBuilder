@@ -439,54 +439,40 @@ spawn <type> [count] - Spawn items on ground (knife, pistol, backpack, etc.)
 
 ---
 
-### 5H — Equipment Interaction & Backpack Management
-**Goal:** Implement unified left-click selection for equipment with smart backpack swapping mechanics.
+5H — Equipment Interaction & Backpack Management
 
-**Design Overview:**
+Goal: Implement unified left-click selection for equipment with smart backpack swapping mechanics.
 
-**Equipment Selection Model:**
-- Left-click equipment slot → Item selected, slot highlights RED
-- Player then clicks:
-  - **Empty grid cell** → Unequip to that position
-  - **Same equipment slot** → Cancel selection
-  - **Outside grid** → Cancel selection
-- Provides clear visual feedback and prevents accidental unequipping
+Design Overview:
 
-**Backpack Opening Rules (prevent exploits, enable swapping):**
-```javascript
+Equipment Selection Model:
+
+Left-click equipment slot → Item selected, slot highlights RED
+
+Player then clicks:
+
+Empty grid cell → Unequip to that position
+
+Same equipment slot → Cancel selection
+
+Outside grid → Cancel selection
+
+Provides clear visual feedback and prevents accidental unequipping
+
+Backpack Opening Rules (prevent exploits, enable swapping):
+
 canOpenContainer(item) {
-  if (!item.isContainer()) return false;
-  
+  if (!item?.isContainer()) return { valid: false, reason: 'Not a container' };
+
   // Backpacks: special rules
   if (item.equippableSlot === 'backpack') {
-    // ✅ Can open when on ground
-    if (item._container?.id === 'ground') return true;
-    
     // ❌ Cannot open when nested in another backpack
-    if (item._container?.type === 'equipped-backpack') return false;
-    
-    // ❌ Cannot open when equipped (use BackpackGrid instead)
-    if (item.isEquipped) return false;
-    
-    return false;
-  }
-  
-  // Specialty containers: existing logic
-  if (item.isOpenableWhenNested()) return true;
-  
-  return !item._container;
-}
-```
+    if (item._container?.type === 'equipped-backpack') {
+      return { valid: false, reason: 'Cannot open nested backpack' };
+    }
 
-**Backpack Placement Rules:**
-```javascript
-validateBackpackPlacement(backpack, targetContainer) {
-  // ✅ Can always equip, even with items inside
-  if (targetContainer.type === 'equipment-slot') return true;
-  
-  // ❌ Cannot place in another backpack if this backpack has items
-  if (targetContainer.type === 'equipped-backpack') {
-    if (backpack.containerGrid?.getItemCount() > 0) {
+    // ❌ Cannot place a backpack with items inside another backpack
+    if (item.containerGrid?.getItemCount() > 0) {
       return { valid: false, reason: 'Empty backpack before storing' };
     }
   }
@@ -496,15 +482,18 @@ validateBackpackPlacement(backpack, targetContainer) {
   
   return { valid: true };
 }
-```
 
-**Backpack Swapping UI:**
-- Ground backpacks that are opened show a **"Quick Move All"** button
-- Button transfers all items from **equipped backpack** → **ground backpack** (as much as fits)
-- Enables easy backpack upgrades: open new backpack from ground, click Quick Move, equip new backpack
 
-**Updated Backpack Sizes:**
-```javascript
+Backpack Swapping UI:
+
+Opened backpacks show a "Quick Move All" button
+
+Button transfers all items from equipped backpack → opened backpack (as much as fits)
+
+Enables easy backpack upgrades: open the new backpack, click Quick Move, equip new backpack
+
+Updated Backpack Sizes:
+
 // ItemDefs.js updates
 'backpack.school': {
   name: 'Book Bag',
@@ -516,104 +505,28 @@ validateBackpackPlacement(backpack, targetContainer) {
 'backpack.standard': {
   name: 'Standard Backpack',
   imageId: 'standardBackpack',
-  width: 4, height: 4,
-  containerGrid: { width: 5, height: 7 }
+  width: 3, height: 4,
+  containerGrid: { width: 6, height: 6 }
 },
 
 'backpack.hiking': {
-  name: 'Hiking Backpack',
-  imageId: 'hikingBackpack',
-  width: 5, height: 5,
-  containerGrid: { width: 6, height: 10 }
+  name: 'Hiking Pack',
+  imageId: 'hikingPack',
+  width: 4, height: 5,
+  containerGrid: { width: 8, height: 7 }
 }
-```
 
-**Item Image Naming Scheme:**
 
-**Standard pattern:**
-- Landscape items: `{item-name}.png` (e.g., `knife.png`, `sniper rifle.png`)
-- Square equipment icons: `{item-name} square.png` (e.g., `sniper rifle square.png`)
+UI Integration Plan:
 
-**Fallback logic:**
-```javascript
-// ImageLoader.js
-function getItemImageId(item) {
-  // Try equipment slot icon first (for square display in slots)
-  if (item.isEquipped && item.imageId) {
-    const squareIcon = `${item.imageId} square`;
-    if (imageExists(squareIcon)) return squareIcon;
-  }
-  
-  // Use standard image or default fallback
-  return item.imageId || 'default';
-}
-```
+Left-click to select from equipment:
 
-**Equipment Slot Visual Updates:**
-1. **Make slots square**: Ensure all 7 equipment slots are perfect squares (use same dimensions)
-2. **Add tooltips**: Show item name on hover (or slot name if empty)
-3. **Selection highlight**: Red border/glow when item is selected for unequipping
-4. **Layout adjustment**: Main inventory panel shows only 5 slots (backpack, melee, handgun, long_gun, flashlight)
-   - Upper/lower body slots remain in InventoryExtensionWindow
+Add selection state for equipment items (mirrors grid selection)
 
-**Implementation Steps:**
+On selecting an equipment item, show the red highlight on the slot
 
-**1. Update ItemDefs.js:**
-```javascript
-// Update all three backpack definitions with new sizes
-// Add imageId references for all items
-```
+While an equipment item is selected, clicking a valid grid position tries to unequip there
 
-**2. Update InventoryManager.canOpenContainer:**
-```javascript
-canOpenContainer(item) {
-  if (!item?.isContainer()) return false;
-  
-  // Backpack-specific rules
-  if (item.equippableSlot === 'backpack') {
-    // Only allow opening when on ground, not nested, not equipped
-    const isOnGround = item._container?.id === 'ground';
-    const isNested = item._container?.type === 'equipped-backpack';
-    return isOnGround && !isNested && !item.isEquipped;
-  }
-  
-  // Specialty containers
-  if (item.isOpenableWhenNested()) return true;
-  
-  return !item._container;
-}
-```
-
-**3. Add backpack placement validation:**
-```javascript
-// In Container.validatePlacement
-if (item.equippableSlot === 'backpack' && this.type === 'equipped-backpack') {
-  const itemCount = item.containerGrid?.getItemCount() || 0;
-  if (itemCount > 0) {
-    return { valid: false, reason: 'Empty backpack before storing in another backpack' };
-  }
-}
-```
-
-**4. Update InventoryContext selection logic:**
-```javascript
-// Extend selectItem to handle equipment slots
-const selectItem = useCallback((item, originContainerId, originX, originY, isEquipment = false) => {
-  setSelectedItem({
-    item,
-    originContainerId,
-    originX,
-    originY,
-    rotation: item.rotation || 0,
-    originalRotation: item.rotation || 0,
-    isEquipment // NEW: flag for equipment slot selection
-  });
-  setDragVersion(prev => prev + 1);
-}, []);
-```
-
-**5. Update EquipmentSlots.tsx:**
-```jsx
 const handleSlotClick = (slotId: string) => {
   const equippedItem = inventoryRef.current?.equipment[slotId];
   
@@ -629,46 +542,93 @@ const handleSlotClick = (slotId: string) => {
   selectItem(equippedItem, `equipment-${slotId}`, 0, 0, true);
 };
 
-// Visual feedback
+
+Red highlight for selected equipment:
+
 <EquipmentSlot
-  isSelected={selectedItem?.isEquipment && selectedItem?.item?.instanceId === equippedItem.instanceId}
-  className={cn(
-    isSelected && "ring-2 ring-red-500 animate-pulse" // Red highlight when selected
+  id={slotId}
+  selected={selectedItem?.originId === `equipment-${slotId}`}
+  className={clsx(
+    'rounded-lg border',
+    selectedItem?.originId === `equipment-${slotId}` && 'border-red-500 ring-2 ring-red-500/40 animate-pulse' // Red highlight when selected
   )}
 />
-```
 
-**6. Update placeSelected to handle equipment:**
-```javascript
-const placeSelected = useCallback((targetContainerId, targetX, targetY) => {
-  if (!selectedItem) return { success: false, reason: 'No item selected' };
-  
-  const { item, isEquipment, originContainerId } = selectedItem;
-  
-  // Handle unequipping
-  if (isEquipment) {
-    const slot = originContainerId.replace('equipment-', '');
-    const result = inventoryRef.current.unequipItem(slot);
-    
-    if (result.success) {
-      // Item was unequipped and placed automatically
-      setSelectedItem(null);
-      setInventoryVersion(prev => prev + 1);
+
+Unequip via grid click:
+
+When an equipment item is selected, clicking a valid target cell attempts to place there
+
+If placement succeeds, clear selection and update both UI panels
+
+If placement fails, keep selection and show a “bump” animation on the invalid cells
+
+useEffect(() => {
+  if (!selectedItem) return;
+
+  grid.onCellClick = (x, y) => {
+    const { item } = selectedItem;
+    const result = inventoryRef.current?.moveItemToGrid(item.instanceId, 'ground', x, y);
+    if (result?.success) {
+      clearSelected();
+      forceRerender(prev => prev + 1);
       return { success: true };
     }
-    
-    return result;
-  }
-  
-  // Standard item movement (existing logic)
-  // ...
-}, [selectedItem]);
-```
 
-**7. Add FloatingContainer Quick Move button:**
-```jsx
-// In FloatingContainer.tsx for backpack containers opened from ground
-{containerId.includes('backpack') && isGroundBackpack && (
+    // Shake invalid cells or show toast
+    showInvalidPlacementFeedback(result?.reason ?? 'Cannot place item here');
+    return { success: false };
+  };
+
+  return () => { grid.onCellClick = undefined; };
+}, [selectedItem]);
+
+
+Prevent nested open backpacks & illegal storage:
+
+Keep open panels for backpacks mutually exclusive as needed
+
+Do not allow opening a backpack that’s currently inside the equipped backpack
+
+Disallow placing a backpack-with-items inside another backpack
+
+canPlaceContainer(containerItem, targetContainer) {
+  if (containerItem.equippableSlot === 'backpack' && targetContainer.type === 'equipped-backpack') {
+    if (containerItem.containerGrid?.getItemCount() > 0) {
+      return { valid: false, reason: 'Cannot store a backpack that has items' };
+    }
+  }
+  return { valid: true };
+}
+
+
+Equipment panel polish:
+
+Clicking outside the inventory window cancels selection (if any)
+
+If the selected item becomes invalid (e.g., was moved by another action), clear selection safely
+
+When selection is active, show a subtle tooltip near the cursor: “Click a cell to unequip here”
+
+Minimal keyboard glue (optional, dev-only):
+
+Esc → cancel selection
+
+E while an equipment slot is hovered → select that slot (power-user affordance)
+
+useEffect(() => {
+  const onKeyDown = (e) => {
+    if (e.key === 'Escape') clearSelected();
+  };
+  window.addEventListener('keydown', onKeyDown);
+  return () => window.removeEventListener('keydown', onKeyDown);
+}, []);
+
+
+Add FloatingContainer Quick Move button:
+
+// In FloatingContainer.tsx for opened backpack containers
+{containerId.includes('backpack') && (
   <Button 
     onClick={handleQuickMove}
     variant="secondary"
@@ -681,9 +641,9 @@ const placeSelected = useCallback((targetContainerId, targetX, targetY) => {
 
 const handleQuickMove = () => {
   const equippedBackpack = inventoryRef.current?.getBackpackContainer();
-  const groundBackpack = inventoryRef.current?.getContainer(containerId);
+  const openedBackpack = inventoryRef.current?.getContainer(containerId);
   
-  if (!equippedBackpack || !groundBackpack) return;
+  if (!equippedBackpack || !openedBackpack) return;
   
   const items = equippedBackpack.getAllItems();
   let moved = 0;
@@ -692,17 +652,17 @@ const handleQuickMove = () => {
     const result = moveItem(
       item.instanceId, 
       equippedBackpack.id, 
-      groundBackpack.id
+      openedBackpack.id
     );
     if (result.success) moved++;
   }
   
   console.log(`Quick moved ${moved}/${items.length} items`);
 };
-```
 
-**8. Update ImageLoader for square icon fallback:**
-```javascript
+
+8. Update ImageLoader for square icon fallback:
+
 async loadItemImage(imageId) {
   const basePaths = [
     '/images/items/',
@@ -713,51 +673,65 @@ async loadItemImage(imageId) {
   
   const extensions = ['.png', '.jpg', '.jpeg', '.webp'];
   
-  // Try all path/extension combinations
-  for (const basePath of basePaths) {
+  // Try each base/extension combo
+  for (const base of basePaths) {
     for (const ext of extensions) {
-      const fullPath = `${basePath}${imageId}${ext}`;
-      const img = await this.tryLoadImage(fullPath);
-      if (img) return img;
+      try {
+        const src = await tryLoad(`${base}${imageId}${ext}`);
+        if (src) return src;
+      } catch {}
     }
   }
   
-  // Fallback to default.png
-  return this.loadItemImage('default');
+  // Fallback: square icon by type
+  return `/images/fallback/${imageId}.png`;
 }
-```
 
-**Acceptance Criteria:**
 
-**Equipment Selection:**
-- [ ] Left-click equipment slot selects item, highlights slot in red
-- [ ] Clicking same slot cancels selection
-- [ ] Clicking grid cell unequips to that position
-- [ ] Clicking outside grid cancels selection
+Acceptance Criteria (5H):
 
-**Backpack Opening:**
-- [ ] Ground backpacks can be opened via right-click
-- [ ] Nested backpacks (inside equipped backpack) cannot be opened
-- [ ] Equipped backpacks cannot be opened (BackpackGrid shows instead)
+Equipment Selection
 
-**Backpack Placement:**
-- [ ] Cannot place backpack with items into another backpack
-- [ ] Can equip backpack even with items inside
-- [ ] Can place backpack on ground regardless of contents
+ Left-clicking an equipment slot selects the item and highlights the slot in red
 
-**Backpack Swapping:**
-- [ ] Ground backpack panel shows "Quick Move All" button
-- [ ] Button transfers items from equipped → ground backpack
-- [ ] Works correctly for upgrade path: open new backpack, quick move, equip
+ Clicking grid cell unequips to that position
 
-**Visual/UX:**
-- [ ] All 7 equipment slots are perfect squares
-- [ ] Tooltips show item/slot names on hover
-- [ ] Equipment slots have correct spacing without upper/lower body in main panel
-- [ ] Square icons load for rectangular items when equipped (fallback to standard icon)
+ Clicking the same slot cancels selection
 
-**Console Testing Commands:**
-```javascript
+ Clicking outside grid cancels selection
+
+Backpack Opening:
+
+ Ground backpacks can be opened via right-click
+
+ Nested backpacks (inside equipped backpack) cannot be opened
+
+ Equipped backpack cannot be opened while equipped
+
+Backpack Storage Rules:
+
+ Cannot place backpack with items into another backpack
+
+ Can equip backpack even if it has items
+
+Quick Move:
+
+ Opened backpack panel shows "Quick Move All" button
+
+ Button transfers items from equipped → opened backpack
+
+ Works correctly for upgrade path: open new backpack, quick move, equip
+
+Visual/UX:
+
+ All 7 equipment slots are present and unchanged
+
+ Red highlight uses the same visual language as grid selection (pulse + ring)
+
+ Quick Move button uses secondary styling, small size, and sits under the opened backpack panel
+
+QA / Console Tests (dev-only):
+
 // Test equipment selection
 window.inv.equipItem(knife, 'melee');  // Equip knife
 // Click melee slot → should highlight red
@@ -775,12 +749,8 @@ const emptyBackpack = inventoryManager.getBackpackContainer();
 // Try to equip fullBackpack → should succeed
 
 // Test quick move
-// Open ground backpack → click "Quick Move All" → verify transfer
-```
+// Open a backpack → click "Quick Move All" → verify transfer
 
-**Summary:**
-Phase 5H unifies the selection model (left-click for everything), implements smart backpack management to prevent exploits while enabling easy upgrades, updates backpack sizes, establishes image naming conventions, and ensures equipment slots are visually consistent with proper tooltips and spacing.
 
----
-
-**End of plan.**
+Summary:
+Phase 5H unifies the selection model (left-click for everything), implements smart backpack management to prevent exploits while enabling easy upgrades, updates image loading with a robust fallback, and introduces a one-click Quick Move to streamline swapping backpacks during gameplay.
