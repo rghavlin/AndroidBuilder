@@ -57,10 +57,17 @@ export default function InventoryPanel() {
             instanceId: i.instanceId,
             equippableSlot: i.equippableSlot,
             hasContainer: !!i.containerGrid,
-            containerGridId: i.containerGrid?.id
+            containerGridId: i.containerGrid?.id,
+            expectedContainerId: `${i.instanceId}-container`,
+            matches: containerId === `${i.instanceId}-container`
           })));
           
           const ownerItem = allGroundItems.find(item => {
+            // Only check items that are backpacks
+            if (item.equippableSlot !== 'backpack') {
+              return false;
+            }
+
             // Initialize container if not already done
             if (!item.containerGrid && item._containerGridData) {
               item.initializeContainerGrid();
@@ -71,14 +78,14 @@ export default function InventoryPanel() {
               return true;
             }
             
-            // Also check if containerId is derived from this item's instanceId
-            // Pattern: {instanceId}-container or backpack.{type}-{timestamp}-{hash}-container
-            if (item.instanceId && containerId.startsWith(item.instanceId)) {
+            // For backpacks, the container ID pattern is: {instanceId}-container
+            // Example: backpack.standard-1762408941075-p9guz-container
+            if (item.instanceId && containerId === `${item.instanceId}-container`) {
               return true;
             }
             
-            // Check if this item's defId matches the container ID prefix
-            if (item.defId && containerId.startsWith(item.defId)) {
+            // Also try checking if the containerId starts with instanceId
+            if (item.instanceId && containerId.startsWith(item.instanceId)) {
               return true;
             }
             
