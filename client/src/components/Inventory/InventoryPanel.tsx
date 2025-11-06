@@ -66,9 +66,23 @@ export default function InventoryPanel() {
               item.initializeContainerGrid();
             }
             
-            const hasMatchingContainer = item.containerGrid && item.containerGrid.id === containerId;
-            console.debug('[InventoryPanel] Checking item:', item.name, 'containerGrid.id:', item.containerGrid?.id, 'matches:', hasMatchingContainer);
-            return hasMatchingContainer;
+            // Check if container ID matches directly
+            if (item.containerGrid && item.containerGrid.id === containerId) {
+              return true;
+            }
+            
+            // Also check if containerId is derived from this item's instanceId
+            // Pattern: {instanceId}-container or backpack.{type}-{timestamp}-{hash}-container
+            if (item.instanceId && containerId.startsWith(item.instanceId)) {
+              return true;
+            }
+            
+            // Check if this item's defId matches the container ID prefix
+            if (item.defId && containerId.startsWith(item.defId)) {
+              return true;
+            }
+            
+            return false;
           });
           
           console.debug('[InventoryPanel] Owner item found:', ownerItem?.name, 'equippableSlot:', ownerItem?.equippableSlot);
