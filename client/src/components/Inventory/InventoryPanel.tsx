@@ -45,22 +45,6 @@ export default function InventoryPanel() {
         const container = getContainer(containerId);
         if (!container) return null;
 
-        // Check if this container belongs to a backpack
-        // Since backpacks can only open when on ground, if it's open it must be a ground backpack
-        const groundContainer = getContainer('ground');
-        let isGroundBackpack = false;
-        
-        if (groundContainer) {
-          const ownerItem = groundContainer.getAllItems().find(item => {
-            const itemContainer = item.containerGrid || item.getContainerGrid?.();
-            return itemContainer?.id === containerId;
-          });
-          
-          // If owner is a backpack, it's a ground backpack (backpacks only open when on ground)
-          if (ownerItem?.equippableSlot === 'backpack') {
-            isGroundBackpack = true;
-          }
-        }
 
         return (
           <FloatingContainer
