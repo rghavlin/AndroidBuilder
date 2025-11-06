@@ -34,7 +34,19 @@ export default function FloatingContainer({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const { inventoryRef, moveItem } = useInventory();
+  const { inventoryRef, moveItem, getContainer } = useInventory();
+  
+  // Ensure container is registered when opening
+  useEffect(() => {
+    if (isOpen && id) {
+      const container = getContainer(id);
+      if (!container) {
+        console.warn('[FloatingContainer] Container not registered:', id);
+      } else {
+        console.debug('[FloatingContainer] Container registered:', id, 'type:', container.type);
+      }
+    }
+  }, [isOpen, id, getContainer]);
   
   // Phase 5H: Quick Move All handler
   const handleQuickMove = () => {

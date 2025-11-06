@@ -114,6 +114,14 @@ export class InventoryManager {
     this.equipment[slot] = null;
     item.isEquipped = false;
 
+    // CRITICAL: Reset container ID for backpacks to prevent conflicts
+    // When unequipped, the backpack's container should have a unique ID based on the item's instanceId
+    if (slot === 'backpack' && item.containerGrid) {
+      const newContainerId = `${item.instanceId}-container`;
+      console.debug('[InventoryManager] Resetting backpack container ID from', item.containerGrid.id, 'to', newContainerId);
+      item.containerGrid.id = newContainerId;
+    }
+
     // Try to add item back to inventory
     const addResult = this.addItem(item);
     if (!addResult.success) {
@@ -233,13 +241,14 @@ export class InventoryManager {
         }
 
         if (containerGrid) {
+          // CRITICAL: Set the container ID to slot-based name for equipped items
           const containerId = `${slot}-container`;
           containerGrid.id = containerId;
           containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
           // Ensure container has a name (fallback to default if item name is missing)
           containerGrid.name = item.name ? `${item.name} Storage` : 'Backpack Storage';
           this.containers.set(containerId, containerGrid);
-          console.debug('[InventoryManager] Registered dynamic container:', containerId);
+          console.debug('[InventoryManager] Registered dynamic container:', containerId, 'for item:', item.instanceId);
         }
       }
     });
