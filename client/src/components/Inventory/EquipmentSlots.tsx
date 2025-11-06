@@ -3,7 +3,7 @@ import EquipmentSlot from "./EquipmentSlot";
 import { useInventory } from "@/contexts/InventoryContext";
 
 export default function EquipmentSlots() {
-  const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected } = useInventory();
+  const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem } = useInventory();
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
   const equipmentSlots = [
@@ -19,16 +19,26 @@ export default function EquipmentSlots() {
   const handleSlotClick = (slotId: string) => {
     const equippedItem = inventoryRef.current?.equipment[slotId];
     
-    if (!equippedItem) return; // Empty slot, nothing to do
-    
-    // If this item is already selected, deselect it (cancel)
-    if (selectedItem?.item?.instanceId === equippedItem.instanceId) {
-      clearSelected();
+    // If slot is empty and we have a selected item, try to equip it
+    if (!equippedItem && selectedItem && !selectedItem.isEquipment) {
+      const result = equipSelectedItem(slotId);
+      if (!result.success) {
+        console.warn('[EquipmentSlots] Failed to equip item:', result.reason);
+      }
       return;
     }
     
-    // Select equipment item for unequipping (Phase 5H)
-    selectItem(equippedItem, `equipment-${slotId}`, 0, 0, true);
+    // If slot has an item
+    if (equippedItem) {
+      // If this item is already selected, deselect it (cancel)
+      if (selectedItem?.item?.instanceId === equippedItem.instanceId) {
+        clearSelected();
+        return;
+      }
+      
+      // Select equipment item for unequipping (Phase 5H)
+      selectItem(equippedItem, `equipment-${slotId}`, 0, 0, true);
+    }
   };
 
   return (

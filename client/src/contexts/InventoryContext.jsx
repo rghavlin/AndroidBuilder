@@ -282,6 +282,32 @@ export const InventoryProvider = ({ children, manager }) => {
     setDragVersion(prev => prev + 1);
   }, []);
 
+  const equipSelectedItem = useCallback((targetSlot) => {
+    if (!selectedItem || !inventoryRef.current) {
+      return { success: false, reason: 'No item selected' };
+    }
+
+    const { item, originContainerId } = selectedItem;
+    
+    // Check if item can be equipped in target slot
+    if (item.equippableSlot !== targetSlot) {
+      return { success: false, reason: 'Item cannot be equipped in this slot' };
+    }
+
+    console.debug('[InventoryContext] Equipping selected item:', item.name, 'to slot:', targetSlot);
+
+    const result = inventoryRef.current.equipItem(item, targetSlot);
+    
+    if (result.success) {
+      setSelectedItem(null);
+      setDragVersion(prev => prev + 1);
+      setInventoryVersion(prev => prev + 1);
+      return { success: true };
+    }
+    
+    return result;
+  }, [selectedItem]);
+
   const placeSelected = useCallback((targetContainerId, targetX, targetY) => {
     if (!selectedItem || !inventoryRef.current) {
       return { success: false, reason: 'No item selected' };
@@ -290,6 +316,15 @@ export const InventoryProvider = ({ children, manager }) => {
     const { item, originContainerId, originX, originY, rotation, originalRotation, isEquipment } = selectedItem;
     
     console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation, 'isEquipment:', isEquipment);
+
+    // Phase 5H: Block moving backpacks that have open floating panels
+    if (item.equippableSlot === 'backpack' && item.containerGrid) {
+      const containerIsOpen = isContainerOpen(item.containerGrid.id);
+      if (containerIsOpen) {
+        console.warn('[InventoryContext] Cannot move backpack - container panel is open');
+        return { success: false, reason: 'Close the backpack container before moving it' };
+      }
+    }
 
     // Phase 5H: Handle unequipping
     if (isEquipment) {
@@ -452,15 +487,16 @@ export const InventoryProvider = ({ children, manager }) => {
       openContainer,
       closeContainer,
       isContainerOpen,
-      // Phase 5G: Selection-based drag system
+      // Phase 5G/5H: Selection-based drag system
       selectedItem,
       selectItem,
       rotateSelected,
       clearSelected,
       placeSelected,
-      getPlacementPreview
+      getPlacementPreview,
+      equipSelectedItem
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

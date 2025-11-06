@@ -78,11 +78,11 @@ export class InventoryManager {
       unequippedItem = unequippedItem.item;
     }
 
-    // Remove item from its current container
+    // Remove item from its current container using instanceId
     let sourceContainer = null;
     if (item._container) {
       sourceContainer = item._container;
-      sourceContainer.removeItem(item.id);
+      sourceContainer.removeItem(item.instanceId); // Use instanceId instead of id
     }
 
     // Equip the item
@@ -92,6 +92,8 @@ export class InventoryManager {
 
     // Handle dynamic container addition
     this.updateDynamicContainers();
+
+    console.debug('[InventoryManager] Equipped item:', item.name, 'to slot:', slot);
 
     return {
       success: true,
