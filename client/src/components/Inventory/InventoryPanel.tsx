@@ -46,9 +46,19 @@ export default function InventoryPanel() {
         if (!container) return null;
 
         // Check if this is a backpack from the ground
-        const isGroundBackpack = containerId.includes('backpack') &&
-                                 container.type !== 'equipped-backpack' &&
-                                 containerId !== 'backpack-container';
+        // Find the item that owns this container by checking ground items
+        let isGroundBackpack = false;
+        const groundContainer = getContainer('ground');
+        if (groundContainer) {
+          const allGroundItems = groundContainer.getAllItems();
+          const ownerItem = allGroundItems.find(item => 
+            item.containerGrid && item.containerGrid.id === containerId
+          );
+          
+          if (ownerItem && ownerItem.equippableSlot === 'backpack') {
+            isGroundBackpack = true;
+          }
+        }
 
         return (
           <FloatingContainer
