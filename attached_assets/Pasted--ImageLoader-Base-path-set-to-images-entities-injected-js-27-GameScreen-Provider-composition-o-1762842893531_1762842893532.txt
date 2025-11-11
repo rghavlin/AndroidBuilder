@@ -1,0 +1,642 @@
+[ImageLoader] Base path set to: /images/entities/
+injected.js:27 [GameScreen] Provider composition order: PlayerProvider → CameraProvider → GameMapProvider → GameProvider
+injected.js:27 [GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...
+injected.js:27 [GameContext] ✅ Creating NEW GameInitializationManager...
+injected.js:27 [GameInitializationManager] 🆔 NEW INSTANCE CREATED: GameInitManager_1762842798672_uotcu50j9
+injected.js:27 [GameInitializationManager] 📊 TOTAL INSTANCES NOW ACTIVE: 1
+injected.js:27 [GameContext] ✅ GameInitializationManager created: GameInitManager_1762842798672_uotcu50j9
+injected.js:27 [GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...
+injected.js:27 [GameContext] 🔄 HMR detected - clearing stale global instances
+(anonymous) @ injected.js:27Understand this warning
+injected.js:27 [GameContext] ✅ Creating NEW GameInitializationManager...
+injected.js:27 [GameInitializationManager] 🆔 NEW INSTANCE CREATED: GameInitManager_1762842798672_o37kuxw6d
+injected.js:27 [GameInitializationManager] 📊 TOTAL INSTANCES NOW ACTIVE: 1
+injected.js:27 [GameContext] ✅ GameInitializationManager created: GameInitManager_1762842798672_o37kuxw6d
+injected.js:27 [Container Tests] Test function exported to window.runContainerTests()
+injected.js:27 [Inventory] Container tests loaded and runContainerTests() is now available
+injected.js:27 [StartMenu] Starting new game...
+injected.js:27 [GameScreenContent] Starting new game - initializing...
+injected.js:27 [GameContext] Starting new game initialization (run 0)...
+injected.js:27 [GameInitializationManager] Starting initialization sequence...
+injected.js:27 [GameInitializationManager] State transition: idle → preloading
+injected.js:27 [GameContext] Initialization state changed to: preloading
+injected.js:27 [GameScreenContent] Hiding start menu - initialization began
+injected.js:27 [GameInitializationManager] 📋 PRELOADING phase starting...
+injected.js:27 [GameInitializationManager] ✅ Loaded 20 item definitions
+injected.js:27 [GameInitializationManager] InventoryManager created: InventoryManager
+injected.js:27 [WorldManager] Initialized
+injected.js:27 [GameInitializationManager] WorldManager created
+injected.js:27 [TemplateMapGenerator] Loaded 4 default templates
+injected.js:27 [TemplateMapGenerator] Generated 'road' map (35x125) with 0 random walls, 0 extra floors
+injected.js:27 [GameInitializationManager] Template map generated: 35 x 125
+injected.js:27 [GameInitializationManager] ✅ PRELOADING complete
+injected.js:27 [GameInitializationManager] State transition: preloading → core_setup
+injected.js:27 [GameContext] Initialization state changed to: core_setup
+injected.js:27 [GameInitializationManager] Executing CORE_SETUP phase...
+injected.js:27 [GameMap] Initialized 35x125 map
+injected.js:27 [GameInitializationManager] GameMap created: 35 x 125
+injected.js:27 [TemplateMapGenerator] Applied template map data to GameMap (35x125)
+injected.js:27 [GameInitializationManager] Template applied to GameMap
+injected.js:27 [GameInitializationManager] Could not get template start position, using default
+(anonymous) @ injected.js:27Understand this warning
+injected.js:27 [GameInitializationManager] Final start position: 17 123
+injected.js:27 [Player] 🎮 NEW PLAYER INSTANCE CREATED: player-1 at (17, 123)
+injected.js:27 [Player] - Creation timestamp: 1762842821016
+injected.js:27 [Player] 📊 TOTAL PLAYER INSTANCES CREATED: 1
+injected.js:27 [GameInitializationManager] 🎮 PLAYER CREATED by instance GameInitManager_1762842798672_uotcu50j9:
+injected.js:27 [GameInitializationManager] - Player ID: player-1
+injected.js:27 [GameInitializationManager] - Position: (17, 123)
+injected.js:27 [GameInitializationManager] - Constructor: Player
+injected.js:27 [GameInitializationManager] - Instance hash: Player_player-1_1762842821016
+injected.js:27 [GameInitializationManager] - HP/AP: 100/100 HP, 100/100 AP
+injected.js:27 [Camera] Camera initialized with viewport: 20 x 20
+injected.js:27 [Camera] World bounds set to: 35 x 125
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [GameInitializationManager] Camera initialized - bounds: 35 x 125
+injected.js:27 [Tile] Entity player-1 added to tile (17, 123). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: player-1 (player) at (17, 123)
+injected.js:27 [GameMap] 🎮 PLAYER ADDED TO MAP - Total players now: 1
+injected.js:27 [GameInitializationManager] 🗺️ Player added to map: SUCCESS
+injected.js:27 [GameInitializationManager] - Map dimensions: 35x125
+injected.js:27 [GameInitializationManager] - Total entities on map: 1
+injected.js:27 [GameInitializationManager] - Player entities on map: 1
+injected.js:27 [GameInitializationManager] - Player found on tile (17, 123): ✅ YES
+injected.js:27 [WorldManager] *** MAP SAVED: map_001 ***
+injected.js:27 [WorldManager] *** WORLD COLLECTION NOW HAS 1 MAPS ***
+injected.js:27 [WorldManager] Map metadata: Object
+injected.js:27 [GameInitializationManager] Initial map saved as: map_001
+injected.js:27 [GameInitializationManager] CORE_SETUP phase completed
+injected.js:27 [GameInitializationManager] State transition: core_setup → world_population
+injected.js:27 [GameContext] Initialization state changed to: world_population
+injected.js:27 [GameInitializationManager] Executing WORLD_POPULATION phase...
+injected.js:27 [GameInitializationManager] Attempting to spawn 10 zombies in lower half (y >= 62 )
+injected.js:27 [Tile] Entity zombie-initial-1 added to tile (9, 93). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-1 (zombie) at (9, 93)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-1 at ( 9 , 93 ), distance: 38
+injected.js:27 [Tile] Entity zombie-initial-2 added to tile (27, 62). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-2 (zombie) at (27, 62)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-2 at ( 27 , 62 ), distance: 71
+injected.js:27 [Tile] Entity zombie-initial-3 added to tile (6, 113). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-3 (zombie) at (6, 113)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-3 at ( 6 , 113 ), distance: 21
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (25, 106). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-4 (zombie) at (25, 106)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-4 at ( 25 , 106 ), distance: 25
+injected.js:27 [Tile] Entity zombie-initial-5 added to tile (19, 65). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-5 (zombie) at (19, 65)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-5 at ( 19 , 65 ), distance: 60
+injected.js:27 [Tile] Entity zombie-initial-6 added to tile (33, 108). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-6 (zombie) at (33, 108)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-6 at ( 33 , 108 ), distance: 31
+injected.js:27 [Tile] Entity zombie-initial-7 added to tile (18, 83). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-7 (zombie) at (18, 83)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-7 at ( 18 , 83 ), distance: 41
+injected.js:27 [Tile] Entity zombie-initial-8 added to tile (13, 96). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-8 (zombie) at (13, 96)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-8 at ( 13 , 96 ), distance: 31
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 104). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-9 (zombie) at (16, 104)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-9 at ( 16 , 104 ), distance: 20
+injected.js:27 [Tile] Entity zombie-initial-10 added to tile (3, 82). Total entities: 1
+injected.js:27 [GameMap] ✅ Entity added: zombie-initial-10 (zombie) at (3, 82)
+injected.js:27 [GameInitializationManager] Spawned zombie zombie-initial-10 at ( 3 , 82 ), distance: 55
+injected.js:27 [GameInitializationManager] Spawned 10 initial zombies
+injected.js:27 [GameInitializationManager] Removed south transition tile for first map
+injected.js:27 [GameInitializationManager] WORLD_POPULATION phase completed
+injected.js:27 [GameInitializationManager] State transition: world_population → complete
+injected.js:27 [GameContext] Initialization state changed to: complete
+injected.js:27 [GameContext] State machine initialization completed
+injected.js:27 [GameMapContext] setGameMap called with: GameMap(35x125)
+injected.js:27 [GameMapContext] gameMapRef.current now: GameMap(35x125)
+injected.js:27 [GameMapContext] mapVersion incremented to trigger context value update
+injected.js:27 [PlayerContext] 🎮 SETTING PLAYER REFERENCE (version pattern):
+injected.js:27 [PlayerContext] 📦 Player version bumped to trigger re-renders
+injected.js:27 [PlayerContext] ✅ Player reference set: player-1 at (17, 123)
+injected.js:27 [PlayerContext] - Player constructor: Player
+injected.js:27 [PlayerContext] - HP/AP: 100/100 HP, 100/100 AP
+injected.js:27 [CameraContext] setCamera called with: Camera at (17, 120)
+injected.js:27 [CameraContext] cameraRef.current now: Camera at (17, 120)
+injected.js:27 [CameraContext] cameraVersion incremented to trigger context value update
+injected.js:27 [Camera] World bounds set to: 35 x 125
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [PlayerContext] Event listeners set up for player
+injected.js:27 [GameContext] Game is ready - UI gate opened
+injected.js:27 [GameInitializationManager] Initialization completed successfully
+injected.js:27 [InventoryContext] InventoryManager received from provider props
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 0 selectedItem: none
+injected.js:27 [GameScreenContent] Hiding start menu - game is ready
+injected.js:27 [InventoryProvider] MOUNT id=fgh0m
+injected.js:27 [InventoryContext] Dev console bridge established: window.inventoryManager, window.inv
+injected.js:27 [GameContext] All contexts synchronized, executing final setup...
+injected.js:27 [PlayerContext] Updated player cardinal positions: Array(4)
+injected.js:27 [GameContext] Initialization fully complete - all contexts ready for operations
+injected.js:27 [InventoryContext] InventoryManager received from provider props
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 0 selectedItem: none
+injected.js:27 [GameControls] useEffect triggered - component mounted
+injected.js:27 [GameControls] imageLoader object: ImageLoader
+injected.js:27 [GameControls] Starting UI image loading...
+injected.js:27 [GameControls] Electron context check: Object
+injected.js:27 [useGridSlotSize] Calculated slot size: Object
+injected.js:27 [InventoryProvider] MOUNT id=43f0i
+injected.js:27 [InventoryContext] Dev console bridge established: window.inventoryManager, window.inv
+injected.js:27 [useGridSlotSize] Calculated slot size: Object
+injected.js:27 [ImageLoader] Successfully loaded image: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/entities/player.png
+injected.js:27 [ImageLoader] Successfully loaded image: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/entities/zombie.png
+injected.js:27 [GameControls] Testing entity image loading first...
+injected.js:27 [GameControls] Test entity image result: SUCCESS
+injected.js:27 [GameControls] Loading endturn image...
+injected.js:27 [ImageLoader] Loading UI image (using same logic as entity images)
+injected.js:27 [ImageLoader] Successfully loaded UI image: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/UI/endturn.png
+injected.js:27 [GameControls] End turn image loaded successfully: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/UI/endturn.png
+injected.js:27 [GameControls] Loading loadgame image...
+injected.js:27 [ImageLoader] Loading UI image (using same logic as entity images)
+injected.js:27 [ImageLoader] Successfully loaded UI image: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/UI/loadgame.png
+injected.js:27 [GameControls] Load game image loaded successfully: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/UI/loadgame.png
+injected.js:27 [Camera] Zoom set to: 0.9090909090909091 viewport now: 7.7 x 8.8
+injected.js:27 [Camera] Zoom set to: 0.8264462809917354 viewport now: 8.47 x 9.680000000000001
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 1 selectedItem: none
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 2 selectedItem: none
+2injected.js:27 [InventoryContext] Creating new context value - dragVersion: 3 selectedItem: none
+injected.js:27 [ImageLoader] Successfully loaded item image: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/items/bookBag.png
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 4 selectedItem: none
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 5 selectedItem: none
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 6 selectedItem: Book Bag
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 8 selectedItem: none
+injected.js:27 [Camera] Zoom set to: 0.7513148009015777 viewport now: 9.317000000000002 x 10.648000000000001
+injected.js:27 [Camera] Zoom set to: 0.6830134553650705 viewport now: 10.248700000000003 x 11.712800000000003
+injected.js:27 [Camera] Zoom set to: 0.6209213230591549 viewport now: 11.273570000000005 x 12.884080000000004
+injected.js:27 [Camera] Zoom set to: 0.5644739300537771 viewport now: 12.400927000000006 x 14.172488000000008
+injected.js:27 [Camera] Zoom set to: 0.5131581182307065 viewport now: 13.641019700000008 x 15.58973680000001
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 9 selectedItem: none
+injected.js:27 [GameMapContext] Tile clicked at coordinates: (17, 115), Player currently at: (17, 123)
+injected.js:27 [GameMapContext] Checking 9 tiles in path for zombie visibility changes
+injected.js:27 [GameMapContext] Path visibility check complete for 9 tiles
+injected.js:27 [PlayerContext] Starting animated movement from (17, 123) to (17, 115)
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [PlayerContext] INVESTIGATION: Animation starting - player locked at (17, 123) until completion
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame before starting: null
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 123
+injected.js:27 [Camera] Centered on: 17 123
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.9
+injected.js:27 [Camera] Centered on: 17 122.9
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 122.9), progress: 5.7%
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.9
+injected.js:27 [Camera] Centered on: 17 122.9
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 122.9), progress: 6.8%
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.9
+injected.js:27 [Camera] Centered on: 17 122.9
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.9
+injected.js:27 [Camera] Centered on: 17 122.9
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.8
+injected.js:27 [Camera] Centered on: 17 122.8
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.8
+injected.js:27 [Camera] Centered on: 17 122.8
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.8
+injected.js:27 [Camera] Centered on: 17 122.8
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.7
+injected.js:27 [Camera] Centered on: 17 122.7
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updated from 18 to 19
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.7
+injected.js:27 [Camera] Centered on: 17 122.7
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.6
+injected.js:27 [Camera] Centered on: 17 122.6
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.5
+injected.js:27 [Camera] Centered on: 17 122.5
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 122.5), progress: 16.8%
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.5
+injected.js:27 [Camera] Centered on: 17 122.5
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.4
+injected.js:27 [Camera] Centered on: 17 122.4
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.4
+injected.js:27 [Camera] Centered on: 17 122.4
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.3
+injected.js:27 [Camera] Centered on: 17 122.3
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.2
+injected.js:27 [Camera] Centered on: 17 122.2
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122.1
+injected.js:27 [Camera] Centered on: 17 122.1
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 122
+injected.js:27 [Camera] Centered on: 17 122
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.9
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.9
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 121.9), progress: 26.8%
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.8
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.7
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 121.7), progress: 29.0%
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.5
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.4
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.3
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 121.3), progress: 32.4%
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.2
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Position set to: 17 121.1
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 121.0), progress: 35.7%
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [Camera] Constraint applied: Object
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updated from 47 to 48
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updated from 48 to 49
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 119.2), progress: 49.0%
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updated from 67 to 68
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 115.8), progress: 71.2%
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 115.7), progress: 72.4%
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updated from 78 to 79
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 115.1), progress: 84.6%
+injected.js:27 [PlayerContext] Animation complete - moving player from (17, 123) to (17, 115)
+injected.js:27 [GameMap] Moving entity player-1 from (17, 123) to (17, 115)
+injected.js:27 [GameMap] Removing entity player-1 from old tile (17, 123)
+injected.js:27 [Tile] Entity player-1 removed from tile (17, 123). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity player-1 to new tile (17, 115)
+injected.js:27 [Tile] Entity player-1 added to tile (17, 115). Total entities: 1
+injected.js:27 [GameMap] Entity player-1 movement completed successfully
+injected.js:27 [PlayerContext] Player successfully moved from (17, 123) to (17, 115)
+injected.js:27 [PlayerContext] Smooth movement animation completed successfully.
+injected.js:27 [PlayerContext] Updated player cardinal positions: Array(4)
+injected.js:27 [PlayerContext] Player moved from (17, 123) to (17, 115), AP: 92
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 10 selectedItem: none
+injected.js:27 [GameContext] Cleared all LastSeen tagged tiles for new zombie turn phase
+injected.js:27 [GameContext] Processing 10 zombie turns
+injected.js:27 [GameContext] Zombie zombie-initial-1 turn completed: Object
+injected.js:27 [GameContext] Zombie zombie-initial-2 turn completed: Object
+injected.js:27 [GameContext] Zombie zombie-initial-3 turn completed: Object
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 16, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (25, 106), target (18, 115), AP: 8
+injected.js:27 [ZombieAI] Following path step 1 of 16: moving to (24, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (24, 106) is passable, terrain: grass, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (25, 106) to (24, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (25, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (25, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (24, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (24, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 25,106 -> 24,106, remaining AP: 7
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 7
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 15, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (24, 106), target (18, 115), AP: 7
+injected.js:27 [ZombieAI] Following path step 1 of 15: moving to (23, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (23, 106) is passable, terrain: grass, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (24, 106) to (23, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (24, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (24, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (23, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (23, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 24,106 -> 23,106, remaining AP: 6
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 6
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 14, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (23, 106), target (18, 115), AP: 6
+injected.js:27 [ZombieAI] Following path step 1 of 14: moving to (22, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (22, 106) is passable, terrain: grass, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (23, 106) to (22, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (23, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (23, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (22, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (22, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 23,106 -> 22,106, remaining AP: 5
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 5
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 13, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (22, 106), target (18, 115), AP: 5
+injected.js:27 [ZombieAI] Following path step 1 of 13: moving to (21, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (21, 106) is passable, terrain: grass, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (22, 106) to (21, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (22, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (22, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (21, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (21, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 22,106 -> 21,106, remaining AP: 4
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 4
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 12, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (21, 106), target (18, 115), AP: 4
+injected.js:27 [ZombieAI] Following path step 1 of 12: moving to (20, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (20, 106) is passable, terrain: sidewalk, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (21, 106) to (20, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (21, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (21, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (20, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (20, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 21,106 -> 20,106, remaining AP: 3
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 3
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 11, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (20, 106), target (18, 115), AP: 3
+injected.js:27 [ZombieAI] Following path step 1 of 11: moving to (19, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (19, 106) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (20, 106) to (19, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (20, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (20, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (19, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (19, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 20,106 -> 19,106, remaining AP: 2
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 2
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 10, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (19, 106), target (18, 115), AP: 2
+injected.js:27 [ZombieAI] Following path step 1 of 10: moving to (18, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (18, 106) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (19, 106) to (18, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (19, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (19, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (18, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (18, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 19,106 -> 18,106, remaining AP: 1
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 1
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-4: right(18,115) - distance: 9, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (18, 106), target (18, 115), AP: 1
+injected.js:27 [ZombieAI] Following path step 1 of 9: moving to (18, 107)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (18, 107) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-4 from (18, 106) to (18, 107)
+injected.js:27 [GameMap] Removing entity zombie-initial-4 from old tile (18, 106)
+injected.js:27 [Tile] Entity zombie-initial-4 removed from tile (18, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-4 to new tile (18, 107)
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (18, 107). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-4 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 18,106 -> 18,107, remaining AP: 0
+injected.js:27 [ZombieAI] Zombie zombie-initial-4 moved toward cardinal position (18, 115), remaining AP: 0
+injected.js:27 [GameContext] Zombie zombie-initial-4 turn completed: Object
+injected.js:27 [GameContext] - Action 1: Moved from (25, 106) to (24, 106)
+injected.js:27 [GameContext] - Action 2: Moved from (24, 106) to (23, 106)
+injected.js:27 [GameContext] - Action 3: Moved from (23, 106) to (22, 106)
+injected.js:27 [GameContext] - Action 4: Moved from (22, 106) to (21, 106)
+injected.js:27 [GameContext] - Action 5: Moved from (21, 106) to (20, 106)
+injected.js:27 [GameContext] - Action 6: Moved from (20, 106) to (19, 106)
+injected.js:27 [GameContext] - Action 7: Moved from (19, 106) to (18, 106)
+injected.js:27 [GameContext] - Action 8: Moved from (18, 106) to (18, 107)
+injected.js:27 [GameContext] Zombie zombie-initial-5 turn completed: Object
+injected.js:27 [GameContext] Zombie zombie-initial-6 turn completed: Object
+injected.js:27 [GameContext] Zombie zombie-initial-7 turn completed: Object
+injected.js:27 [GameContext] Zombie zombie-initial-8 turn completed: Object
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 11, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 104), target (16, 115), AP: 8
+injected.js:27 [ZombieAI] Following path step 1 of 11: moving to (16, 105)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 105) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 104) to (16, 105)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 104)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 104). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 105)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 105). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,104 -> 16,105, remaining AP: 7
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 7
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 10, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 105), target (16, 115), AP: 7
+injected.js:27 [ZombieAI] Following path step 1 of 10: moving to (16, 106)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 106) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 105) to (16, 106)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 105)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 105). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 106)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 106). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,105 -> 16,106, remaining AP: 6
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 6
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 9, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 106), target (16, 115), AP: 6
+injected.js:27 [ZombieAI] Following path step 1 of 9: moving to (16, 107)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 107) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 106) to (16, 107)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 106)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 106). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 107)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 107). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,106 -> 16,107, remaining AP: 5
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 5
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 8, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 107), target (16, 115), AP: 5
+injected.js:27 [ZombieAI] Following path step 1 of 8: moving to (16, 108)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 108) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 107) to (16, 108)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 107)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 107). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 108)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 108). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,107 -> 16,108, remaining AP: 4
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 4
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 7, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 108), target (16, 115), AP: 4
+injected.js:27 [ZombieAI] Following path step 1 of 7: moving to (16, 109)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 109) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 108) to (16, 109)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 108)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 108). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 109)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 109). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,108 -> 16,109, remaining AP: 3
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 3
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 6, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 109), target (16, 115), AP: 3
+injected.js:27 [ZombieAI] Following path step 1 of 6: moving to (16, 110)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 110) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 109) to (16, 110)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 109)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 109). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 110)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 110). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,109 -> 16,110, remaining AP: 2
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 2
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 5, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 110), target (16, 115), AP: 2
+injected.js:27 [ZombieAI] Following path step 1 of 5: moving to (16, 111)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 111) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 110) to (16, 111)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 110)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 110). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 111)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 111). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,110 -> 16,111, remaining AP: 1
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 1
+injected.js:27 [ZombieAI] Selected cardinal position for zombie zombie-initial-9: left(16,115) - distance: 4, occupied: no
+injected.js:27 [ZombieAI] attemptMoveTowards: zombie at (16, 111), target (16, 115), AP: 1
+injected.js:27 [ZombieAI] Following path step 1 of 4: moving to (16, 112)
+injected.js:27 [ZombieAI] canMoveToTile: Tile (16, 112) is passable, terrain: road, entities: 0
+injected.js:27 [GameMap] Moving entity zombie-initial-9 from (16, 111) to (16, 112)
+injected.js:27 [GameMap] Removing entity zombie-initial-9 from old tile (16, 111)
+injected.js:27 [Tile] Entity zombie-initial-9 removed from tile (16, 111). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity zombie-initial-9 to new tile (16, 112)
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 112). Total entities: 1
+injected.js:27 [GameMap] Entity zombie-initial-9 movement completed successfully
+injected.js:27 [ZombieAI] Move successful: 16,111 -> 16,112, remaining AP: 0
+injected.js:27 [ZombieAI] Zombie zombie-initial-9 moved toward cardinal position (16, 115), remaining AP: 0
+injected.js:27 [GameContext] Zombie zombie-initial-9 turn completed: Object
+injected.js:27 [GameContext] - Action 1: Moved from (16, 104) to (16, 105)
+injected.js:27 [GameContext] - Action 2: Moved from (16, 105) to (16, 106)
+injected.js:27 [GameContext] - Action 3: Moved from (16, 106) to (16, 107)
+injected.js:27 [GameContext] - Action 4: Moved from (16, 107) to (16, 108)
+injected.js:27 [GameContext] - Action 5: Moved from (16, 108) to (16, 109)
+injected.js:27 [GameContext] - Action 6: Moved from (16, 109) to (16, 110)
+injected.js:27 [GameContext] - Action 7: Moved from (16, 110) to (16, 111)
+injected.js:27 [GameContext] - Action 8: Moved from (16, 111) to (16, 112)
+injected.js:27 [GameContext] Zombie zombie-initial-10 turn completed: Object
+injected.js:27 [GameContext] Player AP restored to: 100
+injected.js:27 [PlayerContext] Updated player cardinal positions: Array(4)
+injected.js:27 [GameContext] Turn ended. Current turn: 2
+injected.js:27 [GameContext] Performing autosave with valid game state...
+injected.js:27 [GameSaveSystem] Game state serialized successfully
+injected.js:27 [GameSaveSystem] Save data size: 523201 characters
+injected.js:27 [GameSaveSystem] Game saved to localStorage slot: autosave
+injected.js:27 [GameContext] Autosave completed successfully
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 11 selectedItem: none
+injected.js:27 [GameMapContext] Tile clicked at coordinates: (24, 114), Player currently at: (17, 115)
+injected.js:27 [Pathfinding] Neighbor (22, 114) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [Pathfinding] Neighbor (22, 113) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [Pathfinding] Neighbor (22, 116) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [Pathfinding] Neighbor (22, 114) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [Pathfinding] Neighbor (22, 116) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [Pathfinding] Neighbor (22, 114) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [Pathfinding] Neighbor (22, 116) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [Pathfinding] Neighbor (22, 114) not walkable. Terrain: building, Unwalkable: true, Contents: 0
+injected.js:27 [GameMapContext] Checking 8 tiles in path for zombie visibility changes
+injected.js:27 [GameMapContext] Zombie zombie-initial-4 lost sight of player at path step 6, setting LastSeen to (22, 115)
+injected.js:27 [GameMapContext] Zombie zombie-initial-9 lost sight of player at path step 7, setting LastSeen to (23, 115)
+injected.js:27 [GameMapContext] Path visibility check complete for 8 tiles
+injected.js:27 [PlayerContext] Starting animated movement from (17, 115) to (24, 114)
+injected.js:27 [PlayerContext] INVESTIGATION: Animation starting - player locked at (17, 115) until completion
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame before starting: null
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.0, 115.0), progress: 1.4%
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updated from 101 to 102
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (17.9, 115.0), progress: 25.8%
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updating camera to (18.2, 115.0), progress: 29.2%
+injected.js:27 [PlayerContext] INVESTIGATION: Animation frame updated from 175 to 176
+injected.js:27 [PlayerContext] Animation complete - moving player from (17, 115) to (24, 114)
+injected.js:27 [GameMap] Moving entity player-1 from (17, 115) to (24, 114)
+injected.js:27 [GameMap] Removing entity player-1 from old tile (17, 115)
+injected.js:27 [Tile] Entity player-1 removed from tile (17, 115). Remaining entities: 0
+injected.js:27 [GameMap] Adding entity player-1 to new tile (24, 114)
+injected.js:27 [Tile] Entity player-1 added to tile (24, 114). Total entities: 1
+injected.js:27 [GameMap] Entity player-1 movement completed successfully
+injected.js:27 [PlayerContext] Player successfully moved from (17, 115) to (24, 114)
+injected.js:27 [PlayerContext] Smooth movement animation completed successfully.
+injected.js:27 [PlayerContext] Player is inside building/floor at (24, 114), terrain: floor
+injected.js:27 [PlayerContext] Updated player cardinal positions: Array(4)
+injected.js:27 [PlayerContext] Player moved from (17, 115) to (24, 114), AP: 92.6
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 12 selectedItem: Book Bag
+injected.js:27 [Container] REJECT: Cannot place container inside itself: Book Bag
+(anonymous) @ injected.js:27Understand this warning
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 13 selectedItem: none
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 14 selectedItem: none
+injected.js:27 [GameControls] Loading autosave...
+injected.js:27 [GameSaveSystem] Loading game state from save data...
+injected.js:27 [GameSaveSystem] Restoring GameMap...
+injected.js:27 [GameMap] Initialized 35x125 map
+injected.js:27 [Tile] Entity zombie-initial-2 added to tile (27, 62). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-5 added to tile (19, 65). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-10 added to tile (3, 82). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-7 added to tile (18, 83). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-1 added to tile (9, 93). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-8 added to tile (13, 96). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-4 added to tile (18, 107). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-6 added to tile (33, 108). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-9 added to tile (16, 112). Total entities: 1
+injected.js:27 [Tile] Entity zombie-initial-3 added to tile (6, 113). Total entities: 1
+injected.js:27 [Player] 🎮 NEW PLAYER INSTANCE CREATED: player-1 at (17, 115)
+injected.js:27 [Player] - Creation timestamp: 1762842855951
+injected.js:27 [Player] 📊 TOTAL PLAYER INSTANCES CREATED: 2
+injected.js:27 [Player] 🚨🚨🚨 MULTIPLE PLAYER INSTANCES DETECTED!
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 [Player] All instances: Array(2)
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 [Tile] Entity player-1 added to tile (17, 115). Total entities: 1
+injected.js:27 [GameMap] Restored from JSON with 11 entities
+injected.js:27 [GameSaveSystem] Restoring WorldManager...
+injected.js:27 [WorldManager] Initialized
+injected.js:27 [WorldManager] Restored from JSON with 1 maps
+injected.js:27 [GameSaveSystem] WorldManager currentMapId: map_001
+injected.js:27 [WorldManager] *** MAP SAVED: map_001 ***
+injected.js:27 [WorldManager] *** WORLD COLLECTION NOW HAS 1 MAPS ***
+injected.js:27 [WorldManager] Map metadata: Object
+injected.js:27 [GameSaveSystem] Verified currentMapId map_001 matches loaded map
+injected.js:27 [Camera] Camera initialized with viewport: 20 x 20
+injected.js:27 [Camera] World bounds set to: 35 x 125
+injected.js:27 [GameSaveSystem] Restoring InventoryManager...
+injected.js:27 [GameSaveSystem] InventoryManager restored successfully
+injected.js:27 [GameSaveSystem] Game state loaded successfully
+injected.js:27 [GameSaveSystem] Player restored at position: 17 115
+injected.js:27 [GameContext] Applying loaded state...
+injected.js:27 [GameMapContext] setGameMap called with: GameMap(35x125)
+injected.js:27 [GameMapContext] gameMapRef.current now: GameMap(35x125)
+injected.js:27 [GameMapContext] mapVersion incremented to trigger context value update
+injected.js:27 [PlayerContext] 🎮 SETTING PLAYER REFERENCE (version pattern):
+injected.js:27 [PlayerContext] 🚨 REPLACING EXISTING PLAYER! This indicates multiple initialization!
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 [PlayerContext] - Old player: player-1 at (24, 114)
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 [PlayerContext] - New player: player-1 at (17, 115)
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 [PlayerContext] - Same instance? NO
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 [PlayerContext] 📦 Player version bumped to trigger re-renders
+injected.js:27 [PlayerContext] ✅ Player reference set: player-1 at (17, 115)
+injected.js:27 [PlayerContext] - Player constructor: Player
+injected.js:27 [PlayerContext] - HP/AP: 100/100 HP, 100/100 AP
+injected.js:27 [CameraContext] setCamera called with: Camera at (17, 115)
+injected.js:27 [CameraContext] cameraRef.current now: Camera at (17, 115)
+injected.js:27 [CameraContext] cameraVersion incremented to trigger context value update
+injected.js:27 [GameContext] Setting up event listeners for loaded player...
+injected.js:27 [PlayerContext] Event listeners set up for player
+injected.js:27 [GameContext] Camera recentered on loaded player position (17, 115)
+injected.js:27 [GameControls] Autosave loaded successfully
+injected.js:27 [GameContext] InventoryManager restored from save (final step)
+injected.js:27 [GameContext] Equipped backpack: Book Bag
+injected.js:27 [PlayerContext] Updated player cardinal positions: Array(4)
+injected.js:27 [GameContext] Game loaded successfully from slot: autosave
+injected.js:27 [GameContext] Player position after load: (17, 115)
+injected.js:27 [useGridSlotSize] Calculated slot size: 
