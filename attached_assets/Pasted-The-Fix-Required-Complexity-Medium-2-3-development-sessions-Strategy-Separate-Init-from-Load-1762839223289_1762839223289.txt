@@ -1,0 +1,91 @@
+The Fix Required
+Complexity: Medium (2-3 development sessions)
+
+Strategy: Separate Init from Load
+New Pattern:
+
+New Game: Use GameInitializationManager (current path works)
+Load Game: Skip initialization entirely, load directly from save data
+Implementation Plan
+Session 1: Create Direct Load Path
+
+// GameContext.jsx - Add new method
+const loadGameDirect = useCallback(async (slotName = 'autosave') => {
+  console.log('[GameContext] Loading game directly (no initialization)...');
+  
+  const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
+  if (!loadedState) {
+    console.warn(`[GameContext] No save found, falling back to new game`);
+    return await initializeGame(); // Fallback to new game
+  }
+  
+  // Set all contexts directly from loaded state
+  setInventoryManager(loadedState.inventoryManager);
+  setGameMap(loadedState.gameMap);
+  setPlayerRef(loadedState.player);
+  setCamera(loadedState.camera);
+  setWorldManager(loadedState.worldManager);
+  setTurn(loadedState.turn);
+  
+  setupPlayerEventListeners();
+  updatePlayerFieldOfView(loadedState.gameMap);
+  updatePlayerCardinalPositions(loadedState.gameMap);
+  
+  setIsGameReady(true);
+  console.log('[GameContext] Game loaded directly without initialization');
+  return true;
+}, [/* deps */]);
+Session 2: Update GameScreen Flow
+
+// GameScreen.tsx
+const handleStartGame = async (mode?: boolean | string) => {
+  if (mode === 'load') {
+    console.log('[GameScreenContent] Loading saved game directly...');
+    await loadGameDirect('autosave'); // No initialization!
+    return;
+  }
+  // New game path - unchanged
+  if (!isGameReady && !initializationError) {
+    console.log('[GameScreenContent] Starting new game...');
+    await initializeGame(); // No parameters!
+  }
+};
+Session 3: Remove Post-Init Callback
+
+// GameContext.jsx - Simplify initializeGame
+const initializeGame = useCallback(async () => {
+  // Remove loadGameAfterInit and slotName parameters entirely
+  // Just initialize, nothing else
+  
+  const success = await initManagerRef.current.startInitialization();
+  // No callback, no post-load logic
+  
+  if (success) {
+    setIsGameReady(true);
+  }
+}, []);
+Benefits of This Approach
+✅ Single Responsibility: Init = new game, Load = restore state
+✅ No Waste: Don't create worlds just to throw them away
+✅ No Player Replacement: Loaded player is the only player
+✅ Clean State: No mixing of fresh and loaded data
+✅ Easier Debugging: Clear separation of code paths
+
+Risk Assessment
+Low Risk:
+
+Changes are isolated to game startup flow
+Existing save/load serialization already works
+No changes to core game systems
+Testing Strategy:
+
+Test new game still works (existing path)
+Test load game uses new direct path
+Test autosave after load still works
+Test fallback to new game if no save exists
+Estimated Effort
+Code Changes: 3-4 small files (GameContext, GameScreen, StartMenu)
+Lines Changed: ~100 lines total
+Testing Time: 30 minutes
+Total Time: 2-3 hours across sessions
+This is a worthwhile refactor that will eliminate a whole class of initialization bugs and make the codebase much cleaner. The current mixing of init + load is a design mistake that should be fixed before adding more features.
