@@ -59,7 +59,7 @@ function GameScreenContent() {
     inventoryManager
   } = useGame();
 
-  // Hide start menu when initialization starts OR when game is already ready
+  // Hide start menu when initialization starts OR when game is ready (from init or direct load)
   useEffect(() => {
     if (initializationState === 'preloading' && showStartMenu) {
       console.log('[GameScreenContent] Hiding start menu - initialization began');
@@ -76,13 +76,11 @@ function GameScreenContent() {
 
     if (mode === 'load') {
       console.log('[GameScreenContent] Loading saved game directly...');
-      await loadGameDirect('autosave'); // Direct load without initialization
-      return;
-    }
-
-    if (mode === true) {
-      console.log('[GameScreenContent] Game was loaded from save, proceeding to game view');
-      // Don't initialize - game is already loaded
+      const success = await loadGameDirect('autosave');
+      if (!success) {
+        console.warn('[GameScreenContent] Load failed, falling back to new game');
+        await initializeGame();
+      }
       return;
     }
 

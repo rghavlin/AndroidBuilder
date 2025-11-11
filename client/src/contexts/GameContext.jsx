@@ -221,18 +221,21 @@ const GameContextInner = ({ children }) => {
 
 
   const loadGameDirect = useCallback(async (slotName = 'autosave') => {
-    console.log('[GameContext] Loading game directly (no initialization)...');
+    console.log('[GameContext] 🎮 DIRECT LOAD - Skipping initialization, loading save directly...');
     
     try {
       const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
       if (!loadedState) {
-        console.warn(`[GameContext] No save found, falling back to new game`);
-        return await initializeGame(); // Fallback to new game
+        console.warn(`[GameContext] ❌ No save found in slot: ${slotName}`);
+        return false; // Let caller decide whether to fallback to new game
       }
       
-      console.log('[GameContext] Applying loaded state directly...');
+      console.log('[GameContext] ✅ Save file found, applying state directly...');
+      console.log(`[GameContext] - Turn: ${loadedState.turn}`);
+      console.log(`[GameContext] - Player: ${loadedState.player.id} at (${loadedState.player.x}, ${loadedState.player.y})`);
+      console.log(`[GameContext] - Map: ${loadedState.gameMap.width}x${loadedState.gameMap.height}`);
       
-      // Set all contexts directly from loaded state
+      // Set all contexts directly from loaded state (Phase 5A: includes inventoryManager)
       setInventoryManager(loadedState.inventoryManager);
       setGameMap(loadedState.gameMap);
       setPlayerRef(loadedState.player);
@@ -243,25 +246,31 @@ const GameContextInner = ({ children }) => {
       setIsAutosaving(false);
       lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
       
-      // Recenter camera on loaded player position
-      if (loadedState.camera && loadedState.player) {
+      // Set camera world bounds and recenter on loaded player position
+      if (loadedState.camera && loadedState.player && loadedState.gameMap) {
+        loadedState.camera.setWorldBounds(loadedState.gameMap.width, loadedState.gameMap.height);
         loadedState.camera.centerOn(loadedState.player.x, loadedState.player.y);
-        console.log(`[GameContext] Camera recentered on loaded player position (${loadedState.player.x}, ${loadedState.player.y})`);
+        console.log(`[GameContext] ✅ Camera configured - bounds: ${loadedState.gameMap.width}x${loadedState.gameMap.height}, centered on (${loadedState.player.x}, ${loadedState.player.y})`);
       }
       
+      // Set up player event listeners and update derived state
       setupPlayerEventListeners();
       updatePlayerFieldOfView(loadedState.gameMap);
       updatePlayerCardinalPositions(loadedState.gameMap);
       
+      // Open the UI gate
       setIsGameReady(true);
-      console.log('[GameContext] Game loaded directly without initialization');
-      console.log(`[GameContext] Player position: (${loadedState.player.x}, ${loadedState.player.y})`);
+      console.log('[GameContext] 🎉 DIRECT LOAD COMPLETE - Game ready without initialization');
+      console.log(`[GameContext] - Final player position: (${loadedState.player.x}, ${loadedState.player.y})`);
+      console.log(`[GameContext] - Entities on map: ${loadedState.gameMap.getAllEntities().length}`);
+      console.log(`[GameContext] - InventoryManager: ${loadedState.inventoryManager ? 'loaded' : 'missing'}`);
+      
       return true;
     } catch (error) {
-      console.error('[GameContext] Failed to load game directly:', error);
+      console.error('[GameContext] ❌ DIRECT LOAD FAILED:', error);
       return false;
     }
-  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions, initializeGame]);
 
   const loadGame = useCallback(async (slotName = 'quicksave') => {
     try {
@@ -677,6 +686,9 @@ const GameContextInner = ({ children }) => {
     // Map transition wrapper
     handleMapTransitionConfirmWrapper,
 
+    // Phase 5A: Expose inventoryManager for InventoryProvider
+    inventoryManager,
+
     // Internal refs for debugging
     lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
   }), [
@@ -697,7 +709,8 @@ const GameContextInner = ({ children }) => {
     loadAutosave,
     performAutosave,
     exportGame,
-    handleMapTransitionConfirmWrapper
+    handleMapTransitionConfirmWrapper,
+    inventoryManager
   ]);
 
   return (
