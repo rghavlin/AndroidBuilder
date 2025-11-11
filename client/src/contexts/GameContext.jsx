@@ -270,7 +270,7 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] ❌ DIRECT LOAD FAILED:', error);
       return false;
     }
-  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions, initializeGame]);
+  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
   const loadGame = useCallback(async (slotName = 'quicksave') => {
     try {
