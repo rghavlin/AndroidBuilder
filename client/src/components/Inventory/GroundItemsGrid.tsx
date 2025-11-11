@@ -79,10 +79,7 @@ export default function GroundItemsGrid() {
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
       <div className="flex items-center justify-between mb-3 flex-shrink-0">
         <h3 className="text-sm font-semibold text-muted-foreground">
-          GROUND ITEMS
-          <span className="text-xs text-accent ml-2">
-            {groundContainer.width}x{groundContainer.height} grid
-          </span>
+          GROUND
         </h3>
 
         <div className="flex gap-2">

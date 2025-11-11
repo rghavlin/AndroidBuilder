@@ -72,12 +72,9 @@ export default function BackpackGrid() {
         title={isCollapsed ? "Expand backpack" : "Collapse backpack"}
       >
         <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-          {(backpackContainer.name || 'BACKPACK').toUpperCase()}
+          BACKPACK
           {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
         </h3>
-        <span className="text-xs text-accent">
-          {backpackContainer.width}x{backpackContainer.height} grid
-        </span>
       </div>
 
       {!isCollapsed && (
