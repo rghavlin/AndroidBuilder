@@ -4,14 +4,14 @@ import { useInventory } from "@/contexts/InventoryContext";
 import ClothingContainerPanel from "./ClothingContainerPanel";
 
 export default function UnifiedClothingPanel() {
-  const { getEquippedBackpackContainer, inventoryRef } = useInventory();
+  const { getEquippedBackpackContainer, inventoryRef, inventoryVersion } = useInventory();
   
   // Independent collapse states for each section
   const [upperCollapsed, setUpperCollapsed] = useState(false);
   const [lowerCollapsed, setLowerCollapsed] = useState(false);
   const [backpackCollapsed, setBackpackCollapsed] = useState(false);
 
-  // Get equipped items from inventory
+  // Get equipped items from inventory (re-render when inventoryVersion changes)
   const equipment = inventoryRef.current?.equipment || {};
   const upperBodyItem = equipment.upper_body || null;
   const lowerBodyItem = equipment.lower_body || null;
@@ -20,17 +20,21 @@ export default function UnifiedClothingPanel() {
   const backpackContainer = getEquippedBackpackContainer();
   const backpackContainerId = backpackContainer?.id || null;
 
-  // Get pocket containers for upper/lower body (Phase 6D will implement this)
-  const upperBodyPockets: string[] = []; // TODO: Phase 6D - get from upperBodyItem.getPocketContainers()
-  const lowerBodyPockets: string[] = []; // TODO: Phase 6D - get from lowerBodyItem.getPocketContainers()
+  // Get pocket container IDs for upper/lower body clothing
+  const upperBodyPocketIds = upperBodyItem?.isContainer?.() 
+    ? (upperBodyItem.getPocketContainerIds?.() || [])
+    : [];
+  const lowerBodyPocketIds = lowerBodyItem?.isContainer?.() 
+    ? (lowerBodyItem.getPocketContainerIds?.() || [])
+    : [];
 
   console.log('[UnifiedClothingPanel] Rendering sections:', {
     upperBodyItem: upperBodyItem?.name || 'none',
+    upperBodyPockets: upperBodyPocketIds.length,
     lowerBodyItem: lowerBodyItem?.name || 'none',
+    lowerBodyPockets: lowerBodyPocketIds.length,
     backpackContainer: backpackContainer?.id || 'none',
-    upperCollapsed,
-    lowerCollapsed,
-    backpackCollapsed
+    inventoryVersion
   });
 
   return (
@@ -39,7 +43,8 @@ export default function UnifiedClothingPanel() {
         {/* Upper Body Section */}
         <ClothingContainerPanel
           title="Upper Body"
-          containerId={null}
+          equippedItem={upperBodyItem}
+          pocketContainerIds={upperBodyPocketIds}
           emptyMessage="No item equipped"
           isCollapsed={upperCollapsed}
           onToggle={() => setUpperCollapsed(!upperCollapsed)}
@@ -48,7 +53,8 @@ export default function UnifiedClothingPanel() {
         {/* Lower Body Section */}
         <ClothingContainerPanel
           title="Lower Body"
-          containerId={null}
+          equippedItem={lowerBodyItem}
+          pocketContainerIds={lowerBodyPocketIds}
           emptyMessage="No item equipped"
           isCollapsed={lowerCollapsed}
           onToggle={() => setLowerCollapsed(!lowerCollapsed)}
