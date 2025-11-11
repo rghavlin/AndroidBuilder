@@ -183,6 +183,10 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  phase5e - Verify Phase 5E item movement between containers', 'info');
           addToConsole('  phase5f - Verify Phase 5F (nested container interactions)', 'info');
           addToConsole('  equip backpack - Equip a test backpack (visual test)', 'info');
+          addToConsole('  equip pocket-t - Equip pocket t-shirt (1 pocket)', 'info');
+          addToConsole('  equip workshirt - Equip work shirt (2 pockets)', 'info');
+          addToConsole('  equip sweatpants - Equip sweatpants (2 pockets)', 'info');
+          addToConsole('  equip cargopants - Equip cargo pants (4 pockets)', 'info');
           addToConsole('  unequip backpack - Unequip backpack (visual test)', 'info');
           addToConsole('  create toolbox - Create test toolbox item on ground', 'info');
           addToConsole('  create lunchbox - Create test lunchbox item on ground', 'info');
@@ -1141,11 +1145,12 @@ const DevConsole = ({ isOpen, onClose }) => {
           break;
 
         case 'equip':
-          if (subCommand === 'backpack') {
-            try {
+          try {
+            const { Item } = await import('../../game/inventory/Item.js');
+            const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+            
+            if (subCommand === 'backpack') {
               addToConsole('Equipping test backpack...', 'info');
-              const { Item } = await import('../../game/inventory/Item.js');
-
               const testBackpack = new Item({
                 instanceId: 'manual-test-bp',
                 defId: 'container.backpack',
@@ -1164,11 +1169,55 @@ const DevConsole = ({ isOpen, onClose }) => {
               } else {
                 addToConsole(`❌ Failed to equip: ${result.reason}`, 'error');
               }
-            } catch (error) {
-              addToConsole(`Error: ${error.message}`, 'error');
+            } else if (subCommand === 'pocket-t') {
+              addToConsole('Equipping pocket t-shirt...', 'info');
+              const itemData = createItemFromDef('clothing.pocket_t');
+              const item = new Item(itemData);
+              const result = window.inventoryManager.equipItem(item, 'upper_body');
+              if (result.success) {
+                window.inv?.refresh();
+                addToConsole('✅ Pocket t-shirt equipped - check Upper Body section', 'success');
+              } else {
+                addToConsole(`❌ Failed to equip: ${result.reason}`, 'error');
+              }
+            } else if (subCommand === 'workshirt') {
+              addToConsole('Equipping work shirt...', 'info');
+              const itemData = createItemFromDef('clothing.workshirt');
+              const item = new Item(itemData);
+              const result = window.inventoryManager.equipItem(item, 'upper_body');
+              if (result.success) {
+                window.inv?.refresh();
+                addToConsole('✅ Work shirt equipped - check Upper Body section', 'success');
+              } else {
+                addToConsole(`❌ Failed to equip: ${result.reason}`, 'error');
+              }
+            } else if (subCommand === 'sweatpants') {
+              addToConsole('Equipping sweatpants...', 'info');
+              const itemData = createItemFromDef('clothing.sweatpants');
+              const item = new Item(itemData);
+              const result = window.inventoryManager.equipItem(item, 'lower_body');
+              if (result.success) {
+                window.inv?.refresh();
+                addToConsole('✅ Sweatpants equipped - check Lower Body section', 'success');
+              } else {
+                addToConsole(`❌ Failed to equip: ${result.reason}`, 'error');
+              }
+            } else if (subCommand === 'cargopants') {
+              addToConsole('Equipping cargo pants...', 'info');
+              const itemData = createItemFromDef('clothing.cargopants');
+              const item = new Item(itemData);
+              const result = window.inventoryManager.equipItem(item, 'lower_body');
+              if (result.success) {
+                window.inv?.refresh();
+                addToConsole('✅ Cargo pants equipped - check Lower Body section', 'success');
+              } else {
+                addToConsole(`❌ Failed to equip: ${result.reason}`, 'error');
+              }
+            } else {
+              addToConsole('Usage: equip [backpack|pocket-t|workshirt|sweatpants|cargopants]', 'error');
             }
-          } else {
-            addToConsole('Usage: equip backpack', 'error');
+          } catch (error) {
+            addToConsole(`Error: ${error.message}`, 'error');
           }
           break;
 

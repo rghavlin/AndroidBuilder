@@ -83,7 +83,7 @@ export default function ClothingContainerPanel({
   if (!hasContent && !equippedItem) {
     console.log(`[ClothingContainerPanel] Rendering empty state for ${title}`, { emptyMessage, isCollapsed });
     return (
-      <div className={`border-b border-border p-3 ${className}`} style={{ minHeight: '80px' }}>
+      <div className={`border-b border-border p-3 ${className}`}>
         <div 
           className="flex items-center justify-between mb-2 cursor-pointer select-none"
           onClick={handleToggle}
