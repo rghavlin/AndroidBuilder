@@ -34,34 +34,34 @@ export default function UnifiedClothingPanel() {
   });
 
   return (
-    <div className="w-1/2 border-r border-border flex flex-col h-full overflow-hidden" data-testid="unified-clothing-panel">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+    <div className="w-1/2 border-r border-border flex flex-col h-full" data-testid="unified-clothing-panel">
+      <div className="flex-1 overflow-y-auto">
         {/* Upper Body Section */}
         <ClothingContainerPanel
-          title={upperBodyItem ? "Upper Body" : "Upper Body (none)"}
-          containerId={null} // Phase 6D will handle pocket grids
-          emptyMessage="none"
+          title="Upper Body"
+          containerId={null}
+          emptyMessage="No item equipped"
           isCollapsed={upperCollapsed}
           onToggle={() => setUpperCollapsed(!upperCollapsed)}
         />
 
         {/* Lower Body Section */}
         <ClothingContainerPanel
-          title={lowerBodyItem ? "Lower Body" : "Lower Body (none)"}
-          containerId={null} // Phase 6D will handle pocket grids
-          emptyMessage="none"
+          title="Lower Body"
+          containerId={null}
+          emptyMessage="No item equipped"
           isCollapsed={lowerCollapsed}
           onToggle={() => setLowerCollapsed(!lowerCollapsed)}
         />
 
         {/* Backpack Section */}
         <ClothingContainerPanel
-          title={backpackContainer ? "Backpack" : "Backpack (none)"}
+          title="Backpack"
           containerId={backpackContainerId}
-          emptyMessage="none"
+          emptyMessage="No backpack equipped"
           isCollapsed={backpackCollapsed}
           onToggle={() => setBackpackCollapsed(!backpackCollapsed)}
-          className="border-b-0" // Remove bottom border on last section
+          className="border-b-0"
         />
       </div>
     </div>

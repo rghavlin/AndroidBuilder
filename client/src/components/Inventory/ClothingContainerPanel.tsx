@@ -74,21 +74,22 @@ export default function ClothingContainerPanel({
 
   // Show empty state if no container
   if (!container) {
+    console.log(`[ClothingContainerPanel] Rendering empty state for ${title}`, { emptyMessage, isCollapsed });
     return (
-      <div className={`border-b border-border p-3 min-h-[80px] ${className}`}>
+      <div className={`border-b border-border p-3 ${className}`} style={{ minHeight: '80px' }}>
         <div 
-          className="flex items-center justify-between flex-shrink-0 mb-3 cursor-pointer select-none"
+          className="flex items-center justify-between mb-2 cursor-pointer select-none"
           onClick={handleToggle}
           title={isCollapsed ? `Expand ${title.toLowerCase()}` : `Collapse ${title.toLowerCase()}`}
         >
           <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            {title.toUpperCase()} ({emptyMessage.toLowerCase()})
+            {title.toUpperCase()}
             {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </h3>
         </div>
         {!isCollapsed && (
-          <div className="text-xs text-muted-foreground italic py-4 text-center border border-dashed border-border/50 rounded">
-            No item equipped
+          <div className="text-xs text-muted-foreground italic py-3 text-center border border-dashed border-border/50 rounded bg-background/50">
+            {emptyMessage}
           </div>
         )}
       </div>
