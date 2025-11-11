@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useInventory } from '@/contexts/InventoryContext';
 import EquipmentSlots from './EquipmentSlots';
-import BackpackGrid from './BackpackGrid';
+import UnifiedClothingPanel from './UnifiedClothingPanel';
 import GroundItemsGrid from './GroundItemsGrid';
 import FloatingContainer from "./FloatingContainer";
 import ContainerGrid from "./ContainerGrid";
@@ -31,7 +31,7 @@ export default function InventoryPanel() {
 
         {/* Main Inventory Grid Section */}
         <div className="flex-1 min-h-0 flex flex-col border-b border-border">
-          <BackpackGrid />
+          <UnifiedClothingPanel />
         </div>
 
         {/* Ground Items Section */}
