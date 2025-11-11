@@ -62,5 +62,6 @@ export default function InventoryPanel() {
       {/* Cursor-following drag preview */}
       {/* Removed DragPreviewLayer component */}
     </div>
+  </>
   );
 }
