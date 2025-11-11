@@ -44,6 +44,27 @@ export const InventoryProvider = ({ children, manager }) => {
     return () => console.log(`[InventoryProvider] UNMOUNT id=${__instanceId}`);
   }, [__instanceId]);
 
+  // Dev-only: Force refresh for console testing (Phase 5C/5D workaround until Phase 5E)
+  const forceRefresh = useCallback(() => {
+    setInventoryVersion(prev => prev + 1);
+  }, []);
+
+  // Dev-console bridge (Phase 5A)
+  // Note: Works in both dev and production builds for testing/debugging
+  useEffect(() => {
+    if (inventoryRef.current) {
+      window.inventoryManager = inventoryRef.current;
+      window.inv = {
+        getContainer: (id) => inventoryRef.current?.getContainer(id),
+        equipItem: (item, slot) => inventoryRef.current?.equipItem(item, slot),
+        moveItem: (itemId, from, to, x, y) =>
+          inventoryRef.current?.moveItem(itemId, from, to, x, y),
+        refresh: forceRefresh
+      };
+      console.log('[InventoryContext] Dev console bridge established: window.inventoryManager, window.inv');
+    }
+  }, [forceRefresh]);
+
   // ✅ Handle null manager case AFTER all hooks are declared
   // Graceful degradation: render children without inventory context until manager exists
   if (!manager) {
@@ -69,27 +90,6 @@ export const InventoryProvider = ({ children, manager }) => {
     inventoryRef.current = manager;
     setInventoryVersion(prev => prev + 1);
   }
-
-  // Dev-only: Force refresh for console testing (Phase 5C/5D workaround until Phase 5E)
-  const forceRefresh = useCallback(() => {
-    setInventoryVersion(prev => prev + 1);
-  }, []);
-
-  // Dev-console bridge (Phase 5A)
-  // Note: Works in both dev and production builds for testing/debugging
-  useEffect(() => {
-    if (inventoryRef.current) {
-      window.inventoryManager = inventoryRef.current;
-      window.inv = {
-        getContainer: (id) => inventoryRef.current?.getContainer(id),
-        equipItem: (item, slot) => inventoryRef.current?.equipItem(item, slot),
-        moveItem: (itemId, from, to, x, y) =>
-          inventoryRef.current?.moveItem(itemId, from, to, x, y),
-        refresh: forceRefresh
-      };
-      console.log('[InventoryContext] Dev console bridge established: window.inventoryManager, window.inv');
-    }
-  }, [forceRefresh]);
 
   const setInventory = useCallback((inventory) => {
     inventoryRef.current = inventory;
