@@ -326,6 +326,16 @@ export const InventoryProvider = ({ children, manager }) => {
       }
     }
 
+    // Phase 5H: Prevent unequipping backpack into itself - just cancel selection
+    if (isEquipment && item.equippableSlot === 'backpack' && item.containerGrid) {
+      if (targetContainerId === item.containerGrid.id) {
+        console.debug('[InventoryContext] Cannot unequip backpack into itself - canceling selection');
+        setSelectedItem(null);
+        setDragVersion(prev => prev + 1);
+        return { success: false, reason: 'Cannot place backpack inside itself' };
+      }
+    }
+
     // Phase 5H: Handle unequipping
     if (isEquipment) {
       const slot = originContainerId.replace('equipment-', '');
