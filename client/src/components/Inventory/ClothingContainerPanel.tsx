@@ -86,6 +86,11 @@ export default function ClothingContainerPanel({
             {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </h3>
         </div>
+        {!isCollapsed && (
+          <div className="text-xs text-muted-foreground italic py-4 text-center">
+            No item equipped
+          </div>
+        )}
       </div>
     );
   }
