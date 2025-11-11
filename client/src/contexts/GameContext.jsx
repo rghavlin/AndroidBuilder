@@ -235,12 +235,6 @@ const GameContextInner = ({ children }) => {
       setCamera(loadedState.camera);
       setWorldManager(loadedState.worldManager);
       
-      // Restore inventory if available
-      if (loadedState.inventoryManager) {
-        setInventoryManager(loadedState.inventoryManager);
-        console.log('[GameContext] InventoryManager restored from save');
-      }
-
       setTurn(loadedState.turn);
       setIsPlayerTurn(true);
       setIsAutosaving(false);
@@ -248,6 +242,14 @@ const GameContextInner = ({ children }) => {
 
       console.log('[GameContext] Setting up event listeners for loaded player...');
       setupPlayerEventListeners();
+
+      // CRITICAL: Restore inventory AFTER player is set up
+      // This ensures the inventory's equipment references are valid
+      if (loadedState.inventoryManager) {
+        setInventoryManager(loadedState.inventoryManager);
+        console.log('[GameContext] InventoryManager restored from save');
+        console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
+      }
 
       // Recenter camera on loaded player position
       if (loadedState.camera && loadedState.player) {
@@ -303,23 +305,26 @@ const GameContextInner = ({ children }) => {
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
 
-    let postInitCallback = null;
-    if (loadGameAfterInit) {
-      postInitCallback = async (gameObjects) => {
-        console.log('[GameContext] Post-init: Loading save data over initialized game...');
-        const success = await loadGame(slotName);
-        if (!success) {
-          console.warn('[GameContext] Post-init: Failed to load save data, continuing with new game');
-        } else {
-          console.log('[GameContext] Post-init: Save data loaded successfully');
-        }
-      };
-    }
-
-    const success = await initManagerRef.current.startInitialization(postInitCallback);
+    // CRITICAL FIX: Don't use post-init callback for loading
+    // The callback creates a second load after initialization completes
+    // which replaces the player instance and breaks inventory references
+    // Instead, load should happen ONLY via the direct loadGame() call
+    const success = await initManagerRef.current.startInitialization(null);
     if (!success) {
       const error = initManagerRef.current.getError();
       setInitializationError(error || 'Unknown initialization error');
+      return;
+    }
+
+    // Load save AFTER initialization completes, if requested
+    if (loadGameAfterInit) {
+      console.log('[GameContext] Initialization complete, now loading save...');
+      const loadSuccess = await loadGame(slotName);
+      if (!loadSuccess) {
+        console.warn('[GameContext] Failed to load save data, using new game state');
+      } else {
+        console.log('[GameContext] Save data loaded successfully');
+      }
     }
   }, [wireManagerEvents, loadGame]);
 
