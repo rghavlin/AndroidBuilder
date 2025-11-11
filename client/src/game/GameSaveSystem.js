@@ -33,6 +33,9 @@ export class GameSaveSystem {
           ammo: gameState.playerStats.ammo || 0
         },
         
+        // Inventory state (equipment, containers, items)
+        inventoryManager: gameState.inventoryManager ? gameState.inventoryManager.toJSON() : null,
+        
         // Camera position (for UI continuity only)
         cameraPosition: gameState.camera ? {
           x: gameState.camera.x,
@@ -112,11 +115,21 @@ export class GameSaveSystem {
         camera.centerOn(player.x, player.y);
       }
 
+      // Restore InventoryManager if available
+      let inventoryManager = null;
+      if (saveData.inventoryManager) {
+        console.log('[GameSaveSystem] Restoring InventoryManager...');
+        const { InventoryManager } = await import('./inventory/InventoryManager.js');
+        inventoryManager = InventoryManager.fromJSON(saveData.inventoryManager);
+        console.log('[GameSaveSystem] InventoryManager restored successfully');
+      }
+
       const gameComponents = {
         gameMap: gameMap,
         worldManager: worldManager,
         player: player,
         camera: camera,
+        inventoryManager: inventoryManager,
         turn: saveData.turn || 1,
         playerStats: saveData.playerStats || { hp: 100, maxHp: 100, ap: 100, maxAp: 100, ammo: 0 },
         lastSeenTaggedTiles: new Set(), // Reset this - will be rebuilt

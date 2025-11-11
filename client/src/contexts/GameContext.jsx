@@ -234,6 +234,12 @@ const GameContextInner = ({ children }) => {
       setPlayerRef(loadedState.player);
       setCamera(loadedState.camera);
       setWorldManager(loadedState.worldManager);
+      
+      // Restore inventory if available
+      if (loadedState.inventoryManager) {
+        setInventoryManager(loadedState.inventoryManager);
+        console.log('[GameContext] InventoryManager restored from save');
+      }
 
       setTurn(loadedState.turn);
       setIsPlayerTurn(true);
@@ -340,6 +346,7 @@ const GameContextInner = ({ children }) => {
         worldManager: worldManagerRef.current,
         player: playerRef.current,
         camera: cameraRef.current,
+        inventoryManager: inventoryManager,
         turn: turn,
         playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 10, maxAp: playerRef.current?.maxAp || 10, ammo: 0 }
       };
@@ -510,6 +517,7 @@ const GameContextInner = ({ children }) => {
         worldManager: worldManagerRef.current,
         player: playerRef.current,
         camera: cameraRef.current,
+        inventoryManager: inventoryManager,
         turn: turn,
         playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 10, maxAp: playerRef.current?.maxAp || 10, ammo: 0 }
       };
@@ -541,6 +549,7 @@ const GameContextInner = ({ children }) => {
         worldManager: worldManagerRef.current,
         player: playerRef.current,
         camera: cameraRef.current,
+        inventoryManager: inventoryManager,
         turn: turn,
         playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 10, maxAp: playerRef.current?.maxAp || 10, ammo: 0 },
         lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
