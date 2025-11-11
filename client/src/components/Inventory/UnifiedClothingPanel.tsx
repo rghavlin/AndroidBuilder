@@ -31,15 +31,11 @@ export default function UnifiedClothingPanel() {
   console.log('[UnifiedClothingPanel] Rendering sections:', {
     upperBodyItem: upperBodyItem?.name || 'none',
     upperBodyPockets: upperBodyPocketIds.length,
-    upperBodyPocketIds,
     lowerBodyItem: lowerBodyItem?.name || 'none',
     lowerBodyPockets: lowerBodyPocketIds.length,
-    lowerBodyPocketIds,
     backpackContainer: backpackContainer?.id || 'none',
     inventoryVersion
   });
-
-  console.log('[UnifiedClothingPanel] About to render 3 ClothingContainerPanel components');
 
   return (
     <div className="w-1/2 border-r border-border flex flex-col h-full" data-testid="unified-clothing-panel">

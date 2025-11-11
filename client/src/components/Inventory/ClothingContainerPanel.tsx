@@ -79,21 +79,9 @@ export default function ClothingContainerPanel({
     }
   };
 
-  // Show empty state ONLY if no content AND no equipped item
-  // Content means either a container OR pockets
-  const shouldShowEmpty = !hasContent && !equippedItem;
-  
-  console.log(`[ClothingContainerPanel] ${title} state:`, {
-    hasContent,
-    hasPockets,
-    hasContainer: !!container,
-    hasEquippedItem: !!equippedItem,
-    shouldShowEmpty,
-    pocketCount: pocketContainerIds.length
-  });
-
-  if (shouldShowEmpty) {
-    console.log(`[ClothingContainerPanel] Rendering empty state for ${title}`);
+  // Show empty state if no container and no equipped clothing item
+  if (!hasContent && !equippedItem) {
+    console.log(`[ClothingContainerPanel] Rendering empty state for ${title}`, { emptyMessage, isCollapsed });
     return (
       <div className={`border-b border-border p-3 ${className}`}>
         <div 
