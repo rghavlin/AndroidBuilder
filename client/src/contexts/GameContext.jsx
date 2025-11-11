@@ -281,18 +281,31 @@ const GameContextInner = ({ children }) => {
       }
       console.log('[GameContext] Applying loaded state...');
 
-      // CRITICAL: Restore inventory BEFORE setting player to ensure equipment references are valid
+      // CRITICAL: Set ALL state synchronously in the correct order
+      // 1. WorldManager (no dependencies)
+      setWorldManager(loadedState.worldManager);
+      
+      // 2. GameMap (needed for player FOV calculations)
+      setGameMap(loadedState.gameMap);
+      
+      // 3. Camera (independent of player)
+      setCamera(loadedState.camera);
+      
+      // 4. InventoryManager BEFORE player to ensure equipment references are valid
       if (loadedState.inventoryManager) {
         setInventoryManager(loadedState.inventoryManager);
         console.log('[GameContext] InventoryManager restored from save');
         console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
+        
+        // Log equipment state for debugging
+        const equippedItems = Object.entries(loadedState.inventoryManager.equipment)
+          .filter(([slot, item]) => item !== null)
+          .map(([slot, item]) => `${slot}: ${item.name}`);
+        console.log('[GameContext] All equipped items:', equippedItems.length > 0 ? equippedItems.join(', ') : 'none');
       }
-
-      // Set up loaded state in contexts (inventory already restored above)
-      setGameMap(loadedState.gameMap);
+      
+      // 5. Player LAST - after inventory is ready
       setPlayerRef(loadedState.player);
-      setCamera(loadedState.camera);
-      setWorldManager(loadedState.worldManager);
       
       setTurn(loadedState.turn);
       setIsPlayerTurn(true);
@@ -705,13 +718,9 @@ const GameContextInner = ({ children }) => {
 
   return (
     <GameContext.Provider value={contextValue}>
-      {inventoryManager ? (
-        <InventoryProvider manager={inventoryManager}>
-          {children}
-        </InventoryProvider>
-      ) : (
-        children
-      )}
+      <InventoryProvider manager={inventoryManager}>
+        {children}
+      </InventoryProvider>
     </GameContext.Provider>
   );
 };

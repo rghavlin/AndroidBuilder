@@ -55,6 +55,17 @@ export const InventoryProvider = ({ children, manager }) => {
   if (!inventoryRef.current && manager) {
     inventoryRef.current = manager;
     console.log('[InventoryContext] InventoryManager received from provider props');
+    console.log('[InventoryContext] - Manager has', manager.containers.size, 'containers');
+    console.log('[InventoryContext] - Equipment slots:', Object.entries(manager.equipment).filter(([s, i]) => i).map(([s, i]) => `${s}:${i.name}`).join(', ') || 'none');
+  }
+  
+  // Update ref if manager prop changes (during load)
+  if (manager && inventoryRef.current !== manager) {
+    console.log('[InventoryContext] 🔄 Manager prop changed - updating ref');
+    console.log('[InventoryContext] - Old manager containers:', inventoryRef.current?.containers.size || 0);
+    console.log('[InventoryContext] - New manager containers:', manager.containers.size);
+    inventoryRef.current = manager;
+    setInventoryVersion(prev => prev + 1);
   }
 
   // Dev-only: Force refresh for console testing (Phase 5C/5D workaround until Phase 5E)
