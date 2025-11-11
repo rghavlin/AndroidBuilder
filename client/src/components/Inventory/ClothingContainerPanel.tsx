@@ -35,6 +35,7 @@ export default function ClothingContainerPanel({
   // For backpacks, use containerId. For clothing, use pocketContainerIds
   const container = containerId ? getContainer(containerId) : null;
   const hasPockets = pocketContainerIds.length > 0;
+  const hasContent = container || hasPockets;
 
   const handleSlotClick = (x: number, y: number) => {
     console.log(`${title} slot (${x}, ${y}) clicked`);
@@ -79,7 +80,7 @@ export default function ClothingContainerPanel({
   };
 
   // Show empty state if no container and no equipped clothing item
-  if (!container && !equippedItem) {
+  if (!hasContent && !equippedItem) {
     console.log(`[ClothingContainerPanel] Rendering empty state for ${title}`, { emptyMessage, isCollapsed });
     return (
       <div className={`border-b border-border p-3 ${className}`} style={{ minHeight: '80px' }}>
@@ -106,6 +107,14 @@ export default function ClothingContainerPanel({
   const displayTitle = equippedItem 
     ? `${title.toUpperCase()} (${equippedItem.name})`
     : title.toUpperCase();
+
+  console.log(`[ClothingContainerPanel] Rendering ${title}:`, {
+    hasContainer: !!container,
+    hasPockets,
+    pocketCount: pocketContainerIds.length,
+    equippedItem: equippedItem?.name || 'none',
+    isCollapsed
+  });
 
   return (
     <div className={`border-b border-border p-3 flex flex-col ${className}`}>
