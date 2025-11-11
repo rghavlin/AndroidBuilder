@@ -54,6 +54,35 @@ export const ItemDefs = {
     encumbranceTier: EncumbranceTier.LIGHT
   },
 
+  'clothing.pocket_t': {
+    id: 'clothing.pocket_t',
+    name: 'Pocket T-Shirt',
+    imageId: 'pocket-t', // Image: pocket-t.png
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.UPPER_BODY,
+    encumbranceTier: EncumbranceTier.LIGHT,
+    pocketGrids: [
+      { width: 1, height: 1 } // Single 1x1 pocket
+    ]
+  },
+
+  'clothing.workshirt': {
+    id: 'clothing.workshirt',
+    name: 'Work Shirt',
+    imageId: 'workshirt', // Image: workshirt.png
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.UPPER_BODY,
+    encumbranceTier: EncumbranceTier.LIGHT,
+    pocketGrids: [
+      { width: 1, height: 2 }, // Left pocket (1x2)
+      { width: 1, height: 2 }  // Right pocket (1x2)
+    ]
+  },
+
   'clothing.jacket': {
     id: 'clothing.jacket',
     name: 'Jacket',
@@ -86,9 +115,41 @@ export const ItemDefs = {
     encumbranceTier: EncumbranceTier.LIGHT
   },
 
+  'clothing.sweatpants': {
+    id: 'clothing.sweatpants',
+    name: 'Sweatpants',
+    imageId: 'sweatpants', // Image: sweatpants.png
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.LOWER_BODY,
+    encumbranceTier: EncumbranceTier.LIGHT,
+    pocketGrids: [
+      { width: 1, height: 2 }, // Left pocket (1x2)
+      { width: 1, height: 2 }  // Right pocket (1x2)
+    ]
+  },
+
+  'clothing.cargopants': {
+    id: 'clothing.cargopants',
+    name: 'Cargo Pants',
+    imageId: 'cargopants', // Image: cargopants.png
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.LOWER_BODY,
+    encumbranceTier: EncumbranceTier.MEDIUM,
+    pocketGrids: [
+      { width: 2, height: 2 }, // Front left pocket (2x2)
+      { width: 2, height: 2 }, // Front right pocket (2x2)
+      { width: 2, height: 2 }, // Cargo left pocket (2x2)
+      { width: 2, height: 2 }  // Cargo right pocket (2x2)
+    ]
+  },
+
   'clothing.cargo_pants': {
     id: 'clothing.cargo_pants',
-    name: 'Cargo Pants',
+    name: 'Cargo Pants (Legacy)',
     width: 2,
     height: 3,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],

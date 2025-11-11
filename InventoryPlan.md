@@ -754,3 +754,230 @@ const emptyBackpack = inventoryManager.getBackpackContainer();
 
 Summary:
 Phase 5H unifies the selection model (left-click for everything), implements smart backpack management to prevent exploits while enabling easy upgrades, updates image loading with a robust fallback, and introduces a one-click Quick Move to streamline swapping backpacks during gameplay.
+
+---
+
+## Phase 6 — Unified Clothing Panel Layout
+
+**Goal:** Restructure inventory layout to show upper body, lower body, and backpack grids in a unified, collapsible area within the main inventory panel.
+
+### Current State Analysis
+
+**Current Structure:**
+- `BackpackGrid.tsx` - Shows equipped backpack container with collapse functionality
+- `InventoryExtensionWindow.tsx` - Shows upper/lower body equipment slots and their pocket grids
+- Equipment slots are separate from the container grids
+
+**Phase 6 Goals:**
+1. Move upper/lower body pocket grids from extension window to main inventory panel
+2. Create unified scrollable area with 3 sections: Upper Body → Lower Body → Backpack
+3. Each section independently collapsible
+4. When no backpack equipped, show "Backpack (none)" instead of message
+5. Each clothing item's pockets appear separately but collapse together
+
+---
+
+### 6A — Refactor BackpackGrid into ClothingContainerPanel (Foundation)
+
+**Goal:** Create a reusable component for displaying clothing/backpack containers with collapse functionality.
+
+**Implementation:**
+1. Create `ClothingContainerPanel.tsx` - Generic collapsible container display component
+2. Props: `title`, `equippedItem`, `pocketContainers`, `isCollapsed`, `onToggle`, `emptyMessage`
+3. Move collapse logic from `BackpackGrid.tsx` into this component
+4. Keep existing `BackpackGrid.tsx` for now, just refactor internals to use new component
+
+**Acceptance:**
+- Backpack still works exactly as before
+- Code is cleaner and reusable
+- No visual changes yet
+
+---
+
+### 6B — Create UnifiedClothingPanel Component (Layout Structure)
+
+**Goal:** Build the 3-section layout container that will replace `BackpackGrid.tsx`.
+
+**Implementation:**
+1. Create `UnifiedClothingPanel.tsx` with three sections:
+   - UpperBodySection (collapsible)
+   - LowerBodySection (collapsible) 
+   - BackpackSection (collapsible)
+2. Each section uses `ClothingContainerPanel` from 6A
+3. Implement scroll container wrapping all three sections
+4. Add independent collapse state for each section
+5. Wire to `useInventory()` to get equipped items
+
+**File Structure:**
+```tsx
+<div className="w-1/2 flex flex-col overflow-hidden">
+  {/* Upper Body Section */}
+  <ClothingContainerPanel 
+    title="Upper Body"
+    equippedItem={equipment.upper_body}
+    pocketContainers={upperBodyPockets}
+    isCollapsed={upperCollapsed}
+    onToggle={() => setUpperCollapsed(!upperCollapsed)}
+  />
+  
+  {/* Lower Body Section */}
+  <ClothingContainerPanel 
+    title="Lower Body"
+    equippedItem={equipment.lower_body}
+    pocketContainers={lowerBodyPockets}
+    isCollapsed={lowerCollapsed}
+    onToggle={() => setLowerCollapsed(!lowerCollapsed)}
+  />
+  
+  {/* Backpack Section */}
+  <ClothingContainerPanel 
+    title={backpack ? "Backpack" : "Backpack (none)"}
+    containerId="backpack-container"
+    isCollapsed={backpackCollapsed}
+    onToggle={() => setBackpackCollapsed(!backpackCollapsed)}
+  />
+</div>
+```
+
+**Acceptance:**
+- Three-section layout renders correctly
+- Each section collapses independently
+- Scroll works across all sections
+- No functional changes yet (just layout)
+
+---
+
+### 6C — Replace BackpackGrid with UnifiedClothingPanel
+
+**Goal:** Switch the main inventory panel to use the new unified layout.
+
+**Implementation:**
+1. In `InventoryPanel.tsx`, replace `<BackpackGrid />` with `<UnifiedClothingPanel />`
+2. Remove old `BackpackGrid.tsx` import
+3. Update any tests or references
+
+**Acceptance:**
+- Backpack still works in new location
+- Upper/Lower body sections appear (empty for now)
+- All collapse toggles work
+- Scrolling works correctly
+
+---
+
+### 6D — Wire Upper/Lower Body Pocket Display (Read-Only)
+
+**Goal:** Display pocket grids when upper/lower body items are equipped (no interaction yet).
+
+**Implementation:**
+1. In `ClothingContainerPanel`, detect if equipped item has pockets:
+```tsx
+const pocketContainers = item?.isContainer() 
+  ? item.getPocketContainers() 
+  : [];
+```
+
+2. Render each pocket grid using `ContainerGrid`:
+```tsx
+{pocketContainers.map((pocket, idx) => (
+  <ContainerGrid
+    key={pocket.id}
+    containerId={pocket.id}
+    width={pocket.width}
+    height={pocket.height}
+    enableScroll={false}
+  />
+))}
+```
+
+3. Show "(none)" suffix when no item equipped
+
+**Acceptance:**
+- Equipping upper body item via console shows its pocket grids
+- Equipping lower body item via console shows its pocket grids
+- Unequipping hides the grids
+- Each pocket appears as separate grid
+- No drag/drop yet (Phase 5G handles that)
+
+**In-game console test commands:**
+```
+equip pocket-t     - Equip pocket t-shirt (1 pocket: 1x1)
+equip workshirt    - Equip work shirt (2 pockets: 1x2 each)
+equip sweatpants   - Equip sweatpants (2 pockets: 1x2 each)
+equip cargopants   - Equip cargo pants (4 pockets: 2x2 each)
+```
+
+---
+
+### 6E — Clean Up InventoryExtensionWindow
+
+**Goal:** Remove pocket displays from extension window since they're now in main panel.
+
+**Implementation:**
+1. Keep equipment slots in `InventoryExtensionWindow.tsx`
+2. Remove the pocket grid sections (body-pocket-1 through legs-pocket-4)
+3. Keep only crafting panel in extension window
+4. Simplify layout to just show equipment slots + crafting
+
+**Acceptance:**
+- Extension window shows only equipment slots and crafting
+- No duplicate pocket grids
+- Cleaner, more focused extension panel
+- Main inventory panel is the authoritative view for all containers
+
+---
+
+### 6F — Equipment Interaction Integration
+
+**Goal:** Ensure Phase 5H equipment selection works with new layout.
+
+**Implementation:**
+1. Verify left-click selection on equipment slots still works
+2. Ensure clicking grid cells with selected equipment item unequips correctly
+3. Test that pocket grids participate in drag/drop from Phase 5G
+4. Verify all container grids use same slot size from `GridSizeContext`
+
+**Acceptance:**
+- Can select equipped upper/lower body items
+- Can unequip by clicking grid cell
+- Can drag items between pockets, backpack, and ground
+- All grids use consistent slot sizing
+
+---
+
+### Summary of Phase 6 Changes
+
+**New Files:**
+- `ClothingContainerPanel.tsx` - Reusable collapsible container component
+- `UnifiedClothingPanel.tsx` - New 3-section layout (replaces BackpackGrid functionality)
+
+**Modified Files:**
+- `InventoryPanel.tsx` - Uses UnifiedClothingPanel instead of BackpackGrid
+- `InventoryExtensionWindow.tsx` - Simplified to equipment slots + crafting only
+
+**Removed Files:**
+- `BackpackGrid.tsx` - Replaced by UnifiedClothingPanel
+
+**Visual Result:**
+```
+┌─────────────────────────────────┐
+│ UPPER BODY          [▼]         │  ← Collapsible
+│ ┌───┬───┐ ┌───┬───┐            │
+│ │   │   │ │   │   │  (pockets) │
+│ └───┴───┘ └───┴───┘            │
+├─────────────────────────────────┤
+│ LOWER BODY          [▼]         │  ← Collapsible
+│ ┌───┬───┐ ┌───┬───┐            │
+│ │   │   │ │   │   │  (pockets) │
+│ └───┴───┘ └───┴───┘            │
+├─────────────────────────────────┤
+│ BACKPACK            [▼]         │  ← Collapsible
+│ ┌─────────────────┐            │
+│ │                 │            │
+│ │   (6x10 grid)   │            │
+│ │                 │            │
+│ └─────────────────┘            │
+└─────────────────────────────────┘
+     ↕ Scroll when needed
+```
+
+This plan maintains existing Phase 5 work (equipment selection, drag/drop) while reorganizing the layout to be more cohesive and user-friendly. Each phase is small, testable, and builds on the previous one.
