@@ -243,26 +243,35 @@ const GameContextInner = ({ children }) => {
       console.log('[GameContext] Setting up event listeners for loaded player...');
       setupPlayerEventListeners();
 
-      // CRITICAL: Restore inventory AFTER player is set up
-      // This ensures the inventory's equipment references are valid
-      if (loadedState.inventoryManager) {
-        setInventoryManager(loadedState.inventoryManager);
-        console.log('[GameContext] InventoryManager restored from save');
-        console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
-      }
-
       // Recenter camera on loaded player position
       if (loadedState.camera && loadedState.player) {
         loadedState.camera.centerOn(loadedState.player.x, loadedState.player.y);
         console.log(`[GameContext] Camera recentered on loaded player position (${loadedState.player.x}, ${loadedState.player.y})`);
       }
 
+      // Use setTimeout to ensure ALL synchronous state updates complete first
       setTimeout(() => {
+        // Verify player hasn't been replaced before restoring inventory
+        if (playerRef.current && playerRef.current !== loadedState.player) {
+          console.error('[GameContext] CRITICAL: Player was replaced during load! Aborting inventory restoration.');
+          console.error('[GameContext] - Expected player:', loadedState.player.id, 'at', loadedState.player.x, loadedState.player.y);
+          console.error('[GameContext] - Current player:', playerRef.current.id, 'at', playerRef.current.x, playerRef.current.y);
+          return false;
+        }
+
+        // CRITICAL: Restore inventory as FINAL step after player is stable
+        // This ensures the inventory's equipment references remain valid
+        if (loadedState.inventoryManager) {
+          setInventoryManager(loadedState.inventoryManager);
+          console.log('[GameContext] InventoryManager restored from save (final step)');
+          console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
+        }
+
         updatePlayerFieldOfView(loadedState.gameMap);
         updatePlayerCardinalPositions(loadedState.gameMap);
         console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
         console.log(`[GameContext] Player position after load: (${loadedState.player.x}, ${loadedState.player.y})`);
-      }, 50);
+      }, 100);
 
       return true;
     } catch (error) {
@@ -514,6 +523,16 @@ const GameContextInner = ({ children }) => {
         }
         if (playersOnMap.length > 1) {
           console.error('[GameContext] DEV ASSERTION FAILED: Multiple players on map before save', playersOnMap.length);
+        }
+        
+        // CRITICAL: Verify player on map matches playerRef
+        const playerOnMap = playersOnMap[0];
+        if (playerOnMap !== playerRef.current) {
+          console.error('[GameContext] DEV ASSERTION FAILED: Player instance mismatch!');
+          console.error('[GameContext] - playerRef.current:', playerRef.current.id, 'at', playerRef.current.x, playerRef.current.y);
+          console.error('[GameContext] - Player on map:', playerOnMap.id, 'at', playerOnMap.x, playerOnMap.y);
+          console.error('[GameContext] - Same instance?', playerOnMap === playerRef.current);
+          return false;
         }
       }
       
