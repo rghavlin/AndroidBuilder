@@ -30,19 +30,7 @@ export const InventoryProvider = ({ children, manager }) => {
   // TEMP DIAGNOSTIC: Detect duplicate provider instances
   const __instanceId = useMemo(() => Math.random().toString(36).slice(2, 7), []);
   
-  useEffect(() => {
-    console.log(`[InventoryProvider] MOUNT id=${__instanceId}`);
-    return () => console.log(`[InventoryProvider] UNMOUNT id=${__instanceId}`);
-  }, [__instanceId]);
-
-  // Graceful degradation: render children without inventory context until manager exists
-  if (!manager) {
-    if (import.meta?.env?.DEV) {
-      console.warn('[InventoryProvider] No manager available - rendering without inventory context (game will load, inventory disabled until init completes)');
-    }
-    return <>{children}</>; // Pass-through: render app without inventory until manager exists
-  }
-
+  // ✅ ALL HOOKS MUST COME BEFORE ANY CONDITIONAL RETURNS
   const inventoryRef = useRef(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [openContainers, setOpenContainers] = useState(new Set());
@@ -50,7 +38,21 @@ export const InventoryProvider = ({ children, manager }) => {
   // Phase 5G: Selection-based drag state (simpler than cursor-following)
   const [selectedItem, setSelectedItem] = useState(null); // { item, originContainerId, originX, originY, rotation }
   const [dragVersion, setDragVersion] = useState(0); // Force re-render on selection changes
+  
+  useEffect(() => {
+    console.log(`[InventoryProvider] MOUNT id=${__instanceId}`);
+    return () => console.log(`[InventoryProvider] UNMOUNT id=${__instanceId}`);
+  }, [__instanceId]);
 
+  // ✅ Handle null manager case AFTER all hooks are declared
+  // Graceful degradation: render children without inventory context until manager exists
+  if (!manager) {
+    if (import.meta?.env?.DEV) {
+      console.warn('[InventoryProvider] No manager available - rendering without inventory context (game will load, inventory disabled until init completes)');
+    }
+    return <>{children}</>; // Pass-through: render app without inventory until manager exists
+  }
+  
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
     inventoryRef.current = manager;
