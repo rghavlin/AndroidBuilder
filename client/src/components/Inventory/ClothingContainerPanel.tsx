@@ -75,7 +75,7 @@ export default function ClothingContainerPanel({
   // Show empty state if no container
   if (!container) {
     return (
-      <div className={`border-b border-border p-3 ${className}`}>
+      <div className={`border-b border-border p-3 min-h-[80px] ${className}`}>
         <div 
           className="flex items-center justify-between flex-shrink-0 mb-3 cursor-pointer select-none"
           onClick={handleToggle}
@@ -87,7 +87,7 @@ export default function ClothingContainerPanel({
           </h3>
         </div>
         {!isCollapsed && (
-          <div className="text-xs text-muted-foreground italic py-4 text-center">
+          <div className="text-xs text-muted-foreground italic py-4 text-center border border-dashed border-border/50 rounded">
             No item equipped
           </div>
         )}

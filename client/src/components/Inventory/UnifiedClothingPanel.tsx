@@ -24,6 +24,15 @@ export default function UnifiedClothingPanel() {
   const upperBodyPockets: string[] = []; // TODO: Phase 6D - get from upperBodyItem.getPocketContainers()
   const lowerBodyPockets: string[] = []; // TODO: Phase 6D - get from lowerBodyItem.getPocketContainers()
 
+  console.log('[UnifiedClothingPanel] Rendering sections:', {
+    upperBodyItem: upperBodyItem?.name || 'none',
+    lowerBodyItem: lowerBodyItem?.name || 'none',
+    backpackContainer: backpackContainer?.id || 'none',
+    upperCollapsed,
+    lowerCollapsed,
+    backpackCollapsed
+  });
+
   return (
     <div className="w-1/2 border-r border-border flex flex-col h-full overflow-hidden" data-testid="unified-clothing-panel">
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
