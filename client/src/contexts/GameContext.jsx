@@ -281,7 +281,14 @@ const GameContextInner = ({ children }) => {
       }
       console.log('[GameContext] Applying loaded state...');
 
-      // Set up loaded state in contexts
+      // CRITICAL: Restore inventory BEFORE setting player to ensure equipment references are valid
+      if (loadedState.inventoryManager) {
+        setInventoryManager(loadedState.inventoryManager);
+        console.log('[GameContext] InventoryManager restored from save');
+        console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
+      }
+
+      // Set up loaded state in contexts (inventory already restored above)
       setGameMap(loadedState.gameMap);
       setPlayerRef(loadedState.player);
       setCamera(loadedState.camera);
@@ -301,36 +308,19 @@ const GameContextInner = ({ children }) => {
         console.log(`[GameContext] Camera recentered on loaded player position (${loadedState.player.x}, ${loadedState.player.y})`);
       }
 
-      // Use setTimeout to ensure ALL synchronous state updates complete first
-      setTimeout(() => {
-        // Verify player hasn't been replaced before restoring inventory
-        if (playerRef.current && playerRef.current !== loadedState.player) {
-          console.error('[GameContext] CRITICAL: Player was replaced during load! Aborting inventory restoration.');
-          console.error('[GameContext] - Expected player:', loadedState.player.id, 'at', loadedState.player.x, loadedState.player.y);
-          console.error('[GameContext] - Current player:', playerRef.current.id, 'at', playerRef.current.x, playerRef.current.y);
-          return false;
-        }
-
-        // CRITICAL: Restore inventory as FINAL step after player is stable
-        // This ensures the inventory's equipment references remain valid
-        if (loadedState.inventoryManager) {
-          setInventoryManager(loadedState.inventoryManager);
-          console.log('[GameContext] InventoryManager restored from save (final step)');
-          console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
-        }
-
-        updatePlayerFieldOfView(loadedState.gameMap);
-        updatePlayerCardinalPositions(loadedState.gameMap);
-        console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
-        console.log(`[GameContext] Player position after load: (${loadedState.player.x}, ${loadedState.player.y})`);
-      }, 100);
+      // Update derived player state
+      updatePlayerFieldOfView(loadedState.gameMap);
+      updatePlayerCardinalPositions(loadedState.gameMap);
+      
+      console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
+      console.log(`[GameContext] Player position after load: (${loadedState.player.x}, ${loadedState.player.y})`);
 
       return true;
     } catch (error) {
       console.error('[GameContext] Failed to load game:', error);
       return false;
     }
-  }, [setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
   const initializeGame = useCallback(async () => {
     if (!initManagerRef.current) {
