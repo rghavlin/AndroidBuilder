@@ -54,6 +54,7 @@ function GameScreenContent() {
     turn, 
     endTurn, 
     initializeGame,
+    loadGameDirect,
     handleMapTransitionConfirmWrapper,
     inventoryManager
   } = useGame();
@@ -74,8 +75,8 @@ function GameScreenContent() {
     // Don't hide menu here - let the effect above do it when state changes
 
     if (mode === 'load') {
-      console.log('[GameScreenContent] Starting new game with post-initialization loading...');
-      await initializeGame(true, 'autosave');
+      console.log('[GameScreenContent] Loading saved game directly...');
+      await loadGameDirect('autosave'); // Direct load without initialization
       return;
     }
 

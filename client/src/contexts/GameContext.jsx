@@ -220,6 +220,49 @@ const GameContextInner = ({ children }) => {
 
 
 
+  const loadGameDirect = useCallback(async (slotName = 'autosave') => {
+    console.log('[GameContext] Loading game directly (no initialization)...');
+    
+    try {
+      const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
+      if (!loadedState) {
+        console.warn(`[GameContext] No save found, falling back to new game`);
+        return await initializeGame(); // Fallback to new game
+      }
+      
+      console.log('[GameContext] Applying loaded state directly...');
+      
+      // Set all contexts directly from loaded state
+      setInventoryManager(loadedState.inventoryManager);
+      setGameMap(loadedState.gameMap);
+      setPlayerRef(loadedState.player);
+      setCamera(loadedState.camera);
+      setWorldManager(loadedState.worldManager);
+      setTurn(loadedState.turn);
+      setIsPlayerTurn(true);
+      setIsAutosaving(false);
+      lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
+      
+      // Recenter camera on loaded player position
+      if (loadedState.camera && loadedState.player) {
+        loadedState.camera.centerOn(loadedState.player.x, loadedState.player.y);
+        console.log(`[GameContext] Camera recentered on loaded player position (${loadedState.player.x}, ${loadedState.player.y})`);
+      }
+      
+      setupPlayerEventListeners();
+      updatePlayerFieldOfView(loadedState.gameMap);
+      updatePlayerCardinalPositions(loadedState.gameMap);
+      
+      setIsGameReady(true);
+      console.log('[GameContext] Game loaded directly without initialization');
+      console.log(`[GameContext] Player position: (${loadedState.player.x}, ${loadedState.player.y})`);
+      return true;
+    } catch (error) {
+      console.error('[GameContext] Failed to load game directly:', error);
+      return false;
+    }
+  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+
   const loadGame = useCallback(async (slotName = 'quicksave') => {
     try {
       const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
@@ -280,10 +323,10 @@ const GameContextInner = ({ children }) => {
     }
   }, [setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
-  const initializeGame = useCallback(async (loadGameAfterInit = false, slotName = 'autosave') => {
+  const initializeGame = useCallback(async () => {
     if (!initManagerRef.current) {
       console.error('[GameContext] GameInitializationManager not available');
-      return;
+      return false;
     }
     
     const now = initRef.current; // Use ref, not captured state
@@ -291,7 +334,7 @@ const GameContextInner = ({ children }) => {
     // Block if actively initializing
     if (now === 'preloading' || now === 'core_setup' || now === 'world_population') {
       console.warn('[GameContext] Initialization already in progress, ignoring duplicate call');
-      return;
+      return false;
     }
     
     // Allow restart from terminal states
@@ -310,32 +353,19 @@ const GameContextInner = ({ children }) => {
       wireManagerEvents(initManagerRef.current, runIdRef.current);
     }
     
-    console.log(`[GameContext] Starting game initialization (run ${runIdRef.current})...`);
+    console.log(`[GameContext] Starting new game initialization (run ${runIdRef.current})...`);
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
 
-    // CRITICAL FIX: Don't use post-init callback for loading
-    // The callback creates a second load after initialization completes
-    // which replaces the player instance and breaks inventory references
-    // Instead, load should happen ONLY via the direct loadGame() call
     const success = await initManagerRef.current.startInitialization(null);
     if (!success) {
       const error = initManagerRef.current.getError();
       setInitializationError(error || 'Unknown initialization error');
-      return;
+      return false;
     }
 
-    // Load save AFTER initialization completes, if requested
-    if (loadGameAfterInit) {
-      console.log('[GameContext] Initialization complete, now loading save...');
-      const loadSuccess = await loadGame(slotName);
-      if (!loadSuccess) {
-        console.warn('[GameContext] Failed to load save data, using new game state');
-      } else {
-        console.log('[GameContext] Save data loaded successfully');
-      }
-    }
-  }, [wireManagerEvents, loadGame]);
+    return true;
+  }, [wireManagerEvents]);
 
 
 
@@ -639,6 +669,7 @@ const GameContextInner = ({ children }) => {
     // Save/Load orchestration
     saveGame,
     loadGame,
+    loadGameDirect,
     loadAutosave,
     performAutosave,
     exportGame,
@@ -662,6 +693,7 @@ const GameContextInner = ({ children }) => {
     spawnInitialZombies,
     saveGame,
     loadGame,
+    loadGameDirect,
     loadAutosave,
     performAutosave,
     exportGame,
