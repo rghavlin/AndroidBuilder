@@ -33,7 +33,7 @@ export default function InventoryPanel() {
   return (
     <GridSizeProvider>
       <>
-        <div className="w-full h-full flex flex-col bg-card border-l border-border" data-testid="inventory-panel" data-inventory-ui="true">
+        <div className="w-1/2 h-full flex flex-col bg-card border-l border-border" data-testid="inventory-panel" data-inventory-ui="true">
           {/* Equipment Section */}
           <div className="border-b border-border p-3 flex-shrink-0" data-equipment-area="true">
             <EquipmentSlots />
