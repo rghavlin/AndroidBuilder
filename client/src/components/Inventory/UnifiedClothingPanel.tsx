@@ -3,7 +3,15 @@ import { useInventory } from "@/contexts/InventoryContext";
 import ClothingContainerPanel from "./ClothingContainerPanel";
 
 export default function UnifiedClothingPanel() {
+  console.log('[UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====');
+  
   const { getEquippedBackpackContainer, inventoryRef, inventoryVersion } = useInventory();
+  
+  console.log('[UnifiedClothingPanel] Context values received:', {
+    hasInventoryRef: !!inventoryRef,
+    hasGetEquippedBackpack: !!getEquippedBackpackContainer,
+    inventoryVersion
+  });
 
   // Independent collapse states for each section
   const [upperCollapsed, setUpperCollapsed] = useState(false);
