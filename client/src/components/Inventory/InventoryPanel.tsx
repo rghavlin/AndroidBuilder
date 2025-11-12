@@ -33,20 +33,16 @@ export default function InventoryPanel() {
   return (
     <GridSizeProvider>
       <>
-        <div className="w-full h-full flex flex-col bg-card border-l border-border">
+        <div className="w-full h-full flex flex-col bg-card border-l border-border" data-testid="inventory-panel" data-inventory-ui="true">
           {/* Equipment Section */}
-          <div className="border-b border-border p-3 flex-shrink-0">
+          <div className="border-b border-border p-3 flex-shrink-0" data-equipment-area="true">
             <EquipmentSlots />
           </div>
 
-          {/* Main Inventory Grid Section */}
-          <div className="flex-1 min-h-0 flex flex-col border-b border-border">
+          {/* Inventory Grid Areas (Backpack/Clothing + Ground Items) - HORIZONTAL LAYOUT */}
+          <div className="flex-1 flex min-h-0">
             {console.log('[InventoryPanel] About to render UnifiedClothingPanel')}
             <UnifiedClothingPanel />
-          </div>
-
-          {/* Ground Items Section */}
-          <div className="flex-1 min-h-0 flex flex-col">
             <GroundItemsGrid />
           </div>
         </div>
