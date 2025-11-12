@@ -28,14 +28,11 @@ export default function ClothingContainerPanel({
   const { getContainer, moveItem } = useInventory();
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
 
-  // Use controlled collapse state if provided, otherwise use internal state
   const isCollapsed = controlledIsCollapsed !== undefined ? controlledIsCollapsed : internalIsCollapsed;
   const handleToggle = onToggle || (() => setInternalIsCollapsed(!internalIsCollapsed));
 
-  // For backpacks, use containerId. For clothing, use pocketContainerIds
   const container = containerId ? getContainer(containerId) : null;
   const hasPockets = pocketContainerIds.length > 0;
-  const hasContent = container || hasPockets;
 
   const handleSlotClick = (x: number, y: number) => {
     console.log(`${title} slot (${x}, ${y}) clicked`);
@@ -46,75 +43,90 @@ export default function ClothingContainerPanel({
     const itemId = event.dataTransfer.getData('itemId');
     const fromContainerId = event.dataTransfer.getData('fromContainerId');
     
-    if (!itemId || !fromContainerId || !container) {
-      console.warn(`[${title}] Invalid drop data - drop rejected`, { itemId, fromContainerId, hasContainer: !!container });
+    const targetContainerId = container?.id || (pocketContainerIds.length > 0 ? pocketContainerIds[0] : null);
+
+    if (!itemId || !fromContainerId || !targetContainerId) {
+      console.warn(`[${title}] Invalid drop data - drop rejected`, { itemId, fromContainerId, targetContainerId });
       return;
     }
 
-    // Verify item exists in source container before attempting move
-    const sourceContainer = getContainer(fromContainerId);
-    if (!sourceContainer) {
-      console.error(`[${title}] Source container not found:`, fromContainerId);
-      return;
-    }
-
-    const item = sourceContainer.items.get(itemId);
-    if (!item) {
-      console.error(`[${title}] Item not found in source container:`, itemId);
-      return;
-    }
-
-    if (!item.instanceId) {
-      console.error(`[${title}] REJECT DROP: Item has no instanceId:`, item.name);
-      return;
-    }
-    
-    console.log(`[${title}] Attempting move: item ${itemId} (${item.name}) from ${fromContainerId} to ${container.id} at (${x}, ${y})`);
-    const result = moveItem(itemId, fromContainerId, container.id, x, y);
+    const result = moveItem(itemId, fromContainerId, targetContainerId, x, y);
     
     if (!result.success) {
-      console.error(`[${title}] Move FAILED:`, result.reason, '- item should remain in source container');
+      console.error(`[${title}] Move FAILED:`, result.reason);
     } else {
-      console.log(`[${title}] Move SUCCESS - item now in container`);
+      console.log(`[${title}] Move SUCCESS`);
     }
   };
 
-  // Show empty state if no container and no equipped clothing item
-  if (!hasContent && !equippedItem) {
-    console.log(`[ClothingContainerPanel] Rendering empty state for ${title}`, { emptyMessage, isCollapsed });
-    return (
-      <div className={`border-b border-border p-3 ${className}`}>
-        <div 
-          className="flex items-center justify-between mb-2 cursor-pointer select-none"
-          onClick={handleToggle}
-          title={isCollapsed ? `Expand ${title.toLowerCase()}` : `Collapse ${title.toLowerCase()}`}
-        >
-          <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            {title.toUpperCase()}
-            {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </h3>
-        </div>
-        {!isCollapsed && (
-          <div className="text-xs text-muted-foreground italic py-3 text-center border border-dashed border-border/50 rounded bg-background/50">
-            {emptyMessage}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Determine display title - show equipped item name if available
   const displayTitle = equippedItem 
     ? `${title.toUpperCase()} (${equippedItem.name})`
     : title.toUpperCase();
 
-  console.log(`[ClothingContainerPanel] Rendering ${title}:`, {
-    hasContainer: !!container,
-    hasPockets,
-    pocketCount: pocketContainerIds.length,
-    equippedItem: equippedItem?.name || 'none',
-    isCollapsed
-  });
+  const renderContent = () => {
+    if (container) {
+      return (
+        <UniversalGrid
+          containerId={container.id}
+          width={container.width}
+          height={container.height}
+          gridType="scalable"
+          maxHeight="100%"
+          maxWidth="100%"
+          enableScroll={true}
+          enableHorizontalScroll={true}
+          onSlotClick={handleSlotClick}
+          onSlotDrop={handleSlotDrop}
+          className="h-full"
+        />
+      );
+    }
+
+    if (hasPockets) {
+      return (
+        <div className="space-y-2">
+          {pocketContainerIds.map((pocketId, index) => {
+            const pocketContainer = getContainer(pocketId);
+            if (!pocketContainer) return null;
+
+            return (
+              <div key={pocketId} className="border border-border/50 rounded p-2">
+                <div className="text-xs text-muted-foreground mb-1">
+                  Pocket {index + 1}
+                </div>
+                <UniversalGrid
+                  containerId={pocketId}
+                  width={pocketContainer.width}
+                  height={pocketContainer.height}
+                  gridType="scalable"
+                  maxHeight="100%"
+                  maxWidth="100%"
+                  enableScroll={false}
+                  enableHorizontalScroll={false}
+                  onSlotClick={handleSlotClick}
+                  onSlotDrop={(x, y, e) => handleSlotDrop(x, y, e)} // Pass drop to unified handler
+                />
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (equippedItem) {
+      return (
+        <div className="text-xs text-muted-foreground italic py-3 text-center border border-dashed border-border/50 rounded bg-background/50">
+          This item has no pockets.
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-xs text-muted-foreground italic py-3 text-center border border-dashed border-border/50 rounded bg-background/50">
+        {emptyMessage}
+      </div>
+    );
+  };
 
   return (
     <div className={`border-b border-border p-3 flex flex-col ${className}`}>
@@ -131,52 +143,7 @@ export default function ClothingContainerPanel({
 
       {!isCollapsed && (
         <div className="flex-1 min-h-0">
-          {/* Render backpack container grid */}
-          {container && (
-            <UniversalGrid
-              containerId={container.id}
-              width={container.width}
-              height={container.height}
-              gridType="scalable"
-              maxHeight="100%"
-              maxWidth="100%"
-              enableScroll={true}
-              enableHorizontalScroll={true}
-              onSlotClick={handleSlotClick}
-              onSlotDrop={handleSlotDrop}
-              className="h-full"
-            />
-          )}
-
-          {/* Render clothing pocket grids */}
-          {hasPockets && (
-            <div className="space-y-2">
-              {pocketContainerIds.map((pocketId, index) => {
-                const pocketContainer = getContainer(pocketId);
-                if (!pocketContainer) return null;
-
-                return (
-                  <div key={pocketId} className="border border-border/50 rounded p-2">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Pocket {index + 1}
-                    </div>
-                    <UniversalGrid
-                      containerId={pocketId}
-                      width={pocketContainer.width}
-                      height={pocketContainer.height}
-                      gridType="scalable"
-                      maxHeight="100%"
-                      maxWidth="100%"
-                      enableScroll={false}
-                      enableHorizontalScroll={false}
-                      onSlotClick={handleSlotClick}
-                      onSlotDrop={handleSlotDrop}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {renderContent()}
         </div>
       )}
     </div>
