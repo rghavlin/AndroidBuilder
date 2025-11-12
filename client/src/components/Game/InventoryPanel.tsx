@@ -1,5 +1,5 @@
 import EquipmentSlots from "@/components/Inventory/EquipmentSlots";
-import { UnifiedClothingPanel } from '@/components/Inventory/UnifiedClothingPanel';
+import BackpackGrid from "@/components/Inventory/BackpackGrid";
 import GroundItemsGrid from "@/components/Inventory/GroundItemsGrid";
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import FloatingContainer from "@/components/Inventory/FloatingContainer";
@@ -31,10 +31,10 @@ export default function InventoryPanel() {
   const handlePanelClick = (event) => {
     // Only process if there's a selected item
     if (!selectedItem) return;
-
+    
     // Check if the click is on a grid (grids have data-inventory-ui and specific grid classes)
     const clickedGrid = event.target.closest('[data-testid*="grid-"]');
-
+    
     // If not clicking on a grid, cancel the selection
     if (!clickedGrid) {
       console.debug('[InventoryPanel] Clicked outside grid while item selected - canceling');
@@ -55,9 +55,9 @@ export default function InventoryPanel() {
           <EquipmentSlots />
         </div>
 
-        {/* Inventory Grid Areas (Unified Clothing Panel + Ground Items) */}
+        {/* Inventory Grid Areas (Backpack + Ground Items) */}
         <div className="flex-1 flex min-h-0">
-          <UnifiedClothingPanel />
+          <BackpackGrid />
           <GroundItemsGrid />
         </div>
 
