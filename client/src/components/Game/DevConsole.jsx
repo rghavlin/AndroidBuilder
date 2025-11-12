@@ -188,6 +188,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  equip sweatpants - Equip sweatpants (2 pockets)', 'info');
           addToConsole('  equip cargopants - Equip cargo pants (4 pockets)', 'info');
           addToConsole('  unequip backpack - Unequip backpack (visual test)', 'info');
+          addToConsole('  checkpockets - Diagnostic info for equipped clothing pockets', 'info');
           addToConsole('  create toolbox - Create test toolbox item on ground', 'info');
           addToConsole('  create lunchbox - Create test lunchbox item on ground', 'info');
           addToConsole('  spawn <item-type> [count] - Spawn item(s) on ground', 'info');
@@ -1237,6 +1238,66 @@ const DevConsole = ({ isOpen, onClose }) => {
             }
           } else {
             addToConsole('Usage: unequip backpack', 'error');
+          }
+          break;
+
+        case 'checkpockets':
+          try {
+            addToConsole('=== Checking Equipped Item Pockets ===', 'info');
+
+            if (!window.inventoryManager) {
+              addToConsole('❌ InventoryManager not found', 'error');
+              break;
+            }
+
+            // Check lower body item (sweatpants)
+            const lowerBodyItem = window.inventoryManager.equipment.lower_body;
+            
+            if (!lowerBodyItem) {
+              addToConsole('No item equipped in lower_body slot', 'info');
+            } else {
+              addToConsole(`Lower Body Item: ${lowerBodyItem.name}`, 'info');
+              addToConsole(`  - instanceId: ${lowerBodyItem.instanceId}`, 'log');
+              addToConsole(`  - defId: ${lowerBodyItem.defId}`, 'log');
+              addToConsole(`  - Has _pocketGridsData: ${!!lowerBodyItem._pocketGridsData}`, lowerBodyItem._pocketGridsData ? 'success' : 'error');
+              
+              if (lowerBodyItem._pocketGridsData) {
+                addToConsole(`  - _pocketGridsData: ${JSON.stringify(lowerBodyItem._pocketGridsData)}`, 'log');
+              }
+              
+              addToConsole(`  - Has pocketGrids array: ${!!lowerBodyItem.pocketGrids}`, lowerBodyItem.pocketGrids ? 'success' : 'error');
+              
+              if (lowerBodyItem.pocketGrids) {
+                addToConsole(`  - pocketGrids.length: ${lowerBodyItem.pocketGrids.length}`, lowerBodyItem.pocketGrids.length > 0 ? 'success' : 'error');
+              }
+              
+              addToConsole(`  - isContainer(): ${lowerBodyItem.isContainer?.()}`, lowerBodyItem.isContainer?.() ? 'success' : 'error');
+              
+              // Try to get pocket containers
+              const pocketContainers = lowerBodyItem.getPocketContainers?.();
+              addToConsole(`  - getPocketContainers() returned: ${pocketContainers ? pocketContainers.length + ' containers' : 'null/undefined'}`, pocketContainers && pocketContainers.length > 0 ? 'success' : 'error');
+              
+              if (pocketContainers && pocketContainers.length > 0) {
+                pocketContainers.forEach((pocket, idx) => {
+                  addToConsole(`    Pocket ${idx + 1}: ${pocket.id} (${pocket.width}x${pocket.height})`, 'log');
+                });
+              }
+            }
+
+            // Check upper body item
+            const upperBodyItem = window.inventoryManager.equipment.upper_body;
+            
+            if (!upperBodyItem) {
+              addToConsole('No item equipped in upper_body slot', 'info');
+            } else {
+              addToConsole(`Upper Body Item: ${upperBodyItem.name}`, 'info');
+              addToConsole(`  - Has _pocketGridsData: ${!!upperBodyItem._pocketGridsData}`, upperBodyItem._pocketGridsData ? 'success' : 'error');
+              addToConsole(`  - pocketGrids.length: ${upperBodyItem.pocketGrids?.length || 0}`, upperBodyItem.pocketGrids?.length > 0 ? 'success' : 'error');
+            }
+
+          } catch (error) {
+            addToConsole(`Error checking pockets: ${error.message}`, 'error');
+            console.error('Check pockets error:', error);
           }
           break;
 
