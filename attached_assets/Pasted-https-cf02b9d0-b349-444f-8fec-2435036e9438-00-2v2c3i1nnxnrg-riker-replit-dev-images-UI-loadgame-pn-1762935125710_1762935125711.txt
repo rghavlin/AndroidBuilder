@@ -1,0 +1,13 @@
+https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/UI/loadgame.png
+injected.js:27 [GameControls] Load game image loaded successfully: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/UI/loadgame.png
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 1 selectedItem: none
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 2 selectedItem: none
+2injected.js:27 [InventoryContext] Creating new context value - dragVersion: 3 selectedItem: none
+injected.js:27 [ImageLoader] Successfully loaded item image: https://cf02b9d0-b349-444f-8fec-2435036e9438-00-2v2c3i1nnxnrg.riker.replit.dev/images/items/sweatpants.png
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 4 selectedItem: none
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 5 selectedItem: Sweatpants
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 6 selectedItem: none
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 7 selectedItem: Sweatpants
+injected.js:27 [EquipmentSlots] handleSlotClick ObjectequippedItem: nullisEquipment: falseselectedItem: isEquipment: falseitem: Item {instanceId: 'clothing.sweatpants-1762935002110-iao3j', defId: 'clothing.sweatpants', name: 'Sweatpants', imageId: 'sweatpants', width: 1, …}originContainerId: "ground"originX: 2originY: 1originalRotation: 0rotation: 0[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()slotId: "lower_body"[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()
+injected.js:27 [InventoryContext] Creating new context value - dragVersion: 9 selectedItem: none
+injected.js:27 [useGridSlotSize] Calculated slot size: {windowSize: {…}, inventoryPanelWidth: 216, backpackAreaWidth: 108, availableWidth: 60, availableHeight: 301, …}
