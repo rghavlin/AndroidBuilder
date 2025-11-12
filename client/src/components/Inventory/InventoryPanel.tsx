@@ -8,7 +8,15 @@ import ContainerGrid from "./ContainerGrid";
 import DragPreviewLayer from "./DragPreviewLayer";
 
 export default function InventoryPanel() {
+  console.log('[InventoryPanel] ===== COMPONENT MOUNT/RENDER =====');
+  
   const { openContainers, closeContainer, getContainer, inventoryVersion, dragState } = useInventory();
+  
+  console.log('[InventoryPanel] Context values:', {
+    openContainersCount: openContainers.size,
+    hasGetContainer: !!getContainer,
+    inventoryVersion
+  });
 
   // Clean up containers that no longer exist
   useEffect(() => {
@@ -31,6 +39,7 @@ export default function InventoryPanel() {
 
         {/* Main Inventory Grid Section */}
         <div className="flex-1 min-h-0 flex flex-col border-b border-border">
+          {console.log('[InventoryPanel] About to render UnifiedClothingPanel')}
           <UnifiedClothingPanel />
         </div>
 
