@@ -5,7 +5,7 @@ import { GameMapProvider, useGameMap } from '../../contexts/GameMapContext.jsx';
 import { CameraProvider } from '../../contexts/CameraContext.jsx';
 import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
 import MapInterface from './MapInterface';
-import InventoryPanel from './InventoryPanel';
+import InventoryPanel from "../Inventory/InventoryPanel";
 import GameControls from './GameControls';
 import StartMenu from './StartMenu';
 import { useWindowSize } from "@/hooks/useWindowSize";
