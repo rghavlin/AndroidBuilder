@@ -28,6 +28,13 @@ export default function UnifiedClothingPanel() {
     ? (lowerBodyItem.getPocketContainerIds?.() || [])
     : [];
 
+  console.log('DEBUG: UnifiedClothingPanel', {
+    upperBodyItem,
+    lowerBodyItem,
+    upperBodyPocketIds,
+    lowerBodyPocketIds,
+  });
+
   console.log('[UnifiedClothingPanel] Rendering sections:', {
     upperBodyItem: upperBodyItem?.name || 'none',
     upperBodyPockets: upperBodyPocketIds.length,
