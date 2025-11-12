@@ -283,10 +283,13 @@ export default function UniversalGrid({
 
       // Prevent containers from being placed inside themselves
       // Check if the current item being rendered is a container and if its parent container's ID matches its own ID
-      if (item && item.isContainer && item.isContainer() && item.getContainerGrid().id === containerId) {
-        console.warn('[UniversalGrid] Preventing container from being placed inside itself:', item.name, 'containerId:', containerId);
-        // Optionally, you could mark this slot as invalid or visually indicate the issue
-        // For now, we'll just log a warning and let the drag/drop logic handle prevention
+      if (item && item.isContainer && item.isContainer()) {
+        const itemContainer = item.getContainerGrid();
+        if (itemContainer && itemContainer.id === containerId) {
+          console.warn('[UniversalGrid] Preventing container from being placed inside itself:', item.name, 'containerId:', containerId);
+          // Optionally, you could mark this slot as invalid or visually indicate the issue
+          // For now, we'll just log a warning and let the drag/drop logic handle prevention
+        }
       }
 
       // Determine if this is the top-left cell for this item
