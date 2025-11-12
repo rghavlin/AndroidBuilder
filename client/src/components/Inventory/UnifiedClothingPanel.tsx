@@ -15,6 +15,18 @@ export default function UnifiedClothingPanel() {
   const lowerBodyItem = inventoryRef.current?.equipment?.lower_body || null;
   const backpackItem = inventoryRef.current?.equipment?.backpack || null;
 
+  console.debug('[UnifiedClothingPanel] ===== FULL DIAGNOSTIC =====');
+  console.debug('[UnifiedClothingPanel] inventoryRef.current exists:', !!inventoryRef.current);
+  console.debug('[UnifiedClothingPanel] inventoryRef.current.equipment:', inventoryRef.current?.equipment);
+  console.debug('[UnifiedClothingPanel] All equipment slots:', {
+    backpack: inventoryRef.current?.equipment?.backpack?.name || 'none',
+    upper_body: inventoryRef.current?.equipment?.upper_body?.name || 'none',
+    lower_body: inventoryRef.current?.equipment?.lower_body?.name || 'none',
+    melee: inventoryRef.current?.equipment?.melee?.name || 'none',
+    handgun: inventoryRef.current?.equipment?.handgun?.name || 'none',
+    long_gun: inventoryRef.current?.equipment?.long_gun?.name || 'none',
+    flashlight: inventoryRef.current?.equipment?.flashlight?.name || 'none'
+  });
   console.debug('[UnifiedClothingPanel] Render:', {
     hasUpperBody: !!upperBodyItem,
     hasLowerBody: !!lowerBodyItem,
