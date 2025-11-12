@@ -54,30 +54,6 @@ export default function InventoryPanel() {
         const container = getContainer(containerId);
         if (!container) return null;
 
-
-        return (
-          <FloatingContainer
-            key={containerId}
-            id={containerId}
-            title={container.name || 'Container'}
-            isOpen={true}
-            onClose={() => closeContainer(containerId)}
-          >
-            <ContainerGrid containerId={containerId} />
-          </FloatingContainer>
-        );
-      })}
-
-      {/* Cursor-following drag preview */}
-      {/* Removed DragPreviewLayer component */}
-      </div>
-
-      {/* Floating Container Panels */}
-      {Array.from(openContainers).map(containerId => {
-        const container = getContainer(containerId);
-        if (!container) return null;
-
-
         return (
           <FloatingContainer
             key={containerId}
