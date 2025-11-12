@@ -19,6 +19,13 @@ export default function EquipmentSlots() {
   const handleSlotClick = (slotId: string) => {
     const equippedItem = inventoryRef.current?.equipment[slotId];
     
+    console.log('[EquipmentSlots] handleSlotClick', {
+      slotId,
+      equippedItem,
+      selectedItem,
+      isEquipment: selectedItem?.isEquipment
+    });
+
     // If slot is empty and we have a selected item, try to equip it
     if (!equippedItem && selectedItem && !selectedItem.isEquipment) {
       const result = equipSelectedItem(slotId);
