@@ -26,7 +26,7 @@ export default function ClothingContainerPanel({
   onToggle,
   className = "",
 }: ClothingContainerPanelProps) {
-  const { getContainer } = useInventory();
+  const { getContainer, inventoryRef } = useInventory();
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
 
   const isCollapsed = controlledIsCollapsed !== undefined ? controlledIsCollapsed : internalIsCollapsed;
@@ -87,15 +87,17 @@ export default function ClothingContainerPanel({
           {hasPockets && pocketContainerIds.map((pocketId, index) => {
             const pocketContainer = getContainer(pocketId);
             
-            console.debug('[ClothingContainerPanel] Looking up pocket:', {
+            console.log('[ClothingContainerPanel] Looking up pocket:', {
               pocketId,
               found: !!pocketContainer,
+              containerWidth: pocketContainer?.width,
+              containerHeight: pocketContainer?.height,
               allContainerIds: Array.from(inventoryRef.current?.containers?.keys() || [])
             });
             
             if (!pocketContainer) {
-              console.warn('[ClothingContainerPanel] ❌ Pocket container not found:', pocketId);
-              console.warn('[ClothingContainerPanel] Available containers:', Array.from(inventoryRef.current?.containers?.keys() || []));
+              console.error('[ClothingContainerPanel] ❌ Pocket container not found:', pocketId);
+              console.error('[ClothingContainerPanel] Available containers:', Array.from(inventoryRef.current?.containers?.keys() || []));
               return null;
             }
 
