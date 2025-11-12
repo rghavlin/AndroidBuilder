@@ -212,43 +212,54 @@ export class InventoryManager {
     // Add containers from equipped items
     Object.entries(this.equipment).forEach(([slot, item]) => {
       if (item && item.isContainer && item.isContainer()) {
-        // Get container grid synchronously (must already exist or be created)
-        let containerGrid = item.containerGrid;
+        // Check if item has pocket grids (clothing with pockets)
+        const pocketContainers = item.getPocketContainers?.();
+        
+        if (pocketContainers && pocketContainers.length > 0) {
+          // Register each pocket container
+          pocketContainers.forEach((pocketContainer, index) => {
+            this.containers.set(pocketContainer.id, pocketContainer);
+            console.debug('[InventoryManager] Registered pocket container:', pocketContainer.id, 'for', item.name);
+          });
+        } else {
+          // Single container grid (backpack, tactical vest, etc.)
+          let containerGrid = item.containerGrid;
 
-        // Fallback: Create container if missing but data exists
-        if (!containerGrid && item._containerGridData) {
-          try {
-            const data = item._containerGridData;
-            const ownerId = item.instanceId || item.id || `item-${Date.now()}`;
+          // Fallback: Create container if missing but data exists
+          if (!containerGrid && item._containerGridData) {
+            try {
+              const data = item._containerGridData;
+              const ownerId = item.instanceId || item.id || `item-${Date.now()}`;
 
-            containerGrid = new Container({
-              id: `${ownerId}-container`,
-              type: 'item-container',
-              name: `${item.name} Storage`,
-              width: data.width,
-              height: data.height,
-              autoExpand: data.autoExpand,
-              autoSort: data.autoSort
-            });
+              containerGrid = new Container({
+                id: `${ownerId}-container`,
+                type: 'item-container',
+                name: `${item.name} Storage`,
+                width: data.width,
+                height: data.height,
+                autoExpand: data.autoExpand,
+                autoSort: data.autoSort
+              });
 
-            // Assign it back to the item so future calls work
-            item.containerGrid = containerGrid;
+              // Assign it back to the item so future calls work
+              item.containerGrid = containerGrid;
 
-            console.debug('[InventoryManager] Created fallback container for', item.name);
-          } catch (err) {
-            console.warn('[InventoryManager] Failed to create fallback container for', item.name, err);
+              console.debug('[InventoryManager] Created fallback container for', item.name);
+            } catch (err) {
+              console.warn('[InventoryManager] Failed to create fallback container for', item.name, err);
+            }
           }
-        }
 
-        if (containerGrid) {
-          // CRITICAL: Set the container ID to slot-based name for equipped items
-          const containerId = `${slot}-container`;
-          containerGrid.id = containerId;
-          containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
-          // Ensure container has a name (fallback to default if item name is missing)
-          containerGrid.name = item.name ? `${item.name} Storage` : 'Backpack Storage';
-          this.containers.set(containerId, containerGrid);
-          console.debug('[InventoryManager] Registered dynamic container:', containerId, 'for item:', item.instanceId);
+          if (containerGrid) {
+            // CRITICAL: Set the container ID to slot-based name for equipped items
+            const containerId = `${slot}-container`;
+            containerGrid.id = containerId;
+            containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
+            // Ensure container has a name (fallback to default if item name is missing)
+            containerGrid.name = item.name ? `${item.name} Storage` : 'Backpack Storage';
+            this.containers.set(containerId, containerGrid);
+            console.debug('[InventoryManager] Registered dynamic container:', containerId, 'for item:', item.instanceId);
+          }
         }
       }
     });
