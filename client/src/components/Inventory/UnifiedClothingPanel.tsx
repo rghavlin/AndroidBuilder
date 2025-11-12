@@ -37,12 +37,18 @@ export default function UnifiedClothingPanel() {
     ? (lowerBodyItem.getPocketContainerIds?.() || [])
     : [];
 
-  console.debug('[UnifiedClothingPanel] Pocket IDs:', {
-    upperBodyPocketIds,
-    lowerBodyPocketIds,
-    upperBodyIsContainer: upperBodyItem?.isContainer?.(),
-    lowerBodyIsContainer: lowerBodyItem?.isContainer?.()
-  });
+  console.debug('[UnifiedClothingPanel] ===== POCKET DIAGNOSTIC =====');
+  console.debug('[UnifiedClothingPanel] Upper body item:', upperBodyItem?.name || 'none');
+  console.debug('[UnifiedClothingPanel] - isContainer():', upperBodyItem?.isContainer?.());
+  console.debug('[UnifiedClothingPanel] - getPocketContainerIds():', upperBodyPocketIds);
+  console.debug('[UnifiedClothingPanel] - _pocketGridsData:', upperBodyItem?._pocketGridsData);
+  console.debug('[UnifiedClothingPanel] - pocketGrids.length:', upperBodyItem?.pocketGrids?.length);
+  
+  console.debug('[UnifiedClothingPanel] Lower body item:', lowerBodyItem?.name || 'none');
+  console.debug('[UnifiedClothingPanel] - isContainer():', lowerBodyItem?.isContainer?.());
+  console.debug('[UnifiedClothingPanel] - getPocketContainerIds():', lowerBodyPocketIds);
+  console.debug('[UnifiedClothingPanel] - _pocketGridsData:', lowerBodyItem?._pocketGridsData);
+  console.debug('[UnifiedClothingPanel] - pocketGrids.length:', lowerBodyItem?.pocketGrids?.length);
 
   console.log('DEBUG: UnifiedClothingPanel', {
     upperBodyItem,

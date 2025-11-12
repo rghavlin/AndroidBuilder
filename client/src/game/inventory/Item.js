@@ -219,13 +219,20 @@ export class Item {
 
   // Get pocket container IDs for clothing with multiple pockets
   getPocketContainerIds() {
+    console.debug('[Item.getPocketContainerIds] Called for:', this.name);
+    console.debug('[Item.getPocketContainerIds] - Current pocketGrids.length:', this.pocketGrids.length);
+    console.debug('[Item.getPocketContainerIds] - Has _pocketGridsData:', !!this._pocketGridsData);
+    
     // Initialize pocket grids if not yet initialized
     if (this.pocketGrids.length === 0 && this._pocketGridsData && Array.isArray(this._pocketGridsData)) {
+      console.debug('[Item.getPocketContainerIds] Triggering initializePocketGrids()');
       this.initializePocketGrids();
     }
     
     // Return array of container IDs
-    return this.pocketGrids.map(pocket => pocket.id);
+    const ids = this.pocketGrids.map(pocket => pocket.id);
+    console.debug('[Item.getPocketContainerIds] Returning IDs:', ids);
+    return ids;
   }
 
   // Get all pocket containers
