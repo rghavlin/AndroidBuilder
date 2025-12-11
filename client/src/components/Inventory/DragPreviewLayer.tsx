@@ -41,10 +41,10 @@ export default function DragPreviewLayer() {
       itemName: dragState?.item?.name,
       itemInstanceId: dragState?.item?.instanceId,
       imageId: dragState?.item?.imageId,
-      cursorPos: dragState ? `(${dragState.cursorX}, ${dragState.cursorY})` : 'N/A',
+      cursorPos: dragState ? `(${ dragState.cursorX }, ${ dragState.cursorY })` : 'N/A',
       rotation: dragState?.rotation,
       originContainerId: dragState?.originContainerId,
-      originPos: dragState ? `(${dragState.originX}, ${dragState.originY})` : 'N/A'
+      originPos: dragState ? `(${ dragState.originX }, ${ dragState.originY })` : 'N/A'
     });
     console.log('[DragPreviewLayer] === END DRAG STATE EFFECT ===');
   }, [dragState]);
@@ -146,7 +146,7 @@ export default function DragPreviewLayer() {
   console.log('[DragPreviewLayer] Rendering preview:', {
     itemName: item.name,
     rotation,
-    cursorPos: `(${cursorX}, ${cursorY})`,
+    cursorPos: `(${ cursorX }, ${ cursorY })`,
     hasImage: !!itemImage,
     imageUrl: itemImage
   });
@@ -178,19 +178,19 @@ export default function DragPreviewLayer() {
     <div
       className="fixed pointer-events-none z-[10000] border-2 border-yellow-400"
       style={{
-        left: `${left}px`,
-        top: `${top}px`,
-        width: `${pixelWidth}px`,
-        height: `${pixelHeight}px`,
+        left: `${ left } px`,
+        top: `${ top } px`,
+        width: `${ pixelWidth } px`,
+        height: `${ pixelHeight } px`,
       }}
     >
       {itemImage ? (
         <img
           src={itemImage}
           alt={item.name}
-          className="w-full h-full object-contain opacity-80"
+          className="w-full h-full object-contain opacity-80 max-w-none"
           style={{
-            transform: `rotate(${rotation}deg)`,
+            transform: `rotate(${ rotation }deg)`,
           }}
           onLoad={() => console.log('[DragPreviewLayer] ✓ Image rendered in DOM')}
           onError={(e) => console.error('[DragPreviewLayer] ✗ Image render error:', e)}

@@ -382,7 +382,7 @@ export default function UniversalGrid({
               key={itemId}
               src={itemImageSrc}
               className={cn(
-                "absolute pointer-events-none select-none transition-opacity duration-200",
+                "absolute pointer-events-none select-none transition-opacity duration-200 max-w-none",
                 isItemSelected && "opacity-40"
               )}
               style={{
