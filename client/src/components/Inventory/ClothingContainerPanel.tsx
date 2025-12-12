@@ -34,10 +34,10 @@ export default function ClothingContainerPanel({
 
   // Get the main container (for backpacks)
   const container = containerId ? getContainer(containerId) : null;
-  
+
   // Check if we have pockets to display
   const hasPockets = pocketContainerIds.length > 0;
-  
+
   // Check if we have any content to show
   const hasContent = container || hasPockets || equippedItem;
 
@@ -84,46 +84,34 @@ export default function ClothingContainerPanel({
           )}
 
           {/* Show pocket grids (for clothing with pockets) */}
-          {hasPockets && pocketContainerIds.map((pocketId, index) => {
-            const pocketContainer = getContainer(pocketId);
-            
-            console.log('[ClothingContainerPanel] Looking up pocket:', {
-              pocketId,
-              found: !!pocketContainer,
-              containerWidth: pocketContainer?.width,
-              containerHeight: pocketContainer?.height,
-              allContainerIds: Array.from(inventoryRef.current?.containers?.keys() || [])
-            });
-            
-            if (!pocketContainer) {
-              console.error('[ClothingContainerPanel] ❌ Pocket container not found:', pocketId);
-              console.error('[ClothingContainerPanel] Available containers:', Array.from(inventoryRef.current?.containers?.keys() || []));
-              return null;
-            }
+          {/* Show pocket grids (for clothing with pockets) */}
+          {hasPockets && (
+            <div className="grid grid-cols-2 gap-2">
+              {pocketContainerIds.map((pocketId, index) => {
+                const pocketContainer = getContainer(pocketId);
 
-            console.debug('[ClothingContainerPanel] Rendering pocket:', {
-              pocketId,
-              index,
-              width: pocketContainer.width,
-              height: pocketContainer.height
-            });
+                if (!pocketContainer) {
+                  return null;
+                }
 
-            return (
-              <div key={pocketId} className="space-y-1">
-                <div className="text-xs text-muted-foreground text-center">
-                  Pocket {index + 1}
-                </div>
-                <UniversalGrid
-                  containerId={pocketId}
-                  width={pocketContainer.width}
-                  height={pocketContainer.height}
-                  gridType="fixed"
-                  enableScroll={false}
-                  className="mx-auto"
-                />
-              </div>
-            );
-          })}
+                return (
+                  <div key={pocketId} className="space-y-1">
+                    <div className="text-xs text-muted-foreground text-center">
+                      Pocket {index + 1}
+                    </div>
+                    <UniversalGrid
+                      containerId={pocketId}
+                      width={pocketContainer.width}
+                      height={pocketContainer.height}
+                      gridType="fixed"
+                      enableScroll={false}
+                      className="mx-auto"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Show empty message if no content */}
           {!hasContent && (

@@ -6,6 +6,8 @@ import MapCanvas from './MapCanvas.jsx';
 import InventoryExtensionWindow from './InventoryExtensionWindow';
 import FloatingContainer from '../Inventory/FloatingContainer';
 import ContainerGrid from '../Inventory/ContainerGrid';
+import { Menu } from "lucide-react";
+import MainMenuWindow from './MainMenuWindow';
 
 interface MapInterfaceProps {
   gameState: {
@@ -27,6 +29,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected } = useInventory();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
+  const [showMainMenu, setShowMainMenu] = useState(false);
 
   // Log tile interactions for debugging
   useEffect(() => {
@@ -92,8 +95,18 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     <div className="flex-1 bg-secondary border-r border-border flex flex-col min-h-0" data-testid="map-interface">
       {/* Header Area */}
       <div className="bg-card border-b border-border p-2 flex items-center justify-between" data-testid="map-header">
-        <div className="text-sm text-muted-foreground">
-          Map Information Panel - Placeholder Text
+        <div className="flex items-center gap-2">
+          <button
+            className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
+            title="Main Menu"
+            data-testid="main-menu-button"
+            onClick={() => setShowMainMenu(true)}
+          >
+            <Menu className="h-5 w-5 text-foreground" />
+          </button>
+          <div className="text-sm text-muted-foreground">
+            Map Information Panel - Placeholder Text
+          </div>
         </div>
         <button
           className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
@@ -106,8 +119,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       </div>
 
       {/* Map Display Area */}
-      <div 
-        className="flex-1 relative overflow-hidden min-h-0" 
+      <div
+        className="flex-1 relative overflow-hidden min-h-0"
         style={{ padding: 0, margin: 0 }}
         onClick={handleMapAreaClick}
       >
@@ -125,6 +138,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         isOpen={isInventoryExtensionOpen}
         onClose={() => setIsInventoryExtensionOpen(false)}
       />
+
+      {/* Main Menu Modal */}
+      {showMainMenu && (
+        <MainMenuWindow onClose={() => setShowMainMenu(false)} />
+      )}
     </div>
   );
 }

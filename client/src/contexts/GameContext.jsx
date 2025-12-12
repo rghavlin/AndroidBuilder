@@ -29,13 +29,13 @@ export const useGame = () => {
         turn: 1,
         isPlayerTurn: true,
         isAutosaving: false,
-        initializeGame: () => {},
-        endTurn: () => {},
-        saveGame: () => {},
-        loadGame: () => {},
-        loadAutosave: () => {},
-        exportGame: () => {},
-        spawnTestEntities: () => {}
+        initializeGame: () => { },
+        endTurn: () => { },
+        saveGame: () => { },
+        loadGame: () => { },
+        loadAutosave: () => { },
+        exportGame: () => { },
+        spawnTestEntities: () => { }
       };
     }
     throw new Error('useGame must be used within a GameProvider');
@@ -69,16 +69,16 @@ const GameContextInner = ({ children }) => {
 
   // Context synchronization state
   const [contextSyncPhase, setContextSyncPhase] = useState('idle'); // 'idle', 'updating', 'ready'
-  
+
   // Explicit UI gate to replace problematic contextSyncPhase logic
   const [isGameReady, setIsGameReady] = useState(false);
-  
+
   // Computed from state machine and explicit gate
   const isInitialized = initializationState === 'complete' && isGameReady;
-  
+
   // Sync ref whenever state changes
-  useEffect(() => { 
-    initRef.current = initializationState; 
+  useEffect(() => {
+    initRef.current = initializationState;
   }, [initializationState]);
   const [turn, setTurn] = useState(1);
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
@@ -102,7 +102,7 @@ const GameContextInner = ({ children }) => {
         console.log(`[GameContext] Ignoring stale completion from run ${runId}`);
         return;
       }
-      
+
       console.log('[GameContext] State machine initialization completed');
       setContextSyncPhase('updating');
 
@@ -118,7 +118,7 @@ const GameContextInner = ({ children }) => {
       camera.setWorldBounds(gameMap.width, gameMap.height);
       camera.centerOn(player.x, player.y);
       setupPlayerEventListeners();
-      
+
       setIsGameReady(true);
       console.log('[GameContext] Game is ready - UI gate opened');
     };
@@ -140,32 +140,32 @@ const GameContextInner = ({ children }) => {
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
-    
+
     // SINGLETON PATTERN: Prevent multiple initialization managers
     if (initManagerRef.current) {
       console.warn('[GameContext] ⚠️ GameInitializationManager already exists, skipping creation');
       console.log('[GameContext] - Existing manager instance ID:', initManagerRef.current.instanceId);
       return;
     }
-    
+
     // HMR Fix: Clear stale global instances on development hot reload
     if (process.env.NODE_ENV === 'development' && window.gameInitInstances && window.gameInitInstances.size > 0) {
       console.warn('[GameContext] 🔄 HMR detected - clearing stale global instances');
       window.gameInitInstances.clear();
     }
-    
+
     // Check global instances to prevent race conditions (after HMR cleanup)
     if (window.gameInitInstances && window.gameInitInstances.size > 0) {
       console.error('[GameContext] 🚨 GLOBAL INSTANCES ALREADY EXIST! Preventing duplicate creation');
       console.error('[GameContext] - Existing instances:', Array.from(window.gameInitInstances));
       return;
     }
-    
+
     console.log('[GameContext] ✅ Creating NEW GameInitializationManager...');
-    
+
     const zombieTracker = new PlayerZombieTracker();
     setZombieTracker(zombieTracker);
-    
+
     initManagerRef.current = new GameInitializationManager();
     console.log('[GameContext] ✅ GameInitializationManager created:', initManagerRef.current.instanceId);
 
@@ -178,13 +178,13 @@ const GameContextInner = ({ children }) => {
       if (initManagerRef.current) {
         console.log('[GameContext] - Cleaning up manager:', initManagerRef.current.instanceId);
         initManagerRef.current.removeAllListeners();
-        
+
         // Remove from global tracking
         if (window.gameInitInstances && initManagerRef.current.instanceId) {
           window.gameInitInstances.delete(initManagerRef.current.instanceId);
           console.log('[GameContext] - Removed from global tracking. Remaining instances:', window.gameInitInstances.size);
         }
-        
+
         initManagerRef.current = null;
       }
     };
@@ -194,7 +194,7 @@ const GameContextInner = ({ children }) => {
   useEffect(() => {
     if (contextSyncPhase === 'updating' && gameMap && playerRef.current && camera && worldManager) {
       console.log('[GameContext] All contexts synchronized, executing final setup...');
-      
+
       // Development assertions
       if (process.env.NODE_ENV === 'development') {
         if (!playerRef.current.x || !playerRef.current.y) {
@@ -207,11 +207,11 @@ const GameContextInner = ({ children }) => {
           console.error('[GameContext] DEV ASSERTION FAILED: Camera has invalid position', camera);
         }
       }
-      
+
       // Now safe to do operations that depend on all contexts
       updatePlayerFieldOfView(gameMap);
       updatePlayerCardinalPositions(gameMap);
-      
+
       // Mark as fully ready
       setContextSyncPhase('ready');
       console.log('[GameContext] Initialization fully complete - all contexts ready for operations');
@@ -222,19 +222,19 @@ const GameContextInner = ({ children }) => {
 
   const loadGameDirect = useCallback(async (slotName = 'autosave') => {
     console.log('[GameContext] 🎮 DIRECT LOAD - Skipping initialization, loading save directly...');
-    
+
     try {
       const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
       if (!loadedState) {
         console.warn(`[GameContext] ❌ No save found in slot: ${slotName}`);
         return false; // Let caller decide whether to fallback to new game
       }
-      
+
       console.log('[GameContext] ✅ Save file found, applying state directly...');
       console.log(`[GameContext] - Turn: ${loadedState.turn}`);
       console.log(`[GameContext] - Player: ${loadedState.player.id} at (${loadedState.player.x}, ${loadedState.player.y})`);
       console.log(`[GameContext] - Map: ${loadedState.gameMap.width}x${loadedState.gameMap.height}`);
-      
+
       // Set all contexts directly from loaded state (Phase 5A: includes inventoryManager)
       setInventoryManager(loadedState.inventoryManager);
       setGameMap(loadedState.gameMap);
@@ -245,26 +245,27 @@ const GameContextInner = ({ children }) => {
       setIsPlayerTurn(true);
       setIsAutosaving(false);
       lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
-      
+
       // Set camera world bounds and recenter on loaded player position
       if (loadedState.camera && loadedState.player && loadedState.gameMap) {
         loadedState.camera.setWorldBounds(loadedState.gameMap.width, loadedState.gameMap.height);
         loadedState.camera.centerOn(loadedState.player.x, loadedState.player.y);
         console.log(`[GameContext] ✅ Camera configured - bounds: ${loadedState.gameMap.width}x${loadedState.gameMap.height}, centered on (${loadedState.player.x}, ${loadedState.player.y})`);
       }
-      
+
       // Set up player event listeners and update derived state
       setupPlayerEventListeners();
       updatePlayerFieldOfView(loadedState.gameMap);
       updatePlayerCardinalPositions(loadedState.gameMap);
-      
+
       // Open the UI gate
+      setInitializationState('complete'); // FIX: Ensure isInitialized becomes true
       setIsGameReady(true);
       console.log('[GameContext] 🎉 DIRECT LOAD COMPLETE - Game ready without initialization');
       console.log(`[GameContext] - Final player position: (${loadedState.player.x}, ${loadedState.player.y})`);
       console.log(`[GameContext] - Entities on map: ${loadedState.gameMap.getAllEntities().length}`);
       console.log(`[GameContext] - InventoryManager: ${loadedState.inventoryManager ? 'loaded' : 'missing'}`);
-      
+
       return true;
     } catch (error) {
       console.error('[GameContext] ❌ DIRECT LOAD FAILED:', error);
@@ -284,29 +285,29 @@ const GameContextInner = ({ children }) => {
       // CRITICAL: Set ALL state synchronously in the correct order
       // 1. WorldManager (no dependencies)
       setWorldManager(loadedState.worldManager);
-      
+
       // 2. GameMap (needed for player FOV calculations)
       setGameMap(loadedState.gameMap);
-      
+
       // 3. Camera (independent of player)
       setCamera(loadedState.camera);
-      
+
       // 4. InventoryManager BEFORE player to ensure equipment references are valid
       if (loadedState.inventoryManager) {
         setInventoryManager(loadedState.inventoryManager);
         console.log('[GameContext] InventoryManager restored from save');
         console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
-        
+
         // Log equipment state for debugging
         const equippedItems = Object.entries(loadedState.inventoryManager.equipment)
           .filter(([slot, item]) => item !== null)
           .map(([slot, item]) => `${slot}: ${item.name}`);
         console.log('[GameContext] All equipped items:', equippedItems.length > 0 ? equippedItems.join(', ') : 'none');
       }
-      
+
       // 5. Player LAST - after inventory is ready
       setPlayerRef(loadedState.player);
-      
+
       setTurn(loadedState.turn);
       setIsPlayerTurn(true);
       setIsAutosaving(false);
@@ -324,7 +325,7 @@ const GameContextInner = ({ children }) => {
       // Update derived player state
       updatePlayerFieldOfView(loadedState.gameMap);
       updatePlayerCardinalPositions(loadedState.gameMap);
-      
+
       console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
       console.log(`[GameContext] Player position after load: (${loadedState.player.x}, ${loadedState.player.y})`);
 
@@ -340,31 +341,31 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] GameInitializationManager not available');
       return false;
     }
-    
+
     const now = initRef.current; // Use ref, not captured state
-    
+
     // Block if actively initializing
     if (now === 'preloading' || now === 'core_setup' || now === 'world_population') {
       console.warn('[GameContext] Initialization already in progress, ignoring duplicate call');
       return false;
     }
-    
+
     // Allow restart from terminal states
     if (now === 'complete' || now === 'error') {
       console.log('[GameContext] Restarting from terminal state:', now);
       runIdRef.current += 1; // Invalidate old event handlers
       setIsGameReady(false);
       setInitializationError(null);
-      
+
       // Reset existing manager instead of creating new one
       if (initManagerRef.current.reset) {
         initManagerRef.current.reset();
       }
-      
+
       setInitializationState('idle');
       wireManagerEvents(initManagerRef.current, runIdRef.current);
     }
-    
+
     console.log(`[GameContext] Starting new game initialization (run ${runIdRef.current})...`);
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
@@ -426,9 +427,9 @@ const GameContextInner = ({ children }) => {
   const endTurn = useCallback(async () => {
     if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn) {
       console.warn('[GameContext] Cannot end turn - missing requirements', {
-        isInitialized, 
-        hasPlayer: !!playerRef.current, 
-        hasGameMap: !!gameMap, 
+        isInitialized,
+        hasPlayer: !!playerRef.current,
+        hasGameMap: !!gameMap,
         isPlayerTurn
       });
       return;
@@ -566,7 +567,7 @@ const GameContextInner = ({ children }) => {
         if (playersOnMap.length > 1) {
           console.error('[GameContext] DEV ASSERTION FAILED: Multiple players on map before save', playersOnMap.length);
         }
-        
+
         // CRITICAL: Verify player on map matches playerRef
         const playerOnMap = playersOnMap[0];
         if (playerOnMap !== playerRef.current) {
@@ -577,7 +578,7 @@ const GameContextInner = ({ children }) => {
           return false;
         }
       }
-      
+
       const currentGameState = {
         gameMap: gameMapRef.current,
         worldManager: worldManagerRef.current,
@@ -631,12 +632,12 @@ const GameContextInner = ({ children }) => {
   const handleMapTransitionConfirmWrapper = useCallback(async () => {
     console.log('[GameContext] Map transition confirmation wrapper called');
     console.log('[GameContext] - Player:', playerRef.current ? `${playerRef.current.id} at (${playerRef.current.x}, ${playerRef.current.y})` : 'null');
-    
+
     if (!playerRef.current) {
       console.error('[GameContext] Cannot execute transition - no player available');
       return false;
     }
-    
+
     // Gather camera operations from CameraContext
     const cameraOperations = {
       setWorldBounds: setCameraWorldBounds,
@@ -646,17 +647,17 @@ const GameContextInner = ({ children }) => {
         }
       }
     };
-    
+
     // Call GameMapContext handleMapTransitionConfirm with required parameters including camera operations
     const success = await mapTransitionConfirm(playerRef.current, updatePlayerCardinalPositions, cancelMovement, cameraOperations);
-    
+
     if (success) {
       // Update PlayerContext data after successful transition (no timer)
       updatePlayerFieldOfView(gameMapRef.current);
       updatePlayerCardinalPositions(gameMapRef.current);
       console.log('[GameContext] Player FOV and cardinal positions updated after map transition');
     }
-    
+
     return success;
   }, [mapTransitionConfirm, playerRef, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, gameMapRef, setCameraWorldBounds, cameraRef]);
 

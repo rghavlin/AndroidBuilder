@@ -30,13 +30,13 @@ export default function EquipmentSlot({
   className
 }: EquipmentSlotProps) {
   const slotInfo = SLOT_INFO[slotId] || { name: slotId, icon: '?' };
-  
+
   // Build tooltip text - show item name if equipped, slot name if empty
   const tooltipText = item ? item.name : slotInfo.name;
-  
+
   // Check if slot is occupied
   const hasItem = !!item;
-  
+
   // Determine what to display
   const displayIcon = hasItem && item.name ? item.name.substring(0, 2).toUpperCase() : slotInfo.icon;
   const displayLabel = hasItem && item.name ? '' : slotInfo.name;
