@@ -18,7 +18,7 @@ export const useInventory = () => {
         unequipItem: () => ({ success: false, reason: 'Context not available' }),
         moveItem: () => ({ success: false, reason: 'Context not available' }),
         dropItemToGround: () => false,
-        forceRefresh: () => {}
+        forceRefresh: () => { }
       };
     }
     throw new Error('useInventory must be used within an InventoryProvider');
@@ -29,16 +29,16 @@ export const useInventory = () => {
 export const InventoryProvider = ({ children, manager }) => {
   // TEMP DIAGNOSTIC: Detect duplicate provider instances
   const __instanceId = useMemo(() => Math.random().toString(36).slice(2, 7), []);
-  
+
   // ✅ ALL HOOKS MUST COME BEFORE ANY CONDITIONAL RETURNS
   const inventoryRef = useRef(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [openContainers, setOpenContainers] = useState(new Set());
-  
+
   // Phase 5G: Selection-based drag state (simpler than cursor-following)
   const [selectedItem, setSelectedItem] = useState(null); // { item, originContainerId, originX, originY, rotation }
   const [dragVersion, setDragVersion] = useState(0); // Force re-render on selection changes
-  
+
   useEffect(() => {
     console.log(`[InventoryProvider] MOUNT id=${__instanceId}`);
     return () => console.log(`[InventoryProvider] UNMOUNT id=${__instanceId}`);
@@ -73,7 +73,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
     return <>{children}</>; // Pass-through: render app without inventory until manager exists
   }
-  
+
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
     inventoryRef.current = manager;
@@ -81,7 +81,7 @@ export const InventoryProvider = ({ children, manager }) => {
     console.log('[InventoryContext] - Manager has', manager.containers.size, 'containers');
     console.log('[InventoryContext] - Equipment slots:', Object.entries(manager.equipment).filter(([s, i]) => i).map(([s, i]) => `${s}:${i.name}`).join(', ') || 'none');
   }
-  
+
   // Update ref if manager prop changes (during load)
   if (manager && inventoryRef.current !== manager) {
     console.log('[InventoryContext] 🔄 Manager prop changed - updating ref');
@@ -120,6 +120,16 @@ export const InventoryProvider = ({ children, manager }) => {
     if (!inventoryRef.current) {
       return { success: false, reason: 'Inventory not initialized' };
     }
+
+    // Phase 5H: Close container window if it's open (e.g. equipping a backpack from ground)
+    if (item.containerGrid && item.containerGrid.id) {
+      setOpenContainers(prev => {
+        const next = new Set(prev);
+        next.delete(item.containerGrid.id);
+        return next;
+      });
+    }
+
     const result = inventoryRef.current.equipItem(item, slot);
     if (result.success) {
       setInventoryVersion(prev => prev + 1);
@@ -231,7 +241,7 @@ export const InventoryProvider = ({ children, manager }) => {
       rotation: item.rotation || 0,
       isEquipment
     });
-    
+
     setSelectedItem({
       item,
       originContainerId,
@@ -248,39 +258,39 @@ export const InventoryProvider = ({ children, manager }) => {
   const rotateSelected = useCallback(() => {
     setSelectedItem(prev => {
       if (!prev) return null;
-      
+
       const item = prev.item;
-      
+
       // Skip rotation for square items (1×1, 2×2, etc.)
       if (item.width === item.height) {
         console.debug('[InventoryContext] Skipping rotation - item is square:', item.name, `${item.width}×${item.height}`);
         return prev; // Return unchanged
       }
-      
+
       // Smart rotation: toggle between landscape and portrait
       // Landscape items (width > height) rotate 90° clockwise
       // Portrait items (width < height) rotate 90° counter-clockwise
       const currentRotation = prev.rotation;
-      
+
       // Determine if item is currently in landscape or portrait orientation
       const currentWidth = (currentRotation === 90 || currentRotation === 270) ? item.height : item.width;
       const currentHeight = (currentRotation === 90 || currentRotation === 270) ? item.width : item.height;
       const isLandscape = currentWidth > currentHeight;
-      
+
       // Toggle rotation: landscape rotates clockwise, portrait rotates counter-clockwise
-      const newRotation = isLandscape 
+      const newRotation = isLandscape
         ? (currentRotation + 90) % 360  // Clockwise
         : (currentRotation - 90 + 360) % 360;  // Counter-clockwise
-      
+
       console.debug('[InventoryContext] Rotate preview:', {
         from: currentRotation,
         to: newRotation,
         orientation: isLandscape ? 'landscape→portrait' : 'portrait→landscape'
       });
-      
+
       // ✅ DO NOT mutate the item - only track rotation in state for preview
       // The actual item.rotation will be updated only on successful placement
-      
+
       return {
         ...prev,
         rotation: newRotation
@@ -301,7 +311,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     const { item, originContainerId } = selectedItem;
-    
+
     // Check if item can be equipped in target slot
     if (item.equippableSlot !== targetSlot) {
       return { success: false, reason: 'Item cannot be equipped in this slot' };
@@ -309,15 +319,24 @@ export const InventoryProvider = ({ children, manager }) => {
 
     console.debug('[InventoryContext] Equipping selected item:', item.name, 'to slot:', targetSlot);
 
+    // Phase 5H: Close container window if it's open
+    if (item.containerGrid && item.containerGrid.id) {
+      setOpenContainers(prev => {
+        const next = new Set(prev);
+        next.delete(item.containerGrid.id);
+        return next;
+      });
+    }
+
     const result = inventoryRef.current.equipItem(item, targetSlot);
-    
+
     if (result.success) {
       setSelectedItem(null);
       setDragVersion(prev => prev + 1);
       setInventoryVersion(prev => prev + 1);
       return { success: true };
     }
-    
+
     return result;
   }, [selectedItem]);
 
@@ -327,7 +346,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     const { item, originContainerId, originX, originY, rotation, originalRotation, isEquipment } = selectedItem;
-    
+
     console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation, 'isEquipment:', isEquipment);
 
     // Phase 5H: Block moving backpacks that have open floating panels
@@ -352,8 +371,9 @@ export const InventoryProvider = ({ children, manager }) => {
     // Phase 5H: Handle unequipping
     if (isEquipment) {
       const slot = originContainerId.replace('equipment-', '');
-      const result = inventoryRef.current.unequipItem(slot);
-      
+      // Pass the target details to unequipItem so it respects the drop location
+      const result = inventoryRef.current.unequipItem(slot, targetContainerId, targetX, targetY);
+
       if (result.success) {
         // Item was unequipped and placed automatically
         setSelectedItem(null);
@@ -361,17 +381,17 @@ export const InventoryProvider = ({ children, manager }) => {
         setInventoryVersion(prev => prev + 1);
         return { success: true };
       }
-      
+
       return result;
     }
 
     // Store original position for potential restore
     const originalX = originX;
     const originalY = originY;
-    
+
     const originContainer = inventoryRef.current.getContainer(originContainerId);
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
-    
+
     if (!targetContainer) {
       console.warn('[InventoryContext] Target container not found:', targetContainerId);
       setSelectedItem(null);
@@ -389,12 +409,12 @@ export const InventoryProvider = ({ children, manager }) => {
       }
       console.debug('[InventoryContext] Removed item from origin:', originContainerId, 'with rotation:', item.rotation);
     }
-    
+
     // NOW apply the new rotation (item is free-floating, no grid conflicts)
     const previousRotation = item.rotation;
     item.rotation = rotation;
     console.debug('[InventoryContext] Applied rotation:', previousRotation, '→', rotation);
-    
+
     // Validate placement with rotated item
     const validation = targetContainer.validatePlacement(item, targetX, targetY);
     if (!validation.valid) {
@@ -407,10 +427,10 @@ export const InventoryProvider = ({ children, manager }) => {
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: validation.reason };
     }
-    
+
     // Place in target container at new position with new rotation
     const placed = targetContainer.placeItemAt(item, targetX, targetY);
-    
+
     if (!placed) {
       console.warn('[InventoryContext] Failed to place item');
       // Restore item to original state and position
@@ -429,7 +449,7 @@ export const InventoryProvider = ({ children, manager }) => {
       position: `(${targetX}, ${targetY})`,
       rotation: rotation
     });
-    
+
     setSelectedItem(null);
     setDragVersion(prev => prev + 1);
     setInventoryVersion(prev => prev + 1);
@@ -442,12 +462,12 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     const { item, rotation } = selectedItem;
-    
+
     // Calculate dimensions based on PREVIEW rotation (not item.rotation which hasn't changed)
     const isRotated = rotation === 90 || rotation === 270;
     const width = isRotated ? item.height : item.width;
     const height = isRotated ? item.width : item.height;
-    
+
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
     if (!targetContainer) {
       return null;
@@ -455,14 +475,14 @@ export const InventoryProvider = ({ children, manager }) => {
 
     // Create temporary validation object with preview rotation
     // DO NOT use item.rotation - use the preview rotation from state
-    const itemForValidation = { 
-      ...item, 
+    const itemForValidation = {
+      ...item,
       rotation,
       getActualWidth: () => width,
       getActualHeight: () => height
     };
     const validation = targetContainer.validatePlacement(itemForValidation, gridX, gridY);
-    
+
     return {
       valid: validation.valid,
       reason: validation.reason,

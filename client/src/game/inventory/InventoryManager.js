@@ -105,7 +105,7 @@ export class InventoryManager {
   /**
    * Unequip an item from a slot
    */
-  unequipItem(slot) {
+  unequipItem(slot, targetContainerId = null, targetX = null, targetY = null) {
     if (!this.equipment.hasOwnProperty(slot) || !this.equipment[slot]) {
       return { success: false, reason: 'No item equipped in slot' };
     }
@@ -120,9 +120,38 @@ export class InventoryManager {
       const newContainerId = `${item.instanceId}-container`;
       console.debug('[InventoryManager] Resetting backpack container ID from', item.containerGrid.id, 'to', newContainerId);
       item.containerGrid.id = newContainerId;
+      item.containerGrid.type = 'item-container'; // FIX: Prevent cleanup from removing this container
     }
 
-    // Try to add item back to inventory
+    // Reset pocket containers (for clothing) so they aren't cleaned up
+    if (item.getPocketContainers) {
+      const pockets = item.getPocketContainers();
+      if (pockets && Array.isArray(pockets)) {
+        pockets.forEach(pocket => {
+          pocket.type = 'item-container';
+        });
+      }
+    }
+
+    // Phase 5H: Try specific target container if provided (e.g., dropped on ground or specific bag)
+    if (targetContainerId) {
+      const targetContainer = this.containers.get(targetContainerId);
+      if (targetContainer) {
+        let placed = false;
+        if (targetX !== null && targetY !== null) {
+          placed = targetContainer.placeItemAt(item, targetX, targetY);
+        } else {
+          placed = targetContainer.addItem(item);
+        }
+
+        if (placed) {
+          this.updateDynamicContainers();
+          return { success: true, item, placedIn: targetContainer.id };
+        }
+      }
+    }
+
+    // Try to add item back to inventory (Default behavior)
     const addResult = this.addItem(item);
     if (!addResult.success) {
       // If can't add to inventory, drop to ground
@@ -183,7 +212,7 @@ export class InventoryManager {
       const isOnGround = item._container?.id === 'ground';
       const isNested = item._container?.type === 'equipped-backpack';
       const isEquipped = item.isEquipped;
-      
+
       return isOnGround && !isNested && !isEquipped;
     }
 
@@ -214,7 +243,7 @@ export class InventoryManager {
       if (item && item.isContainer && item.isContainer()) {
         // Check if item has pocket grids (clothing with pockets)
         const pocketContainers = item.getPocketContainers?.();
-        
+
         if (pocketContainers && pocketContainers.length > 0) {
           // Register each pocket container
           pocketContainers.forEach((pocketContainer, index) => {
