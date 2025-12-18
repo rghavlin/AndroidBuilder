@@ -7,6 +7,7 @@ import { imageLoader } from "@/game/utils/ImageLoader";
 
 interface UniversalGridProps {
   containerId: string;
+  container?: any; // Direct container object fallback
   title?: string;
   width: number;
   height: number;
@@ -25,6 +26,7 @@ interface UniversalGridProps {
 
 export default function UniversalGrid({
   containerId,
+  container: directContainer, // Destructure direct container
   title,
   width,
   height,
@@ -48,8 +50,8 @@ export default function UniversalGrid({
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
   const gridRef = useState<HTMLDivElement | null>(null);
 
-  // Get fresh container data from context on every render
-  const container = getContainer(containerId);
+  // Get fresh container data from context on every render, OR use direct container
+  const container = directContainer || getContainer(containerId);
   const items = container?.items || new Map();
   const grid = container?.grid || [];
 
@@ -169,6 +171,7 @@ export default function UniversalGrid({
     }
 
     // Right-click opens container if applicable
+    console.debug('[UniversalGrid] Checking if item can be opened:', item?.name);
     if (item && canOpenContainer(item)) {
       try {
         console.debug('[UniversalGrid] Opening container item:', {
@@ -188,25 +191,52 @@ export default function UniversalGrid({
 
         const itemContainer = item.getContainerGrid();
 
-        if (!itemContainer) {
-          console.error('[UniversalGrid] Failed to get container grid for:', item.name, {
-            hasContainerGridData: !!item._containerGridData,
-            containerGridValue: item.containerGrid,
-            containerGridDataContent: item._containerGridData
-          });
+        // 1. Standard Container (Backpack)
+        if (itemContainer) {
+          console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
+          // Register container with InventoryManager if not already registered
+          const manager = (window as any).__inventoryManager;
+          if (manager && !manager.getContainer(itemContainer.id)) {
+            console.debug('[UniversalGrid] Registering container:', itemContainer.id);
+            manager.addContainer(itemContainer);
+          }
+          openContainer(itemContainer.id);
           return;
         }
 
-        console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
-
-        // Register container with InventoryManager if not already registered
-        const manager = (window as any).__inventoryManager;
-        if (manager && !manager.getContainer(itemContainer.id)) {
-          console.debug('[UniversalGrid] Registering container:', itemContainer.id);
-          manager.addContainer(itemContainer);
+        // 2. Clothing with Pockets
+        // If we get here, it means canOpenContainer was true, but getContainerGrid() was null.
+        if (item.getPocketContainerIds) {
+          const pocketIds = item.getPocketContainerIds();
+          if (pocketIds && pocketIds.length > 0) {
+            console.log('[UniversalGrid] Opening clothing item with pockets:', item.name);
+            // Use a special prefix to tell InventoryPanel to treat this as a clothing item opener
+            openContainer(`clothing:${item.instanceId}`);
+            return;
+          }
         }
 
-        openContainer(itemContainer.id);
+        console.error('[UniversalGrid] Failed to get container grid for:', item.name, {
+          hasContainerGridData: !!item._containerGridData,
+          containerGridValue: item.containerGrid,
+          containerGridDataContent: item._containerGridData
+        });
+        return;
+
+        // 2. Clothing with Pockets
+        // If we get here, it means canOpenContainer was true, but getContainerGrid() was null.
+        // This likely means it's a clothing item with pockets.
+        if (item.getPocketContainerIds) {
+          const pocketIds = item.getPocketContainerIds();
+          if (pocketIds && pocketIds.length > 0) {
+            console.log('[UniversalGrid] Opening clothing item with pockets:', item.name);
+            // Use a special prefix to tell InventoryPanel to treat this as a clothing item opener
+            openContainer(`clothing:${item.instanceId}`);
+            return;
+          }
+        }
+
+        console.warn('[UniversalGrid] Item allowed to open but no container/pockets found:', item.name);
       } catch (error) {
         console.error('[UniversalGrid] Error getting container grid:', item.name, error);
       }
@@ -401,10 +431,10 @@ export default function UniversalGrid({
       }
 
       // Show preview overlay for valid/invalid placement
-      const isPreviewCell = previewOverlay && 
-        x >= previewOverlay.gridX && 
+      const isPreviewCell = previewOverlay &&
+        x >= previewOverlay.gridX &&
         x < previewOverlay.gridX + previewOverlay.width &&
-        y >= previewOverlay.gridY && 
+        y >= previewOverlay.gridY &&
         y < previewOverlay.gridY + previewOverlay.height;
 
       return (
@@ -454,7 +484,7 @@ export default function UniversalGrid({
   };
 
   return (
-    <div 
+    <div
       className={cn("flex flex-col", gridType === 'fixed' ? 'flex-shrink-0' : 'h-full', className)}
       data-inventory-ui="true"
     >

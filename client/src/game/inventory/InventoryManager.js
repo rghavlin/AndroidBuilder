@@ -91,6 +91,18 @@ export class InventoryManager {
     item._container = null;
 
     // Handle dynamic container addition
+    // Cleanup any existing container entries for this item (e.g. from being on the ground)
+    if (item.containerGrid) {
+      if (this.containers.has(item.containerGrid.id)) {
+        this.containers.delete(item.containerGrid.id);
+      }
+      // Also check for instance-based ID if different
+      const instanceId = `${item.instanceId}-container`;
+      if (this.containers.has(instanceId)) {
+        this.containers.delete(instanceId);
+      }
+    }
+
     this.updateDynamicContainers();
 
     console.debug('[InventoryManager] Equipped item:', item.name, 'to slot:', slot);
@@ -117,10 +129,20 @@ export class InventoryManager {
     // CRITICAL: Reset container ID for backpacks to prevent conflicts
     // When unequipped, the backpack's container should have a unique ID based on the item's instanceId
     if (slot === 'backpack' && item.containerGrid) {
+      // Remove the slot-based container registration
+      const slotContainerId = `${slot}-container`;
+      if (this.containers.has(slotContainerId)) {
+        this.containers.delete(slotContainerId);
+        console.debug('[InventoryManager] Removed slot container registration:', slotContainerId);
+      }
+
       const newContainerId = `${item.instanceId}-container`;
       console.debug('[InventoryManager] Resetting backpack container ID from', item.containerGrid.id, 'to', newContainerId);
       item.containerGrid.id = newContainerId;
       item.containerGrid.type = 'item-container'; // FIX: Prevent cleanup from removing this container
+
+      // Re-register under new ID immediately so it's available if dropped
+      this.containers.set(newContainerId, item.containerGrid);
     }
 
     // Reset pocket containers (for clothing) so they aren't cleaned up
@@ -128,15 +150,33 @@ export class InventoryManager {
       const pockets = item.getPocketContainers();
       if (pockets && Array.isArray(pockets)) {
         pockets.forEach(pocket => {
+          // Remove dynamic pocket registration
+          if (this.containers.has(pocket.id)) {
+            this.containers.delete(pocket.id);
+          }
+
+          // Reset to persistent ID logic
           pocket.type = 'item-container';
+
+          // Re-register under persistent ID (if available) so it can be opened on ground
+          if (pocket.id) {
+            this.containers.set(pocket.id, pocket);
+            // Ensure it's not removed by subsequent dynamic updates
+            console.debug('[InventoryManager] Re-registered persistent pocket:', pocket.id);
+          }
         });
       }
     }
 
     // Phase 5H: Try specific target container if provided (e.g., dropped on ground or specific bag)
     if (targetContainerId) {
-      const targetContainer = this.containers.get(targetContainerId);
-      if (targetContainer) {
+      const targetContainer = this.getContainer(targetContainerId); // Use intelligent lookup
+
+      // RECURSION CHECK for unequip target
+      if (targetContainer && this.checkRecursion(item, targetContainer)) {
+        console.warn('[InventoryManager] Cannot unequip item into itself:', item.name);
+        // Fall through to default behavior (inventory/ground) instead of vanishing
+      } else if (targetContainer) {
         let placed = false;
         if (targetX !== null && targetY !== null) {
           placed = targetContainer.placeItemAt(item, targetX, targetY);
@@ -202,7 +242,28 @@ export class InventoryManager {
    * Phase 5H: Backpacks open only when on ground, not nested, not equipped
    */
   canOpenContainer(item) {
-    if (!item || !item.isContainer()) {
+    // Check if item exists
+    if (!item) return false;
+
+    // Check if item is a container OR has pockets (clothing)
+    const isContainer = item.isContainer && item.isContainer();
+    // Use optional chaining and check for pockets safely
+    const hasPockets = item.getPocketContainers && item.getPocketContainers().length > 0;
+
+    // DEBUG: Diagnose failure
+    if (item.equippableSlot === 'upper_body' || item.equippableSlot === 'lower_body') {
+      const isOnGround = item._container?.id === 'ground';
+      console.debug('[InventoryManager] canOpenContainer check for:', item.name, {
+        isContainer,
+        hasPockets,
+        equippableSlot: item.equippableSlot,
+        isOnGround,
+        containerId: item._container?.id,
+        isEquipped: item.isEquipped
+      });
+    }
+
+    if (!isContainer && !hasPockets) {
       return false;
     }
 
@@ -214,6 +275,12 @@ export class InventoryManager {
       const isEquipped = item.isEquipped;
 
       return isOnGround && !isNested && !isEquipped;
+    }
+
+    // Clothing rules (Phase 6): Allow opening on ground
+    if (item.equippableSlot === 'upper_body' || item.equippableSlot === 'lower_body') {
+      const isOnGround = item._container?.id === 'ground';
+      return isOnGround && !item.isEquipped;
     }
 
     // Specialty containers with openableWhenNested trait can always be opened
@@ -388,8 +455,40 @@ export class InventoryManager {
   /**
    * Get container by ID
    */
+  /**
+   * Get container by ID
+   */
   getContainer(containerId) {
-    return this.containers.get(containerId);
+    // 1. Try standard lookup
+    const container = this.containers.get(containerId);
+    if (container) return container;
+
+    // 2. Try dynamic lookup for pockets of non-equipped items
+    // Pattern: [instanceId]-pocket-[index]
+    if (containerId && containerId.includes('-pocket-')) {
+      // Extract instance ID (everything before -pocket-)
+      const parts = containerId.split('-pocket-');
+      if (parts.length === 2) {
+        const instanceId = parts[0];
+        const pocketIndex = parseInt(parts[1], 10) - 1;
+
+        // Find the item owning this pocket
+        const found = this.findItem(instanceId);
+        if (found && found.item) {
+          const item = found.item;
+
+          // Ensure pockets are initialized
+          const pockets = item.getPocketContainers();
+          if (pockets && pockets[pocketIndex]) {
+            // Found it! This allows interaction with pockets of items on ground
+            // or inside other containers
+            return pockets[pocketIndex];
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -568,15 +667,103 @@ export class InventoryManager {
   }
 
   /**
+   * RECURSIVE CHECK: Check if an item is an ancestor of the target container
+   * Returns true if placing item into targetContainer would cause recursion/self-nesting
+   */
+  checkRecursion(item, targetContainer) {
+    if (!item || !targetContainer) return false;
+
+    const itemId = String(item.instanceId);
+    const targetId = String(targetContainer.id);
+
+    // DEBUG: Trace recursion check
+    console.debug('[InventoryManager] checking recursion (v2):', {
+      itemInstanceId: itemId,
+      targetContainerId: targetId
+    });
+
+    // 1. Broad inclusion check
+    if (targetId.includes(itemId)) {
+      console.warn('[InventoryManager] Recursion detected (includes):', itemId, 'in', targetId);
+      return true;
+    }
+
+    // 2. Specific Pocket check
+    if (targetId.includes('-pocket-')) {
+      const parts = targetId.split('-pocket-');
+      if (parts[0] === itemId) {
+        console.warn('[InventoryManager] Recursion detected (pocket match):', itemId, targetId);
+        return true;
+      }
+    }
+
+    // 3. Container check
+    // if (targetId === `${itemId}-container`) {
+    //   console.warn('[InventoryManager] Recursion detected (container match)');
+    //   return true;
+    // }
+
+    // 3. Owner ID Check (Robust Structural Check)
+    // If the container explicitly says "I belong to Item X", and we are moving Item X, block it.
+    if (targetContainer.ownerId && String(targetContainer.ownerId) === itemId) {
+      console.warn('[InventoryManager] Recursion detected (ownerId match):', itemId, 'owns', targetContainer.id);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Move item between containers
    */
   moveItem(itemId, fromContainerId, toContainerId, x = null, y = null) {
     const fromContainer = this.containers.get(fromContainerId);
-    const toContainer = this.containers.get(toContainerId);
+    // Use getContainer to support dynamic pocket resolution for target
+    const toContainer = this.getContainer(toContainerId);
 
     if (!fromContainer || !toContainer) {
       console.warn('[InventoryManager] Container not found:', { fromContainerId, toContainerId });
       return { success: false, reason: 'Container not found' };
+    }
+
+    const itemToMove = fromContainer.items.get(itemId); // Peek at item before determining logic
+    if (!itemToMove) {
+      console.warn('[InventoryManager] Item not found in source container for peek:', itemId);
+      return { success: false, reason: 'Item not found' };
+    }
+
+    // CRITICAL: Prevent self-nesting (placing item into itself or its own pockets)
+    // 1. Check if target container IS the item's internal container (e.g. backpack)
+    if (itemToMove.containerGrid && itemToMove.containerGrid.id === toContainer.id) {
+      console.warn('[InventoryManager] Cannot place item into its own container:', itemToMove.name);
+      return { success: false, reason: 'Cannot place item into itself' };
+    }
+
+    // 2. Check if target container is one of the item's pockets (using robust string check)
+    // Pockets are named "[instanceId]-pocket-[index]"
+    // Main container might be named "[instanceId]-container"
+    const isSelfRefPocket = toContainer.id.startsWith(`${itemToMove.instanceId}-pocket-`);
+    const isSelfRefContainer = toContainer.id === `${itemToMove.instanceId}-container`;
+
+    console.warn('[InventoryManager] DEBUG RECURSION:', {
+      itemName: itemToMove.name,
+      itemId: itemToMove.instanceId,
+      targetId: toContainer.id,
+      targetOwnerId: toContainer.ownerId,
+      isOwnerMatch: toContainer.ownerId && String(toContainer.ownerId) === String(itemToMove.instanceId),
+      isStringMatch: isSelfRefPocket || isSelfRefContainer
+    });
+
+    if (isSelfRefPocket || isSelfRefContainer) {
+      console.warn('[InventoryManager] Cannot place item into itself (ID match):', itemToMove.name);
+      return { success: false, reason: 'Cannot place item into itself' };
+    }
+
+    // 3. RECURSIVE CHECK: Ensure target container is not a descendant of the item
+    // This catches deeply nested cases and ensures robust prevention
+    if (this.checkRecursion(itemToMove, toContainer)) {
+      console.warn('[InventoryManager] Recursion detected: Cannot place item into its own descendant:', itemToMove.name);
+      return { success: false, reason: 'Cannot place item into itself' };
     }
 
     const item = fromContainer.removeItem(itemId);

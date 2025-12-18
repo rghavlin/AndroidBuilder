@@ -1,6 +1,7 @@
-
 import { ItemTrait } from './traits.js';
 import { Container } from './Container.js';
+import { PocketLayouts } from './PocketLayouts.js';
+import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
 
 /**
  * Item Instance - Runtime item with state
@@ -26,16 +27,26 @@ export class Item {
     encumbranceTier = null,
     containerGrid = null,
     _containerGridData = null,
-    pocketGrids = null,
-    _pocketGridsData = null
+    pocketLayoutId = null,
+    pocketGrids = null, // For restoring from save
+    _pocketGridsData = null // For restoring from save
   }) {
     // Core identity
     this.instanceId = instanceId || id || `item-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     this.defId = defId;
     this.name = name;
     this.imageId = imageId;
-    
-    console.debug('[Item] Created:', this.name, 'instanceId:', this.instanceId, 'at position:', `(${x}, ${y})`);
+
+    // MIGRATION: Backfill pocketLayoutId from definition if missing
+    if (!pocketLayoutId && this.defId && ItemDefs[this.defId]) {
+      const def = ItemDefs[this.defId];
+      if (def.pocketLayoutId) {
+        pocketLayoutId = def.pocketLayoutId;
+        // console.debug('[Item] Backfilled pocketLayoutId for legacy item:', this.name, pocketLayoutId);
+      }
+    }
+
+    console.debug('[Item] Created:', this.name, 'pocketLayout:', pocketLayoutId);
 
     // Grid properties
     this.width = width;
@@ -63,7 +74,8 @@ export class Item {
     this._containerGridData = _containerGridData || containerGrid;
     this.containerGrid = null;
 
-    // Pocket grids (multiple containers for clothing)
+    // Pocket properties
+    this.pocketLayoutId = pocketLayoutId;
     this._pocketGridsData = _pocketGridsData || pocketGrids;
     this.pocketGrids = [];
 
@@ -125,16 +137,16 @@ export class Item {
     }
 
     const oldRotation = this.rotation;
-    
+
     // Smart rotation: toggle between landscape and portrait
     // Landscape items (width > height) rotate 90° clockwise
     // Portrait items (width < height) rotate 90° counter-clockwise
     const currentWidth = this.getActualWidth();
     const currentHeight = this.getActualHeight();
     const isLandscape = currentWidth > currentHeight;
-    
+
     // Toggle rotation: landscape rotates clockwise, portrait rotates counter-clockwise
-    const newRotation = isLandscape 
+    const newRotation = isLandscape
       ? (this.rotation + 90) % 360  // Clockwise
       : (this.rotation - 90 + 360) % 360;  // Counter-clockwise
 
@@ -208,40 +220,33 @@ export class Item {
     if (this.containerGrid) {
       return this.containerGrid;
     }
-    
+
     // Attempt lazy initialization if we have data but no container yet
     if (this._containerGridData) {
       return this.initializeContainerGrid();
     }
-    
+
     return null;
   }
 
   // Get pocket container IDs for clothing with multiple pockets
   getPocketContainerIds() {
-    console.debug('[Item.getPocketContainerIds] Called for:', this.name);
-    console.debug('[Item.getPocketContainerIds] - Current pocketGrids.length:', this.pocketGrids.length);
-    console.debug('[Item.getPocketContainerIds] - Has _pocketGridsData:', !!this._pocketGridsData);
-    
-    // Initialize pocket grids if not yet initialized
-    if (this.pocketGrids.length === 0 && this._pocketGridsData && Array.isArray(this._pocketGridsData)) {
-      console.debug('[Item.getPocketContainerIds] Triggering initializePocketGrids()');
-      this.initializePocketGrids();
-    }
-    
-    // Return array of container IDs
-    const ids = this.pocketGrids.map(pocket => pocket.id);
-    console.debug('[Item.getPocketContainerIds] Returning IDs:', ids);
-    return ids;
+    // console.debug('[Item.getPocketContainerIds] Called for:', this.name); // Removed as per diff
+    // console.debug('[Item.getPocketContainerIds] - Current pocketGrids.length:', this.pocketGrids.length); // Removed as per diff
+    // console.debug('[Item.getPocketContainerIds] - Has _pocketGridsData:', !!this._pocketGridsData); // Removed as per diff
+
+    const pockets = this.getPocketContainers();
+    // console.debug('[Item.getPocketContainerIds] Returning IDs:', ids); // Removed as per diff
+    return pockets.map(p => p.id);
   }
 
   // Get all pocket containers
   getPocketContainers() {
-    // Initialize pocket grids if not yet initialized
-    if (this.pocketGrids.length === 0 && this._pocketGridsData && Array.isArray(this._pocketGridsData)) {
-      this.initializePocketGrids();
+    if (this.pocketGrids.length === 0) {
+      if (this.pocketLayoutId || (this._pocketGridsData && this._pocketGridsData.length > 0)) {
+        this.initializePocketGrids();
+      }
     }
-    
     return this.pocketGrids;
   }
 
@@ -250,97 +255,100 @@ export class Item {
     if (this.containerGrid) {
       return this.containerGrid;
     }
-    
+
     // Can't initialize without data
     if (!this._containerGridData) {
-      console.warn('[Item] No container data to initialize for:', this.name);
+      // console.warn('[Item] No container data to initialize for:', this.name); // Removed as per diff
       return null;
     }
-    
+
     // Use Container.fromJSON to properly restore the full container with items
     try {
       // Ensure Container class is available
       if (typeof Container === 'undefined') {
-        console.error('[Item] Container class not available - circular import issue');
+        // console.error('[Item] Container class not available - circular import issue'); // Removed as per diff
         return null;
       }
-      
-      console.debug('[Item] Initializing container for:', this.name, 'instanceId:', this.instanceId);
-      console.debug('[Item] Container data:', this._containerGridData);
-      
+
+      // console.debug('[Item] Initializing container for:', this.name, 'instanceId:', this.instanceId); // Removed as per diff
+      // console.debug('[Item] Container data:', this._containerGridData); // Removed as per diff
+
       // Ensure the container data has a stable ID based on item instanceId
       const containerData = {
         ...this._containerGridData,
         id: this._containerGridData.id || `${this.instanceId}-container`
       };
-      
+
       this.containerGrid = Container.fromJSON(containerData);
-      
+
       if (!this.containerGrid) {
-        console.error('[Item] Container.fromJSON returned null/undefined');
+        // console.error('[Item] Container.fromJSON returned null/undefined'); // Removed as per diff
         return null;
       }
-      
-      console.debug('[Item] ✅ Lazy-initialized container:', this.name, this.instanceId, 'ID:', this.containerGrid.id, 'with', this.containerGrid.items.size, 'items');
-      
+
+      // console.debug('[Item] ✅ Lazy-initialized container:', this.name, this.instanceId, 'ID:', this.containerGrid.id, 'with', this.containerGrid.items.size, 'items'); // Removed as per diff
+
       return this.containerGrid;
     } catch (err) {
       console.error('[Item] Failed to initialize Container from data', this.instanceId, err);
-      console.error('[Item] Container data was:', this._containerGridData);
+      // console.error('[Item] Container data was:', this._containerGridData); // Removed as per diff
       return null;
     }
   }
 
   initializePocketGrids() {
-    // No-op if pockets already initialized
+    // Return existing if already initialized
     if (this.pocketGrids.length > 0) {
       return this.pocketGrids;
     }
-    
-    // Can't initialize without data
-    if (!this._pocketGridsData || !Array.isArray(this._pocketGridsData)) {
-      console.warn('[Item] No pocket grids data to initialize for:', this.name);
-      return [];
-    }
-    
+
     try {
-      // Ensure Container class is available
+      // DEBUG: Check for dependency issues
       if (typeof Container === 'undefined') {
-        console.error('[Item] Container class not available - circular import issue');
+        console.error('[Item] CRITICAL: Container class is undefined! Circular dependency suspected.');
         return [];
+      } else {
+        // console.debug('[Item] Container class is available.');
       }
-      
-      console.debug('[Item] Initializing', this._pocketGridsData.length, 'pocket grids for:', this.name, 'instanceId:', this.instanceId);
-      
-      // Create a Container for each pocket grid definition
-      this.pocketGrids = this._pocketGridsData.map((gridDef, index) => {
-        // If gridDef already has full container data (from save), restore it
-        if (gridDef.id && gridDef.items) {
-          return Container.fromJSON(gridDef);
+
+      // Priority 1: Restore from saved data (if loading game)
+      if (this._pocketGridsData && this._pocketGridsData.length > 0) {
+        console.debug('[Item] Restoring pocket grids from save data for:', this.name);
+        this.pocketGrids = this._pocketGridsData.map(gridDef => Container.fromJSON(gridDef));
+        return this.pocketGrids;
+      }
+
+      // Priority 2: Create new from Layout
+      if (this.pocketLayoutId) {
+        console.debug('[Item] Attempting layout init:', this.pocketLayoutId);
+        const layout = PocketLayouts[this.pocketLayoutId];
+        if (!layout) {
+          console.warn('[Item] Invalid pocket layout ID:', this.pocketLayoutId);
+          return [];
         }
-        
-        // Otherwise, create new container from definition
-        const pocketId = `${this.instanceId}-pocket-${index + 1}`;
-        const container = new Container({
-          id: pocketId,
-          type: 'dynamic-pocket',
-          name: `${this.name} Pocket ${index + 1}`,
-          width: gridDef.width || 1,
-          height: gridDef.height || 1,
-          autoExpand: false,
-          autoSort: false
+
+        console.debug('[Item] Initializing pockets from layout:', layout.name);
+
+        this.pocketGrids = layout.pockets.map((pocketDef, index) => {
+          const pocketId = `${this.instanceId}-pocket-${index + 1}`;
+          return new Container({
+            id: pocketId,
+            type: 'dynamic-pocket',
+            name: pocketDef.name, // Use the nice name from layout ("Front Left")
+            width: pocketDef.width,
+            height: pocketDef.height,
+            autoExpand: false,
+            autoSort: false,
+            ownerId: this.instanceId
+          });
         });
-        
-        console.debug('[Item] Created pocket container:', pocketId, `${gridDef.width}x${gridDef.height}`);
-        return container;
-      });
-      
-      console.debug('[Item] ✅ Initialized', this.pocketGrids.length, 'pocket grids for:', this.name);
-      
-      return this.pocketGrids;
+
+        return this.pocketGrids;
+      }
+
+      return [];
     } catch (err) {
-      console.error('[Item] Failed to initialize pocket grids', this.instanceId, err);
-      console.error('[Item] Pocket grids data was:', this._pocketGridsData);
+      console.error('[Item] Failed to initialize pocket grids', err);
       return [];
     }
   }
@@ -357,63 +365,52 @@ export class Item {
       rotation: this.rotation,
       x: this.x,
       y: this.y,
-      traits: this.traits,
+      // traits: this.traits, // Traits are now conditionally added
       stackCount: this.stackCount,
       stackMax: this.stackMax,
       condition: this.condition,
       equippableSlot: this.equippableSlot,
       isEquipped: this.isEquipped,
-      encumbranceTier: this.encumbranceTier
+      encumbranceTier: this.encumbranceTier,
+      pocketLayoutId: this.pocketLayoutId // Persist the layout ID
     };
 
-    if (this.containerGrid) {
-      data.containerGrid = this.containerGrid.toJSON();
+    // Serialize Traits
+    if (this.traits && this.traits.length > 0) {
+      data.traits = this.traits;
     }
 
+    // Serialize Container (Backpack)
+    if (this.containerGrid) {
+      data.containerGrid = this.containerGrid.toJSON();
+    } else if (this._containerGridData) {
+      data.containerGrid = this._containerGridData;
+    }
+
+    // Serialize Pockets
+    // IMPORTANT: We must save the *state* of the pockets (items inside them)
+    // We don't save the definition, just the container state
     if (this.pocketGrids.length > 0) {
       data.pocketGrids = this.pocketGrids.map(pocket => pocket.toJSON());
+    } else if (this._pocketGridsData) {
+      data.pocketGrids = this._pocketGridsData;
     }
 
     return data;
   }
 
+  // Helper for static instantiation
   static fromJSON(data) {
-    let containerGrid = null;
-    if (data.containerGrid) {
-      containerGrid = data.containerGrid;
-    }
-
-    let pocketGrids = null;
-    if (data.pocketGrids && Array.isArray(data.pocketGrids)) {
-      pocketGrids = data.pocketGrids;
-    }
-
-    const item = new Item({
+    // If saving/loading, data.pocketGrids will contain the full container objects
+    // We pass this as _pocketGridsData to the constructor
+    // The constructor assigns it to _pocketGridsData
+    // initializePocketGrids uses it to restore containers
+    return new Item({
       ...data,
-      _containerGridData: containerGrid,
-      containerGrid: null,
-      _pocketGridsData: pocketGrids,
-      pocketGrids: null
+      _containerGridData: data.containerGrid,
+      _pocketGridsData: data.pocketGrids
     });
-
-    // Try to initialize container grid
-    if (containerGrid) {
-      try {
-        item.containerGrid = Container.fromJSON(containerGrid);
-      } catch (err) {
-        item._containerGridData = containerGrid;
-      }
-    }
-
-    // Try to initialize pocket grids
-    if (pocketGrids) {
-      try {
-        item.initializePocketGrids();
-      } catch (err) {
-        item._pocketGridsData = pocketGrids;
-      }
-    }
-
-    return item;
   }
+
+
 }

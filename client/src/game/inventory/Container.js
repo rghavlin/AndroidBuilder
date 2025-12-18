@@ -13,7 +13,8 @@ export class Container {
     width = 6,
     height = 6,
     autoExpand = false,
-    autoSort = false
+    autoSort = false,
+    ownerId = null // ID of the item that owns this container
   }) {
     this.id = id;
     this.type = type;
@@ -22,6 +23,7 @@ export class Container {
     this.height = height;
     this.autoExpand = autoExpand;
     this.autoSort = autoSort;
+    this.ownerId = ownerId;
 
     // Grid storage - sparse array of items
     this.items = new Map(); // itemId -> Item
@@ -40,9 +42,9 @@ export class Container {
    * Check if a position is valid within the grid
    */
   isValidPosition(x, y, width = 1, height = 1) {
-    return x >= 0 && y >= 0 && 
-           x + width <= this.width && 
-           y + height <= this.height;
+    return x >= 0 && y >= 0 &&
+      x + width <= this.width &&
+      y + height <= this.height;
   }
 
   /**
@@ -120,7 +122,7 @@ export class Container {
     // Use methods if available, otherwise calculate directly
     const rotation = item.rotation || 0;
     const isRotated = rotation === 90 || rotation === 270;
-    
+
     let width, height;
     if (typeof item.getActualWidth === 'function') {
       width = item.getActualWidth();
@@ -130,7 +132,7 @@ export class Container {
       width = isRotated ? item.height : item.width;
       height = isRotated ? item.width : item.height;
     }
-    
+
     // Phase 5H: Backpack placement rules
     if (item.equippableSlot === 'backpack' && this.type === 'equipped-backpack') {
       // Check if backpack has items - can't place in another backpack if it does
@@ -139,18 +141,32 @@ export class Container {
         return { valid: false, reason: 'Empty backpack before storing in another backpack' };
       }
     }
-    
+
+    // Phase 6: Clothing placement rules (prevent nesting filled clothing)
+    if ((item.equippableSlot === 'upper_body' || item.equippableSlot === 'lower_body') &&
+      (this.type === 'equipped-backpack' || this.type === 'dynamic-pocket')) {
+
+      // Check if clothing has items in pockets
+      if (item.getPocketContainers) {
+        const pockets = item.getPocketContainers();
+        const hasItems = pockets.some(p => p.getItemCount() > 0);
+        if (hasItems) {
+          return { valid: false, reason: 'Empty pockets before storing' };
+        }
+      }
+    }
+
     // Check bounds
     if (!this.isValidPosition(x, y, width, height)) {
       return { valid: false, reason: 'Out of bounds' };
     }
-    
+
     // Check for collisions (use instanceId for proper identification)
     const itemId = item.instanceId || item.id;
     if (!this.isAreaFree(x, y, width, height, itemId)) {
       return { valid: false, reason: 'Position occupied' };
     }
-    
+
     return { valid: true };
   }
 
@@ -169,7 +185,7 @@ export class Container {
     // Try to place at the bottom
     const y = this.height;
     this.expandGrid(this.width, this.height + height);
-    
+
     return { x: 0, y };
   }
 
@@ -267,10 +283,10 @@ export class Container {
 
     // Only add to items Map after successful grid placement
     this.items.set(itemId, item);
-    
+
     console.debug('[Container] ✅ SUCCESS: Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`, 'instanceId:', itemId);
     console.debug('[Container] Total items now:', this.items.size);
-    console.debug('[Container] Grid occupancy:', this.grid.slice(0, 10).map((row, y) => 
+    console.debug('[Container] Grid occupancy:', this.grid.slice(0, 10).map((row, y) =>
       `Row ${y}: [` + row.map((cell, x) => cell ? `${x}:${cell.substring(0, 8)}` : '.').join(' ') + ']'
     ).join('\n'));
     return true;
@@ -281,7 +297,7 @@ export class Container {
    */
   addItem(item, preferredX = null, preferredY = null) {
     console.debug('[Container] addItem called:', item.name, 'preferred:', preferredX, preferredY);
-    
+
     // Try stacking first if item is stackable
     if (item.stackable) {
       const result = this.attemptStacking(item);
@@ -320,19 +336,19 @@ export class Container {
 
     const originalCount = item.stackCount;
     let remainingItem = item;
-    
+
     // Find all compatible stacks and fill them
     for (const existingItem of this.items.values()) {
       if (remainingItem.stackCount === 0) break;
-      
+
       if (existingItem.canStackWith(remainingItem)) {
         const stackableAmount = existingItem.getStackableAmount(remainingItem);
-        
+
         if (stackableAmount > 0) {
           // Directly transfer the stackable amount
           existingItem.stackCount += stackableAmount;
           remainingItem.stackCount -= stackableAmount;
-          
+
           // If we've stacked everything, return success
           if (remainingItem.stackCount === 0) {
             return { success: true, remainingItem: null };
@@ -340,11 +356,11 @@ export class Container {
         }
       }
     }
-    
+
     // Return partial success if some stacking occurred
-    return { 
-      success: remainingItem.stackCount < originalCount, 
-      remainingItem: remainingItem.stackCount > 0 ? remainingItem : null 
+    return {
+      success: remainingItem.stackCount < originalCount,
+      remainingItem: remainingItem.stackCount > 0 ? remainingItem : null
     };
   }
 
@@ -366,14 +382,14 @@ export class Container {
   removeItem(itemId) {
     // Try to find by the provided ID (should be instanceId)
     let item = this.items.get(itemId);
-    
+
     if (!item) {
       console.warn('[Container] Item not found for removal:', itemId, 'Available items:', Array.from(this.items.keys()));
       return null;
     }
 
     console.debug('[Container] Removing item:', item.name, 'instanceId:', item.instanceId);
-    
+
     this.removeItemFromGrid(item);
     this.items.delete(item.instanceId); // Use instanceId for deletion
     item._container = null;
@@ -451,35 +467,35 @@ export class Container {
    */
   autoSort() {
     if (!this.autoSort) return false;
-    
+
     const items = this.getAllItems();
     if (items.length === 0) return true;
-    
+
     // Clear current positions
     this.clear();
-    
+
     // Sort items by category, then by size (largest first)
     items.sort((a, b) => {
       const categoryA = a.getCategory();
       const categoryB = b.getCategory();
-      
+
       if (categoryA !== categoryB) {
         return categoryA.localeCompare(categoryB);
       }
-      
+
       // Within same category, sort by size (area)
       const areaA = a.getActualWidth() * a.getActualHeight();
       const areaB = b.getActualWidth() * b.getActualHeight();
       return areaB - areaA;
     });
-    
+
     // Re-add items in sorted order
     for (const item of items) {
       if (!this.addItem(item)) {
         console.warn(`Failed to re-add item ${item.id} during auto-sort`);
       }
     }
-    
+
     return true;
   }
 
@@ -489,17 +505,17 @@ export class Container {
   compact() {
     const items = this.getAllItems();
     if (items.length === 0) return true;
-    
+
     // Store items and clear grid
     this.clear();
-    
+
     // Re-add items starting from top-left
     for (const item of items) {
       if (!this.addItem(item)) {
         console.warn(`Failed to re-add item ${item.id} during compacting`);
       }
     }
-    
+
     return true;
   }
 
@@ -524,7 +540,7 @@ export class Container {
    */
   static fromJSON(data) {
     const container = new Container(data);
-    
+
     // Restore items
     if (data.items) {
       for (const itemData of data.items) {

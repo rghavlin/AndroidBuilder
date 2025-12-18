@@ -63,9 +63,7 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
     encumbranceTier: EncumbranceTier.LIGHT,
-    pocketGrids: [
-      { width: 1, height: 1 } // Single 1x1 pocket
-    ]
+    pocketLayoutId: 'pocket_tee'
   },
 
   'clothing.workshirt': {
@@ -77,10 +75,7 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
     encumbranceTier: EncumbranceTier.LIGHT,
-    pocketGrids: [
-      { width: 1, height: 2 }, // Left pocket (1x2)
-      { width: 1, height: 2 }  // Right pocket (1x2)
-    ]
+    pocketLayoutId: 'work_shirt'
   },
 
   'clothing.jacket': {
@@ -124,10 +119,7 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
     encumbranceTier: EncumbranceTier.LIGHT,
-    pocketGrids: [
-      { width: 1, height: 2 }, // Left pocket (1x2)
-      { width: 1, height: 2 }  // Right pocket (1x2)
-    ]
+    pocketLayoutId: 'sweatpants'
   },
 
   'clothing.cargopants': {
@@ -139,24 +131,10 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
     encumbranceTier: EncumbranceTier.MEDIUM,
-    pocketGrids: [
-      { width: 2, height: 2 }, // Front left pocket (2x2)
-      { width: 2, height: 2 }, // Front right pocket (2x2)
-      { width: 2, height: 2 }, // Cargo left pocket (2x2)
-      { width: 2, height: 2 }  // Cargo right pocket (2x2)
-    ]
+    pocketLayoutId: 'cargo_pants'
   },
 
-  'clothing.cargo_pants': {
-    id: 'clothing.cargo_pants',
-    name: 'Cargo Pants (Legacy)',
-    width: 2,
-    height: 3,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
-    equippableSlot: EquipmentSlot.LOWER_BODY,
-    encumbranceTier: EncumbranceTier.MEDIUM,
-    containerGrid: { width: 2, height: 2 }
-  },
+
 
   // Melee Weapons (degradable)
   'weapon.knife': {

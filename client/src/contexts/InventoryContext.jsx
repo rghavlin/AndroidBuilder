@@ -201,10 +201,12 @@ export const InventoryProvider = ({ children, manager }) => {
       return;
     }
 
-    // Ensure container is registered in the manager
+    // Ensure container is registered in the manager OR is a virtual clothing container
+    const isVirtual = cid.startsWith('clothing:');
     const container = inventoryRef.current.getContainer(cid);
-    if (container) {
-      console.debug('[InventoryContext] Opening container:', cid);
+
+    if (container || isVirtual) {
+      console.debug('[InventoryContext] Opening container:', cid, isVirtual ? '(Virtual)' : '');
       setOpenContainers(prev => {
         const next = new Set(prev);
         next.add(cid);
@@ -397,6 +399,13 @@ export const InventoryProvider = ({ children, manager }) => {
       setSelectedItem(null);
       setInventoryVersion(prev => prev + 1);
       return { success: false, reason: 'Target container not found' };
+    }
+
+    // CRITICAL: Check for recursion/self-nesting
+    // Since we are bypassing manager.moveItem for manual placement, we must manually check recursion
+    if (inventoryRef.current.checkRecursion(item, targetContainer)) {
+      console.warn('[InventoryContext] Recursion detected - cannot place item into itself');
+      return { success: false, reason: 'Cannot place item into itself' };
     }
 
     // CRITICAL: Remove from origin container FIRST with ORIGINAL rotation intact
