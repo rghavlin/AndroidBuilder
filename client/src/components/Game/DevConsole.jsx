@@ -1475,7 +1475,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               new InventoryItem({ id: 'container-backpack-1', defId: 'container.backpack', name: 'Hiking Backpack', width: 3, height: 4, equippableSlot: 'backpack', containerGrid: { width: 8, height: 10 }, traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER] }),
 
               // Food
-              new InventoryItem({ id: 'food-canned-1', defId: 'food.canned', name: 'Canned Beans', width: 1, height: 1, stackCount: 4, stackMax: 6, traits: [ItemTrait.STACKABLE] }),
+              new InventoryItem({ id: 'food-canned-1', defId: 'food.cannedsoup', name: 'Canned Soup', width: 1, height: 1, stackCount: 4, stackMax: 6, traits: [ItemTrait.STACKABLE] }),
               new InventoryItem({ id: 'food-water-1', defId: 'food.water', name: 'Water Bottle', width: 1, height: 2, stackCount: 2, stackMax: 4, traits: [ItemTrait.STACKABLE] })
             ];
 
@@ -1566,7 +1566,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               'ammobox': 'container.ammo_box',
               'bandage': 'medical.bandage',
               'ammo': 'ammo.9mm',
-              'food': 'food.canned',
+              'food': 'food.cannedsoup',
               'tshirt': 'clothing.tshirt',
               'jacket': 'clothing.jacket',
               'vest': 'clothing.tactical_vest',

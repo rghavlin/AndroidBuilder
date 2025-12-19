@@ -251,12 +251,13 @@ export const ItemDefs = {
     stackMax: 10
   },
 
-  'food.canned': {
-    id: 'food.canned',
-    name: 'Canned Food',
+  'food.cannedsoup': {
+    id: 'food.cannedsoup',
+    name: 'Canned Soup',
+    imageId: 'cannedsoup',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     stackMax: 6
   }
 };
