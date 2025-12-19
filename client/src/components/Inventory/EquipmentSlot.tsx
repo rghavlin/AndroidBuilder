@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EquipmentSlotProps {
   slotId: string;
@@ -84,38 +90,46 @@ export default function EquipmentSlot({
   const displayLabel = hasItem && item.name ? '' : slotInfo.name;
 
   return (
-    <div
-      className={cn(
-        "w-12 h-12 bg-secondary border-2 border-border rounded-md",
-        "flex flex-col items-center justify-center cursor-pointer",
-        "hover:border-accent transition-colors",
-        "relative overflow-hidden", // Clip image to rounded corners
-        hasItem && "border-accent bg-accent/10",
-        isSelected && "ring-2 ring-red-500 animate-pulse", // Phase 5H: Red highlight when selected
-        className
-      )}
-      onClick={onClick}
-      data-testid={`equipment-slot-${slotId}`}
-      title={tooltipText}
-    >
-      {hasItem ? (
-        imageSrc ? (
-          <img
-            src={imageSrc}
-            alt={item.name}
-            className="w-full h-full object-contain p-1"
-          />
-        ) : (
-          <span className="text-xs font-bold text-accent">{displayIcon}</span>
-        )
-      ) : (
-        <>
-          <span className="text-base">{slotInfo.icon}</span>
-          <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
-            {displayLabel}
-          </span>
-        </>
-      )}
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={cn(
+              "w-12 h-12 bg-secondary border-2 border-border rounded-md",
+              "flex flex-col items-center justify-center cursor-pointer",
+              "hover:border-accent transition-colors",
+              "relative overflow-hidden", // Clip image to rounded corners
+              hasItem && "border-accent bg-accent/10",
+              isSelected && "ring-2 ring-red-500 animate-pulse", // Phase 5H: Red highlight when selected
+              className
+            )}
+            onClick={onClick}
+            data-testid={`equipment-slot-${slotId}`}
+          >
+            {hasItem ? (
+              imageSrc ? (
+                <img
+                  src={imageSrc}
+                  alt={item.name}
+                  className="w-full h-full object-contain p-1"
+                />
+              ) : (
+                <span className="text-xs font-bold text-accent">{displayIcon}</span>
+              )
+            ) : (
+              <>
+                <span className="text-base">{slotInfo.icon}</span>
+                <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
+                  {displayLabel}
+                </span>
+              </>
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="bg-popover text-popover-foreground border shadow-sm">
+          <p className="font-medium text-xs">{tooltipText}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

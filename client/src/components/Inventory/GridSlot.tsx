@@ -1,5 +1,11 @@
 import { cn } from "@/lib/utils";
 import { useGridSize } from "@/contexts/GridSizeContext";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface GridSlotProps {
   item?: any;
@@ -58,51 +64,62 @@ export default function GridSlot({
   };
 
   return (
-    <div
-      className={cn(
-        // Dynamic size
-        "flex-shrink-0 flex items-center justify-center text-sm relative",
-        !isEmpty ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
-        "transition-colors duration-200",
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={cn(
+              // Dynamic size
+              "flex-shrink-0 flex items-center justify-center text-sm relative",
+              !isEmpty ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+              "transition-colors duration-200",
 
-        // Subtle borders like backpack grids
-        "border border-border/20 bg-muted/10",
+              // Subtle borders like backpack grids
+              "border border-border/20 bg-muted/10",
 
-        // Hover state
-        !isEmpty ? "hover:bg-muted/40" : "hover:bg-muted/50",
+              // Hover state
+              !isEmpty ? "hover:bg-muted/40" : "hover:bg-muted/50",
 
-        // Conditional states
-        isHighlighted && "bg-accent/20",
-        isValidDrop && "bg-green-500/20",
-        !isEmpty && "bg-muted/30",
+              // Conditional states
+              isHighlighted && "bg-accent/20",
+              isValidDrop && "bg-green-500/20",
+              !isEmpty && "bg-muted/30",
 
-        className
-      )}
-      style={{
-        width: `${slotSize}px`,
-        height: `${slotSize}px`,
-      }}
-      draggable={!isEmpty}
-      onClick={onClick}
-      onContextMenu={onContextMenu}
-      onDrop={onDrop}
-      onDragOver={onDragOver}
-      onDragStart={handleDragStart}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      data-testid={testId}
-    >
-      {/* All image rendering handled by UniversalGrid overlays */}
-      {children}
+              className
+            )}
+            style={{
+              width: `${slotSize}px`,
+              height: `${slotSize}px`,
+            }}
+            draggable={!isEmpty}
+            onClick={onClick}
+            onContextMenu={onContextMenu}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragStart={handleDragStart}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            data-testid={testId}
+          >
+            {/* All image rendering handled by UniversalGrid overlays */}
+            {children}
 
-      {/* Stack count indicator - only show for items with actual images */}
-      {item && item.stackCount > 1 && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="absolute bottom-0 right-0 text-[0.6rem] font-bold bg-black/70 px-1 rounded z-10">
-            {item.stackCount}
-          </span>
-        </div>
-      )}
-    </div>
+            {/* Stack count indicator - only show for items with actual images */}
+            {item && item.stackCount > 1 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="absolute bottom-0 right-0 text-[0.6rem] font-bold bg-black/70 px-1 rounded z-10">
+                  {item.stackCount}
+                </span>
+              </div>
+            )}
+          </div>
+        </TooltipTrigger>
+        {item && (
+          <TooltipContent side="top" className="bg-popover text-popover-foreground border shadow-sm">
+            <p className="font-medium text-xs">{item.name}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
   );
 }
