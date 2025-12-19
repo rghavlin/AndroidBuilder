@@ -165,26 +165,27 @@ export class Container {
     const itemId = item.instanceId || item.id;
 
     // Phase Stacking: Check if we are dropping onto a stackable item
-    const occupants = [];
+    const occupants = new Set();
     for (let dy = 0; dy < height; dy++) {
       for (let dx = 0; dx < width; dx++) {
         const cellItem = this.grid[y + dy][x + dx];
         if (cellItem && cellItem !== itemId) {
-          occupants.push(cellItem);
+          occupants.add(cellItem);
         }
       }
     }
 
-    // If exactly one occupant, check if it's stackable with the incoming item
-    if (occupants.length === 1) {
-      const targetItem = this.items.get(occupants[0]);
+    // If exactly one unique occupant, check if it's stackable with the incoming item
+    if (occupants.size === 1) {
+      const targetInstanceId = Array.from(occupants)[0];
+      const targetItem = this.items.get(targetInstanceId);
       if (targetItem && targetItem.canStackWith(item)) {
         return { valid: true, stackTarget: targetItem };
       }
     }
 
     // Normal collision check
-    if (occupants.length > 0) {
+    if (occupants.size > 0) {
       return { valid: false, reason: 'Position occupied' };
     }
 

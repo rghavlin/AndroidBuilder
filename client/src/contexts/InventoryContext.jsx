@@ -302,10 +302,25 @@ export const InventoryProvider = ({ children, manager }) => {
   }, []);
 
   const clearSelected = useCallback(() => {
+    // Phase Stacking Fix: If an item is selected (carried), return it to its origin container
+    // This prevents items from vanishing if the selection is cancelled (Escape, click outside)
+    if (selectedItem && !selectedItem.isEquipment && inventoryRef.current) {
+      const { item, originContainerId, originX, originY, originalRotation } = selectedItem;
+      const originContainer = inventoryRef.current.getContainer(originContainerId);
+
+      if (originContainer) {
+        console.log('[InventoryContext] Returning selected item to origin before clearing:', item.name);
+        // Restore original rotation
+        item.rotation = originalRotation;
+        originContainer.placeItemAt(item, originX, originY);
+        setInventoryVersion(prev => prev + 1);
+      }
+    }
+
     console.debug('[InventoryContext] Clear selection');
     setSelectedItem(null);
     setDragVersion(prev => prev + 1);
-  }, []);
+  }, [selectedItem, inventoryVersion]);
 
   const equipSelectedItem = useCallback((targetSlot) => {
     if (!selectedItem || !inventoryRef.current) {
@@ -455,8 +470,12 @@ export const InventoryProvider = ({ children, manager }) => {
           setInventoryVersion(prev => prev + 1);
           return { success: true, stacked: true };
         } else {
-          // Partial stack - keep remaining item selected
-          // No need to clear selection, but we do need to refresh UI
+          // Partial stack - update selected item state with new count
+          console.debug('[InventoryContext] Partial stack - remaining count:', item.stackCount);
+          setSelectedItem(prev => ({
+            ...prev,
+            item: { ...item } // Update with new count
+          }));
           setDragVersion(prev => prev + 1);
           setInventoryVersion(prev => prev + 1);
           return { success: true, stacked: true, partial: true };
@@ -491,6 +510,46 @@ export const InventoryProvider = ({ children, manager }) => {
     setInventoryVersion(prev => prev + 1);
     return { success: true };
   }, [selectedItem]);
+
+  /**
+   * Split a stack of items
+   */
+  const splitStack = useCallback((item, count) => {
+    if (!item || !item.isStackable() || count >= item.stackCount || count <= 0) {
+      return { success: false, reason: 'Invalid split count' };
+    }
+
+    // Find the container holding this item
+    const container = Array.from(inventoryRef.current.containers.values())
+      .find(c => c.items.has(item.instanceId));
+
+    if (!container) {
+      return { success: false, reason: 'Container not found' };
+    }
+
+    // Perform the split
+    const newItem = item.splitStack(count);
+    if (!newItem) {
+      return { success: false, reason: 'Split failed' };
+    }
+
+    // Attempt to place in same container
+    const pos = container.findAvailablePosition(newItem);
+    if (pos) {
+      container.placeItemAt(newItem, pos.x, pos.y);
+      console.log(`[InventoryContext] Split stack: ${count} of ${item.name} placed in ${container.id} at (${pos.x}, ${pos.y})`);
+    } else {
+      // Fallback to ground
+      const ground = inventoryRef.current.getContainer('ground');
+      if (ground) {
+        ground.addItem(newItem);
+        console.log(`[InventoryContext] Split stack: ${count} of ${item.name} placed on ground (no space in original container)`);
+      }
+    }
+
+    setInventoryVersion(prev => prev + 1);
+    return { success: true };
+  }, []);
 
   const getPlacementPreview = useCallback((targetContainerId, gridX, gridY) => {
     if (!selectedItem || !inventoryRef.current) {
@@ -575,9 +634,10 @@ export const InventoryProvider = ({ children, manager }) => {
       clearSelected,
       placeSelected,
       getPlacementPreview,
-      equipSelectedItem
+      equipSelectedItem,
+      splitStack
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

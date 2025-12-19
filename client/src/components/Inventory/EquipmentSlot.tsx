@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ItemContextMenu } from "./ItemContextMenu";
 
 interface EquipmentSlotProps {
   slotId: string;
   item?: any;
   isEquipped?: boolean;
   isSelected?: boolean;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent) => void;
   className?: string;
 }
 
@@ -31,7 +27,6 @@ const SLOT_INFO: Record<string, { name: string; icon: string }> = {
 export default function EquipmentSlot({
   slotId,
   item,
-  isEquipped = false,
   isSelected = false,
   onClick,
   className
@@ -50,25 +45,19 @@ export default function EquipmentSlot({
     let isMounted = true;
 
     const loadItemImage = async () => {
-      // Clear image if no item
       if (!item) {
         if (isMounted) setImageSrc(null);
         return;
       }
 
       try {
-        // UniversalGrid uses item.image or item.id to find the image
-        // We really need to check item.imageId which is used in ItemDefs
         const imageId = item.imageId || item.image || item.id;
-
-        // ImageLoader returns an HTMLImageElement object, NOT a string
         const imgElement = await imageLoader.getItemImage(imageId);
 
         if (isMounted) {
           if (imgElement && imgElement.src) {
             setImageSrc(imgElement.src);
           } else {
-            // If valid image object but no src (rare) or null returned
             setImageSrc(null);
           }
         }
@@ -91,45 +80,43 @@ export default function EquipmentSlot({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            className={cn(
-              "w-12 h-12 bg-secondary border-2 border-border rounded-md",
-              "flex flex-col items-center justify-center cursor-pointer",
-              "hover:border-accent transition-colors",
-              "relative overflow-hidden", // Clip image to rounded corners
-              hasItem && "border-accent bg-accent/10",
-              isSelected && "ring-2 ring-red-500 animate-pulse", // Phase 5H: Red highlight when selected
-              className
-            )}
-            onClick={onClick}
-            data-testid={`equipment-slot-${slotId}`}
-          >
-            {hasItem ? (
-              imageSrc ? (
-                <img
-                  src={imageSrc}
-                  alt={item.name}
-                  className="w-full h-full object-contain p-1"
-                />
-              ) : (
-                <span className="text-xs font-bold text-accent">{displayIcon}</span>
-              )
+      <ItemContextMenu
+        item={item}
+        tooltipContent={<p className="font-medium text-xs">{tooltipText}</p>}
+      >
+        <div
+          className={cn(
+            "w-12 h-12 bg-secondary border-2 border-border rounded-md",
+            "flex flex-col items-center justify-center cursor-pointer",
+            "hover:border-accent transition-colors",
+            "relative overflow-hidden", // Clip image to rounded corners
+            hasItem && "border-accent bg-accent/10",
+            isSelected && "ring-2 ring-red-500 animate-pulse", // Phase 5H: Red highlight when selected
+            className
+          )}
+          onClick={onClick}
+          data-testid={`equipment-slot-${slotId}`}
+        >
+          {hasItem ? (
+            imageSrc ? (
+              <img
+                src={imageSrc}
+                alt={item.name}
+                className="w-full h-full object-contain p-1"
+              />
             ) : (
-              <>
-                <span className="text-base">{slotInfo.icon}</span>
-                <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
-                  {displayLabel}
-                </span>
-              </>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="bg-popover text-popover-foreground border shadow-sm">
-          <p className="font-medium text-xs">{tooltipText}</p>
-        </TooltipContent>
-      </Tooltip>
+              <span className="text-xs font-bold text-accent">{displayIcon}</span>
+            )
+          ) : (
+            <>
+              <span className="text-base">{slotInfo.icon}</span>
+              <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
+                {displayLabel}
+              </span>
+            </>
+          )}
+        </div>
+      </ItemContextMenu>
     </TooltipProvider>
   );
 }

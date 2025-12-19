@@ -125,30 +125,45 @@ export default function UniversalGrid({
     event.preventDefault();
     event.stopPropagation();
 
-    // If clicking empty space with item selected, try to place
-    if (selectedItem && !item) {
-      const result = placeSelected(containerId, x, y);
-      if (!result.success) {
-        console.warn('[UniversalGrid] Placement failed:', result.reason);
-      }
-      return;
-    }
-
-    // If clicking an item
-    if (item && item.instanceId) {
-      // If this is the already-selected item, deselect it
-      if (selectedItem && selectedItem.item.instanceId === item.instanceId) {
-        console.debug('[UniversalGrid] Deselecting item:', item.name);
+    // Case 1: An item is already selected/carried
+    if (selectedItem) {
+      // If clicking the EXACT SAME item we are carrying, just deselect it (toggle)
+      if (item && item.instanceId === selectedItem.item.instanceId) {
+        console.debug('[UniversalGrid] Toggle-deselecting item:', item.name);
         clearSelected();
-      } else {
-        // Select this item
-        console.debug('[UniversalGrid] Selecting item:', item.name, 'at grid pos:', item.x, item.y);
-        selectItem(item, containerId, item.x, item.y);
+        return;
       }
+
+      // Try to place or stack the selected item at the clicked coordinates
+      const result = placeSelected(containerId, x, y);
+
+      // If placement/stacking succeeded, we're done
+      if (result.success) {
+        return;
+      }
+
+      // If placement failed (e.g. occupied by another item), and that item is NOT stackable with ours,
+      // then the user likely wants to SWITCH their selection to the clicked item.
+      if (item && item.instanceId) {
+        console.debug('[UniversalGrid] Placement failed, switching selection to:', item.name);
+        // Important: use item.x/y for the origin coordinates, not the clicked x/y
+        selectItem(item, containerId, item.x, item.y);
+        return;
+      }
+
+      // If placement failed on empty space, just log a warning (or stay selected)
+      console.warn('[UniversalGrid] Placement failed:', result.reason);
       return;
     }
 
-    // Clicking empty space with no selection
+    // Case 2: No item selected, so we select the clicked item
+    if (item && item.instanceId) {
+      console.debug('[UniversalGrid] Selecting item:', item.name, 'at grid pos:', item.x, item.y);
+      selectItem(item, containerId, item.x, item.y);
+      return;
+    }
+
+    // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
   };
 
