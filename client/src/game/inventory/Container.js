@@ -70,8 +70,8 @@ export class Container {
    * Find first available position for an item
    */
   findAvailablePosition(item, preferredX = null, preferredY = null) {
-    const width = item.getActualWidth();
-    const height = item.getActualHeight();
+    const width = typeof item.getActualWidth === 'function' ? item.getActualWidth() : (item.rotation === 90 || item.rotation === 270 ? item.height : item.width);
+    const height = typeof item.getActualHeight === 'function' ? item.getActualHeight() : (item.rotation === 90 || item.rotation === 270 ? item.width : item.height);
 
     // If preferred position is specified and valid, try it first
     if (preferredX !== null && preferredY !== null) {
@@ -163,7 +163,28 @@ export class Container {
 
     // Check for collisions (use instanceId for proper identification)
     const itemId = item.instanceId || item.id;
-    if (!this.isAreaFree(x, y, width, height, itemId)) {
+
+    // Phase Stacking: Check if we are dropping onto a stackable item
+    const occupants = [];
+    for (let dy = 0; dy < height; dy++) {
+      for (let dx = 0; dx < width; dx++) {
+        const cellItem = this.grid[y + dy][x + dx];
+        if (cellItem && cellItem !== itemId) {
+          occupants.push(cellItem);
+        }
+      }
+    }
+
+    // If exactly one occupant, check if it's stackable with the incoming item
+    if (occupants.length === 1) {
+      const targetItem = this.items.get(occupants[0]);
+      if (targetItem && targetItem.canStackWith(item)) {
+        return { valid: true, stackTarget: targetItem };
+      }
+    }
+
+    // Normal collision check
+    if (occupants.length > 0) {
       return { valid: false, reason: 'Position occupied' };
     }
 
@@ -214,8 +235,8 @@ export class Container {
    * Place item in grid at specific position
    */
   placeItemAt(item, x, y) {
-    const width = item.getActualWidth();
-    const height = item.getActualHeight();
+    const width = typeof item.getActualWidth === 'function' ? item.getActualWidth() : (item.rotation === 90 || item.rotation === 270 ? item.height : item.width);
+    const height = typeof item.getActualHeight === 'function' ? item.getActualHeight() : (item.rotation === 90 || item.rotation === 270 ? item.width : item.height);
     // ALWAYS use instanceId for grid tracking
     const itemId = item.instanceId;
 
@@ -299,7 +320,8 @@ export class Container {
     console.debug('[Container] addItem called:', item.name, 'preferred:', preferredX, preferredY);
 
     // Try stacking first if item is stackable
-    if (item.stackable) {
+    const isStackable = typeof item.isStackable === 'function' ? item.isStackable() : item.stackable;
+    if (isStackable) {
       const result = this.attemptStacking(item);
       if (result.success && !result.remainingItem) {
         console.debug('[Container] Item fully stacked:', item.name);
@@ -330,7 +352,8 @@ export class Container {
    * Attempt to stack item with existing items, supporting partial stacking
    */
   attemptStacking(item) {
-    if (!item.stackable) {
+    const isStackable = item.isStackable ? item.isStackable() : item.stackable;
+    if (!isStackable) {
       return { success: false, remainingItem: item };
     }
 

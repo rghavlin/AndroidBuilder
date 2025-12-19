@@ -245,10 +245,11 @@ export const ItemDefs = {
   'medical.bandage': {
     id: 'medical.bandage',
     name: 'Bandage',
+    imageId: 'bandage',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE],
-    stackMax: 10
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    stackMax: 20
   },
 
   'food.cannedsoup': {
@@ -258,7 +259,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
-    stackMax: 6
+    stackMax: 10
   }
 };
 

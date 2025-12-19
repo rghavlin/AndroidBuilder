@@ -104,10 +104,10 @@ export default function GridSlot({
             {/* All image rendering handled by UniversalGrid overlays */}
             {children}
 
-            {/* Stack count indicator - only show for items with actual images */}
-            {item && item.stackCount > 1 && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="absolute bottom-0 right-0 text-[0.6rem] font-bold bg-black/70 px-1 rounded z-10">
+            {/* Stack count indicator - only show for items with actual images, and only on the top-left slot */}
+            {item && isTopLeft && item.stackCount > 1 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                <span className="absolute bottom-0 right-0 text-[0.65rem] font-bold text-white bg-black/80 px-1 rounded-sm shadow-sm border border-white/10 m-0.5">
                   {item.stackCount}
                 </span>
               </div>

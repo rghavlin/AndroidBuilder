@@ -118,12 +118,15 @@ const ITEM_TEMPLATES = {
   'ammo.shotgun': { width: 1, height: 1, stackable: true, stackMax: 25 },
 
   // Medical (stackable)
-  'medical.bandage': { width: 1, height: 1, stackable: true, stackMax: 10 },
+  'medical.bandage': { width: 1, height: 1, stackable: true, stackMax: 20 },
   'medical.pills': { width: 1, height: 1, stackable: true, stackMax: 20 },
   'medical.syringe': { width: 1, height: 1, stackable: true, stackMax: 5 },
 
   // Food (stackable)
-  'food.cannedsoup': { width: 1, height: 1, stackable: true, stackMax: 6 },
+  'food.cannedsoup': {
+    width: 1, height: 1, stackable: true,
+    stackMax: 10
+  },
   'food.water': { width: 2, height: 1, stackable: true, stackMax: 4 },
 
   // Attachments (for firearms)

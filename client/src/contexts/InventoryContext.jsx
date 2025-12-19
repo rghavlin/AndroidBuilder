@@ -437,6 +437,33 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: validation.reason };
     }
 
+    // Phase Stacking: Handle merging if we found a stack target
+    if (validation.stackTarget) {
+      const targetItem = validation.stackTarget;
+      const stackableAmount = targetItem.getStackableAmount(item);
+
+      if (stackableAmount > 0) {
+        console.log('[InventoryContext] Stacking items:', item.name, 'into', targetItem.name, 'amount:', stackableAmount);
+
+        targetItem.stackCount += stackableAmount;
+        item.stackCount -= stackableAmount;
+
+        if (item.stackCount === 0) {
+          // Fully consumed
+          setSelectedItem(null);
+          setDragVersion(prev => prev + 1);
+          setInventoryVersion(prev => prev + 1);
+          return { success: true, stacked: true };
+        } else {
+          // Partial stack - keep remaining item selected
+          // No need to clear selection, but we do need to refresh UI
+          setDragVersion(prev => prev + 1);
+          setInventoryVersion(prev => prev + 1);
+          return { success: true, stacked: true, partial: true };
+        }
+      }
+    }
+
     // Place in target container at new position with new rotation
     const placed = targetContainer.placeItemAt(item, targetX, targetY);
 
@@ -483,12 +510,14 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // Create temporary validation object with preview rotation
-    // DO NOT use item.rotation - use the preview rotation from state
+    // Ensure it can still call methods like isStackable and canStackWith if needed
     const itemForValidation = {
       ...item,
       rotation,
       getActualWidth: () => width,
-      getActualHeight: () => height
+      getActualHeight: () => height,
+      isStackable: () => item.isStackable ? item.isStackable() : item.stackable,
+      canStackWith: (other) => item.canStackWith ? item.canStackWith(other) : false
     };
     const validation = targetContainer.validatePlacement(itemForValidation, gridX, gridY);
 

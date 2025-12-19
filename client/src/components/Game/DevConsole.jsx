@@ -1462,7 +1462,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               new InventoryItem({ id: 'ammo-shotgun-1', defId: 'ammo.shotgun', name: 'Shotgun Shells', width: 1, height: 1, stackCount: 15, stackMax: 25, traits: [ItemTrait.STACKABLE] }),
 
               // Medical supplies
-              new InventoryItem({ id: 'med-bandage-1', defId: 'medical.bandage', name: 'Bandage', width: 1, height: 1, stackCount: 8, stackMax: 10, traits: [ItemTrait.STACKABLE] }),
+              new InventoryItem({ id: 'medical-bandage-1', defId: 'medical.bandage', name: 'Bandage', width: 1, height: 1, stackCount: 5, stackMax: 10, traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE] }),
               new InventoryItem({ id: 'med-pills-1', defId: 'medical.pills', name: 'Pills', width: 1, height: 1, stackCount: 12, stackMax: 20, traits: [ItemTrait.STACKABLE] }),
               new InventoryItem({ id: 'med-syringe-1', defId: 'medical.syringe', name: 'Syringe', width: 1, height: 1, stackCount: 3, stackMax: 5, traits: [ItemTrait.STACKABLE] }),
 
@@ -1595,17 +1595,17 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             let spawned = 0;
             for (let i = 0; i < count; i++) {
-              const item = createItemFromDef(defId);
-              if (!item) { // Additional check in case createItemFromDef returns null for valid defId (shouldn't happen but good practice)
-                output = `Failed to create item from definition: ${defId}`;
-                break;
-              }
+              const itemData = createItemFromDef(defId);
+              if (!itemData) break;
+
+              const item = new Item(itemData);
               if (groundContainer.addItem(item)) {
                 spawned++;
               }
             }
 
-            output = `Spawned ${spawned}/${count} ${itemType}(s) to ground`;
+            output = `Spawned ${spawned}/${count} ${defId} to ground`;
+            window.inv?.refresh();
           } catch (error) {
             output = `Error spawning item: ${error.message}`;
           }

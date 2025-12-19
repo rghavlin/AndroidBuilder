@@ -93,6 +93,16 @@ export class Item {
 
     // Container reference (not serialized)
     this._container = null;
+
+    // Compatibility property for legacy logic
+    this.stackable = this.isStackable();
+  }
+
+  // Static helpers for robust type-safe checks
+  static isStackable(item) {
+    if (!item) return false;
+    if (typeof item.isStackable === 'function') return item.isStackable();
+    return !!(item.stackable || (item.traits && item.traits.includes(ItemTrait.STACKABLE)));
   }
 
   // Trait checks
@@ -171,7 +181,9 @@ export class Item {
 
   // Stacking
   canStackWith(otherItem) {
-    if (!this.isStackable() || !otherItem.isStackable()) {
+    if (!otherItem) return false;
+
+    if (!Item.isStackable(this) || !Item.isStackable(otherItem)) {
       return false;
     }
 
