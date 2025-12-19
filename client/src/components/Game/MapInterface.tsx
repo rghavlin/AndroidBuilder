@@ -9,6 +9,9 @@ import ContainerGrid from '../Inventory/ContainerGrid';
 import { Menu } from "lucide-react";
 import MainMenuWindow from './MainMenuWindow';
 
+import { imageLoader } from '../../game/utils/ImageLoader';
+import { cn } from "@/lib/utils";
+
 interface MapInterfaceProps {
   gameState: {
     turn: number;
@@ -17,6 +20,69 @@ interface MapInterfaceProps {
     zombieCount: number;
   };
 }
+
+// Action Button Component
+const ActionSlotButton = ({ slot }: { slot: string }) => {
+  const { inventoryRef, inventoryVersion } = useInventory();
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+  // Get item from inventory
+  const item = inventoryRef.current?.equipment?.[slot];
+
+  // Load image when item changes
+  useEffect(() => {
+    let isMounted = true;
+    const loadItemImage = async () => {
+      if (!item) {
+        if (isMounted) setImageSrc(null);
+        return;
+      }
+
+      try {
+        const imageId = item.imageId || item.image || item.id;
+        const imgElement = await imageLoader.getItemImage(imageId);
+        if (isMounted && imgElement && imgElement.src) {
+          setImageSrc(imgElement.src);
+        }
+      } catch (err) {
+        if (isMounted) setImageSrc(null);
+      }
+    };
+
+    loadItemImage();
+    return () => { isMounted = false; };
+  }, [item, inventoryVersion]);
+
+  const handleClick = () => {
+    if (item) {
+      console.log(`[ActionSlot] Clicked ${slot}: Equipped with ${item.name}`);
+    } else {
+      console.log(`[ActionSlot] Clicked ${slot}: Nothing equipped`);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className={cn(
+        "w-8 h-8 rounded border flex items-center justify-center transition-colors overflow-hidden",
+        // Empty state: Black bg, White outline
+        !item && "bg-black border-white hover:bg-zinc-900 shadow-sm",
+        // Equipped state: Green outline (like end turn button) w/ transparent or slight bg
+        item && "border-green-500 bg-green-500/10 hover:bg-green-500/20"
+      )}
+      title={item ? item.name : `Empty ${slot} slot`}
+    >
+      {item && imageSrc ? (
+        <img
+          src={imageSrc}
+          alt={item.name}
+          className="w-full h-full object-contain p-0.5"
+        />
+      ) : null}
+    </button>
+  );
+};
 
 export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Phase 1: Direct sub-context access
@@ -95,18 +161,23 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     <div className="flex-1 bg-secondary border-r border-border flex flex-col min-h-0" data-testid="map-interface">
       {/* Header Area */}
       <div className="bg-card border-b border-border p-2 flex items-center justify-between" data-testid="map-header">
-        <div className="flex items-center gap-2">
-          <button
-            className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
-            title="Main Menu"
-            data-testid="main-menu-button"
-            onClick={() => setShowMainMenu(true)}
-          >
-            <Menu className="h-5 w-5 text-foreground" />
-          </button>
-          <div className="text-sm text-muted-foreground">
-            Map Information Panel - Placeholder Text
-          </div>
+        <button
+          className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
+          title="Main Menu"
+          data-testid="main-menu-button"
+          onClick={() => setShowMainMenu(true)}
+        >
+          <Menu className="h-5 w-5 text-foreground" />
+        </button>
+
+        {/* Action Buttons Group (Centered) */}
+        <div className="flex gap-2 justify-center flex-1">
+          {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
+            <ActionSlotButton
+              key={slot}
+              slot={slot}
+            />
+          ))}
         </div>
         <button
           className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"

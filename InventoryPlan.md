@@ -37,11 +37,11 @@ Authoritative plan for wiring the Inventory system into the UI without visual/la
 **Item Definition Pattern:**
 ```javascript
 // ✅ CORRECT - All rectangular items are landscape
-'weapon.pistol': { width: 2, height: 1 }      // Horizontal
+'weapon.9mmPistol': { width: 2, height: 2 }      // Square
 'weapon.rifle': { width: 4, height: 1 }       // Horizontal  
 'weapon.knife': { width: 2, height: 1 }       // Horizontal
 'weapon.baseball_bat': { width: 3, height: 1 } // Horizontal
-'tool.flashlight': { width: 2, height: 1 }    // Horizontal
+'tool.smallflashlight': { width: 2, height: 1 }    // Horizontal
 'food.water': { width: 2, height: 1 }         // Horizontal
 
 // ❌ WRONG - These violate the standard

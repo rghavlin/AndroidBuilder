@@ -542,8 +542,8 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             const testFlashlight = new Item({
               instanceId: 'test-flashlight-5b',
-              defId: 'tool.flashlight',
-              name: 'LED Flashlight',
+              defId: 'tool.smallflashlight',
+              name: 'Small Flashlight',
               width: 1,
               height: 2,
               equippableSlot: 'flashlight',
@@ -566,7 +566,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('Test 2: Equipment slot UI display...', 'info');
             addToConsole('  ℹ️  Check the equipment slots visually:', 'info');
             addToConsole('  - Melee slot should show "CO" (Combat Knife)', 'log');
-            addToConsole('  - Flashlight slot should show "LE" (LED Flashlight)', 'log');
+            addToConsole('  - Flashlight slot should show "SM" (Small Flashlight)', 'log');
             addToConsole('  - Hover over slots to see tooltips with item names', 'log');
             addToConsole('  - Equipped slots should have accent border/background', 'log');
 
@@ -1149,7 +1149,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           try {
             const { Item } = await import('../../game/inventory/Item.js');
             const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
-            
+
             if (subCommand === 'backpack') {
               addToConsole('Equipping test backpack...', 'info');
               const testBackpack = new Item({
@@ -1252,7 +1252,7 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             // Check lower body item (sweatpants)
             const lowerBodyItem = window.inventoryManager.equipment.lower_body;
-            
+
             if (!lowerBodyItem) {
               addToConsole('No item equipped in lower_body slot', 'info');
             } else {
@@ -1260,23 +1260,23 @@ const DevConsole = ({ isOpen, onClose }) => {
               addToConsole(`  - instanceId: ${lowerBodyItem.instanceId}`, 'log');
               addToConsole(`  - defId: ${lowerBodyItem.defId}`, 'log');
               addToConsole(`  - Has _pocketGridsData: ${!!lowerBodyItem._pocketGridsData}`, lowerBodyItem._pocketGridsData ? 'success' : 'error');
-              
+
               if (lowerBodyItem._pocketGridsData) {
                 addToConsole(`  - _pocketGridsData: ${JSON.stringify(lowerBodyItem._pocketGridsData)}`, 'log');
               }
-              
+
               addToConsole(`  - Has pocketGrids array: ${!!lowerBodyItem.pocketGrids}`, lowerBodyItem.pocketGrids ? 'success' : 'error');
-              
+
               if (lowerBodyItem.pocketGrids) {
                 addToConsole(`  - pocketGrids.length: ${lowerBodyItem.pocketGrids.length}`, lowerBodyItem.pocketGrids.length > 0 ? 'success' : 'error');
               }
-              
+
               addToConsole(`  - isContainer(): ${lowerBodyItem.isContainer?.()}`, lowerBodyItem.isContainer?.() ? 'success' : 'error');
-              
+
               // Try to get pocket containers
               const pocketContainers = lowerBodyItem.getPocketContainers?.();
               addToConsole(`  - getPocketContainers() returned: ${pocketContainers ? pocketContainers.length + ' containers' : 'null/undefined'}`, pocketContainers && pocketContainers.length > 0 ? 'success' : 'error');
-              
+
               if (pocketContainers && pocketContainers.length > 0) {
                 pocketContainers.forEach((pocket, idx) => {
                   addToConsole(`    Pocket ${idx + 1}: ${pocket.id} (${pocket.width}x${pocket.height})`, 'log');
@@ -1286,7 +1286,7 @@ const DevConsole = ({ isOpen, onClose }) => {
 
             // Check upper body item
             const upperBodyItem = window.inventoryManager.equipment.upper_body;
-            
+
             if (!upperBodyItem) {
               addToConsole('No item equipped in upper_body slot', 'info');
             } else {
@@ -1434,113 +1434,113 @@ const DevConsole = ({ isOpen, onClose }) => {
 
         case 'ground':
         case 'phase4':
-              try {
-                // Import inventory classes for Phase 4 ground management demo
-                const InventoryModule = await import('../../game/inventory/index.js');
-                const { Item: InventoryItem, Container, InventoryManager, GroundManager } = InventoryModule;
+          try {
+            // Import inventory classes for Phase 4 ground management demo
+            const InventoryModule = await import('../../game/inventory/index.js');
+            const { Item: InventoryItem, Container, InventoryManager, GroundManager } = InventoryModule;
 
-                window.InventoryItem = InventoryItem;
-                window.Container = Container;
-                window.GroundManager = GroundManager;
-                window.InventoryManager = InventoryManager;
+            window.InventoryItem = InventoryItem;
+            window.Container = Container;
+            window.GroundManager = GroundManager;
+            window.InventoryManager = InventoryManager;
 
-                addToConsole('Creating Phase 4 demo - Advanced Ground Management...', 'info');
+            addToConsole('Creating Phase 4 demo - Advanced Ground Management...', 'info');
 
-                // Create inventory manager
-                const manager = new InventoryManager();
+            // Create inventory manager
+            const manager = new InventoryManager();
 
-                // Create diverse ground items for testing organization
-                const groundItems = [
-                  // Weapons
-                  new InventoryItem({ id: 'ground-rifle-1', name: 'Assault Rifle', defId: 'weapon.rifle', width: 1, height: 4, equippableSlot: 'long_gun', traits: [ItemTrait.EQUIPPABLE] }),
-                  new InventoryItem({ id: 'ground-pistol-1', name: 'Combat Pistol', defId: 'weapon.pistol', width: 1, height: 2, equippableSlot: 'handgun', traits: [ItemTrait.EQUIPPABLE] }),
-                  new InventoryItem({ id: 'ground-knife-1', name: 'Combat Knife', defId: 'weapon.melee', width: 1, height: 2, equippableSlot: 'melee', traits: [ItemTrait.EQUIPPABLE] }),
+            // Create diverse ground items for testing organization
+            const groundItems = [
+              // Weapons
+              new InventoryItem({ id: 'ground-rifle-1', name: 'Assault Rifle', defId: 'weapon.rifle', width: 1, height: 4, equippableSlot: 'long_gun', traits: [ItemTrait.EQUIPPABLE] }),
+              new InventoryItem({ id: 'ground-pistol-1', name: '9mm Pistol', defId: 'weapon.9mmPistol', width: 2, height: 2, equippableSlot: 'handgun', traits: [ItemTrait.EQUIPPABLE] }),
+              new InventoryItem({ id: 'ground-knife-1', name: 'Combat Knife', defId: 'weapon.melee', width: 1, height: 2, equippableSlot: 'melee', traits: [ItemTrait.EQUIPPABLE] }),
 
-                  // Ammunition
-                  new InventoryItem({ id: 'ammo-9mm-1', defId: 'ammo.9mm', name: '9mm Ammo', width: 1, height: 1, stackCount: 30, stackMax: 50, traits: [ItemTrait.STACKABLE] }),
-                  new InventoryItem({ id: 'ammo-762-1', defId: 'ammo.762mm', name: '7.62mm Ammo', width: 1, height: 1, stackCount: 25, stackMax: 30, traits: [ItemTrait.STACKABLE] }),
-                  new InventoryItem({ id: 'ammo-shotgun-1', defId: 'ammo.shotgun', name: 'Shotgun Shells', width: 1, height: 1, stackCount: 15, stackMax: 25, traits: [ItemTrait.STACKABLE] }),
+              // Ammunition
+              new InventoryItem({ id: 'ammo-9mm-1', defId: 'ammo.9mm', name: '9mm Ammo', width: 1, height: 1, stackCount: 30, stackMax: 50, traits: [ItemTrait.STACKABLE] }),
+              new InventoryItem({ id: 'ammo-762-1', defId: 'ammo.762mm', name: '7.62mm Ammo', width: 1, height: 1, stackCount: 25, stackMax: 30, traits: [ItemTrait.STACKABLE] }),
+              new InventoryItem({ id: 'ammo-shotgun-1', defId: 'ammo.shotgun', name: 'Shotgun Shells', width: 1, height: 1, stackCount: 15, stackMax: 25, traits: [ItemTrait.STACKABLE] }),
 
-                  // Medical supplies
-                  new InventoryItem({ id: 'med-bandage-1', defId: 'medical.bandage', name: 'Bandage', width: 1, height: 1, stackCount: 8, stackMax: 10, traits: [ItemTrait.STACKABLE] }),
-                  new InventoryItem({ id: 'med-pills-1', defId: 'medical.pills', name: 'Pills', width: 1, height: 1, stackCount: 12, stackMax: 20, traits: [ItemTrait.STACKABLE] }),
-                  new InventoryItem({ id: 'med-syringe-1', defId: 'medical.syringe', name: 'Syringe', width: 1, height: 1, stackCount: 3, stackMax: 5, traits: [ItemTrait.STACKABLE] }),
+              // Medical supplies
+              new InventoryItem({ id: 'med-bandage-1', defId: 'medical.bandage', name: 'Bandage', width: 1, height: 1, stackCount: 8, stackMax: 10, traits: [ItemTrait.STACKABLE] }),
+              new InventoryItem({ id: 'med-pills-1', defId: 'medical.pills', name: 'Pills', width: 1, height: 1, stackCount: 12, stackMax: 20, traits: [ItemTrait.STACKABLE] }),
+              new InventoryItem({ id: 'med-syringe-1', defId: 'medical.syringe', name: 'Syringe', width: 1, height: 1, stackCount: 3, stackMax: 5, traits: [ItemTrait.STACKABLE] }),
 
-                  // Tools
-                  new InventoryItem({ id: 'tool-flashlight-1', defId: 'tool.flashlight', name: 'LED Flashlight', width: 1, height: 2, equippableSlot: 'flashlight', traits: [ItemTrait.EQUIPPABLE] }),
-                  new InventoryItem({ id: 'tool-hammer-1', defId: 'tool.hammer', name: 'Claw Hammer', width: 2, height: 1, traits: [] }),
-                  new InventoryItem({ id: 'tool-screwdriver-1', defId: 'tool.screwdriver', name: 'Screwdriver Set', width: 1, height: 1, traits: [] }),
+              // Tools
+              new InventoryItem({ id: 'tool-flashlight-1', defId: 'tool.smallflashlight', name: 'Small Flashlight', width: 2, height: 1, equippableSlot: 'flashlight', traits: [ItemTrait.EQUIPPABLE] }),
+              new InventoryItem({ id: 'tool-hammer-1', defId: 'tool.hammer', name: 'Claw Hammer', width: 2, height: 1, traits: [] }),
+              new InventoryItem({ id: 'tool-screwdriver-1', defId: 'tool.screwdriver', name: 'Screwdriver Set', width: 1, height: 1, traits: [] }),
 
-                  // Containers
-                  new InventoryItem({ id: 'container-backpack-1', defId: 'container.backpack', name: 'Hiking Backpack', width: 3, height: 4, equippableSlot: 'backpack', containerGrid: { width: 8, height: 10 }, traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER] }),
+              // Containers
+              new InventoryItem({ id: 'container-backpack-1', defId: 'container.backpack', name: 'Hiking Backpack', width: 3, height: 4, equippableSlot: 'backpack', containerGrid: { width: 8, height: 10 }, traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER] }),
 
-                  // Food
-                  new InventoryItem({ id: 'food-canned-1', defId: 'food.canned', name: 'Canned Beans', width: 1, height: 1, stackCount: 4, stackMax: 6, traits: [ItemTrait.STACKABLE] }),
-                  new InventoryItem({ id: 'food-water-1', defId: 'food.water', name: 'Water Bottle', width: 1, height: 2, stackCount: 2, stackMax: 4, traits: [ItemTrait.STACKABLE] })
-                ];
+              // Food
+              new InventoryItem({ id: 'food-canned-1', defId: 'food.canned', name: 'Canned Beans', width: 1, height: 1, stackCount: 4, stackMax: 6, traits: [ItemTrait.STACKABLE] }),
+              new InventoryItem({ id: 'food-water-1', defId: 'food.water', name: 'Water Bottle', width: 1, height: 2, stackCount: 2, stackMax: 4, traits: [ItemTrait.STACKABLE] })
+            ];
 
-                // Add items to ground randomly
-                for (const item of groundItems) {
-                  manager.groundContainer.addItem(item);
-                }
+            // Add items to ground randomly
+            for (const item of groundItems) {
+              manager.groundContainer.addItem(item);
+            }
 
-                addToConsole(`✓ Added ${groundItems.length} diverse items to ground`, 'success');
+            addToConsole(`✓ Added ${groundItems.length} diverse items to ground`, 'success');
 
-                // Test Phase 4 features
-                addToConsole('--- Phase 4 Ground Management Features ---', 'info');
+            // Test Phase 4 features
+            addToConsole('--- Phase 4 Ground Management Features ---', 'info');
 
-                // 1. Show ground statistics before organization
-                const beforeStats = manager.getGroundStatistics();
-                addToConsole(`Before organization: ${beforeStats.totalItems} items in ${beforeStats.categories.length} categories`, 'info');
-                beforeStats.categoryBreakdown.forEach(cat => {
-                  addToConsole(`  ${cat.category}: ${cat.items} items (${cat.stacks} total count)`, 'log');
-                });
+            // 1. Show ground statistics before organization
+            const beforeStats = manager.getGroundStatistics();
+            addToConsole(`Before organization: ${beforeStats.totalItems} items in ${beforeStats.categories.length} categories`, 'info');
+            beforeStats.categoryBreakdown.forEach(cat => {
+              addToConsole(`  ${cat.category}: ${cat.items} items (${cat.stacks} total count)`, 'log');
+            });
 
-                // 2. Organize ground items by category
-                addToConsole('Organizing ground items by category...', 'info');
-                manager.organizeGroundItems();
-                addToConsole('✓ Ground items organized by category', 'success');
+            // 2. Organize ground items by category
+            addToConsole('Organizing ground items by category...', 'info');
+            manager.organizeGroundItems();
+            addToConsole('✓ Ground items organized by category', 'success');
 
-                // 3. Show statistics after organization
-                const afterStats = manager.getGroundStatistics();
-                addToConsole(`After organization - Grid utilization: ${Math.round((afterStats.gridUtilization.used / afterStats.gridUtilization.total) * 100)}%`, 'success');
+            // 3. Show statistics after organization
+            const afterStats = manager.getGroundStatistics();
+            addToConsole(`After organization - Grid utilization: ${Math.round((afterStats.gridUtilization.used / afterStats.gridUtilization.total) * 100)}%`, 'success');
 
-                // 4. Test category-based pickup
-                addToConsole('Testing quick pickup of ammunition...', 'info');
-                const pickupResult = manager.quickPickupByCategory('ammunition');
-                addToConsole(`✓ Picked up ${pickupResult.collected} ammo items, ${pickupResult.failed} failed`, 'success');
+            // 4. Test category-based pickup
+            addToConsole('Testing quick pickup of ammunition...', 'info');
+            const pickupResult = manager.quickPickupByCategory('ammunition');
+            addToConsole(`✓ Picked up ${pickupResult.collected} ammo items, ${pickupResult.failed} failed`, 'success');
 
-                // 5. Test valuable item pickup
-                addToConsole('Testing pickup of valuable items (weapons)...', 'info');
-                const valuableResult = manager.quickPickupValuables();
-                addToConsole(`✓ Picked up ${valuableResult.collected} valuable items`, 'success');
+            // 5. Test valuable item pickup
+            addToConsole('Testing pickup of valuable items (weapons)...', 'info');
+            const valuableResult = manager.quickPickupValuables();
+            addToConsole(`✓ Picked up ${valuableResult.collected} valuable items`, 'success');
 
-                // 6. Test search functionality
-                addToConsole('Testing search for "flashlight"...', 'info');
-                const searchResults = manager.searchGroundItems('flashlight');
-                addToConsole(`✓ Found ${searchResults.length} items matching "flashlight"`, 'success');
+            // 6. Test search functionality
+            addToConsole('Testing search for "flashlight"...', 'info');
+            const searchResults = manager.searchGroundItems('flashlight');
+            addToConsole(`✓ Found ${searchResults.length} items matching "flashlight"`, 'success');
 
-                // 7. Show final ground state
-                const finalStats = manager.getGroundStatistics();
-                addToConsole(`Final ground state: ${finalStats.totalItems} items remaining`, 'info');
+            // 7. Show final ground state
+            const finalStats = manager.getGroundStatistics();
+            addToConsole(`Final ground state: ${finalStats.totalItems} items remaining`, 'info');
 
-                // Make manager globally available for testing
-                window.testGroundManager = manager;
-                window.testGroundItems = groundItems;
+            // Make manager globally available for testing
+            window.testGroundManager = manager;
+            window.testGroundItems = groundItems;
 
-                addToConsole('Phase 4 demo complete! Available commands:', 'success');
-                addToConsole('• testGroundManager.organizeGroundItems() - Reorganize ground', 'log');
-                addToConsole('• testGroundManager.quickPickupByCategory("weapons") - Pick up weapons', 'log');
-                addToConsole('• testGroundManager.quickPickupValuables() - Pick up valuable items', 'log');
-                addToConsole('• testGroundManager.searchGroundItems("medical") - Search items', 'log');
-                addToConsole('• testGroundManager.getGroundStatistics() - Get stats', 'log');
-                addToConsole('• testGroundManager.compactGroundItems() - Compact layout', 'log');
+            addToConsole('Phase 4 demo complete! Available commands:', 'success');
+            addToConsole('• testGroundManager.organizeGroundItems() - Reorganize ground', 'log');
+            addToConsole('• testGroundManager.quickPickupByCategory("weapons") - Pick up weapons', 'log');
+            addToConsole('• testGroundManager.quickPickupValuables() - Pick up valuable items', 'log');
+            addToConsole('• testGroundManager.searchGroundItems("medical") - Search items', 'log');
+            addToConsole('• testGroundManager.getGroundStatistics() - Get stats', 'log');
+            addToConsole('• testGroundManager.compactGroundItems() - Compact layout', 'log');
 
-              } catch (error) {
-                addToConsole(`Error in Phase 4 demo: ${error.message}`, 'error');
-                console.error('Phase 4 Demo Error:', error);
-              }
-              break;
+          } catch (error) {
+            addToConsole(`Error in Phase 4 demo: ${error.message}`, 'error');
+            console.error('Phase 4 Demo Error:', error);
+          }
+          break;
 
         case 'spawn':
           if (!parts[1]) { // Use parts[1] to check for the item type argument
@@ -1556,7 +1556,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             const defIdMap = {
               'knife': 'weapon.knife',
               'bat': 'weapon.baseball_bat',
-              'pistol': 'weapon.pistol',
+              'pistol': 'weapon.9mmPistol',
               'rifle': 'weapon.rifle',
               'backpack': 'backpack.school',
               'school-backpack': 'backpack.school',
@@ -1572,7 +1572,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               'vest': 'clothing.tactical_vest',
               'jeans': 'clothing.jeans',
               'cargo-pants': 'clothing.cargo_pants',
-              'flashlight': 'tool.flashlight'
+              'flashlight': 'tool.smallflashlight'
             };
 
             const defId = defIdMap[itemType] || itemType;
@@ -1730,7 +1730,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                   className="bg-gray-700 border-gray-600 text-white text-sm h-8"
                 />
               </div>
-              <Button 
+              <Button
                 onClick={handleSpawnItem}
                 className="bg-blue-600 hover:bg-blue-700 h-8"
               >

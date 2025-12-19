@@ -2,31 +2,6 @@ Universal Development Guidelines
 
 Do not make any code changes without expressly being told to. Do not change any UI layouts unless specifically instructed to do so. Especially do not change any inventory grid formating or layouts.
 
-## 🧪 Testing & Debugging Protocol
-
-**All testing must use the in-game Dev Console (`~` key), NOT the browser console.**
-
-### Why This Matters:
-- **Browser console**: Has access to `window` scope but NOT to game-specific contexts
-- **In-game console**: Has full access to game state, managers, and React contexts
-- **Timing issues**: Browser console may try to access objects before initialization completes
-
-### Console Testing Rules:
-1. **Always use `~` key** to open the in-game dev console for testing game systems
-2. **Verify managers exist** before testing: `window.inventoryManager`, `window.gameMap`, etc.
-3. **Check initialization state** if objects are undefined: Game may still be loading
-4. **Use dev-only globals** exposed in development builds (these are wrapped in `process.env.NODE_ENV === 'development'`)
-
-### Example Testing Pattern:
-```javascript
-// ✅ CORRECT - Use in-game console
-// Press ~ key, then:
-window.inventoryManager.getContainer('ground');
-window.inv.equipItem(someItem, 'backpack');
-
-// ❌ WRONG - Browser console won't have access to game context
-// This will fail or show undefined
-``` 
 
 ## 💥 Blast Radius Rules - Critical vs Non-Critical Systems
 
@@ -285,9 +260,9 @@ Before adding new features with assets or file access:
 ### Examples:
 ```
 ✅ CORRECT:
-- Pistol (2×1): Image is landscape/horizontal
+- 9mm Pistol (2×2): Image is square
 - Rifle (4×1): Image is landscape/horizontal  
-- Knife (2×1): Image is landscape/horizontal
+- Small Flashlight (2×1): Image is landscape/horizontal
 - Baseball bat (3×1): Image is landscape/horizontal
 
 ❌ WRONG:

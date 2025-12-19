@@ -4,9 +4,9 @@ import ClothingContainerPanel from "./ClothingContainerPanel";
 
 export default function UnifiedClothingPanel() {
   console.log('[UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====');
-  
+
   const { getEquippedBackpackContainer, inventoryRef, inventoryVersion } = useInventory();
-  
+
   console.log('[UnifiedClothingPanel] Context values received:', {
     hasInventoryRef: !!inventoryRef,
     hasGetEquippedBackpack: !!getEquippedBackpackContainer,
@@ -49,11 +49,11 @@ export default function UnifiedClothingPanel() {
   const backpackContainerId = backpackContainer?.id || null;
 
   // Extract pocket container IDs for upper and lower body
-  const upperBodyPocketIds = upperBodyItem?.isContainer?.() 
+  const upperBodyPocketIds = upperBodyItem?.isContainer?.()
     ? (upperBodyItem.getPocketContainerIds?.() || [])
     : [];
 
-  const lowerBodyPocketIds = lowerBodyItem?.isContainer?.() 
+  const lowerBodyPocketIds = lowerBodyItem?.isContainer?.()
     ? (lowerBodyItem.getPocketContainerIds?.() || [])
     : [];
 
@@ -64,7 +64,7 @@ export default function UnifiedClothingPanel() {
   console.log('[UnifiedClothingPanel] - _pocketGridsData:', upperBodyItem?._pocketGridsData);
   console.log('[UnifiedClothingPanel] - pocketGrids:', upperBodyItem?.pocketGrids);
   console.log('[UnifiedClothingPanel] - pocketGrids.length:', upperBodyItem?.pocketGrids?.length);
-  
+
   console.log('[UnifiedClothingPanel] Lower body item:', lowerBodyItem?.name || 'none');
   console.log('[UnifiedClothingPanel] - isContainer():', lowerBodyItem?.isContainer?.());
   console.log('[UnifiedClothingPanel] - getPocketContainerIds():', lowerBodyPocketIds);
@@ -90,7 +90,7 @@ export default function UnifiedClothingPanel() {
 
   return (
     <div className="w-1/2 border-r border-border flex flex-col h-full" data-testid="unified-clothing-panel">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* Upper Body Section */}
         <ClothingContainerPanel
           title="Upper Body"

@@ -48,9 +48,9 @@ if (process.env.NODE_ENV === 'development') {
 // Enhanced item templates with equipment and container properties
 const ITEM_TEMPLATES = {
   // Weapons (equippable)
-  'weapon.pistol': {
-    width: 2, height: 1, condition: 100,
-    equippableSlot: 'pistol',
+  'weapon.9mmPistol': {
+    width: 2, height: 2, condition: 100,
+    equippableSlot: 'handgun',
     attachmentSlots: [
       { name: 'muzzle', compatibleTypes: ['suppressor', 'compensator'] },
       { name: 'rail', compatibleTypes: ['flashlight', 'laser'] }
@@ -105,7 +105,7 @@ const ITEM_TEMPLATES = {
   },
 
   // Tools (some equippable)
-  'tool.flashlight': {
+  'tool.smallflashlight': {
     width: 2, height: 1, condition: 100,
     equippableSlot: 'flashlight'
   },
@@ -144,13 +144,13 @@ export function createItem(type, subtype, options = {}) {
   // Handle case where subtype might be an object (extract actual subtype)
   const actualSubtype = typeof subtype === 'string' ? subtype : subtype?.subtype || 'generic';
   const defId = `${type}.${actualSubtype}`;
-  
+
   // Try to use ItemDefs factory first for consistent imageId
   const item = createItemFromDef(defId, options);
   if (item) {
     return item;
   }
-  
+
   // Fallback to legacy template-based creation if no def exists
   const templateKey = `${type}.${actualSubtype}`;
   const template = ITEM_TEMPLATES[templateKey] || {};

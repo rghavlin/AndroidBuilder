@@ -160,11 +160,12 @@ export const ItemDefs = {
   },
 
   // Firearms (no degradation)
-  'weapon.pistol': {
-    id: 'weapon.pistol',
+  'weapon.9mmPistol': {
+    id: 'weapon.9mmPistol',
     name: '9mm Pistol',
+    imageId: '9mm pistol',
     width: 2,
-    height: 1,
+    height: 2,
     traits: [ItemTrait.EQUIPPABLE],
     equippableSlot: EquipmentSlot.HANDGUN
   },
@@ -188,10 +189,10 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.LONG_GUN
   },
 
-  // Flashlight
-  'tool.flashlight': {
-    id: 'tool.flashlight',
-    name: 'Flashlight',
+  'tool.smallflashlight': {
+    id: 'tool.smallflashlight',
+    name: 'Small Flashlight',
+    imageId: 'smallflashlight',
     width: 2,
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
@@ -234,7 +235,7 @@ export const ItemDefs = {
   'ammo.9mm': {
     id: 'ammo.9mm',
     name: '9mm Ammo',
-    imageId: 'ammo', // No extension - loader will append .png
+    imageId: '9mmAmmo', // No extension - loader will append .png
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE],
