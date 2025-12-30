@@ -167,97 +167,17 @@ export default function UniversalGrid({
     onSlotClick?.(x, y);
   };
 
-  const handleItemContextMenu = async (item: any, x: number, y: number, event: React.MouseEvent) => {
-    event.preventDefault(); // Prevent browser context menu
-
-    console.debug('[UniversalGrid] Right-click on item:', {
-      name: item?.name,
-      instanceId: item?.instanceId,
-      isContainer: item?.isContainer?.(),
-      canOpen: item ? canOpenContainer(item) : false,
-      isSelected: selectedItem && item && item.instanceId === selectedItem.item.instanceId
-    });
-
-    // If an item is selected, right-click rotates it
+  const handleItemContextMenu = (item: any, x: number, y: number, event: React.MouseEvent) => {
+    // If an item is selected, right-click on it rotates it
     if (selectedItem && item && item.instanceId === selectedItem.item.instanceId) {
+      event.preventDefault();
       console.debug('[UniversalGrid] Right-click on selected item - rotating');
       rotateSelected();
       return;
     }
 
-    // Right-click opens container if applicable
-    console.debug('[UniversalGrid] Checking if item can be opened:', item?.name);
-    if (item && canOpenContainer(item)) {
-      try {
-        console.debug('[UniversalGrid] Opening container item:', {
-          name: item.name,
-          instanceId: item.instanceId,
-          hasContainerGrid: !!item.containerGrid,
-          hasContainerGridData: !!item._containerGridData,
-          containerGridData: item._containerGridData
-        });
-
-        // Force container initialization if needed
-        if (item.isContainer() && !item.containerGrid) {
-          console.debug('[UniversalGrid] Container grid not initialized, initializing now:', item.name);
-          const result = item.initializeContainerGrid();
-          console.debug('[UniversalGrid] Initialization result:', result);
-        }
-
-        const itemContainer = item.getContainerGrid();
-
-        // 1. Standard Container (Backpack)
-        if (itemContainer) {
-          console.log('[UniversalGrid] Opening container via right-click:', item.name, 'ID:', itemContainer.id);
-          // Register container with InventoryManager if not already registered
-          const manager = (window as any).__inventoryManager;
-          if (manager && !manager.getContainer(itemContainer.id)) {
-            console.debug('[UniversalGrid] Registering container:', itemContainer.id);
-            manager.addContainer(itemContainer);
-          }
-          openContainer(itemContainer.id);
-          return;
-        }
-
-        // 2. Clothing with Pockets
-        // If we get here, it means canOpenContainer was true, but getContainerGrid() was null.
-        if (item.getPocketContainerIds) {
-          const pocketIds = item.getPocketContainerIds();
-          if (pocketIds && pocketIds.length > 0) {
-            console.log('[UniversalGrid] Opening clothing item with pockets:', item.name);
-            // Use a special prefix to tell InventoryPanel to treat this as a clothing item opener
-            openContainer(`clothing:${item.instanceId}`);
-            return;
-          }
-        }
-
-        console.error('[UniversalGrid] Failed to get container grid for:', item.name, {
-          hasContainerGridData: !!item._containerGridData,
-          containerGridValue: item.containerGrid,
-          containerGridDataContent: item._containerGridData
-        });
-        return;
-
-        // 2. Clothing with Pockets
-        // If we get here, it means canOpenContainer was true, but getContainerGrid() was null.
-        // This likely means it's a clothing item with pockets.
-        if (item.getPocketContainerIds) {
-          const pocketIds = item.getPocketContainerIds();
-          if (pocketIds && pocketIds.length > 0) {
-            console.log('[UniversalGrid] Opening clothing item with pockets:', item.name);
-            // Use a special prefix to tell InventoryPanel to treat this as a clothing item opener
-            openContainer(`clothing:${item.instanceId}`);
-            return;
-          }
-        }
-
-        console.warn('[UniversalGrid] Item allowed to open but no container/pockets found:', item.name);
-      } catch (error) {
-        console.error('[UniversalGrid] Error getting container grid:', item.name, error);
-      }
-    } else if (item) {
-      console.debug('[UniversalGrid] Item cannot be opened (not a container or not permitted):', item.name);
-    }
+    // Do NOT call event.preventDefault() here.
+    // This allows the Radix ContextMenu to trigger for the item.
   };
 
   const handleGridContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {

@@ -122,13 +122,22 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // Phase 5H: Close container window if it's open (e.g. equipping a backpack from ground)
-    if (item.containerGrid && item.containerGrid.id) {
-      setOpenContainers(prev => {
-        const next = new Set(prev);
-        next.delete(item.containerGrid.id);
-        return next;
-      });
-    }
+    setOpenContainers(prev => {
+      if (prev.size === 0) return prev;
+      const next = new Set(prev);
+      let changed = false;
+
+      if (item.containerGrid?.id && next.delete(item.containerGrid.id)) {
+        changed = true;
+      }
+
+      const virtualId = `clothing:${item.instanceId}`;
+      if (next.delete(virtualId)) {
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
 
     const result = inventoryRef.current.equipItem(item, slot);
     if (result.success) {
@@ -189,10 +198,23 @@ export const InventoryProvider = ({ children, manager }) => {
   }, []);
 
   const openContainer = useCallback((containerOrId) => {
-    // Accept either a container object or an id
-    const cid = typeof containerOrId === 'string'
-      ? containerOrId
-      : containerOrId?.id;
+    // 1. Resolve ID and potential container/item object
+    let cid;
+    let containerObj = null;
+    let itemObj = null;
+
+    if (typeof containerOrId === 'string') {
+      cid = containerOrId;
+    } else if (containerOrId && typeof containerOrId === 'object') {
+      // Check if it's an Item instance (has getPocketContainers) or Container instance (has id)
+      if (typeof containerOrId.getPocketContainers === 'function') {
+        cid = `clothing:${containerOrId.instanceId}`;
+        itemObj = containerOrId;
+      } else {
+        cid = containerOrId.id;
+        containerObj = containerOrId;
+      }
+    }
 
     if (!cid) {
       if (import.meta?.env?.DEV) {
@@ -201,10 +223,23 @@ export const InventoryProvider = ({ children, manager }) => {
       return;
     }
 
-    // Ensure container is registered in the manager OR is a virtual clothing container
+    // 2. Handle registration if needed (ground backpacks, clothing pockets, etc.)
     const isVirtual = cid.startsWith('clothing:');
-    const container = inventoryRef.current.getContainer(cid);
+    let container = inventoryRef.current.getContainer(cid);
 
+    if (itemObj && isVirtual) {
+      // For clothing items, ensure all pockets are registered so actions (split, move) work
+      console.debug('[InventoryContext] Registering pockets for:', itemObj.name);
+      itemObj.getPocketContainers().forEach(pocket => {
+        inventoryRef.current.addContainer(pocket);
+      });
+    } else if (!container && containerObj && !isVirtual) {
+      console.debug('[InventoryContext] Auto-registering container:', cid);
+      inventoryRef.current.addContainer(containerObj);
+      container = containerObj;
+    }
+
+    // 3. Open the container if it exists (or is a virtual clothing container)
     if (container || isVirtual) {
       console.debug('[InventoryContext] Opening container:', cid, isVirtual ? '(Virtual)' : '');
       setOpenContainers(prev => {
@@ -215,7 +250,7 @@ export const InventoryProvider = ({ children, manager }) => {
     } else {
       console.warn('[InventoryContext] Cannot open unregistered container:', cid);
     }
-  }, [inventoryVersion]); // Dependency on inventoryVersion to ensure we get the latest manager state if it changes
+  }, [inventoryVersion]);
 
   const closeContainer = useCallback((containerId) => {
     setOpenContainers(prev => {
@@ -234,6 +269,13 @@ export const InventoryProvider = ({ children, manager }) => {
     if (!item || !item.instanceId) {
       console.warn('[InventoryContext] Cannot select without valid item');
       return false;
+    }
+
+    // Safety: If an item is already selected, return it to its origin first
+    // This prevents items from vanishing when switching selections
+    if (selectedItem) {
+      console.debug('[InventoryContext] Already carrying an item, clearing before new selection');
+      clearSelected();
     }
 
     console.debug('[InventoryContext] Select item:', {
@@ -337,13 +379,22 @@ export const InventoryProvider = ({ children, manager }) => {
     console.debug('[InventoryContext] Equipping selected item:', item.name, 'to slot:', targetSlot);
 
     // Phase 5H: Close container window if it's open
-    if (item.containerGrid && item.containerGrid.id) {
-      setOpenContainers(prev => {
-        const next = new Set(prev);
-        next.delete(item.containerGrid.id);
-        return next;
-      });
-    }
+    setOpenContainers(prev => {
+      if (prev.size === 0) return prev;
+      const next = new Set(prev);
+      let changed = false;
+
+      if (item.containerGrid?.id && next.delete(item.containerGrid.id)) {
+        changed = true;
+      }
+
+      const virtualId = `clothing:${item.instanceId}`;
+      if (next.delete(virtualId)) {
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
 
     const result = inventoryRef.current.equipItem(item, targetSlot);
 
@@ -470,12 +521,17 @@ export const InventoryProvider = ({ children, manager }) => {
           setInventoryVersion(prev => prev + 1);
           return { success: true, stacked: true };
         } else {
-          // Partial stack - update selected item state with new count
-          console.debug('[InventoryContext] Partial stack - remaining count:', item.stackCount);
-          setSelectedItem(prev => ({
-            ...prev,
-            item: { ...item } // Update with new count
-          }));
+          // Partial stack - The "Nothing Selected" rule: 
+          // Put the remainder back in its original slot and clear selection.
+          console.debug('[InventoryContext] Partial stack - returning remainder to origin:', item.stackCount);
+
+          if (originContainer) {
+            // Restore original rotation (items can't be rotated while stacked anyway)
+            item.rotation = originalRotation;
+            originContainer.placeItemAt(item, originalX, originalY);
+          }
+
+          setSelectedItem(null);
           setDragVersion(prev => prev + 1);
           setInventoryVersion(prev => prev + 1);
           return { success: true, stacked: true, partial: true };

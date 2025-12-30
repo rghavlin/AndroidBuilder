@@ -44,15 +44,6 @@ export const ItemDefs = {
   },
 
   // Clothing - Upper Body
-  'clothing.tshirt': {
-    id: 'clothing.tshirt',
-    name: 'T-Shirt',
-    width: 2,
-    height: 2,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.UPPER_BODY,
-    encumbranceTier: EncumbranceTier.LIGHT
-  },
 
   'clothing.pocket_t': {
     id: 'clothing.pocket_t',
@@ -78,37 +69,9 @@ export const ItemDefs = {
     pocketLayoutId: 'work_shirt'
   },
 
-  'clothing.jacket': {
-    id: 'clothing.jacket',
-    name: 'Jacket',
-    width: 2,
-    height: 3,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.UPPER_BODY,
-    encumbranceTier: EncumbranceTier.MEDIUM
-  },
 
-  'clothing.tactical_vest': {
-    id: 'clothing.tactical_vest',
-    name: 'Tactical Vest',
-    width: 2,
-    height: 3,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
-    equippableSlot: EquipmentSlot.UPPER_BODY,
-    encumbranceTier: EncumbranceTier.HEAVY,
-    containerGrid: { width: 4, height: 2 }
-  },
 
   // Clothing - Lower Body
-  'clothing.jeans': {
-    id: 'clothing.jeans',
-    name: 'Jeans',
-    width: 2,
-    height: 2,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.LOWER_BODY,
-    encumbranceTier: EncumbranceTier.LIGHT
-  },
 
   'clothing.sweatpants': {
     id: 'clothing.sweatpants',
@@ -148,16 +111,6 @@ export const ItemDefs = {
     condition: 100
   },
 
-  'weapon.baseball_bat': {
-    id: 'weapon.baseball_bat',
-    name: 'Baseball Bat',
-    imageId: 'woodbat', // No extension - loader will append .png
-    width: 3,
-    height: 1,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
-    equippableSlot: EquipmentSlot.MELEE,
-    condition: 100
-  },
 
   // Firearms (no degradation)
   'weapon.9mmPistol': {
@@ -170,14 +123,6 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.HANDGUN
   },
 
-  'weapon.rifle': {
-    id: 'weapon.rifle',
-    name: 'Rifle',
-    width: 4,
-    height: 1,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.LONG_GUN
-  },
 
   'weapon.sniper_rifle': {
     id: 'weapon.sniper_rifle',

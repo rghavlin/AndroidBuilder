@@ -37,6 +37,7 @@ export default function GridSlot({
   onDrop,
   onDragOver,
   onDragStart,
+  onContextMenu,
   onMouseEnter,
   onMouseLeave,
   children,
@@ -62,7 +63,7 @@ export default function GridSlot({
   return (
     <TooltipProvider delayDuration={300}>
       <ItemContextMenu
-        item={isTopLeft ? item : null}
+        item={item}
         tooltipContent={tooltipContent}
       >
         <div
@@ -94,6 +95,7 @@ export default function GridSlot({
           onDrop={onDrop}
           onDragOver={onDragOver}
           onDragStart={handleDragStart}
+          onContextMenu={onContextMenu}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           data-testid={testId}

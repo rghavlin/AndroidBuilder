@@ -285,10 +285,10 @@ const DevConsole = ({ isOpen, onClose }) => {
                 // Create equipment items
                 const rifle = new InventoryItem({
                   id: 'demo-rifle',
-                  name: 'Tactical Rifle',
-                  defId: 'weapon.rifle',
-                  width: 1,
-                  height: 4,
+                  name: 'Sniper Rifle',
+                  defId: 'weapon.sniper_rifle',
+                  width: 5,
+                  height: 2,
                   equippableSlot: 'long_gun',
                   traits: [ItemTrait.EQUIPPABLE]
                 });
@@ -1452,9 +1452,9 @@ const DevConsole = ({ isOpen, onClose }) => {
             // Create diverse ground items for testing organization
             const groundItems = [
               // Weapons
-              new InventoryItem({ id: 'ground-rifle-1', name: 'Assault Rifle', defId: 'weapon.rifle', width: 1, height: 4, equippableSlot: 'long_gun', traits: [ItemTrait.EQUIPPABLE] }),
+              new InventoryItem({ id: 'ground-rifle-1', name: 'Sniper Rifle', defId: 'weapon.sniper_rifle', width: 5, height: 2, equippableSlot: 'long_gun', traits: [ItemTrait.EQUIPPABLE] }),
               new InventoryItem({ id: 'ground-pistol-1', name: '9mm Pistol', defId: 'weapon.9mmPistol', width: 2, height: 2, equippableSlot: 'handgun', traits: [ItemTrait.EQUIPPABLE] }),
-              new InventoryItem({ id: 'ground-knife-1', name: 'Combat Knife', defId: 'weapon.melee', width: 1, height: 2, equippableSlot: 'melee', traits: [ItemTrait.EQUIPPABLE] }),
+              new InventoryItem({ id: 'ground-knife-1', name: 'Combat Knife', defId: 'weapon.knife', width: 2, height: 1, equippableSlot: 'melee', traits: [ItemTrait.EQUIPPABLE] }),
 
               // Ammunition
               new InventoryItem({ id: 'ammo-9mm-1', defId: 'ammo.9mm', name: '9mm Ammo', width: 1, height: 1, stackCount: 30, stackMax: 50, traits: [ItemTrait.STACKABLE] }),
@@ -1555,9 +1555,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             // Map common aliases to ItemDefs keys
             const defIdMap = {
               'knife': 'weapon.knife',
-              'bat': 'weapon.baseball_bat',
               'pistol': 'weapon.9mmPistol',
-              'rifle': 'weapon.rifle',
               'backpack': 'backpack.school',
               'school-backpack': 'backpack.school',
               'hiking-backpack': 'backpack.hiking',
@@ -1567,11 +1565,8 @@ const DevConsole = ({ isOpen, onClose }) => {
               'bandage': 'medical.bandage',
               'ammo': 'ammo.9mm',
               'food': 'food.cannedsoup',
-              'tshirt': 'clothing.tshirt',
-              'jacket': 'clothing.jacket',
-              'vest': 'clothing.tactical_vest',
-              'jeans': 'clothing.jeans',
-              'cargo-pants': 'clothing.cargo_pants',
+              'tshirt': 'clothing.pocket_t',
+              'cargo-pants': 'clothing.cargopants',
               'flashlight': 'tool.smallflashlight'
             };
 

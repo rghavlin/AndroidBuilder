@@ -56,16 +56,6 @@ const ITEM_TEMPLATES = {
       { name: 'rail', compatibleTypes: ['flashlight', 'laser'] }
     ]
   },
-  'weapon.rifle': {
-    width: 1, height: 4, condition: 100,
-    equippableSlot: 'rifle',
-    attachmentSlots: [
-      { name: 'muzzle', compatibleTypes: ['suppressor', 'compensator', 'flash-hider'] },
-      { name: 'optic', compatibleTypes: ['scope', 'red-dot', 'iron-sights'] },
-      { name: 'rail', compatibleTypes: ['flashlight', 'laser', 'grip'] },
-      { name: 'stock', compatibleTypes: ['adjustable-stock', 'fixed-stock'] }
-    ]
-  },
   'weapon.knife': {
     width: 1, height: 2, condition: 100,
     equippableSlot: 'meleeWeapon'

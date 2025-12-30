@@ -44,7 +44,7 @@ export function SplitDialog({ isOpen, onClose, item }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[325px] bg-[#1a1a1a] border-[#333] text-white">
+            <DialogContent className="sm:max-w-[325px] bg-[#1a1a1a] border-[#333] text-white z-[10001]">
                 <DialogHeader>
                     <DialogTitle>Split Stack</DialogTitle>
                 </DialogHeader>
