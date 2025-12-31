@@ -28,7 +28,11 @@ export const ItemCategory = {
   WEAPON: 'weapon',
   MEDICAL: 'medical',
   AMMO: 'ammo',
-  CLOTHING: 'clothing'
+  CLOTHING: 'clothing',
+  SUPPRESSOR: 'suppressor',
+  LASER_SIGHT: 'laser_sight',
+  RIFLE_SCOPE: 'rifle_scope',
+  CHOKE: 'choke'
 };
 
 // Trait flags

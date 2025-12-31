@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useMemo, useEffect } from 'react';
+import { ItemTrait } from '../game/inventory/traits.js';
 
 const InventoryContext = createContext();
 
@@ -132,7 +133,8 @@ export const InventoryProvider = ({ children, manager }) => {
       }
 
       const virtualId = `clothing:${item.instanceId}`;
-      if (next.delete(virtualId)) {
+      const weaponId = `weapon:${item.instanceId}`;
+      if (next.delete(virtualId) || next.delete(weaponId)) {
         changed = true;
       }
 
@@ -206,11 +208,18 @@ export const InventoryProvider = ({ children, manager }) => {
     if (typeof containerOrId === 'string') {
       cid = containerOrId;
     } else if (containerOrId && typeof containerOrId === 'object') {
-      // Check if it's an Item instance (has getPocketContainers) or Container instance (has id)
-      if (typeof containerOrId.getPocketContainers === 'function') {
+      // 1. Check for weapon modification first (more specific)
+      if (containerOrId.attachmentSlots) {
+        cid = `weapon:${containerOrId.instanceId}`;
+        itemObj = containerOrId;
+      }
+      // 2. Check for clothing pockets
+      else if (typeof containerOrId.getPocketContainers === 'function' && containerOrId.hasTrait(ItemTrait.CONTAINER)) {
         cid = `clothing:${containerOrId.instanceId}`;
         itemObj = containerOrId;
-      } else {
+      }
+      // 3. Fallback to standard container
+      else {
         cid = containerOrId.id;
         containerObj = containerOrId;
       }
@@ -224,7 +233,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // 2. Handle registration if needed (ground backpacks, clothing pockets, etc.)
-    const isVirtual = cid.startsWith('clothing:');
+    const isVirtual = cid.startsWith('clothing:') || cid.startsWith('weapon:');
     let container = inventoryRef.current.getContainer(cid);
 
     if (itemObj && isVirtual) {
@@ -233,15 +242,21 @@ export const InventoryProvider = ({ children, manager }) => {
       itemObj.getPocketContainers().forEach(pocket => {
         inventoryRef.current.addContainer(pocket);
       });
+    } else if (itemObj && cid.startsWith('weapon:')) {
+      // For weapons, ensure all attachment slots are registered
+      console.debug('[InventoryContext] Registering attachment slots for:', itemObj.name);
+      itemObj.getAttachmentContainers().forEach(container => {
+        inventoryRef.current.addContainer(container);
+      });
     } else if (!container && containerObj && !isVirtual) {
       console.debug('[InventoryContext] Auto-registering container:', cid);
       inventoryRef.current.addContainer(containerObj);
       container = containerObj;
     }
 
-    // 3. Open the container if it exists (or is a virtual clothing container)
+    // 3. Open the container if it exists (or is a virtual container)
     if (container || isVirtual) {
-      console.debug('[InventoryContext] Opening container:', cid, isVirtual ? '(Virtual)' : '');
+      console.debug('[InventoryContext] Opening container:', cid, (isVirtual || cid.startsWith('weapon:')) ? '(Virtual)' : '');
       setOpenContainers(prev => {
         const next = new Set(prev);
         next.add(cid);

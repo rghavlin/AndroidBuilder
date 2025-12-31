@@ -8,23 +8,18 @@ import FloatingContainer from "./FloatingContainer";
 import ContainerGrid from "./ContainerGrid";
 import DragPreviewLayer from "./DragPreviewLayer";
 import UniversalGrid from "./UniversalGrid";
+import WeaponModPanel from "./WeaponModPanel";
 
 export default function InventoryPanel() {
   console.log('[InventoryPanel] ===== COMPONENT MOUNT/RENDER =====');
 
-  const { openContainers, closeContainer, getContainer, inventoryVersion, dragState } = useInventory();
-
-  console.log('[InventoryPanel] Context values:', {
-    openContainersCount: openContainers.size,
-    hasGetContainer: !!getContainer,
-    inventoryVersion
-  });
+  const { openContainers, closeContainer, getContainer, inventoryVersion, inventoryRef } = useInventory();
 
   // Clean up containers that no longer exist
   useEffect(() => {
     openContainers.forEach(containerId => {
-      // Skip cleanup for virtual clothing containers
-      if (containerId.startsWith('clothing:')) return;
+      // Skip cleanup for virtual containers
+      if (containerId.startsWith('clothing:') || containerId.startsWith('weapon:')) return;
 
       const container = getContainer(containerId);
       if (!container) {
@@ -43,24 +38,23 @@ export default function InventoryPanel() {
             <EquipmentSlots />
           </div>
 
-          {/* Inventory Grid Areas (Backpack/Clothing + Ground Items) - HORIZONTAL LAYOUT */}
+          {/* Inventory Grid Areas - HORIZONTAL LAYOUT */}
           <div className="flex-1 flex min-h-0">
-            {console.log('[InventoryPanel] About to render UnifiedClothingPanel')}
             <UnifiedClothingPanel />
             <GroundItemsGrid />
           </div>
         </div>
 
         {/* Floating Container Panels */}
-        {Array.from(openContainers).map(containerId => {
+        {Array.from(openContainers).map((containerId: any) => {
           // Case 1: Clothing Item (Virtual Container)
           if (containerId.startsWith('clothing:')) {
             const itemId = containerId.split(':')[1];
-            const ground = getContainer('ground');
-            // We only check ground for now as per "open on ground" rule, but could expand search if needed
-            const item = ground?.items?.get(itemId);
+            // Try ground first, then everywhere via manager
+            const found = inventoryRef.current?.findItem(itemId);
+            const item = found?.item;
 
-            if (!item) return null;
+            if (!item || !item.getPocketContainers) return null;
 
             const pocketIds = item.getPocketContainerIds ? item.getPocketContainerIds() : [];
             if (pocketIds.length === 0) return null;
@@ -74,31 +68,49 @@ export default function InventoryPanel() {
                 onClose={() => closeContainer(containerId)}
               >
                 <div className="p-2 space-y-2">
-                  {item.getPocketContainers().map((pocket: any, index: number) => {
-                    return (
-                      <div key={pocket.id} className="space-y-1">
-                        <UniversalGrid
-                          containerId={pocket.id} // ID still needed for key/events
-                          container={pocket}      // Pass direct object for rendering
-                          width={pocket.width}
-                          height={pocket.height}
-                          gridType="fixed"
-                          enableScroll={false}
-                          className="mx-auto"
-                        />
-                      </div>
-                    );
-                  })}
+                  {item.getPocketContainers().map((pocket: any) => (
+                    <div key={pocket.id} className="space-y-1">
+                      <UniversalGrid
+                        containerId={pocket.id}
+                        container={pocket}
+                        width={pocket.width}
+                        height={pocket.height}
+                        gridType="fixed"
+                        enableScroll={false}
+                        className="mx-auto"
+                      />
+                    </div>
+                  ))}
                 </div>
               </FloatingContainer>
             );
           }
 
-          // Case 2: Standard Container
+          // Case 2: Weapon Modification (Virtual Container)
+          if (containerId.startsWith('weapon:')) {
+            const itemId = containerId.split(':')[1];
+            const found = inventoryRef.current?.findItem(itemId);
+            const item = found?.item;
+
+            if (!item || !item.attachmentSlots) return null;
+
+            return (
+              <FloatingContainer
+                key={containerId}
+                id={containerId}
+                title={`Modify ${item.name}`}
+                isOpen={true}
+                onClose={() => closeContainer(containerId)}
+              >
+                <WeaponModPanel weapon={item} />
+              </FloatingContainer>
+            );
+          }
+
+          // Case 3: Standard Container
           const container = getContainer(containerId);
           if (!container) return null;
 
-          // ... standard container rendering ...
           return (
             <FloatingContainer
               key={containerId}

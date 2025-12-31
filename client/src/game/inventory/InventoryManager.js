@@ -263,7 +263,9 @@ export class InventoryManager {
       });
     }
 
-    if (!isContainer && !hasPockets) {
+    const hasAttachments = !!(item.attachmentSlots && item.attachmentSlots.length > 0);
+
+    if (!isContainer && !hasPockets && !hasAttachments) {
       return false;
     }
 
@@ -285,6 +287,11 @@ export class InventoryManager {
 
     // Specialty containers with openableWhenNested trait can always be opened
     if (item.isOpenableWhenNested()) {
+      return true;
+    }
+
+    // Weapon mod interface: Allow opening if it's a weapon with attachment slots
+    if (item.attachmentSlots && item.attachmentSlots.length > 0) {
       return true;
     }
 
@@ -497,6 +504,23 @@ export class InventoryManager {
         const item = found.item;
         const mainGrid = item.getContainerGrid?.();
         if (mainGrid) return mainGrid;
+      }
+    }
+
+    // 4. Try dynamic lookup for weapon attachments
+    // Pattern: [instanceId]-attachment-[slotId]
+    if (containerId && containerId.includes('-attachment-')) {
+      const parts = containerId.split('-attachment-');
+      if (parts.length === 2) {
+        const instanceId = parts[0];
+        const slotId = parts[1];
+
+        const found = this.findItem(instanceId);
+        if (found && found.item) {
+          const item = found.item;
+          const attachmentContainer = item.getAttachmentContainerById?.(slotId);
+          if (attachmentContainer) return attachmentContainer;
+        }
       }
     }
 

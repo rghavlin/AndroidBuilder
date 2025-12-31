@@ -120,8 +120,13 @@ export const ItemDefs = {
     imageId: '9mm pistol',
     width: 2,
     height: 2,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.HANDGUN
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.HANDGUN,
+    attachmentSlots: [
+      { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
+      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
+      { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO] }
+    ]
   },
 
 
@@ -131,8 +136,12 @@ export const ItemDefs = {
     imageId: 'sniper rifle', // Note: space in filename
     width: 5,
     height: 2,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.LONG_GUN
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.LONG_GUN,
+    attachmentSlots: [
+      { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
+      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE] }
+    ]
   },
 
   'tool.smallflashlight': {
@@ -162,20 +171,6 @@ export const ItemDefs = {
     }
   },
 
-  'container.lunchbox': {
-    id: 'container.lunchbox',
-    name: 'Lunch Box',
-    imageId: 'lunchbox', // No extension - loader will append .png
-    width: 2,
-    height: 1,
-    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
-    containerGrid: {
-      width: 3,
-      height: 2,
-      allowedCategories: [ItemCategory.FOOD]
-    }
-  },
-
   'container.ammo_box': {
     id: 'container.ammo_box',
     name: 'Ammo Box',
@@ -184,6 +179,47 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     containerGrid: { width: 4, height: 3 }
+  },
+
+  // Weapon Attachments
+  'attachment.suppressor': {
+    id: 'attachment.suppressor',
+    name: 'Suppressor',
+    imageId: 'suppressor',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.SUPPRESSOR]
+  },
+
+  'attachment.lasersight': {
+    id: 'attachment.lasersight',
+    name: 'Laser Sight',
+    imageId: 'lasersight',
+    width: 1,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.LASER_SIGHT]
+  },
+
+  'attachment.riflescope': {
+    id: 'attachment.riflescope',
+    name: 'Rifle Scope',
+    imageId: 'rifle_scope',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.RIFLE_SCOPE]
+  },
+
+  'attachment.9mm_magazine': {
+    id: 'attachment.9mm_magazine',
+    name: '9mm Magazine',
+    imageId: '9mm_magazine',
+    width: 1,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.AMMO]
   },
 
   // Stackable items

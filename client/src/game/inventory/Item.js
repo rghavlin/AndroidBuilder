@@ -81,6 +81,16 @@ export class Item {
     this.pocketGrids = [];
     this.categories = Array.isArray(categories) ? categories : [];
 
+    // Weapon Attachment properties
+    this.attachmentSlots = null;
+    this._attachmentGridsData = null; // For restoring from save
+    this.attachmentGrids = [];
+
+    // MIGRATION / INITIALIZATION: Load attachment slots from definition
+    if (this.defId && ItemDefs[this.defId]?.attachmentSlots) {
+      this.attachmentSlots = ItemDefs[this.defId].attachmentSlots;
+    }
+
     // Initialize container grid synchronously if data exists
     if (this._containerGridData) {
       // Defer initialization to avoid circular import issues
@@ -130,6 +140,10 @@ export class Item {
 
   isOpenableWhenNested() {
     return this.hasTrait(ItemTrait.OPENABLE_WHEN_NESTED);
+  }
+
+  isWeapon() {
+    return this.hasCategory(ItemCategory.WEAPON) || !!this.attachmentSlots;
   }
 
   hasCategory(category) {
@@ -327,34 +341,28 @@ export class Item {
       if (typeof Container === 'undefined') {
         console.error('[Item] CRITICAL: Container class is undefined! Circular dependency suspected.');
         return [];
-      } else {
-        // console.debug('[Item] Container class is available.');
       }
 
       // Priority 1: Restore from saved data (if loading game)
       if (this._pocketGridsData && this._pocketGridsData.length > 0) {
-        console.debug('[Item] Restoring pocket grids from save data for:', this.name);
         this.pocketGrids = this._pocketGridsData.map(gridDef => Container.fromJSON(gridDef));
         return this.pocketGrids;
       }
 
       // Priority 2: Create new from Layout
       if (this.pocketLayoutId) {
-        console.debug('[Item] Attempting layout init:', this.pocketLayoutId);
         const layout = PocketLayouts[this.pocketLayoutId];
         if (!layout) {
           console.warn('[Item] Invalid pocket layout ID:', this.pocketLayoutId);
           return [];
         }
 
-        console.debug('[Item] Initializing pockets from layout:', layout.name);
-
         this.pocketGrids = layout.pockets.map((pocketDef, index) => {
           const pocketId = `${this.instanceId}-pocket-${index + 1}`;
           return new Container({
             id: pocketId,
             type: 'dynamic-pocket',
-            name: pocketDef.name, // Use the nice name from layout ("Front Left")
+            name: pocketDef.name,
             width: pocketDef.width,
             height: pocketDef.height,
             autoExpand: false,
@@ -371,6 +379,52 @@ export class Item {
       console.error('[Item] Failed to initialize pocket grids', err);
       return [];
     }
+  }
+
+  getAttachmentContainers() {
+    // Return existing if already initialized
+    if (this.attachmentGrids.length > 0) {
+      return this.attachmentGrids;
+    }
+
+    try {
+      if (typeof Container === 'undefined') return [];
+
+      // Priority 1: Restore from saved data
+      if (this._attachmentGridsData && this._attachmentGridsData.length > 0) {
+        this.attachmentGrids = this._attachmentGridsData.map(gridDef => Container.fromJSON(gridDef));
+        return this.attachmentGrids;
+      }
+
+      // Priority 2: Create new from slots
+      if (this.attachmentSlots && this.attachmentSlots.length > 0) {
+        this.attachmentGrids = this.attachmentSlots.map(slot => {
+          const containerId = `${this.instanceId}-attachment-${slot.id}`;
+          return new Container({
+            id: containerId,
+            type: 'weapon-attachment',
+            name: slot.name,
+            width: 1,
+            height: 1,
+            autoExpand: false,
+            autoSort: false,
+            ownerId: this.instanceId,
+            allowedCategories: slot.allowedCategories
+          });
+        });
+        return this.attachmentGrids;
+      }
+
+      return [];
+    } catch (err) {
+      console.error('[Item] Failed to initialize attachment containers', err);
+      return [];
+    }
+  }
+
+  getAttachmentContainerById(slotId) {
+    const containers = this.getAttachmentContainers();
+    return containers.find(c => c.id.endsWith(`-attachment-${slotId}`));
   }
 
   // Serialization
@@ -417,6 +471,13 @@ export class Item {
       data.pocketGrids = this._pocketGridsData;
     }
 
+    // Serialize Attachments
+    if (this.attachmentGrids.length > 0) {
+      data.attachmentGrids = this.attachmentGrids.map(g => g.toJSON());
+    } else if (this._attachmentGridsData) {
+      data.attachmentGrids = this._attachmentGridsData;
+    }
+
     return data;
   }
 
@@ -429,7 +490,8 @@ export class Item {
     return new Item({
       ...data,
       _containerGridData: data.containerGrid,
-      _pocketGridsData: data.pocketGrids
+      _pocketGridsData: data.pocketGrids,
+      _attachmentGridsData: data.attachmentGrids
     });
   }
 

@@ -81,7 +81,13 @@ export function ItemContextMenu({
                                         }
                                     }
 
-                                    console.warn('[ItemContextMenu] canOpenContainer was true but no grid/pockets found for:', item.name);
+                                    // 3. Weapon modification
+                                    if (item.attachmentSlots && item.attachmentSlots.length > 0) {
+                                        openContainer(item); // Virtual container weapon:id
+                                        return;
+                                    }
+
+                                    console.warn('[ItemContextMenu] canOpenContainer was true but no grid/pockets/slots found for:', item.name);
                                 }}
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
