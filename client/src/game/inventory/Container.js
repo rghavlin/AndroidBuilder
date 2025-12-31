@@ -117,6 +117,39 @@ export class Container {
   }
 
   /**
+   * Validate if an item can be nested within this container
+   * Blocked if the item is a container with items inside (unless specialty container)
+   */
+  validateNesting(item) {
+    if (this.type === 'ground') return { valid: true };
+
+    // specialty containers with OPENABLE_WHEN_NESTED trait can always be nested
+    if (item.isOpenableWhenNested && item.isOpenableWhenNested()) {
+      return { valid: true };
+    }
+
+    // Check if backpack has items - can't place in another container if it does
+    const mainGrid = item.getContainerGrid?.();
+    if (mainGrid) {
+      const itemCount = mainGrid.getItemCount();
+      if (itemCount > 0) {
+        return { valid: false, reason: 'Empty container before storing' };
+      }
+    }
+
+    // Check if clothing has items in pockets
+    if (item.getPocketContainers) {
+      const pockets = item.getPocketContainers();
+      const hasItems = pockets.some(p => p.getItemCount() > 0);
+      if (hasItems) {
+        return { valid: false, reason: 'Empty pockets before storing' };
+      }
+    }
+
+    return { valid: true };
+  }
+
+  /**
    * Validate if an item can be placed at a specific position (for drag-and-drop)
    */
   validatePlacement(item, x, y) {
@@ -135,27 +168,10 @@ export class Container {
       height = isRotated ? item.width : item.height;
     }
 
-    // Phase 5H: Backpack placement rules
-    if (item.equippableSlot === 'backpack' && this.type === 'equipped-backpack') {
-      // Check if backpack has items - can't place in another backpack if it does
-      const itemCount = item.containerGrid?.getItemCount?.() || 0;
-      if (itemCount > 0) {
-        return { valid: false, reason: 'Empty backpack before storing in another backpack' };
-      }
-    }
-
-    // Phase 6: Clothing placement rules (prevent nesting filled clothing)
-    if ((item.equippableSlot === 'upper_body' || item.equippableSlot === 'lower_body') &&
-      (this.type === 'equipped-backpack' || this.type === 'dynamic-pocket')) {
-
-      // Check if clothing has items in pockets
-      if (item.getPocketContainers) {
-        const pockets = item.getPocketContainers();
-        const hasItems = pockets.some(p => p.getItemCount() > 0);
-        if (hasItems) {
-          return { valid: false, reason: 'Empty pockets before storing' };
-        }
-      }
+    // Consistently enforce nesting rules
+    const nestingResult = this.validateNesting(item);
+    if (!nestingResult.valid) {
+      return nestingResult;
     }
 
     // Phase 7: Category-based restrictions
@@ -276,7 +292,13 @@ export class Container {
     console.debug('[Container] Item:', item.name, 'instanceId:', itemId);
     console.debug('[Container] Target position:', `(${x}, ${y})`, 'Size:', `${width}x${height}`);
     console.debug('[Container] Current items in container:', this.items.size);
-    console.debug('[Container] Existing instanceIds:', Array.from(this.items.keys()));
+
+    // Consistently enforce nesting rules (even for programmatic placement)
+    const nestingResult = this.validateNesting(item);
+    if (!nestingResult.valid) {
+      console.warn('[Container] REJECT: Nesting rule violation for:', item.name, '-', nestingResult.reason);
+      return false;
+    }
 
     // Prevent container from being placed inside itself
     if (item.isContainer && item.isContainer()) {

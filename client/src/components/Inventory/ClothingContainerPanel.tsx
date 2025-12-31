@@ -59,7 +59,7 @@ export default function ClothingContainerPanel({
         <span className="text-sm font-medium">
           {title}
           {equippedItem && <span className="text-muted-foreground ml-2">({equippedItem.name})</span>}
-          {!equippedItem && !hasContent && <span className="text-muted-foreground ml-2">({emptyMessage})</span>}
+          {!equippedItem && !hasContent && <span className="text-muted-foreground ml-2">(None)</span>}
         </span>
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -113,12 +113,6 @@ export default function ClothingContainerPanel({
             </div>
           )}
 
-          {/* Show empty message if no content */}
-          {!hasContent && (
-            <div className="text-sm text-muted-foreground text-center py-4">
-              {emptyMessage}
-            </div>
-          )}
         </div>
       )}
     </div>

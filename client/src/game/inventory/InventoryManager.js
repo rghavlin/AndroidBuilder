@@ -488,6 +488,18 @@ export class InventoryManager {
       }
     }
 
+    // 3. Try dynamic lookup for item-level containers (backpacks, etc.)
+    // Pattern: [instanceId]-container
+    if (containerId && containerId.endsWith('-container')) {
+      const instanceId = containerId.replace('-container', '');
+      const found = this.findItem(instanceId);
+      if (found && found.item) {
+        const item = found.item;
+        const mainGrid = item.getContainerGrid?.();
+        if (mainGrid) return mainGrid;
+      }
+    }
+
     return null;
   }
 

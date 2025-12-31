@@ -423,6 +423,11 @@ export const InventoryProvider = ({ children, manager }) => {
     const mainGrid = targetItem.getContainerGrid?.();
     if (mainGrid) {
       possibleGrids.push(mainGrid);
+      // Register with manager so moveItem can find it by ID
+      if (inventoryRef.current && !inventoryRef.current.containers.has(mainGrid.id)) {
+        console.debug('[InventoryContext] Auto-registering container Grid for quick deposit:', mainGrid.id);
+        inventoryRef.current.addContainer(mainGrid);
+      }
     }
 
     // Pockets (e.g. jacket)
@@ -430,6 +435,13 @@ export const InventoryProvider = ({ children, manager }) => {
       const pockets = targetItem.getPocketContainers();
       if (pockets && pockets.length > 0) {
         possibleGrids.push(...pockets);
+        // Register each pocket
+        pockets.forEach(pocket => {
+          if (inventoryRef.current && !inventoryRef.current.containers.has(pocket.id)) {
+            console.debug('[InventoryContext] Auto-registering pocket Grid for quick deposit:', pocket.id);
+            inventoryRef.current.addContainer(pocket);
+          }
+        });
       }
     }
 
