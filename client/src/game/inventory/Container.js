@@ -14,7 +14,8 @@ export class Container {
     height = 6,
     autoExpand = false,
     autoSort = false,
-    ownerId = null // ID of the item that owns this container
+    ownerId = null, // ID of the item that owns this container
+    allowedCategories = null
   }) {
     this.id = id;
     this.type = type;
@@ -24,6 +25,7 @@ export class Container {
     this.autoExpand = autoExpand;
     this.autoSort = autoSort;
     this.ownerId = ownerId;
+    this.allowedCategories = Array.isArray(allowedCategories) ? allowedCategories : null;
 
     // Grid storage - sparse array of items
     this.items = new Map(); // itemId -> Item
@@ -156,6 +158,20 @@ export class Container {
       }
     }
 
+    // Phase 7: Category-based restrictions
+    if (this.allowedCategories && this.allowedCategories.length > 0) {
+      const itemCategories = item.categories || [];
+      const isAllowed = this.allowedCategories.some(cat => itemCategories.includes(cat));
+
+      if (!isAllowed) {
+        const allowedList = this.allowedCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' or ');
+        return {
+          valid: false,
+          reason: `Only ${allowedList} allowed in this container`
+        };
+      }
+    }
+
     // Check bounds
     if (!this.isValidPosition(x, y, width, height)) {
       return { valid: false, reason: 'Out of bounds' };
@@ -244,6 +260,16 @@ export class Container {
     if (!itemId) {
       console.error('[Container] REJECT: No instanceId', item);
       return false;
+    }
+
+    // Phase 7: Category-based restrictions (Safety check)
+    if (this.allowedCategories && this.allowedCategories.length > 0) {
+      const itemCategories = item.categories || [];
+      const isAllowed = this.allowedCategories.some(cat => itemCategories.includes(cat));
+      if (!isAllowed) {
+        console.warn(`[Container] REJECT: Category mismatch for ${item.name} in ${this.id}`);
+        return false;
+      }
     }
 
     console.debug('[Container] ===== PLACEMENT ATTEMPT =====');
@@ -337,13 +363,37 @@ export class Container {
 
     // Only try to place if we still have an item to place
     if (item && item.stackCount > 0) {
-      const position = this.findAvailablePosition(item, preferredX, preferredY);
+      // 1. Try with current rotation
+      let position = this.findAvailablePosition(item, preferredX, preferredY);
       if (position) {
-        console.debug('[Container] Found position:', position.x, position.y, 'for', item.name);
         return this.placeItemAt(item, position.x, position.y);
-      } else {
-        console.warn('[Container] No available position for:', item.name, 'size:', item.getActualWidth(), 'x', item.getActualHeight());
       }
+
+      // 2. Try with alternative rotation if item is not square
+      if (item.width !== item.height) {
+        const originalRotation = item.rotation || 0;
+        // Smart rotate: toggle orientation
+        const currentWidth = item.getActualWidth();
+        const currentHeight = item.getActualHeight();
+        const isLandscape = currentWidth > currentHeight;
+
+        const altRotation = isLandscape
+          ? (originalRotation + 90) % 360
+          : (originalRotation - 90 + 360) % 360;
+
+        item.rotation = altRotation;
+        position = this.findAvailablePosition(item, preferredX, preferredY);
+
+        if (position) {
+          console.debug('[Container] Auto-rotated item to fit:', altRotation);
+          return this.placeItemAt(item, position.x, position.y);
+        }
+
+        // Restore original rotation if alt rotation also failed
+        item.rotation = originalRotation;
+      }
+
+      console.warn('[Container] No available position for:', item.name, 'even with rotation');
     }
 
     return false;
@@ -555,6 +605,7 @@ export class Container {
       height: this.height,
       autoExpand: this.autoExpand,
       autoSort: this.autoSort,
+      allowedCategories: this.allowedCategories,
       items: Array.from(this.items.values()).map(item => item.toJSON())
     };
   }

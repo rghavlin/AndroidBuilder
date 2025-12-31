@@ -817,14 +817,14 @@ export class InventoryManager {
 
     // Check equipped items
     for (const [slot, item] of Object.entries(this.equipment)) {
-      if (item && item.id === itemId) {
+      if (item && (item.id === itemId || item.instanceId === itemId)) {
         return { item, equipment: slot };
       }
 
       // Check attachments on equipped items
       if (item && item.hasAttachments()) {
         for (const [attachSlot, attachment] of item.attachments.entries()) {
-          if (attachment.id === itemId) {
+          if (attachment.id === itemId || attachment.instanceId === itemId) {
             return { item: attachment, parent: item, attachmentSlot: attachSlot };
           }
         }

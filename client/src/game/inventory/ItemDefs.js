@@ -3,7 +3,7 @@
  * Static item templates following trait-based model
  */
 
-import { EncumbranceTier, EquipmentSlot, ItemTrait } from './traits.js';
+import { EncumbranceTier, EquipmentSlot, ItemTrait, ItemCategory } from './traits.js';
 
 export const ItemDefs = {
   // Backpacks (containers, equippable)
@@ -108,6 +108,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
     condition: 100
   },
 
@@ -142,6 +143,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.FLASHLIGHT,
+    categories: [ItemCategory.TOOL],
     condition: 100
   },
 
@@ -153,7 +155,11 @@ export const ItemDefs = {
     width: 2,
     height: 2,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
-    containerGrid: { width: 4, height: 3 }
+    containerGrid: {
+      width: 4,
+      height: 3,
+      allowedCategories: [ItemCategory.TOOL]
+    }
   },
 
   'container.lunchbox': {
@@ -163,7 +169,11 @@ export const ItemDefs = {
     width: 2,
     height: 1,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
-    containerGrid: { width: 3, height: 2 }
+    containerGrid: {
+      width: 3,
+      height: 2,
+      allowedCategories: [ItemCategory.FOOD]
+    }
   },
 
   'container.ammo_box': {
@@ -184,6 +194,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
     stackMax: 50
   },
 
@@ -204,6 +215,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
     stackMax: 10
   }
 };

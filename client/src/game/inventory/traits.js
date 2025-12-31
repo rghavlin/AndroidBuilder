@@ -21,6 +21,16 @@ export const EquipmentSlot = {
   FLASHLIGHT: 'flashlight'
 };
 
+// Item categories for container restrictions
+export const ItemCategory = {
+  FOOD: 'food',
+  TOOL: 'tool',
+  WEAPON: 'weapon',
+  MEDICAL: 'medical',
+  AMMO: 'ammo',
+  CLOTHING: 'clothing'
+};
+
 // Trait flags
 export const ItemTrait = {
   STACKABLE: 'stackable',

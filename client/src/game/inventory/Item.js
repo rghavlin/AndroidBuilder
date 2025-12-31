@@ -29,7 +29,8 @@ export class Item {
     _containerGridData = null,
     pocketLayoutId = null,
     pocketGrids = null, // For restoring from save
-    _pocketGridsData = null // For restoring from save
+    _pocketGridsData = null, // For restoring from save
+    categories = []
   }) {
     // Core identity
     this.instanceId = instanceId || id || `item-${Date.now()}-${Math.random().toString(36).substring(7)}`;
@@ -78,6 +79,7 @@ export class Item {
     this.pocketLayoutId = pocketLayoutId;
     this._pocketGridsData = _pocketGridsData || pocketGrids;
     this.pocketGrids = [];
+    this.categories = Array.isArray(categories) ? categories : [];
 
     // Initialize container grid synchronously if data exists
     if (this._containerGridData) {
@@ -128,6 +130,10 @@ export class Item {
 
   isOpenableWhenNested() {
     return this.hasTrait(ItemTrait.OPENABLE_WHEN_NESTED);
+  }
+
+  hasCategory(category) {
+    return this.categories.includes(category);
   }
 
   // Rotation
@@ -286,9 +292,11 @@ export class Item {
       // console.debug('[Item] Container data:', this._containerGridData); // Removed as per diff
 
       // Ensure the container data has a stable ID based on item instanceId
+      // and inherits the item's name if no specific name is provided
       const containerData = {
         ...this._containerGridData,
-        id: this._containerGridData.id || `${this.instanceId}-container`
+        id: this._containerGridData.id || `${this.instanceId}-container`,
+        name: this._containerGridData.name || this.name
       };
 
       this.containerGrid = Container.fromJSON(containerData);
@@ -384,7 +392,8 @@ export class Item {
       equippableSlot: this.equippableSlot,
       isEquipped: this.isEquipped,
       encumbranceTier: this.encumbranceTier,
-      pocketLayoutId: this.pocketLayoutId // Persist the layout ID
+      pocketLayoutId: this.pocketLayoutId, // Persist the layout ID
+      categories: this.categories
     };
 
     // Serialize Traits

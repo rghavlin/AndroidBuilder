@@ -57,7 +57,7 @@ export default function ContainerGrid({
     }
 
     console.log(`[ContainerGrid] Attempting move: item ${itemId} (${item.name}) from ${fromContainerId} to ${containerId} at (${x}, ${y})`);
-    
+
     const result = moveItem(itemId, fromContainerId, containerId, x, y);
 
     if (!result.success) {
@@ -81,7 +81,6 @@ export default function ContainerGrid({
     <div className={className}>
       <UniversalGrid
         containerId={containerId}
-        title={title || container.name}
         width={container.width}
         height={container.height}
         gridType="fixed" // Always use fixed size for containers

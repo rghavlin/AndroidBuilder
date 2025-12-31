@@ -77,9 +77,6 @@ export default function InventoryPanel() {
                   {item.getPocketContainers().map((pocket: any, index: number) => {
                     return (
                       <div key={pocket.id} className="space-y-1">
-                        <div className="text-xs text-muted-foreground text-center">
-                          {pocket.name || `Pocket ${index + 1}`}
-                        </div>
                         <UniversalGrid
                           containerId={pocket.id} // ID still needed for key/events
                           container={pocket}      // Pass direct object for rendering
@@ -106,7 +103,7 @@ export default function InventoryPanel() {
             <FloatingContainer
               key={containerId}
               id={containerId}
-              title={container.name || 'Container'}
+              title={container.name || 'Backpack'}
               isOpen={true}
               onClose={() => closeContainer(containerId)}
             >

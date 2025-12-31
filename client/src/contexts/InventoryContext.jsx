@@ -408,6 +408,62 @@ export const InventoryProvider = ({ children, manager }) => {
     return result;
   }, [selectedItem]);
 
+  /**
+   * Quick deposit selected item into a target container item
+   */
+  const depositSelectedInto = useCallback((targetItem) => {
+    if (!selectedItem || !inventoryRef.current || !targetItem) return { success: false };
+
+    const { item } = selectedItem;
+
+    // 1. Get and initialize all potential container grids from the target item
+    const possibleGrids = [];
+
+    // Main grid (e.g. backpack)
+    const mainGrid = targetItem.getContainerGrid?.();
+    if (mainGrid) {
+      possibleGrids.push(mainGrid);
+    }
+
+    // Pockets (e.g. jacket)
+    if (targetItem.getPocketContainers) {
+      const pockets = targetItem.getPocketContainers();
+      if (pockets && pockets.length > 0) {
+        possibleGrids.push(...pockets);
+      }
+    }
+
+    if (possibleGrids.length === 0) {
+      console.warn('[InventoryContext] Target item is not a container:', targetItem.name);
+      return { success: false, reason: 'Target is not a container' };
+    }
+
+    // 2. Try each grid until one accepts the item
+    for (const grid of possibleGrids) {
+      console.debug('[InventoryContext] Trying quick deposit into grid:', grid.id);
+
+      // We use moveItem(id, from, to, null, null) which triggers addItem() 
+      // which now supports auto-rotation!
+      const result = moveItem(
+        item.instanceId,
+        selectedItem.originContainerId,
+        grid.id,
+        null,
+        null
+      );
+
+      if (result.success) {
+        console.log('[InventoryContext] Quick deposit SUCCESS into:', grid.id);
+        setSelectedItem(null);
+        setDragVersion(prev => prev + 1);
+        return { success: true };
+      }
+    }
+
+    console.warn('[InventoryContext] Quick deposit FAILED - no space in any grid of', targetItem.name);
+    return { success: false, reason: 'No space available' };
+  }, [selectedItem, moveItem]);
+
   const placeSelected = useCallback((targetContainerId, targetX, targetY) => {
     if (!selectedItem || !inventoryRef.current) {
       return { success: false, reason: 'No item selected' };
@@ -691,9 +747,10 @@ export const InventoryProvider = ({ children, manager }) => {
       placeSelected,
       getPlacementPreview,
       equipSelectedItem,
-      splitStack
+      splitStack,
+      depositSelectedInto
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

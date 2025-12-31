@@ -44,7 +44,7 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -140,6 +140,16 @@ export default function UniversalGrid({
       // If placement/stacking succeeded, we're done
       if (result.success) {
         return;
+      }
+
+      // Quick Deposit: If clicking on a container while carrying an item, try to deposit it
+      const isContainer = item?.isContainer?.() || (item?.getPocketContainers && item.getPocketContainers().length > 0);
+      if (item && isContainer) {
+        console.debug('[UniversalGrid] Clicking container with selection - attempting quick deposit into:', item.name);
+        const depositResult = depositSelectedInto(item);
+        if (depositResult.success) {
+          return;
+        }
       }
 
       // If placement failed (e.g. occupied by another item), and that item is NOT stackable with ours,

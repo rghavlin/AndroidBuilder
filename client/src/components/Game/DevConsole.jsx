@@ -1697,9 +1697,56 @@ const DevConsole = ({ isOpen, onClose }) => {
                 </div>
               ))}
             </div>
+
+            <div className="mt-8 space-y-4">
+              {/* Phase 7: Container Restrictions Demo */}
+              <div className="flex flex-wrap gap-2 p-2 border border-blue-500/30 rounded bg-blue-500/5">
+                <div className="w-full text-xs font-bold text-blue-400 mb-1 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                  PHASE 7: CONTAINER RESTRICTIONS
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    spawnItem('container.toolbox', 0, 0);
+                    spawnItem('container.lunchbox', 4, 0);
+                    spawnItem('food.cannedsoup', 0, 3);
+                    spawnItem('weapon.knife', 2, 3);
+                    spawnItem('tool.smallflashlight', 4, 3);
+                    addLog('PHASE 7 DEMO: Try putting soup in toolbox (fails) vs knife (works)');
+                  }}
+                  className="bg-blue-900/20 border-blue-500/50 hover:bg-blue-900/40 text-xs h-7"
+                >
+                  Run Phase 7 Demo
+                </Button>
+              </div>
+
+              {/* Phase 8: Quick Deposit Demo */}
+              <div className="flex flex-wrap gap-2 p-2 border border-purple-500/30 rounded bg-purple-500/5">
+                <div className="w-full text-xs font-bold text-purple-400 mb-1 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
+                  PHASE 8: QUICK DEPOSIT
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    spawnItem('container.lunchbox', 0, 0);
+                    spawnItem('food.cannedsoup', 4, 0);
+                    spawnItem('food.cannedsoup', 5, 0);
+                    spawnItem('food.cannedsoup', 4, 1);
+                    addLog('PHASE 8 DEMO: Select soup, then click Lunchbox to deposit.');
+                  }}
+                  className="bg-purple-900/20 border-purple-500/50 hover:bg-purple-900/40 text-xs h-7"
+                >
+                  Run Phase 8 Demo
+                </Button>
+              </div>
+            </div>
           </ScrollArea>
           {/* Item Spawn UI */}
-          <div className="mb-3 p-3 bg-gray-800 rounded border border-gray-700">
+          < div className="mb-3 p-3 bg-gray-800 rounded border border-gray-700" >
             <div className="text-xs text-gray-400 mb-2 font-mono">Quick Item Spawn</div>
             <div className="flex gap-2 items-end">
               <div className="flex-1">
@@ -1732,7 +1779,7 @@ const DevConsole = ({ isOpen, onClose }) => {
                 Spawn to Ground
               </Button>
             </div>
-          </div>
+          </div >
 
           <form onSubmit={handleSubmit} className="flex gap-2">
             <div className="flex-1 relative">
@@ -1753,9 +1800,9 @@ const DevConsole = ({ isOpen, onClose }) => {
               Execute
             </Button>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+        </CardContent >
+      </Card >
+    </div >
   );
 };
 
