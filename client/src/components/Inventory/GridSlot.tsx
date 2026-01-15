@@ -111,6 +111,15 @@ export default function GridSlot({
               </span>
             </div>
           )}
+
+          {/* Magazine ammo count indicator */}
+          {item && isTopLeft && item.isMagazine && item.isMagazine() && (
+            <div className="absolute inset-0 pointer-events-none z-20">
+              <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20">
+                {item.ammoCount || 0}
+              </span>
+            </div>
+          )}
         </div>
       </ItemContextMenu>
     </TooltipProvider>

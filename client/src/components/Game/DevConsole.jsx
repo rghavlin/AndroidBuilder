@@ -1568,7 +1568,10 @@ const DevConsole = ({ isOpen, onClose }) => {
               'food': 'food.cannedsoup',
               'tshirt': 'clothing.pocket_t',
               'cargo-pants': 'clothing.cargopants',
-              'flashlight': 'tool.smallflashlight'
+              'flashlight': 'tool.smallflashlight',
+              'mag': 'attachment.9mm_magazine',
+              'extmag': 'attachment.9mm_extended_magazine',
+              'snmag': 'attachment.sniper_magazine'
             };
 
             const defId = defIdMap[itemType] || itemType;

@@ -1122,6 +1122,9 @@ export class InventoryManager {
         // Update ground container reference
         if (id === 'ground') {
           manager.groundContainer = container;
+          // CRITICAL: Re-initialize groundManager with the RESTORED container
+          // Otherwise it holds a stale reference to the empty container from constructor
+          manager.groundManager = new GroundManager(container);
         }
       }
     }

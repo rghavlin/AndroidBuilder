@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { ItemTrait } from '../game/inventory/traits.js';
+import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
+import { Item } from '../game/inventory/Item.js';
 
 const InventoryContext = createContext();
 
@@ -19,7 +21,24 @@ export const useInventory = () => {
         unequipItem: () => ({ success: false, reason: 'Context not available' }),
         moveItem: () => ({ success: false, reason: 'Context not available' }),
         dropItemToGround: () => false,
-        forceRefresh: () => { }
+        forceRefresh: () => { },
+        openContainers: new Set(),
+        openContainer: () => { },
+        closeContainer: () => { },
+        isContainerOpen: () => false,
+        selectedItem: null,
+        selectItem: () => { },
+        rotateSelected: () => { },
+        clearSelected: () => { },
+        placeSelected: () => ({ success: false }),
+        getPlacementPreview: () => null,
+        equipSelectedItem: () => ({ success: false }),
+        splitStack: () => ({ success: false }),
+        depositSelectedInto: () => ({ success: false }),
+        loadAmmoInto: () => ({ success: false }),
+        unloadMagazine: () => ({ success: false }),
+        attachSelectedItemToWeapon: () => ({ success: false }),
+        detachItemFromWeapon: () => null
       };
     }
     throw new Error('useInventory must be used within an InventoryProvider');
@@ -55,6 +74,7 @@ export const InventoryProvider = ({ children, manager }) => {
   useEffect(() => {
     if (inventoryRef.current) {
       window.inventoryManager = inventoryRef.current;
+      window.__inventoryManager = inventoryRef.current; // Also update internal bridge
       window.inv = {
         getContainer: (id) => inventoryRef.current?.getContainer(id),
         equipItem: (item, slot) => inventoryRef.current?.equipItem(item, slot),
@@ -62,9 +82,9 @@ export const InventoryProvider = ({ children, manager }) => {
           inventoryRef.current?.moveItem(itemId, from, to, x, y),
         refresh: forceRefresh
       };
-      console.log('[InventoryContext] Dev console bridge established: window.inventoryManager, window.inv');
+      console.log('[InventoryContext] Dev console bridge updated: window.inventoryManager, window.inv');
     }
-  }, [forceRefresh]);
+  }, [forceRefresh, manager]); // Re-run when manager instance changes
 
   // ✅ Handle null manager case AFTER all hooks are declared
   // Graceful degradation: render children without inventory context until manager exists
@@ -503,6 +523,131 @@ export const InventoryProvider = ({ children, manager }) => {
     return { success: false, reason: 'No space available' };
   }, [selectedItem, moveItem]);
 
+  /**
+   * Load ammo from selected stack into a magazine
+   */
+  const loadAmmoInto = useCallback((targetMagazine) => {
+    if (!selectedItem || !inventoryRef.current || !targetMagazine) return { success: false };
+
+    const { item: ammoStack } = selectedItem;
+
+    if (!targetMagazine.isMagazine()) {
+      return { success: false, reason: 'Target is not a magazine' };
+    }
+
+    if (!ammoStack.isAmmo()) {
+      return { success: false, reason: 'Selected item is not ammo' };
+    }
+
+    const result = targetMagazine.loadAmmo(ammoStack);
+
+    if (result.success) {
+      console.log(`[InventoryContext] Loaded ${result.amountLoaded} rounds into ${targetMagazine.name}`);
+
+      if (result.isStackEmpty) {
+        // Remove the empty ammo stack from its container
+        const originContainer = inventoryRef.current.getContainer(selectedItem.originContainerId);
+        if (originContainer) {
+          originContainer.removeItem(ammoStack.instanceId);
+        }
+      }
+
+      // Always deselect after loading, as per user request
+      setSelectedItem(null);
+
+      setInventoryVersion(prev => prev + 1);
+      setDragVersion(prev => prev + 1);
+      return { success: true };
+    }
+
+    return result;
+  }, [selectedItem]);
+
+  /**
+   * Unload all ammo from a magazine into inventory
+   */
+  const unloadMagazine = useCallback((magazine) => {
+    if (!inventoryRef.current || !magazine) return { success: false };
+
+    console.debug('[InventoryContext] Unloading magazine:', magazine.name);
+
+    const unloadResult = magazine.unloadAmmo();
+    if (!unloadResult.success) {
+      console.warn('[InventoryContext] Unload failed:', unloadResult.reason);
+      return unloadResult;
+    }
+
+    const { amount, ammoDefId } = unloadResult;
+    if (amount <= 0 || !ammoDefId) {
+      console.debug('[InventoryContext] Magazine was empty or ammo type unknown');
+      setInventoryVersion(v => v + 1);
+      return { success: true };
+    }
+
+    // Place ammo back into inventory
+    // 1. Find all available containers (Backpack, Pockets)
+    const availableContainers = [
+      inventoryRef.current.getBackpackContainer(),
+      ...inventoryRef.current.getPocketContainers()
+    ].filter(c => c !== null);
+
+    let remainingAmmo = amount;
+
+    // 2. Try to fill existing stacks first
+    for (const container of availableContainers) {
+      if (remainingAmmo <= 0) break;
+      for (const item of container.items.values()) {
+        if (item.defId === ammoDefId && item.stackCount < item.stackMax) {
+          const space = item.stackMax - item.stackCount;
+          const toAdd = Math.min(space, remainingAmmo);
+          item.stackCount += toAdd;
+          remainingAmmo -= toAdd;
+          console.debug(`[InventoryContext] Merged ${toAdd} rounds into existing stack`);
+          if (remainingAmmo <= 0) break;
+        }
+      }
+    }
+
+    // 3. Create new stacks for remaining ammo
+    if (remainingAmmo > 0) {
+      while (remainingAmmo > 0) {
+        const itemData = createItemFromDef(ammoDefId);
+        if (!itemData) break;
+        const newItem = new Item(itemData);
+        const stackMax = newItem.stackMax;
+        const count = Math.min(remainingAmmo, stackMax);
+        newItem.stackCount = count;
+
+        // Try to place in any available container
+        let placed = false;
+        for (const container of availableContainers) {
+          if (container.addItem(newItem)) {
+            placed = true;
+            remainingAmmo -= count;
+            console.debug(`[InventoryContext] Created new stack of ${count} in ${container.id}`);
+            break;
+          }
+        }
+
+        if (!placed) {
+          // No space in inventory, drop to ground
+          console.warn('[InventoryContext] No space in inventory for ammo, dropping to ground');
+          const ground = inventoryRef.current.getContainer('ground');
+          if (ground) {
+            ground.addItem(newItem);
+            remainingAmmo -= count;
+          } else {
+            console.error('[InventoryContext] No space anywhere for ammo!');
+            break;
+          }
+        }
+      }
+    }
+
+    setInventoryVersion(v => v + 1);
+    return { success: true };
+  }, []);
+
   const placeSelected = useCallback((targetContainerId, targetX, targetY) => {
     if (!selectedItem || !inventoryRef.current) {
       return { success: false, reason: 'No item selected' };
@@ -760,6 +905,8 @@ export const InventoryProvider = ({ children, manager }) => {
       equipSelectedItem,
       splitStack,
       depositSelectedInto,
+      loadAmmoInto,
+      unloadMagazine,
       attachSelectedItemToWeapon: (weapon, slotId) => {
         if (!selectedItem) return { success: false, reason: 'No item selected' };
         const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);

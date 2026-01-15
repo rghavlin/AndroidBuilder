@@ -44,7 +44,7 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, loadAmmoInto } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -148,6 +148,15 @@ export default function UniversalGrid({
         console.debug('[UniversalGrid] Clicking container with selection - attempting quick deposit into:', item.name);
         const depositResult = depositSelectedInto(item);
         if (depositResult.success) {
+          return;
+        }
+      }
+
+      // Ammo Loading: If clicking on a magazine while carrying ammo, try to load it
+      if (item && item.isMagazine && item.isMagazine() && selectedItem.item.isAmmo && selectedItem.item.isAmmo()) {
+        console.debug('[UniversalGrid] Clicking magazine with ammo selection - attempting load into:', item.name);
+        const loadResult = loadAmmoInto(item);
+        if (loadResult.success) {
           return;
         }
       }

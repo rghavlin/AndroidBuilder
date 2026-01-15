@@ -1,4 +1,4 @@
-import { ItemTrait } from './traits.js';
+import { ItemTrait, ItemCategory } from './traits.js';
 import { Container } from './Container.js';
 import { PocketLayouts } from './PocketLayouts.js';
 import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
@@ -31,7 +31,9 @@ export class Item {
     pocketGrids = null, // For restoring from save
     _pocketGridsData = null, // For restoring from save
     categories = [],
-    attachments = null
+    attachments = null,
+    capacity = null,
+    ammoCount = 0
   }) {
     // Core identity - MUST be unique per item instance
     const uniqueSuffix = Math.random().toString(36).substring(2, 9);
@@ -72,6 +74,8 @@ export class Item {
 
     // Condition (if degradable)
     this.condition = condition;
+    this.capacity = capacity; // Initialize capacity here
+    this.ammoCount = ammoCount;
 
     // Equipment properties
     this.equippableSlot = equippableSlot;
@@ -146,6 +150,54 @@ export class Item {
 
   isOpenableWhenNested() {
     return this.hasTrait(ItemTrait.OPENABLE_WHEN_NESTED);
+  }
+
+  isMagazine() {
+    // Items with capacity are magazines or weapons with internal mags
+    return this.capacity !== null && this.capacity > 0;
+  }
+
+  isAmmo() {
+    return this.hasCategory(ItemCategory.AMMO) && this.isStackable();
+  }
+
+  canLoadAmmo(ammoItem) {
+    if (!this.isMagazine() || !ammoItem.isAmmo()) return false;
+    // Check if compatible (using categories for now, could be more specific later)
+    // For now, if both are AMMO category, they are compatible
+    return true;
+  }
+
+  loadAmmo(ammoItem) {
+    if (!this.canLoadAmmo(ammoItem)) return { success: false, reason: 'Incompatible' };
+
+    const spaceLeft = this.capacity - this.ammoCount;
+    if (spaceLeft <= 0) return { success: false, reason: 'Full' };
+
+    const amountToTransfer = Math.min(spaceLeft, ammoItem.stackCount);
+    this.ammoCount += amountToTransfer;
+    ammoItem.stackCount -= amountToTransfer;
+
+    return {
+      success: true,
+      amountLoaded: amountToTransfer,
+      isStackEmpty: ammoItem.stackCount <= 0
+    };
+  }
+
+  unloadAmmo() {
+    if (!this.isMagazine() || this.ammoCount <= 0) return { success: false, reason: 'Empty' };
+
+    const amount = this.ammoCount;
+    this.ammoCount = 0;
+
+    const ammoDefId = ItemDefs[this.defId]?.ammoDefId;
+
+    return {
+      success: true,
+      amount,
+      ammoDefId
+    };
   }
 
   isWeapon() {
@@ -399,6 +451,11 @@ export class Item {
       if (!isCompatible) return false;
     }
 
+    // Validate specific item ID compatibility
+    if (slot.allowedItems && slot.allowedItems.length > 0) {
+      if (!slot.allowedItems.includes(item.defId)) return false;
+    }
+
     this.attachments[slotId] = item;
     item.isEquipped = true; // Mark as equipped when attached to a weapon
     return true;
@@ -438,6 +495,8 @@ export class Item {
       stackCount: this.stackCount,
       stackMax: this.stackMax,
       condition: this.condition,
+      capacity: this.capacity,
+      ammoCount: this.ammoCount,
       equippableSlot: this.equippableSlot,
       isEquipped: this.isEquipped,
       encumbranceTier: this.encumbranceTier,

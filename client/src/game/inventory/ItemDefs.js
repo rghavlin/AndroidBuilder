@@ -125,7 +125,7 @@ export const ItemDefs = {
     attachmentSlots: [
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
-      { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO] }
+      { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.9mm_magazine', 'attachment.9mm_extended_magazine'] }
     ]
   },
 
@@ -140,7 +140,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.LONG_GUN,
     attachmentSlots: [
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
-      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE] }
+      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE] },
+      { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.sniper_magazine'] }
     ]
   },
 
@@ -219,7 +220,31 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [],
-    categories: [ItemCategory.AMMO]
+    categories: [ItemCategory.AMMO],
+    capacity: 10,
+    ammoDefId: 'ammo.9mm'
+  },
+  'attachment.9mm_extended_magazine': {
+    id: 'attachment.9mm_extended_magazine',
+    name: '9mm Extended Magazine',
+    imageId: '9mm_extended_magazine',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.AMMO],
+    capacity: 20,
+    ammoDefId: 'ammo.9mm'
+  },
+  'attachment.sniper_magazine': {
+    id: 'attachment.sniper_magazine',
+    name: 'Sniper Magazine',
+    imageId: 'sniper_magazine',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.AMMO],
+    capacity: 10,
+    ammoDefId: 'ammo.sniper'
   },
 
   // Stackable items
@@ -232,6 +257,16 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 50
+  },
+  'ammo.sniper': {
+    id: 'ammo.sniper',
+    name: 'Sniper Ammo',
+    imageId: 'sniper rifle', // Temporary until we have a real one
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
+    stackMax: 20
   },
 
   'medical.bandage': {
