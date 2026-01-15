@@ -20,7 +20,7 @@ export class GroundManager {
    */
   addItemSmart(item, preferredX = null, preferredY = null) {
     const category = item.getCategory();
-    
+
     // Try to place near similar items
     const categoryArea = this.categoryAreas.get(category);
     if (categoryArea) {
@@ -29,20 +29,20 @@ export class GroundManager {
       if (position) {
         return this.groundContainer.placeItemAt(item, position.x, position.y);
       }
-      
+
       // Try to expand the category area
       const expandedPosition = this.expandCategoryArea(item, category);
       if (expandedPosition) {
         return this.groundContainer.placeItemAt(item, expandedPosition.x, expandedPosition.y);
       }
     }
-    
+
     // Create new category area or use preferred position
     const result = this.groundContainer.addItem(item, preferredX, preferredY);
     if (result) {
       this.updateCategoryAreas();
     }
-    
+
     return result;
   }
 
@@ -65,11 +65,11 @@ export class GroundManager {
 
     // Clear ground and reorganize
     this.groundContainer.clear();
-    
+
     let currentX = 0;
     let currentY = 0;
     const categorySpacing = 2; // Space between categories
-    
+
     // Sort categories by priority (weapons first, then tools, etc.)
     const categoryPriority = {
       'weapons': 1,
@@ -89,7 +89,7 @@ export class GroundManager {
     for (const category of sortedCategories) {
       const items = itemsByCategory.get(category);
       const areaStart = { x: currentX, y: currentY };
-      
+
       // Sort items within category by size (largest first)
       items.sort((a, b) => {
         const areaA = a.getActualWidth() * a.getActualHeight();
@@ -231,13 +231,13 @@ export class GroundManager {
   collectItemsByCategory(category, targetContainer) {
     const items = this.groundContainer.getAllItems()
       .filter(item => item.getCategory() === category);
-    
+
     const collected = [];
     const failed = [];
 
     for (const item of items) {
-      this.groundContainer.removeItem(item.id);
-      
+      this.groundContainer.removeItem(item.instanceId);
+
       if (targetContainer.addItem(item)) {
         collected.push(item);
       } else {
@@ -291,7 +291,7 @@ export class GroundManager {
    */
   optimizeLayout() {
     const itemCount = this.groundContainer.getItemCount();
-    
+
     // Only optimize if we have enough items to benefit
     if (itemCount < 10) {
       return this.groundContainer.compact();
@@ -307,10 +307,10 @@ export class GroundManager {
   quickPickup(criteria, targetContainer) {
     const allItems = this.groundContainer.getAllItems();
     let collected = [];
-    
+
     // Filter items based on criteria
     let itemsToPickup = [];
-    
+
     switch (criteria.type) {
       case 'category':
         itemsToPickup = allItems.filter(item => item.getCategory() === criteria.category);
@@ -334,20 +334,20 @@ export class GroundManager {
     itemsToPickup.sort((a, b) => {
       if (a.stackable && !b.stackable) return -1;
       if (!a.stackable && b.stackable) return 1;
-      
+
       // Then by category priority
       const categoryPriority = {
         'weapons': 1, 'ammunition': 2, 'consumables': 3, 'tools': 4,
         'armor': 5, 'materials': 6, 'containers': 7, 'misc': 8
       };
-      
+
       return (categoryPriority[a.getCategory()] || 999) - (categoryPriority[b.getCategory()] || 999);
     });
 
     // Attempt to pickup items
     for (const item of itemsToPickup) {
-      this.groundContainer.removeItem(item.id);
-      
+      this.groundContainer.removeItem(item.instanceId);
+
       if (targetContainer.addItem(item)) {
         collected.push(item);
       } else {
@@ -373,12 +373,12 @@ export class GroundManager {
   searchItems(query) {
     const allItems = this.groundContainer.getAllItems();
     const searchTerm = query.toLowerCase();
-    
+
     return allItems.filter(item => {
       return item.name.toLowerCase().includes(searchTerm) ||
-             item.type.toLowerCase().includes(searchTerm) ||
-             item.subtype.toLowerCase().includes(searchTerm) ||
-             item.getCategory().toLowerCase().includes(searchTerm);
+        item.type.toLowerCase().includes(searchTerm) ||
+        item.subtype.toLowerCase().includes(searchTerm) ||
+        item.getCategory().toLowerCase().includes(searchTerm);
     });
   }
 
@@ -388,7 +388,7 @@ export class GroundManager {
   getStatistics() {
     const allItems = this.groundContainer.getAllItems();
     const byCategory = this.getItemsByCategory();
-    
+
     return {
       totalItems: allItems.length,
       totalStacks: allItems.reduce((sum, item) => sum + item.stackCount, 0),

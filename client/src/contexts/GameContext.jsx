@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { TestEntity, Item } from '../game/entities/TestEntity.js';
+import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
 import { Zombie } from '../game/entities/Zombie.js';
 import { ZombieAI } from '../game/ai/ZombieAI.js';
 import { PlayerZombieTracker } from '../game/ai/PlayerZombieTracker.js';
@@ -522,8 +522,8 @@ const GameContextInner = ({ children }) => {
       new TestEntity('test-zombie-1', player.x + 3, player.y + 2, 'zombie'),
       new TestEntity('test-zombie-2', player.x - 2, player.y + 4, 'zombie'),
       new TestEntity('test-obstacle-1', player.x + 1, player.y + 3, 'obstacle'),
-      new Item('item-weapon-1', player.x + 4, player.y - 1, 'weapon'),
-      new Item('item-ammo-1', player.x - 3, player.y - 2, 'ammo'),
+      new LegacyItem('item-weapon-1', player.x + 4, player.y - 1, 'weapon'),
+      new LegacyItem('item-ammo-1', player.x - 3, player.y - 2, 'ammo'),
     ];
 
     let spawnedCount = 0;

@@ -507,25 +507,202 @@ export class InventoryManager {
       }
     }
 
-    // 4. Try dynamic lookup for weapon attachments
-    // Pattern: [instanceId]-attachment-[slotId]
-    if (containerId && containerId.includes('-attachment-')) {
-      const parts = containerId.split('-attachment-');
-      if (parts.length === 2) {
-        const instanceId = parts[0];
-        const slotId = parts[1];
+    // 4. Try dynamic lookup for virtual containers (clothing/weapon UI panels)
+    if (containerId && (containerId.startsWith('clothing:') || containerId.startsWith('weapon:') || containerId.startsWith('weapon-mod-'))) {
+      let instanceId;
+      if (containerId.startsWith('weapon-mod-')) {
+        // Format: weapon-mod-instanceId:slotId
+        instanceId = containerId.replace('weapon-mod-', '').split(':')[0];
+      } else {
+        instanceId = containerId.split(':')[1];
+      }
 
-        const found = this.findItem(instanceId);
-        if (found && found.item) {
-          const item = found.item;
-          const attachmentContainer = item.getAttachmentContainerById?.(slotId);
-          if (attachmentContainer) return attachmentContainer;
-        }
+      const found = this.findItem(instanceId);
+      if (found && found.item) {
+        // Return a "virtual" container object to satisfy UI checks
+        return {
+          id: containerId,
+          isVirtual: true,
+          item: found.item,
+          // Add minimal Container-like methods if needed
+          items: new Map() // Empty map to satisfy iteration checks
+        };
       }
     }
 
     return null;
   }
+
+  /**
+   * Weapon Modification Methods
+   */
+  /**
+   * Weapon Modification Methods
+   */
+  attachItemToWeapon(weapon, slotId, item, sourceContainerId = null) {
+    if (!weapon || !item) return { success: false, reason: 'Invalid weapon or item' };
+
+    const itemId = item.instanceId;
+
+    console.debug('[InventoryManager] attachItemToWeapon:', {
+      weapon: weapon.name,
+      slotId,
+      item: item.name,
+      itemId,
+      source: sourceContainerId || 'anywhere'
+    });
+
+    // 1. Remove item from specific source container if provided, otherwise general search
+    const sourceContainer = sourceContainerId ? this.getContainer(sourceContainerId) : null;
+    const sizeBefore = sourceContainer?.items?.size;
+
+    const removed = sourceContainerId
+      ? this.removeItemFromSource(itemId, sourceContainerId)
+      : this.removeItem(itemId);
+
+    if (!removed) {
+      console.error('[InventoryManager] REJECT: Cannot remove item for attachment:', itemId, 'from:', sourceContainerId || 'anywhere');
+      return { success: false, reason: 'Could not remove item from container' };
+    }
+
+    const sizeAfter = sourceContainer?.items?.size;
+    if (sourceContainer && sizeBefore === sizeAfter && !sourceContainerId?.startsWith('weapon-mod-')) {
+      console.error('[InventoryManager] CRITICAL: Map size did not decrease after removeItemFromSource!', {
+        source: sourceContainerId,
+        itemId,
+        sizeBefore,
+        sizeAfter
+      });
+    }
+
+    // 2. EXTRA DEFENSIVE CHECK: Verify item is actually gone from its source
+    // This is the primary defense against duplication.
+    if (removed.container) {
+      const stillInSource = removed.container.items.get(itemId);
+      if (stillInSource) {
+        console.error('[InventoryManager] CRITICAL: Item still found in container Map after removal!', itemId);
+        return { success: false, reason: 'Internal error: Item removal verification failed' };
+      }
+
+      // Check grid as well
+      const stillInGrid = removed.container.isAreaFree ? !removed.container.isAreaFree(removed.x, removed.y, 1, 1) : false;
+      // We don't block on grid alone if Map is clear, but we log it
+    }
+
+    // 3. Attach to weapon
+    const success = weapon.attachItem(slotId, item);
+    if (!success) {
+      console.warn('[InventoryManager] Attachment failed, restoring item to original source');
+      // Re-add to original container if fails
+      if (removed.container) {
+        removed.container.addItem(item, removed.x, removed.y, item.rotation);
+      } else if (removed.equipment) {
+        this.equipment[removed.equipment] = item;
+        item.isEquipped = true;
+      }
+      return { success: false, reason: 'Incompatible attachment slot' };
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Remove item from anywhere in the system (containers, equipment, attachments)
+   * Returns metadata about where it was removed from
+   */
+  removeItem(itemId) {
+    const found = this.findItem(itemId);
+    if (!found) {
+      console.warn('[InventoryManager] Cannot remove item: not found', itemId);
+      return null;
+    }
+
+    const { item, container, equipment, parent, attachmentSlot } = found;
+
+    if (container) {
+      const x = item.x;
+      const y = item.y;
+      const removedItem = container.removeItem(itemId);
+      if (!removedItem) {
+        console.error('[InventoryManager] Failed to remove item from container despite being found:', itemId, container.id);
+        return null; // Return null if removal failed to prevent duplication
+      }
+      return { item: removedItem, container, x, y };
+    }
+
+    if (equipment) {
+      this.equipment[equipment] = null;
+      item.isEquipped = false;
+      return { item, equipment };
+    }
+
+    if (parent && attachmentSlot) {
+      parent.detachItem(attachmentSlot);
+      return { item, parent, attachmentSlot };
+    }
+
+    return { item };
+  }
+
+  /**
+   * Remove item from a SPECIFIC source container/slot
+   */
+  removeItemFromSource(itemId, sourceId) {
+    if (!sourceId) return this.removeItem(itemId);
+
+    // 1. Try standard container
+    const container = this.getContainer(sourceId);
+    if (container && container.removeItem) {
+      const removedItem = container.removeItem(itemId);
+      if (removedItem) {
+        return {
+          item: removedItem,
+          container,
+          x: removedItem.x,
+          y: removedItem.y
+        };
+      }
+    }
+
+    // 2. Try equipment slot
+    if (this.equipment.hasOwnProperty(sourceId)) {
+      const item = this.equipment[sourceId];
+      if (item && item.instanceId === itemId) {
+        this.equipment[sourceId] = null;
+        item.isEquipped = false;
+        return { item, equipment: sourceId };
+      }
+    }
+
+    // 3. Try weapon mod source (for already detached items)
+    if (sourceId && sourceId.startsWith('weapon-mod-')) {
+      const parts = sourceId.replace('weapon-mod-', '').split(':');
+      const weaponInstanceId = parts[0];
+      const slotId = parts[1];
+
+      const found = this.findItem(itemId);
+      if (found && found.item) {
+        return { item: found.item, virtualSource: sourceId, weaponInstanceId, slotId };
+      }
+
+      // If we are attaching an item and it's not found anywhere,
+      // but sourceId starts with weapon-mod-, it might be held in a state 
+      // that general removal can't see (e.g. only in selectedItem).
+      console.debug('[InventoryManager] Item not found during removal but source is weapon-mod, returning virtual success');
+      return { item: null, virtualSource: sourceId, weaponInstanceId, slotId };
+    }
+
+    // 4. Fallback to general removal if specific source fails
+    console.debug('[InventoryManager] removeItemFromSource failed for:', sourceId, 'falling back to general removal for:', itemId);
+    return this.removeItem(itemId);
+  }
+
+  detachItemFromWeapon(weapon, slotId) {
+    if (!weapon) return null;
+    return weapon.detachItem(slotId);
+  }
+
+
 
   /**
    * Get all containers
@@ -568,7 +745,7 @@ export class InventoryManager {
   dropItemToGround(item, preferredX = null, preferredY = null) {
     // Remove from current container if it has one
     if (item._container) {
-      item._container.removeItem(item.id);
+      item._container.removeItem(item.instanceId);
     }
 
     const result = this.groundManager.addItemSmart(item, preferredX, preferredY);
@@ -839,13 +1016,24 @@ export class InventoryManager {
     return { success: true };
   }
 
-  /**
-   * Find item by ID across all containers and equipment
-   */
   findItem(itemId) {
+    if (!itemId) return null;
+
     // Check containers
     for (const container of this.containers.values()) {
-      const item = container.items.get(itemId);
+      // Use explicit check for itemId in Map keys
+      let item = container.items.get(itemId);
+
+      // Fallback: search by value if key mismatch (consistent with Container.removeItem hardening)
+      if (!item) {
+        for (const val of container.items.values()) {
+          if (val.instanceId === itemId || val.id === itemId) {
+            item = val;
+            break;
+          }
+        }
+      }
+
       if (item) {
         return { item, container };
       }
@@ -853,14 +1041,14 @@ export class InventoryManager {
 
     // Check equipped items
     for (const [slot, item] of Object.entries(this.equipment)) {
-      if (item && (item.id === itemId || item.instanceId === itemId)) {
+      if (item && item.instanceId === itemId) {
         return { item, equipment: slot };
       }
 
       // Check attachments on equipped items
       if (item && item.hasAttachments()) {
-        for (const [attachSlot, attachment] of item.attachments.entries()) {
-          if (attachment.id === itemId || attachment.instanceId === itemId) {
+        for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
+          if (attachment.instanceId === itemId) {
             return { item: attachment, parent: item, attachmentSlot: attachSlot };
           }
         }
@@ -884,12 +1072,12 @@ export class InventoryManager {
     // Count equipped items
     for (const item of Object.values(this.equipment)) {
       if (item) {
-        total += item.stackCount;
+        total += item.stackCount || 1;
 
         // Count attachments
         if (item.hasAttachments()) {
-          for (const attachment of item.attachments.values()) {
-            total += attachment.stackCount;
+          for (const attachment of Object.values(item.attachments)) {
+            total += attachment.stackCount || 1;
           }
         }
       }

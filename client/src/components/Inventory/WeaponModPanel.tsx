@@ -1,7 +1,6 @@
 import React from 'react';
-import { useInventory } from '@/contexts/InventoryContext';
 import { cn } from "@/lib/utils";
-import UniversalGrid from "./UniversalGrid";
+import AttachmentSlot from './AttachmentSlot';
 
 interface WeaponModPanelProps {
     weapon: any;
@@ -12,17 +11,16 @@ export default function WeaponModPanel({
     weapon,
     className = "",
 }: WeaponModPanelProps) {
-    const { getContainer } = useInventory();
-
     if (!weapon || !weapon.attachmentSlots) {
-        return null;
+        return (
+            <div className="p-4 text-center text-muted-foreground italic">
+                This item cannot be modified.
+            </div>
+        );
     }
 
-    // Ensure containers are initialized
-    const attachmentContainers = weapon.getAttachmentContainers?.() || [];
-
     return (
-        <div className={cn("p-4 bg-background/95 border rounded-lg shadow-xl", className)}>
+        <div className={cn("p-4 bg-background border rounded-lg shadow-xl", className)}>
             <div className="mb-4">
                 <h3 className="text-lg font-bold text-primary flex items-center gap-2">
                     <span>Modify {weapon.name}</span>
@@ -32,33 +30,25 @@ export default function WeaponModPanel({
                 </p>
             </div>
 
-            <div className="flex flex-wrap gap-6 justify-center">
-                {weapon.attachmentSlots.map((slot: any) => {
-                    const container = weapon.getAttachmentContainerById?.(slot.id);
-                    if (!container) return null;
-
-                    return (
-                        <div key={slot.id} className="flex flex-col items-center gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground px-2 py-0.5 bg-muted rounded">
-                                {slot.name}
-                            </span>
-                            <div className="relative group">
-                                <UniversalGrid
-                                    containerId={container.id}
-                                    width={1}
-                                    height={1}
-                                    gridType="fixed"
-                                    enableScroll={false}
-                                    className="border-primary/30 group-hover:border-primary/60 transition-colors"
-                                />
-                            </div>
-                        </div>
-                    );
-                })}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-center">
+                {weapon.attachmentSlots.map((slot: any) => (
+                    <div key={slot.id} className="flex flex-col items-center gap-2">
+                        <span className="text-xs font-semibold text-muted-foreground px-2 py-0.5 bg-muted rounded truncate w-full text-center">
+                            {slot.name}
+                        </span>
+                        <AttachmentSlot weapon={weapon} slot={slot} />
+                    </div>
+                ))}
             </div>
 
+            {weapon.attachmentSlots.length === 0 && (
+                <div className="py-4 text-center text-xs text-muted-foreground border-2 border-dashed border-muted/20 rounded-lg">
+                    No available slots
+                </div>
+            )}
+
             <div className="mt-4 pt-3 border-t border-border/50 text-[10px] text-muted-foreground italic text-center">
-                Drag compatible attachments into specific slots
+                Click an empty slot with an attachment selected to install. Click an installed mod to remove.
             </div>
         </div>
     );

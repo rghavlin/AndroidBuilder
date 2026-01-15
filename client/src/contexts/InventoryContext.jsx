@@ -243,11 +243,9 @@ export const InventoryProvider = ({ children, manager }) => {
         inventoryRef.current.addContainer(pocket);
       });
     } else if (itemObj && cid.startsWith('weapon:')) {
-      // For weapons, ensure all attachment slots are registered
-      console.debug('[InventoryContext] Registering attachment slots for:', itemObj.name);
-      itemObj.getAttachmentContainers().forEach(container => {
-        inventoryRef.current.addContainer(container);
-      });
+      // FORMERLY: registered attachment containers
+      // NOW: nothing extra needed, WeaponModPanel handles it via attachments object
+      console.debug('[InventoryContext] Opening weapon mod for:', itemObj.name);
     } else if (!container && containerObj && !isVirtual) {
       console.debug('[InventoryContext] Auto-registering container:', cid);
       inventoryRef.current.addContainer(containerObj);
@@ -363,14 +361,28 @@ export const InventoryProvider = ({ children, manager }) => {
     // This prevents items from vanishing if the selection is cancelled (Escape, click outside)
     if (selectedItem && !selectedItem.isEquipment && inventoryRef.current) {
       const { item, originContainerId, originX, originY, originalRotation } = selectedItem;
-      const originContainer = inventoryRef.current.getContainer(originContainerId);
 
-      if (originContainer) {
-        console.log('[InventoryContext] Returning selected item to origin before clearing:', item.name);
-        // Restore original rotation
-        item.rotation = originalRotation;
-        originContainer.placeItemAt(item, originX, originY);
-        setInventoryVersion(prev => prev + 1);
+      if (originContainerId.startsWith('weapon-mod-')) {
+        // Special case: detached attachment - return to weapon
+        const parts = originContainerId.replace('weapon-mod-', '').split(':');
+        const weaponInstanceId = parts[0];
+        const slotId = parts[1];
+
+        const found = inventoryRef.current.findItem(weaponInstanceId);
+        if (found && found.item) {
+          console.log('[InventoryContext] Returning detached item to weapon slot:', item.name, slotId);
+          found.item.attachItem(slotId, item);
+          setInventoryVersion(prev => prev + 1);
+        }
+      } else {
+        const originContainer = inventoryRef.current.getContainer(originContainerId);
+        if (originContainer && originContainer.placeItemAt) {
+          console.log('[InventoryContext] Returning selected item to origin before clearing:', item.name);
+          // Restore original rotation
+          item.rotation = originalRotation;
+          originContainer.placeItemAt(item, originX, originY);
+          setInventoryVersion(prev => prev + 1);
+        }
       }
     }
 
@@ -543,50 +555,31 @@ export const InventoryProvider = ({ children, manager }) => {
     const originContainer = inventoryRef.current.getContainer(originContainerId);
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
 
-    if (!targetContainer) {
-      console.warn('[InventoryContext] Target container not found:', targetContainerId);
-      setSelectedItem(null);
-      setInventoryVersion(prev => prev + 1);
-      return { success: false, reason: 'Target container not found' };
+    // 1. Validate placement in target container
+    const validation = targetContainer.validatePlacement(item, targetX, targetY, rotation);
+    if (!validation.valid && !validation.stackTarget) {
+      console.warn('[InventoryContext] Invalid placement:', validation.reason);
+      return { success: false, reason: validation.reason };
     }
 
-    // CRITICAL: Check for recursion/self-nesting
-    // Since we are bypassing manager.moveItem for manual placement, we must manually check recursion
-    if (inventoryRef.current.checkRecursion(item, targetContainer)) {
-      console.warn('[InventoryContext] Recursion detected - cannot place item into itself');
-      return { success: false, reason: 'Cannot place item into itself' };
-    }
-
-    // CRITICAL: Remove from origin container FIRST with ORIGINAL rotation intact
-    // This ensures correct grid cell clearing based on item's current state
-    if (originContainer) {
+    // 2. CRITICAL: Remove from origin container FIRST
+    // This ensures there are no "duplicates" in the data before we place in the target
+    if (originContainer && originContainer.removeItem) {
       const removed = originContainer.removeItem(item.instanceId);
       if (!removed) {
         console.error('[InventoryContext] Failed to remove item from origin container');
         return { success: false, reason: 'Failed to remove from origin' };
       }
-      console.debug('[InventoryContext] Removed item from origin:', originContainerId, 'with rotation:', item.rotation);
+      console.debug('[InventoryContext] Successfully removed from origin:', originContainerId);
+    } else if (originContainerId.startsWith('weapon-mod-')) {
+      // Already removed during detach
+      console.debug('[InventoryContext] Item from weapon-mod origin is already detached');
     }
 
-    // NOW apply the new rotation (item is free-floating, no grid conflicts)
-    const previousRotation = item.rotation;
+    // NOW apply the new rotation to the item object
     item.rotation = rotation;
-    console.debug('[InventoryContext] Applied rotation:', previousRotation, '→', rotation);
 
-    // Validate placement with rotated item
-    const validation = targetContainer.validatePlacement(item, targetX, targetY);
-    if (!validation.valid) {
-      console.warn('[InventoryContext] Invalid placement:', validation.reason);
-      // Restore item to original state and position
-      item.rotation = originalRotation;
-      if (originContainer) {
-        originContainer.placeItemAt(item, originalX, originalY);
-      }
-      setInventoryVersion(prev => prev + 1);
-      return { success: false, reason: validation.reason };
-    }
-
-    // Phase Stacking: Handle merging if we found a stack target
+    // 3. Phase Stacking: Handle merging if we found a stack target
     if (validation.stackTarget) {
       const targetItem = validation.stackTarget;
       const stackableAmount = targetItem.getStackableAmount(item);
@@ -604,12 +597,10 @@ export const InventoryProvider = ({ children, manager }) => {
           setInventoryVersion(prev => prev + 1);
           return { success: true, stacked: true };
         } else {
-          // Partial stack - The "Nothing Selected" rule: 
-          // Put the remainder back in its original slot and clear selection.
+          // Partial stack - Put the remainder back in its original slot and clear selection
           console.debug('[InventoryContext] Partial stack - returning remainder to origin:', item.stackCount);
 
           if (originContainer) {
-            // Restore original rotation (items can't be rotated while stacked anyway)
             item.rotation = originalRotation;
             originContainer.placeItemAt(item, originalX, originalY);
           }
@@ -622,11 +613,11 @@ export const InventoryProvider = ({ children, manager }) => {
       }
     }
 
-    // Place in target container at new position with new rotation
+    // 4. Place in target container at new position
     const placed = targetContainer.placeItemAt(item, targetX, targetY);
 
     if (!placed) {
-      console.warn('[InventoryContext] Failed to place item');
+      console.warn('[InventoryContext] Failed to place item, restoring to origin');
       // Restore item to original state and position
       item.rotation = originalRotation;
       if (originContainer) {
@@ -636,14 +627,7 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'Failed to place item' };
     }
 
-    console.debug('[InventoryContext] Successfully placed item:', {
-      name: item.name,
-      instanceId: item.instanceId,
-      container: targetContainerId,
-      position: `(${targetX}, ${targetY})`,
-      rotation: rotation
-    });
-
+    console.debug('[InventoryContext] Successfully placed item:', item.name);
     setSelectedItem(null);
     setDragVersion(prev => prev + 1);
     setInventoryVersion(prev => prev + 1);
@@ -775,7 +759,29 @@ export const InventoryProvider = ({ children, manager }) => {
       getPlacementPreview,
       equipSelectedItem,
       splitStack,
-      depositSelectedInto
+      depositSelectedInto,
+      attachSelectedItemToWeapon: (weapon, slotId) => {
+        if (!selectedItem) return { success: false, reason: 'No item selected' };
+        const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
+        if (result.success) {
+          // IMPORTANT: Clear selection without triggering restoration logic in clearSelected()
+          setSelectedItem(null);
+          setDragVersion(v => v + 1);
+          setInventoryVersion(v => v + 1);
+        }
+        return result;
+      },
+      detachItemFromWeapon: (weapon, slotId) => {
+        const item = inventoryRef.current.detachItemFromWeapon(weapon, slotId);
+        if (item) {
+          setInventoryVersion(v => v + 1);
+          // Auto-select the detached item
+          // Include slotId in origin so it can be returned if selection cancelled
+          selectItem(item, `weapon-mod-${weapon.instanceId}:${slotId}`, 0, 0);
+          return item;
+        }
+        return null;
+      }
     };
   }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto]);
 

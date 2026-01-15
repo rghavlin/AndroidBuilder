@@ -30,13 +30,20 @@ export class Item {
     pocketLayoutId = null,
     pocketGrids = null, // For restoring from save
     _pocketGridsData = null, // For restoring from save
-    categories = []
+    categories = [],
+    attachments = null
   }) {
-    // Core identity
-    this.instanceId = instanceId || id || `item-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    // Core identity - MUST be unique per item instance
+    const uniqueSuffix = Math.random().toString(36).substring(2, 9);
+    const timestamp = Date.now();
+    this.instanceId = instanceId || `item-${timestamp}-${uniqueSuffix}`;
     this.defId = defId;
     this.name = name;
     this.imageId = imageId;
+
+    // Diagnostic branding for debugging
+    this._creationTime = timestamp;
+    this._uniqueKey = uniqueSuffix;
 
     // MIGRATION: Backfill pocketLayoutId from definition if missing
     if (!pocketLayoutId && this.defId && ItemDefs[this.defId]) {
@@ -83,8 +90,7 @@ export class Item {
 
     // Weapon Attachment properties
     this.attachmentSlots = null;
-    this._attachmentGridsData = null; // For restoring from save
-    this.attachmentGrids = [];
+    this.attachments = attachments || {}; // Store attached Item instances by slotId
 
     // MIGRATION / INITIALIZATION: Load attachment slots from definition
     if (this.defId && ItemDefs[this.defId]?.attachmentSlots) {
@@ -381,50 +387,39 @@ export class Item {
     }
   }
 
-  getAttachmentContainers() {
-    // Return existing if already initialized
-    if (this.attachmentGrids.length > 0) {
-      return this.attachmentGrids;
+  // Weapon Attachment Methods
+  attachItem(slotId, item) {
+    if (!this.attachmentSlots) return false;
+    const slot = this.attachmentSlots.find(s => s.id === slotId);
+    if (!slot) return false;
+
+    // Validate category compatibility
+    if (slot.allowedCategories && slot.allowedCategories.length > 0) {
+      const isCompatible = item.categories.some(c => slot.allowedCategories.includes(c));
+      if (!isCompatible) return false;
     }
 
-    try {
-      if (typeof Container === 'undefined') return [];
-
-      // Priority 1: Restore from saved data
-      if (this._attachmentGridsData && this._attachmentGridsData.length > 0) {
-        this.attachmentGrids = this._attachmentGridsData.map(gridDef => Container.fromJSON(gridDef));
-        return this.attachmentGrids;
-      }
-
-      // Priority 2: Create new from slots
-      if (this.attachmentSlots && this.attachmentSlots.length > 0) {
-        this.attachmentGrids = this.attachmentSlots.map(slot => {
-          const containerId = `${this.instanceId}-attachment-${slot.id}`;
-          return new Container({
-            id: containerId,
-            type: 'weapon-attachment',
-            name: slot.name,
-            width: 1,
-            height: 1,
-            autoExpand: false,
-            autoSort: false,
-            ownerId: this.instanceId,
-            allowedCategories: slot.allowedCategories
-          });
-        });
-        return this.attachmentGrids;
-      }
-
-      return [];
-    } catch (err) {
-      console.error('[Item] Failed to initialize attachment containers', err);
-      return [];
-    }
+    this.attachments[slotId] = item;
+    item.isEquipped = true; // Mark as equipped when attached to a weapon
+    return true;
   }
 
-  getAttachmentContainerById(slotId) {
-    const containers = this.getAttachmentContainers();
-    return containers.find(c => c.id.endsWith(`-attachment-${slotId}`));
+  detachItem(slotId) {
+    const item = this.attachments[slotId];
+    if (item) {
+      delete this.attachments[slotId];
+      item.isEquipped = false;
+      return item;
+    }
+    return null;
+  }
+
+  getAttachment(slotId) {
+    return this.attachments[slotId] || null;
+  }
+
+  hasAttachments() {
+    return Object.keys(this.attachments).length > 0;
   }
 
   // Serialization
@@ -463,8 +458,6 @@ export class Item {
     }
 
     // Serialize Pockets
-    // IMPORTANT: We must save the *state* of the pockets (items inside them)
-    // We don't save the definition, just the container state
     if (this.pocketGrids.length > 0) {
       data.pocketGrids = this.pocketGrids.map(pocket => pocket.toJSON());
     } else if (this._pocketGridsData) {
@@ -472,10 +465,11 @@ export class Item {
     }
 
     // Serialize Attachments
-    if (this.attachmentGrids.length > 0) {
-      data.attachmentGrids = this.attachmentGrids.map(g => g.toJSON());
-    } else if (this._attachmentGridsData) {
-      data.attachmentGrids = this._attachmentGridsData;
+    if (Object.keys(this.attachments).length > 0) {
+      data.attachments = {};
+      for (const [slotId, item] of Object.entries(this.attachments)) {
+        data.attachments[slotId] = item.toJSON();
+      }
     }
 
     return data;
@@ -483,16 +477,21 @@ export class Item {
 
   // Helper for static instantiation
   static fromJSON(data) {
-    // If saving/loading, data.pocketGrids will contain the full container objects
-    // We pass this as _pocketGridsData to the constructor
-    // The constructor assigns it to _pocketGridsData
-    // initializePocketGrids uses it to restore containers
-    return new Item({
+    const item = new Item({
       ...data,
       _containerGridData: data.containerGrid,
-      _pocketGridsData: data.pocketGrids,
-      _attachmentGridsData: data.attachmentGrids
+      _pocketGridsData: data.pocketGrids
     });
+
+    // Restore attachments
+    if (data.attachments) {
+      item.attachments = {};
+      for (const [slotId, itemData] of Object.entries(data.attachments)) {
+        item.attachments[slotId] = Item.fromJSON(itemData);
+      }
+    }
+
+    return item;
   }
 
 

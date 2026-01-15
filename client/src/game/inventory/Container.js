@@ -473,46 +473,108 @@ export class Container {
   }
 
   /**
-   * Remove item from container
+   * Remove item from container by its ID
+   * Returns the removed item object, or null if not found
    */
   removeItem(itemId) {
-    // Try to find by the provided ID (should be instanceId)
-    let item = this.items.get(itemId);
-
-    if (!item) {
-      console.warn('[Container] Item not found for removal:', itemId, 'Available items:', Array.from(this.items.keys()));
+    if (!itemId) {
+      console.error('[Container] removeItem REJECT: Missing itemId');
       return null;
     }
 
-    console.debug('[Container] Removing item:', item.name, 'instanceId:', item.instanceId);
+    // Try to find the item in the Map first
+    let item = this.items.get(itemId);
 
-    this.removeItemFromGrid(item);
-    this.items.delete(item.instanceId); // Use instanceId for deletion
+    if (!item) {
+      // Emergency fallback: Search values if key lookup fails (handles ID mismatches)
+      console.warn(`[Container] Item ${itemId} not found by key in Map. Searching values...`);
+      for (const [key, val] of this.items.entries()) {
+        if (val.instanceId === itemId || val.id === itemId) {
+          console.warn(`[Container] Found item by searching values! Key was actually: ${key}`);
+          item = val;
+          itemId = key; // Use the actual key for deletion
+          break;
+        }
+      }
+    }
+
+    if (!item) {
+      console.warn('[Container] removeItem FAILED: Item not found in container:', itemId, 'Container:', this.id);
+      return null;
+    }
+
+    console.debug('[Container] Removing item:', item.name, 'instanceId:', item.instanceId, 'at', `(${item.x}, ${item.y})`);
+
+    // 1. Clear from grid FIRST while item still has its coordinates
+    const gridCleared = this.removeItemFromGrid(item);
+    if (!gridCleared) {
+      console.error('[Container] removeItem CRITICAL: Failed to clear grid for item:', item.name, item.instanceId);
+    }
+
+    // 2. Remove from Map using the key that actually found it
+    const deletedFromMap = this.items.delete(itemId);
+    if (!deletedFromMap && item.instanceId !== itemId) {
+      this.items.delete(item.instanceId);
+    }
+
+    // 3. Clear reference
     item._container = null;
 
+    console.debug('[Container] ✅ REMOVAL SUCCESS:', item.name, 'Total remaining:', this.items.size);
     return item;
   }
 
   /**
-   * Remove item from grid cells
+   * Clear area occupied by item in the grid
    */
   removeItemFromGrid(item) {
-    const width = item.getActualWidth();
-    const height = item.getActualHeight();
-    // ALWAYS use instanceId for grid tracking
-    const itemId = item.instanceId;
+    if (!item) return false;
 
-    if (!itemId) {
-      console.error('[Container] Cannot remove item without instanceId:', item);
-      return;
-    }
+    const width = typeof item.getActualWidth === 'function' ? item.getActualWidth() : (item.rotation === 90 || item.rotation === 270 ? item.height : item.width);
+    const height = typeof item.getActualHeight === 'function' ? item.getActualHeight() : (item.rotation === 90 || item.rotation === 270 ? item.width : item.height);
+    const itemId = item.instanceId;
+    let clearedCount = 0;
+    const expectedCount = width * height;
+
+    console.debug('[Container] removeItemFromGrid:', item.name, `at (${item.x}, ${item.y})`, `size ${width}x${height}`);
 
     for (let dy = 0; dy < height; dy++) {
       for (let dx = 0; dx < width; dx++) {
-        if (this.grid[item.y + dy] && this.grid[item.y + dy][item.x + dx] === itemId) {
-          this.grid[item.y + dy][item.x + dx] = null;
+        const gridX = item.x + dx;
+        const gridY = item.y + dy;
+
+        if (this.grid[gridY] && (this.grid[gridY][gridX] === itemId || this.grid[gridY][gridX] === item.id)) {
+          this.grid[gridY][gridX] = null;
+          clearedCount++;
         }
       }
+    }
+
+    if (clearedCount < expectedCount) {
+      console.warn(`[Container] removeItemFromGrid PARTIAL: Cleared ${clearedCount}/${expectedCount} cells for ${item.name}.`);
+      // If partial, do a full scan as fallback
+      this.emergencyGridCleanup(itemId);
+    }
+
+    return clearedCount > 0;
+  }
+
+  /**
+   * Scan entire grid to remove any trace of an itemId (emergency fallback)
+   */
+  emergencyGridCleanup(itemId) {
+    console.debug('[Container] 🛠️ EMERGENCY GRID CLEANUP for:', itemId);
+    let extraCleared = 0;
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        if (this.grid[y][x] === itemId) {
+          this.grid[y][x] = null;
+          extraCleared++;
+        }
+      }
+    }
+    if (extraCleared > 0) {
+      console.debug(`[Container] 🛠️ Emergency cleanup removed ${extraCleared} additional cells.`);
     }
   }
 

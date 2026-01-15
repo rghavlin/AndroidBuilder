@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Item } from '../../game/entities/TestEntity.js';
+import { TestEntity, Item as LegacyItem } from '../../game/entities/TestEntity.js';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { ItemTrait } from '../../game/inventory/traits.js';
 import { createItem } from '../../game/inventory/index.js';
+import { Item } from '../../game/inventory/Item.js';
 
 const DevConsole = ({ isOpen, onClose }) => {
   const [input, setInput] = useState('');
@@ -401,12 +402,12 @@ const DevConsole = ({ isOpen, onClose }) => {
           if (subCommand === 'spawn') {
             const entityType = parts[2];
             if (entityType) {
-              const newEntity = new Item({
-                id: `console-${entityType}-${Date.now()}`,
-                type: entityType,
-                x: 10,
-                y: 10
-              });
+              const newEntity = new LegacyItem(
+                `console-${entityType}-${Date.now()}`,
+                10,
+                10,
+                entityType
+              );
               addToConsole(`Spawned ${entityType} entity with ID: ${newEntity.id}`, 'success');
             } else {
               addToConsole('Please specify entity type to spawn', 'error');
