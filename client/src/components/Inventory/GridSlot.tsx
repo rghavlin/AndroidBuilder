@@ -102,24 +102,6 @@ export default function GridSlot({
         >
           {/* All image rendering handled by UniversalGrid overlays */}
           {children}
-
-          {/* Stack count indicator - only show for items with actual images, and only on the top-left slot */}
-          {item && isTopLeft && item.stackCount > 1 && (
-            <div className="absolute inset-0 pointer-events-none z-20">
-              <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20">
-                {item.stackCount}
-              </span>
-            </div>
-          )}
-
-          {/* Magazine ammo count indicator */}
-          {item && isTopLeft && item.isMagazine && item.isMagazine() && (
-            <div className="absolute inset-0 pointer-events-none z-20">
-              <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20">
-                {item.ammoCount || 0}
-              </span>
-            </div>
-          )}
         </div>
       </ItemContextMenu>
     </TooltipProvider>

@@ -204,6 +204,29 @@ export class Item {
     return this.hasCategory(ItemCategory.WEAPON) || !!this.attachmentSlots;
   }
 
+  getDisplayAmmoCount() {
+    // 1. If it's a magazine, return its ammo count
+    if (this.isMagazine()) {
+      return this.ammoCount || 0;
+    }
+
+    // 2. If it's a weapon, check for an attached magazine
+    if (this.attachmentSlots) {
+      // Find the ammo/magazine slot
+      const ammoSlot = this.attachmentSlots.find(slot =>
+        slot.id === 'ammo' || (slot.allowedCategories && slot.allowedCategories.includes(ItemCategory.AMMO))
+      );
+
+      if (ammoSlot) {
+        const attachedMag = this.attachments[ammoSlot.id];
+        // If magazine is equipped, show its count; if no mag, show 0 per user request
+        return attachedMag ? (attachedMag.ammoCount || 0) : 0;
+      }
+    }
+
+    return null;
+  }
+
   hasCategory(category) {
     return this.categories.includes(category);
   }
@@ -459,6 +482,30 @@ export class Item {
     this.attachments[slotId] = item;
     item.isEquipped = true; // Mark as equipped when attached to a weapon
     return true;
+  }
+
+  findCompatibleAttachmentSlot(item) {
+    if (!this.attachmentSlots) return null;
+
+    // Find first empty and compatible slot
+    for (const slot of this.attachmentSlots) {
+      if (this.attachments[slot.id]) continue; // Already occupied
+
+      // Validate category compatibility
+      if (slot.allowedCategories && slot.allowedCategories.length > 0) {
+        const isCompatible = item.categories.some(c => slot.allowedCategories.includes(c));
+        if (!isCompatible) continue;
+      }
+
+      // Validate specific item ID compatibility
+      if (slot.allowedItems && slot.allowedItems.length > 0) {
+        if (!slot.allowedItems.includes(item.defId)) continue;
+      }
+
+      return slot.id;
+    }
+
+    return null;
   }
 
   detachItem(slotId) {

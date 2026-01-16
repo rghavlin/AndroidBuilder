@@ -44,7 +44,7 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, loadAmmoInto } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -142,6 +142,16 @@ export default function UniversalGrid({
         return;
       }
 
+      // Quick Attachment: If clicking on a weapon while carrying an item, try to attach it
+      const isWeapon = item?.isWeapon?.() || (item?.attachmentSlots && item.attachmentSlots.length > 0);
+      if (item && isWeapon) {
+        console.debug('[UniversalGrid] Clicking weapon with selection - attempting quick attach into:', item.name);
+        const attachResult = attachSelectedInto(item);
+        if (attachResult.success) {
+          return;
+        }
+      }
+
       // Quick Deposit: If clicking on a container while carrying an item, try to deposit it
       const isContainer = item?.isContainer?.() || (item?.getPocketContainers && item.getPocketContainers().length > 0);
       if (item && isContainer) {
@@ -234,9 +244,11 @@ export default function UniversalGrid({
     }
   };
 
-  // Dynamic grid dimensions based on calculated slot size
-  const gridWidth = width * slotSize;
-  const gridHeight = height * slotSize;
+  // Dynamic grid dimensions based on calculated slot size (+ gaps)
+  const GAP_SIZE = 2;
+  const totalGridWidth = (width * slotSize) + ((width - 1) * GAP_SIZE);
+  const totalGridHeight = (height * slotSize) + ((height - 1) * GAP_SIZE);
+
 
   // For fixed grids, don't wait for calculation - they use a constant size
   // For scalable grids, wait for calculation to prevent layout shifts
@@ -256,7 +268,6 @@ export default function UniversalGrid({
   }
 
   const renderGrid = () => {
-    const GAP_SIZE = 2; // Must match grid gap in style
     const overlays: JSX.Element[] = [];
 
     const gridSlots = Array.from({ length: totalSlots }, (_, index) => {
@@ -362,24 +373,52 @@ export default function UniversalGrid({
           const isItemSelected = selectedItem && item.instanceId === selectedItem.item.instanceId;
 
           overlays.push(
-            <img
-              key={itemId}
-              src={itemImageSrc}
-              className={cn(
-                "absolute pointer-events-none select-none transition-opacity duration-200 max-w-none",
-                isItemSelected && "opacity-40"
-              )}
+            <div
+              key={`overlay-${itemId}`}
+              className="absolute pointer-events-none select-none z-10"
               style={{
-                left: `${adjustedLeft}px`,
-                top: `${adjustedTop}px`,
-                width: `${imageWidth}px`,
-                height: `${imageHeight}px`,
-                objectFit: 'contain',
-                transform: transformStyle,
-                transformOrigin: 'top left',
+                left: `${leftPos}px`,
+                top: `${topPos}px`,
+                width: `${gridWidth}px`,
+                height: `${gridHeight}px`,
               }}
-              alt={item.name}
-            />
+            >
+              <img
+                src={itemImageSrc}
+                className={cn(
+                  "absolute pointer-events-none select-none transition-opacity duration-200 max-w-none",
+                  isItemSelected && "opacity-40"
+                )}
+                style={{
+                  left: `${adjustedLeft - leftPos}px`,
+                  top: `${adjustedTop - topPos}px`,
+                  width: `${imageWidth}px`,
+                  height: `${imageHeight}px`,
+                  objectFit: 'contain',
+                  transform: transformStyle,
+                  transformOrigin: 'top left',
+                }}
+                alt={item.name}
+              />
+
+              {/* Stack count indicator */}
+              {item.stackCount > 1 && (
+                <div className="absolute inset-0 pointer-events-none z-20">
+                  <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20 whitespace-nowrap">
+                    {item.stackCount}
+                  </span>
+                </div>
+              )}
+
+              {/* Ammo count indicator (for magazines and weapons with magazine slots) */}
+              {typeof item.getDisplayAmmoCount === 'function' && item.getDisplayAmmoCount() !== null && (
+                <div className="absolute inset-0 pointer-events-none z-20">
+                  <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20 whitespace-nowrap">
+                    {item.getDisplayAmmoCount()}
+                  </span>
+                </div>
+              )}
+            </div>
           );
         }
       }
@@ -421,9 +460,9 @@ export default function UniversalGrid({
           style={{
             gridTemplateColumns: `repeat(${width}, ${slotSize}px)`,
             gridTemplateRows: `repeat(${height}, ${slotSize}px)`,
-            width: `${gridWidth}px`,
-            height: `${gridHeight}px`,
-            gap: '2px',
+            width: `${totalGridWidth}px`,
+            height: `${totalGridHeight}px`,
+            gap: `${GAP_SIZE}px`,
           }}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setPreviewOverlay(null)}
@@ -455,8 +494,8 @@ export default function UniversalGrid({
         style={{
           maxHeight: gridType === 'fixed' ? 'none' : maxHeight,
           maxWidth: gridType === 'fixed' ? 'none' : maxWidth,
-          width: gridType === 'fixed' ? `${gridWidth}px` : undefined,
-          height: gridType === 'fixed' ? `${gridHeight}px` : undefined,
+          width: gridType === 'fixed' ? `${totalGridWidth}px` : undefined,
+          height: gridType === 'fixed' ? `${totalGridHeight}px` : undefined,
         }}
       >
         <div className={cn(

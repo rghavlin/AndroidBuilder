@@ -455,6 +455,58 @@ export const InventoryProvider = ({ children, manager }) => {
     return result;
   }, [selectedItem]);
 
+  const attachSelectedItemToWeapon = useCallback((weapon, slotId) => {
+    if (!selectedItem || !inventoryRef.current) return { success: false, reason: 'No item selected' };
+    const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
+    if (result.success) {
+      // IMPORTANT: Clear selection without triggering restoration logic in clearSelected()
+      setSelectedItem(null);
+      setDragVersion(v => v + 1);
+      setInventoryVersion(v => v + 1);
+    }
+    return result;
+  }, [selectedItem, inventoryRef]);
+
+  const detachItemFromWeapon = useCallback((weapon, slotId) => {
+    if (!inventoryRef.current) return null;
+    const item = inventoryRef.current.detachItemFromWeapon(weapon, slotId);
+    if (item) {
+      setInventoryVersion(v => v + 1);
+      // Auto-select the detached item
+      // Include slotId in origin so it can be returned if selection cancelled
+      selectItem(item, `weapon-mod-${weapon.instanceId}:${slotId}`, 0, 0);
+      return item;
+    }
+    return null;
+  }, [inventoryRef, selectItem]);
+
+  /**
+   * Quick attach selected item into a target weapon item
+   */
+  const attachSelectedInto = useCallback((targetWeapon) => {
+    if (!selectedItem || !inventoryRef.current || !targetWeapon) return { success: false };
+
+    const { item: modItem } = selectedItem;
+
+    // Check if target has attachment slots
+    if (!targetWeapon.attachmentSlots) {
+      console.warn('[InventoryContext] Target item is not a weapon/item with slots:', targetWeapon.name);
+      return { success: false, reason: 'Target has no attachment slots' };
+    }
+
+    // Find compatible slot
+    const slotId = targetWeapon.findCompatibleAttachmentSlot ? targetWeapon.findCompatibleAttachmentSlot(modItem) : null;
+
+    if (!slotId) {
+      console.warn('[InventoryContext] No compatible empty slot found in', targetWeapon.name);
+      return { success: false, reason: 'No compatible empty slot' };
+    }
+
+    // Use existing attachment method which handles removal and state updates
+    console.debug('[InventoryContext] Quick attaching into slot:', slotId);
+    return attachSelectedItemToWeapon(targetWeapon, slotId);
+  }, [selectedItem, inventoryRef, attachSelectedItemToWeapon]);
+
   /**
    * Quick deposit selected item into a target container item
    */
@@ -905,32 +957,13 @@ export const InventoryProvider = ({ children, manager }) => {
       equipSelectedItem,
       splitStack,
       depositSelectedInto,
+      attachSelectedInto,
       loadAmmoInto,
       unloadMagazine,
-      attachSelectedItemToWeapon: (weapon, slotId) => {
-        if (!selectedItem) return { success: false, reason: 'No item selected' };
-        const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
-        if (result.success) {
-          // IMPORTANT: Clear selection without triggering restoration logic in clearSelected()
-          setSelectedItem(null);
-          setDragVersion(v => v + 1);
-          setInventoryVersion(v => v + 1);
-        }
-        return result;
-      },
-      detachItemFromWeapon: (weapon, slotId) => {
-        const item = inventoryRef.current.detachItemFromWeapon(weapon, slotId);
-        if (item) {
-          setInventoryVersion(v => v + 1);
-          // Auto-select the detached item
-          // Include slotId in origin so it can be returned if selection cancelled
-          selectItem(item, `weapon-mod-${weapon.instanceId}:${slotId}`, 0, 0);
-          return item;
-        }
-        return null;
-      }
+      attachSelectedItemToWeapon,
+      detachItemFromWeapon
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

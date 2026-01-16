@@ -3,7 +3,7 @@ import EquipmentSlot from "./EquipmentSlot";
 import { useInventory } from "@/contexts/InventoryContext";
 
 export default function EquipmentSlots() {
-  const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem } = useInventory();
+  const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto } = useInventory();
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
   const equipmentSlots = [
@@ -18,7 +18,7 @@ export default function EquipmentSlots() {
 
   const handleSlotClick = (slotId: string) => {
     const equippedItem = inventoryRef.current?.equipment[slotId];
-    
+
     console.log('[EquipmentSlots] handleSlotClick', {
       slotId,
       equippedItem,
@@ -26,25 +26,51 @@ export default function EquipmentSlots() {
       isEquipment: selectedItem?.isEquipment
     });
 
-    // If slot is empty and we have a selected item, try to equip it
-    if (!equippedItem && selectedItem && !selectedItem.isEquipment) {
-      const result = equipSelectedItem(slotId);
-      if (!result.success) {
-        console.warn('[EquipmentSlots] Failed to equip item:', result.reason);
+    // Case 1: We are already carrying an item (from grid or other slot)
+    if (selectedItem && !selectedItem.isEquipment) {
+      // If clicking same item (just in case), deselect
+      if (equippedItem && equippedItem.instanceId === selectedItem.item.instanceId) {
+        clearSelected();
+        return;
       }
-      return;
+
+      // If slot is empty, try to equip
+      if (!equippedItem) {
+        const result = equipSelectedItem(slotId);
+        if (!result.success) {
+          console.warn('[EquipmentSlots] Failed to equip item:', result.reason);
+        }
+        return;
+      }
+
+      // Slot is occupied, try Attachment (if weapon)
+      const isWeapon = equippedItem.isWeapon?.() || (equippedItem.attachmentSlots && equippedItem.attachmentSlots.length > 0);
+      if (isWeapon) {
+        console.debug('[EquipmentSlots] Attempting quick attach into equipped weapon:', equippedItem.name);
+        const attachResult = attachSelectedInto(equippedItem);
+        if (attachResult.success) return;
+      }
+
+      // Try Deposit (if container/clothing)
+      const isContainer = equippedItem.isContainer?.() || (equippedItem.getPocketContainers && equippedItem.getPocketContainers().length > 0);
+      if (isContainer) {
+        console.debug('[EquipmentSlots] Attempting quick deposit into equipped container:', equippedItem.name);
+        const depositResult = depositSelectedInto(equippedItem);
+        if (depositResult.success) return;
+      }
+
+      // If all else fails, fall through to default behavior (switching selection)
     }
-    
-    // If slot has an item
+
+    // Case 2: Standard selection/deselection
     if (equippedItem) {
       // If this item is already selected, deselect it (cancel)
       if (selectedItem?.item?.instanceId === equippedItem.instanceId) {
         clearSelected();
-        return;
+      } else {
+        // Select equipment item for unequipping (Phase 5H)
+        selectItem(equippedItem, `equipment-${slotId}`, 0, 0, true);
       }
-      
-      // Select equipment item for unequipping (Phase 5H)
-      selectItem(equippedItem, `equipment-${slotId}`, 0, 0, true);
     }
   };
 
@@ -55,10 +81,10 @@ export default function EquipmentSlots() {
         {equipmentSlots.map((slot) => {
           // Read equipped item from inventory manager (reactive to inventoryVersion)
           const equippedItem = inventoryRef.current?.equipment[slot.id] || null;
-          
+
           // Check if this item is selected for unequipping
-          const isSelected = selectedItem?.isEquipment && 
-                           selectedItem?.item?.instanceId === equippedItem?.instanceId;
+          const isSelected = selectedItem?.isEquipment &&
+            selectedItem?.item?.instanceId === equippedItem?.instanceId;
 
           return (
             <EquipmentSlot

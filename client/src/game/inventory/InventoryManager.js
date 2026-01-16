@@ -665,12 +665,13 @@ export class InventoryManager {
     }
 
     // 2. Try equipment slot
-    if (this.equipment.hasOwnProperty(sourceId)) {
-      const item = this.equipment[sourceId];
+    const slotId = sourceId.startsWith('equipment-') ? sourceId.replace('equipment-', '') : sourceId;
+    if (this.equipment.hasOwnProperty(slotId)) {
+      const item = this.equipment[slotId];
       if (item && item.instanceId === itemId) {
-        this.equipment[sourceId] = null;
+        this.equipment[slotId] = null;
         item.isEquipped = false;
-        return { item, equipment: sourceId };
+        return { item, equipment: slotId };
       }
     }
 

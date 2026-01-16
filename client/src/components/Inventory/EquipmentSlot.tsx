@@ -115,6 +115,15 @@ export default function EquipmentSlot({
               </span>
             </>
           )}
+
+          {/* Ammo count indicator (for magazines and weapons with magazine slots) */}
+          {item && typeof item.getDisplayAmmoCount === 'function' && item.getDisplayAmmoCount() !== null && (
+            <div className="absolute inset-0 pointer-events-none z-20">
+              <span className="absolute bottom-0.5 right-0.5 text-[0.6rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20">
+                {item.getDisplayAmmoCount()}
+              </span>
+            </div>
+          )}
         </div>
       </ItemContextMenu>
     </TooltipProvider>
