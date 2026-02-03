@@ -81,7 +81,7 @@ export default function AttachmentSlot({
                                 <img
                                     src={imageSrc}
                                     alt={attachedItem.name}
-                                    className="w-full h-full object-contain p-1"
+                                    className="w-full h-full object-cover p-1"
                                 />
                             ) : (
                                 <span className="text-[0.65rem] font-bold text-accent text-center px-1">

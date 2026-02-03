@@ -112,6 +112,18 @@ export const ItemDefs = {
     condition: 100
   },
 
+  'weapon.woodenbat': {
+    id: 'weapon.woodenbat',
+    name: 'Wooden Bat',
+    imageId: 'woodenbat',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100
+  },
+
 
   // Firearms (no degradation)
   'weapon.9mmPistol': {
@@ -287,7 +299,24 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.FOOD],
-    stackMax: 10
+    stackMax: 10,
+    consumptionEffects: {
+      nutrition: 5,
+      hydration: 2
+    }
+  },
+
+  'food.waterbottle': {
+    id: 'food.waterbottle',
+    name: 'Water Bottle',
+    imageId: 'waterbottle',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    consumptionEffects: {
+      hydration: 10
+    }
   }
 };
 

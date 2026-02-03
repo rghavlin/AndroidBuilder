@@ -489,7 +489,18 @@ const GameContextInner = ({ children }) => {
       });
 
       player.restoreAP(player.maxAp - player.ap);
-      updatePlayerStats({ ap: player.ap });
+
+      // Reduce survival stats by 1 on end turn
+      player.nutrition = Math.max(0, player.nutrition - 1);
+      player.hydration = Math.max(0, player.hydration - 1);
+      player.energy = Math.max(0, player.energy - 1);
+
+      updatePlayerStats({
+        ap: player.ap,
+        nutrition: player.nutrition,
+        hydration: player.hydration,
+        energy: player.energy
+      });
       console.log(`[GameContext] Player AP restored to: ${player.ap}`);
 
       updatePlayerFieldOfView(gameMap);

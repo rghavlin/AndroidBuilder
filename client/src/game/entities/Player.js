@@ -7,10 +7,16 @@ export class Player extends Entity {
   constructor(id, name, x = 0, y = 0) {
     super(id, 'player', x, y);
     this.name = name;
-    this.hp = 100;
-    this.maxHp = 100;
-    this.ap = 100;
-    this.maxAp = 100;
+    this.hp = 20;
+    this.maxHp = 20;
+    this.ap = 12;
+    this.maxAp = 12;
+    this.nutrition = 20;
+    this.maxNutrition = 20;
+    this.hydration = 20;
+    this.maxHydration = 20;
+    this.energy = 20;
+    this.maxEnergy = 20;
     this.blocksMovement = true; // Players block other entities
 
     // Add instance tracking to detect duplicates
@@ -133,6 +139,27 @@ export class Player extends Entity {
   }
 
   /**
+   * Modify a generic stat
+   */
+  modifyStat(statName, amount) {
+    const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
+    const old = this[statName];
+    if (old === undefined) return;
+
+    const maxVal = this[maxStatName] || 100;
+    this[statName] = Math.min(maxVal, Math.max(0, this[statName] + amount));
+
+    if (this[statName] !== old) {
+      this.emitEvent('statChanged', {
+        stat: statName,
+        amount,
+        current: this[statName],
+        max: maxVal
+      });
+    }
+  }
+
+  /**
    * Serialize player to JSON
    */
   toJSON() {
@@ -142,7 +169,13 @@ export class Player extends Entity {
       hp: this.hp,
       maxHp: this.maxHp,
       ap: this.ap,
-      maxAp: this.maxAp
+      maxAp: this.maxAp,
+      nutrition: this.nutrition,
+      maxNutrition: this.maxNutrition,
+      hydration: this.hydration,
+      maxHydration: this.maxHydration,
+      energy: this.energy,
+      maxEnergy: this.maxEnergy
     };
   }
 
@@ -155,6 +188,12 @@ export class Player extends Entity {
     player.maxHp = data.maxHp;
     player.ap = data.ap;
     player.maxAp = data.maxAp;
+    player.nutrition = data.nutrition || 20;
+    player.maxNutrition = data.maxNutrition || 20;
+    player.hydration = data.hydration || 20;
+    player.maxHydration = data.maxHydration || 20;
+    player.energy = data.energy || 20;
+    player.maxEnergy = data.maxEnergy || 20;
     return player;
   }
 }

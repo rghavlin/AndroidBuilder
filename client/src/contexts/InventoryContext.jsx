@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef, useState, useCallback, useMem
 import { ItemTrait } from '../game/inventory/traits.js';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
+import { usePlayer } from './PlayerContext.jsx';
 
 const InventoryContext = createContext();
 
@@ -58,6 +59,8 @@ export const InventoryProvider = ({ children, manager }) => {
   // Phase 5G: Selection-based drag state (simpler than cursor-following)
   const [selectedItem, setSelectedItem] = useState(null); // { item, originContainerId, originX, originY, rotation }
   const [dragVersion, setDragVersion] = useState(0); // Force re-render on selection changes
+
+  const { playerRef } = usePlayer();
 
   useEffect(() => {
     console.log(`[InventoryProvider] MOUNT id=${__instanceId}`);
@@ -884,6 +887,46 @@ export const InventoryProvider = ({ children, manager }) => {
     return { success: true };
   }, []);
 
+  /**
+   * Consume an item (food, medical, etc.)
+   */
+  const consumeItem = useCallback((item) => {
+    if (!inventoryRef.current || !item || !playerRef.current) {
+      return { success: false, reason: 'Initialization error' };
+    }
+
+    // Apply consumption effects if they exist
+    if (item.consumptionEffects) {
+      console.log('[InventoryContext] Consuming item:', item.name, 'effects:', item.consumptionEffects);
+      Object.entries(item.consumptionEffects).forEach(([stat, amount]) => {
+        playerRef.current.modifyStat(stat, amount);
+      });
+    }
+
+    // Find the container holding this item
+    const container = Array.from(inventoryRef.current.containers.values())
+      .find(c => c.items.has(item.instanceId));
+
+    if (!container) {
+      // Check if it's equipped - some consumables might be equipped? Usually not food.
+      // But for completeness:
+      console.warn('[InventoryContext] Consumable container not found for:', item.name);
+      return { success: false, reason: 'Item container not found' };
+    }
+
+    // Handle stack reduction or removal
+    if (item.isStackable && item.isStackable() && item.stackCount > 1) {
+      item.stackCount -= 1;
+      console.log('[InventoryContext] Stack reduced, new count:', item.stackCount);
+    } else {
+      container.removeItem(item.instanceId);
+      console.log('[InventoryContext] Item fully consumed and removed from container');
+    }
+
+    setInventoryVersion(prev => prev + 1);
+    return { success: true };
+  }, [playerRef]);
+
   const getPlacementPreview = useCallback((targetContainerId, gridX, gridY) => {
     if (!selectedItem || !inventoryRef.current) {
       return null;
@@ -973,10 +1016,11 @@ export const InventoryProvider = ({ children, manager }) => {
       attachSelectedInto,
       loadAmmoInto,
       unloadMagazine,
+      consumeItem,
       attachSelectedItemToWeapon,
       detachItemFromWeapon
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

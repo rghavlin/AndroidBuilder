@@ -41,7 +41,8 @@ export const ItemTrait = {
   DEGRADABLE: 'degradable',
   OPENABLE_WHEN_NESTED: 'openableWhenNested',
   CONTAINER: 'container',
-  EQUIPPABLE: 'equippable'
+  EQUIPPABLE: 'equippable',
+  CONSUMABLE: 'consumable'
 };
 
 // Encumbrance modifiers

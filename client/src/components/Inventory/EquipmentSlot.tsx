@@ -102,7 +102,7 @@ export default function EquipmentSlot({
               <img
                 src={imageSrc}
                 alt={item.name}
-                className="w-full h-full object-contain p-1"
+                className="w-full h-full object-cover p-1"
               />
             ) : (
               <span className="text-xs font-bold text-accent">{displayIcon}</span>

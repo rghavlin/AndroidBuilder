@@ -31,7 +31,7 @@ export function ItemContextMenu({
     item,
     tooltipContent = null
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadMagazine } = useInventory();
+    const { openContainer, canOpenContainer, unloadMagazine, consumeItem } = useInventory();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
 
     // If there's no item and no tooltip, just render children
@@ -102,6 +102,16 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Unload
+                            </ContextMenuItem>
+                        )}
+                        {item?.hasTrait?.('consumable') && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    consumeItem(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                {item?.categories?.includes('food') ? 'Eat' : 'Consume'}
                             </ContextMenuItem>
                         )}
                         {canSplit && (

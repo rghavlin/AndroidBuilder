@@ -33,7 +33,8 @@ export class Item {
     categories = [],
     attachments = null,
     capacity = null,
-    ammoCount = 0
+    ammoCount = 0,
+    consumptionEffects = null
   }) {
     // Core identity - MUST be unique per item instance
     const uniqueSuffix = Math.random().toString(36).substring(2, 9);
@@ -95,6 +96,7 @@ export class Item {
     // Weapon Attachment properties
     this.attachmentSlots = null;
     this.attachments = attachments || {}; // Store attached Item instances by slotId
+    this.consumptionEffects = consumptionEffects;
 
     // MIGRATION / INITIALIZATION: Load attachment slots from definition
     if (this.defId && ItemDefs[this.defId]?.attachmentSlots) {
@@ -588,7 +590,8 @@ export class Item {
       isEquipped: this.isEquipped,
       encumbranceTier: this.encumbranceTier,
       pocketLayoutId: this.pocketLayoutId, // Persist the layout ID
-      categories: this.categories
+      categories: this.categories,
+      consumptionEffects: this.consumptionEffects
     };
 
     // Serialize Traits

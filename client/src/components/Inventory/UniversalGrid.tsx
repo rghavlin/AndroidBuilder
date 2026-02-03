@@ -394,7 +394,7 @@ export default function UniversalGrid({
                   top: `${adjustedTop - topPos}px`,
                   width: `${imageWidth}px`,
                   height: `${imageHeight}px`,
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                   transform: transformStyle,
                   transformOrigin: 'top left',
                 }}

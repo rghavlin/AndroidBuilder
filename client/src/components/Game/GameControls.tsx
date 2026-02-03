@@ -9,6 +9,12 @@ interface GameControlsProps {
     ap: number;
     maxAp: number;
     ammo: number;
+    nutrition: number;
+    maxNutrition: number;
+    hydration: number;
+    maxHydration: number;
+    energy: number;
+    maxEnergy: number;
   };
   gameState: {
     turn: number;
@@ -30,13 +36,13 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
 
   // Get only orchestration functions from GameContext (no data aggregation)
-  const { 
-    turn, 
-    endTurn, 
-    isInitialized, 
-    isPlayerTurn, 
+  const {
+    turn,
+    endTurn,
+    isInitialized,
+    isPlayerTurn,
     isAutosaving,
-    loadAutosave 
+    loadAutosave
   } = useGame();
 
   // Phase 2: Movement animation handled by PlayerContext
@@ -131,9 +137,9 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
           data-testid="button-end-turn"
         >
           {endTurnImage ? (
-            <img 
-              src={endTurnImage} 
-              alt="End Turn" 
+            <img
+              src={endTurnImage}
+              alt="End Turn"
               className="w-full h-full object-contain"
             />
           ) : (
@@ -141,34 +147,59 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
           )}
         </Button>
 
-        {/* Stats - Expanded to fill space */}
-        <div className="flex flex-col gap-0 text-sm">
-          {/* HP and AP - top aligned with button */}
-          <div className="flex items-center gap-6">
-            <div className="stat-display flex items-center gap-1" data-testid="stat-health">
+        {/* Stats - Expanded to fill middle area */}
+        <div className="flex flex-col gap-1.5 px-2">
+          {/* Row 1: Combat Stats */}
+          <div className="flex items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5" data-testid="stat-health">
               <Heart className="w-3 h-3 text-destructive" />
-              <span>HP:</span>
-              <span className="text-destructive">{currentStats.hp}</span>/<span className="text-muted-foreground">{currentStats.maxHp}</span>
+              <span className="text-muted-foreground mr-0.5">HP</span>
+              <span className="text-destructive font-bold">{currentStats.hp}</span>
+              <span className="text-muted-foreground/50">/</span>
+              <span className="text-muted-foreground/70">{currentStats.maxHp}</span>
             </div>
 
-            <div className="stat-display flex items-center gap-1" data-testid="stat-action-points">
+            <div className="flex items-center gap-1.5" data-testid="stat-action-points">
               <Zap className="w-3 h-3 text-accent" />
-              <span>AP:</span>
-              <span className="text-accent">{currentStats.ap}</span>/<span className="text-muted-foreground">{currentStats.maxAp}</span>
+              <span className="text-muted-foreground mr-0.5">AP</span>
+              <span className="text-accent font-bold">{currentStats.ap}</span>
+              <span className="text-muted-foreground/50">/</span>
+              <span className="text-muted-foreground/70">{currentStats.maxAp}</span>
             </div>
           </div>
 
-          {/* Turn number and status - displayed below stats */}
-          <div className="text-xs text-muted-foreground">
-            Turn: {currentTurn}
+          {/* Row 2: Survival Stats + Turn Info */}
+          <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-tight">
+            {/* Turn Pill */}
+            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-muted-foreground mr-1">
+              T{currentTurn}
+            </div>
+
+            <div className="flex items-center gap-1" data-testid="stat-nutrition">
+              <span className="text-muted-foreground/70 mr-0.5">NUT</span>
+              <span className="text-emerald-500">{currentStats.nutrition}</span>
+            </div>
+
+            <div className="flex items-center gap-1" data-testid="stat-hydration">
+              <span className="text-muted-foreground/70 mr-0.5">HYD</span>
+              <span className="text-sky-500">{currentStats.hydration}</span>
+            </div>
+
+            <div className="flex items-center gap-1" data-testid="stat-energy">
+              <span className="text-muted-foreground/70 mr-0.5">NRG</span>
+              <span className="text-amber-500">{currentStats.energy}</span>
+            </div>
+
+            {/* Status Messages */}
             {!isPlayerTurn && (
-              <span className="ml-2 text-yellow-500">
-                {isAutosaving ? 'Autosaving...' : 'Enemy Turn...'}
+              <span className="text-yellow-500 animate-pulse ml-1 text-[9px]">
+                {isAutosaving ? 'AUTOSAVING' : 'ENEMY TURN'}
               </span>
             )}
+
             {isAnimatingMovement && (
-              <span className="ml-2 text-accent">
-                Moving...
+              <span className="text-accent animate-pulse ml-1 text-[9px]">
+                MOVING
               </span>
             )}
           </div>
@@ -197,9 +228,9 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
           data-testid="button-load-game"
         >
           {loadGameImage ? (
-            <img 
-              src={loadGameImage} 
-              alt="Load Game" 
+            <img
+              src={loadGameImage}
+              alt="Load Game"
               className="w-full h-full object-contain"
             />
           ) : (

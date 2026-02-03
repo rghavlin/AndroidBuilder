@@ -12,20 +12,20 @@ export const usePlayer = () => {
       return {
         playerRef: { current: null },
         player: null,
-        playerStats: { hp: 100, maxHp: 100, ap: 10, maxAp: 10, ammo: 0 },
+        playerStats: { hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 20, maxNutrition: 20, hydration: 20, maxHydration: 20, energy: 20, maxEnergy: 20 },
         isMoving: false,
         movementPath: [],
         movementProgress: 0,
         playerFieldOfView: null,
         playerRenderPosition: { x: 0, y: 0 },
-        setPlayerRef: () => {},
-        setPlayer: () => {},
-        setPlayerPosition: () => {},
-        updatePlayerStats: () => {},
-        startAnimatedMovement: () => {},
-        updatePlayerFieldOfView: () => {},
-        updatePlayerCardinalPositions: () => {},
-        setupPlayerEventListeners: () => {},
+        setPlayerRef: () => { },
+        setPlayer: () => { },
+        setPlayerPosition: () => { },
+        updatePlayerStats: () => { },
+        startAnimatedMovement: () => { },
+        updatePlayerFieldOfView: () => { },
+        updatePlayerCardinalPositions: () => { },
+        setupPlayerEventListeners: () => { },
         getPlayerCardinalPositions: () => []
       };
     }
@@ -42,7 +42,7 @@ export const PlayerProvider = ({ children }) => {
   const [playerVersion, setPlayerVersion] = useState(0);
 
   // Player state
-  const [playerStats, setPlayerStats] = useState({ hp: 100, maxHp: 100, ap: 10, maxAp: 10, ammo: 0 });
+  const [playerStats, setPlayerStats] = useState({ hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 20, maxNutrition: 20, hydration: 20, maxHydration: 20, energy: 20, maxEnergy: 20 });
   const [isMoving, setIsMoving] = useState(false);
   const [movementPath, setMovementPath] = useState([]);
   const [movementProgress, setMovementProgress] = useState(0);
@@ -72,6 +72,12 @@ export const PlayerProvider = ({ children }) => {
         maxHp: player.maxHp,
         ap: player.ap,
         maxAp: player.maxAp,
+        nutrition: player.nutrition || 20,
+        maxNutrition: player.maxNutrition || 20,
+        hydration: player.hydration || 20,
+        maxHydration: player.maxHydration || 20,
+        energy: player.energy || 20,
+        maxEnergy: player.maxEnergy || 20,
         ammo: 0
       });
     } else {
@@ -120,11 +126,15 @@ export const PlayerProvider = ({ children }) => {
     const handleHealing = () => {
       setPlayerStats(prev => ({ ...prev, hp: player.hp }));
     };
+    const handleStatChanged = (data) => {
+      setPlayerStats(prev => ({ ...prev, [data.stat]: data.current }));
+    };
 
     player.on('apUsed', handleAPUsed);
     player.on('apRestored', handleAPRestored);
     player.on('damageTaken', handleDamage);
     player.on('healed', handleHealing);
+    player.on('statChanged', handleStatChanged);
 
     console.log('[PlayerContext] Event listeners set up for player');
   }, []);
@@ -145,7 +155,7 @@ export const PlayerProvider = ({ children }) => {
     const evaluatedPositions = cardinalPositions.map(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
       const isPassable = tile && !tile.contents.some(entity => entity.blocksMovement) &&
-                        !['wall', 'building', 'fence', 'tree'].includes(tile.terrain);
+        !['wall', 'building', 'fence', 'tree'].includes(tile.terrain);
       const hasZombie = tile && tile.contents.some(entity => entity.type === 'zombie');
       const zombieId = hasZombie ? tile.contents.find(entity => entity.type === 'zombie')?.id : null;
 

@@ -77,7 +77,7 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
         <img
           src={imageSrc}
           alt={item.name}
-          className="w-full h-full object-contain p-0.5"
+          className="w-full h-full object-cover p-0.5"
         />
       ) : null}
     </button>

@@ -29,11 +29,17 @@ function GameScreenContent() {
   });
 
   const [playerStats, setPlayerStats] = useState({
-    hp: 75,
-    maxHp: 100,
-    ap: 8,
-    maxAp: 10,
+    hp: 20,
+    maxHp: 20,
+    ap: 12,
+    maxAp: 12,
     ammo: 24,
+    nutrition: 20,
+    maxNutrition: 20,
+    hydration: 20,
+    maxHydration: 20,
+    energy: 20,
+    maxEnergy: 20,
   });
 
   // Phase 2: Direct sub-context access - ALL HOOKS CALLED IN CONSISTENT ORDER
