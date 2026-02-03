@@ -15,16 +15,9 @@ export class SafeEventEmitter extends EventEmitter {
     }
   }
 
-  on(eventType, callback) {
-    const safeCallback = (...args) => {
-      try {
-        return callback(...args);
-      } catch (error) {
-        console.error(`[SafeEventEmitter] Error in ${eventType} listener:`, error);
-      }
-    };
-    return super.on(eventType, safeCallback);
-  }
+
+  // No need to override on() anymore as EventEmitter.emit() already handles try-catch.
+  // Overriding on() with a wrapper breaks off() because the wrapper != the original callback.
 }
 
 export default SafeEventEmitter;

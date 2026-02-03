@@ -92,7 +92,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { isInitialized, initializationError, initializeGame } = useGame(); // Added initializeGame for retry button
 
   // Get inventory context for floating containers and selection management
-  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected } = useInventory();
+  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer } = useInventory();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
@@ -136,6 +136,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   }
 
   // Handler for map cell clicks
+  // Handler for map cell clicks
   const onCellClick = (x: number, y: number) => {
     // If an item is selected for movement, cancel it and don't process map click
     if (selectedItem) {
@@ -143,8 +144,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       clearSelected();
       return; // Do not proceed to handle the map click for movement
     }
-    // Otherwise, proceed with normal map click handling
-    // handleCellClick(x, y); // This function needs to be passed down or accessed differently
   };
 
   // Block all map area clicks when item is selected
@@ -179,6 +178,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             />
           ))}
         </div>
+
         <button
           className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
           title={isInventoryExtensionOpen ? "Close Inventory Extension" : "Open Inventory Extension"}

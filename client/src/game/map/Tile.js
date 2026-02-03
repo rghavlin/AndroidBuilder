@@ -8,6 +8,7 @@ export class Tile {
     this.y = y;
     this.terrain = terrain; // 'grass', 'wall', 'floor', 'road', 'sidewalk', 'fence', 'building'
     this.contents = []; // Array of entities on this tile
+    this.inventoryItems = []; // Array of serialized items on this tile
     this.listeners = new Map(); // Event listeners
     this.flags = {}; // Tile-specific flags (e.g., for fog of war)
   }
@@ -163,6 +164,7 @@ export class Tile {
       y: this.y,
       terrain: this.terrain,
       contents: this.contents.map(entity => entity.toJSON()),
+      inventoryItems: this.inventoryItems, // items are already serialized
       flags: this.flags
     };
   }
@@ -173,6 +175,7 @@ export class Tile {
   static fromJSON(data) {
     const tile = new Tile(data.x, data.y, data.terrain);
     tile.flags = data.flags || {};
+    tile.inventoryItems = data.inventoryItems || [];
     // Note: contents are restored by GameMap.fromJSON
     return tile;
   }

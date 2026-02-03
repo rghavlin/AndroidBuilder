@@ -25,41 +25,47 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
 
-// Define terrain colors
-const terrainColors = {
-  //'grass': '#4a5d23',    // Dark green
-  'grass': '#555555', //test (mid-gray ground)
+  // Define terrain colors
+  const terrainColors = {
+    //'grass': '#4a5d23',    // Dark green
+    'grass': '#555555', //test (mid-gray ground)
 
-  //'floor': '#654321',    // Brown
-  'floor': '#888888', //test (building floor, lighter interior)
+    //'floor': '#654321',    // Brown
+    'floor': '#888888', //test (building floor, lighter interior)
 
-  'wall': '#2c2c2c',     // Dark gray
+    'wall': '#2c2c2c',     // Dark gray
 
-  //'road': '#404040',     // Medium dark gray
-  'road': '#333333',     //test (dark road)
+    //'road': '#404040',     // Medium dark gray
+    'road': '#333333',     //test (dark road)
 
-  //'sidewalk': '#6b7280', // Light gray
-  'sidewalk': '#777777', //test (medium sidewalk gray)
+    //'sidewalk': '#6b7280', // Light gray
+    'sidewalk': '#777777', //test (medium sidewalk gray)
 
-  //'fence': '#8b6914',    // Brownish gray
-  'fence': '#444444', //test (dark gray-brown fence)
+    //'fence': '#8b6914',    // Brownish gray
+    'fence': '#444444', //test (dark gray-brown fence)
 
-  //'building': '#8B4513', // Reddish brown
-  'building': '#AAAAAA', //test (light gray building walls)
+    //'building': '#8B4513', // Reddish brown
+    'building': '#AAAAAA', //test (light gray building walls)
 
-  'water': '#666666',    //test (mid-gray water)
+    'water': '#666666',    //test (mid-gray water)
 
-  'sand': '#999999',     //test (lighter gray for sand, optional)
+    'sand': '#999999',     //test (lighter gray for sand, optional)
 
-  'tree': '#555555',      //test (same as ground, placeholder)
+    'tree': '#555555',      //test (same as ground, placeholder)
   };
 
   // Entity rendering function with image support
   const renderEntity = useCallback((ctx, entity, pixelX, pixelY, tileSize) => {
     // Try to get cached image for this entity
     // For player entities, don't use name as subtype since it's just the player's name
-    const subtype = entity.type === 'player' ? null : (entity.subtype || entity.name);
-    const subtypeImageKey = subtype ? `${entity.type}_${subtype}` : entity.type;
+    const subtype = entity.type === 'player' ? null : (entity.subtype || entity.name || entity.id);
+
+    // Special case for ground items proxy - use the 'item_default' image
+    let subtypeImageKey = subtype ? `${entity.type}_${subtype}` : entity.type;
+    if (entity.type === 'item' && entity.subtype === 'ground_pile') {
+      subtypeImageKey = 'item_default';
+    }
+
     const baseImageKey = entity.type;
 
     // Check if subtype-specific image is available, otherwise try base type
@@ -187,16 +193,16 @@ const terrainColors = {
           ctx.fillRect(
             pixelX + tileSize / 8,
             pixelY + tileSize / 8,
-            tileSize * 3/4,
-            tileSize * 3/4
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
           );
           ctx.strokeStyle = '#991b1b';
           ctx.lineWidth = 2;
           ctx.strokeRect(
             pixelX + tileSize / 8,
             pixelY + tileSize / 8,
-            tileSize * 3/4,
-            tileSize * 3/4
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
           );
         } else {
           // Draw other test entities as purple diamonds
@@ -375,7 +381,7 @@ const terrainColors = {
 
           // Highlight tiles within field of view
           if (player && playerFieldOfView) {
-            const isTileVisible = playerFieldOfView.some(visibleTile => 
+            const isTileVisible = playerFieldOfView.some(visibleTile =>
               visibleTile.x === worldX && visibleTile.y === worldY
             );
 
@@ -389,7 +395,7 @@ const terrainColors = {
           // Render entities on this tile (if tile has contents and tile is visible)
           if (tile.contents && tile.contents.length > 0) {
             // Check if this tile is visible to the player
-            const isTileVisible = !playerFieldOfView || playerFieldOfView.some(visibleTile => 
+            const isTileVisible = !playerFieldOfView || playerFieldOfView.some(visibleTile =>
               visibleTile.x === worldX && visibleTile.y === worldY
             );
 
@@ -416,8 +422,8 @@ const terrainColors = {
         const smoothPixelY = screenPos.y * tileSize;
 
         // Only render if player is visible on screen
-        if (smoothPixelX >= -tileSize && smoothPixelX <= mapWidth && 
-            smoothPixelY >= -tileSize && smoothPixelY <= mapHeight) {
+        if (smoothPixelX >= -tileSize && smoothPixelX <= mapWidth &&
+          smoothPixelY >= -tileSize && smoothPixelY <= mapHeight) {
           renderEntity(ctx, player, smoothPixelX, smoothPixelY, tileSize);
         }
       }
@@ -467,7 +473,7 @@ const terrainColors = {
 
       // Store hovered position for rendering - Fix: pass player parameter
       if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
-          worldPos.y >= 0 && worldPos.y < gameMap.height) {
+        worldPos.y >= 0 && worldPos.y < gameMap.height) {
         handleTileHover(worldPos.x, worldPos.y, player);
       }
     } catch (error) {
@@ -587,7 +593,7 @@ const terrainColors = {
 
       // Validate coordinates and trigger tile click
       if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
-          worldPos.y >= 0 && worldPos.y < gameMap.height) {
+        worldPos.y >= 0 && worldPos.y < gameMap.height) {
         // Call GameMapContext handleTileClick with required parameters
         // Use direct context access - handleTileClick expects these parameters:
         // (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement)
@@ -605,8 +611,11 @@ const terrainColors = {
     const preloadEntityImages = async () => {
       const commonEntityTypes = ['player', 'zombie', 'item', 'npc'];
       await imageLoader.preloadImages(commonEntityTypes);
-      setImagesLoaded(true);
 
+      // Preload the default item image for ground piles
+      await imageLoader.getItemImage('default');
+
+      setImagesLoaded(true);
     };
 
     if (isInitialized) {
@@ -660,24 +669,24 @@ const terrainColors = {
   // Debug logging to identify the issue
   const gameMap = gameMapRef.current;
   const camera = cameraRef.current;
-/*
-  console.log('[MapCanvas] Render check:', {
-    isInitialized,
-    gameMapExists: !!gameMap,
-    cameraExists: !!camera,
-    gameMapType: typeof gameMap,
-    cameraType: typeof camera,
-    gameMapWidth: gameMap?.width,
-    gameMapHeight: gameMap?.height,
-    cameraX: camera?.x,
-    cameraY: camera?.y,
-    gameMapValue: gameMap,
-    cameraValue: camera,
-    gameMapIsNull: gameMap === null,
-    gameMapIsUndefined: gameMap === undefined,
-    cameraIsNull: camera === null,
-    cameraIsUndefined: camera === undefined
-  });*/
+  /*
+    console.log('[MapCanvas] Render check:', {
+      isInitialized,
+      gameMapExists: !!gameMap,
+      cameraExists: !!camera,
+      gameMapType: typeof gameMap,
+      cameraType: typeof camera,
+      gameMapWidth: gameMap?.width,
+      gameMapHeight: gameMap?.height,
+      cameraX: camera?.x,
+      cameraY: camera?.y,
+      gameMapValue: gameMap,
+      cameraValue: camera,
+      gameMapIsNull: gameMap === null,
+      gameMapIsUndefined: gameMap === undefined,
+      cameraIsNull: camera === null,
+      cameraIsUndefined: camera === undefined
+    });*/
 
   if (!isInitialized) {
     console.log('[MapCanvas] Not initialized yet');

@@ -78,6 +78,75 @@ export class GameMap {
   }
 
   /**
+   * Set inventory items on a specific tile and spawn a proxy entity
+   * @param {number} x - Tile X
+   * @param {number} y - Tile Y
+   * @param {Array} items - Array of Item instances
+   */
+  setItemsOnTile(x, y, items) {
+    const tile = this.getTile(x, y);
+    if (!tile) return;
+
+    // Filter out nulls/undefined and serialize
+    const validItems = items.filter(Boolean);
+    tile.inventoryItems = validItems.map(item => typeof item.toJSON === 'function' ? item.toJSON() : item);
+
+    if (validItems.length > 0) {
+      const proxyId = `ground-items-${x}-${y}`;
+      if (!this.entityMap.has(proxyId)) {
+        // Create a proxy entity for visual representation
+        const proxy = {
+          id: proxyId,
+          type: 'item',
+          subtype: 'ground_pile',
+          x,
+          y,
+          blocksMovement: false,
+          blocksSight: false,
+          toJSON: () => ({
+            id: proxyId,
+            type: 'item',
+            subtype: 'ground_pile',
+            x,
+            y,
+            blocksMovement: false,
+            blocksSight: false
+          })
+        };
+        this.addEntity(proxy, x, y);
+      }
+    } else {
+      // Clear proxy if no items left
+      const proxyId = `ground-items-${x}-${y}`;
+      if (this.entityMap.has(proxyId)) {
+        this.removeEntity(proxyId);
+      }
+    }
+  }
+
+  /**
+   * Get items from a specific tile and remove proxy entity
+   * @param {number} x - Tile X
+   * @param {number} y - Tile Y
+   * @returns {Array} - Array of serialized item data
+   */
+  getItemsFromTile(x, y) {
+    const tile = this.getTile(x, y);
+    if (!tile) return [];
+
+    const items = [...tile.inventoryItems];
+    tile.inventoryItems = [];
+
+    // Remove proxy entity
+    const proxyId = `ground-items-${x}-${y}`;
+    if (this.entityMap.has(proxyId)) {
+      this.removeEntity(proxyId);
+    }
+
+    return items;
+  }
+
+  /**
    * Set terrain type for a tile
    */
   setTerrain(x, y, terrain) {
@@ -105,13 +174,13 @@ export class GameMap {
         console.error(`[GameMap] - Existing entity:`, `${existingEntity.id} at (${existingEntity.x}, ${existingEntity.y}), type: ${existingEntity.type}`);
         console.error(`[GameMap] - New entity:`, `${entity.id} at (${x}, ${y}), type: ${entity.type}`);
         console.error(`[GameMap] - Same instance?`, existingEntity === entity ? 'YES' : 'NO - DIFFERENT INSTANCES!');
-        
+
         if (entity.type === 'player') {
           console.error(`[GameMap] 🚨🚨🚨 DUPLICATE PLAYER BEING ADDED TO MAP!`);
           console.error(`[GameMap] - This indicates multiple initialization managers are running!`);
         }
       }
-      
+
       this.entityMap.set(entity.id, entity);
       tile.addEntity(entity);
 
@@ -184,9 +253,14 @@ export class GameMap {
         console.warn(`[GameMap] No old tile found at (${entity.x}, ${entity.y})`);
       }
 
-      // THEN update entity position
-      entity.x = newX;
-      entity.y = newY;
+      // THEN update entity position via moveTo to trigger events
+      console.log(`[GameMap] Updating position for entity ${entityId} to (${newX}, ${newY})`);
+      if (typeof entity.moveTo === 'function') {
+        entity.moveTo(newX, newY);
+      } else {
+        entity.x = newX;
+        entity.y = newY;
+      }
 
       // Finally add to new tile
       console.log(`[GameMap] Adding entity ${entityId} to new tile (${newX}, ${newY})`);
@@ -289,7 +363,7 @@ export class GameMap {
     return {
       width: this.width,
       height: this.height,
-      tiles: this.tiles.map(row => 
+      tiles: this.tiles.map(row =>
         row.map(tile => tile ? tile.toJSON() : null)
       )
     };
@@ -327,13 +401,13 @@ export class GameMap {
             for (const entityData of tileData.contents) {
               // Apply entity type filtering
               const entityType = entityData.type;
-              
+
               // Skip if entity type is excluded
               if (excludeEntityTypes.includes(entityType)) {
                 console.log(`[GameMap] Skipping excluded entity type: ${entityType} (${entityData.id})`);
                 continue;
               }
-              
+
               // Skip if includeEntityTypes is specified and this type is not included
               if (includeEntityTypes && !includeEntityTypes.includes(entityType)) {
                 console.log(`[GameMap] Skipping non-included entity type: ${entityType} (${entityData.id})`);

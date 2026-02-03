@@ -227,8 +227,48 @@ export class Item {
     return null;
   }
 
+  /**
+   * Check if item has a specific category
+   */
   hasCategory(category) {
     return this.categories.includes(category);
+  }
+
+  /**
+   * Get primary category for organization/grouping
+   */
+  getCategory() {
+    // 1. Return first explicit category if available
+    if (this.categories && this.categories.length > 0) {
+      // Normalize common singular categories to plural forms used by GroundManager
+      const cat = this.categories[0];
+      if (cat === 'weapon') return 'weapons';
+      if (cat === 'ammo') return 'ammunition';
+      if (cat === 'tool') return 'tools';
+      if (cat === 'clothing') return 'armor';
+      if (cat === 'food' || cat === 'medical') return 'consumables';
+      return cat;
+    }
+
+    // 2. Fallbacks based on traits
+    if (this.isWeapon()) return 'weapons';
+    if (this.isAmmo()) return 'ammunition';
+    if (this.isContainer()) return 'containers';
+
+    // 3. Fallback based on slot
+    if (this.equippableSlot) {
+      if (this.equippableSlot === 'melee' || this.equippableSlot === 'handgun' || this.equippableSlot === 'long_gun') {
+        return 'weapons';
+      }
+      if (this.equippableSlot === 'upper_body' || this.equippableSlot === 'lower_body') {
+        return 'armor';
+      }
+      if (this.equippableSlot === 'backpack') {
+        return 'containers';
+      }
+    }
+
+    return 'misc';
   }
 
   // Rotation

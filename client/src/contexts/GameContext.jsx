@@ -84,7 +84,22 @@ const GameContextInner = ({ children }) => {
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAutosaving, setIsAutosaving] = useState(false);
 
+  const attachInventorySyncListener = useCallback((player, gameMap, inventoryManager) => {
+    if (!player || !gameMap || !inventoryManager) return;
 
+    // Phase 5B: Add ground container synchronization listener
+    // This listener handles moving items between the ground container and map tiles
+    player.on('playerMoved', ({ oldPosition, newPosition }) => {
+      console.log(`[GameContext] Player shifted from (${oldPosition.x}, ${oldPosition.y}) to (${newPosition.x}, ${newPosition.y}) - syncing ground items`);
+      inventoryManager.syncWithMap(
+        oldPosition.x, oldPosition.y,
+        newPosition.x, newPosition.y,
+        gameMap
+      );
+    });
+
+    console.log('[GameContext] Inventory synchronization listener attached to player');
+  }, []);
 
   const wireManagerEvents = useCallback((manager, runId) => {
     const handleStateChanged = ({ current }) => {
@@ -118,6 +133,8 @@ const GameContextInner = ({ children }) => {
       camera.setWorldBounds(gameMap.width, gameMap.height);
       camera.centerOn(player.x, player.y);
       setupPlayerEventListeners();
+
+      attachInventorySyncListener(player, gameMap, gameObjects.inventoryManager);
 
       setIsGameReady(true);
       console.log('[GameContext] Game is ready - UI gate opened');
@@ -255,6 +272,7 @@ const GameContextInner = ({ children }) => {
 
       // Set up player event listeners and update derived state
       setupPlayerEventListeners();
+      attachInventorySyncListener(loadedState.player, loadedState.gameMap, loadedState.inventoryManager);
       updatePlayerFieldOfView(loadedState.gameMap);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
@@ -315,6 +333,7 @@ const GameContextInner = ({ children }) => {
 
       console.log('[GameContext] Setting up event listeners for loaded player...');
       setupPlayerEventListeners();
+      attachInventorySyncListener(loadedState.player, loadedState.gameMap, loadedState.inventoryManager);
 
       // Recenter camera on loaded player position
       if (loadedState.camera && loadedState.player) {

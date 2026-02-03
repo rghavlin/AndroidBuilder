@@ -2,13 +2,15 @@ import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { GroundManager } from './GroundManager.js';
 import { ItemTrait, EquipmentSlot } from './traits.js'; // Import necessary enums
+import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 
 /**
  * InventoryManager coordinates all containers in the game
  * Maintains the firewall between inventory and map systems
  */
-export class InventoryManager {
+export class InventoryManager extends SafeEventEmitter {
   constructor() {
+    super();
     // Core containers
     this.containers = new Map(); // containerId -> Container
 
@@ -41,6 +43,81 @@ export class InventoryManager {
 
     // Initialize with basic backpack container
     this.initializeDefaultContainers();
+  }
+
+  /**
+   * Synchronize ground container items with map tiles
+   * @param {number} oldX - Previous player X
+   * @param {number} oldY - Previous player Y
+   * @param {number} newX - New player X
+   * @param {number} newY - New player Y
+   * @param {GameMap} gameMap - Current game map
+   */
+  syncWithMap(oldX, oldY, newX, newY, gameMap) {
+    if (!gameMap) return false;
+
+    console.log(`[InventoryManager] 🔄 syncWithMap START: (${oldX}, ${oldY}) -> (${newX}, ${newY})`);
+    let changed = false;
+
+    // 1. Save items from ground container to the map square we are leaving
+    const itemsToSave = this.groundContainer.getAllItems();
+    if (itemsToSave.length > 0) {
+      console.log(`[InventoryManager] Saving ${itemsToSave.length} items to tile (${oldX}, ${oldY})`);
+      gameMap.setItemsOnTile(oldX, oldY, itemsToSave);
+
+      // Clear ground container
+      this.groundContainer.clear();
+      this.groundManager.updateCategoryAreas();
+      changed = true;
+    } else {
+      console.log(`[InventoryManager]   -> No items to save on old tile (${oldX}, ${oldY})`);
+      // Ensure if map tile has items but container is empty (somehow), we clear the map tile proxy
+      gameMap.setItemsOnTile(oldX, oldY, []);
+    }
+
+    // 2. Load items from the new map square into ground container
+    const itemsToLoad = gameMap.getItemsFromTile(newX, newY);
+    if (itemsToLoad && itemsToLoad.length > 0) {
+      console.log(`[InventoryManager]   -> Loading ${itemsToLoad.length} items from tile (${newX}, ${newY})`);
+
+      itemsToLoad.forEach((itemData, index) => {
+        try {
+          const item = Item.fromJSON(itemData);
+          console.log(`[InventoryManager]     [${index}] Restored item: ${item.name} (${item.instanceId})`);
+
+          const success = this.groundManager.addItemSmart(item);
+          if (success) {
+            console.log(`[InventoryManager]     [${index}] ✅ Successfully added to ground container`);
+            changed = true;
+          } else {
+            console.error(`[InventoryManager]     [${index}] ❌ FAILED to add via addItemSmart!`);
+            // Fallback: Force add if smart placement fails
+            const forceSuccess = this.groundContainer.addItem(item);
+            if (forceSuccess) {
+              console.log(`[InventoryManager]     [${index}] ⚠️ Forced add succeeded after smart placement failure`);
+              changed = true;
+            } else {
+              console.error(`[InventoryManager]     [${index}] 🚨 CRITICAL: Force add also failed!`);
+            }
+          }
+        } catch (err) {
+          console.error(`[InventoryManager]     [${index}] 🚨 Error restoring item from JSON:`, err);
+        }
+      });
+
+      this.groundManager.updateCategoryAreas();
+    } else {
+      console.log(`[InventoryManager]   -> No items found on tile (${newX}, ${newY})`);
+    }
+
+    if (changed) {
+      console.log(`[InventoryManager] 🔄 syncWithMap END: Ground container now has ${this.groundContainer.getItemCount()} items. Emitting change...`);
+      this.emit('inventoryChanged');
+    } else {
+      console.log(`[InventoryManager] 🔄 syncWithMap END: No changes occurred.`);
+    }
+
+    return changed;
   }
 
   /**

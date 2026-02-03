@@ -103,14 +103,27 @@ export const InventoryProvider = ({ children, manager }) => {
     console.log('[InventoryContext] - Equipment slots:', Object.entries(manager.equipment).filter(([s, i]) => i).map(([s, i]) => `${s}:${i.name}`).join(', ') || 'none');
   }
 
-  // Update ref if manager prop changes (during load)
   if (manager && inventoryRef.current !== manager) {
-    console.log('[InventoryContext] 🔄 Manager prop changed - updating ref');
-    console.log('[InventoryContext] - Old manager containers:', inventoryRef.current?.containers.size || 0);
-    console.log('[InventoryContext] - New manager containers:', manager.containers.size);
     inventoryRef.current = manager;
     setInventoryVersion(prev => prev + 1);
   }
+
+  // Phase 5B: Listen for global inventory changes to trigger UI refreshes
+  useEffect(() => {
+    if (!manager) return;
+
+    const handleInventoryChanged = () => {
+      console.log('[InventoryContext] 🔄 Inventory changed event received, bumping version');
+      setInventoryVersion(prev => prev + 1);
+    };
+
+    if (typeof manager.on === 'function') {
+      manager.on('inventoryChanged', handleInventoryChanged);
+      return () => {
+        manager.off('inventoryChanged', handleInventoryChanged);
+      };
+    }
+  }, [manager]);
 
   const setInventory = useCallback((inventory) => {
     inventoryRef.current = inventory;
