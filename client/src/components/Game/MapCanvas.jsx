@@ -3,6 +3,7 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
+import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 
 /**
@@ -18,11 +19,13 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
   const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, playerFieldOfView, startAnimatedMovement } = usePlayer();
   const { gameMapRef, handleTileClick, handleTileHover, hoveredTile } = useGameMap();
   const { cameraRef } = useCamera();
+  const { effects, addEffect, tick } = useVisualEffects();
   const [isDragging, setIsDragging] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [hasDragged, setHasDragged] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const nextEffectTimeRef = useRef(0);
 
 
   // Define terrain colors
@@ -55,7 +58,19 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
   };
 
   // Entity rendering function with image support
-  const renderEntity = useCallback((ctx, entity, pixelX, pixelY, tileSize) => {
+  const renderEntity = useCallback((ctx, entity, pixelX, pixelY, tileSize, currentTime = 0) => {
+    // Check for active flicker effects
+    if (effects && effects.length > 0) {
+      const flickerEffect = effects.find(e => e.type === 'flicker' && e.targetId === entity.id);
+      if (flickerEffect) {
+        const elapsed = currentTime - flickerEffect.startTime;
+        if (elapsed >= 0 && elapsed < flickerEffect.duration) {
+          // Flicker every 100ms
+          if (Math.floor(elapsed / 100) % 2 === 1) return;
+        }
+      }
+    }
+
     // Try to get cached image for this entity
     // For player entities, don't use name as subtype since it's just the player's name
     const subtype = entity.type === 'player' ? null : (entity.subtype || entity.name || entity.id);
@@ -91,7 +106,7 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
       // Fallback to default shapes (image not loaded or failed to load)
       renderEntityDefault(ctx, entity, pixelX, pixelY, tileSize);
     }
-  }, []);
+  }, [effects]); // Added effects to dependency array
 
   // Default entity rendering (current system)
   const renderEntityDefault = useCallback((ctx, entity, pixelX, pixelY, tileSize) => {
@@ -245,6 +260,53 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
     return itemColors[itemType] || '#fbbf24'; // Default yellow
   }, []);
 
+  // Render visual effects
+  const renderEffect = useCallback((ctx, effect, camera, tileSize, currentTime) => {
+    const elapsed = currentTime - effect.startTime;
+    const progress = elapsed / effect.duration;
+
+    if (progress > 1) return; // Effect has ended
+
+    const screenPos = camera.worldToScreen(effect.x, effect.y);
+    const pixelX = screenPos.x * tileSize;
+    const pixelY = screenPos.y * tileSize;
+
+    switch (effect.type) {
+      case 'damage':
+        {
+          const startY = pixelY + tileSize / 2;
+          const endY = startY - tileSize; // Move upwards
+          const currentY = startY - (endY - startY) * progress;
+          const opacity = 1 - progress;
+
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          ctx.fillStyle = effect.color;
+          ctx.font = `${Math.floor(tileSize / 2)}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`-${effect.value}`, pixelX + tileSize / 2, currentY);
+          ctx.restore();
+        }
+        break;
+      case 'tile_flash':
+        {
+          const opacity = (1 - progress) * 0.6; // Fade out from 60% opacity
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          ctx.fillStyle = effect.color;
+          ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+          ctx.restore();
+        }
+        break;
+      case 'flicker':
+        // Flicker effect is handled in renderEntity, no direct rendering here
+        break;
+      default:
+        break;
+    }
+  }, []);
+
   // Calculate responsive tile size based on container
   const calculateTileSize = useCallback((containerWidth, containerHeight) => {
     //const minTileSize = 16;  // Reduced minimum
@@ -376,7 +438,7 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
 
           // Render player using smooth position
           if (player && !isAnimatingMovement && player.x === worldX && player.y === worldY) {
-            renderEntity(ctx, player, pixelX, pixelY, tileSize);
+            renderEntity(ctx, player, pixelX, pixelY, tileSize, performance.now());
           }
 
           // Highlight tiles within field of view
@@ -404,7 +466,7 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
                 // Skip the player as it's rendered separately
                 if (entity.type !== 'player') {
                   const offsetY = index * (tileSize / 8); // Stack entities vertically
-                  renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize);
+                  renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
                 }
               });
             }
@@ -424,13 +486,21 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
         // Only render if player is visible on screen
         if (smoothPixelX >= -tileSize && smoothPixelX <= mapWidth &&
           smoothPixelY >= -tileSize && smoothPixelY <= mapHeight) {
-          renderEntity(ctx, player, smoothPixelX, smoothPixelY, tileSize);
+          renderEntity(ctx, player, smoothPixelX, smoothPixelY, tileSize, performance.now());
         }
+      }
+
+      // Render visual effects
+      if (effects && effects.length > 0) {
+        const currentTime = performance.now();
+        effects.forEach(effect => {
+          renderEffect(ctx, effect, camera, tileSize, currentTime);
+        });
       }
     } catch (error) {
       console.error('[MapCanvas] Error rendering map:', error);
     }
-  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, cameraRef.current]);
+  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, cameraRef.current, effects, renderEffect, renderEntity]); // Added renderEntity to dependency array
 
   // Handle mouse down for dragging
   const handleMouseDown = useCallback((event) => {
@@ -606,6 +676,58 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
     }
   }, [gameMapRef, handleTileClick, calculateTileSize, cameraRef, isDragging, playerRef, isAnimatingMovement, startAnimatedMovement]);
 
+  // Setup effect listeners for player actions
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player || !addEffect) return;
+
+    // Handle damage taken to trigger visual effects
+    const handleDamageTaken = (eventData) => {
+      console.log('[MapCanvas] damageTaken event received:', eventData);
+
+      const now = performance.now();
+      const startTime = Math.max(now, nextEffectTimeRef.current);
+      // Stagger multiple attacks by 200ms
+      nextEffectTimeRef.current = startTime + 200;
+
+      // Add floating damage number
+      addEffect({
+        type: 'damage',
+        x: player.x,
+        y: player.y,
+        value: eventData.amount,
+        color: '#ef4444',
+        duration: 1200,
+        startTime: startTime
+      });
+
+      // Add red tile flash
+      addEffect({
+        type: 'tile_flash',
+        x: player.x,
+        y: player.y,
+        color: 'rgba(239, 68, 68, 0.6)',
+        duration: 400,
+        startTime: startTime
+      });
+
+      // Flicker the attacker
+      if (eventData.source) {
+        addEffect({
+          type: 'flicker',
+          targetId: eventData.source.id,
+          x: eventData.source.x,
+          y: eventData.source.y,
+          duration: 600, // Slightly longer flicker
+          startTime: startTime
+        });
+      }
+    };
+
+    player.on('damageTaken', handleDamageTaken);
+    return () => player.off('damageTaken', handleDamageTaken);
+  }, [playerRef.current, addEffect]);
+
   // Preload entity images on initialization
   useEffect(() => {
     const preloadEntityImages = async () => {
@@ -628,7 +750,7 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
     if (isInitialized && gameMapRef.current && cameraRef.current) {
       renderMap();
     }
-  }, [renderMap, isInitialized, gameMapRef, cameraRef, hoveredTile, imagesLoaded, playerRenderPosition, isAnimatingMovement, playerFieldOfView]);
+  }, [renderMap, isInitialized, gameMapRef, cameraRef, hoveredTile, imagesLoaded, playerRenderPosition, isAnimatingMovement, playerFieldOfView, effects, tick]);
 
   // Add mouse event listeners for panning and zooming
   useEffect(() => {

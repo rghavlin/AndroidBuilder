@@ -80,7 +80,7 @@ export class ZombieAI {
     while (zombie.currentAP > 0) {
       // Check if adjacent to player
       if (zombie.isAdjacentTo(player.x, player.y)) {
-        // Attack player with remaining AP
+        // Attack player with remaining AP (one attack per AP)
         const attackResult = this.attemptAttack(zombie, player);
         turnResult.actions.push({
           type: 'attack',
@@ -88,7 +88,7 @@ export class ZombieAI {
           success: attackResult.success,
           damage: attackResult.damage || 0
         });
-        break; // End turn after attack
+        continue; // Re-check AP and adjacency for next attack or movement
       }
 
       const targetPosition = this.findBestCardinalPosition(zombie, playerCardinalPositions);
@@ -210,7 +210,7 @@ export class ZombieAI {
     // Check if the original LastSeen target is already tagged by another zombie
     if (lastSeenTaggedTiles.has(originalTarget)) {
       console.log(`[ZombieAI] Zombie ${zombie.id} found LastSeen target (${targetX}, ${targetY}) already tagged, searching for alternative`);
-      
+
       const alternativeTarget = this.findAlternativeLastSeenTarget(gameMap, targetX, targetY, lastSeenTaggedTiles);
       if (alternativeTarget) {
         targetX = alternativeTarget.x;
@@ -426,8 +426,8 @@ export class ZombieAI {
     // Check if terrain allows movement
     // Zombies can move on floor tiles (inside buildings), grass, road, sidewalk
     // But NOT on walls, buildings (exterior), fences, or trees
-    if (targetTile.terrain === 'wall' || targetTile.terrain === 'building' || 
-        targetTile.terrain === 'fence' || targetTile.terrain === 'tree') {
+    if (targetTile.terrain === 'wall' || targetTile.terrain === 'building' ||
+      targetTile.terrain === 'fence' || targetTile.terrain === 'tree') {
       console.log(`[ZombieAI] canMoveToTile: Tile (${x}, ${y}) blocked by terrain: ${targetTile.terrain}`);
       return false;
     }
@@ -500,8 +500,8 @@ export class ZombieAI {
 
     // Filter to only passable positions, excluding the blocked one
     const alternativePositions = playerCardinalPositions.filter(pos => {
-      return pos.isPassable && 
-             !(pos.x === blockedPosition.x && pos.y === blockedPosition.y);
+      return pos.isPassable &&
+        !(pos.x === blockedPosition.x && pos.y === blockedPosition.y);
     });
 
     if (alternativePositions.length === 0) {
@@ -599,33 +599,33 @@ export class ZombieAI {
   static findAlternativeLastSeenTarget(gameMap, originalX, originalY, lastSeenTaggedTiles) {
     // Search in expanding rings around the original target
     const maxRadius = 3; // Don't search too far from original target
-    
+
     for (let radius = 1; radius <= maxRadius; radius++) {
       // Get all tiles at this radius from the original target
       const candidatesAtRadius = [];
-      
+
       for (let dx = -radius; dx <= radius; dx++) {
         for (let dy = -radius; dy <= radius; dy++) {
           // Only check tiles at exact radius (Manhattan distance)
           if (Math.abs(dx) + Math.abs(dy) !== radius) continue;
-          
+
           const candidateX = originalX + dx;
           const candidateY = originalY + dy;
           const candidateKey = `${candidateX},${candidateY}`;
-          
+
           // Skip if already tagged
           if (lastSeenTaggedTiles.has(candidateKey)) continue;
-          
+
           // Check if tile is valid and walkable
           const tile = gameMap.getTile(candidateX, candidateY);
           if (!tile) continue;
-          
+
           if (this.canMoveToTile(gameMap, candidateX, candidateY)) {
             candidatesAtRadius.push({ x: candidateX, y: candidateY, radius });
           }
         }
       }
-      
+
       // If we found valid candidates at this radius, return the first one
       if (candidatesAtRadius.length > 0) {
         const chosen = candidatesAtRadius[0]; // Could randomize this if desired
@@ -633,7 +633,7 @@ export class ZombieAI {
         return chosen;
       }
     }
-    
+
     console.log(`[ZombieAI] No alternative LastSeen target found within radius ${maxRadius} of (${originalX}, ${originalY})`);
     return null;
   }
@@ -645,15 +645,36 @@ export class ZombieAI {
    * @returns {Object} - Attack result
    */
   static attemptAttack(zombie, target) {
-    // TODO: Implement combat system
-    // For now, just use remaining AP
-    const apToUse = zombie.currentAP;
-    zombie.useAP(apToUse);
+    const apCost = 1;
+
+    if (zombie.currentAP < apCost) {
+      return {
+        success: false,
+        reason: 'Insufficient AP'
+      };
+    }
+
+    zombie.useAP(apCost);
+
+    // 50/50 chance to hit as requested
+    const hit = Math.random() < 0.5;
+    let damage = 0;
+
+    if (hit) {
+      // Standard zombie attack does 1 to 4 damage as requested
+      damage = Math.floor(Math.random() * 4) + 1;
+
+      if (typeof target.takeDamage === 'function') {
+        target.takeDamage(damage, zombie);
+      }
+    }
+
+    console.log(`[ZombieAI] Zombie ${zombie.id} attacked player. Hit: ${hit}, Damage: ${damage}, AP left: ${zombie.currentAP}`);
 
     return {
-      success: true,
-      damage: 0, // No damage system yet
-      apUsed: apToUse
+      success: hit,
+      damage: damage,
+      apUsed: apCost
     };
   }
 

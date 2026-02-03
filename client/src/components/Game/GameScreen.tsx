@@ -4,6 +4,7 @@ import { PlayerProvider, usePlayer } from '../../contexts/PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from '../../contexts/GameMapContext.jsx';
 import { CameraProvider } from '../../contexts/CameraContext.jsx';
 import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
+import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
 import MapInterface from './MapInterface';
 import InventoryPanel from "../Inventory/InventoryPanel";
 import GameControls from './GameControls';
@@ -37,22 +38,22 @@ function GameScreenContent() {
 
   // Phase 2: Direct sub-context access - ALL HOOKS CALLED IN CONSISTENT ORDER
   const { playerStats: realPlayerStats } = usePlayer();
-  const { 
-    gameMap, 
-    worldManager, 
-    mapTransition, 
-    handleMapTransitionConfirm, 
-    handleMapTransitionCancel 
+  const {
+    gameMap,
+    worldManager,
+    mapTransition,
+    handleMapTransitionConfirm,
+    handleMapTransitionCancel
   } = useGameMap();
 
   // Phase 4: Only use orchestration functions from GameContext
-  const { 
-    isInitialized, 
+  const {
+    isInitialized,
     isGameReady,
     initializationState,
-    initializationError, 
-    turn, 
-    endTurn, 
+    initializationError,
+    turn,
+    endTurn,
     initializeGame,
     loadGameDirect,
     handleMapTransitionConfirmWrapper,
@@ -178,13 +179,15 @@ export default function GameScreen() {
   return (
     <GameErrorBoundary>
       <PlayerProvider>
-        <CameraProvider>
-          <GameMapProvider>
-            <GameProvider>
-              <GameScreenContent />
-            </GameProvider>
-          </GameMapProvider>
-        </CameraProvider>
+        <VisualEffectsProvider>
+          <CameraProvider>
+            <GameMapProvider>
+              <GameProvider>
+                <GameScreenContent />
+              </GameProvider>
+            </GameMapProvider>
+          </CameraProvider>
+        </VisualEffectsProvider>
       </PlayerProvider>
     </GameErrorBoundary>
   );

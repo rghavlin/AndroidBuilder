@@ -12,13 +12,13 @@ export class Player extends Entity {
     this.ap = 100;
     this.maxAp = 100;
     this.blocksMovement = true; // Players block other entities
-    
+
     // Add instance tracking to detect duplicates
     this.instanceCreatedAt = Date.now();
     this.creationStack = new Error().stack;
     console.log(`[Player] 🎮 NEW PLAYER INSTANCE CREATED: ${id} at (${x}, ${y})`);
     console.log(`[Player] - Creation timestamp: ${this.instanceCreatedAt}`);
-    
+
     // Track all player instances globally
     if (!window.playerInstances) {
       window.playerInstances = new Map();
@@ -29,7 +29,7 @@ export class Player extends Entity {
       console.error(`[Player] 🚨🚨🚨 MULTIPLE PLAYER INSTANCES DETECTED!`);
       console.error(`[Player] All instances:`, Array.from(window.playerInstances.values()));
     }
-    
+
     // Ensure event emitter methods are available
     if (!this.on || !this.emit) {
       console.error('[Player] Event emitter methods not available from Entity parent class');
@@ -61,7 +61,7 @@ export class Player extends Entity {
     const oldAp = this.ap;
     this.ap = Math.round(Math.min(this.ap + amount, this.maxAp) * 10) / 10;
     const restored = this.ap - oldAp;
-    
+
     if (restored > 0) {
       this.emitEvent('apRestored', {
         amount: restored,
@@ -94,12 +94,12 @@ export class Player extends Entity {
     });
   }
 
-  
+
 
   /**
    * Take damage
    */
-  takeDamage(amount) {
+  takeDamage(amount, source = null) {
     const oldHp = this.hp;
     this.hp = Math.max(0, this.hp - amount);
 
@@ -107,7 +107,8 @@ export class Player extends Entity {
       amount,
       oldHp,
       currentHp: this.hp,
-      maxHp: this.maxHp
+      maxHp: this.maxHp,
+      source: source ? { id: source.id, type: source.type, x: source.x, y: source.y } : null
     });
 
     if (this.hp === 0) {
