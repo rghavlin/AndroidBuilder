@@ -255,7 +255,7 @@ export const ItemDefs = {
     height: 1,
     traits: [],
     categories: [ItemCategory.AMMO],
-    capacity: 10,
+    capacity: 5,
     ammoDefId: 'ammo.sniper'
   },
 
@@ -273,7 +273,7 @@ export const ItemDefs = {
   'ammo.sniper': {
     id: 'ammo.sniper',
     name: 'Sniper Ammo',
-    imageId: 'sniper rifle', // Temporary until we have a real one
+    imageId: 'sniperAmmo', // New box icon matching 9mm style
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE],
