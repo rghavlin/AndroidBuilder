@@ -312,10 +312,58 @@ export const ItemDefs = {
     imageId: 'waterbottle',
     width: 2,
     height: 1,
-    traits: [ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    capacity: 20,
+    ammoCount: 20,
     consumptionEffects: {
-      hydration: 10
+      hydration: 1
+    }
+  },
+  'food.waterbottle_full': {
+    id: 'food.waterbottle_full',
+    name: 'Full Water Bottle',
+    imageId: 'waterbottle',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    capacity: 20,
+    ammoCount: 20,
+    consumptionEffects: {
+      hydration: 1
+    }
+  },
+  'food.waterbottle_nearly_empty': {
+    id: 'food.waterbottle_nearly_empty',
+    name: 'Nearly Empty Water Bottle',
+    imageId: 'waterbottle',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    capacity: 20,
+    ammoCount: 1,
+    consumptionEffects: {
+      hydration: 1
+    }
+  },
+  'food.waterbottle_empty': {
+    id: 'food.waterbottle_empty',
+    name: 'Empty Water Bottle',
+    imageId: 'waterbottle',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    capacity: 20,
+    ammoCount: 0,
+    consumptionEffects: {
+      hydration: 1
     }
   }
 };

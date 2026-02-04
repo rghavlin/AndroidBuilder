@@ -214,6 +214,9 @@ export class Container {
       if (targetItem && targetItem.canStackWith(item)) {
         return { valid: true, stackTarget: targetItem };
       }
+      if (targetItem && targetItem.canCombineWith(item)) {
+        return { valid: true, combineTarget: targetItem };
+      }
     }
 
     // Normal collision check

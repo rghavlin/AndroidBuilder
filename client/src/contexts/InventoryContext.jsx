@@ -826,6 +826,25 @@ export const InventoryProvider = ({ children, manager }) => {
       }
     }
 
+    const combineTarget = validation.combineTarget;
+    if (combineTarget) {
+      console.log('[InventoryContext] Combining water bottles:', item.name, 'into', combineTarget.name);
+      combineTarget.combineWith(item);
+
+      // ALWAYS return the source bottle to its original slot (even if empty)
+      // unlike ammo/stackable items which are removed when empty
+      if (originContainer) {
+        item.rotation = originalRotation;
+        originContainer.placeItemAt(item, originalX, originalY);
+      }
+
+      setSelectedItem(null);
+      setDragVersion(prev => prev + 1);
+      setInventoryVersion(prev => prev + 1);
+      return { success: true, combined: true };
+    }
+
+
     // 4. Place in target container at new position
     const placed = targetContainer.placeItemAt(item, targetX, targetY);
 
@@ -927,6 +946,77 @@ export const InventoryProvider = ({ children, manager }) => {
     return { success: true };
   }, [playerRef]);
 
+  /**
+   * Drink water from a bottle
+   */
+  const drinkWater = useCallback((item, amount) => {
+    if (!inventoryRef.current || !item || !playerRef.current) {
+      return { success: false, reason: 'Initialization error' };
+    }
+
+    if (!item.isWaterBottle()) {
+      return { success: false, reason: 'Not a water bottle' };
+    }
+
+    if (!item.ammoCount || item.ammoCount <= 0) {
+      return { success: false, reason: 'Bottle is empty' };
+    }
+
+    // "Drink Max" logic: drink enough to fill player hydration OR empty the bottle
+    // For now, let's assume hydration max is 100
+    const hydrationToFill = 100 - (playerRef.current.stats?.hydration || 0);
+    const amountToDrink = amount === 'max'
+      ? Math.min(item.ammoCount, hydrationToFill)
+      : Math.min(item.ammoCount, amount);
+
+    if (amountToDrink <= 0) {
+      return { success: false, reason: 'Already full' };
+    }
+
+    console.log(`[InventoryContext] Drinking ${amountToDrink} water from bottle`);
+
+    // Apply effects
+    playerRef.current.modifyStat('hydration', amountToDrink);
+
+    // Handle stack vs single item
+    if (item.stackCount > 1) {
+      // 1. Reduce original stack
+      item.stackCount -= 1;
+
+      // 2. Create the "leftover" bottle with remaining water
+      const leftoverBottle = Item.fromJSON(item.toJSON());
+      leftoverBottle.instanceId = `split-bottle-${Date.now()}`;
+      leftoverBottle.stackCount = 1;
+
+      // Calculate how much water is left in THIS single bottle
+      // Usually it's full (capacity) before drinking, but we should be robust
+      const initialWater = item.ammoCount || item.capacity || 20;
+      leftoverBottle.ammoCount = Math.max(0, initialWater - amountToDrink);
+
+      // 3. Find the container to put it back in
+      const container = Array.from(inventoryRef.current.containers.values())
+        .find(c => c.items.has(item.instanceId));
+
+      if (container) {
+        // Try to add it back to the same container first
+        const placed = container.addItem(leftoverBottle);
+        if (!placed) {
+          console.warn('[InventoryContext] No space in container for split bottle, dropping to ground');
+          inventoryRef.current.dropItemToGround(leftoverBottle);
+        }
+      } else {
+        // Fallback to ground if container not found
+        inventoryRef.current.dropItemToGround(leftoverBottle);
+      }
+    } else {
+      // Single bottle: just reduce water count
+      item.ammoCount -= amountToDrink;
+    }
+
+    setInventoryVersion(prev => prev + 1);
+    return { success: true };
+  }, [playerRef]);
+
   const getPlacementPreview = useCallback((targetContainerId, gridX, gridY) => {
     if (!selectedItem || !inventoryRef.current) {
       return null;
@@ -952,7 +1042,9 @@ export const InventoryProvider = ({ children, manager }) => {
       getActualWidth: () => width,
       getActualHeight: () => height,
       isStackable: () => item.isStackable ? item.isStackable() : item.stackable,
-      canStackWith: (other) => item.canStackWith ? item.canStackWith(other) : false
+      isWaterBottle: () => item.isWaterBottle ? item.isWaterBottle() : (item.defId && item.defId.startsWith('food.waterbottle')),
+      canStackWith: (other) => item.canStackWith ? item.canStackWith(other) : false,
+      canCombineWith: (other) => item.canCombineWith ? item.canCombineWith(other) : false
     };
     const validation = targetContainer.validatePlacement(itemForValidation, gridX, gridY);
 
@@ -1017,6 +1109,7 @@ export const InventoryProvider = ({ children, manager }) => {
       loadAmmoInto,
       unloadMagazine,
       consumeItem,
+      drinkWater,
       attachSelectedItemToWeapon,
       detachItemFromWeapon
     };

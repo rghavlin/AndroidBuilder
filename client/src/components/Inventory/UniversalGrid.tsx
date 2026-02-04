@@ -404,7 +404,7 @@ export default function UniversalGrid({
               {/* Stack count indicator */}
               {item.stackCount > 1 && (
                 <div className="absolute inset-0 pointer-events-none z-20">
-                  <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20 whitespace-nowrap">
+                  <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-bl-sm shadow-sm border-b border-l border-white/20 whitespace-nowrap">
                     {item.stackCount}
                   </span>
                 </div>
@@ -416,6 +416,16 @@ export default function UniversalGrid({
                   <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20 whitespace-nowrap">
                     {item.getDisplayAmmoCount()}
                   </span>
+                </div>
+              )}
+
+              {/* Water bottle fill bar */}
+              {item.isWaterBottle && item.isWaterBottle() && (
+                <div className="absolute bottom-0.5 left-0.5 right-0.5 h-1 bg-black/50 overflow-hidden rounded-full z-20 border-[0.5px] border-white/20">
+                  <div
+                    className="h-full bg-blue-400 shadow-[0_0_4px_rgba(96,165,250,0.6)]"
+                    style={{ width: `${item.getWaterPercent()}%` }}
+                  />
                 </div>
               )}
             </div>

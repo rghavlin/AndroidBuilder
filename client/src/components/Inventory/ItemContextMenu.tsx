@@ -31,7 +31,7 @@ export function ItemContextMenu({
     item,
     tooltipContent = null
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadMagazine, consumeItem } = useInventory();
+    const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater } = useInventory();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
 
     // If there's no item and no tooltip, just render children
@@ -94,7 +94,7 @@ export function ItemContextMenu({
                                 Open
                             </ContextMenuItem>
                         )}
-                        {item?.isMagazine?.() && item?.ammoCount > 0 && (
+                        {item?.isMagazine?.() && !item?.isWaterBottle?.() && item?.ammoCount > 0 && (
                             <ContextMenuItem
                                 onClick={() => {
                                     unloadMagazine(item);
@@ -104,7 +104,7 @@ export function ItemContextMenu({
                                 Unload
                             </ContextMenuItem>
                         )}
-                        {item?.hasTrait?.('consumable') && (
+                        {item?.hasTrait?.('consumable') && !item?.isWaterBottle?.() && (
                             <ContextMenuItem
                                 onClick={() => {
                                     consumeItem(item);
@@ -114,6 +114,24 @@ export function ItemContextMenu({
                                 {item?.categories?.includes('food') ? 'Eat' : 'Consume'}
                             </ContextMenuItem>
                         )}
+                        {item?.isWaterBottle?.() && (
+                            <>
+                                <ContextMenuItem
+                                    onClick={() => drinkWater(item, 1)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!item.ammoCount || item.ammoCount <= 0}
+                                >
+                                    Drink 1
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                    onClick={() => drinkWater(item, 'max')}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!item.ammoCount || item.ammoCount <= 0}
+                                >
+                                    Drink Max
+                                </ContextMenuItem>
+                            </>
+                        )}
                         {canSplit && (
                             <ContextMenuItem
                                 onClick={() => setIsSplitDialogOpen(true)}
@@ -122,7 +140,7 @@ export function ItemContextMenu({
                                 Split Stack
                             </ContextMenuItem>
                         )}
-                        {!canSplit && !canOpenContainer(item) && (
+                        {!canSplit && !canOpenContainer(item) && !item?.isWaterBottle?.() && (
                             <ContextMenuItem disabled className="text-gray-500">
                                 No actions available
                             </ContextMenuItem>

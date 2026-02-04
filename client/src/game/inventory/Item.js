@@ -129,6 +129,12 @@ export class Item {
     return !!(item.stackable || (item.traits && item.traits.includes(ItemTrait.STACKABLE)));
   }
 
+  static isWaterBottle(item) {
+    if (!item) return false;
+    if (typeof item.isWaterBottle === 'function') return item.isWaterBottle();
+    return !!(item.defId && item.defId.startsWith('food.waterbottle'));
+  }
+
   // Trait checks
   hasTrait(trait) {
     return this.traits.includes(trait);
@@ -161,6 +167,10 @@ export class Item {
 
   isAmmo() {
     return this.hasCategory(ItemCategory.AMMO) && this.isStackable();
+  }
+
+  isWaterBottle() {
+    return this.defId && this.defId.startsWith('food.waterbottle');
   }
 
   canLoadAmmo(ammoItem) {
@@ -207,12 +217,17 @@ export class Item {
   }
 
   getDisplayAmmoCount() {
-    // 1. If it's a magazine, return its ammo count
+    // 1. If it's a water bottle, hide the number (we use a fill bar instead)
+    if (this.isWaterBottle()) {
+      return null;
+    }
+
+    // 2. If it's a magazine, return its ammo count
     if (this.isMagazine()) {
       return this.ammoCount || 0;
     }
 
-    // 2. If it's a weapon, check for an attached magazine
+    // 3. If it's a weapon, check for an attached magazine
     if (this.attachmentSlots) {
       // Find the ammo/magazine slot
       const ammoSlot = this.attachmentSlots.find(slot =>
@@ -227,6 +242,11 @@ export class Item {
     }
 
     return null;
+  }
+
+  getWaterPercent() {
+    if (!this.isWaterBottle() || !this.capacity) return 0;
+    return (this.ammoCount / this.capacity) * 100;
   }
 
   /**
@@ -330,13 +350,50 @@ export class Item {
       return false;
     }
 
-    if (this.defId !== otherItem.defId) {
+    const isBothWaterBottle = this.isWaterBottle() && Item.isWaterBottle(otherItem);
+    if (this.defId !== otherItem.defId && !isBothWaterBottle) {
       return false;
+    }
+
+    // Special rule for Water Bottles: They only stack if they are EMPTY or FULL and levels match
+    if (this.isWaterBottle()) {
+      const capacity = this.capacity || 20;
+      const ammo = this.ammoCount || 0;
+      const otherAmmo = otherItem.ammoCount || 0;
+
+      const isFull = ammo === capacity;
+      const isEmpty = ammo === 0;
+      if (!(isFull || isEmpty) || ammo !== otherAmmo) {
+        return false;
+      }
     }
 
     if (this.stackCount >= this.stackMax) {
       return false;
     }
+
+    return true;
+  }
+
+  canCombineWith(otherItem) {
+    if (!otherItem) return false;
+    if (this.instanceId === otherItem.instanceId) return false;
+
+    // Both must be water bottles
+    if (!this.isWaterBottle() || !Item.isWaterBottle(otherItem)) return false;
+
+    // Target must have space or source must have water
+    return this.ammoCount < this.capacity || otherItem.ammoCount > 0;
+  }
+
+  combineWith(otherItem) {
+    if (!this.canCombineWith(otherItem)) return false;
+
+    const spaceLeft = (this.capacity || 20) - (this.ammoCount || 0);
+    const amountToTransfer = Math.min(spaceLeft, otherItem.ammoCount || 0);
+
+    this.ammoCount = (this.ammoCount || 0) + amountToTransfer;
+    otherItem.ammoCount = (otherItem.ammoCount || 0) - amountToTransfer;
 
     return true;
   }
