@@ -385,7 +385,8 @@ export class GameMap {
     const { Tile } = await import('./Tile.js');
     const { Player } = await import('../entities/Player.js');
     const { Zombie } = await import('../entities/Zombie.js');
-    const { TestEntity, Item } = await import('../entities/TestEntity.js');
+    const { TestEntity } = await import('../entities/TestEntity.js');
+    const { Item } = await import('../inventory/Item.js');
 
     console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
 
@@ -460,7 +461,8 @@ export class GameMap {
     const { Tile } = await import('./Tile.js');
     const { Player } = await import('../entities/Player.js');
     const { Zombie } = await import('../entities/Zombie.js');
-    const { TestEntity, Item } = await import('../entities/TestEntity.js');
+    const { TestEntity } = await import('../entities/TestEntity.js');
+    const { Item } = await import('../inventory/Item.js');
 
     // Restore tiles
     for (let y = 0; y < data.height; y++) {

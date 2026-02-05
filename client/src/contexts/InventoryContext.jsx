@@ -1026,7 +1026,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
     const { item, rotation } = selectedItem;
 
-    // Calculate dimensions based on PREVIEW rotation (not item.rotation which hasn't changed)
+    // Calculate dimensions based on PREVIEW rotation
     const isRotated = rotation === 90 || rotation === 270;
     const width = isRotated ? item.height : item.width;
     const height = isRotated ? item.width : item.height;
@@ -1036,19 +1036,8 @@ export const InventoryProvider = ({ children, manager }) => {
       return null;
     }
 
-    // Create temporary validation object with preview rotation
-    // Ensure it can still call methods like isStackable and canStackWith if needed
-    const itemForValidation = {
-      ...item,
-      rotation,
-      getActualWidth: () => width,
-      getActualHeight: () => height,
-      isStackable: () => item.isStackable ? item.isStackable() : item.stackable,
-      isWaterBottle: () => item.isWaterBottle ? item.isWaterBottle() : (item.defId && item.defId.startsWith('food.waterbottle')),
-      canStackWith: (other) => item.canStackWith ? item.canStackWith(other) : false,
-      canCombineWith: (other) => item.canCombineWith ? item.canCombineWith(other) : false
-    };
-    const validation = targetContainer.validatePlacement(itemForValidation, gridX, gridY);
+    // Call validatePlacement with the preview rotation override
+    const validation = targetContainer.validatePlacement(item, gridX, gridY, rotation);
 
     return {
       valid: validation.valid,

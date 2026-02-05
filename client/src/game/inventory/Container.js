@@ -152,18 +152,19 @@ export class Container {
   /**
    * Validate if an item can be placed at a specific position (for drag-and-drop)
    */
-  validatePlacement(item, x, y) {
+  validatePlacement(item, x, y, rotationOverride = null) {
     // Calculate dimensions, accounting for rotation
-    // Use methods if available, otherwise calculate directly
-    const rotation = item.rotation || 0;
+    // Use rotationOverride if provided (for previews/drags), otherwise fall back to item's current rotation
+    const rotation = rotationOverride !== null ? rotationOverride : (item.rotation || 0);
     const isRotated = rotation === 90 || rotation === 270;
 
     let width, height;
-    if (typeof item.getActualWidth === 'function') {
+    if (typeof item.getActualWidth === 'function' && rotationOverride === null) {
+      // If no override, use the item's own calculation methods
       width = item.getActualWidth();
       height = item.getActualHeight();
     } else {
-      // Fallback for plain objects without methods
+      // If rotated via override OR item lacks methods, calculate from base dimensions
       width = isRotated ? item.height : item.width;
       height = isRotated ? item.width : item.height;
     }

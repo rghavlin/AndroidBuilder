@@ -193,6 +193,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  create toolbox - Create test toolbox item on ground', 'info');
           addToConsole('  create lunchbox - Create test lunchbox item on ground', 'info');
           addToConsole('  spawn <item-type> [count] - Spawn item(s) on ground', 'info');
+          addToConsole('  map loot - Trigger random loot spawning on current map', 'info');
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
@@ -231,6 +232,23 @@ const DevConsole = ({ isOpen, onClose }) => {
             }
           } else {
             addToConsole('Unknown game command. Try: game status', 'error');
+          }
+          break;
+
+        case 'map':
+          if (subCommand === 'loot') {
+            const gameMap = gameMapRef.current;
+            if (gameMap) {
+              addToConsole('Spawning random loot on current map...', 'info');
+              const { LootGenerator } = await import('../../game/map/LootGenerator.js');
+              const generator = new LootGenerator();
+              generator.spawnLoot(gameMap);
+              addToConsole('Loot spawning complete. Check map!', 'success');
+            } else {
+              addToConsole('Game map not available', 'error');
+            }
+          } else {
+            addToConsole('Unknown map command. Try: map loot', 'error');
           }
           break;
 

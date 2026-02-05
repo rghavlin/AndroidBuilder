@@ -9,7 +9,7 @@ export class WorldManager {
     this.currentMapId = null;
     this.mapCounter = 1;
     this.listeners = new Map();
-    
+
     console.log('[WorldManager] Initialized');
   }
 
@@ -170,7 +170,7 @@ export class WorldManager {
   async generateNextMap(mapType = 'road') {
     try {
       const nextMapId = this.generateMapId();
-      
+
       // Import required classes
       const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
       const { GameMap } = await import('./map/GameMap.js');
@@ -192,6 +192,11 @@ export class WorldManager {
       // Create GameMap instance and apply template
       const gameMap = new GameMap(mapData.width, mapData.height);
       templateMapGenerator.applyToGameMap(gameMap, mapData);
+
+      // SPAWN LOOT: New procedural loot generation
+      const { LootGenerator } = await import('./map/LootGenerator.js');
+      const lootGenerator = new LootGenerator();
+      lootGenerator.spawnLoot(gameMap);
 
       // Save to world collection
       const savedMapId = this.saveCurrentMap(gameMap, nextMapId);
@@ -392,7 +397,7 @@ export class WorldManager {
         mapData = await this.loadMapForTransition(targetMapId);
       } else {
         console.log(`[WorldManager] Generating new map: ${targetMapId}`);
-        
+
         // Import required classes
         const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
         const { GameMap } = await import('./map/GameMap.js');
@@ -407,6 +412,11 @@ export class WorldManager {
         // Create GameMap instance and apply template
         const gameMap = new GameMap(generatedMapData.width, generatedMapData.height);
         templateMapGenerator.applyToGameMap(gameMap, generatedMapData);
+
+        // SPAWN LOOT: New procedural loot generation
+        const { LootGenerator } = await import('./map/LootGenerator.js');
+        const lootGenerator = new LootGenerator();
+        lootGenerator.spawnLoot(gameMap);
 
         // Stamp south transition on new maps (except map_001)
         if (targetMapId !== 'map_001') {
@@ -462,7 +472,7 @@ export class WorldManager {
    */
   static fromJSON(data) {
     const worldManager = new WorldManager();
-    
+
     if (data.maps) {
       data.maps.forEach(mapData => {
         const { id, ...mapInfo } = mapData;

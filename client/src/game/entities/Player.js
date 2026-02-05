@@ -9,8 +9,8 @@ export class Player extends Entity {
     this.name = name;
     this.hp = 20;
     this.maxHp = 20;
-    this.ap = 12;
-    this.maxAp = 12;
+    this.ap = 100;
+    this.maxAp = 100;
     this.nutrition = 20;
     this.maxNutrition = 20;
     this.hydration = 20;
@@ -186,8 +186,8 @@ export class Player extends Entity {
     const player = new Player(data.id, data.name, data.x, data.y);
     player.hp = data.hp;
     player.maxHp = data.maxHp;
-    player.ap = data.ap;
-    player.maxAp = data.maxAp;
+    player.ap = data.ap !== undefined ? data.ap : 100;
+    player.maxAp = data.maxAp !== undefined ? data.maxAp : 100;
     player.nutrition = data.nutrition || 20;
     player.maxNutrition = data.maxNutrition || 20;
     player.hydration = data.hydration || 20;

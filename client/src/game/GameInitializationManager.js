@@ -5,6 +5,7 @@ import { GameMap } from './map/GameMap.js';
 import { Player } from './entities/Player.js';
 import { Camera } from './Camera.js';
 import { Zombie } from './entities/Zombie.js';
+import { LootGenerator } from './map/LootGenerator.js';
 
 const INIT_STATES = {
   IDLE: 'idle',
@@ -257,6 +258,10 @@ class GameInitializationManager extends EventEmitter {
       // Spawn initial zombies
       const spawnCount = this._spawnInitialZombies(gameMap, player);
       console.log('[GameInitializationManager] Spawned', spawnCount, 'initial zombies');
+
+      // SPAWN LOOT: Initial procedural loot generation
+      const lootGenerator = new LootGenerator();
+      lootGenerator.spawnLoot(gameMap);
 
       // Clean up south transition tile for first map
       try {
