@@ -963,8 +963,10 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // "Drink Max" logic: drink enough to fill player hydration OR empty the bottle
-    // For now, let's assume hydration max is 100
-    const hydrationToFill = 100 - (playerRef.current.stats?.hydration || 0);
+    const maxHydration = playerRef.current.maxHydration || 20;
+    const currentHydration = playerRef.current.hydration || 0;
+    const hydrationToFill = Math.max(0, maxHydration - currentHydration);
+
     const amountToDrink = amount === 'max'
       ? Math.min(item.ammoCount, hydrationToFill)
       : Math.min(item.ammoCount, amount);

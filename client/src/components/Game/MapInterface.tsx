@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
+import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
 import MapCanvas from './MapCanvas.jsx';
@@ -11,6 +12,8 @@ import MainMenuWindow from './MainMenuWindow';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { cn } from "@/lib/utils";
+
+import { useCombat } from '../../contexts/CombatContext.jsx';
 
 interface MapInterfaceProps {
   gameState: {
@@ -24,10 +27,12 @@ interface MapInterfaceProps {
 // Action Button Component
 const ActionSlotButton = ({ slot }: { slot: string }) => {
   const { inventoryRef, inventoryVersion } = useInventory();
+  const { targetingWeapon, toggleTargeting } = useCombat();
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
   // Get item from inventory
   const item = inventoryRef.current?.equipment?.[slot];
+  const isTargeting = targetingWeapon?.item.instanceId === item?.instanceId;
 
   // Load image when item changes
   useEffect(() => {
@@ -54,7 +59,10 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
   }, [item, inventoryVersion]);
 
   const handleClick = () => {
-    if (item) {
+    if (item && (slot === 'melee' || slot === 'handgun' || slot === 'long_gun')) {
+      console.log(`[ActionSlot] Clicked ${slot}: Toggling targeting for ${item.name}`);
+      toggleTargeting(item, slot);
+    } else if (item) {
       console.log(`[ActionSlot] Clicked ${slot}: Equipped with ${item.name}`);
     } else {
       console.log(`[ActionSlot] Clicked ${slot}: Nothing equipped`);
@@ -69,7 +77,9 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
         // Empty state: Black bg, White outline
         !item && "bg-black border-white hover:bg-zinc-900 shadow-sm",
         // Equipped state: Green outline (like end turn button) w/ transparent or slight bg
-        item && "border-green-500 bg-green-500/10 hover:bg-green-500/20"
+        item && !isTargeting && "border-green-500 bg-green-500/10 hover:bg-green-500/20",
+        // Targeting state: Bright red outline/glow
+        item && isTargeting && "border-red-500 bg-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
       )}
       title={item ? item.name : `Empty ${slot} slot`}
     >
@@ -86,13 +96,15 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
 
 export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Phase 1: Direct sub-context access
-  const { lastTileClick, hoveredTile, mapTransition } = useGameMap();
+  const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition } = useGameMap();
+  const { playerRef } = usePlayer();
 
   // Get initialization state from GameContext (still needed for initialization control)
   const { isInitialized, initializationError, initializeGame } = useGame(); // Added initializeGame for retry button
 
   // Get inventory context for floating containers and selection management
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer } = useInventory();
+  const { targetingWeapon, cancelTargeting, performMeleeAttack } = useCombat();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
@@ -136,17 +148,37 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   }
 
   // Handler for map cell clicks
-  // Handler for map cell clicks
   const onCellClick = (x: number, y: number) => {
     // If an item is selected for movement, cancel it and don't process map click
     if (selectedItem) {
       console.debug('[MapInterface] Map clicked while item selected - canceling selection');
       clearSelected();
-      return; // Do not proceed to handle the map click for movement
+      return true; // Click was handled (canceled selection)
     }
+
+    // Handle Combat Targeting
+    if (targetingWeapon) {
+      if (targetingWeapon.slot === 'melee') {
+        const result = performMeleeAttack(targetingWeapon.item, x, y);
+
+        // Cancel targeting if:
+        // 1. Attack failed (out of range, no target)
+        // 2. Player is out of AP
+        const player = playerRef.current; // Get player for AP check
+        if (!result.success || (player && player.ap < 1)) {
+          cancelTargeting();
+        }
+      } else {
+        // Ranged logic placeholder (will also cancel targeting for now)
+        cancelTargeting();
+      }
+      return true; // Click was handled (combat action)
+    }
+
+    return false; // Click was not handled (allow movement)
   };
 
-  // Block all map area clicks when item is selected
+  // Block all map area clicks when item is selected or targeting
   const handleMapAreaClick = (event: React.MouseEvent) => {
     if (selectedItem) {
       event.preventDefault();
@@ -196,7 +228,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         onClick={handleMapAreaClick}
       >
         {isInitialized ? (
-          <MapCanvas onCellClick={onCellClick} selectedItem={selectedItem} />
+          <MapCanvas
+            onCellClick={onCellClick}
+            selectedItem={selectedItem}
+            isTargeting={!!targetingWeapon}
+          />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-muted-foreground text-sm">Initializing game...</p>

@@ -109,7 +109,11 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
-    condition: 100
+    condition: 100,
+    combat: {
+      hitChance: 0.65,
+      damage: { min: 1, max: 4 }
+    }
   },
 
   'weapon.woodenbat': {
@@ -121,7 +125,11 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON],
-    condition: 100
+    condition: 100,
+    combat: {
+      hitChance: 0.75,
+      damage: { min: 1, max: 6 }
+    }
   },
 
 

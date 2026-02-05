@@ -11,7 +11,7 @@ import { imageLoader } from '../../game/utils/ImageLoader.js';
  * Renders the game map with proper terrain colors and entity positioning
  * Phase 1: Now uses direct sub-context access instead of useGame() aggregation
  */
-export default function MapCanvas({ onCellClick, selectedItem }) {
+export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
   const canvasRef = useRef(null);
 
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
@@ -285,7 +285,8 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
           ctx.font = `${Math.floor(tileSize / 2)}px Arial`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(`-${effect.value}`, pixelX + tileSize / 2, currentY);
+          const valueText = typeof effect.value === 'number' ? `-${effect.value}` : effect.value;
+          ctx.fillText(valueText, pixelX + tileSize / 2, currentY);
           ctx.restore();
         }
         break;
@@ -539,7 +540,8 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
       const screenTileY = hoverY / tileSize;
 
       // Convert screen coordinates to world coordinates using camera
-      const worldPos = camera.screenToWorld(screenTileX, screenTileY);
+      let worldPos = camera.screenToWorld(screenTileX, screenTileY);
+      worldPos = { x: Math.floor(worldPos.x), y: Math.floor(worldPos.y) };
 
       // Store hovered position for rendering - Fix: pass player parameter
       if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
@@ -659,15 +661,23 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
       const screenTileY = clickY / tileSize;
 
       // Convert screen coordinates to world coordinates using camera
-      const worldPos = camera.screenToWorld(screenTileX, screenTileY);
+      let worldPos = camera.screenToWorld(screenTileX, screenTileY);
+      worldPos = { x: Math.floor(worldPos.x), y: Math.floor(worldPos.y) };
 
       // Validate coordinates and trigger tile click
       if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
         worldPos.y >= 0 && worldPos.y < gameMap.height) {
-        // Call GameMapContext handleTileClick with required parameters
-        // Use direct context access - handleTileClick expects these parameters:
-        // (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement)
-        handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement);
+
+        // Pass click to MapInterface handler first (handles targeting, selection etc)
+        const handled = onCellClick && onCellClick(worldPos.x, worldPos.y);
+
+        // Only trigger movement if the click wasn't handled by MapInterface
+        if (!handled) {
+          // Call GameMapContext handleTileClick with required parameters
+          // Use direct context access - handleTileClick expects these parameters:
+          // (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement)
+          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement);
+        }
       } else {
         console.log('[MapCanvas] Click outside valid map bounds');
       }
@@ -832,8 +842,8 @@ export default function MapCanvas({ onCellClick, selectedItem }) {
     <div className="h-full w-full overflow-hidden min-h-0" style={{ padding: 0, margin: 0 }}>
       <canvas
         ref={canvasRef}
-        className={`${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        onClick={(e) => handleCanvasClick(e, selectedItem)}
+        className={`${isTargeting ? 'cursor-crosshair' : (isDragging ? 'cursor-grabbing' : 'cursor-grab')}`}
+        onClick={handleCanvasClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleCanvasHover}
         style={{

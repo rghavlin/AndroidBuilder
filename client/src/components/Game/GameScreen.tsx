@@ -5,6 +5,7 @@ import { GameMapProvider, useGameMap } from '../../contexts/GameMapContext.jsx';
 import { CameraProvider } from '../../contexts/CameraContext.jsx';
 import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
 import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
+import { CombatProvider } from '../../contexts/CombatContext.jsx';
 import MapInterface from './MapInterface';
 import InventoryPanel from "../Inventory/InventoryPanel";
 import GameControls from './GameControls';
@@ -189,7 +190,9 @@ export default function GameScreen() {
           <CameraProvider>
             <GameMapProvider>
               <GameProvider>
-                <GameScreenContent />
+                <CombatProvider>
+                  <GameScreenContent />
+                </CombatProvider>
               </GameProvider>
             </GameMapProvider>
           </CameraProvider>

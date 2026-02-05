@@ -24,6 +24,39 @@ export class Zombie extends Entity {
     // Current behavior state
     this.behaviorState = 'idle'; // 'idle', 'pursuing', 'investigating', 'wandering'
     this.isActive = false; // Whether it's this zombie's turn
+
+    // Combat stats
+    this.hp = 10;
+    this.maxHp = 10;
+  }
+
+  /**
+   * Take damage from an attack
+   * @param {number} amount - Amount of damage to take
+   */
+  takeDamage(amount) {
+    const oldHp = this.hp;
+    this.hp = Math.max(0, this.hp - amount);
+
+    this.emitEvent('zombieDamageTaken', {
+      amount,
+      oldHp,
+      currentHp: this.hp,
+      maxHp: this.maxHp
+    });
+
+    return {
+      damageDealt: amount,
+      isDead: this.hp <= 0
+    };
+  }
+
+  /**
+   * Check if the zombie is dead
+   * @returns {boolean}
+   */
+  isDead() {
+    return this.hp <= 0;
   }
 
   /**
