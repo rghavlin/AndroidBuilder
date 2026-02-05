@@ -104,7 +104,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Get inventory context for floating containers and selection management
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer } = useInventory();
-  const { targetingWeapon, cancelTargeting, performMeleeAttack } = useCombat();
+  const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack } = useCombat();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
@@ -168,8 +168,14 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         if (!result.success || (player && player.ap < 1)) {
           cancelTargeting();
         }
+      } else if (targetingWeapon.slot === 'handgun' || targetingWeapon.slot === 'long_gun') {
+        const result = performRangedAttack(targetingWeapon.item, x, y);
+
+        const player = playerRef.current;
+        if (!result.success || (player && player.ap < 1)) {
+          cancelTargeting();
+        }
       } else {
-        // Ranged logic placeholder (will also cancel targeting for now)
         cancelTargeting();
       }
       return true; // Click was handled (combat action)

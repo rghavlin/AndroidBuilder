@@ -146,7 +146,12 @@ export const ItemDefs = {
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
       { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.9mm_magazine', 'attachment.9mm_extended_magazine'] }
-    ]
+    ],
+    rangedStats: {
+      damage: { min: 4, max: 10 },
+      accuracyFalloff: 0.1,
+      minAccuracy: 0.01
+    }
   },
 
 
@@ -162,7 +167,12 @@ export const ItemDefs = {
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE] },
       { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.sniper_magazine'] }
-    ]
+    ],
+    rangedStats: {
+      damage: { min: 4, max: 20 },
+      accuracyFalloff: 0.05,
+      minAccuracy: 0.01
+    }
   },
 
   'tool.smallflashlight': {
