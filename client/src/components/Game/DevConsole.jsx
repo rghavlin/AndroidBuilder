@@ -150,9 +150,9 @@ const DevConsole = ({ isOpen, onClose }) => {
   const executeCommand = async (command) => {
     addToConsole(`> ${command}`, 'command');
 
-    const parts = command.toLowerCase().trim().split(' ');
-    const mainCommand = parts[0];
-    const subCommand = parts[1];
+    const parts = command.trim().split(/\s+/);
+    const mainCommand = parts[0].toLowerCase();
+    const subCommand = parts[1] ? parts[1].toLowerCase() : '';
 
     // Helper function to get available ItemDefs keys for the spawn command
     const getAvailableItemDefs = async () => {
@@ -194,6 +194,8 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  create lunchbox - Create test lunchbox item on ground', 'info');
           addToConsole('  spawn <item-type> [count] - Spawn item(s) on ground', 'info');
           addToConsole('  map loot - Trigger random loot spawning on current map', 'info');
+          addToConsole('  stat <name> <value> - Set player stat (e.g. stat ap 100)', 'info');
+          addToConsole('  stat <name> - Get player stat (e.g. stat hp)', 'info');
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
@@ -232,6 +234,43 @@ const DevConsole = ({ isOpen, onClose }) => {
             }
           } else {
             addToConsole('Unknown game command. Try: game status', 'error');
+          }
+          break;
+
+        case 'stat':
+          if (playerRef.current) {
+            const statInput = parts[1];
+            const value = parts[2];
+            const player = playerRef.current;
+
+            if (!statInput) {
+              addToConsole('Usage: stat <name> [value]', 'error');
+              addToConsole('Stats: hp, maxHp, ap, maxAp, nutrition, hydration, energy', 'info');
+              break;
+            }
+
+            // Case-insensitive stat lookup
+            const statName = Object.keys(player).find(k => k.toLowerCase() === statInput.toLowerCase());
+            const currentVal = statName ? player[statName] : undefined;
+
+            if (currentVal === undefined) {
+              addToConsole(`Unknown stat: ${statInput}`, 'error');
+              break;
+            }
+
+            if (value === undefined) {
+              addToConsole(`${statName}: ${currentVal}`, 'info');
+            } else {
+              const numValue = parseFloat(value);
+              if (isNaN(numValue)) {
+                addToConsole(`Invalid value: ${value}`, 'error');
+              } else {
+                player.setStat(statName, numValue);
+                addToConsole(`${statName} set to ${player[statName]}`, 'success');
+              }
+            }
+          } else {
+            addToConsole('Player not available', 'error');
           }
           break;
 

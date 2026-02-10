@@ -382,11 +382,8 @@ export class GameMap {
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
     // Import required classes
-    const { Tile } = await import('./Tile.js');
-    const { Player } = await import('../entities/Player.js');
-    const { Zombie } = await import('../entities/Zombie.js');
-    const { TestEntity } = await import('../entities/TestEntity.js');
     const { Item } = await import('../inventory/Item.js');
+    const { Door } = await import('../entities/Door.js');
 
     console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
 
@@ -429,6 +426,9 @@ export class GameMap {
                 case 'item':
                   entity = Item.fromJSON(entityData);
                   break;
+                case 'door':
+                  entity = Door.fromJSON(entityData);
+                  break;
                 default:
                   console.warn(`[GameMap] Unknown entity type during selective restoration: ${entityType}`);
                   continue;
@@ -463,6 +463,7 @@ export class GameMap {
     const { Zombie } = await import('../entities/Zombie.js');
     const { TestEntity } = await import('../entities/TestEntity.js');
     const { Item } = await import('../inventory/Item.js');
+    const { Door } = await import('../entities/Door.js');
 
     // Restore tiles
     for (let y = 0; y < data.height; y++) {
@@ -487,6 +488,9 @@ export class GameMap {
                   break;
                 case 'item':
                   entity = Item.fromJSON(entityData);
+                  break;
+                case 'door':
+                  entity = Door.fromJSON(entityData);
                   break;
                 default:
                   console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);

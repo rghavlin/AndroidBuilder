@@ -174,6 +174,22 @@ export const ItemDefs = {
       damage: { min: 3, max: 10 }
     }
   },
+  'weapon.crowbar': {
+    id: 'weapon.crowbar',
+    name: 'Crowbar',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'crowbar',
+    width: 3,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    condition: 100,
+    combat: {
+      hitChance: 0.70,
+      damage: { min: 3, max: 9 }
+    }
+  },
 
 
   // Firearms (no degradation)
@@ -472,6 +488,62 @@ export const ItemDefs = {
     stackMax: 10,
     consumptionEffects: {
       nutrition: 3
+    }
+  },
+  'food.beans': {
+    id: 'food.beans',
+    name: 'Canned Beans',
+    rarity: Rarity.COMMON,
+    imageId: 'cannedbeans',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      nutrition: 10
+    }
+  },
+  'food.granolabar': {
+    id: 'food.granolabar',
+    name: 'Granola Bar',
+    rarity: Rarity.COMMON,
+    imageId: 'granolabar',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      nutrition: 6
+    }
+  },
+  'food.honey': {
+    id: 'food.honey',
+    name: 'Honey',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'honey',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      nutrition: 4
+    }
+  },
+  'food.mre': {
+    id: 'food.mre',
+    name: 'MRE',
+    rarity: Rarity.RARE,
+    imageId: 'mre',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      nutrition: 20
     }
   }
 };

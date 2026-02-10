@@ -132,6 +132,21 @@ export class LootGenerator {
                     selectedItem.ammoCount = Math.floor(Math.random() * (selectedItem.capacity + 1));
                 }
 
+                // 5. Firearm Attachment logic: Spawn with magazines and random ammo
+                if (randomKey === 'weapon.9mmPistol') {
+                    const magData = createItemFromDef('attachment.9mm_magazine');
+                    if (magData) {
+                        magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
+                        selectedItem.attachments = { 'ammo': magData };
+                    }
+                } else if (randomKey === 'weapon.sniper_rifle') {
+                    const magData = createItemFromDef('attachment.sniper_magazine');
+                    if (magData) {
+                        magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
+                        selectedItem.attachments = { 'ammo': magData };
+                    }
+                }
+
                 items.push(selectedItem);
             }
         }

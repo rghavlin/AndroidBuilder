@@ -84,22 +84,29 @@ const GameContextInner = ({ children }) => {
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAutosaving, setIsAutosaving] = useState(false);
 
-  const attachInventorySyncListener = useCallback((player, gameMap, inventoryManager) => {
-    if (!player || !gameMap || !inventoryManager) return;
+  const attachInventorySyncListener = useCallback((player, inventoryManager) => {
+    if (!player || !inventoryManager) return;
+
+    // Remove existing listeners to prevent duplicates and stale closures
+    player.removeAllListeners('playerMoved');
 
     // Phase 5B: Add ground container synchronization listener
     // This listener handles moving items between the ground container and map tiles
     player.on('playerMoved', ({ oldPosition, newPosition }) => {
+      // ALWAYS use the latest map from the ref to avoid stale closures during map transitions
+      const currentMap = gameMapRef.current;
+      if (!currentMap) return;
+
       console.log(`[GameContext] Player shifted from (${oldPosition.x}, ${oldPosition.y}) to (${newPosition.x}, ${newPosition.y}) - syncing ground items`);
       inventoryManager.syncWithMap(
         oldPosition.x, oldPosition.y,
         newPosition.x, newPosition.y,
-        gameMap
+        currentMap
       );
     });
 
     console.log('[GameContext] Inventory synchronization listener attached to player');
-  }, []);
+  }, [gameMapRef]);
 
   const wireManagerEvents = useCallback((manager, runId) => {
     const handleStateChanged = ({ current }) => {
@@ -134,7 +141,7 @@ const GameContextInner = ({ children }) => {
       camera.centerOn(player.x, player.y);
       setupPlayerEventListeners();
 
-      attachInventorySyncListener(player, gameMap, gameObjects.inventoryManager);
+      attachInventorySyncListener(player, gameObjects.inventoryManager);
 
       setIsGameReady(true);
       console.log('[GameContext] Game is ready - UI gate opened');
@@ -272,7 +279,7 @@ const GameContextInner = ({ children }) => {
 
       // Set up player event listeners and update derived state
       setupPlayerEventListeners();
-      attachInventorySyncListener(loadedState.player, loadedState.gameMap, loadedState.inventoryManager);
+      attachInventorySyncListener(loadedState.player, loadedState.inventoryManager);
       updatePlayerFieldOfView(loadedState.gameMap);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
@@ -333,7 +340,7 @@ const GameContextInner = ({ children }) => {
 
       console.log('[GameContext] Setting up event listeners for loaded player...');
       setupPlayerEventListeners();
-      attachInventorySyncListener(loadedState.player, loadedState.gameMap, loadedState.inventoryManager);
+      attachInventorySyncListener(loadedState.player, loadedState.inventoryManager);
 
       // Recenter camera on loaded player position
       if (loadedState.camera && loadedState.player) {
@@ -679,7 +686,7 @@ const GameContextInner = ({ children }) => {
     };
 
     // Call GameMapContext handleMapTransitionConfirm with required parameters including camera operations
-    const success = await mapTransitionConfirm(playerRef.current, updatePlayerCardinalPositions, cancelMovement, cameraOperations);
+    const success = await mapTransitionConfirm(playerRef.current, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager);
 
     if (success) {
       // Update PlayerContext data after successful transition (no timer)

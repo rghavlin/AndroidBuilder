@@ -11,13 +11,18 @@ import { imageLoader } from '../../game/utils/ImageLoader.js';
  * Renders the game map with proper terrain colors and entity positioning
  * Phase 1: Now uses direct sub-context access instead of useGame() aggregation
  */
-export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
+export default function MapCanvas({
+  onCellClick = null,
+  onCellRightClick = null,
+  selectedItem = null,
+  isTargeting = false
+}) {
   const canvasRef = useRef(null);
 
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
   const { isInitialized } = useGame(); // Only initialization state from GameContext
   const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, playerFieldOfView, startAnimatedMovement } = usePlayer();
-  const { gameMapRef, handleTileClick, handleTileHover, hoveredTile } = useGameMap();
+  const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
   const { effects, addEffect, tick } = useVisualEffects();
   const [isDragging, setIsDragging] = useState(false);
@@ -108,7 +113,23 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
     }
   }, [effects]); // Added effects to dependency array
 
-  // Default entity rendering (current system)
+  // Get color for different item types
+  const getItemColor = useCallback((itemType) => {
+    const itemColors = {
+      'weapon': '#ef4444',     // Red
+      'ammo': '#f59e0b',       // Orange
+      'food': '#10b981',       // Green
+      'medicine': '#3b82f6',   // Blue
+      'tool': '#6b7280',       // Gray
+      'key': '#fbbf24',        // Yellow
+      'book': '#8b5cf6',       // Purple
+      'clothing': '#ec4899',   // Pink
+      'container': '#92400e',  // Brown
+    };
+
+    return itemColors[itemType] || '#fbbf24'; // Default yellow
+  }, []);
+
   const renderEntityDefault = useCallback((ctx, entity, pixelX, pixelY, tileSize) => {
     switch (entity.type) {
       case 'player':
@@ -230,6 +251,40 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
         }
         break;
 
+      case 'door':
+        // Brownish-gray color for doors
+        const doorColor = '#8b7355';
+        ctx.strokeStyle = doorColor;
+        ctx.lineWidth = 3;
+
+        if (entity.isOpen) {
+          // Open door: brownish-gray outline
+          ctx.strokeRect(
+            pixelX + tileSize / 8,
+            pixelY + tileSize / 8,
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
+          );
+        } else {
+          // Closed door: solid brownish-gray square
+          ctx.fillStyle = doorColor;
+          ctx.fillRect(
+            pixelX + tileSize / 8,
+            pixelY + tileSize / 8,
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
+          );
+          // Darker border for closed door
+          ctx.strokeStyle = '#5d4d3a';
+          ctx.strokeRect(
+            pixelX + tileSize / 8,
+            pixelY + tileSize / 8,
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
+          );
+        }
+        break;
+
       default:
         // Unknown entity - gray square
         ctx.fillStyle = '#6b7280';
@@ -241,24 +296,7 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
         );
         break;
     }
-  }, []);
-
-  // Get color for different item types
-  const getItemColor = useCallback((itemType) => {
-    const itemColors = {
-      'weapon': '#ef4444',     // Red
-      'ammo': '#f59e0b',       // Orange
-      'food': '#10b981',       // Green
-      'medicine': '#3b82f6',   // Blue
-      'tool': '#6b7280',       // Gray
-      'key': '#fbbf24',        // Yellow
-      'book': '#8b5cf6',       // Purple
-      'clothing': '#ec4899',   // Pink
-      'container': '#92400e',  // Brown
-    };
-
-    return itemColors[itemType] || '#fbbf24'; // Default yellow
-  }, []);
+  }, [getItemColor]);
 
   // Render visual effects
   const renderEffect = useCallback((ctx, effect, camera, tileSize, currentTime) => {
@@ -626,8 +664,8 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
     renderMap();
   }, [renderMap, cameraRef]); // Include cameraRef in dependencies
 
-  // Handle canvas click events
-  const handleCanvasClick = useCallback((event, selectedItem) => {
+  // Handle canvas click events (left click)
+  const handleCanvasClick = useCallback((event) => {
     const gameMap = gameMapRef.current;
     const camera = cameraRef.current;
     const player = playerRef.current;
@@ -674,8 +712,6 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
         // Only trigger movement if the click wasn't handled by MapInterface
         if (!handled) {
           // Call GameMapContext handleTileClick with required parameters
-          // Use direct context access - handleTileClick expects these parameters:
-          // (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement)
           handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement);
         }
       } else {
@@ -684,7 +720,48 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
     } catch (error) {
       console.error('[MapCanvas] Error handling canvas click:', error);
     }
-  }, [gameMapRef, handleTileClick, calculateTileSize, cameraRef, isDragging, playerRef, isAnimatingMovement, startAnimatedMovement]);
+  }, [gameMapRef, handleTileClick, calculateTileSize, cameraRef, isDragging, playerRef, isAnimatingMovement, startAnimatedMovement, onCellClick, selectedItem, hasDragged]);
+
+  // Handle canvas context menu (right click)
+  const handleCanvasContextMenu = useCallback((event) => {
+    event.preventDefault(); // Prevent standard browser menu
+
+    const gameMap = gameMapRef.current;
+    const camera = cameraRef.current;
+
+    if (!gameMap || !camera || !onCellRightClick) return;
+
+    try {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const containerRect = canvas.parentElement.getBoundingClientRect();
+
+      const baseTileSize = calculateTileSize(containerRect.width, containerRect.height);
+      const tileSize = baseTileSize * camera.zoomLevel;
+
+      // Calculate clicked pixel coordinates
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+
+      // Convert pixel coordinates to screen tile coordinates
+      const screenTileX = clickX / tileSize;
+      const screenTileY = clickY / tileSize;
+
+      // Convert screen coordinates to world coordinates
+      let worldPos = camera.screenToWorld(screenTileX, screenTileY);
+      worldPos = { x: Math.floor(worldPos.x), y: Math.floor(worldPos.y) };
+
+      // Validate coordinates and trigger right click
+      if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
+        worldPos.y >= 0 && worldPos.y < gameMap.height) {
+        onCellRightClick(worldPos.x, worldPos.y, event.clientX, event.clientY);
+      }
+    } catch (error) {
+      console.error('[MapCanvas] Error handling context menu:', error);
+    }
+  }, [gameMapRef, cameraRef, calculateTileSize, onCellRightClick]);
 
   // Setup effect listeners for player actions
   useEffect(() => {
@@ -760,7 +837,7 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
     if (isInitialized && gameMapRef.current && cameraRef.current) {
       renderMap();
     }
-  }, [renderMap, isInitialized, gameMapRef, cameraRef, hoveredTile, imagesLoaded, playerRenderPosition, isAnimatingMovement, playerFieldOfView, effects, tick]);
+  }, [renderMap, isInitialized, gameMapRef, cameraRef, hoveredTile, imagesLoaded, playerRenderPosition, isAnimatingMovement, playerFieldOfView, effects, tick, mapVersion]);
 
   // Add mouse event listeners for panning and zooming
   useEffect(() => {
@@ -844,6 +921,7 @@ export default function MapCanvas({ onCellClick, selectedItem, isTargeting }) {
         ref={canvasRef}
         className={`${isTargeting ? 'cursor-crosshair' : (isDragging ? 'cursor-grabbing' : 'cursor-grab')}`}
         onClick={handleCanvasClick}
+        onContextMenu={handleCanvasContextMenu}
         onMouseDown={handleMouseDown}
         onMouseMove={handleCanvasHover}
         style={{

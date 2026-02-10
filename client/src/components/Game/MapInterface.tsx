@@ -12,8 +12,8 @@ import MainMenuWindow from './MainMenuWindow';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { cn } from "@/lib/utils";
-
 import { useCombat } from '../../contexts/CombatContext.jsx';
+import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 
 interface MapInterfaceProps {
   gameState: {
@@ -96,8 +96,8 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
 
 export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Phase 1: Direct sub-context access
-  const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition } = useGameMap();
-  const { playerRef } = usePlayer();
+  const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate } = useGameMap();
+  const { playerRef, updatePlayerFieldOfView } = usePlayer();
 
   // Get initialization state from GameContext (still needed for initialization control)
   const { isInitialized, initializationError, initializeGame } = useGame(); // Added initializeGame for retry button
@@ -105,9 +105,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Get inventory context for floating containers and selection management
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer } = useInventory();
   const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack } = useCombat();
+  const { addEffect } = useVisualEffects();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
+  const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
 
   // Log tile interactions for debugging
   useEffect(() => {
@@ -184,6 +186,29 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     return false; // Click was not handled (allow movement)
   };
 
+  // Handler for map cell right clicks
+  const onCellRightClick = (x: number, y: number, screenX: number, screenY: number) => {
+    const gameMap = gameMapRef.current;
+    const player = playerRef.current;
+    if (!gameMap || !player) return;
+
+    const tile = gameMap.getTile(x, y);
+    if (!tile) return;
+
+    const door = tile.contents.find((e: any) => e.type === 'door');
+    if (door) {
+      // Check adjacency
+      const distance = Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2));
+      const isAdjacent = distance < 2.0;
+
+      if (isAdjacent) {
+        setDoorMenu({ x, y, screenX, screenY, door });
+      } else {
+        console.log('[MapInterface] Door too far for interaction');
+      }
+    }
+  };
+
   // Block all map area clicks when item is selected or targeting
   const handleMapAreaClick = (event: React.MouseEvent) => {
     if (selectedItem) {
@@ -236,6 +261,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         {isInitialized ? (
           <MapCanvas
             onCellClick={onCellClick}
+            onCellRightClick={onCellRightClick}
             selectedItem={selectedItem}
             isTargeting={!!targetingWeapon}
           />
@@ -251,10 +277,92 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         isOpen={isInventoryExtensionOpen}
         onClose={() => setIsInventoryExtensionOpen(false)}
       />
-
       {/* Main Menu Modal */}
       {showMainMenu && (
         <MainMenuWindow onClose={() => setShowMainMenu(false)} />
+      )}
+
+      {/* Door Context Menu */}
+      {doorMenu && (
+        <div
+          className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32"
+          style={{ left: doorMenu.screenX, top: doorMenu.screenY }}
+          onMouseLeave={() => setDoorMenu(null)}
+        >
+          <button
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+            onClick={() => {
+              const gameMap = gameMapRef.current;
+              const player = playerRef.current;
+              if (!gameMap || !player) return;
+
+              // Check AP cost (1 AP)
+              if (player.ap < 1) {
+                addEffect({
+                  type: 'damage',
+                  x: doorMenu.x,
+                  y: doorMenu.y,
+                  value: 'Insufficient AP',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+                setDoorMenu(null);
+                return;
+              }
+
+              const success = doorMenu.door.toggle(gameMap);
+              if (success) {
+                // Consume 1 AP
+                player.useAP(1);
+                // Force map re-render
+                triggerMapUpdate();
+                // Update FOV immediately
+                updatePlayerFieldOfView(gameMap);
+              } else if (doorMenu.door.isOpen && !success) {
+                // Check if it was blocked by occupancy (toggle returned false while open)
+                // We show "Occupied" floating message
+                addEffect({
+                  type: 'damage',
+                  x: doorMenu.x,
+                  y: doorMenu.y,
+                  value: 'Occupied',
+                  color: '#ef4444', // Red color for blocked action
+                  duration: 1000
+                });
+              } else if (doorMenu.door.isLocked && !doorMenu.door.isOpen) {
+                // Show "Locked" floating message
+                addEffect({
+                  type: 'damage',
+                  x: doorMenu.x,
+                  y: doorMenu.y,
+                  value: 'Locked',
+                  color: '#fbbf24',
+                  duration: 1000
+                });
+              }
+              setDoorMenu(null);
+            }}
+          >
+            {doorMenu.door.isOpen ? 'Close Door' : 'Open Door'}
+          </button>
+          {doorMenu.door.isLocked && !doorMenu.door.isOpen && (
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-amber-500 hover:bg-accent focus:bg-accent transition-colors"
+              onClick={() => {
+                console.log('[MapInterface] Unlock option clicked (NYI)');
+                setDoorMenu(null);
+              }}
+            >
+              Unlock (Locked)
+            </button>
+          )}
+          <button
+            className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            onClick={() => setDoorMenu(null)}
+          >
+            Cancel
+          </button>
+        </div>
       )}
     </div>
   );

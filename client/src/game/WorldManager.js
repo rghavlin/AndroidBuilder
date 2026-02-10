@@ -191,7 +191,7 @@ export class WorldManager {
 
       // Create GameMap instance and apply template
       const gameMap = new GameMap(mapData.width, mapData.height);
-      templateMapGenerator.applyToGameMap(gameMap, mapData);
+      await templateMapGenerator.applyToGameMap(gameMap, mapData);
 
       // SPAWN LOOT: New procedural loot generation
       const { LootGenerator } = await import('./map/LootGenerator.js');
@@ -411,7 +411,7 @@ export class WorldManager {
 
         // Create GameMap instance and apply template
         const gameMap = new GameMap(generatedMapData.width, generatedMapData.height);
-        templateMapGenerator.applyToGameMap(gameMap, generatedMapData);
+        await templateMapGenerator.applyToGameMap(gameMap, generatedMapData);
 
         // SPAWN LOOT: New procedural loot generation
         const { LootGenerator } = await import('./map/LootGenerator.js');

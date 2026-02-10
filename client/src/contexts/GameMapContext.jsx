@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef, useState, useCallback, useMem
 import { usePlayer } from './PlayerContext';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
 import { Zombie } from '../game/entities/Zombie.js';
+import { useVisualEffects } from './VisualEffectsContext.jsx';
 
 const GameMapContext = createContext();
 
@@ -14,15 +15,15 @@ export const useGameMap = () => {
         gameMap: null,
         worldManager: null,
         mapTransition: null,
-        setGameMap: () => {},
-        setWorldManager: () => {},
-        handleTileClick: () => {},
-        handleTileHover: () => {},
-        checkPathForZombieVisibility: () => {},
-        executeMapTransition: () => {},
-        handleMapTransitionConfirm: () => {},
-        handleMapTransitionCancel: () => {},
-        setMapTransition: () => {}
+        setGameMap: () => { },
+        setWorldManager: () => { },
+        handleTileClick: () => { },
+        handleTileHover: () => { },
+        checkPathForZombieVisibility: () => { },
+        executeMapTransition: () => { },
+        handleMapTransitionConfirm: () => { },
+        handleMapTransitionCancel: () => { },
+        setMapTransition: () => { }
       };
     }
     throw new Error('useGameMap must be used within a GameMapProvider');
@@ -41,7 +42,10 @@ export const GameMapProvider = ({ children }) => {
   // Map-related state - keep mapTransition and hoveredTile for UI state
   const [mapTransition, setMapTransition] = useState(null);
   const [hoveredTile, setHoveredTile] = useState(null);
-  
+
+  // Phase 1: Access visual effects for interaction feedback
+  const { addEffect } = useVisualEffects();
+
   // Version state for rare structural re-renders on map transitions
   const [mapVersion, setMapVersion] = useState(0);
 
@@ -62,6 +66,11 @@ export const GameMapProvider = ({ children }) => {
   // Set zombie tracker ref (called during initialization)
   const setZombieTracker = useCallback((zombieTracker) => {
     zombieTrackerRef.current = zombieTracker;
+  }, []);
+
+  // Force map re-render
+  const triggerMapUpdate = useCallback(() => {
+    setMapVersion(v => v + 1);
   }, []);
 
   // Check path for zombie visibility changes during player movement
@@ -256,7 +265,7 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Execute map transition
-  const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement, cameraOperations) => {
+  const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager) => {
     if (!worldManagerRef.current || !playerEntity) {
       console.error('[GameMapContext] Cannot execute transition - missing refs');
       return false;
@@ -332,6 +341,16 @@ export const GameMapProvider = ({ children }) => {
       worldManagerRef.current.saveCurrentMap(oldMapRef, worldManagerRef.current.currentMapId);
       console.log('[GameMapContext] Current map saved');
 
+      // GHOST ITEM FIX: Sync ground items with the OLD map tile before moving
+      if (oldMapRef && inventoryManager) {
+        console.log(`[GameMapTransition] Syncing ground items to OLD map at (${currentPlayerRef.x}, ${currentPlayerRef.y})`);
+        inventoryManager.syncWithMap(
+          currentPlayerRef.x, currentPlayerRef.y,
+          currentPlayerRef.x, currentPlayerRef.y, // Stay on same tile to force save
+          oldMapRef
+        );
+      }
+
       const result = await worldManagerRef.current.executeTransition(
         transitionInfo.nextMapId,
         transitionInfo.spawnPosition
@@ -405,11 +424,21 @@ export const GameMapProvider = ({ children }) => {
       if (cameraOperations && cameraOperations.setWorldBounds) {
         cameraOperations.setWorldBounds(result.gameMap.width, result.gameMap.height);
       }
-      
+
       // CORRECTED FIX: Now center camera on player's UPDATED position (not stale coordinates)
       if (cameraOperations && cameraOperations.centerOn) {
         cameraOperations.centerOn(currentPlayerRef.x, currentPlayerRef.y);
         console.log(`[GameMapContext] Camera centered on player's updated position (${currentPlayerRef.x}, ${currentPlayerRef.y})`);
+      }
+
+      // GHOST ITEM FIX: Sync ground items with the NEW map tile after transition
+      if (inventoryManager) {
+        console.log(`[GameMapTransition] Loading ground items from NEW map at (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
+        inventoryManager.syncWithMap(
+          result.spawnPosition.x, result.spawnPosition.y,
+          result.spawnPosition.x, result.spawnPosition.y, // Double-load logic for init
+          result.gameMap
+        );
       }
 
       // FIX: Stamp reciprocal south transition on new map (if not first map)
@@ -489,7 +518,7 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Handle map transition confirmation
-  const handleMapTransitionConfirm = useCallback(async (player, updatePlayerCardinalPositions, cancelMovement, cameraOperations) => {
+  const handleMapTransitionConfirm = useCallback(async (player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager) => {
     console.log(`[GameMapContext] Starting map transition confirmation with player: ${typeof player !== 'undefined' && player ? `${player.id} at (${player.x}, ${player.y})` : 'null'}`);
     console.log('[GameMapContext] Player object type:', typeof player, 'constructor:', player?.constructor?.name || 'undefined');
 
@@ -498,7 +527,7 @@ export const GameMapProvider = ({ children }) => {
       return false;
     }
 
-    const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement, cameraOperations);
+    const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager);
     if (success) {
       setMapTransition(null);
       console.log('[GameMapContext] Map transition completed successfully, dialog closed');
@@ -536,7 +565,8 @@ export const GameMapProvider = ({ children }) => {
     executeMapTransition,
     handleMapTransitionConfirm,
     handleMapTransitionCancel,
-    setMapTransition
+    setMapTransition,
+    triggerMapUpdate
   }), [
     mapVersion, // Version triggers updates when gameMap ref changes
     mapTransition,
@@ -550,7 +580,8 @@ export const GameMapProvider = ({ children }) => {
     executeMapTransition,
     handleMapTransitionConfirm,
     handleMapTransitionCancel,
-    setMapTransition
+    setMapTransition,
+    triggerMapUpdate
   ]);
 
   return (

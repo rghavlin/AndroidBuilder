@@ -200,7 +200,8 @@ export class TemplateMapGenerator {
       config: config,
       metadata: {
         generated: new Date().toISOString(),
-        spawnZones: template.spawnZones
+        spawnZones: template.spawnZones,
+        doors: [] // Track door entities to be created
       }
     };
 
@@ -214,7 +215,7 @@ export class TemplateMapGenerator {
         const sidewalkThickness = config.sidewalkThickness || 1;
 
         // Generate the road template with multiple strips
-        baseLayout = this.generateRoadLayout(template.size, roadThickness, sidewalkThickness);
+        baseLayout = this.generateRoadLayout(template.size, roadThickness, sidewalkThickness, mapData);
       } else {
         baseLayout = this.generateProceduralLayout(template.size, stripConfig, tileEquations);
       }
@@ -245,6 +246,7 @@ export class TemplateMapGenerator {
 
     // Add spawn zones metadata
     mapData.metadata = {
+      ...mapData.metadata,
       spawnZones: {
         roadStart: [{ x: 17, y: 123 }], // Bottom of road for player spawn
         transitionPoints: {
@@ -296,7 +298,7 @@ export class TemplateMapGenerator {
   parseTemplateLayout(layoutStrings) {
     const terrainMap = {
       'w': 'wall',
-      'f': 'floor', 
+      'f': 'floor',
       'g': 'grass',
       'r': 'road',
       's': 'sidewalk',
@@ -304,7 +306,7 @@ export class TemplateMapGenerator {
       '.': 'grass' // Default open space
     };
 
-    return layoutStrings.map(row => 
+    return layoutStrings.map(row =>
       row.split('').map(char => terrainMap[char] || 'grass')
     );
   }
@@ -406,7 +408,7 @@ export class TemplateMapGenerator {
   /**
    * Generate road layout with road, sidewalks, fences, and buildings
    */
-  generateRoadLayout(size, roadThickness, sidewalkThickness) {
+  generateRoadLayout(size, roadThickness, sidewalkThickness, mapData) {
     const { width, height } = size;
 
     // Initialize with grass
@@ -451,7 +453,7 @@ export class TemplateMapGenerator {
     }
 
     // Add buildings
-    this.placeBuildingsOnRoad(layout, width, height, leftSidewalkStartX, rightSidewalkEndX);
+    this.placeBuildingsOnRoad(layout, width, height, leftSidewalkStartX, rightSidewalkEndX, mapData);
 
     return layout;
   }
@@ -459,7 +461,7 @@ export class TemplateMapGenerator {
   /**
    * Place buildings along the road with specific placement rules
    */
-  placeBuildingsOnRoad(layout, width, height, leftSidewalkStartX, rightSidewalkEndX) {
+  placeBuildingsOnRoad(layout, width, height, leftSidewalkStartX, rightSidewalkEndX, mapData) {
     // Building placement parameters
     const minBuildingWidth = 6;
     const maxBuildingWidth = 10;
@@ -476,20 +478,20 @@ export class TemplateMapGenerator {
 
     // Place buildings on left side
     this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, buildingBuffer, height - buildingBuffer,
-                              minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
-                              minGapBetweenBuildings, maxGapBetweenBuildings);
+      minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+      minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
 
     // Place buildings on right side
     this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, buildingBuffer, height - buildingBuffer,
-                              minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
-                              minGapBetweenBuildings, maxGapBetweenBuildings);
+      minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+      minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
   }
 
   /**
    * Place buildings in a specific zone with given constraints
    */
   placeBuildingsInZone(layout, zoneStartX, zoneEndX, zoneStartY, zoneEndY,
-                       minWidth, maxWidth, minHeight, maxHeight, minGap, maxGap) {
+    minWidth, maxWidth, minHeight, maxHeight, minGap, maxGap, mapData) {
     const zoneWidth = zoneEndX - zoneStartX + 1;
     const zoneHeight = zoneEndY - zoneStartY;
 
@@ -532,8 +534,8 @@ export class TemplateMapGenerator {
         for (let x = buildingStartX; x < buildingStartX + buildingWidth; x++) {
           if (x >= 0 && x < layout[0].length && y >= 0 && y < layout.length) {
             // Create walls on the perimeter, floor tiles inside
-            const isPerimeter = (y === currentY || y === currentY + buildingHeight - 1 || 
-                               x === buildingStartX || x === buildingStartX + buildingWidth - 1);
+            const isPerimeter = (y === currentY || y === currentY + buildingHeight - 1 ||
+              x === buildingStartX || x === buildingStartX + buildingWidth - 1);
 
             if (isPerimeter) {
               layout[y][x] = 'building';
@@ -557,9 +559,21 @@ export class TemplateMapGenerator {
       }
 
       // Create the entrance by replacing wall with floor
-      if (entranceX >= 0 && entranceX < layout[0].length && 
-          entranceY >= 0 && entranceY < layout.length) {
+      if (entranceX >= 0 && entranceX < layout[0].length &&
+        entranceY >= 0 && entranceY < layout.length) {
         layout[entranceY][entranceX] = 'floor';
+
+        // 90% chance to add a door at the entrance
+        if (Math.random() < 0.9) {
+          if (mapData && mapData.metadata && mapData.metadata.doors) {
+            mapData.metadata.doors.push({
+              x: entranceX,
+              y: entranceY,
+              isLocked: Math.random() < 0.1, // 10% chance to be locked
+              isOpen: false
+            });
+          }
+        }
       }
 
       // Move to next building position with random gap
@@ -681,7 +695,7 @@ export class TemplateMapGenerator {
     // Simple math expression evaluator
     // Replace variables in equation
     let expr = equation.replace(/width/g, variables.width)
-                     .replace(/height/g, variables.height);
+      .replace(/height/g, variables.height);
 
     // Evaluate basic math (security: only allow numbers, +, -, *, /, %, parentheses)
     if (/^[0-9+\-*/%().\s]+$/.test(expr)) {
@@ -703,9 +717,9 @@ export class TemplateMapGenerator {
   evaluateTileCondition(condition, x, y, width, height) {
     // Replace variables in condition
     let expr = condition.replace(/x/g, x)
-                       .replace(/y/g, y)
-                       .replace(/width/g, width)
-                       .replace(/height/g, height);
+      .replace(/y/g, y)
+      .replace(/width/g, width)
+      .replace(/height/g, height);
 
     // Evaluate boolean expression (security: only allow numbers, comparison operators, math)
     if (/^[0-9+\-*/%().\s<>=!&|]+$/.test(expr)) {
@@ -757,7 +771,7 @@ export class TemplateMapGenerator {
   /**
    * Apply template-generated map data to a GameMap instance
    */
-  applyToGameMap(gameMap, templateMapData) {
+  async applyToGameMap(gameMap, templateMapData) {
     try {
       // Verify template data exists
       if (!templateMapData || !templateMapData.tiles) {
@@ -787,6 +801,23 @@ export class TemplateMapGenerator {
       }
 
       console.log(`[TemplateMapGenerator] Applied template map data to GameMap (${gameMap.width}x${gameMap.height})`);
+
+      // Instantiate door entities from metadata
+      if (templateMapData.metadata && templateMapData.metadata.doors) {
+        const { Door } = await import('../entities/Door.js');
+        templateMapData.metadata.doors.forEach(doorData => {
+          const door = new Door(
+            doorData.id || `door-${doorData.x}-${doorData.y}`,
+            doorData.x,
+            doorData.y,
+            doorData.isLocked,
+            doorData.isOpen
+          );
+          gameMap.addEntity(door, doorData.x, doorData.y);
+        });
+        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors to map`);
+      }
+
       return gameMap;
     } catch (error) {
       console.error('[TemplateMapGenerator] Failed to apply template to GameMap:', error);

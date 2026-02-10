@@ -167,7 +167,7 @@ class GameInitializationManager extends EventEmitter {
 
       // Apply template to map
       try {
-        templateMapGenerator.applyToGameMap(gameMap, mapData);
+        await templateMapGenerator.applyToGameMap(gameMap, mapData);
         console.log('[GameInitializationManager] Template applied to GameMap');
       } catch (error) {
         console.warn('[GameInitializationManager] Template application failed:', error);

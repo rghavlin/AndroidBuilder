@@ -160,6 +160,27 @@ export class Player extends Entity {
   }
 
   /**
+   * Set a generic stat directly
+   */
+  setStat(statName, value) {
+    const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
+    const old = this[statName];
+    if (old === undefined) return;
+
+    const maxVal = this[maxStatName] || 100;
+    this[statName] = Math.min(maxVal, Math.max(0, value));
+
+    if (this[statName] !== old) {
+      this.emitEvent('statChanged', {
+        stat: statName,
+        amount: this[statName] - old,
+        current: this[statName],
+        max: maxVal
+      });
+    }
+  }
+
+  /**
    * Serialize player to JSON
    */
   toJSON() {
