@@ -3,7 +3,7 @@
  * Static item templates following trait-based model
  */
 
-import { EncumbranceTier, EquipmentSlot, ItemTrait, ItemCategory } from './traits.js';
+import { EncumbranceTier, EquipmentSlot, ItemTrait, ItemCategory, Rarity } from './traits.js';
 
 export const ItemDefs = {
   // Backpacks (containers, equippable)
@@ -11,6 +11,7 @@ export const ItemDefs = {
   'backpack.school': {
     id: 'backpack.school',
     name: 'Book Bag',
+    rarity: Rarity.UNCOMMON,
     imageId: 'bookBag', // No extension - loader will append .png
     width: 3,
     height: 3,
@@ -23,6 +24,7 @@ export const ItemDefs = {
   'backpack.standard': {
     id: 'backpack.standard',
     name: 'Standard Backpack',
+    rarity: Rarity.RARE,
     imageId: 'standardBackpack', // No extension - loader will append .png
     width: 4,
     height: 4,
@@ -35,6 +37,7 @@ export const ItemDefs = {
   'backpack.hiking': {
     id: 'backpack.hiking',
     name: 'Hiking Backpack',
+    rarity: Rarity.EXTREMELY_RARE,
     imageId: 'hikingBackpack', // No extension - loader will append .png
     width: 5,
     height: 5,
@@ -48,6 +51,7 @@ export const ItemDefs = {
   'clothing.pocket_t': {
     id: 'clothing.pocket_t',
     name: 'Pocket T-Shirt',
+    rarity: Rarity.COMMON,
     imageId: 'pocket-t', // Image: pocket-t.png
     width: 1,
     height: 1,
@@ -60,6 +64,7 @@ export const ItemDefs = {
   'clothing.workshirt': {
     id: 'clothing.workshirt',
     name: 'Work Shirt',
+    rarity: Rarity.UNCOMMON,
     imageId: 'workshirt', // Image: workshirt.png
     width: 1,
     height: 1,
@@ -76,6 +81,7 @@ export const ItemDefs = {
   'clothing.sweatpants': {
     id: 'clothing.sweatpants',
     name: 'Sweatpants',
+    rarity: Rarity.COMMON,
     imageId: 'sweatpants', // Image: sweatpants.png
     width: 1,
     height: 1,
@@ -88,6 +94,7 @@ export const ItemDefs = {
   'clothing.cargopants': {
     id: 'clothing.cargopants',
     name: 'Cargo Pants',
+    rarity: Rarity.UNCOMMON,
     imageId: 'cargopants', // Image: cargopants.png
     width: 1,
     height: 1,
@@ -103,6 +110,7 @@ export const ItemDefs = {
   'weapon.knife': {
     id: 'weapon.knife',
     name: 'Knife',
+    rarity: Rarity.COMMON,
     imageId: 'knife', // No extension - loader will append .png
     width: 2,
     height: 1,
@@ -119,6 +127,7 @@ export const ItemDefs = {
   'weapon.woodenbat': {
     id: 'weapon.woodenbat',
     name: 'Wooden Bat',
+    rarity: Rarity.UNCOMMON,
     imageId: 'woodenbat',
     width: 4,
     height: 1,
@@ -132,11 +141,46 @@ export const ItemDefs = {
     }
   },
 
+  'weapon.2x4': {
+    id: 'weapon.2x4',
+    name: '2x4',
+    rarity: Rarity.COMMON,
+    imageId: '2by4',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.65,
+      damage: { min: 3, max: 9 }
+    }
+  },
+
+  'weapon.hammer': {
+    id: 'weapon.hammer',
+    name: 'Hammer',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'hammer',
+    width: 3,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    condition: 100,
+    combat: {
+      hitChance: 0.75,
+      damage: { min: 3, max: 10 }
+    }
+  },
+
 
   // Firearms (no degradation)
   'weapon.9mmPistol': {
     id: 'weapon.9mmPistol',
     name: '9mm Pistol',
+    rarity: Rarity.RARE,
     imageId: '9mm pistol',
     width: 2,
     height: 2,
@@ -158,6 +202,7 @@ export const ItemDefs = {
   'weapon.sniper_rifle': {
     id: 'weapon.sniper_rifle',
     name: 'Sniper Rifle',
+    rarity: Rarity.EXTREMELY_RARE,
     imageId: 'sniper rifle', // Note: space in filename
     width: 5,
     height: 2,
@@ -178,6 +223,7 @@ export const ItemDefs = {
   'tool.smallflashlight': {
     id: 'tool.smallflashlight',
     name: 'Small Flashlight',
+    rarity: Rarity.UNCOMMON,
     imageId: 'smallflashlight',
     width: 2,
     height: 1,
@@ -191,6 +237,7 @@ export const ItemDefs = {
   'container.toolbox': {
     id: 'container.toolbox',
     name: 'Tool Box',
+    rarity: Rarity.UNCOMMON,
     imageId: 'toolbox', // No extension - loader will append .png
     width: 2,
     height: 2,
@@ -205,17 +252,33 @@ export const ItemDefs = {
   'container.ammo_box': {
     id: 'container.ammo_box',
     name: 'Ammo Box',
+    rarity: Rarity.RARE,
     imageId: 'toolbox', // No extension - loader will append .png (TODO: Replace with actual ammo box image)
     width: 2,
     height: 2,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     containerGrid: { width: 4, height: 3 }
   },
+  'container.lunchbox': {
+    id: 'container.lunchbox',
+    name: 'Lunchbox',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'lunchbox',
+    width: 3,
+    height: 2,
+    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    containerGrid: {
+      width: 4,
+      height: 3,
+      allowedCategories: [ItemCategory.FOOD]
+    }
+  },
 
   // Weapon Attachments
   'attachment.suppressor': {
     id: 'attachment.suppressor',
     name: 'Suppressor',
+    rarity: Rarity.RARE,
     imageId: 'suppressor',
     width: 2,
     height: 1,
@@ -226,6 +289,7 @@ export const ItemDefs = {
   'attachment.lasersight': {
     id: 'attachment.lasersight',
     name: 'Laser Sight',
+    rarity: Rarity.RARE,
     imageId: 'lasersight',
     width: 1,
     height: 1,
@@ -236,6 +300,7 @@ export const ItemDefs = {
   'attachment.riflescope': {
     id: 'attachment.riflescope',
     name: 'Rifle Scope',
+    rarity: Rarity.RARE,
     imageId: 'rifle_scope',
     width: 2,
     height: 1,
@@ -246,6 +311,7 @@ export const ItemDefs = {
   'attachment.9mm_magazine': {
     id: 'attachment.9mm_magazine',
     name: '9mm Magazine',
+    rarity: Rarity.UNCOMMON,
     imageId: '9mm_magazine',
     width: 1,
     height: 1,
@@ -257,6 +323,7 @@ export const ItemDefs = {
   'attachment.9mm_extended_magazine': {
     id: 'attachment.9mm_extended_magazine',
     name: '9mm Extended Magazine',
+    rarity: Rarity.RARE,
     imageId: '9mm_extended_magazine',
     width: 2,
     height: 1,
@@ -268,6 +335,7 @@ export const ItemDefs = {
   'attachment.sniper_magazine': {
     id: 'attachment.sniper_magazine',
     name: 'Sniper Magazine',
+    rarity: Rarity.RARE,
     imageId: 'sniper_magazine',
     width: 2,
     height: 1,
@@ -281,6 +349,7 @@ export const ItemDefs = {
   'ammo.9mm': {
     id: 'ammo.9mm',
     name: '9mm Ammo',
+    rarity: Rarity.UNCOMMON,
     imageId: '9mmAmmo', // No extension - loader will append .png
     width: 1,
     height: 1,
@@ -291,6 +360,7 @@ export const ItemDefs = {
   'ammo.sniper': {
     id: 'ammo.sniper',
     name: 'Sniper Ammo',
+    rarity: Rarity.RARE,
     imageId: 'sniperAmmo', // New box icon matching 9mm style
     width: 1,
     height: 1,
@@ -302,6 +372,7 @@ export const ItemDefs = {
   'medical.bandage': {
     id: 'medical.bandage',
     name: 'Bandage',
+    rarity: Rarity.UNCOMMON,
     imageId: 'bandage',
     width: 1,
     height: 1,
@@ -312,6 +383,7 @@ export const ItemDefs = {
   'food.cannedsoup': {
     id: 'food.cannedsoup',
     name: 'Canned Soup',
+    rarity: Rarity.UNCOMMON,
     imageId: 'cannedsoup',
     width: 1,
     height: 1,
@@ -327,6 +399,7 @@ export const ItemDefs = {
   'food.waterbottle': {
     id: 'food.waterbottle',
     name: 'Water Bottle',
+    rarity: Rarity.UNCOMMON,
     imageId: 'waterbottle',
     width: 2,
     height: 1,
@@ -342,6 +415,7 @@ export const ItemDefs = {
   'food.waterbottle_full': {
     id: 'food.waterbottle_full',
     name: 'Full Water Bottle',
+    rarity: Rarity.UNCOMMON,
     imageId: 'waterbottle',
     width: 2,
     height: 1,
@@ -357,6 +431,7 @@ export const ItemDefs = {
   'food.waterbottle_nearly_empty': {
     id: 'food.waterbottle_nearly_empty',
     name: 'Nearly Empty Water Bottle',
+    rarity: Rarity.UNCOMMON,
     imageId: 'waterbottle',
     width: 2,
     height: 1,
@@ -372,6 +447,7 @@ export const ItemDefs = {
   'food.waterbottle_empty': {
     id: 'food.waterbottle_empty',
     name: 'Empty Water Bottle',
+    rarity: Rarity.UNCOMMON,
     imageId: 'waterbottle',
     width: 2,
     height: 1,
@@ -382,6 +458,20 @@ export const ItemDefs = {
     ammoCount: 0,
     consumptionEffects: {
       hydration: 1
+    }
+  },
+  'food.chips': {
+    id: 'food.chips',
+    name: 'Potato Chips',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'chips',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      nutrition: 3
     }
   }
 };

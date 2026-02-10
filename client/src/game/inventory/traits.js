@@ -45,6 +45,22 @@ export const ItemTrait = {
   CONSUMABLE: 'consumable'
 };
 
+// Item rarity levels for loot generation
+export const Rarity = {
+  COMMON: 'common',
+  UNCOMMON: 'uncommon',
+  RARE: 'rare',
+  EXTREMELY_RARE: 'extremely_rare'
+};
+
+// Spawn weights for LootGenerator
+export const RarityWeights = {
+  [Rarity.COMMON]: 100,
+  [Rarity.UNCOMMON]: 40,
+  [Rarity.RARE]: 10,
+  [Rarity.EXTREMELY_RARE]: 1
+};
+
 // Encumbrance modifiers
 export const EncumbranceModifiers = {
   [EncumbranceTier.LIGHT]: { evade: 2, ap: 0 },

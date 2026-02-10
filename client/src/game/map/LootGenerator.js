@@ -1,12 +1,14 @@
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
-import { ItemTrait } from '../inventory/traits.js';
+import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
 
 /**
  * LootGenerator - Handles random item spawning on maps
- * Follows implementation_plan.md requirements:
- * - 20 spawn locations per map
- * - Majority inside (floor), small number outside
- * - Groups of 1-3 items
+ * Refined with rarity-based weights and specific item rules:
+ * - Backpacks: Max 1 per map
+ * - 9mm Ammo: Uncommon, 1-10 rounds
+ * - Sniper Ammo: Rare, max 5 rounds
+ * - Food/Water: Uncommon
+ * - Water Bottle: Max 1 per loot pile, random fill
  */
 export class LootGenerator {
     constructor() {
@@ -18,34 +20,20 @@ export class LootGenerator {
 
     /**
      * Spawn loot on the provided game map
-     * @param {GameMap} gameMap - The map to populate
      */
     spawnLoot(gameMap) {
-        // Lazily initialize item keys to ensure ItemDefs is populated
         if (!this.itemKeys || this.itemKeys.length === 0) {
             this.itemKeys = Object.keys(ItemDefs).filter(key => {
-                // Filter out internal sprite keys
                 if (key.includes('.icon') || key.includes('.sprite')) return false;
-
-                // Filter out specialized water bottle states - we'll randomize the base one
                 if (key.startsWith('food.waterbottle_')) return false;
-
                 return true;
             });
-            console.log(`[LootGenerator] Initialized with ${this.itemKeys.length} item definitions`);
+            console.log(`[LootGenerator] Initialized with ${this.itemKeys.length} items (rarity-enabled)`);
         }
-
-        if (this.itemKeys.length === 0) {
-            console.error('[LootGenerator] CRITICAL: No item definitions found! Spawning failed.');
-            return;
-        }
-
-        console.log(`[LootGenerator] Spawning loot on ${gameMap.width}x${gameMap.height} map`);
 
         const insideTiles = [];
         const outsideTiles = [];
 
-        // 1. Identify candidate tiles
         for (let y = 0; y < gameMap.height; y++) {
             for (let x = 0; x < gameMap.width; x++) {
                 const tile = gameMap.getTile(x, y);
@@ -59,88 +47,92 @@ export class LootGenerator {
             }
         }
 
-        console.log(`[LootGenerator] Found ${insideTiles.length} inside tiles and ${outsideTiles.length} outside tiles`);
-
-        // 2. Determine counts
         const countInside = Math.floor(this.spawnCount * this.insideWeight);
         const countOutside = this.spawnCount - countInside;
 
-        // 3. Shuffle and pick locations
         const selectedInside = this.getRandomSubarray(insideTiles, countInside);
         const selectedOutside = this.getRandomSubarray(outsideTiles, countOutside);
 
         const allSelected = [...selectedInside, ...selectedOutside];
-        console.log(`[LootGenerator] Selected ${allSelected.length} spawn points (${selectedInside.length} in, ${selectedOutside.length} out)`);
-
         this.backpacksSpawned = 0;
 
-        // 4. Spawn items at each location
         allSelected.forEach(pos => {
             const items = this.generateRandomItems();
             if (items.length > 0) {
                 gameMap.setItemsOnTile(pos.x, pos.y, items);
             }
         });
-
-        console.log(`[LootGenerator] Finished spawning loot. Backpacks spawned: ${this.backpacksSpawned}`);
     }
 
     /**
-     * Generate 1-3 random item instances with refined rules:
-     * - Max 1 backpack per map
-     * - Max 1 food item per stack
-     * - Max 1 water bottle per stack
-     * - Randomized water levels for bottles
+     * Pick a random item key from the catalog using weighted rarity
+     */
+    getWeightedRandomItemKey() {
+        const totalWeight = this.itemKeys.reduce((sum, key) => {
+            const rarity = ItemDefs[key].rarity || Rarity.COMMON;
+            return sum + (RarityWeights[rarity] || 100);
+        }, 0);
+
+        let random = Math.random() * totalWeight;
+        for (const key of this.itemKeys) {
+            const rarity = ItemDefs[key].rarity || Rarity.COMMON;
+            const weight = RarityWeights[rarity] || 100;
+            if (random < weight) return key;
+            random -= weight;
+        }
+        return this.itemKeys[0];
+    }
+
+    /**
+     * Generate 1-3 random items with rarity and limits
      */
     generateRandomItems() {
         const count = 1 + Math.floor(Math.random() * 3);
         const items = [];
-        let hasFood = false;
-        let hasWater = false;
+        let hasFoodInPile = false;
 
         for (let i = 0; i < count; i++) {
-            // Shuffle keys for each attempt to pick a random item that fits criteria
-            const shuffledKeys = [...this.itemKeys].sort(() => Math.random() - 0.5);
+            // Pick a weighted random item
+            const randomKey = this.getWeightedRandomItemKey();
+            const def = ItemDefs[randomKey];
 
-            let selectedItem = null;
+            // 1. Map-wide limit: Max 1 backpack per map
+            const isBackpack = def.equippableSlot === 'backpack';
+            if (isBackpack && this.backpacksSpawned >= 1) continue;
 
-            for (const randomKey of shuffledKeys) {
-                const def = ItemDefs[randomKey];
+            // 2. Pile limit: Max 1 food item per loot pile
+            const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
+            if (isFood && hasFoodInPile) continue;
 
-                // Rule: Only 1 backpack per map
-                const isBackpack = def.equippableSlot === 'backpack';
-                if (isBackpack && this.backpacksSpawned >= 1) continue;
+            // Create the item instance
+            const selectedItem = createItemFromDef(randomKey);
+            if (selectedItem) {
+                // Track limits
+                if (isBackpack) this.backpacksSpawned++;
+                if (isFood) hasFoodInPile = true;
 
-                // Rule: Only one food item per stack
-                const isFoodItem = def.categories && def.categories.includes('food');
-                const isWaterBottle = randomKey === 'food.waterbottle';
-
-                if (isFoodItem && !isWaterBottle && hasFood) continue;
-                if (isWaterBottle && hasWater) continue;
-
-                // If we passed all checks, create the item
-                selectedItem = createItemFromDef(randomKey);
-                if (selectedItem) {
-                    // Update counters
-                    if (isBackpack) this.backpacksSpawned++;
-                    if (isFoodItem && !isWaterBottle) hasFood = true;
-                    if (isWaterBottle) hasWater = true;
-
-                    // Specific logic for chosen item
-                    // If stackable, give it a random count between 1 and stackMax
-                    if (selectedItem.traits && selectedItem.traits.includes(ItemTrait.STACKABLE)) {
-                        selectedItem.stackCount = 1 + Math.floor(Math.random() * (selectedItem.stackMax || 1));
-                    }
-
-                    // If it's a water bottle or similar with ammoCount/capacity
-                    if (selectedItem.capacity !== undefined) {
-                        // Randomize water level between 0 and capacity
-                        selectedItem.ammoCount = Math.floor(Math.random() * (selectedItem.capacity + 1));
-                    }
-
-                    items.push(selectedItem);
-                    break; // Item found for this slot
+                // 3. Custom Stack Rules
+                if (isFood) {
+                    // Food/Water Items: Always spawn only 1 at a time (as a single unit)
+                    selectedItem.stackCount = 1;
+                } else if (randomKey === 'ammo.9mm') {
+                    // 9mm: 1-10 rounds (override default stackMax logic)
+                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 10);
+                } else if (randomKey === 'ammo.sniper') {
+                    // Sniper: max 5 rounds
+                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 5);
+                } else if (selectedItem.traits && selectedItem.traits.includes(ItemTrait.STACKABLE)) {
+                    // General stackables: 1 to stackMax
+                    selectedItem.stackCount = 1 + Math.floor(Math.random() * (selectedItem.stackMax || 1));
                 }
+
+                // 4. Custom Water rules
+                if (selectedItem.capacity !== undefined && isFood && randomKey.includes('waterbottle')) {
+                    // Water level: 0 to capacity
+                    selectedItem.ammoCount = Math.floor(Math.random() * (selectedItem.capacity + 1));
+                }
+
+                items.push(selectedItem);
             }
         }
 
@@ -155,8 +147,6 @@ export class LootGenerator {
         const result = new Array(n);
         let len = arr.length;
         const taken = new Array(len);
-        if (n > len)
-            throw new RangeError("getRandom: more elements taken than available");
         while (n--) {
             const x = Math.floor(Math.random() * len);
             result[n] = arr[x in taken ? taken[x] : x];

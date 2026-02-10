@@ -97,6 +97,7 @@ export const CombatProvider = ({ children }) => {
             if (zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
                 gameMap.removeEntity(zombie.id);
+                cancelTargeting();
                 forceRefresh(); // Trigger UI update to remove zombie icon
             }
         } else {
@@ -194,6 +195,7 @@ export const CombatProvider = ({ children }) => {
 
             if (zombie.isDead()) {
                 gameMap.removeEntity(zombie.id);
+                cancelTargeting();
                 forceRefresh();
             }
         } else {
@@ -209,7 +211,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, forceRefresh]);
+    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting]);
 
     return (
         <CombatContext.Provider value={{
