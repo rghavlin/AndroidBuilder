@@ -96,7 +96,7 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
 
 export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Phase 1: Direct sub-context access
-  const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate } = useGameMap();
+  const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
   const { playerRef, updatePlayerFieldOfView } = usePlayer();
 
   // Get initialization state from GameContext (still needed for initialization control)
@@ -316,8 +316,10 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 player.useAP(1);
                 // Force map re-render
                 triggerMapUpdate();
-                // Update FOV immediately
-                updatePlayerFieldOfView(gameMap);
+                // Update FOV immediately and capture new visible tiles
+                const newFovTiles = updatePlayerFieldOfView(gameMap);
+                // Refresh zombie tracking with new FOV
+                refreshZombieTracking(player, newFovTiles);
               } else if (doorMenu.door.isOpen && !success) {
                 // Check if it was blocked by occupancy (toggle returned false while open)
                 // We show "Occupied" floating message

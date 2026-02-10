@@ -187,7 +187,7 @@ export const PlayerProvider = ({ children }) => {
   const updatePlayerFieldOfView = useCallback((gameMap, playerMovement = null) => {
     if (!gameMap || !playerRef.current) {
       setPlayerFieldOfView([]);
-      return;
+      return [];
     }
 
     try {
@@ -207,9 +207,12 @@ export const PlayerProvider = ({ children }) => {
       if (playerTile && (playerTile.terrain === 'building' || playerTile.terrain === 'floor')) {
         console.log(`[PlayerContext] Player is inside building/floor at (${player.x}, ${player.y}), terrain: ${playerTile.terrain}`);
       }
+
+      return fovData.visibleTiles;
     } catch (error) {
       console.error('[PlayerContext] Error calculating player field of view:', error);
       setPlayerFieldOfView([]);
+      return [];
     }
   }, []);
 

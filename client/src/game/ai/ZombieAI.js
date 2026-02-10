@@ -345,11 +345,12 @@ export class ZombieAI {
       return { success: false, reason: 'Insufficient AP', apRequired: apCost };
     }
 
-    // Always use pathfinding for consistent behavior
     // Create entity filter to ignore the zombie itself during pathfinding
+    // Update: Also allow pathing THROUGH doors (while still being blocked for actual move)
+    // This ensures zombies track to last seen/heard positions behind closed doors
     const entityFilter = (tile) => {
       const blockingEntities = tile.contents.filter(entity => {
-        return entity.blocksMovement && entity.id !== zombie.id;
+        return entity.blocksMovement && entity.id !== zombie.id && entity.type !== 'door';
       });
       return blockingEntities.length === 0;
     };

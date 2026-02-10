@@ -126,6 +126,23 @@ export const GameMapProvider = ({ children }) => {
     console.log(`[GameMapContext] Path visibility check complete for ${path.length} tiles`);
   }, []);
 
+  // Force a refresh of zombie tracking based on current visibility
+  // Used when visibility changes without player movement (e.g. closing a door)
+  const refreshZombieTracking = useCallback((player, fovTiles) => {
+    if (!zombieTrackerRef.current || !gameMapRef.current || !player || !fovTiles) {
+      console.warn('[GameMapContext] Missing requirements for refreshZombieTracking');
+      return;
+    }
+
+    console.log('[GameMapContext] 🔄 Refreshing zombie tracking visibility...');
+    zombieTrackerRef.current.updateTracking(
+      gameMapRef.current,
+      player,
+      fovTiles,
+      null // No movement data, just a visibility refresh
+    );
+  }, []);
+
   // Handle tile click for movement
   const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement) => {
     if (!gameMapRef.current || !player) {
@@ -566,7 +583,9 @@ export const GameMapProvider = ({ children }) => {
     handleMapTransitionConfirm,
     handleMapTransitionCancel,
     setMapTransition,
-    triggerMapUpdate
+    triggerMapUpdate,
+    refreshZombieTracking,
+    zombieTracker: zombieTrackerRef.current
   }), [
     mapVersion, // Version triggers updates when gameMap ref changes
     mapTransition,
@@ -581,7 +600,8 @@ export const GameMapProvider = ({ children }) => {
     handleMapTransitionConfirm,
     handleMapTransitionCancel,
     setMapTransition,
-    triggerMapUpdate
+    triggerMapUpdate,
+    refreshZombieTracking
   ]);
 
   return (
