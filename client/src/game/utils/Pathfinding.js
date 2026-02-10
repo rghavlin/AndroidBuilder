@@ -52,7 +52,7 @@ export class Pathfinding {
     const openSet = [{ x: startX, y: startY, g: 0, h: this.heuristic(startX, startY, endX, endY), f: 0, parent: null }];
     const closedSet = new Set();
     const openSetMap = new Map();
-    
+
     openSet[0].f = openSet[0].g + openSet[0].h;
     openSetMap.set(`${startX},${startY}`, openSet[0]);
 
@@ -76,10 +76,10 @@ export class Pathfinding {
 
       // Check all neighbors
       const neighbors = this.getNeighbors(current.x, current.y, allowDiagonal);
-      
+
       for (const neighbor of neighbors) {
         const neighborKey = `${neighbor.x},${neighbor.y}`;
-        
+
         // Skip if already evaluated
         if (closedSet.has(neighborKey)) {
           continue;
@@ -91,7 +91,7 @@ export class Pathfinding {
           if (debug) console.log(`[Pathfinding] Neighbor (${neighbor.x}, ${neighbor.y}) out of bounds`);
           continue;
         }
-        
+
         if (!this.isTileWalkable(neighborTile, entityFilter)) {
           if (debug) console.log(`[Pathfinding] Neighbor (${neighbor.x}, ${neighbor.y}) not walkable. Terrain: ${neighborTile.terrain}, Unwalkable: ${neighborTile.unwalkable}, Contents: ${neighborTile.contents.length}`);
           continue;
@@ -112,10 +112,10 @@ export class Pathfinding {
         }
 
         const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y);
-        
+
         // Check if this neighbor is already in open set
         const existingNode = openSetMap.get(neighborKey);
-        
+
         if (!existingNode) {
           // New node - add to open set
           const newNode = {
@@ -127,7 +127,7 @@ export class Pathfinding {
             parent: current
           };
           newNode.f = newNode.g + newNode.h;
-          
+
           openSet.push(newNode);
           openSetMap.set(neighborKey, newNode);
         } else if (tentativeG < existingNode.g) {
@@ -144,24 +144,26 @@ export class Pathfinding {
     return [];
   }
 
-  /**
-   * Calculate movement cost for a path
-   * @param {Array} path - Array of {x, y} coordinates
-   * @param {Object} entity - Entity moving along the path (optional, for entity-specific costs)
-   * @returns {number} Total movement cost
-   */
   static calculateMovementCost(path, entity = null) {
     if (!path || path.length <= 1) {
       return 0;
     }
 
-    let totalCost = 0;
+    let baseCost = 0;
     for (let i = 1; i < path.length; i++) {
-      const cost = this.getMovementCost(path[i-1].x, path[i-1].y, path[i].x, path[i].y);
-      totalCost += cost;
+      const cost = this.getMovementCost(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y);
+      baseCost += cost;
     }
 
-    return totalCost;
+    // Apply acceleration bonus: Every 5 tiles reduces total cost by 0.5 AP
+    const numTiles = path.length - 1;
+    const bonus = Math.floor(numTiles / 5) * 0.5;
+
+    // Ensure cost never drops below a minimum (e.g., 0.1 per move or at least something)
+    // to prevent free movement.
+    const finalCost = Math.max(0.1, baseCost - bonus);
+
+    return finalCost;
   }
 
   /**
@@ -209,7 +211,7 @@ export class Pathfinding {
       }
 
       visited.add(key);
-      
+
       // Add to reachable tiles (excluding starting position)
       if (current.cost > 0) {
         reachable.push({ x: current.x, y: current.y, cost: current.cost });
@@ -217,7 +219,7 @@ export class Pathfinding {
 
       // Explore neighbors
       const neighbors = this.getNeighbors(current.x, current.y, options.allowDiagonal || false);
-      
+
       for (const neighbor of neighbors) {
         const neighborTile = gameMap.getTile(neighbor.x, neighbor.y);
         if (!neighborTile || !this.isTileWalkable(neighborTile, options.entityFilter)) {
@@ -251,12 +253,12 @@ export class Pathfinding {
   static getMovementCost(x1, y1, x2, y2) {
     const dx = Math.abs(x1 - x2);
     const dy = Math.abs(y1 - y2);
-    
+
     // Diagonal movement costs more
     if (dx === 1 && dy === 1) {
       return 1.4;
     }
-    
+
     // Orthogonal movement
     return 1;
   }
@@ -318,11 +320,11 @@ export class Pathfinding {
     // Check the two orthogonal tiles adjacent to the diagonal move
     const tile1 = gameMap.getTile(x1, y2); // Vertical adjacent
     const tile2 = gameMap.getTile(x2, y1); // Horizontal adjacent
-    
+
     // Both adjacent tiles must exist and be walkable
     const tile1Walkable = tile1 && this.isTileWalkable(tile1, entityFilter);
     const tile2Walkable = tile2 && this.isTileWalkable(tile2, entityFilter);
-    
+
     return tile1Walkable && tile2Walkable;
   }
 
@@ -332,12 +334,12 @@ export class Pathfinding {
   static reconstructPath(node) {
     const path = [];
     let current = node;
-    
+
     while (current) {
       path.unshift({ x: current.x, y: current.y });
       current = current.parent;
     }
-    
+
     return path;
   }
 

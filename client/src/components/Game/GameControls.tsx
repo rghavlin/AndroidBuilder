@@ -150,55 +150,53 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
         {/* Stats - Expanded to fill middle area */}
         <div className="flex flex-col gap-1.5 px-2">
           {/* Row 1: Combat Stats */}
-          <div className="flex items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
-            <div className="flex items-center gap-1.5" data-testid="stat-health">
-              <Heart className="w-3 h-3 text-destructive" />
-              <span className="text-muted-foreground mr-0.5">HP</span>
-              <span className="text-destructive font-bold">{currentStats.hp}</span>
-              <span className="text-muted-foreground/50">/</span>
-              <span className="text-muted-foreground/70">{currentStats.maxHp}</span>
+          <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1" data-testid="stat-health">
+              <span className="text-white mr-0.5">HP</span>
+              <span className="text-white font-bold">{currentStats.hp}</span>
+              <span className="text-white/40">/</span>
+              <span className="text-white/60">{currentStats.maxHp}</span>
             </div>
 
-            <div className="flex items-center gap-1.5" data-testid="stat-action-points">
-              <Zap className="w-3 h-3 text-accent" />
-              <span className="text-muted-foreground mr-0.5">AP</span>
-              <span className="text-accent font-bold">{currentStats.ap}</span>
-              <span className="text-muted-foreground/50">/</span>
-              <span className="text-muted-foreground/70">{currentStats.maxAp}</span>
+            <div className="flex items-center gap-1" data-testid="stat-action-points">
+              <span className="text-white mr-0.5">AP</span>
+              <span className="text-white font-bold">{currentStats.ap}</span>
+              <span className="text-white/40">/</span>
+              <span className="text-white/60">{currentStats.maxAp}</span>
             </div>
           </div>
 
           {/* Row 2: Survival Stats + Turn Info */}
-          <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-tight">
+          <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tight">
             {/* Turn Pill */}
-            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-muted-foreground mr-1">
+            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-white mr-1">
               T{currentTurn}
             </div>
 
             <div className="flex items-center gap-1" data-testid="stat-nutrition">
-              <span className="text-muted-foreground/70 mr-0.5">NUT</span>
-              <span className="text-emerald-500">{currentStats.nutrition}</span>
+              <span className="text-white/60 mr-0.5">NUT</span>
+              <span className="text-white">{currentStats.nutrition}</span>
             </div>
 
             <div className="flex items-center gap-1" data-testid="stat-hydration">
-              <span className="text-muted-foreground/70 mr-0.5">HYD</span>
-              <span className="text-sky-500">{currentStats.hydration}</span>
+              <span className="text-white/60 mr-0.5">HYD</span>
+              <span className="text-white">{currentStats.hydration}</span>
             </div>
 
             <div className="flex items-center gap-1" data-testid="stat-energy">
-              <span className="text-muted-foreground/70 mr-0.5">NRG</span>
-              <span className="text-amber-500">{currentStats.energy}</span>
+              <span className="text-white/60 mr-0.5">NRG</span>
+              <span className="text-white">{currentStats.energy}</span>
             </div>
 
             {/* Status Messages */}
             {!isPlayerTurn && (
-              <span className="text-yellow-500 animate-pulse ml-1 text-[9px]">
+              <span className="text-white animate-pulse ml-1 text-[9px]">
                 {isAutosaving ? 'AUTOSAVING' : 'ENEMY TURN'}
               </span>
             )}
 
             {isAnimatingMovement && (
-              <span className="text-accent animate-pulse ml-1 text-[9px]">
+              <span className="text-white animate-pulse ml-1 text-[9px]">
                 MOVING
               </span>
             )}
