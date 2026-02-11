@@ -69,6 +69,7 @@ export class LootGenerator {
                 // Ignore sprite/icon metadata and specialized sub-types
                 if (key.includes('.icon') || key.includes('.sprite')) return false;
                 if (key.startsWith('food.waterbottle_')) return false;
+                if (key === 'weapon.makeshift_hatchet') return false;
                 return true;
             });
             console.log(`[LootGenerator] Initialized with ${this.itemKeys.length} items (rarity-enabled)`);

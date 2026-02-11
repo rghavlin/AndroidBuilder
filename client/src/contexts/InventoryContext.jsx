@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef, useState, useCallback, useMem
 import { ItemTrait } from '../game/inventory/traits.js';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
+import { CraftingRecipes } from '../game/inventory/CraftingRecipes.js';
 import { usePlayer } from './PlayerContext.jsx';
 
 const InventoryContext = createContext();
@@ -59,6 +60,7 @@ export const InventoryProvider = ({ children, manager }) => {
   // Phase 5G: Selection-based drag state (simpler than cursor-following)
   const [selectedItem, setSelectedItem] = useState(null); // { item, originContainerId, originX, originY, rotation }
   const [dragVersion, setDragVersion] = useState(0); // Force re-render on selection changes
+  const [selectedRecipeId, setSelectedRecipeId] = useState(CraftingRecipes[0]?.id || null);
 
   const { playerRef } = usePlayer();
 
@@ -1060,10 +1062,35 @@ export const InventoryProvider = ({ children, manager }) => {
       // Expose globally for container registration from UniversalGrid
       window.__inventoryManager = inventoryRef.current;
     }
-    return () => {
-      window.__inventoryManager = null;
-    };
   }, [inventoryRef.current]);
+
+  const craftItem = useCallback((recipeId) => {
+    if (!inventoryRef.current) return { success: false, reason: 'Inventory not initialized' };
+    const result = inventoryRef.current.craftingManager.craft(recipeId);
+    if (result.success) {
+      // Find space in current containers (excluding workspace)
+      const targetContainers = [
+        inventoryRef.current.getBackpackContainer(),
+        ...inventoryRef.current.getPocketContainers()
+      ].filter(Boolean);
+
+      let added = false;
+      for (const container of targetContainers) {
+        if (container.addItem(result.item)) {
+          added = true;
+          console.log('[InventoryContext] Crafted item added to:', container.id);
+          break;
+        }
+      }
+
+      if (!added) {
+        inventoryRef.current.dropItemToGround(result.item);
+        console.log('[InventoryContext] Crafted item dropped to ground (no space)');
+      }
+      setInventoryVersion(v => v + 1);
+    }
+    return result;
+  }, []);
 
   const contextValue = useMemo(() => {
     console.log('[InventoryContext] Creating new context value - dragVersion:', dragVersion, 'selectedItem:', selectedItem?.item?.name || 'none');
@@ -1102,9 +1129,14 @@ export const InventoryProvider = ({ children, manager }) => {
       consumeItem,
       drinkWater,
       attachSelectedItemToWeapon,
-      detachItemFromWeapon
+      detachItemFromWeapon,
+      // Crafting
+      craftingRecipes: CraftingRecipes,
+      selectedRecipeId,
+      setSelectedRecipeId,
+      craftItem
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

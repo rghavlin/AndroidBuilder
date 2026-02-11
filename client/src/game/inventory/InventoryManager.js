@@ -3,6 +3,8 @@ import { Item } from './Item.js';
 import { GroundManager } from './GroundManager.js';
 import { ItemTrait, EquipmentSlot } from './traits.js'; // Import necessary enums
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
+import { CraftingManager } from './CraftingManager.js';
+import { ItemCategory } from './traits.js';
 
 /**
  * InventoryManager coordinates all containers in the game
@@ -43,6 +45,26 @@ export class InventoryManager extends SafeEventEmitter {
 
     // Initialize with basic backpack container
     this.initializeDefaultContainers();
+
+    // Crafting System (Workspace containers)
+    this.containers.set('crafting-tools', new Container({
+      id: 'crafting-tools',
+      type: 'crafting-workspace',
+      name: 'Tool Slots',
+      width: 2,
+      height: 1,
+      allowedCategories: [ItemCategory.TOOL]
+    }));
+
+    this.containers.set('crafting-ingredients', new Container({
+      id: 'crafting-ingredients',
+      type: 'crafting-workspace',
+      name: 'Ingredient Grid',
+      width: 4,
+      height: 4
+    }));
+
+    this.craftingManager = new CraftingManager(this);
   }
 
   /**

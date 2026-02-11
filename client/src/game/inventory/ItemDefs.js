@@ -208,6 +208,23 @@ export const ItemDefs = {
     }
   },
 
+  'weapon.makeshift_hatchet': {
+    id: 'weapon.makeshift_hatchet',
+    name: 'Makeshift hatchet',
+    rarity: Rarity.COMMON,
+    imageId: 'Makeshifthatchet',
+    width: 3,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.70,
+      damage: { min: 3, max: 9 }
+    }
+  },
+
 
   // Firearms (no degradation)
   'weapon.9mmPistol': {
