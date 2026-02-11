@@ -403,32 +403,7 @@ export class InventoryManager extends SafeEventEmitter {
           });
         } else {
           // Single container grid (backpack, tactical vest, etc.)
-          let containerGrid = item.containerGrid;
-
-          // Fallback: Create container if missing but data exists
-          if (!containerGrid && item._containerGridData) {
-            try {
-              const data = item._containerGridData;
-              const ownerId = item.instanceId || item.id || `item-${Date.now()}`;
-
-              containerGrid = new Container({
-                id: `${ownerId}-container`,
-                type: 'item-container',
-                name: `${item.name} Storage`,
-                width: data.width,
-                height: data.height,
-                autoExpand: data.autoExpand,
-                autoSort: data.autoSort
-              });
-
-              // Assign it back to the item so future calls work
-              item.containerGrid = containerGrid;
-
-              console.debug('[InventoryManager] Created fallback container for', item.name);
-            } catch (err) {
-              console.warn('[InventoryManager] Failed to create fallback container for', item.name, err);
-            }
-          }
+          const containerGrid = item.getContainerGrid?.();
 
           if (containerGrid) {
             // CRITICAL: Set the container ID to slot-based name for equipped items
@@ -457,7 +432,7 @@ export class InventoryManager extends SafeEventEmitter {
 
     // Fallback: check equipped backpack item directly
     if (this.equipment.backpack && this.equipment.backpack.isContainer && this.equipment.backpack.isContainer()) {
-      return this.equipment.backpack.containerGrid;
+      return this.equipment.backpack.getContainerGrid();
     }
 
     // Return null if no backpack equipped (Phase 5C requirement)
@@ -471,15 +446,15 @@ export class InventoryManager extends SafeEventEmitter {
     const pockets = [];
 
     // Check upper body equipment for pockets
-    if (this.equipment.upper_body && this.equipment.upper_body.isContainer && this.equipment.upper_body.isContainer()) {
-      const upperContainer = this.equipment.upper_body.getContainerGrid();
-      if (upperContainer) pockets.push(upperContainer);
+    if (this.equipment.upper_body && this.equipment.upper_body.hasTrait && this.equipment.upper_body.hasTrait('container')) {
+      const pocketContainers = this.equipment.upper_body.getPocketContainers();
+      if (pocketContainers) pockets.push(...pocketContainers);
     }
 
     // Check lower body equipment for pockets
-    if (this.equipment.lower_body && this.equipment.lower_body.isContainer && this.equipment.lower_body.isContainer()) {
-      const lowerContainer = this.equipment.lower_body.getContainerGrid();
-      if (lowerContainer) pockets.push(lowerContainer);
+    if (this.equipment.lower_body && this.equipment.lower_body.hasTrait && this.equipment.lower_body.hasTrait('container')) {
+      const pocketContainers = this.equipment.lower_body.getPocketContainers();
+      if (pocketContainers) pockets.push(...pocketContainers);
     }
 
     return pockets;
