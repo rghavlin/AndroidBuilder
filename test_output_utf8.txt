@@ -1,0 +1,43 @@
+﻿
+--- Running Validation Tests ---
+[LootGenerator] Initialized with 36 items (rarity-enabled)
+[PASS] inside: Validated 100 piles. Stones: 0, Bandages: 3
+[PASS] outside: Validated 100 piles. Stones: 12, Bandages: 2
+
+--- Checking Item Definitions ---
+Stick: {
+  id: 'weapon.stick',
+  name: 'Stick',
+  rarity: 'common',
+  imageId: 'stick',
+  width: 4,
+  height: 1,
+  traits: [ 'equippable', 'degradable' ],
+  equippableSlot: 'melee',
+  categories: [ 'weapon', 'crafting_material' ],
+  condition: 100,
+  combat: { hitChance: 0.6, damage: { min: 1, max: 5 } }
+}
+Stone: {
+  id: 'crafting.stone',
+  name: 'Stone',
+  rarity: 'common',
+  imageId: 'stone',
+  width: 1,
+  height: 1,
+  traits: [ 'stackable' ],
+  categories: [ 'crafting_material' ],
+  stackMax: 50
+}
+Bandage: {
+  id: 'medical.bandage',
+  name: 'Bandage',
+  rarity: 'uncommon',
+  imageId: 'bandage',
+  width: 1,
+  height: 1,
+  traits: [ 'stackable', 'consumable' ],
+  categories: [ 'medical' ],
+  stackMax: 20,
+  consumptionEffects: { hp: 5 }
+}

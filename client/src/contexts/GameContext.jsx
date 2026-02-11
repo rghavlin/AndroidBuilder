@@ -431,7 +431,7 @@ const GameContextInner = ({ children }) => {
         camera: cameraRef.current,
         inventoryManager: inventoryManager,
         turn: turn,
-        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 10, maxAp: playerRef.current?.maxAp || 10, ammo: 0 }
+        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 12, maxAp: playerRef.current?.maxAp || 12, ammo: 0 }
       };
 
       const success = GameSaveSystem.saveToLocalStorage(currentGameState, 'autosave');
@@ -502,11 +502,25 @@ const GameContextInner = ({ children }) => {
       player.hydration = Math.max(0, player.hydration - 1);
       player.energy = Math.max(0, player.energy - 1);
 
+      // Apply HP loss if nutrition or hydration is zero
+      let hpLoss = 0;
+      if (player.nutrition === 0) {
+        hpLoss += 1;
+      }
+      if (player.hydration === 0) {
+        hpLoss += 1;
+      }
+      if (hpLoss > 0) {
+        player.takeDamage(hpLoss, { id: 'survival', type: 'starvation' });
+        console.log(`[GameContext] Player lost ${hpLoss} HP due to low nutrition/hydration.`);
+      }
+
       updatePlayerStats({
         ap: player.ap,
         nutrition: player.nutrition,
         hydration: player.hydration,
-        energy: player.energy
+        energy: player.energy,
+        hp: player.hp // Ensure HP is updated
       });
       console.log(`[GameContext] Player AP restored to: ${player.ap}`);
 
@@ -623,7 +637,7 @@ const GameContextInner = ({ children }) => {
         camera: cameraRef.current,
         inventoryManager: inventoryManager,
         turn: turn,
-        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 10, maxAp: playerRef.current?.maxAp || 10, ammo: 0 }
+        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 12, maxAp: playerRef.current?.maxAp || 12, ammo: 0 }
       };
       const success = GameSaveSystem.saveToLocalStorage(currentGameState, slotName);
       if (success) {
@@ -655,7 +669,7 @@ const GameContextInner = ({ children }) => {
         camera: cameraRef.current,
         inventoryManager: inventoryManager,
         turn: turn,
-        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 10, maxAp: playerRef.current?.maxAp || 10, ammo: 0 },
+        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 12, maxAp: playerRef.current?.maxAp || 12, ammo: 0 },
         lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
       };
       return GameSaveSystem.exportToFile(currentGameState, filename);

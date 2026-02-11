@@ -191,6 +191,23 @@ export const ItemDefs = {
     }
   },
 
+  'weapon.stick': {
+    id: 'weapon.stick',
+    name: 'Stick',
+    rarity: Rarity.COMMON,
+    imageId: 'stick',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.CRAFTING_MATERIAL],
+    condition: 100,
+    combat: {
+      hitChance: 0.60,
+      damage: { min: 1, max: 5 }
+    }
+  },
+
 
   // Firearms (no degradation)
   'weapon.9mmPistol': {
@@ -393,7 +410,11 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
-    stackMax: 20
+    categories: [ItemCategory.MEDICAL],
+    stackMax: 20,
+    consumptionEffects: {
+      hp: 5
+    }
   },
 
   'food.cannedsoup': {
@@ -545,6 +566,40 @@ export const ItemDefs = {
     consumptionEffects: {
       nutrition: 20
     }
+  },
+
+  'crafting.stone': {
+    id: 'crafting.stone',
+    name: 'Stone',
+    rarity: Rarity.COMMON,
+    imageId: 'stone',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 50
+  },
+  'crafting.tape': {
+    id: 'crafting.tape',
+    name: 'Tape',
+    rarity: Rarity.COMMON,
+    imageId: 'tape',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.TOOL, ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 20
+  },
+  'crafting.wire': {
+    id: 'crafting.wire',
+    name: 'Wire',
+    rarity: Rarity.COMMON,
+    imageId: 'wire',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.TOOL, ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 20
   }
 };
 

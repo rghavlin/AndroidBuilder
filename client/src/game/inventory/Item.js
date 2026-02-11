@@ -10,6 +10,7 @@ export class Item {
   constructor({
     instanceId,
     defId,
+    subtype = null,
     id, // legacy support
     name = '',
     imageId = null,
@@ -41,6 +42,8 @@ export class Item {
     const timestamp = Date.now();
     this.instanceId = instanceId || `item-${timestamp}-${uniqueSuffix}`;
     this.defId = defId;
+    this.type = 'item'; // Explicit type for map rendering compatibility
+    this.subtype = subtype;
     this.name = name;
     this.imageId = imageId;
 

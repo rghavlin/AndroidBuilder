@@ -32,7 +32,8 @@ export const ItemCategory = {
   SUPPRESSOR: 'suppressor',
   LASER_SIGHT: 'laser_sight',
   RIFLE_SCOPE: 'rifle_scope',
-  CHOKE: 'choke'
+  CHOKE: 'choke',
+  CRAFTING_MATERIAL: 'crafting_material'
 };
 
 // Trait flags

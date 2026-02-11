@@ -382,6 +382,9 @@ export class GameMap {
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
     // Import required classes
+    const { Player } = await import('../entities/Player.js');
+    const { Zombie } = await import('../entities/Zombie.js');
+    const { TestEntity } = await import('../entities/TestEntity.js');
     const { Item } = await import('../inventory/Item.js');
     const { Door } = await import('../entities/Door.js');
 
@@ -413,25 +416,32 @@ export class GameMap {
               }
 
               let entity;
-              switch (entityType) {
-                case 'player':
-                  entity = Player.fromJSON(entityData);
-                  break;
-                case 'zombie':
-                  entity = Zombie.fromJSON(entityData);
-                  break;
-                case 'test':
-                  entity = TestEntity.fromJSON(entityData);
-                  break;
-                case 'item':
-                  entity = Item.fromJSON(entityData);
-                  break;
-                case 'door':
-                  entity = Door.fromJSON(entityData);
-                  break;
-                default:
-                  console.warn(`[GameMap] Unknown entity type during selective restoration: ${entityType}`);
-                  continue;
+              if (entityType === 'item' && entityData.subtype === 'ground_pile') {
+                entity = {
+                  ...entityData,
+                  toJSON: () => ({ ...entityData })
+                };
+              } else {
+                switch (entityType) {
+                  case 'player':
+                    entity = Player.fromJSON(entityData);
+                    break;
+                  case 'zombie':
+                    entity = Zombie.fromJSON(entityData);
+                    break;
+                  case 'test':
+                    entity = TestEntity.fromJSON(entityData);
+                    break;
+                  case 'item':
+                    entity = Item.fromJSON(entityData);
+                    break;
+                  case 'door':
+                    entity = Door.fromJSON(entityData);
+                    break;
+                  default:
+                    console.warn(`[GameMap] Unknown entity type during selective restoration: ${entityType}`);
+                    continue;
+                }
               }
 
               if (entity) {
@@ -476,25 +486,32 @@ export class GameMap {
           if (tileData.contents) {
             for (const entityData of tileData.contents) {
               let entity;
-              switch (entityData.type) {
-                case 'player':
-                  entity = Player.fromJSON(entityData);
-                  break;
-                case 'zombie':
-                  entity = Zombie.fromJSON(entityData);
-                  break;
-                case 'test':
-                  entity = TestEntity.fromJSON(entityData);
-                  break;
-                case 'item':
-                  entity = Item.fromJSON(entityData);
-                  break;
-                case 'door':
-                  entity = Door.fromJSON(entityData);
-                  break;
-                default:
-                  console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);
-                  continue;
+              if (entityData.type === 'item' && entityData.subtype === 'ground_pile') {
+                entity = {
+                  ...entityData,
+                  toJSON: () => ({ ...entityData })
+                };
+              } else {
+                switch (entityData.type) {
+                  case 'player':
+                    entity = Player.fromJSON(entityData);
+                    break;
+                  case 'zombie':
+                    entity = Zombie.fromJSON(entityData);
+                    break;
+                  case 'test':
+                    entity = TestEntity.fromJSON(entityData);
+                    break;
+                  case 'item':
+                    entity = Item.fromJSON(entityData);
+                    break;
+                  case 'door':
+                    entity = Door.fromJSON(entityData);
+                    break;
+                  default:
+                    console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);
+                    continue;
+                }
               }
 
               if (entity) {

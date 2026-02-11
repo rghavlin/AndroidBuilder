@@ -22,14 +22,7 @@ export class LootGenerator {
      * Spawn loot on the provided game map
      */
     spawnLoot(gameMap) {
-        if (!this.itemKeys || this.itemKeys.length === 0) {
-            this.itemKeys = Object.keys(ItemDefs).filter(key => {
-                if (key.includes('.icon') || key.includes('.sprite')) return false;
-                if (key.startsWith('food.waterbottle_')) return false;
-                return true;
-            });
-            console.log(`[LootGenerator] Initialized with ${this.itemKeys.length} items (rarity-enabled)`);
-        }
+        this.initItemKeys();
 
         const insideTiles = [];
         const outsideTiles = [];
@@ -57,7 +50,10 @@ export class LootGenerator {
         this.backpacksSpawned = 0;
 
         allSelected.forEach(pos => {
-            const items = this.generateRandomItems();
+            const terrain = gameMap.getTile(pos.x, pos.y).terrain;
+            const location = ['road', 'sidewalk', 'grass'].includes(terrain) ? 'outside' : 'inside';
+
+            const items = this.generateRandomItems(location);
             if (items.length > 0) {
                 gameMap.setItemsOnTile(pos.x, pos.y, items);
             }
@@ -65,35 +61,61 @@ export class LootGenerator {
     }
 
     /**
-     * Pick a random item key from the catalog using weighted rarity
+     * Ensure item keys are initialized
      */
-    getWeightedRandomItemKey() {
-        const totalWeight = this.itemKeys.reduce((sum, key) => {
+    initItemKeys() {
+        if (!this.itemKeys || this.itemKeys.length === 0) {
+            this.itemKeys = Object.keys(ItemDefs).filter(key => {
+                // Ignore sprite/icon metadata and specialized sub-types
+                if (key.includes('.icon') || key.includes('.sprite')) return false;
+                if (key.startsWith('food.waterbottle_')) return false;
+                return true;
+            });
+            console.log(`[LootGenerator] Initialized with ${this.itemKeys.length} items (rarity-enabled)`);
+        }
+    }
+
+    /**
+     * Pick a random item key from the catalog using weighted rarity and location filters
+     */
+    getWeightedRandomItemKey(location = 'any') {
+        this.initItemKeys();
+        const filteredKeys = this.itemKeys.filter(key => {
+            // Outdoor items: sticks and stones
+            if (location === 'inside') {
+                if (key === 'weapon.stick' || key === 'crafting.stone') return false;
+            }
+            return true;
+        });
+
+        const totalWeight = filteredKeys.reduce((sum, key) => {
             const rarity = ItemDefs[key].rarity || Rarity.COMMON;
             return sum + (RarityWeights[rarity] || 100);
         }, 0);
 
         let random = Math.random() * totalWeight;
-        for (const key of this.itemKeys) {
+        for (const key of filteredKeys) {
             const rarity = ItemDefs[key].rarity || Rarity.COMMON;
             const weight = RarityWeights[rarity] || 100;
             if (random < weight) return key;
             random -= weight;
         }
-        return this.itemKeys[0];
+        return filteredKeys[0] || this.itemKeys[0];
     }
 
     /**
      * Generate 1-3 random items with rarity and limits
      */
-    generateRandomItems() {
+    generateRandomItems(location = 'any') {
         const count = 1 + Math.floor(Math.random() * 3);
         const items = [];
         let hasFoodInPile = false;
+        let hasStoneInPile = false;
+        let hasBandageInPile = false;
 
         for (let i = 0; i < count; i++) {
             // Pick a weighted random item
-            const randomKey = this.getWeightedRandomItemKey();
+            const randomKey = this.getWeightedRandomItemKey(location);
             const def = ItemDefs[randomKey];
 
             // 1. Map-wide limit: Max 1 backpack per map
@@ -104,16 +126,22 @@ export class LootGenerator {
             const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
             if (isFood && hasFoodInPile) continue;
 
+            // 2b. Pile limit: Max 1 stone/bandage per pile
+            if (randomKey === 'crafting.stone' && hasStoneInPile) continue;
+            if (randomKey === 'medical.bandage' && hasBandageInPile) continue;
+
             // Create the item instance
             const selectedItem = createItemFromDef(randomKey);
             if (selectedItem) {
                 // Track limits
                 if (isBackpack) this.backpacksSpawned++;
                 if (isFood) hasFoodInPile = true;
+                if (randomKey === 'crafting.stone') hasStoneInPile = true;
+                if (randomKey === 'medical.bandage') hasBandageInPile = true;
 
                 // 3. Custom Stack Rules
-                if (isFood) {
-                    // Food/Water Items: Always spawn only 1 at a time (as a single unit)
+                if (isFood || randomKey === 'crafting.stone' || randomKey === 'medical.bandage') {
+                    // Food/Water/Stones/Bandages: Always spawn only 1 at a time (as a single unit)
                     selectedItem.stackCount = 1;
                 } else if (randomKey === 'ammo.9mm') {
                     // 9mm: 1-10 rounds (override default stackMax logic)

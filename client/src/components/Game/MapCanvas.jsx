@@ -475,11 +475,6 @@ export default function MapCanvas({
             );
           }
 
-          // Render player using smooth position
-          if (player && !isAnimatingMovement && player.x === worldX && player.y === worldY) {
-            renderEntity(ctx, player, pixelX, pixelY, tileSize, performance.now());
-          }
-
           // Highlight tiles within field of view
           if (player && playerFieldOfView) {
             const isTileVisible = playerFieldOfView.some(visibleTile =>
@@ -493,22 +488,25 @@ export default function MapCanvas({
             }
           }
 
-          // Render entities on this tile (if tile has contents and tile is visible)
+          // Render entities on this tile (except player)
           if (tile.contents && tile.contents.length > 0) {
-            // Check if this tile is visible to the player
             const isTileVisible = !playerFieldOfView || playerFieldOfView.some(visibleTile =>
               visibleTile.x === worldX && visibleTile.y === worldY
             );
 
             if (isTileVisible) {
               tile.contents.forEach((entity, index) => {
-                // Skip the player as it's rendered separately
                 if (entity.type !== 'player') {
-                  const offsetY = index * (tileSize / 8); // Stack entities vertically
+                  const offsetY = index * (tileSize / 8);
                   renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
                 }
               });
             }
+          }
+
+          // Render player on TOP of other entities
+          if (player && !isAnimatingMovement && player.x === worldX && player.y === worldY) {
+            renderEntity(ctx, player, pixelX, pixelY, tileSize, performance.now());
           }
         }
       }

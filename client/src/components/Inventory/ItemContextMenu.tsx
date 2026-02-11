@@ -111,7 +111,7 @@ export function ItemContextMenu({
                                 }}
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
-                                {item?.categories?.includes('food') ? 'Eat' : 'Consume'}
+                                {item?.consumptionEffects?.hp ? 'Heal' : (item?.categories?.includes('food') ? 'Eat' : 'Consume')}
                             </ContextMenuItem>
                         )}
                         {item?.isWaterBottle?.() && (
