@@ -114,6 +114,11 @@ export const CombatProvider = ({ children }) => {
             });
         }
 
+        // 6. Weapon Degradation
+        if (typeof weapon.degrade === 'function') {
+            weapon.degrade(1);
+        }
+
         return { success: true };
     }, [playerRef, gameMapRef, addEffect, cancelTargeting]);
 

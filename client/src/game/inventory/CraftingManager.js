@@ -13,7 +13,7 @@ export class CraftingManager {
     /**
      * Check if a recipe can be crafted with current workspace items
      */
-    checkRequirements(recipeId) {
+    checkRequirements(recipeId, availableAP = null) {
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
         if (!recipe) return { canCraft: false, missing: [] };
 
@@ -30,7 +30,14 @@ export class CraftingManager {
         const missing = [];
         const usedInstances = new Set();
 
-        // 1. Check Tools (Exact match or category match if needed in future)
+        // 1. Check AP Cost
+        if (recipe.apCost && availableAP !== null) {
+            if (availableAP < recipe.apCost) {
+                missing.push(`${recipe.apCost} AP`);
+            }
+        }
+
+        // 2. Check Tools (Exact match or category match if needed in future)
         for (const toolReq of recipe.tools) {
             const found = currentTools.find(t =>
                 (t.defId === toolReq.id || t.categories.includes(toolReq.category)) &&

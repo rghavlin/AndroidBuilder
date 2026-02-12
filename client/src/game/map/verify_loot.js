@@ -26,8 +26,7 @@ function validatePiles(location, iterations = 100) {
     let stats = {
         stones: 0,
         bandages: 0,
-        stonePiles: 0,
-        bandagePiles: 0,
+        bottles: { common: 0, uncommon: 0, levels: [] },
         errors: []
     };
 
@@ -35,6 +34,7 @@ function validatePiles(location, iterations = 100) {
         const items = generator.generateRandomItems(location);
         const stones = items.filter(item => item.defId === 'crafting.stone');
         const bandages = items.filter(item => item.defId === 'medical.bandage');
+        const bottles = items.filter(item => item.defId.includes('waterbottle'));
 
         if (stones.length > 1) {
             stats.errors.push(`FAIL: Found ${stones.length} stones in one pile at loop ${i}`);
@@ -52,14 +52,25 @@ function validatePiles(location, iterations = 100) {
             stats.bandages++;
         });
 
-        if (stones.length > 0) stats.stonePiles++;
-        if (bandages.length > 0) stats.bandagePiles++;
+        bottles.forEach(b => {
+            if (b.defId === 'food.waterbottle') {
+                stats.bottles.common++;
+                if (b.ammoCount > 4) stats.errors.push(`FAIL: Common bottle has level ${b.ammoCount} at loop ${i}`);
+            } else if (b.defId === 'food.waterbottle_high') {
+                stats.bottles.uncommon++;
+                if (b.ammoCount < 5) stats.errors.push(`FAIL: Uncommon bottle has level ${b.ammoCount} at loop ${i}`);
+            }
+            stats.bottles.levels.push(b.ammoCount);
+        });
     }
 
     if (stats.errors.length === 0) {
-        console.log(`[PASS] ${location}: Validated ${iterations} piles. Stones: ${stats.stones}, Bandages: ${stats.bandages}`);
+        console.log(`[PASS] ${location}: Validated ${iterations} piles.`);
+        console.log(`       Bottles: Common=${stats.bottles.common}, Uncommon=${stats.bottles.uncommon}`);
+        const avgFill = stats.bottles.levels.length > 0 ? (stats.bottles.levels.reduce((a, b) => a + b, 0) / stats.bottles.levels.length).toFixed(1) : 0;
+        console.log(`       Avg Fill: ${avgFill}`);
     } else {
-        stats.errors.forEach(e => console.error(e));
+        stats.errors.slice(0, 10).forEach(e => console.error(e));
     }
 }
 
@@ -72,3 +83,6 @@ console.log("Stone:", ItemDefs['crafting.stone']);
 console.log("Bandage:", ItemDefs['medical.bandage']);
 console.log("Tape:", ItemDefs['crafting.tape']);
 console.log("Wire:", ItemDefs['crafting.wire']);
+console.log("Cooking Pot:", ItemDefs['tool.cooking_pot']);
+console.log("Water Bottle (Common):", ItemDefs['food.waterbottle']);
+console.log("Water Bottle (Uncommon):", ItemDefs['food.waterbottle_high']);

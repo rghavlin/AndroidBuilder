@@ -284,12 +284,11 @@ class GameInitializationManager extends EventEmitter {
   }
 
   _spawnInitialZombies(gameMap, player) {
-    const targetCount = 10;
+    const targetCount = 15;
     const mapHeight = gameMap.height;
-    const lowerHalfStart = Math.floor(mapHeight / 2);
     let spawnedCount = 0;
 
-    console.log('[GameInitializationManager] Attempting to spawn', targetCount, 'zombies in lower half (y >=', lowerHalfStart, ')');
+    console.log('[GameInitializationManager] Attempting to spawn', targetCount, 'zombies across the entire map');
 
     for (let i = 0; i < targetCount; i++) {
       const maxAttempts = 50;
@@ -298,7 +297,7 @@ class GameInitializationManager extends EventEmitter {
 
       while (!spawned && attempts < maxAttempts) {
         const x = Math.floor(Math.random() * gameMap.width);
-        const y = lowerHalfStart + Math.floor(Math.random() * (mapHeight - lowerHalfStart));
+        const y = Math.floor(Math.random() * mapHeight);
 
         const tile = gameMap.getTile(x, y);
         const distanceFromPlayer = Math.abs(x - player.x) + Math.abs(y - player.y);

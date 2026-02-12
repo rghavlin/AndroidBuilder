@@ -1066,8 +1066,22 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const craftItem = useCallback((recipeId) => {
     if (!inventoryRef.current) return { success: false, reason: 'Inventory not initialized' };
+
+    // Phase 5J: Check AP requirement
+    const recipe = CraftingRecipes.find(r => r.id === recipeId);
+    if (recipe && recipe.apCost) {
+      if (!playerRef.current || playerRef.current.ap < recipe.apCost) {
+        return { success: false, reason: `Insufficient AP (${recipe.apCost} required)` };
+      }
+    }
+
     const result = inventoryRef.current.craftingManager.craft(recipeId);
     if (result.success) {
+      // Consume AP
+      if (recipe && recipe.apCost && playerRef.current) {
+        playerRef.current.useAP(recipe.apCost);
+      }
+
       // Find space in current containers (excluding workspace)
       const targetContainers = [
         inventoryRef.current.getBackpackContainer(),
@@ -1090,7 +1104,7 @@ export const InventoryProvider = ({ children, manager }) => {
       setInventoryVersion(v => v + 1);
     }
     return result;
-  }, []);
+  }, [playerRef]);
 
   const contextValue = useMemo(() => {
     console.log('[InventoryContext] Creating new context value - dragVersion:', dragVersion, 'selectedItem:', selectedItem?.item?.name || 'none');

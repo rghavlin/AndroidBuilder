@@ -15,6 +15,7 @@ export const CraftingRecipes = [
         name: 'Makeshift Hatchet',
         resultItem: 'weapon.makeshift_hatchet',
         description: 'A crude but effective chopping tool made from salvaged materials.',
+        apCost: 5,
         tools: [], // No tools required
         ingredients: [
             { id: 'weapon.stick', count: 1 },

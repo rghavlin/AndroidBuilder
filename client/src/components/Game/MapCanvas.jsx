@@ -465,8 +465,8 @@ export default function MapCanvas({
             ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
 
             // AP cost text
-            ctx.fillStyle = canAfford ? '#3b82f6' : '#ef4444';
-            ctx.font = `${Math.floor(tileSize / 3)}px Arial`;
+            ctx.fillStyle = '#ffffff'; // White text
+            ctx.font = `bold ${Math.floor(tileSize / 3)}px Arial`;
             ctx.textAlign = 'center';
             ctx.fillText(
               hoveredTile.apCost.toFixed(1),

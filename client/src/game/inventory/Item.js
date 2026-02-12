@@ -2,11 +2,12 @@ import { ItemTrait, ItemCategory } from './traits.js';
 import { Container } from './Container.js';
 import { PocketLayouts } from './PocketLayouts.js';
 import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
+import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 
 /**
  * Item Instance - Runtime item with state
  */
-export class Item {
+export class Item extends SafeEventEmitter {
   constructor({
     instanceId,
     defId,
@@ -37,6 +38,7 @@ export class Item {
     ammoCount = 0,
     consumptionEffects = null
   }) {
+    super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
     const uniqueSuffix = Math.random().toString(36).substring(2, 9);
     const timestamp = Date.now();
@@ -305,6 +307,43 @@ export class Item {
     return (this.rotation === 90 || this.rotation === 270) ? this.width : this.height;
   }
 
+  /**
+   * Reduce condition for degradable items
+   * @param {number} amount - Amount to reduce condition by
+   */
+  degrade(amount = 1) {
+    if (!this.isDegradable() || this.condition === null) return;
+
+    this.condition = Math.max(0, this.condition - amount);
+    console.debug(`[Item] ${this.name} degraded by ${amount}. Remaining condition: ${this.condition}`);
+
+    if (this.condition <= 0) {
+      console.log(`[Item] ${this.name} (${this.instanceId}) has BROKEN!`);
+      // Notify container to remove this item if it breaks
+      if (this._container) {
+        this._container.removeItem(this.instanceId);
+      }
+      this.emitEvent('itemBroken', { item: this });
+    }
+  }
+
+  /**
+   * Emit item events with standard data
+   */
+  emitEvent(eventType, data = {}) {
+    const eventData = {
+      item: {
+        instanceId: this.instanceId,
+        defId: this.defId,
+        name: this.name
+      },
+      timestamp: Date.now(),
+      ...data
+    };
+
+    this.emit(eventType, eventData);
+  }
+
   rotate(checkContainer = true) {
     // Skip rotation for square items (1×1, 2×2, etc.)
     if (this.width === this.height) {
@@ -367,6 +406,13 @@ export class Item {
       const isFull = ammo === capacity;
       const isEmpty = ammo === 0;
       if (!(isFull || isEmpty) || ammo !== otherAmmo) {
+        return false;
+      }
+    }
+
+    // Special rule for Lighters and Matchbooks: They only stack if they have the SAME number of charges
+    if (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook') {
+      if (this.ammoCount !== otherItem.ammoCount) {
         return false;
       }
     }

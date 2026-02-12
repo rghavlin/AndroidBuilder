@@ -453,6 +453,22 @@ export const ItemDefs = {
   'food.waterbottle': {
     id: 'food.waterbottle',
     name: 'Water Bottle',
+    rarity: Rarity.COMMON,
+    imageId: 'waterbottle',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    capacity: 20,
+    ammoCount: 20,
+    consumptionEffects: {
+      hydration: 1
+    }
+  },
+  'food.waterbottle_high': {
+    id: 'food.waterbottle_high',
+    name: 'Water Bottle (Fuller)',
     rarity: Rarity.UNCOMMON,
     imageId: 'waterbottle',
     width: 2,
@@ -617,6 +633,53 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.TOOL, ItemCategory.CRAFTING_MATERIAL],
     stackMax: 20
+  },
+  'crafting.rag': {
+    id: 'crafting.rag',
+    name: 'Rag',
+    rarity: Rarity.COMMON,
+    imageId: 'rag',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 50
+  },
+  'tool.lighter': {
+    id: 'tool.lighter',
+    name: 'Lighter',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'lighter',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.TOOL],
+    stackMax: 10,
+    capacity: 10,
+    ammoCount: 10
+  },
+  'tool.matchbook': {
+    id: 'tool.matchbook',
+    name: 'Matchbook',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'matchbook',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.TOOL],
+    stackMax: 10,
+    capacity: 15,
+    ammoCount: 15
+  },
+  'tool.cooking_pot': {
+    id: 'tool.cooking_pot',
+    name: 'Cooking pot',
+    rarity: Rarity.COMMON,
+    imageId: 'cookingpot',
+    width: 2,
+    height: 2,
+    traits: [],
+    categories: [ItemCategory.TOOL]
   }
 };
 

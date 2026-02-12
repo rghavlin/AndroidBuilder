@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { useGridSize } from "@/contexts/GridSizeContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemContextMenu } from "./ItemContextMenu";
+import { ItemTooltip } from "./ItemTooltip";
 
 interface GridSlotProps {
   item?: any;
@@ -57,7 +58,7 @@ export default function GridSlot({
 
   // Tooltip content for items
   const tooltipContent = item && isTopLeft ? (
-    <p className="font-medium text-xs">{item.name}</p>
+    <ItemTooltip item={item} />
   ) : null;
 
   return (

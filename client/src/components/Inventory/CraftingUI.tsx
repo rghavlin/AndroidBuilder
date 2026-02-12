@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useInventory } from "@/contexts/InventoryContext";
+import { usePlayer } from "@/contexts/PlayerContext";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import WorkspaceSlot from "@/components/Inventory/WorkspaceSlot";
 
@@ -15,6 +16,7 @@ export default function CraftingUI() {
         inventoryRef,
         inventoryVersion
     } = useInventory();
+    const { playerStats } = usePlayer();
 
     const selectedRecipe = useMemo(() =>
         craftingRecipes.find(r => r.id === selectedRecipeId),
@@ -23,8 +25,8 @@ export default function CraftingUI() {
 
     const craftingStatus = useMemo(() => {
         if (!selectedRecipeId || !inventoryRef.current) return { canCraft: false, missing: [] };
-        return inventoryRef.current.craftingManager.checkRequirements(selectedRecipeId);
-    }, [selectedRecipeId, inventoryVersion, inventoryRef]);
+        return inventoryRef.current.craftingManager.checkRequirements(selectedRecipeId, playerStats.ap);
+    }, [selectedRecipeId, inventoryVersion, inventoryRef, playerStats.ap]);
 
     const handleCraft = () => {
         if (selectedRecipeId) {
@@ -45,7 +47,7 @@ export default function CraftingUI() {
                     <h3 className="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-wider">Recipes</h3>
                 </div>
                 <div className="flex-1 overflow-y-auto p-1 space-y-1">
-                    {craftingRecipes.map((recipe) => (
+                    {craftingRecipes.map((recipe: any) => (
                         <div
                             key={recipe.id}
                             className={cn(
@@ -84,7 +86,7 @@ export default function CraftingUI() {
                                     <div>
                                         <h4 className="text-[0.6rem] font-bold text-muted-foreground uppercase mb-1">Tools Required</h4>
                                         <ul className="text-[0.65rem] space-y-0.5">
-                                            {selectedRecipe.tools.map((t, idx) => (
+                                            {selectedRecipe.tools.map((t: any, idx: number) => (
                                                 <li key={idx} className="flex items-center gap-1">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
                                                     {t.name}
@@ -96,7 +98,7 @@ export default function CraftingUI() {
                                 <div>
                                     <h4 className="text-[0.6rem] font-bold text-muted-foreground uppercase mb-1">Ingredients</h4>
                                     <ul className="text-[0.65rem] space-y-0.5">
-                                        {selectedRecipe.ingredients.map((ing, idx) => (
+                                        {selectedRecipe.ingredients.map((ing: any, idx: number) => (
                                             <li key={idx} className="flex items-center gap-1">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
                                                 {ing.count}x {ing.label || ing.id.split('.').pop()}
@@ -104,6 +106,20 @@ export default function CraftingUI() {
                                         ))}
                                     </ul>
                                 </div>
+                                {selectedRecipe.apCost && (
+                                    <div>
+                                        <h4 className="text-[0.6rem] font-bold text-muted-foreground uppercase mb-1">AP Cost</h4>
+                                        <div className={cn(
+                                            "text-[0.65rem] font-bold",
+                                            playerStats.ap < selectedRecipe.apCost ? "text-red-400" : "text-blue-400"
+                                        )}>
+                                            {selectedRecipe.apCost} AP
+                                            {playerStats.ap < selectedRecipe.apCost && (
+                                                <span className="ml-1 font-normal opacity-70">(Have {playerStats.ap})</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

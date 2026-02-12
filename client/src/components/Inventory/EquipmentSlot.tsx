@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemContextMenu } from "./ItemContextMenu";
+import { ItemTooltip } from "./ItemTooltip";
 
 interface EquipmentSlotProps {
   slotId: string;
@@ -82,7 +83,7 @@ export default function EquipmentSlot({
     <TooltipProvider delayDuration={300}>
       <ItemContextMenu
         item={item}
-        tooltipContent={<p className="font-medium text-xs">{tooltipText}</p>}
+        tooltipContent={item ? <ItemTooltip item={item} /> : <p className="font-medium text-xs">{tooltipText}</p>}
       >
         <div
           className={cn(
