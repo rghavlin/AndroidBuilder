@@ -497,6 +497,13 @@ const GameContextInner = ({ children }) => {
 
       player.restoreAP(player.maxAp - player.ap);
 
+      // Apply Diseased condition penalties (Diseased condition reduces AP and HP by 1 per turn)
+      if (player.condition === 'Diseased') {
+        console.log('[GameContext] Player is Diseased - reducing AP and HP by 1');
+        player.modifyStat('ap', -1);
+        player.takeDamage(1, { id: 'disease', type: 'infection' });
+      }
+
       // Reduce survival stats by 1 on end turn
       player.nutrition = Math.max(0, player.nutrition - 1);
       player.hydration = Math.max(0, player.hydration - 1);
@@ -530,6 +537,11 @@ const GameContextInner = ({ children }) => {
       const newTurn = turn + 1;
       setTurn(newTurn);
       console.log('[GameContext] Turn ended. Current turn:', newTurn);
+
+      // Process map-level turn effects (e.g. campfire expiration)
+      if (gameMap && gameMap.processTurn) {
+        gameMap.processTurn();
+      }
 
       await performAutosave();
 

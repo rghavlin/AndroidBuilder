@@ -54,11 +54,11 @@ function validatePiles(location, iterations = 100) {
 
         bottles.forEach(b => {
             if (b.defId === 'food.waterbottle') {
-                stats.bottles.common++;
-                if (b.ammoCount > 4) stats.errors.push(`FAIL: Common bottle has level ${b.ammoCount} at loop ${i}`);
-            } else if (b.defId === 'food.waterbottle_high') {
-                stats.bottles.uncommon++;
-                if (b.ammoCount < 5) stats.errors.push(`FAIL: Uncommon bottle has level ${b.ammoCount} at loop ${i}`);
+                if (b.ammoCount >= 5) {
+                    stats.bottles.uncommon++;
+                } else {
+                    stats.bottles.common++;
+                }
             }
             stats.bottles.levels.push(b.ammoCount);
         });
@@ -66,7 +66,7 @@ function validatePiles(location, iterations = 100) {
 
     if (stats.errors.length === 0) {
         console.log(`[PASS] ${location}: Validated ${iterations} piles.`);
-        console.log(`       Bottles: Common=${stats.bottles.common}, Uncommon=${stats.bottles.uncommon}`);
+        console.log(`       Bottles: Low-Fill=${stats.bottles.common}, High-Fill=${stats.bottles.uncommon}`);
         const avgFill = stats.bottles.levels.length > 0 ? (stats.bottles.levels.reduce((a, b) => a + b, 0) / stats.bottles.levels.length).toFixed(1) : 0;
         console.log(`       Avg Fill: ${avgFill}`);
     } else {
@@ -84,5 +84,5 @@ console.log("Bandage:", ItemDefs['medical.bandage']);
 console.log("Tape:", ItemDefs['crafting.tape']);
 console.log("Wire:", ItemDefs['crafting.wire']);
 console.log("Cooking Pot:", ItemDefs['tool.cooking_pot']);
-console.log("Water Bottle (Common):", ItemDefs['food.waterbottle']);
-console.log("Water Bottle (Uncommon):", ItemDefs['food.waterbottle_high']);
+console.log("Water Bottle:", ItemDefs['food.waterbottle']);
+

@@ -2,6 +2,7 @@
 import { CraftingRecipes } from './CraftingRecipes.js';
 import { Item } from './Item.js';
 import { createItemFromDef } from './ItemDefs.js';
+import { ItemCategory } from './traits.js';
 
 export class CraftingManager {
     constructor(inventoryManager) {
@@ -37,16 +38,32 @@ export class CraftingManager {
             }
         }
 
-        // 2. Check Tools (Exact match or category match if needed in future)
+        // 2. Check Tools (Handling either/or and categories)
         for (const toolReq of recipe.tools) {
-            const found = currentTools.find(t =>
-                (t.defId === toolReq.id || t.categories.includes(toolReq.category)) &&
-                !usedInstances.has(t.instanceId)
-            );
+            let found = null;
+            if (toolReq.either) {
+                found = currentTools.find(t =>
+                    toolReq.either.includes(t.defId) && !usedInstances.has(t.instanceId)
+                );
+            } else {
+                found = currentTools.find(t =>
+                    (t.defId === toolReq.id || (toolReq.category && t.categories.includes(toolReq.category))) &&
+                    !usedInstances.has(t.instanceId)
+                );
+            }
+
+            if (found) {
+                // If the tool has a capacity (like a lighter), it must have at least 1 charge
+                if (found.capacity !== null && (found.ammoCount === null || found.ammoCount <= 0)) {
+                    missing.push(`${found.name} (Empty)`);
+                    found = null; // Mark as not found for this requirement
+                }
+            }
+
             if (found) {
                 usedInstances.add(found.instanceId);
             } else {
-                missing.push(toolReq.name || toolReq.id);
+                missing.push(toolReq.label || toolReq.name || toolReq.id || "Unknown Tool");
             }
         }
 
@@ -86,6 +103,19 @@ export class CraftingManager {
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
         const ingredientContainer = this.inv.getContainer(this.ingredientContainerId);
 
+        // SPECIAL CASE: Determine lifetime for campfire based on fuel used
+        let lifetimeTurns = null;
+        if (recipeId === 'crafting.campfire') {
+            const candidates = ingredientContainer.getAllItems();
+            const fuelItem = candidates.find(i => i.hasCategory(ItemCategory.FUEL));
+            if (fuelItem) {
+                if (fuelItem.defId === 'crafting.rag') lifetimeTurns = 0;
+                else if (fuelItem.defId === 'weapon.stick') lifetimeTurns = 1;
+                else if (fuelItem.defId === 'weapon.2x4') lifetimeTurns = 2;
+                console.log(`[CraftingManager] Campfire fuel identified: ${fuelItem.name}, lifetime: ${lifetimeTurns} turns`);
+            }
+        }
+
         // Consume ingredients
         for (const req of recipe.ingredients) {
             let remainingToConsume = req.count;
@@ -108,11 +138,55 @@ export class CraftingManager {
             }
         }
 
-        // Tools are NOT consumed
+        // Tools: Consume a charge from tools that have charges (e.g. Lighter)
+        for (const toolReq of recipe.tools) {
+            const toolContainer = this.inv.getContainer(this.toolContainerId);
+            const currentTools = toolContainer.getAllItems();
+
+            let found = null;
+            if (toolReq.either) {
+                found = currentTools.find(t => toolReq.either.includes(t.defId));
+            } else {
+                found = currentTools.find(t => t.defId === toolReq.id || (toolReq.category && t.categories.includes(toolReq.category)));
+            }
+
+            if (found && found.capacity !== null && found.ammoCount > 0) {
+                found.ammoCount -= 1;
+                console.log(`[CraftingManager] Consumed 1 charge from ${found.name} (${found.instanceId}). Remaining: ${found.ammoCount}`);
+            } else if (found) {
+                console.warn(`[CraftingManager] Found ${found.name} but cannot consume charge (capacity: ${found.capacity}, ammo: ${found.ammoCount})`);
+            }
+        }
 
         // Create result item
         const itemData = createItemFromDef(recipe.resultItem);
+        if (lifetimeTurns !== null) itemData.lifetimeTurns = lifetimeTurns;
         const newItem = new Item(itemData);
+
+        // Handle GROUND_ONLY placement (e.g. Campfire)
+        if (newItem.isGroundOnly && newItem.isGroundOnly()) {
+            const ground = this.inv.groundContainer;
+            console.log(`[CraftingManager] Placing ground-only item ${newItem.name} at (0,0)`);
+
+            // 1. Clear 4x4 area at (0,0) and get displaced items
+            const displacedItems = this.inv.clearSpaceInContainer(ground, 0, 0, newItem.width, newItem.height);
+            console.log(`[CraftingManager] Displaced ${displacedItems.length} items for ${newItem.name}`);
+
+            // 2. Place the new item
+            if (ground.placeItemAt(newItem, 0, 0)) {
+                // 3. Re-add displaced items to any available spot, preferably below the campfire
+                displacedItems.forEach(item => {
+                    // Try to place at row 5 (index 4) or below to avoid the 4x4 campfire area
+                    const result = this.inv.addItem(item, 'ground', 0, 4);
+                });
+                return { success: true, item: newItem, placedInGround: true };
+            } else {
+                console.error('[CraftingManager] Failed to place ground-only item even after clearing!');
+                // Try to restore displaced items if placement fails
+                displacedItems.forEach(item => this.inv.addItem(item));
+                return { success: false, reason: 'Ground is blocked (Internal Error)' };
+            }
+        }
 
         return {
             success: true,

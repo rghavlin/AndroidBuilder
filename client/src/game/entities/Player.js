@@ -17,6 +17,7 @@ export class Player extends Entity {
     this.maxHydration = 20;
     this.energy = 20;
     this.maxEnergy = 20;
+    this.condition = 'Normal';
     this.blocksMovement = true; // Players block other entities
 
     // Add instance tracking to detect duplicates
@@ -142,17 +143,24 @@ export class Player extends Entity {
    * Modify a generic stat
    */
   modifyStat(statName, amount) {
-    const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
     const old = this[statName];
     if (old === undefined) return;
 
-    const maxVal = this[maxStatName] || 100;
-    this[statName] = Math.min(maxVal, Math.max(0, this[statName] + amount));
+    if (typeof amount === 'number' && typeof old === 'number') {
+      const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
+      const maxVal = this[maxStatName] || 100;
+      this[statName] = Math.min(maxVal, Math.max(0, old + amount));
+    } else {
+      // Non-numeric modification (append or replace if not numeric)
+      this[statName] = amount;
+    }
 
     if (this[statName] !== old) {
+      const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
+      const maxVal = this[maxStatName] || 100;
       this.emitEvent('statChanged', {
         stat: statName,
-        amount,
+        amount: typeof amount === 'number' ? amount : 0,
         current: this[statName],
         max: maxVal
       });
@@ -163,17 +171,23 @@ export class Player extends Entity {
    * Set a generic stat directly
    */
   setStat(statName, value) {
-    const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
     const old = this[statName];
     if (old === undefined) return;
 
-    const maxVal = this[maxStatName] || 100;
-    this[statName] = Math.min(maxVal, Math.max(0, value));
+    if (typeof value === 'number') {
+      const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
+      const maxVal = this[maxStatName] || 100;
+      this[statName] = Math.min(maxVal, Math.max(0, value));
+    } else {
+      this[statName] = value;
+    }
 
     if (this[statName] !== old) {
+      const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
+      const maxVal = this[maxStatName] || 100;
       this.emitEvent('statChanged', {
         stat: statName,
-        amount: this[statName] - old,
+        amount: typeof value === 'number' ? value - old : 0,
         current: this[statName],
         max: maxVal
       });
@@ -196,7 +210,8 @@ export class Player extends Entity {
       hydration: this.hydration,
       maxHydration: this.maxHydration,
       energy: this.energy,
-      maxEnergy: this.maxEnergy
+      maxEnergy: this.maxEnergy,
+      condition: this.condition
     };
   }
 
@@ -215,6 +230,7 @@ export class Player extends Entity {
     player.maxHydration = data.maxHydration || 20;
     player.energy = data.energy || 20;
     player.maxEnergy = data.maxEnergy || 20;
+    player.condition = data.condition || 'Normal';
     return player;
   }
 }

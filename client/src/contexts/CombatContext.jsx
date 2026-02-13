@@ -115,7 +115,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         // 6. Weapon Degradation
-        if (typeof weapon.degrade === 'function') {
+        if (weapon.instanceId !== 'unarmed' && typeof weapon.degrade === 'function') {
             weapon.degrade(1);
         }
 

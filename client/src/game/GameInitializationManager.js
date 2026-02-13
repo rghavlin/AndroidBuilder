@@ -230,6 +230,30 @@ class GameInitializationManager extends EventEmitter {
       const mapId = worldManager.saveCurrentMap(gameMap, 'map_001');
       console.log('[GameInitializationManager] Initial map saved as:', mapId);
 
+      // Phase 10: Starting Equipment
+      try {
+        const { createItemFromDef } = await import('./inventory/ItemDefs.js');
+        const { Item } = await import('./inventory/Item.js');
+
+        // 1. Create Pocket T-shirt
+        const shirtDef = createItemFromDef('clothing.pocket_t');
+        if (shirtDef) {
+          const shirt = new Item(shirtDef);
+          inventoryManager.equipItem(shirt);
+          console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
+        }
+
+        // 2. Create Sweatpants
+        const pantsDef = createItemFromDef('clothing.sweatpants');
+        if (pantsDef) {
+          const pants = new Item(pantsDef);
+          inventoryManager.equipItem(pants);
+          console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
+        }
+      } catch (err) {
+        console.error('[GameInitializationManager] Failed to provide starting equipment:', err);
+      }
+
       // Store core game objects
       this.gameObjects = {
         inventoryManager,

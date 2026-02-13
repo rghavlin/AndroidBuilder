@@ -31,7 +31,18 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
   // Get item from inventory
-  const item = inventoryRef.current?.equipment?.[slot];
+  const equippedItem = inventoryRef.current?.equipment?.[slot];
+
+  // Unarmed logic for melee slot
+  const isMeleeUnarmed = slot === 'melee' && !equippedItem;
+  const unarmedItem = isMeleeUnarmed ? {
+    instanceId: 'unarmed',
+    name: 'Unarmed',
+    defId: 'unarmed',
+    combat: { hitChance: 0.5, damage: { min: 1, max: 3 } }
+  } : null;
+
+  const item = equippedItem || unarmedItem;
   const isTargeting = targetingWeapon?.item.instanceId === item?.instanceId;
 
   // Load image when item changes
@@ -40,6 +51,19 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
     const loadItemImage = async () => {
       if (!item) {
         if (isMounted) setImageSrc(null);
+        return;
+      }
+
+      // Handle virtual unarmed item
+      if (item.instanceId === 'unarmed') {
+        try {
+          const imgElement = await imageLoader.getItemImage('fist');
+          if (isMounted && imgElement && imgElement.src) {
+            setImageSrc(imgElement.src);
+          }
+        } catch (err) {
+          if (isMounted) setImageSrc(null);
+        }
         return;
       }
 
@@ -56,7 +80,7 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
 
     loadItemImage();
     return () => { isMounted = false; };
-  }, [item, inventoryVersion]);
+  }, [item, inventoryVersion, isMeleeUnarmed]);
 
   const handleClick = () => {
     if (item && (slot === 'melee' || slot === 'handgun' || slot === 'long_gun')) {
@@ -103,13 +127,14 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { isInitialized, initializationError, initializeGame } = useGame(); // Added initializeGame for retry button
 
   // Get inventory context for floating containers and selection management
-  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer } = useInventory();
+  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, forceRefresh } = useInventory();
   const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack } = useCombat();
   const { addEffect } = useVisualEffects();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
+  const [waterMenu, setWaterMenu] = useState<{ x: number, y: number, screenX: number, screenY: number } | null>(null);
 
   // Log tile interactions for debugging
   useEffect(() => {
@@ -194,6 +219,19 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
     const tile = gameMap.getTile(x, y);
     if (!tile) return;
+
+    // Check for water interaction
+    if (tile.terrain === 'water') {
+      const distance = Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2));
+      const isAdjacent = distance < 2.0;
+
+      if (isAdjacent) {
+        setWaterMenu({ x, y, screenX, screenY });
+      } else {
+        console.log('[MapInterface] Water too far for interaction');
+      }
+      return;
+    }
 
     const door = tile.contents.find((e: any) => e.type === 'door');
     if (door) {
@@ -361,6 +399,100 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <button
             className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
             onClick={() => setDoorMenu(null)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Water Context Menu */}
+      {waterMenu && (
+        <div
+          className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32"
+          style={{ left: waterMenu.screenX, top: waterMenu.screenY }}
+          onMouseLeave={() => setWaterMenu(null)}
+        >
+          <button
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+            onClick={() => {
+              const player = playerRef.current;
+              const manager = inventoryRef.current;
+              if (!player || !manager) return;
+
+              // Check AP cost (1 AP)
+              if (player.ap < 1) {
+                addEffect({
+                  type: 'damage',
+                  x: waterMenu.x,
+                  y: waterMenu.y,
+                  value: 'Insufficient AP',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+                setWaterMenu(null);
+                return;
+              }
+
+              // Search for an empty water bottle
+              let emptyBottle: any = null;
+
+              // Search containers
+              for (const container of manager.containers.values()) {
+                for (const item of container.items.values()) {
+                  if (item.isWaterBottle() && (item.ammoCount || 0) === 0) {
+                    emptyBottle = item;
+                    break;
+                  }
+                }
+                if (emptyBottle) break;
+              }
+
+              // Search equipment
+              if (!emptyBottle) {
+                for (const item of Object.values(manager.equipment)) {
+                  if (item && (item as any).isWaterBottle() && ((item as any).ammoCount || 0) === 0) {
+                    emptyBottle = item;
+                    break;
+                  }
+                }
+              }
+
+              if (emptyBottle) {
+                // Fill the bottle
+                player.useAP(1);
+                emptyBottle.ammoCount = emptyBottle.capacity || 20;
+                emptyBottle.waterQuality = 'dirty';
+
+                addEffect({
+                  type: 'damage',
+                  x: waterMenu.x,
+                  y: waterMenu.y,
+                  value: 'Bottle Filled!',
+                  color: '#4ade80',
+                  duration: 1000
+                });
+
+                // Force UI updates
+                triggerMapUpdate();
+                forceRefresh();
+              } else {
+                addEffect({
+                  type: 'damage',
+                  x: waterMenu.x,
+                  y: waterMenu.y,
+                  value: 'No empty bottle!',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+              }
+              setWaterMenu(null);
+            }}
+          >
+            Fill Bottle
+          </button>
+          <button
+            className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            onClick={() => setWaterMenu(null)}
           >
             Cancel
           </button>

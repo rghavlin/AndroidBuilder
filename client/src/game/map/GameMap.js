@@ -93,12 +93,19 @@ export class GameMap {
 
     if (validItems.length > 0) {
       const proxyId = `ground-items-${x}-${y}`;
+
+      // Check if there is a campfire in the items to use a special icon
+      const containsCampfire = validItems.some(item =>
+        item.defId === 'placeable.campfire' ||
+        (typeof item.toJSON === 'function' && item.defId === 'placeable.campfire')
+      );
+
       if (!this.entityMap.has(proxyId)) {
         // Create a proxy entity for visual representation
         const proxy = {
           id: proxyId,
           type: 'item',
-          subtype: 'ground_pile',
+          subtype: containsCampfire ? 'campfire' : 'ground_pile',
           x,
           y,
           blocksMovement: false,
@@ -106,7 +113,7 @@ export class GameMap {
           toJSON: () => ({
             id: proxyId,
             type: 'item',
-            subtype: 'ground_pile',
+            subtype: containsCampfire ? 'campfire' : 'ground_pile',
             x,
             y,
             blocksMovement: false,
@@ -114,6 +121,12 @@ export class GameMap {
           })
         };
         this.addEntity(proxy, x, y);
+      } else {
+        // Update existing proxy subtype in case items changed
+        const proxy = this.entityMap.get(proxyId);
+        if (proxy) {
+          proxy.subtype = containsCampfire ? 'campfire' : 'ground_pile';
+        }
       }
     } else {
       // Clear proxy if no items left
@@ -299,6 +312,37 @@ export class GameMap {
    */
   getEntitiesByType(type) {
     return Array.from(this.entityMap.values()).filter(entity => entity.type === type);
+  }
+
+  /**
+   * Process turn-based effects on the map (e.g. item expiration)
+   */
+  processTurn() {
+    console.log('[GameMap] Processing turn-based effects...');
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const tile = this.tiles[y][x];
+        if (tile.inventoryItems && tile.inventoryItems.length > 0) {
+          let itemExpired = false;
+          // Process item lifetimes
+          const remainingItems = tile.inventoryItems.filter(itemData => {
+            if (itemData.lifetimeTurns !== undefined && itemData.lifetimeTurns !== null) {
+              itemData.lifetimeTurns--;
+              if (itemData.lifetimeTurns < 0) {
+                console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
+                itemExpired = true;
+                return false;
+              }
+            }
+            return true;
+          });
+
+          if (itemExpired) {
+            this.setItemsOnTile(x, y, remainingItems);
+          }
+        }
+      }
+    }
   }
 
   /**

@@ -164,6 +164,11 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
               <span className="text-white/40">/</span>
               <span className="text-white/60">{currentStats.maxAp}</span>
             </div>
+
+            <div className="flex items-center gap-1 border-l border-white/10 pl-4" data-testid="stat-condition">
+              <span className="text-white/60 mr-0.5 lowercase font-normal italic">Condition:</span>
+              <span className="text-white font-bold">{currentStats.condition || 'Normal'}</span>
+            </div>
           </div>
 
           {/* Row 2: Survival Stats + Turn Info */}

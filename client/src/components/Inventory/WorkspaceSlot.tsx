@@ -77,11 +77,22 @@ export default function WorkspaceSlot({
                     onClick={handleClick}
                 >
                     {item ? (
-                        imageSrc ? (
-                            <img src={imageSrc} alt={item.name} className="w-full h-full object-contain p-1" />
-                        ) : (
-                            <span className="text-[0.6rem] font-bold text-accent text-center px-1 truncate">{item.name}</span>
-                        )
+                        <>
+                            {imageSrc ? (
+                                <img src={imageSrc} alt={item.name} className="w-full h-full object-contain p-1" />
+                            ) : (
+                                <span className="text-[0.6rem] font-bold text-accent text-center px-1 truncate">{item.name}</span>
+                            )}
+
+                            {/* Charges Overlay (Consistent with UniversalGrid ammo style) */}
+                            {item && typeof item.getDisplayAmmoCount === 'function' && item.getDisplayAmmoCount() !== null && (
+                                <div className="absolute inset-0 pointer-events-none z-20">
+                                    <span className="absolute bottom-1 right-1 text-[0.65rem] leading-none font-bold text-amber-400 bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20 whitespace-nowrap">
+                                        {item.getDisplayAmmoCount()}
+                                    </span>
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <>
                             {icon && <span className="text-xl mb-1 opacity-50">{icon}</span>}

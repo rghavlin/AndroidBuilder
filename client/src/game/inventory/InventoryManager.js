@@ -113,10 +113,10 @@ export class InventoryManager extends SafeEventEmitter {
             changed = true;
           } else {
             console.error(`[InventoryManager]     [${index}] ❌ FAILED to add via addItemSmart!`);
-            // Fallback: Force add if smart placement fails
-            const forceSuccess = this.groundContainer.addItem(item);
-            if (forceSuccess) {
-              console.log(`[InventoryManager]     [${index}] ⚠️ Forced add succeeded after smart placement failure`);
+            // Last resort: force add
+            const result = this.groundContainer.addItem(item);
+            if (result) {
+              console.log(`[InventoryManager]     [${index}] ⚠️ Forced add to ground as fallback`);
               changed = true;
             } else {
               console.error(`[InventoryManager]     [${index}] 🚨 CRITICAL: Force add also failed!`);
@@ -663,7 +663,25 @@ export class InventoryManager extends SafeEventEmitter {
       // We don't block on grid alone if Map is clear, but we log it
     }
 
-    // 3. Attach to weapon
+    // 3. SPECIAL CASE: Campfire Refueling
+    if (weapon.defId === 'placeable.campfire' && slotId === 'fuel') {
+      let turnExtension = 0;
+      if (item.defId === 'crafting.rag') turnExtension = 1;
+      else if (item.defId === 'weapon.stick') turnExtension = 2;
+      else if (item.defId === 'weapon.2x4') turnExtension = 3;
+
+      if (turnExtension > 0) {
+        const totalExtension = turnExtension * (item.stackCount || 1);
+        weapon.lifetimeTurns = (weapon.lifetimeTurns || 0) + totalExtension;
+        console.log(`[InventoryManager] Campfire refueled with ${item.name} x${item.stackCount || 1}. Extended lifetime by ${totalExtension} turns. New lifetime: ${weapon.lifetimeTurns}`);
+
+        // Item is already removed from source, so we just return success
+        // without attaching it to any slot.
+        return { success: true, refueled: true };
+      }
+    }
+
+    // 4. Attach to weapon
     const success = weapon.attachItem(slotId, item);
     if (!success) {
       console.warn('[InventoryManager] Attachment failed, restoring item to original source');
@@ -818,6 +836,12 @@ export class InventoryManager extends SafeEventEmitter {
    * Drop item to ground with intelligent placement
    */
   dropItemToGround(item, preferredX = null, preferredY = null) {
+    // If already on ground and we're not forcing a new position, just return success
+    if (item._container && item._container.id === 'ground' && preferredX === null && preferredY === null) {
+      console.log(`[InventoryManager] Item ${item.name} already on ground, skipping redundant drop.`);
+      return true;
+    }
+
     // Remove from current container if it has one
     if (item._container) {
       item._container.removeItem(item.instanceId);
@@ -923,35 +947,100 @@ export class InventoryManager extends SafeEventEmitter {
   /**
    * Try to add item to any suitable container
    */
-  addItem(item, preferredContainerId = null) {
+  addItem(item, preferredContainerId = null, preferredX = null, preferredY = null) {
+    // GROUND_ONLY items can ONLY be added to ground container
+    if (item.isGroundOnly && item.isGroundOnly()) {
+      if (this.groundContainer.addItem(item, preferredX, preferredY)) {
+        return { success: true, container: 'ground' };
+      }
+      return { success: false, reason: 'No space available on ground' };
+    }
+
     // Try preferred container first
     if (preferredContainerId) {
       const container = this.containers.get(preferredContainerId);
-      if (container && container.addItem(item)) {
+      if (container && container.addItem(item, preferredX, preferredY)) {
         return { success: true, container: container.id };
       }
     }
 
-    // Try backpack
+    // Try backpack (no preferred coords, usually auto-placed)
     const backpack = this.getBackpackContainer();
     if (backpack && backpack.addItem(item)) {
       return { success: true, container: backpack.id };
     }
 
     // Try pockets
-    const pockets = this.getPocketContainers();
-    for (const pocket of pockets) {
+    for (const pocket of this.getPocketContainers()) {
       if (pocket.addItem(item)) {
         return { success: true, container: pocket.id };
       }
     }
 
-    // Try ground as last resort
-    if (this.groundContainer.addItem(item)) {
+    // Try ground as last resort (use preferred coords if targeting ground)
+    if (this.groundContainer.addItem(item, preferredX, preferredY)) {
       return { success: true, container: 'ground' };
     }
 
     return { success: false, reason: 'No space available' };
+  }
+
+  /**
+   * Clear space in a container at (x, y) with (width, height)
+   * Moves existing items to other available spaces in the SAME container
+   */
+  clearSpaceInContainer(container, x, y, width, height) {
+    if (!container) return [];
+
+    console.debug(`[InventoryManager] Clearing space in ${container.id} at (${x},${y}) size ${width}x${height}`);
+
+    const itemsToMove = [];
+    for (let dy = 0; dy < height; dy++) {
+      for (let dx = 0; dx < width; dx++) {
+        const item = container.getItemAt(x + dx, y + dy);
+        if (item && !itemsToMove.includes(item)) {
+          itemsToMove.push(item);
+        }
+      }
+    }
+
+    if (itemsToMove.length === 0) return [];
+
+    // Remove all items that need to be moved and return them
+    itemsToMove.forEach(item => {
+      container.removeItem(item.instanceId);
+    });
+
+    return itemsToMove;
+  }
+
+  /**
+   * Return all items from crafting containers to the inventory or ground
+   */
+  clearCraftingArea() {
+    console.debug('[InventoryManager] Clearing crafting area...');
+    const toolContainer = this.getContainer('crafting-tools');
+    const ingredientContainer = this.getContainer('crafting-ingredients');
+
+    if (!toolContainer || !ingredientContainer) return;
+
+    const items = [
+      ...toolContainer.getAllItems(),
+      ...ingredientContainer.getAllItems()
+    ];
+
+    if (items.length === 0) return;
+
+    items.forEach(item => {
+      // Remove from current container
+      if (item._container) {
+        item._container.removeItem(item.instanceId);
+      }
+
+      // Add back to inventory/ground
+      const result = this.addItem(item);
+      console.log(`[InventoryManager] Returned crafting item ${item.name} to ${result.container || 'FAILED'}`);
+    });
   }
 
   /**

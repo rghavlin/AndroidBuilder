@@ -303,6 +303,7 @@ export class TemplateMapGenerator {
       'r': 'road',
       's': 'sidewalk',
       'F': 'fence',
+      'H': 'water',
       '.': 'grass' // Default open space
     };
 
@@ -455,7 +456,75 @@ export class TemplateMapGenerator {
     // Add buildings
     this.placeBuildingsOnRoad(layout, width, height, leftSidewalkStartX, rightSidewalkEndX, mapData);
 
+    // Add ponds (50% chance)
+    this.addPonds(layout);
+
     return layout;
+  }
+
+  /**
+   * Add irregularly shaped ponds to the layout
+   */
+  addPonds(layout) {
+    if (Math.random() > 0.5) return; // 50% chance
+
+    const height = layout.length;
+    const width = layout[0].length;
+
+    // Find a good spot (grass area)
+    const spots = [];
+    for (let y = 10; y < height - 10; y++) {
+      for (let x = 2; x < width - 2; x++) {
+        if (layout[y][x] === 'grass') {
+          // Check for a 3x3 grass area at minimum
+          let isGrassPatch = true;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (!layout[y + dy] || layout[y + dy][x + dx] !== 'grass') {
+                isGrassPatch = false;
+                break;
+              }
+            }
+            if (!isGrassPatch) break;
+          }
+          if (isGrassPatch) spots.push({ x, y });
+        }
+      }
+    }
+
+    if (spots.length === 0) {
+      console.log('[TemplateMapGenerator] No suitable spot found for pond');
+      return;
+    }
+
+    const pondCenter = spots[Math.floor(Math.random() * spots.length)];
+    const pondSize = 5 + Math.floor(Math.random() * 6); // 5 to 10 tiles
+
+    // Simple blob generation
+    const pondTiles = [pondCenter];
+    for (let i = 0; i < pondSize; i++) {
+      const current = pondTiles[Math.floor(Math.random() * pondTiles.length)];
+      const dirs = [
+        { dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 },
+        { dx: 1, dy: 1 }, { dx: -1, dy: -1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }
+      ];
+      const dir = dirs[Math.floor(Math.random() * dirs.length)];
+      const next = { x: current.x + dir.dx, y: current.y + dir.dy };
+
+      // Ensure it's grass and not overlapping too much or hitting buildings
+      if (layout[next.y] && layout[next.y][next.x] === 'grass') {
+        const alreadyAdded = pondTiles.some(t => t.x === next.x && t.y === next.y);
+        if (!alreadyAdded) {
+          pondTiles.push(next);
+        }
+      }
+    }
+
+    pondTiles.forEach(tile => {
+      layout[tile.y][tile.x] = 'water';
+    });
+
+    console.log(`[TemplateMapGenerator] Added pond with ${pondTiles.length} tiles at (${pondCenter.x}, ${pondCenter.y})`);
   }
 
   /**

@@ -1,0 +1,93 @@
+﻿
+--- Running Validation Tests ---
+[LootGenerator] Initialized with 42 items (rarity-enabled)
+[PASS] inside: Validated 100 piles.
+       Bottles: Low-Fill=8, High-Fill=1
+       Avg Fill: 3.4
+[PASS] outside: Validated 100 piles.
+       Bottles: Low-Fill=5, High-Fill=0
+       Avg Fill: 2.2
+
+--- Checking Item Definitions ---
+Stick: {
+  id: 'weapon.stick',
+  name: 'Stick',
+  rarity: 'common',
+  imageId: 'stick',
+  width: 4,
+  height: 1,
+  traits: [ 'equippable', 'degradable' ],
+  equippableSlot: 'melee',
+  categories: [ 'weapon', 'crafting_material' ],
+  condition: 100,
+  combat: { hitChance: 0.6, damage: { min: 1, max: 5 } }
+}
+Stone: {
+  id: 'crafting.stone',
+  name: 'Stone',
+  rarity: 'common',
+  imageId: 'stone',
+  width: 1,
+  height: 1,
+  traits: [ 'stackable' ],
+  categories: [ 'crafting_material' ],
+  stackMax: 50
+}
+Bandage: {
+  id: 'medical.bandage',
+  name: 'Bandage',
+  rarity: 'uncommon',
+  imageId: 'bandage',
+  width: 1,
+  height: 1,
+  traits: [ 'stackable', 'consumable' ],
+  categories: [ 'medical' ],
+  stackMax: 20,
+  consumptionEffects: { hp: 5 }
+}
+Tape: {
+  id: 'crafting.tape',
+  name: 'Tape',
+  rarity: 'common',
+  imageId: 'tape',
+  width: 1,
+  height: 1,
+  traits: [ 'stackable' ],
+  categories: [ 'tool', 'crafting_material' ],
+  stackMax: 20
+}
+Wire: {
+  id: 'crafting.wire',
+  name: 'Wire',
+  rarity: 'common',
+  imageId: 'wire',
+  width: 1,
+  height: 1,
+  traits: [ 'stackable' ],
+  categories: [ 'tool', 'crafting_material' ],
+  stackMax: 20
+}
+Cooking Pot: {
+  id: 'tool.cooking_pot',
+  name: 'Cooking pot',
+  rarity: 'common',
+  imageId: 'cookingpot',
+  width: 2,
+  height: 2,
+  traits: [],
+  categories: [ 'tool' ]
+}
+Water Bottle: {
+  id: 'food.waterbottle',
+  name: 'Water Bottle',
+  rarity: 'common',
+  imageId: 'waterbottle',
+  width: 2,
+  height: 1,
+  traits: [ 'stackable', 'consumable' ],
+  categories: [ 'food' ],
+  stackMax: 10,
+  capacity: 20,
+  ammoCount: 20,
+  consumptionEffects: { hydration: 1 }
+}

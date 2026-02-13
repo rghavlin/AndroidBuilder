@@ -55,7 +55,7 @@ export default function MapCanvas({
     //'building': '#8B4513', // Reddish brown
     'building': '#AAAAAA', //test (light gray building walls)
 
-    'water': '#666666',    //test (mid-gray water)
+    'water': '#4a6fa5',    //test (gray-blue water)
 
     'sand': '#999999',     //test (lighter gray for sand, optional)
 

@@ -713,17 +713,18 @@ export const InventoryProvider = ({ children, manager }) => {
         }
       }
     }
-
     setInventoryVersion(v => v + 1);
     return { success: true };
   }, []);
 
-  const placeSelected = useCallback((targetContainerId, targetX, targetY) => {
-    if (!selectedItem || !inventoryRef.current) {
+  const placeSelected = useCallback((targetContainerId, targetX, targetY, rotation = null) => {
+    if (!selectedItem || !inventoryRef.current) { // Keep inventoryRef.current check
       return { success: false, reason: 'No item selected' };
     }
 
-    const { item, originContainerId, originX, originY, rotation, originalRotation, isEquipment } = selectedItem;
+    const { item, originContainerId, originX, originY, isEquipment, rotation: selectedRotation } = selectedItem;
+    const originalRotation = item.rotation; // Get original rotation from item (persistence)
+    if (rotation === null) rotation = selectedRotation !== undefined ? selectedRotation : originalRotation;
 
     console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation, 'isEquipment:', isEquipment);
 
@@ -982,6 +983,12 @@ export const InventoryProvider = ({ children, manager }) => {
     // Apply effects
     playerRef.current.modifyStat('hydration', amountToDrink);
 
+    // Apply "Diseased" condition if drinking dirty water
+    if (item.waterQuality === 'dirty') {
+      console.log('[InventoryContext] Player drank dirty water - setting condition to Diseased');
+      playerRef.current.setStat('condition', 'Diseased');
+    }
+
     // Handle stack vs single item
     if (item.stackCount > 1) {
       // 1. Reduce original stack
@@ -1082,6 +1089,13 @@ export const InventoryProvider = ({ children, manager }) => {
         playerRef.current.useAP(recipe.apCost);
       }
 
+      // If the item was already placed on the ground (e.g., Campfire), stop here
+      if (result.placedInGround) {
+        console.log('[InventoryContext] Crafted item already placed on ground by manager');
+        setInventoryVersion(v => v + 1);
+        return result;
+      }
+
       // Find space in current containers (excluding workspace)
       const targetContainers = [
         inventoryRef.current.getBackpackContainer(),
@@ -1104,6 +1118,51 @@ export const InventoryProvider = ({ children, manager }) => {
       setInventoryVersion(v => v + 1);
     }
     return result;
+  }, [playerRef]);
+
+  const clearCraftingArea = useCallback(() => {
+    if (!inventoryRef.current) return;
+    inventoryRef.current.clearCraftingArea();
+    setInventoryVersion(prev => prev + 1);
+  }, []);
+
+  const cookInCampfire = useCallback((campfire) => {
+    if (!playerRef.current || !inventoryRef.current) return { success: false, reason: 'System error' };
+
+    // 1. Check AP
+    const apCost = 5;
+    if (playerRef.current.ap < apCost) {
+      return { success: false, reason: `Insufficient AP (${apCost} required)` };
+    }
+
+    // 2. Check for Cooking Pot attachment
+    const potItem = campfire.attachments['pot'];
+    if (!potItem) {
+      return { success: false, reason: 'Cooking pot required' };
+    }
+
+    // 4. Find one dirty water bottle in the food grid
+    const container = campfire.getContainerGrid();
+    if (!container) return { success: false, reason: 'Campfire container error' };
+
+    const items = Array.from(container.items.values());
+    const dirtyBottle = items.find(item =>
+      item.isWaterBottle && item.isWaterBottle() && item.waterQuality === 'dirty'
+    );
+
+    if (!dirtyBottle) {
+      return { success: false, reason: 'No dirty water found in the campfire grid' };
+    }
+
+    // 5. BOIL: purify one bottle (No per-action fuel consumption, fire longevity is managed by fuel slot)
+    dirtyBottle.waterQuality = 'clean';
+
+    // Deduct AP
+    playerRef.current.useAP(apCost);
+
+    setInventoryVersion(v => v + 1);
+    console.log('[InventoryContext] Cooking successful! Water purified.');
+    return { success: true };
   }, [playerRef]);
 
   const contextValue = useMemo(() => {
@@ -1144,13 +1203,16 @@ export const InventoryProvider = ({ children, manager }) => {
       drinkWater,
       attachSelectedItemToWeapon,
       detachItemFromWeapon,
+      consumeItem,
       // Crafting
       craftingRecipes: CraftingRecipes,
       selectedRecipeId,
       setSelectedRecipeId,
-      craftItem
+      craftItem,
+      clearCraftingArea,
+      cookInCampfire
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem, clearCraftingArea, cookInCampfire]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

@@ -33,7 +33,9 @@ export const ItemCategory = {
   LASER_SIGHT: 'laser_sight',
   RIFLE_SCOPE: 'rifle_scope',
   CHOKE: 'choke',
-  CRAFTING_MATERIAL: 'crafting_material'
+  CRAFTING_MATERIAL: 'crafting_material',
+  COOKING_POT: 'cooking_pot',
+  FUEL: 'fuel'
 };
 
 // Trait flags
@@ -43,7 +45,8 @@ export const ItemTrait = {
   OPENABLE_WHEN_NESTED: 'openableWhenNested',
   CONTAINER: 'container',
   EQUIPPABLE: 'equippable',
-  CONSUMABLE: 'consumable'
+  CONSUMABLE: 'consumable',
+  GROUND_ONLY: 'groundOnly'
 };
 
 // Item rarity levels for loot generation

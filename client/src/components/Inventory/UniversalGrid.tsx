@@ -187,6 +187,10 @@ export default function UniversalGrid({
 
     // Case 2: No item selected, so we select the clicked item
     if (item && item.instanceId) {
+      if (item.isGroundOnly && item.isGroundOnly()) {
+        console.debug('[UniversalGrid] Cannot pick up ground-only item:', item.name);
+        return;
+      }
       console.debug('[UniversalGrid] Selecting item:', item.name, 'at grid pos:', item.x, item.y);
       selectItem(item, containerId, item.x, item.y);
       return;
@@ -423,7 +427,10 @@ export default function UniversalGrid({
               {item.isWaterBottle && item.isWaterBottle() && (
                 <div className="absolute bottom-0.5 left-0.5 right-0.5 h-1 bg-black/50 overflow-hidden rounded-full z-20 border-[0.5px] border-white/20">
                   <div
-                    className="h-full bg-blue-400 shadow-[0_0_4px_rgba(96,165,250,0.6)]"
+                    className={cn(
+                      "h-full shadow-[0_0_4px_rgba(96,165,250,0.6)]",
+                      item.waterQuality === 'dirty' ? "bg-[#8B4513]" : "bg-blue-400"
+                    )}
                     style={{ width: `${item.getWaterPercent()}%` }}
                   />
                 </div>

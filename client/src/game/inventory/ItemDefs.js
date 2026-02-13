@@ -150,7 +150,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
-    categories: [ItemCategory.WEAPON],
+    categories: [ItemCategory.WEAPON, ItemCategory.FUEL],
     condition: 100,
     combat: {
       hitChance: 0.65,
@@ -200,7 +200,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
-    categories: [ItemCategory.WEAPON, ItemCategory.CRAFTING_MATERIAL],
+    categories: [ItemCategory.WEAPON, ItemCategory.CRAFTING_MATERIAL, ItemCategory.FUEL],
     condition: 100,
     combat: {
       hitChance: 0.60,
@@ -466,70 +466,6 @@ export const ItemDefs = {
       hydration: 1
     }
   },
-  'food.waterbottle_high': {
-    id: 'food.waterbottle_high',
-    name: 'Water Bottle (Fuller)',
-    rarity: Rarity.UNCOMMON,
-    imageId: 'waterbottle',
-    width: 2,
-    height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
-    categories: [ItemCategory.FOOD],
-    stackMax: 10,
-    capacity: 20,
-    ammoCount: 20,
-    consumptionEffects: {
-      hydration: 1
-    }
-  },
-  'food.waterbottle_full': {
-    id: 'food.waterbottle_full',
-    name: 'Full Water Bottle',
-    rarity: Rarity.UNCOMMON,
-    imageId: 'waterbottle',
-    width: 2,
-    height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
-    categories: [ItemCategory.FOOD],
-    stackMax: 10,
-    capacity: 20,
-    ammoCount: 20,
-    consumptionEffects: {
-      hydration: 1
-    }
-  },
-  'food.waterbottle_nearly_empty': {
-    id: 'food.waterbottle_nearly_empty',
-    name: 'Nearly Empty Water Bottle',
-    rarity: Rarity.UNCOMMON,
-    imageId: 'waterbottle',
-    width: 2,
-    height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
-    categories: [ItemCategory.FOOD],
-    stackMax: 10,
-    capacity: 20,
-    ammoCount: 1,
-    consumptionEffects: {
-      hydration: 1
-    }
-  },
-  'food.waterbottle_empty': {
-    id: 'food.waterbottle_empty',
-    name: 'Empty Water Bottle',
-    rarity: Rarity.UNCOMMON,
-    imageId: 'waterbottle',
-    width: 2,
-    height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
-    categories: [ItemCategory.FOOD],
-    stackMax: 10,
-    capacity: 20,
-    ammoCount: 0,
-    consumptionEffects: {
-      hydration: 1
-    }
-  },
   'food.chips': {
     id: 'food.chips',
     name: 'Potato Chips',
@@ -642,7 +578,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE],
-    categories: [ItemCategory.CRAFTING_MATERIAL],
+    categories: [ItemCategory.CRAFTING_MATERIAL, ItemCategory.FUEL],
     stackMax: 50
   },
   'tool.lighter': {
@@ -652,9 +588,9 @@ export const ItemDefs = {
     imageId: 'lighter',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE],
+    traits: [],
     categories: [ItemCategory.TOOL],
-    stackMax: 10,
+    stackMax: 1,
     capacity: 10,
     ammoCount: 10
   },
@@ -665,9 +601,9 @@ export const ItemDefs = {
     imageId: 'matchbook',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE],
+    traits: [],
     categories: [ItemCategory.TOOL],
-    stackMax: 10,
+    stackMax: 1,
     capacity: 15,
     ammoCount: 15
   },
@@ -679,7 +615,27 @@ export const ItemDefs = {
     width: 2,
     height: 2,
     traits: [],
-    categories: [ItemCategory.TOOL]
+    categories: [ItemCategory.TOOL, ItemCategory.COOKING_POT]
+  },
+
+  'placeable.campfire': {
+    id: 'placeable.campfire',
+    name: 'Campfire',
+    rarity: Rarity.COMMON,
+    imageId: 'campfire',
+    width: 4,
+    height: 4,
+    traits: [ItemTrait.CONTAINER, ItemTrait.GROUND_ONLY],
+    containerGrid: {
+      width: 4,
+      height: 4,
+      allowedCategories: [ItemCategory.FOOD]
+    },
+    // Specialized slots (handled by specialized UI)
+    attachmentSlots: [
+      { id: 'pot', name: 'Cooking Pot', allowedCategories: [ItemCategory.COOKING_POT] },
+      { id: 'fuel', name: 'Fuel', allowedCategories: [ItemCategory.FUEL] }
+    ]
   }
 };
 

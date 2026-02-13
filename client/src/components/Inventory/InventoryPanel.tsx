@@ -9,6 +9,7 @@ import ContainerGrid from "./ContainerGrid";
 import DragPreviewLayer from "./DragPreviewLayer";
 import UniversalGrid from "./UniversalGrid";
 import WeaponModPanel from "./WeaponModPanel";
+import CampfireUI from "./CampfireUI";
 
 export default function InventoryPanel() {
   console.log('[InventoryPanel] ===== COMPONENT MOUNT/RENDER =====');
@@ -110,6 +111,25 @@ export default function InventoryPanel() {
           // Case 3: Standard Container
           const container = getContainer(containerId);
           if (!container) return null;
+
+          // SPECIAL CASE: Campfire UI
+          if (containerId.endsWith('-container')) {
+            const instanceId = containerId.replace('-container', '');
+            const found = inventoryRef.current?.findItem(instanceId);
+            if (found && found.item && found.item.defId === 'placeable.campfire') {
+              return (
+                <FloatingContainer
+                  key={containerId}
+                  id={containerId}
+                  title={container.name}
+                  isOpen={true}
+                  onClose={() => closeContainer(containerId)}
+                >
+                  <CampfireUI campfire={found.item} container={container} />
+                </FloatingContainer>
+              );
+            }
+          }
 
           return (
             <FloatingContainer

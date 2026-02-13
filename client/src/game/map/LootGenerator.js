@@ -68,7 +68,7 @@ export class LootGenerator {
             this.itemKeys = Object.keys(ItemDefs).filter(key => {
                 // Ignore sprite/icon metadata and specialized sub-types
                 if (key.includes('.icon') || key.includes('.sprite')) return false;
-                if (key.startsWith('food.waterbottle_') && key !== 'food.waterbottle_high') return false;
+                if (key.startsWith('food.waterbottle_')) return false;
                 if (key === 'weapon.makeshift_hatchet') return false;
                 return true;
             });
@@ -159,11 +159,11 @@ export class LootGenerator {
                 }
 
                 // 4. Custom Water rules
-                if (selectedItem.capacity !== undefined && isFood && selectedItem.defId.includes('waterbottle')) {
+                if (selectedItem.capacity !== undefined && isFood && selectedItem.defId === 'food.waterbottle') {
                     // Water level: 
-                    // food.waterbottle (Common): 0 to 4
-                    // food.waterbottle_high (Uncommon): 5 to capacity (20)
-                    if (selectedItem.defId === 'food.waterbottle') {
+                    // 75% chance: mostly empty (0-4 units)
+                    // 25% chance: significant fill (5-20 units)
+                    if (Math.random() < 0.75) {
                         selectedItem.ammoCount = Math.floor(Math.random() * 5); // 0-4
                     } else {
                         selectedItem.ammoCount = 5 + Math.floor(Math.random() * (selectedItem.capacity - 4)); // 5-20

@@ -18,7 +18,10 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
     return (
         <div className="p-2 min-w-[150px] space-y-1.5">
             <div className="flex justify-between items-start gap-4">
-                <h4 className="font-bold text-sm text-white leading-tight">{item.name}</h4>
+                <h4 className="font-bold text-sm text-white leading-tight">
+                    {item.name}
+                    {item.waterQuality === 'dirty' && <span className="text-amber-600 ml-1">(Dirty water)</span>}
+                </h4>
                 {item.rarity && (
                     <span className={cn(
                         "text-[10px] uppercase font-bold px-1 rounded",

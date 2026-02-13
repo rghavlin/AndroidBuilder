@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -13,10 +13,19 @@ export default function CraftingUI() {
         selectedRecipeId,
         setSelectedRecipeId,
         craftItem,
+        clearCraftingArea,
         inventoryRef,
         inventoryVersion
     } = useInventory();
     const { playerStats } = usePlayer();
+
+    // Cleanup crafting area on unmount (when window closes)
+    useEffect(() => {
+        return () => {
+            console.log("[CraftingUI] Unmounting - clearing crafting area");
+            clearCraftingArea();
+        };
+    }, [clearCraftingArea]);
 
     const selectedRecipe = useMemo(() =>
         craftingRecipes.find(r => r.id === selectedRecipeId),
@@ -89,7 +98,7 @@ export default function CraftingUI() {
                                             {selectedRecipe.tools.map((t: any, idx: number) => (
                                                 <li key={idx} className="flex items-center gap-1">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
-                                                    {t.name}
+                                                    {t.label || t.name || t.id.split('.').pop()}
                                                 </li>
                                             ))}
                                         </ul>

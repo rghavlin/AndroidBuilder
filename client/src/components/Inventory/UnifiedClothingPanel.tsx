@@ -114,12 +114,14 @@ export default function UnifiedClothingPanel() {
         {/* Backpack Section */}
         <ClothingContainerPanel
           title="Backpack"
+          equippedItem={backpackItem}
           containerId={backpackContainerId}
           emptyMessage="No backpack equipped"
           isCollapsed={backpackCollapsed}
           onToggle={() => setBackpackCollapsed(!backpackCollapsed)}
           className="border-b-0"
         />
+
       </div>
     </div>
   );

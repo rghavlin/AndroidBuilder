@@ -36,7 +36,9 @@ export class Item extends SafeEventEmitter {
     attachments = null,
     capacity = null,
     ammoCount = 0,
-    consumptionEffects = null
+    consumptionEffects = null,
+    waterQuality = 'clean',
+    lifetimeTurns = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -103,6 +105,10 @@ export class Item extends SafeEventEmitter {
     this.attachments = attachments || {}; // Store attached Item instances by slotId
     this.consumptionEffects = consumptionEffects;
 
+    // Water properties
+    this.waterQuality = waterQuality;
+    this.lifetimeTurns = lifetimeTurns;
+
     // MIGRATION / INITIALIZATION: Load attachment slots from definition
     if (this.defId && ItemDefs[this.defId]?.attachmentSlots) {
       this.attachmentSlots = ItemDefs[this.defId].attachmentSlots;
@@ -163,6 +169,10 @@ export class Item extends SafeEventEmitter {
 
   isOpenableWhenNested() {
     return this.hasTrait(ItemTrait.OPENABLE_WHEN_NESTED);
+  }
+
+  isGroundOnly() {
+    return this.hasTrait(ItemTrait.GROUND_ONLY);
   }
 
   isMagazine() {
@@ -697,7 +707,9 @@ export class Item extends SafeEventEmitter {
       encumbranceTier: this.encumbranceTier,
       pocketLayoutId: this.pocketLayoutId, // Persist the layout ID
       categories: this.categories,
-      consumptionEffects: this.consumptionEffects
+      consumptionEffects: this.consumptionEffects,
+      waterQuality: this.waterQuality,
+      lifetimeTurns: this.lifetimeTurns
     };
 
     // Serialize Traits
