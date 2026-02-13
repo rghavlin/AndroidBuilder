@@ -70,6 +70,7 @@ export class LootGenerator {
                 if (key.includes('.icon') || key.includes('.sprite')) return false;
                 if (key.startsWith('food.waterbottle_')) return false;
                 if (key === 'weapon.makeshift_hatchet') return false;
+                if (ItemDefs[key].noLoot) return false;
                 return true;
             });
             console.log(`[LootGenerator] Initialized with ${this.itemKeys.length} items (rarity-enabled)`);

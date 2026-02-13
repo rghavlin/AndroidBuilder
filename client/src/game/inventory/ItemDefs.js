@@ -621,6 +621,7 @@ export const ItemDefs = {
   'placeable.campfire': {
     id: 'placeable.campfire',
     name: 'Campfire',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'campfire',
     width: 4,

@@ -327,8 +327,8 @@ export class GameMap {
           // Process item lifetimes
           const remainingItems = tile.inventoryItems.filter(itemData => {
             if (itemData.lifetimeTurns !== undefined && itemData.lifetimeTurns !== null) {
-              itemData.lifetimeTurns--;
-              if (itemData.lifetimeTurns < 0) {
+              itemData.lifetimeTurns -= 0.5;
+              if (itemData.lifetimeTurns <= 0) {
                 console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
                 itemExpired = true;
                 return false;

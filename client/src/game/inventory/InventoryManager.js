@@ -666,9 +666,9 @@ export class InventoryManager extends SafeEventEmitter {
     // 3. SPECIAL CASE: Campfire Refueling
     if (weapon.defId === 'placeable.campfire' && slotId === 'fuel') {
       let turnExtension = 0;
-      if (item.defId === 'crafting.rag') turnExtension = 1;
-      else if (item.defId === 'weapon.stick') turnExtension = 2;
-      else if (item.defId === 'weapon.2x4') turnExtension = 3;
+      if (item.defId === 'crafting.rag') turnExtension = 0.5;
+      else if (item.defId === 'weapon.stick') turnExtension = 1.0;
+      else if (item.defId === 'weapon.2x4') turnExtension = 1.0;
 
       if (turnExtension > 0) {
         const totalExtension = turnExtension * (item.stackCount || 1);
@@ -1271,6 +1271,34 @@ export class InventoryManager extends SafeEventEmitter {
   /**
    * Create InventoryManager from JSON data
    */
+  /**
+   * Process turn-based effects on items in managed containers (e.g. ground pile when player is on tile).
+   * This ensures campfires and other time-sensitive items expire even when "checked out" from the map.
+   */
+  processTurn() {
+    console.debug('[InventoryManager] Processing turn-based effects for ground container...');
+    const groundItems = this.groundContainer.getAllItems();
+    let itemsChanged = false;
+
+    groundItems.forEach(item => {
+      if (item.lifetimeTurns !== undefined && item.lifetimeTurns !== null) {
+        item.lifetimeTurns -= 0.5;
+        console.debug(`[InventoryManager] Item ${item.name} (${item.instanceId}) lifetime updated: ${item.lifetimeTurns}`);
+
+        if (item.lifetimeTurns <= 0) {
+          console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired in ground container`);
+          this.groundContainer.removeItem(item.instanceId);
+          itemsChanged = true;
+        }
+      }
+    });
+
+    if (itemsChanged) {
+      this.groundManager.optimizeIfNeeded();
+      this.emit('inventoryChanged', { containerId: 'ground' });
+    }
+  }
+
   static fromJSON(data) {
     const manager = new InventoryManager();
 

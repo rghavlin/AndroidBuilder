@@ -109,9 +109,9 @@ export class CraftingManager {
             const candidates = ingredientContainer.getAllItems();
             const fuelItem = candidates.find(i => i.hasCategory(ItemCategory.FUEL));
             if (fuelItem) {
-                if (fuelItem.defId === 'crafting.rag') lifetimeTurns = 0;
-                else if (fuelItem.defId === 'weapon.stick') lifetimeTurns = 1;
-                else if (fuelItem.defId === 'weapon.2x4') lifetimeTurns = 2;
+                if (fuelItem.defId === 'crafting.rag') lifetimeTurns = 0.5;
+                else if (fuelItem.defId === 'weapon.stick') lifetimeTurns = 1.0;
+                else if (fuelItem.defId === 'weapon.2x4') lifetimeTurns = 1.0;
                 console.log(`[CraftingManager] Campfire fuel identified: ${fuelItem.name}, lifetime: ${lifetimeTurns} turns`);
             }
         }

@@ -462,6 +462,17 @@ const GameContextInner = ({ children }) => {
     }
 
     try {
+      // Process map-level turn effects (e.g. campfire expiration) EARLY 
+      // This ensures 0.5 turns vanish as soon as player hits endTurn.
+      if (gameMap && gameMap.processTurn) {
+        gameMap.processTurn();
+      }
+
+      // Also process turn effects for items currently in the active ground container
+      if (inventoryManager && inventoryManager.processTurn) {
+        inventoryManager.processTurn();
+      }
+
       setIsPlayerTurn(false);
       lastSeenTaggedTilesRef.current.clear();
       console.log('[GameContext] Cleared all LastSeen tagged tiles for new zombie turn phase');
@@ -538,11 +549,6 @@ const GameContextInner = ({ children }) => {
       setTurn(newTurn);
       console.log('[GameContext] Turn ended. Current turn:', newTurn);
 
-      // Process map-level turn effects (e.g. campfire expiration)
-      if (gameMap && gameMap.processTurn) {
-        gameMap.processTurn();
-      }
-
       await performAutosave();
 
       setIsPlayerTurn(true);
@@ -551,7 +557,7 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] Error ending turn:', error);
       setIsPlayerTurn(true);
     }
-  }, [turn, isInitialized, isPlayerTurn, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats]);
+  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats]);
 
   // Legacy wrapper methods (these should be removed in Phase 2)
   const handleTileClick = useCallback((x, y) => {
