@@ -123,8 +123,15 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
   const { playerRef, updatePlayerFieldOfView } = usePlayer();
 
-  // Get initialization state from GameContext (still needed for initialization control)
-  const { isInitialized, initializationError, initializeGame } = useGame(); // Added initializeGame for retry button
+  // Phase 4: Only use orchestration functions from GameContext
+  const {
+    isInitialized,
+    initializationError,
+    initializeGame,
+    targetingItem,
+    cancelTargetingItem,
+    useCrowbarOnDoor
+  } = useGame();
 
   // Get inventory context for floating containers and selection management
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, forceRefresh } = useInventory();
@@ -181,6 +188,26 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       console.debug('[MapInterface] Map clicked while item selected - canceling selection');
       clearSelected();
       return true; // Click was handled (canceled selection)
+    }
+
+    // Handle Item Targeting (Crowbar etc)
+    if (targetingItem) {
+      const result = useCrowbarOnDoor(x, y);
+      if (!result.success) {
+        // If it failed (locked door not found, etc), clear targeting as requested
+        cancelTargetingItem();
+
+        if (result.reason) {
+          addEffect({
+            type: 'damage',
+            x, y,
+            value: result.reason,
+            color: '#ef4444',
+            duration: 1000
+          });
+        }
+      }
+      return true;
     }
 
     // Handle Combat Targeting
@@ -301,7 +328,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             onCellClick={onCellClick}
             onCellRightClick={onCellRightClick}
             selectedItem={selectedItem}
-            isTargeting={!!targetingWeapon}
+            isTargeting={!!targetingWeapon || !!targetingItem}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

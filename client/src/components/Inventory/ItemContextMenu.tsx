@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 // @ts-ignore
+import { ItemTrait } from '../../game/inventory/traits.js';
 import { useInventory } from "@/contexts/InventoryContext";
+import { useGame } from '../../contexts/GameContext.jsx';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -32,7 +34,10 @@ export function ItemContextMenu({
     tooltipContent = null
 }: ItemContextMenuProps) {
     const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater } = useInventory();
+    const { startTargetingItem } = useGame();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
+
+    // ... (rest of the component)
 
     // If there's no item and no tooltip, just render children
     if (!item && !tooltipContent) {
@@ -61,6 +66,17 @@ export function ItemContextMenu({
             {item && (
                 <ContextMenuPortal>
                     <ContextMenuContent className="w-48 bg-[#1a1a1a] border-[#333] text-white z-[10001]">
+                        {item.hasTrait(ItemTrait.CAN_BREAK_DOORS) && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    console.log('[ItemContextMenu] Use item requested for:', item.name);
+                                    startTargetingItem(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Use
+                            </ContextMenuItem>
+                        )}
                         {canOpenContainer(item) && (
                             <ContextMenuItem
                                 onClick={() => {

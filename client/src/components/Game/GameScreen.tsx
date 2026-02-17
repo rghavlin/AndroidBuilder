@@ -14,6 +14,7 @@ import { useWindowSize } from "@/hooks/useWindowSize";
 import { GameErrorBoundary } from './ErrorBoundary.tsx';
 import DevConsole from './DevConsole';
 import { MapTransitionDialog } from './MapTransitionDialog';
+import SleepOverlay from './SleepOverlay';
 
 
 function GameScreenContent() {
@@ -175,6 +176,9 @@ function GameScreenContent() {
             nextMapId={mapTransition.nextMapId}
           />
         )}
+
+        {/* Sleep Overlay */}
+        <SleepOverlay />
       </div>
     </InventoryProvider>
   );

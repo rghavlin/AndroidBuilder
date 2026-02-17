@@ -171,6 +171,11 @@ export const GameMapProvider = ({ children }) => {
       }
 
       const entityFilter = (tile) => {
+        // Restricted Movement: Only allow movement to/through explored tiles
+        if (!tile.flags || !tile.flags.explored) {
+          return false;
+        }
+
         const blockingEntities = tile.contents.filter(entity => {
           return entity.blocksMovement && entity.id !== player.id;
         });
@@ -243,6 +248,11 @@ export const GameMapProvider = ({ children }) => {
 
     try {
       const entityFilter = (tile) => {
+        // Restricted Movement: Only allow pathfinding to/through explored tiles
+        if (!tile.flags || !tile.flags.explored) {
+          return false;
+        }
+
         const blockingEntities = tile.contents.filter(entity => {
           return entity.blocksMovement && entity.id !== player.id;
         });

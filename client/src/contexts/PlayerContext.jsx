@@ -12,7 +12,7 @@ export const usePlayer = () => {
       return {
         playerRef: { current: null },
         player: null,
-        playerStats: { hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 20, maxNutrition: 20, hydration: 20, maxHydration: 20, energy: 20, maxEnergy: 20, condition: 'Normal' },
+        playerStats: { hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal' },
         isMoving: false,
         movementPath: [],
         movementProgress: 0,
@@ -42,7 +42,7 @@ export const PlayerProvider = ({ children }) => {
   const [playerVersion, setPlayerVersion] = useState(0);
 
   // Player state
-  const [playerStats, setPlayerStats] = useState({ hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 20, maxNutrition: 20, hydration: 20, maxHydration: 20, energy: 20, maxEnergy: 20, condition: 'Normal' });
+  const [playerStats, setPlayerStats] = useState({ hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal' });
   const [isMoving, setIsMoving] = useState(false);
   const [movementPath, setMovementPath] = useState([]);
   const [movementProgress, setMovementProgress] = useState(0);
@@ -72,12 +72,12 @@ export const PlayerProvider = ({ children }) => {
         maxHp: player.maxHp,
         ap: player.ap,
         maxAp: player.maxAp,
-        nutrition: player.nutrition || 20,
-        maxNutrition: player.maxNutrition || 20,
-        hydration: player.hydration || 20,
-        maxHydration: player.maxHydration || 20,
-        energy: player.energy || 20,
-        maxEnergy: player.maxEnergy || 20,
+        nutrition: player.nutrition || 25,
+        maxNutrition: player.maxNutrition || 25,
+        hydration: player.hydration || 25,
+        maxHydration: player.maxHydration || 25,
+        energy: player.energy || 25,
+        maxEnergy: player.maxEnergy || 25,
         condition: player.condition || 'Normal',
         ammo: 0
       });
@@ -203,6 +203,16 @@ export const PlayerProvider = ({ children }) => {
 
       setPlayerFieldOfView(fovData.visibleTiles);
 
+      // Mark tiles as explored for Fog of War
+      if (fovData.visibleTiles) {
+        fovData.visibleTiles.forEach(pos => {
+          const tile = gameMap.getTile(pos.x, pos.y);
+          if (tile) {
+            tile.flags.explored = true;
+          }
+        });
+      }
+
       // Debug: Log if player is inside a building
       const playerTile = gameMap.getTile(player.x, player.y);
       if (playerTile && (playerTile.terrain === 'building' || playerTile.terrain === 'floor')) {
@@ -296,6 +306,16 @@ export const PlayerProvider = ({ children }) => {
             ignoreEntities: [playerRef.current.id]
           });
           setPlayerFieldOfView(fovResult.visibleTiles);
+
+          // Mark tiles as explored during animation for smooth uncovering
+          if (fovResult.visibleTiles) {
+            fovResult.visibleTiles.forEach(pos => {
+              const tile = gameMap.getTile(pos.x, pos.y);
+              if (tile) {
+                tile.flags.explored = true;
+              }
+            });
+          }
         } catch (error) {
           console.error('[PlayerContext] Error updating FOV during animation:', error);
         }

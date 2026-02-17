@@ -432,6 +432,19 @@ export default function MapCanvas({
           const pixelX = screenPos.x * tileSize;
           const pixelY = screenPos.y * tileSize;
 
+          // --- FOG OF WAR LOGIC ---
+          const isExplored = tile.flags && tile.flags.explored;
+          const isCurrentlyVisible = playerFieldOfView && playerFieldOfView.some(visibleTile =>
+            visibleTile.x === worldX && visibleTile.y === worldY
+          );
+
+          if (!isExplored) {
+            // Unexplored: Solid black
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+            continue; // Skip rest of tile rendering
+          }
+
           // Fill tile with terrain color
           ctx.fillStyle = terrainColors[tile.terrain] || terrainColors.default;
           ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
@@ -456,8 +469,8 @@ export default function MapCanvas({
           ctx.lineWidth = 0.5;
           ctx.strokeRect(pixelX, pixelY, tileSize, tileSize);
 
-          // Highlight hovered tile
-          if (hoveredTile && hoveredTile.x === worldX && hoveredTile.y === worldY && player) {
+          // Highlight hovered tile (only if visible)
+          if (isCurrentlyVisible && hoveredTile && hoveredTile.x === worldX && hoveredTile.y === worldY && player) {
             const canAfford = hoveredTile.canAfford;
 
             // Hover highlight
@@ -475,33 +488,32 @@ export default function MapCanvas({
             );
           }
 
-          // Highlight tiles within field of view
-          if (player && playerFieldOfView) {
-            const isTileVisible = playerFieldOfView.some(visibleTile =>
-              visibleTile.x === worldX && visibleTile.y === worldY
-            );
-
-            if (isTileVisible && !(worldX === player.x && worldY === player.y)) {
-              // Light blue tint for visible tiles
-              ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
-              ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
-            }
-          }
-
           // Render entities on this tile (except player)
           if (tile.contents && tile.contents.length > 0) {
-            const isTileVisible = !playerFieldOfView || playerFieldOfView.some(visibleTile =>
-              visibleTile.x === worldX && visibleTile.y === worldY
-            );
+            tile.contents.forEach((entity, index) => {
+              if (entity.type === 'player') return;
 
-            if (isTileVisible) {
-              tile.contents.forEach((entity, index) => {
-                if (entity.type !== 'player') {
-                  const offsetY = index * (tileSize / 8);
-                  renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
-                }
-              });
-            }
+              // Entities that should always be visible once explored (Loot, Doors)
+              const isPersistentEntity = entity.type === 'item' || entity.type === 'door';
+
+              if (isCurrentlyVisible || (isExplored && isPersistentEntity)) {
+                const offsetY = index * (tileSize / 8);
+                renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
+              }
+            });
+          }
+
+          // Apply "Fog" (dimming) for explored but NOT currently visible tiles
+          if (isExplored && !isCurrentlyVisible) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // Dimexplored area
+            ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+          }
+
+          // Light blue tint for visible tiles (excluding player tile)
+          if (isCurrentlyVisible && player && !(worldX === player.x && worldY === player.y)) {
+            // Light blue tint for visible tiles
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
+            ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
           }
 
           // Render player on TOP of other entities

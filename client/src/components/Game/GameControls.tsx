@@ -42,11 +42,15 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
     isInitialized,
     isPlayerTurn,
     isAutosaving,
-    loadAutosave
+    loadAutosave,
+    isSleeping,
+    sleepProgress,
+    performSleep
   } = useGame();
 
   // Phase 2: Movement animation handled by PlayerContext
   const [showDevConsole, setShowDevConsole] = useState(false);
+  const [showSleepModal, setShowSleepModal] = useState(false);
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);
   const [loadGameImage, setLoadGameImage] = useState<string | null>(null);
 
@@ -121,7 +125,9 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
   };
 
   // Calculate if buttons should be disabled
-  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement;
+  const maxSleepHours = Math.max(0, Math.ceil((25 - currentStats.energy) / 2.5));
+  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping;
+  const sleepDisabled = buttonsDisabled || currentStats.energy >= 25;
 
   return (
     <div className="bg-card border-t border-border p-2 flex items-center" data-testid="game-controls">
@@ -171,13 +177,8 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
             </div>
           </div>
 
-          {/* Row 2: Survival Stats + Turn Info */}
+          {/* Row 2: Survival Stats + Turn Info + Clock */}
           <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tight">
-            {/* Turn Pill */}
-            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-white mr-1">
-              T{currentTurn}
-            </div>
-
             <div className="flex items-center gap-1" data-testid="stat-nutrition">
               <span className="text-white/60 mr-0.5">NUT</span>
               <span className="text-white">{currentStats.nutrition}</span>
@@ -191,6 +192,28 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
             <div className="flex items-center gap-1" data-testid="stat-energy">
               <span className="text-white/60 mr-0.5">NRG</span>
               <span className="text-white">{currentStats.energy}</span>
+            </div>
+
+            {/* Turn Pill - Moved to the right of survival stats */}
+            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-white ml-1">
+              T{currentTurn}
+            </div>
+
+            {/* 24-Hour Clock Pill - New component */}
+            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-white font-mono">
+              {String((6 + (currentTurn - 1)) % 24).padStart(2, '0')}00
+            </div>
+
+            {/* Sleep Button - To the right of the clock */}
+            <div className="flex items-center gap-1 ml-1">
+              <Button
+                onClick={() => setShowSleepModal(true)}
+                disabled={sleepDisabled}
+                className="h-[18px] px-2 bg-indigo-600 hover:bg-indigo-700 text-[9px] font-bold text-white rounded border border-white/10 uppercase tracking-tighter disabled:bg-indigo-900/50"
+                data-testid="button-sleep-trigger"
+              >
+                Sleep
+              </Button>
             </div>
 
             {/* Status Messages */}
@@ -248,6 +271,37 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
           isOpen={showDevConsole}
           onClose={() => setShowDevConsole(false)}
         />
+      )}
+
+      {/* Sleep Duration Modal */}
+      {showSleepModal && (
+        <div className="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-white/10 p-6 rounded-lg max-w-sm w-full shadow-2xl">
+            <h2 className="text-xl font-bold text-white mb-4 uppercase tracking-wider">How long to sleep?</h2>
+            <p className="text-zinc-400 text-[10px] mb-4 uppercase">Max sleep based on energy: {maxSleepHours}h</p>
+            <div className="grid grid-cols-4 gap-2 mb-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(hours => (
+                <Button
+                  key={hours}
+                  disabled={hours > maxSleepHours}
+                  onClick={() => {
+                    performSleep(hours);
+                    setShowSleepModal(false);
+                  }}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold h-10 border border-white/5 disabled:opacity-20 disabled:grayscale"
+                >
+                  {hours}h
+                </Button>
+              ))}
+            </div>
+            <Button
+              onClick={() => setShowSleepModal(false)}
+              className="w-full bg-red-900/40 hover:bg-red-900/60 text-red-100 font-bold uppercase tracking-widest text-xs border border-red-500/20"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

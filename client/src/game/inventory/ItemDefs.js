@@ -181,7 +181,7 @@ export const ItemDefs = {
     imageId: 'crowbar',
     width: 3,
     height: 2,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.CAN_BREAK_DOORS],
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
     condition: 100,

@@ -83,6 +83,9 @@ const GameContextInner = ({ children }) => {
   const [turn, setTurn] = useState(1);
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAutosaving, setIsAutosaving] = useState(false);
+  const [isSleeping, setIsSleeping] = useState(false);
+  const [sleepProgress, setSleepProgress] = useState(0);
+  const [targetingItem, setTargetingItem] = useState(null);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;
@@ -450,6 +453,230 @@ const GameContextInner = ({ children }) => {
     }
   }, [isInitialized, turn, playerRef, gameMapRef, worldManagerRef, cameraRef]);
 
+  const checkIsSheltered = useCallback((player, gameMap) => {
+    if (!player || !gameMap) return false;
+
+    const startTile = gameMap.getTile(player.x, player.y);
+    // If not on floor, definitely not sheltered
+    if (!startTile || startTile.terrain !== 'floor') return false;
+
+    // BFS to find if there's a path to any non-floor, non-wall tile
+    const queue = [{ x: player.x, y: player.y }];
+    const visited = new Set([`${player.x},${player.y}`]);
+    const maxCheckedTiles = 400; // Safety limit for performance
+
+    let head = 0;
+    while (head < queue.length && queue.length < maxCheckedTiles) {
+      const { x, y } = queue[head++];
+
+      const neighbors = [
+        { x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }
+      ];
+
+      for (const next of neighbors) {
+        const key = `${next.x},${next.y}`;
+        if (visited.has(key)) continue;
+
+        const tile = gameMap.getTile(next.x, next.y);
+        if (!tile) continue;
+
+        // Wall/Building/Fence/Closed Door block the search
+        const isWall = tile.terrain === 'wall' || tile.terrain === 'building' || tile.terrain === 'fence';
+        const door = tile.contents.find(e => e.type === 'door');
+        const isClosedDoor = door && !door.isOpen;
+
+        if (isWall || isClosedDoor) {
+          visited.add(key);
+          continue;
+        }
+
+        // If it's a non-floor tile (like grass, road), we found an opening to the outside
+        if (tile.terrain !== 'floor') {
+          return false; // Not sheltered
+        }
+
+        visited.add(key);
+        queue.push(next);
+      }
+    }
+
+    return true; // No opening found, or limit reached (assume sheltered if building is HUGE)
+  }, []);
+
+  const performSleep = useCallback(async (hours) => {
+    if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn || isSleeping) return;
+
+    try {
+      setIsSleeping(true);
+      setIsPlayerTurn(false);
+      setSleepProgress(hours);
+
+      const player = playerRef.current;
+
+      for (let i = 0; i < hours; i++) {
+        // 1 second delay per hour slept
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Update stats for this hour
+        player.modifyStat('energy', 2.5);
+        player.modifyStat('nutrition', -1);
+        player.modifyStat('hydration', -1);
+
+        // HP recovery: 0.5 HP per hour if nutrition and hydration are > 0
+        if (player.nutrition > 0 && player.hydration > 0) {
+          player.heal(0.5);
+        }
+
+        // Advance turn by 1
+        setTurn(prev => prev + 1);
+        setSleepProgress(prev => prev - 1);
+
+        // Sync stats to UI
+        updatePlayerStats({
+          hp: player.hp,
+          energy: player.energy,
+          nutrition: player.nutrition,
+          hydration: player.hydration
+        });
+
+        // Interruption check: If not sheltered, check for zombies
+        const isSheltered = checkIsSheltered(player, gameMap);
+        if (!isSheltered) {
+          const zombies = gameMap.getEntitiesByType('zombie');
+          let interrupters = zombies.filter(z => z.canSeeEntity(gameMap, player));
+
+          // If no zombies see the player, check for random spawn
+          if (interrupters.length === 0 && Math.random() < 0.25) {
+            console.log('[GameContext] Random zombie spawned during sleep!');
+            const neighbors = [
+              { x: player.x + 1, y: player.y }, { x: player.x - 1, y: player.y },
+              { x: player.x, y: player.y + 1 }, { x: player.x, y: player.y - 1 }
+            ].filter(n => {
+              const t = gameMap.getTile(n.x, n.y);
+              return t && t.isWalkable();
+            });
+
+            if (neighbors.length > 0) {
+              const spawnPos = neighbors[Math.floor(Math.random() * neighbors.length)];
+              const zombieId = `sleep-interrupter-${Date.now()}`;
+              const zombie = new Zombie(zombieId, spawnPos.x, spawnPos.y);
+              gameMap.addEntity(zombie, spawnPos.x, spawnPos.y);
+              interrupters.push(zombie);
+            }
+          }
+
+          if (interrupters.length > 0) {
+            console.log(`[GameContext] Sleep interrupted by ${interrupters.length} zombie(s)!`);
+
+            // 1. Awaken the player
+            setIsSleeping(false);
+            setSleepProgress(0);
+
+            // 2. Zombies attack with max AP
+            const cardinalPositions = getPlayerCardinalPositions(gameMap);
+            const lastSeenTiles = lastSeenTaggedTilesRef.current;
+
+            for (const zombie of interrupters) {
+              zombie.startTurn(); // Ensure they start with max AP
+              ZombieAI.executeZombieTurn(zombie, gameMap, player, cardinalPositions, lastSeenTiles);
+            }
+
+            // 3. Final state sync after attacks
+            updatePlayerStats({ hp: player.hp, ap: player.ap });
+            updatePlayerFieldOfView(gameMap);
+            updatePlayerCardinalPositions(gameMap);
+            setIsPlayerTurn(true);
+            return; // Exit sleep loop
+          }
+        }
+      }
+
+      // After sleep completes
+      player.restoreAP(player.maxAp - player.ap);
+      updatePlayerStats({ ap: player.ap });
+
+      setIsSleeping(false);
+      setIsPlayerTurn(true);
+      setSleepProgress(0);
+
+      // Final state sync and effects
+      updatePlayerFieldOfView(gameMap);
+      updatePlayerCardinalPositions(gameMap);
+
+      await performAutosave();
+
+    } catch (error) {
+      console.error('[GameContext] Error during sleep:', error);
+      setIsSleeping(false);
+      setIsPlayerTurn(true);
+      setSleepProgress(0);
+    }
+  }, [isInitialized, playerRef, gameMap, isPlayerTurn, isSleeping, checkIsSheltered, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave]);
+
+  const startTargetingItem = useCallback((item) => {
+    setTargetingItem(item);
+  }, []);
+
+  const cancelTargetingItem = useCallback(() => {
+    setTargetingItem(null);
+  }, []);
+
+  const useCrowbarOnDoor = useCallback((x, y) => {
+    const player = playerRef.current;
+    const gameMap = gameMapRef.current;
+    if (!player || !gameMap || !targetingItem) return { success: false };
+
+    // Distance check (adjacency)
+    const dx = Math.abs(player.x - x);
+    const dy = Math.abs(player.y - y);
+    const isAdjacent = (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
+
+    if (!isAdjacent) {
+      return { success: false, reason: 'Too far' };
+    }
+
+    const tile = gameMap.getTile(x, y);
+    const door = tile?.contents.find(e => e.type === 'door');
+
+    if (!door || !door.isLocked || door.isOpen) {
+      return { success: false, reason: 'Can only use on locked doors' };
+    }
+
+    if (player.ap < 2) {
+      return { success: false, reason: 'Need 2 AP' };
+    }
+
+    // Perform action
+    door.isLocked = false;
+    door.isOpen = true;
+    door.isDamaged = true;
+    door.updateBlocking();
+
+    player.useAP(2);
+
+    // Reduce condition
+    if (targetingItem.hasTrait('degradable')) {
+      targetingItem.degrade(2);
+      // If broken, it should be removed (Item.degrade usually handles this if integrated with container)
+      // But we need to make sure the UI reflects this.
+      if (inventoryManager) {
+        inventoryManager.emit('inventoryChanged');
+      }
+    }
+
+    setTargetingItem(null);
+    updatePlayerStats({ ap: player.ap });
+    updatePlayerFieldOfView(gameMap);
+    updatePlayerCardinalPositions(gameMap);
+
+    // Force re-render of map
+    if (typeof gameMap.emitEvent === 'function') {
+      gameMap.emitEvent('mapUpdated'); // Generic update event
+    }
+
+    return { success: true };
+  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+
   const endTurn = useCallback(async () => {
     if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn) {
       console.warn('[GameContext] Cannot end turn - missing requirements', {
@@ -474,6 +701,7 @@ const GameContextInner = ({ children }) => {
       }
 
       setIsPlayerTurn(false);
+      setTargetingItem(null); // Cancel targeting on end turn
       lastSeenTaggedTilesRef.current.clear();
       console.log('[GameContext] Cleared all LastSeen tagged tiles for new zombie turn phase');
 
@@ -505,6 +733,13 @@ const GameContextInner = ({ children }) => {
           console.warn(`[GameContext] Zombie ${zombie.id} turn failed:`, turnResult.reason || turnResult.error);
         }
       });
+
+      // Regenerate 1 HP at start of new turn phase if survival stats are sufficient (>= 1)
+      if (player.nutrition >= 1 && player.hydration >= 1) {
+        player.heal(1);
+      } else {
+        console.log(`[GameContext] HP regeneration skipped: Nutrition=${player.nutrition}, Hydration=${player.hydration}`);
+      }
 
       player.restoreAP(player.maxAp - player.ap);
 
@@ -759,6 +994,17 @@ const GameContextInner = ({ children }) => {
     // Map transition wrapper
     handleMapTransitionConfirmWrapper,
 
+    // Phase 6: Sleep functionality
+    isSleeping,
+    sleepProgress,
+    performSleep,
+
+    // Crowbar Usage Phase
+    targetingItem,
+    startTargetingItem,
+    cancelTargetingItem,
+    useCrowbarOnDoor,
+
     // Phase 5A: Expose inventoryManager for InventoryProvider
     inventoryManager,
 
@@ -780,10 +1026,12 @@ const GameContextInner = ({ children }) => {
     loadGame,
     loadGameDirect,
     loadAutosave,
-    performAutosave,
-    exportGame,
-    handleMapTransitionConfirmWrapper,
-    inventoryManager
+    performSleep,
+    inventoryManager,
+    targetingItem,
+    startTargetingItem,
+    cancelTargetingItem,
+    useCrowbarOnDoor
   ]);
 
   return (

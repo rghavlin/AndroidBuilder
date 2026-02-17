@@ -11,12 +11,12 @@ export class Player extends Entity {
     this.maxHp = 20;
     this.ap = 12;
     this.maxAp = 12;
-    this.nutrition = 20;
-    this.maxNutrition = 20;
-    this.hydration = 20;
-    this.maxHydration = 20;
-    this.energy = 20;
-    this.maxEnergy = 20;
+    this.nutrition = 25;
+    this.maxNutrition = 25;
+    this.hydration = 25;
+    this.maxHydration = 25;
+    this.energy = 25;
+    this.maxEnergy = 25;
     this.condition = 'Normal';
     this.blocksMovement = true; // Players block other entities
 
@@ -224,12 +224,12 @@ export class Player extends Entity {
     player.maxHp = data.maxHp;
     player.ap = data.ap !== undefined ? data.ap : 12;
     player.maxAp = data.maxAp !== undefined ? data.maxAp : 12;
-    player.nutrition = data.nutrition || 20;
-    player.maxNutrition = data.maxNutrition || 20;
-    player.hydration = data.hydration || 20;
-    player.maxHydration = data.maxHydration || 20;
-    player.energy = data.energy || 20;
-    player.maxEnergy = data.maxEnergy || 20;
+    player.nutrition = data.nutrition || 25;
+    player.maxNutrition = data.maxNutrition || 25;
+    player.hydration = data.hydration || 25;
+    player.maxHydration = data.maxHydration || 25;
+    player.energy = data.energy || 25;
+    player.maxEnergy = data.maxEnergy || 25;
     player.condition = data.condition || 'Normal';
     return player;
   }

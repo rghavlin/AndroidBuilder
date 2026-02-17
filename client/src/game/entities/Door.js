@@ -5,10 +5,11 @@ import { Entity } from './Entity.js';
  * Can be opened, closed, and locked
  */
 export class Door extends Entity {
-    constructor(id, x, y, isLocked = false, isOpen = false) {
+    constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false) {
         super(id, 'door', x, y);
         this.isOpen = isOpen;
         this.isLocked = isLocked;
+        this.isDamaged = isDamaged;
 
         // Update blocking status based on initial state
         this.updateBlocking();
@@ -52,7 +53,7 @@ export class Door extends Entity {
      * @param {GameMap} gameMap - Optional map reference to check for occupants
      */
     close(gameMap = null) {
-        if (!this.isOpen) return false;
+        if (!this.isOpen || this.isDamaged) return false;
 
         // Check for occupants if map is provided
         if (gameMap) {
@@ -100,6 +101,7 @@ export class Door extends Entity {
             ...super.toJSON(),
             isOpen: this.isOpen,
             isLocked: this.isLocked,
+            isDamaged: this.isDamaged,
             blocksSight: this.blocksSight
         };
     }
@@ -108,7 +110,7 @@ export class Door extends Entity {
      * Create door from JSON data
      */
     static fromJSON(data) {
-        const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen);
+        const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged);
         door.blocksMovement = data.blocksMovement;
         door.blocksSight = data.blocksSight;
         return door;
