@@ -57,6 +57,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
+    categories: [ItemCategory.CLOTHING],
     encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'pocket_tee'
   },
@@ -70,6 +71,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
+    categories: [ItemCategory.CLOTHING],
     encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'work_shirt'
   },
@@ -87,6 +89,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
+    categories: [ItemCategory.CLOTHING],
     encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'sweatpants'
   },
@@ -100,6 +103,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
+    categories: [ItemCategory.CLOTHING],
     encumbranceTier: EncumbranceTier.MEDIUM,
     pocketLayoutId: 'cargo_pants'
   },
@@ -116,7 +120,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
-    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL, ItemCategory.KNIFE],
     condition: 100,
     combat: {
       hitChance: 0.65,
@@ -190,6 +194,22 @@ export const ItemDefs = {
       damage: { min: 3, max: 9 }
     }
   },
+  'weapon.fire_axe': {
+    id: 'weapon.fire_axe',
+    name: 'Fire axe',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'fireaxe',
+    width: 5,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.CAN_BREAK_DOORS],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    condition: 100,
+    combat: {
+      hitChance: 0.90,
+      damage: { min: 5, max: 15 }
+    }
+  },
 
   'weapon.stick': {
     id: 'weapon.stick',
@@ -219,9 +239,28 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON],
     condition: 100,
+    fragility: 4,
     combat: {
       hitChance: 0.70,
       damage: { min: 3, max: 9 }
+    }
+  },
+  'weapon.makeshift_knife': {
+    id: 'weapon.makeshift_knife',
+    name: 'Makeshift knife',
+    rarity: Rarity.COMMON,
+    imageId: 'makeshiftknife',
+    noLoot: true,
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL, ItemCategory.KNIFE],
+    condition: 100,
+    fragility: 4,
+    combat: {
+      hitChance: 0.65,
+      damage: { min: 2, max: 5 }
     }
   },
 
@@ -606,6 +645,17 @@ export const ItemDefs = {
     stackMax: 1,
     capacity: 15,
     ammoCount: 15
+  },
+  'crafting.glass_shard': {
+    id: 'crafting.glass_shard',
+    name: 'Glass shard',
+    rarity: Rarity.COMMON,
+    imageId: 'glassshard',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 20
   },
   'tool.cooking_pot': {
     id: 'tool.cooking_pot',

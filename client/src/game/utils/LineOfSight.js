@@ -121,10 +121,10 @@ export class LineOfSight {
     } = options;
 
     const visibleTiles = [];
-    const minX = Math.max(0, centerX - maxRange);
-    const maxX = Math.min(gameMap.width - 1, centerX + maxRange);
-    const minY = Math.max(0, centerY - maxRange);
-    const maxY = Math.min(gameMap.height - 1, centerY + maxRange);
+    const minX = Math.max(0, Math.floor(centerX - maxRange));
+    const maxX = Math.min(gameMap.width - 1, Math.ceil(centerX + maxRange));
+    const minY = Math.max(0, Math.floor(centerY - maxRange));
+    const maxY = Math.min(gameMap.height - 1, Math.ceil(centerY + maxRange));
 
     for (let y = minY; y <= maxY; y++) {
       for (let x = minX; x <= maxX; x++) {
@@ -245,8 +245,8 @@ export class LineOfSight {
 
       // Define which entity types block sight by default
       const blockingSightTypes = ['building', 'large_obstacle'];
-      return blockingSightTypes.includes(entity.type) || 
-             (entity.subtype && blockingSightTypes.includes(entity.subtype));
+      return blockingSightTypes.includes(entity.type) ||
+        (entity.subtype && blockingSightTypes.includes(entity.subtype));
     }) || null;
   }
 

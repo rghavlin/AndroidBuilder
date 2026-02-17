@@ -76,6 +76,10 @@ export class CraftingManager {
                 // Handle "Either A or B"
                 const matches = candidates.filter(i => req.either.includes(i.defId));
                 foundCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
+            } else if (req.category) {
+                // Handle by Category (e.g. "any clothing")
+                const matches = candidates.filter(i => i.categories && i.categories.includes(req.category));
+                foundCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
             } else {
                 // Handle specific item
                 const matches = candidates.filter(i => i.defId === req.id);
@@ -123,7 +127,9 @@ export class CraftingManager {
 
             const matches = req.either
                 ? candidates.filter(i => req.either.includes(i.defId))
-                : candidates.filter(i => i.defId === req.id);
+                : req.category
+                    ? candidates.filter(i => i.categories && i.categories.includes(req.category))
+                    : candidates.filter(i => i.defId === req.id);
 
             for (const item of matches) {
                 if (remainingToConsume <= 0) break;

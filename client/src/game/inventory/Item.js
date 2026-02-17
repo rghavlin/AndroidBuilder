@@ -82,6 +82,11 @@ export class Item extends SafeEventEmitter {
 
     // Condition (if degradable)
     this.condition = condition;
+    this.fragility = 2; // Default
+    if (this.defId && ItemDefs[this.defId]?.fragility) {
+      this.fragility = ItemDefs[this.defId].fragility;
+    }
+
     this.capacity = capacity; // Initialize capacity here
     this.ammoCount = ammoCount;
 
@@ -319,13 +324,14 @@ export class Item extends SafeEventEmitter {
 
   /**
    * Reduce condition for degradable items
-   * @param {number} amount - Amount to reduce condition by
+   * @param {number} amount - Amount to reduce condition by (defaults to items fragility)
    */
-  degrade(amount = 1) {
+  degrade(amount = null) {
     if (!this.isDegradable() || this.condition === null) return;
 
-    this.condition = Math.max(0, this.condition - amount);
-    console.debug(`[Item] ${this.name} degraded by ${amount}. Remaining condition: ${this.condition}`);
+    const finalAmount = amount !== null ? amount : this.fragility;
+    this.condition = Math.max(0, this.condition - finalAmount);
+    console.debug(`[Item] ${this.name} degraded by ${finalAmount}. Remaining condition: ${this.condition}`);
 
     if (this.condition <= 0) {
       console.log(`[Item] ${this.name} (${this.instanceId}) has BROKEN!`);

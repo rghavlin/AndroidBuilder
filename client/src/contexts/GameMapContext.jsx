@@ -144,7 +144,7 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Handle tile click for movement
-  const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement) => {
+  const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement, isNight = false, isFlashlightOn = false) => {
     if (!gameMapRef.current || !player) {
       console.warn('[GameMapContext] Cannot handle tile click - game map or player not available');
       return;
@@ -183,7 +183,7 @@ export const GameMapProvider = ({ children }) => {
       };
 
       if (!Pathfinding.isTileWalkable(targetTile, entityFilter)) {
-        console.log('[GameMapContext] Target tile is not walkable');
+        console.log('[GameMapContext] Target tile is not walkable or not explored');
         return;
       }
 
@@ -216,7 +216,7 @@ export const GameMapProvider = ({ children }) => {
       checkPathForZombieVisibility(path, player);
 
       // Start animated movement
-      startAnimatedMovement(gameMapRef.current, camera, path, movementCost);
+      startAnimatedMovement(gameMapRef.current, camera, path, movementCost, isNight, isFlashlightOn);
 
       // Check for map transitions after movement completes (no timer - immediate check)
       const finalTile = gameMapRef.current.getTile(x, y);
@@ -240,11 +240,20 @@ export const GameMapProvider = ({ children }) => {
   }, [checkPathForZombieVisibility]);
 
   // Handle tile hover for path preview
-  const handleTileHover = useCallback(async (x, y, player) => {
+  const handleTileHover = useCallback(async (x, y, player, isNight = false, isFlashlightOn = false) => {
     if (!player || !gameMapRef.current) return;
 
     const targetTile = gameMapRef.current.getTile(x, y);
-    if (!targetTile) return;
+    if (!targetTile) {
+      setHoveredTile(null);
+      return;
+    }
+
+    const isExplored = targetTile.flags && targetTile.flags.explored;
+    if (!isExplored) {
+      setHoveredTile(null);
+      return;
+    }
 
     try {
       const entityFilter = (tile) => {

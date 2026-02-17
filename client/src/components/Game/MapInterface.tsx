@@ -43,7 +43,9 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
   } : null;
 
   const item = equippedItem || unarmedItem;
+  const { isFlashlightOn, toggleFlashlight } = useGame();
   const isTargeting = targetingWeapon?.item.instanceId === item?.instanceId;
+  const isFlashlightActive = slot === 'flashlight' && isFlashlightOn;
 
   // Load image when item changes
   useEffect(() => {
@@ -83,7 +85,10 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
   }, [item, inventoryVersion, isMeleeUnarmed]);
 
   const handleClick = () => {
-    if (item && (slot === 'melee' || slot === 'handgun' || slot === 'long_gun')) {
+    if (slot === 'flashlight') {
+      console.log(`[ActionSlot] Clicked flashlight: Toggling state`);
+      toggleFlashlight();
+    } else if (item && (slot === 'melee' || slot === 'handgun' || slot === 'long_gun')) {
       console.log(`[ActionSlot] Clicked ${slot}: Toggling targeting for ${item.name}`);
       toggleTargeting(item, slot);
     } else if (item) {
@@ -101,9 +106,11 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
         // Empty state: Black bg, White outline
         !item && "bg-black border-white hover:bg-zinc-900 shadow-sm",
         // Equipped state: Green outline (like end turn button) w/ transparent or slight bg
-        item && !isTargeting && "border-green-500 bg-green-500/10 hover:bg-green-500/20",
+        item && !isTargeting && !isFlashlightActive && "border-green-500 bg-green-500/10 hover:bg-green-500/20",
         // Targeting state: Bright red outline/glow
-        item && isTargeting && "border-red-500 bg-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+        item && isTargeting && "border-red-500 bg-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
+        // Flashlight ON state: Bright yellow/cyan outline/glow
+        isFlashlightActive && "border-cyan-400 bg-cyan-400/20 shadow-[0_0_10px_rgba(34,211,238,0.4)] hover:bg-cyan-400/30"
       )}
       title={item ? item.name : `Empty ${slot} slot`}
     >
@@ -130,7 +137,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     initializeGame,
     targetingItem,
     cancelTargetingItem,
-    useCrowbarOnDoor
+    useBreakingToolOnDoor,
+    isNight,
+    isFlashlightOn
   } = useGame();
 
   // Get inventory context for floating containers and selection management
@@ -192,7 +201,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
     // Handle Item Targeting (Crowbar etc)
     if (targetingItem) {
-      const result = useCrowbarOnDoor(x, y);
+      const result = useBreakingToolOnDoor(x, y);
       if (!result.success) {
         // If it failed (locked door not found, etc), clear targeting as requested
         cancelTargetingItem();
@@ -328,7 +337,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             onCellClick={onCellClick}
             onCellRightClick={onCellRightClick}
             selectedItem={selectedItem}
-            isTargeting={!!targetingWeapon || !!targetingItem}
+            isTargeting={!!targetingWeapon || (targetingItem ? true : false)}
+            isNight={isNight}
+            isFlashlightOn={isFlashlightOn}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -385,15 +396,33 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 const newFovTiles = updatePlayerFieldOfView(gameMap);
                 // Refresh zombie tracking with new FOV
                 refreshZombieTracking(player, newFovTiles);
+
+                // Add noise generation to attract zombies
+                const zombies = gameMap.getEntitiesByType('zombie');
+                zombies.forEach((z: any) => {
+                  const distance = Math.abs(z.x - doorMenu.x) + Math.abs(z.y - doorMenu.y);
+                  if (distance <= 8) { // Noise range of 8
+                    z.setNoiseHeard(doorMenu.x, doorMenu.y);
+                  }
+                });
+              } else if (doorMenu.door.isDamaged) {
+                // Show "Damaged" if the door is broken
+                addEffect({
+                  type: 'damage',
+                  x: doorMenu.x,
+                  y: doorMenu.y,
+                  value: 'Damaged',
+                  color: '#ef4444',
+                  duration: 1000
+                });
               } else if (doorMenu.door.isOpen && !success) {
                 // Check if it was blocked by occupancy (toggle returned false while open)
-                // We show "Occupied" floating message
                 addEffect({
                   type: 'damage',
                   x: doorMenu.x,
                   y: doorMenu.y,
                   value: 'Occupied',
-                  color: '#ef4444', // Red color for blocked action
+                  color: '#ef4444',
                   duration: 1000
                 });
               } else if (doorMenu.door.isLocked && !doorMenu.door.isOpen) {

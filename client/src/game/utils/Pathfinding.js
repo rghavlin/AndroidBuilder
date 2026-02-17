@@ -290,17 +290,14 @@ export class Pathfinding {
    * Check if a tile is walkable
    */
   static isTileWalkable(tile, entityFilter = null) {
-    // Use the tile's own walkability determination
-    if (tile.unwalkable) {
-      return false;
-    }
-
-    // Apply entity-specific filtering if provided
+    // Apply entity-specific filtering if provided first
+    // This allows entities (like zombies) to path "through" obstacles they can interact with (like doors)
     if (entityFilter && typeof entityFilter === 'function') {
       return entityFilter(tile);
     }
 
-    return true;
+    // Fall back to the tile's own walkability determination
+    return !tile.unwalkable;
   }
 
   /**

@@ -35,7 +35,8 @@ export const ItemCategory = {
   CHOKE: 'choke',
   CRAFTING_MATERIAL: 'crafting_material',
   COOKING_POT: 'cooking_pot',
-  FUEL: 'fuel'
+  FUEL: 'fuel',
+  KNIFE: 'knife'
 };
 
 // Trait flags

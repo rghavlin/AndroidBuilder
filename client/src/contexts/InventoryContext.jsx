@@ -160,6 +160,11 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'Inventory not initialized' };
     }
 
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      return { success: false, reason: 'Not enough AP (1 required)' };
+    }
+
     // Phase 5H: Close container window if it's open (e.g. equipping a backpack from ground)
     setOpenContainers(prev => {
       if (prev.size === 0) return prev;
@@ -181,6 +186,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
     const result = inventoryRef.current.equipItem(item, slot);
     if (result.success) {
+      if (playerRef.current) playerRef.current.useAP(1);
       setInventoryVersion(prev => prev + 1);
     }
     return result;
@@ -190,8 +196,14 @@ export const InventoryProvider = ({ children, manager }) => {
     if (!inventoryRef.current) {
       return { success: false, reason: 'Inventory not initialized' };
     }
+
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      return { success: false, reason: 'Not enough AP (1 required)' };
+    }
     const result = inventoryRef.current.unequipItem(slot);
     if (result.success) {
+      if (playerRef.current) playerRef.current.useAP(1);
       setInventoryVersion(prev => prev + 1);
     }
     return result;
@@ -434,6 +446,11 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'No item selected' };
     }
 
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      return { success: false, reason: 'Not enough AP (1 required)' };
+    }
+
     const { item, originContainerId } = selectedItem;
 
     // Check if item can be equipped in target slot
@@ -464,6 +481,7 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.equipItem(item, targetSlot);
 
     if (result.success) {
+      if (playerRef.current) playerRef.current.useAP(1);
       setSelectedItem(null);
       setDragVersion(prev => prev + 1);
       setInventoryVersion(prev => prev + 1);
@@ -475,8 +493,14 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const attachSelectedItemToWeapon = useCallback((weapon, slotId) => {
     if (!selectedItem || !inventoryRef.current) return { success: false, reason: 'No item selected' };
+
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      return { success: false, reason: 'Not enough AP (1 required)' };
+    }
     const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
     if (result.success) {
+      if (playerRef.current) playerRef.current.useAP(1);
       // IMPORTANT: Clear selection without triggering restoration logic in clearSelected()
       setSelectedItem(null);
       setDragVersion(v => v + 1);
@@ -487,8 +511,17 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const detachItemFromWeapon = useCallback((weapon, slotId) => {
     if (!inventoryRef.current) return null;
+
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      // NOTE: Context menu handles showing the error if we return null here,
+      // but usually we want to block the action.
+      return null;
+    }
+
     const item = inventoryRef.current.detachItemFromWeapon(weapon, slotId);
     if (item) {
+      if (playerRef.current) playerRef.current.useAP(1);
       setInventoryVersion(v => v + 1);
       // Auto-select the detached item
       // Include slotId in origin so it can be returned if selection cancelled
@@ -503,6 +536,11 @@ export const InventoryProvider = ({ children, manager }) => {
    */
   const attachSelectedInto = useCallback((targetWeapon) => {
     if (!selectedItem || !inventoryRef.current || !targetWeapon) return { success: false };
+
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      return { success: false, reason: 'Not enough AP (1 required)' };
+    }
 
     const { item: modItem } = selectedItem;
 
@@ -749,11 +787,17 @@ export const InventoryProvider = ({ children, manager }) => {
 
     // Phase 5H: Handle unequipping
     if (isEquipment) {
+      // Check AP cost (1 AP)
+      if (playerRef.current && playerRef.current.ap < 1) {
+        return { success: false, reason: 'Not enough AP (1 required)' };
+      }
+
       const slot = originContainerId.replace('equipment-', '');
       // Pass the target details to unequipItem so it respects the drop location
       const result = inventoryRef.current.unequipItem(slot, targetContainerId, targetX, targetY);
 
       if (result.success) {
+        if (playerRef.current) playerRef.current.useAP(1);
         // Item was unequipped and placed automatically
         setSelectedItem(null);
         setDragVersion(prev => prev + 1);

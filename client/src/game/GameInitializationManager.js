@@ -308,7 +308,7 @@ class GameInitializationManager extends EventEmitter {
   }
 
   _spawnInitialZombies(gameMap, player) {
-    const targetCount = 15;
+    const targetCount = 20;
     const mapHeight = gameMap.height;
     let spawnedCount = 0;
 

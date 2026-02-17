@@ -10,10 +10,14 @@ export class Door extends Entity {
         this.isOpen = isOpen;
         this.isLocked = isLocked;
         this.isDamaged = isDamaged;
+        this.maxHp = 20;
+        this.hp = isDamaged ? 0 : this.maxHp;
+
 
         // Update blocking status based on initial state
         this.updateBlocking();
     }
+
 
     /**
      * Update movement and sight blocking status based on open/closed state
@@ -107,8 +111,28 @@ export class Door extends Entity {
     }
 
     /**
+     * Take damage from an entity (zombie, etc)
+     * @param {number} amount - Amount of damage to take
+     */
+    takeDamage(amount) {
+        if (this.isOpen || this.isDamaged) return;
+
+        this.hp = Math.max(0, this.hp - amount);
+
+        if (this.hp <= 0) {
+            this.isDamaged = true;
+            this.isOpen = true;
+            this.updateBlocking();
+            this.emitEvent('doorBroken');
+        } else {
+            this.emitEvent('doorDamaged', { currentHp: this.hp, maxHp: this.maxHp });
+        }
+    }
+
+    /**
      * Create door from JSON data
      */
+
     static fromJSON(data) {
         const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged);
         door.blocksMovement = data.blocksMovement;

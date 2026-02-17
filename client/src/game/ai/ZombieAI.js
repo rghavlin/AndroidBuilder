@@ -100,7 +100,7 @@ export class ZombieAI {
         const directMoveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
         if (directMoveResult.success) {
           turnResult.actions.push({
-            type: 'move',
+            type: directMoveResult.type || 'move',
             from: directMoveResult.from,
             to: directMoveResult.to,
             apCost: directMoveResult.apCost
@@ -120,7 +120,7 @@ export class ZombieAI {
         const moveResult = this.attemptMoveTowards(zombie, gameMap, targetPosition.x, targetPosition.y);
         if (moveResult.success) {
           turnResult.actions.push({
-            type: 'move',
+            type: moveResult.type || 'move',
             from: moveResult.from,
             to: moveResult.to,
             apCost: moveResult.apCost
@@ -139,7 +139,7 @@ export class ZombieAI {
 
             if (altMoveResult.success) {
               turnResult.actions.push({
-                type: 'move',
+                type: altMoveResult.type || 'move',
                 from: altMoveResult.from,
                 to: altMoveResult.to,
                 apCost: altMoveResult.apCost
@@ -151,7 +151,7 @@ export class ZombieAI {
               const directMoveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
               if (directMoveResult.success) {
                 turnResult.actions.push({
-                  type: 'move',
+                  type: directMoveResult.type || 'move',
                   from: directMoveResult.from,
                   to: directMoveResult.to,
                   apCost: directMoveResult.apCost
@@ -172,7 +172,7 @@ export class ZombieAI {
             const directMoveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
             if (directMoveResult.success) {
               turnResult.actions.push({
-                type: 'move',
+                type: directMoveResult.type || 'move',
                 from: directMoveResult.from,
                 to: directMoveResult.to,
                 apCost: directMoveResult.apCost
@@ -261,7 +261,7 @@ export class ZombieAI {
       const moveResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
       if (moveResult.success) {
         turnResult.actions.push({
-          type: 'move',
+          type: moveResult.type || 'move',
           from: moveResult.from,
           to: moveResult.to,
           apCost: moveResult.apCost
@@ -291,15 +291,57 @@ export class ZombieAI {
    * @param {Object} turnResult - Result object to update
    */
   static executeHeardNoiseBehavior(zombie, gameMap, turnResult) {
+    const { x: targetX, y: targetY } = zombie.noiseCoords;
+    console.log(`[ZombieAI] Zombie ${zombie.id} investigating noise at (${targetX}, ${targetY})`);
+
     zombie.behaviorState = 'investigating';
 
-    // TODO: Implement noise investigation
-    // For now, just clear the noise flag and end turn
-    zombie.clearNoiseHeard();
-    turnResult.actions.push({
-      type: 'noiseInvestigation',
-      status: 'notImplemented'
-    });
+    // Move towards noise coordinates until reached or out of AP
+    while (zombie.currentAP > 0) {
+      // If we spot the player during investigation, switch to pursue
+      const player = gameMap.getEntitiesByType('player')[0];
+      if (player && zombie.canSeeEntity(gameMap, player)) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} spotted player while investigating noise, switching to pursuePlayer`);
+        zombie.setTargetSighted(player.x, player.y);
+        break;
+      }
+
+      const moveResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
+
+      if (moveResult.success) {
+        turnResult.actions.push({
+          type: 'move',
+          from: moveResult.from,
+          to: moveResult.to,
+          apCost: moveResult.apCost,
+          actionType: moveResult.type || 'move'
+        });
+
+        // If at target point, stop and clear
+        if (zombie.x === targetX && zombie.y === targetY) {
+          console.log(`[ZombieAI] Zombie ${zombie.id} reached noise source (${targetX}, ${targetY})`);
+          zombie.clearNoiseHeard();
+          break;
+        }
+      } else {
+        // Can't move closer (blocked), end turn
+        turnResult.actions.push({
+          type: 'blocked',
+          reason: moveResult.reason
+        });
+        console.log(`[ZombieAI] Zombie ${zombie.id} blocked investigating noise: ${moveResult.reason}`);
+
+        // If blocked and very close to the source, maybe we give up
+        const dist = Math.abs(zombie.x - targetX) + Math.abs(zombie.y - targetY);
+        if (dist <= 1) {
+          console.log(`[ZombieAI] Zombie ${zombie.id} blocked at noise source, clearing noise target`);
+          zombie.clearNoiseHeard();
+        }
+        break;
+      }
+    }
+
+    console.log(`[ZombieAI] Zombie ${zombie.id} noise investigation complete, remaining AP: ${zombie.currentAP}`);
   }
 
   /**
@@ -349,10 +391,23 @@ export class ZombieAI {
     // Update: Also allow pathing THROUGH doors (while still being blocked for actual move)
     // This ensures zombies track to last seen/heard positions behind closed doors
     const entityFilter = (tile) => {
+      // High-priority: Terrain blocking (Zombies can't walk through walls)
+      if (['wall', 'building', 'fence', 'tree', 'water'].includes(tile.terrain)) {
+        return false;
+      }
+
       const blockingEntities = tile.contents.filter(entity => {
-        return entity.blocksMovement && entity.id !== zombie.id && entity.type !== 'door';
+        // Allow pathfinding to CONSIDER tiles with doors, players, or other zombies
+        // The actual movement will still be blocked by canMoveToTile,
+        // which allows the zombie to then trigger attack/door-break logic.
+        return entity.blocksMovement &&
+          entity.id !== zombie.id &&
+          entity.type !== 'door' &&
+          entity.type !== 'player' &&
+          entity.type !== 'zombie';
       });
       return blockingEntities.length === 0;
+
     };
 
     const path = Pathfinding.findPath(
@@ -376,7 +431,43 @@ export class ZombieAI {
 
       // Validate the next move is walkable
       if (!this.canMoveToTile(gameMap, nextMove.x, nextMove.y)) {
-        console.log(`[ZombieAI] Next path step blocked, cannot move`);
+        const targetTile = gameMap.getTile(nextMove.x, nextMove.y);
+        const door = targetTile?.contents.find(e => e.type === 'door');
+
+        if (door && !door.isOpen) {
+          console.log(`[ZombieAI] Next path step blocked by closed door at (${nextMove.x}, ${nextMove.y}), attacking door`);
+
+          // Zombie attacks the door (costing 1 AP)
+          zombie.useAP(apCost);
+
+          // Zombies do 1-2 damage to doors per attack
+          const doorDamage = Math.floor(Math.random() * 2) + 1;
+          door.takeDamage(doorDamage);
+
+          console.log(`[ZombieAI] Zombie ${zombie.id} attacked door for ${doorDamage} damage, remaining AP: ${zombie.currentAP}`);
+
+          // Add noise generation to attract other zombies
+          const otherZombies = gameMap.getEntitiesByType('zombie');
+          otherZombies.forEach(z => {
+            if (z.id !== zombie.id) {
+              const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
+              if (distance <= 6) { // Zombie door attack is quieter than player interaction (range 6)
+                z.setNoiseHeard(nextMove.x, nextMove.y);
+              }
+            }
+          });
+
+          return {
+            success: true, // We count this as a successful action to keep the loop going
+            from: fromPos,
+            to: fromPos, // Zombie didn't move
+            type: 'attackDoor',
+            doorPos: { x: nextMove.x, y: nextMove.y },
+            apCost: apCost
+          };
+        }
+
+        console.log(`[ZombieAI] Next path step blocked by non-door entity or terrain, cannot move`);
         return { success: false, reason: 'Next path step blocked' };
       }
 

@@ -24,6 +24,33 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'crafting.makeshift_knife',
+        name: 'Makeshift Knife',
+        resultItem: 'weapon.makeshift_knife',
+        description: 'A sharp shard of glass secured with a makeshift handle.',
+        apCost: 4,
+        tools: [],
+        ingredients: [
+            { id: 'crafting.glass_shard', count: 1 },
+            { id: 'crafting.rag', count: 1 },
+            { either: ['crafting.tape', 'crafting.wire'], count: 1, label: 'Tape or Wire' }
+        ]
+    },
+    {
+        id: 'crafting.rag',
+        name: 'Rag',
+        resultItem: 'crafting.rag',
+        description: 'Tear up old clothing into useful rags.',
+        apCost: 2,
+        tools: [
+            { category: ItemCategory.KNIFE, label: 'Any Knife' }
+        ],
+        ingredients: [
+            { category: ItemCategory.CLOTHING, count: 1, label: 'Any Clothing' }
+        ],
+        resultCount: 2 // Assuming we want 2 rags per clothing item
+    },
+    {
         id: 'crafting.campfire',
         name: 'Campfire',
         resultItem: 'placeable.campfire',

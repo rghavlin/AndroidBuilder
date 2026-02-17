@@ -185,7 +185,7 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   // Update player field of view
-  const updatePlayerFieldOfView = useCallback((gameMap, playerMovement = null) => {
+  const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false) => {
     if (!gameMap || !playerRef.current) {
       setPlayerFieldOfView([]);
       return [];
@@ -194,9 +194,12 @@ export const PlayerProvider = ({ children }) => {
     try {
       const player = playerRef.current;
 
+      // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
+      const maxRange = isNight ? (isFlashlightOn ? 10 : 1.5) : 15;
+
       // Calculate field of view using LineOfSight
       const fovData = LineOfSight.calculateFieldOfView(gameMap, player, {
-        maxRange: 15, // Player sight range
+        maxRange: maxRange, // Player sight range adjusted for lighting
         ignoreTerrain: [], // Player can't see through walls
         ignoreEntities: [player.id] // Don't include player in entity blocking
       });
@@ -228,7 +231,7 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   // Smooth animation function using requestAnimationFrame
-  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500) => {
+  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false) => {
     if (!playerRef.current || !gameMap || !camera) {
       setIsMoving(false);
       setMovementPath([]);
@@ -300,8 +303,11 @@ export const PlayerProvider = ({ children }) => {
             x: Math.round(smoothX),
             y: Math.round(smoothY)
           };
+          // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
+          const maxRange = isNight ? (isFlashlightOn ? 10 : 1.5) : 15;
+
           const fovResult = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, {
-            maxRange: 25,
+            maxRange: maxRange,
             ignoreTerrain: [],
             ignoreEntities: [playerRef.current.id]
           });
@@ -372,7 +378,7 @@ export const PlayerProvider = ({ children }) => {
         }
 
         // Calculate new field of view
-        updatePlayerFieldOfView(gameMap, { from: { x: originalPosition.x, y: originalPosition.y }, to: { x: finalPosition.x, y: finalPosition.y } });
+        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
 
         // Update player cardinal positions after movement
         updatePlayerCardinalPositions(gameMap);
@@ -392,7 +398,7 @@ export const PlayerProvider = ({ children }) => {
   }, [updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
   // Start animated movement along path
-  const startAnimatedMovement = useCallback((gameMap, camera, path, cost) => {
+  const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false) => {
     if (!playerRef.current || !gameMap || !camera) return;
 
     console.log(`[PlayerContext] Starting animated movement from (${playerRef.current.x}, ${playerRef.current.y}) to (${path[path.length - 1].x}, ${path[path.length - 1].y})`);
@@ -412,7 +418,7 @@ export const PlayerProvider = ({ children }) => {
 
     // Start smooth animation
     const startTime = performance.now();
-    smoothAnimateMovement(gameMap, camera, path, startTime);
+    smoothAnimateMovement(gameMap, camera, path, startTime, 1500, isNight, isFlashlightOn);
   }, [smoothAnimateMovement]);
 
   // Calculate player render position for animation

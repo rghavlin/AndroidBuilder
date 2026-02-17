@@ -9,6 +9,8 @@ import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from './GameMapContext.jsx';
 import { CameraProvider, useCamera } from './CameraContext.jsx';
 import { InventoryProvider } from './InventoryContext.jsx';
+import { useVisualEffects } from './VisualEffectsContext.jsx';
+
 import '../game/inventory/index.js';
 
 // Test functions are imported via inventory system
@@ -49,8 +51,10 @@ export const useGame = () => {
 const GameContextInner = ({ children }) => {
   // Use context hooks
   const { playerRef, setPlayerRef, setPlayerPosition, setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, startAnimatedMovement, cancelMovement, isMoving: isAnimatingMovement } = usePlayer();
-  const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
+  const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
   const { cameraRef, camera, setCamera, setCameraWorldBounds } = useCamera();
+  const { addEffect } = useVisualEffects();
+
 
   // Phase 5A: Store inventoryManager from initialization
   const [inventoryManager, setInventoryManager] = useState(null);
@@ -81,6 +85,18 @@ const GameContextInner = ({ children }) => {
     initRef.current = initializationState;
   }, [initializationState]);
   const [turn, setTurn] = useState(1);
+  const [isFlashlightOn, setIsFlashlightOn] = useState(false);
+  const hour = (6 + (turn - 1)) % 24;
+  const isNight = hour >= 20 || hour < 6;
+
+  const toggleFlashlight = useCallback(() => {
+    setIsFlashlightOn(prev => {
+      const newState = !prev;
+      updatePlayerFieldOfView(gameMapRef.current, isNight, newState);
+      return newState;
+    });
+  }, [gameMapRef, isNight, updatePlayerFieldOfView]);
+
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [isSleeping, setIsSleeping] = useState(false);
@@ -398,6 +414,7 @@ const GameContextInner = ({ children }) => {
     console.log(`[GameContext] Starting new game initialization (run ${runIdRef.current})...`);
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
+    setTurn(1); // Reset turn counter to 1 for new game (06:00 start)
 
     const success = await initManagerRef.current.startInitialization(null);
     if (!success) {
@@ -512,6 +529,7 @@ const GameContextInner = ({ children }) => {
       setSleepProgress(hours);
 
       const player = playerRef.current;
+      let currentTurn = turn;
 
       for (let i = 0; i < hours; i++) {
         // 1 second delay per hour slept
@@ -528,7 +546,8 @@ const GameContextInner = ({ children }) => {
         }
 
         // Advance turn by 1
-        setTurn(prev => prev + 1);
+        currentTurn++;
+        setTurn(currentTurn);
         setSleepProgress(prev => prev - 1);
 
         // Sync stats to UI
@@ -582,8 +601,10 @@ const GameContextInner = ({ children }) => {
             }
 
             // 3. Final state sync after attacks
+            const interrupterHour = (6 + (currentTurn - 1)) % 24;
+            const interrupterIsNight = interrupterHour >= 20 || interrupterHour < 6;
             updatePlayerStats({ hp: player.hp, ap: player.ap });
-            updatePlayerFieldOfView(gameMap);
+            updatePlayerFieldOfView(gameMap, interrupterIsNight, isFlashlightOn);
             updatePlayerCardinalPositions(gameMap);
             setIsPlayerTurn(true);
             return; // Exit sleep loop
@@ -600,7 +621,9 @@ const GameContextInner = ({ children }) => {
       setSleepProgress(0);
 
       // Final state sync and effects
-      updatePlayerFieldOfView(gameMap);
+      const finalHour = (6 + (currentTurn - 1)) % 24;
+      const finalIsNight = finalHour >= 20 || finalHour < 6;
+      updatePlayerFieldOfView(gameMap, finalIsNight, isFlashlightOn);
       updatePlayerCardinalPositions(gameMap);
 
       await performAutosave();
@@ -621,7 +644,7 @@ const GameContextInner = ({ children }) => {
     setTargetingItem(null);
   }, []);
 
-  const useCrowbarOnDoor = useCallback((x, y) => {
+  const useBreakingToolOnDoor = useCallback((x, y) => {
     const player = playerRef.current;
     const gameMap = gameMapRef.current;
     if (!player || !gameMap || !targetingItem) return { success: false };
@@ -727,21 +750,44 @@ const GameContextInner = ({ children }) => {
           turnResult.actions.forEach((action, index) => {
             if (action.type === 'move') {
               console.log(`[GameContext] - Action ${index + 1}: Moved from (${action.from.x}, ${action.from.y}) to (${action.to.x}, ${action.to.y})`);
+            } else if (action.type === 'attackDoor' && action.doorPos) {
+              console.log(`[GameContext] - Action ${index + 1}: Attacking door at (${action.doorPos.x}, ${action.doorPos.y})`);
+
+              // Trigger visual effects for door attack
+              if (addEffect) {
+                // Floating "bang" text
+                addEffect({
+                  type: 'damage',
+                  x: action.doorPos.x,
+                  y: action.doorPos.y,
+                  value: 'bang',
+                  color: '#ffffff', // White text for door bangs
+                  duration: 800
+                });
+
+                // Brownish-gray tile flash
+                addEffect({
+                  type: 'tile_flash',
+                  x: action.doorPos.x,
+                  y: action.doorPos.y,
+                  color: 'rgba(139, 115, 85, 0.4)', // Door color
+                  duration: 300
+                });
+              }
             }
+
           });
         } else {
           console.warn(`[GameContext] Zombie ${zombie.id} turn failed:`, turnResult.reason || turnResult.error);
         }
       });
 
-      // Regenerate 1 HP at start of new turn phase if survival stats are sufficient (>= 1)
-      if (player.nutrition >= 1 && player.hydration >= 1) {
+      // Regenerate 1 HP at start of new turn phase if survival stats are sufficient (>= 5)
+      if (player.nutrition >= 5 && player.hydration >= 5) {
         player.heal(1);
       } else {
-        console.log(`[GameContext] HP regeneration skipped: Nutrition=${player.nutrition}, Hydration=${player.hydration}`);
+        console.log(`[GameContext] HP regeneration skipped (threshold 5): Nutrition=${player.nutrition}, Hydration=${player.hydration}`);
       }
-
-      player.restoreAP(player.maxAp - player.ap);
 
       // Apply Diseased condition penalties (Diseased condition reduces AP and HP by 1 per turn)
       if (player.condition === 'Diseased') {
@@ -768,6 +814,11 @@ const GameContextInner = ({ children }) => {
         console.log(`[GameContext] Player lost ${hpLoss} HP due to low nutrition/hydration.`);
       }
 
+      // Restore AP based on energy levels (Penalty if energy < 10, min 3 AP)
+      // This happens AFTER decay, so it reflects the energy available for the upcoming turn.
+      const targetAp = Math.max(3, player.maxAp - Math.max(0, 10 - player.energy));
+      player.restoreAP(targetAp - player.ap);
+
       updatePlayerStats({
         ap: player.ap,
         nutrition: player.nutrition,
@@ -777,10 +828,14 @@ const GameContextInner = ({ children }) => {
       });
       console.log(`[GameContext] Player AP restored to: ${player.ap}`);
 
-      updatePlayerFieldOfView(gameMap);
-      updatePlayerCardinalPositions(gameMap);
-
       const newTurn = turn + 1;
+      const nextHour = (6 + (newTurn - 1)) % 24;
+      const nextIsNight = nextHour >= 20 || nextHour < 6;
+
+      updatePlayerFieldOfView(gameMap, nextIsNight, isFlashlightOn);
+      updatePlayerCardinalPositions(gameMap);
+      triggerMapUpdate();
+
       setTurn(newTurn);
       console.log('[GameContext] Turn ended. Current turn:', newTurn);
 
@@ -841,7 +896,7 @@ const GameContextInner = ({ children }) => {
     });
 
     console.log(`[GameContext] Spawned ${spawnedCount} test entities for LOS testing`);
-    updatePlayerFieldOfView(gameMap);
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
     return spawnedCount;
   }, [updatePlayerFieldOfView, playerRef, gameMap]);
 
@@ -957,7 +1012,7 @@ const GameContextInner = ({ children }) => {
 
     if (success) {
       // Update PlayerContext data after successful transition (no timer)
-      updatePlayerFieldOfView(gameMapRef.current);
+      updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOn);
       updatePlayerCardinalPositions(gameMapRef.current);
       console.log('[GameContext] Player FOV and cardinal positions updated after map transition');
     }
@@ -974,6 +1029,10 @@ const GameContextInner = ({ children }) => {
 
     // Turn management
     turn,
+    isNight,
+    hour,
+    isFlashlightOn,
+    toggleFlashlight,
     isPlayerTurn,
     isAutosaving,
 
@@ -1003,7 +1062,7 @@ const GameContextInner = ({ children }) => {
     targetingItem,
     startTargetingItem,
     cancelTargetingItem,
-    useCrowbarOnDoor,
+    useBreakingToolOnDoor,
 
     // Phase 5A: Expose inventoryManager for InventoryProvider
     inventoryManager,
@@ -1016,6 +1075,10 @@ const GameContextInner = ({ children }) => {
     initializationState,
     initializationError,
     turn,
+    isNight,
+    hour,
+    isFlashlightOn,
+    toggleFlashlight,
     isPlayerTurn,
     isAutosaving,
     initializeGame,
@@ -1031,7 +1094,7 @@ const GameContextInner = ({ children }) => {
     targetingItem,
     startTargetingItem,
     cancelTargetingItem,
-    useCrowbarOnDoor
+    useBreakingToolOnDoor
   ]);
 
   return (

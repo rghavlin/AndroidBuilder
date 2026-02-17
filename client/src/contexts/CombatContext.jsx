@@ -114,9 +114,9 @@ export const CombatProvider = ({ children }) => {
             });
         }
 
-        // 6. Weapon Degradation
+        // 6. Weapon Degradation (Always occur after attack attempt if hit/miss processed)
         if (weapon.instanceId !== 'unarmed' && typeof weapon.degrade === 'function') {
-            weapon.degrade(1);
+            weapon.degrade(); // Uses its own fragility
         }
 
         return { success: true };

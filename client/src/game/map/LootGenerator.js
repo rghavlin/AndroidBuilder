@@ -114,6 +114,7 @@ export class LootGenerator {
         let hasFoodInPile = false;
         let hasStoneInPile = false;
         let hasBandageInPile = false;
+        let hasGlassInPile = false;
 
         for (let i = 0; i < count; i++) {
             // Pick a weighted random item
@@ -131,6 +132,7 @@ export class LootGenerator {
             // 2b. Pile limit: Max 1 stone/bandage per pile
             if (randomKey === 'crafting.stone' && hasStoneInPile) continue;
             if (randomKey === 'medical.bandage' && hasBandageInPile) continue;
+            if (randomKey === 'crafting.glass_shard' && hasGlassInPile) continue;
 
             // Create the item instance
             const selectedItem = createItemFromDef(randomKey);
@@ -140,10 +142,11 @@ export class LootGenerator {
                 if (isFood) hasFoodInPile = true;
                 if (randomKey === 'crafting.stone') hasStoneInPile = true;
                 if (randomKey === 'medical.bandage') hasBandageInPile = true;
+                if (randomKey === 'crafting.glass_shard') hasGlassInPile = true;
 
                 // 3. Custom Stack Rules
-                if (isFood || randomKey === 'crafting.stone' || randomKey === 'medical.bandage') {
-                    // Food/Water/Stones/Bandages: Always spawn only 1 at a time (as a single unit)
+                if (isFood || randomKey === 'crafting.stone' || randomKey === 'medical.bandage' || randomKey === 'crafting.glass_shard') {
+                    // Food/Water/Stones/Bandages/Glass: Always spawn only 1 at a time (as a single unit)
                     selectedItem.stackCount = 1;
                 } else if (randomKey === 'ammo.9mm') {
                     // 9mm: 1-10 rounds (override default stackMax logic)
@@ -154,9 +157,23 @@ export class LootGenerator {
                 } else if (randomKey === 'crafting.rag') {
                     // Rags: max 2 per drop
                     selectedItem.stackCount = 1 + Math.floor(Math.random() * 2);
+                } else if (randomKey === 'crafting.tape' || randomKey === 'crafting.wire') {
+                    // Tape/Wire: 1-5 units
+                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 5);
                 } else if (selectedItem.traits && selectedItem.traits.includes(ItemTrait.STACKABLE)) {
                     // General stackables: 1 to stackMax
                     selectedItem.stackCount = 1 + Math.floor(Math.random() * (selectedItem.stackMax || 1));
+                }
+
+                // 4. Weapon Condition Randomization (found in loot)
+                const isWeaponItem = (selectedItem.categories && selectedItem.categories.includes(ItemCategory.WEAPON)) || !!selectedItem.attachmentSlots;
+                const isDegradableItem = selectedItem.traits && selectedItem.traits.includes(ItemTrait.DEGRADABLE);
+
+                if (isWeaponItem && isDegradableItem) {
+                    const minCondition = 15;
+                    const maxCondition = 100;
+                    selectedItem.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+                    console.log(`[Loot] Randomized condition for ${selectedItem.name}: ${selectedItem.condition}%`);
                 }
 
                 // 4. Custom Water rules
@@ -183,6 +200,14 @@ export class LootGenerator {
                     if (magData) {
                         magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
                         selectedItem.attachments = { 'ammo': magData };
+                    }
+                }
+
+                // 6. Tool-specific logic (charges)
+                if (randomKey === 'tool.lighter' || randomKey === 'tool.matchbook') {
+                    if (selectedItem.capacity) {
+                        // Start with 1 to capacity charges
+                        selectedItem.ammoCount = 1 + Math.floor(Math.random() * selectedItem.capacity);
                     }
                 }
 

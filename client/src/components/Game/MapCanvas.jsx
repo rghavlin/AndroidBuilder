@@ -15,7 +15,9 @@ export default function MapCanvas({
   onCellClick = null,
   onCellRightClick = null,
   selectedItem = null,
-  isTargeting = false
+  isTargeting = false,
+  isNight = false,
+  isFlashlightOn = false
 }) {
   const canvasRef = useRef(null);
 
@@ -469,8 +471,8 @@ export default function MapCanvas({
           ctx.lineWidth = 0.5;
           ctx.strokeRect(pixelX, pixelY, tileSize, tileSize);
 
-          // Highlight hovered tile (only if visible)
-          if (isCurrentlyVisible && hoveredTile && hoveredTile.x === worldX && hoveredTile.y === worldY && player) {
+          // Highlight hovered tile (on any explored tile)
+          if (isExplored && hoveredTile && hoveredTile.x === worldX && hoveredTile.y === worldY && player) {
             const canAfford = hoveredTile.canAfford;
 
             // Hover highlight
@@ -505,7 +507,7 @@ export default function MapCanvas({
 
           // Apply "Fog" (dimming) for explored but NOT currently visible tiles
           if (isExplored && !isCurrentlyVisible) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // Dimexplored area
+            ctx.fillStyle = isNight ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)'; // Darker dimming at night
             ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
           }
 
@@ -549,7 +551,7 @@ export default function MapCanvas({
     } catch (error) {
       console.error('[MapCanvas] Error rendering map:', error);
     }
-  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, cameraRef.current, effects, renderEffect, renderEntity]); // Added renderEntity to dependency array
+  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, cameraRef.current, effects, renderEffect, renderEntity, isNight, isFlashlightOn]); // Add light state to dependencies
 
   // Handle mouse down for dragging
   const handleMouseDown = useCallback((event) => {
@@ -594,12 +596,12 @@ export default function MapCanvas({
       // Store hovered position for rendering - Fix: pass player parameter
       if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
         worldPos.y >= 0 && worldPos.y < gameMap.height) {
-        handleTileHover(worldPos.x, worldPos.y, player);
+        handleTileHover(worldPos.x, worldPos.y, player, isNight, isFlashlightOn);
       }
     } catch (error) {
       console.warn('[MapCanvas] Error handling tile hover:', error);
     }
-  }, [gameMapRef, cameraRef, playerRef, handleTileHover, calculateTileSize]);
+  }, [gameMapRef, cameraRef, playerRef, handleTileHover, calculateTileSize, isNight, isFlashlightOn]);
 
   // Handle mouse move for panning
   const handleMouseMove = useCallback((event) => {
@@ -722,7 +724,7 @@ export default function MapCanvas({
         // Only trigger movement if the click wasn't handled by MapInterface
         if (!handled) {
           // Call GameMapContext handleTileClick with required parameters
-          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement);
+          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement, isNight, isFlashlightOn);
         }
       } else {
         console.log('[MapCanvas] Click outside valid map bounds');
@@ -847,7 +849,7 @@ export default function MapCanvas({
     if (isInitialized && gameMapRef.current && cameraRef.current) {
       renderMap();
     }
-  }, [renderMap, isInitialized, gameMapRef, cameraRef, hoveredTile, imagesLoaded, playerRenderPosition, isAnimatingMovement, playerFieldOfView, effects, tick, mapVersion]);
+  }, [renderMap, isInitialized, gameMapRef, cameraRef, hoveredTile, imagesLoaded, playerRenderPosition, isAnimatingMovement, playerFieldOfView, effects, tick, mapVersion, isNight, isFlashlightOn]);
 
   // Add mouse event listeners for panning and zooming
   useEffect(() => {

@@ -50,8 +50,8 @@ export class InventoryManager extends SafeEventEmitter {
     this.containers.set('crafting-tools', new Container({
       id: 'crafting-tools',
       type: 'crafting-workspace',
-      name: 'Tool Slots',
-      width: 2,
+      name: 'Tool Slot',
+      width: 1,
       height: 1,
       allowedCategories: [ItemCategory.TOOL]
     }));
@@ -60,7 +60,7 @@ export class InventoryManager extends SafeEventEmitter {
       id: 'crafting-ingredients',
       type: 'crafting-workspace',
       name: 'Ingredient Grid',
-      width: 4,
+      width: 5,
       height: 4
     }));
 

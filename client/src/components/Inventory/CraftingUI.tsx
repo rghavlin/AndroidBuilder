@@ -137,19 +137,13 @@ export default function CraftingUI() {
                             <div className="flex flex-1 gap-4 items-center justify-center">
                                 {/* Tools Workspace */}
                                 <div className="flex flex-col items-center">
-                                    <h4 className="text-[0.55rem] font-bold text-muted-foreground uppercase mb-2">Tools</h4>
+                                    <h4 className="text-[0.55rem] font-bold text-muted-foreground uppercase mb-2">Required Tool</h4>
                                     <div className="flex gap-2 p-2 bg-black/20 rounded border border-border/50 shadow-inner">
                                         <WorkspaceSlot
                                             containerId="crafting-tools"
                                             slotIndex={0}
-                                            label="Tool 1"
+                                            label="Any Tool"
                                             icon="🔧"
-                                        />
-                                        <WorkspaceSlot
-                                            containerId="crafting-tools"
-                                            slotIndex={1}
-                                            label="Tool 2"
-                                            icon="🔨"
                                         />
                                     </div>
                                 </div>
