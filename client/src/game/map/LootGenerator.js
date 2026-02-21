@@ -9,11 +9,14 @@ import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/tra
  * - Sniper Ammo: Rare, max 5 rounds
  * - Food/Water: Uncommon
  * - Water Bottle: Max 1 per loot pile, random fill
+ * 
+ * New Rules:
+ * - Outdoor Loot: 15-20 drops, focus on outdoor items
+ * - Indoor Loot: Building-centric logic with tiered probabilities
  */
 export class LootGenerator {
     constructor() {
-        this.spawnCount = 20;
-        this.insideWeight = 0.75; // 75% inside
+        this.insideWeight = 0.75; // Legacy, kept for compatibility if needed
         this.itemKeys = [];
         this.backpacksSpawned = 0;
     }
@@ -23,41 +26,115 @@ export class LootGenerator {
      */
     spawnLoot(gameMap) {
         this.initItemKeys();
+        this.backpacksSpawned = 0;
 
-        const insideTiles = [];
-        const outsideTiles = [];
+        // 1. Identify buildings and spawn indoor loot
+        const buildings = this.getBuildings(gameMap);
+        console.log(`[LootGenerator] Detected ${buildings.length} buildings for indoor loot`);
 
+        buildings.forEach((buildingTiles, index) => {
+            let dropCount = 0;
+
+            // Tiered probability for loot drops in building
+            // 90% chance for 1st
+            if (Math.random() < 0.90) {
+                dropCount++;
+                // 50% chance for 2nd
+                if (Math.random() < 0.50) {
+                    dropCount++;
+                    // 25% chance for 3rd
+                    if (Math.random() < 0.25) {
+                        dropCount++;
+                        // 10% chance for 4th
+                        if (Math.random() < 0.10) {
+                            dropCount++;
+                        }
+                    }
+                }
+            }
+
+            if (dropCount > 0) {
+                const selectedTiles = this.getRandomSubarray(buildingTiles, dropCount);
+                selectedTiles.forEach(pos => {
+                    const items = this.generateRandomItems('inside');
+                    if (items.length > 0) {
+                        gameMap.setItemsOnTile(pos.x, pos.y, items);
+                    }
+                });
+                console.log(`[LootGenerator] Building ${index + 1}: Spawned ${dropCount} loot drops on ${buildingTiles.length} tiles`);
+            }
+        });
+
+        // 2. Identify outdoor tiles and spawn outdoor loot
+        const outdoorTiles = [];
         for (let y = 0; y < gameMap.height; y++) {
             for (let x = 0; x < gameMap.width; x++) {
                 const tile = gameMap.getTile(x, y);
                 if (!tile || !tile.isWalkable()) continue;
 
-                if (tile.terrain === 'floor') {
-                    insideTiles.push({ x, y });
-                } else if (['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
-                    outsideTiles.push({ x, y });
+                if (['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
+                    outdoorTiles.push({ x, y });
                 }
             }
         }
 
-        const countInside = Math.floor(this.spawnCount * this.insideWeight);
-        const countOutside = this.spawnCount - countInside;
+        const outdoorDropCount = 15 + Math.floor(Math.random() * 6); // 15 to 20
+        const selectedOutdoor = this.getRandomSubarray(outdoorTiles, outdoorDropCount);
 
-        const selectedInside = this.getRandomSubarray(insideTiles, countInside);
-        const selectedOutside = this.getRandomSubarray(outsideTiles, countOutside);
-
-        const allSelected = [...selectedInside, ...selectedOutside];
-        this.backpacksSpawned = 0;
-
-        allSelected.forEach(pos => {
-            const terrain = gameMap.getTile(pos.x, pos.y).terrain;
-            const location = ['road', 'sidewalk', 'grass'].includes(terrain) ? 'outside' : 'inside';
-
-            const items = this.generateRandomItems(location);
+        selectedOutdoor.forEach(pos => {
+            const items = this.generateRandomItems('outside');
             if (items.length > 0) {
                 gameMap.setItemsOnTile(pos.x, pos.y, items);
             }
         });
+        console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles`);
+    }
+
+    /**
+     * Identify contiguous floor tiles as buildings
+     */
+    getBuildings(gameMap) {
+        const buildings = [];
+        const visited = new Set();
+
+        for (let y = 0; y < gameMap.height; y++) {
+            for (let x = 0; x < gameMap.width; x++) {
+                const tile = gameMap.getTile(x, y);
+                const key = `${x},${y}`;
+
+                if (tile && tile.terrain === 'floor' && !visited.has(key)) {
+                    // Start flood fill for new building
+                    const buildingTiles = [];
+                    const queue = [{ x, y }];
+                    visited.add(key);
+
+                    while (queue.length > 0) {
+                        const current = queue.shift();
+                        buildingTiles.push(current);
+
+                        // Check neighbors
+                        const neighbors = [
+                            { x: current.x + 1, y: current.y },
+                            { x: current.x - 1, y: current.y },
+                            { x: current.x, y: current.y + 1 },
+                            { x: current.x, y: current.y - 1 }
+                        ];
+
+                        for (const neighbor of neighbors) {
+                            const nKey = `${neighbor.x},${neighbor.y}`;
+                            const nTile = gameMap.getTile(neighbor.x, neighbor.y);
+
+                            if (nTile && nTile.terrain === 'floor' && !visited.has(nKey)) {
+                                visited.add(nKey);
+                                queue.push(neighbor);
+                            }
+                        }
+                    }
+                    buildings.push(buildingTiles);
+                }
+            }
+        }
+        return buildings;
     }
 
     /**
@@ -83,7 +160,7 @@ export class LootGenerator {
     getWeightedRandomItemKey(location = 'any') {
         this.initItemKeys();
         const filteredKeys = this.itemKeys.filter(key => {
-            // Outdoor items: sticks and stones
+            // Outdoor items restricted logic if any (currently none, but location used for weighting)
             if (location === 'inside') {
                 if (key === 'weapon.stick' || key === 'crafting.stone') return false;
             }
@@ -92,13 +169,29 @@ export class LootGenerator {
 
         const totalWeight = filteredKeys.reduce((sum, key) => {
             const rarity = ItemDefs[key].rarity || Rarity.COMMON;
-            return sum + (RarityWeights[rarity] || 100);
+            let weight = RarityWeights[rarity] || 100;
+
+            // Prioritize outdoor items when spawning outside
+            if (location === 'outside' || location === 'any') {
+                if (key === 'weapon.stick' || key === 'crafting.stone') {
+                    weight *= 10; // 10x bias for sticks and stones outdoors
+                }
+            }
+
+            return sum + weight;
         }, 0);
 
         let random = Math.random() * totalWeight;
         for (const key of filteredKeys) {
             const rarity = ItemDefs[key].rarity || Rarity.COMMON;
-            const weight = RarityWeights[rarity] || 100;
+            let weight = RarityWeights[rarity] || 100;
+
+            if (location === 'outside' || location === 'any') {
+                if (key === 'weapon.stick' || key === 'crafting.stone') {
+                    weight *= 10;
+                }
+            }
+
             if (random < weight) return key;
             random -= weight;
         }

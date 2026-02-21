@@ -787,8 +787,10 @@ export const InventoryProvider = ({ children, manager }) => {
 
     // Phase 5H: Handle unequipping
     if (isEquipment) {
-      // Check AP cost (1 AP)
-      if (playerRef.current && playerRef.current.ap < 1) {
+      // Check AP cost (1 AP) - SKIP if target is crafting workspace
+      const isCraftingWorkspace = targetContainerId === 'crafting-tools' || targetContainerId === 'crafting-ingredients';
+
+      if (!isCraftingWorkspace && playerRef.current && playerRef.current.ap < 1) {
         return { success: false, reason: 'Not enough AP (1 required)' };
       }
 
@@ -797,7 +799,7 @@ export const InventoryProvider = ({ children, manager }) => {
       const result = inventoryRef.current.unequipItem(slot, targetContainerId, targetX, targetY);
 
       if (result.success) {
-        if (playerRef.current) playerRef.current.useAP(1);
+        if (!isCraftingWorkspace && playerRef.current) playerRef.current.useAP(1);
         // Item was unequipped and placed automatically
         setSelectedItem(null);
         setDragVersion(prev => prev + 1);
@@ -814,6 +816,18 @@ export const InventoryProvider = ({ children, manager }) => {
 
     const originContainer = inventoryRef.current.getContainer(originContainerId);
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
+
+    // Phase 10: Handle swapping for crafting-tools (behaves like an equipment slot)
+    if (targetContainerId === 'crafting-tools' && targetContainer && !targetContainer.isEmpty()) {
+      const existingItems = targetContainer.getAllItems();
+      console.debug('[InventoryContext] Swapping out existing tool from crafting workspace:', existingItems.length);
+      existingItems.forEach(existingItem => {
+        targetContainer.removeItem(existingItem.instanceId);
+        inventoryRef.current.addItem(existingItem);
+      });
+      // Force a refresh after removal to ensure validation sees an empty slot
+      setInventoryVersion(v => v + 1);
+    }
 
     // 1. Validate placement in target container
     const validation = targetContainer.validatePlacement(item, targetX, targetY, rotation);

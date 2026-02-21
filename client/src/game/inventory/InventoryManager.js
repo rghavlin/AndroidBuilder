@@ -53,7 +53,8 @@ export class InventoryManager extends SafeEventEmitter {
       name: 'Tool Slot',
       width: 1,
       height: 1,
-      allowedCategories: [ItemCategory.TOOL]
+      allowedCategories: [ItemCategory.TOOL],
+      ignoreSize: true
     }));
 
     this.containers.set('crafting-ingredients', new Container({

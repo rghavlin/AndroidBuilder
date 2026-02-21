@@ -308,24 +308,29 @@ class GameInitializationManager extends EventEmitter {
   }
 
   _spawnInitialZombies(gameMap, player) {
-    const targetCount = 20;
+    const targetCount = 15;
     const mapHeight = gameMap.height;
     let spawnedCount = 0;
 
-    console.log('[GameInitializationManager] Attempting to spawn', targetCount, 'zombies across the entire map');
+    console.log('[GameInitializationManager] Attempting to spawn', targetCount, 'zombies across the entire map with 75/25 distribution');
 
     for (let i = 0; i < targetCount; i++) {
       const maxAttempts = 50;
       let attempts = 0;
       let spawned = false;
 
+      // 75% chance to spawn in the top 50% of the map
+      const spawnInTopHalf = Math.random() < 0.75;
+      const yMin = spawnInTopHalf ? 0 : Math.floor(mapHeight * 0.5);
+      const yRange = spawnInTopHalf ? Math.floor(mapHeight * 0.5) : (mapHeight - yMin);
+
       while (!spawned && attempts < maxAttempts) {
         const x = Math.floor(Math.random() * gameMap.width);
-        const y = Math.floor(Math.random() * mapHeight);
+        const y = yMin + Math.floor(Math.random() * yRange);
 
         const tile = gameMap.getTile(x, y);
         const distanceFromPlayer = Math.abs(x - player.x) + Math.abs(y - player.y);
-        const minDistanceFromPlayer = 5;
+        const minDistanceFromPlayer = 7; // Increased slightly for safety
 
         if (tile && tile.isWalkable() && distanceFromPlayer >= minDistanceFromPlayer) {
           const hasEntities = tile.contents.length > 0;
@@ -337,7 +342,7 @@ class GameInitializationManager extends EventEmitter {
             if (gameMap.addEntity(zombie, x, y)) {
               spawnedCount++;
               spawned = true;
-              console.log('[GameInitializationManager] Spawned zombie', zombieId, 'at (', x, ',', y, '), distance:', distanceFromPlayer);
+              console.log(`[GameInitializationManager] Spawned zombie ${zombieId} at (${x}, ${y}) in ${spawnInTopHalf ? 'TOP' : 'BOTTOM'} half, distance: ${distanceFromPlayer}`);
             }
           }
         }

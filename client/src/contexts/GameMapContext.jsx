@@ -176,6 +176,11 @@ export const GameMapProvider = ({ children }) => {
           return false;
         }
 
+        // Terrain Check: Check if terrain blocks movement
+        if (['wall', 'building', 'fence', 'tree', 'water'].includes(tile.terrain)) {
+          return false;
+        }
+
         const blockingEntities = tile.contents.filter(entity => {
           return entity.blocksMovement && entity.id !== player.id;
         });
@@ -259,6 +264,11 @@ export const GameMapProvider = ({ children }) => {
       const entityFilter = (tile) => {
         // Restricted Movement: Only allow pathfinding to/through explored tiles
         if (!tile.flags || !tile.flags.explored) {
+          return false;
+        }
+
+        // Terrain Check: Check if terrain blocks movement
+        if (['wall', 'building', 'fence', 'tree', 'water'].includes(tile.terrain)) {
           return false;
         }
 
@@ -500,7 +510,7 @@ export const GameMapProvider = ({ children }) => {
       // Spawn zombies if none exist
       if (existingZombies.length === 0) {
         console.log(`[GameMapContext] Spawning zombies on new map ${result.mapId}`);
-        const zombiesToSpawn = 4;
+        const zombiesToSpawn = 20;
         let spawnedCount = 0;
         const maxAttempts = 50;
         const lowerHalfStartY = Math.floor(result.gameMap.height * 0.5);

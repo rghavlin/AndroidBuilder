@@ -15,7 +15,8 @@ export class Container {
     autoExpand = false,
     autoSort = false,
     ownerId = null, // ID of the item that owns this container
-    allowedCategories = null
+    allowedCategories = null,
+    ignoreSize = false
   }) {
     this.id = id;
     this.type = type;
@@ -26,6 +27,7 @@ export class Container {
     this.autoSort = autoSort;
     this.ownerId = ownerId;
     this.allowedCategories = Array.isArray(allowedCategories) ? allowedCategories : null;
+    this.ignoreSize = ignoreSize;
 
     // Grid storage - sparse array of items
     this.items = new Map(); // itemId -> Item
@@ -190,8 +192,11 @@ export class Container {
     }
 
     // Check bounds
-    if (!this.isValidPosition(x, y, width, height)) {
-      return { valid: false, reason: 'Out of bounds' };
+    // Phase 10: ignoreSize bypass
+    if (!this.ignoreSize) {
+      if (!this.isValidPosition(x, y, width, height)) {
+        return { valid: false, reason: 'Out of bounds' };
+      }
     }
 
     // Check for collisions (use instanceId for proper identification)
@@ -199,9 +204,12 @@ export class Container {
 
     // Phase Stacking: Check if we are dropping onto a stackable item
     const occupants = new Set();
-    for (let dy = 0; dy < height; dy++) {
-      for (let dx = 0; dx < width; dx++) {
-        const cellItem = this.grid[y + dy][x + dx];
+    const checkWidth = this.ignoreSize ? 1 : width;
+    const checkHeight = this.ignoreSize ? 1 : height;
+
+    for (let dy = 0; dy < checkHeight; dy++) {
+      for (let dx = 0; dx < checkWidth; dx++) {
+        const cellItem = this.grid[y + dy]?.[x + dx];
         if (cellItem && cellItem !== itemId) {
           occupants.add(cellItem);
         }
@@ -221,7 +229,7 @@ export class Container {
     }
 
     // Normal collision check
-    if (occupants.size > 0) {
+    if (occupants.size > 0 && !this.ignoreSize) {
       return { valid: false, reason: 'Position occupied' };
     }
 
@@ -314,15 +322,18 @@ export class Container {
     }
 
     // Validate bounds first
-    if (!this.isValidPosition(x, y, width, height)) {
+    if (!this.ignoreSize && !this.isValidPosition(x, y, width, height)) {
       console.warn('[Container] REJECT: Invalid position for item:', item.name, 'at', x, y, 'size:', width, 'x', height);
       return false;
     }
 
     // Check what's currently occupying the area
     const occupants = [];
-    for (let dy = 0; dy < height; dy++) {
-      for (let dx = 0; dx < width; dx++) {
+    const checkWidth = this.ignoreSize ? 1 : width;
+    const checkHeight = this.ignoreSize ? 1 : height;
+
+    for (let dy = 0; dy < checkHeight; dy++) {
+      for (let dx = 0; dx < checkWidth; dx++) {
         const cellContent = this.grid[y + dy]?.[x + dx];
         if (cellContent && cellContent !== itemId) {
           occupants.push({ pos: `(${x + dx}, ${y + dy})`, itemId: cellContent });
@@ -330,7 +341,7 @@ export class Container {
       }
     }
 
-    if (occupants.length > 0) {
+    if (occupants.length > 0 && !this.ignoreSize) {
       console.warn('[Container] REJECT: Area not free for item:', item.name, 'at', x, y);
       console.warn('[Container] Occupied cells:', occupants);
       return false;
@@ -349,8 +360,12 @@ export class Container {
     item._container = this;
 
     // Mark grid cells as occupied using instanceId
-    for (let dy = 0; dy < height; dy++) {
-      for (let dx = 0; dx < width; dx++) {
+    // Phase 10: only mark 1x1 if ignoreSize is enabled to avoid grid overflow
+    const fillWidth = this.ignoreSize ? 1 : width;
+    const fillHeight = this.ignoreSize ? 1 : height;
+
+    for (let dy = 0; dy < fillHeight; dy++) {
+      for (let dx = 0; dx < fillWidth; dx++) {
         this.grid[y + dy][x + dx] = itemId;
       }
     }
@@ -694,6 +709,7 @@ export class Container {
       autoExpand: this.autoExpand,
       autoSort: this.autoSort,
       allowedCategories: this.allowedCategories,
+      ignoreSize: this.ignoreSize,
       items: Array.from(this.items.values()).map(item => item.toJSON())
     };
   }

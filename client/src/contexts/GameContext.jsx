@@ -252,14 +252,14 @@ const GameContextInner = ({ children }) => {
       }
 
       // Now safe to do operations that depend on all contexts
-      updatePlayerFieldOfView(gameMap);
+      updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
       updatePlayerCardinalPositions(gameMap);
 
       // Mark as fully ready
       setContextSyncPhase('ready');
       console.log('[GameContext] Initialization fully complete - all contexts ready for operations');
     }
-  }, [contextSyncPhase, gameMap, camera, worldManager, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [contextSyncPhase, gameMap, camera, worldManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOn]);
 
 
 
@@ -299,7 +299,13 @@ const GameContextInner = ({ children }) => {
       // Set up player event listeners and update derived state
       setupPlayerEventListeners();
       attachInventorySyncListener(loadedState.player, loadedState.inventoryManager);
-      updatePlayerFieldOfView(loadedState.gameMap);
+
+      // Calculate isNight for the loaded turn
+      const loadedHour = (6 + (loadedState.turn - 1)) % 24;
+      const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
+      // Note: isFlashlightOn is currently not persisted in save state, defaults to false
+
+      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
       // Open the UI gate
@@ -367,8 +373,12 @@ const GameContextInner = ({ children }) => {
         console.log(`[GameContext] Camera recentered on loaded player position (${loadedState.player.x}, ${loadedState.player.y})`);
       }
 
+      // Calculate isNight for the loaded turn
+      const loadedHour = (6 + (loadedState.turn - 1)) % 24;
+      const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
+
       // Update derived player state
-      updatePlayerFieldOfView(loadedState.gameMap);
+      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
       console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
@@ -689,7 +699,7 @@ const GameContextInner = ({ children }) => {
 
     setTargetingItem(null);
     updatePlayerStats({ ap: player.ap });
-    updatePlayerFieldOfView(gameMap);
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
     updatePlayerCardinalPositions(gameMap);
 
     // Force re-render of map

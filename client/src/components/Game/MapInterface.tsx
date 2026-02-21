@@ -393,7 +393,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 // Force map re-render
                 triggerMapUpdate();
                 // Update FOV immediately and capture new visible tiles
-                const newFovTiles = updatePlayerFieldOfView(gameMap);
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
                 // Refresh zombie tracking with new FOV
                 refreshZombieTracking(player, newFovTiles);
 
