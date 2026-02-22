@@ -9,8 +9,8 @@ export class Player extends Entity {
     this.name = name;
     this.hp = 20;
     this.maxHp = 20;
-    this.ap = 12;
-    this.maxAp = 12;
+    this.ap = 20;
+    this.maxAp = 20;
     this.nutrition = 25;
     this.maxNutrition = 25;
     this.hydration = 25;
@@ -18,6 +18,7 @@ export class Player extends Entity {
     this.energy = 25;
     this.maxEnergy = 25;
     this.condition = 'Normal';
+    this.sickness = 0; // Turns of sickness left
     this.blocksMovement = true; // Players block other entities
 
     // Add instance tracking to detect duplicates
@@ -195,6 +196,47 @@ export class Player extends Entity {
   }
 
   /**
+   * Inflict sickness for a number of turns
+   * @param {number} turns - Number of turns (hours) the sickness lasts
+   */
+  inflictSickness(turns) {
+    this.sickness = (this.sickness || 0) + turns;
+    this.condition = 'Sick';
+    console.log(`[Player] ${this.name} is now Sick for ${this.sickness} turns`);
+
+    this.emitEvent('statChanged', {
+      stat: 'condition',
+      current: this.condition
+    });
+  }
+
+  /**
+   * Check if player is currently sick
+   * @returns {boolean}
+   */
+  get isSick() {
+    return this.sickness > 0;
+  }
+
+  /**
+   * Cure sickness and disease
+   */
+  cure() {
+    this.sickness = 0;
+    this.condition = 'Normal';
+    console.log(`[Player] ${this.name} has been CURED of all ailments`);
+
+    this.emitEvent('statChanged', {
+      stat: 'condition',
+      current: this.condition
+    });
+    this.emitEvent('statChanged', {
+      stat: 'sickness',
+      current: this.sickness
+    });
+  }
+
+  /**
    * Serialize player to JSON
    */
   toJSON() {
@@ -211,7 +253,8 @@ export class Player extends Entity {
       maxHydration: this.maxHydration,
       energy: this.energy,
       maxEnergy: this.maxEnergy,
-      condition: this.condition
+      condition: this.condition,
+      sickness: this.sickness
     };
   }
 
@@ -222,8 +265,8 @@ export class Player extends Entity {
     const player = new Player(data.id, data.name, data.x, data.y);
     player.hp = data.hp;
     player.maxHp = data.maxHp;
-    player.ap = data.ap !== undefined ? data.ap : 12;
-    player.maxAp = data.maxAp !== undefined ? data.maxAp : 12;
+    player.ap = data.ap !== undefined ? data.ap : 20;
+    player.maxAp = data.maxAp !== undefined ? data.maxAp : 20;
     player.nutrition = data.nutrition || 25;
     player.maxNutrition = data.maxNutrition || 25;
     player.hydration = data.hydration || 25;
@@ -231,6 +274,7 @@ export class Player extends Entity {
     player.energy = data.energy || 25;
     player.maxEnergy = data.maxEnergy || 25;
     player.condition = data.condition || 'Normal';
+    player.sickness = data.sickness || 0;
     return player;
   }
 }

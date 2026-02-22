@@ -139,7 +139,10 @@ export const CombatProvider = ({ children }) => {
         );
         const magazine = ammoSlot ? weapon.attachments[ammoSlot.id] : null;
 
-        if (!magazine || magazine.ammoCount <= 0) {
+        const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+        const currentAmmo = isMagazine ? (magazine.ammoCount || 0) : (magazine?.stackCount || 0);
+
+        if (!magazine || currentAmmo <= 0) {
             return { success: false, reason: 'Out of ammo' };
         }
 
@@ -170,10 +173,25 @@ export const CombatProvider = ({ children }) => {
         const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
         const squaresAway = Math.floor(distance);
 
-        // 100% hit at distance 1. -Falloff for each square beyond that.
-        const hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
+        // Scope Logic
+        const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
+        const sightItem = sightSlot ? weapon.attachments[sightSlot.id] : null;
+        const hasScope = sightItem && sightItem.categories?.includes(ItemCategory.RIFLE_SCOPE);
 
-        console.log(`[Combat] Ranged attack with ${weapon.name} at distance ${distance.toFixed(2)} (${squaresAway} squares)`);
+        let hitChance;
+        if (hasScope) {
+            if (squaresAway <= 15) {
+                hitChance = 1.0;
+            } else {
+                // Falloff starts from 16
+                hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
+            }
+        } else {
+            // 100% hit at distance 1. -Falloff for each square beyond that.
+            hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
+        }
+
+        console.log(`[Combat] Ranged attack with ${weapon.name} at distance ${distance.toFixed(2)} (${squaresAway} squares)${hasScope ? ' (Scoped)' : ''}`);
         console.log(`[Combat] Hit chance: ${(hitChance * 100).toFixed(1)}%`);
 
         const roll = Math.random();
@@ -181,7 +199,15 @@ export const CombatProvider = ({ children }) => {
 
         // 6. Apply Results
         player.useAP(1);
-        magazine.ammoCount--; // Consume 1 bullet
+
+        if (isMagazine) {
+            magazine.ammoCount--;
+        } else {
+            magazine.stackCount--;
+            // If stack is empty, it stays in the slot (empty drum) but getDisplayAmmoCount handles showing 0
+            // Actually, for .357, we want the "item" to stay there so we can see the slot is occupied by 0 rounds?
+            // User said "1 AP to place ammo in the drum".
+        }
 
         if (hit) {
             const damage = Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;

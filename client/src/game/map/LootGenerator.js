@@ -207,6 +207,7 @@ export class LootGenerator {
         let hasFoodInPile = false;
         let hasStoneInPile = false;
         let hasBandageInPile = false;
+        let hasAntibioticsInPile = false;
         let hasGlassInPile = false;
 
         for (let i = 0; i < count; i++) {
@@ -225,6 +226,7 @@ export class LootGenerator {
             // 2b. Pile limit: Max 1 stone/bandage per pile
             if (randomKey === 'crafting.stone' && hasStoneInPile) continue;
             if (randomKey === 'medical.bandage' && hasBandageInPile) continue;
+            if (randomKey === 'medical.antibiotics' && hasAntibioticsInPile) continue;
             if (randomKey === 'crafting.glass_shard' && hasGlassInPile) continue;
 
             // Create the item instance
@@ -235,17 +237,18 @@ export class LootGenerator {
                 if (isFood) hasFoodInPile = true;
                 if (randomKey === 'crafting.stone') hasStoneInPile = true;
                 if (randomKey === 'medical.bandage') hasBandageInPile = true;
+                if (randomKey === 'medical.antibiotics') hasAntibioticsInPile = true;
                 if (randomKey === 'crafting.glass_shard') hasGlassInPile = true;
 
                 // 3. Custom Stack Rules
-                if (isFood || randomKey === 'crafting.stone' || randomKey === 'medical.bandage' || randomKey === 'crafting.glass_shard') {
+                if (isFood || randomKey === 'crafting.stone' || randomKey === 'medical.bandage' || randomKey === 'medical.antibiotics' || randomKey === 'crafting.glass_shard') {
                     // Food/Water/Stones/Bandages/Glass: Always spawn only 1 at a time (as a single unit)
                     selectedItem.stackCount = 1;
-                } else if (randomKey === 'ammo.9mm') {
-                    // 9mm: 1-10 rounds (override default stackMax logic)
+                } else if (randomKey === 'ammo.9mm' || randomKey === 'ammo.357') {
+                    // 9mm/357: 1-10 rounds (override default stackMax logic)
                     selectedItem.stackCount = 1 + Math.floor(Math.random() * 10);
-                } else if (randomKey === 'ammo.sniper') {
-                    // Sniper: max 5 rounds
+                } else if (randomKey === 'ammo.sniper' || randomKey === 'ammo.308') {
+                    // Sniper/308: max 5 rounds
                     selectedItem.stackCount = 1 + Math.floor(Math.random() * 5);
                 } else if (randomKey === 'crafting.rag') {
                     // Rags: max 2 per drop
@@ -270,7 +273,7 @@ export class LootGenerator {
                 }
 
                 // 4. Custom Water rules
-                if (selectedItem.capacity !== undefined && isFood && selectedItem.defId === 'food.waterbottle') {
+                if (selectedItem.capacity !== undefined && isFood && (selectedItem.defId === 'food.waterbottle' || selectedItem.defId === 'food.waterjug')) {
                     // Water level: 
                     // 75% chance: mostly empty (0-4 units)
                     // 25% chance: significant fill (5-20 units)
@@ -287,6 +290,15 @@ export class LootGenerator {
                     if (magData) {
                         magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
                         selectedItem.attachments = { 'ammo': magData };
+                    }
+                } else if (randomKey === 'weapon.357Pistol' || randomKey === 'weapon.hunting_rifle') {
+                    // .357 / Hunting Rifle: Load with 1-6 or 1-5 rounds
+                    const ammoType = randomKey === 'weapon.357Pistol' ? 'ammo.357' : 'ammo.308';
+                    const maxRounds = randomKey === 'weapon.357Pistol' ? 6 : 5;
+                    const ammoData = createItemFromDef(ammoType);
+                    if (ammoData) {
+                        ammoData.stackCount = 1 + Math.floor(Math.random() * maxRounds);
+                        selectedItem.attachments = { 'ammo': ammoData };
                     }
                 } else if (randomKey === 'weapon.sniper_rifle') {
                     const magData = createItemFromDef('attachment.sniper_magazine');

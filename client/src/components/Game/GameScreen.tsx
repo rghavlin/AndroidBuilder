@@ -48,10 +48,7 @@ function GameScreenContent() {
   const { playerStats: realPlayerStats } = usePlayer();
   const {
     gameMap,
-    worldManager,
-    mapTransition,
-    handleMapTransitionConfirm,
-    handleMapTransitionCancel
+    worldManager
   } = useGameMap();
 
   // Phase 4: Only use orchestration functions from GameContext
@@ -64,7 +61,9 @@ function GameScreenContent() {
     endTurn,
     initializeGame,
     loadGameDirect,
+    mapTransition,
     handleMapTransitionConfirmWrapper,
+    handleMapTransitionCancel,
     inventoryManager
   } = useGame();
 

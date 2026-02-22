@@ -738,7 +738,26 @@ const GameContextInner = ({ children }) => {
       lastSeenTaggedTilesRef.current.clear();
       console.log('[GameContext] Cleared all LastSeen tagged tiles for new zombie turn phase');
 
+      // Process Player Turn-End Status (Sickness, Regen, etc.)
       const player = playerRef.current;
+      if (player.sickness > 0) {
+        player.sickness -= 1;
+        // Take damage from sickness (e.g. 1 hp per turn)
+        player.takeDamage(1, { id: 'sickness', type: 'status' });
+
+        if (player.sickness === 0) {
+          player.condition = 'Normal';
+          console.log('[GameContext] Player recovered from sickness');
+        }
+
+        // Update stats to trigger UI update
+        updatePlayerStats({
+          hp: player.hp,
+          sickness: player.sickness,
+          condition: player.condition
+        });
+      }
+
       const zombies = gameMap.getEntitiesByType('zombie');
       console.log(`[GameContext] Processing ${zombies.length} zombie turns`);
 
@@ -824,9 +843,38 @@ const GameContextInner = ({ children }) => {
         console.log(`[GameContext] Player lost ${hpLoss} HP due to low nutrition/hydration.`);
       }
 
-      // Restore AP based on energy levels (Penalty if energy < 10, min 3 AP)
-      // This happens AFTER decay, so it reflects the energy available for the upcoming turn.
-      const targetAp = Math.max(3, player.maxAp - Math.max(0, 10 - player.energy));
+      // Restore AP based on energy and HP levels
+      // 1. Energy Penalty: 
+      //    For every 5 points below 25, gain one less AP.
+      //    Below 5, regain 1 less AP for every point.
+      const energyLost = Math.max(0, 25 - player.energy);
+      let energyPenalty = 0;
+      if (player.energy >= 5) {
+        energyPenalty = Math.floor(energyLost / 5);
+      } else {
+        // Penalty at 5 is 4. At 4 it is 4, at 3 it is 5... so (8 - energy) works:
+        // 5 -> 3? No, user said "regain 1 less ap every turn that their energy does not go above 5"
+        // At 4 energy, they get 16ap (Penalty 4).
+        // At 3 energy, they get 15ap (Penalty 5).
+        // Penalty = 8 - energy.
+        energyPenalty = 8 - player.energy;
+      }
+
+      // 2. HP Penalty: Same effect as energy (threshold 20 instead of 25)
+      const hpLost = Math.max(0, 20 - player.hp);
+      let hpPenalty = 0;
+      if (player.hp >= 5) {
+        hpPenalty = Math.floor(hpLost / 5);
+      } else {
+        // Penalty at 5 is 3. At 4 it is 3, at 3 it is 4... so (7 - HP) works:
+        // 5 -> 2? No, 20-5 = 15. 15/5 = 3.
+        // HP Penalty = 7 - player.hp.
+        hpPenalty = 7 - player.hp;
+      }
+
+      const totalPenalty = energyPenalty + hpPenalty;
+      const targetAp = Math.max(0, 20 - totalPenalty);
+
       player.restoreAP(targetAp - player.ap);
 
       updatePlayerStats({
@@ -1028,7 +1076,7 @@ const GameContextInner = ({ children }) => {
     }
 
     return success;
-  }, [mapTransitionConfirm, playerRef, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, gameMapRef, setCameraWorldBounds, cameraRef]);
+  }, [mapTransitionConfirm, playerRef, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, gameMapRef, setCameraWorldBounds, cameraRef, inventoryManager, isNight, isFlashlightOn]);
 
   const contextValue = useMemo(() => ({
     // Game lifecycle state only
@@ -1060,8 +1108,10 @@ const GameContextInner = ({ children }) => {
     performAutosave,
     exportGame,
 
-    // Map transition wrapper
+    // Map transition components
+    mapTransition,
     handleMapTransitionConfirmWrapper,
+    handleMapTransitionCancel,
 
     // Phase 6: Sleep functionality
     isSleeping,
@@ -1104,7 +1154,10 @@ const GameContextInner = ({ children }) => {
     targetingItem,
     startTargetingItem,
     cancelTargetingItem,
-    useBreakingToolOnDoor
+    useBreakingToolOnDoor,
+    mapTransition,
+    handleMapTransitionConfirmWrapper,
+    handleMapTransitionCancel
   ]);
 
   return (

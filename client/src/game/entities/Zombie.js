@@ -17,8 +17,8 @@ export class Zombie extends Entity {
     this.heardNoise = false; // Has the zombie heard a noise?
     this.targetSightedCoords = { x: 0, y: 0 }; // Last known player position
     this.noiseCoords = { x: 0, y: 0 }; // Location of heard noise
-    this.maxAP = 8; // Maximum action points
-    this.currentAP = 8; // Current action points
+    this.maxAP = 12; // Maximum action points
+    this.currentAP = 12; // Current action points
     this.sightRange = 18; // Sight distance as specified
 
     // Current behavior state
@@ -262,8 +262,8 @@ export class Zombie extends Entity {
     zombie.heardNoise = data.heardNoise || false;
     zombie.targetSightedCoords = data.targetSightedCoords || { x: 0, y: 0 };
     zombie.noiseCoords = data.noiseCoords || { x: 0, y: 0 };
-    zombie.maxAP = data.maxAP || 8;
-    zombie.currentAP = data.currentAP || 8;
+    zombie.maxAP = data.maxAP || 12;
+    zombie.currentAP = data.currentAP || 12;
     zombie.sightRange = data.sightRange || 18;
     zombie.behaviorState = data.behaviorState || 'idle';
     zombie.isActive = data.isActive || false;

@@ -682,7 +682,48 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // 4. Attach to weapon
+    // 4. SPECIAL CASE: .357 Drum / Hunting Rifle Loading (Directly into slot, no mag)
+    const isDirectLoadWeapon = (weapon.defId === 'weapon.357Pistol' && item.defId === 'ammo.357') ||
+      (weapon.defId === 'weapon.hunting_rifle' && item.defId === 'ammo.308');
+
+    if (isDirectLoadWeapon && slotId === 'ammo' && item.isAmmo()) {
+      const existingAmmo = weapon.attachments[slotId];
+      const maxCapacity = weapon.defId === 'weapon.357Pistol' ? 6 : 5;
+
+      if (existingAmmo) {
+        const spaceLeft = maxCapacity - existingAmmo.stackCount;
+        if (spaceLeft <= 0) {
+          // Full, return item to source
+          if (removed.container) removed.container.addItem(item, removed.x, removed.y, item.rotation);
+          else if (removed.equipment) { this.equipment[removed.equipment] = item; item.isEquipped = true; }
+          return { success: false, reason: 'Full' };
+        }
+
+        const toAdd = Math.min(spaceLeft, item.stackCount);
+        existingAmmo.stackCount += toAdd;
+        item.stackCount -= toAdd;
+
+        if (item.stackCount > 0) {
+          // Return surplus to source
+          if (removed.container) removed.container.addItem(item, removed.x, removed.y, item.rotation);
+          else if (removed.equipment) { this.equipment[removed.equipment] = item; item.isEquipped = true; }
+        }
+
+        return { success: true, merged: true };
+      } else {
+        // Empty
+        if (item.stackCount > maxCapacity) {
+          const surplusCount = item.stackCount - maxCapacity;
+          const surplus = item.splitStack(surplusCount);
+          if (surplus) {
+            if (removed.container) removed.container.addItem(surplus, removed.x, removed.y, item.rotation);
+            else if (removed.equipment) { this.equipment[removed.equipment] = surplus; surplus.isEquipped = true; }
+          }
+        }
+      }
+    }
+
+    // 5. Attach to weapon
     const success = weapon.attachItem(slotId, item);
     if (!success) {
       console.warn('[InventoryManager] Attachment failed, restoring item to original source');
@@ -1277,26 +1318,65 @@ export class InventoryManager extends SafeEventEmitter {
    * This ensures campfires and other time-sensitive items expire even when "checked out" from the map.
    */
   processTurn() {
-    console.debug('[InventoryManager] Processing turn-based effects for ground container...');
-    const groundItems = this.groundContainer.getAllItems();
+    console.debug('[InventoryManager] Processing turn-based effects for all items...');
     let itemsChanged = false;
 
-    groundItems.forEach(item => {
-      if (item.lifetimeTurns !== undefined && item.lifetimeTurns !== null) {
-        item.lifetimeTurns -= 0.5;
-        console.debug(`[InventoryManager] Item ${item.name} (${item.instanceId}) lifetime updated: ${item.lifetimeTurns}`);
+    // Helper to process an item and handle expiration (removal)
+    const processItemAndCheckExpiration = (item, container = null) => {
+      const wasSpoiled = item.isSpoiled;
 
-        if (item.lifetimeTurns <= 0) {
-          console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired in ground container`);
-          this.groundContainer.removeItem(item.instanceId);
-          itemsChanged = true;
+      // Call item's own turn processing (decrements shelfLife, recurses into attachments/nested)
+      item.processTurn();
+
+      // If it just spoiled, we need to refresh UI
+      if (!wasSpoiled && item.isSpoiled) {
+        itemsChanged = true;
+      }
+
+      // Handle Expiration (Vanishing)
+      // Only items that ARE NOT spoilable should vanish when shelfLife reaches 0
+      if (item.shelfLife !== null && item.shelfLife <= 0 && !item.isSpoilable()) {
+        console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired and vanished.`);
+        if (container) {
+          container.removeItem(item.instanceId);
+        } else {
+          // It's in an equipment slot
+          for (const slot in this.equipment) {
+            if (this.equipment[slot] === item) {
+              this.equipment[slot] = null;
+              item.isEquipped = false;
+              break;
+            }
+          }
         }
+        itemsChanged = true;
+        return true; // Item was removed
+      }
+      return false; // Item remains
+    };
+
+    // 1. Process all containers (includes ground, backpack, pockets, dropdown bags)
+    for (const container of this.containers.values()) {
+      if (container.isVirtual) continue; // Skip virtual UI containers
+
+      const items = container.getAllItems();
+      items.forEach(item => {
+        if (processItemAndCheckExpiration(item, container)) {
+          // Item removed, handled in helper
+        }
+      });
+    }
+
+    // 2. Process equipment (only root level items that aren't in containers)
+    Object.values(this.equipment).forEach(item => {
+      if (item) {
+        processItemAndCheckExpiration(item);
       }
     });
 
     if (itemsChanged) {
-      this.groundManager.optimizeIfNeeded();
-      this.emit('inventoryChanged', { containerId: 'ground' });
+      this.updateDynamicContainers(); // Refresh if equipment changed
+      this.emit('inventoryChanged');
     }
   }
 

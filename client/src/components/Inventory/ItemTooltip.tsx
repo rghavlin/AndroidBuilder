@@ -93,6 +93,21 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                     <span>{item.ammoCount}{item.capacity ? ` / ${item.capacity}` : ''}</span>
                 </div>
             )}
+
+            {/* Spoilage Info */}
+            {item.traits?.includes('spoilable') && (
+                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                    <div className="flex justify-between">
+                        <span className="text-zinc-500">Spoils in</span>
+                        <span className={cn(
+                            "font-bold",
+                            item.shelfLife <= 0 ? "text-red-500" : (item.shelfLife <= 12 ? "text-amber-500" : "text-zinc-200")
+                        )}>
+                            {item.shelfLife <= 0 ? 'SPOILED' : `${item.shelfLife}h`}
+                        </span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

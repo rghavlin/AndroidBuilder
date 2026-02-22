@@ -430,8 +430,12 @@ export class WorldManager {
         mapData = {
           mapId: targetMapId,
           gameMap: gameMap,
-          mapType: 'road'
+          mapType: 'road',
+          metadata: generatedMapData.metadata
         };
+
+        // UPDATE CURRENT MAP ID
+        this.currentMapId = targetMapId;
 
         this.emit('mapGenerated', {
           mapId: targetMapId,
@@ -441,6 +445,9 @@ export class WorldManager {
 
         console.log(`[WorldManager] Generated and saved new road map: ${targetMapId}`);
       }
+
+      // Update current map ID for both paths (existing and new)
+      this.currentMapId = targetMapId;
 
       this.emit('mapTransition', {
         fromMapId: this.currentMapId,

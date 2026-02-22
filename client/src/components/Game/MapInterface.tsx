@@ -159,6 +159,21 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     }
   }, [lastTileClick]);
 
+  // Update FOV when targeting changes (for scoped vision boost)
+  useEffect(() => {
+    if (gameMapRef.current && playerRef.current) {
+      const weapon = targetingWeapon?.item;
+      const sightSlot = weapon?.attachmentSlots?.find(s => s.id === 'sight');
+      const sightItem = sightSlot ? weapon.attachments[sightSlot.id] : null;
+      const hasScope = sightItem && sightItem.categories?.includes('rifle_scope');
+
+      console.log(`[MapInterface] Targeting changed: ${weapon?.name || 'none'}, hasScope: ${hasScope}`);
+
+      const newFov = updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOn, !!hasScope);
+      refreshZombieTracking(playerRef.current, newFov);
+    }
+  }, [targetingWeapon, isNight, isFlashlightOn]);
+
   useEffect(() => {
     if (hoveredTile) {
       // Tile hover data available in hoveredTile

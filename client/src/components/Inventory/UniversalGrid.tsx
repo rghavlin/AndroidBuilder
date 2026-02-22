@@ -423,6 +423,15 @@ export default function UniversalGrid({
                 </div>
               )}
 
+              {/* Spoiled indicator */}
+              {item.isSpoiled && (
+                <div className="absolute inset-0 pointer-events-none z-30 flex items-center justify-center">
+                  <span className="text-[10px] font-black text-red-500 bg-black/80 px-1 py-0.5 rounded border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.5)] rotate-[-15deg] uppercase tracking-tighter">
+                    Spoiled
+                  </span>
+                </div>
+              )}
+
               {/* Water bottle fill bar */}
               {item.isWaterBottle && item.isWaterBottle() && (
                 <div className="absolute bottom-0.5 left-0.5 right-0.5 h-1 bg-black/50 overflow-hidden rounded-full z-20 border-[0.5px] border-white/20">

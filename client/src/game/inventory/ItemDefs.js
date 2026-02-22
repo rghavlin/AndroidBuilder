@@ -20,6 +20,20 @@ export const ItemDefs = {
     containerGrid: { width: 4, height: 5 }
   },
 
+  'backpack.makeshift': {
+    id: 'backpack.makeshift',
+    name: 'Makeshift pack',
+    noLoot: true,
+    rarity: Rarity.COMMON,
+    imageId: 'makeshiftpack',
+    width: 3,
+    height: 3,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.BACKPACK,
+    containerGrid: { width: 4, height: 4 }
+  },
+
+
   // Standard backpack: 4×4 item footprint → 5×7 internal storage
   'backpack.standard': {
     id: 'backpack.standard',
@@ -308,6 +322,44 @@ export const ItemDefs = {
       minAccuracy: 0.01
     }
   },
+  'weapon.357Pistol': {
+    id: 'weapon.357Pistol',
+    name: '.357 Pistol',
+    rarity: Rarity.RARE,
+    imageId: '357',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.HANDGUN,
+    attachmentSlots: [
+      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
+      { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.357'] }
+    ],
+    rangedStats: {
+      damage: { min: 5, max: 12 },
+      accuracyFalloff: 0.1,
+      minAccuracy: 0.01
+    }
+  },
+  'weapon.hunting_rifle': {
+    id: 'weapon.hunting_rifle',
+    name: 'Hunting rifle (308)',
+    rarity: Rarity.RARE,
+    imageId: 'huntingrifle',
+    width: 5,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.LONG_GUN,
+    attachmentSlots: [
+      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE, ItemCategory.LASER_SIGHT] },
+      { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.308'] }
+    ],
+    rangedStats: {
+      damage: { min: 4, max: 15 },
+      accuracyFalloff: 0.07,
+      minAccuracy: 0.01
+    }
+  },
 
   'tool.smallflashlight': {
     id: 'tool.smallflashlight',
@@ -393,7 +445,7 @@ export const ItemDefs = {
     imageId: 'rifle_scope',
     width: 2,
     height: 1,
-    traits: [],
+    traits: [ItemTrait.EQUIPPABLE],
     categories: [ItemCategory.RIFLE_SCOPE]
   },
 
@@ -457,6 +509,28 @@ export const ItemDefs = {
     categories: [ItemCategory.AMMO],
     stackMax: 20
   },
+  'ammo.357': {
+    id: 'ammo.357',
+    name: '.357 Ammo',
+    rarity: Rarity.UNCOMMON,
+    imageId: '357ammo',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
+    stackMax: 50
+  },
+  'ammo.308': {
+    id: 'ammo.308',
+    name: '.308 Ammo',
+    rarity: Rarity.UNCOMMON,
+    imageId: '308ammo',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
+    stackMax: 50
+  },
 
   'medical.bandage': {
     id: 'medical.bandage',
@@ -470,6 +544,20 @@ export const ItemDefs = {
     stackMax: 20,
     consumptionEffects: {
       hp: 5
+    }
+  },
+  'medical.antibiotics': {
+    id: 'medical.antibiotics',
+    name: 'Antibiotics',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'antibiotics',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.MEDICAL],
+    stackMax: 10,
+    consumptionEffects: {
+      cure: true
     }
   },
 
@@ -501,6 +589,22 @@ export const ItemDefs = {
     stackMax: 10,
     capacity: 20,
     ammoCount: 20,
+    consumptionEffects: {
+      hydration: 1
+    }
+  },
+  'food.waterjug': {
+    id: 'food.waterjug',
+    name: 'Water Jug',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'waterjug',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 5,
+    capacity: 50,
+    ammoCount: 50,
     consumptionEffects: {
       hydration: 1
     }
@@ -573,6 +677,51 @@ export const ItemDefs = {
     stackMax: 10,
     consumptionEffects: {
       nutrition: 20
+    }
+  },
+  'food.apple': {
+    id: 'food.apple',
+    name: 'Apple',
+    rarity: Rarity.COMMON,
+    imageId: 'apple',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    shelfLife: 48,
+    consumptionEffects: {
+      nutrition: 6
+    }
+  },
+  'food.corn': {
+    id: 'food.corn',
+    name: 'Corn',
+    rarity: Rarity.COMMON,
+    imageId: 'corn',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    shelfLife: 72,
+    consumptionEffects: {
+      nutrition: 5
+    }
+  },
+  'food.tomato': {
+    id: 'food.tomato',
+    name: 'Tomato',
+    rarity: Rarity.COMMON,
+    imageId: 'tomato',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    shelfLife: 72,
+    consumptionEffects: {
+      nutrition: 5
     }
   },
 

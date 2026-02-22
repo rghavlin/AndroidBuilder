@@ -62,5 +62,17 @@ export const CraftingRecipes = [
         ingredients: [
             { either: ['crafting.rag', 'weapon.stick', 'weapon.2x4'], count: 1, label: 'Rag, Stick, or 2x4' }
         ]
+    },
+    {
+        id: 'crafting.makeshift_pack',
+        name: 'Makeshift pack',
+        resultItem: 'backpack.makeshift',
+        description: 'A crude backpack made from rags and tape.',
+        apCost: 5,
+        tools: [],
+        ingredients: [
+            { id: 'crafting.rag', count: 4 },
+            { id: 'crafting.tape', count: 2 }
+        ]
     }
 ];

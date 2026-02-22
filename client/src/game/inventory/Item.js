@@ -38,7 +38,7 @@ export class Item extends SafeEventEmitter {
     ammoCount = 0,
     consumptionEffects = null,
     waterQuality = 'clean',
-    lifetimeTurns = null
+    shelfLife = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -112,7 +112,12 @@ export class Item extends SafeEventEmitter {
 
     // Water properties
     this.waterQuality = waterQuality;
-    this.lifetimeTurns = lifetimeTurns;
+    this.shelfLife = shelfLife;
+
+    // Load shelfLife from definition if not provided
+    if (this.shelfLife === null && this.defId && ItemDefs[this.defId]?.shelfLife) {
+      this.shelfLife = ItemDefs[this.defId].shelfLife;
+    }
 
     // MIGRATION / INITIALIZATION: Load attachment slots from definition
     if (this.defId && ItemDefs[this.defId]?.attachmentSlots) {
@@ -148,7 +153,7 @@ export class Item extends SafeEventEmitter {
   static isWaterBottle(item) {
     if (!item) return false;
     if (typeof item.isWaterBottle === 'function') return item.isWaterBottle();
-    return !!(item.defId && item.defId.startsWith('food.waterbottle'));
+    return !!(item.defId && (item.defId.startsWith('food.waterbottle') || item.defId === 'food.waterjug'));
   }
 
   // Trait checks
@@ -190,7 +195,71 @@ export class Item extends SafeEventEmitter {
   }
 
   isWaterBottle() {
-    return this.defId && this.defId.startsWith('food.waterbottle');
+    return this.defId && (this.defId.startsWith('food.waterbottle') || this.defId === 'food.waterjug');
+  }
+
+  isSpoilable() {
+    return this.hasTrait(ItemTrait.SPOILABLE);
+  }
+
+  get isSpoiled() {
+    return this.isSpoilable() && this.shelfLife !== null && this.shelfLife <= 0;
+  }
+
+  getNutritionValue() {
+    if (!this.consumptionEffects || this.consumptionEffects.nutrition === undefined) return 0;
+
+    // Eating spoiled corn will restore 3 nutrition
+    if (this.isSpoiled) {
+      if (this.defId === 'food.corn') return 3;
+      // For other items, maybe reduce by half?
+      return Math.floor(this.consumptionEffects.nutrition * 0.5);
+    }
+
+    return this.consumptionEffects.nutrition;
+  }
+
+  processTurn() {
+    // 1. Process own spoilage/lifetime
+    if (this.shelfLife !== null && this.shelfLife !== undefined) {
+      // User requested 1 hour per turn (1 turn = 1 hour)
+      this.shelfLife -= 1;
+
+      // Emit event if it just spoiled
+      if (this.shelfLife === 0 && this.isSpoilable()) {
+        console.log(`[Item] ${this.name} (${this.instanceId}) has SPOILED!`);
+        this.emitEvent('itemSpoiled', { item: this });
+      }
+    }
+
+    // 2. Recurse into attachments
+    if (this.attachments) {
+      Object.values(this.attachments).forEach(attachedItem => {
+        if (attachedItem && attachedItem.processTurn) {
+          attachedItem.processTurn();
+        }
+      });
+    }
+
+    // 3. Recurse into container grid
+    if (this.containerGrid) {
+      this.containerGrid.getAllItems().forEach(nestedItem => {
+        if (nestedItem && nestedItem.processTurn) {
+          nestedItem.processTurn();
+        }
+      });
+    }
+
+    // 4. Recurse into pockets
+    if (this.pocketGrids) {
+      this.pocketGrids.forEach(pocket => {
+        pocket.getAllItems().forEach(pocketItem => {
+          if (pocketItem && pocketItem.processTurn) {
+            pocketItem.processTurn();
+          }
+        });
+      });
+    }
   }
 
   canLoadAmmo(ammoItem) {
@@ -256,8 +325,16 @@ export class Item extends SafeEventEmitter {
 
       if (ammoSlot) {
         const attachedMag = this.attachments[ammoSlot.id];
-        // If magazine is equipped, show its count; if no mag, show 0 per user request
-        return attachedMag ? (attachedMag.ammoCount || 0) : 0;
+        // If magazine is equipped, show its count
+        if (attachedMag && attachedMag.isMagazine()) {
+          return attachedMag.ammoCount || 0;
+        }
+        // If it's not a magazine but is ammo (e.g. .357 rounds in a drum), show the stack count
+        if (attachedMag && attachedMag.isAmmo()) {
+          return attachedMag.stackCount || 0;
+        }
+        // If no mag/ammo, show 0 per user request
+        return 0;
       }
     }
 
@@ -715,7 +792,7 @@ export class Item extends SafeEventEmitter {
       categories: this.categories,
       consumptionEffects: this.consumptionEffects,
       waterQuality: this.waterQuality,
-      lifetimeTurns: this.lifetimeTurns
+      shelfLife: this.shelfLife
     };
 
     // Serialize Traits

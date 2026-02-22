@@ -323,21 +323,39 @@ export class GameMap {
       for (let x = 0; x < this.width; x++) {
         const tile = this.tiles[y][x];
         if (tile.inventoryItems && tile.inventoryItems.length > 0) {
-          let itemExpired = false;
-          // Process item lifetimes
+          let itemsModified = false;
+
+          // Process item lifetimes and shelf life
           const remainingItems = tile.inventoryItems.filter(itemData => {
-            if (itemData.lifetimeTurns !== undefined && itemData.lifetimeTurns !== null) {
-              itemData.lifetimeTurns -= 0.5;
-              if (itemData.lifetimeTurns <= 0) {
+            // Unify lifetimeTurns and shelfLife (both are now shelfLife in Item.js)
+            let life = itemData.shelfLife !== undefined ? itemData.shelfLife : itemData.lifetimeTurns;
+
+            if (life !== undefined && life !== null) {
+              // Decrement life - using 1 to match hours (1 turn = 1 hour)
+              life -= 1;
+
+              // Update back to itemData
+              if (itemData.shelfLife !== undefined) itemData.shelfLife = life;
+              if (itemData.lifetimeTurns !== undefined) itemData.lifetimeTurns = life;
+
+              // Handle Expiration (Vanishing)
+              // Only items that ARE NOT spoilable should vanish when life reaches 0
+              // Check for SPOILABLE trait (itemData might have it if it came from Item.toJSON)
+              const traits = itemData.traits || [];
+              const isSpoilable = traits.includes('spoilable');
+
+              if (life <= 0 && !isSpoilable) {
                 console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
-                itemExpired = true;
+                itemsModified = true;
                 return false;
               }
+
+              itemsModified = true;
             }
             return true;
           });
 
-          if (itemExpired) {
+          if (itemsModified) {
             this.setItemsOnTile(x, y, remainingItems);
           }
         }

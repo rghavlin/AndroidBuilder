@@ -498,6 +498,12 @@ export const InventoryProvider = ({ children, manager }) => {
     if (playerRef.current && playerRef.current.ap < 1) {
       return { success: false, reason: 'Not enough AP (1 required)' };
     }
+
+    // Special case for .357 Drum / Hunting Rifle loading (AP cost message)
+    if ((weapon.defId === 'weapon.357Pistol' || weapon.defId === 'weapon.hunting_rifle') && slotId === 'ammo') {
+      console.log(`[InventoryContext] Loading ${weapon.name} - costs 1 AP`);
+    }
+
     const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
@@ -978,9 +984,26 @@ export const InventoryProvider = ({ children, manager }) => {
     // Apply consumption effects if they exist
     if (item.consumptionEffects) {
       console.log('[InventoryContext] Consuming item:', item.name, 'effects:', item.consumptionEffects);
+
+      // Special handling for nutrition to account for spoilage
+      const nutritionAmount = item.getNutritionValue?.() || item.consumptionEffects.nutrition || 0;
+
       Object.entries(item.consumptionEffects).forEach(([stat, amount]) => {
-        playerRef.current.modifyStat(stat, amount);
+        if (stat === 'nutrition') {
+          playerRef.current.modifyStat(stat, nutritionAmount);
+        } else if (stat === 'cure') {
+          playerRef.current.cure();
+        } else {
+          playerRef.current.modifyStat(stat, amount);
+        }
       });
+
+      // Inflict sickness if spoiled
+      if (item.isSpoiled) {
+        console.log('[InventoryContext] Consumed spoiled food - inflicting sickness');
+        // Inflict 24 hours (turns) of sickness
+        playerRef.current.inflictSickness(24);
+      }
     }
 
     // Find the container holding this item

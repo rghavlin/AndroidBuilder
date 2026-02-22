@@ -487,6 +487,12 @@ export const GameMapProvider = ({ children }) => {
         );
       }
 
+      // Metadata propagation: Link map generator metadata to the live map instance if needed
+      if (result.metadata) {
+        console.log('[GameMapContext] Applying metadata to new map:', result.metadata);
+        result.gameMap.metadata = { ...result.gameMap.metadata, ...result.metadata };
+      }
+
       // FIX: Stamp reciprocal south transition on new map (if not first map)
       if (result.mapId !== 'map_001') {
         console.log(`[GameMapContext] Stamping south transition at (17, 124) on ${result.mapId}`);
@@ -494,12 +500,13 @@ export const GameMapProvider = ({ children }) => {
       }
 
       // FIX: Re-save the map to WorldManager with player included (using result.mapId, not undefined targetMapId)
-      console.log('[GameMapContext] Re-saving map to WorldManager with player included...');
+      console.log(`[GameMapContext] Re-saving map ${result.mapId} to WorldManager with player included...`);
       worldManagerRef.current.saveCurrentMap(result.gameMap, result.mapId);
       console.log('[GameMapContext] Map re-saved with player successfully');
 
-      // FIX: Update game map reference using setGameMap (not undefined setGameMapState)
+      // FIX: Update game map reference using setGameMap
       // This also increments mapVersion for structural re-render
+      console.log(`[GameMapContext] Finalizing transition: setting new map ${result.mapId} as current`);
       setGameMap(result.gameMap);
       console.log('[GameMapContext] Game map reference updated and version incremented');
 

@@ -185,7 +185,7 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   // Update player field of view
-  const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false) => {
+  const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false, isAimingWithScope = false) => {
     if (!gameMap || !playerRef.current) {
       setPlayerFieldOfView([]);
       return [];
@@ -195,7 +195,12 @@ export const PlayerProvider = ({ children }) => {
       const player = playerRef.current;
 
       // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
-      const maxRange = isNight ? (isFlashlightOn ? 10 : 1.5) : 15;
+      let maxRange = isNight ? (isFlashlightOn ? 10 : 1.5) : 15;
+
+      // Scoped aiming boost
+      if (isAimingWithScope) {
+        maxRange = 20;
+      }
 
       // Calculate field of view using LineOfSight
       const fovData = LineOfSight.calculateFieldOfView(gameMap, player, {
