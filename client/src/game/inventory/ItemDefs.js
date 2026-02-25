@@ -368,10 +368,26 @@ export const ItemDefs = {
     imageId: 'smallflashlight',
     width: 2,
     height: 1,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: EquipmentSlot.FLASHLIGHT,
     categories: [ItemCategory.TOOL],
-    condition: 100
+    condition: 100,
+    attachmentSlots: [
+      { id: 'battery', name: 'Battery', type: 'battery', allowedCategories: [ItemCategory.BATTERY] }
+    ]
+  },
+  'tool.battery': {
+    id: 'tool.battery',
+    name: 'Battery',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'battery',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.BATTERY],
+    categories: [ItemCategory.BATTERY],
+    stackMax: 10,
+    capacity: 10,
+    ammoCount: 10
   },
 
   // Specialty Containers (openable when nested)

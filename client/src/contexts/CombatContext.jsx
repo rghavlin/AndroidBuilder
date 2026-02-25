@@ -214,9 +214,11 @@ export const CombatProvider = ({ children }) => {
             magazine.ammoCount--;
         } else {
             magazine.stackCount--;
-            // If stack is empty, it stays in the slot (empty drum) but getDisplayAmmoCount handles showing 0
-            // Actually, for .357, we want the "item" to stay there so we can see the slot is occupied by 0 rounds?
-            // User said "1 AP to place ammo in the drum".
+            // If stack is empty, remove it from the weapon's ammo slot to prevent "ghost ammo" icons
+            if (magazine.stackCount <= 0 && ammoSlot) {
+                console.log(`[Combat] Ammo stack empty, detaching from ${weapon.name} slot: ${ammoSlot.id}`);
+                weapon.detachItem(ammoSlot.id);
+            }
         }
 
         if (hit) {
@@ -262,6 +264,8 @@ export const CombatProvider = ({ children }) => {
             });
         }
 
+        // Always refresh UI after a ranged attack to update ammo counts and potentially removed ammo icons
+        forceRefresh();
         return { success: true };
     }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting]);
 

@@ -95,10 +95,36 @@ const GameContextInner = ({ children }) => {
   const toggleFlashlight = useCallback(() => {
     setIsFlashlightOn(prev => {
       const newState = !prev;
+
+      if (newState) {
+        // Turning ON - verify equipment and charges
+        const flashlight = inventoryManager?.equipment['flashlight'];
+        if (!flashlight) {
+          console.warn('[GameContext] Cannot turn on flashlight: None equipped');
+          return false;
+        }
+
+        const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
+        if (!battery || (battery.ammoCount || 0) <= 0) {
+          console.warn('[GameContext] Cannot turn on flashlight: No battery or empty');
+          return false;
+        }
+
+        // Start consumption: 1 charge immediately upon ignition
+        battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+        console.log(`[GameContext] Flashlight ignition: 1 charge consumed. Remaining: ${battery.ammoCount}`);
+
+        if (battery.ammoCount <= 0) {
+          console.log('[GameContext] Battery depleted immediately on ignition.');
+          updatePlayerFieldOfView(gameMapRef.current, isNight, false);
+          return false;
+        }
+      }
+
       updatePlayerFieldOfView(gameMapRef.current, isNight, newState);
       return newState;
     });
-  }, [gameMapRef, isNight, updatePlayerFieldOfView]);
+  }, [gameMapRef, isNight, updatePlayerFieldOfView, inventoryManager]);
 
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAutosaving, setIsAutosaving] = useState(false);
@@ -834,6 +860,29 @@ const GameContextInner = ({ children }) => {
       player.hydration = Math.max(0, player.hydration - 1);
       player.energy = Math.max(0, player.energy - 1);
 
+      // Battery consumption if flashlight left ON
+      if (isFlashlightOn) {
+        const flashlight = inventoryManager?.equipment['flashlight'];
+        if (flashlight) {
+          const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
+          if (battery && battery.ammoCount > 0) {
+            battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+            console.log(`[GameContext] Flashlight consumption (End Turn): 1 charge. Remaining: ${battery.ammoCount}`);
+
+            if (battery.ammoCount <= 0) {
+              console.log('[GameContext] Flashlight battery depleted. Turning off.');
+              setIsFlashlightOn(false);
+              // FOV will be updated below with the new isFlashlightOn state
+            }
+          } else {
+            // Flashlight was on but battery is gone/empty
+            setIsFlashlightOn(false);
+          }
+        } else {
+          setIsFlashlightOn(false);
+        }
+      }
+
       // Apply HP loss if nutrition or hydration is zero
       let hpLoss = 0;
       if (player.nutrition === 0) {
@@ -909,7 +958,7 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] Error ending turn:', error);
       setIsPlayerTurn(true);
     }
-  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats]);
+  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
 
   // Legacy wrapper methods (these should be removed in Phase 2)
   const handleTileClick = useCallback((x, y) => {

@@ -355,6 +355,41 @@ class GameInitializationManager extends EventEmitter {
       }
     }
 
+    // Spawn Crawler Zombies (2-4 per map)
+    const crawlerTargetCount = Math.floor(Math.random() * 3) + 2; // 2, 3, or 4
+    console.log(`[GameInitializationManager] Attempting to spawn ${crawlerTargetCount} Crawler zombies`);
+
+    for (let i = 0; i < crawlerTargetCount; i++) {
+      const maxAttempts = 50;
+      let attempts = 0;
+      let spawned = false;
+
+      while (!spawned && attempts < maxAttempts) {
+        const x = Math.floor(Math.random() * gameMap.width);
+        const y = Math.floor(Math.random() * gameMap.height);
+
+        const tile = gameMap.getTile(x, y);
+        const distanceFromPlayer = Math.abs(x - player.x) + Math.abs(y - player.y);
+        const minDistanceFromPlayer = 10; // Crawlers spawn further away for surprise
+
+        if (tile && tile.isWalkable() && distanceFromPlayer >= minDistanceFromPlayer) {
+          const hasEntities = tile.contents.length > 0;
+
+          if (!hasEntities) {
+            const zombieId = `zombie-crawler-${i + 1}`;
+            const zombie = new Zombie(zombieId, x, y, 'crawler');
+
+            if (gameMap.addEntity(zombie, x, y)) {
+              spawnedCount++;
+              spawned = true;
+              console.log(`[GameInitializationManager] Spawned Crawler zombie ${zombieId} at (${x}, ${y}), distance: ${distanceFromPlayer}`);
+            }
+          }
+        }
+        attempts++;
+      }
+    }
+
     return spawnedCount;
   }
 

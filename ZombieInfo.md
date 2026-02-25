@@ -12,6 +12,10 @@ MaxAP variable should default to 8.
 The reason for these elements is to set up zombie behavior during the zombie's turn. Zombies will move one at a time during their turn with only zombies in sight of the player needing to process things like movement animations. During the player's turn, the zombies will be completely inert. No zombie code will be processed during the player's turn, other than to set the variables listed above. The best way to set those variables, I'm not sure about. As the player moves, something needs to be checking the tiles along the player's path to see if the player enters, then exits a zombie's line of sight. Or the entire path needs to be checked once it is calculated and a zombie-view check run on each tile of the path. If the player comes into the zombie's sight but does not exit the zombie's sight, it doesn't matter as will be demonstrated in the zombie behavior loop to follow. The player has to exit the zombie's line of sight for LastSeen to be true. 
 The point that the player exit's the zombie's line of sight is the tile that is stored in the target sighted coordinates. This is also true if the player begins their turn in sight of the zombie. Anytime a player passes from a tile visible to a zombie, to a tile not visible to a zombie, LastSeen becomes true for that zombie and target coordinates are set.
 
+### Zombie Variants
+- **Basic Zombie**: 10 HP, 12 AP. Found throughout the map.
+- **Crawler Zombie**: 5 HP, 6 AP. Found in groups of 2-4 per map. These are slower and more fragile than basic zombies.
+
 Zombie Behavior Loop:
 As previously stated, zombies will do nothing during their turn. Once their turn begins, all possibilities are covered by the zombie's behavior loop in conjunction with the LastSeen/SoundHeard flags. 
 

@@ -39,7 +39,8 @@ export class Item extends SafeEventEmitter {
     consumptionEffects = null,
     waterQuality = 'clean',
     shelfLife = null,
-    lifetimeTurns = null
+    lifetimeTurns = null,
+    ammoDefId = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -115,6 +116,7 @@ export class Item extends SafeEventEmitter {
     this.waterQuality = waterQuality;
     this.shelfLife = shelfLife;
     this.lifetimeTurns = lifetimeTurns;
+    this.ammoDefId = ammoDefId;
 
     // Load shelfLife from definition if not provided
     if (this.shelfLife === null && this.defId && ItemDefs[this.defId]?.shelfLife) {
@@ -126,9 +128,11 @@ export class Item extends SafeEventEmitter {
       this.lifetimeTurns = ItemDefs[this.defId].lifetimeTurns;
     }
 
-    // MIGRATION / INITIALIZATION: Load attachment slots from definition
-    if (this.defId && ItemDefs[this.defId]?.attachmentSlots) {
-      this.attachmentSlots = ItemDefs[this.defId].attachmentSlots;
+    // MIGRATION / INITIALIZATION: Load attributes from definition
+    if (this.defId && ItemDefs[this.defId]) {
+      const def = ItemDefs[this.defId];
+      if (def.attachmentSlots) this.attachmentSlots = def.attachmentSlots;
+      if (def.ammoDefId && !this.ammoDefId) this.ammoDefId = def.ammoDefId;
     }
 
     // Initialize container grid synchronously if data exists
@@ -203,6 +207,28 @@ export class Item extends SafeEventEmitter {
 
   isWaterBottle() {
     return this.defId && (this.defId.startsWith('food.waterbottle') || this.defId === 'food.waterjug');
+  }
+
+  isBattery() {
+    return this.hasTrait(ItemTrait.BATTERY);
+  }
+
+  isBatteryPowered() {
+    return this.hasTrait(ItemTrait.BATTERY_POWERED);
+  }
+
+  getBattery() {
+    if (!this.attachmentSlots) return null;
+    return this.attachments['battery'] || null;
+  }
+
+  getCharges() {
+    if (this.isBattery()) return this.ammoCount || 0;
+    if (this.isBatteryPowered()) {
+      const battery = this.getBattery();
+      return battery ? (battery.ammoCount || 0) : 0;
+    }
+    return 0;
   }
 
   isSpoilable() {
@@ -286,8 +312,13 @@ export class Item extends SafeEventEmitter {
 
   canLoadAmmo(ammoItem) {
     if (!this.isMagazine() || !ammoItem.isAmmo()) return false;
-    // Check if compatible (using categories for now, could be more specific later)
-    // For now, if both are AMMO category, they are compatible
+
+    // Enforce compatibility if an ammo type is specified
+    if (this.ammoDefId && ammoItem.defId !== this.ammoDefId) {
+      console.debug(`[Item] REJECT: Incompatible ammo for ${this.name}. Expected: ${this.ammoDefId}, Got: ${ammoItem.defId}`);
+      return false;
+    }
+
     return true;
   }
 
@@ -314,7 +345,8 @@ export class Item extends SafeEventEmitter {
     const amount = this.ammoCount;
     this.ammoCount = 0;
 
-    const ammoDefId = ItemDefs[this.defId]?.ammoDefId;
+    // Use instance property first, fallback to definition
+    const ammoDefId = this.ammoDefId || ItemDefs[this.defId]?.ammoDefId;
 
     return {
       success: true,
@@ -358,6 +390,17 @@ export class Item extends SafeEventEmitter {
         // If no mag/ammo, show 0 per user request
         return 0;
       }
+    }
+
+    // 4. If it's battery-powered, show battery charges
+    if (this.isBatteryPowered && this.isBatteryPowered()) {
+      const battery = this.getBattery();
+      return battery ? (battery.ammoCount || 0) : 0;
+    }
+
+    // 5. If it's a standalone battery, show its charge
+    if (this.isBattery && this.isBattery()) {
+      return this.ammoCount || 0;
     }
 
     return null;
@@ -521,6 +564,15 @@ export class Item extends SafeEventEmitter {
       const isFull = ammo === capacity;
       const isEmpty = ammo === 0;
       if (!(isFull || isEmpty) || ammo !== otherAmmo) {
+        return false;
+      }
+    }
+
+    // Special rule for Batteries: They only stack if they are EMPTY or FULL
+    if (this.isBattery()) {
+      const isFull = this.ammoCount === (this.capacity || 10);
+      const isEmpty = this.ammoCount === 0;
+      if (!(isFull || isEmpty) || this.ammoCount !== otherItem.ammoCount) {
         return false;
       }
     }

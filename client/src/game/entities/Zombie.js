@@ -17,17 +17,25 @@ export class Zombie extends Entity {
     this.heardNoise = false; // Has the zombie heard a noise?
     this.targetSightedCoords = { x: 0, y: 0 }; // Last known player position
     this.noiseCoords = { x: 0, y: 0 }; // Location of heard noise
-    this.maxAP = 12; // Maximum action points
-    this.currentAP = 12; // Current action points
+
+    // Set stats based on subtype
+    if (subtype === 'crawler') {
+      this.maxAP = 6;
+      this.currentAP = 6;
+      this.hp = 5;
+      this.maxHp = 5;
+    } else {
+      this.maxAP = 12; // Maximum action points
+      this.currentAP = 12; // Current action points
+      this.hp = 10;
+      this.maxHp = 10;
+    }
+
     this.sightRange = 18; // Sight distance as specified
 
     // Current behavior state
     this.behaviorState = 'idle'; // 'idle', 'pursuing', 'investigating', 'wandering'
     this.isActive = false; // Whether it's this zombie's turn
-
-    // Combat stats
-    this.hp = 10;
-    this.maxHp = 10;
   }
 
   /**

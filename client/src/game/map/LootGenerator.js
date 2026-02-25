@@ -306,6 +306,13 @@ export class LootGenerator {
                         magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
                         selectedItem.attachments = { 'ammo': magData };
                     }
+                } else if (randomKey === 'tool.smallflashlight') {
+                    // Flashlight: Spawn with a battery and random charges (1-10)
+                    const battery = createItemFromDef('tool.battery');
+                    if (battery) {
+                        battery.ammoCount = 1 + Math.floor(Math.random() * 10);
+                        selectedItem.attachments = { 'battery': battery };
+                    }
                 }
 
                 // 6. Tool-specific logic (charges)
@@ -412,6 +419,13 @@ export class LootGenerator {
                         if (ammoData) {
                             ammoData.stackCount = 1 + Math.floor(Math.random() * 6);
                             item.attachments = { 'ammo': ammoData };
+                        }
+                    } else if (selectedKey === 'tool.smallflashlight') {
+                        // Flashlight from zombie: random battery charges (1-10)
+                        const battery = createItemFromDef('tool.battery');
+                        if (battery) {
+                            battery.ammoCount = 1 + Math.floor(Math.random() * 10);
+                            item.attachments = { 'battery': battery };
                         }
                     }
 

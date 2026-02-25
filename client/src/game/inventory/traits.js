@@ -27,6 +27,7 @@ export const ItemCategory = {
   TOOL: 'tool',
   WEAPON: 'weapon',
   MEDICAL: 'medical',
+  BATTERY: 'battery',
   AMMO: 'ammo',
   CLOTHING: 'clothing',
   SUPPRESSOR: 'suppressor',
@@ -43,7 +44,9 @@ export const ItemCategory = {
 export const ItemTrait = {
   STACKABLE: 'stackable',
   DEGRADABLE: 'degradable',
-  OPENABLE_WHEN_NESTED: 'openableWhenNested',
+  BATTERY: 'battery',
+  BATTERY_POWERED: 'battery-powered',
+  OPENABLE_WHEN_NESTED: 'openable-when-nested',
   CONTAINER: 'container',
   EQUIPPABLE: 'equippable',
   CONSUMABLE: 'consumable',
