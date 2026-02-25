@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useInventory } from "@/contexts/InventoryContext";
 import ClothingContainerPanel from "./ClothingContainerPanel";
+import Logger from "@/game/utils/Logger.js";
+
+const logger = Logger.scope('UnifiedClothingPanel');
 
 export default function UnifiedClothingPanel() {
-  console.log('[UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====');
+  logger.debug('===== COMPONENT MOUNT/RENDER =====');
 
   const { getEquippedBackpackContainer, inventoryRef, inventoryVersion } = useInventory();
 
-  console.log('[UnifiedClothingPanel] Context values received:', {
+  logger.debug('Context values received:', {
     hasInventoryRef: !!inventoryRef,
     hasGetEquippedBackpack: !!getEquippedBackpackContainer,
     inventoryVersion
@@ -23,10 +26,10 @@ export default function UnifiedClothingPanel() {
   const lowerBodyItem = inventoryRef.current?.equipment?.lower_body || null;
   const backpackItem = inventoryRef.current?.equipment?.backpack || null;
 
-  console.debug('[UnifiedClothingPanel] ===== FULL DIAGNOSTIC =====');
-  console.debug('[UnifiedClothingPanel] inventoryRef.current exists:', !!inventoryRef.current);
-  console.debug('[UnifiedClothingPanel] inventoryRef.current.equipment:', inventoryRef.current?.equipment);
-  console.debug('[UnifiedClothingPanel] All equipment slots:', {
+  logger.debug('===== FULL DIAGNOSTIC =====');
+  logger.debug('inventoryRef.current exists:', !!inventoryRef.current);
+  logger.debug('inventoryRef.current.equipment:', inventoryRef.current?.equipment);
+  logger.debug('All equipment slots:', {
     backpack: inventoryRef.current?.equipment?.backpack?.name || 'none',
     upper_body: inventoryRef.current?.equipment?.upper_body?.name || 'none',
     lower_body: inventoryRef.current?.equipment?.lower_body?.name || 'none',
@@ -35,7 +38,7 @@ export default function UnifiedClothingPanel() {
     long_gun: inventoryRef.current?.equipment?.long_gun?.name || 'none',
     flashlight: inventoryRef.current?.equipment?.flashlight?.name || 'none'
   });
-  console.debug('[UnifiedClothingPanel] Render:', {
+  logger.debug('Render:', {
     hasUpperBody: !!upperBodyItem,
     hasLowerBody: !!lowerBodyItem,
     hasBackpack: !!backpackItem,
@@ -57,29 +60,22 @@ export default function UnifiedClothingPanel() {
     ? (lowerBodyItem.getPocketContainerIds?.() || [])
     : [];
 
-  console.log('[UnifiedClothingPanel] ===== POCKET DIAGNOSTIC =====');
-  console.log('[UnifiedClothingPanel] Upper body item:', upperBodyItem?.name || 'none');
-  console.log('[UnifiedClothingPanel] - isContainer():', upperBodyItem?.isContainer?.());
-  console.log('[UnifiedClothingPanel] - getPocketContainerIds():', upperBodyPocketIds);
-  console.log('[UnifiedClothingPanel] - _pocketGridsData:', upperBodyItem?._pocketGridsData);
-  console.log('[UnifiedClothingPanel] - pocketGrids:', upperBodyItem?.pocketGrids);
-  console.log('[UnifiedClothingPanel] - pocketGrids.length:', upperBodyItem?.pocketGrids?.length);
+  logger.debug('===== POCKET DIAGNOSTIC =====');
+  logger.debug('Upper body item:', upperBodyItem?.name || 'none');
+  logger.debug('- isContainer():', upperBodyItem?.isContainer?.());
+  logger.debug('- getPocketContainerIds():', upperBodyPocketIds);
+  logger.debug('- _pocketGridsData:', upperBodyItem?._pocketGridsData);
+  logger.debug('- pocketGrids:', upperBodyItem?.pocketGrids);
+  logger.debug('- pocketGrids.length:', upperBodyItem?.pocketGrids?.length);
 
-  console.log('[UnifiedClothingPanel] Lower body item:', lowerBodyItem?.name || 'none');
-  console.log('[UnifiedClothingPanel] - isContainer():', lowerBodyItem?.isContainer?.());
-  console.log('[UnifiedClothingPanel] - getPocketContainerIds():', lowerBodyPocketIds);
-  console.log('[UnifiedClothingPanel] - _pocketGridsData:', lowerBodyItem?._pocketGridsData);
-  console.log('[UnifiedClothingPanel] - pocketGrids:', lowerBodyItem?.pocketGrids);
-  console.log('[UnifiedClothingPanel] - pocketGrids.length:', lowerBodyItem?.pocketGrids?.length);
+  logger.debug('Lower body item:', lowerBodyItem?.name || 'none');
+  logger.debug('- isContainer():', lowerBodyItem?.isContainer?.());
+  logger.debug('- getPocketContainerIds():', lowerBodyPocketIds);
+  logger.debug('- _pocketGridsData:', lowerBodyItem?._pocketGridsData);
+  logger.debug('- pocketGrids:', lowerBodyItem?.pocketGrids);
+  logger.debug('- pocketGrids.length:', lowerBodyItem?.pocketGrids?.length);
 
-  console.log('DEBUG: UnifiedClothingPanel', {
-    upperBodyItem,
-    lowerBodyItem,
-    upperBodyPocketIds,
-    lowerBodyPocketIds,
-  });
-
-  console.log('[UnifiedClothingPanel] Rendering sections:', {
+  logger.debug('Rendering sections:', {
     upperBodyItem: upperBodyItem?.name || 'none',
     upperBodyPockets: upperBodyPocketIds.length,
     lowerBodyItem: lowerBodyItem?.name || 'none',

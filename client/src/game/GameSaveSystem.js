@@ -14,16 +14,16 @@ export class GameSaveSystem {
       const saveData = {
         version: '1.1.0', // Updated version for WorldManager support
         timestamp: Date.now(),
-        
+
         // Core game state - only essential data
         turn: gameState.turn,
-        
+
         // Map state (includes all tiles and entities) - this contains positions
         gameMap: gameState.gameMap ? gameState.gameMap.toJSON() : null,
-        
+
         // World state (multiple maps and transitions)
         worldManager: gameState.worldManager ? gameState.worldManager.toJSON() : null,
-        
+
         // Player stats only (position is stored in gameMap)
         playerStats: {
           hp: gameState.player ? gameState.player.hp : 100,
@@ -32,17 +32,17 @@ export class GameSaveSystem {
           maxAp: gameState.player ? gameState.player.maxAp : 100,
           ammo: gameState.playerStats.ammo || 0
         },
-        
+
         // Inventory state (equipment, containers, items)
         inventoryManager: gameState.inventoryManager ? gameState.inventoryManager.toJSON() : null,
-        
+
         // Camera position (for UI continuity only)
         cameraPosition: gameState.camera ? {
           x: gameState.camera.x,
           y: gameState.camera.y,
           zoomLevel: gameState.camera.zoomLevel
         } : null,
-        
+
         // Game metadata
         metadata: {
           mapTemplate: 'road',
@@ -52,7 +52,7 @@ export class GameSaveSystem {
 
       console.log('[GameSaveSystem] Game state serialized successfully');
       console.log('[GameSaveSystem] Save data size:', JSON.stringify(saveData).length, 'characters');
-      
+
       return saveData;
     } catch (error) {
       console.error('[GameSaveSystem] Failed to serialize game state:', error);
@@ -68,7 +68,7 @@ export class GameSaveSystem {
   static async loadGameState(saveData) {
     try {
       console.log('[GameSaveSystem] Loading game state from save data...');
-      
+
       // Validate save data format
       if (!saveData.version || !saveData.gameMap) {
         throw new Error('Invalid save data format');
@@ -77,24 +77,25 @@ export class GameSaveSystem {
       // Restore GameMap with all entities (including player)
       console.log('[GameSaveSystem] Restoring GameMap...');
       const gameMap = await this.restoreGameMapFromJSON(saveData.gameMap);
-      
+
       // Restore WorldManager if available
       let worldManager = null;
       if (saveData.worldManager) {
         console.log('[GameSaveSystem] Restoring WorldManager...');
         const { WorldManager } = await import('./WorldManager.js');
         worldManager = WorldManager.fromJSON(saveData.worldManager);
-        
+
         // FIX: Validate currentMapId matches the loaded map
         // The loaded gameMap should be the current map the player is on
         if (worldManager && worldManager.currentMapId) {
           console.log(`[GameSaveSystem] WorldManager currentMapId: ${worldManager.currentMapId}`);
           // Re-save the loaded gameMap to ensure it's the current map in WorldManager
-          worldManager.saveCurrentMap(gameMap, worldManager.currentMapId);
-          console.log(`[GameSaveSystem] Verified currentMapId ${worldManager.currentMapId} matches loaded map`);
+          // Pass the turn from saveData to ensure catch-up logic is correctly initialized
+          worldManager.saveCurrentMap(gameMap, worldManager.currentMapId, saveData.turn);
+          console.log(`[GameSaveSystem] Verified currentMapId ${worldManager.currentMapId} matches loaded map at Turn ${saveData.turn}`);
         }
       }
-      
+
       // Find player in the restored game map
       const player = gameMap.getEntitiesByType('player')[0];
       if (!player) {
@@ -105,7 +106,7 @@ export class GameSaveSystem {
       const { Camera } = await import('./Camera.js');
       const camera = new Camera(20, 20);
       camera.setWorldBounds(gameMap.width, gameMap.height);
-      
+
       // Restore camera position if available, otherwise center on player
       if (saveData.cameraPosition) {
         camera.x = saveData.cameraPosition.x;
@@ -154,10 +155,10 @@ export class GameSaveSystem {
     try {
       const saveData = this.saveGameState(gameState);
       const saveKey = `zombieGame_save_${slotName}`;
-      
+
       localStorage.setItem(saveKey, JSON.stringify(saveData));
       console.log(`[GameSaveSystem] Game saved to localStorage slot: ${slotName}`);
-      
+
       return true;
     } catch (error) {
       console.error('[GameSaveSystem] Failed to save to localStorage:', error);
@@ -174,7 +175,7 @@ export class GameSaveSystem {
     try {
       const saveKey = `zombieGame_save_${slotName}`;
       const saveDataString = localStorage.getItem(saveKey);
-      
+
       if (!saveDataString) {
         console.log(`[GameSaveSystem] No save found in slot: ${slotName}`);
         return null;
@@ -197,11 +198,11 @@ export class GameSaveSystem {
     try {
       const saveData = this.saveGameState(gameState);
       const jsonString = JSON.stringify(saveData, null, 2);
-      
+
       // Create downloadable blob
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      
+
       // Create temporary download link
       const link = document.createElement('a');
       link.href = url;
@@ -209,10 +210,10 @@ export class GameSaveSystem {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Clean up
       URL.revokeObjectURL(url);
-      
+
       console.log(`[GameSaveSystem] Game exported to file: ${filename}`);
       return true;
     } catch (error) {
@@ -228,7 +229,7 @@ export class GameSaveSystem {
   static listSaveSlots() {
     const saves = [];
     const prefix = 'zombieGame_save_';
-    
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith(prefix)) {
@@ -246,7 +247,7 @@ export class GameSaveSystem {
         }
       }
     }
-    
+
     return saves.sort((a, b) => b.timestamp - a.timestamp);
   }
 

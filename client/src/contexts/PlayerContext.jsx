@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
+import Logger from '../game/utils/Logger.js';
+
+const logger = Logger.scope('PlayerContext');
 
 const PlayerContext = createContext();
 
@@ -174,7 +177,7 @@ export const PlayerProvider = ({ children }) => {
 
     playerCardinalPositionsRef.current = evaluatedPositions;
 
-    console.log('[PlayerContext] Updated player cardinal positions:', evaluatedPositions.map(p =>
+    logger.debug('Updated player cardinal positions:', evaluatedPositions.map(p =>
       `${p.direction}(${p.x},${p.y}): ${p.priority === 1 ? 'available' : p.priority === 2 ? 'occupied' : 'blocked'}`
     ));
   }, []);
@@ -224,7 +227,7 @@ export const PlayerProvider = ({ children }) => {
       // Debug: Log if player is inside a building
       const playerTile = gameMap.getTile(player.x, player.y);
       if (playerTile && (playerTile.terrain === 'building' || playerTile.terrain === 'floor')) {
-        console.log(`[PlayerContext] Player is inside building/floor at (${player.x}, ${player.y}), terrain: ${playerTile.terrain}`);
+        logger.debug(`Player is inside building/floor at (${player.x}, ${player.y}), terrain: ${playerTile.terrain}`);
       }
 
       return fovData.visibleTiles;
@@ -297,7 +300,7 @@ export const PlayerProvider = ({ children }) => {
 
       // INVESTIGATION: Log camera updates to detect excessive movement
       if (Math.random() < 0.1) { // Log ~10% of frames to avoid spam
-        console.log(`[PlayerContext] INVESTIGATION: Animation frame updating camera to (${smoothX.toFixed(1)}, ${smoothY.toFixed(1)}), progress: ${(progress * 100).toFixed(1)}%`);
+        logger.debug(`[INVESTIGATION] Animation frame updating camera to (${smoothX.toFixed(1)}, ${smoothY.toFixed(1)}), progress: ${(progress * 100).toFixed(1)}%`);
       }
 
       // Update FOV based on current smooth position during animation
@@ -345,7 +348,7 @@ export const PlayerProvider = ({ children }) => {
         animationFrameRef.current = frameId;
 
         if (Math.random() < 0.05) { // Log ~5% of frame updates
-          console.log(`[PlayerContext] INVESTIGATION: Animation frame updated from ${oldFrameId} to ${frameId}`);
+          logger.debug(`[INVESTIGATION] Animation frame updated from ${oldFrameId} to ${frameId}`);
         }
       } else {
         // Animation completed - now move player from original to final position

@@ -38,6 +38,7 @@ export const GameMapProvider = ({ children }) => {
   const gameMapRef = useRef(null);
   const worldManagerRef = useRef(null);
   const zombieTrackerRef = useRef(null);
+  const lootGeneratorRef = useRef(null);
 
   // Map-related state - keep mapTransition and hoveredTile for UI state
   const [mapTransition, setMapTransition] = useState(null);
@@ -66,6 +67,11 @@ export const GameMapProvider = ({ children }) => {
   // Set zombie tracker ref (called during initialization)
   const setZombieTracker = useCallback((zombieTracker) => {
     zombieTrackerRef.current = zombieTracker;
+  }, []);
+
+  // Set loot generator ref (called during initialization)
+  const setLootGenerator = useCallback((lootGenerator) => {
+    lootGeneratorRef.current = lootGenerator;
   }, []);
 
   // Force map re-render
@@ -311,7 +317,7 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Execute map transition
-  const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager) => {
+  const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn) => {
     if (!worldManagerRef.current || !playerEntity) {
       console.error('[GameMapContext] Cannot execute transition - missing refs');
       return false;
@@ -384,7 +390,7 @@ export const GameMapProvider = ({ children }) => {
       const oldMapRef = gameMapRef.current;
 
       // Save current map before transitioning
-      worldManagerRef.current.saveCurrentMap(oldMapRef, worldManagerRef.current.currentMapId);
+      worldManagerRef.current.saveCurrentMap(oldMapRef, worldManagerRef.current.currentMapId, turn);
       console.log('[GameMapContext] Current map saved');
 
       // GHOST ITEM FIX: Sync ground items with the OLD map tile before moving
@@ -399,7 +405,8 @@ export const GameMapProvider = ({ children }) => {
 
       const result = await worldManagerRef.current.executeTransition(
         transitionInfo.nextMapId,
-        transitionInfo.spawnPosition
+        transitionInfo.spawnPosition,
+        turn
       );
 
       if (!result.success) {
@@ -571,8 +578,8 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Handle map transition confirmation
-  const handleMapTransitionConfirm = useCallback(async (player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager) => {
-    console.log(`[GameMapContext] Starting map transition confirmation with player: ${typeof player !== 'undefined' && player ? `${player.id} at (${player.x}, ${player.y})` : 'null'}`);
+  const handleMapTransitionConfirm = useCallback(async (player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn) => {
+    console.log(`[GameMapContext] Starting map transition confirmation with player: ${typeof player !== 'undefined' && player ? `${player.id} at (${player.x}, ${player.y})` : 'null'} at Turn ${turn}`);
     console.log('[GameMapContext] Player object type:', typeof player, 'constructor:', player?.constructor?.name || 'undefined');
 
     if (!player) {
@@ -580,7 +587,7 @@ export const GameMapProvider = ({ children }) => {
       return false;
     }
 
-    const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager);
+    const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn);
     if (success) {
       setMapTransition(null);
       console.log('[GameMapContext] Map transition completed successfully, dialog closed');
@@ -621,7 +628,9 @@ export const GameMapProvider = ({ children }) => {
     setMapTransition,
     triggerMapUpdate,
     refreshZombieTracking,
-    zombieTracker: zombieTrackerRef.current
+    zombieTracker: zombieTrackerRef.current,
+    lootGenerator: lootGeneratorRef.current,
+    setLootGenerator
   }), [
     mapVersion, // Version triggers updates when gameMap ref changes
     mapTransition,

@@ -4,6 +4,9 @@ import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
 import { CraftingRecipes } from '../game/inventory/CraftingRecipes.js';
 import { usePlayer } from './PlayerContext.jsx';
+import Logger from '../game/utils/Logger.js';
+
+const logger = Logger.scope('InventoryContext');
 
 const InventoryContext = createContext();
 
@@ -103,9 +106,9 @@ export const InventoryProvider = ({ children, manager }) => {
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
     inventoryRef.current = manager;
-    console.log('[InventoryContext] InventoryManager received from provider props');
-    console.log('[InventoryContext] - Manager has', manager.containers.size, 'containers');
-    console.log('[InventoryContext] - Equipment slots:', Object.entries(manager.equipment).filter(([s, i]) => i).map(([s, i]) => `${s}:${i.name}`).join(', ') || 'none');
+    logger.info('InventoryManager received from provider props');
+    logger.debug('- Manager has', manager.containers.size, 'containers');
+    logger.debug('- Equipment slots:', Object.entries(manager.equipment).filter(([s, i]) => i).map(([s, i]) => `${s}:${i.name}`).join(', ') || 'none');
   }
 
   if (manager && inventoryRef.current !== manager) {
@@ -118,7 +121,7 @@ export const InventoryProvider = ({ children, manager }) => {
     if (!manager) return;
 
     const handleInventoryChanged = () => {
-      console.log('[InventoryContext] 🔄 Inventory changed event received, bumping version');
+      logger.debug('🔄 Inventory changed event received, bumping version');
       setInventoryVersion(prev => prev + 1);
     };
 
@@ -794,7 +797,8 @@ export const InventoryProvider = ({ children, manager }) => {
     // Phase 5H: Handle unequipping
     if (isEquipment) {
       // Check AP cost (1 AP) - SKIP if target is crafting workspace
-      const isCraftingWorkspace = targetContainerId === 'crafting-tools' || targetContainerId === 'crafting-ingredients';
+      const isCraftingWorkspace = targetContainerId === 'crafting-tools' || targetContainerId === 'crafting-ingredients' ||
+        targetContainerId === 'cooking-tools' || targetContainerId === 'cooking-ingredients';
 
       if (!isCraftingWorkspace && playerRef.current && playerRef.current.ap < 1) {
         return { success: false, reason: 'Not enough AP (1 required)' };
@@ -823,8 +827,9 @@ export const InventoryProvider = ({ children, manager }) => {
     const originContainer = inventoryRef.current.getContainer(originContainerId);
     const targetContainer = inventoryRef.current.getContainer(targetContainerId);
 
-    // Phase 10: Handle swapping for crafting-tools (behaves like an equipment slot)
-    if (targetContainerId === 'crafting-tools' && targetContainer && !targetContainer.isEmpty()) {
+    // Phase 10: Handle swapping for crafting/cooking workspace tools (behaves like an equipment slot)
+    const isToolSlot = targetContainerId === 'crafting-tools' || targetContainerId === 'cooking-tools';
+    if (isToolSlot && targetContainer && !targetContainer.isEmpty()) {
       const existingItems = targetContainer.getAllItems();
       console.debug('[InventoryContext] Swapping out existing tool from crafting workspace:', existingItems.length);
       existingItems.forEach(existingItem => {
@@ -985,25 +990,27 @@ export const InventoryProvider = ({ children, manager }) => {
     if (item.consumptionEffects) {
       console.log('[InventoryContext] Consuming item:', item.name, 'effects:', item.consumptionEffects);
 
-      // Special handling for nutrition to account for spoilage
+      // Special handling for food/water to account for spoilage
       const nutritionAmount = item.getNutritionValue?.() || item.consumptionEffects.nutrition || 0;
+      const hydrationAmount = item.getHydrationValue?.() || item.consumptionEffects.hydration || 0;
 
       Object.entries(item.consumptionEffects).forEach(([stat, amount]) => {
         if (stat === 'nutrition') {
           playerRef.current.modifyStat(stat, nutritionAmount);
+        } else if (stat === 'hydration') {
+          playerRef.current.modifyStat(stat, hydrationAmount);
         } else if (stat === 'cure') {
           playerRef.current.cure();
         } else {
           playerRef.current.modifyStat(stat, amount);
         }
       });
+    }
 
-      // Inflict sickness if spoiled
-      if (item.isSpoiled) {
-        console.log('[InventoryContext] Consumed spoiled food - inflicting sickness');
-        // Inflict 24 hours (turns) of sickness
-        playerRef.current.inflictSickness(24);
-      }
+    // Apply sickness if the item is spoiled
+    if (item.isSpoiled) {
+      console.log(`[InventoryContext] ${item.name} is spoiled! Inflicting sickness.`);
+      playerRef.current.inflictSickness(12); // Lasts for 12 turns/hours
     }
 
     // Find the container holding this item

@@ -21,7 +21,7 @@ export const useCombat = () => {
 export const CombatProvider = ({ children }) => {
     const [targetingWeapon, setTargetingWeapon] = useState(null); // { item, slot }
     const { playerRef } = usePlayer();
-    const { gameMapRef } = useGameMap();
+    const { gameMapRef, lootGenerator } = useGameMap();
     const { addEffect } = useVisualEffects();
     const { forceRefresh } = useGame();
 
@@ -96,6 +96,16 @@ export const CombatProvider = ({ children }) => {
 
             if (zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
+
+                // Zombie Loot Drop (50% chance)
+                if (lootGenerator && Math.random() < 0.5) {
+                    const loot = lootGenerator.generateZombieLoot();
+                    if (loot && loot.length > 0) {
+                        console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
+                        gameMap.addItemsToTile(targetX, targetY, loot);
+                    }
+                }
+
                 gameMap.removeEntity(zombie.id);
                 cancelTargeting();
                 forceRefresh(); // Trigger UI update to remove zombie icon
@@ -120,7 +130,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, cancelTargeting]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
@@ -225,6 +235,17 @@ export const CombatProvider = ({ children }) => {
             });
 
             if (zombie.isDead()) {
+                console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
+
+                // Zombie Loot Drop (50% chance)
+                if (lootGenerator && Math.random() < 0.5) {
+                    const loot = lootGenerator.generateZombieLoot();
+                    if (loot && loot.length > 0) {
+                        console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
+                        gameMap.addItemsToTile(targetX, targetY, loot);
+                    }
+                }
+
                 gameMap.removeEntity(zombie.id);
                 cancelTargeting();
                 forceRefresh();
@@ -242,7 +263,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting]);
 
     return (
         <CombatContext.Provider value={{

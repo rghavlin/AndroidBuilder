@@ -138,6 +138,20 @@ export class GameMap {
   }
 
   /**
+   * Add inventory items to a specific tile (appending to existing items)
+   * @param {number} x - Tile X
+   * @param {number} y - Tile Y
+   * @param {Array} items - Array of Item instances
+   */
+  addItemsToTile(x, y, items) {
+    const tile = this.getTile(x, y);
+    if (!tile) return;
+
+    const existingItems = tile.inventoryItems || [];
+    this.setItemsOnTile(x, y, [...existingItems, ...items]);
+  }
+
+  /**
    * Get items from a specific tile and remove proxy entity
    * @param {number} x - Tile X
    * @param {number} y - Tile Y
@@ -325,33 +339,23 @@ export class GameMap {
         if (tile.inventoryItems && tile.inventoryItems.length > 0) {
           let itemsModified = false;
 
-          // Process item lifetimes and shelf life
+          // Use recursive helper to process each item and its contents
           const remainingItems = tile.inventoryItems.filter(itemData => {
-            // Unify lifetimeTurns and shelfLife (both are now shelfLife in Item.js)
-            let life = itemData.shelfLife !== undefined ? itemData.shelfLife : itemData.lifetimeTurns;
+            const wasModified = this._processItemDataTurn(itemData);
+            if (wasModified) {
+              itemsModified = true;
+              // If _processItemDataTurn returns true, the root item itself expired
+              console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
+              return false;
+            }
 
-            if (life !== undefined && life !== null) {
-              // Decrement life - using 1 to match hours (1 turn = 1 hour)
-              life -= 1;
-
-              // Update back to itemData
-              if (itemData.shelfLife !== undefined) itemData.shelfLife = life;
-              if (itemData.lifetimeTurns !== undefined) itemData.lifetimeTurns = life;
-
-              // Handle Expiration (Vanishing)
-              // Only items that ARE NOT spoilable should vanish when life reaches 0
-              // Check for SPOILABLE trait (itemData might have it if it came from Item.toJSON)
-              const traits = itemData.traits || [];
-              const isSpoilable = traits.includes('spoilable');
-
-              if (life <= 0 && !isSpoilable) {
-                console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
-                itemsModified = true;
-                return false;
-              }
-
+            // Even if the root item didn't expire, some of its contents might have (recurse handles this inside)
+            // We need a way to detect if INSIDE was modified to trigger setItemsOnTile
+            // For now, we assume if it has recursion it might have changed.
+            if (itemData.attachments || itemData.containerGrid || itemData.pocketGrids) {
               itemsModified = true;
             }
+
             return true;
           });
 
@@ -361,6 +365,85 @@ export class GameMap {
         }
       }
     }
+  }
+
+  /**
+   * Recursive helper to process turn effects on item POJOs (Plain Objects)
+   * @param {Object} itemData - Item data object
+   * @returns {boolean} - Whether the item itself has expired and should be removed
+   */
+  _processItemDataTurn(itemData) {
+    if (!itemData) return false;
+
+    let itemExpired = false;
+
+    // 1. Process own spoilage/lifetime
+    // We check both shelfLife and lifetimeTurns. 
+    // shelfLife usually for food (spoilable), lifetimeTurns for things like campfires (vanishing).
+
+    // Check shelfLife first
+    if (itemData.shelfLife !== undefined && itemData.shelfLife !== null) {
+      itemData.shelfLife -= 1;
+
+      // Handle Expiration (Vanishing)
+      const traits = itemData.traits || [];
+      const isSpoilable = traits.includes('spoilable');
+
+      // If it's NOT spoilable and reaches 0, it vanishes
+      if (itemData.shelfLife <= 0 && !isSpoilable) {
+        itemExpired = true;
+      }
+    }
+
+    // Process lifetimeTurns (e.g. for campfires)
+    if (itemData.lifetimeTurns !== undefined && itemData.lifetimeTurns !== null) {
+      itemData.lifetimeTurns = Math.max(0, itemData.lifetimeTurns - 1);
+      if (itemData.lifetimeTurns <= 0) {
+        itemExpired = true;
+      }
+    }
+
+    if (itemExpired) return true;
+
+    // 2. Recurse into attachments
+    if (itemData.attachments) {
+      for (const slotId in itemData.attachments) {
+        const attachmentExpired = this._processItemDataTurn(itemData.attachments[slotId]);
+        if (attachmentExpired) {
+          console.log(`[GameMap] Nested attachment ${itemData.attachments[slotId].name} expired inside ${itemData.name}`);
+          delete itemData.attachments[slotId];
+        }
+      }
+    }
+
+    // 3. Recurse into container grid
+    if (itemData.containerGrid && itemData.containerGrid.items) {
+      const initialCount = itemData.containerGrid.items.length;
+      itemData.containerGrid.items = itemData.containerGrid.items.filter(nestedItem => {
+        const expired = this._processItemDataTurn(nestedItem);
+        if (expired) {
+          console.log(`[GameMap] Nested item ${nestedItem.name} expired inside ${itemData.name} container`);
+        }
+        return !expired;
+      });
+    }
+
+    // 4. Recurse into pockets
+    if (itemData.pocketGrids) {
+      itemData.pocketGrids.forEach(pocket => {
+        if (pocket.items) {
+          pocket.items = pocket.items.filter(pocketItem => {
+            const expired = this._processItemDataTurn(pocketItem);
+            if (expired) {
+              console.log(`[GameMap] Nested item ${pocketItem.name} expired inside ${itemData.name} pocket`);
+            }
+            return !expired;
+          });
+        }
+      });
+    }
+
+    return false;
   }
 
   /**

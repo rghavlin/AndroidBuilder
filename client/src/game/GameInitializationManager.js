@@ -285,6 +285,7 @@ class GameInitializationManager extends EventEmitter {
 
       // SPAWN LOOT: Initial procedural loot generation
       const lootGenerator = new LootGenerator();
+      this.gameObjects.lootGenerator = lootGenerator;
       lootGenerator.spawnLoot(gameMap);
 
       // Clean up south transition tile for first map

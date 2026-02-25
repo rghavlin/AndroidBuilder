@@ -38,7 +38,8 @@ export class Item extends SafeEventEmitter {
     ammoCount = 0,
     consumptionEffects = null,
     waterQuality = 'clean',
-    shelfLife = null
+    shelfLife = null,
+    lifetimeTurns = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -113,10 +114,16 @@ export class Item extends SafeEventEmitter {
     // Water properties
     this.waterQuality = waterQuality;
     this.shelfLife = shelfLife;
+    this.lifetimeTurns = lifetimeTurns;
 
     // Load shelfLife from definition if not provided
     if (this.shelfLife === null && this.defId && ItemDefs[this.defId]?.shelfLife) {
       this.shelfLife = ItemDefs[this.defId].shelfLife;
+    }
+
+    // Load lifetimeTurns from definition if not provided
+    if (this.lifetimeTurns === null && this.defId && ItemDefs[this.defId]?.lifetimeTurns) {
+      this.lifetimeTurns = ItemDefs[this.defId].lifetimeTurns;
     }
 
     // MIGRATION / INITIALIZATION: Load attachment slots from definition
@@ -209,14 +216,21 @@ export class Item extends SafeEventEmitter {
   getNutritionValue() {
     if (!this.consumptionEffects || this.consumptionEffects.nutrition === undefined) return 0;
 
-    // Eating spoiled corn will restore 3 nutrition
     if (this.isSpoiled) {
-      if (this.defId === 'food.corn') return 3;
-      // For other items, maybe reduce by half?
       return Math.floor(this.consumptionEffects.nutrition * 0.5);
     }
 
     return this.consumptionEffects.nutrition;
+  }
+
+  getHydrationValue() {
+    if (!this.consumptionEffects || this.consumptionEffects.hydration === undefined) return 0;
+
+    if (this.isSpoiled) {
+      return Math.floor(this.consumptionEffects.hydration * 0.5);
+    }
+
+    return this.consumptionEffects.hydration;
   }
 
   processTurn() {
@@ -229,6 +243,14 @@ export class Item extends SafeEventEmitter {
       if (this.shelfLife === 0 && this.isSpoilable()) {
         console.log(`[Item] ${this.name} (${this.instanceId}) has SPOILED!`);
         this.emitEvent('itemSpoiled', { item: this });
+      }
+    }
+
+    // 1b. Process lifetimeTurns (for campfires)
+    if (this.lifetimeTurns !== null && this.lifetimeTurns !== undefined) {
+      this.lifetimeTurns = Math.max(0, this.lifetimeTurns - 1);
+      if (this.lifetimeTurns <= 0) {
+        console.log(`[Item] ${this.name} (${this.instanceId}) has EXPIRED (lifetimeTurns reached 0)`);
       }
     }
 
@@ -632,7 +654,8 @@ export class Item extends SafeEventEmitter {
       const containerData = {
         ...this._containerGridData,
         id: this._containerGridData.id || `${this.instanceId}-container`,
-        name: this._containerGridData.name || this.name
+        name: this._containerGridData.name || this.name,
+        ownerId: this.instanceId // Ensure ownerId is set for turn skip logic
       };
 
       this.containerGrid = Container.fromJSON(containerData);
@@ -667,7 +690,11 @@ export class Item extends SafeEventEmitter {
 
       // Priority 1: Restore from saved data (if loading game)
       if (this._pocketGridsData && this._pocketGridsData.length > 0) {
-        this.pocketGrids = this._pocketGridsData.map(gridDef => Container.fromJSON(gridDef));
+        this.pocketGrids = this._pocketGridsData.map(gridDef => {
+          const container = Container.fromJSON(gridDef);
+          container.ownerId = this.instanceId; // Ensure ownerId is set
+          return container;
+        });
         return this.pocketGrids;
       }
 
@@ -792,7 +819,8 @@ export class Item extends SafeEventEmitter {
       categories: this.categories,
       consumptionEffects: this.consumptionEffects,
       waterQuality: this.waterQuality,
-      shelfLife: this.shelfLife
+      shelfLife: this.shelfLife,
+      lifetimeTurns: this.lifetimeTurns
     };
 
     // Serialize Traits

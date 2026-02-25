@@ -16,6 +16,7 @@ export const CraftingRecipes = [
         resultItem: 'weapon.makeshift_hatchet',
         description: 'A crude but effective chopping tool made from salvaged materials.',
         apCost: 5,
+        tab: 'crafting',
         tools: [], // No tools required
         ingredients: [
             { id: 'weapon.stick', count: 1 },
@@ -29,6 +30,7 @@ export const CraftingRecipes = [
         resultItem: 'weapon.makeshift_knife',
         description: 'A sharp shard of glass secured with a makeshift handle.',
         apCost: 4,
+        tab: 'crafting',
         tools: [],
         ingredients: [
             { id: 'crafting.glass_shard', count: 1 },
@@ -42,6 +44,7 @@ export const CraftingRecipes = [
         resultItem: 'crafting.rag',
         description: 'Tear up old clothing into useful rags.',
         apCost: 2,
+        tab: 'crafting',
         tools: [
             { category: ItemCategory.KNIFE, label: 'Any Knife' }
         ],
@@ -56,6 +59,7 @@ export const CraftingRecipes = [
         resultItem: 'placeable.campfire',
         description: 'A cozy campfire for cooking and warmth. Lasts longer with better fuel.',
         apCost: 5,
+        tab: 'crafting',
         tools: [
             { either: ['tool.lighter', 'tool.matchbook'], count: 1, label: 'Lighter or Matchbook' }
         ],
@@ -69,10 +73,43 @@ export const CraftingRecipes = [
         resultItem: 'backpack.makeshift',
         description: 'A crude backpack made from rags and tape.',
         apCost: 5,
+        tab: 'crafting',
         tools: [],
         ingredients: [
             { id: 'crafting.rag', count: 4 },
             { id: 'crafting.tape', count: 2 }
+        ]
+    },
+    {
+        id: 'cooking.clean_water',
+        name: 'Clean Water',
+        resultItem: 'food.waterbottle',
+        description: 'Boil dirty water to make it safe to drink.',
+        apCost: 5,
+        tab: 'cooking',
+        requiresCampfire: true,
+        tools: [
+            { category: ItemCategory.COOKING_POT, label: 'Any Cooking Pot' }
+        ],
+        ingredients: [
+            { id: 'food.waterbottle', count: 1, label: 'Dirty Water Bottle', properties: { waterQuality: 'dirty' } }
+        ]
+    },
+    {
+        id: 'cooking.vegetable_soup',
+        name: 'Vegetable Soup',
+        resultItem: 'food.vegetablesoup',
+        description: 'A hearty and nutritious soup made from fresh vegetables.',
+        apCost: 5,
+        tab: 'cooking',
+        requiresCampfire: true,
+        tools: [
+            { category: ItemCategory.COOKING_POT, label: 'Any Cooking Pot' }
+        ],
+        ingredients: [
+            { id: 'food.corn', count: 1 },
+            { id: 'food.tomato', count: 1 },
+            { id: 'food.waterbottle', count: 1, consumeUnits: 5, label: 'Water (5 Units)' }
         ]
     }
 ];

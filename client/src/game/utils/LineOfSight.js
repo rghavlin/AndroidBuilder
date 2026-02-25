@@ -1,3 +1,6 @@
+import Logger from './Logger.js';
+
+const logger = Logger.scope('LineOfSight');
 
 /**
  * Universal Line of Sight System
@@ -56,7 +59,7 @@ export class LineOfSight {
     const linePath = this.getLinePath(startX, startY, endX, endY);
 
     if (debug) {
-      console.log(`[LineOfSight] Checking path from (${startX}, ${startY}) to (${endX}, ${endY}):`, linePath);
+      logger.debug(`Checking path from (${startX}, ${startY}) to (${endX}, ${endY}):`, linePath);
     }
 
     // Check each point in the line for obstacles (excluding start and end points)
@@ -262,18 +265,18 @@ export class LineOfSight {
   static debugLineOfSight(gameMap, startX, startY, endX, endY, options = {}) {
     const result = this.hasLineOfSight(gameMap, startX, startY, endX, endY, { ...options, debug: true });
 
-    console.log(`[LineOfSight] Debug from (${startX}, ${startY}) to (${endX}, ${endY}):`);
-    console.log(`  Has LOS: ${result.hasLineOfSight}`);
-    console.log(`  Distance: ${result.distance.toFixed(2)}`);
-    console.log(`  Path length: ${result.path.length}`);
+    logger.debug(`Debug from (${startX}, ${startY}) to (${endX}, ${endY}):`);
+    logger.debug(`  Has LOS: ${result.hasLineOfSight}`);
+    logger.debug(`  Distance: ${result.distance.toFixed(2)}`);
+    logger.debug(`  Path length: ${result.path.length}`);
 
     if (result.blockedBy) {
-      console.log(`  Blocked by: ${result.blockedBy.type}`, result.blockedBy);
+      logger.debug(`  Blocked by: ${result.blockedBy.type}`, result.blockedBy);
     }
 
     // Visual representation in console
     const visibleTiles = this.getVisibleTiles(gameMap, startX, startY, options);
-    console.log(`  Visible tiles from position: ${visibleTiles.length}`);
+    logger.debug(`  Visible tiles from position: ${visibleTiles.length}`);
 
     return result;
   }

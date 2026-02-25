@@ -338,4 +338,87 @@ export class LootGenerator {
         }
         return result;
     }
+    /**
+     * Generate 1-2 random items for zombie loot drops
+     * Common (65%): any clothing or rag
+     * Uncommon (20%): granola bar, chips, water bottle (small amount), bandage, antibiotics
+     * Rare (10%): Any ammo, knife, lighter, matches
+     * Extremely rare (5%): 9mm pistol, 357 pistol, small flashlight
+     */
+    generateZombieLoot() {
+        const itemCount = Math.random() < 0.5 ? 1 : 2;
+        const items = [];
+
+        for (let i = 0; i < itemCount; i++) {
+            const tierRoll = Math.random();
+            let selectedKey = null;
+
+            if (tierRoll < 0.65) {
+                // Common: any clothing or rag
+                const commonKeys = this.itemKeys.filter(key => {
+                    const def = ItemDefs[key];
+                    return (def.categories && def.categories.includes(ItemCategory.CLOTHING)) || key === 'crafting.rag';
+                });
+                selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
+            } else if (tierRoll < 0.85) {
+                // Uncommon: granola bar, chips, water bottle (small amount), bandage, antibiotics
+                const uncommonKeys = [
+                    'food.granolabar', 'food.chips', 'food.waterbottle',
+                    'medical.bandage', 'medical.antibiotics'
+                ];
+                selectedKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
+            } else if (tierRoll < 0.95) {
+                // Rare: Any ammo, knife, lighter, matches
+                const rareKeys = this.itemKeys.filter(key => {
+                    const def = ItemDefs[key];
+                    return (def.categories && def.categories.includes(ItemCategory.AMMO)) ||
+                        key === 'weapon.knife' || key === 'tool.lighter' || key === 'tool.matchbook';
+                });
+                selectedKey = rareKeys[Math.floor(Math.random() * rareKeys.length)];
+            } else {
+                // Extremely rare: 9mm pistol, 357 pistol, small flashlight
+                const exoticKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'tool.smallflashlight'];
+                selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
+            }
+
+            if (selectedKey) {
+                const item = createItemFromDef(selectedKey);
+                if (item) {
+                    // Custom rules for items dropped by zombies
+                    if (selectedKey === 'food.waterbottle') {
+                        // Water bottle: small amount 0-4
+                        item.ammoCount = Math.floor(Math.random() * 5);
+                    } else if (selectedKey.startsWith('ammo.')) {
+                        // Ammo: 1-10 rounds (consistent with world loot)
+                        item.stackCount = 1 + Math.floor(Math.random() * 10);
+                    } else if (selectedKey === 'crafting.rag') {
+                        item.stackCount = 1 + Math.floor(Math.random() * 2);
+                    } else if (item.categories && (item.categories.includes(ItemCategory.WEAPON) || item.attachmentSlots)) {
+                        // Random condition for weapons (found on corpse)
+                        const minCondition = 10;
+                        const maxCondition = 70; // Slightly worse than world loot
+                        item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+                    }
+
+                    // For firearms, if they have an ammo slot, give them a chance to have some rounds
+                    if (selectedKey === 'weapon.9mmPistol') {
+                        const magData = createItemFromDef('attachment.9mm_magazine');
+                        if (magData) {
+                            magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
+                            item.attachments = { 'ammo': magData };
+                        }
+                    } else if (selectedKey === 'weapon.357Pistol') {
+                        const ammoData = createItemFromDef('ammo.357');
+                        if (ammoData) {
+                            ammoData.stackCount = 1 + Math.floor(Math.random() * 6);
+                            item.attachments = { 'ammo': ammoData };
+                        }
+                    }
+
+                    items.push(item);
+                }
+            }
+        }
+        return items;
+    }
 }

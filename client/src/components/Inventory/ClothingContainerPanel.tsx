@@ -1,6 +1,9 @@
 
 import { useState } from "react";
 import { useInventory } from "@/contexts/InventoryContext";
+import Logger from "@/game/utils/Logger.js";
+
+const logger = Logger.scope('ClothingContainerPanel');
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UniversalGrid from "./UniversalGrid";
@@ -41,7 +44,7 @@ export default function ClothingContainerPanel({
   // Check if we have any content to show
   const hasContent = container || hasPockets || equippedItem;
 
-  console.debug('[ClothingContainerPanel]', title, {
+  logger.debug(title, {
     hasContainer: !!container,
     hasPockets,
     pocketCount: pocketContainerIds.length,

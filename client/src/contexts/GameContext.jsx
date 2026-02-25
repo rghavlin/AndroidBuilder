@@ -10,6 +10,9 @@ import { GameMapProvider, useGameMap } from './GameMapContext.jsx';
 import { CameraProvider, useCamera } from './CameraContext.jsx';
 import { InventoryProvider } from './InventoryContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
+import Logger from '../game/utils/Logger.js';
+
+const logger = Logger.scope('GameContext');
 
 import '../game/inventory/index.js';
 
@@ -51,7 +54,7 @@ export const useGame = () => {
 const GameContextInner = ({ children }) => {
   // Use context hooks
   const { playerRef, setPlayerRef, setPlayerPosition, setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, startAnimatedMovement, cancelMovement, isMoving: isAnimatingMovement } = usePlayer();
-  const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
+  const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, setLootGenerator, triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
   const { cameraRef, camera, setCamera, setCameraWorldBounds } = useCamera();
   const { addEffect } = useVisualEffects();
 
@@ -116,7 +119,7 @@ const GameContextInner = ({ children }) => {
       const currentMap = gameMapRef.current;
       if (!currentMap) return;
 
-      console.log(`[GameContext] Player shifted from (${oldPosition.x}, ${oldPosition.y}) to (${newPosition.x}, ${newPosition.y}) - syncing ground items`);
+      logger.info(`Player shifted from (${oldPosition.x}, ${oldPosition.y}) to (${newPosition.x}, ${newPosition.y}) - syncing ground items`);
       inventoryManager.syncWithMap(
         oldPosition.x, oldPosition.y,
         newPosition.x, newPosition.y,
@@ -135,7 +138,7 @@ const GameContextInner = ({ children }) => {
         return;
       }
       setInitializationState(current);
-      console.log('[GameContext] Initialization state changed to:', current);
+      logger.debug('Initialization state changed to:', current);
     };
 
     const handleInitializationComplete = (gameObjects) => {
@@ -153,6 +156,7 @@ const GameContextInner = ({ children }) => {
       setPlayerRef(gameObjects.player);
       setCamera(gameObjects.camera);
       setWorldManager(gameObjects.worldManager);
+      setLootGenerator(gameObjects.lootGenerator);
 
       // Set up camera and player
       const { gameMap, player, camera } = gameObjects;
@@ -179,7 +183,7 @@ const GameContextInner = ({ children }) => {
     manager.on('stateChanged', handleStateChanged);
     manager.on('initializationComplete', handleInitializationComplete);
     manager.on('initializationError', handleInitializationError);
-  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners]);
+  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setLootGenerator, setupPlayerEventListeners]);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
@@ -311,7 +315,7 @@ const GameContextInner = ({ children }) => {
       // Open the UI gate
       setInitializationState('complete'); // FIX: Ensure isInitialized becomes true
       setIsGameReady(true);
-      console.log('[GameContext] 🎉 DIRECT LOAD COMPLETE - Game ready without initialization');
+      logger.info('🎉 DIRECT LOAD COMPLETE - Game ready without initialization');
       console.log(`[GameContext] - Final player position: (${loadedState.player.x}, ${loadedState.player.y})`);
       console.log(`[GameContext] - Entities on map: ${loadedState.gameMap.getAllEntities().length}`);
       console.log(`[GameContext] - InventoryManager: ${loadedState.inventoryManager ? 'loaded' : 'missing'}`);
@@ -736,7 +740,7 @@ const GameContextInner = ({ children }) => {
       setIsPlayerTurn(false);
       setTargetingItem(null); // Cancel targeting on end turn
       lastSeenTaggedTilesRef.current.clear();
-      console.log('[GameContext] Cleared all LastSeen tagged tiles for new zombie turn phase');
+      logger.debug('Cleared all LastSeen tagged tiles for new zombie turn phase');
 
       // Process Player Turn-End Status (Sickness, Regen, etc.)
       const player = playerRef.current;
@@ -1066,7 +1070,7 @@ const GameContextInner = ({ children }) => {
     };
 
     // Call GameMapContext handleMapTransitionConfirm with required parameters including camera operations
-    const success = await mapTransitionConfirm(playerRef.current, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager);
+    const success = await mapTransitionConfirm(playerRef.current, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn);
 
     if (success) {
       // Update PlayerContext data after successful transition (no timer)

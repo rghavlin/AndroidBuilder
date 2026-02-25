@@ -7,8 +7,11 @@ import { ItemCategory } from './traits.js';
 export class CraftingManager {
     constructor(inventoryManager) {
         this.inv = inventoryManager;
-        this.toolContainerId = 'crafting-tools';
-        this.ingredientContainerId = 'crafting-ingredients';
+    }
+
+    getNearbyCampfire() {
+        if (!this.inv.groundContainer) return null;
+        return this.inv.groundContainer.getAllItems().find(item => item.defId === 'placeable.campfire');
     }
 
     /**
@@ -18,8 +21,9 @@ export class CraftingManager {
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
         if (!recipe) return { canCraft: false, missing: [] };
 
-        const toolContainer = this.inv.getContainer(this.toolContainerId);
-        const ingredientContainer = this.inv.getContainer(this.ingredientContainerId);
+        const prefix = recipe.tab === 'cooking' ? 'cooking' : 'crafting';
+        const toolContainer = this.inv.getContainer(`${prefix}-tools`);
+        const ingredientContainer = this.inv.getContainer(`${prefix}-ingredients`);
 
         if (!toolContainer || !ingredientContainer) {
             return { canCraft: false, missing: ['System Error: Containers missing'] };
@@ -38,7 +42,15 @@ export class CraftingManager {
             }
         }
 
-        // 2. Check Tools (Handling either/or and categories)
+        // 2. Check Campfire requirement
+        if (recipe.requiresCampfire) {
+            const campfire = this.getNearbyCampfire();
+            if (!campfire) {
+                missing.push('Campfire');
+            }
+        }
+
+        // 3. Check Tools (Handling either/or and categories)
         for (const toolReq of recipe.tools) {
             let found = null;
             if (toolReq.either) {
@@ -67,24 +79,36 @@ export class CraftingManager {
             }
         }
 
-        // 2. Check Ingredients (Handling either/or and counts)
+        // 4. Check Ingredients (Handling either/or, counts, and properties)
         for (const req of recipe.ingredients) {
             let foundCount = 0;
             const candidates = currentIngredients.filter(i => !usedInstances.has(i.instanceId));
 
+            let matches = [];
             if (req.either) {
                 // Handle "Either A or B"
-                const matches = candidates.filter(i => req.either.includes(i.defId));
-                foundCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
+                matches = candidates.filter(i => req.either.includes(i.defId));
             } else if (req.category) {
                 // Handle by Category (e.g. "any clothing")
-                const matches = candidates.filter(i => i.categories && i.categories.includes(req.category));
-                foundCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
+                matches = candidates.filter(i => i.categories && i.categories.includes(req.category));
             } else {
                 // Handle specific item
-                const matches = candidates.filter(i => i.defId === req.id);
-                foundCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
+                matches = candidates.filter(i => i.defId === req.id);
             }
+
+            // Property filter
+            if (req.properties) {
+                matches = matches.filter(item => {
+                    return Object.entries(req.properties).every(([prop, val]) => item[prop] === val);
+                });
+            }
+
+            // Unit requirement check (e.g. 5 units of water)
+            if (req.consumeUnits) {
+                matches = matches.filter(item => (item.ammoCount || 0) >= req.consumeUnits);
+            }
+
+            foundCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
 
             if (foundCount < req.count) {
                 missing.push(req.label || req.name || req.id);
@@ -101,11 +125,16 @@ export class CraftingManager {
      * Perform the craft: consume items and return the new item
      */
     craft(recipeId) {
-        const status = this.checkRequirements(recipeId);
-        if (!status.canCraft) return { success: false, reason: 'Requirements not met' };
-
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
-        const ingredientContainer = this.inv.getContainer(this.ingredientContainerId);
+        if (!recipe) return { success: false, reason: 'Recipe not found' };
+
+        const status = this.checkRequirements(recipeId);
+        if (!status.canCraft) return { success: false, reason: 'Requirements not met: ' + status.missing.join(', ') };
+
+        const prefix = recipe.tab === 'cooking' ? 'cooking' : 'crafting';
+        const toolContainerId = `${prefix}-tools`;
+        const ingredientContainerId = `${prefix}-ingredients`;
+        const ingredientContainer = this.inv.getContainer(ingredientContainerId);
 
         // SPECIAL CASE: Determine lifetime for campfire based on fuel used
         let lifetimeTurns = null;
@@ -120,33 +149,77 @@ export class CraftingManager {
             }
         }
 
+        // Track properties to preserve (e.g., water level when boiling)
+        let preservedProperties = {};
+        if (recipeId === 'cooking.clean_water') {
+            const candidates = ingredientContainer.getAllItems();
+            const sourceBottle = candidates.find(i => i.defId === 'food.waterbottle' && i.waterQuality === 'dirty');
+            if (sourceBottle) {
+                preservedProperties.ammoCount = sourceBottle.ammoCount;
+                preservedProperties.waterQuality = 'clean';
+                console.log(`[CraftingManager] Preserving water level for purification: ${sourceBottle.ammoCount}`);
+            }
+        }
+
         // Consume ingredients
         for (const req of recipe.ingredients) {
             let remainingToConsume = req.count;
             const candidates = ingredientContainer.getAllItems();
 
-            const matches = req.either
+            let matches = req.either
                 ? candidates.filter(i => req.either.includes(i.defId))
                 : req.category
                     ? candidates.filter(i => i.categories && i.categories.includes(req.category))
                     : candidates.filter(i => i.defId === req.id);
 
+            // Property filter for consumption matches
+            if (req.properties) {
+                matches = matches.filter(item => {
+                    return Object.entries(req.properties).every(([prop, val]) => item[prop] === val);
+                });
+            }
+
             for (const item of matches) {
                 if (remainingToConsume <= 0) break;
 
-                const consumeAmount = Math.min(item.stackCount, remainingToConsume);
-                item.stackCount -= consumeAmount;
-                remainingToConsume -= consumeAmount;
+                if (req.consumeUnits) {
+                    // PARTIAL UNIT CONSUMPTION
+                    // Handle stacking: if it's a stack, we must split 1 item off to modify its units
+                    let targetItem = item;
+                    if (item.stackCount > 1) {
+                        // Create a new instance with 1 count
+                        targetItem = item.splitStack(1);
 
-                if (item.stackCount <= 0) {
-                    ingredientContainer.removeItem(item.instanceId);
+                        // CRITICAL: Reduce units BEFORE adding back to container
+                        // This ensures it doesn't immediately merge back into the original stack
+                        // (since bottles with different fill levels don't stack)
+                        targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
+
+                        // Place the new single item back into the workspace so it remains visible
+                        ingredientContainer.addItem(targetItem);
+                    } else {
+                        // Single item, just reduce units
+                        targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
+                    }
+
+                    console.log(`[CraftingManager] Consumed ${req.consumeUnits} units from ${targetItem.name}. Remaining: ${targetItem.ammoCount}`);
+                    remainingToConsume -= 1;
+                } else {
+                    // FULL ITEM CONSUMPTION
+                    const consumeAmount = Math.min(item.stackCount, remainingToConsume);
+                    item.stackCount -= consumeAmount;
+                    remainingToConsume -= consumeAmount;
+
+                    if (item.stackCount <= 0) {
+                        ingredientContainer.removeItem(item.instanceId);
+                    }
                 }
             }
         }
 
         // Tools: Consume a charge from tools that have charges (e.g. Lighter)
         for (const toolReq of recipe.tools) {
-            const toolContainer = this.inv.getContainer(this.toolContainerId);
+            const toolContainer = this.inv.getContainer(toolContainerId);
             const currentTools = toolContainer.getAllItems();
 
             let found = null;
@@ -156,7 +229,7 @@ export class CraftingManager {
                 found = currentTools.find(t => t.defId === toolReq.id || (toolReq.category && t.categories.includes(toolReq.category)));
             }
 
-            if (found && found.capacity !== null && found.ammoCount > 0) {
+            if (found && found.capacity !== null && (found.ammoCount !== null && found.ammoCount > 0)) {
                 found.ammoCount -= 1;
                 console.log(`[CraftingManager] Consumed 1 charge from ${found.name} (${found.instanceId}). Remaining: ${found.ammoCount}`);
             } else if (found) {
@@ -165,7 +238,7 @@ export class CraftingManager {
         }
 
         // Create result item
-        const itemData = createItemFromDef(recipe.resultItem);
+        const itemData = createItemFromDef(recipe.resultItem, preservedProperties);
         if (lifetimeTurns !== null) itemData.lifetimeTurns = lifetimeTurns;
         const newItem = new Item(itemData);
 

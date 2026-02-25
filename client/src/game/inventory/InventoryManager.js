@@ -65,6 +65,25 @@ export class InventoryManager extends SafeEventEmitter {
       height: 4
     }));
 
+    // Cooking Workspace
+    this.containers.set('cooking-tools', new Container({
+      id: 'cooking-tools',
+      type: 'crafting-workspace',
+      name: 'Cooking Pot Slot',
+      width: 1,
+      height: 1,
+      allowedCategories: [ItemCategory.TOOL],
+      ignoreSize: true
+    }));
+
+    this.containers.set('cooking-ingredients', new Container({
+      id: 'cooking-ingredients',
+      type: 'crafting-workspace',
+      name: 'Cooking Ingredients',
+      width: 5,
+      height: 4
+    }));
+
     this.craftingManager = new CraftingManager(this);
   }
 
@@ -1071,6 +1090,12 @@ export class InventoryManager extends SafeEventEmitter {
       ...ingredientContainer.getAllItems()
     ];
 
+    // Also clear cooking workspace if it exists
+    const cookingToolContainer = this.getContainer('cooking-tools');
+    const cookingIngredientContainer = this.getContainer('cooking-ingredients');
+    if (cookingToolContainer) items.push(...cookingToolContainer.getAllItems());
+    if (cookingIngredientContainer) items.push(...cookingIngredientContainer.getAllItems());
+
     if (items.length === 0) return;
 
     items.forEach(item => {
@@ -1335,8 +1360,11 @@ export class InventoryManager extends SafeEventEmitter {
 
       // Handle Expiration (Vanishing)
       // Only items that ARE NOT spoilable should vanish when shelfLife reaches 0
-      if (item.shelfLife !== null && item.shelfLife <= 0 && !item.isSpoilable()) {
-        console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired and vanished.`);
+      const isShelfLifeExpired = item.shelfLife !== null && item.shelfLife <= 0 && !item.isSpoilable();
+      const isLifetimeTurnsExpired = item.lifetimeTurns !== null && item.lifetimeTurns <= 0;
+
+      if (isShelfLifeExpired || isLifetimeTurnsExpired) {
+        console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired and vanished (ShelfLife: ${item.shelfLife}, Lifetime: ${item.lifetimeTurns}).`);
         if (container) {
           container.removeItem(item.instanceId);
         } else {
@@ -1355,9 +1383,15 @@ export class InventoryManager extends SafeEventEmitter {
       return false; // Item remains
     };
 
-    // 1. Process all containers (includes ground, backpack, pockets, dropdown bags)
+    // 1. Process only ROOT containers (ground, player inventory).
+    // Skip any container that has an ownerId, because those items will call processTurn
+    // recursively on their own contents.
     for (const container of this.containers.values()) {
       if (container.isVirtual) continue; // Skip virtual UI containers
+      if (container.ownerId) {
+        console.debug(`[InventoryManager] Skipping item-owned container ${container.id} to avoid double-processing`);
+        continue;
+      }
 
       const items = container.getAllItems();
       items.forEach(item => {

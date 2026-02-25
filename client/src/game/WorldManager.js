@@ -1,3 +1,6 @@
+import Logger from './utils/Logger.js';
+
+const logger = Logger.scope('WorldManager');
 
 /**
  * WorldManager - Handles multiple maps, transitions, and world state persistence
@@ -10,7 +13,7 @@ export class WorldManager {
     this.mapCounter = 1;
     this.listeners = new Map();
 
-    console.log('[WorldManager] Initialized');
+    logger.info('Initialized');
   }
 
   /**
@@ -42,8 +45,9 @@ export class WorldManager {
    * Save current map to the world maps collection
    * @param {GameMap} gameMap - Current game map instance
    * @param {string} mapId - Map identifier (e.g., 'map_001')
+   * @param {number} currentTurn - The current game turn count
    */
-  saveCurrentMap(gameMap, mapId = null) {
+  saveCurrentMap(gameMap, mapId = null, currentTurn = 1) {
     try {
       if (!mapId) {
         mapId = this.generateMapId();
@@ -54,6 +58,7 @@ export class WorldManager {
         id: mapId,
         serializedMap: serializedMap,
         timestamp: Date.now(),
+        lastProcessedTurn: currentTurn, // Track when this map was last active
         type: 'road', // Default type, can be extended
         metadata: {
           width: gameMap.width,
@@ -65,14 +70,8 @@ export class WorldManager {
       this.maps.set(mapId, mapData);
       this.currentMapId = mapId;
 
-      console.log(`[WorldManager] *** MAP SAVED: ${mapId} ***`);
-      console.log(`[WorldManager] *** WORLD COLLECTION NOW HAS ${this.maps.size} MAPS ***`);
-      console.log(`[WorldManager] Map metadata:`, {
-        width: mapData.metadata.width,
-        height: mapData.metadata.height,
-        entities: mapData.metadata.entityCount,
-        type: mapData.type
-      });
+      logger.info(`*** MAP SAVED: ${mapId} at Turn ${currentTurn} ***`);
+      logger.info(`*** WORLD COLLECTION NOW HAS ${this.maps.size} MAPS ***`);
 
       this.emit('mapSaved', {
         mapId: mapId,
@@ -89,20 +88,32 @@ export class WorldManager {
   /**
    * Load a map from the world collection (full restoration for save/load)
    * @param {string} mapId - Map identifier to load
+   * @param {number} currentTurn - The current game turn count (for catch-up)
    * @returns {Promise<Object>} - Deserialized map data
    */
-  async loadMap(mapId) {
+  async loadMap(mapId, currentTurn = null) {
     try {
       if (!this.maps.has(mapId)) {
         throw new Error(`Map ${mapId} not found in world collection`);
       }
 
       const mapData = this.maps.get(mapId);
-      console.log(`[WorldManager] Loading map ${mapId} from world collection (full restoration)`);
+      logger.info(`Loading map ${mapId} from world collection (full restoration)`);
 
       // Import GameMap class and restore from JSON with all entities
       const { GameMap } = await import('./map/GameMap.js');
       const gameMap = await GameMap.fromJSON(mapData.serializedMap);
+
+      // CATCH-UP TURN PROCESSING
+      if (currentTurn !== null && mapData.lastProcessedTurn !== undefined) {
+        const missedTurns = currentTurn - mapData.lastProcessedTurn;
+        if (missedTurns > 0) {
+          logger.info(`Map ${mapId} catching up on ${missedTurns} missed turns...`);
+          for (let i = 0; i < missedTurns; i++) {
+            gameMap.processTurn();
+          }
+        }
+      }
 
       this.currentMapId = mapId;
 
@@ -112,7 +123,7 @@ export class WorldManager {
         metadata: mapData.metadata
       });
 
-      console.log(`[WorldManager] Map ${mapId} loaded successfully with ${gameMap.getAllEntities().length} entities`);
+      logger.info(`Map ${mapId} loaded successfully with ${gameMap.getAllEntities().length} entities`);
       return {
         gameMap: gameMap,
         metadata: mapData.metadata
@@ -126,22 +137,34 @@ export class WorldManager {
   /**
    * Load a map for transitions (excludes player to prevent duplicates)
    * @param {string} mapId - Map identifier to load
+   * @param {number} currentTurn - The current game turn count (for catch-up)
    * @returns {Promise<Object>} - Deserialized map data without player entities
    */
-  async loadMapForTransition(mapId) {
+  async loadMapForTransition(mapId, currentTurn = null) {
     try {
       if (!this.maps.has(mapId)) {
         throw new Error(`Map ${mapId} not found in world collection`);
       }
 
       const mapData = this.maps.get(mapId);
-      console.log(`[WorldManager] Loading map ${mapId} for transition (excluding players)`);
+      logger.info(`Loading map ${mapId} for transition (excluding players)`);
 
       // Import GameMap class and restore selectively (exclude players)
       const { GameMap } = await import('./map/GameMap.js');
       const gameMap = await GameMap.fromJSONSelective(mapData.serializedMap, {
         excludeEntityTypes: ['player']
       });
+
+      // CATCH-UP TURN PROCESSING
+      if (currentTurn !== null && mapData.lastProcessedTurn !== undefined) {
+        const missedTurns = currentTurn - mapData.lastProcessedTurn;
+        if (missedTurns > 0) {
+          logger.info(`Map ${mapId} catching up on ${missedTurns} missed turns...`);
+          for (let i = 0; i < missedTurns; i++) {
+            gameMap.processTurn();
+          }
+        }
+      }
 
       this.currentMapId = mapId;
 
@@ -151,7 +174,7 @@ export class WorldManager {
         metadata: mapData.metadata
       });
 
-      console.log(`[WorldManager] Map ${mapId} loaded for transition with ${gameMap.getAllEntities().length} entities (no players)`);
+      logger.info(`Map ${mapId} loaded for transition with ${gameMap.getAllEntities().length} entities (no players)`);
       return {
         gameMap: gameMap,
         metadata: mapData.metadata
@@ -167,7 +190,7 @@ export class WorldManager {
    * @param {string} mapType - Type of map to generate ('road', 'forest', 'alley')
    * @returns {Promise<Object>} - Generated map data
    */
-  async generateNextMap(mapType = 'road') {
+  async generateNextMap(mapType = 'road', currentTurn = 1) {
     try {
       const nextMapId = this.generateMapId();
 
@@ -199,7 +222,7 @@ export class WorldManager {
       lootGenerator.spawnLoot(gameMap);
 
       // Save to world collection
-      const savedMapId = this.saveCurrentMap(gameMap, nextMapId);
+      const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn);
 
       this.emit('mapGenerated', {
         mapId: savedMapId,
@@ -207,7 +230,7 @@ export class WorldManager {
         gameMap: gameMap
       });
 
-      console.log(`[WorldManager] Generated and saved new ${mapType} map: ${savedMapId}`);
+      logger.info(`Generated and saved new ${mapType} map: ${savedMapId}`);
       return {
         mapId: savedMapId,
         gameMap: gameMap,
@@ -386,15 +409,16 @@ export class WorldManager {
    * Execute map transition
    * @param {string} targetMapId - ID of map to transition to
    * @param {Object} spawnPosition - Where to spawn player {x, y}
+   * @param {number} currentTurn - The current game turn count
    * @returns {Promise<Object>} - Transition result
    */
-  async executeTransition(targetMapId, spawnPosition) {
+  async executeTransition(targetMapId, spawnPosition, currentTurn = null) {
     try {
       // Check if target map exists, if not generate it
       let mapData;
       if (this.maps.has(targetMapId)) {
         console.log(`[WorldManager] Loading existing map for transition: ${targetMapId}`);
-        mapData = await this.loadMapForTransition(targetMapId);
+        mapData = await this.loadMapForTransition(targetMapId, currentTurn);
       } else {
         console.log(`[WorldManager] Generating new map: ${targetMapId}`);
 
@@ -425,7 +449,7 @@ export class WorldManager {
         }
 
         // Save to world collection with the correct target ID
-        this.saveCurrentMap(gameMap, targetMapId);
+        this.saveCurrentMap(gameMap, targetMapId, currentTurn);
 
         mapData = {
           mapId: targetMapId,
@@ -455,8 +479,8 @@ export class WorldManager {
         spawnPosition: spawnPosition
       });
 
-      console.log(`[WorldManager] Map transition completed: ${this.currentMapId} -> ${targetMapId}`);
-      console.log(`[WorldManager] Player will spawn at (${spawnPosition.x}, ${spawnPosition.y})`);
+      logger.info(`Map transition completed: ${this.currentMapId} -> ${targetMapId}`);
+      logger.info(`Player will spawn at (${spawnPosition.x}, ${spawnPosition.y})`);
 
       return {
         success: true,
@@ -490,7 +514,7 @@ export class WorldManager {
     worldManager.currentMapId = data.currentMapId || null;
     worldManager.mapCounter = data.mapCounter || 1;
 
-    console.log(`[WorldManager] Restored from JSON with ${worldManager.maps.size} maps`);
+    logger.info(`Restored from JSON with ${worldManager.maps.size} maps`);
     return worldManager;
   }
 }

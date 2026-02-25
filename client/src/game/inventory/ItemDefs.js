@@ -724,6 +724,23 @@ export const ItemDefs = {
       nutrition: 5
     }
   },
+  'food.vegetablesoup': {
+    id: 'food.vegetablesoup',
+    name: 'Vegetable Soup',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'vegetablesoup',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    shelfLife: 72,
+    consumptionEffects: {
+      nutrition: 15,
+      hydration: 5
+    }
+  },
 
   'crafting.stone': {
     id: 'crafting.stone',
