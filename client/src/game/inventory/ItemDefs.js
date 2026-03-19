@@ -242,11 +242,11 @@ export const ItemDefs = {
     }
   },
 
-  'weapon.makeshift_hatchet': {
-    id: 'weapon.makeshift_hatchet',
-    name: 'Makeshift hatchet',
+  'weapon.makeshift_hammer': {
+    id: 'weapon.makeshift_hammer',
+    name: 'Makeshift hammer',
     rarity: Rarity.COMMON,
-    imageId: 'Makeshifthatchet',
+    imageId: 'Makeshifthammer',
     width: 3,
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
@@ -850,6 +850,41 @@ export const ItemDefs = {
     categories: [ItemCategory.TOOL, ItemCategory.COOKING_POT]
   },
 
+  'weapon.shotgun': {
+    id: 'weapon.shotgun',
+    name: 'Shotgun',
+    rarity: Rarity.RARE,
+    imageId: 'shotgun',
+    width: 3,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: ['handgun', 'long_gun'], // Dual equip slot
+    attachmentSlots: [
+      { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.shotgun_shells'] }
+    ],
+    rangedStats: {
+      isShotgun: true,
+      damage: { min: 20, max: 20 }, // Base damage at 1 square
+      accuracyMaxRange: 5,
+      accuracyFalloff: 0.2, // -20% per square beyond 5
+      damageFalloff: 0.1, // -10% per square always
+      damageFalloffExtra: 0.1, // -10% additional per square beyond 5
+      minAccuracy: 0.0
+    }
+  },
+
+  'ammo.shotgun_shells': {
+    id: 'ammo.shotgun_shells',
+    name: 'Shotgun shells',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'shotgunshells',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
+    stackMax: 20
+  },
+
   'placeable.campfire': {
     id: 'placeable.campfire',
     name: 'Campfire',
@@ -887,3 +922,11 @@ export function createItemFromDef(defId, overrides = {}) {
     ...overrides
   };
 }
+
+/**
+ * Get the display name for an item definition ID
+ */
+export function getItemName(defId) {
+  const def = ItemDefs[defId];
+  return def ? def.name : (defId || "Unknown Item");
+}

@@ -40,6 +40,18 @@ export function runContainerTests() {
     }
   });
 
+  runTest('isChargeBased method', () => {
+    const lighter = new Item({ defId: 'tool.lighter' });
+    const matchbook = new Item({ defId: 'tool.matchbook' });
+    const battery = new Item({ traits: ['battery'] });
+    const knife = new Item({ defId: 'weapon.knife' });
+
+    if (!lighter.isChargeBased()) throw new Error('Lighter should be charge-based');
+    if (!matchbook.isChargeBased()) throw new Error('Matchbook should be charge-based');
+    if (!battery.isChargeBased()) throw new Error('Battery should be charge-based');
+    if (knife.isChargeBased()) throw new Error('Knife should not be charge-based');
+  });
+
   runTest('Item placement', () => {
     const container = new Container({ id: 'test-container', width: 5, height: 5 });
     const item = new Item({ id: 'test-item', type: 'weapon', width: 2, height: 1 });
@@ -151,6 +163,27 @@ export function runContainerTests() {
     const stackCounts = items.map(item => item.stackCount).sort((a, b) => a - b);
     if (stackCounts[0] !== 25 || stackCounts[1] !== 50) {
       throw new Error(`Expected stacks [25, 50], got [${stackCounts.join(', ')}]`);
+    }
+  });
+
+  runTest('Orientation-agnostic stacking', () => {
+    const container = new Container({ id: 'test-container', width: 6, height: 6 });
+    const item1 = new Item({ id: 'bottle1', type: 'water_bottle', traits: ['stackable', 'water_bottle'], stackMax: 10, stackCount: 5, width: 1, height: 2, ammoCount: 0 });
+    const item2 = new Item({ id: 'bottle2', type: 'water_bottle', traits: ['stackable', 'water_bottle'], stackMax: 10, stackCount: 3, width: 1, height: 2, ammoCount: 0 });
+
+    container.placeItemAt(item1, 1, 1);
+    
+    // Rotate item2 so it has a different orientation
+    item2.rotate(true); // 1x2 becomes 2x1
+
+    // Try to place it on top of item1
+    const validation = container.validatePlacement(item2, 1, 1);
+    if (!validation.stackTarget) {
+      throw new Error(`Stacking failed: ${validation.reason || 'no stack target found'}`);
+    }
+
+    if (validation.stackTarget.instanceId !== item1.instanceId) {
+      throw new Error('Stacking target is incorrect');
     }
   });
 

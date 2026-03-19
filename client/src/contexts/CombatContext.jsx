@@ -189,7 +189,14 @@ export const CombatProvider = ({ children }) => {
         const hasScope = sightItem && sightItem.categories?.includes(ItemCategory.RIFLE_SCOPE);
 
         let hitChance;
-        if (hasScope) {
+        if (stats.isShotgun) {
+            if (squaresAway <= (stats.accuracyMaxRange || 5)) {
+                hitChance = 1.0;
+            } else {
+                // Each square beyond 5 reduces accuracy by 20%
+                hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
+            }
+        } else if (hasScope) {
             if (squaresAway <= 15) {
                 hitChance = 1.0;
             } else {
@@ -222,7 +229,21 @@ export const CombatProvider = ({ children }) => {
         }
 
         if (hit) {
-            const damage = Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
+            let damage;
+            if (stats.isShotgun) {
+                // Damage at 1 square is 20. Each additional square reduces by 10%
+                let finalDamage = stats.damage.min; // 20
+                if (squaresAway > 1) {
+                    finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
+                }
+                // Each square beyond 5 reduces damage by ANOTHER 10%
+                if (squaresAway > 5) {
+                    finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
+                }
+                damage = Math.floor(finalDamage);
+            } else {
+                damage = Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
+            }
             console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to zombie ${zombie.id}`);
 
             zombie.takeDamage(damage);

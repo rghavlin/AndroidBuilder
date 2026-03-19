@@ -7,6 +7,7 @@ import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import WorkspaceSlot from "@/components/Inventory/WorkspaceSlot";
 import AttachmentSlot from './AttachmentSlot';
 import { Flame, Clock, Hammer, Soup } from 'lucide-react';
+import { getItemName } from '@/game/inventory/ItemDefs';
 
 export default function CraftingUI() {
     const {
@@ -158,23 +159,23 @@ export default function CraftingUI() {
                                         {selectedRecipe.tools.map((t, i) => (
                                             <div key={i} className={cn(
                                                 "text-[10px] px-2 py-0.5 rounded border flex items-center gap-1",
-                                                craftingStatus.missing.includes(t.label || t.id)
+                                                craftingStatus.missing.includes(t.label || t.name || getItemName(t.id))
                                                     ? "bg-red-500/10 text-red-300 border-red-500/30"
                                                     : "bg-primary/5 text-primary border-primary/20"
                                             )}>
                                                 <Hammer className="w-2.5 h-2.5" />
-                                                {t.label || t.id}
+                                                {t.label || t.name || getItemName(t.id)}
                                             </div>
                                         ))}
                                         {selectedRecipe.ingredients.map((ing, i) => (
                                             <div key={i} className={cn(
                                                 "text-[10px] px-2 py-0.5 rounded border flex items-center gap-1",
-                                                craftingStatus.missing.includes(ing.label || ing.id)
+                                                craftingStatus.missing.includes(ing.label || ing.name || getItemName(ing.id))
                                                     ? "bg-red-500/10 text-red-300 border-red-500/30"
                                                     : "bg-primary/5 text-primary border-primary/20"
                                             )}>
                                                 <div className="w-2 h-2 rounded-full bg-current opacity-50" />
-                                                {ing.count}x {ing.label || ing.id}
+                                                {ing.count}x {ing.label || ing.name || getItemName(ing.id)}
                                             </div>
                                         ))}
                                         {selectedRecipe.requiresCampfire && (

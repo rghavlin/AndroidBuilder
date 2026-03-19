@@ -89,7 +89,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             {/* Ammo/Capacity */}
             {(item.ammoCount > 0 || item.capacity > 0) && !item.isWaterBottle?.() && (
                 <div className="text-[10px] text-zinc-400 flex justify-between">
-                    <span>{item.isAmmo?.() ? 'Count' : 'Ammo'}</span>
+                    <span>{item.isChargeBased?.() ? 'Charges' : (item.isAmmo?.() ? 'Count' : 'Ammo')}</span>
                     <span>{item.ammoCount}{item.capacity ? ` / ${item.capacity}` : ''}</span>
                 </div>
             )}

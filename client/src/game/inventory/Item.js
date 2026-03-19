@@ -47,7 +47,8 @@ export class Item extends SafeEventEmitter {
     const uniqueSuffix = Math.random().toString(36).substring(2, 9);
     const timestamp = Date.now();
     this.instanceId = instanceId || `item-${timestamp}-${uniqueSuffix}`;
-    this.defId = defId;
+    this.defId = defId || id;
+    this.id = this.defId; // Maintain id for legacy compatibility
     this.type = 'item'; // Explicit type for map rendering compatibility
     this.subtype = subtype;
     this.name = name;
@@ -154,6 +155,17 @@ export class Item extends SafeEventEmitter {
     this.stackable = this.isStackable();
   }
 
+  /**
+   * Check if item can be equipped in a specific slot
+   */
+  canEquipIn(slotId) {
+    if (!this.equippableSlot) return false;
+    if (Array.isArray(this.equippableSlot)) {
+      return this.equippableSlot.includes(slotId);
+    }
+    return this.equippableSlot === slotId;
+  }
+
   // Static helpers for robust type-safe checks
   static isStackable(item) {
     if (!item) return false;
@@ -206,11 +218,18 @@ export class Item extends SafeEventEmitter {
   }
 
   isWaterBottle() {
-    return this.defId && (this.defId.startsWith('food.waterbottle') || this.defId === 'food.waterjug');
+    // Both standard water bottles and the larger water jug follow the same stacking/filling rules
+    return (this.defId && (this.defId.startsWith('food.waterbottle') || this.defId === 'food.waterjug')) ||
+           (this.traits && this.traits.includes('water_bottle'));
   }
 
   isBattery() {
     return this.hasTrait(ItemTrait.BATTERY);
+  }
+
+  isChargeBased() {
+    return (this.defId && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook')) ||
+           this.isBattery?.();
   }
 
   isBatteryPowered() {
@@ -546,10 +565,12 @@ export class Item extends SafeEventEmitter {
   canStackWith(otherItem) {
     if (!otherItem) return false;
 
+    // Stacking is orientation-agnostic; validatePlacement handles the grid overlap.
     if (!Item.isStackable(this) || !Item.isStackable(otherItem)) {
       return false;
     }
 
+    // Water bottles can stack even if defIds differ (e.g., plastic vs glass if both are empty/full)
     const isBothWaterBottle = this.isWaterBottle() && Item.isWaterBottle(otherItem);
     if (this.defId !== otherItem.defId && !isBothWaterBottle) {
       return false;

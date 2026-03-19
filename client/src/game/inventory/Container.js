@@ -191,14 +191,6 @@ export class Container {
       }
     }
 
-    // Check bounds
-    // Phase 10: ignoreSize bypass
-    if (!this.ignoreSize) {
-      if (!this.isValidPosition(x, y, width, height)) {
-        return { valid: false, reason: 'Out of bounds' };
-      }
-    }
-
     // Check for collisions (use instanceId for proper identification)
     const itemId = item.instanceId || item.id;
 
@@ -207,6 +199,9 @@ export class Container {
     const checkWidth = this.ignoreSize ? 1 : width;
     const checkHeight = this.ignoreSize ? 1 : height;
 
+    // Scan the footprint area. Note that we use a safe ?. access 
+    // because some parts of the footprint might be out of bounds 
+    // (which is exactly what we want to allow for stacking in narrow containers).
     for (let dy = 0; dy < checkHeight; dy++) {
       for (let dx = 0; dx < checkWidth; dx++) {
         const cellItem = this.grid[y + dy]?.[x + dx];
@@ -217,6 +212,7 @@ export class Container {
     }
 
     // If exactly one unique occupant, check if it's stackable with the incoming item
+    // We do this BEFORE the bounds check to allow stacking into narrow pockets
     if (occupants.size === 1) {
       const targetInstanceId = Array.from(occupants)[0];
       const targetItem = this.items.get(targetInstanceId);
@@ -225,6 +221,13 @@ export class Container {
       }
       if (targetItem && targetItem.canCombineWith(item)) {
         return { valid: true, combineTarget: targetItem };
+      }
+    }
+
+    // Check bounds for NORMAL placement (if not stacking)
+    if (!this.ignoreSize) {
+      if (!this.isValidPosition(x, y, width, height)) {
+        return { valid: false, reason: 'Out of bounds' };
       }
     }
 

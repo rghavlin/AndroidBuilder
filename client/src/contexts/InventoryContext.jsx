@@ -457,7 +457,7 @@ export const InventoryProvider = ({ children, manager }) => {
     const { item, originContainerId } = selectedItem;
 
     // Check if item can be equipped in target slot
-    if (item.equippableSlot !== targetSlot) {
+    if (!item.canEquipIn || !item.canEquipIn(targetSlot)) {
       return { success: false, reason: 'Item cannot be equipped in this slot' };
     }
 
@@ -776,7 +776,8 @@ export const InventoryProvider = ({ children, manager }) => {
     console.debug('[InventoryContext] Place selected:', item.name, 'to', targetContainerId, 'at', targetX, targetY, 'rotation:', rotation, 'isEquipment:', isEquipment);
 
     // Phase 5H: Block moving backpacks that have open floating panels
-    if (item.equippableSlot === 'backpack' && item.containerGrid) {
+    const isBackpack = item.canEquipIn ? item.canEquipIn('backpack') : item.equippableSlot === 'backpack';
+    if (isBackpack && item.containerGrid) {
       const containerIsOpen = isContainerOpen(item.containerGrid.id);
       if (containerIsOpen) {
         console.warn('[InventoryContext] Cannot move backpack - container panel is open');
@@ -785,7 +786,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // Phase 5H: Prevent unequipping backpack into itself - just cancel selection
-    if (isEquipment && item.equippableSlot === 'backpack' && item.containerGrid) {
+    if (isEquipment && isBackpack && item.containerGrid) {
       if (targetContainerId === item.containerGrid.id) {
         console.debug('[InventoryContext] Cannot unequip backpack into itself - canceling selection');
         setSelectedItem(null);
@@ -1291,7 +1292,6 @@ export const InventoryProvider = ({ children, manager }) => {
       drinkWater,
       attachSelectedItemToWeapon,
       detachItemFromWeapon,
-      consumeItem,
       // Crafting
       craftingRecipes: CraftingRecipes,
       selectedRecipeId,

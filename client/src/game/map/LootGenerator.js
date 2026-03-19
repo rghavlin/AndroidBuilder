@@ -146,7 +146,7 @@ export class LootGenerator {
                 // Ignore sprite/icon metadata and specialized sub-types
                 if (key.includes('.icon') || key.includes('.sprite')) return false;
                 if (key.startsWith('food.waterbottle_')) return false;
-                if (key === 'weapon.makeshift_hatchet') return false;
+                if (key === 'weapon.makeshift_hammer') return false;
                 if (ItemDefs[key].noLoot) return false;
                 return true;
             });
@@ -216,7 +216,7 @@ export class LootGenerator {
             const def = ItemDefs[randomKey];
 
             // 1. Map-wide limit: Max 1 backpack per map
-            const isBackpack = def.equippableSlot === 'backpack';
+            const isBackpack = def.equippableSlot === 'backpack' || (Array.isArray(def.equippableSlot) && def.equippableSlot.includes('backpack'));
             if (isBackpack && this.backpacksSpawned >= 1) continue;
 
             // 2. Pile limit: Max 1 food item per loot pile
@@ -383,8 +383,8 @@ export class LootGenerator {
                 });
                 selectedKey = rareKeys[Math.floor(Math.random() * rareKeys.length)];
             } else {
-                // Extremely rare: 9mm pistol, 357 pistol, small flashlight
-                const exoticKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'tool.smallflashlight'];
+                // Extremely rare: 9mm pistol, 357 pistol, shotgun, small flashlight
+                const exoticKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight'];
                 selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
             }
 
@@ -418,6 +418,13 @@ export class LootGenerator {
                         const ammoData = createItemFromDef('ammo.357');
                         if (ammoData) {
                             ammoData.stackCount = 1 + Math.floor(Math.random() * 6);
+                            item.attachments = { 'ammo': ammoData };
+                        }
+                    } else if (selectedKey === 'weapon.shotgun') {
+                        // Shotgun: 1-7 shells loaded
+                        const ammoData = createItemFromDef('ammo.shotgun_shells');
+                        if (ammoData) {
+                            ammoData.stackCount = 1 + Math.floor(Math.random() * 7);
                             item.attachments = { 'ammo': ammoData };
                         }
                     } else if (selectedKey === 'tool.smallflashlight') {

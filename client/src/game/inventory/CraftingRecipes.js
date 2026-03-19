@@ -11,10 +11,10 @@ import { ItemCategory } from './traits.js';
  */
 export const CraftingRecipes = [
     {
-        id: 'crafting.makeshift_hatchet',
-        name: 'Makeshift Hatchet',
-        resultItem: 'weapon.makeshift_hatchet',
-        description: 'A crude but effective chopping tool made from salvaged materials.',
+        id: 'crafting.makeshift_hammer',
+        name: 'Makeshift Hammer',
+        resultItem: 'weapon.makeshift_hammer',
+        description: 'A crude but effective pounding tool made from salvaged materials.',
         apCost: 5,
         tab: 'crafting',
         tools: [], // No tools required

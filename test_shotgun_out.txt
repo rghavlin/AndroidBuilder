@@ -1,0 +1,97 @@
+--- TESTING SHOTGUN IMPLEMENTATION ---
+1. Initializing InventoryManager...
+✅ InventoryManager initialized
+2. Creating Shotgun and Shells...
+[Item] Created: Shotgun pocketLayout: null
+[Item] Created: Shotgun shells pocketLayout: null
+✅ Items created
+
+3. Testing Dual Slot Equipping...
+Trying handgun slot...
+[InventoryManager] Equipped item: Shotgun to slot: handgun
+✅ Equipped as handgun: PASSED
+Unequipping from handgun...
+[Container] addItem called: Shotgun preferred: null null
+[Container] Found available position: { x: 0, y: 0 } for item size: { width: 3, height: 2 }
+[Container] ===== PLACEMENT ATTEMPT =====
+[Container] Item: Shotgun instanceId: item-1773901303768-5tijqg0
+[Container] Target position: (0, 0) Size: 3x2
+[Container] Current items in container: 0
+[Container] ✅ SUCCESS: Placed item: Shotgun at (0, 0) size: 3x2 instanceId: item-1773901303768-5tijqg0
+[Container] Total items now: 1
+[Container] Grid occupancy: Row 0: [0:item-177 1:item-177 2:item-177 . . .]
+Row 1: [0:item-177 1:item-177 2:item-177 . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+Trying long_gun slot...
+[Container] Removing item: Shotgun instanceId: item-1773901303768-5tijqg0 at (0, 0)
+[Container] removeItemFromGrid: Shotgun at (0, 0) size 3x2
+[Container] ✅ REMOVAL SUCCESS: Shotgun Total remaining: 0
+[InventoryManager] Equipped item: Shotgun to slot: long_gun
+✅ Equipped as long_gun: PASSED
+
+4. Testing Ammo Loading (Capacity 7)...
+[Container] addItem called: Shotgun shells preferred: null null
+[Container] Partial stack, remaining: 10
+[Container] Found available position: { x: 0, y: 0 } for item size: { width: 1, height: 1 }
+[Container] ===== PLACEMENT ATTEMPT =====
+[Container] Item: Shotgun shells instanceId: item-1773901303769-oi0hkr1
+[Container] Target position: (0, 0) Size: 1x1
+[Container] Current items in container: 0
+[Container] ✅ SUCCESS: Placed item: Shotgun shells at (0, 0) size: 1x1 instanceId: item-1773901303769-oi0hkr1
+[Container] Total items now: 1
+[Container] Grid occupancy: Row 0: [0:item-177 . . . . .]
+Row 1: [. . . . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+Placed 10 shells in ground container
+[InventoryManager] attachItemToWeapon: {
+  weapon: 'Shotgun',
+  slotId: 'ammo',
+  item: 'Shotgun shells',
+  itemId: 'item-1773901303769-oi0hkr1',
+  source: 'anywhere'
+}
+[Container] Removing item: Shotgun shells instanceId: item-1773901303769-oi0hkr1 at (0, 0)
+[Container] removeItemFromGrid: Shotgun shells at (0, 0) size 1x1
+[Container] ✅ REMOVAL SUCCESS: Shotgun shells Total remaining: 0
+[Item] Created: Shotgun shells pocketLayout: null
+[Container] addItem called: Shotgun shells preferred: 0 0
+[Container] Partial stack, remaining: 3
+[Container] ===== PLACEMENT ATTEMPT =====
+[Container] Item: Shotgun shells instanceId: item-1773901303769-oi0hkr1-split-1773901303771
+[Container] Target position: (0, 0) Size: 1x1
+[Container] Current items in container: 0
+[Container] ✅ SUCCESS: Placed item: Shotgun shells at (0, 0) size: 1x1 instanceId: item-1773901303769-oi0hkr1-split-1773901303771
+[Container] Total items now: 1
+[Container] Grid occupancy: Row 0: [0:item-177 . . . . .]
+Row 1: [. . . . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+❌ Incorrect load amount: 7 loaded, 7 remain
+
+5. Verifying Combat Scaling Formulas...
+✅ Dist 1: Dmg=20, Acc=1: PASSED
+✅ Dist 3: Dmg=16, Acc=1: PASSED
+✅ Dist 5: Dmg=13, Acc=1: PASSED
+✅ Dist 6: Dmg=10, Acc=0.8: PASSED
+
+⚠️ 1 tests failed.

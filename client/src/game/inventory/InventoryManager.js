@@ -1,10 +1,9 @@
 import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { GroundManager } from './GroundManager.js';
-import { ItemTrait, EquipmentSlot } from './traits.js'; // Import necessary enums
+import { ItemTrait, EquipmentSlot, ItemCategory, EncumbranceModifiers } from './traits.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { CraftingManager } from './CraftingManager.js';
-import { ItemCategory } from './traits.js';
 
 /**
  * InventoryManager coordinates all containers in the game
@@ -175,7 +174,7 @@ export class InventoryManager extends SafeEventEmitter {
   equipItem(item, slot = null) {
     // Auto-determine slot if not specified
     if (!slot && item.equippableSlot) {
-      slot = item.equippableSlot;
+      slot = Array.isArray(item.equippableSlot) ? item.equippableSlot[0] : item.equippableSlot;
     }
 
     if (!slot || !this.equipment.hasOwnProperty(slot)) {
@@ -183,7 +182,8 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     // Check if item can be equipped in this slot
-    if (item.equippableSlot !== slot) {
+    const allowedSlots = Array.isArray(item.equippableSlot) ? item.equippableSlot : [item.equippableSlot];
+    if (!allowedSlots.includes(slot)) {
       return { success: false, reason: 'Item cannot be equipped in this slot' };
     }
 
@@ -335,7 +335,6 @@ export class InventoryManager extends SafeEventEmitter {
    * Calculate encumbrance modifiers from equipped clothing
    */
   getEncumbranceModifiers() {
-    const { EncumbranceModifiers } = require('./traits.js');
     let totalEvade = 0;
     let totalAP = 0;
 
@@ -701,13 +700,17 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // 4. SPECIAL CASE: .357 Drum / Hunting Rifle Loading (Directly into slot, no mag)
+    // 4. SPECIAL CASE: Direct Loading Weapons (Shotgun, .357 Drum, Hunting Rifle)
     const isDirectLoadWeapon = (weapon.defId === 'weapon.357Pistol' && item.defId === 'ammo.357') ||
-      (weapon.defId === 'weapon.hunting_rifle' && item.defId === 'ammo.308');
+      (weapon.defId === 'weapon.hunting_rifle' && item.defId === 'ammo.308') ||
+      (weapon.defId === 'weapon.shotgun' && item.defId === 'ammo.shotgun_shells');
 
     if (isDirectLoadWeapon && slotId === 'ammo' && item.isAmmo()) {
       const existingAmmo = weapon.attachments[slotId];
-      const maxCapacity = weapon.defId === 'weapon.357Pistol' ? 6 : 5;
+      let maxCapacity = 5; // Default
+      if (weapon.defId === 'weapon.357Pistol') maxCapacity = 6;
+      else if (weapon.defId === 'weapon.shotgun') maxCapacity = 7;
+      else if (weapon.defId === 'weapon.hunting_rifle') maxCapacity = 5;
 
       if (existingAmmo) {
         const spaceLeft = maxCapacity - existingAmmo.stackCount;

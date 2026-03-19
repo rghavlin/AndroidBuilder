@@ -1,7 +1,7 @@
 
 import { CraftingRecipes } from './CraftingRecipes.js';
 import { Item } from './Item.js';
-import { createItemFromDef } from './ItemDefs.js';
+import { createItemFromDef, getItemName } from './ItemDefs.js';
 import { ItemCategory } from './traits.js';
 
 export class CraftingManager {
@@ -75,7 +75,7 @@ export class CraftingManager {
             if (found) {
                 usedInstances.add(found.instanceId);
             } else {
-                missing.push(toolReq.label || toolReq.name || toolReq.id || "Unknown Tool");
+                missing.push(toolReq.label || toolReq.name || getItemName(toolReq.id));
             }
         }
 
@@ -111,7 +111,7 @@ export class CraftingManager {
             foundCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
 
             if (foundCount < req.count) {
-                missing.push(req.label || req.name || req.id);
+                missing.push(req.label || req.name || getItemName(req.id));
             }
         }
 
