@@ -76,7 +76,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             {rangedStats && (
                 <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">Dmg</span>
+                        <span className="text-zinc-500">Damage</span>
                         <span className="text-zinc-200">{rangedStats.damage.min}-{rangedStats.damage.max}</span>
                     </div>
                     <div className="flex justify-between">

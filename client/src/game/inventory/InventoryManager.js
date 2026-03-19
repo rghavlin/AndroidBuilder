@@ -603,21 +603,31 @@ export class InventoryManager extends SafeEventEmitter {
     // 4. Try dynamic lookup for virtual containers (clothing/weapon UI panels)
     if (containerId && (containerId.startsWith('clothing:') || containerId.startsWith('weapon:') || containerId.startsWith('weapon-mod-'))) {
       let instanceId;
+      let slotId = null;
       if (containerId.startsWith('weapon-mod-')) {
         // Format: weapon-mod-instanceId:slotId
-        instanceId = containerId.replace('weapon-mod-', '').split(':')[0];
+        const parts = containerId.replace('weapon-mod-', '').split(':');
+        instanceId = parts[0];
+        slotId = parts[1];
       } else {
         instanceId = containerId.split(':')[1];
       }
 
       const found = this.findItem(instanceId);
       if (found && found.item) {
+        const weaponOrClothing = found.item;
         // Return a "virtual" container object to satisfy UI checks
         return {
           id: containerId,
           isVirtual: true,
-          item: found.item,
-          // Add minimal Container-like methods if needed
+          item: weaponOrClothing,
+          // NEW: Support removal for weapon attachments
+          removeItem: (itemId) => {
+            if (slotId && weaponOrClothing.detachItem) {
+              return weaponOrClothing.detachItem(slotId);
+            }
+            return null;
+          },
           items: new Map() // Empty map to satisfy iteration checks
         };
       }
@@ -831,7 +841,6 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // 3. Try weapon mod source (for already detached items)
     if (sourceId && sourceId.startsWith('weapon-mod-')) {
       const parts = sourceId.replace('weapon-mod-', '').split(':');
       const weaponInstanceId = parts[0];
@@ -839,6 +848,12 @@ export class InventoryManager extends SafeEventEmitter {
 
       const found = this.findItem(itemId);
       if (found && found.item) {
+        // ACTUAL DETACHMENT: Remove it from its parent weapon
+        const parentWeapon = found.parent || (this.findItem(weaponInstanceId)?.item);
+        if (parentWeapon && parentWeapon.detachItem) {
+          parentWeapon.detachItem(slotId);
+          console.debug('[InventoryManager] Successfully detached item from weapon during removal:', itemId, 'from', slotId);
+        }
         return { item: found.item, virtualSource: sourceId, weaponInstanceId, slotId };
       }
 
@@ -1165,17 +1180,28 @@ export class InventoryManager extends SafeEventEmitter {
    */
   moveItem(itemId, fromContainerId, toContainerId, x = null, y = null) {
     const fromContainer = this.containers.get(fromContainerId);
-    // Use getContainer to support dynamic pocket resolution for target
+    // Use getContainer to support dynamic pocket/weapon resolution
     const toContainer = this.getContainer(toContainerId);
 
-    if (!fromContainer || !toContainer) {
-      console.warn('[InventoryManager] Container not found:', { fromContainerId, toContainerId });
+    // Virtual source handling (weapon attachments, etc.)
+    const isVirtualSource = fromContainerId.startsWith('weapon-mod-');
+
+    if ((!fromContainer && !isVirtualSource) || !toContainer) {
+      console.warn('[InventoryManager] Source or target container not found:', { fromContainerId, toContainerId });
       return { success: false, reason: 'Container not found' };
     }
 
-    const itemToMove = fromContainer.items.get(itemId); // Peek at item before determining logic
+    // Get the item using generic find or specific map lookup
+    let itemToMove;
+    if (isVirtualSource) {
+      const found = this.findItem(itemId);
+      itemToMove = found?.item;
+    } else {
+      itemToMove = fromContainer.items.get(itemId);
+    }
+
     if (!itemToMove) {
-      console.warn('[InventoryManager] Item not found in source container for peek:', itemId);
+      console.warn('[InventoryManager] Item not found in source for move:', itemId, 'from:', fromContainerId);
       return { success: false, reason: 'Item not found' };
     }
 
@@ -1213,9 +1239,12 @@ export class InventoryManager extends SafeEventEmitter {
       return { success: false, reason: 'Cannot place item into itself' };
     }
 
-    const item = fromContainer.removeItem(itemId);
+    // Perform removal from source (handles containers, equipment, and virtual attachments)
+    const removedResult = this.removeItemFromSource(itemId, fromContainerId);
+    const item = removedResult?.item;
+
     if (!item) {
-      console.warn('[InventoryManager] Item not found in source container:', itemId);
+      console.warn('[InventoryManager] Failed to remove item from source container:', itemId, 'from:', fromContainerId);
       return { success: false, reason: 'Item not found' };
     }
 

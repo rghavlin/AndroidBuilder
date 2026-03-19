@@ -77,17 +77,34 @@ export default function AttachmentSlot({
                         onClick={handleClick}
                     >
                         {hasItem ? (
-                            imageSrc ? (
-                                <img
-                                    src={imageSrc}
-                                    alt={attachedItem.name}
-                                    className="w-full h-full object-cover p-1"
-                                />
-                            ) : (
-                                <span className="text-[0.65rem] font-bold text-accent text-center px-1">
-                                    {attachedItem.name.substring(0, 3).toUpperCase()}
-                                </span>
-                            )
+                            <>
+                                {imageSrc ? (
+                                    <img
+                                        src={imageSrc}
+                                        alt={attachedItem.name}
+                                        className={cn(
+                                            "w-full h-full object-cover p-1 transition-opacity",
+                                            selectedItem?.item?.instanceId === attachedItem.instanceId && "opacity-40 grayscale-[50%]"
+                                        )}
+                                    />
+                                ) : (
+                                    <span className={cn(
+                                        "text-[0.65rem] font-bold text-accent text-center px-1 transition-opacity",
+                                        selectedItem?.item?.instanceId === attachedItem.instanceId && "opacity-40"
+                                    )}>
+                                        {attachedItem.name.substring(0, 3).toUpperCase()}
+                                    </span>
+                                )}
+
+                                {/* Ammo/Stack count indicator */}
+                                {(attachedItem.stackCount > 1 || (typeof attachedItem.getDisplayAmmoCount === 'function' && attachedItem.getDisplayAmmoCount() !== null)) && (
+                                    <div className="absolute inset-0 pointer-events-none z-20">
+                                        <span className="absolute bottom-0.5 right-0.5 text-[0.6rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20">
+                                            {attachedItem.getDisplayAmmoCount ? attachedItem.getDisplayAmmoCount() : attachedItem.stackCount}
+                                        </span>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <span className="text-[0.5rem] text-muted-foreground text-center leading-none px-1 uppercase font-bold">
                                 {slot.name}

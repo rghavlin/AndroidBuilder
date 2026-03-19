@@ -43,9 +43,16 @@ export default function EquipmentSlots() {
         return;
       }
 
-      // Slot is occupied, try Attachment (if weapon)
+      // Slot is occupied, try loading ammo or adding attachment (if weapon)
       const isWeapon = equippedItem.isWeapon?.() || (equippedItem.attachmentSlots && equippedItem.attachmentSlots.length > 0);
       if (isWeapon) {
+        // AMMO LOADING: If clicking on a weapon while carrying ammo, try to load it (Step 606 check)
+        if (selectedItem.item.isAmmo && selectedItem.item.isAmmo()) {
+          console.debug('[EquipmentSlots] Attempting to load ammo into equipped weapon:', equippedItem.name);
+          const attachResult = attachSelectedInto(equippedItem);
+          if (attachResult.success) return;
+        }
+        
         console.debug('[EquipmentSlots] Attempting quick attach into equipped weapon:', equippedItem.name);
         const attachResult = attachSelectedInto(equippedItem);
         if (attachResult.success) return;

@@ -519,26 +519,26 @@ export const InventoryProvider = ({ children, manager }) => {
   }, [selectedItem, inventoryRef]);
 
   const detachItemFromWeapon = useCallback((weapon, slotId) => {
-    if (!inventoryRef.current) return null;
+    // 1. Get the item currently in the slot
+    const item = weapon.getAttachment ? weapon.getAttachment(slotId) : weapon.attachments?.[slotId];
+    
+    if (!item) return null;
 
-    // Check AP cost (1 AP)
+    // 2. Check AP cost (1 AP)
     if (playerRef.current && playerRef.current.ap < 1) {
-      // NOTE: Context menu handles showing the error if we return null here,
-      // but usually we want to block the action.
       return null;
     }
 
-    const item = inventoryRef.current.detachItemFromWeapon(weapon, slotId);
-    if (item) {
-      if (playerRef.current) playerRef.current.useAP(1);
-      setInventoryVersion(v => v + 1);
-      // Auto-select the detached item
-      // Include slotId in origin so it can be returned if selection cancelled
-      selectItem(item, `weapon-mod-${weapon.instanceId}:${slotId}`, 0, 0);
-      return item;
-    }
-    return null;
-  }, [inventoryRef, selectItem]);
+    // 3. Select the item WITHOUT removing it from weapon yet
+    // The actual removal happens in InventoryManager.removeItemFromSource when placed
+    console.debug('[InventoryContext] Selecting attachment from weapon:', item.name, 'slot:', slotId);
+    
+    // Use special origin category so clearing selection knows how to handle it
+    selectItem(item, `weapon-mod-${weapon.instanceId}:${slotId}`, 0, 0);
+    
+    // We don't use AP yet, same as selecting from grid. AP is used on placement.
+    return item;
+  }, [selectItem]);
 
   /**
    * Quick attach selected item into a target weapon item
@@ -850,16 +850,13 @@ export const InventoryProvider = ({ children, manager }) => {
 
     // 2. CRITICAL: Remove from origin container FIRST
     // This ensures there are no "duplicates" in the data before we place in the target
-    if (originContainer && originContainer.removeItem) {
+    if (originContainer && typeof originContainer.removeItem === 'function') {
       const removed = originContainer.removeItem(item.instanceId);
       if (!removed) {
         console.error('[InventoryContext] Failed to remove item from origin container');
         return { success: false, reason: 'Failed to remove from origin' };
       }
       console.debug('[InventoryContext] Successfully removed from origin:', originContainerId);
-    } else if (originContainerId.startsWith('weapon-mod-')) {
-      // Already removed during detach
-      console.debug('[InventoryContext] Item from weapon-mod origin is already detached');
     }
 
     // NOW apply the new rotation to the item object

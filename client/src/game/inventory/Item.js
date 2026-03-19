@@ -40,7 +40,10 @@ export class Item extends SafeEventEmitter {
     waterQuality = 'clean',
     shelfLife = null,
     lifetimeTurns = null,
-    ammoDefId = null
+    ammoDefId = null,
+    rarity = null,
+    combat = null,
+    rangedStats = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -134,6 +137,9 @@ export class Item extends SafeEventEmitter {
       const def = ItemDefs[this.defId];
       if (def.attachmentSlots) this.attachmentSlots = def.attachmentSlots;
       if (def.ammoDefId && !this.ammoDefId) this.ammoDefId = def.ammoDefId;
+      if (def.rarity && !this.rarity) this.rarity = def.rarity;
+      if (def.combat && !this.combat) this.combat = def.combat;
+      if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
     }
 
     // Initialize container grid synchronously if data exists
@@ -893,7 +899,10 @@ export class Item extends SafeEventEmitter {
       consumptionEffects: this.consumptionEffects,
       waterQuality: this.waterQuality,
       shelfLife: this.shelfLife,
-      lifetimeTurns: this.lifetimeTurns
+      lifetimeTurns: this.lifetimeTurns,
+      rarity: this.rarity,
+      combat: this.combat,
+      rangedStats: this.rangedStats
     };
 
     // Serialize Traits

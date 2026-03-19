@@ -57,7 +57,7 @@ export default function GridSlot({
   };
 
   // Tooltip content for items
-  const tooltipContent = item && isTopLeft ? (
+  const tooltipContent = item ? (
     <ItemTooltip item={item} />
   ) : null;
 
