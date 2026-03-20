@@ -546,6 +546,13 @@ export const InventoryProvider = ({ children, manager }) => {
   const attachSelectedInto = useCallback((targetWeapon) => {
     if (!selectedItem || !inventoryRef.current || !targetWeapon) return { success: false };
 
+    // Phase 6 Nesting Fix: Only allow attaching if target is openable or equipped
+    const isAccessible = canOpenContainer(targetWeapon) || targetWeapon.isEquipped;
+    if (!isAccessible) {
+      console.warn('[InventoryContext] Cannot attach into closed nested weapon:', targetWeapon.name);
+      return { success: false, reason: 'Open the weapon to modify it' };
+    }
+
     // Check AP cost (1 AP)
     if (playerRef.current && playerRef.current.ap < 1) {
       return { success: false, reason: 'Not enough AP (1 required)' };
@@ -577,6 +584,13 @@ export const InventoryProvider = ({ children, manager }) => {
    */
   const depositSelectedInto = useCallback((targetItem) => {
     if (!selectedItem || !inventoryRef.current || !targetItem) return { success: false };
+
+    // Phase 6 Nesting Fix: Only allow depositing if target is openable or equipped
+    const isAccessible = canOpenContainer(targetItem) || targetItem.isEquipped;
+    if (!isAccessible) {
+      console.warn('[InventoryContext] Cannot deposit into closed nested container:', targetItem.name);
+      return { success: false, reason: 'Open or equip the container first' };
+    }
 
     const { item } = selectedItem;
 

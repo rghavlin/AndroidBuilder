@@ -545,15 +545,132 @@ export class TemplateMapGenerator {
     const leftBuildingZoneEnd = leftSidewalkStartX - grassGapFromSidewalk - 1;
     const rightBuildingZoneStart = rightSidewalkEndX + grassGapFromSidewalk + 1;
 
-    // Place buildings on left side
-    this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, buildingBuffer, height - buildingBuffer,
-      minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
-      minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+    // Calculate special building location
+    const useLeftSide = Math.random() < 0.5;
+    const specialBuildingHeight = 12;
+    const specialBuildingMinY = buildingBuffer + 10;
+    const specialBuildingMaxY = height - buildingBuffer - specialBuildingHeight - 10;
+    const specialBuildingY = specialBuildingMinY + Math.floor(Math.random() * (specialBuildingMaxY - specialBuildingMinY));
+    
+    // Choose building type
+    const types = ['grocer', 'firestation', 'police', 'gas_station'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    // Place special building
+    this.placeSpecialBuilding(layout, useLeftSide, specialBuildingY, type, leftSidewalkStartX, rightSidewalkEndX, mapData);
 
-    // Place buildings on right side
-    this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, buildingBuffer, height - buildingBuffer,
+    // Place buildings on left side, avoiding special building if it's there
+    const leftEndY = useLeftSide ? specialBuildingY - 2 : height - buildingBuffer;
+    this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, buildingBuffer, leftEndY,
       minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
       minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+    
+    if (useLeftSide) {
+      const leftStartY = specialBuildingY + specialBuildingHeight + 2;
+      this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, leftStartY, height - buildingBuffer,
+        minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+        minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+    }
+
+    // Place buildings on right side, avoiding special building if it's there
+    const rightEndY = !useLeftSide ? specialBuildingY - 2 : height - buildingBuffer;
+    this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, buildingBuffer, rightEndY,
+      minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+      minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+    
+    if (!useLeftSide) {
+      const rightStartY = specialBuildingY + specialBuildingHeight + 2;
+      this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, rightStartY, height - buildingBuffer,
+        minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+        minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+    }
+  }
+
+  /**
+   * Place a special building with unique rules
+   */
+  placeSpecialBuilding(layout, isLeft, y, type, leftSidewalkX, rightSidewalkX, mapData) {
+    const width = 9;
+    const height = 12;
+    const gapFromSidewalk = type === 'gas_station' ? 3 : 2;
+    
+    let startX;
+    if (isLeft) {
+      startX = leftSidewalkX - gapFromSidewalk - width;
+    } else {
+      startX = rightSidewalkX + gapFromSidewalk;
+    }
+
+    // Replace front tiles with road
+    const roadX = isLeft ? leftSidewalkX - 1 : rightSidewalkX + 1;
+    const roadGap = isLeft ? leftSidewalkX - 2 : rightSidewalkX + 2;
+    for (let currentY = y; currentY < y + height; currentY++) {
+        if (layout[currentY]) {
+            layout[currentY][roadX] = 'road';
+            layout[currentY][roadGap] = 'road';
+        }
+    }
+
+    // Build the structure
+    for (let curY = y; curY < y + height; curY++) {
+      for (let curX = startX; curX < startX + width; curX++) {
+        if (layout[curY] && layout[curY][curX]) {
+          const isPerimeter = (curY === y || curY === y + height - 1 || curX === startX || curX === startX + width - 1);
+          layout[curY][curX] = isPerimeter ? 'building' : 'floor';
+        }
+      }
+    }
+
+    // Metadata for loot
+    if (!mapData.metadata.specialBuildings) mapData.metadata.specialBuildings = [];
+    mapData.metadata.specialBuildings.push({
+        type,
+        x: startX,
+        y,
+        width,
+        height
+    });
+
+    // Entrance and Icons
+    const entranceY = y + Math.floor(height / 2);
+    const entranceX = isLeft ? startX + width - 1 : startX;
+    
+    if (type === 'firestation') {
+        // 4-tile opening
+        const openStartY = y + 4;
+        for (let fy = openStartY; fy < openStartY + 4; fy++) {
+            layout[fy][entranceX] = 'floor';
+        }
+    } else {
+        // Normal door
+        layout[entranceY][entranceX] = 'floor';
+        if (!mapData.metadata.doors) mapData.metadata.doors = [];
+        mapData.metadata.doors.push({
+            x: entranceX,
+            y: entranceY,
+            isLocked: Math.random() < 0.1,
+            isOpen: false
+        });
+    }
+
+    // Place Icons
+    if (!mapData.metadata.placeIcons) mapData.metadata.placeIcons = [];
+    
+    if (type === 'gas_station') {
+        const fuelPumpX = isLeft ? leftSidewalkX - 2 : rightSidewalkX + 2;
+        mapData.metadata.placeIcons.push({
+            subtype: 'fuelpump',
+            x: fuelPumpX,
+            y: entranceY
+        });
+    } else {
+        // Sign icon above door
+        mapData.metadata.placeIcons.push({
+            subtype: type === 'grocer' ? 'grocer' : (type === 'police' ? 'police' : 'firestation'),
+            x: entranceX,
+            y: entranceY - 1
+        });
+    }
   }
 
   /**
@@ -885,6 +1002,29 @@ export class TemplateMapGenerator {
           gameMap.addEntity(door, doorData.x, doorData.y);
         });
         console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors to map`);
+      }
+
+      // Instantiate place icons from metadata
+      if (templateMapData.metadata && templateMapData.metadata.placeIcons) {
+        const { PlaceIcon } = await import('../entities/PlaceIcon.js');
+        templateMapData.metadata.placeIcons.forEach(iconData => {
+          const icon = new PlaceIcon(
+            iconData.id || `icon-${iconData.subtype}-${iconData.x}-${iconData.y}`,
+            iconData.x,
+            iconData.y,
+            iconData.subtype
+          );
+          if (iconData.subtype === 'fuelpump') {
+            icon.blocksMovement = true;
+          }
+          gameMap.addEntity(icon, iconData.x, iconData.y);
+        });
+        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.placeIcons.length} icons to map`);
+      }
+
+      // Store special building metadata on gameMap for LootGenerator
+      if (templateMapData.metadata && templateMapData.metadata.specialBuildings) {
+        gameMap.specialBuildings = templateMapData.metadata.specialBuildings;
       }
 
       return gameMap;

@@ -48,7 +48,24 @@ export class ImageLoader {
       return this.loadingPromises.get(imageKey);
     }
 
-    // Start loading the image
+    // Special routing for place icons
+    if (entityType === 'place_icon' && subtype) {
+      const getPromise = this.getPlaceImage(subtype);
+      this.loadingPromises.set(imageKey, getPromise);
+      try {
+        const image = await getPromise;
+        if (image) {
+          this.imageCache.set(imageKey, image);
+          this.loadingPromises.delete(imageKey);
+          return image;
+        }
+      } catch (error) {
+        // Fall through to default loading if place image fails
+        console.warn(`[ImageLoader] Place image load failed for ${subtype}, trying default...`);
+      }
+    }
+
+    // Start loading the image (default entity path)
     const loadPromise = this.loadImage(imageKey);
     this.loadingPromises.set(imageKey, loadPromise);
 
@@ -63,6 +80,99 @@ export class ImageLoader {
       this.loadingPromises.delete(imageKey);
       return null;
     }
+  }
+
+  /**
+   * Get image for a special building or landmark (from places folder)
+   * @param {string} placeName - Name of the place icon (grocer, firestation, etc)
+   * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
+   */
+  async getPlaceImage(placeName) {
+    const imageKey = `place_${placeName}`;
+
+    // Return cached image if available
+    if (this.imageCache.has(imageKey)) {
+      return this.imageCache.get(imageKey);
+    }
+
+    // Return existing loading promise if already loading
+    if (this.loadingPromises.has(imageKey)) {
+      return this.loadingPromises.get(imageKey);
+    }
+
+    // Start loading the place image
+    const loadPromise = this.loadPlaceImage(placeName);
+    this.loadingPromises.set(imageKey, loadPromise);
+
+    try {
+      const image = await loadPromise;
+      this.imageCache.set(imageKey, image);
+      this.loadingPromises.delete(imageKey);
+      return image;
+    } catch (error) {
+      console.log(`[ImageLoader] Place image not found: ${placeName}`);
+      this.imageCache.set(imageKey, null);
+      this.loadingPromises.delete(imageKey);
+      return null;
+    }
+  }
+
+  /**
+   * Load place image from file system
+   * @param {string} placeName - Name of the place icon
+   * @returns {Promise<HTMLImageElement>} - Promise that resolves to image element
+   */
+  loadPlaceImage(placeName) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const extensions = ['png', 'jpg', 'jpeg'];
+      let extensionIndex = 0;
+      let basePathIndex = 0;
+
+      const basePaths = [
+        '/images/places/',
+        './images/places/',
+        '../images/places/',
+        './client/public/images/places/',
+        '../client/public/images/places/'
+      ];
+
+      const tryNextPath = () => {
+        if (basePathIndex >= basePaths.length) {
+          reject(new Error(`No place image found for: ${placeName}`));
+          return;
+        }
+
+        const currentBasePath = basePaths[basePathIndex];
+        extensionIndex = 0;
+        tryNextExtension(currentBasePath);
+      };
+
+      const tryNextExtension = (currentBasePath) => {
+        if (extensionIndex >= extensions.length) {
+          basePathIndex++;
+          tryNextPath();
+          return;
+        }
+
+        const extension = extensions[extensionIndex];
+        const fullPath = `${currentBasePath}${placeName}.${extension}`;
+
+        img.src = fullPath;
+        extensionIndex++;
+      };
+
+      img.onload = () => {
+        console.log(`[ImageLoader] Successfully loaded place image: ${img.src}`);
+        resolve(img);
+      };
+
+      img.onerror = () => {
+        tryNextExtension(basePaths[basePathIndex]);
+      };
+
+      tryNextPath();
+    });
   }
 
   /**

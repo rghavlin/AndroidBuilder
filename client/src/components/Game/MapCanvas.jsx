@@ -98,7 +98,13 @@ export default function MapCanvas({
 
     if (cachedImage) {
       // Render with cached image
-      const entitySize = entity.type === 'item' ? tileSize / 2 : (tileSize * 0.8);
+      let entitySize = (tileSize * 0.8);
+      if (entity.type === 'item') {
+        entitySize = tileSize / 2;
+      } else if (entity.type === 'place_icon') {
+        entitySize = tileSize;
+      }
+      
       const offsetX = (tileSize - entitySize) / 2;
       const offsetY = (tileSize - entitySize) / 2;
 
@@ -830,7 +836,7 @@ export default function MapCanvas({
   // Preload entity images on initialization
   useEffect(() => {
     const preloadEntityImages = async () => {
-      const commonEntityTypes = ['player', 'zombie', 'item', 'npc'];
+      const commonEntityTypes = ['player', 'zombie', 'item', 'npc', 'place_icon'];
       await imageLoader.preloadImages(commonEntityTypes);
 
       // Preload the default item image for ground piles
@@ -843,6 +849,28 @@ export default function MapCanvas({
       preloadEntityImages();
     }
   }, [isInitialized]);
+
+  // Preload specific place icons when map changes
+  useEffect(() => {
+    if (!isInitialized || !gameMapRef.current) return;
+
+    const loadPlaceIcons = async () => {
+      const gameMap = gameMapRef.current;
+      const placeIcons = gameMap.getEntitiesByType('place_icon');
+      
+      if (placeIcons.length === 0) return;
+
+      const subtypes = [...new Set(placeIcons.map(icon => icon.subtype))];
+      const loadPromises = subtypes.map(subtype => 
+        imageLoader.getImage('place_icon', subtype)
+      );
+
+      await Promise.all(loadPromises);
+      setImagesLoaded(true);
+    };
+
+    loadPlaceIcons();
+  }, [isInitialized, mapVersion]);
 
   // Re-render when game state changes
   useEffect(() => {

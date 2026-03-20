@@ -28,9 +28,16 @@ export class LootGenerator {
         this.initItemKeys();
         this.backpacksSpawned = 0;
 
-        // 1. Identify buildings and spawn indoor loot
+        // 1. Identify special buildings and spawn specialized loot
+        if (gameMap.specialBuildings) {
+            gameMap.specialBuildings.forEach(building => {
+                this.spawnSpecialLoot(gameMap, building);
+            });
+        }
+
+        // 2. Identify remaining buildings and spawn indoor loot
         const buildings = this.getBuildings(gameMap);
-        console.log(`[LootGenerator] Detected ${buildings.length} buildings for indoor loot`);
+        console.log(`[LootGenerator] Detected ${buildings.length} normal buildings for indoor loot`);
 
         buildings.forEach((buildingTiles, index) => {
             let dropCount = 0;
@@ -103,6 +110,12 @@ export class LootGenerator {
                 const key = `${x},${y}`;
 
                 if (tile && tile.terrain === 'floor' && !visited.has(key)) {
+                    // Skip if tile is part of a special building
+                    const isSpecial = gameMap.specialBuildings?.some(b => 
+                        x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+                    );
+                    if (isSpecial) continue;
+
                     // Start flood fill for new building
                     const buildingTiles = [];
                     const queue = [{ x, y }];
@@ -331,6 +344,152 @@ export class LootGenerator {
     }
 
     /**
+     * Spawn specialized loot in a special building
+     */
+    spawnSpecialLoot(gameMap, building) {
+        const { type, x, y, width, height } = building;
+        
+        // Find internal floor tiles
+        const floorTiles = [];
+        for (let curY = y + 1; curY < y + height - 1; curY++) {
+            for (let curX = x + 1; curX < x + width - 1; curX++) {
+                const tile = gameMap.getTile(curX, curY);
+                if (tile && tile.terrain === 'floor') {
+                    floorTiles.push({ x: curX, y: curY });
+                }
+            }
+        }
+
+        if (floorTiles.length === 0) return;
+
+        // 3 to 6 drops
+        const dropCount = 3 + Math.floor(Math.random() * 4);
+        const selectedTiles = this.getRandomSubarray(floorTiles, dropCount);
+
+        console.log(`[LootGenerator] Spawning specialized loot for ${type} in ${dropCount} drops`);
+
+        // Building-wide random rolls (ONE per building)
+        const buildingState = {
+            gunSpawned: false,
+            toolSpawned: false,
+            backpackSpawned: false,
+            hasGun: Math.random() < 0.5,
+            hasTool: Math.random() < 0.5,
+            hasBackpack: Math.random() < 0.25,
+            gunDropIndex: -1,
+            toolDropIndex: -1,
+            backpackDropIndex: -1
+        };
+
+        if (type === 'police') {
+            buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(Math.random() * dropCount) : -1;
+            buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
+        } else if (type === 'firestation') {
+            buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(Math.random() * dropCount) : -1;
+            buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
+        }
+
+        selectedTiles.forEach((pos, index) => {
+            let items = [];
+            
+            // Standard indoor loot base for police and fire stations
+            if (type === 'police' || type === 'firestation') {
+                items = this.generateRandomItems('inside');
+            }
+
+            // Guaranteed drops for some buildings on the first tile
+            if (index === 0) {
+                if (type === 'grocer' || type === 'gas_station') {
+                    // Guaranteed full water bottle
+                    const water = createItemFromDef('food.waterbottle');
+                    if (water) {
+                        water.ammoCount = water.capacity;
+                        items.push(water);
+                    }
+                }
+            }
+
+            // Building specific loot tables/logic
+            switch(type) {
+                case 'grocer':
+                    const grocerTable = [
+                        { key: 'food.granolabar', weight: 30 },
+                        { key: 'food.chips', weight: 30 },
+                        { key: 'food.beans', weight: 20 },
+                        { key: 'food.waterbottle', weight: 15 },
+                        { key: 'backpack.school', weight: 5 }
+                    ];
+                    this.addItemsFromTable(items, grocerTable, 1, 2);
+                    break;
+                case 'gas_station':
+                    const gasTable = [
+                        { key: 'food.chips', weight: 35 },
+                        { key: 'food.granolabar', weight: 35 },
+                        { key: 'food.waterbottle', weight: 20 },
+                        { key: 'tool.lighter', weight: 10 }
+                    ];
+                    this.addItemsFromTable(items, gasTable, 1, 2);
+                    break;
+                case 'firestation':
+                    // 50% chance for bandages or antibiotics in each loot drop
+                    if (Math.random() < 0.5) {
+                        const medKey = Math.random() < 0.5 ? 'medical.bandage' : 'medical.antibiotics';
+                        const med = createItemFromDef(medKey);
+                        if (med) {
+                            med.stackCount = 1 + Math.floor(Math.random() * 2);
+                            items.push(med);
+                        }
+                    }
+
+                    // 50% chance for ONE fire tool in building
+                    if (index === buildingState.toolDropIndex) {
+                        const toolKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar'];
+                        const toolKey = toolKeys[Math.floor(Math.random() * toolKeys.length)];
+                        const tool = createItemFromDef(toolKey);
+                        if (tool) items.push(tool);
+                    }
+
+                    // 25% chance for ONE backpack in building (Shared with police logic)
+                    if (index === buildingState.backpackDropIndex) {
+                        const backpack = createItemFromDef('backpack.standard');
+                        if (backpack) items.push(backpack);
+                    }
+                    break;
+                case 'police':
+                    // 50% chance for ammo in each loot drop
+                    if (Math.random() < 0.5) {
+                        const ammoKeys = ['ammo.9mm', 'ammo.357', 'ammo.308', 'ammo.shotgun_shells'];
+                        const ammoKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
+                        const ammo = createItemFromDef(ammoKey);
+                        if (ammo) {
+                            ammo.stackCount = 5 + Math.floor(Math.random() * 10);
+                            items.push(ammo);
+                        }
+                    }
+                    
+                    // 50% chance for ONE gun in building
+                    if (index === buildingState.gunDropIndex) {
+                        const gunKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
+                        const gunKey = gunKeys[Math.floor(Math.random() * gunKeys.length)];
+                        const gun = createItemFromDef(gunKey);
+                        if (gun) items.push(gun);
+                    }
+
+                    // 25% chance for ONE backpack in building
+                    if (index === buildingState.backpackDropIndex) {
+                        const backpack = createItemFromDef('backpack.standard');
+                        if (backpack) items.push(backpack);
+                    }
+                    break;
+            }
+
+            if (items.length > 0) {
+                gameMap.setItemsOnTile(pos.x, pos.y, items);
+            }
+        });
+    }
+
+    /**
      * Utility to get N random elements from an array
      */
     getRandomSubarray(arr, n) {
@@ -441,5 +600,35 @@ export class LootGenerator {
             }
         }
         return items;
+    }
+
+    /**
+     * Helper to pick items from a weighted table and add to collection
+     */
+    addItemsFromTable(items, table, min, max) {
+        const count = min + Math.floor(Math.random() * (max - min + 1));
+        for (let i = 0; i < count; i++) {
+            const totalWeight = table.reduce((sum, entry) => sum + entry.weight, 0);
+            let random = Math.random() * totalWeight;
+            let pickedKey = table[0].key;
+            for (const entry of table) {
+                if (random < entry.weight) {
+                    pickedKey = entry.key;
+                    break;
+                }
+                random -= entry.weight;
+            }
+            
+            const item = createItemFromDef(pickedKey);
+            if (item) {
+                // Custom stack/property rules for specialized items
+                if (pickedKey.startsWith('ammo.')) {
+                    item.stackCount = 2 + Math.floor(Math.random() * 6);
+                } else if (pickedKey === 'food.waterbottle') {
+                    item.ammoCount = Math.floor(Math.random() * (item.capacity + 1));
+                }
+                items.push(item);
+            }
+        }
     }
 }
