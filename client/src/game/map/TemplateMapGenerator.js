@@ -598,7 +598,8 @@ export class TemplateMapGenerator {
     if (isLeft) {
       startX = leftSidewalkX - gapFromSidewalk - width;
     } else {
-      startX = rightSidewalkX + gapFromSidewalk;
+      // FIX: Add 1 to offset right side calculation for correct gap count
+      startX = rightSidewalkX + gapFromSidewalk + 1;
     }
 
     // Replace front tiles with road
@@ -656,8 +657,10 @@ export class TemplateMapGenerator {
     // Place Icons
     if (!mapData.metadata.placeIcons) mapData.metadata.placeIcons = [];
     
+    // Place fuel pump icon for gas stations
     if (type === 'gas_station') {
-        const fuelPumpX = isLeft ? leftSidewalkX - 2 : rightSidewalkX + 2;
+        const fuelPumpX = isLeft ? startX + width + 1 : startX - 2;
+        const fuelPumpY = entranceY;
         mapData.metadata.placeIcons.push({
             subtype: 'fuelpump',
             x: fuelPumpX,
@@ -668,7 +671,7 @@ export class TemplateMapGenerator {
         mapData.metadata.placeIcons.push({
             subtype: type === 'grocer' ? 'grocer' : (type === 'police' ? 'police' : 'firestation'),
             x: entranceX,
-            y: entranceY - 1
+            y: type === 'firestation' ? y + 3 : entranceY - 1
         });
     }
   }

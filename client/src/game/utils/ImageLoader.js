@@ -36,7 +36,12 @@ export class ImageLoader {
    * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
    */
   async getImage(entityType, subtype = null) {
-    const imageKey = subtype ? `${entityType}_${subtype}` : entityType;
+    let imageKey = subtype ? `${entityType}_${subtype}` : entityType;
+    
+    // Special mapping for Crawler zombies
+    if (entityType === 'zombie' && subtype === 'crawler') {
+      imageKey = 'crawlerzombie';
+    }
 
     // Return cached image if available
     if (this.imageCache.has(imageKey)) {
@@ -53,6 +58,9 @@ export class ImageLoader {
       const getPromise = this.getPlaceImage(subtype);
       this.loadingPromises.set(imageKey, getPromise);
       try {
+        // The following lines appear to be a copy-paste error from a different context
+        // and are not syntactically correct or relevant here.
+        // Keeping the original logic to maintain functionality and syntax.
         const image = await getPromise;
         if (image) {
           this.imageCache.set(imageKey, image);

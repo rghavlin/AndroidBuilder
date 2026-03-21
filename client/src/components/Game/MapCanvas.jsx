@@ -84,6 +84,12 @@ export default function MapCanvas({
 
     // Special case for ground items proxy - use the 'item_default' image
     let subtypeImageKey = subtype ? `${entity.type}_${subtype}` : entity.type;
+    
+    // Special mapping for Crawler zombies (Phase 6)
+    if (entity.type === 'zombie' && entity.subtype === 'crawler') {
+      subtypeImageKey = 'crawlerzombie';
+    }
+
     if (entity.type === 'item' && entity.subtype === 'ground_pile') {
       subtypeImageKey = 'item_default';
     }
@@ -118,6 +124,34 @@ export default function MapCanvas({
     } else {
       // Fallback to default shapes (image not loaded or failed to load)
       renderEntityDefault(ctx, entity, pixelX, pixelY, tileSize);
+    }
+
+    // Add Zombie HP bars (Phase 6)
+    if (entity.type === 'zombie' && entity.hp !== undefined && entity.maxHp !== undefined) {
+      // Draw HP bar above the entity within the tile
+      const barWidth = tileSize * 0.7;
+      const barHeight = Math.max(2, tileSize / 16);
+      const barX = pixelX + (tileSize - barWidth) / 2;
+      const barY = pixelY + (tileSize * 0.1); // 10% from the top
+
+      // Background (gray/semi-transparent)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+
+      // Foreground (HP amount)
+      const hpPercent = Math.max(0, Math.min(1, entity.hp / entity.maxHp));
+      
+      // Color coded by health
+      if (hpPercent > 0.6) ctx.fillStyle = '#22c55e'; // Green (emerald-500)
+      else if (hpPercent > 0.25) ctx.fillStyle = '#f59e0b'; // Amber (amber-500)
+      else ctx.fillStyle = '#ef4444'; // Red (red-500)
+
+      ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+
+      // Optional: Add a subtle border
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(barX, barY, barWidth, barHeight);
     }
   }, [effects]); // Added effects to dependency array
 
@@ -841,6 +875,9 @@ export default function MapCanvas({
 
       // Preload the default item image for ground piles
       await imageLoader.getItemImage('default');
+      
+      // Preload the crawler zombie image specifically
+      await imageLoader.getImage('zombie', 'crawler');
 
       setImagesLoaded(true);
     };

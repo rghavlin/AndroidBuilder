@@ -559,7 +559,37 @@ export const GameMapProvider = ({ children }) => {
             console.warn(`[GameMapContext] Failed to spawn zombie ${i + 1} on ${result.mapId} after ${maxAttempts} attempts`);
           }
         }
-        console.log(`[GameMapContext] Spawned ${spawnedCount} zombies on new map ${result.mapId}`);
+        console.log(`[GameMapContext] Spawned ${spawnedCount} basic zombies on new map ${result.mapId}`);
+
+        // Phase 6: Spawn Crawler zombies (2-4 per map)
+        const crawlerTargetCount = Math.floor(Math.random() * 3) + 2; // 2, 3, or 4
+        console.log(`[GameMapContext] Attempting to spawn ${crawlerTargetCount} Crawler zombies on ${result.mapId}`);
+        
+        let spawnedCrawlers = 0;
+        for (let i = 0; i < crawlerTargetCount; i++) {
+          let attempts = 0;
+          let spawned = false;
+          while (!spawned && attempts < maxAttempts) {
+            const x = Math.floor(Math.random() * result.gameMap.width);
+            const y = Math.floor(Math.random() * result.gameMap.height);
+            const tile = result.gameMap.getTile(x, y);
+            const distanceFromPlayer = Math.abs(x - result.spawnPosition.x) + Math.abs(y - result.spawnPosition.y);
+            
+            if (tile && tile.isWalkable() && distanceFromPlayer >= 10) {
+              if (tile.contents.length === 0) {
+                const zombieId = `zombie-crawler-${result.mapId}-${i + 1}`;
+                if (result.gameMap.addEntity(new Zombie(zombieId, x, y, 'crawler'), x, y)) {
+                  spawnedCrawlers++;
+                  spawned = true;
+                  console.log(`[GameMapContext] Spawned Crawler '${zombieId}' at (${x}, ${y})`);
+                }
+              }
+            }
+            attempts++;
+          }
+        }
+        console.log(`[GameMapContext] Spawned ${spawnedCrawlers} crawler zombies on new map ${result.mapId}`);
+        triggerMapUpdate(); // Force re-render to show new zombies
       }
 
       console.log(`[GameMapContext] Map transition completed successfully to ${result.mapId}`);

@@ -20,10 +20,10 @@ export class Zombie extends Entity {
 
     // Set stats based on subtype
     if (subtype === 'crawler') {
-      this.maxAP = 6;
+      this.maxAP = 6; // Half of regular 12
       this.currentAP = 6;
-      this.hp = 5;
-      this.maxHp = 5;
+      this.hp = 7.5; // 75% of regular 10
+      this.maxHp = 7.5;
     } else {
       this.maxAP = 12; // Maximum action points
       this.currentAP = 12; // Current action points

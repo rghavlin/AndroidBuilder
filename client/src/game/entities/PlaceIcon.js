@@ -26,6 +26,7 @@ export class PlaceIcon extends Entity {
         return {
             ...super.toJSON(),
             subtype: this.subtype,
+            blocksMovement: this.blocksMovement,
             blocksSight: this.blocksSight
         };
     }
@@ -35,6 +36,7 @@ export class PlaceIcon extends Entity {
      */
     static fromJSON(data) {
         const icon = new PlaceIcon(data.id, data.x, data.y, data.subtype);
+        icon.blocksMovement = data.blocksMovement || false;
         icon.blocksSight = data.blocksSight || false;
         return icon;
     }
