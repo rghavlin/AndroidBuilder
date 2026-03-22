@@ -552,10 +552,9 @@ export class TemplateMapGenerator {
     const specialBuildingMaxY = height - buildingBuffer - specialBuildingHeight - 10;
     const specialBuildingY = specialBuildingMinY + Math.floor(Math.random() * (specialBuildingMaxY - specialBuildingMinY));
     
-    // Choose building type - FORCED TO POLICE FOR TESTING
-    // const types = ['grocer', 'firestation', 'police', 'gas_station'];
-    // const type = types[Math.floor(Math.random() * types.length)];
-    const type = 'police';
+    // Choose building type
+    const types = ['grocer', 'firestation', 'police', 'gas_station'];
+    const type = types[Math.floor(Math.random() * types.length)];
     
     // Place special building
     this.placeSpecialBuilding(layout, useLeftSide, specialBuildingY, type, leftSidewalkStartX, rightSidewalkEndX, mapData);

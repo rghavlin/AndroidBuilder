@@ -127,7 +127,22 @@ export function ItemContextMenu({
                                 }}
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
-                                {item?.defId === 'food.softdrink' || item?.defId === 'food.energydrink' ? 'Drink' : (item?.consumptionEffects?.hp ? 'Heal' : (item?.categories?.includes('food') ? 'Eat' : 'Consume'))}
+                                {(() => {
+                                    if (item?.defId === 'food.softdrink' || item?.defId === 'food.energydrink') return 'Drink';
+                                    if (item?.categories?.includes('food')) return 'Eat';
+                                    
+                                    // Check for medical/healing effects or category
+                                    const effects = Array.isArray(item?.consumptionEffects) 
+                                        ? item.consumptionEffects 
+                                        : (item?.consumptionEffects ? Object.entries(item.consumptionEffects).map(([type, value]) => ({ type, value })) : []);
+                                    
+                                    const isMedical = item?.categories?.includes('medical') || 
+                                                     effects.some((e: any) => e.type === 'heal' || e.type === 'hp' || e.type === 'cure' || e.type === 'stop_bleeding');
+                                    
+                                    if (isMedical) return 'Use';
+                                    
+                                    return 'Consume';
+                                })()}
                             </ContextMenuItem>
                         )}
                         {item?.isWaterBottle?.() && (

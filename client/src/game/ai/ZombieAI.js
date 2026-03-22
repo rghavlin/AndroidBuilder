@@ -76,11 +76,10 @@ export class ZombieAI {
   static executeCanSeePlayerBehavior(zombie, gameMap, player, turnResult, playerCardinalPositions = []) {
     zombie.behaviorState = 'pursuing';
 
-    // Use all AP to move towards player
+    // Use all AP moving toward and attacking the player
     while (zombie.currentAP > 0) {
-      // Check if adjacent to player
+      // 1. If adjacent to player → attack
       if (zombie.isAdjacentTo(player.x, player.y)) {
-        // Attack player with remaining AP (one attack per AP)
         const attackResult = this.attemptAttack(zombie, player);
         turnResult.actions.push({
           type: 'attack',
@@ -88,106 +87,29 @@ export class ZombieAI {
           success: attackResult.success,
           damage: attackResult.damage || 0
         });
-        continue; // Re-check AP and adjacency for next attack or movement
+        continue;
       }
 
-      const targetPosition = this.findBestCardinalPosition(zombie, playerCardinalPositions);
+      // 2. Move directly toward player using A* pathfinding.
+      // This is now the primary strategy — no more fragile 3-level cardinal fallback.
+      const moveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
 
-      if (!targetPosition) {
-        // No accessible cardinal positions found - fall back to direct movement
-        console.log(`[ZombieAI] No accessible cardinal positions available for zombie ${zombie.id}, trying direct approach to player`);
-
-        const directMoveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
-        if (directMoveResult.success) {
-          turnResult.actions.push({
-            type: directMoveResult.type || 'move',
-            from: directMoveResult.from,
-            to: directMoveResult.to,
-            apCost: directMoveResult.apCost
-          });
-          console.log(`[ZombieAI] Zombie ${zombie.id} moved directly toward player, remaining AP: ${zombie.currentAP}`);
-        } else {
-          // Completely blocked
-          turnResult.actions.push({
-            type: 'blocked',
-            reason: 'No accessible path to player'
-          });
-          console.log(`[ZombieAI] Zombie ${zombie.id} completely blocked: ${directMoveResult.reason}`);
-          break;
-        }
+      if (moveResult.success) {
+        turnResult.actions.push({
+          type: moveResult.type || 'move',
+          from: moveResult.from,
+          to: moveResult.to,
+          apCost: moveResult.apCost
+        });
+        console.log(`[ZombieAI] Zombie ${zombie.id} moved toward player, remaining AP: ${zombie.currentAP}`);
       } else {
-        // Try to move towards the target cardinal position
-        const moveResult = this.attemptMoveTowards(zombie, gameMap, targetPosition.x, targetPosition.y);
-        if (moveResult.success) {
-          turnResult.actions.push({
-            type: moveResult.type || 'move',
-            from: moveResult.from,
-            to: moveResult.to,
-            apCost: moveResult.apCost
-          });
-
-          console.log(`[ZombieAI] Zombie ${zombie.id} moved toward cardinal position (${targetPosition.x}, ${targetPosition.y}), remaining AP: ${zombie.currentAP}`);
-        } else {
-          // Cardinal position blocked - try to find an alternative cardinal position
-          console.log(`[ZombieAI] Zombie ${zombie.id} blocked moving to preferred cardinal position, trying alternatives`);
-
-          const alternativePosition = this.findAlternativeCardinalPosition(zombie, playerCardinalPositions, targetPosition);
-
-          if (alternativePosition) {
-            console.log(`[ZombieAI] Found alternative cardinal position (${alternativePosition.x}, ${alternativePosition.y}) for zombie ${zombie.id}`);
-            const altMoveResult = this.attemptMoveTowards(zombie, gameMap, alternativePosition.x, alternativePosition.y);
-
-            if (altMoveResult.success) {
-              turnResult.actions.push({
-                type: altMoveResult.type || 'move',
-                from: altMoveResult.from,
-                to: altMoveResult.to,
-                apCost: altMoveResult.apCost
-              });
-              console.log(`[ZombieAI] Zombie ${zombie.id} moved toward alternative cardinal position, remaining AP: ${zombie.currentAP}`);
-            } else {
-              // Alternative also blocked, try direct movement as final fallback
-              console.log(`[ZombieAI] Alternative cardinal position also blocked, trying direct approach`);
-              const directMoveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
-              if (directMoveResult.success) {
-                turnResult.actions.push({
-                  type: directMoveResult.type || 'move',
-                  from: directMoveResult.from,
-                  to: directMoveResult.to,
-                  apCost: directMoveResult.apCost
-                });
-                console.log(`[ZombieAI] Zombie ${zombie.id} moved directly toward player as final fallback, remaining AP: ${zombie.currentAP}`);
-              } else {
-                turnResult.actions.push({
-                  type: 'blocked',
-                  reason: 'All movement options blocked'
-                });
-                console.log(`[ZombieAI] Zombie ${zombie.id} completely blocked: all movement options failed`);
-                break;
-              }
-            }
-          } else {
-            // No alternative cardinal positions, try direct movement
-            console.log(`[ZombieAI] No alternative cardinal positions available, trying direct approach`);
-            const directMoveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
-            if (directMoveResult.success) {
-              turnResult.actions.push({
-                type: directMoveResult.type || 'move',
-                from: directMoveResult.from,
-                to: directMoveResult.to,
-                apCost: directMoveResult.apCost
-              });
-              console.log(`[ZombieAI] Zombie ${zombie.id} moved directly toward player, remaining AP: ${zombie.currentAP}`);
-            } else {
-              turnResult.actions.push({
-                type: 'blocked',
-                reason: 'All movement options blocked'
-              });
-              console.log(`[ZombieAI] Zombie ${zombie.id} completely blocked: ${directMoveResult.reason}`);
-              break;
-            }
-          }
-        }
+        // Truly blocked (wall, impassable terrain, enemy grid lock)
+        turnResult.actions.push({
+          type: 'blocked',
+          reason: moveResult.reason || 'No path to player'
+        });
+        console.log(`[ZombieAI] Zombie ${zombie.id} blocked: ${moveResult.reason}`);
+        break;
       }
     }
   }
@@ -353,12 +275,50 @@ export class ZombieAI {
   static executeRandomWanderBehavior(zombie, gameMap, turnResult) {
     zombie.behaviorState = 'wandering';
 
-    // TODO: Implement random wandering
-    // For now, just end turn
-    turnResult.actions.push({
-      type: 'randomWander',
-      status: 'notImplemented'
-    });
+    // Take 1-2 random steps per turn
+    const stepsToTake = Math.floor(Math.random() * 2) + 1;
+
+    for (let step = 0; step < stepsToTake; step++) {
+      if (zombie.currentAP < 1) break;
+
+      // Pick a random cardinal direction
+      const directions = [
+        { x: zombie.x + 1, y: zombie.y },
+        { x: zombie.x - 1, y: zombie.y },
+        { x: zombie.x, y: zombie.y + 1 },
+        { x: zombie.x, y: zombie.y - 1 }
+      ];
+
+      // Shuffle and pick the first walkable direction
+      const shuffled = directions.sort(() => Math.random() - 0.5);
+      let moved = false;
+      for (const dir of shuffled) {
+        if (this.canMoveToTile(gameMap, dir.x, dir.y)) {
+          // Make sure no closed door is in the way (don't break doors while wandering)
+          const tile = gameMap.getTile(dir.x, dir.y);
+          const hasDoor = tile?.contents.some(e => e.type === 'door' && !e.isOpen);
+          if (hasDoor) continue;
+
+          const fromPos = { x: zombie.x, y: zombie.y };
+          try {
+            gameMap.moveEntity(zombie.id, dir.x, dir.y);
+            zombie.useAP(1);
+            turnResult.actions.push({
+              type: 'wander',
+              from: fromPos,
+              to: { x: dir.x, y: dir.y },
+              apCost: 1
+            });
+            moved = true;
+          } catch (e) {
+            // Ignore move errors during wander
+          }
+          break;
+        }
+      }
+
+      if (!moved) break; // No walkable tiles found, stop wandering
+    }
   }
 
   /**
@@ -429,44 +389,48 @@ export class ZombieAI {
 
       console.log(`[ZombieAI] Following path step 1 of ${path.length - 1}: moving to (${nextMove.x}, ${nextMove.y})`);
 
-      // Validate the next move is walkable
-      if (!this.canMoveToTile(gameMap, nextMove.x, nextMove.y)) {
-        const targetTile = gameMap.getTile(nextMove.x, nextMove.y);
-        const door = targetTile?.contents.find(e => e.type === 'door');
+      const nextTile = gameMap.getTile(nextMove.x, nextMove.y);
 
-        if (door && !door.isOpen) {
-          console.log(`[ZombieAI] Next path step blocked by closed door at (${nextMove.x}, ${nextMove.y}), attacking door`);
+      // ── PRIORITY 1: Closed door in the way → attack it ──────────────────────
+      // Check this BEFORE canMoveToTile because canMoveToTile now correctly
+      // returns true for door tiles (letting pathfinding route through them),
+      // which means we must intercept the closed-door case here first.
+      const door = nextTile?.contents.find(e => e.type === 'door');
+      if (door && !door.isOpen) {
+        console.log(`[ZombieAI] Next path step blocked by closed door at (${nextMove.x}, ${nextMove.y}), attacking door`);
 
-          // Zombie attacks the door (costing 1 AP)
-          zombie.useAP(apCost);
+        // Zombie attacks the door (costing 1 AP)
+        zombie.useAP(apCost);
 
-          // Zombies do 1-2 damage to doors per attack
-          const doorDamage = Math.floor(Math.random() * 2) + 1;
-          door.takeDamage(doorDamage);
+        // Zombies do 1-2 damage to doors per attack
+        const doorDamage = Math.floor(Math.random() * 2) + 1;
+        door.takeDamage(doorDamage);
 
-          console.log(`[ZombieAI] Zombie ${zombie.id} attacked door for ${doorDamage} damage, remaining AP: ${zombie.currentAP}`);
+        console.log(`[ZombieAI] Zombie ${zombie.id} attacked door for ${doorDamage} damage (HP left: ${door.hp ?? '?'}), remaining AP: ${zombie.currentAP}`);
 
-          // Add noise generation to attract other zombies
-          const otherZombies = gameMap.getEntitiesByType('zombie');
-          otherZombies.forEach(z => {
-            if (z.id !== zombie.id) {
-              const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
-              if (distance <= 6) { // Zombie door attack is quieter than player interaction (range 6)
-                z.setNoiseHeard(nextMove.x, nextMove.y);
-              }
+        // Attract nearby zombies to the noise
+        const otherZombies = gameMap.getEntitiesByType('zombie');
+        otherZombies.forEach(z => {
+          if (z.id !== zombie.id) {
+            const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
+            if (distance <= 6) {
+              z.setNoiseHeard(nextMove.x, nextMove.y);
             }
-          });
+          }
+        });
 
-          return {
-            success: true, // We count this as a successful action to keep the loop going
-            from: fromPos,
-            to: fromPos, // Zombie didn't move
-            type: 'attackDoor',
-            doorPos: { x: nextMove.x, y: nextMove.y },
-            apCost: apCost
-          };
-        }
+        return {
+          success: true,
+          from: fromPos,
+          to: fromPos, // Zombie didn't move
+          type: 'attackDoor',
+          doorPos: { x: nextMove.x, y: nextMove.y },
+          apCost: apCost
+        };
+      }
 
+      // ── PRIORITY 2: Normal movement check ──────────────────────────────────
+      if (!this.canMoveToTile(gameMap, nextMove.x, nextMove.y)) {
         console.log(`[ZombieAI] Next path step blocked by non-door entity or terrain, cannot move`);
         return { success: false, reason: 'Next path step blocked' };
       }
@@ -503,28 +467,30 @@ export class ZombieAI {
   static canMoveToTile(gameMap, x, y) {
     const targetTile = gameMap.getTile(x, y);
     if (!targetTile) {
-      console.log(`[ZombieAI] canMoveToTile: No tile found at (${x}, ${y})`);
       return false;
     }
 
-    // Check if target tile is passable (not blocked by entities or terrain)
-    const hasBlockingEntities = targetTile.contents.some(entity => entity.blocksMovement);
-    if (hasBlockingEntities) {
-      const blockingEntities = targetTile.contents.filter(entity => entity.blocksMovement);
-      console.log(`[ZombieAI] canMoveToTile: Tile (${x}, ${y}) blocked by entities:`, blockingEntities.map(e => `${e.id}(${e.type})`));
-      return false;
-    }
-
-    // Check if terrain allows movement
-    // Zombies can move on floor tiles (inside buildings), grass, road, sidewalk
-    // But NOT on walls, buildings (exterior), fences, or trees
+    // Check terrain first — zombies can never walk through walls/buildings/fences/trees
     if (targetTile.terrain === 'wall' || targetTile.terrain === 'building' ||
       targetTile.terrain === 'fence' || targetTile.terrain === 'tree') {
-      console.log(`[ZombieAI] canMoveToTile: Tile (${x}, ${y}) blocked by terrain: ${targetTile.terrain}`);
       return false;
     }
 
-    console.log(`[ZombieAI] canMoveToTile: Tile (${x}, ${y}) is passable, terrain: ${targetTile.terrain}, entities: ${targetTile.contents.length}`);
+    // Check for blocking entities — but intentionally EXCLUDE:
+    //   - doors: handled separately by the door-attack branch
+    //   - players: attacked when adjacent; zombies should be able to path into player tile
+    //   - zombies: zombies should not block each other for movement checks here
+    const hasBlockingEntities = targetTile.contents.some(entity =>
+      entity.blocksMovement &&
+      entity.type !== 'door' &&
+      entity.type !== 'player' &&
+      entity.type !== 'zombie'
+    );
+
+    if (hasBlockingEntities) {
+      return false;
+    }
+
     return true;
   }
 

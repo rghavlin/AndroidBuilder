@@ -97,10 +97,17 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             {/* Consumable Effects */}
             {item.consumptionEffects && !item.isWaterBottle?.() && (
                 <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
-                    {Object.entries(item.consumptionEffects).map(([stat, value]) => (
+                    {(Array.isArray(item.consumptionEffects)
+                        ? (item.consumptionEffects as any[]).map((e: any) => ({ stat: e.type || e.id, value: e.value }))
+                        : Object.entries(item.consumptionEffects as Record<string, any>).map(([stat, value]) => ({ stat, value }))
+                    ).map(({ stat, value }: { stat: string; value: any }) => (
                         <div key={stat} className="flex justify-between">
-                            <span className="text-zinc-500 capitalize">{stat}</span>
-                            <span className="text-green-400">+{value as number}</span>
+                            <span className="text-zinc-500 capitalize">{stat.replace(/_/g, ' ')}</span>
+                            <span className="text-green-400 font-medium">
+                                {typeof value === 'object' && value !== null && 'min' in value && 'max' in value
+                                    ? `+${value.min}-${value.max}`
+                                    : (typeof value === 'number' ? `+${value}` : String(value))}
+                            </span>
                         </div>
                     ))}
                 </div>

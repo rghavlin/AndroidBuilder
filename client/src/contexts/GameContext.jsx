@@ -585,10 +585,60 @@ const GameContextInner = ({ children }) => {
           player.heal(0.5);
         }
 
-        // Advance turn by 1
+        // Advanced Turn and Progress
         currentTurn++;
+        const hour = (6 + (currentTurn - 1)) % 24;
+        const isNight = hour >= 20 || hour < 6;
+        
         setTurn(currentTurn);
         setSleepProgress(prev => prev - 1);
+
+        // 1. World & Inventory Processing
+        gameMap.processTurn();
+        inventoryManager?.processTurn();
+
+        // 2. Battery consumption if flashlight left ON
+        if (isFlashlightOn) {
+          const flashlight = inventoryManager?.equipment['flashlight'];
+          if (flashlight) {
+            const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
+            if (battery && battery.ammoCount > 0) {
+              battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+              if (battery.ammoCount <= 0) {
+                setIsFlashlightOn(false);
+              }
+            } else {
+              setIsFlashlightOn(false);
+            }
+          } else {
+            setIsFlashlightOn(false);
+          }
+        }
+
+        // 3. NPC/Zombie processing
+        const zombies = gameMap.getEntitiesByType('zombie');
+        const cardinalPositions = getPlayerCardinalPositions(gameMap);
+        lastSeenTaggedTilesRef.current.clear();
+
+        zombies.forEach(zombie => {
+          const turnResult = ZombieAI.executeZombieTurn(
+            zombie,
+            gameMap,
+            player,
+            cardinalPositions,
+            lastSeenTaggedTilesRef.current
+          );
+
+          // Trigger visual effects for attacks (even if player is sleeping, state should be consistent)
+          if (turnResult.success) {
+            turnResult.actions.forEach(action => {
+              if (action.type === 'attackDoor' && action.doorPos && addEffect) {
+                addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
+                addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
+              }
+            });
+          }
+        });
 
         // Sync stats to UI
         updatePlayerStats({
@@ -598,15 +648,23 @@ const GameContextInner = ({ children }) => {
           hydration: player.hydration
         });
 
-        // Interruption check: If not sheltered, check for zombies
-        const isSheltered = checkIsSheltered(player, gameMap);
-        if (!isSheltered) {
-          const zombies = gameMap.getEntitiesByType('zombie');
-          let interrupters = zombies.filter(z => z.canSeeEntity(gameMap, player));
+        // 4. Interruption check
+        let interruption = false;
+        let interruptionReason = "";
 
-          // If no zombies see the player, check for random spawn
-          if (interrupters.length === 0 && Math.random() < 0.25) {
-            console.log('[GameContext] Random zombie spawned during sleep!');
+        // Check if zombies can see player OR if they are adjacent (possibly attacking)
+        const seePlayer = zombies.some(z => z.canSeeEntity(gameMap, player));
+        const adjacentZombie = zombies.some(z => Math.abs(z.x - player.x) <= 1 && Math.abs(z.y - player.y) <= 1);
+
+        if (seePlayer || adjacentZombie) {
+          interruption = true;
+          interruptionReason = "You were woken up by a nearby zombie!";
+        }
+
+        // Only check for random spawns if sheltered and not already interrupted
+        if (!interruption) {
+          const isSheltered = checkIsSheltered(player, gameMap);
+          if (!isSheltered && Math.random() < 0.25) {
             const neighbors = [
               { x: player.x + 1, y: player.y }, { x: player.x - 1, y: player.y },
               { x: player.x, y: player.y + 1 }, { x: player.x, y: player.y - 1 }
@@ -620,35 +678,21 @@ const GameContextInner = ({ children }) => {
               const zombieId = `sleep-interrupter-${Date.now()}`;
               const zombie = new Zombie(zombieId, spawnPos.x, spawnPos.y);
               gameMap.addEntity(zombie, spawnPos.x, spawnPos.y);
-              interrupters.push(zombie);
+              interruption = true;
+              interruptionReason = "Something woke you up!";
             }
           }
+        }
 
-          if (interrupters.length > 0) {
-            console.log(`[GameContext] Sleep interrupted by ${interrupters.length} zombie(s)!`);
-
-            // 1. Awaken the player
-            setIsSleeping(false);
-            setSleepProgress(0);
-
-            // 2. Zombies attack with max AP
-            const cardinalPositions = getPlayerCardinalPositions(gameMap);
-            const lastSeenTiles = lastSeenTaggedTilesRef.current;
-
-            for (const zombie of interrupters) {
-              zombie.startTurn(); // Ensure they start with max AP
-              ZombieAI.executeZombieTurn(zombie, gameMap, player, cardinalPositions, lastSeenTiles);
-            }
-
-            // 3. Final state sync after attacks
-            const interrupterHour = (6 + (currentTurn - 1)) % 24;
-            const interrupterIsNight = interrupterHour >= 20 || interrupterHour < 6;
-            updatePlayerStats({ hp: player.hp, ap: player.ap });
-            updatePlayerFieldOfView(gameMap, interrupterIsNight, isFlashlightOn);
-            updatePlayerCardinalPositions(gameMap);
-            setIsPlayerTurn(true);
-            return; // Exit sleep loop
-          }
+        if (interruption) {
+          console.log(`[GameContext] Sleep interrupted: ${interruptionReason}`);
+          setIsSleeping(false);
+          setSleepProgress(0);
+          
+          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+          updatePlayerCardinalPositions(gameMap);
+          setIsPlayerTurn(true);
+          return; // Exit loop
         }
       }
 

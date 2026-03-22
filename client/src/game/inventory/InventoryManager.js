@@ -743,10 +743,17 @@ export class InventoryManager extends SafeEventEmitter {
 
     // 3. SPECIAL CASE: Campfire Refueling
     if (weapon.defId === 'placeable.campfire' && slotId === 'fuel') {
+      console.debug('[InventoryManager] Specialized Campfire Fueling triggered!', {
+        item: item.name,
+        defId: item.defId,
+        categories: item.categories
+      });
+
       let turnExtension = 0;
       if (item.defId === 'crafting.rag') turnExtension = 0.5;
       else if (item.defId === 'weapon.stick') turnExtension = 1.0;
       else if (item.defId === 'weapon.2x4') turnExtension = 1.0;
+      else if (item.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback for other fuel items
 
       if (turnExtension > 0) {
         const totalExtension = turnExtension * (item.stackCount || 1);
@@ -756,6 +763,8 @@ export class InventoryManager extends SafeEventEmitter {
         // Item is already removed from source, so we just return success
         // without attaching it to any slot.
         return { success: true, refueled: true };
+      } else {
+        console.warn('[InventoryManager] Item rejected as fuel despite being in fuel slot:', item.name, item.defId);
       }
     }
 

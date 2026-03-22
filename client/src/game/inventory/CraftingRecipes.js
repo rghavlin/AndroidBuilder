@@ -65,7 +65,21 @@ export const CraftingRecipes = [
         ingredients: [
             { category: ItemCategory.CLOTHING, count: 1, label: 'Any Clothing' }
         ],
-        resultCount: 2 // Assuming we want 2 rags per clothing item
+        resultCount: 1,
+    },
+    {
+        id: 'medical.bandages',
+        name: 'Craft Bandages',
+        tab: 'crafting',
+        description: 'Sterilize rags with antiseptic to create effective bandages.',
+        ingredients: [
+            { id: 'medical.antiseptic', count: 1 },
+            { id: 'crafting.rag', count: 2 }
+        ],
+        tools: [],
+        resultItem: 'medical.bandage',
+        resultCount: 2,
+        apCost: 15
     },
     {
         id: 'crafting.campfire',

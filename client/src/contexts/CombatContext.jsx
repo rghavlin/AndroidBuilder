@@ -152,9 +152,9 @@ export const CombatProvider = ({ children }) => {
         }
 
         // 6. Weapon Degradation (Always occur after attack attempt if hit/miss processed)
-        if (weapon.instanceId !== 'unarmed' && typeof weapon.degrade === 'function') {
+        if (weapon.instanceId !== 'unarmed' && typeof weapon.degrade === 'function' && weapon.isDegradable()) {
             weapon.degrade(); // Uses its own fragility
-            if (weapon.condition <= 0) {
+            if (weapon.condition !== null && weapon.condition <= 0) {
                 console.log(`[Combat] Weapon ${weapon.name} BROKE!`);
                 addEffect({
                     type: 'damage',
@@ -184,7 +184,7 @@ export const CombatProvider = ({ children }) => {
         if (!player || !gameMap) return { success: false, reason: 'System error' };
 
         // Guard: Prevent attack with broken firearm
-        if (weapon && weapon.condition !== null && weapon.condition <= 0) {
+        if (weapon && weapon.isDegradable() && weapon.condition !== null && weapon.condition <= 0) {
             console.warn(`[Combat] Blocked attack with broken firearm: ${weapon.name}`);
             addEffect({
                 type: 'damage',
@@ -354,9 +354,9 @@ export const CombatProvider = ({ children }) => {
         }
 
         // 7. Weapon Degradation
-        if (typeof weapon.degrade === 'function') {
+        if (typeof weapon.degrade === 'function' && weapon.isDegradable()) {
             weapon.degrade();
-            if (weapon.condition <= 0) {
+            if (weapon.condition !== null && weapon.condition <= 0) {
                 console.log(`[Combat] Firearm ${weapon.name} BROKE!`);
                 addEffect({
                     type: 'damage',

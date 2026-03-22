@@ -196,6 +196,8 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  map loot - Trigger random loot spawning on current map', 'info');
           addToConsole('  stat <name> <value> - Set player stat (e.g. stat ap 100)', 'info');
           addToConsole('  stat <name> - Get player stat (e.g. stat hp)', 'info');
+          addToConsole('  test-sleep-zombie - Setup zombie/door test for sleep', 'info');
+
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
@@ -271,6 +273,53 @@ const DevConsole = ({ isOpen, onClose }) => {
             }
           } else {
             addToConsole('Player not available', 'error');
+          }
+          break;
+
+        case 'test-sleep-zombie':
+          try {
+            const player = playerRef.current;
+            const gameMap = gameMapRef.current;
+            if (!player || !gameMap) {
+              addToConsole('Player or map not available', 'error');
+              break;
+            }
+
+            addToConsole('=== Setting up Sleep/Door Test ===', 'info');
+
+            // 1. Spawn a zombie 2 tiles away
+            const zombieX = player.x + 2;
+            const zombieY = player.y;
+            const { Zombie } = await import('../../game/entities/Zombie.js');
+            const zombie = new Zombie(`break-test-${Date.now()}`, zombieX, zombieY);
+            gameMap.addEntity(zombie, zombieX, zombieY);
+            addToConsole(`  ✅ Zombie spawned at (${zombieX}, ${zombieY})`, 'success');
+
+            // 2. Place a door between player and zombie
+            const doorX = player.x + 1;
+            const doorY = player.y;
+            const { Door } = await import('../../game/entities/Door.js');
+            
+            // Check if there's already a door there, if so remove it
+            const existingDoor = gameMap.getTile(doorX, doorY)?.contents.find(e => e.type === 'door');
+            if (existingDoor) {
+              gameMap.removeEntity(existingDoor.id);
+            }
+            
+            const door = new Door(`test-door-${Date.now()}`, doorX, doorY, false, false);
+            door.hp = 5; // Low HP for quick testing (1-3 hits)
+            gameMap.addEntity(door, doorX, doorY);
+            addToConsole(`  ✅ Door placed at (${doorX}, ${doorY}) with 5 HP`, 'success');
+
+            addToConsole('NEXT STEPS:', 'info');
+            addToConsole('1. Ensure you are at (' + player.x + ', ' + player.y + ')', 'log');
+            addToConsole('2. Click SLEEP and select 6 hours.', 'log');
+            addToConsole('3. VERIFY: Zombie should "bang" on door, break it, and wake you up!', 'success');
+
+            triggerMapUpdate();
+          } catch (error) {
+            addToConsole(`Error setting up test: ${error.message}`, 'error');
+            console.error('test-sleep-zombie error:', error);
           }
           break;
 

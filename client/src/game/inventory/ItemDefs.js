@@ -597,16 +597,30 @@ export const ItemDefs = {
   'medical.bandage': {
     id: 'medical.bandage',
     name: 'Bandage',
-    rarity: Rarity.UNCOMMON,
+    rarity: Rarity.COMMON,
     imageId: 'bandage',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
-    stackMax: 20,
-    consumptionEffects: {
-      hp: 5
-    }
+    stackMax: 10,
+    consumptionEffects: [
+      { type: 'heal', value: { min: 4, max: 7 } },
+      { type: 'stop_bleeding', value: true }
+    ]
+  },
+
+  'medical.antiseptic': {
+    id: 'medical.antiseptic',
+    name: 'Antiseptic',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'antiseptic',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.MEDICAL, ItemTrait.STACKABLE],
+    categories: [ItemCategory.MEDICAL],
+    stackMax: 5,
+    description: 'Used for cleaning wounds and crafting medical supplies.'
   },
   'medical.antibiotics': {
     id: 'medical.antibiotics',

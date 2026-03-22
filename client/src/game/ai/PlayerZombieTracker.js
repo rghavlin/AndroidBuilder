@@ -116,30 +116,24 @@ export class PlayerZombieTracker {
     // Check previously spotted zombies
     for (const [zombieId, trackedData] of this.spottedZombies.entries()) {
       if (!currentVisibleIds.has(zombieId)) {
-        // Zombie is no longer visible - set LastSeen
+        // Zombie is no longer visible - set LastSeen to the player's CURRENT position.
+        // We use 'to' (where the player just arrived), not 'from' (where they left),
+        // so zombies always chase towards the player's actual location.
         const { zombie, lastPlayerPos } = trackedData;
 
-        // Determine the correct LastSeen position
         let lastSeenPos;
 
-        if (playerMovement && playerMovement.gameMap && playerMovement.from && playerMovement.to) {
-          // Player moved - the LastSeen position should be where the zombie could last see the player
-          // This is the position the player moved FROM (their starting position)
-          // because that's where the zombie last had line of sight to them
-          lastSeenPos = playerMovement.from;
-
-          console.log(`[PlayerZombieTracker] Player moved from (${playerMovement.from.x}, ${playerMovement.from.y}) to (${playerMovement.to.x}, ${playerMovement.to.y})`);
-          console.log(`[PlayerZombieTracker] Using movement 'from' position as LastSeen for zombie ${zombieId}`);
+        if (playerMovement && playerMovement.to) {
+          // Player moved — chase where they went, not where they were
+          lastSeenPos = playerMovement.to;
         } else {
-          // No movement data or incomplete movement data, use stored position
+          // No movement data available, use last stored position
           lastSeenPos = lastPlayerPos;
-          console.log(`[PlayerZombieTracker] No movement data, using stored lastPlayerPos for zombie ${zombieId}`);
         }
 
         zombie.setTargetSighted(lastSeenPos.x, lastSeenPos.y);
 
-        console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player, set LastSeen to (${lastSeenPos.x}, ${lastSeenPos.y})`);
-        console.log(`[PlayerZombieTracker] LastSeen coordinate (${lastSeenPos.x}, ${lastSeenPos.y}) will be subject to tagging system during zombie turns`);
+        console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player, set LastSeen to (${lastSeenPos.x}, ${lastSeenPos.y}) [player's current position]`);
 
         // Remove from tracking since no longer visible
         this.spottedZombies.delete(zombieId);

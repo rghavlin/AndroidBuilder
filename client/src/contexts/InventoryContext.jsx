@@ -1052,19 +1052,36 @@ export const InventoryProvider = ({ children, manager }) => {
     if (item.consumptionEffects) {
       console.log('[InventoryContext] Consuming item:', item.name, 'effects:', item.consumptionEffects);
 
-      // Special handling for food/water to account for spoilage
-      const nutritionAmount = item.getNutritionValue?.() || item.consumptionEffects.nutrition || 0;
-      const hydrationAmount = item.getHydrationValue?.() || item.consumptionEffects.hydration || 0;
+      // Standardize effects into an array of {type, value} objects
+      const effects = Array.isArray(item.consumptionEffects)
+        ? item.consumptionEffects
+        : Object.entries(item.consumptionEffects).map(([type, value]) => ({ type, value }));
 
-      Object.entries(item.consumptionEffects).forEach(([stat, amount]) => {
-        if (stat === 'nutrition') {
-          playerRef.current.modifyStat(stat, nutritionAmount);
-        } else if (stat === 'hydration') {
-          playerRef.current.modifyStat(stat, hydrationAmount);
-        } else if (stat === 'cure') {
+      effects.forEach(effect => {
+        const type = effect.type || effect.id || effect[0];
+        const value = effect.value !== undefined ? effect.value : effect[1];
+
+        // Resolve range values { min, max }
+        const resolvedValue = (typeof value === 'object' && value !== null && 'min' in value && 'max' in value)
+          ? Math.floor(Math.random() * (value.max - value.min + 1)) + value.min
+          : value;
+
+        if (type === 'nutrition') {
+          const amount = item.getNutritionValue?.() || resolvedValue || 0;
+          playerRef.current.modifyStat('nutrition', amount);
+        } else if (type === 'hydration') {
+          const amount = item.getHydrationValue?.() || resolvedValue || 0;
+          playerRef.current.modifyStat('hydration', amount);
+        } else if (type === 'heal' || type === 'hp') {
+          playerRef.current.heal(resolvedValue);
+        } else if (type === 'cure') {
           playerRef.current.cure();
+        } else if (type === 'stop_bleeding') {
+          // Placeholder for future bleeding mechanic
+          console.log('[InventoryContext] Applied stop_bleeding effect (flavor)');
         } else {
-          playerRef.current.modifyStat(stat, amount);
+          // Generic stat modification
+          playerRef.current.modifyStat(type, resolvedValue);
         }
       });
     }
