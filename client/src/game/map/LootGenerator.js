@@ -536,6 +536,7 @@ export class LootGenerator {
      * @returns {Array} - Array of Item instances
      */
     generateZombieLoot(subtype = 'basic') {
+        this.initItemKeys();
         const itemCount = Math.random() < 0.5 ? 1 : 2;
         const items = [];
 

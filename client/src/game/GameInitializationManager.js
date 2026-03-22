@@ -5,6 +5,7 @@ import { GameMap } from './map/GameMap.js';
 import { Player } from './entities/Player.js';
 import { Camera } from './Camera.js';
 import { Zombie } from './entities/Zombie.js';
+import { ZombieSpawner } from './utils/ZombieSpawner.js';
 import { LootGenerator } from './map/LootGenerator.js';
 
 const INIT_STATES = {
@@ -309,163 +310,14 @@ class GameInitializationManager extends EventEmitter {
   }
 
   _spawnInitialZombies(gameMap, player) {
-    const targetCount = 15;
-    const mapHeight = gameMap.height;
-    let spawnedCount = 0;
-
-    console.log('[GameInitializationManager] Attempting to spawn', targetCount, 'zombies across the entire map with 75/25 distribution');
-
-    for (let i = 0; i < targetCount; i++) {
-      const maxAttempts = 50;
-      let attempts = 0;
-      let spawned = false;
-
-      // 75% chance to spawn in the top 50% of the map
-      const spawnInTopHalf = Math.random() < 0.75;
-      const yMin = spawnInTopHalf ? 0 : Math.floor(mapHeight * 0.5);
-      const yRange = spawnInTopHalf ? Math.floor(mapHeight * 0.5) : (mapHeight - yMin);
-
-      while (!spawned && attempts < maxAttempts) {
-        const x = Math.floor(Math.random() * gameMap.width);
-        const y = yMin + Math.floor(Math.random() * yRange);
-
-        const tile = gameMap.getTile(x, y);
-        const distanceFromPlayer = Math.abs(x - player.x) + Math.abs(y - player.y);
-        const minDistanceFromPlayer = 7; // Increased slightly for safety
-
-        if (tile && tile.isWalkable() && distanceFromPlayer >= minDistanceFromPlayer) {
-          const hasEntities = tile.contents.length > 0;
-
-          if (!hasEntities) {
-            const zombieId = `zombie-initial-${i + 1}`;
-            const zombie = new Zombie(zombieId, x, y, 'basic');
-
-            if (gameMap.addEntity(zombie, x, y)) {
-              spawnedCount++;
-              spawned = true;
-              console.log(`[GameInitializationManager] Spawned zombie ${zombieId} at (${x}, ${y}) in ${spawnInTopHalf ? 'TOP' : 'BOTTOM'} half, distance: ${distanceFromPlayer}`);
-            }
-          }
-        }
-        attempts++;
-      }
-
-      if (!spawned) {
-        console.warn('[GameInitializationManager] Failed to spawn zombie', i + 1, 'after', maxAttempts, 'attempts');
-      }
-    }
-
-    // Spawn Crawler Zombies (2-4 per map)
-    const crawlerTargetCount = Math.floor(Math.random() * 3) + 2; // 2, 3, or 4
-    console.log(`[GameInitializationManager] Attempting to spawn ${crawlerTargetCount} Crawler zombies`);
-
-    for (let i = 0; i < crawlerTargetCount; i++) {
-      const maxAttempts = 50;
-      let attempts = 0;
-      let spawned = false;
-
-      while (!spawned && attempts < maxAttempts) {
-        const x = Math.floor(Math.random() * gameMap.width);
-        const y = Math.floor(Math.random() * gameMap.height);
-
-        const tile = gameMap.getTile(x, y);
-        const distanceFromPlayer = Math.abs(x - player.x) + Math.abs(y - player.y);
-        const minDistanceFromPlayer = 10; // Crawlers spawn further away for surprise
-
-        if (tile && tile.isWalkable() && distanceFromPlayer >= minDistanceFromPlayer) {
-          const hasEntities = tile.contents.length > 0;
-
-          if (!hasEntities) {
-            const zombieId = `zombie-crawler-${i + 1}`;
-            const zombie = new Zombie(zombieId, x, y, 'crawler');
-
-            if (gameMap.addEntity(zombie, x, y)) {
-              spawnedCount++;
-              spawned = true;
-              console.log(`[GameInitializationManager] Spawned Crawler zombie ${zombieId} at (${x}, ${y}), distance: ${distanceFromPlayer}`);
-            }
-          }
-        }
-        attempts++;
-      }
-    }
-
-    // Spawn Firefighter Zombies in Fire Stations (2-3 per station)
-    const specialBuildings = gameMap.specialBuildings || gameMap.metadata?.specialBuildings || [];
-    const fireStations = specialBuildings.filter(b => b.type === 'firestation');
+    console.log('[GameInitializationManager] Spawning initial zombies using ZombieSpawner');
     
-    console.log(`[GameInitializationManager] Found ${fireStations.length} Fire Station(s) for spawning Firefighter zombies`);
-
-    fireStations.forEach((station, sIdx) => {
-      const firefighterCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
-      let spawnedForStation = 0;
-      let attempts = 0;
-      const maxAttempts = 50;
-
-      while (spawnedForStation < firefighterCount && attempts < maxAttempts) {
-        // Pick a random tile inside the building (avoiding the perimeter walls)
-        const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-        const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
-
-        const tile = gameMap.getTile(x, y);
-        if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-          const zombieId = `zombie-firefighter-${sIdx + 1}-${spawnedForStation + 1}`;
-          const zombie = new Zombie(zombieId, x, y, 'firefighter');
-
-          if (gameMap.addEntity(zombie, x, y)) {
-            spawnedCount++;
-            spawnedForStation++;
-            console.log(`[GameInitializationManager] Spawned Firefighter zombie ${zombieId} at (${x}, ${y}) in Fire Station`);
-          }
-        }
-        attempts++;
-      }
-      
-      if (spawnedForStation < firefighterCount) {
-        console.warn(`[GameInitializationManager] Only spawned ${spawnedForStation}/${firefighterCount} Firefighter zombies in station ${sIdx + 1}`);
-      }
+    // Initial map typically has more zombies or specific distribution
+    return ZombieSpawner.spawnZombies(gameMap, player, {
+      basicCount: 15,
+      crawlerRange: { min: 2, max: 4 },
+      runnerCount: 1 // Only 1 runner on first map
     });
-    
-    // Spawn SWAT Zombies in Police Stations (2-3 per station)
-    const policeStations = specialBuildings.filter(b => b.type === 'police' || b.type === 'police_station');
-    
-    console.log(`[GameInitializationManager] Found ${policeStations.length} Police Station(s) for spawning SWAT zombies. Buildings source: ${specialBuildings.length} total`);
-    if (policeStations.length > 0) {
-      console.log(`[GameInitializationManager] Police Station 1 details: x=${policeStations[0].x}, y=${policeStations[0].y}, w=${policeStations[0].width}, h=${policeStations[0].height}`);
-    }
-
-    policeStations.forEach((station, sIdx) => {
-      const swatCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
-      console.log(`[GameInitializationManager] Attempting to spawn ${swatCount} SWAT zombies in station ${sIdx + 1}`);
-      let spawnedForStation = 0;
-      let attempts = 0;
-      const maxAttempts = 100; // Increased attempts
-
-      while (spawnedForStation < swatCount && attempts < maxAttempts) {
-        // Pick a random tile inside the building (avoiding the perimeter walls)
-        const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-        const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
-
-        const tile = gameMap.getTile(x, y);
-        if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-          const zombieId = `zombie-swat-${sIdx + 1}-${spawnedForStation + 1}`;
-          const zombie = new Zombie(zombieId, x, y, 'swat');
-
-          if (gameMap.addEntity(zombie, x, y)) {
-            spawnedCount++;
-            spawnedForStation++;
-            console.log(`[GameInitializationManager] Spawned SWAT zombie ${zombieId} at (${x}, ${y}) in Police Station`);
-          }
-        }
-        attempts++;
-      }
-      
-      if (spawnedForStation < swatCount) {
-        console.warn(`[GameInitializationManager] Only spawned ${spawnedForStation}/${swatCount} SWAT zombies in station ${sIdx + 1}`);
-      }
-    });
-
-    return spawnedCount;
   }
 
   reset() {

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef, useState, useCallback, useMem
 import { usePlayer } from './PlayerContext';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
 import { Zombie } from '../game/entities/Zombie.js';
+import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 
 const GameMapContext = createContext();
@@ -46,6 +47,7 @@ export const GameMapProvider = ({ children }) => {
 
   // Phase 1: Access visual effects for interaction feedback
   const { addEffect } = useVisualEffects();
+  const { addLog } = useLog();
 
   // Version state for rare structural re-renders on map transitions
   const [mapVersion, setMapVersion] = useState(0);
@@ -549,7 +551,6 @@ export const GameMapProvider = ({ children }) => {
         const zombiesToSpawn = 20;
         let spawnedCount = 0;
         const maxAttempts = 50;
-        const lowerHalfStartY = Math.floor(result.gameMap.height * 0.5);
 
         for (let i = 0; i < zombiesToSpawn; i++) {
           let attempts = 0;
@@ -557,10 +558,10 @@ export const GameMapProvider = ({ children }) => {
 
           while (!spawned && attempts < maxAttempts) {
             const x = Math.floor(Math.random() * result.gameMap.width);
-            const y = lowerHalfStartY + Math.floor(Math.random() * (result.gameMap.height - lowerHalfStartY));
+            const y = Math.floor(Math.random() * result.gameMap.height);
             const tile = result.gameMap.getTile(x, y);
             const distanceFromPlayer = Math.abs(x - result.spawnPosition.x) + Math.abs(y - result.spawnPosition.y);
-            const minDistanceFromPlayer = 5;
+            const minDistanceFromPlayer = 7; // Increased for safety
 
             if (tile && tile.isWalkable() && distanceFromPlayer >= minDistanceFromPlayer) {
               const hasEntities = tile.contents.length > 0;
@@ -612,17 +613,44 @@ export const GameMapProvider = ({ children }) => {
         }
         console.log(`[GameMapContext] Spawned ${spawnedCrawlers} crawler zombies on new map ${result.mapId}`);
 
-        // Spawn Firefighter Zombies in Fire Stations (2-3 per station)
-        const specialBuildings = (result.gameMap.metadata?.specialBuildings || []).concat(result.metadata?.specialBuildings || []);
-        const fireStations = specialBuildings.filter(b => b.type === 'firestation');
+        // Spawn Runner zombies (1-2 per map)
+        const runnerTargetCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
+        console.log(`[GameMapContext] Attempting to spawn ${runnerTargetCount} Runner zombies on ${result.mapId}`);
         
+        let spawnedRunners = 0;
+        for (let i = 0; i < runnerTargetCount; i++) {
+          let attempts = 0;
+          let spawned = false;
+          while (!spawned && attempts < maxAttempts) {
+            const x = Math.floor(Math.random() * result.gameMap.width);
+            const y = Math.floor(Math.random() * result.gameMap.height);
+            const tile = result.gameMap.getTile(x, y);
+            const distanceFromPlayer = Math.abs(x - result.spawnPosition.x) + Math.abs(y - result.spawnPosition.y);
+            
+            if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
+              const zombieId = `zombie-runner-${result.mapId}-${i + 1}`;
+              if (result.gameMap.addEntity(new Zombie(zombieId, x, y, 'runner'), x, y)) {
+                spawnedRunners++;
+                spawned = true;
+                console.log(`[GameMapContext] Spawned Runner '${zombieId}' at (${x}, ${y})`);
+              }
+            }
+            attempts++;
+          }
+        }
+        console.log(`[GameMapContext] Spawned ${spawnedRunners} runner zombies on new map ${result.mapId}`);
+
+        // Identify special buildings for specialized zombie spawning
+        const specialBuildings = (result.gameMap.metadata?.specialBuildings || []).concat(result.metadata?.specialBuildings || []);
+
+        // Spawn Firefighter Zombies in Fire Stations (2-3 per station)
+        const fireStations = specialBuildings.filter(b => b.type === 'firestation');
         console.log(`[GameMapContext] Found ${fireStations.length} Fire Station(s) on ${result.mapId} for spawning Firefighter zombies`);
 
         fireStations.forEach((station, sIdx) => {
           const firefighterCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
           let spawnedForStation = 0;
           let attempts = 0;
-          const maxAttempts = 50;
 
           while (spawnedForStation < firefighterCount && attempts < maxAttempts) {
             const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
@@ -642,10 +670,39 @@ export const GameMapProvider = ({ children }) => {
           }
         });
 
+        // Spawn SWAT Zombies in Police Stations (2-3 per station)
+        const policeStations = specialBuildings.filter(b => b.type === 'police' || b.type === 'police_station');
+        console.log(`[GameMapContext] Found ${policeStations.length} Police Station(s) on ${result.mapId} for spawning SWAT zombies`);
+
+        policeStations.forEach((station, sIdx) => {
+          const swatCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
+          let spawnedForStation = 0;
+          let attempts = 0;
+          const maxSwatAttempts = 100;
+
+          while (spawnedForStation < swatCount && attempts < maxSwatAttempts) {
+            const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+            const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+
+            const tile = result.gameMap.getTile(x, y);
+            if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+              const zombieId = `zombie-swat-${result.mapId}-${sIdx + 1}-${spawnedForStation + 1}`;
+              const zombie = new Zombie(zombieId, x, y, 'swat');
+
+              if (result.gameMap.addEntity(zombie, x, y)) {
+                spawnedForStation++;
+                console.log(`[GameMapContext] Spawned SWAT zombie ${zombieId} at (${x}, ${y}) in Police Station on ${result.mapId}`);
+              }
+            }
+            attempts++;
+          }
+        });
+
         triggerMapUpdate(); // Force re-render to show new zombies
       }
 
       console.log(`[GameMapContext] Map transition completed successfully to ${result.mapId}`);
+      addLog(`Player moved to map ${result.mapId}`, 'world');
       console.log(`[GameMapContext] Player spawned at (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
 
       // FIX 3: PATCH code removed - player position is now set once and remains consistent

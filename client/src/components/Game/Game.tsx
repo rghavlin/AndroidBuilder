@@ -4,11 +4,13 @@ import { CameraProvider } from '../../contexts/CameraContext.jsx';
 import { GameMapProvider } from '../../contexts/GameMapContext.jsx';
 import { PlayerProvider } from '../../contexts/PlayerContext.jsx';
 import { GameProvider } from '../../contexts/GameContext.jsx';
+import { LogProvider } from '../../contexts/LogContext.jsx';
 import GameScreen from './GameScreen.tsx';
 
 export default function Game() {
   return (
-    <CameraProvider>
+    <LogProvider>
+      <CameraProvider>
       <GameMapProvider>
         <PlayerProvider>
           <GameProvider>
@@ -17,5 +19,6 @@ export default function Game() {
         </PlayerProvider>
       </GameMapProvider>
     </CameraProvider>
-  );
+  </LogProvider>
+);
 }

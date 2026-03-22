@@ -4,6 +4,7 @@ import { useGameMap } from './GameMapContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { useGame } from './GameContext.jsx';
 import { useInventory } from './InventoryContext.jsx';
+import { useLog } from './LogContext.jsx';
 import { ItemDefs } from '../game/inventory/ItemDefs.js';
 
 import { ItemCategory } from '../game/inventory/traits.js';
@@ -25,6 +26,7 @@ export const CombatProvider = ({ children }) => {
     const { gameMapRef, lootGenerator, triggerMapUpdate } = useGameMap();
     const { addEffect } = useVisualEffects();
     const { forceRefresh, inventoryRef, destroyItem } = useInventory();
+    const { addLog } = useLog();
 
     const toggleTargeting = useCallback((weapon, slot) => {
         setTargetingWeapon(prev => {
@@ -105,6 +107,7 @@ export const CombatProvider = ({ children }) => {
             console.log(`[Combat] HIT! ${weapon.name} dealt ${damage} damage to zombie ${zombie.id}`);
 
             zombie.takeDamage(damage);
+            addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
 
             // Pop-up damage
             addEffect({
@@ -118,9 +121,10 @@ export const CombatProvider = ({ children }) => {
 
             if (zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
+                addLog('Zombie killed!', 'combat');
 
-                // Zombie Loot Drop (50% chance)
-                if (lootGenerator && Math.random() < 0.5) {
+                // Zombie Loot Drop (75% chance)
+                if (lootGenerator && Math.random() < 0.75) {
                     const loot = lootGenerator.generateZombieLoot(zombie.subtype);
                     if (loot && loot.length > 0) {
                         console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
@@ -139,6 +143,7 @@ export const CombatProvider = ({ children }) => {
             }
         } else {
             console.log(`[Combat] MISS! ${weapon.name} missed zombie ${zombie.id}`);
+            addLog(`Player attacks: miss (${weapon.name})`, 'combat');
 
             // Pop-up miss
             addEffect({
@@ -310,6 +315,7 @@ export const CombatProvider = ({ children }) => {
             console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to zombie ${zombie.id}`);
 
             zombie.takeDamage(damage);
+            addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
 
             addEffect({
                 type: 'damage',
@@ -322,9 +328,10 @@ export const CombatProvider = ({ children }) => {
 
             if (zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
+                addLog('Zombie killed!', 'combat');
 
-                // Zombie Loot Drop (50% chance)
-                if (lootGenerator && Math.random() < 0.5) {
+                // Zombie Loot Drop (75% chance)
+                if (lootGenerator && Math.random() < 0.75) {
                     const loot = lootGenerator.generateZombieLoot(zombie.subtype);
                     if (loot && loot.length > 0) {
                         console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
@@ -343,6 +350,7 @@ export const CombatProvider = ({ children }) => {
             }
         } else {
             console.log(`[Combat] RANGED MISS!`);
+            addLog(`Player attacks: miss (${weapon.name})`, 'combat');
             addEffect({
                 type: 'damage',
                 x: targetX,

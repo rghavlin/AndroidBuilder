@@ -9,6 +9,7 @@ import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
+import { useLog } from '../../contexts/LogContext.jsx';
 import { ItemTrait } from '../../game/inventory/traits.js';
 import { createItem } from '../../game/inventory/index.js';
 import { Item } from '../../game/inventory/Item.js';
@@ -34,9 +35,10 @@ const DevConsole = ({ isOpen, onClose }) => {
 
   // Phase 4: Direct sub-context access for debugging data
   const { playerRef, playerStats } = usePlayer();
-  const { gameMapRef, worldManagerRef } = useGameMap();
+  const { gameMapRef, worldManagerRef, triggerMapUpdate } = useGameMap();
   const { cameraRef } = useCamera();
   const { turn, isPlayerTurn, isInitialized } = useGame();
+  const { addLog } = useLog();
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -177,6 +179,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  inventory demo - Run inventory demo', 'info');
           addToConsole('  entity spawn <type> - Spawn an entity', 'info');
           addToConsole('  entity list - List all entities', 'info');
+          addToConsole('  spawn-zombie [type] - Spawn a zombie at player.x, player.y-2', 'info');
           addToConsole('  phase5 - Verify Phase 5A completion status', 'info');
           addToConsole('  phase5b - Verify Phase 5B equipment display', 'info');
           addToConsole('  phase5c - Verify Phase 5C backpack visibility', 'info');
@@ -201,6 +204,13 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
           addToConsole('• ground/phase4 - Run Phase 4 ground management demo', 'log');
           break;
+
+        case 'test-log':
+          addLog('This is a test log message', 'system');
+          addLog('Combat event: 10 damage', 'combat');
+          addLog('Item equipped: Fire Axe', 'item');
+          addLog('Warning: Low health!', 'warning');
+          return 'Test logs added to the event log.';
 
         case 'clear':
           setHistory([]);
@@ -273,6 +283,41 @@ const DevConsole = ({ isOpen, onClose }) => {
             }
           } else {
             addToConsole('Player not available', 'error');
+          }
+          break;
+
+        case 'spawn-zombie':
+          try {
+            const player = playerRef.current;
+            const gameMap = gameMapRef.current;
+            if (!player || !gameMap) {
+              addToConsole('Player or map not available', 'error');
+              break;
+            }
+
+            const subtype = parts[1] || 'basic';
+            const spawnX = player.x;
+            const spawnY = player.y - 2;
+
+            const tile = gameMap.getTile(spawnX, spawnY);
+            if (!tile || !tile.isWalkable()) {
+              addToConsole(`Cannot spawn zombie at (${spawnX}, ${spawnY}): tile blocked or invalid`, 'error');
+              break;
+            }
+
+            const { Zombie } = await import('../../game/entities/Zombie.js');
+            const zombieId = `spawned-zombie-${subtype}-${Date.now()}`;
+            const zombie = new Zombie(zombieId, spawnX, spawnY, subtype);
+            
+            if (gameMap.addEntity(zombie, spawnX, spawnY)) {
+              addToConsole(`✅ Spawned ${subtype} zombie at (${spawnX}, ${spawnY})`, 'success');
+              if (triggerMapUpdate) triggerMapUpdate();
+            } else {
+              addToConsole(`Failed to add ${subtype} zombie at (${spawnX}, ${spawnY})`, 'error');
+            }
+          } catch (error) {
+            addToConsole(`Error spawning zombie: ${error.message}`, 'error');
+            console.error('spawn-zombie error:', error);
           }
           break;
 

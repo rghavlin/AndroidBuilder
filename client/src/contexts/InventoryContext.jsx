@@ -4,6 +4,7 @@ import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
 import { CraftingRecipes } from '../game/inventory/CraftingRecipes.js';
 import { usePlayer } from './PlayerContext.jsx';
+import { useLog } from './LogContext.jsx';
 import Logger from '../game/utils/Logger.js';
 
 const logger = Logger.scope('InventoryContext');
@@ -68,6 +69,7 @@ export const InventoryProvider = ({ children, manager }) => {
   const [selectedRecipeId, setSelectedRecipeId] = useState(CraftingRecipes[0]?.id || null);
 
   const { playerRef } = usePlayer();
+  const { addLog } = useLog();
 
   useEffect(() => {
     console.log(`[InventoryProvider] MOUNT id=${__instanceId}`);
@@ -192,6 +194,7 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.equipItem(item, slot);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      addLog(`Equipped ${item.name}`, 'item');
       setInventoryVersion(prev => prev + 1);
     }
     return result;
@@ -209,6 +212,8 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.unequipItem(slot);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      const itemName = result.item ? result.item.name : 'item';
+      addLog(`Unequipped ${itemName} from ${slot}`, 'item');
       setInventoryVersion(prev => prev + 1);
     }
     return result;
@@ -218,6 +223,7 @@ export const InventoryProvider = ({ children, manager }) => {
     if (!inventoryRef.current) return false;
     const result = inventoryRef.current.destroyItem(instanceId);
     if (result) {
+      addLog(`Item destroyed: ${instanceId}`, 'system');
       setInventoryVersion(prev => prev + 1);
     }
     return result;
@@ -496,6 +502,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      addLog(`Equipped ${item.name} to ${targetSlot}`, 'item');
       setSelectedItem(null);
       setDragVersion(prev => prev + 1);
       setInventoryVersion(prev => prev + 1);
@@ -521,6 +528,7 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      addLog(`Attached ${selectedItem.item.name} to ${weapon.name}`, 'item');
       // IMPORTANT: Clear selection without triggering restoration logic in clearSelected()
       setSelectedItem(null);
       setDragVersion(v => v + 1);
@@ -736,6 +744,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      addLog(`Loaded ${ammoStack.name} into ${targetWeapon.name}`, 'item');
       setSelectedItem(null);
       setDragVersion(v => v + 1);
       setInventoryVersion(v => v + 1);
@@ -875,6 +884,8 @@ export const InventoryProvider = ({ children, manager }) => {
 
       if (result.success) {
         if (!isCraftingWorkspace && playerRef.current) playerRef.current.useAP(1);
+        const itemName = result.item ? result.item.name : item.name;
+        addLog(`Unequipped ${itemName} from ${slot}`, 'item');
         // Item was unequipped and placed automatically
         setSelectedItem(null);
         setDragVersion(prev => prev + 1);
@@ -1093,23 +1104,31 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // Find the container holding this item
-    const container = Array.from(inventoryRef.current.containers.values())
-      .find(c => c.items.has(item.instanceId));
+    // Priority: 1. item._container (direct reference) 2. manager.findItem (search)
+    const found = inventoryRef.current.findItem(item.instanceId);
+    const container = item._container || found?.container;
 
-    if (!container) {
-      // Check if it's equipped - some consumables might be equipped? Usually not food.
-      // But for completeness:
-      console.warn('[InventoryContext] Consumable container not found for:', item.name);
-      return { success: false, reason: 'Item container not found' };
+    if (!container && !found?.equipment) {
+      console.warn('[InventoryContext] Consumable container/slot not found for:', item.name, 'instanceId:', item.instanceId);
+      return { success: false, reason: 'Item not found in any container or slot' };
     }
 
     // Handle stack reduction or removal
-    if (item.isStackable && item.isStackable() && item.stackCount > 1) {
-      item.stackCount -= 1;
-      console.log('[InventoryContext] Stack reduced, new count:', item.stackCount);
+    const sourceItem = found?.item || item; // Use reference from manager if available
+
+    if (sourceItem.isStackable && sourceItem.isStackable() && sourceItem.stackCount > 1) {
+      sourceItem.stackCount -= 1;
+      console.log('[InventoryContext] Stack reduced on source item, new count:', sourceItem.stackCount);
     } else {
-      container.removeItem(item.instanceId);
-      console.log('[InventoryContext] Item fully consumed and removed from container');
+      // Fully consumed - Remove from wherever it was found
+      if (container) {
+        container.removeItem(item.instanceId);
+      } else if (found.equipment) {
+        inventoryRef.current.unequipItem(found.equipment);
+        // Note: unequipItem might place it in inventory, so we must explicitly destroy it
+        inventoryRef.current.destroyItem(item.instanceId);
+      }
+      console.log('[InventoryContext] Item fully consumed and removed from system');
     }
 
     setInventoryVersion(prev => prev + 1);
@@ -1146,6 +1165,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     console.log(`[InventoryContext] Drinking ${amountToDrink} water from bottle`);
+    addLog(`Drank ${amountToDrink} water`, 'item');
 
     // Apply effects
     playerRef.current.modifyStat('hydration', amountToDrink);
@@ -1157,23 +1177,24 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // Handle stack vs single item
-    if (item.stackCount > 1) {
+    const sourceItem = found?.item || item;
+    if (sourceItem.stackCount > 1) {
       // 1. Reduce original stack
-      item.stackCount -= 1;
+      sourceItem.stackCount -= 1;
 
       // 2. Create the "leftover" bottle with remaining water
-      const leftoverBottle = Item.fromJSON(item.toJSON());
+      const leftoverBottle = Item.fromJSON(sourceItem.toJSON());
       leftoverBottle.instanceId = `split-bottle-${Date.now()}`;
       leftoverBottle.stackCount = 1;
 
       // Calculate how much water is left in THIS single bottle
       // Usually it's full (capacity) before drinking, but we should be robust
-      const initialWater = item.ammoCount || item.capacity || 20;
+      const initialWater = sourceItem.ammoCount || sourceItem.capacity || 20;
       leftoverBottle.ammoCount = Math.max(0, initialWater - amountToDrink);
 
       // 3. Find the container to put it back in
-      const container = Array.from(inventoryRef.current.containers.values())
-        .find(c => c.items.has(item.instanceId));
+      const found = inventoryRef.current.findItem(item.instanceId);
+      const container = item._container || found?.container;
 
       if (container) {
         // Try to add it back to the same container first
@@ -1183,12 +1204,13 @@ export const InventoryProvider = ({ children, manager }) => {
           inventoryRef.current.dropItemToGround(leftoverBottle);
         }
       } else {
-        // Fallback to ground if container not found
+        // Fallback to ground if container not found (or if it was in equipment slot)
         inventoryRef.current.dropItemToGround(leftoverBottle);
       }
     } else {
       // Single bottle: just reduce water count
-      item.ammoCount -= amountToDrink;
+      sourceItem.ammoCount -= amountToDrink;
+      console.log('[InventoryContext] Reduced water in source bottle to:', sourceItem.ammoCount);
     }
 
     setInventoryVersion(prev => prev + 1);
@@ -1255,6 +1277,7 @@ export const InventoryProvider = ({ children, manager }) => {
       if (recipe && recipe.apCost && playerRef.current) {
         playerRef.current.useAP(recipe.apCost);
       }
+      addLog(`Crafted ${recipe.name}`, 'item');
 
       // If the item was already placed on the ground (e.g., Campfire), stop here
       if (result.placedInGround) {

@@ -79,7 +79,7 @@ export const CraftingRecipes = [
         tools: [],
         resultItem: 'medical.bandage',
         resultCount: 2,
-        apCost: 15
+        apCost: 2
     },
     {
         id: 'crafting.campfire',
@@ -121,6 +121,21 @@ export const CraftingRecipes = [
         ],
         ingredients: [
             { id: 'food.waterbottle', count: 1, label: 'Dirty Water Bottle', properties: { waterQuality: 'dirty' } }
+        ]
+    },
+    {
+        id: 'cooking.clean_water_jug',
+        name: 'Clean Water (Jug)',
+        resultItem: 'food.waterjug',
+        description: 'Boil a whole jug of dirty water to make it safe to drink.',
+        apCost: 10,
+        tab: 'cooking',
+        requiresCampfire: true,
+        tools: [
+            { category: ItemCategory.COOKING_POT, label: 'Any Cooking Pot' }
+        ],
+        ingredients: [
+            { id: 'food.waterjug', count: 1, label: 'Dirty Water Jug', properties: { waterQuality: 'dirty' } }
         ]
     },
     {

@@ -39,6 +39,7 @@ export class ImageLoader {
     // 2. Specialized mapping for known subtypes
     if (entityType === 'zombie') {
       if (subtype === 'crawler') imageKey = 'crawlerzombie';
+      else if (subtype === 'runner') imageKey = 'runnerzombie';
       else if (subtype === 'firefighter') imageKey = 'firefighterzombie';
       else if (subtype === 'swat') imageKey = 'swatzombie';
       else imageKey = 'zombie'; // Default zombie for basic/null

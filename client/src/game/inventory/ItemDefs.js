@@ -279,7 +279,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
-    categories: [ItemCategory.WEAPON],
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
     condition: 100,
     fragility: 4,
     combat: {

@@ -16,6 +16,10 @@ import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { ZombieTooltip } from './ZombieTooltip';
+import { useLog } from '../../contexts/LogContext.jsx';
+import GameEventLog from './GameEventLog';
+import LogHistoryWindow from './LogHistoryWindow';
+import { GridSizeProvider } from "@/contexts/GridSizeContext";
 
 interface MapInterfaceProps {
   gameState: {
@@ -151,6 +155,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { worldToScreen, cameraRef } = useCamera();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
+  const [isLogHistoryOpen, setIsLogHistoryOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
   const [waterMenu, setWaterMenu] = useState<{ x: number, y: number, screenX: number, screenY: number } | null>(null);
@@ -325,7 +330,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         </button>
 
         {/* Action Buttons Group (Centered) */}
-        <div className="flex gap-2 justify-center flex-1">
+        <div className="flex gap-2 justify-center items-center flex-1">
+          <GameEventLog 
+            onClick={() => {
+              setIsLogHistoryOpen(prev => !prev);
+              setIsInventoryExtensionOpen(false); // Close other extension
+            }} 
+          />
           {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
             <ActionSlotButton
               key={slot}
@@ -396,6 +407,30 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         isOpen={isInventoryExtensionOpen}
         onClose={() => setIsInventoryExtensionOpen(false)}
       />
+
+      {/* Log History Window (Direct Implementation to match InventoryExtensionWindow layout) */}
+      {isLogHistoryOpen && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          {/* Backdrop covers only map area */}
+          <div
+            className="absolute left-0 w-1/2 h-full bg-black/50 pointer-events-auto"
+            onClick={() => setIsLogHistoryOpen(false)}
+          />
+
+          {/* Log History panel */}
+          <div
+            className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-4 overflow-hidden pointer-events-auto"
+            style={{
+              top: '48px',
+              bottom: '72px',
+              height: 'calc(100vh - 120px)'
+            }}
+            data-testid="log-history-window"
+          >
+            <LogHistoryWindow onClose={() => setIsLogHistoryOpen(false)} />
+          </div>
+        </div>
+      )}
       {/* Main Menu Modal */}
       {showMainMenu && (
         <MainMenuWindow onClose={() => setShowMainMenu(false)} />

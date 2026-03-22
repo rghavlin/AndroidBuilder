@@ -151,9 +151,11 @@ export class CraftingManager {
 
         // Track properties to preserve (e.g., water level when boiling)
         let preservedProperties = {};
-        if (recipeId === 'cooking.clean_water') {
+        if (recipeId === 'cooking.clean_water' || recipeId === 'cooking.clean_water_jug') {
             const candidates = ingredientContainer.getAllItems();
-            const sourceBottle = candidates.find(i => i.defId === 'food.waterbottle' && i.waterQuality === 'dirty');
+            const sourceBottle = candidates.find(i =>
+                (i.defId === 'food.waterbottle' || i.defId === 'food.waterjug') && i.waterQuality === 'dirty'
+            );
             if (sourceBottle) {
                 preservedProperties.ammoCount = sourceBottle.ammoCount;
                 preservedProperties.waterQuality = 'clean';

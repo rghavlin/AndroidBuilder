@@ -442,6 +442,14 @@ export class WorldManager {
         const lootGenerator = new LootGenerator();
         lootGenerator.spawnLoot(gameMap);
 
+        // SPAWN ZOMBIES: New procedural zombie generation (Phase 6)
+        const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
+        ZombieSpawner.spawnZombies(gameMap, spawnPosition, {
+          basicCount: 15,
+          crawlerRange: { min: 2, max: 5 },
+          runnerCount: Math.floor(Math.random() * 2) + 1 // 1 or 2
+        });
+
         // Stamp south transition on new maps (except map_001)
         if (targetMapId !== 'map_001') {
           console.log(`[WorldManager] Stamping south transition at (17, 124) on new map ${targetMapId}`);

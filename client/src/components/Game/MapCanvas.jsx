@@ -95,6 +95,11 @@ export default function MapCanvas({
       subtypeImageKey = 'firefighterzombie';
     }
 
+    // Special mapping for Runner zombies
+    if (entity.type === 'zombie' && entity.subtype === 'runner') {
+      subtypeImageKey = 'runnerzombie';
+    }
+
     // Special mapping for SWAT zombies
     if (entity.type === 'zombie' && entity.subtype === 'swat') {
       subtypeImageKey = 'swatzombie';

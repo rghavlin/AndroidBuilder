@@ -20,6 +20,7 @@ export function ZombieTooltip({ zombie }: ZombieTooltipProps) {
 
     let name = 'Zombie';
     if (zombie.subtype === 'crawler') name = 'Crawler';
+    else if (zombie.subtype === 'runner') name = 'Runner Zombie';
     else if (zombie.subtype === 'firefighter') name = 'Firefighter Zombie';
     else if (zombie.subtype === 'swat') name = 'Swat Zombie';
     const hpPercent = Math.max(0, Math.min(100, (zombie.hp / zombie.maxHp) * 100));

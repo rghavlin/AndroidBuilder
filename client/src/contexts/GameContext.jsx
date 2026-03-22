@@ -9,6 +9,7 @@ import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from './GameMapContext.jsx';
 import { CameraProvider, useCamera } from './CameraContext.jsx';
 import { InventoryProvider } from './InventoryContext.jsx';
+import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
 
@@ -57,6 +58,7 @@ const GameContextInner = ({ children }) => {
   const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, setLootGenerator, triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
   const { cameraRef, camera, setCamera, setCameraWorldBounds } = useCamera();
   const { addEffect } = useVisualEffects();
+  const { addLog, clearLogs } = useLog();
 
 
   // Phase 5A: Store inventoryManager from initialization
@@ -455,6 +457,7 @@ const GameContextInner = ({ children }) => {
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
     setTurn(1); // Reset turn counter to 1 for new game (06:00 start)
+    clearLogs(); // Clear log from previous game
 
     const success = await initManagerRef.current.startInitialization(null);
     if (!success) {
@@ -560,6 +563,67 @@ const GameContextInner = ({ children }) => {
     return true; // No opening found, or limit reached (assume sheltered if building is HUGE)
   }, []);
 
+  const isPlayerInSameBuildingAsDoor = useCallback((player, doorPos, gameMap) => {
+    if (!player || !gameMap || !doorPos) {
+      console.log(`[GameContext] isPlayerInSameBuildingAsDoor failed due to missing params`);
+      return false;
+    }
+
+    const startTile = gameMap.getTile(player.x, player.y);
+    if (!startTile) return false;
+
+    if (startTile.terrain !== 'floor') {
+      console.log(`[GameContext] isPlayerInSameBuildingAsDoor failed: player not on floor (terrain: ${startTile.terrain})`);
+      return false;
+    }
+
+    const queue = [{ x: player.x, y: player.y }];
+    const visited = new Set([`${player.x},${player.y}`]);
+    const maxCheckedTiles = 400;
+
+    let head = 0;
+    while (head < queue.length && queue.length < maxCheckedTiles) {
+      const { x, y } = queue[head++];
+      
+      const neighbors = [
+        { x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }
+      ];
+
+      for (const next of neighbors) {
+        if (next.x === doorPos.x && next.y === doorPos.y) {
+          console.log(`[GameContext] isPlayerInSameBuildingAsDoor SUCCESS: reached door at (${doorPos.x}, ${doorPos.y})`);
+          return true; // Reached the door!
+        }
+
+        const key = `${next.x},${next.y}`;
+        if (visited.has(key)) continue;
+
+        const tile = gameMap.getTile(next.x, next.y);
+        if (!tile) continue;
+
+        const isWall = tile.terrain === 'wall' || tile.terrain === 'building' || tile.terrain === 'fence';
+        const door = tile.contents.find(e => e.type === 'door');
+        const isClosedDoor = door && !door.isOpen;
+
+        if (isWall || isClosedDoor) {
+          visited.add(key);
+          continue;
+        }
+
+        if (tile.terrain !== 'floor') {
+          visited.add(key);
+          continue;
+        }
+
+        visited.add(key);
+        queue.push(next);
+      }
+    }
+    
+    console.log(`[GameContext] isPlayerInSameBuildingAsDoor failed: BFS exhausted without finding door`);
+    return false;
+  }, []);
+
   const performSleep = useCallback(async (hours) => {
     if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn || isSleeping) return;
 
@@ -619,6 +683,7 @@ const GameContextInner = ({ children }) => {
         const zombies = gameMap.getEntitiesByType('zombie');
         const cardinalPositions = getPlayerCardinalPositions(gameMap);
         lastSeenTaggedTilesRef.current.clear();
+        let doorAttackedInBuilding = false;
 
         zombies.forEach(zombie => {
           const turnResult = ZombieAI.executeZombieTurn(
@@ -633,8 +698,14 @@ const GameContextInner = ({ children }) => {
           if (turnResult.success) {
             turnResult.actions.forEach(action => {
               if (action.type === 'attackDoor' && action.doorPos && addEffect) {
+                if (isPlayerInSameBuildingAsDoor({ x: player.x, y: player.y }, action.doorPos, gameMap)) {
+                  addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
+                  doorAttackedInBuilding = true;
+                }
                 addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
                 addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
+              } else if (action.type === 'attack' && action.target === 'player') {
+                addLog(`Zombie attacks: ${action.damage} damage`, 'combat');
               }
             });
           }
@@ -652,13 +723,17 @@ const GameContextInner = ({ children }) => {
         let interruption = false;
         let interruptionReason = "";
 
-        // Check if zombies can see player OR if they are adjacent (possibly attacking)
+        // Check if zombies can see player OR if they are adjacent (possibly attacking) 
+        // OR if they are banging on the building's door
         const seePlayer = zombies.some(z => z.canSeeEntity(gameMap, player));
         const adjacentZombie = zombies.some(z => Math.abs(z.x - player.x) <= 1 && Math.abs(z.y - player.y) <= 1);
 
         if (seePlayer || adjacentZombie) {
           interruption = true;
           interruptionReason = "You were woken up by a nearby zombie!";
+        } else if (doorAttackedInBuilding) {
+          interruption = true;
+          interruptionReason = "You were woken up by a zombie banging on the door!";
         }
 
         // Only check for random spawns if sheltered and not already interrupted
@@ -685,6 +760,7 @@ const GameContextInner = ({ children }) => {
         }
 
         if (interruption) {
+          addLog(interruptionReason, 'warning');
           console.log(`[GameContext] Sleep interrupted: ${interruptionReason}`);
           setIsSleeping(false);
           setSleepProgress(0);
@@ -891,6 +967,9 @@ const GameContextInner = ({ children }) => {
               console.log(`[GameContext] - Action ${index + 1}: Moved from (${action.from.x}, ${action.from.y}) to (${action.to.x}, ${action.to.y})`);
             } else if (action.type === 'attackDoor' && action.doorPos) {
               console.log(`[GameContext] - Action ${index + 1}: Attacking door at (${action.doorPos.x}, ${action.doorPos.y})`);
+              if (isPlayerInSameBuildingAsDoor({ x: player.x, y: player.y }, action.doorPos, gameMap)) {
+                addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
+              }
 
               // Trigger visual effects for door attack
               if (addEffect) {
@@ -913,6 +992,8 @@ const GameContextInner = ({ children }) => {
                   duration: 300
                 });
               }
+            } else if (action.type === 'attack' && action.target === 'player') {
+              addLog(`Zombie attacks: ${action.damage} damage`, 'combat');
             }
 
           });

@@ -1340,12 +1340,9 @@ export class InventoryManager extends SafeEventEmitter {
   findItem(itemId) {
     if (!itemId) return null;
 
-    // Check containers
+    // 1. Search all REGISTERED containers first (fastest)
     for (const container of this.containers.values()) {
-      // Use explicit check for itemId in Map keys
       let item = container.items.get(itemId);
-
-      // Fallback: search by value if key mismatch (consistent with Container.removeItem hardening)
       if (!item) {
         for (const val of container.items.values()) {
           if (val.instanceId === itemId || val.id === itemId) {
@@ -1354,23 +1351,99 @@ export class InventoryManager extends SafeEventEmitter {
           }
         }
       }
+      if (item) return { item, container };
+    }
 
+    // 2. Search EQUIPPED items and their attachments
+    for (const [slot, item] of Object.entries(this.equipment)) {
       if (item) {
-        return { item, container };
+        if (item.instanceId === itemId) return { item, equipment: slot };
+        
+        // Search attachments
+        if (item.hasAttachments()) {
+          for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
+            if (attachment.instanceId === itemId) {
+              return { item: attachment, parent: item, attachmentSlot: attachSlot };
+            }
+          }
+        }
+
+        // RECURSIVE SEARCH: Search inside equipped containers (that might not be registered yet)
+        const backpackGrid = item.getContainerGrid?.();
+        if (backpackGrid) {
+          const found = this._findItemRecursive(backpackGrid, itemId);
+          if (found) return found;
+        }
+        
+        const pockets = item.getPocketContainers?.();
+        if (pockets) {
+          for (const pocket of pockets) {
+            const found = this._findItemRecursive(pocket, itemId);
+            if (found) return found;
+          }
+        }
       }
     }
 
-    // Check equipped items
-    for (const [slot, item] of Object.entries(this.equipment)) {
-      if (item && item.instanceId === itemId) {
-        return { item, equipment: slot };
+    // 3. BROAD SEARCH: Some containers might be nested but not explicitly registered in this.containers
+    // We already searched this.containers, but let's do a recursive pass if needed.
+    // Actually, searching ground and equipment should cover 99% of cases.
+    const ground = this.getContainer('ground');
+    if (ground) {
+       const found = this._findItemRecursive(ground, itemId);
+       if (found) return found;
+    }
+
+    return null;
+  }
+
+  /**
+   * Internal recursive search for items within a container and its sub-containers
+   */
+  _findItemRecursive(container, itemId) {
+    if (!container || !container.items) return null;
+
+    // Direct check
+    let item = container.items.get(itemId);
+    if (!item) {
+      for (const val of container.items.values()) {
+        if (val.instanceId === itemId || val.id === itemId) {
+          item = val;
+          break;
+        }
+      }
+    }
+    if (item) return { item, container };
+
+    // Recurse into nested containers
+    for (const potentialContainerItem of container.items.values()) {
+      // Check for standard grid
+      const grid = potentialContainerItem.getContainerGrid?.();
+      if (grid) {
+        const found = this._findItemRecursive(grid, itemId);
+        if (found) return found;
       }
 
-      // Check attachments on equipped items
-      if (item && item.hasAttachments()) {
-        for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
+      // Check for pockets
+      const pockets = potentialContainerItem.getPocketContainers?.();
+      if (pockets) {
+        for (const pocket of pockets) {
+          const found = this._findItemRecursive(pocket, itemId);
+          if (found) return found;
+        }
+      }
+
+      // Check for attachments (deep nested attachments)
+      if (potentialContainerItem.hasAttachments?.()) {
+        for (const [slot, attachment] of Object.entries(potentialContainerItem.attachments)) {
           if (attachment.instanceId === itemId) {
-            return { item: attachment, parent: item, attachmentSlot: attachSlot };
+            return { item: attachment, parent: potentialContainerItem, attachmentSlot: slot };
+          }
+          // Recurse into attachment if it's also a container (e.g. ammo drum?)
+          const attachGrid = attachment.getContainerGrid?.();
+          if (attachGrid) {
+            const found = this._findItemRecursive(attachGrid, itemId);
+            if (found) return found;
           }
         }
       }

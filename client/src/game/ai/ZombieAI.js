@@ -99,7 +99,9 @@ export class ZombieAI {
           type: moveResult.type || 'move',
           from: moveResult.from,
           to: moveResult.to,
-          apCost: moveResult.apCost
+          apCost: moveResult.apCost,
+          doorPos: moveResult.doorPos,
+          doorBroken: moveResult.doorBroken
         });
         console.log(`[ZombieAI] Zombie ${zombie.id} moved toward player, remaining AP: ${zombie.currentAP}`);
       } else {
@@ -186,7 +188,9 @@ export class ZombieAI {
           type: moveResult.type || 'move',
           from: moveResult.from,
           to: moveResult.to,
-          apCost: moveResult.apCost
+          apCost: moveResult.apCost,
+          doorPos: moveResult.doorPos,
+          doorBroken: moveResult.doorBroken
         });
 
         console.log(`[ZombieAI] Zombie ${zombie.id} moved toward lastSeen target (${targetX}, ${targetY}), now at (${zombie.x}, ${zombie.y}), remaining AP: ${zombie.currentAP}`);
@@ -232,11 +236,13 @@ export class ZombieAI {
 
       if (moveResult.success) {
         turnResult.actions.push({
-          type: 'move',
+          type: moveResult.type || 'move',
           from: moveResult.from,
           to: moveResult.to,
           apCost: moveResult.apCost,
-          actionType: moveResult.type || 'move'
+          actionType: moveResult.type || 'move',
+          doorPos: moveResult.doorPos,
+          doorBroken: moveResult.doorBroken
         });
 
         // If at target point, stop and clear
@@ -302,12 +308,13 @@ export class ZombieAI {
           const fromPos = { x: zombie.x, y: zombie.y };
           try {
             gameMap.moveEntity(zombie.id, dir.x, dir.y);
-            zombie.useAP(1);
+            const apCost = zombie.subtype === 'runner' ? 0.5 : 1;
+            zombie.useAP(apCost);
             turnResult.actions.push({
               type: 'wander',
               from: fromPos,
               to: { x: dir.x, y: dir.y },
-              apCost: 1
+              apCost: apCost
             });
             moved = true;
           } catch (e) {
@@ -339,7 +346,7 @@ export class ZombieAI {
     }
 
     const fromPos = { x: zombie.x, y: zombie.y };
-    const apCost = 1;
+    const apCost = zombie.subtype === 'runner' ? 0.5 : 1;
 
     // Check if zombie has enough AP
     if (zombie.currentAP < apCost) {
@@ -425,7 +432,8 @@ export class ZombieAI {
           to: fromPos, // Zombie didn't move
           type: 'attackDoor',
           doorPos: { x: nextMove.x, y: nextMove.y },
-          apCost: apCost
+          apCost: apCost,
+          doorBroken: door.hp <= 0
         };
       }
 
