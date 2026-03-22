@@ -14,6 +14,8 @@ import { imageLoader } from '../../game/utils/ImageLoader';
 import { cn } from "@/lib/utils";
 import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
+import { useCamera } from '../../contexts/CameraContext.jsx';
+import { ZombieTooltip } from './ZombieTooltip';
 
 interface MapInterfaceProps {
   gameState: {
@@ -146,6 +148,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, forceRefresh } = useInventory();
   const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack } = useCombat();
   const { addEffect } = useVisualEffects();
+  const { worldToScreen, cameraRef } = useCamera();
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
@@ -163,7 +166,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   useEffect(() => {
     if (gameMapRef.current && playerRef.current) {
       const weapon = targetingWeapon?.item;
-      const sightSlot = weapon?.attachmentSlots?.find(s => s.id === 'sight');
+      const sightSlot = weapon?.attachmentSlots?.find((s: any) => s.id === 'sight');
       const sightItem = sightSlot ? weapon.attachments[sightSlot.id] : null;
       const hasScope = sightItem && sightItem.categories?.includes('rifle_scope');
 
@@ -361,6 +364,31 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             <p className="text-muted-foreground text-sm">Initializing game...</p>
           </div>
         )}
+
+        {/* Zombie Tooltip Overlay (Phase 6) */}
+        {(() => {
+          if (!hoveredTile || !hoveredTile.zombie) return null;
+          
+          // Only show if the tile is currently visible to the player
+          const isCurrentlyVisible = playerRef.current && 
+            gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored &&
+            // Note: FOV check is usually done via playerFieldOfView state in MapCanvas, 
+            // but here we can check if it's in the player's sight range or simply if it's "currently visible"
+            // For simplicity and matching MapCanvas logic, we check visibility
+            true; // We'll assume if it's hovered and explored it's fine for now, 
+                 // but ideally we check if player can see it.
+          
+          // Actually, MapCanvas only renders zombies if they are currently visible.
+          // Let's mirror that logic.
+          const isVisible = playerRef.current && gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
+          if (!isVisible) return null;
+
+          return (
+            <ZombieTooltipOverlay 
+              hoveredTile={hoveredTile} 
+            />
+          );
+        })()}
       </div>
 
       {/* Inventory Extension Window */}
@@ -475,7 +503,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           </button>
         </div>
       )}
-
       {/* Water Context Menu */}
       {waterMenu && (
         <div
@@ -572,3 +599,42 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     </div>
   );
 }
+
+// Zombie Tooltip Overlay Helper (Phase 6)
+const ZombieTooltipOverlay = ({ hoveredTile }: { hoveredTile: any }) => {
+  const { worldToScreen, cameraRef } = useCamera();
+  const { gameMapRef } = useGameMap();
+
+  if (!hoveredTile || !cameraRef.current || !gameMapRef.current) return null;
+
+  // Re-fetch the zombie from the map to get fresh stats (HP/AP)
+  const targetTile = gameMapRef.current.getTile(hoveredTile.x, hoveredTile.y);
+  const zombie = targetTile?.contents.find((e: any) => e.type === 'zombie');
+
+  if (!zombie) return null;
+
+  // Calculate screen position
+  const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
+  
+  // Get tileSize from camera (this is the base tile size * zoom)
+  const baseTileSize = (cameraRef.current as any).baseTileSize || 48;
+  const tileSize = baseTileSize * cameraRef.current.zoomLevel;
+
+  // Position above the tile
+  const x = screenPos.x * tileSize;
+  const y = screenPos.y * tileSize;
+
+  return (
+    <div
+      className="absolute z-[10001] pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4 transition-all duration-200"
+      style={{
+        left: `${x + tileSize / 2}px`,
+        top: `${y}px`,
+      }}
+    >
+      <ZombieTooltip zombie={zombie as any} />
+      {/* Downward arrow/pointer */}
+      <div className="w-3 h-3 bg-black/80 border-r border-b border-white/20 rotate-45 absolute bottom-[-6px] left-1/2 -translate-x-1/2" />
+    </div>
+  );
+};

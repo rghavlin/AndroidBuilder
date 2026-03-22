@@ -3,7 +3,7 @@ import EquipmentSlot from "./EquipmentSlot";
 import { useInventory } from "@/contexts/InventoryContext";
 
 export default function EquipmentSlots() {
-  const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto } = useInventory();
+  const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto, loadAmmoDirectly } = useInventory();
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
   const equipmentSlots = [
@@ -46,16 +46,20 @@ export default function EquipmentSlots() {
       // Slot is occupied, try loading ammo or adding attachment (if weapon)
       const isWeapon = equippedItem.isWeapon?.() || (equippedItem.attachmentSlots && equippedItem.attachmentSlots.length > 0);
       if (isWeapon) {
-        // AMMO LOADING: If clicking on a weapon while carrying ammo, try to load it (Step 606 check)
-        if (selectedItem.item.isAmmo && selectedItem.item.isAmmo()) {
-          console.debug('[EquipmentSlots] Attempting to load ammo into equipped weapon:', equippedItem.name);
+        // AMMO LOADING: Direct-load guns use loadAmmoDirectly; magazine-based guns use attachSelectedInto
+        const directLoadDefs = ['weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
+        const isDirectLoadGun = directLoadDefs.includes(equippedItem.defId);
+        const isAmmoSelected = selectedItem.item.isAmmo && selectedItem.item.isAmmo();
+
+        if (isDirectLoadGun && isAmmoSelected) {
+          console.debug('[EquipmentSlots] Direct-loading ammo into equipped gun:', equippedItem.name);
+          const loadResult = loadAmmoDirectly(equippedItem);
+          if (loadResult.success) return;
+        } else {
+          console.debug('[EquipmentSlots] Attempting quick attach into equipped weapon:', equippedItem.name);
           const attachResult = attachSelectedInto(equippedItem);
           if (attachResult.success) return;
         }
-        
-        console.debug('[EquipmentSlots] Attempting quick attach into equipped weapon:', equippedItem.name);
-        const attachResult = attachSelectedInto(equippedItem);
-        if (attachResult.success) return;
       }
 
       // Try Deposit (if container/clothing)

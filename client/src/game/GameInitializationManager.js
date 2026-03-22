@@ -390,6 +390,81 @@ class GameInitializationManager extends EventEmitter {
       }
     }
 
+    // Spawn Firefighter Zombies in Fire Stations (2-3 per station)
+    const specialBuildings = gameMap.specialBuildings || gameMap.metadata?.specialBuildings || [];
+    const fireStations = specialBuildings.filter(b => b.type === 'firestation');
+    
+    console.log(`[GameInitializationManager] Found ${fireStations.length} Fire Station(s) for spawning Firefighter zombies`);
+
+    fireStations.forEach((station, sIdx) => {
+      const firefighterCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
+      let spawnedForStation = 0;
+      let attempts = 0;
+      const maxAttempts = 50;
+
+      while (spawnedForStation < firefighterCount && attempts < maxAttempts) {
+        // Pick a random tile inside the building (avoiding the perimeter walls)
+        const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+        const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+
+        const tile = gameMap.getTile(x, y);
+        if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+          const zombieId = `zombie-firefighter-${sIdx + 1}-${spawnedForStation + 1}`;
+          const zombie = new Zombie(zombieId, x, y, 'firefighter');
+
+          if (gameMap.addEntity(zombie, x, y)) {
+            spawnedCount++;
+            spawnedForStation++;
+            console.log(`[GameInitializationManager] Spawned Firefighter zombie ${zombieId} at (${x}, ${y}) in Fire Station`);
+          }
+        }
+        attempts++;
+      }
+      
+      if (spawnedForStation < firefighterCount) {
+        console.warn(`[GameInitializationManager] Only spawned ${spawnedForStation}/${firefighterCount} Firefighter zombies in station ${sIdx + 1}`);
+      }
+    });
+    
+    // Spawn SWAT Zombies in Police Stations (2-3 per station)
+    const policeStations = specialBuildings.filter(b => b.type === 'police' || b.type === 'police_station');
+    
+    console.log(`[GameInitializationManager] Found ${policeStations.length} Police Station(s) for spawning SWAT zombies. Buildings source: ${specialBuildings.length} total`);
+    if (policeStations.length > 0) {
+      console.log(`[GameInitializationManager] Police Station 1 details: x=${policeStations[0].x}, y=${policeStations[0].y}, w=${policeStations[0].width}, h=${policeStations[0].height}`);
+    }
+
+    policeStations.forEach((station, sIdx) => {
+      const swatCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
+      console.log(`[GameInitializationManager] Attempting to spawn ${swatCount} SWAT zombies in station ${sIdx + 1}`);
+      let spawnedForStation = 0;
+      let attempts = 0;
+      const maxAttempts = 100; // Increased attempts
+
+      while (spawnedForStation < swatCount && attempts < maxAttempts) {
+        // Pick a random tile inside the building (avoiding the perimeter walls)
+        const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+        const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+
+        const tile = gameMap.getTile(x, y);
+        if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+          const zombieId = `zombie-swat-${sIdx + 1}-${spawnedForStation + 1}`;
+          const zombie = new Zombie(zombieId, x, y, 'swat');
+
+          if (gameMap.addEntity(zombie, x, y)) {
+            spawnedCount++;
+            spawnedForStation++;
+            console.log(`[GameInitializationManager] Spawned SWAT zombie ${zombieId} at (${x}, ${y}) in Police Station`);
+          }
+        }
+        attempts++;
+      }
+      
+      if (spawnedForStation < swatCount) {
+        console.warn(`[GameInitializationManager] Only spawned ${spawnedForStation}/${swatCount} SWAT zombies in station ${sIdx + 1}`);
+      }
+    });
+
     return spawnedCount;
   }
 

@@ -3,6 +3,7 @@ import { usePlayer } from './PlayerContext.jsx';
 import { useGameMap } from './GameMapContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { useGame } from './GameContext.jsx';
+import { useInventory } from './InventoryContext.jsx';
 import { ItemDefs } from '../game/inventory/ItemDefs.js';
 
 import { ItemCategory } from '../game/inventory/traits.js';
@@ -21,9 +22,9 @@ export const useCombat = () => {
 export const CombatProvider = ({ children }) => {
     const [targetingWeapon, setTargetingWeapon] = useState(null); // { item, slot }
     const { playerRef } = usePlayer();
-    const { gameMapRef, lootGenerator } = useGameMap();
+    const { gameMapRef, lootGenerator, triggerMapUpdate } = useGameMap();
     const { addEffect } = useVisualEffects();
-    const { forceRefresh } = useGame();
+    const { forceRefresh, inventoryRef, destroyItem } = useInventory();
 
     const toggleTargeting = useCallback((weapon, slot) => {
         setTargetingWeapon(prev => {
@@ -43,17 +44,42 @@ export const CombatProvider = ({ children }) => {
         const gameMap = gameMapRef.current;
         if (!player || !gameMap) return { success: false, reason: 'System error' };
 
+        // Guard: Prevent attack with broken weapon
+        if (weapon && weapon.instanceId !== 'unarmed' && weapon.condition !== null && weapon.condition <= 0) {
+            console.warn(`[Combat] Blocked attack with broken weapon: ${weapon.name}`);
+            addEffect({
+                type: 'damage',
+                x: player.x,
+                y: player.y,
+                value: 'Broke!',
+                color: '#ef4444',
+                duration: 1000
+            });
+            // Try destroying it again if it somehow persisted
+            destroyItem(weapon.instanceId);
+            cancelTargeting();
+            return { success: false, reason: 'Weapon is broken' };
+        }
+
         // 1. Check AP
         if (player.ap < 1) {
             return { success: false, reason: 'Not enough AP' };
         }
 
-        // 2. Validate Adjacency (Cardinal only)
+        // 2. Validate Adjacency/Range
         const dx = Math.abs(player.x - targetX);
         const dy = Math.abs(player.y - targetY);
-        const isAdjacent = (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
+        
+        // Fallback chain: weapon instance -> item definition -> hardcoded defaults
+        const weaponStats = weapon.combat || ItemDefs[weapon.defId]?.combat || { hitChance: 0.5, damage: { min: 1, max: 2 } };
+        const weaponRange = weaponStats.range || 1.0;
+        
+        // Use Euclidean distance for range check
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const isInRange = distance <= weaponRange + 0.1; // Small threshold for floating point
 
-        if (!isAdjacent) {
+        if (!isInRange) {
+            console.warn(`[Combat] Target out of range: distance=${distance.toFixed(2)}, maxRange=${weaponRange}`);
             return { success: false, reason: 'Target out of range' };
         }
 
@@ -64,10 +90,6 @@ export const CombatProvider = ({ children }) => {
         if (!zombie) {
             return { success: false, reason: 'No zombie at target' };
         }
-
-        // 4. Hit Calculation
-        // Fallback chain: weapon instance -> item definition -> hardcoded defaults
-        const weaponStats = weapon.combat || ItemDefs[weapon.defId]?.combat || { hitChance: 0.5, damage: { min: 1, max: 2 } };
 
         console.log(`[Combat] Attacking with ${weapon.name} (defId: ${weapon.defId})`);
         console.log(`[Combat] Stats: hitChance=${weaponStats.hitChance}, damage=${weaponStats.damage.min}-${weaponStats.damage.max}`);
@@ -99,7 +121,7 @@ export const CombatProvider = ({ children }) => {
 
                 // Zombie Loot Drop (50% chance)
                 if (lootGenerator && Math.random() < 0.5) {
-                    const loot = lootGenerator.generateZombieLoot();
+                    const loot = lootGenerator.generateZombieLoot(zombie.subtype);
                     if (loot && loot.length > 0) {
                         console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
                         gameMap.addItemsToTile(targetX, targetY, loot);
@@ -108,7 +130,12 @@ export const CombatProvider = ({ children }) => {
 
                 gameMap.removeEntity(zombie.id);
                 cancelTargeting();
+                triggerMapUpdate();
                 forceRefresh(); // Trigger UI update to remove zombie icon
+            } else {
+                // If hit but not dead, still trigger update to refresh HP tooltips
+                triggerMapUpdate();
+                forceRefresh();
             }
         } else {
             console.log(`[Combat] MISS! ${weapon.name} missed zombie ${zombie.id}`);
@@ -127,15 +154,51 @@ export const CombatProvider = ({ children }) => {
         // 6. Weapon Degradation (Always occur after attack attempt if hit/miss processed)
         if (weapon.instanceId !== 'unarmed' && typeof weapon.degrade === 'function') {
             weapon.degrade(); // Uses its own fragility
+            if (weapon.condition <= 0) {
+                console.log(`[Combat] Weapon ${weapon.name} BROKE!`);
+                addEffect({
+                    type: 'damage',
+                    x: player.x,
+                    y: player.y,
+                    value: 'Broke!',
+                    color: '#fbbf24',
+                    duration: 1500
+                });
+                
+                // Destroy broken weapon
+                destroyItem(weapon.instanceId);
+                
+                if (targetingWeapon?.item?.instanceId === weapon.instanceId) {
+                    cancelTargeting();
+                }
+                forceRefresh();
+            }
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
         const gameMap = gameMapRef.current;
         if (!player || !gameMap) return { success: false, reason: 'System error' };
+
+        // Guard: Prevent attack with broken firearm
+        if (weapon && weapon.condition !== null && weapon.condition <= 0) {
+            console.warn(`[Combat] Blocked attack with broken firearm: ${weapon.name}`);
+            addEffect({
+                type: 'damage',
+                x: player.x,
+                y: player.y,
+                value: 'Broke!',
+                color: '#ef4444',
+                duration: 1000
+            });
+            // Try destroying it again if it somehow persisted
+            destroyItem(weapon.instanceId);
+            cancelTargeting();
+            return { success: false, reason: 'Weapon is broken' };
+        }
 
         // 1. Check AP
         if (player.ap < 1) {
@@ -262,7 +325,7 @@ export const CombatProvider = ({ children }) => {
 
                 // Zombie Loot Drop (50% chance)
                 if (lootGenerator && Math.random() < 0.5) {
-                    const loot = lootGenerator.generateZombieLoot();
+                    const loot = lootGenerator.generateZombieLoot(zombie.subtype);
                     if (loot && loot.length > 0) {
                         console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
                         gameMap.addItemsToTile(targetX, targetY, loot);
@@ -271,6 +334,11 @@ export const CombatProvider = ({ children }) => {
 
                 gameMap.removeEntity(zombie.id);
                 cancelTargeting();
+                triggerMapUpdate();
+                forceRefresh();
+            } else {
+                // If hit but not dead, still trigger update to refresh HP tooltips
+                triggerMapUpdate();
                 forceRefresh();
             }
         } else {
@@ -285,10 +353,33 @@ export const CombatProvider = ({ children }) => {
             });
         }
 
+        // 7. Weapon Degradation
+        if (typeof weapon.degrade === 'function') {
+            weapon.degrade();
+            if (weapon.condition <= 0) {
+                console.log(`[Combat] Firearm ${weapon.name} BROKE!`);
+                addEffect({
+                    type: 'damage',
+                    x: player.x,
+                    y: player.y,
+                    value: 'Broke!',
+                    color: '#fbbf24',
+                    duration: 1500
+                });
+                
+                // Destroy broken weapon
+                destroyItem(weapon.instanceId);
+                
+                if (targetingWeapon?.item?.instanceId === weapon.instanceId) {
+                    cancelTargeting();
+                }
+            }
+        }
+
         // Always refresh UI after a ranged attack to update ammo counts and potentially removed ammo icons
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon]);
 
     return (
         <CombatContext.Provider value={{

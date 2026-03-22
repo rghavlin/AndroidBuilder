@@ -29,38 +29,39 @@ export class ImageLoader {
     }
   }
 
-  /**
-   * Get image for an entity type
-   * @param {string} entityType - Type of entity (player, zombie, item, etc.)
-   * @param {string} subtype - Optional subtype (e.g., 'pistol' for item type)
-   * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
-   */
   async getImage(entityType, subtype = null) {
-    let imageKey = subtype ? `${entityType}_${subtype}` : entityType;
-    
-    // Special mapping for Crawler zombies
-    if (entityType === 'zombie' && subtype === 'crawler') {
-      imageKey = 'crawlerzombie';
+    // 1. Determine the canonical image key for this specific entity
+    let imageKey = entityType;
+    if (subtype && subtype !== 'basic') {
+      imageKey = `${entityType}_${subtype}`;
     }
 
-    // Return cached image if available
+    // 2. Specialized mapping for known subtypes
+    if (entityType === 'zombie') {
+      if (subtype === 'crawler') imageKey = 'crawlerzombie';
+      else if (subtype === 'firefighter') imageKey = 'firefighterzombie';
+      else if (subtype === 'swat') imageKey = 'swatzombie';
+      else imageKey = 'zombie'; // Default zombie for basic/null
+    } else if (entityType === 'item' && subtype === 'ground_pile') {
+      // LOOT DROP ICON: Use default.png from items folder
+      return this.getItemImage('default');
+    }
+
+    // 3. Return cached image if available
     if (this.imageCache.has(imageKey)) {
       return this.imageCache.get(imageKey);
     }
 
-    // Return existing loading promise if already loading
+    // 4. Return existing loading promise if already in flight
     if (this.loadingPromises.has(imageKey)) {
       return this.loadingPromises.get(imageKey);
     }
 
-    // Special routing for place icons
+    // 5. Special routing for place icons
     if (entityType === 'place_icon' && subtype) {
       const getPromise = this.getPlaceImage(subtype);
       this.loadingPromises.set(imageKey, getPromise);
       try {
-        // The following lines appear to be a copy-paste error from a different context
-        // and are not syntactically correct or relevant here.
-        // Keeping the original logic to maintain functionality and syntax.
         const image = await getPromise;
         if (image) {
           this.imageCache.set(imageKey, image);
@@ -68,12 +69,11 @@ export class ImageLoader {
           return image;
         }
       } catch (error) {
-        // Fall through to default loading if place image fails
-        console.warn(`[ImageLoader] Place image load failed for ${subtype}, trying default...`);
+        console.warn(`[ImageLoader] Place image load failed for ${subtype}`);
       }
     }
 
-    // Start loading the image (default entity path)
+    // 6. Generic load attempt for entities
     const loadPromise = this.loadImage(imageKey);
     this.loadingPromises.set(imageKey, loadPromise);
 
@@ -83,7 +83,14 @@ export class ImageLoader {
       this.loadingPromises.delete(imageKey);
       return image;
     } catch (error) {
-      // Cache null result to avoid repeated failed attempts
+      // On failure, try to fall back to the base entity type image
+      if (imageKey !== entityType) {
+        console.log(`[ImageLoader] Failed to load ${imageKey}, falling back to ${entityType}`);
+        return this.getImage(entityType);
+      }
+      
+      // Complete failure: cache null to prevent thrashing
+      console.warn(`[ImageLoader] No asset found for ${imageKey} or fallback`);
       this.imageCache.set(imageKey, null);
       this.loadingPromises.delete(imageKey);
       return null;

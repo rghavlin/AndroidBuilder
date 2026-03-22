@@ -305,14 +305,36 @@ export const GameMapProvider = ({ children }) => {
       }
 
       const canAfford = player.ap >= apCost;
-      setHoveredTile({ x, y, apCost, canAfford });
+
+      // Check for zombie on the tile (Phase 6 Tooltips)
+      const zombie = targetTile.contents.find(e => e.type === 'zombie');
+      const zombieInfo = zombie ? {
+        subtype: zombie.subtype,
+        hp: zombie.hp,
+        maxHp: zombie.maxHp,
+        currentAP: zombie.currentAP,
+        maxAP: zombie.maxAP
+      } : null;
+
+      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo });
     } catch (error) {
       console.warn('[GameMapContext] Error calculating hover cost:', error);
       // Fallback calculation
       const distance = Math.abs(x - player.x) + Math.abs(y - player.y);
       const apCost = distance;
       const canAfford = player.ap >= apCost;
-      setHoveredTile({ x, y, apCost, canAfford });
+
+      // Check for zombie on the tile (Phase 6 Tooltips)
+      const zombie = targetTile?.contents.find(e => e.type === 'zombie');
+      const zombieInfo = zombie ? {
+        subtype: zombie.subtype,
+        hp: zombie.hp,
+        maxHp: zombie.maxHp,
+        currentAP: zombie.currentAP,
+        maxAP: zombie.maxAP
+      } : null;
+
+      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo });
     }
   }, []);
 
@@ -589,6 +611,37 @@ export const GameMapProvider = ({ children }) => {
           }
         }
         console.log(`[GameMapContext] Spawned ${spawnedCrawlers} crawler zombies on new map ${result.mapId}`);
+
+        // Spawn Firefighter Zombies in Fire Stations (2-3 per station)
+        const specialBuildings = (result.gameMap.metadata?.specialBuildings || []).concat(result.metadata?.specialBuildings || []);
+        const fireStations = specialBuildings.filter(b => b.type === 'firestation');
+        
+        console.log(`[GameMapContext] Found ${fireStations.length} Fire Station(s) on ${result.mapId} for spawning Firefighter zombies`);
+
+        fireStations.forEach((station, sIdx) => {
+          const firefighterCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
+          let spawnedForStation = 0;
+          let attempts = 0;
+          const maxAttempts = 50;
+
+          while (spawnedForStation < firefighterCount && attempts < maxAttempts) {
+            const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+            const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+
+            const tile = result.gameMap.getTile(x, y);
+            if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+              const zombieId = `zombie-firefighter-${result.mapId}-${sIdx + 1}-${spawnedForStation + 1}`;
+              const zombie = new Zombie(zombieId, x, y, 'firefighter');
+
+              if (result.gameMap.addEntity(zombie, x, y)) {
+                spawnedForStation++;
+                console.log(`[GameMapContext] Spawned Firefighter zombie ${zombieId} at (${x}, ${y}) in Fire Station on ${result.mapId}`);
+              }
+            }
+            attempts++;
+          }
+        });
+
         triggerMapUpdate(); // Force re-render to show new zombies
       }
 

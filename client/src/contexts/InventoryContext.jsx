@@ -24,6 +24,7 @@ export const useInventory = () => {
         canOpenContainer: () => false,
         equipItem: () => ({ success: false, reason: 'Context not available' }),
         unequipItem: () => ({ success: false, reason: 'Context not available' }),
+        destroyItem: () => false,
         moveItem: () => ({ success: false, reason: 'Context not available' }),
         dropItemToGround: () => false,
         forceRefresh: () => { },
@@ -41,6 +42,7 @@ export const useInventory = () => {
         splitStack: () => ({ success: false }),
         depositSelectedInto: () => ({ success: false }),
         loadAmmoInto: () => ({ success: false }),
+        loadAmmoDirectly: () => ({ success: false }),
         unloadMagazine: () => ({ success: false }),
         attachSelectedItemToWeapon: () => ({ success: false }),
         detachItemFromWeapon: () => null
@@ -207,6 +209,15 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.unequipItem(slot);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      setInventoryVersion(prev => prev + 1);
+    }
+    return result;
+  }, []);
+
+  const destroyItem = useCallback((instanceId) => {
+    if (!inventoryRef.current) return false;
+    const result = inventoryRef.current.destroyItem(instanceId);
+    if (result) {
       setInventoryVersion(prev => prev + 1);
     }
     return result;
@@ -689,6 +700,45 @@ export const InventoryProvider = ({ children, manager }) => {
       setInventoryVersion(prev => prev + 1);
       setDragVersion(prev => prev + 1);
       return { success: true };
+    }
+
+    return result;
+  }, [selectedItem]);
+
+  /**
+   * Load ammo directly into a non-magazine gun (bypasses accessibility guard).
+   * Works whether the gun is equipped, in a backpack, or on the ground.
+   */
+  const loadAmmoDirectly = useCallback((targetWeapon) => {
+    if (!selectedItem || !inventoryRef.current || !targetWeapon) {
+      return { success: false, reason: 'No item selected or weapon not found' };
+    }
+
+    const { item: ammoStack, originContainerId } = selectedItem;
+
+    // Must be ammo
+    if (!ammoStack.isAmmo || !ammoStack.isAmmo()) {
+      return { success: false, reason: 'Selected item is not ammo' };
+    }
+
+    // Must be a direct-load weapon (not magazine-based)
+    const directLoadDefs = ['weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
+    if (!directLoadDefs.includes(targetWeapon.defId)) {
+      return { success: false, reason: 'Not a direct-load weapon' };
+    }
+
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      return { success: false, reason: 'Not enough AP (1 required)' };
+    }
+
+    const result = inventoryRef.current.attachItemToWeapon(targetWeapon, 'ammo', ammoStack, originContainerId);
+
+    if (result.success) {
+      if (playerRef.current) playerRef.current.useAP(1);
+      setSelectedItem(null);
+      setDragVersion(v => v + 1);
+      setInventoryVersion(v => v + 1);
     }
 
     return result;
@@ -1277,6 +1327,7 @@ export const InventoryProvider = ({ children, manager }) => {
       canOpenContainer,
       equipItem,
       unequipItem,
+      destroyItem,
       moveItem,
       dropItemToGround,
       organizeGroundItems,
@@ -1298,6 +1349,7 @@ export const InventoryProvider = ({ children, manager }) => {
       depositSelectedInto,
       attachSelectedInto,
       loadAmmoInto,
+      loadAmmoDirectly,
       unloadMagazine,
       consumeItem,
       drinkWater,
@@ -1311,7 +1363,7 @@ export const InventoryProvider = ({ children, manager }) => {
       clearCraftingArea,
       cookInCampfire
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem, clearCraftingArea, cookInCampfire]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, destroyItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, loadAmmoDirectly, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem, clearCraftingArea, cookInCampfire]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

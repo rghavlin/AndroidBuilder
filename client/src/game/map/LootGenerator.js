@@ -61,23 +61,26 @@ export class LootGenerator {
             }
 
             if (dropCount > 0) {
-                const selectedTiles = this.getRandomSubarray(buildingTiles, dropCount);
+                // Exclude doorway tiles from building loot candidates
+                const nonDoorTiles = buildingTiles.filter(pos => !this.hasDoorOnTile(gameMap, pos.x, pos.y));
+                const selectedTiles = this.getRandomSubarray(nonDoorTiles, dropCount);
                 selectedTiles.forEach(pos => {
                     const items = this.generateRandomItems('inside');
                     if (items.length > 0) {
                         gameMap.setItemsOnTile(pos.x, pos.y, items);
                     }
                 });
-                console.log(`[LootGenerator] Building ${index + 1}: Spawned ${dropCount} loot drops on ${buildingTiles.length} tiles`);
+                console.log(`[LootGenerator] Building ${index + 1}: Spawned ${dropCount} loot drops on ${nonDoorTiles.length} eligible tiles (${buildingTiles.length - nonDoorTiles.length} door tiles excluded)`);
             }
         });
 
-        // 2. Identify outdoor tiles and spawn outdoor loot
+        // 2. Identify outdoor tiles and spawn outdoor loot (excluding doorway tiles)
         const outdoorTiles = [];
         for (let y = 0; y < gameMap.height; y++) {
             for (let x = 0; x < gameMap.width; x++) {
                 const tile = gameMap.getTile(x, y);
                 if (!tile || !tile.isWalkable()) continue;
+                if (this.hasDoorOnTile(gameMap, x, y)) continue;
 
                 if (['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
                     outdoorTiles.push({ x, y });
@@ -328,12 +331,16 @@ export class LootGenerator {
                     }
                 }
 
-                // 6. Tool-specific logic (charges)
+                // 6. Tool-specific logic: always a single unit with random charges
                 if (randomKey === 'tool.lighter' || randomKey === 'tool.matchbook') {
+                    selectedItem.stackCount = 1;
                     if (selectedItem.capacity) {
-                        // Start with 1 to capacity charges
                         selectedItem.ammoCount = 1 + Math.floor(Math.random() * selectedItem.capacity);
                     }
+                } else if (randomKey === 'tool.battery') {
+                    // Batteries always spawn as a single item but can have 1–10 charges
+                    selectedItem.stackCount = 1;
+                    selectedItem.ammoCount = 1 + Math.floor(Math.random() * (selectedItem.capacity || 10));
                 }
 
                 items.push(selectedItem);
@@ -349,12 +356,12 @@ export class LootGenerator {
     spawnSpecialLoot(gameMap, building) {
         const { type, x, y, width, height } = building;
         
-        // Find internal floor tiles
+        // Find internal floor tiles (excluding doorway tiles)
         const floorTiles = [];
         for (let curY = y + 1; curY < y + height - 1; curY++) {
             for (let curX = x + 1; curX < x + width - 1; curX++) {
                 const tile = gameMap.getTile(curX, curY);
-                if (tile && tile.terrain === 'floor') {
+                if (tile && tile.terrain === 'floor' && !this.hasDoorOnTile(gameMap, curX, curY)) {
                     floorTiles.push({ x: curX, y: curY });
                 }
             }
@@ -490,6 +497,18 @@ export class LootGenerator {
     }
 
     /**
+     * Check whether a tile has a door entity on it
+     * @param {GameMap} gameMap
+     * @param {number} x
+     * @param {number} y
+     * @returns {boolean}
+     */
+    hasDoorOnTile(gameMap, x, y) {
+        const tile = gameMap.getTile(x, y);
+        return !!(tile && tile.contents.some(e => e.type === 'door'));
+    }
+
+    /**
      * Utility to get N random elements from an array
      */
     getRandomSubarray(arr, n) {
@@ -511,40 +530,75 @@ export class LootGenerator {
      * Rare (10%): Any ammo, knife, lighter, matches
      * Extremely rare (5%): 9mm pistol, 357 pistol, small flashlight
      */
-    generateZombieLoot() {
+    /**
+     * Generate loot for a zombie when it's killed.
+     * @param {string} subtype - The zombie's subtype ('basic', 'crawler', 'firefighter')
+     * @returns {Array} - Array of Item instances
+     */
+    generateZombieLoot(subtype = 'basic') {
         const itemCount = Math.random() < 0.5 ? 1 : 2;
         const items = [];
 
         for (let i = 0; i < itemCount; i++) {
-            const tierRoll = Math.random();
             let selectedKey = null;
 
-            if (tierRoll < 0.65) {
-                // Common: any clothing or rag
-                const commonKeys = this.itemKeys.filter(key => {
-                    const def = ItemDefs[key];
-                    return (def.categories && def.categories.includes(ItemCategory.CLOTHING)) || key === 'crafting.rag';
-                });
-                selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
-            } else if (tierRoll < 0.85) {
-                // Uncommon: granola bar, chips, water bottle (small amount), bandage, antibiotics
-                const uncommonKeys = [
-                    'food.granolabar', 'food.chips', 'food.waterbottle',
-                    'medical.bandage', 'medical.antibiotics'
-                ];
-                selectedKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
-            } else if (tierRoll < 0.95) {
-                // Rare: Any ammo, knife, lighter, matches
-                const rareKeys = this.itemKeys.filter(key => {
-                    const def = ItemDefs[key];
-                    return (def.categories && def.categories.includes(ItemCategory.AMMO)) ||
-                        key === 'weapon.knife' || key === 'tool.lighter' || key === 'tool.matchbook';
-                });
-                selectedKey = rareKeys[Math.floor(Math.random() * rareKeys.length)];
+            if (subtype === 'firefighter') {
+                const firefighterRoll = Math.random();
+                if (firefighterRoll < 0.3) {
+                    const specializedKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'clothing.paramedic_shirt'];
+                    selectedKey = specializedKeys[Math.floor(Math.random() * specializedKeys.length)];
+                } else if (firefighterRoll < 0.6) {
+                    const medicalKeys = ['medical.bandage', 'medical.antibiotics'];
+                    selectedKey = medicalKeys[Math.floor(Math.random() * medicalKeys.length)];
+                } else if (firefighterRoll < 0.8) {
+                    selectedKey = 'food.waterbottle';
+                } else {
+                    // Fall back to common items for remaining chance
+                    const commonKeys = [
+                        'clothing.pocket_t', 'clothing.sweatpants', 'crafting.rag'
+                    ];
+                    selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
+                }
+            } else if (subtype === 'swat') {
+                const swatRoll = Math.random();
+                if (swatRoll < 0.4) {
+                    const swatGear = ['weapon.9mmPistol', 'weapon.357Pistol', 'clothing.police_shirt'];
+                    selectedKey = swatGear[Math.floor(Math.random() * swatGear.length)];
+                } else if (swatRoll < 0.8) {
+                    const ammoKeys = ['ammo.9mm', 'ammo.357', 'ammo.shotgun_shells', 'ammo.308'];
+                    selectedKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
+                } else {
+                    selectedKey = 'food.waterbottle';
+                }
             } else {
-                // Extremely rare: 9mm pistol, 357 pistol, shotgun, small flashlight
-                const exoticKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight'];
-                selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
+                const tierRoll = Math.random();
+                if (tierRoll < 0.65) {
+                    // Common: any clothing or rag
+                    const commonKeys = this.itemKeys.filter(key => {
+                        const def = ItemDefs[key];
+                        return (def.categories && def.categories.includes(ItemCategory.CLOTHING)) || key === 'crafting.rag';
+                    });
+                    selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
+                } else if (tierRoll < 0.85) {
+                    // Uncommon: granola bar, chips, water bottle (small amount), soft drink, energy drink, bandage, antibiotics
+                    const uncommonKeys = [
+                        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.energydrink',
+                        'medical.bandage', 'medical.antibiotics'
+                    ];
+                    selectedKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
+                } else if (tierRoll < 0.95) {
+                    // Rare: Any ammo, knife, lighter, matches
+                    const rareKeys = this.itemKeys.filter(key => {
+                        const def = ItemDefs[key];
+                        return (def.categories && def.categories.includes(ItemCategory.AMMO)) ||
+                            key === 'weapon.knife' || key === 'tool.lighter' || key === 'tool.matchbook';
+                    });
+                    selectedKey = rareKeys[Math.floor(Math.random() * rareKeys.length)];
+                } else {
+                    // Extremely rare: 9mm pistol, 357 pistol, shotgun, small flashlight
+                    const exoticKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight'];
+                    selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
+                }
             }
 
             if (selectedKey) {
@@ -552,8 +606,12 @@ export class LootGenerator {
                 if (item) {
                     // Custom rules for items dropped by zombies
                     if (selectedKey === 'food.waterbottle') {
-                        // Water bottle: small amount 0-4
-                        item.ammoCount = Math.floor(Math.random() * 5);
+                        // Regular zombies drop small amount, firefighter drops FULL (or near full)
+                        if (subtype === 'firefighter') {
+                            item.ammoCount = item.capacity || 10;
+                        } else {
+                            item.ammoCount = Math.floor(Math.random() * 5);
+                        }
                     } else if (selectedKey.startsWith('ammo.')) {
                         // Ammo: 1-10 rounds (consistent with world loot)
                         item.stackCount = 1 + Math.floor(Math.random() * 10);

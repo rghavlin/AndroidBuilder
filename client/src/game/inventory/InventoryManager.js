@@ -331,6 +331,55 @@ export class InventoryManager extends SafeEventEmitter {
     return { success: true, item, placedIn: addResult.container };
   }
 
+  destroyItem(instanceId) {
+    if (!instanceId) {
+      console.warn('[InventoryManager] destroyItem REJECT: No instanceId provided');
+      return false;
+    }
+
+    let destroyed = false;
+    console.log(`[InventoryManager] 🗑️ destroyItem attempt for: ${instanceId}`);
+
+    // 1. Search equipment slots
+    for (const [slot, item] of Object.entries(this.equipment)) {
+      if (item) {
+        console.debug(`[InventoryManager]   Checking slot ${slot}: ${item.name} (${item.instanceId})`);
+        if (item.instanceId === instanceId) {
+          console.log(`[InventoryManager] ✅ Destroying ${item.name} from equipment slot: ${slot}`);
+          this.equipment[slot] = null;
+          item.isEquipped = false;
+          destroyed = true;
+          break;
+        }
+      }
+    }
+
+    if (!destroyed) {
+      // 2. Search all registered containers
+      for (const [id, container] of this.containers.entries()) {
+        if (container.items.has(instanceId)) {
+          const item = container.items.get(instanceId);
+          console.log(`[InventoryManager] ✅ Destroying ${item?.name || instanceId} from container: ${id}`);
+          container.removeItem(instanceId);
+          destroyed = true;
+          break;
+        }
+      }
+    }
+
+    if (destroyed) {
+      this.updateDynamicContainers();
+      this.emit('inventoryChanged');
+      console.log(`[InventoryManager] 🗑️ Item ${instanceId} successfully destroyed and inventoryChanged emitted`);
+    } else {
+      console.warn(`[InventoryManager] ❌ destroyItem FAILED: Item ${instanceId} not found in any slot or container`);
+      console.debug('[InventoryManager] Current equipment slots:', Object.keys(this.equipment));
+    }
+
+    return destroyed;
+  }
+
+
   /**
    * Calculate encumbrance modifiers from equipped clothing
    */

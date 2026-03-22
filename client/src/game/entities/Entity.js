@@ -5,12 +5,13 @@ import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
  * Provides common functionality like position, ID, and event handling
  */
 export class Entity extends SafeEventEmitter {
-  constructor(id, type, x = 0, y = 0) {
+  constructor(id, type, x = 0, y = 0, subtype = null) {
     super(); // Initialize EventEmitter
     this.id = id;
     this.type = type;
     this.x = x;
     this.y = y;
+    this.subtype = subtype || null;
     this.blocksMovement = false; // Whether other entities can move through this one
   }
 
@@ -61,6 +62,7 @@ export class Entity extends SafeEventEmitter {
       type: this.type,
       x: this.x,
       y: this.y,
+      subtype: this.subtype,
       blocksMovement: this.blocksMovement
     };
   }
@@ -69,7 +71,7 @@ export class Entity extends SafeEventEmitter {
    * Create entity from JSON data
    */
   static fromJSON(data) {
-    const entity = new Entity(data.id, data.type, data.x, data.y);
+    const entity = new Entity(data.id, data.type, data.x, data.y, data.subtype);
     entity.blocksMovement = data.blocksMovement;
     return entity;
   }

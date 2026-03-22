@@ -17,10 +17,30 @@ export const PocketLayouts = {
     // Work Shirt (2 pockets)
     'work_shirt': {
         id: 'work_shirt',
-        name: 'Work Shirt Layout',
+        name: 'Work Shirt Pockets',
         pockets: [
-            { name: 'Left Chest Pocket', width: 1, height: 2 },
-            { name: 'Right Chest Pocket', width: 1, height: 2 }
+            { id: 'left_chest', name: 'Left Breast', width: 1, height: 2 },
+            { id: 'right_chest', name: 'Right Breast', width: 1, height: 2 }
+        ]
+    },
+    'paramedic_shirt': {
+        id: 'paramedic_shirt',
+        name: 'Paramedic Shirt Pockets',
+        pockets: [
+            { id: 'cargo_left', name: 'Left Cargo', width: 2, height: 2 },
+            { id: 'cargo_right', name: 'Right Cargo', width: 2, height: 2 },
+            { id: 'front_left', name: 'Left Front', width: 2, height: 2 },
+            { id: 'front_right', name: 'Right Front', width: 2, height: 2 }
+        ]
+    },
+    'police_shirt': {
+        id: 'police_shirt',
+        name: 'Police Shirt Pockets',
+        pockets: [
+            { id: 'cargo_left', name: 'Left Cargo', width: 2, height: 2 },
+            { id: 'cargo_right', name: 'Right Cargo', width: 2, height: 2 },
+            { id: 'front_left', name: 'Left Front', width: 2, height: 2 },
+            { id: 'front_right', name: 'Right Front', width: 2, height: 2 }
         ]
     },
 

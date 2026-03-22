@@ -39,6 +39,20 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'crafting.spear',
+        name: 'Spear',
+        resultItem: 'weapon.spear',
+        description: 'A long-reaching weapon made from a stick and a sharp point.',
+        apCost: 6,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'weapon.stick', count: 1 },
+            { either: ['crafting.glass_shard', 'weapon.knife', 'weapon.makeshift_knife'], count: 1, label: 'Glass shard or Knife' },
+            { either: ['crafting.tape', 'crafting.wire'], count: 1, label: 'Tape or Wire' }
+        ]
+    },
+    {
         id: 'crafting.rag',
         name: 'Rag',
         resultItem: 'crafting.rag',

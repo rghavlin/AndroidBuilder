@@ -94,6 +94,18 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                 </div>
             )}
 
+            {/* Consumable Effects */}
+            {item.consumptionEffects && !item.isWaterBottle?.() && (
+                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                    {Object.entries(item.consumptionEffects).map(([stat, value]) => (
+                        <div key={stat} className="flex justify-between">
+                            <span className="text-zinc-500 capitalize">{stat}</span>
+                            <span className="text-green-400">+{value as number}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* Spoilage Info */}
             {item.traits?.includes('spoilable') && (
                 <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">

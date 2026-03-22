@@ -90,14 +90,34 @@ export default function MapCanvas({
       subtypeImageKey = 'crawlerzombie';
     }
 
+    // Special mapping for Firefighter zombies
+    if (entity.type === 'zombie' && entity.subtype === 'firefighter') {
+      subtypeImageKey = 'firefighterzombie';
+    }
+
+    // Special mapping for SWAT zombies
+    if (entity.type === 'zombie' && entity.subtype === 'swat') {
+      subtypeImageKey = 'swatzombie';
+    }
+
+    // Special mapping for ground piles
+    // Must match the cache key used by ImageLoader.getItemImage(), which prefixes with 'item_'
     if (entity.type === 'item' && entity.subtype === 'ground_pile') {
       subtypeImageKey = 'item_default';
     }
 
     const baseImageKey = entity.type;
-
-    // Check if subtype-specific image is available, otherwise try base type
     let cachedImage = imageLoader.imageCache.get(subtypeImageKey);
+
+    // Trigger load if not in cache
+    if (cachedImage === undefined) {
+       imageLoader.getImage(entity.type, entity.subtype).then(() => {
+          // Re-render handled by MapCanvas frame loop
+       }).catch(err => {
+          // Silent catch for missing assets
+       });
+    }
+
     if (!cachedImage) {
       cachedImage = imageLoader.imageCache.get(baseImageKey);
     }
@@ -876,8 +896,10 @@ export default function MapCanvas({
       // Preload the default item image for ground piles
       await imageLoader.getItemImage('default');
       
-      // Preload the crawler zombie image specifically
+      // Preload special zombie variant images
       await imageLoader.getImage('zombie', 'crawler');
+      await imageLoader.getImage('zombie', 'firefighter');
+      await imageLoader.getImage('zombie', 'swat');
 
       setImagesLoaded(true);
     };

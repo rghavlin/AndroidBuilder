@@ -62,9 +62,17 @@ export class Door extends Entity {
         // Check for occupants if map is provided
         if (gameMap) {
             const tile = gameMap.getTile(this.x, this.y);
-            if (tile && tile.contents.some(e => e.id !== this.id && (e.type === 'player' || e.type === 'zombie'))) {
-                this.emitEvent('doorInteractionFailed', { reason: 'occupied' });
-                return false;
+            if (tile) {
+                // Block closing if a player or zombie is in the doorway
+                if (tile.contents.some(e => e.id !== this.id && (e.type === 'player' || e.type === 'zombie'))) {
+                    this.emitEvent('doorInteractionFailed', { reason: 'occupied' });
+                    return false;
+                }
+                // Block closing if loot is sitting in the doorway
+                if (tile.inventoryItems && tile.inventoryItems.length > 0) {
+                    this.emitEvent('doorInteractionFailed', { reason: 'blocked_by_loot' });
+                    return false;
+                }
             }
         }
 

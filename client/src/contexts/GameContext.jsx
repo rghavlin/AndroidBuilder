@@ -689,6 +689,27 @@ const GameContextInner = ({ children }) => {
     const gameMap = gameMapRef.current;
     if (!player || !gameMap || !targetingItem) return { success: false };
 
+    // Guard: Prevent action with broken tool
+    if (targetingItem.condition !== null && targetingItem.condition <= 0) {
+      console.warn(`[GameContext] Blocked door action with broken tool: ${targetingItem.name}`);
+      if (addEffect) {
+        addEffect({
+          type: 'damage',
+          x: player.x,
+          y: player.y,
+          value: 'Broke!',
+          color: '#ef4444',
+          duration: 1000
+        });
+      }
+      // Try destroying it again
+      if (inventoryManager) {
+        inventoryManager.destroyItem(targetingItem.instanceId);
+      }
+      setTargetingItem(null);
+      return { success: false, reason: 'Tool is broken' };
+    }
+
     // Distance check (adjacency)
     const dx = Math.abs(player.x - x);
     const dy = Math.abs(player.y - y);
@@ -720,10 +741,25 @@ const GameContextInner = ({ children }) => {
     // Reduce condition
     if (targetingItem.hasTrait('degradable')) {
       targetingItem.degrade(2);
-      // If broken, it should be removed (Item.degrade usually handles this if integrated with container)
-      // But we need to make sure the UI reflects this.
-      if (inventoryManager) {
-        inventoryManager.emit('inventoryChanged');
+      
+      if (targetingItem.condition <= 0) {
+        console.log(`[GameContext] Tool ${targetingItem.name} BROKE!`);
+        if (addEffect) {
+          addEffect({
+            type: 'damage',
+            x: player.x,
+            y: player.y,
+            value: 'Broke!',
+            color: '#fbbf24',
+            duration: 1500
+          });
+        }
+        
+        // Destroy broken tool
+        if (inventoryManager) {
+          inventoryManager.destroyItem(targetingItem.instanceId);
+        }
+        setTargetingItem(null); // Stop targeting since it broke
       }
     }
 

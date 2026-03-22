@@ -44,7 +44,7 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly } = useInventory();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -145,10 +145,22 @@ export default function UniversalGrid({
       // Quick Attachment: If clicking on a weapon while carrying an item, try to attach it
       const isWeapon = item?.isWeapon?.() || (item?.attachmentSlots && item.attachmentSlots.length > 0);
       if (item && isWeapon) {
-        console.debug('[UniversalGrid] Clicking weapon with selection - attempting quick attach into:', item.name);
-        const attachResult = attachSelectedInto(item);
-        if (attachResult.success) {
-          return;
+        // Direct-load guns (.357, Hunting Rifle, Shotgun) bypass the accessibility guard
+        // so that ammo can be loaded whether the gun is equipped, in backpack, or on ground.
+        const directLoadDefs = ['weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
+        const isDirectLoadGun = directLoadDefs.includes(item.defId);
+        const isAmmoSelected = selectedItem?.item?.isAmmo?.() ?? false;
+
+        if (isDirectLoadGun && isAmmoSelected) {
+          console.debug('[UniversalGrid] Direct-loading ammo into gun:', item.name);
+          const loadResult = loadAmmoDirectly(item);
+          if (loadResult.success) return;
+        } else {
+          console.debug('[UniversalGrid] Clicking weapon with selection - attempting quick attach into:', item.name);
+          const attachResult = attachSelectedInto(item);
+          if (attachResult.success) {
+            return;
+          }
         }
       }
 

@@ -90,6 +90,34 @@ export const ItemDefs = {
     pocketLayoutId: 'work_shirt'
   },
 
+  'clothing.paramedic_shirt': {
+    id: 'clothing.paramedic_shirt',
+    name: "Paramedic's shirt",
+    rarity: Rarity.RARE,
+    imageId: 'paramedicshirt', // Image: paramedicshirt.png
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.UPPER_BODY,
+    categories: [ItemCategory.CLOTHING],
+    encumbranceTier: EncumbranceTier.MEDIUM,
+    pocketLayoutId: 'paramedic_shirt'
+  },
+
+  'clothing.police_shirt': {
+    id: 'clothing.police_shirt',
+    name: 'Police shirt',
+    rarity: Rarity.RARE,
+    imageId: 'policeshirt', // Image: policeshirt.png
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.UPPER_BODY,
+    categories: [ItemCategory.CLOTHING],
+    encumbranceTier: EncumbranceTier.MEDIUM,
+    pocketLayoutId: 'police_shirt'
+  },
+
 
 
   // Clothing - Lower Body
@@ -275,6 +303,24 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.65,
       damage: { min: 2, max: 5 }
+    }
+  },
+  'weapon.spear': {
+    id: 'weapon.spear',
+    name: 'Spear',
+    noLoot: true,
+    rarity: Rarity.COMMON,
+    imageId: 'spear',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.80,
+      damage: { min: 4, max: 8 },
+      range: 1.415 // Supports diagonal (sqrt(2) approx 1.414)
     }
   },
 
@@ -607,6 +653,37 @@ export const ItemDefs = {
     ammoCount: 20,
     consumptionEffects: {
       hydration: 1
+    }
+  },
+  'food.softdrink': {
+    id: 'food.softdrink',
+    name: 'Soft drink',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'softdrink',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      hydration: 10,
+      nutrition: 2
+    }
+  },
+  'food.energydrink': {
+    id: 'food.energydrink',
+    name: 'Energy drink',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'energydrink',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      hydration: 10,
+      energy: 5,
+      ap: 2
     }
   },
   'food.waterjug': {

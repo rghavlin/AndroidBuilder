@@ -144,41 +144,43 @@ function GameScreenContent() {
 
   return (
     <InventoryProvider manager={inventoryManager}>
-      <div className="game-container h-screen flex" data-testid="game-screen">
-        {/* Left Side: Map + Controls */}
-        <div className="w-1/2 flex flex-col h-full">
-          <MapInterface gameState={currentState} />
-          <div className="flex-shrink-0">
-            <GameControls
-              playerStats={currentStats}
-              gameState={currentState}
-              onEndTurn={handleEndTurn}
-              onRest={handleRest}
-            />
+      <CombatProvider>
+        <div className="game-container h-screen flex" data-testid="game-screen">
+          {/* Left Side: Map + Controls */}
+          <div className="w-1/2 flex flex-col h-full">
+            <MapInterface gameState={currentState} />
+            <div className="flex-shrink-0">
+              <GameControls
+                playerStats={currentStats}
+                gameState={currentState}
+                onEndTurn={handleEndTurn}
+                onRest={handleRest}
+              />
+            </div>
           </div>
+
+          {/* Right Side: Inventory (Full Height) */}
+          <InventoryPanel />
+
+          {/* Development Console */}
+          <DevConsole />
+
+          {/* Map Transition Dialog */}
+          {mapTransition && (
+            <MapTransitionDialog
+              open={!!mapTransition}
+              onOpenChange={(open) => !open && handleMapTransitionCancel()}
+              onConfirm={handleMapTransitionConfirmWrapper}
+              direction={mapTransition.direction}
+              currentMapId={worldManager?.currentMapId || 'unknown'}
+              nextMapId={mapTransition.nextMapId}
+            />
+          )}
+
+          {/* Sleep Overlay */}
+          <SleepOverlay />
         </div>
-
-        {/* Right Side: Inventory (Full Height) */}
-        <InventoryPanel />
-
-        {/* Development Console */}
-        <DevConsole />
-
-        {/* Map Transition Dialog */}
-        {mapTransition && (
-          <MapTransitionDialog
-            open={!!mapTransition}
-            onOpenChange={(open) => !open && handleMapTransitionCancel()}
-            onConfirm={handleMapTransitionConfirmWrapper}
-            direction={mapTransition.direction}
-            currentMapId={worldManager?.currentMapId || 'unknown'}
-            nextMapId={mapTransition.nextMapId}
-          />
-        )}
-
-        {/* Sleep Overlay */}
-        <SleepOverlay />
-      </div>
+      </CombatProvider>
     </InventoryProvider>
   );
 }
@@ -193,10 +195,8 @@ export default function GameScreen() {
           <CameraProvider>
             <GameMapProvider>
               <GameProvider>
-                <CombatProvider>
-                  <GameScreenContent />
-                </CombatProvider>
-              </GameProvider>
+              <GameScreenContent />
+            </GameProvider>
             </GameMapProvider>
           </CameraProvider>
         </VisualEffectsProvider>
