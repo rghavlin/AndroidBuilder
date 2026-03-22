@@ -87,6 +87,11 @@ export class ZombieAI {
           success: attackResult.success,
           damage: attackResult.damage || 0
         });
+
+        if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
+          console.log(`[ZombieAI] Zombie ${zombie.id} insufficient AP to attack, ending pursuit loop`);
+          break;
+        }
         continue;
       }
 
@@ -285,7 +290,11 @@ export class ZombieAI {
     const stepsToTake = Math.floor(Math.random() * 2) + 1;
 
     for (let step = 0; step < stepsToTake; step++) {
-      if (zombie.currentAP < 1) break;
+      const minMoveCost = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
+      if (zombie.currentAP < minMoveCost) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} insufficient AP to wander (${zombie.currentAP} < ${minMoveCost}), breaking`);
+        break;
+      }
 
       // Pick a random cardinal direction
       const directions = [
@@ -308,7 +317,7 @@ export class ZombieAI {
           const fromPos = { x: zombie.x, y: zombie.y };
           try {
             gameMap.moveEntity(zombie.id, dir.x, dir.y);
-            const apCost = zombie.subtype === 'runner' ? 0.5 : 1;
+            const apCost = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
             zombie.useAP(apCost);
             turnResult.actions.push({
               type: 'wander',
@@ -346,7 +355,7 @@ export class ZombieAI {
     }
 
     const fromPos = { x: zombie.x, y: zombie.y };
-    const apCost = zombie.subtype === 'runner' ? 0.5 : 1;
+    const apCost = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
 
     // Check if zombie has enough AP
     if (zombie.currentAP < apCost) {
@@ -370,8 +379,7 @@ export class ZombieAI {
         return entity.blocksMovement &&
           entity.id !== zombie.id &&
           entity.type !== 'door' &&
-          entity.type !== 'player' &&
-          entity.type !== 'zombie';
+          entity.type !== 'player';
       });
       return blockingEntities.length === 0;
 
@@ -491,8 +499,7 @@ export class ZombieAI {
     const hasBlockingEntities = targetTile.contents.some(entity =>
       entity.blocksMovement &&
       entity.type !== 'door' &&
-      entity.type !== 'player' &&
-      entity.type !== 'zombie'
+      entity.type !== 'player'
     );
 
     if (hasBlockingEntities) {
@@ -727,8 +734,9 @@ export class ZombieAI {
     let damage = 0;
 
     if (hit) {
-      // Standard zombie attack does 1 to 4 damage as requested
-      damage = Math.floor(Math.random() * 4) + 1;
+      // Standard zombie attack does 1 to 4 damage. Acid zombies do 2 to 5. Fat zombies do 3-6.
+      const minDamage = zombie.subtype === 'acid' ? 2 : (zombie.subtype === 'fat' ? 3 : 1);
+      damage = Math.floor(Math.random() * 4) + minDamage;
 
       if (typeof target.takeDamage === 'function') {
         target.takeDamage(damage, zombie);

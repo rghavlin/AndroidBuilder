@@ -316,7 +316,9 @@ class GameInitializationManager extends EventEmitter {
     return ZombieSpawner.spawnZombies(gameMap, player, {
       basicCount: 15,
       crawlerRange: { min: 2, max: 4 },
-      runnerCount: 1 // Only 1 runner on first map
+      runnerCount: 1, // Only 1 runner on first map
+      acidRange: { min: 0, max: 0 },
+      fatRange: { min: 0, max: 0 }
     });
   }
 

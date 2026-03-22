@@ -17,6 +17,8 @@ export class ZombieSpawner {
       basicCount = 15,
       crawlerRange = { min: 2, max: 4 },
       runnerCount = 1,
+      acidRange = { min: 1, max: 2 },
+      fatRange = { min: 1, max: 2 },
       firefighterRange = { min: 2, max: 3 },
       swatRange = { min: 2, max: 3 }
     } = options;
@@ -92,6 +94,46 @@ export class ZombieSpawner {
         }
         attempts++;
       }
+    }
+
+    // 4. Spawn Acid Zombies
+    const acidCount = Math.floor(Math.random() * (acidRange.max - acidRange.min + 1)) + acidRange.min;
+    for (let i = 0; i < acidCount; i++) {
+        let attempts = 0;
+        let spawned = false;
+        while (!spawned && attempts < 50) {
+            const x = Math.floor(Math.random() * mapWidth);
+            const y = Math.floor(Math.random() * mapHeight);
+            const tile = gameMap.getTile(x, y);
+            const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
+            if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
+                if (gameMap.addEntity(new Zombie(`zombie-acid-${Date.now()}-${i}`, x, y, 'acid'), x, y)) {
+                    spawnedCount++;
+                    spawned = true;
+                }
+            }
+            attempts++;
+        }
+    }
+
+    // 5. Spawn Fat Zombies
+    const fatCount = Math.floor(Math.random() * (fatRange.max - fatRange.min + 1)) + fatRange.min;
+    for (let i = 0; i < fatCount; i++) {
+        let attempts = 0;
+        let spawned = false;
+        while (!spawned && attempts < 50) {
+            const x = Math.floor(Math.random() * mapWidth);
+            const y = Math.floor(Math.random() * mapHeight);
+            const tile = gameMap.getTile(x, y);
+            const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
+            if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
+                if (gameMap.addEntity(new Zombie(`zombie-fat-${Date.now()}-${i}`, x, y, 'fat'), x, y)) {
+                    spawnedCount++;
+                    spawned = true;
+                }
+            }
+            attempts++;
+        }
     }
 
     // 4. Spawn Special Zombies in Buildings

@@ -21,8 +21,10 @@ export function ZombieTooltip({ zombie }: ZombieTooltipProps) {
     let name = 'Zombie';
     if (zombie.subtype === 'crawler') name = 'Crawler';
     else if (zombie.subtype === 'runner') name = 'Runner Zombie';
+    else if (zombie.subtype === 'acid') name = 'Acid Zombie';
     else if (zombie.subtype === 'firefighter') name = 'Firefighter Zombie';
     else if (zombie.subtype === 'swat') name = 'Swat Zombie';
+    else if (zombie.subtype === 'fat') name = 'Fat Zombie';
     const hpPercent = Math.max(0, Math.min(100, (zombie.hp / zombie.maxHp) * 100));
     
     // Color coded by health

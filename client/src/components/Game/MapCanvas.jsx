@@ -100,9 +100,19 @@ export default function MapCanvas({
       subtypeImageKey = 'runnerzombie';
     }
 
+    // Special mapping for Acid zombies
+    if (entity.type === 'zombie' && entity.subtype === 'acid') {
+      subtypeImageKey = 'acidzombie';
+    }
+
     // Special mapping for SWAT zombies
     if (entity.type === 'zombie' && entity.subtype === 'swat') {
       subtypeImageKey = 'swatzombie';
+    }
+
+    // Special mapping for Fat zombies
+    if (entity.type === 'zombie' && entity.subtype === 'fat') {
+      subtypeImageKey = 'fatzombie';
     }
 
     // Special mapping for ground piles
@@ -557,13 +567,19 @@ export default function MapCanvas({
 
           // Render entities on this tile (except player)
           if (tile.contents && tile.contents.length > 0) {
+            // Pass 1: Background/Persistent entities (Loot, Doors)
             tile.contents.forEach((entity, index) => {
-              if (entity.type === 'player') return;
+              if (entity.type !== 'item' && entity.type !== 'door') return;
+              if (isExplored) {
+                const offsetY = index * (tileSize / 8);
+                renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
+              }
+            });
 
-              // Entities that should always be visible once explored (Loot, Doors)
-              const isPersistentEntity = entity.type === 'item' || entity.type === 'door';
-
-              if (isCurrentlyVisible || (isExplored && isPersistentEntity)) {
+            // Pass 2: Foreground entities (Zombies, NPCs, etc.)
+            tile.contents.forEach((entity, index) => {
+              if (entity.type === 'player' || entity.type === 'item' || entity.type === 'door') return;
+              if (isCurrentlyVisible) {
                 const offsetY = index * (tileSize / 8);
                 renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
               }

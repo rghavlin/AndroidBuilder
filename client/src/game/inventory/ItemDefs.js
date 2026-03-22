@@ -991,10 +991,21 @@ export const ItemDefs = {
       allowedCategories: [ItemCategory.FOOD]
     },
     // Specialized slots (handled by specialized UI)
-    attachmentSlots: [
+      attachmentSlots: [
       { id: 'pot', name: 'Cooking Pot', allowedCategories: [ItemCategory.COOKING_POT] },
       { id: 'fuel', name: 'Fuel', allowedCategories: [ItemCategory.FUEL] }
     ]
+  },
+  'crafting.leather_belt': {
+    id: 'crafting.leather_belt',
+    name: 'Leather belt',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'leatherbelt',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 20
   }
 };
 

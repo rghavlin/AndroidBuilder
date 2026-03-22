@@ -584,7 +584,7 @@ export class LootGenerator {
                     // Uncommon: granola bar, chips, water bottle (small amount), soft drink, energy drink, bandage, antibiotics
                     const uncommonKeys = [
                         'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.energydrink',
-                        'medical.bandage', 'medical.antibiotics'
+                        'medical.bandage', 'medical.antibiotics', 'crafting.leather_belt'
                     ];
                     selectedKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
                 } else if (tierRoll < 0.95) {

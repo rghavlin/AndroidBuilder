@@ -443,11 +443,19 @@ export class WorldManager {
         lootGenerator.spawnLoot(gameMap);
 
         // SPAWN ZOMBIES: New procedural zombie generation (Phase 6)
-        const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
+        const mapNumber = this.extractMapNumber(targetMapId);
+        let acidRange = { min: 1, max: 2 }; // Default for map 3+
+        if (mapNumber === 1) acidRange = { min: 0, max: 0 };
+        else if (mapNumber === 2) acidRange = { min: 0, max: 1 };
+
+        const fatRange = mapNumber === 1 ? { min: 0, max: 0 } : { min: 1, max: 2 };
+
         ZombieSpawner.spawnZombies(gameMap, spawnPosition, {
           basicCount: 15,
           crawlerRange: { min: 2, max: 5 },
-          runnerCount: Math.floor(Math.random() * 2) + 1 // 1 or 2
+          runnerCount: Math.floor(Math.random() * 2) + 1, // 1 or 2
+          acidRange,
+          fatRange
         });
 
         // Stamp south transition on new maps (except map_001)

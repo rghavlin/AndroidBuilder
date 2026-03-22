@@ -29,6 +29,16 @@ export class Zombie extends Entity {
       this.currentAP = 12;
       this.hp = 10; // Same as regular
       this.maxHp = 10;
+    } else if (subtype === 'acid') {
+      this.maxAP = 12;
+      this.currentAP = 12;
+      this.hp = 10;
+      this.maxHp = 10;
+    } else if (subtype === 'fat') {
+      this.maxAP = 12;
+      this.currentAP = 12;
+      this.hp = 10;
+      this.maxHp = 10;
     } else if (subtype === 'firefighter' || subtype === 'swat') {
       this.maxAP = 12; // Maximum action points
       this.currentAP = 12;

@@ -41,6 +41,74 @@ export const CombatProvider = ({ children }) => {
         setTargetingWeapon(null);
     }, []);
 
+    const triggerAcidEffect = useCallback((zombie, isDeath) => {
+        const gameMap = gameMapRef.current;
+        if (!gameMap || zombie.subtype !== 'acid') return;
+
+        const radius = 1.4;
+        const damageMin = isDeath ? 2 : 5; // Wait, request said 2-5 for death, 1-3 for hit
+        // Re-read: "When an acid zombie is attacked (and HIT), any entity within 1.4 squares takes 1-3 damage."
+        // "When an acid zombie is killed, it explodes doing 2-5 damage"
+        const dMin = isDeath ? 2 : 1;
+        const dMax = isDeath ? 5 : 3;
+        const color = '#86efac'; // light green
+
+        console.log(`[Combat] Acid ${isDeath ? 'EXPLOSION' : 'SPLASH'} from zombie ${zombie.id} at (${zombie.x}, ${zombie.y})`);
+
+        // 1. Visual Flashes
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const tx = zombie.x + dx;
+                const ty = zombie.y + dy;
+                if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
+                
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= radius) {
+                    addEffect({
+                        type: 'tile_flash',
+                        x: tx,
+                        y: ty,
+                        color: color,
+                        duration: isDeath ? 800 : 400
+                    });
+                }
+            }
+        }
+
+        // 2. Damage Entities
+        // Manual range check since getEntitiesInRange might not exist
+        const allEntities = Array.from(gameMap.entityMap.values());
+        allEntities.forEach(entity => {
+            // Skip the source zombie for splash (it already took damage)
+            if (entity.id === zombie.id && !isDeath) return;
+            
+            const dist = Math.sqrt(Math.pow(entity.x - zombie.x, 2) + Math.pow(entity.y - zombie.y, 2));
+            if (dist <= radius) {
+                if (entity.type === 'player' || entity.type === 'zombie') {
+                    const damage = Math.floor(Math.random() * (dMax - dMin + 1)) + dMin;
+                    
+                    if (typeof entity.takeDamage === 'function') {
+                        entity.takeDamage(damage, { id: zombie.id, type: 'zombie', subtype: 'acid' });
+                        
+                        addEffect({
+                            type: 'damage',
+                            x: entity.x,
+                            y: entity.y,
+                            value: damage,
+                            color: '#ef4444',
+                            duration: 1200
+                        });
+
+                        addLog(`${isDeath ? 'Acid explosion' : 'Acid splash'} deals ${damage} damage to ${entity.type === 'player' ? 'you' : 'zombie'}`, 'combat');
+                    }
+                }
+            }
+        });
+
+        triggerMapUpdate();
+        forceRefresh();
+    }, [gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh]);
+
     const performMeleeAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
         const gameMap = gameMapRef.current;
@@ -109,6 +177,11 @@ export const CombatProvider = ({ children }) => {
             zombie.takeDamage(damage);
             addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
 
+            // Acid Zombie Reactions
+            if (zombie.subtype === 'acid') {
+                triggerAcidEffect(zombie, false); // Splash
+            }
+
             // Pop-up damage
             addEffect({
                 type: 'damage',
@@ -122,6 +195,11 @@ export const CombatProvider = ({ children }) => {
             if (zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
                 addLog('Zombie killed!', 'combat');
+
+                // Acid Zombie Death Reaction
+                if (zombie.subtype === 'acid') {
+                    triggerAcidEffect(zombie, true); // Explosion
+                }
 
                 // Zombie Loot Drop (75% chance)
                 if (lootGenerator && Math.random() < 0.75) {
@@ -181,7 +259,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
@@ -317,6 +395,11 @@ export const CombatProvider = ({ children }) => {
             zombie.takeDamage(damage);
             addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
 
+            // Acid Zombie Reactions
+            if (zombie.subtype === 'acid') {
+                triggerAcidEffect(zombie, false); // Splash
+            }
+
             addEffect({
                 type: 'damage',
                 x: targetX,
@@ -329,6 +412,11 @@ export const CombatProvider = ({ children }) => {
             if (zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
                 addLog('Zombie killed!', 'combat');
+
+                // Acid Zombie Death Reaction
+                if (zombie.subtype === 'acid') {
+                    triggerAcidEffect(zombie, true); // Explosion
+                }
 
                 // Zombie Loot Drop (75% chance)
                 if (lootGenerator && Math.random() < 0.75) {
@@ -387,7 +475,7 @@ export const CombatProvider = ({ children }) => {
         // Always refresh UI after a ranged attack to update ammo counts and potentially removed ammo icons
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect]);
 
     return (
         <CombatContext.Provider value={{

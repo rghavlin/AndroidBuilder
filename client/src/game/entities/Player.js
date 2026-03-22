@@ -128,6 +128,12 @@ export class Player extends Entity {
    * Heal player
    */
   heal(amount) {
+    // Cannot heal if already dead (hp must be > 0)
+    if (this.hp <= 0) {
+      console.log(`[Player] ${this.name} is dead (HP: ${this.hp}), healing ignored.`);
+      return;
+    }
+
     const oldHp = this.hp;
     this.hp = Math.min(this.hp + amount, this.maxHp);
 

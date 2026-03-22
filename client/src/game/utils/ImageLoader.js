@@ -40,8 +40,10 @@ export class ImageLoader {
     if (entityType === 'zombie') {
       if (subtype === 'crawler') imageKey = 'crawlerzombie';
       else if (subtype === 'runner') imageKey = 'runnerzombie';
+      else if (subtype === 'acid') imageKey = 'acidzombie';
       else if (subtype === 'firefighter') imageKey = 'firefighterzombie';
       else if (subtype === 'swat') imageKey = 'swatzombie';
+      else if (subtype === 'fat') imageKey = 'fatzombie';
       else imageKey = 'zombie'; // Default zombie for basic/null
     } else if (entityType === 'item' && subtype === 'ground_pile') {
       // LOOT DROP ICON: Use default.png from items folder
