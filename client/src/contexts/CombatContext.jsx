@@ -289,17 +289,42 @@ export const CombatProvider = ({ children }) => {
         }
 
         // 2. Ammo Management
-        // Find attached magazine
-        const ammoSlot = weapon.attachmentSlots?.find(slot =>
-            slot.id === 'ammo' || slot.allowedCategories?.includes(ItemCategory.AMMO)
-        );
-        const magazine = ammoSlot ? weapon.attachments[ammoSlot.id] : null;
+        const stats = ItemDefs[weapon.defId]?.rangedStats || {
+            damage: { min: 4, max: 10 },
+            accuracyFalloff: 0.1,
+            minAccuracy: 0.01
+        };
 
-        const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
-        const currentAmmo = isMagazine ? (magazine.ammoCount || 0) : (magazine?.stackCount || 0);
+        const isSling = stats.isSling;
+        let ammoFound = false;
+        let magazine = null;
+        let ammoSlot = null;
 
-        if (!magazine || currentAmmo <= 0) {
+        if (isSling) {
+            // Sling uses stones from inventory or ground
+            ammoFound = inventoryRef.current.hasItemByDefId('crafting.stone', 1);
+        } else {
+            // Find attached magazine
+            ammoSlot = weapon.attachmentSlots?.find(slot =>
+                slot.id === 'ammo' || slot.allowedCategories?.includes(ItemCategory.AMMO)
+            );
+            magazine = ammoSlot ? weapon.attachments[ammoSlot.id] : null;
+
+            const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+            const currentAmmo = isMagazine ? (magazine.ammoCount || 0) : (magazine?.stackCount || 0);
+            ammoFound = magazine && currentAmmo > 0;
+        }
+
+        if (!ammoFound) {
             return { success: false, reason: 'Out of ammo' };
+        }
+
+        // 2b. Range Check
+        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
+        const squaresAway = Math.floor(distance);
+
+        if (stats.minRange && distance < stats.minRange) {
+            return { success: false, reason: 'Target too close' };
         }
 
         // 3. Visibility Check
@@ -320,22 +345,15 @@ export const CombatProvider = ({ children }) => {
         }
 
         // 5. Hit Calculation
-        const stats = ItemDefs[weapon.defId]?.rangedStats || {
-            damage: { min: 4, max: 10 },
-            accuracyFalloff: 0.1,
-            minAccuracy: 0.01
-        };
-
-        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
-        const squaresAway = Math.floor(distance);
-
-        // Scope Logic
         const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
         const sightItem = sightSlot ? weapon.attachments[sightSlot.id] : null;
         const hasScope = sightItem && sightItem.categories?.includes(ItemCategory.RIFLE_SCOPE);
 
         let hitChance;
-        if (stats.isShotgun) {
+        if (isSling) {
+            // Sling: 90% at 2 squares, -10% each square after
+            hitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
+        } else if (stats.isShotgun) {
             if (squaresAway <= (stats.accuracyMaxRange || 5)) {
                 hitChance = 1.0;
             } else {
@@ -363,14 +381,19 @@ export const CombatProvider = ({ children }) => {
         // 6. Apply Results
         player.useAP(1);
 
-        if (isMagazine) {
-            magazine.ammoCount--;
+        if (isSling) {
+            inventoryRef.current.consumeItemByDefId('crafting.stone', 1);
         } else {
-            magazine.stackCount--;
-            // If stack is empty, remove it from the weapon's ammo slot to prevent "ghost ammo" icons
-            if (magazine.stackCount <= 0 && ammoSlot) {
-                console.log(`[Combat] Ammo stack empty, detaching from ${weapon.name} slot: ${ammoSlot.id}`);
-                weapon.detachItem(ammoSlot.id);
+            const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+            if (isMagazine) {
+                magazine.ammoCount--;
+            } else {
+                magazine.stackCount--;
+                // If stack is empty, remove it from the weapon's ammo slot to prevent "ghost ammo" icons
+                if (magazine.stackCount <= 0 && ammoSlot) {
+                    console.log(`[Combat] Ammo stack empty, detaching from ${weapon.name} slot: ${ammoSlot.id}`);
+                    weapon.detachItem(ammoSlot.id);
+                }
             }
         }
 

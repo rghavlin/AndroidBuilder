@@ -58,8 +58,12 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
           <Button 
             type="button" 
             onClick={async () => {
-              await onConfirm();
-              onOpenChange(false);
+              const success = await onConfirm();
+              if (success !== false) {
+                onOpenChange(false);
+              } else {
+                console.error('[MapTransitionDialog] Transition failed, keeping dialog open');
+              }
             }}
           >
             Yes

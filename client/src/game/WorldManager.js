@@ -425,6 +425,7 @@ export class WorldManager {
         // Import required classes
         const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
         const { GameMap } = await import('./map/GameMap.js');
+        const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
 
         // Generate new map using template system with specific ID
         const templateMapGenerator = new TemplateMapGenerator();

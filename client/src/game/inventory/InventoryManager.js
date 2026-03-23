@@ -1398,58 +1398,156 @@ export class InventoryManager extends SafeEventEmitter {
   }
 
   /**
-   * Internal recursive search for items within a container and its sub-containers
+   * Check if total count of items with specific defId exists across all containers (including ground)
    */
-  _findItemRecursive(container, itemId) {
-    if (!container || !container.items) return null;
+  hasItemByDefId(defId, requiredCount = 1) {
+    let foundCount = 0;
 
-    // Direct check
-    let item = container.items.get(itemId);
-    if (!item) {
-      for (const val of container.items.values()) {
-        if (val.instanceId === itemId || val.id === itemId) {
-          item = val;
-          break;
+    // 1. Search equipment (mostly for items in containers)
+    for (const item of Object.values(this.equipment)) {
+      if (item) {
+        if (item.defId === defId) foundCount += (item.stackCount || 1);
+        
+        const backpackGrid = item.getContainerGrid?.();
+        if (backpackGrid) foundCount += this._countItemRecursive(backpackGrid, defId);
+        
+        const pockets = item.getPocketContainers?.();
+        if (pockets) {
+          pockets.forEach(pocket => {
+            foundCount += this._countItemRecursive(pocket, defId);
+          });
         }
       }
     }
-    if (item) return { item, container };
 
-    // Recurse into nested containers
-    for (const potentialContainerItem of container.items.values()) {
-      // Check for standard grid
-      const grid = potentialContainerItem.getContainerGrid?.();
-      if (grid) {
-        const found = this._findItemRecursive(grid, itemId);
-        if (found) return found;
+    // 2. Search ground
+    const ground = this.getContainer('ground');
+    if (ground) {
+      foundCount += this._countItemRecursive(ground, defId);
+    }
+
+    return foundCount >= requiredCount;
+  }
+
+  /**
+   * Internal recursive counter for items by defId
+   */
+  _countItemRecursive(container, defId) {
+    let count = 0;
+    if (!container || !container.items) return 0;
+
+    for (const item of container.items.values()) {
+      if (item.defId === defId) {
+        count += (item.stackCount || 1);
       }
-
-      // Check for pockets
-      const pockets = potentialContainerItem.getPocketContainers?.();
+      
+      const grid = item.getContainerGrid?.();
+      if (grid) count += this._countItemRecursive(grid, defId);
+      
+      const pockets = item.getPocketContainers?.();
       if (pockets) {
-        for (const pocket of pockets) {
-          const found = this._findItemRecursive(pocket, itemId);
-          if (found) return found;
-        }
-      }
-
-      // Check for attachments (deep nested attachments)
-      if (potentialContainerItem.hasAttachments?.()) {
-        for (const [slot, attachment] of Object.entries(potentialContainerItem.attachments)) {
-          if (attachment.instanceId === itemId) {
-            return { item: attachment, parent: potentialContainerItem, attachmentSlot: slot };
-          }
-          // Recurse into attachment if it's also a container (e.g. ammo drum?)
-          const attachGrid = attachment.getContainerGrid?.();
-          if (attachGrid) {
-            const found = this._findItemRecursive(attachGrid, itemId);
-            if (found) return found;
-          }
-        }
+        pockets.forEach(p => {
+          count += this._countItemRecursive(p, defId);
+        });
       }
     }
+    return count;
+  }
 
-    return null;
+  /**
+   * Consume a specific number of items by defId across all containers
+   * Prioritizes ground, then backpack, then pockets
+   */
+  consumeItemByDefId(defId, countToConsume = 1) {
+    let remaining = countToConsume;
+
+    // 1. Try ground first (user preference usually)
+    const ground = this.getContainer('ground');
+    if (ground) {
+        remaining = this._consumeItemRecursive(ground, defId, remaining);
+    }
+
+    if (remaining <= 0) return true;
+
+    // 2. Try equipment/inventory
+    for (const [slot, item] of Object.entries(this.equipment)) {
+        if (!item) continue;
+        
+        // If the equipped item itself matches (rare for ammo, but possible)
+        if (item.defId === defId) {
+            const consume = Math.min(item.stackCount || 1, remaining);
+            if (item.stackCount) item.stackCount -= consume;
+            remaining -= consume;
+            if (item.stackCount <= 0 || !item.stackCount) {
+                this.equipment[slot] = null;
+                item.isEquipped = false;
+            }
+        }
+        
+        if (remaining <= 0) break;
+
+        const backpackGrid = item.getContainerGrid?.();
+        if (backpackGrid) remaining = this._consumeItemRecursive(backpackGrid, defId, remaining);
+        if (remaining <= 0) break;
+
+        const pockets = item.getPocketContainers?.();
+        if (pockets) {
+            for (const pocket of pockets) {
+                remaining = this._consumeItemRecursive(pocket, defId, remaining);
+                if (remaining <= 0) break;
+            }
+        }
+        if (remaining <= 0) break;
+    }
+
+    if (remaining > 0) {
+        console.warn(`[InventoryManager] consumeItemByDefId: Could only find ${countToConsume - remaining}/${countToConsume} of ${defId}`);
+    }
+
+    this.emit('inventoryChanged');
+    return remaining <= 0;
+  }
+
+  /**
+   * Internal recursive consumer
+   */
+  _consumeItemRecursive(container, defId, remaining) {
+    if (!container || !container.items || remaining <= 0) return remaining;
+
+    const items = Array.from(container.items.values());
+    for (const item of items) {
+        if (item.defId === defId) {
+            const stackMode = item.stackCount !== undefined && item.stackCount !== null;
+            const available = stackMode ? item.stackCount : 1;
+            const consume = Math.min(available, remaining);
+            
+            if (stackMode) {
+                item.stackCount -= consume;
+                if (item.stackCount <= 0) {
+                    container.removeItem(item.instanceId);
+                }
+            } else {
+                container.removeItem(item.instanceId);
+            }
+            
+            remaining -= consume;
+            if (remaining <= 0) return 0;
+        }
+
+        // Recurse into nested
+        const grid = item.getContainerGrid?.();
+        if (grid) remaining = this._consumeItemRecursive(grid, defId, remaining);
+        if (remaining <= 0) return 0;
+
+        const pockets = item.getPocketContainers?.();
+        if (pockets) {
+            for (const pocket of pockets) {
+                remaining = this._consumeItemRecursive(pocket, defId, remaining);
+                if (remaining <= 0) return 0;
+            }
+        }
+    }
+    return remaining;
   }
 
   /**

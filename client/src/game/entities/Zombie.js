@@ -37,8 +37,8 @@ export class Zombie extends Entity {
     } else if (subtype === 'fat') {
       this.maxAP = 12;
       this.currentAP = 12;
-      this.hp = 10;
-      this.maxHp = 10;
+      this.hp = 20;
+      this.maxHp = 20;
     } else if (subtype === 'firefighter' || subtype === 'swat') {
       this.maxAP = 12; // Maximum action points
       this.currentAP = 12;
@@ -232,32 +232,13 @@ export class Zombie extends Entity {
       return null; // Already at target
     }
 
-    let nextX = this.x;
-    let nextY = this.y;
-
     // Calculate the differences
     const deltaX = targetX - this.x;
     const deltaY = targetY - this.y;
 
-    // If we're adjacent to target, prioritize cardinal moves over diagonal
-    if (Math.abs(deltaX) === 1 && Math.abs(deltaY) === 1) {
-      // We're diagonally adjacent - try to move to a cardinal position
-      // Prefer horizontal movement first, then vertical
-      if (deltaX !== 0) {
-        nextX = this.x + (deltaX > 0 ? 1 : -1);
-      } else if (deltaY !== 0) {
-        nextY = this.y + (deltaY > 0 ? 1 : -1);
-      }
-    } else {
-      // Move one step closer on the axis with the greatest distance
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Move horizontally
-        nextX = this.x + (deltaX > 0 ? 1 : -1);
-      } else if (Math.abs(deltaY) > 0) {
-        // Move vertically
-        nextY = this.y + (deltaY > 0 ? 1 : -1);
-      }
-    }
+    // Move one step closer on both axes for diagonal, or just one for cardinal
+    const nextX = this.x + (deltaX === 0 ? 0 : (deltaX > 0 ? 1 : -1));
+    const nextY = this.y + (deltaY === 0 ? 0 : (deltaY > 0 ? 1 : -1));
 
     return { x: nextX, y: nextY };
   }

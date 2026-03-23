@@ -1143,6 +1143,9 @@ export const InventoryProvider = ({ children, manager }) => {
       return { success: false, reason: 'Initialization error' };
     }
 
+    // Find the item globally to ensure we have the correct reference
+    const found = inventoryRef.current.findItem(item.instanceId);
+
     if (!item.isWaterBottle()) {
       return { success: false, reason: 'Not a water bottle' };
     }
@@ -1193,7 +1196,6 @@ export const InventoryProvider = ({ children, manager }) => {
       leftoverBottle.ammoCount = Math.max(0, initialWater - amountToDrink);
 
       // 3. Find the container to put it back in
-      const found = inventoryRef.current.findItem(item.instanceId);
       const container = item._container || found?.container;
 
       if (container) {

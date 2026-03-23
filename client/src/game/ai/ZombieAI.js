@@ -296,12 +296,16 @@ export class ZombieAI {
         break;
       }
 
-      // Pick a random cardinal direction
+      // Pick a random direction (including diagonals)
       const directions = [
-        { x: zombie.x + 1, y: zombie.y },
-        { x: zombie.x - 1, y: zombie.y },
-        { x: zombie.x, y: zombie.y + 1 },
-        { x: zombie.x, y: zombie.y - 1 }
+        { x: zombie.x + 1, y: zombie.y },     // Right
+        { x: zombie.x - 1, y: zombie.y },     // Left
+        { x: zombie.x, y: zombie.y + 1 },     // Down
+        { x: zombie.x, y: zombie.y - 1 },     // Up
+        { x: zombie.x + 1, y: zombie.y + 1 }, // Down-Right
+        { x: zombie.x + 1, y: zombie.y - 1 }, // Up-Right
+        { x: zombie.x - 1, y: zombie.y + 1 }, // Down-Left
+        { x: zombie.x - 1, y: zombie.y - 1 }  // Up-Left
       ];
 
       // Shuffle and pick the first walkable direction
@@ -309,6 +313,13 @@ export class ZombieAI {
       let moved = false;
       for (const dir of shuffled) {
         if (this.canMoveToTile(gameMap, dir.x, dir.y)) {
+          // Additional check for diagonal moves: avoid cutting corners
+          if (Math.abs(dir.x - zombie.x) === 1 && Math.abs(dir.y - zombie.y) === 1) {
+            if (!Pathfinding.canMoveDiagonally(gameMap, zombie.x, zombie.y, dir.x, dir.y)) {
+              continue;
+            }
+          }
+
           // Make sure no closed door is in the way (don't break doors while wandering)
           const tile = gameMap.getTile(dir.x, dir.y);
           const hasDoor = tile?.contents.some(e => e.type === 'door' && !e.isOpen);
@@ -316,8 +327,13 @@ export class ZombieAI {
 
           const fromPos = { x: zombie.x, y: zombie.y };
           try {
+            const subtypeMult = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
+            const moveDist = Pathfinding.getMovementCost(zombie.x, zombie.y, dir.x, dir.y);
+            const apCost = subtypeMult * moveDist;
+            
+            if (zombie.currentAP < apCost) continue;
+
             gameMap.moveEntity(zombie.id, dir.x, dir.y);
-            const apCost = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
             zombie.useAP(apCost);
             turnResult.actions.push({
               type: 'wander',
@@ -355,12 +371,13 @@ export class ZombieAI {
     }
 
     const fromPos = { x: zombie.x, y: zombie.y };
-    const apCost = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
+    const subtypeMult = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
+    const minMoveCost = subtypeMult * 1.0; // Minimum cardinal cost
 
-    // Check if zombie has enough AP
-    if (zombie.currentAP < apCost) {
-      console.log(`[ZombieAI] Insufficient AP: has ${zombie.currentAP}, needs ${apCost}`);
-      return { success: false, reason: 'Insufficient AP', apRequired: apCost };
+    // Check if zombie has enough AP for at least one cardinal step
+    if (zombie.currentAP < minMoveCost) {
+      console.log(`[ZombieAI] Insufficient AP for any move: has ${zombie.currentAP}, needs ${minMoveCost}`);
+      return { success: false, reason: 'Insufficient AP', apRequired: minMoveCost };
     }
 
     // Create entity filter to ignore the zombie itself during pathfinding
@@ -392,7 +409,7 @@ export class ZombieAI {
       targetX,
       targetY,
       {
-        allowDiagonal: false,
+        allowDiagonal: true,
         entityFilter: entityFilter,
         debug: false // Reduce console spam
       }
@@ -406,6 +423,15 @@ export class ZombieAI {
 
       const nextTile = gameMap.getTile(nextMove.x, nextMove.y);
 
+      const moveDist = Pathfinding.getMovementCost(fromPos.x, fromPos.y, nextMove.x, nextMove.y);
+      const apCost = subtypeMult * moveDist;
+
+      // Final dynamic AP check for this specific move
+      if (zombie.currentAP < apCost) {
+        console.log(`[ZombieAI] Insufficient AP for specific move: has ${zombie.currentAP}, needs ${apCost}`);
+        return { success: false, reason: 'Insufficient AP', apRequired: apCost };
+      }
+
       // ── PRIORITY 1: Closed door in the way → attack it ──────────────────────
       // Check this BEFORE canMoveToTile because canMoveToTile now correctly
       // returns true for door tiles (letting pathfinding route through them),
@@ -414,8 +440,9 @@ export class ZombieAI {
       if (door && !door.isOpen) {
         console.log(`[ZombieAI] Next path step blocked by closed door at (${nextMove.x}, ${nextMove.y}), attacking door`);
 
-        // Zombie attacks the door (costing 1 AP)
-        zombie.useAP(apCost);
+        // Zombie attacks the door (costing cardinal AP cost)
+        const cardinalCost = subtypeMult * 1.0;
+        zombie.useAP(cardinalCost);
 
         // Zombies do 1-2 damage to doors per attack
         const doorDamage = Math.floor(Math.random() * 2) + 1;

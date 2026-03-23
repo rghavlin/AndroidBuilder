@@ -154,5 +154,19 @@ export const CraftingRecipes = [
             { id: 'food.tomato', count: 1 },
             { id: 'food.waterbottle', count: 1, consumeUnits: 5, label: 'Water (5 Units)' }
         ]
+    },
+    {
+        id: 'crafting.sling',
+        name: 'Sling',
+        resultItem: 'weapon.sling',
+        description: 'A simple weapon for throwing stones over long distances.',
+        apCost: 10,
+        tab: 'crafting',
+        tools: [
+            { category: ItemCategory.KNIFE, label: 'Any Knife' }
+        ],
+        ingredients: [
+            { id: 'crafting.leather_belt', count: 1 }
+        ]
     }
 ];

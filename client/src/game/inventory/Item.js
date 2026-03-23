@@ -140,6 +140,7 @@ export class Item extends SafeEventEmitter {
       if (def.rarity && !this.rarity) this.rarity = def.rarity;
       if (def.combat && !this.combat) this.combat = def.combat;
       if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
+      if (def.imageId && !this.imageId) this.imageId = def.imageId;
     }
 
     // Initialize container grid synchronously if data exists

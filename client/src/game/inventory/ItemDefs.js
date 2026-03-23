@@ -1006,6 +1006,26 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.CRAFTING_MATERIAL],
     stackMax: 20
+  },
+  'weapon.sling': {
+    id: 'weapon.sling',
+    name: 'Sling',
+    noLoot: true,
+    rarity: Rarity.COMMON,
+    imageId: 'sling',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.HANDGUN,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    fragility: 4,
+    rangedStats: {
+      damage: { min: 2, max: 5 },
+      minRange: 2,
+      accuracyFalloff: 0.1,
+      isSling: true // Special flag for combat logic
+    }
   }
 };
 
