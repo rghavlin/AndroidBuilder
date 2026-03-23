@@ -443,20 +443,36 @@ export class WorldManager {
         const lootGenerator = new LootGenerator();
         lootGenerator.spawnLoot(gameMap);
 
-        // SPAWN ZOMBIES: New procedural zombie generation (Phase 6)
+        // SPAWN ZOMBIES: Procedural zombie generation with scaling difficulty
         const mapNumber = this.extractMapNumber(targetMapId);
-        let acidRange = { min: 1, max: 2 }; // Default for map 3+
-        if (mapNumber === 1) acidRange = { min: 0, max: 0 };
-        else if (mapNumber === 2) acidRange = { min: 0, max: 1 };
+        
+        // Basic zombie scaling: Map 1 = 15, Map 2 = 20, Map 3 = 21, etc.
+        const basicCount = mapNumber === 1 ? 15 : (20 + (mapNumber - 2));
 
-        const fatRange = mapNumber === 1 ? { min: 0, max: 0 } : { min: 1, max: 2 };
+        // Bonus units based on map progression
+        const extraFat = Math.floor(mapNumber / 4);
+        const extraCrawler = Math.floor(mapNumber / 4);
+        const extraAcid = Math.floor(mapNumber / 5);
+
+        // Calculate ranges with bonuses
+        let crawlerRange = { min: 2 + extraCrawler, max: 5 + extraCrawler };
+        
+        let acidRange;
+        if (mapNumber === 1) acidRange = { min: 0, max: 0 };
+        else if (mapNumber === 2) acidRange = { min: 0 + extraAcid, max: 1 + extraAcid };
+        else acidRange = { min: 1 + extraAcid, max: 2 + extraAcid };
+
+        let fatRange;
+        if (mapNumber === 1) fatRange = { min: 0, max: 0 };
+        else fatRange = { min: 1 + extraFat, max: 2 + extraFat };
 
         ZombieSpawner.spawnZombies(gameMap, spawnPosition, {
-          basicCount: 15,
-          crawlerRange: { min: 2, max: 5 },
-          runnerCount: Math.floor(Math.random() * 2) + 1, // 1 or 2
+          basicCount,
+          crawlerRange,
+          runnerCount: Math.floor(Math.random() * 2) + 1, // 1 or 2 runner zombies
           acidRange,
-          fatRange
+          fatRange,
+          maxTotal: 100
         });
 
         // Stamp south transition on new maps (except map_001)

@@ -20,15 +20,19 @@ export class ZombieSpawner {
       acidRange = { min: 1, max: 2 },
       fatRange = { min: 1, max: 2 },
       firefighterRange = { min: 2, max: 3 },
-      swatRange = { min: 2, max: 3 }
+      swatRange = { min: 2, max: 3 },
+      maxTotal = 100
     } = options;
 
     let spawnedCount = 0;
     const mapWidth = gameMap.width;
     const mapHeight = gameMap.height;
 
+    // Helper to check if we can spawn more
+    const canSpawnMore = () => spawnedCount < maxTotal;
+
     // 1. Spawn Basic Zombies
-    for (let i = 0; i < basicCount; i++) {
+    for (let i = 0; i < basicCount && canSpawnMore(); i++) {
       const maxAttempts = 50;
       let attempts = 0;
       let spawned = false;
@@ -59,7 +63,7 @@ export class ZombieSpawner {
 
     // 2. Spawn Crawler Zombies
     const crawlerCount = Math.floor(Math.random() * (crawlerRange.max - crawlerRange.min + 1)) + crawlerRange.min;
-    for (let i = 0; i < crawlerCount; i++) {
+    for (let i = 0; i < crawlerCount && canSpawnMore(); i++) {
       let attempts = 0;
       let spawned = false;
       while (!spawned && attempts < 50) {
@@ -78,7 +82,7 @@ export class ZombieSpawner {
     }
 
     // 3. Spawn Runner Zombies
-    for (let i = 0; i < runnerCount; i++) {
+    for (let i = 0; i < runnerCount && canSpawnMore(); i++) {
       let attempts = 0;
       let spawned = false;
       while (!spawned && attempts < 50) {
@@ -98,7 +102,7 @@ export class ZombieSpawner {
 
     // 4. Spawn Acid Zombies
     const acidCount = Math.floor(Math.random() * (acidRange.max - acidRange.min + 1)) + acidRange.min;
-    for (let i = 0; i < acidCount; i++) {
+    for (let i = 0; i < acidCount && canSpawnMore(); i++) {
         let attempts = 0;
         let spawned = false;
         while (!spawned && attempts < 50) {
@@ -118,7 +122,7 @@ export class ZombieSpawner {
 
     // 5. Spawn Fat Zombies
     const fatCount = Math.floor(Math.random() * (fatRange.max - fatRange.min + 1)) + fatRange.min;
-    for (let i = 0; i < fatCount; i++) {
+    for (let i = 0; i < fatCount && canSpawnMore(); i++) {
         let attempts = 0;
         let spawned = false;
         while (!spawned && attempts < 50) {
@@ -136,7 +140,7 @@ export class ZombieSpawner {
         }
     }
 
-    // 4. Spawn Special Zombies in Buildings
+    // 6. Spawn Special Zombies in Buildings
     const specialBuildings = gameMap.specialBuildings || gameMap.metadata?.specialBuildings || [];
     
     specialBuildings.forEach((station, sIdx) => {
@@ -145,7 +149,7 @@ export class ZombieSpawner {
         const ffCount = Math.floor(Math.random() * (firefighterRange.max - firefighterRange.min + 1)) + firefighterRange.min;
         let spawnedForStation = 0;
         let attempts = 0;
-        while (spawnedForStation < ffCount && attempts < 50) {
+        while (spawnedForStation < ffCount && attempts < 50 && canSpawnMore()) {
           const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
@@ -164,7 +168,7 @@ export class ZombieSpawner {
         const sCount = Math.floor(Math.random() * (swatRange.max - swatRange.min + 1)) + swatRange.min;
         let spawnedForStation = 0;
         let attempts = 0;
-        while (spawnedForStation < sCount && attempts < 100) {
+        while (spawnedForStation < sCount && attempts < 100 && canSpawnMore()) {
           const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);

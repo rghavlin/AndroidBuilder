@@ -316,6 +316,7 @@ const GameContextInner = ({ children }) => {
       setPlayerRef(loadedState.player);
       setCamera(loadedState.camera);
       setWorldManager(loadedState.worldManager);
+      setLootGenerator(loadedState.lootGenerator);
       setTurn(loadedState.turn);
       setIsPlayerTurn(true);
       setIsAutosaving(false);
@@ -387,7 +388,10 @@ const GameContextInner = ({ children }) => {
         console.log('[GameContext] All equipped items:', equippedItems.length > 0 ? equippedItems.join(', ') : 'none');
       }
 
-      // 5. Player LAST - after inventory is ready
+      // 5. LootGenerator
+      setLootGenerator(loadedState.lootGenerator);
+
+      // 6. Player LAST - after inventory is ready
       setPlayerRef(loadedState.player);
 
       setTurn(loadedState.turn);

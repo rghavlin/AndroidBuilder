@@ -140,9 +140,11 @@ export const CombatProvider = ({ children }) => {
         const dx = Math.abs(player.x - targetX);
         const dy = Math.abs(player.y - targetY);
         
-        // Fallback chain: weapon instance -> item definition -> hardcoded defaults
-        const weaponStats = weapon.combat || ItemDefs[weapon.defId]?.combat || { hitChance: 0.5, damage: { min: 1, max: 2 } };
-        const weaponRange = weaponStats.range || 1.0;
+        const defStats = ItemDefs[weapon.defId]?.combat || {};
+        const instanceStats = weapon.combat || {};
+        const weaponStats = { ...defStats, ...instanceStats };
+        // Priority: Balance changes in ItemDefs.range should always apply
+        const weaponRange = defStats.range || instanceStats.range || 1.0;
         
         // Use Euclidean distance for range check
         const distance = Math.sqrt(dx * dx + dy * dy);

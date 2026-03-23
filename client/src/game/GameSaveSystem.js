@@ -125,12 +125,18 @@ export class GameSaveSystem {
         console.log('[GameSaveSystem] InventoryManager restored successfully');
       }
 
+      // Restore LootGenerator
+      console.log('[GameSaveSystem] Restoring LootGenerator...');
+      const { LootGenerator } = await import('./map/LootGenerator.js');
+      const lootGenerator = new LootGenerator();
+
       const gameComponents = {
         gameMap: gameMap,
         worldManager: worldManager,
         player: player,
         camera: camera,
         inventoryManager: inventoryManager,
+        lootGenerator: lootGenerator,
         turn: saveData.turn || 1,
         playerStats: saveData.playerStats || { hp: 100, maxHp: 100, ap: 100, maxAp: 100, ammo: 0 },
         lastSeenTaggedTiles: new Set(), // Reset this - will be rebuilt

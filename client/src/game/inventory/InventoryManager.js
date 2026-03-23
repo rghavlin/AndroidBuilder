@@ -1430,6 +1430,39 @@ export class InventoryManager extends SafeEventEmitter {
   }
 
   /**
+   * Internal recursive search for an item by instanceId/id
+   * Returns { item, container } or null
+   */
+  _findItemRecursive(container, itemId) {
+    if (!container || !container.items) return null;
+
+    // 1. Search direct items in this container
+    for (const item of container.items.values()) {
+      if (item.instanceId === itemId || item.id === itemId) {
+        return { item, container };
+      }
+      
+      // 2. Recurse into nested grids
+      const grid = item.getContainerGrid?.();
+      if (grid) {
+        const found = this._findItemRecursive(grid, itemId);
+        if (found) return found;
+      }
+      
+      // 3. Recurse into pocket containers
+      const pockets = item.getPocketContainers?.();
+      if (pockets) {
+        for (const pocket of pockets) {
+          const found = this._findItemRecursive(pocket, itemId);
+          if (found) return found;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Internal recursive counter for items by defId
    */
   _countItemRecursive(container, defId) {

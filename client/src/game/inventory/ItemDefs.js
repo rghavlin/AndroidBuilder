@@ -320,7 +320,7 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.80,
       damage: { min: 4, max: 8 },
-      range: 1.415 // Supports diagonal (sqrt(2) approx 1.414)
+      range: 2.1 // Increased reach (2 squares)
     }
   },
 
