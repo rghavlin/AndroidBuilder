@@ -1,0 +1,47 @@
+﻿Starting Load Swap Verification...
+node.exe : Γ¥î ERROR 
+during load swap 
+verification:
+At line:1 char:1
++ & "C:\Program Files\
+nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (Γ¥î ERROR    
+ during load swap     
+verification::Str    
+ing) [], RemoteEx    
+ception
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+TypeError: 
+flashlight.attachItem 
+is not a function
+    at 
+verifyLoadSwaps (file:
+///C:/Games/AndroidBui
+lder/verify_load_swaps
+.mjs:20:20)
+    at file:///C:/Game
+s/AndroidBuilder/verif
+y_load_swaps.mjs:85:1
+    at ModuleJob.run (
+node:internal/modules/
+esm/module_job:413:25)
+    at async onImport.
+tracePromise.__proto__
+ (node:internal/module
+s/esm/loader:660:26)
+    at async asyncRunE
+ntryPointWithESMLoader
+ (node:internal/module
+s/run_main:101:5)

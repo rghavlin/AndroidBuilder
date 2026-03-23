@@ -832,12 +832,12 @@ export class Item extends SafeEventEmitter {
     return true;
   }
 
-  findCompatibleAttachmentSlot(item) {
+  findCompatibleAttachmentSlot(item, allowOccupied = false) {
     if (!this.attachmentSlots) return null;
 
-    // Find first empty and compatible slot
+    // Find first compatible slot
     for (const slot of this.attachmentSlots) {
-      if (this.attachments[slot.id]) continue; // Already occupied
+      if (!allowOccupied && this.attachments[slot.id]) continue; // Skip if occupied unless allowed
 
       // Validate category compatibility
       if (slot.allowedCategories && slot.allowedCategories.length > 0) {

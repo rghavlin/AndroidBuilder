@@ -586,7 +586,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     // Find compatible slot
-    const slotId = targetWeapon.findCompatibleAttachmentSlot ? targetWeapon.findCompatibleAttachmentSlot(modItem) : null;
+    const slotId = targetWeapon.findCompatibleAttachmentSlot ? targetWeapon.findCompatibleAttachmentSlot(modItem, true) : null;
 
     if (!slotId) {
       console.warn('[InventoryContext] No compatible empty slot found in', targetWeapon.name);

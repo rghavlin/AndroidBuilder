@@ -813,8 +813,36 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // 5. Attach to weapon
-    const success = weapon.attachItem(slotId, item);
+    // 5. ATTACHMENT SWAP / DISPLACEMENT
+    const existingAttachment = weapon.getAttachment ? weapon.getAttachment(slotId) : weapon.attachments[slotId];
+    if (existingAttachment) {
+      console.log(`[InventoryManager] Displacement triggered: removing existing ${existingAttachment.name} from ${slotId}`);
+      weapon.detachItem(slotId);
+      // Try to put back into inventory, then pockets, then ground
+      const displacedResult = this.addItem(existingAttachment);
+      console.log(`[InventoryManager] Displaced ${existingAttachment.name} to ${displacedResult.container || 'FAILED'}`);
+    }
+
+    // 6. STACK SPLITTING (e.g. taking 1 battery from a stack)
+    let itemToAttach = item;
+    if (item.stackCount > 1) {
+      console.log(`[InventoryManager] Splitting stack for attachment: taking 1 from ${item.stackCount}`);
+      const remainder = item.splitStack(item.stackCount - 1);
+      // item now has 1 unit, remainder has the rest
+      itemToAttach = item;
+      
+      // Put remainder back into original source if possible
+      if (remainder) {
+        if (removed.container) {
+          removed.container.addItem(remainder, removed.x, removed.y);
+        } else {
+          this.addItem(remainder);
+        }
+      }
+    }
+
+    // 7. Attach to weapon
+    const success = weapon.attachItem(slotId, itemToAttach);
     if (!success) {
       console.warn('[InventoryManager] Attachment failed, restoring item to original source');
       // Re-add to original container if fails

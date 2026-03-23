@@ -338,9 +338,9 @@ export class LootGenerator {
                         selectedItem.ammoCount = 1 + Math.floor(Math.random() * selectedItem.capacity);
                     }
                 } else if (randomKey === 'tool.battery') {
-                    // Batteries always spawn as a single item but can have 1–10 charges
+                    // Batteries always spawn as a single item with a FULL charge
                     selectedItem.stackCount = 1;
-                    selectedItem.ammoCount = 1 + Math.floor(Math.random() * (selectedItem.capacity || 10));
+                    selectedItem.ammoCount = selectedItem.capacity || 10;
                 }
 
                 items.push(selectedItem);
@@ -646,10 +646,10 @@ export class LootGenerator {
                             item.attachments = { 'ammo': ammoData };
                         }
                     } else if (selectedKey === 'tool.smallflashlight') {
-                        // Flashlight from zombie: random battery charges (1-10)
+                        // Flashlight from zombie: spawn with a FULL battery
                         const battery = createItemFromDef('tool.battery');
                         if (battery) {
-                            battery.ammoCount = 1 + Math.floor(Math.random() * 10);
+                            battery.ammoCount = battery.capacity || 10;
                             item.attachments = { 'battery': battery };
                         }
                     }
