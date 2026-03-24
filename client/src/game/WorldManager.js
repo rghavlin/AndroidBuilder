@@ -253,25 +253,26 @@ export class WorldManager {
 
     const playerX = player.x;
     const playerY = player.y;
+    const centerX = Math.floor(gameMap.width / 2);
     const tile = gameMap.getTile(playerX, playerY);
 
-    // Check for transition tile at (17,0) - north transition
-    if (playerX === 17 && playerY === 0 && tile && tile.terrain === 'transition') {
+    // Check for transition tile at (centerX,0) - north transition
+    if (playerX === centerX && playerY === 0 && tile && tile.terrain === 'transition') {
       return {
         direction: 'north',
         position: { x: playerX, y: playerY },
         nextMapId: this.getNextMapId(),
-        spawnPosition: { x: 17, y: 123 } // Bottom of next map
+        spawnPosition: { x: centerX, y: gameMap.height - 2 } // Near bottom of next map
       };
     }
 
-    // Check for south transition at (17,124) - only if not first map
-    if (playerX === 17 && playerY === 124 && this.canGoSouth() && tile && tile.terrain === 'transition') {
+    // Check for south transition at (centerX, height-1) - only if not first map
+    if (playerX === centerX && playerY === gameMap.height - 1 && this.canGoSouth() && tile && tile.terrain === 'transition') {
       return {
         direction: 'south',
         position: { x: playerX, y: playerY },
         nextMapId: this.getPreviousMapId(),
-        spawnPosition: { x: 17, y: 1 } // Top of previous map
+        spawnPosition: { x: centerX, y: 1 } // Top of previous map
       };
     }
 
@@ -386,14 +387,16 @@ export class WorldManager {
       const { GameMap } = await import('./map/GameMap.js');
       const gameMap = await GameMap.fromJSON(mapData.serializedMap);
 
+      const centerX = Math.floor(gameMap.width / 2);
       if (direction === 'south' && mapId !== 'map_001') {
-        console.log(`[WorldManager] Stamping south transition at (17, 124) on ${mapId}`);
-        gameMap.setTerrain(17, 124, 'transition');
+        const southY = gameMap.height - 1;
+        console.log(`[WorldManager] Stamping south transition at (${centerX}, ${southY}) on ${mapId}`);
+        gameMap.setTerrain(centerX, southY, 'transition');
         this.saveCurrentMap(gameMap, mapId);
         return true;
       } else if (direction === 'north') {
-        console.log(`[WorldManager] Stamping north transition at (17, 0) on ${mapId}`);
-        gameMap.setTerrain(17, 0, 'transition');
+        console.log(`[WorldManager] Stamping north transition at (${centerX}, 0) on ${mapId}`);
+        gameMap.setTerrain(centerX, 0, 'transition');
         this.saveCurrentMap(gameMap, mapId);
         return true;
       }
@@ -477,8 +480,10 @@ export class WorldManager {
 
         // Stamp south transition on new maps (except map_001)
         if (targetMapId !== 'map_001') {
-          console.log(`[WorldManager] Stamping south transition at (17, 124) on new map ${targetMapId}`);
-          gameMap.setTerrain(17, 124, 'transition');
+          const centerX = Math.floor(gameMap.width / 2);
+          const southY = gameMap.height - 1;
+          console.log(`[WorldManager] Stamping south transition at (${centerX}, ${southY}) on new map ${targetMapId}`);
+          gameMap.setTerrain(centerX, southY, 'transition');
         }
 
         // Save to world collection with the correct target ID

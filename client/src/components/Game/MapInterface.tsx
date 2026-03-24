@@ -134,7 +134,7 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
 export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Phase 1: Direct sub-context access
   const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
-  const { playerRef, updatePlayerFieldOfView } = usePlayer();
+  const { playerRef, updatePlayerFieldOfView, isMoving: isAnimatingMovement } = usePlayer();
 
   // Phase 4: Only use orchestration functions from GameContext
   const {
@@ -190,6 +190,15 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     }
   }, [hoveredTile]);
 
+  // Close context menus when player starts moving
+  useEffect(() => {
+    if (isAnimatingMovement) {
+      setDoorMenu(null);
+      setWindowMenu(null);
+      setWaterMenu(null);
+    }
+  }, [isAnimatingMovement]);
+
   // Debug: Log the actual isInitialized value
   //console.log('[MapInterface] isInitialized value:', isInitialized, 'type:', typeof isInitialized);
 
@@ -217,6 +226,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Handler for map cell clicks
   const onCellClick = (x: number, y: number) => {
+    // Clear any map context menus on click
+    setDoorMenu(null);
+    setWindowMenu(null);
+    setWaterMenu(null);
+
     // If an item is selected for movement, cancel it and don't process map click
     if (selectedItem) {
       console.debug('[MapInterface] Map clicked while item selected - canceling selection');

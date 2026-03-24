@@ -218,7 +218,7 @@ export const GameMapProvider = ({ children }) => {
         return;
       }
 
-      const movementCost = Pathfinding.calculateMovementCost(path);
+      const movementCost = Pathfinding.calculateMovementCost(gameMapRef.current, path);
 
       if (movementCost > player.ap) {
         console.log('[GameMapContext] Insufficient AP for movement:', { cost: movementCost, available: player.ap });
@@ -303,7 +303,7 @@ export const GameMapProvider = ({ children }) => {
         // Fallback to Manhattan distance if no path found
         apCost = Math.abs(x - player.x) + Math.abs(y - player.y);
       } else {
-        apCost = Pathfinding.calculateMovementCost(path);
+        apCost = Pathfinding.calculateMovementCost(gameMapRef.current, path);
       }
 
       const canAfford = player.ap >= apCost;
@@ -526,8 +526,9 @@ export const GameMapProvider = ({ children }) => {
 
       // FIX: Stamp reciprocal south transition on new map (if not first map)
       if (result.mapId !== 'map_001') {
-        console.log(`[GameMapContext] Stamping south transition at (17, 124) on ${result.mapId}`);
-        result.gameMap.setTerrain(17, 124, 'transition');
+        const centerX = Math.floor(result.gameMap.width / 2);
+        console.log(`[GameMapContext] Stamping south transition at (${centerX}, 124) on ${result.mapId}`);
+        result.gameMap.setTerrain(centerX, 124, 'transition');
       }
 
       // FIX: Re-save the map to WorldManager with player included (using result.mapId, not undefined targetMapId)

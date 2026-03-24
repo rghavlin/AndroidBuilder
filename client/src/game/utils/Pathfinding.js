@@ -111,7 +111,7 @@ export class Pathfinding {
           continue;
         }
 
-        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y);
+        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile);
 
         // Check if this neighbor is already in open set
         const existingNode = openSetMap.get(neighborKey);
@@ -144,15 +144,16 @@ export class Pathfinding {
     return [];
   }
 
-  static calculateMovementCost(path, entity = null) {
+  static calculateMovementCost(gameMap, path, entity = null) {
     if (!path || path.length <= 1) {
       return 0;
     }
 
     let baseCost = 0;
     for (let i = 1; i < path.length; i++) {
-      const cost = this.getMovementCost(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y);
-      baseCost += cost;
+        const nextTile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
+        const cost = this.getMovementCost(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y, nextTile);
+        baseCost += cost;
     }
 
     // Apply acceleration bonus: Every 5 tiles reduces total cost by 0.5 AP
@@ -226,7 +227,7 @@ export class Pathfinding {
           continue;
         }
 
-        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y);
+        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile);
         const totalCost = current.cost + moveCost;
 
         if (totalCost <= maxCost && !visited.has(`${neighbor.x},${neighbor.y}`)) {
@@ -250,17 +251,25 @@ export class Pathfinding {
   /**
    * Get movement cost between two adjacent tiles
    */
-  static getMovementCost(x1, y1, x2, y2) {
+  static getMovementCost(x1, y1, x2, y2, targetTile = null) {
     const dx = Math.abs(x1 - x2);
     const dy = Math.abs(y1 - y2);
 
+    let baseCost = 1;
+
     // Diagonal movement costs more
     if (dx === 1 && dy === 1) {
-      return 1.4;
+      baseCost = 1.4;
     }
 
-    // Orthogonal movement
-    return 1;
+    // Windows cost 1 additional AP
+    if (targetTile && targetTile.contents && Array.isArray(targetTile.contents)) {
+      if (targetTile.contents.some(e => e.type === 'window')) {
+        baseCost += 1;
+      }
+    }
+
+    return baseCost;
   }
 
   /**
@@ -343,11 +352,11 @@ export class Pathfinding {
   /**
    * Serialize a path to JSON
    */
-  static serializePath(path) {
+  static serializePath(gameMap, path) {
     return {
       path: path.map(point => ({ x: point.x, y: point.y })),
       length: path.length,
-      cost: this.calculateMovementCost(path),
+      cost: this.calculateMovementCost(gameMap, path),
       generated: new Date().toISOString()
     };
   }

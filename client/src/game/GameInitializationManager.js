@@ -176,7 +176,7 @@ class GameInitializationManager extends EventEmitter {
       }
 
       // Determine start position
-      let startX = 17, startY = 123;
+      let startX = Math.floor(gameMap.width / 2), startY = 123;
       try {
         const templateStartPos = templateMapGenerator.getStartPosition();
         if (templateStartPos) {
@@ -291,10 +291,12 @@ class GameInitializationManager extends EventEmitter {
 
       // Clean up south transition tile for first map
       try {
-        const southTile = gameMap.getTile(17, 124);
+        const centerX = Math.floor(gameMap.width / 2);
+        const southY = gameMap.height - 1;
+        const southTile = gameMap.getTile(centerX, southY);
         if (southTile && southTile.terrain === 'transition') {
-          gameMap.setTerrain(17, 124, 'road');
-          console.log('[GameInitializationManager] Removed south transition tile for first map');
+          gameMap.setTerrain(centerX, southY, 'road');
+          console.log('[GameInitializationManager] Removed south transition tile for first map at', centerX, southY);
         }
       } catch (error) {
         console.warn('[GameInitializationManager] Could not clean up transition tile:', error);

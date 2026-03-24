@@ -22,7 +22,7 @@ export const useCombat = () => {
 
 export const CombatProvider = ({ children }) => {
     const [targetingWeapon, setTargetingWeapon] = useState(null); // { item, slot }
-    const { playerRef } = usePlayer();
+    const { playerRef, updatePlayerStats } = usePlayer();
     const { gameMapRef, lootGenerator, triggerMapUpdate } = useGameMap();
     const { addEffect } = useVisualEffects();
     const { forceRefresh, inventoryRef, destroyItem } = useInventory();
@@ -193,6 +193,16 @@ export const CombatProvider = ({ children }) => {
                 if (structure.type === 'window') {
                     structure.break();
                     addLog(`You smash the window with your ${weapon.name}!`, 'combat');
+                    
+                    // Unarmed penalty: bleeding
+                    if (weapon.instanceId === 'unarmed') {
+                        if (typeof player?.setBleeding === 'function') {
+                            player.setBleeding(true);
+                        }
+                        addLog('You cut your hands smashing the glass!', 'warning');
+                        updatePlayerStats({ isBleeding: true });
+                    }
+
                     gameMap.emitNoise(targetX, targetY, 5); // Breaking glass is noisy
                 } else {
                     // Doors take damage but don't "break" into jagged fragments like windows

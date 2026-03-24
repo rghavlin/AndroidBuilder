@@ -229,9 +229,14 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const destroyItem = useCallback((instanceId) => {
     if (!inventoryRef.current) return false;
+    
+    // Resolve item name before destruction for cleaner logging
+    const found = inventoryRef.current.findItem(instanceId);
+    const itemName = found?.item?.name || instanceId;
+    
     const result = inventoryRef.current.destroyItem(instanceId);
     if (result) {
-      addLog(`Item destroyed: ${instanceId}`, 'system');
+      addLog(`Item destroyed: ${itemName}`, 'system');
       setInventoryVersion(prev => prev + 1);
     }
     return result;

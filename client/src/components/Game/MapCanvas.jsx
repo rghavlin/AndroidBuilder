@@ -37,13 +37,13 @@ export default function MapCanvas({
 
   // Define terrain colors (Grayscale Retro Palette for fallback)
   const terrainColors = {
-    'grass': '#222222',    // Dark gray
-    'floor': '#666666',    // Medium gray
-    'wall': '#000000',     // Black
-    'road': '#333333',     // Dark charcoal
-    'sidewalk': '#888888', // Light-mid gray
-    'fence': '#444444',    // Darker gray
-    'building': '#AAAAAA', // Lighter gray
+    'grass': '#2a2a2a',    // Dark gray (but brighter than before)
+    'floor': '#555555',    // Medium gray
+    'wall': '#000000',     // Black (for high contrast edges)
+    'road': '#333333',     // Asphalt gray
+    'sidewalk': '#888888', // Light gray
+    'fence': '#444444',    // Dark gray
+    'building': '#aaaaaa', // Very light gray (walls)
     'window': '#2c3e50',   // Dark bluish gray (terrain base)
     'water': '#1b3a57',    // Muted slate blue
     'sand': '#cccccc',     // Light silver
@@ -639,8 +639,15 @@ export default function MapCanvas({
 
           // Apply "Fog" (dimming) for explored but NOT currently visible tiles
           if (isExplored && !isCurrentlyVisible) {
-            ctx.fillStyle = isNight ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)'; // Darker dimming at night
+            ctx.fillStyle = isNight ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.25)'; // Much lighter fog during day
             ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+
+            // Add more prominent border for building/wall tiles in fog
+            if (tile.terrain === 'building' || tile.terrain === 'wall') {
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(pixelX, pixelY, tileSize, tileSize);
+            }
           }
 
           // Light blue tint for visible tiles (excluding player tile)

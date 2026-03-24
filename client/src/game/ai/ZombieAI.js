@@ -413,12 +413,16 @@ export class ZombieAI {
       }
 
       const blockingEntities = tile.contents.filter(entity => {
+        // CRAWLERS cannot use windows
+        if (zombie.subtype === 'crawler' && entity.type === 'window') return true;
+
         // ALLOW pathfinding to CONSIDER tiles with doors, players, or other zombies
         // The actual movement will still be blocked by canMoveToTile,
         // which prevents overlapping but allows the AI to "plan" a path to the area.
         return entity.blocksMovement &&
           entity.id !== zombie.id &&
           entity.type !== 'door' &&
+          entity.type !== 'window' &&
           entity.type !== 'player' &&
           entity.type !== 'zombie';
       });
@@ -447,7 +451,7 @@ export class ZombieAI {
 
       const nextTile = gameMap.getTile(nextMove.x, nextMove.y);
 
-      const moveDist = Pathfinding.getMovementCost(fromPos.x, fromPos.y, nextMove.x, nextMove.y);
+      const moveDist = Pathfinding.getMovementCost(fromPos.x, fromPos.y, nextMove.x, nextMove.y, nextTile);
       const apCost = subtypeMult * moveDist;
 
       // Final dynamic AP check for this specific move
@@ -491,13 +495,53 @@ export class ZombieAI {
           to: fromPos, // Zombie didn't move
           type: 'attackDoor',
           doorPos: { x: nextMove.x, y: nextMove.y },
-          apCost: apCost,
+          apCost: cardinalCost,
           doorBroken: door.hp <= 0
         };
       }
 
+      // ── PRIORITY 1b: Window in the way → break it ───────────────────────────
+      const window = nextTile?.contents.find(e => e.type === 'window');
+      if (window && !window.isBroken) {
+        console.log(`[ZombieAI] Next path step blocked by window at (${nextMove.x}, ${nextMove.y}), breaking window`);
+
+        // Spending 1 AP for the break action
+        const breakCost = 1.0;
+        zombie.useAP(breakCost);
+
+        // Break the window
+        window.break();
+        console.log(`[ZombieAI] Zombie ${zombie.id} smashed the window, remaining AP: ${zombie.currentAP}`);
+
+        // Attract nearby zombies to the noise
+        const otherZombies = gameMap.getEntitiesByType('zombie');
+        otherZombies.forEach(z => {
+          if (z.id !== zombie.id) {
+            const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
+            if (distance <= 6) {
+              z.setNoiseHeard(nextMove.x, nextMove.y);
+            }
+          }
+        });
+
+        // Noise on map
+        if (gameMap.emitNoise) {
+            gameMap.emitNoise(nextMove.x, nextMove.y, 6);
+        }
+
+        return {
+          success: true,
+          from: fromPos,
+          to: fromPos, // Zombie didn't move yet
+          type: 'attackWindow',
+          windowPos: { x: nextMove.x, y: nextMove.y },
+          apCost: breakCost,
+          windowBroken: true
+        };
+      }
+
       // ── PRIORITY 2: Normal movement check ──────────────────────────────────
-      if (!this.canMoveToTile(gameMap, nextMove.x, nextMove.y)) {
+      if (!ZombieAI.canMoveToTile(gameMap, nextMove.x, nextMove.y, zombie.subtype)) {
         console.log(`[ZombieAI] Next path step blocked by non-door entity or terrain, cannot move`);
         return { success: false, reason: 'Next path step blocked' };
       }
@@ -529,9 +573,10 @@ export class ZombieAI {
    * @param {GameMap} gameMap - The game map
    * @param {number} x - Target X coordinate
    * @param {number} y - Target Y coordinate
+   * @param {string} zombieSubtype - Optional zombie subtype for specific restrictions
    * @returns {boolean} - Whether the move is valid
    */
-  static canMoveToTile(gameMap, x, y) {
+  static canMoveToTile(gameMap, x, y, zombieSubtype = null) {
     const targetTile = gameMap.getTile(x, y);
     if (!targetTile) {
       return false;
@@ -547,11 +592,15 @@ export class ZombieAI {
     //   - doors: handled separately by the door-attack branch
     //   - players: attacked when adjacent; zombies should be able to path into player tile
     //   - zombies: zombies should not block each other for movement checks here
-    const hasBlockingEntities = targetTile.contents.some(entity =>
-      entity.blocksMovement &&
-      entity.type !== 'door' &&
-      entity.type !== 'player'
-    );
+    const hasBlockingEntities = targetTile.contents.some(entity => {
+      // CRAWLERS cannot use windows
+      if (zombieSubtype === 'crawler' && entity.type === 'window') return true;
+
+      return entity.blocksMovement &&
+        entity.type !== 'door' &&
+        entity.type !== 'window' &&
+        entity.type !== 'player';
+    });
 
     if (hasBlockingEntities) {
       return false;

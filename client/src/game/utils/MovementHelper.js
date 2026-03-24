@@ -23,7 +23,7 @@ export class MovementHelper {
       return -1; // No path possible
     }
 
-    return Pathfinding.calculateMovementCost(path);
+    return Pathfinding.calculateMovementCost(gameMap, path);
   }
 
   /**
@@ -58,7 +58,7 @@ export class MovementHelper {
       return result;
     }
 
-    const cost = Pathfinding.calculateMovementCost(path);
+    const cost = Pathfinding.calculateMovementCost(gameMap, path);
 
     if (entity.ap !== undefined && cost > entity.ap) {
       result.cost = cost;

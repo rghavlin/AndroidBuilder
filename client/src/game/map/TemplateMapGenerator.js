@@ -114,7 +114,7 @@ export class TemplateMapGenerator {
     // Road template - 23x100 map with central strip
     this.templates.set('road', {
       name: 'Road',
-      size: { width: 35, height: 125 },
+      size: { width: 45, height: 125 },
       layout: [
         'gggggggfffffgggggggg',
         'gggggggfffffgggggggg',
@@ -237,21 +237,22 @@ export class TemplateMapGenerator {
     // Convert to tile data
     mapData.tiles = this.layoutToTileData(finalLayout);
 
-    // Add yellow transition tile at the top of the map (17,0)
-    this.setTileData(mapData, 17, 0, 'transition');
+    // Add yellow transition tile at the top of the map (centerX,0)
+    const centerX = Math.floor(mapData.width / 2);
+    this.setTileData(mapData, centerX, 0, 'transition');
 
-    // Add south transition tile at (17,124) for non-first maps
+    // Add south transition tile at (centerX, height-1) for non-first maps
     // Note: This will be set during map generation when we know the map ID
-    this.setTileData(mapData, 17, 124, 'transition');
+    this.setTileData(mapData, centerX, mapData.height - 1, 'transition');
 
     // Add spawn zones metadata
     mapData.metadata = {
       ...mapData.metadata,
       spawnZones: {
-        roadStart: [{ x: 17, y: 123 }], // Bottom of road for player spawn
+        roadStart: [{ x: centerX, y: mapData.height - 2 }], // Bottom of road for player spawn
         transitionPoints: {
-          north: { x: 17, y: 0 }, // Top of map - go to next map
-          south: { x: 17, y: 124 } // Bottom of map - go to previous map (not for map_001)
+          north: { x: centerX, y: 0 }, // Top of map - go to next map
+          south: { x: centerX, y: mapData.height - 1 } // Bottom of map - go to previous map (not for map_001)
         }
       }
     };
@@ -532,14 +533,14 @@ export class TemplateMapGenerator {
    */
   placeBuildingsOnRoad(layout, width, height, leftSidewalkStartX, rightSidewalkEndX, mapData) {
     // Building placement parameters
-    const minBuildingWidth = 6;
-    const maxBuildingWidth = 10;
-    const minBuildingHeight = 8;
-    const maxBuildingHeight = 12;
-    const minGapBetweenBuildings = 2;
-    const maxGapBetweenBuildings = 10;
+    const minBuildingWidth = 11;
+    const maxBuildingWidth = 15;
+    const minBuildingHeight = 11;
+    const maxBuildingHeight = 18;
+    const minGapBetweenBuildings = 6;
+    const maxGapBetweenBuildings = 15;
     const buildingBuffer = 2; // Top and bottom rows to avoid
-    const grassGapFromSidewalk = 1; // One tile of grass between sidewalk and building
+    const grassGapFromSidewalk = 2; // Two tiles of grass between sidewalk and building
 
     // Calculate building zones (one tile away from sidewalk)
     const leftBuildingZoneEnd = leftSidewalkStartX - grassGapFromSidewalk - 1;
@@ -747,23 +748,7 @@ export class TemplateMapGenerator {
               x === buildingStartX || x === buildingStartX + buildingWidth - 1);
 
             if (isPerimeter) {
-              // 15% chance to be a window if not a corner
-              const isCorner = (y === currentY || y === currentY + buildingHeight - 1) && 
-                              (x === buildingStartX || x === buildingStartX + buildingWidth - 1);
-              
-              if (!isCorner && Math.random() < 0.15) {
-                layout[y][x] = 'window';
-                if (mapData && mapData.metadata) {
-                  if (!mapData.metadata.windows) mapData.metadata.windows = [];
-                  mapData.metadata.windows.push({
-                    x, y,
-                    isLocked: Math.random() < 0.7, // Windows are mostly locked
-                    isOpen: false
-                  });
-                }
-              } else {
-                layout[y][x] = 'building';
-              }
+              layout[y][x] = 'building';
             } else {
               layout[y][x] = 'floor';
             }
@@ -788,6 +773,11 @@ export class TemplateMapGenerator {
         entranceY >= 0 && entranceY < layout.length) {
         layout[entranceY][entranceX] = 'floor';
 
+        // Remove any window metadata at this entrance location
+        if (mapData && mapData.metadata && mapData.metadata.windows) {
+          mapData.metadata.windows = mapData.metadata.windows.filter(w => w.x !== entranceX || w.y !== entranceY);
+        }
+
         // 90% chance to add a door at the entrance
         if (Math.random() < 0.9) {
           if (mapData && mapData.metadata && mapData.metadata.doors) {
@@ -801,9 +791,258 @@ export class TemplateMapGenerator {
         }
       }
 
+      // Add back door (40% chance)
+      if (Math.random() < 0.4) {
+        const backDoorY = currentY + 1 + Math.floor(Math.random() * (buildingHeight - 2));
+        let backDoorX;
+        if (zoneStartX < 12) {
+          // Left side - back door on left wall
+          backDoorX = buildingStartX;
+        } else {
+          // Right side - back door on right wall
+          backDoorX = buildingStartX + buildingWidth - 1;
+        }
+
+        if (backDoorX >= 0 && backDoorX < layout[0].length &&
+            backDoorY >= 0 && backDoorY < layout.length) {
+          layout[backDoorY][backDoorX] = 'floor';
+
+          // Remove any window metadata at this back door location
+          if (mapData && mapData.metadata && mapData.metadata.windows) {
+            mapData.metadata.windows = mapData.metadata.windows.filter(w => w.x !== backDoorX || w.y !== backDoorY);
+          }
+
+          if (mapData && mapData.metadata && mapData.metadata.doors) {
+            mapData.metadata.doors.push({
+              x: backDoorX,
+              y: backDoorY,
+              isLocked: Math.random() < 0.3, // Slightly higher chance for locked back door
+              isOpen: false
+            });
+          }
+        }
+      }
+
+      // Subdivide into rooms (2-3 rooms)
+      this.subdivideBuilding(layout, buildingStartX, currentY, buildingWidth, buildingHeight, mapData);
+
+      // Place windows (after subdivision to avoid junctions)
+      this.placeWindows(layout, buildingStartX, currentY, buildingWidth, buildingHeight, mapData);
+
       // Move to next building position with random gap
       const gap = minGap + Math.floor(Math.random() * (maxGap - minGap + 1));
       currentY += buildingHeight + gap;
+    }
+  }
+
+  /**
+   * Refined window placement: avoids junctions, no side-by-side, max 2 per wall
+   */
+  placeWindows(layout, x, y, w, h, mapData) {
+    const walls = [
+      { name: 'top', tiles: [], dx: 0, dy: 1 },
+      { name: 'bottom', tiles: [], dx: 0, dy: -1 },
+      { name: 'left', tiles: [], dx: 1, dy: 0 },
+      { name: 'right', tiles: [], dx: -1, dy: 0 }
+    ];
+
+    // Collect candidate wall tiles (excluding corners)
+    for (let cx = x + 1; cx < x + w - 1; cx++) {
+      walls[0].tiles.push({ x: cx, y: y });
+      walls[1].tiles.push({ x: cx, y: y + h - 1 });
+    }
+    for (let cy = y + 1; cy < y + h - 1; cy++) {
+      walls[2].tiles.push({ x: x, y: cy });
+      walls[3].tiles.push({ x: x + w - 1, y: cy });
+    }
+
+    walls.forEach(wall => {
+      // Filter candidates based on constraints
+      let candidates = wall.tiles.filter(t => {
+        // 1. Must be a building tile (not already a door)
+        if (layout[t.y][t.x] !== 'building') return false;
+        
+        const hasDoor = mapData.metadata?.doors?.some(d => d.x === t.x && d.y === t.y);
+        if (hasDoor) return false;
+
+        // 2. Must not be an interior wall junction
+        // Check 1 tile "inward" based on wall direction
+        const inwardX = t.x + wall.dx;
+        const inwardY = t.y + wall.dy;
+        if (layout[inwardY] && layout[inwardY][inwardX] === 'building') return false;
+
+        return true;
+      });
+
+      if (candidates.length === 0) return;
+
+      // Determine number of windows (0 to 2)
+      // 20% none, 50% one, 30% two (if possible)
+      let numRequested = Math.random() < 0.2 ? 0 : (Math.random() < 0.7 ? 1 : 2);
+      const selected = [];
+
+      for (let i = 0; i < numRequested; i++) {
+        if (candidates.length === 0) break;
+
+        const idx = Math.floor(Math.random() * candidates.length);
+        const pick = candidates[idx];
+        selected.push(pick);
+
+        // Remove the picked tile and its direct neighbors to prevent side-by-side windows
+        candidates = candidates.filter(c => {
+          const dist = Math.abs(c.x - pick.x) + Math.abs(c.y - pick.y);
+          return dist > 1;
+        });
+      }
+
+      // Finalize the selected windows
+      selected.forEach(t => {
+        layout[t.y][t.x] = 'window';
+        if (mapData && mapData.metadata) {
+          if (!mapData.metadata.windows) mapData.metadata.windows = [];
+          mapData.metadata.windows.push({
+            x: t.x,
+            y: t.y,
+            isLocked: Math.random() < 0.7,
+            isOpen: false
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Subdivide a building into 2-3 rooms with min size 4x4
+   */
+  subdivideBuilding(layout, x, y, w, h, mapData) {
+    const minInteriorSize = 4;
+    
+    // Building interior: (x+1, y+1) to (x+w-2, y+h-2)
+    // Interior dimensions: (w-2) x (h-2)
+    
+    const rooms = [{
+        x: x + 1,
+        y: y + 1,
+        w: w - 2,
+        h: h - 2
+    }];
+
+    // Determine target number of rooms (2 or 3)
+    const targetRooms = Math.random() < 0.4 ? 3 : 2;
+    
+    // Get exterior doors for this building to avoid conflicts
+    const buildingDoors = (mapData && mapData.metadata && mapData.metadata.doors) ? 
+      mapData.metadata.doors.filter(d => 
+        ((d.x === x || d.x === x + w - 1) && d.y >= y && d.y < y + h) ||
+        ((d.y === y || d.y === y + h - 1) && d.x >= x && d.x < x + w)
+      ) : [];
+
+    for (let i = 0; i < targetRooms - 1; i++) {
+        // Pick largest room to split
+        rooms.sort((a, b) => (b.w * b.h) - (a.w * a.h));
+        const room = rooms[0];
+        
+        // Find split possibilities
+        const possibleX = [];
+        if (room.w >= (minInteriorSize * 2) + 1) {
+            for (let sx = room.x + minInteriorSize; sx <= room.x + room.w - minInteriorSize - 1; sx++) {
+                if (!buildingDoors.some(d => d.x === sx)) possibleX.push(sx);
+            }
+        }
+
+        const possibleY = [];
+        if (room.h >= (minInteriorSize * 2) + 1) {
+            for (let sy = room.y + minInteriorSize; sy <= room.y + room.h - minInteriorSize - 1; sy++) {
+                if (!buildingDoors.some(d => d.y === sy)) possibleY.push(sy);
+            }
+        }
+
+        if (possibleX.length === 0 && possibleY.length === 0) break;
+        
+        // Decide split direction
+        let splitVertical = false;
+        if (possibleX.length > 0 && possibleY.length > 0) {
+            // Prefer splitting along the longer dimension
+            splitVertical = room.w > room.h ? true : (room.h > room.w ? false : Math.random() < 0.5);
+        } else {
+            splitVertical = possibleX.length > 0;
+        }
+        
+        if (splitVertical) {
+            const splitX = possibleX[Math.floor(Math.random() * possibleX.length)];
+            // Place wall
+            for (let curY = room.y; curY < room.y + room.h; curY++) {
+                layout[curY][splitX] = 'building';
+            }
+            // Add interior door - avoid corners and existing doors
+            const potentialDoorYs = [];
+            for (let dy = room.y + 1; dy <= room.y + room.h - 2; dy++) {
+                const isAdjacentToDoor = mapData.metadata.doors.some(d => 
+                    Math.abs(d.x - splitX) + Math.abs(d.y - dy) <= 1
+                );
+                if (!isAdjacentToDoor) potentialDoorYs.push(dy);
+            }
+            
+            const doorY = potentialDoorYs.length > 0 ? 
+                potentialDoorYs[Math.floor(Math.random() * potentialDoorYs.length)] : 
+                room.y + 1 + Math.floor(Math.random() * Math.max(1, room.h - 2));
+
+            layout[doorY][splitX] = 'floor';
+            if (mapData && mapData.metadata && mapData.metadata.doors) {
+                mapData.metadata.doors.push({
+                    x: splitX,
+                    y: doorY,
+                    isLocked: false,
+                    isOpen: false
+                });
+            }
+            // Update rooms list
+            const oldWidth = room.w;
+            rooms.push({
+                x: splitX + 1,
+                y: room.y,
+                w: oldWidth - (splitX - room.x) - 1,
+                h: room.h
+            });
+            room.w = splitX - room.x;
+        } else {
+            const splitY = possibleY[Math.floor(Math.random() * possibleY.length)];
+            // Place wall
+            for (let curX = room.x; curX < room.x + room.w; curX++) {
+                layout[splitY][curX] = 'building';
+            }
+            // Add interior door - avoid corners and existing doors
+            const potentialDoorXs = [];
+            for (let dx = room.x + 1; dx <= room.x + room.w - 2; dx++) {
+                const isAdjacentToDoor = mapData.metadata.doors.some(d => 
+                    Math.abs(d.x - dx) + Math.abs(d.y - splitY) <= 1
+                );
+                if (!isAdjacentToDoor) potentialDoorXs.push(dx);
+            }
+            
+            const doorX = potentialDoorXs.length > 0 ? 
+                potentialDoorXs[Math.floor(Math.random() * potentialDoorXs.length)] : 
+                room.x + 1 + Math.floor(Math.random() * Math.max(1, room.w - 2));
+
+            layout[splitY][doorX] = 'floor';
+            if (mapData && mapData.metadata && mapData.metadata.doors) {
+                mapData.metadata.doors.push({
+                    x: doorX,
+                    y: splitY,
+                    isLocked: false,
+                    isOpen: false
+                });
+            }
+            // Update rooms list
+            const oldHeight = room.h;
+            rooms.push({
+                x: room.x,
+                y: splitY + 1,
+                w: room.w,
+                h: oldHeight - (splitY - room.y) - 1
+            });
+            room.h = splitY - room.y;
+        }
     }
   }
 
@@ -982,9 +1221,13 @@ export class TemplateMapGenerator {
   /**
    * Get template-specific starting position
    */
-  getTemplateStartPosition(templateName) {
+  getStartPosition(templateName = 'road') {
+    const template = this.getTemplate(templateName);
+    const width = template ? template.size.width : 45;
+    const centerX = Math.floor(width / 2);
+
     const templateStartPositions = {
-      'road': { x: 17, y: 123 },
+      'road': { x: centerX, y: template ? template.size.height - 2 : 123 },
       'small_building': { x: 5, y: 7 },
       'mall_section': { x: 7, y: 11 },
       'outdoor_area': { x: 10, y: 19 }

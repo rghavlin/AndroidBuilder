@@ -544,18 +544,30 @@ const GameContextInner = ({ children }) => {
         const tile = gameMap.getTile(next.x, next.y);
         if (!tile) continue;
 
-        // Wall/Building/Fence/Closed Door block the search
-        const isWall = tile.terrain === 'wall' || tile.terrain === 'building' || tile.terrain === 'fence';
+        // Find entities on this tile that might block the search
         const door = tile.contents.find(e => e.type === 'door');
         const isClosedDoor = door && !door.isOpen;
 
-        if (isWall || isClosedDoor) {
+        const window = tile.contents.find(e => e.type === 'window');
+        const isClosedWindow = window && !window.isOpen && !window.isBroken;
+
+        // Blockers: Walls, Building, Fence, Closed Door, Closed Window
+        // Note: 'building' and 'window' are terrain types used by the generator
+        const blocksBFS = (
+          tile.terrain === 'wall' || 
+          tile.terrain === 'building' || 
+          tile.terrain === 'fence' || 
+          (tile.terrain === 'window' && isClosedWindow) || 
+          isClosedDoor
+        );
+
+        if (blocksBFS) {
           visited.add(key);
           continue;
         }
 
-        // If it's a non-floor tile (like grass, road), we found an opening to the outside
-        if (tile.terrain !== 'floor') {
+        // Openings: Anything not floor (grass, road, etc.) OR an open/broken window
+        if (tile.terrain !== 'floor' || (tile.terrain === 'window' && !isClosedWindow)) {
           return false; // Not sheltered
         }
 

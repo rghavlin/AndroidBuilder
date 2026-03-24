@@ -25,7 +25,7 @@ export default function GameEventLog({ onClick, className }: GameEventLogProps) 
         <div 
             onClick={onClick}
             className={cn(
-                "flex-1 mx-4 h-9 bg-black/40 border border-white/10 rounded-md px-3 py-1 cursor-pointer hover:bg-black/60 transition-colors overflow-hidden group relative",
+                "w-[280px] mx-4 h-9 bg-black/40 border border-white/10 rounded-md px-3 py-1 cursor-pointer hover:bg-black/60 transition-colors overflow-hidden group relative",
                 className
             )}
             title="Click to view full log history"
@@ -42,11 +42,12 @@ export default function GameEventLog({ onClick, className }: GameEventLogProps) 
                     displayLogs.map((log) => (
                         <div 
                             key={log.id} 
-                            className="text-[10px] leading-tight truncate animate-in fade-in slide-in-from-bottom-1 duration-300"
+                            className="text-[10px] leading-tight truncate animate-in fade-in slide-in-from-bottom-1 duration-300 flex items-center"
                             style={{ color: log.color }}
                         >
-                            <span className="opacity-40 font-mono mr-1.5">{log.timestamp}</span>
-                            <span>{log.message}</span>
+                            <span className="opacity-40 font-mono mr-1.5 shrink-0">[{log.timestamp}]</span>
+                            <span className="opacity-60 font-bold uppercase mr-1.5 text-[9px] shrink-0">{log.type}</span>
+                            <span className="truncate">{log.message}</span>
                         </div>
                     ))
                 )}
