@@ -150,14 +150,16 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Get inventory context for floating containers and selection management
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, forceRefresh } = useInventory();
-  const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack } = useCombat();
+  const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow } = useCombat();
   const { addEffect } = useVisualEffects();
   const { worldToScreen, cameraRef } = useCamera();
 
+  const { addLog } = useLog();
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [isLogHistoryOpen, setIsLogHistoryOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
+  const [windowMenu, setWindowMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, window: any } | null>(null);
   const [waterMenu, setWaterMenu] = useState<{ x: number, y: number, screenX: number, screenY: number } | null>(null);
 
   // Log tile interactions for debugging
@@ -222,8 +224,25 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       return true; // Click was handled (canceled selection)
     }
 
-    // Handle Item Targeting (Crowbar etc)
+    // Handle Item Targeting (Crowbar, Grenade etc)
     if (targetingItem) {
+      if (targetingItem.defId === 'weapon.grenade') {
+        const result = (performGrenadeThrow as any)(targetingItem, x, y);
+        if (result.success) {
+          cancelTargetingItem();
+        } else if (result.reason) {
+          addEffect({
+            type: 'damage',
+            x, y,
+            value: result.reason,
+            color: '#ef4444',
+            duration: 1000
+          });
+          // Don't cancel targeting on failure (e.g. out of range) unless it's a critical error
+        }
+        return true;
+      }
+
       const result = useBreakingToolOnDoor(x, y);
       if (!result.success) {
         // If it failed (locked door not found, etc), clear targeting as requested
@@ -302,6 +321,20 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         setDoorMenu({ x, y, screenX, screenY, door });
       } else {
         console.log('[MapInterface] Door too far for interaction');
+      }
+      return;
+    }
+
+    const window = tile.contents.find((e: any) => e.type === 'window');
+    if (window) {
+      // Check adjacency
+      const distance = Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2));
+      const isAdjacent = distance < 2.0;
+
+      if (isAdjacent) {
+        setWindowMenu({ x, y, screenX, screenY, window });
+      } else {
+        console.log('[MapInterface] Window too far for interaction');
       }
     }
   };
@@ -476,13 +509,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 refreshZombieTracking(player, newFovTiles);
 
                 // Add noise generation to attract zombies
-                const zombies = gameMap.getEntitiesByType('zombie');
-                zombies.forEach((z: any) => {
-                  const distance = Math.abs(z.x - doorMenu.x) + Math.abs(z.y - doorMenu.y);
-                  if (distance <= 8) { // Noise range of 8
-                    z.setNoiseHeard(doorMenu.x, doorMenu.y);
-                  }
-                });
+                if (gameMap.emitNoise) {
+                  gameMap.emitNoise(doorMenu.x, doorMenu.y, 8);
+                }
               } else if (doorMenu.door.isDamaged) {
                 // Show "Damaged" if the door is broken
                 addEffect({
@@ -523,16 +552,191 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             <button
               className="w-full text-left px-3 py-2 text-sm text-amber-500 hover:bg-accent focus:bg-accent transition-colors"
               onClick={() => {
-                console.log('[MapInterface] Unlock option clicked (NYI)');
+                const gameMap = gameMapRef.current;
+                const player = playerRef.current;
+                if (!gameMap || !player) return;
+
+                const playerTile = gameMap.getTile(player.x, player.y);
+                const isInside = playerTile?.terrain === 'floor';
+
+                if (!isInside) {
+                  addEffect({
+                    type: 'damage',
+                    x: doorMenu.x,
+                    y: doorMenu.y,
+                    value: 'Need key',
+                    color: '#fbbf24',
+                    duration: 1000
+                  });
+                  setDoorMenu(null);
+                  return;
+                }
+
+                // AP cost for unlocking
+                if (player.ap < 1) {
+                  addEffect({
+                    type: 'damage',
+                    x: doorMenu.x,
+                    y: doorMenu.y,
+                    value: 'Insufficient AP',
+                    color: '#ef4444',
+                    duration: 1000
+                  });
+                  setDoorMenu(null);
+                  return;
+                }
+
+                if (doorMenu.door.unlock()) {
+                  player.useAP(1);
+                  addLog('You unlock the door from the inside.', 'world');
+                  triggerMapUpdate();
+                }
                 setDoorMenu(null);
               }}
             >
-              Unlock (Locked)
+              Unlock
             </button>
           )}
           <button
             className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
             onClick={() => setDoorMenu(null)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Window Context Menu */}
+      {windowMenu && (
+        <div
+          className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32"
+          style={{ left: windowMenu.screenX, top: windowMenu.screenY }}
+          onMouseLeave={() => setWindowMenu(null)}
+        >
+          <button
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+            onClick={() => {
+              const gameMap = gameMapRef.current;
+              const player = playerRef.current;
+              if (!gameMap || !player) return;
+
+              // Check AP cost (1 AP)
+              if (player.ap < 1) {
+                addEffect({
+                  type: 'damage',
+                  x: windowMenu.x,
+                  y: windowMenu.y,
+                  value: 'Insufficient AP',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+                setWindowMenu(null);
+                return;
+              }
+
+              const success = windowMenu.window.toggle(gameMap);
+              if (success) {
+                // Consume 1 AP
+                player.useAP(1);
+                // Force map re-render
+                triggerMapUpdate();
+                // Update FOV immediately and capture new visible tiles
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+                // Refresh zombie tracking with new FOV
+                refreshZombieTracking(player, newFovTiles);
+
+                // Add noise generation to attract zombies
+                if (gameMap.emitNoise) {
+                  gameMap.emitNoise(windowMenu.x, windowMenu.y, 6); // Windows are quieter than doors
+                }
+              } else if (windowMenu.window.isBroken) {
+                // Show "Broken"
+                addEffect({
+                  type: 'damage',
+                  x: windowMenu.x,
+                  y: windowMenu.y,
+                  value: 'Broken',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+              } else if (windowMenu.window.isOpen && !success) {
+                // Blocked by occupancy
+                addEffect({
+                  type: 'damage',
+                  x: windowMenu.x,
+                  y: windowMenu.y,
+                  value: 'Occupied',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+              } else if (windowMenu.window.isLocked && !windowMenu.window.isOpen) {
+                // Show "Locked"
+                addEffect({
+                  type: 'damage',
+                  x: windowMenu.x,
+                  y: windowMenu.y,
+                  value: 'Locked',
+                  color: '#fbbf24',
+                  duration: 1000
+                });
+              }
+              setWindowMenu(null);
+            }}
+          >
+            {windowMenu.window.isOpen ? 'Close Window' : 'Open Window'}
+          </button>
+          {windowMenu.window.isLocked && !windowMenu.window.isOpen && !windowMenu.window.isBroken && (
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-amber-500 hover:bg-accent focus:bg-accent transition-colors"
+              onClick={() => {
+                const gameMap = gameMapRef.current;
+                const player = playerRef.current;
+                if (!gameMap || !player) return;
+
+                const playerTile = gameMap.getTile(player.x, player.y);
+                const isInside = playerTile?.terrain === 'floor';
+
+                if (!isInside) {
+                  addEffect({
+                    type: 'damage',
+                    x: windowMenu.x,
+                    y: windowMenu.y,
+                    value: 'Need key',
+                    color: '#fbbf24',
+                    duration: 1000
+                  });
+                  setWindowMenu(null);
+                  return;
+                }
+
+                // AP cost for unlocking
+                if (player.ap < 1) {
+                  addEffect({
+                    type: 'damage',
+                    x: windowMenu.x,
+                    y: windowMenu.y,
+                    value: 'Insufficient AP',
+                    color: '#ef4444',
+                    duration: 1000
+                  });
+                  setWindowMenu(null);
+                  return;
+                }
+
+                if (windowMenu.window.unlock()) {
+                  player.useAP(1);
+                  addLog('You unlock the window from the inside.', 'world');
+                  triggerMapUpdate();
+                }
+                setWindowMenu(null);
+              }}
+            >
+              Unlock
+            </button>
+          )}
+          <button
+            className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            onClick={() => setWindowMenu(null)}
           >
             Cancel
           </button>

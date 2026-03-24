@@ -19,6 +19,7 @@ export class Player extends Entity {
     this.maxEnergy = 25;
     this.condition = 'Normal';
     this.sickness = 0; // Turns of sickness left
+    this.isBleeding = false; // New bleeding status
     this.blocksMovement = true; // Players block other entities
 
     // Add instance tracking to detect duplicates
@@ -214,6 +215,10 @@ export class Player extends Entity {
       stat: 'condition',
       current: this.condition
     });
+    this.emitEvent('statChanged', {
+      stat: 'sickness',
+      current: this.sickness
+    });
   }
 
   /**
@@ -222,6 +227,21 @@ export class Player extends Entity {
    */
   get isSick() {
     return this.sickness > 0;
+  }
+
+  /**
+   * Set bleeding status and emit event
+   */
+  setBleeding(value) {
+    const old = this.isBleeding;
+    this.isBleeding = !!value;
+    
+    if (this.isBleeding !== old) {
+      this.emitEvent('statChanged', {
+        stat: 'isBleeding',
+        current: this.isBleeding
+      });
+    }
   }
 
   /**
@@ -260,7 +280,8 @@ export class Player extends Entity {
       energy: this.energy,
       maxEnergy: this.maxEnergy,
       condition: this.condition,
-      sickness: this.sickness
+      sickness: this.sickness,
+      isBleeding: this.isBleeding
     };
   }
 
@@ -281,6 +302,7 @@ export class Player extends Entity {
     player.maxEnergy = data.maxEnergy || 25;
     player.condition = data.condition || 'Normal';
     player.sickness = data.sickness || 0;
+    player.isBleeding = data.isBleeding || false;
     return player;
   }
 }

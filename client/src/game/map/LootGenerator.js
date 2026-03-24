@@ -225,6 +225,7 @@ export class LootGenerator {
         let hasBandageInPile = false;
         let hasAntibioticsInPile = false;
         let hasGlassInPile = false;
+        let hasBeltInPile = false;
 
         for (let i = 0; i < count; i++) {
             // Pick a weighted random item
@@ -239,11 +240,12 @@ export class LootGenerator {
             const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
             if (isFood && hasFoodInPile) continue;
 
-            // 2b. Pile limit: Max 1 stone/bandage per pile
+            // 2b. Pile limit: Max 1 stone/bandage/belt per pile
             if (randomKey === 'crafting.stone' && hasStoneInPile) continue;
             if (randomKey === 'medical.bandage' && hasBandageInPile) continue;
             if (randomKey === 'medical.antibiotics' && hasAntibioticsInPile) continue;
             if (randomKey === 'crafting.glass_shard' && hasGlassInPile) continue;
+            if (randomKey === 'crafting.leather_belt' && hasBeltInPile) continue;
 
             // Create the item instance
             const selectedItem = createItemFromDef(randomKey);
@@ -255,27 +257,10 @@ export class LootGenerator {
                 if (randomKey === 'medical.bandage') hasBandageInPile = true;
                 if (randomKey === 'medical.antibiotics') hasAntibioticsInPile = true;
                 if (randomKey === 'crafting.glass_shard') hasGlassInPile = true;
+                if (randomKey === 'crafting.leather_belt') hasBeltInPile = true;
 
-                // 3. Custom Stack Rules
-                if (isFood || randomKey === 'crafting.stone' || randomKey === 'medical.bandage' || randomKey === 'medical.antibiotics' || randomKey === 'crafting.glass_shard') {
-                    // Food/Water/Stones/Bandages/Glass: Always spawn only 1 at a time (as a single unit)
-                    selectedItem.stackCount = 1;
-                } else if (randomKey === 'ammo.9mm' || randomKey === 'ammo.357') {
-                    // 9mm/357: 1-10 rounds (override default stackMax logic)
-                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 10);
-                } else if (randomKey === 'ammo.sniper' || randomKey === 'ammo.308') {
-                    // Sniper/308: max 5 rounds
-                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 5);
-                } else if (randomKey === 'crafting.rag') {
-                    // Rags: max 2 per drop
-                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 2);
-                } else if (randomKey === 'crafting.tape' || randomKey === 'crafting.wire') {
-                    // Tape/Wire: 1-5 units
-                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 5);
-                } else if (selectedItem.traits && selectedItem.traits.includes(ItemTrait.STACKABLE)) {
-                    // General stackables: 1 to stackMax
-                    selectedItem.stackCount = 1 + Math.floor(Math.random() * (selectedItem.stackMax || 1));
-                }
+                // 3. Force No Stacks (All items drop as 1 unit)
+                selectedItem.stackCount = 1;
 
                 // 4. Weapon Condition Randomization (found in loot)
                 const isWeaponItem = (selectedItem.categories && selectedItem.categories.includes(ItemCategory.WEAPON)) || !!selectedItem.attachmentSlots;
@@ -304,29 +289,28 @@ export class LootGenerator {
                 if (randomKey === 'weapon.9mmPistol') {
                     const magData = createItemFromDef('attachment.9mm_magazine');
                     if (magData) {
-                        magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
+                        magData.ammoCount = 1;
                         selectedItem.attachments = { 'ammo': magData };
                     }
                 } else if (randomKey === 'weapon.357Pistol' || randomKey === 'weapon.hunting_rifle') {
-                    // .357 / Hunting Rifle: Load with 1-6 or 1-5 rounds
+                    // .357 / Hunting Rifle: Load with 1 round
                     const ammoType = randomKey === 'weapon.357Pistol' ? 'ammo.357' : 'ammo.308';
-                    const maxRounds = randomKey === 'weapon.357Pistol' ? 6 : 5;
                     const ammoData = createItemFromDef(ammoType);
                     if (ammoData) {
-                        ammoData.stackCount = 1 + Math.floor(Math.random() * maxRounds);
+                        ammoData.stackCount = 1;
                         selectedItem.attachments = { 'ammo': ammoData };
                     }
                 } else if (randomKey === 'weapon.sniper_rifle') {
                     const magData = createItemFromDef('attachment.sniper_magazine');
                     if (magData) {
-                        magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
+                        magData.ammoCount = 1;
                         selectedItem.attachments = { 'ammo': magData };
                     }
                 } else if (randomKey === 'tool.smallflashlight') {
-                    // Flashlight: Spawn with a battery and random charges (1-10)
+                    // Flashlight: Spawn with a battery and 1 charge
                     const battery = createItemFromDef('tool.battery');
                     if (battery) {
-                        battery.ammoCount = 1 + Math.floor(Math.random() * 10);
+                        battery.ammoCount = 1;
                         selectedItem.attachments = { 'battery': battery };
                     }
                 }
@@ -443,7 +427,7 @@ export class LootGenerator {
                         const medKey = Math.random() < 0.5 ? 'medical.bandage' : 'medical.antibiotics';
                         const med = createItemFromDef(medKey);
                         if (med) {
-                            med.stackCount = 1 + Math.floor(Math.random() * 2);
+                            med.stackCount = 1;
                             items.push(med);
                         }
                     }
@@ -469,7 +453,7 @@ export class LootGenerator {
                         const ammoKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
                         const ammo = createItemFromDef(ammoKey);
                         if (ammo) {
-                            ammo.stackCount = 5 + Math.floor(Math.random() * 10);
+                            ammo.stackCount = 1;
                             items.push(ammo);
                         }
                     }
@@ -539,6 +523,7 @@ export class LootGenerator {
         this.initItemKeys();
         const itemCount = Math.random() < 0.5 ? 1 : 2;
         const items = [];
+        let hasBeltInLoot = false;
 
         for (let i = 0; i < itemCount; i++) {
             let selectedKey = null;
@@ -601,10 +586,18 @@ export class LootGenerator {
                     selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
                 }
             }
+            
+            // Pile limit: Max 1 leather belt per zombie loot
+            if (selectedKey === 'crafting.leather_belt' && hasBeltInLoot) continue;
 
             if (selectedKey) {
                 const item = createItemFromDef(selectedKey);
                 if (item) {
+                    if (selectedKey === 'crafting.leather_belt') hasBeltInLoot = true;
+                    
+                    // Force no stacks for zombie loot
+                    item.stackCount = 1;
+
                     // Custom rules for items dropped by zombies
                     if (selectedKey === 'food.waterbottle') {
                         // Regular zombies drop small amount, firefighter drops FULL (or near full)
@@ -613,11 +606,6 @@ export class LootGenerator {
                         } else {
                             item.ammoCount = Math.floor(Math.random() * 5);
                         }
-                    } else if (selectedKey.startsWith('ammo.')) {
-                        // Ammo: 1-10 rounds (consistent with world loot)
-                        item.stackCount = 1 + Math.floor(Math.random() * 10);
-                    } else if (selectedKey === 'crafting.rag') {
-                        item.stackCount = 1 + Math.floor(Math.random() * 2);
                     } else if (item.categories && (item.categories.includes(ItemCategory.WEAPON) || item.attachmentSlots)) {
                         // Random condition for weapons (found on corpse)
                         const minCondition = 10;
@@ -629,27 +617,27 @@ export class LootGenerator {
                     if (selectedKey === 'weapon.9mmPistol') {
                         const magData = createItemFromDef('attachment.9mm_magazine');
                         if (magData) {
-                            magData.ammoCount = Math.floor(Math.random() * (magData.capacity + 1));
+                            magData.ammoCount = 1;
                             item.attachments = { 'ammo': magData };
                         }
                     } else if (selectedKey === 'weapon.357Pistol') {
                         const ammoData = createItemFromDef('ammo.357');
                         if (ammoData) {
-                            ammoData.stackCount = 1 + Math.floor(Math.random() * 6);
+                            ammoData.stackCount = 1;
                             item.attachments = { 'ammo': ammoData };
                         }
                     } else if (selectedKey === 'weapon.shotgun') {
-                        // Shotgun: 1-7 shells loaded
+                        // Shotgun: 1 shell loaded
                         const ammoData = createItemFromDef('ammo.shotgun_shells');
                         if (ammoData) {
-                            ammoData.stackCount = 1 + Math.floor(Math.random() * 7);
+                            ammoData.stackCount = 1;
                             item.attachments = { 'ammo': ammoData };
                         }
                     } else if (selectedKey === 'tool.smallflashlight') {
-                        // Flashlight from zombie: spawn with a FULL battery
+                        // Flashlight from zombie: spawn with a battery and 1 charge
                         const battery = createItemFromDef('tool.battery');
                         if (battery) {
-                            battery.ammoCount = battery.capacity || 10;
+                            battery.ammoCount = 1;
                             item.attachments = { 'battery': battery };
                         }
                     }
@@ -680,10 +668,11 @@ export class LootGenerator {
             
             const item = createItemFromDef(pickedKey);
             if (item) {
+                // Force no stacks
+                item.stackCount = 1;
+                
                 // Custom stack/property rules for specialized items
-                if (pickedKey.startsWith('ammo.')) {
-                    item.stackCount = 2 + Math.floor(Math.random() * 6);
-                } else if (pickedKey === 'food.waterbottle') {
+                if (pickedKey === 'food.waterbottle') {
                     item.ammoCount = Math.floor(Math.random() * (item.capacity + 1));
                 }
                 items.push(item);

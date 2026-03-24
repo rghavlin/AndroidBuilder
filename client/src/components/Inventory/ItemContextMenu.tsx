@@ -77,6 +77,17 @@ export function ItemContextMenu({
                                 Use
                             </ContextMenuItem>
                         )}
+                        {item?.defId === 'weapon.grenade' && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    console.log('[ItemContextMenu] Throw requested for:', item.name);
+                                    startTargetingItem(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Throw
+                            </ContextMenuItem>
+                        )}
                         {canOpenContainer(item) && (
                             <ContextMenuItem
                                 onClick={() => {

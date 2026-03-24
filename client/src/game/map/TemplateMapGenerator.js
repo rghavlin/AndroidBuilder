@@ -617,7 +617,27 @@ export class TemplateMapGenerator {
       for (let curX = startX; curX < startX + width; curX++) {
         if (layout[curY] && layout[curY][curX]) {
           const isPerimeter = (curY === y || curY === y + height - 1 || curX === startX || curX === startX + width - 1);
-          layout[curY][curX] = isPerimeter ? 'building' : 'floor';
+          const isCorner = (curY === y || curY === y + height - 1) && (curX === startX || curX === startX + width - 1);
+          
+          if (isPerimeter) {
+            // 20% chance for windows in special buildings (slightly higher)
+            if (!isCorner && Math.random() < 0.2) {
+              layout[curY][curX] = 'window';
+              if (mapData && mapData.metadata) {
+                if (!mapData.metadata.windows) mapData.metadata.windows = [];
+                mapData.metadata.windows.push({
+                  x: curX,
+                  y: curY,
+                  isLocked: Math.random() < 0.5,
+                  isOpen: false
+                });
+              }
+            } else {
+              layout[curY][curX] = 'building';
+            }
+          } else {
+            layout[curY][curX] = 'floor';
+          }
         }
       }
     }
@@ -727,7 +747,23 @@ export class TemplateMapGenerator {
               x === buildingStartX || x === buildingStartX + buildingWidth - 1);
 
             if (isPerimeter) {
-              layout[y][x] = 'building';
+              // 15% chance to be a window if not a corner
+              const isCorner = (y === currentY || y === currentY + buildingHeight - 1) && 
+                              (x === buildingStartX || x === buildingStartX + buildingWidth - 1);
+              
+              if (!isCorner && Math.random() < 0.15) {
+                layout[y][x] = 'window';
+                if (mapData && mapData.metadata) {
+                  if (!mapData.metadata.windows) mapData.metadata.windows = [];
+                  mapData.metadata.windows.push({
+                    x, y,
+                    isLocked: Math.random() < 0.7, // Windows are mostly locked
+                    isOpen: false
+                  });
+                }
+              } else {
+                layout[y][x] = 'building';
+              }
             } else {
               layout[y][x] = 'floor';
             }
@@ -1005,6 +1041,23 @@ export class TemplateMapGenerator {
           gameMap.addEntity(door, doorData.x, doorData.y);
         });
         console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors to map`);
+      }
+
+      // Instantiate window entities from metadata
+      if (templateMapData.metadata && templateMapData.metadata.windows) {
+        const { Window } = await import('../entities/Window.js');
+        templateMapData.metadata.windows.forEach(windowData => {
+          const window = new Window(
+            windowData.id || `window-${windowData.x}-${windowData.y}`,
+            windowData.x,
+            windowData.y,
+            windowData.isLocked,
+            windowData.isOpen,
+            windowData.isBroken
+          );
+          gameMap.addEntity(window, windowData.x, windowData.y);
+        });
+        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.windows.length} windows to map`);
       }
 
       // Instantiate place icons from metadata

@@ -155,12 +155,13 @@ export const CombatProvider = ({ children }) => {
             return { success: false, reason: 'Target out of range' };
         }
 
-        // 3. Find Zombie
+        // 3. Find Target (Zombie or Structure)
         const tile = gameMap.getTile(targetX, targetY);
-        const zombie = tile?.contents.find(e => e.type === 'zombie');
+        let zombie = tile?.contents.find(e => e.type === 'zombie');
+        let structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
 
-        if (!zombie) {
-            return { success: false, reason: 'No zombie at target' };
+        if (!zombie && !structure) {
+            return { success: false, reason: 'No target here' };
         }
 
         console.log(`[Combat] Attacking with ${weapon.name} (defId: ${weapon.defId})`);
@@ -174,14 +175,39 @@ export const CombatProvider = ({ children }) => {
 
         if (hit) {
             const damage = Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min;
-            console.log(`[Combat] HIT! ${weapon.name} dealt ${damage} damage to zombie ${zombie.id}`);
+            if (zombie) {
+                console.log(`[Combat] HIT! ${weapon.name} dealt ${damage} damage to zombie ${zombie.id}`);
+            } else if (structure) {
+                console.log(`[Combat] HIT! ${weapon.name} dealt ${damage} damage to structure ${structure.type}`);
+            }
 
-            zombie.takeDamage(damage);
-            addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
+            if (zombie) {
+                zombie.takeDamage(damage);
+                addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
 
-            // Acid Zombie Reactions
-            if (zombie.subtype === 'acid') {
-                triggerAcidEffect(zombie, false); // Splash
+                // Acid Zombie Reactions
+                if (zombie.subtype === 'acid') {
+                    triggerAcidEffect(zombie, false); // Splash
+                }
+            } else if (structure) {
+                if (structure.type === 'window') {
+                    structure.break();
+                    addLog(`You smash the window with your ${weapon.name}!`, 'combat');
+                    gameMap.emitNoise(targetX, targetY, 5); // Breaking glass is noisy
+                } else {
+                    // Doors take damage but don't "break" into jagged fragments like windows
+                    if (typeof structure.takeDamage === 'function') {
+                        structure.takeDamage(damage);
+                    } else {
+                        // Fallback if takeDamage not implemented on Door yet
+                        structure.hp = Math.max(0, (structure.hp || 10) - damage);
+                        if (structure.hp <= 0 && typeof structure.break === 'function') {
+                            structure.break();
+                        }
+                    }
+                    addLog(`You hit the ${structure.type} with your ${weapon.name}!`, 'combat');
+                    gameMap.emitNoise(targetX, targetY, 3);
+                }
             }
 
             // Pop-up damage
@@ -194,7 +220,7 @@ export const CombatProvider = ({ children }) => {
                 duration: 1200
             });
 
-            if (zombie.isDead()) {
+            if (zombie && zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
                 addLog('Zombie killed!', 'combat');
 
@@ -217,12 +243,12 @@ export const CombatProvider = ({ children }) => {
                 triggerMapUpdate();
                 forceRefresh(); // Trigger UI update to remove zombie icon
             } else {
-                // If hit but not dead, still trigger update to refresh HP tooltips
+                // If hit but not dead (or it was a structure), still trigger update
                 triggerMapUpdate();
                 forceRefresh();
             }
         } else {
-            console.log(`[Combat] MISS! ${weapon.name} missed zombie ${zombie.id}`);
+            console.log(`[Combat] MISS! ${weapon.name} missed its target`);
             addLog(`Player attacks: miss (${weapon.name})`, 'combat');
 
             // Pop-up miss
@@ -338,11 +364,12 @@ export const CombatProvider = ({ children }) => {
             return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
         }
 
-        // 4. Find Zombie
+        // 4. Find Target (Zombie or Structure)
         const tile = gameMap.getTile(targetX, targetY);
-        const zombie = tile?.contents.find(e => e.type === 'zombie');
+        let zombie = tile?.contents.find(e => e.type === 'zombie');
+        let structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
 
-        if (!zombie) {
+        if (!zombie && !structure) {
             return { success: false, reason: 'No target at location' };
         }
 
@@ -380,6 +407,19 @@ export const CombatProvider = ({ children }) => {
         const roll = Math.random();
         const hit = roll <= hitChance;
 
+        // 5.5 Emit Noise
+        // Suppressor check
+        const barrelSlot = weapon.attachmentSlots?.find(s => s.id === 'barrel');
+        const barrelItem = barrelSlot ? weapon.attachments[barrelSlot.id] : null;
+        const isSuppressed = barrelItem && barrelItem.categories?.includes(ItemCategory.SUPPRESSOR);
+
+        const baseNoiseRadius = stats.noiseRadius || 10;
+        const actualNoiseRadius = isSuppressed ? 3 : baseNoiseRadius;
+
+        if (gameMap.emitNoise) {
+            gameMap.emitNoise(player.x, player.y, actualNoiseRadius);
+        }
+
         // 6. Apply Results
         player.useAP(1);
 
@@ -415,14 +455,33 @@ export const CombatProvider = ({ children }) => {
             } else {
                 damage = Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
             }
-            console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to zombie ${zombie.id}`);
+            if (zombie) {
+                console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to zombie ${zombie.id}`);
+                zombie.takeDamage(damage);
+                addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
 
-            zombie.takeDamage(damage);
-            addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
-
-            // Acid Zombie Reactions
-            if (zombie.subtype === 'acid') {
-                triggerAcidEffect(zombie, false); // Splash
+                // Acid Zombie Reactions
+                if (zombie.subtype === 'acid') {
+                    triggerAcidEffect(zombie, false); // Splash
+                }
+            } else if (structure) {
+                console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to structure ${structure.type}`);
+                if (structure.type === 'window') {
+                    structure.break();
+                    addLog('The window shatters!', 'combat');
+                    gameMap.emitNoise(targetX, targetY, 5);
+                } else {
+                    if (typeof structure.takeDamage === 'function') {
+                        structure.takeDamage(damage);
+                    } else {
+                        structure.hp = Math.max(0, (structure.hp || 10) - damage);
+                        if (structure.hp <= 0 && typeof structure.break === 'function') {
+                            structure.break();
+                        }
+                    }
+                    addLog(`You hit the ${structure.type} with a gunshot!`, 'combat');
+                    gameMap.emitNoise(targetX, targetY, 3);
+                }
             }
 
             addEffect({
@@ -434,7 +493,7 @@ export const CombatProvider = ({ children }) => {
                 duration: 1200
             });
 
-            if (zombie.isDead()) {
+            if (zombie && zombie.isDead()) {
                 console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
                 addLog('Zombie killed!', 'combat');
 
@@ -457,7 +516,7 @@ export const CombatProvider = ({ children }) => {
                 triggerMapUpdate();
                 forceRefresh();
             } else {
-                // If hit but not dead, still trigger update to refresh HP tooltips
+                // If hit but not dead (or it was a structure), still trigger update
                 triggerMapUpdate();
                 forceRefresh();
             }
@@ -502,13 +561,129 @@ export const CombatProvider = ({ children }) => {
         return { success: true };
     }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect]);
 
+    const performGrenadeThrow = useCallback((item, targetX, targetY) => {
+        const player = playerRef.current;
+        const gameMap = gameMapRef.current;
+        if (!player || !gameMap) return { success: false, reason: 'System error' };
+
+        // 1. Check AP
+        if (player.ap < 1) {
+            return { success: false, reason: 'Not enough AP' };
+        }
+
+        // 2. Range Check (Max 10 tiles)
+        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
+        if (distance > 10.5) { // Small buffer for diagonal/floating point
+            return { success: false, reason: 'Target out of range (max 10)' };
+        }
+
+        // 3. Line of Sight Check
+        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, {
+            maxRange: 12
+        });
+        if (!losResult.hasLineOfSight) {
+            return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
+        }
+
+        // 4. Execution
+        console.log(`[Combat] Throwing grenade at (${targetX}, ${targetY})`);
+        player.useAP(1);
+
+        // Consume 1 grenade
+        if (item.stackCount > 1) {
+            item.stackCount--;
+        } else {
+            destroyItem(item.instanceId);
+        }
+
+        // 5. AoE Explosion Logic
+        const radius = 2;
+        const FLASH_COLOR = 'rgba(255, 255, 255, 0.8)';
+
+        addLog(`Grenade thrown at (${targetX}, ${targetY})!`, 'combat');
+
+        // Visual Flash on target and within 2 tiles
+        for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+                const tx = targetX + dx;
+                const ty = targetY + dy;
+                if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
+
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= radius + 0.1) {
+                    addEffect({
+                        type: 'tile_flash',
+                        x: tx,
+                        y: ty,
+                        color: FLASH_COLOR,
+                        duration: 600
+                    });
+                }
+            }
+        }
+
+        // Damage Entities within 2 tiles
+        const allEntities = Array.from(gameMap.entityMap.values());
+        allEntities.forEach(entity => {
+            if (entity.type !== 'player' && entity.type !== 'zombie') return;
+
+            const dist = Math.sqrt(Math.pow(entity.x - targetX, 2) + Math.pow(entity.y - targetY, 2));
+            if (dist > radius + 0.1) return;
+
+            // Damage scaling:
+            // Target (dist < 0.5): 20-30
+            // 1 tile (0.5 <= dist < 1.5): 15-20
+            // 2 tiles (1.5 <= dist < 2.5): 10-15
+            let dMin, dMax;
+            if (dist < 0.5) {
+                dMin = 20; dMax = 30;
+            } else if (dist < 1.5) {
+                dMin = 15; dMax = 20;
+            } else {
+                dMin = 10; dMax = 15;
+            }
+
+            const damage = Math.floor(Math.random() * (dMax - dMin + 1)) + dMin;
+            
+            if (typeof entity.takeDamage === 'function') {
+                entity.takeDamage(damage, { id: 'grenade', type: 'weapon' });
+
+                addEffect({
+                    type: 'damage',
+                    x: entity.x,
+                    y: entity.y,
+                    value: damage,
+                    color: '#ef4444',
+                    duration: 1500
+                });
+
+                addLog(`Explosion deals ${damage} damage to ${entity.type === 'player' ? 'you' : 'zombie'}`, 'combat');
+
+                if (entity.type === 'zombie' && entity.isDead()) {
+                    addLog('Zombie killed by grenade!', 'combat');
+                    // Loot drop logic for zombies killed by grenade
+                    if (lootGenerator && Math.random() < 0.75) {
+                        const loot = lootGenerator.generateZombieLoot(entity.subtype);
+                        if (loot?.length > 0) gameMap.addItemsToTile(entity.x, entity.y, loot);
+                    }
+                    gameMap.removeEntity(entity.id);
+                }
+            }
+        });
+
+        triggerMapUpdate();
+        forceRefresh();
+        return { success: true };
+    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator]);
+
     return (
         <CombatContext.Provider value={{
             targetingWeapon,
             toggleTargeting,
             cancelTargeting,
             performMeleeAttack,
-            performRangedAttack
+            performRangedAttack,
+            performGrenadeThrow
         }}>
             {children}
         </CombatContext.Provider>

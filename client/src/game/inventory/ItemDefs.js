@@ -341,6 +341,7 @@ export const ItemDefs = {
       { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.9mm_magazine', 'attachment.9mm_extended_magazine'] }
     ],
     rangedStats: {
+      noiseRadius: 12,
       damage: { min: 4, max: 10 },
       accuracyFalloff: 0.1,
       minAccuracy: 0.01
@@ -363,6 +364,7 @@ export const ItemDefs = {
       { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.sniper_magazine'] }
     ],
     rangedStats: {
+      noiseRadius: 22,
       damage: { min: 4, max: 20 },
       accuracyFalloff: 0.05,
       minAccuracy: 0.01
@@ -382,6 +384,7 @@ export const ItemDefs = {
       { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.357'] }
     ],
     rangedStats: {
+      noiseRadius: 15,
       damage: { min: 5, max: 12 },
       accuracyFalloff: 0.1,
       minAccuracy: 0.01
@@ -401,10 +404,24 @@ export const ItemDefs = {
       { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.308'] }
     ],
     rangedStats: {
+      noiseRadius: 18,
       damage: { min: 4, max: 15 },
       accuracyFalloff: 0.07,
       minAccuracy: 0.01
     }
+  },
+
+  'weapon.grenade': {
+    id: 'weapon.grenade',
+    name: 'Grenade',
+    description: 'A small explosive device with a 10m throw range. Area of effect damage.',
+    rarity: Rarity.RARE,
+    imageId: 'grenade',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.WEAPON],
+    stackMax: 10
   },
 
   'tool.smallflashlight': {
@@ -955,6 +972,7 @@ export const ItemDefs = {
     ],
     rangedStats: {
       isShotgun: true,
+      noiseRadius: 25,
       damage: { min: 20, max: 20 }, // Base damage at 1 square
       accuracyMaxRange: 5,
       accuracyFalloff: 0.2, // -20% per square beyond 5

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef, useState, useCallback, useEff
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
 import Logger from '../game/utils/Logger.js';
+import { useLog } from './LogContext.jsx';
 
 const logger = Logger.scope('PlayerContext');
 
@@ -15,7 +16,7 @@ export const usePlayer = () => {
       return {
         playerRef: { current: null },
         player: null,
-        playerStats: { hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal' },
+        playerStats: { hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false },
         isMoving: false,
         movementPath: [],
         movementProgress: 0,
@@ -45,11 +46,14 @@ export const PlayerProvider = ({ children }) => {
   const [playerVersion, setPlayerVersion] = useState(0);
 
   // Player state
-  const [playerStats, setPlayerStats] = useState({ hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal' });
+  const [playerStats, setPlayerStats] = useState({ hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false });
   const [isMoving, setIsMoving] = useState(false);
   const [movementPath, setMovementPath] = useState([]);
   const [movementProgress, setMovementProgress] = useState(0);
   const [playerFieldOfView, setPlayerFieldOfView] = useState(null);
+
+  // Phase 1: Access log context for hazard feedback
+  const { addLog } = useLog();
 
   // Set player ref with version bump (Phase 1 migration pattern)
   const setPlayerRef = useCallback((player) => {
@@ -82,6 +86,7 @@ export const PlayerProvider = ({ children }) => {
         energy: player.energy || 25,
         maxEnergy: player.maxEnergy || 25,
         condition: player.condition || 'Normal',
+        isBleeding: player.isBleeding || false,
         ammo: 0
       });
     } else {
@@ -372,6 +377,18 @@ export const PlayerProvider = ({ children }) => {
 
           if (moveSuccess) {
             console.log(`[PlayerContext] Player successfully moved from (${originalPosition.x}, ${originalPosition.y}) to (${finalPosition.x}, ${finalPosition.y})`);
+            
+            // Check for broken window hazards in the path
+            path.forEach((pos, idx) => {
+              if (idx === 0) return; // Skip starting tile
+              const tile = gameMap.getTile(pos.x, pos.y);
+              const window = tile?.contents.find(e => e.type === 'window' && e.isBroken);
+              if (window && !playerRef.current.isBleeding && Math.random() < 0.25) {
+                playerRef.current.setBleeding(true);
+                addLog('You cut yourself on the broken glass!', 'warning');
+                setPlayerStats(prev => ({ ...prev, isBleeding: true }));
+              }
+            });
           } else {
             console.error(`[PlayerContext] Failed to move player in GameMap`);
             // Fallback: update player position directly if GameMap move failed

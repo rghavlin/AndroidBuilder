@@ -489,6 +489,103 @@ export class ImageLoader {
   }
 
   /**
+   * Get tile image (from tiles folder)
+   * @param {string} terrainType - Type of the terrain (grass, road, etc)
+   * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
+   */
+  async getTileImage(terrainType) {
+    const imageKey = `tile_${terrainType}`;
+
+    // Return cached image if available
+    if (this.imageCache.has(imageKey)) {
+      return this.imageCache.get(imageKey);
+    }
+
+    // Return existing loading promise if already loading
+    if (this.loadingPromises.has(imageKey)) {
+      return this.loadingPromises.get(imageKey);
+    }
+
+    // Start loading the tile image
+    const loadPromise = this.loadTileImage(terrainType);
+    this.loadingPromises.set(imageKey, loadPromise);
+
+    try {
+      const image = await loadPromise;
+      this.imageCache.set(imageKey, image);
+      this.loadingPromises.delete(imageKey);
+      return image;
+    } catch (error) {
+      // Cache null result to avoid repeated failed attempts
+      console.log(`[ImageLoader] Tile image not found: ${terrainType}`);
+      this.imageCache.set(imageKey, null);
+      this.loadingPromises.delete(imageKey);
+      return null;
+    }
+  }
+
+  /**
+   * Load tile image from file system
+   * @param {string} terrainType - Type of the terrain
+   * @returns {Promise<HTMLImageElement>} - Promise that resolves to image element
+   */
+  loadTileImage(terrainType) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      // Try different file extensions
+      const extensions = ['png', 'jpg', 'jpeg', 'webp'];
+      let extensionIndex = 0;
+      let basePathIndex = 0;
+
+      // Use same path structure
+      const basePaths = [
+        '/images/tiles/',
+        './images/tiles/',
+        '../images/tiles/',
+        './client/public/images/tiles/',
+        '../client/public/images/tiles/'
+      ];
+
+      const tryNextPath = () => {
+        if (basePathIndex >= basePaths.length) {
+          reject(new Error(`No tile image found for: ${terrainType}`));
+          return;
+        }
+
+        const currentBasePath = basePaths[basePathIndex];
+        extensionIndex = 0;
+        tryNextExtension(currentBasePath);
+      };
+
+      const tryNextExtension = (currentBasePath) => {
+        if (extensionIndex >= extensions.length) {
+          basePathIndex++;
+          tryNextPath();
+          return;
+        }
+
+        const extension = extensions[extensionIndex];
+        const fullPath = `${currentBasePath}${terrainType}.${extension}`;
+
+        img.src = fullPath;
+        extensionIndex++;
+      };
+
+      img.onload = () => {
+        console.log(`[ImageLoader] Successfully loaded tile image: ${img.src}`);
+        resolve(img);
+      };
+
+      img.onerror = () => {
+        tryNextExtension(basePaths[basePathIndex]);
+      };
+
+      tryNextPath();
+    });
+  }
+
+  /**
    * Clear the image cache
    */
   clearCache() {

@@ -68,6 +68,33 @@ export class GameMap {
   }
 
   /**
+   * Emit a noise at a location that alerts nearby zombies
+   * @param {number} x - X coordinate of noise
+   * @param {number} y - Y coordinate of noise
+   * @param {number} radius - Radius in which zombies hear the noise
+   */
+  emitNoise(x, y, radius) {
+    console.log(`[GameMap] 📢 Noise emitted at (${x}, ${y}) with radius ${radius}`);
+    let alertedCount = 0;
+
+    this.getEntitiesByType('zombie').forEach(zombie => {
+      const dist = Math.sqrt(Math.pow(zombie.x - x, 2) + Math.pow(zombie.y - y, 2));
+      if (dist <= radius) {
+        if (typeof zombie.setNoiseHeard === 'function') {
+          zombie.setNoiseHeard(x, y);
+          alertedCount++;
+        }
+      }
+    });
+
+    if (alertedCount > 0) {
+      console.log(`[GameMap] 🧟 ${alertedCount} zombies alerted by noise at (${x}, ${y})`);
+    }
+
+    this.emit('noiseEmitted', { x, y, radius, alertedCount });
+  }
+
+  /**
    * Get tile at coordinates
    */
   getTile(x, y) {
@@ -532,6 +559,7 @@ export class GameMap {
     const { TestEntity } = await import('../entities/TestEntity.js');
     const { Item } = await import('../inventory/Item.js');
     const { Door } = await import('../entities/Door.js');
+    const { Window } = await import('../entities/Window.js');
 
     console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
 
@@ -583,6 +611,9 @@ export class GameMap {
                   case 'door':
                     entity = Door.fromJSON(entityData);
                     break;
+                  case 'window':
+                    entity = Window.fromJSON(entityData);
+                    break;
                   default:
                     console.warn(`[GameMap] Unknown entity type during selective restoration: ${entityType}`);
                     continue;
@@ -619,6 +650,7 @@ export class GameMap {
     const { TestEntity } = await import('../entities/TestEntity.js');
     const { Item } = await import('../inventory/Item.js');
     const { Door } = await import('../entities/Door.js');
+    const { Window } = await import('../entities/Window.js');
 
     // Restore tiles
     for (let y = 0; y < data.height; y++) {
@@ -652,6 +684,9 @@ export class GameMap {
                     break;
                   case 'door':
                     entity = Door.fromJSON(entityData);
+                    break;
+                  case 'window':
+                    entity = Window.fromJSON(entityData);
                     break;
                   default:
                     console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);

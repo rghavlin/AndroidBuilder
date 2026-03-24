@@ -15,6 +15,8 @@ interface GameControlsProps {
     maxHydration: number;
     energy: number;
     maxEnergy: number;
+    condition: string;
+    isBleeding: boolean;
   };
   gameState: {
     turn: number;
@@ -173,7 +175,12 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
 
             <div className="flex items-center gap-1 border-l border-white/10 pl-4" data-testid="stat-condition">
               <span className="text-white/60 mr-0.5 lowercase font-normal italic">Condition:</span>
-              <span className="text-white font-bold">{currentStats.condition || 'Normal'}</span>
+              <span className="text-white font-bold">
+                {[
+                  currentStats.condition !== 'Normal' ? currentStats.condition : null,
+                  currentStats.isBleeding ? 'Bleeding' : null
+                ].filter(Boolean).join(', ') || 'Normal'}
+              </span>
             </div>
           </div>
 

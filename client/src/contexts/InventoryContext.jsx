@@ -68,8 +68,16 @@ export const InventoryProvider = ({ children, manager }) => {
   const [dragVersion, setDragVersion] = useState(0); // Force re-render on selection changes
   const [selectedRecipeId, setSelectedRecipeId] = useState(CraftingRecipes[0]?.id || null);
 
-  const { playerRef } = usePlayer();
+  const { playerRef, isMoving } = usePlayer();
   const { addLog } = useLog();
+
+  // Phase 5H: Close all floating containers when the player starts moving
+  useEffect(() => {
+    if (isMoving) {
+      console.log('[InventoryContext] Player is moving, closing all floating containers');
+      setOpenContainers(new Set());
+    }
+  }, [isMoving]);
 
   useEffect(() => {
     console.log(`[InventoryProvider] MOUNT id=${__instanceId}`);
@@ -1088,8 +1096,9 @@ export const InventoryProvider = ({ children, manager }) => {
         } else if (type === 'cure') {
           playerRef.current.cure();
         } else if (type === 'stop_bleeding') {
-          // Placeholder for future bleeding mechanic
-          console.log('[InventoryContext] Applied stop_bleeding effect (flavor)');
+          playerRef.current.setBleeding(false);
+          addLog('Your bleeding stops.', 'item');
+          console.log('[InventoryContext] Applied stop_bleeding effect: bleeding cleared');
         } else {
           // Generic stat modification
           playerRef.current.modifyStat(type, resolvedValue);
@@ -1100,7 +1109,7 @@ export const InventoryProvider = ({ children, manager }) => {
     // Apply sickness if the item is spoiled
     if (item.isSpoiled) {
       console.log(`[InventoryContext] ${item.name} is spoiled! Inflicting sickness.`);
-      playerRef.current.inflictSickness(12); // Lasts for 12 turns/hours
+      playerRef.current.inflictSickness(3); // Lasts for 3 turns/hours
     }
 
     // Find the container holding this item

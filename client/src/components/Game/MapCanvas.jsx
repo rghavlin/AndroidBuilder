@@ -35,34 +35,22 @@ export default function MapCanvas({
   const nextEffectTimeRef = useRef(0);
 
 
-  // Define terrain colors
+  // Define terrain colors (Grayscale Retro Palette for fallback)
   const terrainColors = {
-    //'grass': '#4a5d23',    // Dark green
-    'grass': '#555555', //test (mid-gray ground)
-
-    //'floor': '#654321',    // Brown
-    'floor': '#888888', //test (building floor, lighter interior)
-
-    'wall': '#2c2c2c',     // Dark gray
-
-    //'road': '#404040',     // Medium dark gray
-    'road': '#333333',     //test (dark road)
-
-    //'sidewalk': '#6b7280', // Light gray
-    'sidewalk': '#777777', //test (medium sidewalk gray)
-
-    //'fence': '#8b6914',    // Brownish gray
-    'fence': '#444444', //test (dark gray-brown fence)
-
-    //'building': '#8B4513', // Reddish brown
-    'building': '#AAAAAA', //test (light gray building walls)
-
-    'water': '#4a6fa5',    //test (gray-blue water)
-
-    'sand': '#999999',     //test (lighter gray for sand, optional)
-
-    'tree': '#555555',      //test (same as ground, placeholder)
+    'grass': '#222222',    // Dark gray
+    'floor': '#666666',    // Medium gray
+    'wall': '#000000',     // Black
+    'road': '#333333',     // Dark charcoal
+    'sidewalk': '#888888', // Light-mid gray
+    'fence': '#444444',    // Darker gray
+    'building': '#AAAAAA', // Lighter gray
+    'window': '#2c3e50',   // Dark bluish gray (terrain base)
+    'water': '#1b3a57',    // Muted slate blue
+    'sand': '#cccccc',     // Light silver
+    'tree': '#111111',     // Very dark
+    'default': '#222222'
   };
+
 
   // Entity rendering function with image support
   const renderEntity = useCallback((ctx, entity, pixelX, pixelY, tileSize, currentTime = 0) => {
@@ -362,6 +350,71 @@ export default function MapCanvas({
         }
         break;
 
+      case 'window':
+        // Bluish transparent color for windows
+        const windowColor = 'rgba(52, 152, 219, 0.4)';
+        const frameColor = '#2980b9';
+        
+        ctx.strokeStyle = frameColor;
+        ctx.lineWidth = 2;
+
+        if (entity.isBroken) {
+          // Broken window: jagged jagged frame
+          ctx.beginPath();
+          const margin = tileSize / 8;
+          const left = pixelX + margin;
+          const top = pixelY + margin;
+          const right = pixelX + tileSize - margin;
+          const bottom = pixelY + tileSize - margin;
+          
+          // Jagged outline
+          ctx.moveTo(left, top);
+          ctx.lineTo(left + (right-left)*0.3, top + (bottom-top)*0.1);
+          ctx.lineTo(left + (right-left)*0.5, top - (bottom-top)*0.05);
+          ctx.lineTo(left + (right-left)*0.7, top + (bottom-top)*0.15);
+          ctx.lineTo(right, top);
+          ctx.lineTo(right - (right-left)*0.1, top + (bottom-top)*0.4);
+          ctx.lineTo(right + (right-left)*0.05, top + (bottom-top)*0.6);
+          ctx.lineTo(right, bottom);
+          ctx.lineTo(right - (right-left)*0.4, bottom - (bottom-top)*0.1);
+          ctx.lineTo(left, bottom);
+          ctx.lineTo(left + (right-left)*0.1, bottom - (bottom-top)*0.5);
+          ctx.closePath();
+          ctx.stroke();
+          
+          // Some "glass fragments" inside
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          ctx.beginPath();
+          ctx.moveTo(left + (right-left)*0.2, top + (bottom-top)*0.3);
+          ctx.lineTo(left + (right-left)*0.3, top + (bottom-top)*0.2);
+          ctx.lineTo(left + (right-left)*0.4, top + (bottom-top)*0.35);
+          ctx.fill();
+        } else if (entity.isOpen) {
+          // Open window: simple frame
+          ctx.strokeRect(
+            pixelX + tileSize / 8,
+            pixelY + tileSize / 8,
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
+          );
+        } else {
+          // Closed window: bluish square
+          ctx.fillStyle = windowColor;
+          ctx.fillRect(
+            pixelX + tileSize / 8,
+            pixelY + tileSize / 8,
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
+          );
+          ctx.strokeRect(
+            pixelX + tileSize / 8,
+            pixelY + tileSize / 8,
+            tileSize * 3 / 4,
+            tileSize * 3 / 4
+          );
+        }
+        break;
+
       default:
         // Unknown entity - gray square
         ctx.fillStyle = '#6b7280';
@@ -481,7 +534,7 @@ export default function MapCanvas({
       camera.updateViewportSize(mapWidth, mapHeight, baseTileSize);
 
       // Clear canvas - match game controls background (--card color)
-      ctx.fillStyle = 'hsl(240, 10%, 10%)'; // Same as card background
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, mapWidth, mapHeight);
 
       // Get visible tile bounds from camera and extend them to fill canvas completely
@@ -522,23 +575,21 @@ export default function MapCanvas({
             continue; // Skip rest of tile rendering
           }
 
-          // Fill tile with terrain color
-          ctx.fillStyle = terrainColors[tile.terrain] || terrainColors.default;
-          ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+          // Map Tile Rendering (with Image Load Fallback)
+          let tileImage = imageLoader.imageCache.get(`tile_${tile.terrain}`);
+          
+          if (tileImage === undefined) {
+             // Trigger load if not in cache (will re-render via frame loop when ready)
+             imageLoader.getTileImage(tile.terrain).catch(() => {});
+          }
 
-          // Add tree center for tree terrain
-          if (tile.terrain === 'tree') {
-            // Draw darker green circle for tree center
-            ctx.fillStyle = '#2d4016'; // Darker green
-            ctx.beginPath();
-            ctx.arc(
-              pixelX + tileSize / 2,
-              pixelY + tileSize / 2,
-              tileSize / 4,
-              0,
-              2 * Math.PI
-            );
-            ctx.fill();
+          if (tileImage) {
+             // Draw tile texture
+             ctx.drawImage(tileImage, pixelX, pixelY, tileSize, tileSize);
+          } else {
+             // Fill tile with solid grayscale terrain color fallback
+             ctx.fillStyle = terrainColors[tile.terrain] || terrainColors.default;
+             ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
           }
 
           // Draw tile border

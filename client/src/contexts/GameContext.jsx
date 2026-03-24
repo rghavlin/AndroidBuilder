@@ -649,8 +649,16 @@ const GameContextInner = ({ children }) => {
         player.modifyStat('hydration', -1);
 
         // HP recovery: 0.5 HP per hour if nutrition and hydration are > 0
-        if (player.nutrition > 0 && player.hydration > 0) {
+        // HP recovery: 0.5 HP per hour if healthy, nutrition and hydration are > 0
+        if (player.nutrition > 0 && player.hydration > 0 && player.condition === 'Normal' && !player.isBleeding) {
           player.heal(0.5);
+        } else if (player.condition !== 'Normal' || player.isBleeding) {
+          console.log(`[GameContext] Sleep HP regeneration cancelled due to condition: ${player.condition}${player.isBleeding ? ', Bleeding' : ''}`);
+        }
+
+        // Apply bleeding damage during sleep
+        if (player.isBleeding) {
+          player.takeDamage(1, { id: 'bleeding', type: 'status' });
         }
 
         // Advanced Turn and Progress
@@ -720,7 +728,8 @@ const GameContextInner = ({ children }) => {
           hp: player.hp,
           energy: player.energy,
           nutrition: player.nutrition,
-          hydration: player.hydration
+          hydration: player.hydration,
+          isBleeding: player.isBleeding
         });
 
         // 4. Interruption check
@@ -808,14 +817,14 @@ const GameContextInner = ({ children }) => {
     setTargetingItem(null);
   }, []);
 
-  const useBreakingToolOnDoor = useCallback((x, y) => {
+  const useBreakingToolOnStructure = useCallback((x, y) => {
     const player = playerRef.current;
     const gameMap = gameMapRef.current;
     if (!player || !gameMap || !targetingItem) return { success: false };
 
     // Guard: Prevent action with broken tool
     if (targetingItem.condition !== null && targetingItem.condition <= 0) {
-      console.warn(`[GameContext] Blocked door action with broken tool: ${targetingItem.name}`);
+      console.warn(`[GameContext] Blocked structure action with broken tool: ${targetingItem.name}`);
       if (addEffect) {
         addEffect({
           type: 'damage',
@@ -844,21 +853,28 @@ const GameContextInner = ({ children }) => {
     }
 
     const tile = gameMap.getTile(x, y);
-    const door = tile?.contents.find(e => e.type === 'door');
+    const structure = tile?.contents.find(e => e.type === 'door' || e.type === 'window');
 
-    if (!door || !door.isLocked || door.isOpen) {
-      return { success: false, reason: 'Can only use on locked doors' };
+    if (!structure) {
+      return { success: false, reason: 'No door or window' };
+    }
+
+    if (!structure.isLocked || structure.isOpen || structure.isBroken) {
+      return { success: false, reason: 'Already open or broken' };
     }
 
     if (player.ap < 2) {
       return { success: false, reason: 'Need 2 AP' };
     }
 
-    // Perform action
-    door.isLocked = false;
-    door.isOpen = true;
-    door.isDamaged = true;
-    door.updateBlocking();
+    // Perform action: Unlock and open the structure (don't break windows, just pry them open)
+    structure.isLocked = false;
+    structure.isOpen = true;
+    structure.isDamaged = true; // Use damaged flag to show it was forced
+    structure.updateBlocking();
+    
+    addLog(`You pry the ${structure.type} open with your ${targetingItem.name}.`, 'world');
+    gameMap.emitNoise(x, y, 3);
 
     player.useAP(2);
 
@@ -951,6 +967,8 @@ const GameContextInner = ({ children }) => {
       const zombies = gameMap.getEntitiesByType('zombie');
       console.log(`[GameContext] Processing ${zombies.length} zombie turns`);
 
+      let wasBleedingBefore = player.isBleeding;
+
       zombies.forEach(zombie => {
         const turnResult = ZombieAI.executeZombieTurn(
           zombie,
@@ -998,6 +1016,14 @@ const GameContextInner = ({ children }) => {
               }
             } else if (action.type === 'attack' && action.target === 'player') {
               addLog(`Zombie attacks: ${action.damage} damage`, 'combat');
+              // Check if bleeding was just inflicted (and only log once)
+              if (player.isBleeding && !wasBleedingBefore) {
+                addLog('You have started to bleed!', 'warning');
+                // Update the tracker so we don't log it again this turn if hit again
+                wasBleedingBefore = true; 
+              }
+            } else if (action.type === 'wander') {
+              console.log(`[GameContext] - Action ${index + 1}: Zombie wandered to (${action.to.x}, ${action.to.y})`);
             }
 
           });
@@ -1007,8 +1033,11 @@ const GameContextInner = ({ children }) => {
       });
 
       // Regenerate 1 HP at start of new turn phase if survival stats are sufficient (>= 5)
-      if (player.nutrition >= 5 && player.hydration >= 5) {
+      // Regen logic: 1 HP per turn if healthy, nutrition/hydration threshold met
+      if (player.nutrition >= 5 && player.hydration >= 5 && player.condition === 'Normal' && !player.isBleeding) {
         player.heal(1);
+      } else if (player.condition !== 'Normal' || player.isBleeding) {
+        console.log(`[GameContext] Turn HP regeneration cancelled due to condition: ${player.condition}${player.isBleeding ? ', Bleeding' : ''}`);
       } else {
         console.log(`[GameContext] HP regeneration skipped (threshold 5): Nutrition=${player.nutrition}, Hydration=${player.hydration}`);
       }
@@ -1020,10 +1049,17 @@ const GameContextInner = ({ children }) => {
         player.takeDamage(1, { id: 'disease', type: 'infection' });
       }
 
+      // Apply Bleeding condition penalties
+      if (player.isBleeding) {
+        console.log('[GameContext] Player is Bleeding - reducing HP by 1');
+        player.takeDamage(1, { id: 'bleeding', type: 'status' });
+        addLog('You are bleeding!', 'warning');
+      }
+
       // Reduce survival stats by 1 on end turn
-      player.nutrition = Math.max(0, player.nutrition - 1);
-      player.hydration = Math.max(0, player.hydration - 1);
-      player.energy = Math.max(0, player.energy - 1);
+      player.modifyStat('nutrition', -1);
+      player.modifyStat('hydration', -1);
+      player.modifyStat('energy', -1);
 
       // Battery consumption if flashlight left ON
       if (isFlashlightOn) {
@@ -1100,7 +1136,8 @@ const GameContextInner = ({ children }) => {
         nutrition: player.nutrition,
         hydration: player.hydration,
         energy: player.energy,
-        hp: player.hp // Ensure HP is updated
+        hp: player.hp, // Ensure HP is updated
+        isBleeding: player.isBleeding
       });
       console.log(`[GameContext] Player AP restored to: ${player.ap}`);
 
@@ -1340,7 +1377,8 @@ const GameContextInner = ({ children }) => {
     targetingItem,
     startTargetingItem,
     cancelTargetingItem,
-    useBreakingToolOnDoor,
+    useBreakingToolOnDoor: useBreakingToolOnStructure,
+    useBreakingToolOnStructure,
 
     // Phase 5A: Expose inventoryManager for InventoryProvider
     inventoryManager,
@@ -1372,7 +1410,7 @@ const GameContextInner = ({ children }) => {
     targetingItem,
     startTargetingItem,
     cancelTargetingItem,
-    useBreakingToolOnDoor,
+    useBreakingToolOnStructure,
     mapTransition,
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel

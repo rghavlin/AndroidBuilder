@@ -41,10 +41,10 @@ export class ZombieAI {
         turnResult.behaviorTriggered = 'lastSeen';
         this.executeLastSeenBehavior(zombie, gameMap, turnResult, playerCardinalPositions, lastSeenTaggedTiles);
       }
-      // 3. HeardNoise is true - Investigate noise (not implemented yet)
+      // 3. HeardNoise is true - Investigate noise
       else if (zombie.heardNoise) {
         turnResult.behaviorTriggered = 'heardNoise';
-        this.executeHeardNoiseBehavior(zombie, gameMap, turnResult);
+        this.executeHeardNoiseBehavior(zombie, gameMap, turnResult, playerCardinalPositions, lastSeenTaggedTiles);
       }
       // 4. Random wandering - Default behavior (not implemented yet)
       else {
@@ -140,7 +140,7 @@ export class ZombieAI {
     if (lastSeenTaggedTiles.has(originalTarget)) {
       console.log(`[ZombieAI] Zombie ${zombie.id} found LastSeen target (${targetX}, ${targetY}) already tagged, searching for alternative`);
 
-      const alternativeTarget = this.findAlternativeLastSeenTarget(gameMap, targetX, targetY, lastSeenTaggedTiles);
+      const alternativeTarget = this.findAlternativeInvestigationTarget(gameMap, targetX, targetY, lastSeenTaggedTiles);
       if (alternativeTarget) {
         targetX = alternativeTarget.x;
         targetY = alternativeTarget.y;
@@ -220,12 +220,35 @@ export class ZombieAI {
    * @param {Zombie} zombie - The zombie
    * @param {GameMap} gameMap - The game map
    * @param {Object} turnResult - Result object to update
+   * @param {Array} playerCardinalPositions - Evaluated cardinal positions around player
+   * @param {Set} investigationTaggedTiles - Set of tagged investigation tiles
    */
-  static executeHeardNoiseBehavior(zombie, gameMap, turnResult) {
-    const { x: targetX, y: targetY } = zombie.noiseCoords;
-    console.log(`[ZombieAI] Zombie ${zombie.id} investigating noise at (${targetX}, ${targetY})`);
+  static executeHeardNoiseBehavior(zombie, gameMap, turnResult, playerCardinalPositions = [], investigationTaggedTiles = new Set()) {
+    let targetX = zombie.noiseCoords.x;
+    let targetY = zombie.noiseCoords.y;
+    const originalTarget = `${targetX},${targetY}`;
+
+    console.log(`[ZombieAI] Zombie ${zombie.id} evaluating noise at (${targetX}, ${targetY})`);
 
     zombie.behaviorState = 'investigating';
+
+    // 1. Spreading logic: If original noise target is tagged, find alternative
+    if (investigationTaggedTiles.has(originalTarget)) {
+      const alternativeTarget = this.findAlternativeInvestigationTarget(gameMap, targetX, targetY, investigationTaggedTiles);
+      if (alternativeTarget) {
+        targetX = alternativeTarget.x;
+        targetY = alternativeTarget.y;
+        console.log(`[ZombieAI] Zombie ${zombie.id} using alternative noise target (${targetX}, ${targetY})`);
+      }
+    }
+
+    // 2. Tag the chosen target
+    const chosenTarget = `${targetX},${targetY}`;
+    investigationTaggedTiles.add(chosenTarget);
+
+    // 3. Update zombie's noise target
+    zombie.noiseCoords.x = targetX;
+    zombie.noiseCoords.y = targetY;
 
     // Move towards noise coordinates until reached or out of AP
     while (zombie.currentAP > 0) {
@@ -252,7 +275,7 @@ export class ZombieAI {
 
         // If at target point, stop and clear
         if (zombie.x === targetX && zombie.y === targetY) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} reached noise source (${targetX}, ${targetY})`);
+          console.log(`[ZombieAI] Zombie ${zombie.id} reached investigation target (${targetX}, ${targetY})`);
           zombie.clearNoiseHeard();
           break;
         }
@@ -262,12 +285,12 @@ export class ZombieAI {
           type: 'blocked',
           reason: moveResult.reason
         });
-        console.log(`[ZombieAI] Zombie ${zombie.id} blocked investigating noise: ${moveResult.reason}`);
+        console.log(`[ZombieAI] Zombie ${zombie.id} blocked investigating: ${moveResult.reason}`);
 
         // If blocked and very close to the source, maybe we give up
         const dist = Math.abs(zombie.x - targetX) + Math.abs(zombie.y - targetY);
         if (dist <= 1) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} blocked at noise source, clearing noise target`);
+          console.log(`[ZombieAI] Zombie ${zombie.id} blocked at destination, clearing target`);
           zombie.clearNoiseHeard();
         }
         break;
@@ -390,13 +413,14 @@ export class ZombieAI {
       }
 
       const blockingEntities = tile.contents.filter(entity => {
-        // Allow pathfinding to CONSIDER tiles with doors, players, or other zombies
+        // ALLOW pathfinding to CONSIDER tiles with doors, players, or other zombies
         // The actual movement will still be blocked by canMoveToTile,
-        // which allows the zombie to then trigger attack/door-break logic.
+        // which prevents overlapping but allows the AI to "plan" a path to the area.
         return entity.blocksMovement &&
           entity.id !== zombie.id &&
           entity.type !== 'door' &&
-          entity.type !== 'player';
+          entity.type !== 'player' &&
+          entity.type !== 'zombie';
       });
       return blockingEntities.length === 0;
 
@@ -689,14 +713,14 @@ export class ZombieAI {
   }
 
   /**
-   * Find an alternative LastSeen target when the original is already tagged
+   * Find an alternative investigation target (LastSeen or Noise) when the original is already tagged
    * @param {GameMap} gameMap - The game map
    * @param {number} originalX - Original target X coordinate
    * @param {number} originalY - Original target Y coordinate
-   * @param {Set} lastSeenTaggedTiles - Set of tagged LastSeen tile coordinates
+   * @param {Set} investigationTaggedTiles - Set of tagged investigation tiles
    * @returns {Object|null} - Alternative target {x, y} or null if none found
    */
-  static findAlternativeLastSeenTarget(gameMap, originalX, originalY, lastSeenTaggedTiles) {
+  static findAlternativeInvestigationTarget(gameMap, originalX, originalY, investigationTaggedTiles) {
     // Search in expanding rings around the original target
     const maxRadius = 3; // Don't search too far from original target
 
@@ -714,7 +738,7 @@ export class ZombieAI {
           const candidateKey = `${candidateX},${candidateY}`;
 
           // Skip if already tagged
-          if (lastSeenTaggedTiles.has(candidateKey)) continue;
+          if (investigationTaggedTiles.has(candidateKey)) continue;
 
           // Check if tile is valid and walkable
           const tile = gameMap.getTile(candidateX, candidateY);
@@ -726,15 +750,16 @@ export class ZombieAI {
         }
       }
 
-      // If we found valid candidates at this radius, return the first one
+      // If we found valid candidates at this radius, return a random one
       if (candidatesAtRadius.length > 0) {
-        const chosen = candidatesAtRadius[0]; // Could randomize this if desired
-        console.log(`[ZombieAI] Found alternative LastSeen target at radius ${radius}: (${chosen.x}, ${chosen.y})`);
+        const randomIndex = Math.floor(Math.random() * candidatesAtRadius.length);
+        const chosen = candidatesAtRadius[randomIndex];
+        console.log(`[ZombieAI] Found alternative investigation target at radius ${radius}: (${chosen.x}, ${chosen.y}) from ${candidatesAtRadius.length} candidates`);
         return chosen;
       }
     }
 
-    console.log(`[ZombieAI] No alternative LastSeen target found within radius ${maxRadius} of (${originalX}, ${originalY})`);
+    console.log(`[ZombieAI] No alternative investigation target found within radius ${maxRadius} of (${originalX}, ${originalY})`);
     return null;
   }
 
@@ -767,6 +792,12 @@ export class ZombieAI {
 
       if (typeof target.takeDamage === 'function') {
         target.takeDamage(damage, zombie);
+
+        // 5% chance to inflict bleeding on player
+        if (target.type === 'player' && Math.random() < 0.05) {
+          target.setBleeding(true);
+          console.log(`[ZombieAI] Zombie ${zombie.id} inflicted bleeding on player`);
+        }
       }
     }
 
