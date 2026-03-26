@@ -41,9 +41,9 @@ export class Item extends SafeEventEmitter {
     shelfLife = null,
     lifetimeTurns = null,
     ammoDefId = null,
-    rarity = null,
-    combat = null,
-    rangedStats = null
+    rangedStats = null,
+    description = null,
+    transformInto = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -100,6 +100,8 @@ export class Item extends SafeEventEmitter {
     this.equippableSlot = equippableSlot;
     this.isEquipped = isEquipped;
     this.encumbranceTier = encumbranceTier;
+    this.description = description;
+    this.transformInto = transformInto;
 
     // Container properties (single container for backpacks, etc.)
     this._containerGridData = _containerGridData || containerGrid;
@@ -903,7 +905,9 @@ export class Item extends SafeEventEmitter {
       lifetimeTurns: this.lifetimeTurns,
       rarity: this.rarity,
       combat: this.combat,
-      rangedStats: this.rangedStats
+      rangedStats: this.rangedStats,
+      description: this.description,
+      transformInto: this.transformInto
     };
 
     // Serialize Traits

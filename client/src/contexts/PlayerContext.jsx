@@ -3,6 +3,7 @@ import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
 import Logger from '../game/utils/Logger.js';
 import { useLog } from './LogContext.jsx';
+import { useAudio } from './AudioContext.jsx';
 
 const logger = Logger.scope('PlayerContext');
 
@@ -54,6 +55,7 @@ export const PlayerProvider = ({ children }) => {
 
   // Phase 1: Access log context for hazard feedback
   const { addLog } = useLog();
+  const { playSound, stopSound } = useAudio();
 
   // Set player ref with version bump (Phase 1 migration pattern)
   const setPlayerRef = useCallback((player) => {
@@ -411,6 +413,7 @@ export const PlayerProvider = ({ children }) => {
         console.log(`[PlayerContext] Player moved from (${originalPosition.x}, ${originalPosition.y}) to (${finalPosition.x}, ${finalPosition.y}), AP: ${playerRef.current.ap}`);
 
         // Finish animation
+        stopSound('Footsteps');
         setIsMoving(false);
         setMovementPath([]);
         setMovementProgress(0);
@@ -443,8 +446,9 @@ export const PlayerProvider = ({ children }) => {
 
     // Start smooth animation
     const startTime = performance.now();
+    playSound('Footsteps', { loop: true });
     smoothAnimateMovement(gameMap, camera, path, startTime, 1500, isNight, isFlashlightOn);
-  }, [smoothAnimateMovement]);
+  }, [smoothAnimateMovement, playSound]);
 
   // Calculate player render position for animation
   const playerRenderPosition = useMemo(() => {
@@ -484,6 +488,7 @@ export const PlayerProvider = ({ children }) => {
 
     // Reset movement state
     console.log('[PlayerContext] Resetting movement state...');
+    stopSound('Footsteps');
     setIsMoving(false);
     setMovementPath([]);
     setMovementProgress(0);

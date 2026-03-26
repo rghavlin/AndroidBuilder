@@ -48,6 +48,13 @@ export class ImageLoader {
     } else if (entityType === 'item' && subtype === 'ground_pile') {
       // LOOT DROP ICON: Use default.png from items folder
       return this.getItemImage('default');
+    } else if (entityType === 'item' && subtype === 'hole') {
+      // HOLE ICON: Use hole.png from items folder
+      return this.getItemImage('hole');
+    } else if (entityType === 'item' && subtype === 'cornplant') {
+      return this.getItemImage('cornplant');
+    } else if (entityType === 'item' && subtype === 'harvestablecorn') {
+      return this.getItemImage('harvestablecorn');
     }
 
     // 3. Return cached image if available

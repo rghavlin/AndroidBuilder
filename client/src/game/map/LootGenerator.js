@@ -259,8 +259,12 @@ export class LootGenerator {
                 if (randomKey === 'crafting.glass_shard') hasGlassInPile = true;
                 if (randomKey === 'crafting.leather_belt') hasBeltInPile = true;
 
-                // 3. Force No Stacks (All items drop as 1 unit)
-                selectedItem.stackCount = 1;
+                // 3. Conditional Stacks (Corn seeds drop in stacks of 2-3, others 1 unit)
+                if (selectedItem.defId === 'food.cornseeds') {
+                    selectedItem.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
+                } else {
+                    selectedItem.stackCount = 1;
+                }
 
                 // 4. Weapon Condition Randomization (found in loot)
                 const isWeaponItem = (selectedItem.categories && selectedItem.categories.includes(ItemCategory.WEAPON)) || !!selectedItem.attachmentSlots;
@@ -595,8 +599,12 @@ export class LootGenerator {
                 if (item) {
                     if (selectedKey === 'crafting.leather_belt') hasBeltInLoot = true;
                     
-                    // Force no stacks for zombie loot
-                    item.stackCount = 1;
+                    // Conditional stacks for zombie loot
+                    if (selectedKey === 'food.cornseeds') {
+                        item.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
+                    } else {
+                        item.stackCount = 1;
+                    }
 
                     // Custom rules for items dropped by zombies
                     if (selectedKey === 'food.waterbottle') {

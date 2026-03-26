@@ -376,20 +376,23 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <Menu className="h-5 w-5 text-foreground" />
         </button>
 
-        {/* Action Buttons Group (Centered) */}
-        <div className="flex gap-2 justify-center items-center flex-1">
+        {/* Action Buttons Group (Better spacing between log and slots) */}
+        <div className="flex items-center flex-1 px-2">
           <GameEventLog 
             onClick={() => {
               setIsLogHistoryOpen(prev => !prev);
               setIsInventoryExtensionOpen(false); // Close other extension
             }} 
           />
-          {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
-            <ActionSlotButton
-              key={slot}
-              slot={slot}
-            />
-          ))}
+          <div className="flex-1" /> {/* Spacer pushes buttons apart */}
+          <div className="flex gap-2 mr-2">
+            {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
+              <ActionSlotButton
+                key={slot}
+                slot={slot}
+              />
+            ))}
+          </div>
         </div>
 
         <button

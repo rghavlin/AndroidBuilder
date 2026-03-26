@@ -1,4 +1,5 @@
 import { Tile } from './Tile.js';
+import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 
 /**
  * 20x20 map container with tile management and serialization
@@ -121,18 +122,36 @@ export class GameMap {
     if (validItems.length > 0) {
       const proxyId = `ground-items-${x}-${y}`;
 
-      // Check if there is a campfire in the items to use a special icon
+      // Check if there is a hole or campfire in the items to use a special icon
       const containsCampfire = validItems.some(item =>
         item.defId === 'placeable.campfire' ||
         (typeof item.toJSON === 'function' && item.defId === 'placeable.campfire')
       );
+      const containsHole = validItems.some(item =>
+        item.defId === 'provision.hole' ||
+        (item.toJSON && item.toJSON().defId === 'provision.hole')
+      );
+      const containsCornPlant = validItems.some(item =>
+        item.defId === 'provision.corn_plant' ||
+        (item.toJSON && item.toJSON().defId === 'provision.corn_plant')
+      );
+      const containsHarvestableCorn = validItems.some(item =>
+        item.defId === 'provision.harvestable_corn' ||
+        (item.toJSON && item.toJSON().defId === 'provision.harvestable_corn')
+      );
+
+      let subtype = 'ground_pile';
+      if (containsCampfire) subtype = 'campfire';
+      else if (containsHole) subtype = 'hole';
+      else if (containsCornPlant) subtype = 'cornplant';
+      else if (containsHarvestableCorn) subtype = 'harvestablecorn';
 
       if (!this.entityMap.has(proxyId)) {
         // Create a proxy entity for visual representation
         const proxy = {
           id: proxyId,
           type: 'item',
-          subtype: containsCampfire ? 'campfire' : 'ground_pile',
+          subtype,
           x,
           y,
           blocksMovement: false,
@@ -152,7 +171,28 @@ export class GameMap {
         // Update existing proxy subtype in case items changed
         const proxy = this.entityMap.get(proxyId);
         if (proxy) {
-          proxy.subtype = containsCampfire ? 'campfire' : 'ground_pile';
+          const containsCampfire = validItems.some(item =>
+            item.defId === 'placeable.campfire' ||
+            (item.toJSON && item.toJSON().defId === 'placeable.campfire')
+          );
+          const containsHole = validItems.some(item =>
+            item.defId === 'provision.hole' ||
+            (item.toJSON && item.toJSON().defId === 'provision.hole')
+          );
+          const containsCornPlant = validItems.some(item =>
+            item.defId === 'provision.corn_plant' ||
+            (item.toJSON && item.toJSON().defId === 'provision.corn_plant')
+          );
+          const containsHarvestableCorn = validItems.some(item =>
+            item.defId === 'provision.harvestable_corn' ||
+            (item.toJSON && item.toJSON().defId === 'provision.harvestable_corn')
+          );
+
+          if (containsCampfire) proxy.subtype = 'campfire';
+          else if (containsHole) proxy.subtype = 'hole';
+          else if (containsCornPlant) proxy.subtype = 'cornplant';
+          else if (containsHarvestableCorn) proxy.subtype = 'harvestablecorn';
+          else proxy.subtype = 'ground_pile';
         }
       }
     } else {
@@ -430,7 +470,33 @@ export class GameMap {
       }
     }
 
-    if (itemExpired) return true;
+    if (itemExpired) {
+      if (itemData.transformInto) {
+        const nextDefId = itemData.transformInto;
+        const nextDef = ItemDefs[nextDefId];
+        if (nextDef) {
+          console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) transforming into ${nextDefId}`);
+          const instanceId = itemData.instanceId;
+          const x = itemData.x;
+          const y = itemData.y;
+          const rotation = itemData.rotation;
+
+          // Replace data contents with new definition
+          const newItemData = createItemFromDef(nextDefId);
+          Object.keys(itemData).forEach(key => delete itemData[key]);
+          Object.assign(itemData, newItemData);
+
+          // Restore identity and position
+          itemData.instanceId = instanceId;
+          itemData.x = x;
+          itemData.y = y;
+          itemData.rotation = rotation;
+
+          return false; // Item transformed, do not remove
+        }
+      }
+      return true;
+    }
 
     // 2. Recurse into attachments
     if (itemData.attachments) {

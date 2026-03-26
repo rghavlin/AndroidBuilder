@@ -159,6 +159,9 @@ export class ZombieAI {
     zombie.targetSightedCoords.x = targetX;
     zombie.targetSightedCoords.y = targetY;
 
+    // Track movement direction to support "momentum" behavior if target is reached but player not seen
+    let lastDirection = null;
+
     // Use all AP to move towards target coordinates (like pursuing behavior)
     while (zombie.currentAP > 0) {
       // Check if reached target
@@ -180,8 +183,13 @@ export class ZombieAI {
           // Switch to pursuing behavior for remaining AP
           this.executeCanSeePlayerBehavior(zombie, gameMap, actualPlayer, turnResult, playerCardinalPositions);
         } else {
-          // Can't see player from target location, end turn
-          console.log(`[ZombieAI] Zombie ${zombie.id} reached target but cannot see player, ending turn`);
+          // Momentum behavior: keep moving in the same direction if we have AP and momentum
+          if (lastDirection && zombie.currentAP > 0) {
+            console.log(`[ZombieAI] Zombie ${zombie.id} reached target but cannot see player, initiating momentum behavior`);
+            this.executeMomentumBehavior(zombie, gameMap, lastDirection, turnResult, playerCardinalPositions);
+          } else {
+            console.log(`[ZombieAI] Zombie ${zombie.id} reached target but cannot see player, no momentum or AP, ending turn`);
+          }
         }
         break; // Always break after reaching target
       }
@@ -189,6 +197,14 @@ export class ZombieAI {
       // Move towards target coordinates
       const moveResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
       if (moveResult.success) {
+        // Update lastDirection on successful move
+        if (moveResult.from && moveResult.to && (moveResult.from.x !== moveResult.to.x || moveResult.from.y !== moveResult.to.y)) {
+          lastDirection = {
+            x: moveResult.to.x - moveResult.from.x,
+            y: moveResult.to.y - moveResult.from.y
+          };
+        }
+
         turnResult.actions.push({
           type: moveResult.type || 'move',
           from: moveResult.from,
@@ -298,6 +314,81 @@ export class ZombieAI {
     }
 
     console.log(`[ZombieAI] Zombie ${zombie.id} noise investigation complete, remaining AP: ${zombie.currentAP}`);
+  }
+
+  /**
+   * Execute "momentum" behavior - continue moving in the last known direction
+   * when the player is no longer visible at the target location.
+   * @param {Zombie} zombie - The zombie
+   * @param {GameMap} gameMap - The game map
+   * @param {Object} direction - The direction of the last move {x, y}
+   * @param {Object} turnResult - Result object to update
+   * @param {Array} playerCardinalPositions - Evaluated cardinal positions around player
+   */
+  static executeMomentumBehavior(zombie, gameMap, direction, turnResult, playerCardinalPositions = []) {
+    console.log(`[ZombieAI] Zombie ${zombie.id} initiating momentum behavior in direction (${direction.x}, ${direction.y})`);
+
+    zombie.behaviorState = 'investigating'; // Keep investigative state until turn ends or player seen
+
+    while (zombie.currentAP > 0) {
+      const nextX = zombie.x + direction.x;
+      const nextY = zombie.y + direction.y;
+      const subtypeMult = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
+
+      // Determine movement cost for this specific move
+      const nextTile = gameMap.getTile(nextX, nextY);
+      if (!nextTile) break; // Off map
+
+      const moveDist = Pathfinding.getMovementCost(zombie.x, zombie.y, nextX, nextY, nextTile);
+      const apCost = subtypeMult * moveDist;
+
+      if (zombie.currentAP < apCost) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} momentum stopped: insufficient AP`);
+        break;
+      }
+
+      // Check if the move is valid (terrain/blocking entities)
+      if (!this.canMoveToTile(gameMap, nextX, nextY, zombie.subtype)) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} momentum stopped: path blocked at (${nextX}, ${nextY})`);
+        break;
+      }
+
+      // Check for closed doors/unbroken windows (obstacles)
+      const door = nextTile.contents.find(e => e.type === 'door' && !e.isOpen);
+      const window = nextTile.contents.find(e => e.type === 'window' && !e.isBroken);
+      if (door || window) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} momentum stopped: encountered ${door ? 'door' : 'window'}`);
+        break;
+      }
+
+      // Execute move
+      const fromPos = { x: zombie.x, y: zombie.y };
+      try {
+        gameMap.moveEntity(zombie.id, nextX, nextY);
+        zombie.useAP(apCost);
+
+        turnResult.actions.push({
+          type: 'momentum_move',
+          from: fromPos,
+          to: { x: nextX, y: nextY },
+          apCost: apCost
+        });
+
+        console.log(`[ZombieAI] Zombie ${zombie.id} momentum move to (${nextX}, ${nextY}), remaining AP: ${zombie.currentAP}`);
+
+        // Check if player is visible after the move
+        const actualPlayer = gameMap.getEntitiesByType('player')[0];
+        if (actualPlayer && zombie.canSeeEntity(gameMap, actualPlayer)) {
+          console.log(`[ZombieAI] Zombie ${zombie.id} spotted player during momentum, switching to pursuit`);
+          zombie.setTargetSighted(actualPlayer.x, actualPlayer.y);
+          this.executeCanSeePlayerBehavior(zombie, gameMap, actualPlayer, turnResult, playerCardinalPositions);
+          break; // Stop momentum loop as behavior shifted to pursuit
+        }
+      } catch (e) {
+        console.error(`[ZombieAI] Momentum move failed:`, e);
+        break;
+      }
+    }
   }
 
   /**

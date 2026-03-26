@@ -1,5 +1,6 @@
 import { Container } from './Container.js';
 import { Item } from './Item.js';
+import { ItemDefs, createItemFromDef } from './ItemDefs.js';
 import { GroundManager } from './GroundManager.js';
 import { ItemTrait, EquipmentSlot, ItemCategory, EncumbranceModifiers } from './traits.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
@@ -1686,6 +1687,36 @@ export class InventoryManager extends SafeEventEmitter {
       const isLifetimeTurnsExpired = item.lifetimeTurns !== null && item.lifetimeTurns <= 0;
 
       if (isShelfLifeExpired || isLifetimeTurnsExpired) {
+        if (item.transformInto) {
+          const newDefId = item.transformInto;
+          const newItemData = createItemFromDef(newDefId);
+          console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) transforming into ${newDefId} at (${item.x}, ${item.y}).`);
+          
+          if (container) {
+            const x = item.x;
+            const y = item.y;
+            const rotation = item.rotation;
+            container.removeItem(item.instanceId);
+            
+            const newItem = Item.fromJSON(newItemData);
+            newItem.rotation = rotation;
+            container.addItem(newItem, x, y);
+          } else {
+            // Transform in equipment slot
+            for (const slot in this.equipment) {
+              if (this.equipment[slot] === item) {
+                const newItem = Item.fromJSON(newItemData);
+                this.equipment[slot] = newItem;
+                newItem.isEquipped = true;
+                item.isEquipped = false;
+                break;
+              }
+            }
+          }
+          itemsChanged = true;
+          return true;
+        }
+
         console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired and vanished (ShelfLife: ${item.shelfLife}, Lifetime: ${item.lifetimeTurns}).`);
         if (container) {
           container.removeItem(item.instanceId);

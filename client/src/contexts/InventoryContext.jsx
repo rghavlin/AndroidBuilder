@@ -5,6 +5,7 @@ import { Item } from '../game/inventory/Item.js';
 import { CraftingRecipes } from '../game/inventory/CraftingRecipes.js';
 import { usePlayer } from './PlayerContext.jsx';
 import { useLog } from './LogContext.jsx';
+import { useAudio } from './AudioContext.jsx';
 import Logger from '../game/utils/Logger.js';
 
 const logger = Logger.scope('InventoryContext');
@@ -70,6 +71,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
   const { playerRef, isMoving } = usePlayer();
   const { addLog } = useLog();
+  const { playSound } = useAudio();
 
   // Phase 5H: Close all floating containers when the player starts moving
   useEffect(() => {
@@ -202,6 +204,8 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.equipItem(item, slot);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      console.debug('[InventoryContext] equipItem success - playing sound');
+      playSound('Equip');
       addLog(`Equipped ${item.name}`, 'item');
       setInventoryVersion(prev => prev + 1);
     }
@@ -221,6 +225,8 @@ export const InventoryProvider = ({ children, manager }) => {
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
       const itemName = result.item ? result.item.name : 'item';
+      console.debug('[InventoryContext] unequipItem success - playing sound');
+      playSound('Equip');
       addLog(`Unequipped ${itemName} from ${slot}`, 'item');
       setInventoryVersion(prev => prev + 1);
     }
@@ -515,6 +521,8 @@ export const InventoryProvider = ({ children, manager }) => {
 
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      console.debug('[InventoryContext] equipSelectedItem success - playing sound');
+      playSound('Equip');
       addLog(`Equipped ${item.name} to ${targetSlot}`, 'item');
       setSelectedItem(null);
       setDragVersion(prev => prev + 1);
@@ -541,6 +549,8 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
+      console.debug('[InventoryContext] attachSelectedItemToWeapon success - playing sound');
+      playSound('Equip');
       addLog(`Attached ${selectedItem.item.name} to ${weapon.name}`, 'item');
       // IMPORTANT: Clear selection without triggering restoration logic in clearSelected()
       setSelectedItem(null);
@@ -565,6 +575,8 @@ export const InventoryProvider = ({ children, manager }) => {
     // The actual removal happens in InventoryManager.removeItemFromSource when placed
     console.debug('[InventoryContext] Selecting attachment from weapon:', item.name, 'slot:', slotId);
     
+    console.debug('[InventoryContext] detachItemFromWeapon - playing sound');
+    playSound('Equip');
     // Use special origin category so clearing selection knows how to handle it
     selectItem(item, `weapon-mod-${weapon.instanceId}:${slotId}`, 0, 0);
     
@@ -897,6 +909,8 @@ export const InventoryProvider = ({ children, manager }) => {
 
       if (result.success) {
         if (!isCraftingWorkspace && playerRef.current) playerRef.current.useAP(1);
+        console.debug('[InventoryContext] placeSelected unequip SUCCESS - playing sound');
+        playSound('Equip');
         const itemName = result.item ? result.item.name : item.name;
         addLog(`Unequipped ${itemName} from ${slot}`, 'item');
         // Item was unequipped and placed automatically

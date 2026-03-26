@@ -4,6 +4,7 @@ import GridSlot from "./GridSlot";
 import { useGridSize } from "@/contexts/GridSizeContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
+import { useGame } from "../../contexts/GameContext.jsx";
 
 interface UniversalGridProps {
   containerId: string;
@@ -42,9 +43,11 @@ export default function UniversalGrid({
   onSlotDrop,
   "data-testid": testId,
 }: UniversalGridProps) {
+  const GAP_SIZE = 2;
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly } = useInventory();
+  const { targetingItem, digHole, plantSeed, harvestCorn } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -124,6 +127,53 @@ export default function UniversalGrid({
   const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+
+    // Case 0: Handling Targeting (e.g. Shovel Digging)
+    if (targetingItem) {
+      if (targetingItem.defId === 'weapon.shovel' && containerId === 'ground') {
+        const canDig = x <= width - 2 && y <= height - 2;
+        if (!canDig) {
+          console.warn('[UniversalGrid] Cannot dig: Too close to edge');
+          return;
+        }
+
+        // Check 2x2 area
+        let allEmpty = true;
+        for (let dy = 0; dy < 2; dy++) {
+          for (let dx = 0; dx < 2; dx++) {
+            if (grid[y + dy]?.[x + dx]) {
+              allEmpty = false;
+              break;
+            }
+          }
+          if (!allEmpty) break;
+        }
+
+        if (allEmpty) {
+          console.debug('[UniversalGrid] Digging 2x2 hole at:', x, y);
+          digHole(x, y);
+        } else {
+          console.warn('[UniversalGrid] Cannot dig: Area is occupied');
+        }
+        return;
+      }
+
+      if (targetingItem.defId === 'food.cornseeds' && containerId === 'ground') {
+        // Seeds are planted in 2x2 holes
+        const result = plantSeed(x, y);
+        if (result.success) {
+          console.debug('[UniversalGrid] Planted seeds at:', x, y);
+        }
+        return;
+      }
+    }
+
+    // Harvest logic
+    if (item?.defId === 'provision.harvestable_corn') {
+       console.debug('[UniversalGrid] Harvesting corn at:', x, y);
+       harvestCorn(item);
+       return;
+    }
 
     // Case 1: An item is already selected/carried
     if (selectedItem) {
@@ -236,6 +286,69 @@ export default function UniversalGrid({
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (targetingItem) {
+      if (targetingItem.defId === 'weapon.shovel' && containerId === 'ground') {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const screenX = event.clientX - rect.left;
+        const screenY = event.clientY - rect.top;
+        const slotWithGap = slotSize + GAP_SIZE;
+        const gridX = Math.floor(screenX / slotWithGap);
+        const gridY = Math.floor(screenY / slotWithGap);
+
+        if (gridX >= 0 && gridX <= width - 2 && gridY >= 0 && gridY <= height - 2) {
+          // Check 2x2 area
+          let allEmpty = true;
+          for (let dy = 0; dy < 2; dy++) {
+            for (let dx = 0; dx < 2; dx++) {
+              if (grid[gridY + dy]?.[gridX + dx]) {
+                allEmpty = false;
+                break;
+              }
+            }
+            if (!allEmpty) break;
+          }
+
+          setPreviewOverlay({
+            gridX,
+            gridY,
+            width: 2,
+            height: 2,
+            valid: allEmpty
+          });
+        } else {
+          setPreviewOverlay(null);
+        }
+        return;
+      }
+
+      if (targetingItem.defId === 'food.cornseeds' && containerId === 'ground') {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const screenX = event.clientX - rect.left;
+        const screenY = event.clientY - rect.top;
+        const slotWithGap = slotSize + GAP_SIZE;
+        const gridX = Math.floor(screenX / slotWithGap);
+        const gridY = Math.floor(screenY / slotWithGap);
+
+        if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height) {
+          // Valid if there is a hole at this position
+          const holeId = grid[gridY]?.[gridX];
+          const holeItem = holeId ? items.get(holeId) : null;
+          const isValid = holeItem?.defId === 'provision.hole' && holeItem.x === gridX && holeItem.y === gridY;
+
+          setPreviewOverlay({
+            gridX,
+            gridY,
+            width: 2,
+            height: 2,
+            valid: isValid
+          });
+        } else {
+          setPreviewOverlay(null);
+        }
+        return;
+      }
+    }
+
     if (!selectedItem) {
       setPreviewOverlay(null);
       return;
@@ -245,7 +358,6 @@ export default function UniversalGrid({
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    const GAP_SIZE = 2;
     const slotWithGap = slotSize + GAP_SIZE;
 
     const gridX = Math.floor(x / slotWithGap);
@@ -261,7 +373,6 @@ export default function UniversalGrid({
   };
 
   // Dynamic grid dimensions based on calculated slot size (+ gaps)
-  const GAP_SIZE = 2;
   const totalGridWidth = (width * slotSize) + ((width - 1) * GAP_SIZE);
   const totalGridHeight = (height * slotSize) + ((height - 1) * GAP_SIZE);
 

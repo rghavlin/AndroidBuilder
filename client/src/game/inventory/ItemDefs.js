@@ -216,8 +216,8 @@ export const ItemDefs = {
     categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
     condition: 100,
     combat: {
-      hitChance: 0.75,
-      damage: { min: 3, max: 10 }
+      hitChance: 0.70,
+      damage: { min: 2, max: 8 }
     }
   },
   'weapon.crowbar': {
@@ -233,7 +233,7 @@ export const ItemDefs = {
     condition: 100,
     combat: {
       hitChance: 0.70,
-      damage: { min: 3, max: 9 }
+      damage: { min: 2, max: 8 }
     }
   },
   'weapon.fire_axe': {
@@ -250,6 +250,23 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.90,
       damage: { min: 5, max: 15 }
+    }
+  },
+
+  'weapon.shovel': {
+    id: 'weapon.shovel',
+    name: 'Shovel',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'shovel',
+    width: 5,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    condition: 100,
+    combat: {
+      hitChance: 0.75,
+      damage: { min: 3, max: 9 }
     }
   },
 
@@ -781,13 +798,23 @@ export const ItemDefs = {
     rarity: Rarity.UNCOMMON,
     imageId: 'honey',
     width: 1,
-    height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
-    categories: [ItemCategory.FOOD],
     stackMax: 10,
     consumptionEffects: {
       nutrition: 4
     }
+  },
+
+  'provision.hole': {
+    id: 'provision.hole',
+    name: 'Hole',
+    rarity: Rarity.COMMON,
+    imageId: 'hole',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [],
+    noLoot: true,
+    description: "Use seeds to plant crops in the hole."
   },
   'food.mre': {
     id: 'food.mre',
@@ -817,6 +844,42 @@ export const ItemDefs = {
     consumptionEffects: {
       nutrition: 6
     }
+  },
+  'food.cornseeds': {
+    id: 'food.cornseeds',
+    name: 'Corn seeds',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'cornseeds',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 100
+  },
+  'provision.corn_plant': {
+    id: 'provision.corn_plant',
+    name: 'Corn plant',
+    rarity: Rarity.COMMON,
+    imageId: 'cornplant',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [],
+    noLoot: true,
+    lifetimeTurns: 48,
+    transformInto: 'provision.harvestable_corn'
+  },
+  'provision.harvestable_corn': {
+    id: 'provision.harvestable_corn',
+    name: 'Harvestable corn',
+    rarity: Rarity.COMMON,
+    imageId: 'harvestablecorn',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [],
+    noLoot: true,
+    description: "Ready to harvest!"
   },
   'food.corn': {
     id: 'food.corn',

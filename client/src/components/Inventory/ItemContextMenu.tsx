@@ -34,7 +34,7 @@ export function ItemContextMenu({
     tooltipContent = null
 }: ItemContextMenuProps) {
     const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater } = useInventory();
-    const { startTargetingItem } = useGame();
+    const { startTargetingItem, harvestCorn } = useGame();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
 
     // ... (rest of the component)
@@ -86,6 +86,39 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Throw
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'weapon.shovel' && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    console.log('[ItemContextMenu] Dig requested for:', item.name);
+                                    startTargetingItem(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Dig
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'food.cornseeds' && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    console.log('[ItemContextMenu] Plant requested for:', item.name);
+                                    startTargetingItem(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Plant
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'provision.harvestable_corn' && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    console.log('[ItemContextMenu] Harvest requested for:', item.name);
+                                    harvestCorn(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Harvest
                             </ContextMenuItem>
                         )}
                         {canOpenContainer(item) && (

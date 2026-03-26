@@ -12,10 +12,9 @@ import { InventoryProvider } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
+import { Item, createItemFromDef } from '../game/inventory/index.js';
 
 const logger = Logger.scope('GameContext');
-
-import '../game/inventory/index.js';
 
 // Test functions are imported via inventory system
 
@@ -829,6 +828,197 @@ const GameContextInner = ({ children }) => {
     setTargetingItem(null);
   }, []);
 
+  const digHole = useCallback((x, y) => {
+    const player = playerRef.current;
+    const gameMap = gameMapRef.current;
+    
+    // Safety guards
+    if (!player || !gameMap || !targetingItem || !inventoryManager) {
+      console.warn('[GameContext] digHole guard triggered', { 
+        hasPlayer: !!player, 
+        hasMap: !!gameMap, 
+        hasTarget: !!targetingItem, 
+        hasInv: !!inventoryManager 
+      });
+      return { success: false };
+    }
+
+    if (targetingItem.defId !== 'weapon.shovel') {
+      return { success: false, reason: 'Requires shovel' };
+    }
+
+    // Cost 5AP
+    if (player.ap < 5) {
+      addLog("Not enough AP to dig (requires 5)", "warning");
+      return { success: false, reason: 'Need 5 AP' };
+    }
+
+    // Get the ground container for the tile we are targeting
+    if (!inventoryManager.groundContainer) {
+      console.error('[GameContext] No ground container found in InventoryManager');
+      return { success: false };
+    }
+
+
+    // Create hole item
+    const itemData = createItemFromDef('provision.hole');
+    const holeItem = Item.fromJSON(itemData);
+    
+    // Add to ground container
+    const success = inventoryManager.groundContainer.addItem(holeItem, x, y);
+    
+    if (!success) {
+      addLog("Could not dig here - ground is too cluttered", "system");
+      return { success: false, reason: 'Grid placement failed' }; // Keep original return type
+    }
+
+    // Ensure the hole persists to the map tile proxy immediately for visual representation
+    if (inventoryManager && player && gameMap) {
+      inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMap);
+    }
+
+    // Deduct AP
+    const DIG_AP_COST = 5; // Define the constant here or ensure it's imported
+    const newAp = Math.max(0, player.ap - DIG_AP_COST);
+    player.useAP(DIG_AP_COST); // Keep original player.useAP call
+    updatePlayerStats({ ap: newAp }); // Use updatePlayerStats for consistency
+    
+    addLog("You dig a hole in the ground.", "world");
+    gameMap.emitNoise(player.x, player.y, 5);
+    
+    if (addEffect) {
+      addEffect({
+        type: 'tile_flash',
+        x: player.x,
+        y: player.y,
+        color: 'rgba(139, 115, 85, 0.4)',
+        duration: 300
+      });
+    }
+
+    // Degrade shovel
+    if (targetingItem.hasTrait('degradable')) {
+      targetingItem.degrade(2);
+      if (targetingItem.condition <= 0) {
+        addLog(`Your ${targetingItem.name} broke!`, 'warning');
+        inventoryManager.destroyItem(targetingItem.instanceId);
+        setTargetingItem(null);
+      }
+    }
+
+    // Clear targeting after success
+    setTargetingItem(null);
+    
+    // Trigger map update
+    if (triggerMapUpdate) triggerMapUpdate();
+    
+    return { success: true, item: holeItem };
+  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, addLog, addEffect, triggerMapUpdate]);
+
+  const plantSeed = useCallback((x, y) => {
+    const player = playerRef.current;
+    
+    if (!player || !targetingItem || !inventoryManager) return { success: false };
+
+    if (player.ap < 1) {
+      addLog("Not enough AP to plant (requires 1)", "warning");
+      return { success: false, reason: 'Need 1 AP' };
+    }
+
+    const ground = inventoryManager.groundContainer;
+    // Find the hole at this position
+    const hole = ground.getAllItems().find(i => 
+      i.defId === 'provision.hole' && i.x === x && i.y === y
+    );
+
+    if (!hole) {
+      addLog("Must plant in a hole!", "warning");
+      return { success: false, reason: 'No hole' };
+    }
+
+    // Replace hole with corn plant
+    ground.removeItem(hole.instanceId);
+    const plantData = createItemFromDef('provision.corn_plant');
+    const plantItem = Item.fromJSON(plantData);
+    const success = ground.addItem(plantItem, x, y);
+
+    if (success) {
+      console.log(`[GameContext] Planting success: ${plantItem.name} (${plantItem.instanceId}), imageId: ${plantItem.imageId}`);
+      player.modifyStat('ap', -1);
+      
+      // Consume 1 seed (handle stacks)
+      if (targetingItem.stackCount > 1) {
+        targetingItem.stackCount -= 1;
+      } else {
+        // Remove the seed item from its container
+        const seedContainer = targetingItem._container;
+        if (seedContainer) {
+          seedContainer.removeItem(targetingItem.instanceId);
+        }
+        setTargetingItem(null);
+      }
+      
+      addLog("You plant the corn seeds.", "info");
+      updatePlayerStats({ ap: player.ap });
+
+      // Trigger sync and refresh
+      if (inventoryManager) {
+        if (player && gameMapRef.current) {
+          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
+        }
+        inventoryManager.emit('inventoryChanged');
+      }
+
+      if (triggerMapUpdate) triggerMapUpdate();
+      return { success: true };
+    }
+
+    return { success: false };
+  }, [playerRef, targetingItem, inventoryManager, addLog, updatePlayerStats, triggerMapUpdate]);
+
+  const harvestCorn = useCallback((plantItem) => {
+    const player = playerRef.current;
+    if (!player || !inventoryManager) return;
+
+    const ground = inventoryManager.groundContainer;
+    const x = plantItem.x;
+    const y = plantItem.y;
+
+    // Remove plant
+    ground.removeItem(plantItem.instanceId);
+
+    // Generate 4-7 corn
+    const count = 4 + Math.floor(Math.random() * 4);
+    const cornData = createItemFromDef('food.corn');
+    const cornItem = Item.fromJSON(cornData);
+    cornItem.stackCount = count;
+
+    // Add to ground at same position
+    const success = ground.addItem(cornItem, x, y);
+    
+    if (success) {
+      addLog(`You harvest ${count} ears of corn.`, "info");
+      if (inventoryManager) {
+        if (player && gameMapRef.current) {
+          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
+        }
+        inventoryManager.emit('inventoryChanged');
+      }
+      if (triggerMapUpdate) triggerMapUpdate();
+    } else {
+      // Fallback: try adding anywhere in ground
+      ground.addItem(cornItem);
+      addLog(`You harvest ${count} ears of corn.`, "info");
+      if (inventoryManager) {
+        if (player && gameMapRef.current) {
+          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
+        }
+        inventoryManager.emit('inventoryChanged');
+      }
+      if (triggerMapUpdate) triggerMapUpdate();
+    }
+  }, [playerRef, inventoryManager, addLog, triggerMapUpdate]);
+
   const useBreakingToolOnStructure = useCallback((x, y) => {
     const player = playerRef.current;
     const gameMap = gameMapRef.current;
@@ -1389,7 +1579,9 @@ const GameContextInner = ({ children }) => {
     targetingItem,
     startTargetingItem,
     cancelTargetingItem,
-    useBreakingToolOnDoor: useBreakingToolOnStructure,
+    digHole,
+    plantSeed,
+    harvestCorn,
     useBreakingToolOnStructure,
 
     // Phase 5A: Expose inventoryManager for InventoryProvider
@@ -1422,6 +1614,9 @@ const GameContextInner = ({ children }) => {
     targetingItem,
     startTargetingItem,
     cancelTargetingItem,
+    digHole,
+    plantSeed,
+    harvestCorn,
     useBreakingToolOnStructure,
     mapTransition,
     handleMapTransitionConfirmWrapper,
