@@ -7,7 +7,8 @@ class AudioManager {
     this.id = Math.random().toString(36).substr(2, 9);
     console.debug(`[AudioManager] New instance created: ${this.id}`);
     this.sounds = new Map();
-    this.masterVolume = 0.5;
+    this.soundDefaults = new Map(); // Store default volume per sound
+    this.masterVolume = 1.0;
     this.isMuted = false;
   }
 
@@ -15,9 +16,13 @@ class AudioManager {
    * Load a sound and cache it
    * @param {string} name - Internal name for the sound
    * @param {string} path - URL path to the audio file
+   * @param {number} defaultVolume - Base volume modifier for this specific sound (0.0 to 1.0)
    * @returns {Promise<HTMLAudioElement>}
    */
-  async loadSound(name, path) {
+  async loadSound(name, path, defaultVolume = 1.0) {
+    if (defaultVolume !== undefined) {
+      this.soundDefaults.set(name, Math.max(0, Math.min(1, defaultVolume)));
+    }
     if (this.sounds.has(name)) return this.sounds.get(name);
 
     return new Promise((resolve, reject) => {
@@ -74,7 +79,8 @@ class AudioManager {
       return;
     }
 
-    const { loop = false, volume = 1.0, playbackRate = 1.0 } = options;
+    const baseVolume = this.soundDefaults.get(name) || 1.0;
+    const { loop = false, volume = baseVolume, playbackRate = 1.0 } = options;
 
     console.debug(`[AudioManager] Playing sound: ${name} (loop: ${loop}, volume: ${volume})`);
 
@@ -130,9 +136,10 @@ class AudioManager {
   setVolume(volume) {
     this.masterVolume = Math.max(0, Math.min(1, volume));
     // Update currently playing sounds
-    this.sounds.forEach(audio => {
+    this.sounds.forEach((audio, name) => {
       if (!audio.paused) {
-        audio.volume = this.masterVolume;
+        const base = this.soundDefaults.get(name) || 1.0;
+        audio.volume = base * this.masterVolume;
       }
     });
   }

@@ -811,6 +811,18 @@ export class InventoryManager extends SafeEventEmitter {
             else if (removed.equipment) { this.equipment[removed.equipment] = surplus; surplus.isEquipped = true; }
           }
         }
+        
+        // Load the full stack (or split portion) into the weapon
+        const success = weapon.attachItem(slotId, item);
+        if (success) {
+          this.emit('inventoryChanged');
+          return { success: true };
+        } else {
+          // Restore if somehow failed
+          if (removed.container) removed.container.addItem(item, removed.x, removed.y, item.rotation);
+          else if (removed.equipment) { this.equipment[removed.equipment] = item; item.isEquipped = true; }
+          return { success: false, reason: 'Failed to attach ammo' };
+        }
       }
     }
 

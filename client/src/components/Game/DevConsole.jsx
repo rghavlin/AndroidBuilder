@@ -1854,6 +1854,30 @@ const DevConsole = ({ isOpen, onClose }) => {
             </div>
 
             <div className="mt-8 space-y-4">
+              {/* General Cheats */}
+              <div className="flex flex-wrap gap-2 p-2 border border-yellow-500/30 rounded bg-yellow-500/5">
+                <div className="w-full text-xs font-bold text-yellow-500 mb-1 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                  GENERAL CHEATS
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (playerRef.current) {
+                      playerRef.current.setStat('maxAp', 100);
+                      playerRef.current.setStat('ap', 100);
+                      addToConsole('Player AP and Max AP set to 100', 'success');
+                    } else {
+                      addToConsole('Player not available', 'error');
+                    }
+                  }}
+                  className="bg-yellow-900/20 border-yellow-500/50 hover:bg-yellow-900/40 text-xs h-7 font-bold"
+                >
+                  AP
+                </Button>
+              </div>
+
               {/* Phase 7: Container Restrictions Demo */}
               <div className="flex flex-wrap gap-2 p-2 border border-blue-500/30 rounded bg-blue-500/5">
                 <div className="w-full text-xs font-bold text-blue-400 mb-1 flex items-center gap-2">

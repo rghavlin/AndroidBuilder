@@ -124,8 +124,17 @@ export class PlayerZombieTracker {
         let lastSeenPos;
 
         if (playerMovement && playerMovement.to) {
-          // Player moved — chase where they went, not where they were
+          // Player moved — chase where they went
           lastSeenPos = playerMovement.to;
+          
+          // Check if the player just entered a building through a door/window
+          const toTile = gameMap.getTile(playerMovement.to.x, playerMovement.to.y);
+          const hasDoor = toTile?.contents.some(e => e.type === 'door');
+          const hasWindow = toTile?.contents.some(e => e.type === 'window');
+
+          if (hasDoor || hasWindow) {
+             console.log(`[PlayerZombieTracker] Zombie ${zombieId} tracking player through ${hasDoor ? 'door' : 'window'} at (${lastSeenPos.x}, ${lastSeenPos.y})`);
+          }
         } else {
           // No movement data available, use last stored position
           lastSeenPos = lastPlayerPos;

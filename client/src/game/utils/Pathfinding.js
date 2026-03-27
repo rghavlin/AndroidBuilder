@@ -111,7 +111,7 @@ export class Pathfinding {
           continue;
         }
 
-        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile);
+        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, options);
 
         // Check if this neighbor is already in open set
         const existingNode = openSetMap.get(neighborKey);
@@ -152,7 +152,7 @@ export class Pathfinding {
     let baseCost = 0;
     for (let i = 1; i < path.length; i++) {
         const nextTile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
-        const cost = this.getMovementCost(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y, nextTile);
+        const cost = this.getMovementCost(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y, nextTile, entity);
         baseCost += cost;
     }
 
@@ -227,7 +227,7 @@ export class Pathfinding {
           continue;
         }
 
-        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile);
+        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, options);
         const totalCost = current.cost + moveCost;
 
         if (totalCost <= maxCost && !visited.has(`${neighbor.x},${neighbor.y}`)) {
@@ -251,7 +251,7 @@ export class Pathfinding {
   /**
    * Get movement cost between two adjacent tiles
    */
-  static getMovementCost(x1, y1, x2, y2, targetTile = null) {
+  static getMovementCost(x1, y1, x2, y2, targetTile = null, options = {}) {
     const dx = Math.abs(x1 - x2);
     const dy = Math.abs(y1 - y2);
 
@@ -262,10 +262,13 @@ export class Pathfinding {
       baseCost = 1.4;
     }
 
-    // Windows cost 1 additional AP
+    // Windows cost additional AP
     if (targetTile && targetTile.contents && Array.isArray(targetTile.contents)) {
       if (targetTile.contents.some(e => e.type === 'window')) {
-        baseCost += 1;
+        // Zombies (options.isZombie) pay 3 extra (making cardinal cost 4)
+        // Others pay 1 extra
+        const windowCost = options?.isZombie ? 3 : 1;
+        baseCost += windowCost;
       }
     }
 

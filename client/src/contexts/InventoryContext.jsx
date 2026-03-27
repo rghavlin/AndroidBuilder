@@ -397,6 +397,7 @@ export const InventoryProvider = ({ children, manager }) => {
       originalRotation: item.rotation || 0, // Store for restoration if placement fails
       isEquipment // NEW: flag for equipment slot selection
     });
+    playSound('Click');
     setDragVersion(prev => prev + 1);
     return true;
   }, []);
@@ -470,6 +471,7 @@ export const InventoryProvider = ({ children, manager }) => {
           // Restore original rotation
           item.rotation = originalRotation;
           originContainer.placeItemAt(item, originX, originY);
+          playSound('Click');
           setInventoryVersion(prev => prev + 1);
         }
       }
@@ -911,6 +913,7 @@ export const InventoryProvider = ({ children, manager }) => {
         if (!isCraftingWorkspace && playerRef.current) playerRef.current.useAP(1);
         console.debug('[InventoryContext] placeSelected unequip SUCCESS - playing sound');
         playSound('Equip');
+        playSound('Click');
         const itemName = result.item ? result.item.name : item.name;
         addLog(`Unequipped ${itemName} from ${slot}`, 'item');
         // Item was unequipped and placed automatically
@@ -977,6 +980,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
         if (item.stackCount === 0) {
           // Fully consumed
+          playSound('Click');
           setSelectedItem(null);
           setDragVersion(prev => prev + 1);
           setInventoryVersion(prev => prev + 1);
@@ -990,6 +994,7 @@ export const InventoryProvider = ({ children, manager }) => {
             originContainer.placeItemAt(item, originalX, originalY);
           }
 
+          playSound('Click');
           setSelectedItem(null);
           setDragVersion(prev => prev + 1);
           setInventoryVersion(prev => prev + 1);
@@ -1010,6 +1015,7 @@ export const InventoryProvider = ({ children, manager }) => {
         originContainer.placeItemAt(item, originalX, originalY);
       }
 
+      playSound('Click');
       setSelectedItem(null);
       setDragVersion(prev => prev + 1);
       setInventoryVersion(prev => prev + 1);
@@ -1032,6 +1038,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     console.debug('[InventoryContext] Successfully placed item:', item.name);
+    playSound('Click');
     setSelectedItem(null);
     setDragVersion(prev => prev + 1);
     setInventoryVersion(prev => prev + 1);

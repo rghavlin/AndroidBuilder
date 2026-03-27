@@ -56,6 +56,7 @@ export class Zombie extends Entity {
     // Current behavior state
     this.behaviorState = 'idle'; // 'idle', 'pursuing', 'investigating', 'wandering'
     this.isActive = false; // Whether it's this zombie's turn
+    this.isAlerted = false; // Persistent flag for "spotted player" sound trigger
   }
 
   /**
@@ -258,7 +259,8 @@ export class Zombie extends Entity {
       currentAP: this.currentAP,
       sightRange: this.sightRange,
       behaviorState: this.behaviorState,
-      isActive: this.isActive
+      isActive: this.isActive,
+      isAlerted: this.isAlerted
     };
   }
 
@@ -276,6 +278,7 @@ export class Zombie extends Entity {
     zombie.sightRange = data.sightRange || 18;
     zombie.behaviorState = data.behaviorState || 'idle';
     zombie.isActive = data.isActive || false;
+    zombie.isAlerted = data.isAlerted || false;
     return zombie;
   }
 }

@@ -798,6 +798,9 @@ export const ItemDefs = {
     rarity: Rarity.UNCOMMON,
     imageId: 'honey',
     width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
     stackMax: 10,
     consumptionEffects: {
       nutrition: 4

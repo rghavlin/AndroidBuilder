@@ -24,10 +24,19 @@ export const AudioProvider = ({ children }) => {
     const preloadSounds = async () => {
       console.log(`[AudioContext] 🎵 Preloading sounds into #${audioManager.id}...`);
       try {
-        await Promise.all([
-          audioManager.loadSound('Footsteps', '/sounds/Footsteps.ogg'),
-          audioManager.loadSound('Equip', '/sounds/equip.ogg'),
-        ]);
+        const sounds = [
+          { name: 'Footsteps', url: '/sounds/Footsteps.ogg', volume: 1.0 },
+          { name: 'Equip', url: '/sounds/equip.ogg', volume: 0.2 },
+          { name: 'Zombie1', url: '/sounds/zombie1.ogg', volume: 0.5 },
+          { name: 'Click', url: '/sounds/click.ogg', volume: 0.15 },
+          { name: 'OpenDoor', url: '/sounds/opendoor.ogg', volume: 0.6 },
+          { name: 'CloseDoor', url: '/sounds/closedoor.ogg', volume: 0.6 },
+          { name: 'ForceOpen', url: '/sounds/forceopen.ogg', volume: 0.7 },
+          { name: 'GlassBreak', url: '/sounds/glassbreak.ogg', volume: 0.6 }
+        ];
+        await Promise.all(
+          sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))
+        );
         console.log('[AudioContext] Initial sounds preloaded successfully');
         soundsLoadedRef.current = true;
       } catch (err) {

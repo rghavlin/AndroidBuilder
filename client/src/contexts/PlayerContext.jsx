@@ -328,6 +328,22 @@ export const PlayerProvider = ({ children }) => {
           });
           setPlayerFieldOfView(fovResult.visibleTiles);
 
+          // Real-time Zombie detection logic
+          const zombies = gameMap.getEntitiesByType('zombie');
+          zombies.forEach(z => {
+            // Check if this zombie can see the smooth position of the player
+            const canSee = z.canSeeEntity(gameMap, smoothPlayer);
+            
+            if (canSee && !z.isAlerted) {
+              z.isAlerted = true;
+              playSound('Zombie1');
+              console.log(`[PlayerContext] Zombie ${z.id} spotted player at (${smoothPlayer.x}, ${smoothPlayer.y})!`);
+            } else if (!canSee && z.isAlerted) {
+              // Reset if sight is lost during movement
+              z.isAlerted = false;
+            }
+          });
+
           // Mark tiles as explored during animation for smooth uncovering
           if (fovResult.visibleTiles) {
             fovResult.visibleTiles.forEach(pos => {

@@ -10,7 +10,7 @@ export class Camera {
 
     // Zoom settings
     this.zoomLevel = 1.0;
-    this.minZoom = 0.5;  // 50% of starting point
+    this.minZoom = 0.425; // 15% more zoom out than 0.5 (relative to 1.0)
     this.maxZoom = 1.2;  // 20% larger than starting point
 
     // Camera position in world coordinates

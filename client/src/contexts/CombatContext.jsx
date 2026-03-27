@@ -5,6 +5,7 @@ import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { useGame } from './GameContext.jsx';
 import { useInventory } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
+import { useAudio } from './AudioContext.jsx';
 import { ItemDefs } from '../game/inventory/ItemDefs.js';
 
 import { ItemCategory } from '../game/inventory/traits.js';
@@ -27,6 +28,7 @@ export const CombatProvider = ({ children }) => {
     const { addEffect } = useVisualEffects();
     const { forceRefresh, inventoryRef, destroyItem } = useInventory();
     const { addLog } = useLog();
+    const { playSound } = useAudio();
 
     const toggleTargeting = useCallback((weapon, slot) => {
         setTargetingWeapon(prev => {
@@ -192,6 +194,7 @@ export const CombatProvider = ({ children }) => {
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
+                    playSound('GlassBreak');
                     addLog(`You smash the window with your ${weapon.name}!`, 'combat');
                     
                     // Unarmed penalty: bleeding
@@ -478,6 +481,7 @@ export const CombatProvider = ({ children }) => {
                 console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to structure ${structure.type}`);
                 if (structure.type === 'window') {
                     structure.break();
+                    playSound('GlassBreak');
                     addLog('The window shatters!', 'combat');
                     gameMap.emitNoise(targetX, targetY, 5);
                 } else {

@@ -13,6 +13,7 @@ import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
 import { Item, createItemFromDef } from '../game/inventory/index.js';
+import { useAudio } from './AudioContext.jsx';
 
 const logger = Logger.scope('GameContext');
 
@@ -58,6 +59,7 @@ const GameContextInner = ({ children }) => {
   const { cameraRef, camera, setCamera, setCameraWorldBounds } = useCamera();
   const { addEffect } = useVisualEffects();
   const { addLog, clearLogs } = useLog();
+  const { playSound } = useAudio();
 
 
   // Phase 5A: Store inventoryManager from initialization
@@ -727,6 +729,13 @@ const GameContextInner = ({ children }) => {
                 }
                 addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
                 addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
+              } else if (action.type === 'attackWindow' && action.windowPos) {
+                playSound('GlassBreak');
+                addLog('Zombie smashes a window!', 'combat');
+                if (addEffect) {
+                  addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
+                  addEffect({ type: 'tile_flash', x: action.windowPos.x, y: action.windowPos.y, color: 'rgba(255, 255, 255, 0.6)', duration: 400 });
+                }
               } else if (action.type === 'attack' && action.target === 'player') {
                 addLog(`Zombie attacks: ${action.damage} damage`, 'combat');
               }
@@ -1075,6 +1084,9 @@ const GameContextInner = ({ children }) => {
     structure.isDamaged = true; // Use damaged flag to show it was forced
     structure.updateBlocking();
     
+    // Play sound (prying a structure usually sounds like opening it forcibly)
+    playSound('ForceOpen');
+    
     addLog(`You pry the ${structure.type} open with your ${targetingItem.name}.`, 'world');
     gameMap.emitNoise(x, y, 3);
 
@@ -1214,6 +1226,27 @@ const GameContextInner = ({ children }) => {
                   y: action.doorPos.y,
                   color: 'rgba(139, 115, 85, 0.4)', // Door color
                   duration: 300
+                });
+              }
+            } else if (action.type === 'attackWindow' && action.windowPos) {
+              playSound('GlassBreak');
+              addLog('Zombie smashes a window!', 'combat');
+              
+              if (addEffect) {
+                addEffect({
+                  type: 'damage',
+                  x: action.windowPos.x,
+                  y: action.windowPos.y,
+                  value: 'SMASH',
+                  color: '#ffffff',
+                  duration: 1000
+                });
+                addEffect({
+                  type: 'tile_flash',
+                  x: action.windowPos.x,
+                  y: action.windowPos.y,
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  duration: 400
                 });
               }
             } else if (action.type === 'attack' && action.target === 'player') {

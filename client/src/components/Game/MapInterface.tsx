@@ -17,6 +17,7 @@ import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { ZombieTooltip } from './ZombieTooltip';
 import { useLog } from '../../contexts/LogContext.jsx';
+import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
 import LogHistoryWindow from './LogHistoryWindow';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
@@ -143,7 +144,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     initializeGame,
     targetingItem,
     cancelTargetingItem,
-    useBreakingToolOnDoor,
+    useBreakingToolOnStructure,
     isNight,
     isFlashlightOn
   } = useGame();
@@ -153,6 +154,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow } = useCombat();
   const { addEffect } = useVisualEffects();
   const { worldToScreen, cameraRef } = useCamera();
+  const { playSound } = useAudio();
 
   const { addLog } = useLog();
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
@@ -257,7 +259,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         return true;
       }
 
-      const result = useBreakingToolOnDoor(x, y);
+      const result = useBreakingToolOnStructure(x, y);
       if (!result.success) {
         // If it failed (locked door not found, etc), clear targeting as requested
         cancelTargetingItem();
@@ -514,8 +516,16 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 return;
               }
 
+              const wasOpen = doorMenu.door.isOpen;
               const success = doorMenu.door.toggle(gameMap);
               if (success) {
+                // Play sound based on new state
+                if (doorMenu.door.isOpen) {
+                  playSound('OpenDoor');
+                } else {
+                  playSound('CloseDoor');
+                }
+
                 // Consume 1 AP
                 player.useAP(1);
                 // Force map re-render
