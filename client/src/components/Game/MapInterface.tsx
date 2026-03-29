@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
@@ -32,7 +32,7 @@ interface MapInterfaceProps {
 }
 
 // Action Button Component
-const ActionSlotButton = ({ slot }: { slot: string }) => {
+const ActionSlotButton = ({ slot, isFlashlightOnActual }: { slot: string, isFlashlightOnActual: boolean }) => {
   const { inventoryRef, inventoryVersion } = useInventory();
   const { targetingWeapon, toggleTargeting } = useCombat();
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -50,9 +50,9 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
   } : null;
 
   const item = equippedItem || unarmedItem;
-  const { isFlashlightOn, toggleFlashlight } = useGame();
+  const { toggleFlashlight } = useGame();
   const isTargeting = targetingWeapon?.item.instanceId === item?.instanceId;
-  const isFlashlightActive = slot === 'flashlight' && isFlashlightOn;
+  const isFlashlightActive = slot === 'flashlight' && isFlashlightOnActual;
 
   // Load image when item changes
   useEffect(() => {
@@ -133,10 +133,6 @@ const ActionSlotButton = ({ slot }: { slot: string }) => {
 };
 
 export default function MapInterface({ gameState }: MapInterfaceProps) {
-  // Phase 1: Direct sub-context access
-  const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
-  const { playerRef, updatePlayerFieldOfView, isMoving: isAnimatingMovement } = usePlayer();
-
   // Phase 4: Only use orchestration functions from GameContext
   const {
     isInitialized,
@@ -147,17 +143,84 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     useBreakingToolOnStructure,
     isNight,
     isFlashlightOn,
+    setIsFlashlightOn,
     checkZombieAwareness
   } = useGame();
 
+  // Phase 1: Direct sub-context access 
+  const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
+  const { playerRef, updatePlayerFieldOfView, isMoving: isAnimatingMovement } = usePlayer();
+
   // Get inventory context for floating containers and selection management
-  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, forceRefresh } = useInventory();
+  // MUST BE DECLARED BEFORE isFlashlightOnActual
+  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, inventoryVersion, forceRefresh } = useInventory();
   const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow } = useCombat();
   const { addEffect } = useVisualEffects();
   const { worldToScreen, cameraRef } = useCamera();
   const { playSound } = useAudio();
-
   const { addLog } = useLog();
+
+  // Phase 7: Locally derived robust lighting state (since we have access to real InventoryContext here)
+  const isFlashlightOnActual = useMemo(() => {
+    if (!isFlashlightOn) return false;
+    const fl = inventoryRef.current?.equipment['flashlight'];
+    if (!fl) return false;
+    if (fl.defId === 'tool.torch' && !fl.isLit) return false;
+    return true;
+  }, [isFlashlightOn, inventoryVersion, inventoryRef.current]);
+
+  const getActiveFlashlightRange = useCallback(() => {
+    const flashlight = inventoryRef.current?.equipment['flashlight'];
+    if (flashlight && flashlight.defId === 'tool.torch') return 5;
+    return 8;
+  }, [inventoryVersion, inventoryRef.current]);
+
+  // Phase 7: Master FOV and lighting synchronization
+  useEffect(() => {
+    // 1. Force manual toggle OFF if equipment is gone/unlit
+    if (isFlashlightOn && !isFlashlightOnActual) {
+      console.log('[MapInterface] Sync: Light source unequipped/unlit - forcing manual toggle OFF');
+      setIsFlashlightOn(false);
+    }
+
+    // 2. Extinguish logic: EVERY torch that is NOT in the flashlight slot should be unlit.
+    const inv = inventoryRef.current;
+    if (inv) {
+      // Check containers
+      for (const [id, container] of inv.containers.entries()) {
+        for (const item of container.items.values()) {
+          if (item.defId === 'tool.torch' && item.isLit) {
+            console.log('[MapInterface] Sync: Extinguishing torch moved to container:', id);
+            item.isLit = false;
+          }
+        }
+      }
+      // Check other equipment slots
+      for (const slot in inv.equipment) {
+        if (slot === 'flashlight') continue;
+        const item = inv.equipment[slot];
+        if (item && item.defId === 'tool.torch' && item.isLit) {
+          console.log('[MapInterface] Sync: Extinguishing torch moved to equipment slot:', slot);
+          item.isLit = false;
+        }
+      }
+    }
+
+    // 3. Immediately update FOV in PlayerContext based on all current factors
+    if (gameMapRef.current && playerRef.current) {
+      const weapon = targetingWeapon?.item;
+      const sightSlot = weapon?.attachmentSlots?.find((s: any) => s.id === 'sight');
+      const sightItem = sightSlot ? weapon.attachments[sightSlot.id] : null;
+      const hasScope = sightItem && sightItem.categories?.includes('rifle_scope');
+
+      const range = getActiveFlashlightRange();
+      console.log(`[MapInterface] Sync: FOV update. Light: ${isFlashlightOnActual}, Range: ${range}, TargetScope: ${!!hasScope}`);
+      
+      const newFov = updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOnActual, !!hasScope, range);
+      refreshZombieTracking(playerRef.current, newFov);
+    }
+  }, [isFlashlightOn, isFlashlightOnActual, inventoryVersion, isNight, targetingWeapon, updatePlayerFieldOfView, refreshZombieTracking, getActiveFlashlightRange]);
+
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const [isLogHistoryOpen, setIsLogHistoryOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
@@ -171,21 +234,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       console.log('[MapInterface] Tile clicked:', lastTileClick);
     }
   }, [lastTileClick]);
-
-  // Update FOV when targeting changes (for scoped vision boost)
-  useEffect(() => {
-    if (gameMapRef.current && playerRef.current) {
-      const weapon = targetingWeapon?.item;
-      const sightSlot = weapon?.attachmentSlots?.find((s: any) => s.id === 'sight');
-      const sightItem = sightSlot ? weapon.attachments[sightSlot.id] : null;
-      const hasScope = sightItem && sightItem.categories?.includes('rifle_scope');
-
-      console.log(`[MapInterface] Targeting changed: ${weapon?.name || 'none'}, hasScope: ${hasScope}`);
-
-      const newFov = updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOn, !!hasScope);
-      refreshZombieTracking(playerRef.current, newFov);
-    }
-  }, [targetingWeapon, isNight, isFlashlightOn]);
 
   useEffect(() => {
     if (hoveredTile) {
@@ -393,6 +441,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               <ActionSlotButton
                 key={slot}
                 slot={slot}
+                isFlashlightOnActual={isFlashlightOnActual}
               />
             ))}
           </div>
@@ -421,7 +470,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             selectedItem={selectedItem}
             isTargeting={!!targetingWeapon || (targetingItem ? true : false)}
             isNight={isNight}
-            isFlashlightOn={isFlashlightOn}
+            isFlashlightOn={isFlashlightOnActual}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -532,7 +581,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 // Force map re-render
                 triggerMapUpdate();
                 // Update FOV immediately and capture new visible tiles
-                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
                 // Refresh zombie tracking with new FOV
                 refreshZombieTracking(player, newFovTiles);
                 // PASSIVE AWARENESS: Force zombies to check if they spot the player NOW
@@ -672,7 +721,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 // Force map re-render
                 triggerMapUpdate();
                 // Update FOV immediately and capture new visible tiles
-                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
                 // Refresh zombie tracking with new FOV
                 refreshZombieTracking(player, newFovTiles);
                 // PASSIVE AWARENESS: Force zombies to check if they spot the player NOW

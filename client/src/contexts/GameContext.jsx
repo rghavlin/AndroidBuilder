@@ -97,52 +97,23 @@ const GameContextInner = ({ children }) => {
   const [isFlashlightOn, setIsFlashlightOn] = useState(false);
   const hour = (6 + (turn - 1)) % 24;
   const isNight = hour >= 20 || hour < 6;
-  
-  // Helper to determine active lighting range
+
+  // Phase 7: Robust light state for internal GameContext callers
+  // Note: These use the local inventoryManager state directly, avoiding the broken useInventory() hierarchy
+  const isFlashlightOnActual = useMemo(() => {
+    if (!isFlashlightOn) return false;
+    const fl = inventoryManager?.equipment['flashlight'];
+    if (!fl) return false;
+    if (fl.defId === 'tool.torch' && !fl.isLit) return false;
+    return true;
+  }, [isFlashlightOn, inventoryVersion, inventoryManager]);
+
   const getActiveFlashlightRange = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
     if (flashlight && flashlight.defId === 'tool.torch') return 5;
     return 8;
   }, [inventoryManager]);
 
-  // Sync flashlight state when inventory changes (e.g. unequip)
-  useEffect(() => {
-    if (!inventoryManager) return;
-    
-    const flashlight = inventoryManager.equipment['flashlight'];
-    if (isFlashlightOn) {
-      if (!flashlight || (flashlight.defId === 'tool.torch' && !flashlight.isLit)) {
-        console.log('[GameContext] Flashlight unequipped or torch unlit - turning off light');
-        setIsFlashlightOn(false);
-        // CRITICAL: Immediate FOV update on equipment change
-        updatePlayerFieldOfView(gameMapRef.current, isNight, false, false, getActiveFlashlightRange());
-      }
-    }
-    
-    // Extinguish logic: EVERY torch that is NOT in the flashlight slot should be unlit.
-    for (const [id, container] of inventoryManager.containers.entries()) {
-      for (const item of container.items.values()) {
-        if (item.defId === 'tool.torch' && item.isLit) {
-          console.log('[GameContext] Extinguishing torch moved to container:', id);
-          item.isLit = false;
-          if (isFlashlightOn) {
-            setIsFlashlightOn(false);
-            updatePlayerFieldOfView(gameMapRef.current, isNight, false, false, getActiveFlashlightRange());
-          }
-        }
-      }
-    }
-
-    // Also check other equipment slots (safety measure)
-    for (const slot in inventoryManager.equipment) {
-      if (slot === 'flashlight') continue;
-      const item = inventoryManager.equipment[slot];
-      if (item && item.defId === 'tool.torch' && item.isLit) {
-        console.log('[GameContext] Extinguishing torch moved to equipment slot:', slot);
-        item.isLit = false;
-      }
-    }
-  }, [inventoryVersion, inventoryManager, isFlashlightOn, isNight, updatePlayerFieldOfView, gameMapRef]);
 
   /**
    * Centralized helper to check for zombies spotting the player.
@@ -307,7 +278,7 @@ const GameContextInner = ({ children }) => {
       updatePlayerFieldOfView(gameMapRef.current, isNight, newState, false, getActiveFlashlightRange());
       return newState;
     });
-  }, [gameMapRef, isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange]);
+  }, [gameMapRef, isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
 
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAnimatingZombies, setIsAnimatingZombies] = useState(false);
@@ -468,7 +439,7 @@ const GameContextInner = ({ children }) => {
 
       // Now safe to do operations that depend on all contexts
       if (typeof updatePlayerFieldOfView === 'function') {
-        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
+        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
       }
       if (typeof updatePlayerCardinalPositions === 'function') {
         updatePlayerCardinalPositions(gameMap);
@@ -478,7 +449,7 @@ const GameContextInner = ({ children }) => {
       setContextSyncPhase('ready');
       console.log('[GameContext] Initialization fully complete - all contexts ready for operations');
     }
-  }, [contextSyncPhase, gameMap, camera, worldManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOn]);
+  }, [contextSyncPhase, gameMap, camera, worldManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
 
 
@@ -990,7 +961,7 @@ const GameContextInner = ({ children }) => {
           setIsSleeping(false);
           setSleepProgress(0);
           
-          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
+          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
           updatePlayerCardinalPositions(gameMap);
           setIsPlayerTurn(true);
           return; // Exit loop
@@ -1311,7 +1282,7 @@ const GameContextInner = ({ children }) => {
 
     setTargetingItem(null);
     updatePlayerStats({ ap: player.ap });
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
     updatePlayerCardinalPositions(gameMap);
 
     // Force re-render of map
@@ -1717,7 +1688,7 @@ const GameContextInner = ({ children }) => {
     });
 
     console.log(`[GameContext] Spawned ${spawnedCount} test entities for LOS testing`);
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
     return spawnedCount;
   }, [updatePlayerFieldOfView, playerRef, gameMap]);
 
@@ -1839,7 +1810,7 @@ const GameContextInner = ({ children }) => {
     }
 
     return success;
-  }, [mapTransitionConfirm, playerRef, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, gameMapRef, setCameraWorldBounds, cameraRef, inventoryManager, isNight, isFlashlightOn]);
+  }, [mapTransitionConfirm, playerRef, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, gameMapRef, setCameraWorldBounds, cameraRef, inventoryManager, isNight, isFlashlightOn, getActiveFlashlightRange]);
 
   const contextValue = useMemo(() => ({
     // Game lifecycle state only
@@ -1853,6 +1824,7 @@ const GameContextInner = ({ children }) => {
     isNight,
     hour,
     isFlashlightOn,
+    setIsFlashlightOn,
     toggleFlashlight,
     igniteTorch,
     isPlayerTurn,
