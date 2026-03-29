@@ -23,8 +23,7 @@ export class Door extends Entity {
      * Update movement and sight blocking status based on open/closed state
      */
     updateBlocking() {
-        this.blocksMovement = !this.isOpen;
-        this.blocksSight = !this.isOpen;
+        this._updateBlockingState();
 
         // Emit event to notify map/renderer of state change
         this.emitEvent('doorStateChanged', {
@@ -33,6 +32,15 @@ export class Door extends Entity {
             blocksMovement: this.blocksMovement,
             blocksSight: this.blocksSight
         });
+    }
+
+    /**
+     * Internal state update without emitting events
+     * @private
+     */
+    _updateBlockingState() {
+        this.blocksMovement = !this.isOpen;
+        this.blocksSight = !this.isOpen;
     }
 
     /**
@@ -122,7 +130,7 @@ export class Door extends Entity {
      * Take damage from an entity (zombie, etc)
      * @param {number} amount - Amount of damage to take
      */
-    takeDamage(amount) {
+    takeDamage(amount, silent = false) {
         if (this.isOpen || this.isDamaged) return;
 
         this.hp = Math.max(0, this.hp - amount);
@@ -130,10 +138,16 @@ export class Door extends Entity {
         if (this.hp <= 0) {
             this.isDamaged = true;
             this.isOpen = true;
-            this.updateBlocking();
-            this.emitEvent('doorBroken');
+            if (silent) {
+                this._updateBlockingState();
+            } else {
+                this.updateBlocking();
+                this.emitEvent('doorBroken');
+            }
         } else {
-            this.emitEvent('doorDamaged', { currentHp: this.hp, maxHp: this.maxHp });
+            if (!silent) {
+                this.emitEvent('doorDamaged', { currentHp: this.hp, maxHp: this.maxHp });
+            }
         }
     }
 

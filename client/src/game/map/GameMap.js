@@ -1,5 +1,6 @@
 import { Tile } from './Tile.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
+import { ScentTrail } from '../utils/ScentTrail.js';
 
 /**
  * 20x20 map container with tile management and serialization
@@ -11,6 +12,7 @@ export class GameMap {
     this.tiles = [];
     this.entityMap = new Map(); // Track all entities by ID
     this.listeners = new Map();
+    this.scentSequenceCounter = 0;
 
     // Initialize empty map
     this.initializeMap();
@@ -400,6 +402,10 @@ export class GameMap {
    */
   processTurn() {
     console.log('[GameMap] Processing turn-based effects...');
+    
+    // Decay scent trails
+    ScentTrail.decayScents(this);
+
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         const tile = this.tiles[y][x];
@@ -603,7 +609,8 @@ export class GameMap {
       height: this.height,
       tiles: this.tiles.map(row =>
         row.map(tile => tile ? tile.toJSON() : null)
-      )
+      ),
+      scentSequenceCounter: this.scentSequenceCounter
     };
   }
 
@@ -617,6 +624,7 @@ export class GameMap {
    */
   static async fromJSONSelective(data, options = {}) {
     const gameMap = new GameMap(data.width, data.height);
+    gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
     // Import required classes
@@ -708,6 +716,7 @@ export class GameMap {
    */
   static async fromJSON(data) {
     const gameMap = new GameMap(data.width, data.height);
+    gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
 
     // Import required classes
     const { Tile } = await import('./Tile.js');

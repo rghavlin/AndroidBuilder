@@ -695,7 +695,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             const testFlashlight = new Item({
               instanceId: 'test-flashlight-5b',
               defId: 'tool.smallflashlight',
-              name: 'Small Flashlight',
+              name: 'Flashlight',
               width: 1,
               height: 2,
               equippableSlot: 'flashlight',
@@ -718,7 +718,7 @@ const DevConsole = ({ isOpen, onClose }) => {
             addToConsole('Test 2: Equipment slot UI display...', 'info');
             addToConsole('  ℹ️  Check the equipment slots visually:', 'info');
             addToConsole('  - Melee slot should show "CO" (Combat Knife)', 'log');
-            addToConsole('  - Flashlight slot should show "SM" (Small Flashlight)', 'log');
+            addToConsole('  - Flashlight slot should show "FL" (Flashlight)', 'log');
             addToConsole('  - Hover over slots to see tooltips with item names', 'log');
             addToConsole('  - Equipped slots should have accent border/background', 'log');
 
@@ -1619,7 +1619,7 @@ const DevConsole = ({ isOpen, onClose }) => {
               new InventoryItem({ id: 'med-syringe-1', defId: 'medical.syringe', name: 'Syringe', width: 1, height: 1, stackCount: 3, stackMax: 5, traits: [ItemTrait.STACKABLE] }),
 
               // Tools
-              new InventoryItem({ id: 'tool-flashlight-1', defId: 'tool.smallflashlight', name: 'Small Flashlight', width: 2, height: 1, equippableSlot: 'flashlight', traits: [ItemTrait.EQUIPPABLE] }),
+              new InventoryItem({ id: 'tool-flashlight-1', defId: 'tool.smallflashlight', name: 'Flashlight', width: 2, height: 1, equippableSlot: 'flashlight', traits: [ItemTrait.EQUIPPABLE] }),
               new InventoryItem({ id: 'tool-hammer-1', defId: 'tool.hammer', name: 'Claw Hammer', width: 2, height: 1, traits: [] }),
               new InventoryItem({ id: 'tool-screwdriver-1', defId: 'tool.screwdriver', name: 'Screwdriver Set', width: 1, height: 1, traits: [] }),
 

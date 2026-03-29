@@ -116,33 +116,12 @@ export class PlayerZombieTracker {
     // Check previously spotted zombies
     for (const [zombieId, trackedData] of this.spottedZombies.entries()) {
       if (!currentVisibleIds.has(zombieId)) {
-        // Zombie is no longer visible - set LastSeen to the player's CURRENT position.
-        // We use 'to' (where the player just arrived), not 'from' (where they left),
-        // so zombies always chase towards the player's actual location.
-        const { zombie, lastPlayerPos } = trackedData;
-
-        let lastSeenPos;
-
-        if (playerMovement && playerMovement.to) {
-          // Player moved — chase where they went
-          lastSeenPos = playerMovement.to;
-          
-          // Check if the player just entered a building through a door/window
-          const toTile = gameMap.getTile(playerMovement.to.x, playerMovement.to.y);
-          const hasDoor = toTile?.contents.some(e => e.type === 'door');
-          const hasWindow = toTile?.contents.some(e => e.type === 'window');
-
-          if (hasDoor || hasWindow) {
-             console.log(`[PlayerZombieTracker] Zombie ${zombieId} tracking player through ${hasDoor ? 'door' : 'window'} at (${lastSeenPos.x}, ${lastSeenPos.y})`);
-          }
-        } else {
-          // No movement data available, use last stored position
-          lastSeenPos = lastPlayerPos;
-        }
-
-        zombie.setTargetSighted(lastSeenPos.x, lastSeenPos.y);
-
-        console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player, set LastSeen to (${lastSeenPos.x}, ${lastSeenPos.y}) [player's current position]`);
+        // Zombie is no longer visible - Trigger 'lastSeen' flag
+        // The zombie's own turn logic will now follow the scent trail
+        const { zombie } = trackedData;
+        zombie.lastSeen = true;
+        
+        console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player, enabled search mode (scent trail following)`);
 
         // Remove from tracking since no longer visible
         this.spottedZombies.delete(zombieId);

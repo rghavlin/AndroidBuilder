@@ -127,103 +127,72 @@ export const CombatProvider = ({ children }) => {
                 color: '#ef4444',
                 duration: 1000
             });
-            // Try destroying it again if it somehow persisted
             destroyItem(weapon.instanceId);
             cancelTargeting();
             return { success: false, reason: 'Weapon is broken' };
         }
 
-        // 1. Check AP
-        if (player.ap < 1) {
-            return { success: false, reason: 'Not enough AP' };
-        }
+        if (player.ap < 1) return { success: false, reason: 'Not enough AP' };
 
-        // 2. Validate Adjacency/Range
         const dx = Math.abs(player.x - targetX);
         const dy = Math.abs(player.y - targetY);
-        
         const defStats = ItemDefs[weapon.defId]?.combat || {};
         const instanceStats = weapon.combat || {};
         const weaponStats = { ...defStats, ...instanceStats };
-        // Priority: Balance changes in ItemDefs.range should always apply
         const weaponRange = defStats.range || instanceStats.range || 1.0;
-        
-        // Use Euclidean distance for range check
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const isInRange = distance <= weaponRange + 0.1; // Small threshold for floating point
 
-        if (!isInRange) {
-            console.warn(`[Combat] Target out of range: distance=${distance.toFixed(2)}, maxRange=${weaponRange}`);
+        if (distance > weaponRange + 0.1) {
             return { success: false, reason: 'Target out of range' };
         }
 
-        // 3. Find Target (Zombie or Structure)
         const tile = gameMap.getTile(targetX, targetY);
-        let zombie = tile?.contents.find(e => e.type === 'zombie');
-        let structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
+        const zombie = tile?.contents.find(e => e.type === 'zombie');
+        const structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
 
-        if (!zombie && !structure) {
-            return { success: false, reason: 'No target here' };
+        if (!zombie && !structure) return { success: false, reason: 'No target here' };
+
+        // 1. Calculate Outcome
+        const hit = Math.random() <= weaponStats.hitChance;
+        const damage = hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0;
+
+        // 2. Immediate Sound Trigger (Zero Latency)
+        if (hit) {
+            const isKillingBlow = zombie && (zombie.hp <= damage);
+            if (isKillingBlow) playSound('DeathBlow');
+            else playSound('MeleeHit');
+        } else {
+            playSound('Miss');
         }
 
-        console.log(`[Combat] Attacking with ${weapon.name} (defId: ${weapon.defId})`);
-        console.log(`[Combat] Stats: hitChance=${weaponStats.hitChance}, damage=${weaponStats.damage.min}-${weaponStats.damage.max}`);
-
-        const roll = Math.random();
-        const hit = roll <= weaponStats.hitChance;
-
-        // 5. Apply Results
+        // 3. Apply AP Consumption (Primary state update)
         player.useAP(1);
 
+        // 4. Detailed Logic Execution
         if (hit) {
-            const damage = Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min;
-            if (zombie) {
-                console.log(`[Combat] HIT! ${weapon.name} dealt ${damage} damage to zombie ${zombie.id}`);
-            } else if (structure) {
-                console.log(`[Combat] HIT! ${weapon.name} dealt ${damage} damage to structure ${structure.type}`);
-            }
-
             if (zombie) {
                 zombie.takeDamage(damage);
                 addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
-
-                // Acid Zombie Reactions
-                if (zombie.subtype === 'acid') {
-                    triggerAcidEffect(zombie, false); // Splash
-                }
+                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, false);
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
                     playSound('GlassBreak');
                     addLog(`You smash the window with your ${weapon.name}!`, 'combat');
-                    
-                    // Unarmed penalty: bleeding
                     if (weapon.instanceId === 'unarmed') {
-                        if (typeof player?.setBleeding === 'function') {
-                            player.setBleeding(true);
-                        }
-                        addLog('You cut your hands smashing the glass!', 'warning');
+                        if (typeof player?.setBleeding === 'function') player.setBleeding(true);
                         updatePlayerStats({ isBleeding: true });
+                        addLog('You cut your hands smashing the glass!', 'warning');
                     }
-
-                    gameMap.emitNoise(targetX, targetY, 5); // Breaking glass is noisy
+                    gameMap.emitNoise(targetX, targetY, 5);
                 } else {
-                    // Doors take damage but don't "break" into jagged fragments like windows
-                    if (typeof structure.takeDamage === 'function') {
-                        structure.takeDamage(damage);
-                    } else {
-                        // Fallback if takeDamage not implemented on Door yet
-                        structure.hp = Math.max(0, (structure.hp || 10) - damage);
-                        if (structure.hp <= 0 && typeof structure.break === 'function') {
-                            structure.break();
-                        }
-                    }
+                    if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);
+                    else structure.hp = Math.max(0, (structure.hp || 10) - damage);
                     addLog(`You hit the ${structure.type} with your ${weapon.name}!`, 'combat');
                     gameMap.emitNoise(targetX, targetY, 3);
                 }
             }
 
-            // Pop-up damage
             addEffect({
                 type: 'damage',
                 x: targetX,
@@ -234,343 +203,174 @@ export const CombatProvider = ({ children }) => {
             });
 
             if (zombie && zombie.isDead()) {
-                console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
                 addLog('Zombie killed!', 'combat');
-
-                // Acid Zombie Death Reaction
-                if (zombie.subtype === 'acid') {
-                    triggerAcidEffect(zombie, true); // Explosion
-                }
-
-                // Zombie Loot Drop (75% chance)
+                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, true);
                 if (lootGenerator && Math.random() < 0.75) {
                     const loot = lootGenerator.generateZombieLoot(zombie.subtype);
-                    if (loot && loot.length > 0) {
-                        console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
-                        gameMap.addItemsToTile(targetX, targetY, loot);
-                    }
+                    if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
                 }
-
                 gameMap.removeEntity(zombie.id);
                 cancelTargeting();
-                triggerMapUpdate();
-                forceRefresh(); // Trigger UI update to remove zombie icon
-            } else {
-                // If hit but not dead (or it was a structure), still trigger update
-                triggerMapUpdate();
-                forceRefresh();
             }
+            triggerMapUpdate();
+            forceRefresh();
         } else {
-            console.log(`[Combat] MISS! ${weapon.name} missed its target`);
+            // Miss Logic
             addLog(`Player attacks: miss (${weapon.name})`, 'combat');
-
-            // Pop-up miss
-            addEffect({
-                type: 'damage', // Use damage effect type but with "Miss" text
-                x: targetX,
-                y: targetY,
-                value: 'Miss',
-                color: '#9ca3af',
-                duration: 1200
-            });
+            addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
         }
 
-        // 6. Weapon Degradation (Always occur after attack attempt if hit/miss processed)
+        // Weapon Degradation
         if (weapon.instanceId !== 'unarmed' && typeof weapon.degrade === 'function' && weapon.isDegradable()) {
-            weapon.degrade(); // Uses its own fragility
+            weapon.degrade();
             if (weapon.condition !== null && weapon.condition <= 0) {
-                console.log(`[Combat] Weapon ${weapon.name} BROKE!`);
-                addEffect({
-                    type: 'damage',
-                    x: player.x,
-                    y: player.y,
-                    value: 'Broke!',
-                    color: '#fbbf24',
-                    duration: 1500
-                });
-                
-                // Destroy broken weapon
+                addEffect({ type: 'damage', x: player.x, y: player.y, value: 'Broke!', color: '#fbbf24', duration: 1500 });
                 destroyItem(weapon.instanceId);
-                
-                if (targetingWeapon?.item?.instanceId === weapon.instanceId) {
-                    cancelTargeting();
-                }
+                if (targetingWeapon?.item?.instanceId === weapon.instanceId) cancelTargeting();
                 forceRefresh();
             }
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
         const gameMap = gameMapRef.current;
         if (!player || !gameMap) return { success: false, reason: 'System error' };
 
-        // Guard: Prevent attack with broken firearm
         if (weapon && weapon.isDegradable() && weapon.condition !== null && weapon.condition <= 0) {
-            console.warn(`[Combat] Blocked attack with broken firearm: ${weapon.name}`);
-            addEffect({
-                type: 'damage',
-                x: player.x,
-                y: player.y,
-                value: 'Broke!',
-                color: '#ef4444',
-                duration: 1000
-            });
-            // Try destroying it again if it somehow persisted
+            addEffect({ type: 'damage', x: player.x, y: player.y, value: 'Broke!', color: '#ef4444', duration: 1000 });
             destroyItem(weapon.instanceId);
             cancelTargeting();
             return { success: false, reason: 'Weapon is broken' };
         }
 
-        // 1. Check AP
-        if (player.ap < 1) {
-            return { success: false, reason: 'Not enough AP' };
-        }
+        if (player.ap < 1) return { success: false, reason: 'Not enough AP' };
 
-        // 2. Ammo Management
-        const stats = ItemDefs[weapon.defId]?.rangedStats || {
-            damage: { min: 4, max: 10 },
-            accuracyFalloff: 0.1,
-            minAccuracy: 0.01
-        };
-
+        const stats = ItemDefs[weapon.defId]?.rangedStats || { damage: { min: 4, max: 10 }, accuracyFalloff: 0.1, minAccuracy: 0.01 };
         const isSling = stats.isSling;
         let ammoFound = false;
         let magazine = null;
         let ammoSlot = null;
 
         if (isSling) {
-            // Sling uses stones from inventory or ground
             ammoFound = inventoryRef.current.hasItemByDefId('crafting.stone', 1);
         } else {
-            // Find attached magazine
-            ammoSlot = weapon.attachmentSlots?.find(slot =>
-                slot.id === 'ammo' || slot.allowedCategories?.includes(ItemCategory.AMMO)
-            );
+            ammoSlot = weapon.attachmentSlots?.find(slot => slot.id === 'ammo' || slot.allowedCategories?.includes(ItemCategory.AMMO));
             magazine = ammoSlot ? weapon.attachments[ammoSlot.id] : null;
-
             const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
-            const currentAmmo = isMagazine ? (magazine.ammoCount || 0) : (magazine?.stackCount || 0);
-            ammoFound = magazine && currentAmmo > 0;
+            ammoFound = magazine && (isMagazine ? (magazine.ammoCount > 0) : (magazine.stackCount > 0));
         }
 
-        if (!ammoFound) {
-            return { success: false, reason: 'Out of ammo' };
-        }
+        if (!ammoFound) return { success: false, reason: 'Out of ammo' };
 
-        // 2b. Range Check
         const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
-        const squaresAway = Math.floor(distance);
+        if (stats.minRange && distance < stats.minRange) return { success: false, reason: 'Target too close' };
 
-        if (stats.minRange && distance < stats.minRange) {
-            return { success: false, reason: 'Target too close' };
-        }
+        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, { maxRange: 20 });
+        if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
 
-        // 3. Visibility Check
-        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, {
-            maxRange: 20 // Reasonable max range for visibility
-        });
-
-        if (!losResult.hasLineOfSight) {
-            return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
-        }
-
-        // 4. Find Target (Zombie or Structure)
         const tile = gameMap.getTile(targetX, targetY);
-        let zombie = tile?.contents.find(e => e.type === 'zombie');
-        let structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
+        const zombie = tile?.contents.find(e => e.type === 'zombie');
+        const structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
+        if (!zombie && !structure) return { success: false, reason: 'No target at location' };
 
-        if (!zombie && !structure) {
-            return { success: false, reason: 'No target at location' };
-        }
-
-        // 5. Hit Calculation
+        // 1. Calculate Outcome
+        const squaresAway = Math.floor(distance);
         const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
-        const sightItem = sightSlot ? weapon.attachments[sightSlot.id] : null;
-        const hasScope = sightItem && sightItem.categories?.includes(ItemCategory.RIFLE_SCOPE);
+        const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
 
-        let hitChance;
-        if (isSling) {
-            // Sling: 90% at 2 squares, -10% each square after
-            hitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
-        } else if (stats.isShotgun) {
-            if (squaresAway <= (stats.accuracyMaxRange || 5)) {
-                hitChance = 1.0;
-            } else {
-                // Each square beyond 5 reduces accuracy by 20%
-                hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
-            }
-        } else if (hasScope) {
-            if (squaresAway <= 15) {
-                hitChance = 1.0;
-            } else {
-                // Falloff starts from 16
-                hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
-            }
-        } else {
-            // 100% hit at distance 1. -Falloff for each square beyond that.
-            hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
-        }
+        let hitChance = 1.0;
+        if (isSling) hitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
+        else if (stats.isShotgun) hitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
+        else if (hasScope) hitChance = squaresAway <= 15 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
+        else hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
 
-        console.log(`[Combat] Ranged attack with ${weapon.name} at distance ${distance.toFixed(2)} (${squaresAway} squares)${hasScope ? ' (Scoped)' : ''}`);
-        console.log(`[Combat] Hit chance: ${(hitChance * 100).toFixed(1)}%`);
+        const hit = Math.random() <= hitChance;
 
-        const roll = Math.random();
-        const hit = roll <= hitChance;
+        // 2. Immediate Sound Trigger (Zero Latency)
+        if (weapon.defId === 'weapon.9mmPistol' || weapon.defId === 'weapon.357Pistol') playSound('PistolShot');
+        else if (weapon.defId === 'weapon.shotgun') playSound('ShotgunShot');
+        else if (weapon.defId === 'weapon.hunting_rifle' || weapon.defId === 'weapon.sniper_rifle') playSound('RifleShot');
+        else if (isSling && hit) playSound('MeleeHit');
 
-        // 5.5 Emit Noise
-        // Suppressor check
-        const barrelSlot = weapon.attachmentSlots?.find(s => s.id === 'barrel');
-        const barrelItem = barrelSlot ? weapon.attachments[barrelSlot.id] : null;
-        const isSuppressed = barrelItem && barrelItem.categories?.includes(ItemCategory.SUPPRESSOR);
-
-        const baseNoiseRadius = stats.noiseRadius || 10;
-        const actualNoiseRadius = isSuppressed ? 3 : baseNoiseRadius;
-
-        if (gameMap.emitNoise) {
-            gameMap.emitNoise(player.x, player.y, actualNoiseRadius);
-        }
-
-        // 6. Apply Results
+        // 3. Apply AP Consumption
         player.useAP(1);
 
+        // 4. Resource Consumption
         if (isSling) {
             inventoryRef.current.consumeItemByDefId('crafting.stone', 1);
         } else {
             const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
-            if (isMagazine) {
-                magazine.ammoCount--;
-            } else {
+            if (isMagazine) magazine.ammoCount--;
+            else {
                 magazine.stackCount--;
-                // If stack is empty, remove it from the weapon's ammo slot to prevent "ghost ammo" icons
-                if (magazine.stackCount <= 0 && ammoSlot) {
-                    console.log(`[Combat] Ammo stack empty, detaching from ${weapon.name} slot: ${ammoSlot.id}`);
-                    weapon.detachItem(ammoSlot.id);
-                }
+                if (magazine.stackCount <= 0 && ammoSlot) weapon.detachItem(ammoSlot.id);
             }
         }
 
+        // 5. Emit Noise
+        const barrelSlot = weapon.attachmentSlots?.find(s => s.id === 'barrel');
+        const isSuppressed = barrelSlot && weapon.attachments[barrelSlot.id]?.categories?.includes(ItemCategory.SUPPRESSOR);
+        const noiseRadius = isSuppressed ? 3 : (stats.noiseRadius || 10);
+        if (gameMap.emitNoise) gameMap.emitNoise(player.x, player.y, noiseRadius);
+
+        // 6. Detailed Logic
         if (hit) {
-            let damage;
+            let damage = Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
             if (stats.isShotgun) {
-                // Damage at 1 square is 20. Each additional square reduces by 10%
-                let finalDamage = stats.damage.min; // 20
-                if (squaresAway > 1) {
-                    finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
-                }
-                // Each square beyond 5 reduces damage by ANOTHER 10%
-                if (squaresAway > 5) {
-                    finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
-                }
+                let finalDamage = stats.damage.min;
+                if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
+                if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
                 damage = Math.floor(finalDamage);
-            } else {
-                damage = Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
             }
+
             if (zombie) {
-                console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to zombie ${zombie.id}`);
                 zombie.takeDamage(damage);
                 addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
-
-                // Acid Zombie Reactions
-                if (zombie.subtype === 'acid') {
-                    triggerAcidEffect(zombie, false); // Splash
-                }
+                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, false);
             } else if (structure) {
-                console.log(`[Combat] RANGED HIT! Dealt ${damage} damage to structure ${structure.type}`);
                 if (structure.type === 'window') {
                     structure.break();
                     playSound('GlassBreak');
                     addLog('The window shatters!', 'combat');
                     gameMap.emitNoise(targetX, targetY, 5);
                 } else {
-                    if (typeof structure.takeDamage === 'function') {
-                        structure.takeDamage(damage);
-                    } else {
-                        structure.hp = Math.max(0, (structure.hp || 10) - damage);
-                        if (structure.hp <= 0 && typeof structure.break === 'function') {
-                            structure.break();
-                        }
-                    }
+                    if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);
+                    else structure.hp = Math.max(0, (structure.hp || 10) - damage);
                     addLog(`You hit the ${structure.type} with a gunshot!`, 'combat');
                     gameMap.emitNoise(targetX, targetY, 3);
                 }
             }
 
-            addEffect({
-                type: 'damage',
-                x: targetX,
-                y: targetY,
-                value: damage,
-                color: '#ef4444',
-                duration: 1200
-            });
+            addEffect({ type: 'damage', x: targetX, y: targetY, value: damage, color: '#ef4444', duration: 1200 });
 
             if (zombie && zombie.isDead()) {
-                console.log(`[Combat] Zombie ${zombie.id} is DEAD!`);
                 addLog('Zombie killed!', 'combat');
-
-                // Acid Zombie Death Reaction
-                if (zombie.subtype === 'acid') {
-                    triggerAcidEffect(zombie, true); // Explosion
-                }
-
-                // Zombie Loot Drop (75% chance)
+                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, true);
                 if (lootGenerator && Math.random() < 0.75) {
                     const loot = lootGenerator.generateZombieLoot(zombie.subtype);
-                    if (loot && loot.length > 0) {
-                        console.log(`[Combat] Zombie dropped ${loot.length} items:`, loot.map(i => i.name).join(', '));
-                        gameMap.addItemsToTile(targetX, targetY, loot);
-                    }
+                    if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
                 }
-
                 gameMap.removeEntity(zombie.id);
                 cancelTargeting();
-                triggerMapUpdate();
-                forceRefresh();
-            } else {
-                // If hit but not dead (or it was a structure), still trigger update
-                triggerMapUpdate();
-                forceRefresh();
             }
+            triggerMapUpdate();
         } else {
-            console.log(`[Combat] RANGED MISS!`);
             addLog(`Player attacks: miss (${weapon.name})`, 'combat');
-            addEffect({
-                type: 'damage',
-                x: targetX,
-                y: targetY,
-                value: 'Miss',
-                color: '#9ca3af',
-                duration: 1200
-            });
+            addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
         }
 
-        // 7. Weapon Degradation
         if (typeof weapon.degrade === 'function' && weapon.isDegradable()) {
             weapon.degrade();
             if (weapon.condition !== null && weapon.condition <= 0) {
-                console.log(`[Combat] Firearm ${weapon.name} BROKE!`);
-                addEffect({
-                    type: 'damage',
-                    x: player.x,
-                    y: player.y,
-                    value: 'Broke!',
-                    color: '#fbbf24',
-                    duration: 1500
-                });
-                
-                // Destroy broken weapon
+                addEffect({ type: 'damage', x: player.x, y: player.y, value: 'Broke!', color: '#fbbf24', duration: 1500 });
                 destroyItem(weapon.instanceId);
-                
-                if (targetingWeapon?.item?.instanceId === weapon.instanceId) {
-                    cancelTargeting();
-                }
+                if (targetingWeapon?.item?.instanceId === weapon.instanceId) cancelTargeting();
             }
         }
 
-        // Always refresh UI after a ranged attack to update ammo counts and potentially removed ammo icons
         forceRefresh();
         return { success: true };
     }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect]);

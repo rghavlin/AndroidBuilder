@@ -551,8 +551,8 @@ export const InventoryProvider = ({ children, manager }) => {
     const result = inventoryRef.current.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
     if (result.success) {
       if (playerRef.current) playerRef.current.useAP(1);
-      console.debug('[InventoryContext] attachSelectedItemToWeapon success - playing sound');
-      playSound('Equip');
+      console.debug('[InventoryContext] attachSelectedItemToWeapon success - (ReloadShot played by manager)');
+      // Suppress Equip sound here as InventoryManager now plays ReloadShot for all weapon attachments
       addLog(`Attached ${selectedItem.item.name} to ${weapon.name}`, 'item');
       // IMPORTANT: Clear selection without triggering restoration logic in clearSelected()
       setSelectedItem(null);
@@ -577,8 +577,8 @@ export const InventoryProvider = ({ children, manager }) => {
     // The actual removal happens in InventoryManager.removeItemFromSource when placed
     console.debug('[InventoryContext] Selecting attachment from weapon:', item.name, 'slot:', slotId);
     
-    console.debug('[InventoryContext] detachItemFromWeapon - playing sound');
-    playSound('Equip');
+    console.debug('[InventoryContext] detachItemFromWeapon - playing ReloadShot');
+    playSound('ReloadShot');
     // Use special origin category so clearing selection knows how to handle it
     selectItem(item, `weapon-mod-${weapon.instanceId}:${slotId}`, 0, 0);
     
@@ -730,6 +730,7 @@ export const InventoryProvider = ({ children, manager }) => {
       }
 
       // Always deselect after loading, as per user request
+      playSound('ReloadShot');
       setSelectedItem(null);
 
       setInventoryVersion(prev => prev + 1);
@@ -793,6 +794,8 @@ export const InventoryProvider = ({ children, manager }) => {
       console.warn('[InventoryContext] Unload failed:', unloadResult.reason);
       return unloadResult;
     }
+
+    playSound('ReloadShot');
 
     const { amount, ammoDefId } = unloadResult;
     if (amount <= 0 || !ammoDefId) {

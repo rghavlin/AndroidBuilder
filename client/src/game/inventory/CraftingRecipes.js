@@ -109,6 +109,19 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'crafting.torch',
+        name: 'Torch',
+        resultItem: 'tool.torch',
+        description: 'A simple torch for lighting up the night. Requires a lighter or matches to ignite.',
+        apCost: 3,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'weapon.stick', count: 1 },
+            { id: 'crafting.rag', count: 1 }
+        ]
+    },
+    {
         id: 'cooking.clean_water',
         name: 'Clean Water',
         resultItem: 'food.waterbottle',

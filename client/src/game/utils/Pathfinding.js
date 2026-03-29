@@ -262,13 +262,34 @@ export class Pathfinding {
       baseCost = 1.4;
     }
 
-    // Windows cost additional AP
+    // Additional costs based on tile contents
     if (targetTile && targetTile.contents && Array.isArray(targetTile.contents)) {
-      if (targetTile.contents.some(e => e.type === 'window')) {
-        // Zombies (options.isZombie) pay 3 extra (making cardinal cost 4)
-        // Others pay 1 extra
-        const windowCost = options?.isZombie ? 3 : 1;
-        baseCost += windowCost;
+      // 1. Windows (Zombies pay extra)
+      const window = targetTile.contents.find(e => e.type === 'window');
+      if (window) {
+        if (options?.isZombie) {
+          const isOpenOrBroken = window.isOpen || window.isBroken;
+          const zombieWindowCost = isOpenOrBroken ? 2 : 3;
+          baseCost += zombieWindowCost;
+        } else {
+          baseCost += 1;
+        }
+      }
+
+      // 2. Door/Zombie Penalties (Zombie pathfinding only)
+      if (options?.isZombie) {
+        const door = targetTile.contents.find(e => e.type === 'door');
+        if (door && !door.isOpen) {
+          // Closed door: +4 AP penalty (makes it much more expensive than open floor,
+          // but cheaper than walking 15 tiles around a building)
+          baseCost += 4;
+        }
+
+        const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');
+        if (hasOtherZombie) {
+          // Other zombie: +4 AP penalty (prefers empty tiles but won't detour into the woods)
+          baseCost += 4;
+        }
       }
     }
 

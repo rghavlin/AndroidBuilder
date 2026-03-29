@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
+import { ScentTrail } from '../game/utils/ScentTrail.js';
 import Logger from '../game/utils/Logger.js';
-import { useLog } from './LogContext.jsx';
-import { useAudio } from './AudioContext.jsx';
+import { SafeEventEmitter } from '../game/utils/SafeEventEmitter.js';
+import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 const logger = Logger.scope('PlayerContext');
 
@@ -52,10 +53,6 @@ export const PlayerProvider = ({ children }) => {
   const [movementPath, setMovementPath] = useState([]);
   const [movementProgress, setMovementProgress] = useState(0);
   const [playerFieldOfView, setPlayerFieldOfView] = useState(null);
-
-  // Phase 1: Access log context for hazard feedback
-  const { addLog } = useLog();
-  const { playSound, stopSound } = useAudio();
 
   // Set player ref with version bump (Phase 1 migration pattern)
   const setPlayerRef = useCallback((player) => {
@@ -195,7 +192,7 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   // Update player field of view
-  const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false, isAimingWithScope = false) => {
+  const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false, isAimingWithScope = false, flashlightRange = 8) => {
     if (!gameMap || !playerRef.current) {
       setPlayerFieldOfView([]);
       return [];
@@ -205,7 +202,7 @@ export const PlayerProvider = ({ children }) => {
       const player = playerRef.current;
 
       // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
-      let maxRange = isNight ? (isFlashlightOn ? 10 : 1.5) : 15;
+      let maxRange = isNight ? (isFlashlightOn ? (flashlightRange || 8) : 1.5) : 15;
 
       // Scoped aiming boost
       if (isAimingWithScope) {
@@ -246,7 +243,7 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   // Smooth animation function using requestAnimationFrame
-  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false) => {
+  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
     if (!playerRef.current || !gameMap || !camera) {
       setIsMoving(false);
       setMovementPath([]);
@@ -319,7 +316,7 @@ export const PlayerProvider = ({ children }) => {
             y: Math.round(smoothY)
           };
           // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
-          const maxRange = isNight ? (isFlashlightOn ? 10 : 1.5) : 15;
+          const maxRange = isNight ? (isFlashlightOn ? (flashlightRange || 8) : 1.5) : 15;
 
           const fovResult = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, {
             maxRange: maxRange,
@@ -336,7 +333,7 @@ export const PlayerProvider = ({ children }) => {
             
             if (canSee && !z.isAlerted) {
               z.isAlerted = true;
-              playSound('Zombie1');
+              GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie: z });
               console.log(`[PlayerContext] Zombie ${z.id} spotted player at (${smoothPlayer.x}, ${smoothPlayer.y})!`);
             } else if (!canSee && z.isAlerted) {
               // Reset if sight is lost during movement
@@ -396,6 +393,12 @@ export const PlayerProvider = ({ children }) => {
           if (moveSuccess) {
             console.log(`[PlayerContext] Player successfully moved from (${originalPosition.x}, ${originalPosition.y}) to (${finalPosition.x}, ${finalPosition.y})`);
             
+            // DROP SCENTS: Leave a breadcrumb trail along the path
+            path.forEach((pos, idx) => {
+              if (idx === 0) return; // Skip starting tile
+              ScentTrail.dropScent(gameMap, pos.x, pos.y, 3);
+            });
+
             // Check for broken window hazards in the path
             path.forEach((pos, idx) => {
               if (idx === 0) return; // Skip starting tile
@@ -403,7 +406,7 @@ export const PlayerProvider = ({ children }) => {
               const window = tile?.contents.find(e => e.type === 'window' && e.isBroken);
               if (window && !playerRef.current.isBleeding && Math.random() < 0.25) {
                 playerRef.current.setBleeding(true);
-                addLog('You cut yourself on the broken glass!', 'warning');
+                GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { damage: 0, source: { id: 'glass' } });
                 setPlayerStats(prev => ({ ...prev, isBleeding: true }));
               }
             });
@@ -421,7 +424,7 @@ export const PlayerProvider = ({ children }) => {
         }
 
         // Calculate new field of view
-        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, (flashlightRange || 8));
 
         // Update player cardinal positions after movement
         updatePlayerCardinalPositions(gameMap);
@@ -429,7 +432,7 @@ export const PlayerProvider = ({ children }) => {
         console.log(`[PlayerContext] Player moved from (${originalPosition.x}, ${originalPosition.y}) to (${finalPosition.x}, ${finalPosition.y}), AP: ${playerRef.current.ap}`);
 
         // Finish animation
-        stopSound('Footsteps');
+        GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED); // Optional: add to GAME_EVENT
         setIsMoving(false);
         setMovementPath([]);
         setMovementProgress(0);
@@ -442,7 +445,7 @@ export const PlayerProvider = ({ children }) => {
   }, [updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
   // Start animated movement along path
-  const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false) => {
+  const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
     if (!playerRef.current || !gameMap || !camera) return;
 
     console.log(`[PlayerContext] Starting animated movement from (${playerRef.current.x}, ${playerRef.current.y}) to (${path[path.length - 1].x}, ${path[path.length - 1].y})`);
@@ -462,9 +465,13 @@ export const PlayerProvider = ({ children }) => {
 
     // Start smooth animation
     const startTime = performance.now();
-    playSound('Footsteps', { loop: true });
-    smoothAnimateMovement(gameMap, camera, path, startTime, 1500, isNight, isFlashlightOn);
-  }, [smoothAnimateMovement, playSound]);
+    // Start movement sound via Event Bus
+    GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
+    setIsMoving(true);
+    setMovementPath(path);
+    setMovementProgress(0);
+    smoothAnimateMovement(gameMap, camera, path, startTime, 1500, isNight, isFlashlightOn, flashlightRange);
+  }, [smoothAnimateMovement]);
 
   // Calculate player render position for animation
   const playerRenderPosition = useMemo(() => {
@@ -504,7 +511,7 @@ export const PlayerProvider = ({ children }) => {
 
     // Reset movement state
     console.log('[PlayerContext] Resetting movement state...');
-    stopSound('Footsteps');
+    GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);
     setIsMoving(false);
     setMovementPath([]);
     setMovementProgress(0);

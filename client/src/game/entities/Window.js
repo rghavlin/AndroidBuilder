@@ -25,8 +25,7 @@ export class Window extends Entity {
      * Update movement blocking status based on state
      */
     updateBlocking() {
-        // Blocks movement if closed AND not broken
-        this.blocksMovement = !this.isOpen && !this.isBroken;
+        this._updateBlockingState();
 
         // Emit event to notify map/renderer of state change
         this.emitEvent('windowStateChanged', {
@@ -36,6 +35,16 @@ export class Window extends Entity {
             blocksMovement: this.blocksMovement,
             blocksSight: this.blocksSight
         });
+    }
+
+    /**
+     * Internal state update without emitting events
+     * @private
+     */
+    _updateBlockingState() {
+        // Blocks movement if closed AND not broken
+        this.blocksMovement = !this.isOpen && !this.isBroken;
+        this.blocksSight = false;
     }
 
     /**
@@ -104,14 +113,18 @@ export class Window extends Entity {
     /**
      * Break the window
      */
-    break() {
+    break(silent = false) {
         if (!this.isBroken) {
             this.isBroken = true;
             this.hp = 0;
             this.isLocked = false;
             // A broken window is effectively "open" for movement
-            this.updateBlocking();
-            this.emitEvent('windowBroken');
+            if (silent) {
+                this._updateBlockingState();
+            } else {
+                this.updateBlocking();
+                this.emitEvent('windowBroken');
+            }
             return true;
         }
         return false;
@@ -120,14 +133,16 @@ export class Window extends Entity {
     /**
      * Take damage
      */
-    takeDamage(amount) {
+    takeDamage(amount, silent = false) {
         if (this.isBroken) return;
 
         this.hp = Math.max(0, this.hp - amount);
         if (this.hp <= 0) {
-            this.break();
+            this.break(silent);
         } else {
-            this.emitEvent('windowDamaged', { currentHp: this.hp, maxHp: this.maxHp });
+            if (!silent) {
+                this.emitEvent('windowDamaged', { currentHp: this.hp, maxHp: this.maxHp });
+            }
         }
     }
 

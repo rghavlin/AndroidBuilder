@@ -5,6 +5,7 @@ import { GroundManager } from './GroundManager.js';
 import { ItemTrait, EquipmentSlot, ItemCategory, EncumbranceModifiers } from './traits.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { CraftingManager } from './CraftingManager.js';
+import audioManager from '../utils/AudioManager.js';
 
 /**
  * InventoryManager coordinates all containers in the game
@@ -800,6 +801,10 @@ export class InventoryManager extends SafeEventEmitter {
           else if (removed.equipment) { this.equipment[removed.equipment] = item; item.isEquipped = true; }
         }
 
+        if (toAdd > 0) {
+          audioManager.playSound('ReloadShot');
+        }
+
         return { success: true, merged: true };
       } else {
         // Empty
@@ -815,6 +820,7 @@ export class InventoryManager extends SafeEventEmitter {
         // Load the full stack (or split portion) into the weapon
         const success = weapon.attachItem(slotId, item);
         if (success) {
+          audioManager.playSound('ReloadShot');
           this.emit('inventoryChanged');
           return { success: true };
         } else {
@@ -867,6 +873,9 @@ export class InventoryManager extends SafeEventEmitter {
       }
       return { success: false, reason: 'Incompatible attachment slot' };
     }
+
+    // Play reload sound for all weapon attachments as requested
+    audioManager.playSound('ReloadShot');
 
     return { success: true };
   }

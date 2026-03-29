@@ -34,7 +34,7 @@ export function ItemContextMenu({
     tooltipContent = null
 }: ItemContextMenuProps) {
     const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater } = useInventory();
-    const { startTargetingItem, harvestCorn } = useGame();
+    const { startTargetingItem, harvestCorn, igniteTorch, inventoryManager } = useGame();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
 
     // ... (rest of the component)
@@ -164,6 +164,22 @@ export function ItemContextMenu({
                                 Unload
                             </ContextMenuItem>
                         )}
+                        {item?.isChargeBased?.() && (() => {
+                            const torch = inventoryManager?.equipment?.['flashlight'];
+                            const canIgnite = torch && torch.defId === 'tool.torch' && !torch.isLit;
+                            if (!canIgnite) return null;
+
+                            return (
+                                <ContextMenuItem
+                                    onClick={() => {
+                                        igniteTorch(item);
+                                    }}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white font-bold text-yellow-500"
+                                >
+                                    Use (Light Torch)
+                                </ContextMenuItem>
+                            );
+                        })()}
                         {item?.hasTrait?.('consumable') && !item?.isWaterBottle?.() && (
                             <ContextMenuItem
                                 onClick={() => {

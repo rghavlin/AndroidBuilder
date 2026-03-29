@@ -1,44 +1,41 @@
 
-import { GameMap } from 'c:/Games/AndroidBuilder/client/src/game/map/GameMap.js';
-import { Window } from 'c:/Games/AndroidBuilder/client/src/game/entities/Window.js';
-import { Tile } from 'c:/Games/AndroidBuilder/client/src/game/map/Tile.js';
+// Verification script for Pathfinding window cost logic
+import { Pathfinding } from '../client/src/game/utils/Pathfinding.js';
 
-async function testWindowPassability() {
-    console.log('--- Testing Window Passability ---');
+function testWindowCost() {
+    console.log('--- Testing Window Move Cost for Zombies ---');
     
-    const gameMap = new GameMap('test-map', 10, 10);
-    const x = 5, y = 5;
+    // Mock tiles
+    const grassTile = { terrain: 'grass', contents: [] };
+    const closedWindowTile = { terrain: 'floor', contents: [{ type: 'window', isOpen: false, isBroken: false }] };
+    const openWindowTile = { terrain: 'floor', contents: [{ type: 'window', isOpen: true, isBroken: false }] };
+    const brokenWindowTile = { terrain: 'floor', contents: [{ type: 'window', isOpen: false, isBroken: true }] };
     
-    // Set tile as floor first to ensure it's normally walkable
-    gameMap.setTerrain(x, y, 'floor');
-    let tile = gameMap.getTile(x, y);
-    console.log(`Initial floor walkability: ${tile.isWalkable()}`); // Should be true
+    const x1 = 0, y1 = 0;
+    const x2 = 1, y2 = 0; // Cardinal move
     
-    // Add a closed window
-    const window = new Window('test-window', x, y, true, false, false);
-    gameMap.addEntity(window, x, y);
+    // 1. Cardinal move through grass (cost 1)
+    const costGrass = Pathfinding.getMovementCost(x1, y1, x2, y2, grassTile, { isZombie: true });
+    console.log(`Grass cost: ${costGrass} (Expected: 1)`);
     
-    console.log(`Window blocksMovement: ${window.blocksMovement}`); // Should be true
-    console.log(`Tile contents length: ${tile.contents.length}`);
-    console.log(`Tile terrain: ${tile.terrain}`);
-    console.log(`Tile walkability with closed window: ${tile.isWalkable()}`); // Should be false
+    // 2. Cardinal move through closed window (cost 4)
+    const costClosed = Pathfinding.getMovementCost(x1, y1, x2, y2, closedWindowTile, { isZombie: true });
+    console.log(`Closed Window cost: ${costClosed} (Expected: 4)`);
     
-    if (tile.isWalkable()) {
-        console.error('FAIL: Closed window is passable!');
+    // 3. Cardinal move through open window (cost 3)
+    const costOpen = Pathfinding.getMovementCost(x1, y1, x2, y2, openWindowTile, { isZombie: true });
+    console.log(`Open Window cost: ${costOpen} (Expected: 3)`);
+    
+    // 4. Cardinal move through broken window (cost 3)
+    const costBroken = Pathfinding.getMovementCost(x1, y1, x2, y2, brokenWindowTile, { isZombie: true });
+    console.log(`Broken Window cost: ${costBroken} (Expected: 3)`);
+    
+    // Verification
+    if (costClosed === 4 && costOpen === 3 && costBroken === 3) {
+        console.log('\nSUCCESS: Zombie window AP costs are correctly implemented!');
     } else {
-        console.log('SUCCESS: Closed window blocks movement.');
+        console.log('\nFAILURE: Zombie window AP costs do not match expectations.');
     }
-    
-    // Open the window
-    window.open();
-    console.log(`Window blocksMovement (open): ${window.blocksMovement}`); // Should be false
-    console.log(`Tile walkability with open window: ${tile.isWalkable()}`); // Should be true
-    
-    // Break the window
-    window.close();
-    window.break();
-    console.log(`Window blocksMovement (broken): ${window.blocksMovement}`); // Should be false
-    console.log(`Tile walkability with broken window: ${tile.isWalkable()}`); // Should be true
 }
 
-testWindowPassability().catch(console.error);
+testWindowCost();

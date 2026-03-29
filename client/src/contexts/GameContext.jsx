@@ -8,7 +8,7 @@ import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from './GameMapContext.jsx';
 import { CameraProvider, useCamera } from './CameraContext.jsx';
-import { InventoryProvider } from './InventoryContext.jsx';
+import { InventoryProvider, useInventory } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
@@ -18,6 +18,8 @@ import { useAudio } from './AudioContext.jsx';
 const logger = Logger.scope('GameContext');
 
 // Test functions are imported via inventory system
+
+import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 const GameContext = createContext();
 
@@ -54,12 +56,13 @@ export const useGame = () => {
 
 const GameContextInner = ({ children }) => {
   // Use context hooks
-  const { playerRef, setPlayerRef, setPlayerPosition, setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, startAnimatedMovement, cancelMovement, isMoving: isAnimatingMovement } = usePlayer();
+  const { playerRef, setPlayerRef, setPlayerPosition, setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, startAnimatedMovement, cancelMovement, isMoving: isAnimatingMovement, playerFieldOfView } = usePlayer();
   const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, setLootGenerator, triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
   const { cameraRef, camera, setCamera, setCameraWorldBounds } = useCamera();
   const { addEffect } = useVisualEffects();
   const { addLog, clearLogs } = useLog();
   const { playSound } = useAudio();
+  const { forceRefresh, inventoryVersion } = useInventory();
 
 
   // Phase 5A: Store inventoryManager from initialization
@@ -94,14 +97,185 @@ const GameContextInner = ({ children }) => {
   const [isFlashlightOn, setIsFlashlightOn] = useState(false);
   const hour = (6 + (turn - 1)) % 24;
   const isNight = hour >= 20 || hour < 6;
+  
+  // Helper to determine active lighting range
+  const getActiveFlashlightRange = useCallback(() => {
+    const flashlight = inventoryManager?.equipment['flashlight'];
+    if (flashlight && flashlight.defId === 'tool.torch') return 5;
+    return 8;
+  }, [inventoryManager]);
+
+  // Sync flashlight state when inventory changes (e.g. unequip)
+  useEffect(() => {
+    if (!inventoryManager) return;
+    
+    const flashlight = inventoryManager.equipment['flashlight'];
+    if (isFlashlightOn) {
+      if (!flashlight || (flashlight.defId === 'tool.torch' && !flashlight.isLit)) {
+        console.log('[GameContext] Flashlight unequipped or torch unlit - turning off light');
+        setIsFlashlightOn(false);
+        // CRITICAL: Immediate FOV update on equipment change
+        updatePlayerFieldOfView(gameMapRef.current, isNight, false, false, getActiveFlashlightRange());
+      }
+    }
+    
+    // Extinguish logic: EVERY torch that is NOT in the flashlight slot should be unlit.
+    for (const [id, container] of inventoryManager.containers.entries()) {
+      for (const item of container.items.values()) {
+        if (item.defId === 'tool.torch' && item.isLit) {
+          console.log('[GameContext] Extinguishing torch moved to container:', id);
+          item.isLit = false;
+          if (isFlashlightOn) {
+            setIsFlashlightOn(false);
+            updatePlayerFieldOfView(gameMapRef.current, isNight, false, false, getActiveFlashlightRange());
+          }
+        }
+      }
+    }
+
+    // Also check other equipment slots (safety measure)
+    for (const slot in inventoryManager.equipment) {
+      if (slot === 'flashlight') continue;
+      const item = inventoryManager.equipment[slot];
+      if (item && item.defId === 'tool.torch' && item.isLit) {
+        console.log('[GameContext] Extinguishing torch moved to equipment slot:', slot);
+        item.isLit = false;
+      }
+    }
+  }, [inventoryVersion, inventoryManager, isFlashlightOn, isNight, updatePlayerFieldOfView, gameMapRef]);
+
+  /**
+   * Centralized helper to check for zombies spotting the player.
+   * Updates zombie 'isAlerted' state and emits ZOMBIE_ALERTED events.
+   * @param {Object} overridePlayerPos - Optional {x,y} to check visibility from (e.g. during animations)
+   */
+  const checkZombieAwareness = useCallback((overridePlayerPos = null) => {
+    const currentMap = gameMapRef.current;
+    const currentPlayer = playerRef.current;
+    if (!currentMap || !currentPlayer) return false;
+
+    const checkPlayer = overridePlayerPos || { x: currentPlayer.x, y: currentPlayer.y };
+    const zombies = currentMap.getEntitiesByType('zombie');
+    let alertedNew = false;
+
+    zombies.forEach(zombie => {
+      const canSee = zombie.canSeeEntity(currentMap, checkPlayer);
+
+      if (canSee && !zombie.isAlerted) {
+        zombie.isAlerted = true;
+        alertedNew = true;
+        // Global event triggers sound (Zombie1) and log entry
+        GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie });
+        console.log(`[GameContext] Zombie ${zombie.id} spotted player at (${checkPlayer.x}, ${checkPlayer.y})!`);
+      } else if (!canSee && zombie.isAlerted) {
+        // If they lost line of sight, they stay alerted but might lose current track 
+        // until they reach the LastSeen position (handled in ZombieAI)
+      }
+    });
+
+    return alertedNew;
+  }, [gameMapRef, playerRef]);
+
+  const igniteTorch = useCallback((sourceItem = null) => {
+    if (!playerRef.current || !inventoryManager) return;
+    
+    // Check AP (1 AP)
+    if (playerRef.current.ap < 1) {
+      addLog('Not enough AP to ignite torch (1 required)', 'error');
+      return;
+    }
+
+    let source = sourceItem;
+    let container = null;
+
+    if (!source) {
+      // Find all potential ignition sources (lighters/matches)
+      const availableItems = [];
+      
+      // Check backpack and pockets
+      const containers = [
+        inventoryManager.getBackpackContainer(),
+        ...inventoryManager.getPocketContainers()
+      ].filter(c => c !== null);
+
+      for (const c of containers) {
+        for (const item of c.items.values()) {
+          if (item.defId === 'tool.lighter' || item.defId === 'tool.matchbook') {
+            if ((item.ammoCount || 0) > 0) {
+              availableItems.push({ item, container: c });
+            }
+          }
+        }
+      }
+
+      if (availableItems.length === 0) {
+        addLog('You need a lighter or matches to ignite the torch.', 'error');
+        playSound('EmptyClick');
+        return;
+      }
+
+      // Use the smallest stack (lowest ammoCount)
+      availableItems.sort((a, b) => (a.item.ammoCount || 0) - (b.item.ammoCount || 0));
+      source = availableItems[0].item;
+      container = availableItems[0].container;
+    } else {
+      // Verify source has fuel
+      if ((source.ammoCount || 0) <= 0) {
+        addLog(`${source.name} is empty.`, 'error');
+        playSound('EmptyClick');
+        return;
+      }
+      // We need the container to potentially remove empty matchbooks
+      container = inventoryManager.findItem(source.instanceId)?.container;
+    }
+
+    // Get the torch
+    const torch = inventoryManager.equipment['flashlight'];
+    if (!torch || torch.defId !== 'tool.torch') {
+       addLog('Equip a torch in your hand to ignite it.', 'error');
+       return;
+    }
+
+    // Perform ignition
+    playerRef.current.useAP(1);
+    source.ammoCount = Math.max(0, (source.ammoCount || 0) - 1);
+    torch.isLit = true;
+    setIsFlashlightOn(true);
+    
+    playSound('MatchStrike'); 
+    addLog(`You ignite the torch using ${source.name}.`, 'item');
+    
+    // If source empty and is matchbook, discard it
+    if ((source.ammoCount || 0) <= 0 && source.defId === 'tool.matchbook' && container) {
+      container.removeItem(source.instanceId);
+      addLog('The matchbook is empty and discarded.', 'item');
+    }
+
+    forceRefresh();
+  }, [playerRef, inventoryManager, addLog, playSound, forceRefresh]);
 
   const toggleFlashlight = useCallback(() => {
+    const flashlight = inventoryManager?.equipment['flashlight'];
+    if (!flashlight) {
+      addLog('No lighting tool equipped.', 'error');
+      return;
+    }
+
+    // Special logic for Torch
+    if (flashlight.defId === 'tool.torch') {
+      if (!flashlight.isLit) {
+        igniteTorch();
+      } else {
+        addLog('The torch is already lit. Unequip it to extinguish.', 'info');
+      }
+      return;
+    }
+
     setIsFlashlightOn(prev => {
       const newState = !prev;
 
       if (newState) {
         // Turning ON - verify equipment and charges
-        const flashlight = inventoryManager?.equipment['flashlight'];
         if (!flashlight) {
           console.warn('[GameContext] Cannot turn on flashlight: None equipped');
           return false;
@@ -110,6 +284,8 @@ const GameContextInner = ({ children }) => {
         const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
         if (!battery || (battery.ammoCount || 0) <= 0) {
           console.warn('[GameContext] Cannot turn on flashlight: No battery or empty');
+          addLog('Flashlight battery is dead or missing.', 'error');
+          playSound('EmptyClick');
           return false;
         }
 
@@ -119,17 +295,22 @@ const GameContextInner = ({ children }) => {
 
         if (battery.ammoCount <= 0) {
           console.log('[GameContext] Battery depleted immediately on ignition.');
-          updatePlayerFieldOfView(gameMapRef.current, isNight, false);
+          updatePlayerFieldOfView(gameMapRef.current, isNight, false, false, getActiveFlashlightRange());
+          addLog('The flashlight died immediately.', 'error');
           return false;
         }
+        playSound('SwitchOn');
+      } else {
+        playSound('SwitchOff');
       }
 
-      updatePlayerFieldOfView(gameMapRef.current, isNight, newState);
+      updatePlayerFieldOfView(gameMapRef.current, isNight, newState, false, getActiveFlashlightRange());
       return newState;
     });
-  }, [gameMapRef, isNight, updatePlayerFieldOfView, inventoryManager]);
+  }, [gameMapRef, isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange]);
 
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+  const [isAnimatingZombies, setIsAnimatingZombies] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [isSleeping, setIsSleeping] = useState(false);
   const [sleepProgress, setSleepProgress] = useState(0);
@@ -185,6 +366,7 @@ const GameContextInner = ({ children }) => {
       setPlayerRef(gameObjects.player);
       setCamera(gameObjects.camera);
       setWorldManager(gameObjects.worldManager);
+      setZombieTracker(gameObjects.zombieTracker);
       setLootGenerator(gameObjects.lootGenerator);
 
       // Set up camera and player
@@ -285,8 +467,12 @@ const GameContextInner = ({ children }) => {
       }
 
       // Now safe to do operations that depend on all contexts
-      updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
-      updatePlayerCardinalPositions(gameMap);
+      if (typeof updatePlayerFieldOfView === 'function') {
+        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
+      }
+      if (typeof updatePlayerCardinalPositions === 'function') {
+        updatePlayerCardinalPositions(gameMap);
+      }
 
       // Mark as fully ready
       setContextSyncPhase('ready');
@@ -516,7 +702,7 @@ const GameContextInner = ({ children }) => {
       setIsAutosaving(false);
       return false;
     }
-  }, [isInitialized, turn, playerRef, gameMapRef, worldManagerRef, cameraRef]);
+  }, [isInitialized, gameMapRef, worldManagerRef, playerRef, cameraRef, inventoryManager, turn]);
 
   const checkIsSheltered = useCallback((player, gameMap) => {
     if (!player || !gameMap) return false;
@@ -722,13 +908,16 @@ const GameContextInner = ({ children }) => {
           // Trigger visual effects for attacks (even if player is sleeping, state should be consistent)
           if (turnResult.success) {
             turnResult.actions.forEach(action => {
-              if (action.type === 'attackDoor' && action.doorPos && addEffect) {
+              if (action.type === 'attackDoor' && action.doorPos) {
+                playSound('Bang1');
                 if (isPlayerInSameBuildingAsDoor({ x: player.x, y: player.y }, action.doorPos, gameMap)) {
                   addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
                   doorAttackedInBuilding = true;
                 }
-                addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
-                addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
+                if (addEffect) {
+                  addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
+                  addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
+                }
               } else if (action.type === 'attackWindow' && action.windowPos) {
                 playSound('GlassBreak');
                 addLog('Zombie smashes a window!', 'combat');
@@ -742,6 +931,9 @@ const GameContextInner = ({ children }) => {
             });
           }
         });
+ 
+        // Animate visible zombies during sleep
+        await animateVisibleZombies(zombies, playerFieldOfView);
 
         // Sync stats to UI
         updatePlayerStats({
@@ -798,7 +990,7 @@ const GameContextInner = ({ children }) => {
           setIsSleeping(false);
           setSleepProgress(0);
           
-          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
           updatePlayerCardinalPositions(gameMap);
           setIsPlayerTurn(true);
           return; // Exit loop
@@ -1119,7 +1311,7 @@ const GameContextInner = ({ children }) => {
 
     setTargetingItem(null);
     updatePlayerStats({ ap: player.ap });
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
     updatePlayerCardinalPositions(gameMap);
 
     // Force re-render of map
@@ -1129,6 +1321,76 @@ const GameContextInner = ({ children }) => {
 
     return { success: true };
   }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+
+  const animateVisibleZombies = useCallback((zombies, currentFov) => {
+    return new Promise((resolve) => {
+      // 1. Identify zombies that moved and are visible
+      const currentFovSafe = currentFov || [];
+      const movedZombies = zombies.filter(z => z.movementPath && z.movementPath.length > 1);
+      
+      const animatingZombies = movedZombies.filter(zombie => {
+        // Visibility check: Was it visible at start OR is it visible at end?
+        const startPos = zombie.movementPath[0];
+        const endPos = zombie.movementPath[zombie.movementPath.length - 1];
+        
+        const isStartVisible = currentFovSafe.some(pos => pos.x === startPos.x && pos.y === startPos.y);
+        const isEndVisible = currentFovSafe.some(pos => pos.x === endPos.x && pos.y === endPos.y);
+        
+        return isStartVisible || isEndVisible;
+      });
+
+      if (animatingZombies.length === 0) {
+        if (movedZombies.length > 0) {
+          console.log(`[GameContext] ${movedZombies.length} zombies moved, but none are currently visible in FOV`);
+        }
+        resolve();
+        return;
+      }
+
+      console.log(`[GameContext] 🧟 ANIMATING ${animatingZombies.length} visible zombies...`);
+
+      // Dynamic duration based on movement distance (e.g. 1 tile = short, 10 tiles = long)
+      const maxTilesMoved = animatingZombies.reduce((max, z) => Math.max(max, (z.movementPath?.length || 1) - 1), 1);
+      const duration = Math.min(1000, 300 + (maxTilesMoved * 70));
+      console.log(`[GameContext] Animating visible zombies (maxDist=${maxTilesMoved}) duration: ${duration}ms`);
+
+      // 2. Start animation
+      setIsAnimatingZombies(true);
+      animatingZombies.forEach(z => {
+        z.isAnimating = true;
+        z.animationProgress = 0;
+      });
+
+      const startTime = performance.now();
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(1, elapsed / duration);
+
+        animatingZombies.forEach(z => {
+          z.animationProgress = progress;
+        });
+
+        // Trigger map re-render
+        if (triggerMapUpdate) triggerMapUpdate();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Animation complete
+          animatingZombies.forEach(z => {
+            z.isAnimating = false;
+            z.animationProgress = 0;
+            // Note: Data position is already at the end of the path
+          });
+          setIsAnimatingZombies(false);
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(animate);
+    });
+  }, [triggerMapUpdate]);
 
   const endTurn = useCallback(async () => {
     if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn) {
@@ -1178,10 +1440,14 @@ const GameContextInner = ({ children }) => {
         });
       }
 
+      // Check awareness one last time before zombie turn
+      checkZombieAwareness();
+
       const zombies = gameMap.getEntitiesByType('zombie');
       console.log(`[GameContext] Processing ${zombies.length} zombie turns`);
 
-      let wasBleedingBefore = player.isBleeding;
+      const immediateActions = []; // Actions for stationary zombies (attack now)
+      const delayedActions = [];   // Actions for moving zombies (attack after move)
 
       zombies.forEach(zombie => {
         const turnResult = ZombieAI.executeZombieTurn(
@@ -1193,80 +1459,72 @@ const GameContextInner = ({ children }) => {
         );
 
         if (turnResult.success) {
-          console.log(`[GameContext] Zombie ${zombie.id} turn completed:`, {
-            behavior: turnResult.behaviorTriggered,
-            apUsed: turnResult.apUsed,
-            actions: turnResult.actions.length
-          });
-          turnResult.actions.forEach((action, index) => {
-            if (action.type === 'move') {
-              console.log(`[GameContext] - Action ${index + 1}: Moved from (${action.from.x}, ${action.from.y}) to (${action.to.x}, ${action.to.y})`);
-            } else if (action.type === 'attackDoor' && action.doorPos) {
-              console.log(`[GameContext] - Action ${index + 1}: Attacking door at (${action.doorPos.x}, ${action.doorPos.y})`);
-              if (isPlayerInSameBuildingAsDoor({ x: player.x, y: player.y }, action.doorPos, gameMap)) {
-                addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
+          const hasMoved = zombie.movementPath && zombie.movementPath.length > 1;
+          
+          turnResult.actions.forEach(action => {
+            if (action.type === 'attackDoor' || action.type === 'attackWindow' || action.type === 'attack' || action.type === 'wait') {
+              const actionData = { zombieId: zombie.id, ...action };
+              if (hasMoved) {
+                delayedActions.push(actionData);
+              } else {
+                immediateActions.push(actionData);
               }
-
-              // Trigger visual effects for door attack
-              if (addEffect) {
-                // Floating "bang" text
-                addEffect({
-                  type: 'damage',
-                  x: action.doorPos.x,
-                  y: action.doorPos.y,
-                  value: 'bang',
-                  color: '#ffffff', // White text for door bangs
-                  duration: 800
-                });
-
-                // Brownish-gray tile flash
-                addEffect({
-                  type: 'tile_flash',
-                  x: action.doorPos.x,
-                  y: action.doorPos.y,
-                  color: 'rgba(139, 115, 85, 0.4)', // Door color
-                  duration: 300
-                });
-              }
-            } else if (action.type === 'attackWindow' && action.windowPos) {
-              playSound('GlassBreak');
-              addLog('Zombie smashes a window!', 'combat');
-              
-              if (addEffect) {
-                addEffect({
-                  type: 'damage',
-                  x: action.windowPos.x,
-                  y: action.windowPos.y,
-                  value: 'SMASH',
-                  color: '#ffffff',
-                  duration: 1000
-                });
-                addEffect({
-                  type: 'tile_flash',
-                  x: action.windowPos.x,
-                  y: action.windowPos.y,
-                  color: 'rgba(255, 255, 255, 0.6)',
-                  duration: 400
-                });
-              }
-            } else if (action.type === 'attack' && action.target === 'player') {
-              addLog(`Zombie attacks: ${action.damage} damage`, 'combat');
-              // Check if bleeding was just inflicted (and only log once)
-              if (player.isBleeding && !wasBleedingBefore) {
-                addLog('You have started to bleed!', 'warning');
-                // Update the tracker so we don't log it again this turn if hit again
-                wasBleedingBefore = true; 
-              }
-            } else if (action.type === 'wander') {
-              console.log(`[GameContext] - Action ${index + 1}: Zombie wandered to (${action.to.x}, ${action.to.y})`);
             }
-
           });
-        } else {
-          console.warn(`[GameContext] Zombie ${zombie.id} turn failed:`, turnResult.reason || turnResult.error);
         }
       });
+  
+      // Helper to process zombie actions (combat, banging, waiting)
+      const processZombieActions = (actions) => {
+        actions.forEach(action => {
+          const zombieEntity = zombies.find(z => z.id === action.zombieId);
+          if (!zombieEntity) return;
 
+          if (action.type === 'attackDoor' && action.doorPos) {
+            playSound('Bang1');
+            GameEvents.emit(action.doorBroken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action);
+            if (addEffect) {
+              addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
+              addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
+            }
+          } else if (action.type === 'attackWindow' && action.windowPos) {
+            playSound('GlassBreak');
+            GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action);
+            if (addEffect) {
+              addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
+              addEffect({ type: 'tile_flash', x: action.windowPos.x, y: action.windowPos.y, color: 'rgba(255, 255, 255, 0.6)', duration: 400 });
+            }
+          } else if (action.type === 'attack' && action.target === 'player') {
+            if (action.success) {
+              player.takeDamage(action.damage, zombieEntity);
+              if (action.bleedingInflicted) player.setBleeding(true);
+            }
+            GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK, { ...action, zombie: zombieEntity });
+          } else if (action.type === 'wait') {
+            // Optional: Shuffle sound or growl for waiting zombies
+            GameEvents.emit(GAME_EVENT.ZOMBIE_WAIT, { ...action, zombie: zombieEntity });
+          }
+        });
+      };
+
+      // 1. Process IMMEDIATE actions (Stationary zombies attack now)
+      if (immediateActions.length > 0) {
+        console.log(`[GameContext] Executing ${immediateActions.length} immediate stationary actions`);
+        processZombieActions(immediateActions);
+      }
+
+      // 2. Animate visible zombies
+      if (typeof animateVisibleZombies === 'function') {
+        await animateVisibleZombies(zombies, playerFieldOfView);
+      }
+
+      // 3. Process DELAYED actions (Moving zombies attack after arrival)
+      if (delayedActions.length > 0) {
+        console.log(`[GameContext] Executing ${delayedActions.length} delayed post-movement actions`);
+        processZombieActions(delayedActions);
+      }
+
+ 
       // Regenerate 1 HP at start of new turn phase if survival stats are sufficient (>= 5)
       // Regen logic: 1 HP per turn if healthy, nutrition/hydration threshold met
       if (player.nutrition >= 5 && player.hydration >= 5 && player.condition === 'Normal' && !player.isBleeding) {
@@ -1282,13 +1540,14 @@ const GameContextInner = ({ children }) => {
         console.log('[GameContext] Player is Diseased - reducing AP and HP by 1');
         player.modifyStat('ap', -1);
         player.takeDamage(1, { id: 'disease', type: 'infection' });
+        GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { damage: 1, source: { id: 'disease' } });
       }
 
       // Apply Bleeding condition penalties
       if (player.isBleeding) {
         console.log('[GameContext] Player is Bleeding - reducing HP by 1');
         player.takeDamage(1, { id: 'bleeding', type: 'status' });
-        addLog('You are bleeding!', 'warning');
+        GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { damage: 1, source: { id: 'bleeding' } });
       }
 
       // Reduce survival stats by 1 on end turn
@@ -1296,23 +1555,37 @@ const GameContextInner = ({ children }) => {
       player.modifyStat('hydration', -1);
       player.modifyStat('energy', -1);
 
-      // Battery consumption if flashlight left ON
+      // Battery/Torch consumption if flashlight left ON
       if (isFlashlightOn) {
         const flashlight = inventoryManager?.equipment['flashlight'];
         if (flashlight) {
-          const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
-          if (battery && battery.ammoCount > 0) {
-            battery.ammoCount = Math.max(0, battery.ammoCount - 1);
-            console.log(`[GameContext] Flashlight consumption (End Turn): 1 charge. Remaining: ${battery.ammoCount}`);
-
-            if (battery.ammoCount <= 0) {
-              console.log('[GameContext] Flashlight battery depleted. Turning off.');
+          if (flashlight.defId === 'tool.torch') {
+            // Torch consumption (uses condition)
+            flashlight.condition = Math.max(0, (flashlight.condition || 0) - 1);
+            console.log(`[GameContext] Torch consumption (End Turn): 1 charge. Remaining: ${flashlight.condition}`);
+            
+            if (flashlight.condition <= 0) {
+              addLog('The torch has burned out and crumbles into ash.', 'item');
               setIsFlashlightOn(false);
-              // FOV will be updated below with the new isFlashlightOn state
+              inventoryManager.unequipItem('flashlight');
+              inventoryManager.destroyItem(flashlight.instanceId);
+              forceRefresh();
             }
           } else {
-            // Flashlight was on but battery is gone/empty
-            setIsFlashlightOn(false);
+            // Flashlight consumption (uses battery ammoCount)
+            const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
+            if (battery && (battery.ammoCount || 0) > 0) {
+              battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+              console.log(`[GameContext] Flashlight consumption (End Turn): 1 charge. Remaining: ${battery.ammoCount}`);
+
+              if (battery.ammoCount <= 0) {
+                console.log('[GameContext] Flashlight battery depleted. Turning off.');
+                setIsFlashlightOn(false);
+              }
+            } else {
+              // Flashlight was on but battery is gone/empty
+              setIsFlashlightOn(false);
+            }
           }
         } else {
           setIsFlashlightOn(false);
@@ -1395,7 +1668,7 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] Error ending turn:', error);
       setIsPlayerTurn(true);
     }
-  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
+  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleZombies, checkZombieAwareness, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
 
   // Legacy wrapper methods (these should be removed in Phase 2)
   const handleTileClick = useCallback((x, y) => {
@@ -1444,7 +1717,7 @@ const GameContextInner = ({ children }) => {
     });
 
     console.log(`[GameContext] Spawned ${spawnedCount} test entities for LOS testing`);
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
     return spawnedCount;
   }, [updatePlayerFieldOfView, playerRef, gameMap]);
 
@@ -1560,7 +1833,7 @@ const GameContextInner = ({ children }) => {
 
     if (success) {
       // Update PlayerContext data after successful transition (no timer)
-      updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOn);
+      updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOn, false, getActiveFlashlightRange());
       updatePlayerCardinalPositions(gameMapRef.current);
       console.log('[GameContext] Player FOV and cardinal positions updated after map transition');
     }
@@ -1581,6 +1854,7 @@ const GameContextInner = ({ children }) => {
     hour,
     isFlashlightOn,
     toggleFlashlight,
+    igniteTorch,
     isPlayerTurn,
     isAutosaving,
 
@@ -1616,6 +1890,7 @@ const GameContextInner = ({ children }) => {
     plantSeed,
     harvestCorn,
     useBreakingToolOnStructure,
+    checkZombieAwareness,
 
     // Phase 5A: Expose inventoryManager for InventoryProvider
     inventoryManager,
@@ -1632,6 +1907,7 @@ const GameContextInner = ({ children }) => {
     hour,
     isFlashlightOn,
     toggleFlashlight,
+    igniteTorch,
     isPlayerTurn,
     isAutosaving,
     initializeGame,
@@ -1651,6 +1927,7 @@ const GameContextInner = ({ children }) => {
     plantSeed,
     harvestCorn,
     useBreakingToolOnStructure,
+    checkZombieAwareness,
     mapTransition,
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel

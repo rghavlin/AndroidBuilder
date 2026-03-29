@@ -11,6 +11,8 @@ export class Tile {
     this.inventoryItems = []; // Array of serialized items on this tile
     this.listeners = new Map(); // Event listeners
     this.flags = {}; // Tile-specific flags (e.g., for fog of war)
+    this.scent = 0; // Current scent intensity (turns remaining)
+    this.scentSequence = 0; // Global sequence number for trail following
   }
 
   /**
@@ -165,7 +167,9 @@ export class Tile {
       terrain: this.terrain,
       contents: this.contents.map(entity => entity.toJSON()),
       inventoryItems: this.inventoryItems, // items are already serialized
-      flags: this.flags
+      flags: this.flags,
+      scent: this.scent,
+      scentSequence: this.scentSequence
     };
   }
 
@@ -176,6 +180,8 @@ export class Tile {
     const tile = new Tile(data.x, data.y, data.terrain);
     tile.flags = data.flags || {};
     tile.inventoryItems = data.inventoryItems || [];
+    tile.scent = data.scent || 0;
+    tile.scentSequence = data.scentSequence || 0;
     // Note: contents are restored by GameMap.fromJSON
     return tile;
   }

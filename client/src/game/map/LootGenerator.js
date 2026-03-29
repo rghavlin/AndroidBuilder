@@ -516,7 +516,7 @@ export class LootGenerator {
      * Common (65%): any clothing or rag
      * Uncommon (20%): granola bar, chips, water bottle (small amount), bandage, antibiotics
      * Rare (10%): Any ammo, knife, lighter, matches
-     * Extremely rare (5%): 9mm pistol, 357 pistol, small flashlight
+     * Extremely rare (5%): 9mm pistol, 357 pistol, Flashlight
      */
     /**
      * Generate loot for a zombie when it's killed.
@@ -585,7 +585,7 @@ export class LootGenerator {
                     });
                     selectedKey = rareKeys[Math.floor(Math.random() * rareKeys.length)];
                 } else {
-                    // Extremely rare: 9mm pistol, 357 pistol, shotgun, small flashlight
+                    // Extremely rare: 9mm pistol, 357 pistol, shotgun, Flashlight
                     const exoticKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight'];
                     selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
                 }

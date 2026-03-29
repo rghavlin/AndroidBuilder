@@ -219,7 +219,8 @@ export class Item extends SafeEventEmitter {
 
   isMagazine() {
     // Items with capacity are magazines or weapons with internal mags
-    return this.capacity !== null && this.capacity > 0;
+    // BUT we exclude charge-based tools like lighters and matches
+    return this.capacity !== null && this.capacity > 0 && !this.isChargeBased();
   }
 
   isAmmo() {
@@ -428,6 +429,16 @@ export class Item extends SafeEventEmitter {
 
     // 5. If it's a standalone battery, show its charge
     if (this.isBattery && this.isBattery()) {
+      return this.ammoCount || 0;
+    }
+
+    // 6. If it's an ignitable item (Torch), show its condition as charges
+    if (this.hasTrait(ItemTrait.IGNITABLE)) {
+      return this.condition || 0;
+    }
+
+    // 7. If it's a charge-based tool (Lighter/Matches), show its ammoCount
+    if (this.isChargeBased && this.isChargeBased()) {
       return this.ammoCount || 0;
     }
 

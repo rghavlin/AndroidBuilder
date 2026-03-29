@@ -146,7 +146,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     cancelTargetingItem,
     useBreakingToolOnStructure,
     isNight,
-    isFlashlightOn
+    isFlashlightOn,
+    checkZombieAwareness
   } = useGame();
 
   // Get inventory context for floating containers and selection management
@@ -534,6 +535,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
                 // Refresh zombie tracking with new FOV
                 refreshZombieTracking(player, newFovTiles);
+                // PASSIVE AWARENESS: Force zombies to check if they spot the player NOW
+                checkZombieAwareness();
 
                 // Add noise generation to attract zombies
                 if (gameMap.emitNoise) {
@@ -615,6 +618,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
                 if (doorMenu.door.unlock()) {
                   player.useAP(1);
+                  playSound('Unlock');
                   addLog('You unlock the door from the inside.', 'world');
                   triggerMapUpdate();
                 }
@@ -671,6 +675,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn);
                 // Refresh zombie tracking with new FOV
                 refreshZombieTracking(player, newFovTiles);
+                // PASSIVE AWARENESS: Force zombies to check if they spot the player NOW
+                checkZombieAwareness();
 
                 // Add noise generation to attract zombies
                 if (gameMap.emitNoise) {
@@ -752,6 +758,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
                 if (windowMenu.window.unlock()) {
                   player.useAP(1);
+                  playSound('Unlock');
                   addLog('You unlock the window from the inside.', 'world');
                   triggerMapUpdate();
                 }

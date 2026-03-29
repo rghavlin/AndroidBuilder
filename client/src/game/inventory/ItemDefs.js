@@ -443,9 +443,9 @@ export const ItemDefs = {
 
   'tool.smallflashlight': {
     id: 'tool.smallflashlight',
-    name: 'Small Flashlight',
+    name: 'Flashlight',
     rarity: Rarity.UNCOMMON,
-    imageId: 'smallflashlight',
+    imageId: 'flashlight',
     width: 2,
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
@@ -455,6 +455,20 @@ export const ItemDefs = {
     attachmentSlots: [
       { id: 'battery', name: 'Battery', type: 'battery', allowedCategories: [ItemCategory.BATTERY] }
     ]
+  },
+  'tool.torch': {
+    id: 'tool.torch',
+    name: 'Torch',
+    rarity: Rarity.COMMON,
+    imageId: 'torch',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.IGNITABLE],
+    equippableSlot: EquipmentSlot.FLASHLIGHT,
+    categories: [ItemCategory.TORCH],
+    condition: 10,
+    isLit: false,
+    noLoot: true // Craftable only
   },
   'tool.battery': {
     id: 'tool.battery',

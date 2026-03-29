@@ -51,12 +51,18 @@ export class Zombie extends Entity {
       this.maxHp = 10;
     }
 
-    this.sightRange = 18; // Sight distance as specified
+    this.sightRange = 15; // Sight distance as specified
 
     // Current behavior state
     this.behaviorState = 'idle'; // 'idle', 'pursuing', 'investigating', 'wandering'
     this.isActive = false; // Whether it's this zombie's turn
     this.isAlerted = false; // Persistent flag for "spotted player" sound trigger
+    this.lastScentSequence = 0; // Last scent in the trail this zombie followed
+
+    // Animation state for smooth movement (Phase 11)
+    this.movementPath = []; // Array of {x, y} coordinates for the current turn
+    this.isAnimating = false;
+    this.animationProgress = 0; // 0.0 to 1.0
   }
 
   /**
@@ -95,6 +101,8 @@ export class Zombie extends Entity {
     this.currentAP = this.maxAP;
     this.isActive = true;
     this.behaviorState = 'idle';
+    // Initialize movementPath with current position for animation tracking
+    this.movementPath = [{ x: this.x, y: this.y }];
   }
 
   /**
@@ -104,6 +112,7 @@ export class Zombie extends Entity {
     this.currentAP = 0;
     this.isActive = false;
     this.behaviorState = 'idle';
+    // movementPath is preserved until explicitly cleared or start of next turn
   }
 
   /**
@@ -143,6 +152,7 @@ export class Zombie extends Entity {
   clearLastSeen() {
     this.lastSeen = false;
     this.targetSightedCoords = { x: 0, y: 0 };
+    this.lastScentSequence = 0;
   }
 
   /**
@@ -260,7 +270,11 @@ export class Zombie extends Entity {
       sightRange: this.sightRange,
       behaviorState: this.behaviorState,
       isActive: this.isActive,
-      isAlerted: this.isAlerted
+      isAlerted: this.isAlerted,
+      lastScentSequence: this.lastScentSequence,
+      movementPath: this.movementPath,
+      isAnimating: this.isAnimating,
+      animationProgress: this.animationProgress
     };
   }
 
@@ -279,6 +293,10 @@ export class Zombie extends Entity {
     zombie.behaviorState = data.behaviorState || 'idle';
     zombie.isActive = data.isActive || false;
     zombie.isAlerted = data.isAlerted || false;
+    zombie.lastScentSequence = data.lastScentSequence || 0;
+    zombie.movementPath = data.movementPath || [];
+    zombie.isAnimating = data.isAnimating || false;
+    zombie.animationProgress = data.animationProgress || 0;
     return zombie;
   }
 }

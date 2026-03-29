@@ -5,6 +5,7 @@ import { useGridSize } from "@/contexts/GridSizeContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGame } from "../../contexts/GameContext.jsx";
+import { useAudio } from "../../contexts/AudioContext.jsx";
 
 interface UniversalGridProps {
   containerId: string;
@@ -124,9 +125,14 @@ export default function UniversalGrid({
     }
   }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
 
+  const { playSound } = useAudio();
+
   const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+
+    // Play tactile feedback sound
+    playSound('Click');
 
     // Case 0: Handling Targeting (e.g. Shovel Digging)
     if (targetingItem) {

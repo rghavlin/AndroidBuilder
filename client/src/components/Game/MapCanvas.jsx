@@ -630,6 +630,10 @@ export default function MapCanvas({
             // Pass 2: Foreground entities (Zombies, NPCs, etc.)
             tile.contents.forEach((entity, index) => {
               if (entity.type === 'player' || entity.type === 'item' || entity.type === 'door') return;
+              
+              // Skip rendering animating zombies here (they will be rendered in the animation pass)
+              if (entity.type === 'zombie' && entity.isAnimating) return;
+
               if (isCurrentlyVisible) {
                 const offsetY = index * (tileSize / 8);
                 renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
@@ -663,9 +667,38 @@ export default function MapCanvas({
           }
         }
       }
+ 
+      // Render animating zombies (Phase 11)
+      const allZombies = gameMap.getEntitiesByType('zombie');
+      let zombiesAnimatedCount = 0;
 
-
-
+      allZombies.forEach(zombie => {
+        if (zombie.isAnimating && zombie.movementPath && zombie.movementPath.length > 0) {
+          zombiesAnimatedCount++;
+          const pathProgress = zombie.animationProgress * (zombie.movementPath.length - 1);
+          const segmentIndex = Math.max(0, Math.floor(pathProgress));
+          const segmentProgress = pathProgress - segmentIndex;
+          
+          const currentWaypoint = zombie.movementPath[segmentIndex];
+          const nextWaypoint = zombie.movementPath[Math.min(segmentIndex + 1, zombie.movementPath.length - 1)];
+          
+          if (currentWaypoint && nextWaypoint) {
+            const smoothX = currentWaypoint.x + (nextWaypoint.x - currentWaypoint.x) * segmentProgress;
+            const smoothY = currentWaypoint.y + (nextWaypoint.y - currentWaypoint.y) * segmentProgress;
+            
+            const screenPos = camera.worldToScreen(smoothX, smoothY);
+            const smoothPixelX = screenPos.x * tileSize;
+            const smoothPixelY = screenPos.y * tileSize;
+            
+            // Only render if visible on screen
+            if (smoothPixelX >= -tileSize && smoothPixelX <= mapWidth &&
+                smoothPixelY >= -tileSize && smoothPixelY <= mapHeight) {
+              renderEntity(ctx, zombie, smoothPixelX, smoothPixelY, tileSize, performance.now());
+            }
+          }
+        }
+      });
+ 
       // Render player with smooth animation if moving
       if (player && isAnimatingMovement) {
         // Convert smooth world coordinates to screen coordinates
@@ -687,10 +720,14 @@ export default function MapCanvas({
           renderEffect(ctx, effect, camera, tileSize, currentTime);
         });
       }
+
+      if (zombiesAnimatedCount > 0 && Math.random() < 0.05) {
+        console.log(`[MapCanvas] Smooth rendering ${zombiesAnimatedCount} zombies`);
+      }
     } catch (error) {
       console.error('[MapCanvas] Error rendering map:', error);
     }
-  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, cameraRef.current, effects, renderEffect, renderEntity, isNight, isFlashlightOn]); // Add light state to dependencies
+  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, cameraRef.current, effects, renderEffect, renderEntity, isNight, isFlashlightOn, mapVersion]); // Include mapVersion to react to triggerMapUpdate
 
   // Handle mouse down for dragging
   const handleMouseDown = useCallback((event) => {

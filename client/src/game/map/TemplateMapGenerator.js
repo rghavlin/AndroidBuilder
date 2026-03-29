@@ -946,14 +946,18 @@ export class TemplateMapGenerator {
         const possibleX = [];
         if (room.w >= (minInteriorSize * 2) + 1) {
             for (let sx = room.x + minInteriorSize; sx <= room.x + room.w - minInteriorSize - 1; sx++) {
-                if (!buildingDoors.some(d => d.x === sx)) possibleX.push(sx);
+                // IMPORTANT: Avoid all doors (perimeter and interior) to prevent blocking
+                const conflictsWithDoor = mapData.metadata.doors.some(d => d.x === sx);
+                if (!conflictsWithDoor) possibleX.push(sx);
             }
         }
 
         const possibleY = [];
         if (room.h >= (minInteriorSize * 2) + 1) {
             for (let sy = room.y + minInteriorSize; sy <= room.y + room.h - minInteriorSize - 1; sy++) {
-                if (!buildingDoors.some(d => d.y === sy)) possibleY.push(sy);
+                // IMPORTANT: Avoid all doors (perimeter and interior) to prevent blocking
+                const conflictsWithDoor = mapData.metadata.doors.some(d => d.y === sy);
+                if (!conflictsWithDoor) possibleY.push(sy);
             }
         }
 
@@ -1274,6 +1278,45 @@ export class TemplateMapGenerator {
       if (templateMapData.metadata && templateMapData.metadata.doors) {
         const { Door } = await import('../entities/Door.js');
         templateMapData.metadata.doors.forEach(doorData => {
+          const { x, y } = doorData;
+          
+          // PHASE 1: DOORWAY CLEARANCE ("PUNCH THROUGH") 
+          const tileLeft = x > 0 ? templateMapData.tiles[y][x - 1]?.terrain : null;
+          const tileRight = x < templateMapData.width - 1 ? templateMapData.tiles[y][x + 1]?.terrain : null;
+          const tileUp = y > 0 ? templateMapData.tiles[y - 1][x]?.terrain : null;
+          const tileDown = y < templateMapData.height - 1 ? templateMapData.tiles[y + 1][x]?.terrain : null;
+          const wallTypes = ['building', 'wall', 'window', 'fence'];
+
+          const hasWallLeft = wallTypes.includes(tileLeft);
+          const hasWallRight = wallTypes.includes(tileRight);
+          const hasWallUp = wallTypes.includes(tileUp);
+          const hasWallDown = wallTypes.includes(tileDown);
+
+          // If the door is in a horizontal-aligned wall structure (or corner)
+          if (hasWallLeft || hasWallRight) {
+            // Door is in a horizontal wall segment: ensure North and South tiles are floor
+            // FIX: Only clear if the tile is NOT part of a vertical wall structure (Corner Protection)
+            if (y > 0 && !hasWallUp && (templateMapData.tiles[y-1][x]?.terrain === 'building' || templateMapData.tiles[y-1][x]?.terrain === 'wall')) {
+                gameMap.setTerrain(x, y - 1, 'floor');
+            }
+            if (y < templateMapData.height - 1 && !hasWallDown && (templateMapData.tiles[y+1][x]?.terrain === 'building' || templateMapData.tiles[y+1][x]?.terrain === 'wall')) {
+                gameMap.setTerrain(x, y + 1, 'floor');
+            }
+          }
+          
+          // If the door is in a vertical-aligned wall structure (or corner)
+          if (hasWallUp || hasWallDown) {
+            // Door is in a vertical wall segment: ensure East and West tiles are floor
+            // FIX: Only clear if the tile is NOT part of a horizontal wall structure (Corner Protection)
+            if (x > 0 && !hasWallLeft && (templateMapData.tiles[y][x-1]?.terrain === 'building' || templateMapData.tiles[y][x-1]?.terrain === 'wall')) {
+                gameMap.setTerrain(x - 1, y, 'floor');
+            }
+            if (x < templateMapData.width - 1 && !hasWallRight && (templateMapData.tiles[y][x+1]?.terrain === 'building' || templateMapData.tiles[y][x+1]?.terrain === 'wall')) {
+                gameMap.setTerrain(x + 1, y, 'floor');
+            }
+          }
+          
+          // Phase 2: Create Door entity
           const door = new Door(
             doorData.id || `door-${doorData.x}-${doorData.y}`,
             doorData.x,
@@ -1282,8 +1325,11 @@ export class TemplateMapGenerator {
             doorData.isOpen
           );
           gameMap.addEntity(door, doorData.x, doorData.y);
+          
+          // Ensure the door site itself is definitely walkable (floor)
+          gameMap.setTerrain(doorData.x, doorData.y, 'floor');
         });
-        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors to map`);
+        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors with doorway clearance logic`);
       }
 
       // Instantiate window entities from metadata

@@ -37,7 +37,8 @@ export const ItemCategory = {
   CRAFTING_MATERIAL: 'crafting_material',
   COOKING_POT: 'cooking_pot',
   FUEL: 'fuel',
-  KNIFE: 'knife'
+  KNIFE: 'knife',
+  TORCH: 'torch'
 };
 
 // Trait flags
@@ -52,7 +53,8 @@ export const ItemTrait = {
   CONSUMABLE: 'consumable',
   GROUND_ONLY: 'groundOnly',
   CAN_BREAK_DOORS: 'canBreakDoors',
-  SPOILABLE: 'spoilable'
+  SPOILABLE: 'spoilable',
+  IGNITABLE: 'ignitable'
 };
 
 // Item rarity levels for loot generation
