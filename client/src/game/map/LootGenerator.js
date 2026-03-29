@@ -438,7 +438,7 @@ export class LootGenerator {
 
                     // 50% chance for ONE fire tool in building
                     if (index === buildingState.toolDropIndex) {
-                        const toolKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar'];
+                        const toolKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete'];
                         const toolKey = toolKeys[Math.floor(Math.random() * toolKeys.length)];
                         const tool = createItemFromDef(toolKey);
                         if (tool) items.push(tool);
@@ -535,7 +535,7 @@ export class LootGenerator {
             if (subtype === 'firefighter') {
                 const firefighterRoll = Math.random();
                 if (firefighterRoll < 0.3) {
-                    const specializedKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'clothing.paramedic_shirt'];
+                    const specializedKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'clothing.paramedic_shirt'];
                     selectedKey = specializedKeys[Math.floor(Math.random() * specializedKeys.length)];
                 } else if (firefighterRoll < 0.6) {
                     const medicalKeys = ['medical.bandage', 'medical.antibiotics'];

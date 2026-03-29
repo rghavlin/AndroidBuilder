@@ -100,6 +100,12 @@ class AudioManager {
       // Update index for next time
       pool.index = (index + 1) % instances.length;
 
+      // Ensure the node is in a playable state
+      if (audio.readyState < 2) {
+        console.debug(`[AudioManager] ⏳ Node for "${name}" not ready (readyState: ${audio.readyState}) - forcing load`);
+        audio.load();
+      }
+
       audio.volume = volume * this.masterVolume;
       audio.playbackRate = playbackRate;
       audio.loop = loop;
@@ -113,7 +119,7 @@ class AudioManager {
         if (e.name === 'NotAllowedError') {
           console.warn('[AudioManager] Playback blocked by browser policy.');
         } else {
-          console.error(`[AudioManager] Play error for "${name}":`, e);
+          console.error(`[AudioManager] Play error for "${name}" (src: ${audio.src}, state: ${audio.readyState}):`, e);
         }
       });
     } catch (err) {

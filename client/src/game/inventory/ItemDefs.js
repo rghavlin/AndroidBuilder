@@ -220,6 +220,23 @@ export const ItemDefs = {
       damage: { min: 2, max: 8 }
     }
   },
+
+  'weapon.machete': {
+    id: 'weapon.machete',
+    name: 'Machete',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'machete',
+    width: 3,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.75,
+      damage: { min: 3, max: 9 }
+    }
+  },
   'weapon.crowbar': {
     id: 'weapon.crowbar',
     name: 'Crowbar',

@@ -43,7 +43,11 @@ export const AudioProvider = ({ children }) => {
           { name: 'RifleShot', url: '/sounds/rifle.ogg', volume: 0.5 },
           { name: 'ReloadShot', url: '/sounds/reload.ogg', volume: 0.5 },
           { name: 'ZombieSlash', url: '/sounds/slash1.ogg', volume: 0.2 },
-          { name: 'DeathBlow', url: '/sounds/deathblow.ogg', volume: 0.6 }
+          { name: 'DeathBlow', url: '/sounds/deathblow.ogg', volume: 0.6 },
+          { name: 'SwitchOn', url: '/sounds/lighton.ogg', volume: 0.4 },
+          { name: 'SwitchOff', url: '/sounds/lightoff.ogg', volume: 0.4 },
+          { name: 'EmptyClick', url: '/sounds/click.ogg', volume: 0.5 },
+          { name: 'MatchStrike', url: '/sounds/craft.ogg', volume: 0.6 }
         ];
         await Promise.all(
           sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))

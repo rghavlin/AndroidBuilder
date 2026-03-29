@@ -260,16 +260,6 @@ const GameContextInner = ({ children }) => {
           return false;
         }
 
-        // Start consumption: 1 charge immediately upon ignition
-        battery.ammoCount = Math.max(0, battery.ammoCount - 1);
-        console.log(`[GameContext] Flashlight ignition: 1 charge consumed. Remaining: ${battery.ammoCount}`);
-
-        if (battery.ammoCount <= 0) {
-          console.log('[GameContext] Battery depleted immediately on ignition.');
-          updatePlayerFieldOfView(gameMapRef.current, isNight, false, false, getActiveFlashlightRange());
-          addLog('The flashlight died immediately.', 'error');
-          return false;
-        }
         playSound('SwitchOn');
       } else {
         playSound('SwitchOff');
