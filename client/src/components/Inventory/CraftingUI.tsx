@@ -54,8 +54,12 @@ export default function CraftingUI() {
 
     const craftingStatus = useMemo(() => {
         if (!selectedRecipeId || !inventoryRef.current) return { canCraft: false, missing: [] };
-        return inventoryRef.current.craftingManager.checkRequirements(selectedRecipeId, playerStats.ap);
-    }, [selectedRecipeId, inventoryVersion, inventoryRef, playerStats.ap]);
+        return inventoryRef.current.craftingManager.checkRequirements(
+            selectedRecipeId, 
+            playerStats.ap,
+            playerStats.craftingLvl || 1
+        );
+    }, [selectedRecipeId, inventoryVersion, inventoryRef, playerStats.ap, playerStats.craftingLvl]);
 
     const handleCraft = () => {
         if (selectedRecipeId) {
@@ -150,9 +154,11 @@ export default function CraftingUI() {
                                         <span>Requirements</span>
                                         <span className={cn(
                                             "px-1.5 py-0.5 rounded",
-                                            playerStats.ap >= selectedRecipe.apCost ? "bg-primary/10 text-primary" : "bg-red-500/10 text-red-400"
+                                            playerStats.ap >= Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl || 1))) 
+                                                ? "bg-primary/10 text-primary" 
+                                                : "bg-red-500/10 text-red-400"
                                         )}>
-                                            Cost: {selectedRecipe.apCost} AP
+                                            Cost: {Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl || 1)))} AP
                                         </span>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5">

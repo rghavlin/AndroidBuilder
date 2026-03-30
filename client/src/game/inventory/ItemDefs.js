@@ -775,6 +775,22 @@ export const ItemDefs = {
       hydration: 1
     }
   },
+  'food.waterbottle_empty': {
+    id: 'food.waterbottle_empty',
+    name: 'Empty Water Bottle',
+    rarity: Rarity.COMMON,
+    imageId: 'waterbottle',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    capacity: 20,
+    ammoCount: 0,
+    consumptionEffects: {
+      hydration: 0
+    }
+  },
   'food.softdrink': {
     id: 'food.softdrink',
     name: 'Soft drink',
@@ -820,6 +836,22 @@ export const ItemDefs = {
     ammoCount: 50,
     consumptionEffects: {
       hydration: 1
+    }
+  },
+  'food.waterjug_empty': {
+    id: 'food.waterjug_empty',
+    name: 'Empty Water Jug',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'waterjug',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 5,
+    capacity: 50,
+    ammoCount: 0,
+    consumptionEffects: {
+      hydration: 0
     }
   },
   'food.chips': {

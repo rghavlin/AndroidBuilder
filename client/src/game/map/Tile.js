@@ -13,6 +13,7 @@ export class Tile {
     this.flags = {}; // Tile-specific flags (e.g., for fog of war)
     this.scent = 0; // Current scent intensity (turns remaining)
     this.scentSequence = 0; // Global sequence number for trail following
+    this.waterAmount = terrain === 'water' ? 100 : 0; // Units of water in this tile
   }
 
   /**
@@ -169,7 +170,8 @@ export class Tile {
       inventoryItems: this.inventoryItems, // items are already serialized
       flags: this.flags,
       scent: this.scent,
-      scentSequence: this.scentSequence
+      scentSequence: this.scentSequence,
+      waterAmount: this.waterAmount
     };
   }
 
@@ -182,6 +184,7 @@ export class Tile {
     tile.inventoryItems = data.inventoryItems || [];
     tile.scent = data.scent || 0;
     tile.scentSequence = data.scentSequence || 0;
+    tile.waterAmount = data.waterAmount || (data.terrain === 'water' ? 100 : 0);
     // Note: contents are restored by GameMap.fromJSON
     return tile;
   }

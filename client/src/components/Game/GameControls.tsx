@@ -116,10 +116,10 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
   const sleepDisabled = buttonsDisabled || currentStats.energy >= 25;
 
   return (
-    <div className="bg-card border-t border-border p-2 flex items-center" data-testid="game-controls">
+    <div className="bg-card border-t border-border p-1.5 flex items-center" data-testid="game-controls">
 
-      {/* End Turn Button and Stats */}
-      <div className="flex items-center gap-4">
+      {/* End Turn Button and Stats with tighter gap */}
+      <div className="flex items-center gap-2">
         {/* End Turn Button - Square image button */}
         <Button
           onClick={handleEndTurn}
@@ -139,8 +139,8 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
           )}
         </Button>
 
-        {/* Stats - Expanded to fill middle area */}
-        <div className="flex flex-col gap-1.5 px-2">
+        {/* Stats - Expanded to fill middle area, now with flexible width and tighter padding */}
+        <div className="flex flex-col flex-1 min-w-0 gap-1.5 px-1">
           {/* Row 1: Combat Stats */}
           <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-wider">
             <div className="flex items-center gap-1.5" data-testid="stat-health">
@@ -168,35 +168,35 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
             </div>
           </div>
 
-          {/* Row 2: Survival Stats + Turn Info + Clock */}
-          <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tight">
+          {/* Row 2: Survival Stats + Turn Info + Clock - Compressed Gaps */}
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight">
             <div className="flex items-center gap-1.5" data-testid="stat-nutrition">
               <span className="text-white/60 mr-0.5">Nutrition</span>
               <span className="text-white">{currentStats.nutrition}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 ml-2" data-testid="stat-hydration">
+            <div className="flex items-center gap-1.5" data-testid="stat-hydration">
               <span className="text-white/60 mr-0.5">Hydration</span>
               <span className="text-white">{currentStats.hydration}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 ml-2" data-testid="stat-energy">
+            <div className="flex items-center gap-1.5" data-testid="stat-energy">
               <span className="text-white/60 mr-0.5">Energy</span>
               <span className="text-white">{currentStats.energy}</span>
             </div>
 
-            {/* Turn Pill - Moved to the right of survival stats */}
-            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white ml-6">
+            {/* Turn Pill - Flexible margin */}
+            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white">
               T{currentTurn}
             </div>
 
-            {/* 24-Hour Clock Pill - New component */}
-            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white font-mono ml-2">
+            {/* 24-Hour Clock Pill */}
+            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white font-mono">
               {String((6 + (currentTurn - 1)) % 24).padStart(2, '0')}00
             </div>
 
-            {/* Sleep Button - To the right of the clock */}
-            <div className="flex items-center gap-1 ml-4">
+            {/* Sleep Button */}
+            <div className="flex items-center gap-1">
               <Button
                 onClick={() => setShowSleepModal(true)}
                 disabled={sleepDisabled}
@@ -207,29 +207,6 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
               </Button>
             </div>
 
-            {/* Skills Button - Yellow Circle Area */}
-            <div className="flex items-center gap-1 ml-6 border-l border-white/5 pl-4">
-              <Button
-                onClick={toggleSkills}
-                disabled={buttonsDisabled}
-                className={cn(
-                  "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border",
-                  isSkillsOpen ? "border-primary shadow-[0_0_8px_rgba(34,197,94,0.3)] bg-primary/10" : "border-white/10"
-                )}
-                style={{ width: '40px', height: '40px' }}
-                title="Character Skills"
-                data-testid="button-skills-toggle"
-              >
-                {playerIcon ? (
-                  <img
-                    src={playerIcon}
-                    alt="Skills"
-                    className="w-full h-full object-contain p-1"
-                  />
-                ) : (
-                  <span className="text-[10px] font-bold">SKILLS</span>
-                )}
-              </Button>
             </div>
 
             {/* Status Messages */}
@@ -246,7 +223,32 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
             )}
           </div>
         </div>
-      </div>
+
+        {/* Skills Button - Tighter fixed position */}
+        <div className="flex-shrink-0 flex items-center gap-1 ml-2 border-l border-white/5 pl-2">
+          <Button
+            onClick={toggleSkills}
+            disabled={buttonsDisabled}
+            className={cn(
+              "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border",
+              isSkillsOpen ? "border-primary shadow-[0_0_8px_rgba(34,197,94,0.3)] bg-primary/10" : "border-white/10"
+            )}
+            style={{ width: '40px', height: '40px' }}
+            title="Character Skills"
+            data-testid="button-skills-toggle"
+          >
+            {playerIcon ? (
+              <img
+                src={playerIcon}
+                alt="Skills"
+                className="w-full h-full object-contain p-1"
+              />
+            ) : (
+              <span className="text-[10px] font-bold">SKILLS</span>
+            )}
+          </Button>
+        </div>
+
 
       {/* Right side buttons container - kept for structural balance but empty of buttons */}
       <div className="ml-auto flex items-center gap-2 pr-4 border-l border-white/10 h-10">

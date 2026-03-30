@@ -249,6 +249,12 @@ export class GameMap {
     const tile = this.getTile(x, y);
     if (tile) {
       tile.terrain = terrain;
+      // Initialize water resource levels for new water tiles
+      if (terrain === 'water') {
+        tile.waterAmount = 100;
+      } else {
+        tile.waterAmount = 0;
+      }
       this.emit('terrainChanged', {
         position: { x, y },
         terrain,

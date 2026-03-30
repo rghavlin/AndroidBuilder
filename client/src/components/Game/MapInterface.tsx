@@ -22,6 +22,8 @@ import GameEventLog from './GameEventLog';
 import LogHistoryWindow from './LogHistoryWindow';
 import PlayerSkillsWindow from './PlayerSkillsWindow';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
+import { createItemFromDef } from '../../game/inventory/ItemDefs.js';
+import { Item } from '../../game/inventory/Item.js';
 
 interface MapInterfaceProps {
   gameState: {
@@ -891,19 +893,87 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               }
 
               if (emptyBottle) {
-                // Fill the bottle
-                player.useAP(1);
-                emptyBottle.ammoCount = emptyBottle.capacity || 20;
-                emptyBottle.waterQuality = 'dirty';
+                const gameMap = gameMapRef.current;
+                const tile = gameMap?.getTile(waterMenu.x, waterMenu.y);
+                const manager = inventoryRef.current;
+                
+                if (tile && tile.terrain === 'water' && manager) {
+                  // Calculate how much water to take (default 20, but not more than tile has)
+                  const fillAmount = Math.min(emptyBottle.capacity || 20, tile.waterAmount || 0);
+                  
+                  if (fillAmount > 0) {
+                    // 1 AP cost
+                    player.useAP(1);
+                    
+                    const fullId = emptyBottle.defId.replace('_empty', '');
+                    
+                    if (emptyBottle.stackCount > 1) {
+                      // SPLIT STACK: Reduce empty stack and create new filled item
+                      emptyBottle.stackCount -= 1;
+                      
+                      const itemData = createItemFromDef(fullId) as any;
+                      const filledItem = new Item(itemData);
+                      filledItem.ammoCount = fillAmount;
+                      filledItem.waterQuality = 'dirty';
+                      
+                      // Try to add to inventory, fallback to ground
+                      const addResult = manager.addItem(filledItem);
+                      if (!addResult.success) {
+                        manager.dropItemToGround(filledItem);
+                        addLog(`Inventory full! Placed ${filledItem.name} on ground.`, 'system');
+                      } else {
+                        addLog(`Filled ${filledItem.name} and placed in inventory.`, 'item');
+                      }
+                    } else {
+                      // SINGLE ITEM: Transform in place for better UX
+                      emptyBottle.defId = fullId;
+                      emptyBottle.ammoCount = fillAmount;
+                      emptyBottle.waterQuality = 'dirty';
+                      // Re-initialize from definition to ensure image and traits are correct
+                      const def = createItemFromDef(fullId);
+                      emptyBottle.name = def.name;
+                      emptyBottle.imageId = def.imageId;
+                      addLog(`Filled ${emptyBottle.name}.`, 'item');
+                    }
 
-                addEffect({
-                  type: 'damage',
-                  x: waterMenu.x,
-                  y: waterMenu.y,
-                  value: 'Bottle Filled!',
-                  color: '#4ade80',
-                  duration: 1000
-                });
+                    tile.waterAmount -= fillAmount;
+                    
+                    addEffect({
+                      type: 'damage',
+                      x: waterMenu.x,
+                      y: waterMenu.y,
+                      value: `Bottle Filled!`,
+                      color: '#4ade80',
+                      duration: 1000
+                    });
+
+                    // Play filling sound
+                    playSound('FillBottle');
+
+                    // Check if tile is now empty
+                    if (tile.waterAmount <= 0) {
+                      tile.terrain = 'grass';
+                      tile.waterAmount = 0;
+                      addEffect({
+                        type: 'damage',
+                        x: waterMenu.x,
+                        y: waterMenu.y,
+                        value: 'Tile Depleted!',
+                        color: '#facc15',
+                        duration: 1500
+                      });
+                    }
+                  } else {
+                    addEffect({
+                      type: 'damage',
+                      x: waterMenu.x,
+                      y: waterMenu.y,
+                      value: 'No Water Left!',
+                      color: '#ef4444',
+                      duration: 1000
+                    });
+                  }
+                }
 
                 // Force UI updates
                 triggerMapUpdate();

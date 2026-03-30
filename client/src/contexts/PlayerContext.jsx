@@ -22,7 +22,8 @@ export const usePlayer = () => {
           hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
           nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
           energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
-          meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1
+          meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1,
+          itemsCrafted: 0, craftingLvl: 1
         },
         isMoving: false,
         movementPath: [],
@@ -57,7 +58,8 @@ export const PlayerProvider = ({ children }) => {
     hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
     nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
     energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
-    meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1
+    meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1,
+    itemsCrafted: 0, craftingLvl: 1
   });
   const [isMoving, setIsMoving] = useState(false);
   const [movementPath, setMovementPath] = useState([]);
@@ -100,7 +102,9 @@ export const PlayerProvider = ({ children }) => {
         meleeKills: player.meleeKills || 0,
         meleeLvl: player.meleeLvl || 1,
         rangedKills: player.rangedKills || 0,
-        rangedLvl: player.rangedLvl || 1
+        rangedLvl: player.rangedLvl || 1,
+        itemsCrafted: player.itemsCrafted || 0,
+        craftingLvl: player.craftingLvl || 1
       });
     } else {
       console.log('[PlayerContext] ❌ Player reference set to null');

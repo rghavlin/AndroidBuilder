@@ -21,6 +21,14 @@ export class Player extends Entity {
     this.sickness = 0; // Turns of sickness left
     this.isBleeding = false; // New bleeding status
     this.blocksMovement = true; // Players block other entities
+    
+    // Skill Progression
+    this.meleeKills = 0;
+    this.meleeLvl = 1;
+    this.rangedKills = 0;
+    this.rangedLvl = 1;
+    this.itemsCrafted = 0;
+    this.craftingLvl = 1;
 
     // Add instance tracking to detect duplicates
     this.instanceCreatedAt = Date.now();
@@ -263,6 +271,29 @@ export class Player extends Entity {
   }
 
   /**
+   * Called when an item is crafted to increment skill exp
+   */
+  onItemCrafted() {
+    this.itemsCrafted++;
+    
+    // Level up calculation: 5, 10, 20, 40, 80...
+    // Threshold for Level L -> L+1 is 5 * 2^(L-1)
+    const nextTarget = 5 * Math.pow(2, this.craftingLvl - 1);
+    
+    if (this.itemsCrafted >= nextTarget) {
+      this.craftingLvl++;
+      console.log(`[Player] ✨ CRAFTING LEVEL UP! ${this.name} reached level ${this.craftingLvl}`);
+      this.emitEvent('craftingLevelUp', { 
+        level: this.craftingLvl,
+        itemsCrafted: this.itemsCrafted
+      });
+      this.emitEvent('statChanged', { stat: 'craftingLvl', current: this.craftingLvl });
+    }
+    
+    this.emitEvent('statChanged', { stat: 'itemsCrafted', current: this.itemsCrafted });
+  }
+
+  /**
    * Serialize player to JSON
    */
   toJSON() {
@@ -281,7 +312,13 @@ export class Player extends Entity {
       maxEnergy: this.maxEnergy,
       condition: this.condition,
       sickness: this.sickness,
-      isBleeding: this.isBleeding
+      isBleeding: this.isBleeding,
+      meleeKills: this.meleeKills,
+      meleeLvl: this.meleeLvl,
+      rangedKills: this.rangedKills,
+      rangedLvl: this.rangedLvl,
+      itemsCrafted: this.itemsCrafted,
+      craftingLvl: this.craftingLvl
     };
   }
 
@@ -303,6 +340,12 @@ export class Player extends Entity {
     player.condition = data.condition || 'Normal';
     player.sickness = data.sickness || 0;
     player.isBleeding = data.isBleeding || false;
+    player.meleeKills = data.meleeKills || 0;
+    player.meleeLvl = data.meleeLvl || 1;
+    player.rangedKills = data.rangedKills || 0;
+    player.rangedLvl = data.rangedLvl || 1;
+    player.itemsCrafted = data.itemsCrafted || 0;
+    player.craftingLvl = data.craftingLvl || 1;
     return player;
   }
 }

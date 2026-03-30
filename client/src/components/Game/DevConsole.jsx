@@ -1722,7 +1722,9 @@ const DevConsole = ({ isOpen, onClose }) => {
               'flashlight': 'tool.smallflashlight',
               'mag': 'attachment.9mm_magazine',
               'extmag': 'attachment.9mm_extended_magazine',
-              'snmag': 'attachment.sniper_magazine'
+              'snmag': 'attachment.sniper_magazine',
+              'bottle_empty': 'food.waterbottle_empty',
+              'jug_empty': 'food.waterjug_empty'
             };
 
             const defId = defIdMap[itemType] || itemType;

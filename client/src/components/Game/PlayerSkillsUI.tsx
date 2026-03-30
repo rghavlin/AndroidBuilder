@@ -71,6 +71,21 @@ export default function PlayerSkillsUI() {
         };
     }, [playerStats]);
 
+    const craftingSkills = useMemo(() => {
+        const craftingLvl = playerStats.craftingLvl || 1;
+        const itemsCrafted = playerStats.itemsCrafted || 0;
+        const next = 5 * Math.pow(2, craftingLvl - 1);
+        const prev = craftingLvl === 1 ? 0 : 5 * Math.pow(2, craftingLvl - 2);
+
+        return {
+            level: craftingLvl,
+            itemsCrafted,
+            next,
+            prev,
+            apBonus: craftingLvl
+        };
+    }, [playerStats]);
+
     return (
         <div className="flex flex-col h-full bg-background/40 rounded-lg overflow-hidden border border-border/50 backdrop-blur-sm">
             {/* Header */}
@@ -93,7 +108,7 @@ export default function PlayerSkillsUI() {
                 {/* Combat Section */}
                 <section className="space-y-4">
                     <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-red-200">Combat Proficiency</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-white">Combat Proficiency</h3>
                     </div>
 
                     {/* Melee Skill */}
@@ -192,29 +207,43 @@ export default function PlayerSkillsUI() {
                 {/* Crafting Section */}
                 <section className="space-y-4">
                     <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-orange-200">Technical Skills</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-white">Crafting skill</h3>
                     </div>
 
-                    {/* Placeholder for Crafting */}
-                    <div className="bg-card/40 p-3 rounded-lg border border-border/40 opacity-60 grayscale-[0.2]">
+                    <div className="bg-card/40 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-colors">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-[11px] font-bold text-foreground/80">General Crafting</span>
-                            <span className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono border border-zinc-700">
-                                LVL 1
+                            <span className="text-[11px] font-bold text-foreground">General Crafting</span>
+                            <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-mono border border-primary/20">
+                                LVL {craftingSkills.level}
                             </span>
                         </div>
-                        <p className="text-[9px] text-muted-foreground italic mb-2">Training required to unlock higher tier recipes.</p>
+                        
                         <div className="flex gap-4">
-                            <div className="flex-1">
+                            {/* Progression Side */}
+                            <div className="flex-1 space-y-1">
+                                <div className="flex justify-between items-end">
+                                    <span className="text-[8px] text-muted-foreground uppercase tracking-tight text-zinc-400">Items crafted</span>
+                                    <span className="text-[9px] font-mono text-foreground/80">
+                                        {craftingSkills.itemsCrafted} <span className="text-muted-foreground">/</span> {craftingSkills.next}
+                                    </span>
+                                </div>
                                 <SkillProgressBar 
-                                    current={0} 
-                                    next={100} 
-                                    prev={0}
-                                    color="bg-orange-500/50"
+                                    current={craftingSkills.itemsCrafted} 
+                                    next={craftingSkills.next} 
+                                    prev={craftingSkills.prev}
+                                    color="bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
                                 />
                             </div>
-                            <div className="flex-1 border-l border-white/5 pl-4 text-[9px] text-muted-foreground flex items-center">
-                                No bonuses yet
+
+                            {/* Stats Side */}
+                            <div className="flex-1 border-l border-white/5 pl-4">
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] text-muted-foreground uppercase text-zinc-400">Crafting AP Bonus</span>
+                                    <div className="flex items-center gap-1">
+                                        <Hammer className="w-2.5 h-2.5 text-green-500" />
+                                        <span className="text-[10px] font-bold text-green-500/90">-{craftingSkills.apBonus} AP</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

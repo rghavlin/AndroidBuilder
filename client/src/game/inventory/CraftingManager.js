@@ -17,9 +17,13 @@ export class CraftingManager {
     /**
      * Check if a recipe can be crafted with current workspace items
      */
-    checkRequirements(recipeId, availableAP = null) {
+    checkRequirements(recipeId, availableAP = null, craftingLevel = 0) {
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
         if (!recipe) return { canCraft: false, missing: [] };
+
+        const isCooking = recipe.tab === 'cooking';
+        const apBonus = isCooking ? 0 : craftingLevel;
+        const actualAP = Math.max(1, (recipe.apCost || 0) - apBonus);
 
         const prefix = recipe.tab === 'cooking' ? 'cooking' : 'crafting';
         const toolContainer = this.inv.getContainer(`${prefix}-tools`);
@@ -37,8 +41,8 @@ export class CraftingManager {
 
         // 1. Check AP Cost
         if (recipe.apCost && availableAP !== null) {
-            if (availableAP < recipe.apCost) {
-                missing.push(`${recipe.apCost} AP`);
+            if (availableAP < actualAP) {
+                missing.push(`${actualAP} AP`);
             }
         }
 

@@ -467,7 +467,8 @@ export class TemplateMapGenerator {
    * Add irregularly shaped ponds to the layout
    */
   addPonds(layout) {
-    if (Math.random() > 0.5) return; // 50% chance
+    // Guaranteed water patch per user request
+    // if (Math.random() > 0.5) return; // Removed 50% chance
 
     const height = layout.length;
     const width = layout[0].length;
@@ -499,7 +500,7 @@ export class TemplateMapGenerator {
     }
 
     const pondCenter = spots[Math.floor(Math.random() * spots.length)];
-    const pondSize = 5 + Math.floor(Math.random() * 6); // 5 to 10 tiles
+    const pondSize = 2 + Math.floor(Math.random() * 4); // 2 to 5 tiles per user request
 
     // Simple blob generation
     const pondTiles = [pondCenter];

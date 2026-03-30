@@ -69,7 +69,7 @@ export const InventoryProvider = ({ children, manager }) => {
   const [dragVersion, setDragVersion] = useState(0); // Force re-render on selection changes
   const [selectedRecipeId, setSelectedRecipeId] = useState(CraftingRecipes[0]?.id || null);
 
-  const { playerRef, isMoving } = usePlayer();
+  const { playerRef, isMoving, playerStats } = usePlayer();
   const { addLog } = useLog();
   const { playSound } = useAudio();
 
@@ -1332,19 +1332,30 @@ export const InventoryProvider = ({ children, manager }) => {
   const craftItem = useCallback((recipeId) => {
     if (!inventoryRef.current) return { success: false, reason: 'Inventory not initialized' };
 
-    // Phase 5J: Check AP requirement
     const recipe = CraftingRecipes.find(r => r.id === recipeId);
+    
+    // Crafting Skill AP Bonus (not for cooking)
+    const isCooking = recipe && recipe.tab === 'cooking';
+    const craftingLvl = playerStats.craftingLvl || 1;
+    const apBonus = isCooking ? 0 : craftingLvl; 
+    const actualAP = Math.max(1, (recipe?.apCost || 0) - apBonus);
+
     if (recipe && recipe.apCost) {
-      if (!playerRef.current || playerRef.current.ap < recipe.apCost) {
-        return { success: false, reason: `Insufficient AP (${recipe.apCost} required)` };
+      if (!playerRef.current || playerRef.current.ap < actualAP) {
+        return { success: false, reason: `Insufficient AP (${actualAP} required)` };
       }
     }
 
     const result = inventoryRef.current.craftingManager.craft(recipeId);
     if (result.success) {
-      // Consume AP
+      // Consume AP (adjusted by skill)
       if (recipe && recipe.apCost && playerRef.current) {
-        playerRef.current.useAP(recipe.apCost);
+        playerRef.current.useAP(actualAP);
+      }
+      
+      // Level up the skill (not for cooking)
+      if (!isCooking && playerRef.current?.onItemCrafted) {
+        playerRef.current.onItemCrafted();
       }
       addLog(`Crafted ${recipe.name}`, 'item');
       if (recipeId === 'crafting.campfire') {

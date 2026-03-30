@@ -229,7 +229,7 @@ export class Item extends SafeEventEmitter {
 
   isWaterBottle() {
     // Both standard water bottles and the larger water jug follow the same stacking/filling rules
-    return (this.defId && (this.defId.startsWith('food.waterbottle') || this.defId === 'food.waterjug')) ||
+    return (this.defId && (this.defId.startsWith('food.waterbottle') || this.defId.startsWith('food.waterjug'))) ||
            (this.traits && this.traits.includes('water_bottle'));
   }
 
