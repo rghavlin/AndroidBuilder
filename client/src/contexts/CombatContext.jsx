@@ -23,7 +23,7 @@ export const useCombat = () => {
 
 export const CombatProvider = ({ children }) => {
     const [targetingWeapon, setTargetingWeapon] = useState(null); // { item, slot }
-    const { playerRef, updatePlayerStats } = usePlayer();
+    const { playerRef, updatePlayerStats, playerStats, recordKill } = usePlayer();
     const { gameMapRef, lootGenerator, triggerMapUpdate } = useGameMap();
     const { addEffect } = useVisualEffects();
     const { forceRefresh, inventoryRef, destroyItem } = useInventory();
@@ -153,8 +153,16 @@ export const CombatProvider = ({ children }) => {
         if (!zombie && !structure) return { success: false, reason: 'No target here' };
 
         // 1. Calculate Outcome
-        const hit = Math.random() <= weaponStats.hitChance;
-        const damage = hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0;
+        const meleeLvl = playerStats.meleeLvl || 1;
+        const accuracyBonus = meleeLvl * 0.01;
+        const hit = Math.random() <= (weaponStats.hitChance + accuracyBonus);
+        
+        const critChance = 0.05 + (meleeLvl - 1) * 0.05;
+        const isCrit = hit && Math.random() <= critChance;
+        
+        const damage = isCrit 
+            ? Math.floor(weaponStats.damage.max * 1.5)
+            : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
 
         // 2. Immediate Sound Trigger (Zero Latency)
         if (hit) {
@@ -172,7 +180,7 @@ export const CombatProvider = ({ children }) => {
         if (hit) {
             if (zombie) {
                 zombie.takeDamage(damage);
-                addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
+                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks: ${damage} damage (${weapon.name})`, 'combat');
                 if (zombie.subtype === 'acid') triggerAcidEffect(zombie, false);
             } else if (structure) {
                 if (structure.type === 'window') {
@@ -197,13 +205,17 @@ export const CombatProvider = ({ children }) => {
                 type: 'damage',
                 x: targetX,
                 y: targetY,
-                value: damage,
-                color: '#ef4444',
-                duration: 1200
+                value: isCrit ? `CRIT! ${damage}` : damage,
+                color: isCrit ? '#facc15' : '#ef4444',
+                duration: isCrit ? 1500 : 1200
             });
 
             if (zombie && zombie.isDead()) {
                 addLog('Zombie killed!', 'combat');
+                const newLevel = recordKill('melee');
+                if (newLevel) {
+                    addLog(`LEVEL UP! Melee skill is now level ${newLevel}!`, 'warning');
+                }
                 if (zombie.subtype === 'acid') triggerAcidEffect(zombie, true);
                 if (lootGenerator && Math.random() < 0.75) {
                     const loot = lootGenerator.generateZombieLoot(zombie.subtype);
@@ -277,17 +289,22 @@ export const CombatProvider = ({ children }) => {
         if (!zombie && !structure) return { success: false, reason: 'No target at location' };
 
         // 1. Calculate Outcome
+        const rangedLvl = playerStats.rangedLvl || 1;
+        const accuracyBonus = rangedLvl * 0.01;
         const squaresAway = Math.floor(distance);
         const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
         const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
 
-        let hitChance = 1.0;
-        if (isSling) hitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
-        else if (stats.isShotgun) hitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
-        else if (hasScope) hitChance = squaresAway <= 15 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
-        else hitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
+        let baseHitChance = 1.0;
+        if (isSling) baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
+        else if (stats.isShotgun) baseHitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
+        else if (hasScope) baseHitChance = squaresAway <= 15 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
+        else baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
 
-        const hit = Math.random() <= hitChance;
+        const hit = Math.random() <= (baseHitChance + accuracyBonus);
+        
+        const critChance = 0.05 + (rangedLvl - 1) * 0.05;
+        const isCrit = hit && Math.random() <= critChance;
 
         // 2. Immediate Sound Trigger (Zero Latency)
         if (weapon.defId === 'weapon.9mmPistol' || weapon.defId === 'weapon.357Pistol') playSound('PistolShot');
@@ -318,8 +335,11 @@ export const CombatProvider = ({ children }) => {
 
         // 6. Detailed Logic
         if (hit) {
-            let damage = Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
-            if (stats.isShotgun) {
+            let damage = isCrit 
+                ? Math.floor(stats.damage.max * 1.5)
+                : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
+                
+            if (!isCrit && stats.isShotgun) {
                 let finalDamage = stats.damage.min;
                 if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
                 if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
@@ -328,7 +348,7 @@ export const CombatProvider = ({ children }) => {
 
             if (zombie) {
                 zombie.takeDamage(damage);
-                addLog(`Player attacks: ${damage} damage (${weapon.name})`, 'combat');
+                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks: ${damage} damage (${weapon.name})`, 'combat');
                 if (zombie.subtype === 'acid') triggerAcidEffect(zombie, false);
             } else if (structure) {
                 if (structure.type === 'window') {
@@ -344,10 +364,21 @@ export const CombatProvider = ({ children }) => {
                 }
             }
 
-            addEffect({ type: 'damage', x: targetX, y: targetY, value: damage, color: '#ef4444', duration: 1200 });
+            addEffect({ 
+                type: 'damage', 
+                x: targetX, 
+                y: targetY, 
+                value: isCrit ? `CRIT! ${damage}` : damage, 
+                color: isCrit ? '#facc15' : '#ef4444', 
+                duration: isCrit ? 1500 : 1200 
+            });
 
             if (zombie && zombie.isDead()) {
                 addLog('Zombie killed!', 'combat');
+                const newLevel = recordKill('ranged');
+                if (newLevel) {
+                    addLog(`LEVEL UP! Ranged skill is now level ${newLevel}!`, 'warning');
+                }
                 if (zombie.subtype === 'acid') triggerAcidEffect(zombie, true);
                 if (lootGenerator && Math.random() < 0.75) {
                     const loot = lootGenerator.generateZombieLoot(zombie.subtype);

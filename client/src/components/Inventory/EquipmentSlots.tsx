@@ -1,9 +1,19 @@
 import { cn } from "@/lib/utils";
 import EquipmentSlot from "./EquipmentSlot";
 import { useInventory } from "@/contexts/InventoryContext";
+import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import DevConsole from '../Game/DevConsole.jsx';
+import { useGame } from "@/contexts/GameContext.jsx";
+import { usePlayer } from "@/contexts/PlayerContext.jsx";
 
 export default function EquipmentSlots() {
   const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto, loadAmmoDirectly } = useInventory();
+  const { isPlayerTurn, isAutosaving, isSleeping } = useGame();
+  const { isMoving: isAnimatingMovement } = usePlayer();
+  const [showDevConsole, setShowDevConsole] = useState(false);
+
+  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping;
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
   const equipmentSlots = [
@@ -87,7 +97,28 @@ export default function EquipmentSlots() {
 
   return (
     <div className="border-b border-border p-3" data-testid="equipment-slots">
-      <h2 className="text-sm font-semibold text-muted-foreground mb-3">EQUIPMENT</h2>
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-sm font-semibold text-muted-foreground">EQUIPMENT</h2>
+        
+        {/* Dev Console Button - Relocated from bottom bar */}
+        <Button
+          onClick={() => setShowDevConsole(true)}
+          disabled={buttonsDisabled}
+          className="bg-secondary/50 hover:bg-secondary/70 text-secondary-foreground h-6 px-2 text-[10px] font-mono border border-white/5"
+          data-testid="button-dev-console"
+        >
+          DEV
+        </Button>
+      </div>
+
+      {/* Dev Console Window */}
+      {showDevConsole && (
+        <DevConsole
+          isOpen={showDevConsole}
+          onClose={() => setShowDevConsole(false)}
+        />
+      )}
+
       <div className="flex gap-1.5 justify-start flex-nowrap overflow-x-auto">
         {equipmentSlots.map((slot) => {
           // Read equipped item from inventory manager (reactive to inventoryVersion)

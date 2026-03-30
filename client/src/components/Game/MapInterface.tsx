@@ -20,6 +20,7 @@ import { useLog } from '../../contexts/LogContext.jsx';
 import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
 import LogHistoryWindow from './LogHistoryWindow';
+import PlayerSkillsWindow from './PlayerSkillsWindow';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
 
 interface MapInterfaceProps {
@@ -144,7 +145,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     isNight,
     isFlashlightOn,
     setIsFlashlightOn,
-    checkZombieAwareness
+    checkZombieAwareness,
+    isSkillsOpen,
+    toggleSkills
   } = useGame();
 
   // Phase 1: Direct sub-context access 
@@ -538,6 +541,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       {showMainMenu && (
         <MainMenuWindow onClose={() => setShowMainMenu(false)} />
       )}
+      
+      {/* Player Skills Window */}
+      <PlayerSkillsWindow 
+        isOpen={isSkillsOpen} 
+        onClose={toggleSkills} 
+      />
 
       {/* Door Context Menu */}
       {doorMenu && (

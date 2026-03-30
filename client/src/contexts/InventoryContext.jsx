@@ -1180,6 +1180,24 @@ export const InventoryProvider = ({ children, manager }) => {
       playSound('Drink');
     }
 
+    // Play heal sound if medical effect was part of the effects
+    const hasMedical = Array.isArray(item.consumptionEffects)
+      ? item.consumptionEffects.some(e => ['heal', 'hp', 'cure', 'stop_bleeding'].includes(e.type || e.id))
+      : Object.keys(item.consumptionEffects || {}).some(type => ['heal', 'hp', 'cure', 'stop_bleeding'].includes(type));
+    
+    if (hasMedical) {
+      playSound('Heal');
+    }
+
+    // Play eat sound if nutrition was part of the effects
+    const hasNutrition = Array.isArray(item.consumptionEffects)
+      ? item.consumptionEffects.some(e => e.type === 'nutrition')
+      : !!item.consumptionEffects?.nutrition;
+
+    if (hasNutrition) {
+      playSound('Eat');
+    }
+
     return { success: true };
   }, [playerRef]);
 
@@ -1329,7 +1347,11 @@ export const InventoryProvider = ({ children, manager }) => {
         playerRef.current.useAP(recipe.apCost);
       }
       addLog(`Crafted ${recipe.name}`, 'item');
-      playSound('Craft');
+      if (recipeId === 'crafting.campfire') {
+        playSound('Ignite');
+      } else {
+        playSound('Craft');
+      }
 
       // If the item was already placed on the ground (e.g., Campfire), stop here
       if (result.placedInGround) {

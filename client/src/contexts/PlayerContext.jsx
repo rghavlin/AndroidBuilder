@@ -18,7 +18,12 @@ export const usePlayer = () => {
       return {
         playerRef: { current: null },
         player: null,
-        playerStats: { hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false },
+        playerStats: { 
+          hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
+          nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
+          energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
+          meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1
+        },
         isMoving: false,
         movementPath: [],
         movementProgress: 0,
@@ -48,7 +53,12 @@ export const PlayerProvider = ({ children }) => {
   const [playerVersion, setPlayerVersion] = useState(0);
 
   // Player state
-  const [playerStats, setPlayerStats] = useState({ hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false });
+  const [playerStats, setPlayerStats] = useState({ 
+    hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
+    nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
+    energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
+    meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1
+  });
   const [isMoving, setIsMoving] = useState(false);
   const [movementPath, setMovementPath] = useState([]);
   const [movementProgress, setMovementProgress] = useState(0);
@@ -86,7 +96,11 @@ export const PlayerProvider = ({ children }) => {
         maxEnergy: player.maxEnergy || 25,
         condition: player.condition || 'Normal',
         isBleeding: player.isBleeding || false,
-        ammo: 0
+        ammo: 0,
+        meleeKills: player.meleeKills || 0,
+        meleeLvl: player.meleeLvl || 1,
+        rangedKills: player.rangedKills || 0,
+        rangedLvl: player.rangedLvl || 1
       });
     } else {
       console.log('[PlayerContext] ❌ Player reference set to null');
@@ -112,6 +126,40 @@ export const PlayerProvider = ({ children }) => {
   const updatePlayerStats = useCallback((newStats) => {
     setPlayerStats(prev => ({ ...prev, ...newStats }));
   }, []);
+
+  /**
+   * Record a kill for a specific weapon type and handle leveling
+   */
+  const recordKill = useCallback((type) => {
+    const isMelee = type === 'melee';
+    const currentKills = isMelee ? playerStats.meleeKills : playerStats.rangedKills;
+    const currentLevel = isMelee ? playerStats.meleeLvl : playerStats.rangedLvl;
+    
+    const updatedKills = currentKills + 1;
+    const nextMilestone = 5 * Math.pow(2, currentLevel - 1);
+    
+    const leveledUp = updatedKills >= nextMilestone;
+    const newLevel = leveledUp ? currentLevel + 1 : currentLevel;
+
+    setPlayerStats(prev => ({
+      ...prev,
+      [isMelee ? 'meleeKills' : 'rangedKills']: updatedKills,
+      [isMelee ? 'meleeLvl' : 'rangedLvl']: newLevel
+    }));
+
+    // Sync to actual player instance if exists
+    if (playerRef.current) {
+      if (isMelee) {
+        playerRef.current.meleeLvl = newLevel;
+        playerRef.current.meleeKills = updatedKills;
+      } else {
+        playerRef.current.rangedLvl = newLevel;
+        playerRef.current.rangedKills = updatedKills;
+      }
+    }
+
+    return leveledUp ? newLevel : null;
+  }, [playerStats, playerRef]);
 
   // Setup player event listeners
   const setupPlayerEventListeners = useCallback(() => {
@@ -565,7 +613,8 @@ export const PlayerProvider = ({ children }) => {
     cancelMovement,
     updatePlayerFieldOfView,
     updatePlayerCardinalPositions,
-    getPlayerCardinalPositions
+    getPlayerCardinalPositions,
+    recordKill
   }), [
     playerVersion, // Version triggers updates when player ref changes
     playerStats,
@@ -583,7 +632,8 @@ export const PlayerProvider = ({ children }) => {
     cancelMovement,
     updatePlayerFieldOfView,
     updatePlayerCardinalPositions,
-    getPlayerCardinalPositions
+    getPlayerCardinalPositions,
+    recordKill
   ]);
 
   return (

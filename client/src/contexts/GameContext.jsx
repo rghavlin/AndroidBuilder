@@ -213,7 +213,7 @@ const GameContextInner = ({ children }) => {
     torch.isLit = true;
     setIsFlashlightOn(true);
     
-    playSound('MatchStrike'); 
+    playSound('Ignite'); 
     addLog(`You ignite the torch using ${source.name}.`, 'item');
     
     // If source empty and is matchbook, discard it
@@ -276,6 +276,11 @@ const GameContextInner = ({ children }) => {
   const [isSleeping, setIsSleeping] = useState(false);
   const [sleepProgress, setSleepProgress] = useState(0);
   const [targetingItem, setTargetingItem] = useState(null);
+  const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+
+  const toggleSkills = useCallback(() => {
+    setIsSkillsOpen(prev => !prev);
+  }, []);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;
@@ -1847,6 +1852,8 @@ const GameContextInner = ({ children }) => {
     igniteTorch,
     isPlayerTurn,
     isAutosaving,
+    isSkillsOpen,
+    toggleSkills,
 
     // Orchestration functions only
     initializeGame,
@@ -1900,6 +1907,8 @@ const GameContextInner = ({ children }) => {
     igniteTorch,
     isPlayerTurn,
     isAutosaving,
+    isSkillsOpen,
+    toggleSkills,
     initializeGame,
     endTurn,
     spawnTestEntities,

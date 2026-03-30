@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Zap } from "lucide-react";
 import { useState, useEffect } from 'react';
+import { cn } from "@/lib/utils";
 
 interface GameControlsProps {
   playerStats: {
@@ -47,14 +48,15 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
     loadAutosave,
     isSleeping,
     sleepProgress,
-    performSleep
+    performSleep,
+    isSkillsOpen,
+    toggleSkills
   } = useGame();
 
   // Phase 2: Movement animation handled by PlayerContext
-  const [showDevConsole, setShowDevConsole] = useState(false);
   const [showSleepModal, setShowSleepModal] = useState(false);
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);
-  const [loadGameImage, setLoadGameImage] = useState<string | null>(null);
+  const [playerIcon, setPlayerIcon] = useState<string | null>(null);
 
   // Load UI images on component mount
   useEffect(() => {
@@ -88,13 +90,10 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
           console.log('[GameControls] End turn image not found or failed to load');
         }
 
-        console.log('[GameControls] Loading loadgame image...');
-        const loadGameImg = await imageLoader.getUIImage('loadgame');
-        if (loadGameImg) {
-          console.log('[GameControls] Load game image loaded successfully:', loadGameImg.src);
-          setLoadGameImage(loadGameImg.src);
-        } else {
-          console.log('[GameControls] Load game image not found or failed to load');
+        console.log('[GameControls] Loading player icon...');
+        const playerImg = await imageLoader.getImage('player');
+        if (playerImg) {
+          setPlayerIcon(playerImg.src);
         }
       } catch (error) {
         console.error('[GameControls] Failed to load UI images:', error);
@@ -109,22 +108,7 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
   const currentTurn = isInitialized ? turn : demoState.turn;
   const handleEndTurn = isInitialized ? endTurn : demoEndTurn;
 
-  // Handle load autosave
-  const handleLoadGame = async () => {
-    if (!isInitialized) return;
-
-    try {
-      console.log('[GameControls] Loading autosave...');
-      const success = await loadAutosave();
-      if (success) {
-        console.log('[GameControls] Autosave loaded successfully');
-      } else {
-        console.warn('[GameControls] Failed to load autosave');
-      }
-    } catch (error) {
-      console.error('[GameControls] Error loading autosave:', error);
-    }
-  };
+  // Calculate if buttons should be disabled
 
   // Calculate if buttons should be disabled
   const maxSleepHours = Math.max(0, Math.ceil((25 - currentStats.energy) / 2.5));
@@ -159,14 +143,14 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
         <div className="flex flex-col gap-1.5 px-2">
           {/* Row 1: Combat Stats */}
           <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-wider">
-            <div className="flex items-center gap-1" data-testid="stat-health">
+            <div className="flex items-center gap-1.5" data-testid="stat-health">
               <span className="text-white mr-0.5">HP</span>
               <span className="text-white font-bold">{currentStats.hp}</span>
               <span className="text-white/40">/</span>
               <span className="text-white/60">{currentStats.maxHp}</span>
             </div>
 
-            <div className="flex items-center gap-1" data-testid="stat-action-points">
+            <div className="flex items-center gap-1.5 ml-4" data-testid="stat-action-points">
               <span className="text-white mr-0.5">AP</span>
               <span className="text-white font-bold">{currentStats.ap}</span>
               <span className="text-white/40">/</span>
@@ -186,33 +170,33 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
 
           {/* Row 2: Survival Stats + Turn Info + Clock */}
           <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tight">
-            <div className="flex items-center gap-1" data-testid="stat-nutrition">
-              <span className="text-white/60 mr-0.5">NUT</span>
+            <div className="flex items-center gap-1.5" data-testid="stat-nutrition">
+              <span className="text-white/60 mr-0.5">Nutrition</span>
               <span className="text-white">{currentStats.nutrition}</span>
             </div>
 
-            <div className="flex items-center gap-1" data-testid="stat-hydration">
-              <span className="text-white/60 mr-0.5">HYD</span>
+            <div className="flex items-center gap-1.5 ml-2" data-testid="stat-hydration">
+              <span className="text-white/60 mr-0.5">Hydration</span>
               <span className="text-white">{currentStats.hydration}</span>
             </div>
 
-            <div className="flex items-center gap-1" data-testid="stat-energy">
-              <span className="text-white/60 mr-0.5">NRG</span>
+            <div className="flex items-center gap-1.5 ml-2" data-testid="stat-energy">
+              <span className="text-white/60 mr-0.5">Energy</span>
               <span className="text-white">{currentStats.energy}</span>
             </div>
 
             {/* Turn Pill - Moved to the right of survival stats */}
-            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-white ml-1">
+            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white ml-6">
               T{currentTurn}
             </div>
 
             {/* 24-Hour Clock Pill - New component */}
-            <div className="bg-zinc-800 px-1.5 py-0.5 rounded border border-white/10 text-white font-mono">
+            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white font-mono ml-2">
               {String((6 + (currentTurn - 1)) % 24).padStart(2, '0')}00
             </div>
 
             {/* Sleep Button - To the right of the clock */}
-            <div className="flex items-center gap-1 ml-1">
+            <div className="flex items-center gap-1 ml-4">
               <Button
                 onClick={() => setShowSleepModal(true)}
                 disabled={sleepDisabled}
@@ -220,6 +204,31 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
                 data-testid="button-sleep-trigger"
               >
                 Sleep
+              </Button>
+            </div>
+
+            {/* Skills Button - Yellow Circle Area */}
+            <div className="flex items-center gap-1 ml-6 border-l border-white/5 pl-4">
+              <Button
+                onClick={toggleSkills}
+                disabled={buttonsDisabled}
+                className={cn(
+                  "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border",
+                  isSkillsOpen ? "border-primary shadow-[0_0_8px_rgba(34,197,94,0.3)] bg-primary/10" : "border-white/10"
+                )}
+                style={{ width: '40px', height: '40px' }}
+                title="Character Skills"
+                data-testid="button-skills-toggle"
+              >
+                {playerIcon ? (
+                  <img
+                    src={playerIcon}
+                    alt="Skills"
+                    className="w-full h-full object-contain p-1"
+                  />
+                ) : (
+                  <span className="text-[10px] font-bold">SKILLS</span>
+                )}
               </Button>
             </div>
 
@@ -239,46 +248,10 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
         </div>
       </div>
 
-      {/* Right side buttons */}
-      <div className="ml-auto flex items-center gap-2">
-        {/* Dev Console Button */}
-        <Button
-          onClick={() => setShowDevConsole(true)}
-          disabled={buttonsDisabled}
-          className="bg-secondary hover:bg-secondary/90 text-secondary-foreground p-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ width: '40px', height: '40px' }}
-          data-testid="button-dev-console"
-        >
-          <span className="text-xs font-mono">DEV</span>
-        </Button>
-
-        {/* Load Game Button - Square image button */}
-        <Button
-          onClick={handleLoadGame}
-          disabled={buttonsDisabled}
-          className="p-1 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ width: '40px', height: '40px' }}
-          data-testid="button-load-game"
-        >
-          {loadGameImage ? (
-            <img
-              src={loadGameImage}
-              alt="Load Game"
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <span className="text-xs font-bold">LOAD</span>
-          )}
-        </Button>
+      {/* Right side buttons container - kept for structural balance but empty of buttons */}
+      <div className="ml-auto flex items-center gap-2 pr-4 border-l border-white/10 h-10">
+        {/* The blue line mentioned is likely this border/separator */}
       </div>
-
-      {/* Dev Console Window */}
-      {showDevConsole && (
-        <DevConsole
-          isOpen={showDevConsole}
-          onClose={() => setShowDevConsole(false)}
-        />
-      )}
 
       {/* Sleep Duration Modal */}
       {showSleepModal && (
