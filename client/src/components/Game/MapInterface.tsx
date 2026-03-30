@@ -731,6 +731,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 if (gameMap.emitNoise) {
                   gameMap.emitNoise(windowMenu.x, windowMenu.y, 6); // Windows are quieter than doors
                 }
+
+                // Play interaction sound
+                playSound('OpenWindow');
               } else if (windowMenu.window.isBroken) {
                 // Show "Broken"
                 addEffect({

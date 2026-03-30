@@ -44,6 +44,7 @@ export default function MapCanvas({
     'sidewalk': '#888888', // Light gray
     'fence': '#444444',    // Dark gray
     'building': '#aaaaaa', // Very light gray (walls)
+    'tent_wall': '#556b2f', // Olive Drab (for army tents)
     'window': '#2c3e50',   // Dark bluish gray (terrain base)
     'water': '#1b3a57',    // Muted slate blue
     'sand': '#cccccc',     // Light silver
@@ -101,6 +102,11 @@ export default function MapCanvas({
     // Special mapping for Fat zombies
     if (entity.type === 'zombie' && entity.subtype === 'fat') {
       subtypeImageKey = 'fatzombie';
+    }
+
+    // Special mapping for Soldier zombies
+    if (entity.type === 'zombie' && entity.subtype === 'soldier') {
+      subtypeImageKey = 'soldierzombie';
     }
 
     // Special mapping for ground piles
@@ -620,7 +626,7 @@ export default function MapCanvas({
           if (tile.contents && tile.contents.length > 0) {
             // Pass 1: Background/Persistent entities (Loot, Doors)
             tile.contents.forEach((entity, index) => {
-              if (entity.type !== 'item' && entity.type !== 'door') return;
+              if (entity.type !== 'item' && entity.type !== 'door' && entity.type !== 'place_icon') return;
               if (isExplored) {
                 const offsetY = index * (tileSize / 8);
                 renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
@@ -629,7 +635,7 @@ export default function MapCanvas({
 
             // Pass 2: Foreground entities (Zombies, NPCs, etc.)
             tile.contents.forEach((entity, index) => {
-              if (entity.type === 'player' || entity.type === 'item' || entity.type === 'door') return;
+              if (entity.type === 'player' || entity.type === 'item' || entity.type === 'door' || entity.type === 'place_icon') return;
               
               // Skip rendering animating zombies here (they will be rendered in the animation pass)
               if (entity.type === 'zombie' && entity.isAnimating) return;

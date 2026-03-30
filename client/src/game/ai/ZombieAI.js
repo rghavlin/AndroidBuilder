@@ -259,6 +259,7 @@ export class ZombieAI {
       // 2. FALLBACK: Move towards last seen coordinates (A* only if trail is lost)
       let targetX = zombie.targetSightedCoords.x;
       let targetY = zombie.targetSightedCoords.y;
+      console.log(`[ZombieAI] Zombie ${zombie.id} following LKP to (${targetX}, ${targetY})`);
 
       // Update target based on longer-range scent if no immediate scent found
       const distantScent = ScentTrail.findFreshestScent(gameMap, zombie.x, zombie.y, 5, zombie.lastScentSequence || 0);

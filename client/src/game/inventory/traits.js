@@ -38,7 +38,8 @@ export const ItemCategory = {
   COOKING_POT: 'cooking_pot',
   FUEL: 'fuel',
   KNIFE: 'knife',
-  TORCH: 'torch'
+  TORCH: 'torch',
+  GUN: 'gun'
 };
 
 // Trait flags

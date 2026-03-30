@@ -25,6 +25,7 @@ export function ZombieTooltip({ zombie }: ZombieTooltipProps) {
     else if (zombie.subtype === 'firefighter') name = 'Firefighter Zombie';
     else if (zombie.subtype === 'swat') name = 'Swat Zombie';
     else if (zombie.subtype === 'fat') name = 'Fat Zombie';
+    else if (zombie.subtype === 'soldier') name = 'Soldier Zombie';
     const hpPercent = Math.max(0, Math.min(100, (zombie.hp / zombie.maxHp) * 100));
     
     // Color coded by health
@@ -41,18 +42,9 @@ export function ZombieTooltip({ zombie }: ZombieTooltipProps) {
             </div>
 
             {/* HP Section */}
-            <div className="flex justify-between text-[10px] font-medium mb-2">
+            <div className="flex justify-between text-[10px] font-medium mb-1">
                 <span className="text-zinc-400 font-bold uppercase tracking-tighter">HP</span>
                 <span className="text-white font-black">{zombie.hp.toFixed(1)} / {zombie.maxHp.toFixed(1)}</span>
-            </div>
-
-            {/* AP Section */}
-            <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter">AP</span>
-                </div>
-                <span className="text-sm font-bold text-blue-400">{zombie.currentAP} <span className="text-[10px] text-zinc-600 font-normal">/ {zombie.maxAP}</span></span>
             </div>
         </div>
     );

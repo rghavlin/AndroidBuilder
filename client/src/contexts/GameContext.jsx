@@ -1437,6 +1437,33 @@ const GameContextInner = ({ children }) => {
   
       // Helper to process zombie actions (combat, banging, waiting)
       const processZombieActions = (actions) => {
+        // Group actions by zombie to aggregate sound triggers
+        const zombieActionGroups = new Map();
+        
+        actions.forEach(action => {
+          if (!zombieActionGroups.has(action.zombieId)) {
+            zombieActionGroups.set(action.zombieId, {
+              attacks: [],
+              other: []
+            });
+          }
+          const group = zombieActionGroups.get(action.zombieId);
+          if (action.type === 'attack') {
+            group.attacks.push(action);
+          } else {
+            group.other.push(action);
+          }
+        });
+
+        // 1. Process all aggregated attack results for audio
+        zombieActionGroups.forEach((group, zombieId) => {
+          if (group.attacks.length > 0) {
+            const hasAnyHit = group.attacks.some(a => a.success);
+            GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: hasAnyHit, zombieId });
+          }
+        });
+
+        // 2. Process physical changes and specific event emissions
         actions.forEach(action => {
           const zombieEntity = zombies.find(z => z.id === action.zombieId);
           if (!zombieEntity) return;
@@ -1460,6 +1487,7 @@ const GameContextInner = ({ children }) => {
               player.takeDamage(action.damage, zombieEntity);
               if (action.bleedingInflicted) player.setBleeding(true);
             }
+            // ZOMBIE_ATTACK is still emitted for visual components but NO sound is played there anymore.
             GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK, { ...action, zombie: zombieEntity });
           } else if (action.type === 'wait') {
             // Optional: Shuffle sound or growl for waiting zombies

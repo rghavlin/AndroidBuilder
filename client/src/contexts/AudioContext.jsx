@@ -29,9 +29,9 @@ export const AudioProvider = ({ children }) => {
           { name: 'Footsteps', url: '/sounds/Footsteps.ogg', volume: 1.0 },
           { name: 'Equip', url: '/sounds/equip.ogg', volume: 0.2 },
           { name: 'Zombie1', url: '/sounds/zombie1.ogg', volume: 0.1 },
-          { name: 'Click', url: '/sounds/click.ogg', volume: 0.5 },
-          { name: 'OpenDoor', url: '/sounds/opendoor.ogg', volume: 0.6 },
-          { name: 'CloseDoor', url: '/sounds/closedoor.ogg', volume: 0.6 },
+          { name: 'Click', url: '/sounds/click.ogg', volume: 0.25 },
+          { name: 'OpenDoor', url: '/sounds/opendoor.ogg', volume: 0.48 },
+          { name: 'CloseDoor', url: '/sounds/closedoor.ogg', volume: 0.48 },
           { name: 'ForceOpen', url: '/sounds/forceopen.ogg', volume: 0.7 },
           { name: 'GlassBreak', url: '/sounds/glassbreak.ogg', volume: 0.6 },
           { name: 'Bang1', url: '/sounds/bang1.ogg', volume: 0.6 },
@@ -46,7 +46,10 @@ export const AudioProvider = ({ children }) => {
           { name: 'DeathBlow', url: '/sounds/deathblow.ogg', volume: 0.6 },
           { name: 'SwitchOn', url: '/sounds/lighton.ogg', volume: 0.4 },
           { name: 'SwitchOff', url: '/sounds/lightoff.ogg', volume: 0.4 },
-          { name: 'EmptyClick', url: '/sounds/click.ogg', volume: 0.5 },
+          { name: 'EmptyClick', url: '/sounds/click.ogg', volume: 0.25 },
+          { name: 'OpenWindow', url: '/sounds/openwindow.ogg', volume: 0.6 },
+          { name: 'Drink', url: '/sounds/drink.ogg', volume: 0.6 },
+          { name: 'Craft', url: '/sounds/craft.ogg', volume: 0.6 },
           { name: 'MatchStrike', url: '/sounds/craft.ogg', volume: 0.6 }
         ];
         await Promise.all(
@@ -64,12 +67,14 @@ export const AudioProvider = ({ children }) => {
 
   // Listen for global game events and play sounds automatically
   useEffect(() => {
-    const handleZombieAttack = (data) => {
-      // Always play swing growl
-      audioManager.playSound('Zombie1');
+    const handleZombieAttackResult = (data) => {
       if (data.success) {
-        // Play hit slash
+        // At least one hit - play hit sound (growl + slash)
+        audioManager.playSound('Zombie1');
         audioManager.playSound('ZombieSlash');
+      } else {
+        // No hits - play only miss sound
+        audioManager.playSound('Miss');
       }
     };
 
@@ -100,7 +105,7 @@ export const AudioProvider = ({ children }) => {
       audioManager.playSound('Zombie1', { volume: 0.15 });
     };
 
-    GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttack);
+    GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK_RESULT, handleZombieAttackResult);
     GameEvents.on(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
     GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
     GameEvents.on(GAME_EVENT.DOOR_BANG, handleDoorBang);
@@ -110,7 +115,7 @@ export const AudioProvider = ({ children }) => {
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, handlePlayerMoveEnded);
 
     return () => {
-      GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttack);
+      GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK_RESULT, handleZombieAttackResult);
       GameEvents.off(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
       GameEvents.off(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
       GameEvents.off(GAME_EVENT.DOOR_BANG, handleDoorBang);

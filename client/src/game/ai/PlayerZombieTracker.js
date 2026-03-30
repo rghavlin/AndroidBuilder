@@ -116,12 +116,12 @@ export class PlayerZombieTracker {
     // Check previously spotted zombies
     for (const [zombieId, trackedData] of this.spottedZombies.entries()) {
       if (!currentVisibleIds.has(zombieId)) {
-        // Zombie is no longer visible - Trigger 'lastSeen' flag
-        // The zombie's own turn logic will now follow the scent trail
-        const { zombie } = trackedData;
-        zombie.lastSeen = true;
+        // Zombie is no longer visible - Trigger 'lastSeen' flag and record LKP
+        // The zombie's own turn logic will now follow the scent trail or this LKP
+        const { zombie, lastPlayerPos } = trackedData;
+        zombie.setTargetSighted(lastPlayerPos.x, lastPlayerPos.y);
         
-        console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player, enabled search mode (scent trail following)`);
+        console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player at (${lastPlayerPos.x}, ${lastPlayerPos.y}), enabled search mode`);
 
         // Remove from tracking since no longer visible
         this.spottedZombies.delete(zombieId);

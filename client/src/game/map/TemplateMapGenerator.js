@@ -546,16 +546,16 @@ export class TemplateMapGenerator {
     const leftBuildingZoneEnd = leftSidewalkStartX - grassGapFromSidewalk - 1;
     const rightBuildingZoneStart = rightSidewalkEndX + grassGapFromSidewalk + 1;
 
+    // Choose building type and height
+    const types = ['grocer', 'firestation', 'police', 'gas_station'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const specialBuildingHeight = type === 'firestation' ? 17 : 12;
+
     // Calculate special building location
     const useLeftSide = Math.random() < 0.5;
-    const specialBuildingHeight = 12;
     const specialBuildingMinY = buildingBuffer + 10;
     const specialBuildingMaxY = height - buildingBuffer - specialBuildingHeight - 10;
     const specialBuildingY = specialBuildingMinY + Math.floor(Math.random() * (specialBuildingMaxY - specialBuildingMinY));
-    
-    // Choose building type
-    const types = ['grocer', 'firestation', 'police', 'gas_station'];
-    const type = types[Math.floor(Math.random() * types.length)];
     
     // Place special building
     this.placeSpecialBuilding(layout, useLeftSide, specialBuildingY, type, leftSidewalkStartX, rightSidewalkEndX, mapData);
@@ -591,8 +591,8 @@ export class TemplateMapGenerator {
    * Place a special building with unique rules
    */
   placeSpecialBuilding(layout, isLeft, y, type, leftSidewalkX, rightSidewalkX, mapData) {
-    const width = 9;
-    const height = 12;
+    const width = type === 'firestation' ? 10 : 9;
+    const height = type === 'firestation' ? 17 : 12;
     const gapFromSidewalk = type === 'gas_station' ? 3 : 2;
     
     let startX;
@@ -602,6 +602,9 @@ export class TemplateMapGenerator {
       // FIX: Add 1 to offset right side calculation for correct gap count
       startX = rightSidewalkX + gapFromSidewalk + 1;
     }
+
+    const entranceY = type === 'firestation' ? y + 14 : y + Math.floor(height / 2);
+    const entranceX = isLeft ? startX + width - 1 : startX;
 
     // Replace front tiles with road
     const roadX = isLeft ? leftSidewalkX - 1 : rightSidewalkX + 1;
@@ -620,9 +623,38 @@ export class TemplateMapGenerator {
           const isPerimeter = (curY === y || curY === y + height - 1 || curX === startX || curX === startX + width - 1);
           const isCorner = (curY === y || curY === y + height - 1) && (curX === startX || curX === startX + width - 1);
           
-          if (isPerimeter) {
-            // 20% chance for windows in special buildings (slightly higher)
-            if (!isCorner && Math.random() < 0.2) {
+          // Internal separation wall for fire station
+          const isInternalWall = type === 'firestation' && curY === y + 11 && curX > startX && curX < startX + width - 1;
+
+          if (isPerimeter || isInternalWall) {
+            let canHaveWindow = !isCorner && !isInternalWall;
+            
+            // Rule 1: Police stations and fire stations have no windows
+            if (type === 'police' || type === 'firestation') {
+              canHaveWindow = false;
+            }
+            
+            // Rule 2: Grocer and Gas Station only have windows on the street-facing side
+            if (type === 'grocer' || type === 'gas_station') {
+              if (curX !== entranceX) {
+                canHaveWindow = false;
+              }
+            }
+            
+            // Rule 3: No window on door or firestation opening
+            if (curX === entranceX) {
+              if (type === 'firestation') {
+                // Apparatus opening y+4 to y+7 and support door y+14
+                if ((curY >= y + 4 && curY < y + 8) || curY === y + 14) {
+                  canHaveWindow = false;
+                }
+              } else if (curY === entranceY) {
+                // Normal door
+                canHaveWindow = false;
+              }
+            }
+
+            if (canHaveWindow && Math.random() < 0.2) {
               layout[curY][curX] = 'window';
               if (mapData && mapData.metadata) {
                 if (!mapData.metadata.windows) mapData.metadata.windows = [];
@@ -654,15 +686,33 @@ export class TemplateMapGenerator {
     });
 
     // Entrance and Icons
-    const entranceY = y + Math.floor(height / 2);
-    const entranceX = isLeft ? startX + width - 1 : startX;
-    
     if (type === 'firestation') {
-        // 4-tile opening
-        const openStartY = y + 4;
-        for (let fy = openStartY; fy < openStartY + 4; fy++) {
+        // Apparatus opening (8x10 room)
+        for (let fy = y + 4; fy < y + 8; fy++) {
             layout[fy][entranceX] = 'floor';
         }
+
+        // Support room door (8x4 room)
+        const supportDoorY = y + 14;
+        layout[supportDoorY][entranceX] = 'floor';
+        if (!mapData.metadata.doors) mapData.metadata.doors = [];
+        mapData.metadata.doors.push({
+            x: entranceX,
+            y: supportDoorY,
+            isLocked: Math.random() < 0.2,
+            isOpen: false
+        });
+
+        // Internal door between rooms
+        const internalDoorX = startX + 5;
+        const internalDoorY = y + 11;
+        layout[internalDoorY][internalDoorX] = 'floor';
+        mapData.metadata.doors.push({
+            x: internalDoorX,
+            y: internalDoorY,
+            isLocked: false,
+            isOpen: false
+        });
     } else {
         // Normal door
         layout[entranceY][entranceX] = 'floor';

@@ -369,6 +369,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: EquipmentSlot.HANDGUN,
+    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
@@ -392,6 +393,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: EquipmentSlot.LONG_GUN,
+    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE] },
@@ -413,6 +415,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: EquipmentSlot.HANDGUN,
+    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
       { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.357'] }
@@ -433,6 +436,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: EquipmentSlot.LONG_GUN,
+    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE, ItemCategory.LASER_SIGHT] },
       { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.308'] }
@@ -520,6 +524,7 @@ export const ItemDefs = {
   'container.ammo_box': {
     id: 'container.ammo_box',
     name: 'Ammo Box',
+    noLoot: true,
     rarity: Rarity.RARE,
     imageId: 'toolbox', // No extension - loader will append .png (TODO: Replace with actual ammo box image)
     width: 2,
@@ -532,13 +537,49 @@ export const ItemDefs = {
     name: 'Lunchbox',
     rarity: Rarity.UNCOMMON,
     imageId: 'lunchbox',
-    width: 3,
+    width: 2,
     height: 2,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     containerGrid: {
       width: 4,
       height: 3,
       allowedCategories: [ItemCategory.FOOD]
+    }
+  },
+  'container.medkit': {
+    id: 'container.medkit',
+    name: 'Medkit',
+    rarity: Rarity.RARE,
+    imageId: 'medkit',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    containerGrid: {
+      width: 4,
+      height: 3,
+      allowedCategories: [ItemCategory.MEDICAL]
+    }
+  },
+
+  'container.guncase': {
+    id: 'container.guncase',
+    name: 'Gun case',
+    rarity: Rarity.RARE,
+    imageId: 'guncase', // Image: guncase.png
+    width: 3,
+    height: 2,
+    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    containerGrid: {
+      width: 5,
+      height: 4,
+      allowedCategories: [
+        ItemCategory.GUN,
+        ItemCategory.AMMO,
+        ItemCategory.SUPPRESSOR,
+        ItemCategory.LASER_SIGHT,
+        ItemCategory.RIFLE_SCOPE,
+        ItemCategory.CHOKE
+      ]
     }
   },
 
@@ -1064,6 +1105,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: ['handgun', 'long_gun'], // Dual equip slot
+    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
       { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.shotgun_shells'] }
     ],

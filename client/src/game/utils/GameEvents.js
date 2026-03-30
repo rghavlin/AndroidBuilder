@@ -7,6 +7,7 @@ import { SafeEventEmitter } from './SafeEventEmitter.js';
 export const GAME_EVENT = {
   // Zombie Actions
   ZOMBIE_ATTACK: 'zombie_attack',
+  ZOMBIE_ATTACK_RESULT: 'zombie_attack_result',
   ZOMBIE_MOVE: 'zombie_move',
   ZOMBIE_WANDER: 'zombie_wander',
   ZOMBIE_ALERTED: 'zombie_alerted',

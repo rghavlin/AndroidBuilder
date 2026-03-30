@@ -1170,6 +1170,16 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     setInventoryVersion(prev => prev + 1);
+    
+    // Play drink sound if hydration was part of the effects
+    const hasHydration = Array.isArray(item.consumptionEffects) 
+      ? item.consumptionEffects.some(e => e.type === 'hydration')
+      : !!item.consumptionEffects?.hydration;
+    
+    if (hasHydration) {
+      playSound('Drink');
+    }
+
     return { success: true };
   }, [playerRef]);
 
@@ -1254,6 +1264,7 @@ export const InventoryProvider = ({ children, manager }) => {
     }
 
     setInventoryVersion(prev => prev + 1);
+    playSound('Drink');
     return { success: true };
   }, [playerRef]);
 
@@ -1318,6 +1329,7 @@ export const InventoryProvider = ({ children, manager }) => {
         playerRef.current.useAP(recipe.apCost);
       }
       addLog(`Crafted ${recipe.name}`, 'item');
+      playSound('Craft');
 
       // If the item was already placed on the ground (e.g., Campfire), stop here
       if (result.placedInGround) {
@@ -1392,6 +1404,7 @@ export const InventoryProvider = ({ children, manager }) => {
 
     setInventoryVersion(v => v + 1);
     console.log('[InventoryContext] Cooking successful! Water purified.');
+    playSound('Craft');
     return { success: true };
   }, [playerRef]);
 
