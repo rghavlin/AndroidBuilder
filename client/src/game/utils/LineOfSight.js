@@ -224,7 +224,7 @@ export class LineOfSight {
     }
 
     // Define which terrains block sight
-    const blockingTerrain = ['wall', 'building', 'tree'];
+    const blockingTerrain = ['wall', 'building', 'tree', 'tent_wall'];
     return blockingTerrain.includes(terrain);
   }
 

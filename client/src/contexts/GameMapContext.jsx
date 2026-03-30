@@ -152,7 +152,7 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Handle tile click for movement
-  const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement, isNight = false, isFlashlightOn = false) => {
+  const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
     if (!gameMapRef.current || !player) {
       console.warn('[GameMapContext] Cannot handle tile click - game map or player not available');
       return;
@@ -185,7 +185,7 @@ export const GameMapProvider = ({ children }) => {
         }
 
         // Terrain Check: Check if terrain blocks movement
-        if (['wall', 'building', 'fence', 'tree', 'water'].includes(tile.terrain)) {
+        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) {
           return false;
         }
 
@@ -229,7 +229,7 @@ export const GameMapProvider = ({ children }) => {
       checkPathForZombieVisibility(path, player);
 
       // Start animated movement
-      startAnimatedMovement(gameMapRef.current, camera, path, movementCost, isNight, isFlashlightOn);
+      startAnimatedMovement(gameMapRef.current, camera, path, movementCost, isNight, isFlashlightOn, flashlightRange);
 
       // Check for map transitions after movement completes (no timer - immediate check)
       const finalTile = gameMapRef.current.getTile(x, y);
@@ -276,7 +276,7 @@ export const GameMapProvider = ({ children }) => {
         }
 
         // Terrain Check: Check if terrain blocks movement
-        if (['wall', 'building', 'fence', 'tree', 'water'].includes(tile.terrain)) {
+        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) {
           return false;
         }
 

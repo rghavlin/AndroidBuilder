@@ -205,7 +205,8 @@ export class WorldManager {
       if (mapType === 'road') {
         mapData = templateMapGenerator.generateFromTemplate('road', {
           randomWalls: 1,
-          extraFloors: 2
+          extraFloors: 2,
+          mapNumber: this.mapCounter // Ensure Map 1 gets its tent
         });
       } else {
         // Future: handle other map types like 'forest', 'alley'
@@ -220,6 +221,17 @@ export class WorldManager {
       const { LootGenerator } = await import('./map/LootGenerator.js');
       const lootGenerator = new LootGenerator();
       lootGenerator.spawnLoot(gameMap);
+
+      // SPAWN ZOMBIES: Initial map population (if not already handled)
+      const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
+      ZombieSpawner.spawnZombies(gameMap, null, {
+        minDistance: 15, // Keep zombies away from start
+        minTotal: 30,
+        maxTotal: 60
+      });
+
+      // SPECIAL BUILDING SPAWNS: Army Tent Soldier Zombies, etc.
+      await this._spawnSpecialBuildingZombies(gameMap);
 
       // Save to world collection
       const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn);
@@ -432,9 +444,11 @@ export class WorldManager {
 
         // Generate new map using template system with specific ID
         const templateMapGenerator = new TemplateMapGenerator();
+        const mapNumber = this.extractMapNumber(targetMapId);
         let generatedMapData = templateMapGenerator.generateFromTemplate('road', {
           randomWalls: 1,
-          extraFloors: 2
+          extraFloors: 2,
+          mapNumber: mapNumber
         });
 
         // Create GameMap instance and apply template
@@ -447,7 +461,6 @@ export class WorldManager {
         lootGenerator.spawnLoot(gameMap);
 
         // SPAWN ZOMBIES: Procedural zombie generation with scaling difficulty
-        const mapNumber = this.extractMapNumber(targetMapId);
         
         // Basic zombie scaling: Map 1 = 15, Map 2 = 20, Map 3 = 21, etc.
         const basicCount = mapNumber === 1 ? 15 : (20 + (mapNumber - 2));
@@ -477,6 +490,9 @@ export class WorldManager {
           fatRange,
           maxTotal: 100
         });
+        
+        // SPECIAL SPAWNS: Army Tent Soldier Zombies, etc.
+        await this._spawnSpecialBuildingZombies(gameMap);
 
         // Stamp south transition on new maps (except map_001)
         if (targetMapId !== 'map_001') {
@@ -554,5 +570,57 @@ export class WorldManager {
 
     logger.info(`Restored from JSON with ${worldManager.maps.size} maps`);
     return worldManager;
+  }
+
+  /**
+   * Spawn specialized zombies for special buildings (e.g. Army Tents)
+   * @param {GameMap} gameMap - The map instance
+   */
+  async _spawnSpecialBuildingZombies(gameMap) {
+    if (!gameMap.specialBuildings) {
+      // Check metadata if class prop is missing
+      if (gameMap.metadata && gameMap.metadata.specialBuildings) {
+        gameMap.specialBuildings = gameMap.metadata.specialBuildings;
+      } else {
+        return;
+      }
+    }
+
+    const { Zombie } = await import('./entities/Zombie.js');
+    
+    gameMap.specialBuildings.forEach(building => {
+      if (building.type === 'army_tent') {
+        console.log(`[WorldManager] Spawning soldier zombies for Army Tent at (${building.x}, ${building.y})`);
+        
+        // 1-2 Inside
+        const insideCount = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < insideCount; i++) {
+          const rx = building.x + 1 + Math.floor(Math.random() * (building.width - 2));
+          const ry = building.y + 1 + Math.floor(Math.random() * (building.height - 2));
+          const z = new Zombie(`soldier-in-${rx}-${ry}-${Math.random()}`, rx, ry, 'soldier');
+          gameMap.addEntity(z, rx, ry);
+        }
+        
+        // 1-2 Outside
+        const outsideCount = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < outsideCount; i++) {
+          let found = false;
+          for (let attempt = 0; attempt < 15; attempt++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 5 + Math.random() * 3; // Increased range for 10x6 tent
+            const rx = Math.max(0, Math.min(gameMap.width - 1, Math.floor(building.x + building.width / 2 + Math.cos(angle) * dist)));
+            const ry = Math.max(0, Math.min(gameMap.height - 1, Math.floor(building.y + building.height / 2 + Math.sin(angle) * dist)));
+            
+            const tile = gameMap.getTile(rx, ry);
+            if (tile && tile.isWalkable()) {
+              const z = new Zombie(`soldier-out-${rx}-${ry}-${Math.random()}`, rx, ry, 'soldier');
+              gameMap.addEntity(z, rx, ry);
+              found = true;
+              break;
+            }
+          }
+        }
+      }
+    });
   }
 }

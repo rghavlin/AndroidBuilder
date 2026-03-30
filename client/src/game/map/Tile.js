@@ -50,7 +50,7 @@ export class Tile {
    */
   isWalkable() {
     // Buildings, walls, fences, and trees are never walkable
-    if (this.terrain === 'wall' || this.terrain === 'fence' || this.terrain === 'building' || this.terrain === 'tree' || this.terrain === 'water') {
+    if (this.terrain === 'wall' || this.terrain === 'fence' || this.terrain === 'building' || this.terrain === 'tree' || this.terrain === 'water' || this.terrain === 'tent_wall') {
       return false;
     }
 

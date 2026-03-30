@@ -202,7 +202,7 @@ export const PlayerProvider = ({ children }) => {
       const player = playerRef.current;
 
       // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
-      let maxRange = isNight ? (isFlashlightOn ? (flashlightRange || 8) : 1.5) : 15;
+      let maxRange = isNight ? (isFlashlightOn ? (flashlightRange) : 1.5) : 15;
 
       // Scoped aiming boost
       if (isAimingWithScope) {
@@ -316,7 +316,7 @@ export const PlayerProvider = ({ children }) => {
             y: Math.round(smoothY)
           };
           // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
-          const maxRange = isNight ? (isFlashlightOn ? (flashlightRange || 8) : 1.5) : 15;
+          const maxRange = isNight ? (isFlashlightOn ? (flashlightRange) : 1.5) : 15;
 
           const fovResult = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, {
             maxRange: maxRange,

@@ -278,11 +278,17 @@ class GameInitializationManager extends EventEmitter {
     console.log('[GameInitializationManager] Executing WORLD_POPULATION phase...');
 
     try {
-      const { gameMap, player } = this.gameObjects;
+      const { gameMap, player, worldManager } = this.gameObjects;
 
       // Spawn initial zombies
       const spawnCount = this._spawnInitialZombies(gameMap, player);
       console.log('[GameInitializationManager] Spawned', spawnCount, 'initial zombies');
+
+      // SPECIAL BUILDING SPAWNS: Army Tent Soldier Zombies, etc.
+      if (worldManager) {
+        await worldManager._spawnSpecialBuildingZombies(gameMap);
+        console.log('[GameInitializationManager] Spawned special building zombies');
+      }
 
       // SPAWN LOOT: Initial procedural loot generation
       const lootGenerator = new LootGenerator();

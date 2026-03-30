@@ -17,7 +17,8 @@ export default function MapCanvas({
   selectedItem = null,
   isTargeting = false,
   isNight = false,
-  isFlashlightOn = false
+  isFlashlightOn = false,
+  flashlightRange = 8
 }) {
   const canvasRef = useRef(null);
 
@@ -906,7 +907,7 @@ export default function MapCanvas({
         // Only trigger movement if the click wasn't handled by MapInterface
         if (!handled) {
           // Call GameMapContext handleTileClick with required parameters
-          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement, isNight, isFlashlightOn);
+          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement, isNight, isFlashlightOn, flashlightRange);
         }
       } else {
         console.log('[MapCanvas] Click outside valid map bounds');

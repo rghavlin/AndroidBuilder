@@ -471,6 +471,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             isTargeting={!!targetingWeapon || (targetingItem ? true : false)}
             isNight={isNight}
             isFlashlightOn={isFlashlightOnActual}
+            flashlightRange={getActiveFlashlightRange()}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

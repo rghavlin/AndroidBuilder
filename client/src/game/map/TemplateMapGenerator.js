@@ -546,6 +546,15 @@ export class TemplateMapGenerator {
     const leftBuildingZoneEnd = leftSidewalkStartX - grassGapFromSidewalk - 1;
     const rightBuildingZoneStart = rightSidewalkEndX + grassGapFromSidewalk + 1;
 
+    // Check for Army Tent spawn conditions
+    const mapNumber = mapData.config.mapNumber || 1;
+    let spawnArmyTent = false;
+    if (mapNumber === 3) {
+      spawnArmyTent = true;
+    } else if (mapNumber > 3) {
+      spawnArmyTent = Math.random() < 0.35;
+    }
+
     // Choose building type and height
     const types = ['grocer', 'firestation', 'police', 'gas_station'];
     const type = types[Math.floor(Math.random() * types.length)];
@@ -560,28 +569,54 @@ export class TemplateMapGenerator {
     // Place special building
     this.placeSpecialBuilding(layout, useLeftSide, specialBuildingY, type, leftSidewalkStartX, rightSidewalkEndX, mapData);
 
-    // Place buildings on left side, avoiding special building if it's there
-    const leftEndY = useLeftSide ? specialBuildingY - 2 : height - buildingBuffer;
-    this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, buildingBuffer, leftEndY,
-      minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
-      minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
-    
-    if (useLeftSide) {
-      const leftStartY = specialBuildingY + specialBuildingHeight + 2;
-      this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, leftStartY, height - buildingBuffer,
+    // Place Army Tent if triggered
+    let armyTentSideLeft = false;
+    let armyTentY = -1;
+    if (spawnArmyTent) {
+      // Use the opposite side of the special building for better space utilization
+      armyTentSideLeft = !useLeftSide;
+      const tentHeightTotal = 6;
+      // Find a Y position away from the special building Y range
+      if (specialBuildingY > height / 2) {
+        // Special building is in the bottom half, place tent in top half
+        armyTentY = buildingBuffer + 2;
+      } else {
+        // Special building is in the top half, place tent in bottom half
+        armyTentY = height - buildingBuffer - tentHeightTotal - 2;
+      }
+      this.placeArmyTent(layout, armyTentSideLeft, armyTentY, leftSidewalkStartX, rightSidewalkEndX, mapData);
+    }
+
+    // Place buildings on left side
+    const leftSpecialY = useLeftSide ? specialBuildingY : (spawnArmyTent && armyTentSideLeft ? armyTentY : -1);
+    const leftSpecialHeight = useLeftSide ? specialBuildingHeight : (spawnArmyTent && armyTentSideLeft ? 6 : 0);
+
+    if (leftSpecialY === -1) {
+      this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, buildingBuffer, height - buildingBuffer,
+        minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+        minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+    } else {
+      this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, buildingBuffer, leftSpecialY - 2,
+        minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+        minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+      this.placeBuildingsInZone(layout, 1, leftBuildingZoneEnd, leftSpecialY + leftSpecialHeight + 2, height - buildingBuffer,
         minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
         minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
     }
 
-    // Place buildings on right side, avoiding special building if it's there
-    const rightEndY = !useLeftSide ? specialBuildingY - 2 : height - buildingBuffer;
-    this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, buildingBuffer, rightEndY,
-      minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
-      minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
-    
-    if (!useLeftSide) {
-      const rightStartY = specialBuildingY + specialBuildingHeight + 2;
-      this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, rightStartY, height - buildingBuffer,
+    // Place buildings on right side
+    const rightSpecialY = !useLeftSide ? specialBuildingY : (spawnArmyTent && !armyTentSideLeft ? armyTentY : -1);
+    const rightSpecialHeight = !useLeftSide ? specialBuildingHeight : (spawnArmyTent && !armyTentSideLeft ? 6 : 0);
+
+    if (rightSpecialY === -1) {
+      this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, buildingBuffer, height - buildingBuffer,
+        minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+        minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+    } else {
+      this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, buildingBuffer, rightSpecialY - 2,
+        minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
+        minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
+      this.placeBuildingsInZone(layout, rightBuildingZoneStart, width - 2, rightSpecialY + rightSpecialHeight + 2, height - buildingBuffer,
         minBuildingWidth, maxBuildingWidth, minBuildingHeight, maxBuildingHeight,
         minGapBetweenBuildings, maxGapBetweenBuildings, mapData);
     }
@@ -959,6 +994,59 @@ export class TemplateMapGenerator {
         }
       });
     });
+  }
+
+  /**
+   * Place an Army Tent (8x4 structure, 10x6 with buffer)
+   */
+  placeArmyTent(layout, isLeft, y, leftSidewalkX, rightSidewalkX, mapData) {
+    const width = 12;
+    const height = 8;
+    const tentWidth = 10;
+    const tentHeight = 6;
+    
+    let startX;
+    if (isLeft) {
+      startX = leftSidewalkX - 4 - tentWidth; // 4 tiles back from sidewalk (3 gap + 1 for wall)
+    } else {
+      startX = rightSidewalkX + 3; // 3 tiles forward from sidewalk
+    }
+
+    // Build the structure (8x4 olive walls)
+    for (let curY = y + 1; curY < y + 1 + tentHeight; curY++) {
+      for (let curX = startX + 1; curX < startX + 1 + tentWidth; curX++) {
+        if (layout[curY] && layout[curY][curX]) {
+          const isPerimeter = (curY === y + 1 || curY === y + tentHeight || curX === startX + 1 || curX === startX + tentWidth);
+          
+          if (isPerimeter) {
+            layout[curY][curX] = 'tent_wall';
+          } else {
+            layout[curY][curX] = 'floor';
+          }
+        }
+      }
+    }
+
+    // Entrance: 2-tile wide street-facing opening
+    const entranceX = isLeft ? startX + tentWidth : startX + 1;
+    const entranceYStart = y + Math.floor(tentHeight / 2);
+    for (let ey = entranceYStart; ey < entranceYStart + 2; ey++) {
+      if (layout[ey] && layout[ey][entranceX]) {
+        layout[ey][entranceX] = 'floor';
+      }
+    }
+
+    // Add metadata for loot and zombie spawning
+    if (!mapData.metadata.specialBuildings) mapData.metadata.specialBuildings = [];
+    mapData.metadata.specialBuildings.push({
+      type: 'army_tent',
+      x: startX + 1,
+      y: y + 1,
+      width: tentWidth,
+      height: tentHeight
+    });
+
+    console.log(`[TemplateMapGenerator] Placed Army Tent at (${startX + 1}, ${y + 1})`);
   }
 
   /**
