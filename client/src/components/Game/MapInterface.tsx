@@ -294,8 +294,21 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       return true; // Click was handled (canceled selection)
     }
 
-    // Handle Item Targeting (Crowbar, Grenade etc)
+    // Handle Item Targeting (Crowbar, Grenade, Shovel, Seeds etc)
     if (targetingItem) {
+      // Blocking Farming tools from map clicks (must use in Ground Container grid)
+      const farmingTools = ['weapon.shovel', 'food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
+      if (farmingTools.includes(targetingItem.defId)) {
+        addEffect({
+          type: 'damage',
+          x, y,
+          value: 'USE IN GROUND INV',
+          color: '#fbbf24', // Amber/Yellow
+          duration: 1000
+        });
+        return true; 
+      }
+
       if (targetingItem.defId === 'weapon.grenade') {
         const result = (performGrenadeThrow as any)(targetingItem, x, y);
         if (result.success) {
@@ -868,38 +881,64 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 return;
               }
 
-              // Search for an empty water bottle
-              let emptyBottle: any = null;
+              // Search for the best candidate bottle to fill
+              let fillCandidate: any = null;
+              let bestPriority = 0; // 0: None, 1: Empty, 2: Partial Dirty
+
+              const evaluateItem = (item: any) => {
+                if (!item || (typeof item.isWaterBottle === 'function' ? !item.isWaterBottle() : !item.isWaterBottle)) return;
+
+                const ammo = item.ammoCount || 0;
+                const capacity = item.capacity || 20;
+                const quality = item.waterQuality || 'clean';
+
+                // Disqualify: Clean water (to prevent contamination)
+                if (quality === 'clean' && ammo > 0) return;
+
+                // Priority 2: Partial Dirty (Highest priority for refills)
+                if (quality === 'dirty' && ammo > 0 && ammo < capacity) {
+                  if (bestPriority < 2) {
+                    fillCandidate = item;
+                    bestPriority = 2;
+                  }
+                }
+                // Priority 1: Empty
+                else if (ammo === 0) {
+                  if (bestPriority < 1) {
+                    fillCandidate = item;
+                    bestPriority = 1;
+                  }
+                }
+              };
 
               // Search containers
               for (const container of manager.containers.values()) {
                 for (const item of container.items.values()) {
-                  if (item.isWaterBottle() && (item.ammoCount || 0) === 0) {
-                    emptyBottle = item;
-                    break;
-                  }
+                  evaluateItem(item);
+                  if (bestPriority === 2) break;
                 }
-                if (emptyBottle) break;
+                if (bestPriority === 2) break;
               }
 
               // Search equipment
-              if (!emptyBottle) {
+              if (bestPriority < 2) {
                 for (const item of Object.values(manager.equipment)) {
-                  if (item && (item as any).isWaterBottle() && ((item as any).ammoCount || 0) === 0) {
-                    emptyBottle = item;
-                    break;
-                  }
+                  evaluateItem(item);
+                  if (bestPriority === 2) break;
                 }
               }
 
-              if (emptyBottle) {
+              if (fillCandidate) {
+                const emptyBottle = fillCandidate; // Keep variable name for minimal diff
+
                 const gameMap = gameMapRef.current;
                 const tile = gameMap?.getTile(waterMenu.x, waterMenu.y);
                 const manager = inventoryRef.current;
                 
                 if (tile && tile.terrain === 'water' && manager) {
-                  // Calculate how much water to take (default 20, but not more than tile has)
-                  const fillAmount = Math.min(emptyBottle.capacity || 20, tile.waterAmount || 0);
+                  // Calculate how much water space is left (not just capacity)
+                  const spaceLeft = (emptyBottle.capacity || 20) - (emptyBottle.ammoCount || 0);
+                  const fillAmount = Math.min(spaceLeft, tile.waterAmount || 0);
                   
                   if (fillAmount > 0) {
                     // 1 AP cost
@@ -925,9 +964,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                         addLog(`Filled ${filledItem.name} and placed in inventory.`, 'item');
                       }
                     } else {
-                      // SINGLE ITEM: Transform in place for better UX
+                      // SINGLE ITEM or PARTIAL: Transform or add in place 
                       emptyBottle.defId = fullId;
-                      emptyBottle.ammoCount = fillAmount;
+                      emptyBottle.ammoCount = (emptyBottle.ammoCount || 0) + fillAmount;
                       emptyBottle.waterQuality = 'dirty';
                       // Re-initialize from definition to ensure image and traits are correct
                       const def = createItemFromDef(fullId);
@@ -983,7 +1022,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                   type: 'damage',
                   x: waterMenu.x,
                   y: waterMenu.y,
-                  value: 'No empty bottle!',
+                  value: 'No refillable bottle!',
                   color: '#ef4444',
                   duration: 1000
                 });

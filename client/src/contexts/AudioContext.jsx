@@ -54,7 +54,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Ignite', url: '/sounds/ignite.ogg', volume: 0.6 },
           { name: 'Heal', url: '/sounds/heal.ogg', volume: 0.6 },
           { name: 'Eat', url: '/sounds/eat.ogg', volume: 0.6 },
-          { name: 'FillBottle', url: '/sounds/fillbottle.ogg', volume: 0.6 }
+          { name: 'FillBottle', url: '/sounds/fillbottle.ogg', volume: 0.6 },
+          { name: 'SlingShot', url: '/sounds/sling.ogg', volume: 0.6 }
         ];
         await Promise.all(
           sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))

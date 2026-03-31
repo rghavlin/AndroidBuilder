@@ -132,14 +132,19 @@ const GameContextInner = ({ children }) => {
     zombies.forEach(zombie => {
       const canSee = zombie.canSeeEntity(currentMap, checkPlayer);
 
-      if (canSee && !zombie.isAlerted) {
-        zombie.isAlerted = true;
-        alertedNew = true;
-        // Global event triggers sound (Zombie1) and log entry
-        GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie });
-        console.log(`[GameContext] Zombie ${zombie.id} spotted player at (${checkPlayer.x}, ${checkPlayer.y})!`);
-      } else if (!canSee && zombie.isAlerted) {
-        // If they lost line of sight, they stay alerted but might lose current track 
+      if (canSee) {
+        if (!zombie.isAlerted) {
+          zombie.isAlerted = true;
+          alertedNew = true;
+          // Global event triggers sound (Zombie1) and log entry
+          GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie });
+          console.log(`[GameContext] Zombie ${zombie.id} spotted player at (${checkPlayer.x}, ${checkPlayer.y})!`);
+        }
+        
+        // Critical: Update coordinates so the zombie tracks the player in real-time
+        zombie.setTargetSighted(checkPlayer.x, checkPlayer.y);
+      } else if (zombie.isAlerted) {
+        // If they lost line of sight, they stay alerted (lastSeen mode)
         // until they reach the LastSeen position (handled in ZombieAI)
       }
     });
@@ -301,6 +306,11 @@ const GameContextInner = ({ children }) => {
         newPosition.x, newPosition.y,
         currentMap
       );
+      
+      // Update crop metadata for the tile we just left to ensure outlines/tooltips are fresh
+      if (typeof currentMap.updateCropMetadata === 'function') {
+        currentMap.updateCropMetadata(oldPosition.x, oldPosition.y);
+      }
     });
 
     console.log('[GameContext] Inventory synchronization listener attached to player');
@@ -1023,32 +1033,26 @@ const GameContextInner = ({ children }) => {
     // Get the ground container for the tile we are targeting
     if (!inventoryManager.groundContainer) {
       console.error('[GameContext] No ground container found in InventoryManager');
-      return { success: false };
+          return { success: false };
     }
-
 
     // Create hole item
     const itemData = createItemFromDef('provision.hole');
     const holeItem = Item.fromJSON(itemData);
     
-    // Add to ground container
+    // Add to ground container (x, y are grid coordinates passed from UI)
     const success = inventoryManager.groundContainer.addItem(holeItem, x, y);
     
     if (!success) {
-      addLog("Could not dig here - ground is too cluttered", "system");
-      return { success: false, reason: 'Grid placement failed' }; // Keep original return type
-    }
-
-    // Ensure the hole persists to the map tile proxy immediately for visual representation
-    if (inventoryManager && player && gameMap) {
-      inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMap);
+      addLog("Could not dig here - space is occupied", "system");
+      return { success: false, reason: 'Grid placement failed' };
     }
 
     // Deduct AP
-    const DIG_AP_COST = 5; // Define the constant here or ensure it's imported
+    const DIG_AP_COST = 5;
     const newAp = Math.max(0, player.ap - DIG_AP_COST);
-    player.useAP(DIG_AP_COST); // Keep original player.useAP call
-    updatePlayerStats({ ap: newAp }); // Use updatePlayerStats for consistency
+    player.useAP(DIG_AP_COST);
+    updatePlayerStats({ ap: newAp });
     
     addLog("You dig a hole in the ground.", "world");
     gameMap.emitNoise(player.x, player.y, 5);
@@ -1076,13 +1080,17 @@ const GameContextInner = ({ children }) => {
     // Clear targeting after success
     setTargetingItem(null);
     
-    // Trigger map update
-    if (triggerMapUpdate) triggerMapUpdate();
+    // Refresh UI directly
+    if (typeof window.inv?.refresh === 'function') {
+      window.inv.refresh();
+    } else {
+      inventoryManager.emit('inventoryChanged');
+    }
     
     return { success: true, item: holeItem };
-  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, addLog, addEffect, triggerMapUpdate]);
+  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, addLog, addEffect]);
 
-  const plantSeed = useCallback((x, y) => {
+  const plantSeed = useCallback((gridX, gridY) => {
     const player = playerRef.current;
     
     if (!player || !targetingItem || !inventoryManager) return { success: false };
@@ -1092,10 +1100,10 @@ const GameContextInner = ({ children }) => {
       return { success: false, reason: 'Need 1 AP' };
     }
 
-    const ground = inventoryManager.groundContainer;
-    // Find the hole at this position
-    const hole = ground.getAllItems().find(i => 
-      i.defId === 'provision.hole' && i.x === x && i.y === y
+    // Find the hole in the ground container at gridX, gridY
+    const groundSource = inventoryManager.groundContainer;
+    const hole = groundSource.getAllItems().find(i => 
+      i.defId === 'provision.hole' && i.x === gridX && i.y === gridY
     );
 
     if (!hole) {
@@ -1103,12 +1111,40 @@ const GameContextInner = ({ children }) => {
       return { success: false, reason: 'No hole' };
     }
 
-    // Replace hole with corn plant
-    ground.removeItem(hole.instanceId);
-    const plantData = createItemFromDef('provision.corn_plant');
-    const plantItem = Item.fromJSON(plantData);
-    const success = ground.addItem(plantItem, x, y);
+    // Determine plant type from seed
+    const seedToPlant = {
+      'food.cornseeds': 'provision.corn_plant',
+      'food.tomatoseeds': 'provision.tomato_plant',
+      'food.carrotseeds': 'provision.carrot_plant'
+    };
 
+    const plantDefId = seedToPlant[targetingItem.defId];
+    if (!plantDefId) {
+      addLog("You can't plant this here.", "warning");
+      return { success: false, reason: 'Invalid seed' };
+    }
+
+    // Replace hole with plant
+    const plantData = createItemFromDef(plantDefId);
+    const plantItem = Item.fromJSON(plantData);
+
+    // Ground container update: remove hole and add plant at SAME position
+    groundSource.removeItem(hole.instanceId);
+    const success = groundSource.addItem(plantItem, gridX, gridY);
+    
+    if (!success) {
+       console.error('[GameContext] Failed to place plant in hole at:', gridX, gridY);
+       // Fallback: try to put the hole back
+       groundSource.addItem(hole, gridX, gridY);
+       return { success: false, reason: 'Placement failed' };
+    }
+
+    // Refresh UI
+    if (typeof window.inv?.refresh === 'function') {
+      window.inv.refresh();
+    } else {
+      inventoryManager.emit('inventoryChanged');
+    }
     if (success) {
       console.log(`[GameContext] Planting success: ${plantItem.name} (${plantItem.instanceId}), imageId: ${plantItem.imageId}`);
       player.modifyStat('ap', -1);
@@ -1125,25 +1161,16 @@ const GameContextInner = ({ children }) => {
         setTargetingItem(null);
       }
       
-      addLog("You plant the corn seeds.", "info");
+      addLog(`You plant the ${targetingItem.name.toLowerCase()}.`, "info");
       updatePlayerStats({ ap: player.ap });
 
-      // Trigger sync and refresh
-      if (inventoryManager) {
-        if (player && gameMapRef.current) {
-          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
-        }
-        inventoryManager.emit('inventoryChanged');
-      }
-
-      if (triggerMapUpdate) triggerMapUpdate();
       return { success: true };
     }
 
     return { success: false };
-  }, [playerRef, targetingItem, inventoryManager, addLog, updatePlayerStats, triggerMapUpdate]);
+  }, [playerRef, targetingItem, inventoryManager, addLog, updatePlayerStats]);
 
-  const harvestCorn = useCallback((plantItem) => {
+  const harvestPlant = useCallback((plantItem) => {
     const player = playerRef.current;
     if (!player || !inventoryManager) return;
 
@@ -1154,17 +1181,18 @@ const GameContextInner = ({ children }) => {
     // Remove plant
     ground.removeItem(plantItem.instanceId);
 
-    // Generate 4-7 corn
+    // Generate 4-7 produce
     const count = 4 + Math.floor(Math.random() * 4);
-    const cornData = createItemFromDef('food.corn');
-    const cornItem = Item.fromJSON(cornData);
-    cornItem.stackCount = count;
+    const produceDefId = plantItem.produce || 'food.corn'; // Fallback to corn for safety
+    const produceData = createItemFromDef(produceDefId);
+    const produceItem = Item.fromJSON(produceData);
+    produceItem.stackCount = count;
 
     // Add to ground at same position
-    const success = ground.addItem(cornItem, x, y);
+    const success = ground.addItem(produceItem, x, y);
     
     if (success) {
-      addLog(`You harvest ${count} ears of corn.`, "info");
+      addLog(`You harvest ${count} ${produceItem.name.toLowerCase()}${count > 1 && !produceItem.name.endsWith('s') ? 's' : ''}.`, "info");
       if (inventoryManager) {
         if (player && gameMapRef.current) {
           inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
@@ -1174,8 +1202,8 @@ const GameContextInner = ({ children }) => {
       if (triggerMapUpdate) triggerMapUpdate();
     } else {
       // Fallback: try adding anywhere in ground
-      ground.addItem(cornItem);
-      addLog(`You harvest ${count} ears of corn.`, "info");
+      ground.addItem(produceItem);
+      addLog(`You harvest ${count} ${produceItem.name.toLowerCase()}${count > 1 && !produceItem.name.endsWith('s') ? 's' : ''}.`, "info");
       if (inventoryManager) {
         if (player && gameMapRef.current) {
           inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
@@ -1190,6 +1218,16 @@ const GameContextInner = ({ children }) => {
     const player = playerRef.current;
     const gameMap = gameMapRef.current;
     if (!player || !gameMap || !targetingItem) return { success: false };
+
+    // DISPATCHER: Handle specialized tool actions
+    if (targetingItem.defId === 'weapon.shovel') {
+      return digHole(x, y);
+    }
+
+    const seeds = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
+    if (seeds.includes(targetingItem.defId)) {
+      return plantSeed(x, y);
+    }
 
     // Guard: Prevent action with broken tool
     if (targetingItem.condition !== null && targetingItem.condition <= 0) {
@@ -1885,7 +1923,7 @@ const GameContextInner = ({ children }) => {
     cancelTargetingItem,
     digHole,
     plantSeed,
-    harvestCorn,
+    harvestPlant,
     useBreakingToolOnStructure,
     checkZombieAwareness,
 
@@ -1924,7 +1962,7 @@ const GameContextInner = ({ children }) => {
     cancelTargetingItem,
     digHole,
     plantSeed,
-    harvestCorn,
+    harvestPlant,
     useBreakingToolOnStructure,
     checkZombieAwareness,
     mapTransition,

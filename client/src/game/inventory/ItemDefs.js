@@ -986,6 +986,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
+    produce: 'food.corn',
     description: "Ready to harvest!"
   },
   'food.corn': {
@@ -1017,6 +1018,95 @@ export const ItemDefs = {
     consumptionEffects: {
       nutrition: 5
     }
+  },
+  'food.tomatoseeds': {
+    id: 'food.tomatoseeds',
+    name: 'Tomato seeds',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'tomatoseeds',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 100
+  },
+  'provision.tomato_plant': {
+    id: 'provision.tomato_plant',
+    name: 'Tomato plant',
+    rarity: Rarity.COMMON,
+    imageId: 'tomatoplant',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [],
+    noLoot: true,
+    lifetimeTurns: 48,
+    transformInto: 'provision.harvestable_tomato'
+  },
+  'provision.harvestable_tomato': {
+    id: 'provision.harvestable_tomato',
+    name: 'Harvestable tomato',
+    rarity: Rarity.COMMON,
+    imageId: 'tomatoplant',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [],
+    noLoot: true,
+    produce: 'food.tomato',
+    description: "Ready to harvest!"
+  },
+  'food.carrot': {
+    id: 'food.carrot',
+    name: 'Carrot',
+    rarity: Rarity.COMMON,
+    imageId: 'carrot',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    shelfLife: 72,
+    consumptionEffects: {
+      nutrition: 5
+    }
+  },
+  'food.carrotseeds': {
+    id: 'food.carrotseeds',
+    name: 'Carrot seeds',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'carrotseeds',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 100
+  },
+  'provision.carrot_plant': {
+    id: 'provision.carrot_plant',
+    name: 'Carrot plant',
+    rarity: Rarity.COMMON,
+    imageId: 'carrotplant',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [],
+    noLoot: true,
+    lifetimeTurns: 48,
+    transformInto: 'provision.harvestable_carrot'
+  },
+  'provision.harvestable_carrot': {
+    id: 'provision.harvestable_carrot',
+    name: 'Harvestable carrot',
+    rarity: Rarity.COMMON,
+    imageId: 'harvestablecarrot',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [],
+    noLoot: true,
+    produce: 'food.carrot',
+    description: "Ready to harvest!"
   },
   'food.vegetablesoup': {
     id: 'food.vegetablesoup',

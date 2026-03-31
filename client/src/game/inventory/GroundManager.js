@@ -100,11 +100,11 @@ export class GroundManager {
       let maxHeight = 0;
       let rowX = currentX;
       let rowY = currentY;
-      const maxRowWidth = 8; // Maximum items per row
+      const maxRowWidth = this.groundContainer.width; // Use actual container width instead of hardcoded value
 
       for (const item of items) {
         // Check if item fits in current row
-        if (rowX + item.getActualWidth() > currentX + maxRowWidth) {
+        if (rowX + item.getActualWidth() > maxRowWidth) {
           // Move to next row
           currentY += maxHeight + 1;
           rowX = currentX;

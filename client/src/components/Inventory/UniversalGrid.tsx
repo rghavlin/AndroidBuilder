@@ -48,7 +48,7 @@ export default function UniversalGrid({
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly } = useInventory();
-  const { targetingItem, digHole, plantSeed, harvestCorn } = useGame();
+  const { targetingItem, digHole, plantSeed, harvestPlant } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -164,7 +164,8 @@ export default function UniversalGrid({
         return;
       }
 
-      if (targetingItem.defId === 'food.cornseeds' && containerId === 'ground') {
+      const seedTypes = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
+      if (seedTypes.includes(targetingItem.defId) && containerId === 'ground') {
         // Seeds are planted in 2x2 holes
         const result = plantSeed(x, y);
         if (result.success) {
@@ -175,9 +176,10 @@ export default function UniversalGrid({
     }
 
     // Harvest logic
-    if (item?.defId === 'provision.harvestable_corn') {
-       console.debug('[UniversalGrid] Harvesting corn at:', x, y);
-       harvestCorn(item);
+    const harvestableTypes = ['provision.harvestable_corn', 'provision.harvestable_tomato', 'provision.harvestable_carrot'];
+    if (item && harvestableTypes.includes(item.defId)) {
+       console.debug(`[UniversalGrid] Harvesting ${item.name} at:`, x, y);
+       harvestPlant(item);
        return;
     }
 
@@ -327,7 +329,8 @@ export default function UniversalGrid({
         return;
       }
 
-      if (targetingItem.defId === 'food.cornseeds' && containerId === 'ground') {
+      const seedTypes = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
+      if (seedTypes.includes(targetingItem.defId) && containerId === 'ground') {
         const rect = event.currentTarget.getBoundingClientRect();
         const screenX = event.clientX - rect.left;
         const screenY = event.clientY - rect.top;

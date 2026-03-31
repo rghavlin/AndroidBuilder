@@ -106,8 +106,8 @@ export class InventoryManager extends SafeEventEmitter {
     const itemsToSave = this.groundContainer.getAllItems();
     if (itemsToSave.length > 0) {
       console.log(`[InventoryManager] Saving ${itemsToSave.length} items to tile (${oldX}, ${oldY})`);
-      gameMap.setItemsOnTile(oldX, oldY, itemsToSave);
-
+      gameMap.setItemsOnTile(oldX, oldY, itemsToSave.map(item => item.toJSON()));
+      
       // Clear ground container
       this.groundContainer.clear();
       this.groundManager.updateCategoryAreas();

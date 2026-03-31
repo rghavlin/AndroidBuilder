@@ -120,6 +120,9 @@ export class GameMap {
     // Filter out nulls/undefined and serialize
     const validItems = items.filter(Boolean);
     tile.inventoryItems = validItems.map(item => typeof item.toJSON === 'function' ? item.toJSON() : item);
+    
+    // Update crop metadata based on new items
+    this.updateCropMetadata(x, y);
 
     if (validItems.length > 0) {
       const proxyId = `ground-items-${x}-${y}`;
@@ -203,6 +206,40 @@ export class GameMap {
       if (this.entityMap.has(proxyId)) {
         this.removeEntity(proxyId);
       }
+    }
+  }
+  
+  /**
+   * Update crop growth metadata for a specific tile
+   * Calculates the shortest time remaining until any plant on the tile is ready to harvest
+   * @param {number} x - Tile X
+   * @param {number} y - Tile Y
+   */
+  updateCropMetadata(x, y) {
+    const tile = this.getTile(x, y);
+    if (!tile) return;
+
+    if (!tile.inventoryItems || tile.inventoryItems.length === 0) {
+      tile.cropInfo = null;
+      return;
+    }
+
+    let shortestTime = null;
+
+    // Inspect all items on the tile for plants
+    tile.inventoryItems.forEach(item => {
+      // Growing plants have lifetimeTurns and their defId ends in _plant
+      if (item.lifetimeTurns !== undefined && item.lifetimeTurns !== null && item.defId?.endsWith('_plant')) {
+        if (shortestTime === null || item.lifetimeTurns < shortestTime) {
+          shortestTime = item.lifetimeTurns;
+        }
+      }
+    });
+
+    if (shortestTime !== null) {
+      tile.cropInfo = { shortestTime };
+    } else {
+      tile.cropInfo = null;
     }
   }
 
@@ -440,6 +477,9 @@ export class GameMap {
 
           if (itemsModified) {
             this.setItemsOnTile(x, y, remainingItems);
+          } else {
+            // Even if items weren't added/removed, lifetimes changed, so update metadata
+            this.updateCropMetadata(x, y);
           }
         }
       }

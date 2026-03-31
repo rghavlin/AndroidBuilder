@@ -43,7 +43,8 @@ export class Item extends SafeEventEmitter {
     ammoDefId = null,
     rangedStats = null,
     description = null,
-    transformInto = null
+    transformInto = null,
+    produce = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -102,6 +103,7 @@ export class Item extends SafeEventEmitter {
     this.encumbranceTier = encumbranceTier;
     this.description = description;
     this.transformInto = transformInto;
+    this.produce = produce;
 
     // Container properties (single container for backpacks, etc.)
     this._containerGridData = _containerGridData || containerGrid;
@@ -143,6 +145,7 @@ export class Item extends SafeEventEmitter {
       if (def.combat && !this.combat) this.combat = def.combat;
       if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
       if (def.imageId && !this.imageId) this.imageId = def.imageId;
+      if (def.produce && !this.produce) this.produce = def.produce;
     }
 
     // Initialize container grid synchronously if data exists
@@ -590,9 +593,8 @@ export class Item extends SafeEventEmitter {
       return false;
     }
 
-    // Water bottles can stack even if defIds differ (e.g., plastic vs glass if both are empty/full)
-    const isBothWaterBottle = this.isWaterBottle() && Item.isWaterBottle(otherItem);
-    if (this.defId !== otherItem.defId && !isBothWaterBottle) {
+    // Items MUST have the same definition ID to stack in a single slot
+    if (this.defId !== otherItem.getDefId?.() && this.defId !== otherItem.defId) {
       return false;
     }
 
@@ -918,7 +920,8 @@ export class Item extends SafeEventEmitter {
       combat: this.combat,
       rangedStats: this.rangedStats,
       description: this.description,
-      transformInto: this.transformInto
+      transformInto: this.transformInto,
+      produce: this.produce
     };
 
     // Serialize Traits

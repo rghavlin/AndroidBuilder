@@ -604,6 +604,13 @@ export default function MapCanvas({
           ctx.lineWidth = 0.5;
           ctx.strokeRect(pixelX, pixelY, tileSize, tileSize);
 
+          // Noticeable green outline for tiles with crops (growth in progress)
+          if (tile.cropInfo && tile.cropInfo.shortestTime !== null) {
+            ctx.strokeStyle = '#22c55e'; // emerald-500
+            ctx.lineWidth = 2;
+            ctx.strokeRect(pixelX + 1, pixelY + 1, tileSize - 2, tileSize - 2);
+          }
+
           // Highlight hovered tile (on any explored tile)
           if (isExplored && hoveredTile && hoveredTile.x === worldX && hoveredTile.y === worldY && player) {
             const canAfford = hoveredTile.canAfford;
@@ -621,6 +628,37 @@ export default function MapCanvas({
               pixelX + tileSize / 2,
               pixelY + tileSize / 2 + Math.floor(tileSize / 8)
             );
+
+            // Crop timer tooltip (if applicable) - Styled like Zombie HP bars/UI tooltips
+            if (tile.cropInfo && tile.cropInfo.shortestTime !== null) {
+              const padding = 4;
+              const text = `Crops ready in: ${tile.cropInfo.shortestTime}h`;
+              ctx.font = `bold ${Math.floor(tileSize / 5)}px Arial`;
+              const textMetrics = ctx.measureText(text);
+              const bgWidth = textMetrics.width + padding * 2;
+              const bgHeight = Math.floor(tileSize / 4);
+              const bgX = pixelX + (tileSize - bgWidth) / 2;
+              const bgY = pixelY + (tileSize * 0.05); // 5% from the top
+
+              // Background box
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+              ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+              
+              // Border
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(bgX, bgY, bgWidth, bgHeight);
+
+              // Text
+              ctx.fillStyle = '#4ade80'; // Emerald-400
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(
+                text,
+                pixelX + tileSize / 2,
+                bgY + bgHeight / 2
+              );
+            }
           }
 
           // Render entities on this tile (except player)

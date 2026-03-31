@@ -42,18 +42,18 @@ export class LootGenerator {
         buildings.forEach((buildingTiles, index) => {
             let dropCount = 0;
 
-            // Tiered probability for loot drops in building
-            // 90% chance for 1st
-            if (Math.random() < 0.90) {
+            // Tiered probability for loot drops in building (Increased by ~10% each)
+            // 95% chance for 1st
+            if (Math.random() < 0.95) {
                 dropCount++;
-                // 50% chance for 2nd
-                if (Math.random() < 0.50) {
+                // 60% chance for 2nd
+                if (Math.random() < 0.60) {
                     dropCount++;
-                    // 25% chance for 3rd
-                    if (Math.random() < 0.25) {
+                    // 35% chance for 3rd
+                    if (Math.random() < 0.35) {
                         dropCount++;
-                        // 10% chance for 4th
-                        if (Math.random() < 0.10) {
+                        // 15% chance for 4th
+                        if (Math.random() < 0.15) {
                             dropCount++;
                         }
                     }
@@ -88,7 +88,7 @@ export class LootGenerator {
             }
         }
 
-        const outdoorDropCount = 15 + Math.floor(Math.random() * 6); // 15 to 20
+        const outdoorDropCount = 18 + Math.floor(Math.random() * 7); // Increased density from 15-20 to 18-24 (20% increase)
         const selectedOutdoor = this.getRandomSubarray(outdoorTiles, outdoorDropCount);
 
         selectedOutdoor.forEach(pos => {
@@ -259,11 +259,11 @@ export class LootGenerator {
                 if (randomKey === 'crafting.glass_shard') hasGlassInPile = true;
                 if (randomKey === 'crafting.leather_belt') hasBeltInPile = true;
 
-                // 3. Conditional Stacks (Corn seeds drop in stacks of 2-3, others 1 unit)
-                if (selectedItem.defId === 'food.cornseeds') {
+                // 3. Conditional Stacks (Seeds drop in stacks of 2-3, others 1 unit)
+                if (selectedItem.defId === 'food.cornseeds' || selectedItem.defId === 'food.tomatoseeds' || selectedItem.defId === 'food.carrotseeds') {
                     selectedItem.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
-                } else if (selectedItem.categories && selectedItem.categories.includes(ItemCategory.AMMO)) {
-                    selectedItem.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds
+                } else if (selectedItem.categories?.includes(ItemCategory.AMMO) && selectedItem.traits?.includes(ItemTrait.STACKABLE)) {
+                    selectedItem.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds (Actual ammo only)
                 } else {
                     selectedItem.stackCount = 1;
                 }
@@ -407,13 +407,19 @@ export class LootGenerator {
             switch(type) {
                 case 'grocer':
                     const grocerTable = [
-                        { key: 'food.granolabar', weight: 30 },
-                        { key: 'food.chips', weight: 30 },
-                        { key: 'food.beans', weight: 20 },
-                        { key: 'food.waterbottle', weight: 15 },
+                        { key: 'food.granolabar', weight: 25 },
+                        { key: 'food.chips', weight: 25 },
+                        { key: 'food.beans', weight: 15 },
+                        { key: 'food.tomato', weight: 10 },
+                        { key: 'food.carrot', weight: 10 },
+                        { key: 'food.corn', weight: 10 },
+                        { key: 'food.cornseeds', weight: 5 },
+                        { key: 'food.tomatoseeds', weight: 5 },
+                        { key: 'food.carrotseeds', weight: 5 },
+                        { key: 'food.waterbottle', weight: 10 },
                         { key: 'backpack.school', weight: 5 }
                     ];
-                    this.addItemsFromTable(items, grocerTable, 1, 2);
+                    this.addItemsFromTable(items, grocerTable, 1, 3);
                     break;
                 case 'gas_station':
                     const gasTable = [
@@ -652,10 +658,10 @@ export class LootGenerator {
                     if (selectedKey === 'crafting.leather_belt') hasBeltInLoot = true;
                     
                     // Conditional stacks for zombie loot
-                    if (selectedKey === 'food.cornseeds') {
+                    if (selectedKey === 'food.cornseeds' || selectedKey === 'food.tomatoseeds' || selectedKey === 'food.carrotseeds') {
                         item.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
-                    } else if (item.categories && item.categories.includes(ItemCategory.AMMO)) {
-                        item.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6
+                    } else if (item.categories?.includes(ItemCategory.AMMO) && item.traits?.includes(ItemTrait.STACKABLE)) {
+                        item.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 (Actual ammo only)
                     } else {
                         item.stackCount = 1;
                     }
@@ -669,10 +675,12 @@ export class LootGenerator {
                             item.ammoCount = Math.floor(Math.random() * 5);
                         }
                     } else if (item.categories && (item.categories.includes(ItemCategory.WEAPON) || item.attachmentSlots)) {
-                        // Random condition for weapons (found on corpse)
-                        const minCondition = 10;
-                        const maxCondition = 70; // Slightly worse than world loot
-                        item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+                        // Random condition for DEGRADABLE weapons (found on corpse)
+                        if (item.traits && item.traits.includes(ItemTrait.DEGRADABLE)) {
+                            const minCondition = 10;
+                            const maxCondition = 70; // Slightly worse than world loot
+                            item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+                        }
                     }
 
                     // For firearms, if they have an ammo slot, give them a chance to have some rounds
@@ -727,8 +735,10 @@ export class LootGenerator {
             const item = createItemFromDef(pickedKey);
             if (item) {
                 // Default stack count
-                if (item.categories && item.categories.includes(ItemCategory.AMMO)) {
-                    item.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds
+                if (item.defId === 'food.cornseeds' || item.defId === 'food.tomatoseeds' || item.defId === 'food.carrotseeds') {
+                    item.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
+                } else if (item.categories?.includes(ItemCategory.AMMO) && item.traits?.includes(ItemTrait.STACKABLE)) {
+                    item.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds (Actual ammo only)
                 } else {
                     item.stackCount = 1;
                 }

@@ -210,17 +210,12 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
             </div>
 
             {/* Status Messages */}
-            {!isPlayerTurn && (
+            {!isPlayerTurn && isAutosaving && (
               <span className="text-white animate-pulse ml-1 text-[9px]">
-                {isAutosaving ? 'AUTOSAVING' : 'ENEMY TURN'}
+                AUTOSAVING
               </span>
             )}
 
-            {isAnimatingMovement && (
-              <span className="text-white animate-pulse ml-1 text-[9px]">
-                MOVING
-              </span>
-            )}
           </div>
         </div>
 

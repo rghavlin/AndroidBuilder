@@ -383,14 +383,20 @@ export const PlayerProvider = ({ children }) => {
             // Check if this zombie can see the smooth position of the player
             const canSee = z.canSeeEntity(gameMap, smoothPlayer);
             
-            if (canSee && !z.isAlerted) {
-              z.isAlerted = true;
-              GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie: z });
-              console.log(`[PlayerContext] Zombie ${z.id} spotted player at (${smoothPlayer.x}, ${smoothPlayer.y})!`);
-            } else if (!canSee && z.isAlerted) {
-              // Reset if sight is lost during movement
-              z.isAlerted = false;
+            if (canSee) {
+              // If newly spotted, record the alert exactly once
+              if (!z.isAlerted) {
+                z.isAlerted = true;
+                GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie: z });
+                console.log(`[PlayerContext] Zombie ${z.id} spotted player!`);
+              }
+              
+              // CRITICAL: Update zombie memory so it knows where the player is in real-time
+              // This is what was missing, causing zombies to target "stale" old coordinates.
+              z.setTargetSighted(smoothPlayer.x, smoothPlayer.y);
             }
+            // Logic change: we no longer reset isAlerted = false here if sight is lost.
+            // Sight loss should trigger investigation mode (lastSeen), not a memory reset.
           });
 
           // Mark tiles as explored during animation for smooth uncovering

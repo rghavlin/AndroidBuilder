@@ -8,8 +8,8 @@ interface ItemTooltipProps {
 export function ItemTooltip({ item }: ItemTooltipProps) {
     if (!item) return null;
 
-    const isDegradable = item.traits?.includes('degradable') || item.condition !== null;
-    const condition = item.condition !== null ? Math.round(item.condition) : null;
+    const isDegradable = item.traits?.includes('degradable');
+    const condition = isDegradable && item.condition !== null ? Math.round(item.condition) : null;
 
     // Combat stats
     const combat = item.combat || (item.defId && item.defId.startsWith('weapon.') ? item.combat : null);
@@ -77,11 +77,30 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                 <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     <div className="flex justify-between">
                         <span className="text-zinc-500">Damage</span>
-                        <span className="text-zinc-200">{rangedStats.damage.min}-{rangedStats.damage.max}</span>
+                        <span className="text-zinc-200">
+                            {rangedStats.damage.min === rangedStats.damage.max 
+                                ? rangedStats.damage.min 
+                                : `${rangedStats.damage.min}-${rangedStats.damage.max}`
+                            }
+                        </span>
+                    </div>
+                    {/* 100% hit range Info */}
+                    <div className="flex justify-between">
+                        <span className="text-zinc-500">100% hit range</span>
+                        <span className="text-zinc-200">
+                            {rangedStats.isShotgun 
+                                ? (rangedStats.accuracyMaxRange || 5) 
+                                : (item.attachments && Object.values(item.attachments).some((a: any) => a?.categories?.includes('rifle_scope')) ? 15 : 1)
+                            } tiles
+                        </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">Accuracy Falloff</span>
-                        <span className="text-zinc-200">-{Math.round(rangedStats.accuracyFalloff * 100)}%/tile</span>
+                        <span className="text-zinc-500">
+                            {rangedStats.isShotgun ? "Damage Dropoff" : "Accuracy Falloff"}
+                        </span>
+                        <span className="text-zinc-200">
+                            -{Math.round((rangedStats.isShotgun ? (rangedStats.damageFalloff || 0.1) : rangedStats.accuracyFalloff) * 100)}%/tile
+                        </span>
                     </div>
                 </div>
             )}
@@ -123,6 +142,18 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                             item.shelfLife <= 0 ? "text-red-500" : (item.shelfLife <= 12 ? "text-amber-500" : "text-zinc-200")
                         )}>
                             {item.shelfLife <= 0 ? 'SPOILED' : `${item.shelfLife}h`}
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {/* Harvest Info */}
+            {item.lifetimeTurns !== null && item.defId?.endsWith('_plant') && (
+                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                    <div className="flex justify-between">
+                        <span className="text-zinc-500">Ready in</span>
+                        <span className="text-indigo-400 font-bold">
+                            {item.lifetimeTurns}h
                         </span>
                     </div>
                 </div>

@@ -306,11 +306,35 @@ export const CombatProvider = ({ children }) => {
         const critChance = 0.05 + (rangedLvl - 1) * 0.05;
         const isCrit = hit && Math.random() <= critChance;
 
+        // Calculate damage before sounds for "killing blow" check
+        let damage = 0;
+        if (hit) {
+            damage = isCrit 
+                ? Math.floor(stats.damage.max * 1.5)
+                : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
+                
+            if (!isCrit && stats.isShotgun) {
+                let finalDamage = stats.damage.min;
+                if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
+                if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
+                damage = Math.floor(finalDamage);
+            }
+        }
+
         // 2. Immediate Sound Trigger (Zero Latency)
-        if (weapon.defId === 'weapon.9mmPistol' || weapon.defId === 'weapon.357Pistol') playSound('PistolShot');
-        else if (weapon.defId === 'weapon.shotgun') playSound('ShotgunShot');
-        else if (weapon.defId === 'weapon.hunting_rifle' || weapon.defId === 'weapon.sniper_rifle') playSound('RifleShot');
-        else if (isSling && hit) playSound('MeleeHit');
+        const isKillingBlow = zombie && hit && (zombie.hp <= damage);
+        
+        if (isKillingBlow) {
+            playSound('DeathBlow');
+        } else if (isSling) {
+            playSound('SlingShot');
+        } else if (weapon.defId === 'weapon.9mmPistol' || weapon.defId === 'weapon.357Pistol') {
+            playSound('PistolShot');
+        } else if (weapon.defId === 'weapon.shotgun') {
+            playSound('ShotgunShot');
+        } else if (weapon.defId === 'weapon.hunting_rifle' || weapon.defId === 'weapon.sniper_rifle') {
+            playSound('RifleShot');
+        }
 
         // 3. Apply AP Consumption
         player.useAP(1);
@@ -335,17 +359,6 @@ export const CombatProvider = ({ children }) => {
 
         // 6. Detailed Logic
         if (hit) {
-            let damage = isCrit 
-                ? Math.floor(stats.damage.max * 1.5)
-                : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
-                
-            if (!isCrit && stats.isShotgun) {
-                let finalDamage = stats.damage.min;
-                if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
-                if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
-                damage = Math.floor(finalDamage);
-            }
-
             if (zombie) {
                 zombie.takeDamage(damage);
                 addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks: ${damage} damage (${weapon.name})`, 'combat');
