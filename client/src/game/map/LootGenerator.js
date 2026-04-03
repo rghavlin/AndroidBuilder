@@ -36,11 +36,24 @@ export class LootGenerator {
         }
 
         // 2. Identify remaining buildings and spawn indoor loot
-        const buildings = this.getBuildings(gameMap);
+        const buildings = (gameMap.buildings || []).filter(b => b.type === 'residential');
         console.log(`[LootGenerator] Detected ${buildings.length} normal buildings for indoor loot`);
 
-        buildings.forEach((buildingTiles, index) => {
+        buildings.forEach((building, index) => {
             let dropCount = 0;
+            
+            // Get all floor tiles within the building boundary
+            const buildingTiles = [];
+            for (let curY = building.y + 1; curY < building.y + building.height - 1; curY++) {
+                for (let curX = building.x + 1; curX < building.x + building.width - 1; curX++) {
+                    const tile = gameMap.getTile(curX, curY);
+                    if (tile && tile.terrain === 'floor') {
+                        buildingTiles.push({ x: curX, y: curY });
+                    }
+                }
+            }
+            
+            if (buildingTiles.length === 0) return;
 
             // Tiered probability for loot drops in building (Increased by ~10% each)
             // 95% chance for 1st
@@ -101,56 +114,27 @@ export class LootGenerator {
     }
 
     /**
-     * Identify contiguous floor tiles as buildings
+     * getBuildings is now deprecated in favor of standardized gameMap.buildings metadata.
+     * Retained as a legacy helper for any code not yet migrated.
      */
     getBuildings(gameMap) {
-        const buildings = [];
-        const visited = new Set();
-
-        for (let y = 0; y < gameMap.height; y++) {
-            for (let x = 0; x < gameMap.width; x++) {
-                const tile = gameMap.getTile(x, y);
-                const key = `${x},${y}`;
-
-                if (tile && tile.terrain === 'floor' && !visited.has(key)) {
-                    // Skip if tile is part of a special building
-                    const isSpecial = gameMap.specialBuildings?.some(b => 
-                        x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
-                    );
-                    if (isSpecial) continue;
-
-                    // Start flood fill for new building
-                    const buildingTiles = [];
-                    const queue = [{ x, y }];
-                    visited.add(key);
-
-                    while (queue.length > 0) {
-                        const current = queue.shift();
-                        buildingTiles.push(current);
-
-                        // Check neighbors
-                        const neighbors = [
-                            { x: current.x + 1, y: current.y },
-                            { x: current.x - 1, y: current.y },
-                            { x: current.x, y: current.y + 1 },
-                            { x: current.x, y: current.y - 1 }
-                        ];
-
-                        for (const neighbor of neighbors) {
-                            const nKey = `${neighbor.x},${neighbor.y}`;
-                            const nTile = gameMap.getTile(neighbor.x, neighbor.y);
-
-                            if (nTile && nTile.terrain === 'floor' && !visited.has(nKey)) {
-                                visited.add(nKey);
-                                queue.push(neighbor);
+        if (gameMap.buildings) {
+            return gameMap.buildings
+                .filter(b => b.type === 'residential')
+                .map(building => {
+                    const tiles = [];
+                    for (let y = building.y + 1; y < building.y + building.height - 1; y++) {
+                        for (let x = building.x + 1; x < building.x + building.width - 1; x++) {
+                            const tile = gameMap.getTile(x, y);
+                            if (tile && tile.terrain === 'floor') {
+                                tiles.push({ x, y });
                             }
                         }
                     }
-                    buildings.push(buildingTiles);
-                }
-            }
+                    return tiles;
+                });
         }
-        return buildings;
+        return [];
     }
 
     /**
@@ -279,16 +263,9 @@ export class LootGenerator {
                     console.log(`[Loot] Randomized condition for ${selectedItem.name}: ${selectedItem.condition}%`);
                 }
 
-                // 4. Custom Water rules
+                // 4. Custom Water rules: Standardize to uniform distribution
                 if (selectedItem.capacity !== undefined && isFood && (selectedItem.defId === 'food.waterbottle' || selectedItem.defId === 'food.waterjug')) {
-                    // Water level: 
-                    // 75% chance: mostly empty (0-4 units)
-                    // 25% chance: significant fill (5-20 units)
-                    if (Math.random() < 0.75) {
-                        selectedItem.ammoCount = Math.floor(Math.random() * 5); // 0-4
-                    } else {
-                        selectedItem.ammoCount = 5 + Math.floor(Math.random() * (selectedItem.capacity - 4)); // 5-20
-                    }
+                    selectedItem.ammoCount = Math.floor(Math.random() * (selectedItem.capacity + 1));
                 }
 
                 // 5. Firearm Attachment logic: Spawn with magazines and random ammo
@@ -303,10 +280,10 @@ export class LootGenerator {
                         selectedItem.attachments = { 'ammo': ammoData };
                     }
                 } else if (randomKey === 'tool.smallflashlight') {
-                    // Flashlight: Spawn with a battery and 1 charge
+                    // Flashlight: Spawn with a battery and random charges
                     const battery = createItemFromDef('tool.battery');
                     if (battery) {
-                        battery.ammoCount = 1;
+                        battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
                         selectedItem.attachments = { 'battery': battery };
                     }
                 }
@@ -666,14 +643,9 @@ export class LootGenerator {
                         item.stackCount = 1;
                     }
 
-                    // Custom rules for items dropped by zombies
+                    // Custom rules for items dropped by zombies: Standardize to uniform distribution
                     if (selectedKey === 'food.waterbottle') {
-                        // Regular zombies drop small amount, firefighter drops FULL (or near full)
-                        if (subtype === 'firefighter') {
-                            item.ammoCount = item.capacity || 10;
-                        } else {
-                            item.ammoCount = Math.floor(Math.random() * 5);
-                        }
+                        item.ammoCount = Math.floor(Math.random() * (item.capacity + 1));
                     } else if (item.categories && (item.categories.includes(ItemCategory.WEAPON) || item.attachmentSlots)) {
                         // Random condition for DEGRADABLE weapons (found on corpse)
                         if (item.traits && item.traits.includes(ItemTrait.DEGRADABLE)) {
@@ -700,10 +672,10 @@ export class LootGenerator {
                             item.attachments = { 'ammo': ammoData };
                         }
                     } else if (selectedKey === 'tool.smallflashlight') {
-                        // Flashlight from zombie: spawn with a battery and 1 charge
+                        // Flashlight from zombie: spawn with a battery and random charges
                         const battery = createItemFromDef('tool.battery');
                         if (battery) {
-                            battery.ammoCount = 1;
+                            battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
                             item.attachments = { 'battery': battery };
                         }
                     }

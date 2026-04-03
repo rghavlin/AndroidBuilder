@@ -49,7 +49,7 @@ export class Tile {
   /**
    * Check if tile is walkable based on terrain and contents
    */
-  isWalkable() {
+  isWalkable(entity = null) {
     // Buildings, walls, fences, and trees are never walkable
     if (this.terrain === 'wall' || this.terrain === 'fence' || this.terrain === 'building' || this.terrain === 'tree' || this.terrain === 'water' || this.terrain === 'tent_wall') {
       return false;
@@ -61,7 +61,12 @@ export class Tile {
     }
 
     // Check if any entity blocks movement
-    const blocked = this.contents.some(entity => entity.blocksMovement);
+    // ZOMBIE EXCEPTION: Zombies can move through windows (even though windows block player movement)
+    const isZombie = entity && entity.type === 'zombie';
+    const blocked = this.contents.some(e => {
+        if (isZombie && e.type === 'window') return false;
+        return e.blocksMovement;
+    });
 
     return !blocked;
   }

@@ -1047,7 +1047,7 @@ export const ItemDefs = {
     id: 'provision.harvestable_tomato',
     name: 'Harvestable tomato',
     rarity: Rarity.COMMON,
-    imageId: 'tomatoplant',
+    imageId: 'harvestabletomato',
     width: 2,
     height: 2,
     traits: [ItemTrait.GROUND_ONLY],
@@ -1123,6 +1123,58 @@ export const ItemDefs = {
     consumptionEffects: {
       nutrition: 15,
       hydration: 5
+    }
+  },
+
+  'food.raw_meat': {
+    id: 'food.raw_meat',
+    name: 'Raw meat',
+    rarity: Rarity.COMMON,
+    imageId: 'rawmeat',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    noLoot: true, // Not found in loot drops
+    lifetimeTurns: 48, // Spoils in 48 hours
+    transformInto: 'food.rotten_meat',
+    consumptionEffects: {
+      nutrition: 10,
+      sickness: 5 // Causes 5 turns of sickness
+    }
+  },
+
+  'food.rotten_meat': {
+    id: 'food.rotten_meat',
+    name: 'Rotten meat',
+    rarity: Rarity.COMMON,
+    imageId: 'rawmeat', // Using rawmeat icon for now per user
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    noLoot: true,
+    consumptionEffects: {
+      nutrition: 4,
+      condition: 'Diseased' // Causes disease condition
+    }
+  },
+
+  'food.cooked_meat': {
+    id: 'food.cooked_meat',
+    name: 'Cooked meat',
+    rarity: Rarity.COMMON,
+    imageId: 'cookedmeat',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    noLoot: true,
+    consumptionEffects: {
+      nutrition: 12
     }
   },
 

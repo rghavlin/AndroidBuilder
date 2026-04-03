@@ -127,7 +127,9 @@ export class ZombieAI {
             to: moveResult.to,
             apCost: moveResult.apCost,
             doorPos: moveResult.doorPos,
-            doorBroken: moveResult.doorBroken
+            doorBroken: moveResult.doorBroken,
+            windowPos: moveResult.windowPos,
+            windowBroken: moveResult.windowBroken
           });
           console.log(`[ZombieAI] Zombie ${zombie.id} moved toward player neighbor (${targetX}, ${targetY}), remaining AP: ${zombie.currentAP}`);
           moved = true;
@@ -193,10 +195,10 @@ export class ZombieAI {
 
           // B. Check for closed structures (STRICT ATTACHMENT)
           const door = nextTile?.contents.find(e => e.type === 'door' && !e.isOpen);
-          const window = nextTile?.contents.find(e => e.type === 'window' && !e.isBroken);
+          const window = nextTile?.contents.find(e => e.type === 'window' && !e.isBroken && !e.isOpen);
 
           if ((door || window) && zombie.currentAP >= 1.0) {
-            console.log(`[ZombieAI] Zombie ${zombie.id} trail blocked by ${door ? 'door' : 'window'}, attacking...`);
+            console.log(`[ZombieAI] Zombie ${zombie.id} trail blocked by ${door ? 'door' : 'window'} (closed/unbroken), attacking...`);
             const structure = door || window;
             const damageAmount = 5 + Math.floor(Math.random() * 6);
             const damageResult = structure.takeDamage(damageAmount, true); // Silent for logic
@@ -207,8 +209,8 @@ export class ZombieAI {
               doorPos: door ? { x: nextStep.x, y: nextStep.y } : null,
               windowPos: window ? { x: nextStep.x, y: nextStep.y } : null,
               apCost: 1.0,
-              doorBroken: door ? damageResult.isDead : false,
-              windowBroken: window ? damageResult.isDead : false
+              doorBroken: door ? damageResult.isBroken : false,
+              windowBroken: window ? damageResult.isBroken : false
             });
 
             zombie.lastScentSequence = nextScent.sequence;
@@ -404,12 +406,12 @@ export class ZombieAI {
           const nextStep = path[1];
           const nextTile = gameMap.getTile(nextStep.x, nextStep.y);
           const door = nextTile?.contents.find(e => e.type === 'door' && !e.isOpen);
-          const window = nextTile?.contents.find(e => e.type === 'window' && !e.isBroken);
+          const window = nextTile?.contents.find(e => e.type === 'window' && !e.isBroken && !e.isOpen);
 
           if ((door || window) && zombie.currentAP >= 1.0) {
             const structure = door || window;
             const damageAmount = 5 + Math.floor(Math.random() * 6);
-            const damageResult = structure.takeDamage(damageAmount);
+            const damageResult = structure.takeDamage(damageAmount, true); // Silent for logic
             zombie.useAP(1.0);
 
             turnResult.actions.push({
@@ -417,8 +419,8 @@ export class ZombieAI {
               doorPos: door ? { x: nextStep.x, y: nextStep.y } : null,
               windowPos: window ? { x: nextStep.x, y: nextStep.y } : null,
               apCost: 1.0,
-              doorBroken: door ? damageResult.isDead : false,
-              windowBroken: window ? damageResult.isDead : false
+              doorBroken: door ? damageResult.isBroken : false,
+              windowBroken: window ? damageResult.isBroken : false
             });
 
             // Check if player is now visible after structure damage/break
@@ -480,9 +482,9 @@ export class ZombieAI {
 
       // Check for closed doors/unbroken windows (obstacles)
       const door = nextTile.contents.find(e => e.type === 'door' && !e.isOpen);
-      const window = nextTile.contents.find(e => e.type === 'window' && !e.isBroken);
+      const window = nextTile.contents.find(e => e.type === 'window' && !e.isBroken && !e.isOpen);
       if (door || window) {
-        console.log(`[ZombieAI] Zombie ${zombie.id} momentum stopped: encountered ${door ? 'door' : 'window'}`);
+        console.log(`[ZombieAI] momentum stopped: encountered ${door ? 'door' : 'window'} (closed/unbroken)`);
         break;
       }
 
@@ -747,8 +749,8 @@ export class ZombieAI {
 
       // ── PRIORITY 1b: Window in the way → break it ───────────────────────────
       const window = nextTile?.contents.find(e => e.type === 'window');
-      if (window && !window.isBroken) {
-        console.log(`[ZombieAI] Next path step blocked by window at (${nextMove.x}, ${nextMove.y}), breaking window`);
+      if (window && !window.isBroken && !window.isOpen) {
+        console.log(`[ZombieAI] Next path step blocked by closed/unbroken window at (${nextMove.x}, ${nextMove.y}), breaking window`);
 
         // Spending 1 AP for the break action
         const breakCost = 1.0;
@@ -904,8 +906,12 @@ export class ZombieAI {
         allowDiagonal: true,
         isZombie: true, // Enable AP penalties in Pathfinding.js
         entityFilter: (t) => {
-          // Only hard-block terrain that is physically impassable
-          return !['wall', 'fence', 'tree', 'building', 'water'].includes(t.terrain);
+          // Allow pathing through building/wall terrain ONLY if a door or window is present
+          if (['wall', 'fence', 'tree', 'building', 'water', 'tent_wall'].includes(t.terrain)) {
+            const hasEntrableStructure = t.contents.some(e => e.type === 'door' || e.type === 'window');
+            if (!hasEntrableStructure) return false;
+          }
+          return true;
         },
         maxDistance: 20
       });

@@ -253,7 +253,7 @@ export const GameMapProvider = ({ children }) => {
   }, [checkPathForZombieVisibility]);
 
   // Handle tile hover for path preview
-  const handleTileHover = useCallback(async (x, y, player, isNight = false, isFlashlightOn = false) => {
+  const handleTileHover = useCallback(async (x, y, player, isNight = false, isFlashlightOn = false, data = null) => {
     if (!player || !gameMapRef.current) return;
 
     const targetTile = gameMapRef.current.getTile(x, y);
@@ -308,7 +308,7 @@ export const GameMapProvider = ({ children }) => {
 
       const canAfford = player.ap >= apCost;
 
-      // Check for zombie on the tile (Phase 6 Tooltips)
+      // Extract metadata (Zombies, Crops, etc.)
       const zombie = targetTile.contents.find(e => e.type === 'zombie');
       const zombieInfo = zombie ? {
         subtype: zombie.subtype,
@@ -316,9 +316,11 @@ export const GameMapProvider = ({ children }) => {
         maxHp: zombie.maxHp,
         currentAP: zombie.currentAP,
         maxAP: zombie.maxAP
-      } : null;
+      } : (data?.zombie || null);
 
-      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo });
+      const cropInfo = targetTile.cropInfo || data?.cropInfo || null;
+
+      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo });
     } catch (error) {
       console.warn('[GameMapContext] Error calculating hover cost:', error);
       // Fallback calculation
@@ -326,7 +328,7 @@ export const GameMapProvider = ({ children }) => {
       const apCost = distance;
       const canAfford = player.ap >= apCost;
 
-      // Check for zombie on the tile (Phase 6 Tooltips)
+      // Check for metadata on targetTile
       const zombie = targetTile?.contents.find(e => e.type === 'zombie');
       const zombieInfo = zombie ? {
         subtype: zombie.subtype,
@@ -334,9 +336,11 @@ export const GameMapProvider = ({ children }) => {
         maxHp: zombie.maxHp,
         currentAP: zombie.currentAP,
         maxAP: zombie.maxAP
-      } : null;
+      } : (data?.zombie || null);
 
-      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo });
+      const cropInfo = targetTile?.cropInfo || data?.cropInfo || null;
+
+      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo });
     }
   }, []);
 

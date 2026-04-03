@@ -868,10 +868,12 @@ const GameContextInner = ({ children }) => {
 
         // 3. NPC/Zombie processing
         const zombies = gameMap.getEntitiesByType('zombie');
+        const rabbits = gameMap.getEntitiesByType('rabbit');
         const cardinalPositions = getPlayerCardinalPositions(gameMap);
         lastSeenTaggedTilesRef.current.clear();
         let doorAttackedInBuilding = false;
 
+        // Process Zombie Turns
         zombies.forEach(zombie => {
           const turnResult = ZombieAI.executeZombieTurn(
             zombie,
@@ -907,9 +909,15 @@ const GameContextInner = ({ children }) => {
             });
           }
         });
+
+        // Process Rabbit Turns
+        const { RabbitAI } = await import('../game/ai/RabbitAI.js');
+        rabbits.forEach(rabbit => {
+          RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
+        });
  
-        // Animate visible zombies during sleep
-        await animateVisibleZombies(zombies, playerFieldOfView);
+        // Animate visible NPCs (zombies and rabbits) during sleep
+        await animateVisibleNPCs([...zombies, ...rabbits], playerFieldOfView);
 
         // Sync stats to UI
         updatePlayerStats({
@@ -1324,18 +1332,18 @@ const GameContextInner = ({ children }) => {
     }
 
     return { success: true };
-  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange, addLog, playSound, addEffect, digHole, plantSeed]);
 
-  const animateVisibleZombies = useCallback((zombies, currentFov) => {
+  const animateVisibleNPCs = useCallback((npcs, currentFov) => {
     return new Promise((resolve) => {
-      // 1. Identify zombies that moved and are visible
+      // 1. Identify NPCs that moved and are visible
       const currentFovSafe = currentFov || [];
-      const movedZombies = zombies.filter(z => z.movementPath && z.movementPath.length > 1);
+      const movedNPCs = npcs.filter(n => n.movementPath && n.movementPath.length > 1);
       
-      const animatingZombies = movedZombies.filter(zombie => {
+      const animatingNPCs = movedNPCs.filter(npc => {
         // Visibility check: Was it visible at start OR is it visible at end?
-        const startPos = zombie.movementPath[0];
-        const endPos = zombie.movementPath[zombie.movementPath.length - 1];
+        const startPos = npc.movementPath[0];
+        const endPos = npc.movementPath[npc.movementPath.length - 1];
         
         const isStartVisible = currentFovSafe.some(pos => pos.x === startPos.x && pos.y === startPos.y);
         const isEndVisible = currentFovSafe.some(pos => pos.x === endPos.x && pos.y === endPos.y);
@@ -1343,26 +1351,27 @@ const GameContextInner = ({ children }) => {
         return isStartVisible || isEndVisible;
       });
 
-      if (animatingZombies.length === 0) {
-        if (movedZombies.length > 0) {
-          console.log(`[GameContext] ${movedZombies.length} zombies moved, but none are currently visible in FOV`);
+      if (animatingNPCs.length === 0) {
+        if (movedNPCs.length > 0) {
+          console.log(`[GameContext] ${movedNPCs.length} NPCs moved, but none are currently visible in FOV`);
         }
         resolve();
         return;
       }
 
-      console.log(`[GameContext] 🧟 ANIMATING ${animatingZombies.length} visible zombies...`);
+      console.log(`[GameContext] 🏃 ANIMATING ${animatingNPCs.length} visible NPCs...`);
 
-      // Dynamic duration based on movement distance (e.g. 1 tile = short, 10 tiles = long)
-      const maxTilesMoved = animatingZombies.reduce((max, z) => Math.max(max, (z.movementPath?.length || 1) - 1), 1);
+      // Dynamic duration based on movement distance
+      const maxTilesMoved = animatingNPCs.reduce((max, n) => Math.max(max, (n.movementPath?.length || 1) - 1), 1);
       const duration = Math.min(1000, 300 + (maxTilesMoved * 70));
-      console.log(`[GameContext] Animating visible zombies (maxDist=${maxTilesMoved}) duration: ${duration}ms`);
+      console.log(`[GameContext] Animating visible NPCs (maxDist=${maxTilesMoved}) duration: ${duration}ms`);
 
       // 2. Start animation
+      // We still use setIsAnimatingZombies as the global UI gate for "NPCs are moving"
       setIsAnimatingZombies(true);
-      animatingZombies.forEach(z => {
-        z.isAnimating = true;
-        z.animationProgress = 0;
+      animatingNPCs.forEach(n => {
+        n.isAnimating = true;
+        n.animationProgress = 0;
       });
 
       const startTime = performance.now();
@@ -1371,8 +1380,8 @@ const GameContextInner = ({ children }) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(1, elapsed / duration);
 
-        animatingZombies.forEach(z => {
-          z.animationProgress = progress;
+        animatingNPCs.forEach(n => {
+          n.animationProgress = progress;
         });
 
         // Trigger map re-render
@@ -1382,10 +1391,9 @@ const GameContextInner = ({ children }) => {
           requestAnimationFrame(animate);
         } else {
           // Animation complete
-          animatingZombies.forEach(z => {
-            z.isAnimating = false;
-            z.animationProgress = 0;
-            // Note: Data position is already at the end of the path
+          animatingNPCs.forEach(n => {
+            n.isAnimating = false;
+            n.animationProgress = 0;
           });
           setIsAnimatingZombies(false);
           resolve();
@@ -1545,9 +1553,15 @@ const GameContextInner = ({ children }) => {
         processZombieActions(immediateActions);
       }
 
-      // 2. Animate visible zombies
-      if (typeof animateVisibleZombies === 'function') {
-        await animateVisibleZombies(zombies, playerFieldOfView);
+      // 2. Animate visible NPCs
+      if (typeof animateVisibleNPCs === 'function') {
+        const rabbits = gameMap.getEntitiesByType('rabbit');
+        const { RabbitAI } = await import('../game/ai/RabbitAI.js');
+        rabbits.forEach(rabbit => {
+          RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
+        });
+
+        await animateVisibleNPCs([...zombies, ...rabbits], playerFieldOfView);
       }
 
       // 3. Process DELAYED actions (Moving zombies attack after arrival)
@@ -1700,7 +1714,7 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] Error ending turn:', error);
       setIsPlayerTurn(true);
     }
-  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleZombies, checkZombieAwareness, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
+  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleNPCs, checkZombieAwareness, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
 
   // Legacy wrapper methods (these should be removed in Phase 2)
   const handleTileClick = useCallback((x, y) => {

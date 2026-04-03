@@ -268,9 +268,9 @@ export class Pathfinding {
       const window = targetTile.contents.find(e => e.type === 'window');
       if (window) {
         if (options?.isZombie) {
-          const isOpenOrBroken = window.isOpen || window.isBroken;
-          const zombieWindowCost = isOpenOrBroken ? 2 : 3;
-          baseCost += zombieWindowCost;
+          // Zombies pay 4 AP to move through any window (base 1 + 3)
+          // If the window is closed, they will break it first in ZombieAI.js (1 AP break + 4 AP move)
+          baseCost += 3;
         } else {
           baseCost += 1;
         }

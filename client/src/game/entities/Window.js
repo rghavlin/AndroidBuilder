@@ -42,8 +42,9 @@ export class Window extends Entity {
      * @private
      */
     _updateBlockingState() {
-        // Blocks movement if closed AND not broken
-        this.blocksMovement = !this.isOpen && !this.isBroken;
+        // Windows always block movement for common checks (e.g., players)
+        // Zombies will have a specific bypass in Tile.isWalkable
+        this.blocksMovement = true;
         this.blocksSight = false;
     }
 
@@ -134,7 +135,7 @@ export class Window extends Entity {
      * Take damage
      */
     takeDamage(amount, silent = false) {
-        if (this.isBroken) return;
+        if (this.isBroken) return { isBroken: true };
 
         this.hp = Math.max(0, this.hp - amount);
         if (this.hp <= 0) {
@@ -144,6 +145,7 @@ export class Window extends Entity {
                 this.emitEvent('windowDamaged', { currentHp: this.hp, maxHp: this.maxHp });
             }
         }
+        return { isBroken: this.hp <= 0 };
     }
 
     /**

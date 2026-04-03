@@ -169,6 +169,19 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'cooking.cooked_meat',
+        name: 'Cooked meat',
+        resultItem: 'food.cooked_meat',
+        description: 'Cook raw meat over a fire to make it tasty and safe to eat.',
+        apCost: 6,
+        tab: 'cooking',
+        requiresCampfire: true,
+        tools: [], 
+        ingredients: [
+            { id: 'food.raw_meat', count: 1 }
+        ]
+    },
+    {
         id: 'crafting.sling',
         name: 'Sling',
         resultItem: 'weapon.sling',

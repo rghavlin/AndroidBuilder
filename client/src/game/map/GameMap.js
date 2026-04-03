@@ -13,6 +13,7 @@ export class GameMap {
     this.entityMap = new Map(); // Track all entities by ID
     this.listeners = new Map();
     this.scentSequenceCounter = 0;
+    this.buildings = []; // Standardized building metadata
 
     // Initialize empty map
     this.initializeMap();
@@ -140,16 +141,36 @@ export class GameMap {
         item.defId === 'provision.corn_plant' ||
         (item.toJSON && item.toJSON().defId === 'provision.corn_plant')
       );
+      const containsTomatoPlant = validItems.some(item =>
+        item.defId === 'provision.tomato_plant' ||
+        (item.toJSON && item.toJSON().defId === 'provision.tomato_plant')
+      );
+      const containsCarrotPlant = validItems.some(item =>
+        item.defId === 'provision.carrot_plant' ||
+        (item.toJSON && item.toJSON().defId === 'provision.carrot_plant')
+      );
       const containsHarvestableCorn = validItems.some(item =>
         item.defId === 'provision.harvestable_corn' ||
         (item.toJSON && item.toJSON().defId === 'provision.harvestable_corn')
+      );
+      const containsHarvestableTomato = validItems.some(item =>
+        item.defId === 'provision.harvestable_tomato' ||
+        (item.toJSON && item.toJSON().defId === 'provision.harvestable_tomato')
+      );
+      const containsHarvestableCarrot = validItems.some(item =>
+        item.defId === 'provision.harvestable_carrot' ||
+        (item.toJSON && item.toJSON().defId === 'provision.harvestable_carrot')
       );
 
       let subtype = 'ground_pile';
       if (containsCampfire) subtype = 'campfire';
       else if (containsHole) subtype = 'hole';
       else if (containsCornPlant) subtype = 'cornplant';
+      else if (containsTomatoPlant) subtype = 'tomatoplant';
+      else if (containsCarrotPlant) subtype = 'carrotplant';
       else if (containsHarvestableCorn) subtype = 'harvestablecorn';
+      else if (containsHarvestableTomato) subtype = 'harvestabletomato';
+      else if (containsHarvestableCarrot) subtype = 'harvestablecarrot';
 
       if (!this.entityMap.has(proxyId)) {
         // Create a proxy entity for visual representation
@@ -164,7 +185,7 @@ export class GameMap {
           toJSON: () => ({
             id: proxyId,
             type: 'item',
-            subtype: containsCampfire ? 'campfire' : 'ground_pile',
+            subtype,
             x,
             y,
             blocksMovement: false,
@@ -188,15 +209,35 @@ export class GameMap {
             item.defId === 'provision.corn_plant' ||
             (item.toJSON && item.toJSON().defId === 'provision.corn_plant')
           );
+          const containsTomatoPlant = validItems.some(item =>
+            item.defId === 'provision.tomato_plant' ||
+            (item.toJSON && item.toJSON().defId === 'provision.tomato_plant')
+          );
+          const containsCarrotPlant = validItems.some(item =>
+            item.defId === 'provision.carrot_plant' ||
+            (item.toJSON && item.toJSON().defId === 'provision.carrot_plant')
+          );
           const containsHarvestableCorn = validItems.some(item =>
             item.defId === 'provision.harvestable_corn' ||
             (item.toJSON && item.toJSON().defId === 'provision.harvestable_corn')
+          );
+          const containsHarvestableTomato = validItems.some(item =>
+            item.defId === 'provision.harvestable_tomato' ||
+            (item.toJSON && item.toJSON().defId === 'provision.harvestable_tomato')
+          );
+          const containsHarvestableCarrot = validItems.some(item =>
+            item.defId === 'provision.harvestable_carrot' ||
+            (item.toJSON && item.toJSON().defId === 'provision.harvestable_carrot')
           );
 
           if (containsCampfire) proxy.subtype = 'campfire';
           else if (containsHole) proxy.subtype = 'hole';
           else if (containsCornPlant) proxy.subtype = 'cornplant';
+          else if (containsTomatoPlant) proxy.subtype = 'tomatoplant';
+          else if (containsCarrotPlant) proxy.subtype = 'carrotplant';
           else if (containsHarvestableCorn) proxy.subtype = 'harvestablecorn';
+          else if (containsHarvestableTomato) proxy.subtype = 'harvestabletomato';
+          else if (containsHarvestableCarrot) proxy.subtype = 'harvestablecarrot';
           else proxy.subtype = 'ground_pile';
         }
       }
@@ -225,6 +266,7 @@ export class GameMap {
     }
 
     let shortestTime = null;
+    let hasWildCrop = false;
 
     // Inspect all items on the tile for plants
     tile.inventoryItems.forEach(item => {
@@ -234,10 +276,31 @@ export class GameMap {
           shortestTime = item.lifetimeTurns;
         }
       }
+      
+      // Wild crops are pre-harvestable items with isWild flag
+      if (item.isWild) {
+        hasWildCrop = true;
+        
+        // Wild crops are stationary and always ready
+        if (shortestTime === null || 0 < shortestTime) {
+          shortestTime = 0;
+        }
+      }
     });
 
     if (shortestTime !== null) {
-      tile.cropInfo = { shortestTime };
+      // Preserve existing discovery state if recalculating
+      const wasDiscovered = tile.cropInfo?.discovered || false;
+      
+      // Discovery occurs if player is on the tile OR was already discovered
+      const isPlayerHere = tile.contents.some(e => e.type === 'player');
+      const isDiscovered = wasDiscovered || isPlayerHere;
+
+      tile.cropInfo = { 
+        shortestTime,
+        isWild: hasWildCrop,
+        discovered: isDiscovered
+      };
     } else {
       tile.cropInfo = null;
     }
@@ -322,6 +385,11 @@ export class GameMap {
 
       this.entityMap.set(entity.id, entity);
       tile.addEntity(entity);
+      
+      // Update crop metadata to handle wild crop discovery if player enters
+      if (entity.type === 'player') {
+        this.updateCropMetadata(x, y);
+      }
 
       console.log(`[GameMap] ✅ Entity added: ${entity.id} (${entity.type}) at (${x}, ${y})`);
       if (entity.type === 'player') {
@@ -367,7 +435,7 @@ export class GameMap {
     const entity = this.entityMap.get(entityId);
     const newTile = this.getTile(newX, newY);
 
-    if (entity && newTile && newTile.isWalkable()) {
+    if (entity && newTile && newTile.isWalkable(entity)) {
       // Store old position for event
       const oldPosition = { x: entity.x, y: entity.y };
 
@@ -457,17 +525,18 @@ export class GameMap {
 
           // Use recursive helper to process each item and its contents
           const remainingItems = tile.inventoryItems.filter(itemData => {
-            const wasModified = this._processItemDataTurn(itemData);
-            if (wasModified) {
+            const turnResult = this._processItemDataTurn(itemData);
+            if (turnResult.expired) {
               itemsModified = true;
-              // If _processItemDataTurn returns true, the root item itself expired
               console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
               return false;
             }
 
+            if (turnResult.modified) {
+              itemsModified = true;
+            }
+
             // Even if the root item didn't expire, some of its contents might have (recurse handles this inside)
-            // We need a way to detect if INSIDE was modified to trigger setItemsOnTile
-            // For now, we assume if it has recursion it might have changed.
             if (itemData.attachments || itemData.containerGrid || itemData.pocketGrids) {
               itemsModified = true;
             }
@@ -492,9 +561,10 @@ export class GameMap {
    * @returns {boolean} - Whether the item itself has expired and should be removed
    */
   _processItemDataTurn(itemData) {
-    if (!itemData) return false;
+    if (!itemData) return { expired: false, modified: false };
 
     let itemExpired = false;
+    let itemModified = false;
 
     // 1. Process own spoilage/lifetime
     // We check both shelfLife and lifetimeTurns. 
@@ -503,6 +573,7 @@ export class GameMap {
     // Check shelfLife first
     if (itemData.shelfLife !== undefined && itemData.shelfLife !== null) {
       itemData.shelfLife -= 1;
+      itemModified = true;
 
       // Handle Expiration (Vanishing)
       const traits = itemData.traits || [];
@@ -517,6 +588,7 @@ export class GameMap {
     // Process lifetimeTurns (e.g. for campfires)
     if (itemData.lifetimeTurns !== undefined && itemData.lifetimeTurns !== null) {
       itemData.lifetimeTurns = Math.max(0, itemData.lifetimeTurns - 1);
+      itemModified = true;
       if (itemData.lifetimeTurns <= 0) {
         itemExpired = true;
       }
@@ -544,17 +616,18 @@ export class GameMap {
           itemData.y = y;
           itemData.rotation = rotation;
 
-          return false; // Item transformed, do not remove
+          return { expired: false, modified: true }; // Item transformed, do not remove, but was modified
         }
       }
-      return true;
+      return { expired: true, modified: true };
     }
 
     // 2. Recurse into attachments
     if (itemData.attachments) {
       for (const slotId in itemData.attachments) {
-        const attachmentExpired = this._processItemDataTurn(itemData.attachments[slotId]);
-        if (attachmentExpired) {
+        const nestedResult = this._processItemDataTurn(itemData.attachments[slotId]);
+        if (nestedResult.modified) itemModified = true;
+        if (nestedResult.expired) {
           console.log(`[GameMap] Nested attachment ${itemData.attachments[slotId].name} expired inside ${itemData.name}`);
           delete itemData.attachments[slotId];
         }
@@ -563,13 +636,13 @@ export class GameMap {
 
     // 3. Recurse into container grid
     if (itemData.containerGrid && itemData.containerGrid.items) {
-      const initialCount = itemData.containerGrid.items.length;
       itemData.containerGrid.items = itemData.containerGrid.items.filter(nestedItem => {
-        const expired = this._processItemDataTurn(nestedItem);
-        if (expired) {
+        const nestedResult = this._processItemDataTurn(nestedItem);
+        if (nestedResult.modified) itemModified = true;
+        if (nestedResult.expired) {
           console.log(`[GameMap] Nested item ${nestedItem.name} expired inside ${itemData.name} container`);
         }
-        return !expired;
+        return !nestedResult.expired;
       });
     }
 
@@ -578,17 +651,18 @@ export class GameMap {
       itemData.pocketGrids.forEach(pocket => {
         if (pocket.items) {
           pocket.items = pocket.items.filter(pocketItem => {
-            const expired = this._processItemDataTurn(pocketItem);
-            if (expired) {
+            const nestedResult = this._processItemDataTurn(pocketItem);
+            if (nestedResult.modified) itemModified = true;
+            if (nestedResult.expired) {
               console.log(`[GameMap] Nested item ${pocketItem.name} expired inside ${itemData.name} pocket`);
             }
-            return !expired;
+            return !nestedResult.expired;
           });
         }
       });
     }
 
-    return false;
+    return { expired: false, modified: itemModified };
   }
 
   /**
@@ -656,7 +730,8 @@ export class GameMap {
       tiles: this.tiles.map(row =>
         row.map(tile => tile ? tile.toJSON() : null)
       ),
-      scentSequenceCounter: this.scentSequenceCounter
+      scentSequenceCounter: this.scentSequenceCounter,
+      buildings: this.buildings
     };
   }
 
@@ -763,6 +838,13 @@ export class GameMap {
   static async fromJSON(data) {
     const gameMap = new GameMap(data.width, data.height);
     gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
+    gameMap.buildings = data.buildings || [];
+    
+    // Legacy support for specialBuildings (ensure it exists if systems still look for it)
+    if (data.specialBuildings && gameMap.buildings.length === 0) {
+      gameMap.buildings = data.specialBuildings;
+    }
+    gameMap.specialBuildings = gameMap.buildings;
 
     // Import required classes
     const { Tile } = await import('./Tile.js');

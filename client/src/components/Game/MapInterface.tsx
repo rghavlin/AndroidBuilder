@@ -16,6 +16,7 @@ import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { ZombieTooltip } from './ZombieTooltip';
+import { CropTooltip } from './CropTooltip';
 import { useLog } from '../../contexts/LogContext.jsx';
 import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
@@ -154,7 +155,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Phase 1: Direct sub-context access 
   const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
-  const { playerRef, updatePlayerFieldOfView, isMoving: isAnimatingMovement } = usePlayer();
+  const { playerRef, updatePlayerFieldOfView, isMoving: isAnimatingMovement, playerFieldOfView } = usePlayer();
 
   // Get inventory context for floating containers and selection management
   // MUST BE DECLARED BEFORE isFlashlightOnActual
@@ -497,27 +498,19 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           </div>
         )}
 
-        {/* Zombie Tooltip Overlay (Phase 6) */}
+        {/* Tile Tooltip Overlay (Phase 6 & Generic Refactor) */}
         {(() => {
-          if (!hoveredTile || !hoveredTile.zombie) return null;
+          if (!hoveredTile) return null;
+          if (!hoveredTile.zombie && !hoveredTile.cropInfo) return null;
           
-          // Only show if the tile is currently visible to the player
-          const isCurrentlyVisible = playerRef.current && 
-            gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored &&
-            // Note: FOV check is usually done via playerFieldOfView state in MapCanvas, 
-            // but here we can check if it's in the player's sight range or simply if it's "currently visible"
-            // For simplicity and matching MapCanvas logic, we check visibility
-            true; // We'll assume if it's hovered and explored it's fine for now, 
-                 // but ideally we check if player can see it.
-          
-          // Actually, MapCanvas only renders zombies if they are currently visible.
-          // Let's mirror that logic.
-          const isVisible = playerRef.current && gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
-          if (!isVisible) return null;
+          // Only show if the tile is explored
+          const isExplored = gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
+          if (!isExplored) return null;
 
           return (
-            <ZombieTooltipOverlay 
+            <TileTooltipOverlay 
               hoveredTile={hoveredTile} 
+              playerFieldOfView={playerFieldOfView}
             />
           );
         })()}
@@ -719,13 +712,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           onMouseLeave={() => setWindowMenu(null)}
         >
           <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+            className="w-full text-left px-3 py-2 text-sm text-green-400 hover:bg-accent focus:bg-accent transition-colors"
             onClick={() => {
               const gameMap = gameMapRef.current;
               const player = playerRef.current;
               if (!gameMap || !player) return;
 
-              // Check AP cost (1 AP)
+              // Action cost: 1 AP to open/close
               if (player.ap < 1) {
                 addEffect({
                   type: 'damage',
@@ -739,62 +732,110 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 return;
               }
 
-              const success = windowMenu.window.toggle(gameMap);
-              if (success) {
-                // Consume 1 AP
+              if (windowMenu.window.isOpen) {
+                windowMenu.window.close();
+                addLog('You close the window.', 'world');
                 player.useAP(1);
-                // Force map re-render
-                triggerMapUpdate();
-                // Update FOV immediately and capture new visible tiles
-                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
-                // Refresh zombie tracking with new FOV
-                refreshZombieTracking(player, newFovTiles);
-                // PASSIVE AWARENESS: Force zombies to check if they spot the player NOW
-                checkZombieAwareness();
-
-                // Add noise generation to attract zombies
-                if (gameMap.emitNoise) {
-                  gameMap.emitNoise(windowMenu.x, windowMenu.y, 6); // Windows are quieter than doors
-                }
-
-                // Play interaction sound
                 playSound('OpenWindow');
-              } else if (windowMenu.window.isBroken) {
-                // Show "Broken"
-                addEffect({
-                  type: 'damage',
-                  x: windowMenu.x,
-                  y: windowMenu.y,
-                  value: 'Broken',
-                  color: '#ef4444',
-                  duration: 1000
-                });
-              } else if (windowMenu.window.isOpen && !success) {
-                // Blocked by occupancy
-                addEffect({
-                  type: 'damage',
-                  x: windowMenu.x,
-                  y: windowMenu.y,
-                  value: 'Occupied',
-                  color: '#ef4444',
-                  duration: 1000
-                });
-              } else if (windowMenu.window.isLocked && !windowMenu.window.isOpen) {
-                // Show "Locked"
-                addEffect({
-                  type: 'damage',
-                  x: windowMenu.x,
-                  y: windowMenu.y,
-                  value: 'Locked',
-                  color: '#fbbf24',
-                  duration: 1000
-                });
+              } else {
+                if (windowMenu.window.isLocked) {
+                  addEffect({
+                    type: 'damage',
+                    x: windowMenu.x,
+                    y: windowMenu.y,
+                    value: 'Locked',
+                    color: '#fbbf24',
+                    duration: 1000
+                  });
+                } else {
+                  windowMenu.window.open();
+                  addLog('You open the window.', 'world');
+                  player.useAP(1);
+                  playSound('OpenWindow');
+                }
               }
+              
+              triggerMapUpdate();
+              const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+              refreshZombieTracking(player, newFovTiles);
+              checkZombieAwareness();
               setWindowMenu(null);
             }}
           >
             {windowMenu.window.isOpen ? 'Close Window' : 'Open Window'}
           </button>
+
+          {/* Climb Through Option */}
+          {(windowMenu.window.isOpen || windowMenu.window.isBroken) && (
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-cyan-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+              onClick={() => {
+                const gameMap = gameMapRef.current;
+                const player = playerRef.current;
+                if (!gameMap || !player) return;
+
+                // Check AP cost (3 AP)
+                if (player.ap < 3) {
+                  addEffect({
+                    type: 'damage',
+                    x: windowMenu.x,
+                    y: windowMenu.y,
+                    value: 'Insufficient AP',
+                    color: '#ef4444',
+                    duration: 1000
+                  });
+                  setWindowMenu(null);
+                  return;
+                }
+
+                // Calculate target position (opposite side)
+                const dx = windowMenu.x - player.x;
+                const dy = windowMenu.y - player.y;
+                const targetX = windowMenu.x + dx;
+                const targetY = windowMenu.y + dy;
+
+                const targetTile = gameMap.getTile(targetX, targetY);
+                if (!targetTile || !targetTile.isWalkable(player)) {
+                   addLog("The other side is blocked.", "error");
+                   setWindowMenu(null);
+                   return;
+                }
+
+                // Execute teleport
+                const success = gameMap.moveEntity(player.id, targetX, targetY);
+                if (success) {
+                  player.useAP(3);
+                  playSound('OpenWindow');
+                  addLog("You climb through the window.", "world");
+                  
+                  // 50% bleed chance if broken and NOT open
+                  if (windowMenu.window.isBroken && !windowMenu.window.isOpen) {
+                    if (Math.random() < 0.5) {
+                      player.setBleeding(true);
+                      addLog("You cut yourself on the broken glass!", "error");
+                      playSound('ZombieSlash');
+                    }
+                  }
+
+                  // Update derived state
+                  triggerMapUpdate();
+                  const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+                  refreshZombieTracking(player, newFovTiles);
+                  checkZombieAwareness();
+                  
+                  if (gameMap.emitNoise) {
+                    gameMap.emitNoise(targetX, targetY, 4);
+                  }
+                } else {
+                  addLog("Could not move to the other side.", "error");
+                }
+                setWindowMenu(null);
+              }}
+            >
+              Climb through (3ap)
+            </button>
+          )}
+
           {windowMenu.window.isLocked && !windowMenu.window.isOpen && !windowMenu.window.isBroken && (
             <button
               className="w-full text-left px-3 py-2 text-sm text-amber-500 hover:bg-accent focus:bg-accent transition-colors"
@@ -1044,18 +1085,25 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   );
 }
 
-// Zombie Tooltip Overlay Helper (Phase 6)
-const ZombieTooltipOverlay = ({ hoveredTile }: { hoveredTile: any }) => {
+// Tile Tooltip Overlay Helper (Phase 6 & Generic Refactor)
+const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: any, playerFieldOfView: any[] | null }) => {
   const { worldToScreen, cameraRef } = useCamera();
   const { gameMapRef } = useGameMap();
 
   if (!hoveredTile || !cameraRef.current || !gameMapRef.current) return null;
 
-  // Re-fetch the zombie from the map to get fresh stats (HP/AP)
+  // Re-fetch data from the map to get fresh stats
   const targetTile = gameMapRef.current.getTile(hoveredTile.x, hoveredTile.y);
   const zombie = targetTile?.contents.find((e: any) => e.type === 'zombie');
+  const cropInfo = targetTile?.cropInfo;
 
-  if (!zombie) return null;
+  // Logic for Zombie visibility: must be in player's current FOV
+  const isZombieVisible = zombie && playerFieldOfView && playerFieldOfView.some(pos => pos.x === hoveredTile.x && pos.y === hoveredTile.y);
+  
+  // Logic for Crop visibility: must be standard crop OR discovered wild crop
+  const isCropVisible = cropInfo && (!cropInfo.isWild || cropInfo.discovered);
+  
+  if (!isZombieVisible && !isCropVisible) return null;
 
   // Calculate screen position
   const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
@@ -1070,15 +1118,16 @@ const ZombieTooltipOverlay = ({ hoveredTile }: { hoveredTile: any }) => {
 
   return (
     <div
-      className="absolute z-[10001] pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4 transition-all duration-200"
+      className="absolute z-[10001] pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4 transition-all duration-200 flex flex-col gap-2 items-center"
       style={{
         left: `${x + tileSize / 2}px`,
         top: `${y}px`,
       }}
     >
-      <ZombieTooltip zombie={zombie as any} />
+      {isZombieVisible && <ZombieTooltip zombie={zombie as any} />}
+      {isCropVisible && <CropTooltip cropInfo={cropInfo as any} />}
       {/* Downward arrow/pointer */}
-      <div className="w-3 h-3 bg-black/80 border-r border-b border-white/20 rotate-45 absolute bottom-[-6px] left-1/2 -translate-x-1/2" />
+      <div className="w-3 h-3 bg-black/80 border-r border-b border-white/20 rotate-45 mt-[-6px]" />
     </div>
   );
 };

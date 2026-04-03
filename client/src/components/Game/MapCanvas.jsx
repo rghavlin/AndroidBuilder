@@ -132,7 +132,10 @@ export default function MapCanvas({
       cachedImage = imageLoader.imageCache.get(baseImageKey);
     }
 
-    if (cachedImage) {
+    // Use cached image ONLY if it has loaded successfully and is not a broken placeholder
+    const isImageValid = cachedImage && cachedImage.complete && cachedImage.naturalWidth > 0;
+
+    if (isImageValid) {
       // Render with cached image
       let entitySize = (tileSize * 0.8);
       if (entity.type === 'item') {
@@ -152,7 +155,7 @@ export default function MapCanvas({
         entitySize
       );
     } else {
-      // Fallback to default shapes (image not loaded or failed to load)
+      // Fallback to default shapes if image not loaded, failed to load, or is a broken placeholder
       renderEntityDefault(ctx, entity, pixelX, pixelY, tileSize);
     }
 
@@ -422,6 +425,33 @@ export default function MapCanvas({
         }
         break;
 
+      case 'place_icon':
+        // Place icons (signs, landmarks) - Blue square with white border
+        ctx.fillStyle = '#3b82f6'; // blue-500
+        ctx.fillRect(
+          pixelX + tileSize / 8,
+          pixelY + tileSize / 8,
+          tileSize * 3 / 4,
+          tileSize * 3 / 4
+        );
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          pixelX + tileSize / 8,
+          pixelY + tileSize / 8,
+          tileSize * 3 / 4,
+          tileSize * 3 / 4
+        );
+        
+        // Add a letter or icon placeholder
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.floor(tileSize / 2)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const label = entity.subtype ? entity.subtype.charAt(0).toUpperCase() : '?';
+        ctx.fillText(label, pixelX + tileSize / 2, pixelY + tileSize / 2);
+        break;
+
       default:
         // Unknown entity - gray square
         ctx.fillStyle = '#6b7280';
@@ -606,9 +636,12 @@ export default function MapCanvas({
 
           // Noticeable green outline for tiles with crops (growth in progress)
           if (tile.cropInfo && tile.cropInfo.shortestTime !== null) {
-            ctx.strokeStyle = '#22c55e'; // emerald-500
-            ctx.lineWidth = 2;
-            ctx.strokeRect(pixelX + 1, pixelY + 1, tileSize - 2, tileSize - 2);
+            // New discovery check: Only show if it's not wild OR it's been discovered
+            if (!tile.cropInfo.isWild || tile.cropInfo.discovered) {
+              ctx.strokeStyle = '#22c55e'; // emerald-500
+              ctx.lineWidth = 2;
+              ctx.strokeRect(pixelX + 1, pixelY + 1, tileSize - 2, tileSize - 2);
+            }
           }
 
           // Highlight hovered tile (on any explored tile)
@@ -629,36 +662,7 @@ export default function MapCanvas({
               pixelY + tileSize / 2 + Math.floor(tileSize / 8)
             );
 
-            // Crop timer tooltip (if applicable) - Styled like Zombie HP bars/UI tooltips
-            if (tile.cropInfo && tile.cropInfo.shortestTime !== null) {
-              const padding = 4;
-              const text = `Crops ready in: ${tile.cropInfo.shortestTime}h`;
-              ctx.font = `bold ${Math.floor(tileSize / 5)}px Arial`;
-              const textMetrics = ctx.measureText(text);
-              const bgWidth = textMetrics.width + padding * 2;
-              const bgHeight = Math.floor(tileSize / 4);
-              const bgX = pixelX + (tileSize - bgWidth) / 2;
-              const bgY = pixelY + (tileSize * 0.05); // 5% from the top
 
-              // Background box
-              ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-              ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
-              
-              // Border
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-              ctx.lineWidth = 1;
-              ctx.strokeRect(bgX, bgY, bgWidth, bgHeight);
-
-              // Text
-              ctx.fillStyle = '#4ade80'; // Emerald-400
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillText(
-                text,
-                pixelX + tileSize / 2,
-                bgY + bgHeight / 2
-              );
-            }
           }
 
           // Render entities on this tile (except player)
@@ -814,10 +818,16 @@ export default function MapCanvas({
       let worldPos = camera.screenToWorld(screenTileX, screenTileY);
       worldPos = { x: Math.floor(worldPos.x), y: Math.floor(worldPos.y) };
 
-      // Store hovered position for rendering - Fix: pass player parameter
+      // Store hovered position for rendering
       if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
         worldPos.y >= 0 && worldPos.y < gameMap.height) {
-        handleTileHover(worldPos.x, worldPos.y, player, isNight, isFlashlightOn);
+        
+        const tile = gameMap.getTile(worldPos.x, worldPos.y);
+        const zombie = tile?.contents.find((e) => e.type === 'zombie');
+        const cropInfo = tile?.cropInfo;
+        
+        // Pass enriched hover data to MapInterface
+        handleTileHover(worldPos.x, worldPos.y, player, isNight, isFlashlightOn, { zombie, cropInfo });
       }
     } catch (error) {
       console.warn('[MapCanvas] Error handling tile hover:', error);

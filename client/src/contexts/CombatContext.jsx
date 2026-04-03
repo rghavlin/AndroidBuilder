@@ -6,7 +6,7 @@ import { useGame } from './GameContext.jsx';
 import { useInventory } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useAudio } from './AudioContext.jsx';
-import { ItemDefs } from '../game/inventory/ItemDefs.js';
+import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 
 import { ItemCategory } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
@@ -147,10 +147,10 @@ export const CombatProvider = ({ children }) => {
         }
 
         const tile = gameMap.getTile(targetX, targetY);
-        const zombie = tile?.contents.find(e => e.type === 'zombie');
-        const structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
+        const targetEntity = tile?.contents.find(e => e.type === 'zombie' || e.type === 'rabbit');
+        const structure = !targetEntity ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
 
-        if (!zombie && !structure) return { success: false, reason: 'No target here' };
+        if (!targetEntity && !structure) return { success: false, reason: 'No target here' };
 
         // 1. Calculate Outcome
         const meleeLvl = playerStats.meleeLvl || 1;
@@ -166,7 +166,7 @@ export const CombatProvider = ({ children }) => {
 
         // 2. Immediate Sound Trigger (Zero Latency)
         if (hit) {
-            const isKillingBlow = zombie && (zombie.hp <= damage);
+            const isKillingBlow = targetEntity && (targetEntity.hp <= damage);
             if (isKillingBlow) playSound('DeathBlow');
             else playSound('MeleeHit');
         } else {
@@ -178,10 +178,10 @@ export const CombatProvider = ({ children }) => {
 
         // 4. Detailed Logic Execution
         if (hit) {
-            if (zombie) {
-                zombie.takeDamage(damage);
-                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks: ${damage} damage (${weapon.name})`, 'combat');
-                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, false);
+            if (targetEntity) {
+                targetEntity.takeDamage(damage);
+                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
+                if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
@@ -210,18 +210,26 @@ export const CombatProvider = ({ children }) => {
                 duration: isCrit ? 1500 : 1200
             });
 
-            if (zombie && zombie.isDead()) {
-                addLog('Zombie killed!', 'combat');
+            if (targetEntity && targetEntity.isDead()) {
+                addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
                 const newLevel = recordKill('melee');
                 if (newLevel) {
                     addLog(`LEVEL UP! Melee skill is now level ${newLevel}!`, 'warning');
                 }
-                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, true);
-                if (lootGenerator && Math.random() < 0.75) {
-                    const loot = lootGenerator.generateZombieLoot(zombie.subtype);
-                    if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
+                
+                if (targetEntity.type === 'zombie') {
+                    if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
+                    if (lootGenerator && Math.random() < 0.75) {
+                        const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
+                        if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
+                    }
+                } else if (targetEntity.type === 'rabbit') {
+                    // Rabbits always drop 1 raw meat
+                    const meat = createItemFromDef('food.raw_meat');
+                    if (meat) gameMap.addItemsToTile(targetX, targetY, [meat]);
                 }
-                gameMap.removeEntity(zombie.id);
+                
+                gameMap.removeEntity(targetEntity.id);
                 cancelTargeting();
             }
             triggerMapUpdate();
@@ -284,9 +292,9 @@ export const CombatProvider = ({ children }) => {
         if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
 
         const tile = gameMap.getTile(targetX, targetY);
-        const zombie = tile?.contents.find(e => e.type === 'zombie');
-        const structure = !zombie ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
-        if (!zombie && !structure) return { success: false, reason: 'No target at location' };
+        const targetEntity = tile?.contents.find(e => e.type === 'zombie' || e.type === 'rabbit');
+        const structure = !targetEntity ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
+        if (!targetEntity && !structure) return { success: false, reason: 'No target at location' };
 
         // 1. Calculate Outcome
         const rangedLvl = playerStats.rangedLvl || 1;
@@ -322,7 +330,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         // 2. Immediate Sound Trigger (Zero Latency)
-        const isKillingBlow = zombie && hit && (zombie.hp <= damage);
+        const isKillingBlow = targetEntity && hit && (targetEntity.hp <= damage);
         
         if (isKillingBlow) {
             playSound('DeathBlow');
@@ -359,10 +367,10 @@ export const CombatProvider = ({ children }) => {
 
         // 6. Detailed Logic
         if (hit) {
-            if (zombie) {
-                zombie.takeDamage(damage);
-                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks: ${damage} damage (${weapon.name})`, 'combat');
-                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, false);
+            if (targetEntity) {
+                targetEntity.takeDamage(damage);
+                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
+                if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
@@ -386,18 +394,26 @@ export const CombatProvider = ({ children }) => {
                 duration: isCrit ? 1500 : 1200 
             });
 
-            if (zombie && zombie.isDead()) {
-                addLog('Zombie killed!', 'combat');
+            if (targetEntity && targetEntity.isDead()) {
+                addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
                 const newLevel = recordKill('ranged');
                 if (newLevel) {
                     addLog(`LEVEL UP! Ranged skill is now level ${newLevel}!`, 'warning');
                 }
-                if (zombie.subtype === 'acid') triggerAcidEffect(zombie, true);
-                if (lootGenerator && Math.random() < 0.75) {
-                    const loot = lootGenerator.generateZombieLoot(zombie.subtype);
-                    if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
+                
+                if (targetEntity.type === 'zombie') {
+                    if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
+                    if (lootGenerator && Math.random() < 0.75) {
+                        const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
+                        if (loot?.length > 0) gameMap.addItemsToTile(targetEntity.x, targetEntity.y, loot);
+                    }
+                } else if (targetEntity.type === 'rabbit') {
+                    // Rabbits always drop 1 raw meat
+                    const meat = createItemFromDef('food.raw_meat');
+                    if (meat) gameMap.addItemsToTile(targetEntity.x, targetEntity.y, [meat]);
                 }
-                gameMap.removeEntity(zombie.id);
+                
+                gameMap.removeEntity(targetEntity.id);
                 cancelTargeting();
             }
             triggerMapUpdate();
@@ -483,7 +499,7 @@ export const CombatProvider = ({ children }) => {
         // Damage Entities within 2 tiles
         const allEntities = Array.from(gameMap.entityMap.values());
         allEntities.forEach(entity => {
-            if (entity.type !== 'player' && entity.type !== 'zombie') return;
+            if (entity.type !== 'player' && entity.type !== 'zombie' && entity.type !== 'rabbit') return;
 
             const dist = Math.sqrt(Math.pow(entity.x - targetX, 2) + Math.pow(entity.y - targetY, 2));
             if (dist > radius + 0.1) return;
@@ -515,14 +531,17 @@ export const CombatProvider = ({ children }) => {
                     duration: 1500
                 });
 
-                addLog(`Explosion deals ${damage} damage to ${entity.type === 'player' ? 'you' : 'zombie'}`, 'combat');
+                addLog(`Explosion deals ${damage} damage to ${entity.type}`, 'combat');
 
-                if (entity.type === 'zombie' && entity.isDead()) {
-                    addLog('Zombie killed by grenade!', 'combat');
+                if (entity.isDead()) {
+                    addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed by grenade!`, 'combat');
                     // Loot drop logic for zombies killed by grenade
-                    if (lootGenerator && Math.random() < 0.75) {
+                    if (entity.type === 'zombie' && lootGenerator && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(entity.subtype);
                         if (loot?.length > 0) gameMap.addItemsToTile(entity.x, entity.y, loot);
+                    } else if (entity.type === 'rabbit') {
+                        const meat = createItemFromDef('food.raw_meat');
+                        if (meat) gameMap.addItemsToTile(entity.x, entity.y, [meat]);
                     }
                     gameMap.removeEntity(entity.id);
                 }

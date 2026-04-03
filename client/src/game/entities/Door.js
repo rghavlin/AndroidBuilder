@@ -131,7 +131,7 @@ export class Door extends Entity {
      * @param {number} amount - Amount of damage to take
      */
     takeDamage(amount, silent = false) {
-        if (this.isOpen || this.isDamaged) return;
+        if (this.isOpen || this.isDamaged) return { isBroken: true };
 
         this.hp = Math.max(0, this.hp - amount);
 
@@ -149,6 +149,7 @@ export class Door extends Entity {
                 this.emitEvent('doorDamaged', { currentHp: this.hp, maxHp: this.maxHp });
             }
         }
+        return { isBroken: this.hp <= 0 };
     }
 
     /**

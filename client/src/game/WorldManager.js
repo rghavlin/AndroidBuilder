@@ -441,6 +441,7 @@ export class WorldManager {
         const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
         const { GameMap } = await import('./map/GameMap.js');
         const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
+        const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
 
         // Generate new map using template system with specific ID
         const templateMapGenerator = new TemplateMapGenerator();
@@ -491,6 +492,11 @@ export class WorldManager {
           maxTotal: 100
         });
         
+        // SPAWN ANIMALS: Procedural rabbit generation
+        AnimalSpawner.spawnAnimals(gameMap, spawnPosition, {
+          rabbitRange: { min: 1, max: 2 }
+        });
+
         // SPECIAL SPAWNS: Army Tent Soldier Zombies, etc.
         await this._spawnSpecialBuildingZombies(gameMap);
 

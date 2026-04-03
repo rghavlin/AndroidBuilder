@@ -141,9 +141,9 @@ export class ZombieSpawner {
     }
 
     // 6. Spawn Special Zombies in Buildings
-    const specialBuildings = gameMap.specialBuildings || gameMap.metadata?.specialBuildings || [];
+    const buildings = gameMap.buildings || gameMap.specialBuildings || [];
     
-    specialBuildings.forEach((station, sIdx) => {
+    buildings.forEach((station, sIdx) => {
       // Firefighters in Fire Stations
       if (station.type === 'firestation') {
         const ffCount = Math.floor(Math.random() * (firefighterRange.max - firefighterRange.min + 1)) + firefighterRange.min;

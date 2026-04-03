@@ -46,6 +46,8 @@ export class ImageLoader {
       else if (subtype === 'fat') imageKey = 'fatzombie';
       else if (subtype === 'soldier') imageKey = 'soldierzombie';
       else imageKey = 'zombie'; // Default zombie for basic/null
+    } else if (entityType === 'rabbit') {
+      imageKey = 'rabbit';
     } else if (entityType === 'item' && subtype === 'ground_pile') {
       // LOOT DROP ICON: Use default.png from items folder
       return this.getItemImage('default');
@@ -54,8 +56,18 @@ export class ImageLoader {
       return this.getItemImage('hole');
     } else if (entityType === 'item' && subtype === 'cornplant') {
       return this.getItemImage('cornplant');
+    } else if (entityType === 'item' && subtype === 'tomatoplant') {
+      return this.getItemImage('tomatoplant');
+    } else if (entityType === 'item' && subtype === 'carrotplant') {
+      return this.getItemImage('carrotplant');
     } else if (entityType === 'item' && subtype === 'harvestablecorn') {
       return this.getItemImage('harvestablecorn');
+    } else if (entityType === 'item' && subtype === 'harvestabletomato') {
+      return this.getItemImage('harvestabletomato');
+    } else if (entityType === 'item' && subtype === 'harvestablecarrot') {
+      return this.getItemImage('harvestablecarrot');
+    } else if (entityType === 'item' && subtype === 'rawmeat' || subtype === 'cookedmeat') {
+      return this.getItemImage(subtype);
     }
 
     // 3. Return cached image if available
@@ -70,6 +82,7 @@ export class ImageLoader {
 
     // 5. Special routing for place icons
     if (entityType === 'place_icon' && subtype) {
+      // Use getPlaceImage but ensure we cache it under the canonical entity imageKey too
       const getPromise = this.getPlaceImage(subtype);
       this.loadingPromises.set(imageKey, getPromise);
       try {
@@ -114,7 +127,9 @@ export class ImageLoader {
    * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
    */
   async getPlaceImage(placeName) {
-    const imageKey = `place_${placeName}`;
+    // Standardize naming: police_station -> police
+    const canonicalName = placeName === 'police_station' ? 'police' : placeName;
+    const imageKey = `place_${canonicalName}`;
 
     // Return cached image if available
     if (this.imageCache.has(imageKey)) {
@@ -127,7 +142,7 @@ export class ImageLoader {
     }
 
     // Start loading the place image
-    const loadPromise = this.loadPlaceImage(placeName);
+    const loadPromise = this.loadPlaceImage(canonicalName);
     this.loadingPromises.set(imageKey, loadPromise);
 
     try {
@@ -136,7 +151,7 @@ export class ImageLoader {
       this.loadingPromises.delete(imageKey);
       return image;
     } catch (error) {
-      console.log(`[ImageLoader] Place image not found: ${placeName}`);
+      console.log(`[ImageLoader] Place image not found: ${canonicalName}`);
       this.imageCache.set(imageKey, null);
       this.loadingPromises.delete(imageKey);
       return null;
@@ -189,8 +204,14 @@ export class ImageLoader {
       };
 
       img.onload = () => {
-        console.log(`[ImageLoader] Successfully loaded place image: ${img.src}`);
-        resolve(img);
+        if (img.naturalWidth > 0) {
+          console.log(`[ImageLoader] Successfully loaded place image: ${img.src}`);
+          resolve(img);
+        } else {
+          // Some browsers trigger onload even for broken images
+          console.warn(`[ImageLoader] Place image reported success but has 0 dimensions: ${img.src}`);
+          img.onerror();
+        }
       };
 
       img.onerror = () => {
@@ -250,8 +271,14 @@ export class ImageLoader {
       };
 
       img.onload = () => {
-        console.log(`[ImageLoader] Successfully loaded image: ${img.src}`);
-        resolve(img);
+        if (img.naturalWidth > 0) {
+          console.log(`[ImageLoader] Successfully loaded image: ${img.src}`);
+          resolve(img);
+        } else {
+          // Some browsers trigger onload even for broken images
+          console.warn(`[ImageLoader] Entity image reported success but has 0 dimensions: ${img.src}`);
+          img.onerror();
+        }
       };
 
       img.onerror = () => {

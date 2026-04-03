@@ -1,3 +1,5 @@
+import { createItemFromDef } from '../inventory/ItemDefs.js';
+
 /**
  * TemplateMapGenerator - Template-based map generation system
  * Generates maps from predefined templates with configurable parameters
@@ -257,9 +259,85 @@ export class TemplateMapGenerator {
       }
     };
 
+    this.placeWildCrops(mapData);
+
     console.log(`[TemplateMapGenerator] Generated '${templateName}' map (${mapData.width}x${mapData.height}) with ${templateName === 'road' ? 0 : randomWalls} random walls, ${templateName === 'road' ? 0 : extraFloors} extra floors`);
 
     return mapData;
+  }
+
+  /**
+   * Place wild crops in secluded grass areas
+   */
+  placeWildCrops(mapData) {
+    const validSpots = [];
+    const { width, height, tiles } = mapData;
+
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const tile = tiles[y][x];
+        if (tile.terrain !== 'grass') continue;
+
+        // Check neighbors for seclusion criteria
+        let nearBuildingOrWall = false;
+        let nearRoadOrSidewalk = false;
+
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const neighbor = tiles[y + dy][x + dx];
+            if (!neighbor) continue;
+
+            if (neighbor.terrain === 'building' || neighbor.terrain === 'wall' || neighbor.terrain === 'tent_wall' || neighbor.terrain === 'fence') {
+              nearBuildingOrWall = true;
+            }
+            if (neighbor.terrain === 'road' || neighbor.terrain === 'sidewalk') {
+              nearRoadOrSidewalk = true;
+            }
+          }
+        }
+
+        if (nearBuildingOrWall && !nearRoadOrSidewalk) {
+          validSpots.push({ x, y });
+        }
+      }
+    }
+
+    if (validSpots.length === 0) return;
+
+    // Pick 1 to 3 random spots
+    const count = 1 + Math.floor(Math.random() * 3);
+    const selectedSpots = [];
+    for (let i = 0; i < count && validSpots.length > 0; i++) {
+      const index = Math.floor(Math.random() * validSpots.length);
+      selectedSpots.push(validSpots.splice(index, 1)[0]);
+    }
+
+    // Crop definitions for wild variety
+    const crops = [
+      { defId: 'provision.harvestable_tomato', name: 'Harvestable Tomato', subtype: 'harvestable_tomato' },
+      { defId: 'provision.harvestable_carrot', name: 'Harvestable Carrot', subtype: 'harvestable_carrot' },
+      { defId: 'provision.harvestable_corn', name: 'Harvestable Corn', subtype: 'harvestable_corn' }
+    ];
+
+    selectedSpots.forEach(spot => {
+      const tile = tiles[spot.y][spot.x];
+      const cropDef = crops[Math.floor(Math.random() * crops.length)];
+      
+      const wildCropItem = createItemFromDef(cropDef.defId, {
+        subtype: cropDef.subtype,
+        x: spot.x,
+        y: spot.y,
+        isWild: true,
+        isHarvestable: true,
+        lifetimeTurns: 0
+      });
+
+      if (!tile.inventoryItems) tile.inventoryItems = [];
+      tile.inventoryItems.push(wildCropItem);
+    });
+
+    console.log(`[TemplateMapGenerator] Placed ${selectedSpots.length} wild crops`);
   }
 
   /**
@@ -711,21 +789,24 @@ export class TemplateMapGenerator {
       }
     }
 
-    // Metadata for loot
-    if (!mapData.metadata.specialBuildings) mapData.metadata.specialBuildings = [];
-    mapData.metadata.specialBuildings.push({
-        type,
-        x: startX,
-        y,
-        width,
-        height
-    });
+    // Standardized metadata registration
+    this._registerBuilding(mapData, type, startX, y, width, height);
 
     // Entrance and Icons
     if (type === 'firestation') {
         // Apparatus opening (8x10 room)
         for (let fy = y + 4; fy < y + 8; fy++) {
             layout[fy][entranceX] = 'floor';
+            
+            // Add opening to metadata to prevent subdivision overlap
+            if (mapData && mapData.metadata && mapData.metadata.doors) {
+                mapData.metadata.doors.push({
+                    x: entranceX,
+                    y: fy,
+                    isOpening: true,
+                    isOpen: true
+                });
+            }
         }
 
         // Support room door (8x4 room)
@@ -764,17 +845,18 @@ export class TemplateMapGenerator {
     // Place Icons
     if (!mapData.metadata.placeIcons) mapData.metadata.placeIcons = [];
     
-    // Place fuel pump icon for gas stations
     if (type === 'gas_station') {
         const fuelPumpX = isLeft ? startX + width + 1 : startX - 2;
         const fuelPumpY = entranceY;
+        
+        // Main fuel pump landmark (Primary indicator)
         mapData.metadata.placeIcons.push({
             subtype: 'fuelpump',
             x: fuelPumpX,
-            y: entranceY
+            y: fuelPumpY
         });
-    } else {
-        // Sign icon above door
+    } else if (type === 'grocer' || type === 'police' || type === 'firestation') {
+        // Sign icon above door (Mapping consistent with ImageLoader assets)
         mapData.metadata.placeIcons.push({
             subtype: type === 'grocer' ? 'grocer' : (type === 'police' ? 'police' : 'firestation'),
             x: entranceX,
@@ -842,6 +924,9 @@ export class TemplateMapGenerator {
         }
       }
 
+      // Standardized metadata registration for residential buildings
+      this._registerBuilding(mapData, 'residential', buildingStartX, currentY, buildingWidth, buildingHeight);
+
       // Add entrance - random gap in wall closest to sidewalk
       const entranceY = currentY + 1 + Math.floor(Math.random() * (buildingHeight - 2)); // Avoid corners
       let entranceX;
@@ -872,6 +957,16 @@ export class TemplateMapGenerator {
               y: entranceY,
               isLocked: Math.random() < 0.1, // 10% chance to be locked
               isOpen: false
+            });
+          }
+        } else {
+          // If no door added, record metadata for subdivision logic to know about opening
+          if (mapData && mapData.metadata && mapData.metadata.doors) {
+            mapData.metadata.doors.push({
+              x: entranceX,
+              y: entranceY,
+              isOpening: true,
+              isOpen: true
             });
           }
         }
@@ -1034,18 +1129,21 @@ export class TemplateMapGenerator {
     for (let ey = entranceYStart; ey < entranceYStart + 2; ey++) {
       if (layout[ey] && layout[ey][entranceX]) {
         layout[ey][entranceX] = 'floor';
+        
+        // Add opening to metadata for subdivision logic awareness
+        if (mapData && mapData.metadata && mapData.metadata.doors) {
+          mapData.metadata.doors.push({
+            x: entranceX,
+            y: ey,
+            isOpening: true,
+            isOpen: true
+          });
+        }
       }
     }
 
-    // Add metadata for loot and zombie spawning
-    if (!mapData.metadata.specialBuildings) mapData.metadata.specialBuildings = [];
-    mapData.metadata.specialBuildings.push({
-      type: 'army_tent',
-      x: startX + 1,
-      y: y + 1,
-      width: tentWidth,
-      height: tentHeight
-    });
+    // Standardized metadata registration
+    this._registerBuilding(mapData, 'army_tent', startX + 1, y + 1, tentWidth, tentHeight);
 
     console.log(`[TemplateMapGenerator] Placed Army Tent at (${startX + 1}, ${y + 1})`);
   }
@@ -1086,7 +1184,8 @@ export class TemplateMapGenerator {
         if (room.w >= (minInteriorSize * 2) + 1) {
             for (let sx = room.x + minInteriorSize; sx <= room.x + room.w - minInteriorSize - 1; sx++) {
                 // IMPORTANT: Avoid all doors (perimeter and interior) to prevent blocking
-                const conflictsWithDoor = mapData.metadata.doors.some(d => d.x === sx);
+                // Check within +- 1 tile buffer to allow stepping into the building before hitting internal wall
+                const conflictsWithDoor = mapData.metadata.doors.some(d => Math.abs(d.x - sx) <= 1);
                 if (!conflictsWithDoor) possibleX.push(sx);
             }
         }
@@ -1095,7 +1194,8 @@ export class TemplateMapGenerator {
         if (room.h >= (minInteriorSize * 2) + 1) {
             for (let sy = room.y + minInteriorSize; sy <= room.y + room.h - minInteriorSize - 1; sy++) {
                 // IMPORTANT: Avoid all doors (perimeter and interior) to prevent blocking
-                const conflictsWithDoor = mapData.metadata.doors.some(d => d.y === sy);
+                // Check within +- 1 tile buffer
+                const conflictsWithDoor = mapData.metadata.doors.some(d => Math.abs(d.y - sy) <= 1);
                 if (!conflictsWithDoor) possibleY.push(sy);
             }
         }
@@ -1343,6 +1443,33 @@ export class TemplateMapGenerator {
   }
 
   /**
+   * Standardized helper to register building metadata for loot and spawning systems
+   */
+  _registerBuilding(mapData, type, x, y, width, height) {
+    if (!mapData.metadata.buildings) {
+      mapData.metadata.buildings = [];
+    }
+    
+    mapData.metadata.buildings.push({
+      type,
+      x,
+      y,
+      width,
+      height
+    });
+    
+    // Provide backward compatibility for specialBuildings key during map transition phase
+    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent'].includes(type)) {
+      if (!mapData.metadata.specialBuildings) {
+        mapData.metadata.specialBuildings = [];
+      }
+      mapData.metadata.specialBuildings.push(mapData.metadata.buildings[mapData.metadata.buildings.length - 1]);
+    }
+
+    console.log(`[TemplateMapGenerator] Registered ${type} building at (${x}, ${y}) size ${width}x${height}`);
+  }
+
+  /**
    * Get available templates
    */
   getAvailableTemplates() {
@@ -1408,6 +1535,11 @@ export class TemplateMapGenerator {
           if (tileData.terrain) {
             gameMap.setTerrain(x, y, tileData.terrain);
           }
+
+          // Transfer inventory items (Wild Crops, etc.)
+          if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
+            gameMap.setItemsOnTile(x, y, tileData.inventoryItems);
+          }
         }
       }
 
@@ -1456,14 +1588,16 @@ export class TemplateMapGenerator {
           }
           
           // Phase 2: Create Door entity
-          const door = new Door(
-            doorData.id || `door-${doorData.x}-${doorData.y}`,
-            doorData.x,
-            doorData.y,
-            doorData.isLocked,
-            doorData.isOpen
-          );
-          gameMap.addEntity(door, doorData.x, doorData.y);
+          if (!doorData.isOpening) {
+            const door = new Door(
+              doorData.id || `door-${doorData.x}-${doorData.y}`,
+              doorData.x,
+              doorData.y,
+              doorData.isLocked,
+              doorData.isOpen
+            );
+            gameMap.addEntity(door, doorData.x, doorData.y);
+          }
           
           // Ensure the door site itself is definitely walkable (floor)
           gameMap.setTerrain(doorData.x, doorData.y, 'floor');
@@ -1506,7 +1640,12 @@ export class TemplateMapGenerator {
         console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.placeIcons.length} icons to map`);
       }
 
-      // Store special building metadata on gameMap for LootGenerator
+      // Store standardized building metadata on gameMap
+      if (templateMapData.metadata && templateMapData.metadata.buildings) {
+        gameMap.buildings = templateMapData.metadata.buildings;
+      }
+      
+      // Legacy support for specialBuildings (if needed by other systems during phased migration)
       if (templateMapData.metadata && templateMapData.metadata.specialBuildings) {
         gameMap.specialBuildings = templateMapData.metadata.specialBuildings;
       }
