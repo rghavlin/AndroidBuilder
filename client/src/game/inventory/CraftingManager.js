@@ -149,6 +149,8 @@ export class CraftingManager {
                 if (fuelItem.defId === 'crafting.rag') lifetimeTurns = 0.5;
                 else if (fuelItem.defId === 'weapon.stick') lifetimeTurns = 1.0;
                 else if (fuelItem.defId === 'weapon.2x4') lifetimeTurns = 1.0;
+                else if (fuelItem.hasCategory(ItemCategory.CLOTHING)) lifetimeTurns = 0.5;
+                else if (fuelItem.hasCategory(ItemCategory.FUEL)) lifetimeTurns = 0.5;
                 console.log(`[CraftingManager] Campfire fuel identified: ${fuelItem.name}, lifetime: ${lifetimeTurns} turns`);
             }
         }

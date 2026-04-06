@@ -1441,6 +1441,25 @@ export const InventoryProvider = ({ children, manager }) => {
     return { success: true };
   }, [playerRef]);
 
+  const fuelCampfire = useCallback((fuelItem, targetCampfire) => {
+    if (!inventoryRef.current) return { success: false, reason: 'System error' };
+
+    const result = inventoryRef.current.fuelCampfire(fuelItem, targetCampfire);
+    if (result.success) {
+      playSound('ReloadShot'); // Tactile feedback
+      addLog(`Added fuel to ${targetCampfire.name} (+${result.turnsAdded} turns)`, 'item');
+      
+      // If item was fully consumed, clear selection directly to avoid re-adding to container
+      if (result.itemDestroyed) {
+        setSelectedItem(null);
+      }
+      
+      setInventoryVersion(v => v + 1);
+      setDragVersion(v => v + 1); // Refresh selection state
+    }
+    return result;
+  }, []);
+
   const contextValue = useMemo(() => {
     console.log('[InventoryContext] Creating new context value - dragVersion:', dragVersion, 'selectedItem:', selectedItem?.item?.name || 'none');
     return {
@@ -1487,9 +1506,10 @@ export const InventoryProvider = ({ children, manager }) => {
       setSelectedRecipeId,
       craftItem,
       clearCraftingArea,
-      cookInCampfire
+      cookInCampfire,
+      fuelCampfire
     };
-  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, destroyItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, loadAmmoDirectly, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem, clearCraftingArea, cookInCampfire]);
+  }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, destroyItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, loadAmmoDirectly, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem, clearCraftingArea, cookInCampfire, fuelCampfire]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

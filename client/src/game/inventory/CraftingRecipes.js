@@ -92,7 +92,7 @@ export const CraftingRecipes = [
             { either: ['tool.lighter', 'tool.matchbook'], count: 1, label: 'Lighter or Matchbook' }
         ],
         ingredients: [
-            { either: ['crafting.rag', 'weapon.stick', 'weapon.2x4'], count: 1, label: 'Rag, Stick, or 2x4' }
+            { category: ItemCategory.FUEL, count: 1, label: 'Fuel (Rag, Stick, 2x4, or Clothing)' }
         ]
     },
     {

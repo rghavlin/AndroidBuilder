@@ -47,7 +47,7 @@ export default function UniversalGrid({
   const GAP_SIZE = 2;
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire } = useInventory();
   const { targetingItem, digHole, plantSeed, harvestPlant } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -189,6 +189,15 @@ export default function UniversalGrid({
       if (item && item.instanceId === selectedItem.item.instanceId) {
         console.debug('[UniversalGrid] Toggle-deselecting item:', item.name);
         clearSelected();
+        return;
+      }
+
+      // SPECIAL CASE: Fueling a campfire
+      const isFuel = selectedItem.item.hasCategory?.('fuel') || selectedItem.item.categories?.includes('fuel');
+      const isCampfire = item?.defId === 'placeable.campfire';
+      if (isFuel && isCampfire) {
+        console.debug('[UniversalGrid] Fueling campfire with:', selectedItem.item.name);
+        fuelCampfire(selectedItem.item, item);
         return;
       }
 
@@ -545,6 +554,16 @@ export default function UniversalGrid({
                 <div className="absolute inset-0 pointer-events-none z-20">
                   <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-bl-sm shadow-sm border-b border-l border-white/20 whitespace-nowrap">
                     {item.stackCount}
+                  </span>
+                </div>
+              )}
+
+              {/* Campfire lifetime indicator */}
+              {item.defId === 'placeable.campfire' && item.lifetimeTurns !== null && (
+                <div className="absolute inset-0 pointer-events-none z-20">
+                  <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-orange-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(251,146,60,0.4)] border-b border-l border-orange-500/30 whitespace-nowrap flex items-center gap-0.5">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+                    {item.lifetimeTurns.toFixed(1)}
                   </span>
                 </div>
               )}

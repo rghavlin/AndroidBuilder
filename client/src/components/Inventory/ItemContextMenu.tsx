@@ -16,11 +16,11 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SplitDialog } from "./SplitDialog";
-
 interface ItemContextMenuProps {
     children: React.ReactNode;
     item?: any;
     tooltipContent?: React.ReactNode;
+    isDisabled?: boolean;
 }
 
 /**
@@ -31,7 +31,8 @@ interface ItemContextMenuProps {
 export function ItemContextMenu({
     children,
     item,
-    tooltipContent = null
+    tooltipContent = null,
+    isDisabled = false
 }: ItemContextMenuProps) {
     const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater } = useInventory();
     const { startTargetingItem, harvestPlant, igniteTorch, inventoryManager } = useGame();
@@ -46,8 +47,21 @@ export function ItemContextMenu({
 
     const canSplit = item?.isStackable?.() && item?.stackCount > 1;
 
-    // The core of the fix: Radix triggers MUST be nested as direct parents of the DOM element
-    // order: ContextMenu -> Tooltip -> TooltipTrigger -> ContextMenuTrigger -> DOM child
+    if (isDisabled) {
+        return (
+            <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                    {children}
+                </TooltipTrigger>
+                {tooltipContent && (
+                    <TooltipContent side="top" className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
+                        {tooltipContent}
+                    </TooltipContent>
+                )}
+            </Tooltip>
+        );
+    }
+
     return (
         <ContextMenu>
             <Tooltip delayDuration={300}>

@@ -691,6 +691,44 @@ export class InventoryManager extends SafeEventEmitter {
    * Weapon Modification Methods
    */
   /**
+   * Fuel a campfire with a fuel item
+   */
+  fuelCampfire(fuelItem, targetCampfire) {
+    if (!fuelItem || !targetCampfire) return { success: false, reason: 'Invalid items' };
+
+    // 1. Determine fuel value
+    let turnExtension = 0;
+    if (fuelItem.defId === 'crafting.rag') turnExtension = 0.5;
+    else if (fuelItem.defId === 'weapon.stick') turnExtension = 1.0;
+    else if (fuelItem.defId === 'weapon.2x4') turnExtension = 1.0;
+    else if (fuelItem.hasCategory?.(ItemCategory.CLOTHING)) turnExtension = 0.5;
+    else if (fuelItem.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback
+
+    if (turnExtension <= 0) {
+      return { success: false, reason: 'Item is not valid fuel' };
+    }
+
+    // 2. Consume fuel (1 unit)
+    if (fuelItem.stackCount > 1) {
+      fuelItem.stackCount -= 1;
+      console.log(`[InventoryManager] Consumed 1 from stack of ${fuelItem.name}. Remaining: ${fuelItem.stackCount}`);
+    } else {
+      // Consume entire item
+      console.log(`[InventoryManager] Consumed entire ${fuelItem.name}`);
+      this.destroyItem(fuelItem.instanceId);
+      fuelItem.stackCount = 0; // Ensure stack count is 0 for isDestroyed check
+    }
+
+    // 3. Update campfire
+    targetCampfire.lifetimeTurns = (targetCampfire.lifetimeTurns || 0) + turnExtension;
+    console.log(`[InventoryManager] Campfire refueled with ${fuelItem.name}. Extended by ${turnExtension} turns. New lifetime: ${targetCampfire.lifetimeTurns}`);
+
+    const isDestroyed = fuelItem.stackCount <= 0;
+    this.emit('inventoryChanged');
+    return { success: true, turnsAdded: turnExtension, itemDestroyed: isDestroyed };
+  }
+
+  /**
    * Weapon Modification Methods
    */
   attachItemToWeapon(weapon, slotId, item, sourceContainerId = null) {

@@ -66,6 +66,7 @@ export default function GridSlot({
       <ItemContextMenu
         item={item}
         tooltipContent={tooltipContent}
+        isDisabled={item?.defId === 'placeable.campfire'}
       >
         <div
           className={cn(

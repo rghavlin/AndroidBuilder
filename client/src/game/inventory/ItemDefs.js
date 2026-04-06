@@ -71,7 +71,8 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
-    categories: [ItemCategory.CLOTHING],
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
+
     encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'pocket_tee'
   },
@@ -85,7 +86,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
-    categories: [ItemCategory.CLOTHING],
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'work_shirt'
   },
@@ -99,7 +100,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
-    categories: [ItemCategory.CLOTHING],
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     encumbranceTier: EncumbranceTier.MEDIUM,
     pocketLayoutId: 'paramedic_shirt'
   },
@@ -113,7 +114,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
-    categories: [ItemCategory.CLOTHING],
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     encumbranceTier: EncumbranceTier.MEDIUM,
     pocketLayoutId: 'police_shirt'
   },
@@ -131,7 +132,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
-    categories: [ItemCategory.CLOTHING],
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'sweatpants'
   },
@@ -145,7 +146,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
-    categories: [ItemCategory.CLOTHING],
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     encumbranceTier: EncumbranceTier.MEDIUM,
     pocketLayoutId: 'cargo_pants'
   },
@@ -1323,8 +1324,7 @@ export const ItemDefs = {
     },
     // Specialized slots (handled by specialized UI)
       attachmentSlots: [
-      { id: 'pot', name: 'Cooking Pot', allowedCategories: [ItemCategory.COOKING_POT] },
-      { id: 'fuel', name: 'Fuel', allowedCategories: [ItemCategory.FUEL] }
+      { id: 'pot', name: 'Cooking Pot', allowedCategories: [ItemCategory.COOKING_POT] }
     ]
   },
   'crafting.leather_belt': {

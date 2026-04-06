@@ -6,8 +6,9 @@ import { usePlayer } from "@/contexts/PlayerContext";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import WorkspaceSlot from "@/components/Inventory/WorkspaceSlot";
 import AttachmentSlot from './AttachmentSlot';
-import { Flame, Clock, Hammer, Soup, Target, Swords, MoveUp } from 'lucide-react';
+import { Flame, Clock, Hammer, Soup, Target, Swords, MoveUp, Droplets, Utensils } from 'lucide-react';
 import { getItemName, createItemFromDef } from '@/game/inventory/ItemDefs';
+import { ItemCategory } from '@/game/inventory/traits';
 
 export default function CraftingUI() {
     const {
@@ -69,6 +70,60 @@ export default function CraftingUI() {
             playerStats.craftingLvl || 1
         );
     }, [selectedRecipeId, inventoryVersion, inventoryRef, playerStats.ap, playerStats.craftingLvl]);
+
+    // PREDICTION: Vegetable Soup Stats
+    const predictedSoupStats = useMemo(() => {
+        if (!selectedRecipe || selectedRecipe.resultItem !== 'food.vegetablesoup' || !inventoryRef.current) return null;
+        
+        const container = inventoryRef.current.getContainer('cooking-ingredients') as any;
+        if (!container) return null;
+        
+        const allItems = Array.from(container.items.values()) as any[];
+        if (allItems.length === 0) {
+            // Return max potential for empty grid
+            return {
+                vegCount: 4,
+                nutrition: 28,
+                hydration: 8,
+                isMaxPotential: true,
+                isLimitedByWater: false,
+                isLimitedByCount: false
+            };
+        }
+        
+        // 1. Gather vegetables
+        const vegItems = allItems.filter(i => (i.hasCategory && i.hasCategory('vegetable')) || (i.categories && i.categories.includes('vegetable')));
+        const totalVegAvailable = vegItems.reduce((sum, i) => sum + (i.stackCount || 0), 0);
+        
+        // 2. Gather water units
+        const waterContainers = allItems.filter(i => (i.isWaterBottle && i.isWaterBottle()) || (i.defId && (i.defId.startsWith('food.waterbottle') || i.defId.startsWith('food.waterjug'))));
+        const totalWater = waterContainers.reduce((sum, i) => sum + (i.ammoCount || 0), 0);
+        
+        // 3. Calculate effective counts
+        const effectiveVegCount = Math.min(totalVegAvailable, 4);
+        const waterNeeded = effectiveVegCount * 2;
+        const effectiveWaterCount = Math.min(totalWater, waterNeeded);
+        
+        // 4. Calculate nutrition
+        let totalNutrition = 0;
+        let remainingToApply = effectiveVegCount;
+        for (const item of vegItems) {
+            if (remainingToApply <= 0) break;
+            const count = Math.min(item.stackCount, remainingToApply);
+            const baseNutr = item.consumptionEffects?.nutrition || 5;
+            totalNutrition += (baseNutr + 2) * count;
+            remainingToApply -= count;
+        }
+        
+        return {
+            vegCount: effectiveVegCount,
+            nutrition: totalNutrition || (effectiveVegCount * 7), // Fallback if no veggies but count > 0 (shouldn't happen)
+            hydration: effectiveWaterCount,
+            isMaxPotential: false,
+            isLimitedByWater: totalVegAvailable > 0 && totalWater < (Math.min(totalVegAvailable, 4) * 2),
+            isLimitedByCount: totalVegAvailable > 4
+        };
+    }, [selectedRecipe, inventoryVersion, inventoryRef]);
 
     const handleCraft = () => {
         if (selectedRecipeId) {
@@ -153,7 +208,43 @@ export default function CraftingUI() {
                                 <div className="flex flex-col gap-2">
                                     <h3 className="text-sm font-bold uppercase tracking-tight">{selectedRecipe.name}</h3>
                                     
-                                    {/* Stats Display (replacing description) */}
+                                    {/* Vegetable Soup Stats (Dynamic) */}
+                                    {predictedSoupStats && (
+                                        <div className="flex flex-col gap-1.5 p-2 bg-black/30 rounded border border-primary/20">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Utensils className="w-3.5 h-3.5 text-orange-400/80" />
+                                                        <span className="text-[11px] font-black text-orange-400">
+                                                            {predictedSoupStats.nutrition} NUTR
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Droplets className="w-3.5 h-3.5 text-blue-400/80" />
+                                                        <span className="text-[11px] font-black text-blue-400">
+                                                            {predictedSoupStats.hydration} HYDR
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[9px] font-bold text-white/40 uppercase bg-white/5 px-1.5 py-0.5 rounded">
+                                                    {predictedSoupStats.isMaxPotential ? "Max Potential" : `${predictedSoupStats.vegCount} Veggies`}
+                                                </span>
+                                            </div>
+
+                                            {(predictedSoupStats.isLimitedByWater || predictedSoupStats.isLimitedByCount) && !predictedSoupStats.isMaxPotential && (
+                                                <div className="text-[8px] font-bold uppercase tracking-tight flex gap-2">
+                                                    {predictedSoupStats.isLimitedByWater && (
+                                                        <span className="text-blue-300/60 italic">* Add more water for more hydration</span>
+                                                    )}
+                                                    {predictedSoupStats.isLimitedByCount && (
+                                                        <span className="text-orange-300/60 italic">* Max 4 vegetables per soup</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Stats Display (Combat Items) */}
                                     {resultItemStats && (
                                         <div className="flex items-center gap-4 text-[10px] text-zinc-400 font-bold uppercase tracking-wide bg-black/20 p-1.5 rounded border border-white/5">
                                             <div className="flex items-center gap-1">
@@ -289,20 +380,7 @@ export default function CraftingUI() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-3 justify-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-bold uppercase text-muted-foreground">Fuel:</span>
-                                            <AttachmentSlot
-                                                weapon={nearbyCampfire}
-                                                slot={nearbyCampfire.attachmentSlots?.find((s: any) => s.id === 'fuel')}
-                                                className="w-10 h-10"
-                                            />
-                                        </div>
-                                        <div className="text-[9px] text-muted-foreground italic leading-tight">
-                                            Add fuel to extend fire's life.
-                                        </div>
                                     </div>
-                                </div>
                             )}
                         </>
                     )}
