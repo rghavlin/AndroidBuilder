@@ -163,9 +163,8 @@ export const CraftingRecipes = [
             { category: ItemCategory.COOKING_POT, label: 'Any Cooking Pot' }
         ],
         ingredients: [
-            { id: 'food.corn', count: 1 },
-            { id: 'food.tomato', count: 1 },
-            { id: 'food.waterbottle', count: 1, consumeUnits: 5, label: 'Water (5 Units)' }
+            { category: ItemCategory.VEGETABLE, count: 1, label: 'Vegetables (1-4)' },
+            { id: 'food.waterbottle', count: 1, consumeUnits: 2, label: 'Water (2 units/veg)' }
         ]
     },
     {

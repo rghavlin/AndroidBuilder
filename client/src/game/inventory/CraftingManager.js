@@ -155,6 +155,74 @@ export class CraftingManager {
 
         // Track properties to preserve (e.g., water level when boiling)
         let preservedProperties = {};
+
+        // SPECIAL CASE: Vegetable Soup dynamic scaling
+        if (recipeId === 'cooking.vegetable_soup') {
+            const allItems = ingredientContainer.getAllItems();
+            
+            // 1. Gather vegetables and water
+            const vegItems = allItems.filter(i => i.hasCategory(ItemCategory.VEGETABLE));
+            const totalVegAvailable = vegItems.reduce((sum, i) => sum + i.stackCount, 0);
+            
+            const waterContainers = allItems.filter(i => i.isWaterBottle() && (i.ammoCount || 0) > 0);
+            const totalWater = waterContainers.reduce((sum, i) => sum + (i.ammoCount || 0), 0);
+
+            // Calculate how many vegetables we can actually cook (max 4, min 1, requires 2 water each)
+            const vegCount = Math.min(totalVegAvailable, 4, Math.floor(totalWater / 2));
+
+            if (vegCount === 0) {
+                if (totalVegAvailable === 0) return { success: false, reason: 'No vegetables found' };
+                return { success: false, reason: 'Insufficient water (Need 2 units per vegetable)' };
+            }
+
+            // 2. Gather specific vegetables to consume and calculate stats
+            const waterNeeded = vegCount * 2;
+            let totalNutrition = 0;
+            const consumedInstances = new Map(); // Track how many to take from each stack
+
+            let remainingVegToAssign = vegCount;
+            for (const item of vegItems) {
+                if (remainingVegToAssign <= 0) break;
+                
+                const take = Math.min(item.stackCount, remainingVegToAssign);
+                const baseNutr = item.consumptionEffects?.nutrition || 5;
+                
+                totalNutrition += (baseNutr + 2) * take;
+                consumedInstances.set(item.instanceId, take);
+                remainingVegToAssign -= take;
+            }
+
+            // 3. Consume vegetables
+            for (const [id, count] of consumedInstances.entries()) {
+                const item = ingredientContainer.items.get(id);
+                if (item) {
+                    item.stackCount -= count;
+                    if (item.stackCount <= 0) ingredientContainer.removeItem(id);
+                }
+            }
+
+            // 4. Consume water
+            let waterToConsume = waterNeeded;
+            for (const container of waterContainers) {
+                if (waterToConsume <= 0) break;
+                const consume = Math.min(container.ammoCount, waterToConsume);
+                container.ammoCount -= consume;
+                waterToConsume -= consume;
+            }
+
+            // 5. Create final item
+            const soupData = createItemFromDef(recipe.resultItem, {
+                consumptionEffects: {
+                    nutrition: totalNutrition,
+                    hydration: vegCount * 2
+                },
+                description: `A hearty soup made with ${vegCount} vegetables. Nutrition: ${totalNutrition}, Hydration: ${vegCount * 2}`
+            });
+            const soupItem = new Item(soupData);
+
+            return { success: true, item: soupItem };
+        }
+
         if (recipeId === 'cooking.clean_water' || recipeId === 'cooking.clean_water_jug') {
             const candidates = ingredientContainer.getAllItems();
             const sourceBottle = candidates.find(i =>

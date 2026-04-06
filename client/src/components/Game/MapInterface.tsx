@@ -478,7 +478,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         <button
           className={cn(
             "w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors",
-            isInventoryExtensionOpen && "border-accent bg-accent/10"
+            isInventoryExtensionOpen && "border-primary bg-primary/10"
           )}
           title="Crafting/Cooking"
           data-testid="inventory-extension-button"
@@ -486,7 +486,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         >
           <Hammer className={cn(
             "h-5 w-5",
-            isInventoryExtensionOpen ? "text-accent" : "text-foreground"
+            isInventoryExtensionOpen ? "text-primary" : "text-foreground"
           )} />
         </button>
       </div>

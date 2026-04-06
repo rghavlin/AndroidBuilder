@@ -997,7 +997,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
-    categories: [ItemCategory.FOOD],
+    categories: [ItemCategory.FOOD, ItemCategory.VEGETABLE],
     stackMax: 10,
     shelfLife: 72,
     consumptionEffects: {
@@ -1012,7 +1012,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
-    categories: [ItemCategory.FOOD],
+    categories: [ItemCategory.FOOD, ItemCategory.VEGETABLE],
     stackMax: 10,
     shelfLife: 72,
     consumptionEffects: {
@@ -1064,7 +1064,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
-    categories: [ItemCategory.FOOD],
+    categories: [ItemCategory.FOOD, ItemCategory.VEGETABLE],
     stackMax: 10,
     shelfLife: 72,
     consumptionEffects: {
@@ -1116,9 +1116,9 @@ export const ItemDefs = {
     imageId: 'vegetablesoup',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    traits: [ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
     categories: [ItemCategory.FOOD],
-    stackMax: 10,
+    stackMax: 1,
     shelfLife: 72,
     consumptionEffects: {
       nutrition: 15,

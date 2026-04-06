@@ -6,8 +6,8 @@ import { usePlayer } from "@/contexts/PlayerContext";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import WorkspaceSlot from "@/components/Inventory/WorkspaceSlot";
 import AttachmentSlot from './AttachmentSlot';
-import { Flame, Clock, Hammer, Soup } from 'lucide-react';
-import { getItemName } from '@/game/inventory/ItemDefs';
+import { Flame, Clock, Hammer, Soup, Target, Swords, MoveUp } from 'lucide-react';
+import { getItemName, createItemFromDef } from '@/game/inventory/ItemDefs';
 
 export default function CraftingUI() {
     const {
@@ -37,13 +37,22 @@ export default function CraftingUI() {
     }, [inventoryRef, inventoryVersion]);
 
     const filteredRecipes = useMemo(() => {
-        return craftingRecipes.filter(r => r.tab === activeTab);
+        return craftingRecipes
+            .filter(r => r.tab === activeTab)
+            .sort((a, b) => a.name.localeCompare(b.name));
     }, [craftingRecipes, activeTab]);
 
     const selectedRecipe = useMemo(() =>
         craftingRecipes.find(r => r.id === selectedRecipeId),
         [selectedRecipeId, craftingRecipes]
     );
+
+    // Derived stats for the selected item
+    const resultItemStats = useMemo(() => {
+        if (!selectedRecipe) return null;
+        const item = createItemFromDef(selectedRecipe.resultItem);
+        return item?.combat || null;
+    }, [selectedRecipe]);
 
     // If selected recipe is not in active tab, deselect it
     useEffect(() => {
@@ -95,7 +104,7 @@ export default function CraftingUI() {
                     className={cn(
                         "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors",
                         activeTab === 'cooking'
-                            ? "bg-orange-500/10 text-orange-500 border-b-2 border-orange-500"
+                            ? "bg-primary/10 text-primary border-b-2 border-primary"
                             : "text-muted-foreground hover:bg-card/50 hover:text-foreground"
                     )}
                 >
@@ -118,14 +127,13 @@ export default function CraftingUI() {
                                     key={recipe.id}
                                     onClick={() => setSelectedRecipeId(recipe.id)}
                                     className={cn(
-                                        "w-full p-3 text-left border-b border-border transition-all flex flex-col gap-1",
+                                        "w-full py-1.5 px-3 text-left border-b border-border transition-all",
                                         selectedRecipeId === recipe.id
                                             ? "bg-primary/20 border-l-4 border-l-primary"
                                             : "hover:bg-card/50 border-l-4 border-l-transparent"
                                     )}
                                 >
-                                    <span className="text-xs font-bold truncate">{recipe.name}</span>
-                                    <span className="text-[10px] text-muted-foreground line-clamp-1">{recipe.description}</span>
+                                    <span className="text-[11px] font-bold truncate">{recipe.name}</span>
                                 </button>
                             ))
                         )}
@@ -140,13 +148,30 @@ export default function CraftingUI() {
                         </div>
                     ) : (
                         <>
-                            {/* Top: Description & Requirements */}
+                            {/* Top: Header & Stats */}
                             <div className="p-3 border-b border-border space-y-3 bg-secondary/5">
-                                <div>
-                                    <h3 className="text-sm font-bold">{selectedRecipe.name}</h3>
-                                    <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                                        {selectedRecipe.description}
-                                    </p>
+                                <div className="flex flex-col gap-2">
+                                    <h3 className="text-sm font-bold uppercase tracking-tight">{selectedRecipe.name}</h3>
+                                    
+                                    {/* Stats Display (replacing description) */}
+                                    {resultItemStats && (
+                                        <div className="flex items-center gap-4 text-[10px] text-zinc-400 font-bold uppercase tracking-wide bg-black/20 p-1.5 rounded border border-white/5">
+                                            <div className="flex items-center gap-1">
+                                                <Target className="w-3 h-3 text-primary/70" />
+                                                <span>Hit: {Math.round(resultItemStats.hitChance * 100)}%</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Swords className="w-3 h-3 text-red-500/70" />
+                                                <span>Dmg: {resultItemStats.damage.min}-{resultItemStats.damage.max}</span>
+                                            </div>
+                                            {resultItemStats.range && (
+                                                <div className="flex items-center gap-1">
+                                                    <MoveUp className="w-3 h-3 text-blue-400/70" />
+                                                    <span>Range: {resultItemStats.range}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1.5 pt-1 border-t border-border/50">
@@ -189,7 +214,7 @@ export default function CraftingUI() {
                                                 "text-[10px] px-2 py-0.5 rounded border flex items-center gap-1",
                                                 !nearbyCampfire
                                                     ? "bg-red-500/10 text-red-300 border-red-500/30"
-                                                    : "bg-orange-500/5 text-orange-500 border-orange-500/20"
+                                                    : "bg-primary/10 text-primary border-primary/20"
                                             )}>
                                                 <Flame className="w-2.5 h-2.5" />
                                                 Campfire
@@ -221,15 +246,13 @@ export default function CraftingUI() {
                                                     disabled={!craftingStatus.canCraft}
                                                     className={cn(
                                                         "w-28 h-8 text-[10px] font-bold shadow-lg transition-all",
-                                                        activeTab === 'cooking'
-                                                            ? "bg-orange-600 hover:bg-orange-700"
-                                                            : "bg-primary hover:bg-primary/90"
+                                                        "bg-primary hover:bg-primary/90"
                                                     )}
                                                 >
                                                     {activeTab === 'cooking' ? 'COOK' : 'CRAFT'}
                                                 </Button>
                                                 {!craftingStatus.canCraft && craftingStatus.missing.length > 0 && (
-                                                    <div className="mt-2 text-[9px] text-red-300 font-medium animate-in fade-in slide-in-from-top-1 text-center max-w-[100px] leading-tight">
+                                                    <div className="mt-2 text-[9px] text-red-300 font-medium animate-in fade-in slide-in-from-top-1 text-center max-w-[100px] leading-tight text-white shadow-[0_0_10px_rgba(239,68,68,0.2)] bg-red-950/40 rounded p-1">
                                                         Missing: {craftingStatus.missing.join(', ')}
                                                     </div>
                                                 )}
@@ -247,11 +270,11 @@ export default function CraftingUI() {
 
                             {/* Bottom (Cooking Only): Campfire Status & Fuel */}
                             {activeTab === 'cooking' && nearbyCampfire && (
-                                <div className="p-2 border-t border-border bg-orange-500/10 mt-auto">
+                                <div className="p-2 border-t border-border bg-primary/10 mt-auto">
                                     <div className="flex items-center justify-between mb-1.5">
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-1.5">
-                                                <Flame className={cn("w-3.5 h-3.5", isBurning ? "text-orange-500 animate-pulse" : "text-muted-foreground")} />
+                                                <Flame className={cn("w-3.5 h-3.5", isBurning ? "text-primary animate-pulse" : "text-muted-foreground")} />
                                                 <span className="text-[10px] font-bold uppercase tracking-tight">Campfire Status</span>
                                             </div>
                                             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
@@ -261,7 +284,7 @@ export default function CraftingUI() {
                                                 </span></span>
                                             </div>
                                         </div>
-                                        <div className="px-1.5 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-[9px] font-bold text-orange-400 uppercase">
+                                        <div className="px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20 text-[9px] font-bold text-primary uppercase">
                                             {isBurning ? "Burning" : "Extinguished"}
                                         </div>
                                     </div>

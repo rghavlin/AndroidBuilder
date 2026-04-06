@@ -1213,11 +1213,22 @@ const GameContextInner = ({ children }) => {
     const produceItem = Item.fromJSON(produceData);
     produceItem.stackCount = count;
 
+    // Helper for correct pluralization
+    const getLogName = (item, qty) => {
+      const name = item.name.toLowerCase();
+      if (qty <= 1) return name;
+      if (item.defId === 'food.corn') return name; // Corn remains corn
+      if (name === 'tomato') return 'tomatoes';
+      return name.endsWith('s') ? name : `${name}s`;
+    };
+
+    const logName = getLogName(produceItem, count);
+
     // Add to ground at same position
     const success = ground.addItem(produceItem, x, y);
     
     if (success) {
-      addLog(`You harvest ${count} ${produceItem.name.toLowerCase()}${count > 1 && !produceItem.name.endsWith('s') ? 's' : ''}.`, "info");
+      addLog(`You harvest ${count} ${logName}.`, "info");
       if (inventoryManager) {
         if (player && gameMapRef.current) {
           inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
@@ -1228,7 +1239,7 @@ const GameContextInner = ({ children }) => {
     } else {
       // Fallback: try adding anywhere in ground
       ground.addItem(produceItem);
-      addLog(`You harvest ${count} ${produceItem.name.toLowerCase()}${count > 1 && !produceItem.name.endsWith('s') ? 's' : ''}.`, "info");
+      addLog(`You harvest ${count} ${logName}.`, "info");
       if (inventoryManager) {
         if (player && gameMapRef.current) {
           inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);

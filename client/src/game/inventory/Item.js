@@ -146,6 +146,15 @@ export class Item extends SafeEventEmitter {
       if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
       if (def.imageId && !this.imageId) this.imageId = def.imageId;
       if (def.produce && !this.produce) this.produce = def.produce;
+      
+      // Auto-inherit categories from definition if not already present
+      if (def.categories && Array.isArray(def.categories)) {
+        def.categories.forEach(cat => {
+          if (!this.categories.includes(cat)) {
+            this.categories.push(cat);
+          }
+        });
+      }
     }
 
     // Initialize container grid synchronously if data exists
