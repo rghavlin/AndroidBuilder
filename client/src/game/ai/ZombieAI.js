@@ -920,6 +920,7 @@ export class ZombieAI {
         ...pos,
         isOccupied,
         hasClearPath: pathAround.length > 0,
+        pathLength: pathAround.length > 0 ? pathAround.length : 999, // Store actual walking distance
         distance
       };
     });
@@ -933,7 +934,22 @@ export class ZombieAI {
       if (!a.isOccupied && b.isOccupied) return -1;
       if (a.isOccupied && !b.isOccupied) return 1;
 
-      // 3. Prefer closer spots
+      // 3. Primary: Prefer shortest WALKING distance (pathAround length)
+      // This solves the "back window detour" issue by preferring the most direct entry point
+      if (a.pathLength !== b.pathLength) {
+        return a.pathLength - b.pathLength;
+      }
+
+      // 4. Secondary: Tie-breaker - prefer tiles containing interactive structures (engagement points)
+      const aTile = gameMap.getTile(a.x, a.y);
+      const bTile = gameMap.getTile(b.x, b.y);
+      const aHasStructure = aTile?.contents.some(e => e.type === 'door' || e.type === 'window');
+      const bHasStructure = bTile?.contents.some(e => e.type === 'door' || e.type === 'window');
+      
+      if (aHasStructure && !bHasStructure) return -1;
+      if (!aHasStructure && bHasStructure) return 1;
+
+      // 5. Tertiary: Fallback to Manhattan distance
       return a.distance - b.distance;
     });
 

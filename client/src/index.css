@@ -118,6 +118,13 @@
 @layer utilities {
   .game-container {
     font-size: clamp(0.8rem, 1vw, 1rem);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  input, textarea {
+    user-select: text;
+    -webkit-user-select: text;
   }
   
   .custom-scrollbar {

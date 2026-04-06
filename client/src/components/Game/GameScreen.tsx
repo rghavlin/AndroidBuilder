@@ -1,10 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
-import { GameProvider, useGame } from '../../contexts/GameContext.jsx';
-import { PlayerProvider, usePlayer } from '../../contexts/PlayerContext.jsx';
-import { GameMapProvider, useGameMap } from '../../contexts/GameMapContext.jsx';
-import { CameraProvider } from '../../contexts/CameraContext.jsx';
+import { useGame } from '../../contexts/GameContext.jsx';
+import { usePlayer } from '../../contexts/PlayerContext.jsx';
+import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
-import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
 import { CombatProvider } from '../../contexts/CombatContext.jsx';
 import MapInterface from './MapInterface';
 import InventoryPanel from "../Inventory/InventoryPanel";
@@ -186,21 +184,9 @@ function GameScreenContent() {
 }
 
 export default function GameScreen() {
-  // Phase 1: Ensure correct provider order: PlayerProvider → CameraProvider → GameMapProvider → GameProvider
-  console.log('[GameScreen] Provider composition order: PlayerProvider → CameraProvider → GameMapProvider → GameProvider');
   return (
     <GameErrorBoundary>
-      <PlayerProvider>
-        <VisualEffectsProvider>
-          <CameraProvider>
-            <GameMapProvider>
-              <GameProvider>
-              <GameScreenContent />
-            </GameProvider>
-            </GameMapProvider>
-          </CameraProvider>
-        </VisualEffectsProvider>
-      </PlayerProvider>
+      <GameScreenContent />
     </GameErrorBoundary>
   );
 }

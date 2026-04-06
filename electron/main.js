@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, Menu, session } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -21,7 +21,8 @@ function createWindow() {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, '../client/public/favicon.ico'),
+    icon: path.join(__dirname, '../client/public/images/entities/zombie.png'),
+    title: 'Zombie Road',
     show: false,
     titleBarStyle: 'default'
   });
@@ -39,7 +40,7 @@ function createWindow() {
     // Set up protocol to serve images and other resources
     mainWindow.webContents.session.protocol.registerFileProtocol('file', (request, callback) => {
       const pathname = new URL(request.url).pathname;
-      callback(path.join(__dirname, '..', pathname));
+      callback(path.join(__dirname, '..', 'dist', pathname));
     });
   }
 
@@ -60,7 +61,21 @@ function createWindow() {
   });
 }
 
+// Disable geolocation at the engine level to prevent Windows location data warnings
+app.commandLine.appendSwitch('disable-blink-features', 'Geolocation');
+
 app.whenReady().then(() => {
+  // Explicitly deny geolocation and other unused permissions to prevent Windows location warnings
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    const blockedPermissions = ['geolocation', 'notifications', 'midi', 'clipboard-read', 'media'];
+    if (blockedPermissions.includes(permission)) {
+      console.log(`[Permission] Blocking ${permission} request`);
+      return callback(false);
+    }
+    // Allow others by default, or you can be more restrictive
+    callback(true);
+  });
+
   createWindow();
 
   app.on('activate', () => {

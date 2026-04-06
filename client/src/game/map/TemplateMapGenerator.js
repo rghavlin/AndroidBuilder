@@ -628,7 +628,7 @@ export class TemplateMapGenerator {
     // Check for Army Tent spawn conditions
     const mapNumber = mapData.config.mapNumber || 1;
     let spawnArmyTent = false;
-    if (mapNumber === 3) {
+    if (mapNumber === 1 || mapNumber === 3) {
       spawnArmyTent = true;
     } else if (mapNumber > 3) {
       spawnArmyTent = Math.random() < 0.35;

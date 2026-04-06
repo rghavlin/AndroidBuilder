@@ -46,7 +46,7 @@ export default function MapCanvas({
     'fence': '#444444',    // Dark gray
     'building': '#aaaaaa', // Very light gray (walls)
     'tent_wall': '#556b2f', // Olive Drab (for army tents)
-    'window': '#2c3e50',   // Dark bluish gray (terrain base)
+    'window': '#c0c0c0',   // Bright silver (terrain base)
     'water': '#1b3a57',    // Muted slate blue
     'sand': '#cccccc',     // Light silver
     'tree': '#111111',     // Very dark
@@ -116,12 +116,13 @@ export default function MapCanvas({
       subtypeImageKey = 'item_default';
     }
 
-    const baseImageKey = entity.type;
+    // 3. Fallback logic for images
     let cachedImage = imageLoader.imageCache.get(subtypeImageKey);
+    const baseImageKey = entity.type;
 
     // Trigger load if not in cache
     if (cachedImage === undefined) {
-       imageLoader.getImage(entity.type, entity.subtype).then(() => {
+       imageLoader.getImage(entity.type, subtype).then(() => {
           // Re-render handled by MapCanvas frame loop
        }).catch(err => {
           // Silent catch for missing assets
@@ -132,20 +133,25 @@ export default function MapCanvas({
       cachedImage = imageLoader.imageCache.get(baseImageKey);
     }
 
-    // Use cached image ONLY if it has loaded successfully and is not a broken placeholder
     const isImageValid = cachedImage && cachedImage.complete && cachedImage.naturalWidth > 0;
 
     if (isImageValid) {
-      // Render with cached image
-      let entitySize = (tileSize * 0.8);
+      // Offset for certain types (e.g., items)
+      let offsetX = 0;
+      let offsetY = 0;
+      let entitySize = tileSize;
+
       if (entity.type === 'item') {
-        entitySize = tileSize / 2;
+        offsetX = tileSize * 0.25;
+        offsetY = tileSize * 0.25;
+        entitySize = tileSize * 0.5;
       } else if (entity.type === 'place_icon') {
         entitySize = tileSize;
+      } else if (entity.type !== 'window') {
+        entitySize = (tileSize * 0.8);
+        offsetX = (tileSize - entitySize) / 2;
+        offsetY = (tileSize - entitySize) / 2;
       }
-      
-      const offsetX = (tileSize - entitySize) / 2;
-      const offsetY = (tileSize - entitySize) / 2;
 
       ctx.drawImage(
         cachedImage,
@@ -154,6 +160,15 @@ export default function MapCanvas({
         entitySize,
         entitySize
       );
+
+      // Add a light gray frame for the player and zombies, similar to the end-turn button (gray-400)
+      // Tight against the icon edges with no gap
+      if (entity.type === 'player' || entity.type === 'zombie') {
+        ctx.strokeStyle = '#9ca3af'; 
+        ctx.lineWidth = Math.max(1, tileSize / 24);
+        // Draw exactly at icon boundary
+        ctx.strokeRect(pixelX + offsetX, pixelY + offsetY, entitySize, entitySize);
+      }
     } else {
       // Fallback to default shapes if image not loaded, failed to load, or is a broken placeholder
       renderEntityDefault(ctx, entity, pixelX, pixelY, tileSize);
@@ -327,8 +342,8 @@ export default function MapCanvas({
         break;
 
       case 'door':
-        // Brownish-gray color for doors
-        const doorColor = '#8b7355';
+        // Gray color for doors (user requested gray instead of brown)
+        const doorColor = '#888888';
         ctx.strokeStyle = doorColor;
         ctx.lineWidth = 3;
 
@@ -341,7 +356,7 @@ export default function MapCanvas({
             tileSize * 3 / 4
           );
         } else {
-          // Closed door: solid brownish-gray square
+          // Closed door: solid gray square
           ctx.fillStyle = doorColor;
           ctx.fillRect(
             pixelX + tileSize / 8,
@@ -349,8 +364,8 @@ export default function MapCanvas({
             tileSize * 3 / 4,
             tileSize * 3 / 4
           );
-          // Darker border for closed door
-          ctx.strokeStyle = '#5d4d3a';
+          // Darker gray border for closed door
+          ctx.strokeStyle = '#555555';
           ctx.strokeRect(
             pixelX + tileSize / 8,
             pixelY + tileSize / 8,
@@ -361,9 +376,9 @@ export default function MapCanvas({
         break;
 
       case 'window':
-        // Bluish transparent color for windows
-        const windowColor = 'rgba(52, 152, 219, 0.4)';
-        const frameColor = '#2980b9';
+        // Bright silver color for windows
+        const windowColor = 'rgba(192, 192, 192, 0.6)';
+        const frameColor = '#e0e0e0';
         
         ctx.strokeStyle = frameColor;
         ctx.lineWidth = 2;
@@ -667,9 +682,9 @@ export default function MapCanvas({
 
           // Render entities on this tile (except player)
           if (tile.contents && tile.contents.length > 0) {
-            // Pass 1: Background/Persistent entities (Loot, Doors)
+            // Pass 1: Background/Persistent entities (Loot, Doors, Windows)
             tile.contents.forEach((entity, index) => {
-              if (entity.type !== 'item' && entity.type !== 'door' && entity.type !== 'place_icon') return;
+              if (entity.type !== 'item' && entity.type !== 'door' && entity.type !== 'window' && entity.type !== 'place_icon') return;
               if (isExplored) {
                 const offsetY = index * (tileSize / 8);
                 renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
@@ -678,7 +693,7 @@ export default function MapCanvas({
 
             // Pass 2: Foreground entities (Zombies, NPCs, etc.)
             tile.contents.forEach((entity, index) => {
-              if (entity.type === 'player' || entity.type === 'item' || entity.type === 'door' || entity.type === 'place_icon') return;
+              if (entity.type === 'player' || entity.type === 'item' || entity.type === 'door' || entity.type === 'window' || entity.type === 'place_icon') return;
               
               // Skip rendering animating zombies here (they will be rendered in the animation pass)
               if (entity.type === 'zombie' && entity.isAnimating) return;

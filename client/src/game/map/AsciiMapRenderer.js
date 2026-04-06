@@ -227,7 +227,7 @@ export class AsciiMapRenderer {
           color = this.colors.cyan;
           break;
         case 'door':
-          color = this.colors.yellow;
+          color = this.colors.gray;
           break;
         case 'stairs':
           color = this.colors.magenta;

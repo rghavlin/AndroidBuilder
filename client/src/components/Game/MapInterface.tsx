@@ -7,7 +7,7 @@ import MapCanvas from './MapCanvas.jsx';
 import InventoryExtensionWindow from './InventoryExtensionWindow';
 import FloatingContainer from '../Inventory/FloatingContainer';
 import ContainerGrid from '../Inventory/ContainerGrid';
-import { Menu } from "lucide-react";
+import { Menu, Hammer } from "lucide-react";
 import MainMenuWindow from './MainMenuWindow';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
@@ -17,6 +17,8 @@ import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { ZombieTooltip } from './ZombieTooltip';
 import { CropTooltip } from './CropTooltip';
+import { LootTooltip } from './LootTooltip';
+import { BuildingTooltip } from './BuildingTooltip';
 import { useLog } from '../../contexts/LogContext.jsx';
 import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
@@ -382,19 +384,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     const tile = gameMap.getTile(x, y);
     if (!tile) return;
 
-    // Check for water interaction
-    if (tile.terrain === 'water') {
-      const distance = Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2));
-      const isAdjacent = distance < 2.0;
-
-      if (isAdjacent) {
-        setWaterMenu({ x, y, screenX, screenY });
-      } else {
-        console.log('[MapInterface] Water too far for interaction');
-      }
-      return;
-    }
-
     const door = tile.contents.find((e: any) => e.type === 'door');
     if (door) {
       // Check adjacency
@@ -409,17 +398,37 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       return;
     }
 
-    const window = tile.contents.find((e: any) => e.type === 'window');
-    if (window) {
-      // Check adjacency
-      const distance = Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2));
-      const isAdjacent = distance < 2.0;
+    const windowEntity = tile.contents.find((e: any) => e.type === 'window');
+    if (windowEntity) {
+      // Use robust floored distance for adjacency
+      const px = Math.floor(player.x);
+      const py = Math.floor(player.y);
+      const dx = x - px;
+      const dy = y - py;
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (isAdjacent) {
-        setWindowMenu({ x, y, screenX, screenY, window });
+      if (distance < 2.5) {
+        setWindowMenu({ x, y, screenX, screenY, window: windowEntity });
       } else {
-        console.log('[MapInterface] Window too far for interaction');
+        console.log('[MapInterface] Window too far for interaction:', distance.toFixed(2));
       }
+      return;
+    }
+
+    if (tile.terrain === 'water') {
+      // Use robust floored distance for adjacency
+      const px = Math.floor(player.x);
+      const py = Math.floor(player.y);
+      const dx = x - px;
+      const dy = y - py;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < 2.5) {
+        setWaterMenu({ x, y, screenX, screenY });
+      } else {
+        console.log('[MapInterface] Water too far for interaction:', distance.toFixed(2));
+      }
+      return;
     }
   };
 
@@ -467,12 +476,18 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         </div>
 
         <button
-          className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
-          title={isInventoryExtensionOpen ? "Close Inventory Extension" : "Open Inventory Extension"}
+          className={cn(
+            "w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors",
+            isInventoryExtensionOpen && "border-accent bg-accent/10"
+          )}
+          title="Crafting/Cooking"
           data-testid="inventory-extension-button"
           onClick={() => setIsInventoryExtensionOpen(prev => !prev)}
         >
-          <span className="text-foreground font-bold text-lg">{isInventoryExtensionOpen ? '−' : '+'}</span>
+          <Hammer className={cn(
+            "h-5 w-5",
+            isInventoryExtensionOpen ? "text-accent" : "text-foreground"
+          )} />
         </button>
       </div>
 
@@ -501,7 +516,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         {/* Tile Tooltip Overlay (Phase 6 & Generic Refactor) */}
         {(() => {
           if (!hoveredTile) return null;
-          if (!hoveredTile.zombie && !hoveredTile.cropInfo) return null;
+          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding) return null;
           
           // Only show if the tile is explored
           const isExplored = gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
@@ -1096,6 +1111,8 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
   const targetTile = gameMapRef.current.getTile(hoveredTile.x, hoveredTile.y);
   const zombie = targetTile?.contents.find((e: any) => e.type === 'zombie');
   const cropInfo = targetTile?.cropInfo;
+  const lootItems = targetTile?.inventoryItems || [];
+  const specialBuilding = targetTile?.contents.find((e: any) => e.type === 'place_icon')?.subtype || null;
 
   // Logic for Zombie visibility: must be in player's current FOV
   const isZombieVisible = zombie && playerFieldOfView && playerFieldOfView.some(pos => pos.x === hoveredTile.x && pos.y === hoveredTile.y);
@@ -1103,7 +1120,11 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
   // Logic for Crop visibility: must be standard crop OR discovered wild crop
   const isCropVisible = cropInfo && (!cropInfo.isWild || cropInfo.discovered);
   
-  if (!isZombieVisible && !isCropVisible) return null;
+  const isLootVisible = lootItems && lootItems.length > 0;
+  
+  const isBuildingVisible = !!specialBuilding;
+  
+  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible) return null;
 
   // Calculate screen position
   const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
@@ -1126,6 +1147,8 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
     >
       {isZombieVisible && <ZombieTooltip zombie={zombie as any} />}
       {isCropVisible && <CropTooltip cropInfo={cropInfo as any} />}
+      {isLootVisible && <LootTooltip items={lootItems} />}
+      {isBuildingVisible && <BuildingTooltip type={specialBuilding} />}
       {/* Downward arrow/pointer */}
       <div className="w-3 h-3 bg-black/80 border-r border-b border-white/20 rotate-45 mt-[-6px]" />
     </div>

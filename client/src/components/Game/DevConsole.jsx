@@ -199,6 +199,7 @@ const DevConsole = ({ isOpen, onClose }) => {
           addToConsole('  map loot - Trigger random loot spawning on current map', 'info');
           addToConsole('  stat <name> <value> - Set player stat (e.g. stat ap 100)', 'info');
           addToConsole('  stat <name> - Get player stat (e.g. stat hp)', 'info');
+          addToConsole('  map-reveal - Reveal the entire map (clear Fog of War)', 'info');
           addToConsole('  test-sleep-zombie - Setup zombie/door test for sleep', 'info');
 
           addToConsole('• demo - Run Phase 3 inventory demo (Equipment & Dynamic Containers)', 'log');
@@ -382,6 +383,27 @@ const DevConsole = ({ isOpen, onClose }) => {
             }
           } else {
             addToConsole('Unknown map command. Try: map loot', 'error');
+          }
+          break;
+
+        case 'map-reveal':
+        case 'reveal-map':
+          const currentMap = gameMapRef.current;
+          if (currentMap) {
+            addToConsole('Revealing full map...', 'info');
+            for (let y = 0; y < currentMap.height; y++) {
+              for (let x = 0; x < currentMap.width; x++) {
+                const tile = currentMap.getTile(x, y);
+                if (tile) {
+                  if (!tile.flags) tile.flags = {};
+                  tile.flags.explored = true;
+                }
+              }
+            }
+            if (triggerMapUpdate) triggerMapUpdate();
+            addToConsole('Full map revealed!', 'success');
+          } else {
+            addToConsole('Game map not available', 'error');
           }
           break;
 
@@ -1877,6 +1899,14 @@ const DevConsole = ({ isOpen, onClose }) => {
                   className="bg-yellow-900/20 border-yellow-500/50 hover:bg-yellow-900/40 text-xs h-7 font-bold"
                 >
                   AP
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => executeCommand('map-reveal')}
+                  className="bg-yellow-900/20 border-yellow-500/50 hover:bg-yellow-900/40 text-xs h-7 font-bold ml-2"
+                >
+                  REVEAL MAP
                 </Button>
               </div>
 

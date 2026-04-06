@@ -8,7 +8,7 @@ import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from './GameMapContext.jsx';
 import { CameraProvider, useCamera } from './CameraContext.jsx';
-import { InventoryProvider, useInventory } from './InventoryContext.jsx';
+import { InventoryProvider } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
@@ -62,7 +62,7 @@ const GameContextInner = ({ children }) => {
   const { addEffect } = useVisualEffects();
   const { addLog, clearLogs } = useLog();
   const { playSound } = useAudio();
-  const { forceRefresh, inventoryVersion } = useInventory();
+  const [inventoryVersion, setInventoryVersion] = useState(0);
 
 
   // Phase 5A: Store inventoryManager from initialization
@@ -112,7 +112,7 @@ const GameContextInner = ({ children }) => {
     const flashlight = inventoryManager?.equipment['flashlight'];
     if (flashlight && flashlight.defId === 'tool.torch') return 5;
     return 8;
-  }, [inventoryManager]);
+  }, [inventoryManager, inventoryVersion]);
 
 
   /**
@@ -227,8 +227,8 @@ const GameContextInner = ({ children }) => {
       addLog('The matchbook is empty and discarded.', 'item');
     }
 
-    forceRefresh();
-  }, [playerRef, inventoryManager, addLog, playSound, forceRefresh]);
+    setInventoryVersion(prev => prev + 1);
+  }, [playerRef, inventoryManager, addLog, playSound, setInventoryVersion]);
 
   const toggleFlashlight = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
@@ -371,6 +371,23 @@ const GameContextInner = ({ children }) => {
     manager.on('initializationComplete', handleInitializationComplete);
     manager.on('initializationError', handleInitializationError);
   }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setLootGenerator, setupPlayerEventListeners]);
+
+  // Phase 5B: Sync local inventory version with manager events
+  useEffect(() => {
+    if (!inventoryManager) return;
+
+    const handleInventoryChanged = () => {
+      logger.debug('🔄 GameContext: Inventory changed, bumping local version');
+      setInventoryVersion(prev => prev + 1);
+    };
+
+    if (typeof inventoryManager.on === 'function') {
+      inventoryManager.on('inventoryChanged', handleInventoryChanged);
+      return () => {
+        inventoryManager.off('inventoryChanged', handleInventoryChanged);
+      };
+    }
+  }, [inventoryManager]);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
@@ -1681,9 +1698,10 @@ const GameContextInner = ({ children }) => {
       }
 
       const totalPenalty = energyPenalty + hpPenalty;
-      const targetAp = Math.max(0, 20 - totalPenalty);
+      const turnAllotment = Math.max(0, 20 - totalPenalty);
 
-      player.restoreAP(targetAp - player.ap);
+      // Add the turn's AP allotment to what remains from the last turn (capped at 20)
+      player.restoreAP(turnAllotment);
 
       updatePlayerStats({
         ap: player.ap,
@@ -1693,7 +1711,7 @@ const GameContextInner = ({ children }) => {
         hp: player.hp, // Ensure HP is updated
         isBleeding: player.isBleeding
       });
-      console.log(`[GameContext] Player AP restored to: ${player.ap}`);
+      console.log(`[GameContext] AP allotment of ${turnAllotment} added. Player AP is now: ${player.ap}`);
 
       const newTurn = turn + 1;
       const nextHour = (6 + (newTurn - 1)) % 24;

@@ -15,14 +15,14 @@ interface EquipmentSlotProps {
 }
 
 // Slot display names and default icons
-const SLOT_INFO: Record<string, { name: string; icon: string }> = {
-  backpack: { name: 'Backpack', icon: '🎒' },
-  upper_body: { name: 'Upper Body', icon: '👕' },
-  lower_body: { name: 'Lower Body', icon: '👖' },
-  melee: { name: 'Melee', icon: '🔪' },
-  handgun: { name: 'Handgun', icon: '🔫' },
-  long_gun: { name: 'Long Gun', icon: '🔫' },
-  flashlight: { name: 'Flashlight', icon: '🔦' },
+const SLOT_INFO: Record<string, { name: string; icon: string; imageId: string }> = {
+  backpack: { name: 'Backpack', icon: '🎒', imageId: 'standardBackpack' },
+  upper_body: { name: 'Upper Body', icon: '👕', imageId: 'workshirt' },
+  lower_body: { name: 'Lower Body', icon: '👖', imageId: 'sweatpants' },
+  melee: { name: 'Melee', icon: '🔪', imageId: 'knife' },
+  handgun: { name: 'Handgun', icon: '🔫', imageId: '9mm pistol' },
+  long_gun: { name: 'Long Gun', icon: '🔫', imageId: 'huntingrifle' },
+  flashlight: { name: 'Flashlight', icon: '🔦', imageId: 'flashlight' },
 };
 
 export default function EquipmentSlot({
@@ -41,18 +41,19 @@ export default function EquipmentSlot({
   // Check if slot is occupied
   const hasItem = !!item;
 
-  // Load image when item changes
+  // Load image when item changes OR when looking for slot icon
   useEffect(() => {
     let isMounted = true;
 
-    const loadItemImage = async () => {
-      if (!item) {
+    const loadImages = async () => {
+      const imageId = item ? (item.imageId || item.image || item.id) : slotInfo.imageId;
+      
+      if (!imageId) {
         if (isMounted) setImageSrc(null);
         return;
       }
 
       try {
-        const imageId = item.imageId || item.image || item.id;
         const imgElement = await imageLoader.getItemImage(imageId);
 
         if (isMounted) {
@@ -63,21 +64,37 @@ export default function EquipmentSlot({
           }
         }
       } catch (err) {
-        console.warn(`[EquipmentSlot] Failed to load image for ${item.id}`, err);
+        console.warn(`[EquipmentSlot] Failed to load image for ${imageId}`, err);
         if (isMounted) setImageSrc(null);
       }
     };
 
-    loadItemImage();
+    loadImages();
 
     return () => {
       isMounted = false;
     };
-  }, [item]);
+  }, [item, slotId]);
 
   // Determine text fallback
   const displayIcon = hasItem && item.name ? item.name.substring(0, 2).toUpperCase() : slotInfo.icon;
   const displayLabel = hasItem && item.name ? '' : slotInfo.name;
+
+    // Default to white/gray for empty slots to match inverted icon, 
+    // or black for occupied slots as previously implemented.
+    const getSlotBgColor = () => {
+        if (!hasItem) return '#ffffff'; // White background for empty inverted icons
+        
+        // Special case for clothing with blue backgrounds
+        if (item.id?.includes('police') || item.id?.includes('paramedic')) {
+            return '#0a2e5c'; // Dark Blue from screenshot
+        }
+        
+        // Default to black for most occupied items
+        return '#000000';
+    };
+
+    const occupiedBgColor = getSlotBgColor();
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -91,29 +108,37 @@ export default function EquipmentSlot({
             "flex flex-col items-center justify-center cursor-pointer",
             "hover:border-accent transition-colors",
             "relative overflow-hidden", // Clip image to rounded corners
-            hasItem && "border-accent bg-accent/10",
+            hasItem && "border-accent", // Background handled by style
             isSelected && "ring-2 ring-red-500 animate-pulse", // Phase 5H: Red highlight when selected
             className
           )}
+          style={{
+            backgroundColor: occupiedBgColor
+          }}
           onClick={onClick}
           data-testid={`equipment-slot-${slotId}`}
         >
-          {hasItem ? (
-            imageSrc ? (
+          {imageSrc ? (
+            <div className={cn(
+              "w-full h-full p-1.5 flex items-center justify-center transition-opacity duration-300",
+              !hasItem && "opacity-25" // Ghostly silhouette
+            )}>
               <img
                 src={imageSrc}
-                alt={item.name}
-                className="w-full h-full object-cover p-1"
+                alt={item?.name || slotInfo.name}
+                className={cn(
+                  "w-full h-full object-contain pointer-events-none transition-transform",
+                  !hasItem && "invert" // Invert to black-on-white silhouette
+                )}
+                style={{
+                  transform: (hasItem && item.width > item.height) ? 'rotate(-45deg)' : 'none'
+                }}
               />
-            ) : (
-              <span className="text-xs font-bold text-accent">{displayIcon}</span>
-            )
+            </div>
           ) : (
             <>
-              <span className="text-base">{slotInfo.icon}</span>
-              <span className="text-[0.5rem] text-muted-foreground text-center leading-none mt-0.5">
-                {displayLabel}
-              </span>
+              <span className="text-xl mb-0.5 opacity-40">{displayIcon}</span>
+              <span className="text-[9px] uppercase font-bold tracking-tighter opacity-40">{displayLabel}</span>
             </>
           )}
 

@@ -11,6 +11,7 @@ export class Window extends Entity {
         this.isOpen = isOpen;
         this.isLocked = isLocked;
         this.isBroken = isBroken;
+        this.subtype = isBroken ? 'broken' : (isOpen ? 'open' : 'closed');
         this.maxHp = 10; // Windows are fragile
         this.hp = isBroken ? 0 : this.maxHp;
 
@@ -22,16 +23,18 @@ export class Window extends Entity {
     }
 
     /**
-     * Update movement blocking status based on state
+     * Update movement/subtype status based on state
      */
     updateBlocking() {
         this._updateBlockingState();
+        this.subtype = this.isBroken ? 'broken' : (this.isOpen ? 'open' : 'closed');
 
         // Emit event to notify map/renderer of state change
         this.emitEvent('windowStateChanged', {
             isOpen: this.isOpen,
             isLocked: this.isLocked,
             isBroken: this.isBroken,
+            subtype: this.subtype,
             blocksMovement: this.blocksMovement,
             blocksSight: this.blocksSight
         });
@@ -122,6 +125,7 @@ export class Window extends Entity {
             // A broken window is effectively "open" for movement
             if (silent) {
                 this._updateBlockingState();
+                this.subtype = 'broken';
             } else {
                 this.updateBlocking();
                 this.emitEvent('windowBroken');
@@ -157,6 +161,7 @@ export class Window extends Entity {
             isOpen: this.isOpen,
             isLocked: this.isLocked,
             isBroken: this.isBroken,
+            subtype: this.subtype,
             blocksSight: this.blocksSight
         };
     }
@@ -165,9 +170,10 @@ export class Window extends Entity {
      * Create from JSON
      */
     static fromJSON(data) {
-        const window = new Window(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isBroken);
-        window.blocksMovement = data.blocksMovement;
-        window.blocksSight = false; // Always false
-        return window;
+        const windowEntity = new Window(data.id, data.x, data.y, data.isLocked || false, data.isOpen || false, data.isBroken || false);
+        windowEntity.subtype = data.subtype || (data.isBroken ? 'broken' : (data.isOpen ? 'open' : 'closed'));
+        windowEntity.blocksMovement = data.blocksMovement !== undefined ? data.blocksMovement : true;
+        windowEntity.blocksSight = false; // Always false
+        return windowEntity;
     }
 }

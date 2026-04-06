@@ -511,7 +511,10 @@ export default function UniversalGrid({
           overlays.push(
             <div
               key={`overlay-${itemId}`}
-              className="absolute pointer-events-none select-none z-10"
+              className={cn(
+                "absolute pointer-events-none select-none z-10 border border-white/20",
+                isItemSelected && "border-white/10"
+              )}
               style={{
                 left: `${leftPos}px`,
                 top: `${topPos}px`,
