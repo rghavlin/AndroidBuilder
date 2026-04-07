@@ -59,6 +59,18 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.BACKPACK,
     containerGrid: { width: 6, height: 10 }
   },
+  'crafting.nail': {
+    id: 'crafting.nail',
+    name: 'Nail',
+    rarity: Rarity.COMMON,
+    imageId: 'nail',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 100,
+    description: 'A small metal nail. Useful for construction and repairs.'
+  },
 
   // Clothing - Upper Body
 
@@ -1109,9 +1121,9 @@ export const ItemDefs = {
     produce: 'food.carrot',
     description: "Ready to harvest!"
   },
-  'food.vegetablesoup': {
-    id: 'food.vegetablesoup',
-    name: 'Vegetable Soup',
+  'food.stew': {
+    id: 'food.stew',
+    name: 'Stew',
     noLoot: true,
     rarity: Rarity.RARE,
     imageId: 'vegetablesoup',
@@ -1357,8 +1369,45 @@ export const ItemDefs = {
       accuracyFalloff: 0.1,
       isSling: true // Special flag for combat logic
     }
+  },
+  'bedroll.closed': {
+    id: 'bedroll.closed',
+    name: 'Bedroll (Closed)',
+    rarity: Rarity.RARE,
+    imageId: 'bedrollclosed',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.TOOL],
+    description: 'A portable bedroll for sleeping outdoors.'
+  },
+  'bedroll.open': {
+    id: 'bedroll.open',
+    name: 'Bedroll (Open)',
+    rarity: Rarity.RARE,
+    noLoot: true,
+    imageId: 'bedrollopen',
+    width: 4,
+    height: 6,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [ItemCategory.TOOL],
+    description: 'A comfortable bedroll laid out on the ground.'
+  },
+  'placeable.bed': {
+    id: 'placeable.bed',
+    name: 'Bed',
+    rarity: Rarity.RARE,
+    noLoot: true,
+    noPickup: true,
+    imageId: 'bed',
+    width: 4,
+    height: 6,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [ItemCategory.TOOL],
+    description: 'A comfortable bed for resting.'
   }
 };
+
 
 // Factory function to create item instances from definitions
 export function createItemFromDef(defId, overrides = {}) {

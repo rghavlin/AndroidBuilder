@@ -406,11 +406,11 @@ export class ZombieAI {
           const nextStep = path[1];
           const nextTile = gameMap.getTile(nextStep.x, nextStep.y);
           const door = nextTile?.contents.find(e => e.type === 'door' && !e.isOpen);
-          const window = nextTile?.contents.find(e => e.type === 'window' && !e.isBroken && !e.isOpen);
+          const window = nextTile?.contents.find(e => e.type === 'window' && (e.isReinforced || (!e.isBroken && !e.isOpen)));
 
           if ((door || window) && zombie.currentAP >= 1.0) {
             const structure = door || window;
-            const damageAmount = 5 + Math.floor(Math.random() * 6);
+            const damageAmount = door ? (5 + Math.floor(Math.random() * 6)) : (1 + Math.floor(Math.random() * 2));
             const damageResult = structure.takeDamage(damageAmount, true); // Silent for logic
             zombie.useAP(1.0);
 
@@ -419,8 +419,9 @@ export class ZombieAI {
               doorPos: door ? { x: nextStep.x, y: nextStep.y } : null,
               windowPos: window ? { x: nextStep.x, y: nextStep.y } : null,
               apCost: 1.0,
-              doorBroken: door ? damageResult.isBroken : false,
-              windowBroken: window ? damageResult.isBroken : false
+              doorBroken: door ? (structure.hp <= 0) : false,
+              windowBroken: window ? damageResult.isBroken : false,
+              windowReinforced: window ? damageResult.isReinforced : false
             });
 
             // Check if player is now visible after structure damage/break
@@ -747,18 +748,20 @@ export class ZombieAI {
         };
       }
 
-      // ── PRIORITY 1b: Window in the way → break it ───────────────────────────
+      // ── PRIORITY 1b: Window in the way → break it (or destroy reinforcement) ─
       const window = nextTile?.contents.find(e => e.type === 'window');
-      if (window && !window.isBroken && !window.isOpen) {
-        console.log(`[ZombieAI] Next path step blocked by closed/unbroken window at (${nextMove.x}, ${nextMove.y}), breaking window`);
+      if (window && (window.isReinforced || (!window.isBroken && !window.isOpen))) {
+        console.log(`[ZombieAI] Next path step blocked by window at (${nextMove.x}, ${nextMove.y}), attacking window`);
 
-        // Spending 1 AP for the break action
-        const breakCost = 1.0;
-        zombie.useAP(breakCost);
+        // Spending 1 AP for the attack action
+        const attackCost = 1.0;
+        zombie.useAP(attackCost);
 
-        // Break the window
-        window.break(true); // Silent break for logic only
-        console.log(`[ZombieAI] Zombie ${zombie.id} logically smashed the window, remaining AP: ${zombie.currentAP}`);
+        // Attack the window (Logic handles glass vs reinforcement)
+        const damageAmount = 1 + Math.floor(Math.random() * 2);
+        const damageResult = window.takeDamage(damageAmount, true); 
+        
+        console.log(`[ZombieAI] Zombie ${zombie.id} attacked window, broken=${damageResult.isBroken}, reinforced=${damageResult.isReinforced}`);
 
         // Attract nearby zombies to the noise
         const otherZombies = gameMap.getEntitiesByType('zombie');
@@ -782,8 +785,9 @@ export class ZombieAI {
           to: fromPos, // Zombie didn't move yet
           type: 'attackWindow',
           windowPos: { x: nextMove.x, y: nextMove.y },
-          apCost: breakCost,
-          windowBroken: true
+          apCost: attackCost,
+          windowBroken: damageResult.isBroken,
+          windowReinforced: damageResult.isReinforced
         };
       }
 

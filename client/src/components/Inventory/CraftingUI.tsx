@@ -71,9 +71,9 @@ export default function CraftingUI() {
         );
     }, [selectedRecipeId, inventoryVersion, inventoryRef, playerStats.ap, playerStats.craftingLvl]);
 
-    // PREDICTION: Vegetable Soup Stats
-    const predictedSoupStats = useMemo(() => {
-        if (!selectedRecipe || selectedRecipe.resultItem !== 'food.vegetablesoup' || !inventoryRef.current) return null;
+    // PREDICTION: Stew Stats
+    const predictedStewStats = useMemo(() => {
+        if (!selectedRecipe || selectedRecipe.resultItem !== 'food.stew' || !inventoryRef.current) return null;
         
         const container = inventoryRef.current.getContainer('cooking-ingredients') as any;
         if (!container) return null;
@@ -82,7 +82,9 @@ export default function CraftingUI() {
         if (allItems.length === 0) {
             // Return max potential for empty grid
             return {
-                vegCount: 4,
+                units: 0,
+                meatCount: 0,
+                vegCount: 0,
                 nutrition: 28,
                 hydration: 8,
                 isMaxPotential: true,
@@ -91,37 +93,60 @@ export default function CraftingUI() {
             };
         }
         
-        // 1. Gather vegetables
+        // 1. Gather possible ingredients and water
         const vegItems = allItems.filter(i => (i.hasCategory && i.hasCategory('vegetable')) || (i.categories && i.categories.includes('vegetable')));
-        const totalVegAvailable = vegItems.reduce((sum, i) => sum + (i.stackCount || 0), 0);
+        const meatItems = allItems.filter(i => i.defId === 'food.raw_meat');
         
-        // 2. Gather water units
         const waterContainers = allItems.filter(i => (i.isWaterBottle && i.isWaterBottle()) || (i.defId && (i.defId.startsWith('food.waterbottle') || i.defId.startsWith('food.waterjug'))));
         const totalWater = waterContainers.reduce((sum, i) => sum + (i.ammoCount || 0), 0);
         
-        // 3. Calculate effective counts
-        const effectiveVegCount = Math.min(totalVegAvailable, 4);
-        const waterNeeded = effectiveVegCount * 2;
-        const effectiveWaterCount = Math.min(totalWater, waterNeeded);
-        
-        // 4. Calculate nutrition
+        // 2. Greedy simulation (matching CraftingManager.js)
+        let unitsUsed = 0;
+        let meatToCook = 0;
+        let vegToCook = 0;
         let totalNutrition = 0;
-        let remainingToApply = effectiveVegCount;
-        for (const item of vegItems) {
-            if (remainingToApply <= 0) break;
-            const count = Math.min(item.stackCount, remainingToApply);
-            const baseNutr = item.consumptionEffects?.nutrition || 5;
-            totalNutrition += (baseNutr + 2) * count;
-            remainingToApply -= count;
+        
+        let availableMeat = meatItems.reduce((sum, i) => sum + (i.stackCount || 0), 0);
+        while (availableMeat > 0 && unitsUsed + 2 <= 4) {
+            if (totalWater < (unitsUsed + 2) * 2) break;
+            meatToCook++;
+            unitsUsed += 2;
+            availableMeat--;
+            totalNutrition += 12;
+        }
+
+        let availableVeg = vegItems.reduce((sum, i) => sum + (i.stackCount || 0), 0);
+        let vegRemaining = availableVeg;
+        while (vegRemaining > 0 && unitsUsed + 1 <= 4) {
+            if (totalWater < (unitsUsed + 1) * 2) break;
+            vegToCook++;
+            unitsUsed += 1;
+            vegRemaining--;
         }
         
+        // Finalize veggie nutrition
+        let remainingVegToAssign = vegToCook;
+        for (const item of vegItems) {
+            if (remainingVegToAssign <= 0) break;
+            const count = Math.min(item.stackCount, remainingVegToAssign);
+            const baseNutr = item.consumptionEffects?.nutrition || 5;
+            totalNutrition += (baseNutr + 2) * count;
+            remainingVegToAssign -= count;
+        }
+        
+        const totalVegInWorkspace = availableVeg;
+        const totalMeatInWorkspace = meatItems.reduce((sum, i) => sum + (i.stackCount || 0), 0);
+        const totalUnitsInWorkspace = (totalMeatInWorkspace * 2) + totalVegInWorkspace;
+
         return {
-            vegCount: effectiveVegCount,
-            nutrition: totalNutrition || (effectiveVegCount * 7), // Fallback if no veggies but count > 0 (shouldn't happen)
-            hydration: effectiveWaterCount,
+            units: unitsUsed,
+            meatCount: meatToCook,
+            vegCount: vegToCook,
+            nutrition: totalNutrition,
+            hydration: unitsUsed * 2,
             isMaxPotential: false,
-            isLimitedByWater: totalVegAvailable > 0 && totalWater < (Math.min(totalVegAvailable, 4) * 2),
-            isLimitedByCount: totalVegAvailable > 4
+            isLimitedByWater: totalUnitsInWorkspace > 0 && totalWater < (Math.min(totalUnitsInWorkspace, 4) * 2),
+            isLimitedByCount: totalUnitsInWorkspace > 4
         };
     }, [selectedRecipe, inventoryVersion, inventoryRef]);
 
@@ -208,36 +233,36 @@ export default function CraftingUI() {
                                 <div className="flex flex-col gap-2">
                                     <h3 className="text-sm font-bold uppercase tracking-tight">{selectedRecipe.name}</h3>
                                     
-                                    {/* Vegetable Soup Stats (Dynamic) */}
-                                    {predictedSoupStats && (
+                                     {/* Stew Stats (Dynamic) */}
+                                    {predictedStewStats && (
                                         <div className="flex flex-col gap-1.5 p-2 bg-black/30 rounded border border-primary/20">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex items-center gap-1.5">
                                                         <Utensils className="w-3.5 h-3.5 text-orange-400/80" />
                                                         <span className="text-[11px] font-black text-orange-400">
-                                                            {predictedSoupStats.nutrition} NUTR
+                                                            {predictedStewStats.nutrition} NUTR
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
                                                         <Droplets className="w-3.5 h-3.5 text-blue-400/80" />
                                                         <span className="text-[11px] font-black text-blue-400">
-                                                            {predictedSoupStats.hydration} HYDR
+                                                            {predictedStewStats.hydration} HYDR
                                                         </span>
                                                     </div>
                                                 </div>
                                                 <span className="text-[9px] font-bold text-white/40 uppercase bg-white/5 px-1.5 py-0.5 rounded">
-                                                    {predictedSoupStats.isMaxPotential ? "Max Potential" : `${predictedSoupStats.vegCount} Veggies`}
+                                                    {predictedStewStats.isMaxPotential ? "Max Potential" : `${predictedStewStats.units}/4 Units`}
                                                 </span>
                                             </div>
 
-                                            {(predictedSoupStats.isLimitedByWater || predictedSoupStats.isLimitedByCount) && !predictedSoupStats.isMaxPotential && (
+                                            {(predictedStewStats.isLimitedByWater || predictedStewStats.isLimitedByCount) && !predictedStewStats.isMaxPotential && (
                                                 <div className="text-[8px] font-bold uppercase tracking-tight flex gap-2">
-                                                    {predictedSoupStats.isLimitedByWater && (
+                                                    {predictedStewStats.isLimitedByWater && (
                                                         <span className="text-blue-300/60 italic">* Add more water for more hydration</span>
                                                     )}
-                                                    {predictedSoupStats.isLimitedByCount && (
-                                                        <span className="text-orange-300/60 italic">* Max 4 vegetables per soup</span>
+                                                    {predictedStewStats.isLimitedByCount && (
+                                                        <span className="text-orange-300/60 italic">* Max 4 units (Meat=2, Veg=1)</span>
                                                     )}
                                                 </div>
                                             )}
@@ -267,7 +292,14 @@ export default function CraftingUI() {
 
                                 <div className="space-y-1.5 pt-1 border-t border-border/50">
                                     <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        <span>Requirements</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>Requirements</span>
+                                            {selectedRecipe.resultCount > 1 && (
+                                                <span className="text-primary/90 bg-primary/20 px-1.5 py-0.5 rounded border border-primary/30 flex items-center gap-1 font-black shadow-[0_0_8px_rgba(34,197,94,0.15)]">
+                                                    Yield: {selectedRecipe.resultCount}
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className={cn(
                                             "px-1.5 py-0.5 rounded",
                                             playerStats.ap >= Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl || 1))) 
@@ -297,7 +329,7 @@ export default function CraftingUI() {
                                                     : "bg-primary/5 text-primary border-primary/20"
                                             )}>
                                                 <div className="w-2 h-2 rounded-full bg-current opacity-50" />
-                                                {ing.count}x {ing.label || ing.name || getItemName(ing.id)}
+                                                {ing.count > 1 && `${ing.count}x `}{ing.label || ing.name || getItemName(ing.id)}
                                             </div>
                                         ))}
                                         {selectedRecipe.requiresCampfire && (

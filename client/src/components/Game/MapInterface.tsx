@@ -19,6 +19,8 @@ import { ZombieTooltip } from './ZombieTooltip';
 import { CropTooltip } from './CropTooltip';
 import { LootTooltip } from './LootTooltip';
 import { BuildingTooltip } from './BuildingTooltip';
+import { DoorTooltip } from './DoorTooltip';
+import { WindowTooltip } from './WindowTooltip';
 import { useLog } from '../../contexts/LogContext.jsx';
 import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
@@ -309,6 +311,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           color: '#fbbf24', // Amber/Yellow
           duration: 1000
         });
+        
+        // CANCELLING: Since farming tools MUST be used in the inventory grid, 
+        // a map click indicates the user wants to stop or is confused. 
+        // We cancel targeting (which now also clears the cursor selection).
+        cancelTargetingItem();
         return true; 
       }
 
@@ -516,7 +523,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         {/* Tile Tooltip Overlay (Phase 6 & Generic Refactor) */}
         {(() => {
           if (!hoveredTile) return null;
-          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding) return null;
+          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window) return null;
           
           // Only show if the tile is explored
           const isExplored = gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
@@ -710,6 +717,87 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               Unlock
             </button>
           )}
+
+          {/* Repair/Reinforce option */}
+          <button
+            className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+              doorMenu.door.hp >= 40 
+                ? 'text-gray-500 cursor-not-allowed' 
+                : 'text-blue-400 hover:bg-accent focus:bg-accent'
+            }`}
+            onClick={() => {
+              if (doorMenu.door.hp >= 40) return;
+
+              const player = playerRef.current;
+              const inventory = inventoryRef.current;
+              if (!player || !inventory) return;
+
+              // 1. Check AP (5 AP required)
+              if (player.ap < 5) {
+                addEffect({
+                  type: 'damage',
+                  x: doorMenu.x,
+                  y: doorMenu.y,
+                  value: 'Insufficient AP',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+                setDoorMenu(null);
+                return;
+              }
+
+              // 2. Check items
+              const hasHammer = inventory.hasItemByDefId('weapon.hammer') || inventory.hasItemByDefId('weapon.makeshift_hammer');
+              const has2x4 = inventory.hasItemByDefId('weapon.2x4', 1);
+              const hasNails = inventory.hasItemByDefId('crafting.nail', 2);
+
+              if (!hasHammer || !has2x4 || !hasNails) {
+                let missing = [];
+                if (!hasHammer) missing.push('Hammer');
+                if (!has2x4) missing.push('2x4');
+                if (!hasNails) missing.push('2 Nails');
+                
+                addLog(`Missing items: ${missing.join(', ')}`, 'error');
+                addEffect({
+                  type: 'damage',
+                  x: doorMenu.x,
+                  y: doorMenu.y,
+                  value: 'Missing items',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+                setDoorMenu(null);
+                return;
+              }
+
+              // 3. Perform action
+              player.useAP(5);
+              inventory.consumeItemByDefId('weapon.2x4', 1);
+              inventory.consumeItemByDefId('crafting.nail', 2);
+              
+              const wasBroken = doorMenu.door.isDamaged;
+              doorMenu.door.repair(10);
+              
+              playSound('Unlock'); // Using Unlock as fallback for mechanical sound
+              addLog(wasBroken ? 'You repair the door.' : 'You reinforce the door.', 'world');
+              
+              if (wasBroken && doorMenu.door.hp >= 10) {
+                 addLog('The door is now functional again.', 'world');
+                 // Refresh FOV/Zombies if state changed from broken
+                 const gameMap = gameMapRef.current;
+                 if (gameMap) {
+                   const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+                   refreshZombieTracking(player, newFovTiles);
+                   checkZombieAwareness();
+                 }
+              }
+
+              triggerMapUpdate();
+              setDoorMenu(null);
+            }}
+          >
+            {doorMenu.door.hp >= 40 ? 'Fully Reinforced' : `Repair/reinforce (5ap)`}
+          </button>
           <button
             className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
             onClick={() => setDoorMenu(null)}
@@ -781,7 +869,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           </button>
 
           {/* Climb Through Option */}
-          {(windowMenu.window.isOpen || windowMenu.window.isBroken) && (
+          {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !windowMenu.window.isReinforced && (
             <button
               className="w-full text-left px-3 py-2 text-sm text-cyan-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
               onClick={() => {
@@ -850,6 +938,81 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               Climb through (3ap)
             </button>
           )}
+
+          {/* Reinforce Window Option */}
+          <button
+            className={`w-full text-left px-3 py-2 text-sm transition-colors border-t border-[#333] mt-1 ${
+              windowMenu.window.reinforcementHp >= 20 
+                ? 'text-gray-500 cursor-not-allowed' 
+                : 'text-blue-400 hover:bg-accent focus:bg-accent'
+            }`}
+            onClick={() => {
+              if (windowMenu.window.reinforcementHp >= 20) return;
+
+              const player = playerRef.current;
+              const inventory = inventoryRef.current;
+              if (!player || !inventory) return;
+
+              // Check AP (5 AP required)
+              if (player.ap < 5) {
+                addEffect({
+                  type: 'damage',
+                  x: windowMenu.x,
+                  y: windowMenu.y,
+                  value: 'Insufficient AP',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+                setWindowMenu(null);
+                return;
+              }
+
+              // Check items
+              const hasHammer = inventory.hasItemByDefId('weapon.hammer') || inventory.hasItemByDefId('weapon.makeshift_hammer');
+              const has2x4 = inventory.hasItemByDefId('weapon.2x4', 1);
+              const hasNails = inventory.hasItemByDefId('crafting.nail', 2);
+
+              if (!hasHammer || !has2x4 || !hasNails) {
+                let missing = [];
+                if (!hasHammer) missing.push("Hammer");
+                if (!has2x4) missing.push("2x4");
+                if (!hasNails) missing.push("2 Nails");
+                
+                addEffect({
+                  type: 'damage',
+                  x: windowMenu.x,
+                  y: windowMenu.y,
+                  value: `Missing: ${missing.join(', ')}`,
+                  color: '#fbbf24',
+                  duration: 1500
+                });
+                setWindowMenu(null);
+                return;
+              }
+
+              // Execute reinforcement
+              if (windowMenu.window.reinforce(10)) {
+                player.useAP(5);
+                inventory.consumeItemByDefId('weapon.2x4', 1);
+                inventory.consumeItemByDefId('crafting.nail', 2);
+                
+                playSound('Repair');
+                addLog('You reinforce the window with 2x4s.', 'world');
+                addEffect({
+                   type: 'damage',
+                   x: windowMenu.x,
+                   y: windowMenu.y,
+                   value: '+10 HP',
+                   color: '#60a5fa',
+                   duration: 1000
+                });
+                triggerMapUpdate();
+              }
+              setWindowMenu(null);
+            }}
+          >
+            Reinforce (5ap)
+          </button>
 
           {windowMenu.window.isLocked && !windowMenu.window.isOpen && !windowMenu.window.isBroken && (
             <button
@@ -1123,8 +1286,11 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
   const isLootVisible = lootItems && lootItems.length > 0;
   
   const isBuildingVisible = !!specialBuilding;
+
+  const door = targetTile?.contents.find((e: any) => e.type === 'door');
+  const window = targetTile?.contents.find((e: any) => e.type === 'window');
   
-  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible) return null;
+  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window) return null;
 
   // Calculate screen position
   const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
@@ -1139,18 +1305,21 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
 
   return (
     <div
-      className="absolute z-[10001] pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4 transition-all duration-200 flex flex-col gap-2 items-center"
+      className="absolute z-[10001] pointer-events-none transform -translate-x-1/2 -translate-y-full transition-all duration-200 flex flex-col gap-2 items-center"
       style={{
         left: `${x + tileSize / 2}px`,
-        top: `${y}px`,
+        top: `${y - 12}px`,
       }}
     >
       {isZombieVisible && <ZombieTooltip zombie={zombie as any} />}
       {isCropVisible && <CropTooltip cropInfo={cropInfo as any} />}
       {isLootVisible && <LootTooltip items={lootItems} />}
       {isBuildingVisible && <BuildingTooltip type={specialBuilding} />}
+      {door && <DoorTooltip door={door} />}
+      {window && <WindowTooltip windowEntity={window} />}
+      
       {/* Downward arrow/pointer */}
-      <div className="w-3 h-3 bg-black/80 border-r border-b border-white/20 rotate-45 mt-[-6px]" />
+      <div className="w-2.5 h-2.5 bg-[#1a1a1a] border-r border-b border-white/20 transform rotate-45 -mt-3.5 shadow-lg" />
     </div>
   );
 };

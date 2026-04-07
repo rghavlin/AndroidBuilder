@@ -13,6 +13,7 @@ import { GameErrorBoundary } from './ErrorBoundary.tsx';
 import DevConsole from './DevConsole';
 import { MapTransitionDialog } from './MapTransitionDialog';
 import SleepOverlay from './SleepOverlay';
+import SleepModal from './SleepModal';
 
 
 function GameScreenContent() {
@@ -177,6 +178,8 @@ function GameScreenContent() {
 
           {/* Sleep Overlay */}
           <SleepOverlay />
+          {/* Sleep Modal */}
+          <SleepModal />
         </div>
       </CombatProvider>
     </InventoryProvider>

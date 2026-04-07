@@ -280,6 +280,8 @@ const GameContextInner = ({ children }) => {
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [isSleeping, setIsSleeping] = useState(false);
   const [sleepProgress, setSleepProgress] = useState(0);
+  const [isSleepModalOpen, setIsSleepModalOpen] = useState(false);
+  const [sleepMultiplier, setSleepMultiplier] = useState(1);
   const [targetingItem, setTargetingItem] = useState(null);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
 
@@ -820,7 +822,7 @@ const GameContextInner = ({ children }) => {
     return false;
   }, []);
 
-  const performSleep = useCallback(async (hours) => {
+  const performSleep = useCallback(async (hours, energyMultiplier = 1) => {
     if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn || isSleeping) return;
 
     try {
@@ -836,7 +838,7 @@ const GameContextInner = ({ children }) => {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Update stats for this hour
-        player.modifyStat('energy', 2.5);
+        player.modifyStat('energy', 2.5 * energyMultiplier);
         player.modifyStat('nutrition', -1);
         player.modifyStat('hydration', -1);
 
@@ -1022,12 +1024,20 @@ const GameContextInner = ({ children }) => {
     }
   }, [isInitialized, playerRef, gameMap, isPlayerTurn, isSleeping, checkIsSheltered, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave]);
 
+  const triggerSleep = useCallback((multiplier = 1) => {
+    setSleepMultiplier(multiplier);
+    setIsSleepModalOpen(true);
+  }, []);
+
   const startTargetingItem = useCallback((item) => {
     setTargetingItem(item);
   }, []);
 
   const cancelTargetingItem = useCallback(() => {
     setTargetingItem(null);
+    if (typeof window.inv?.clearSelected === 'function') {
+      window.inv.clearSelected();
+    }
   }, []);
 
   const digHole = useCallback((x, y) => {
@@ -1115,10 +1125,14 @@ const GameContextInner = ({ children }) => {
     return { success: true, item: holeItem };
   }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, addLog, addEffect]);
 
-  const plantSeed = useCallback((gridX, gridY) => {
+  const plantSeed = useCallback((gridX, gridY, seedOverride = null) => {
     const player = playerRef.current;
+    const gameMap = gameMapRef.current;
     
-    if (!player || !targetingItem || !inventoryManager) return { success: false };
+    // Choose which seed to use: the override (from cursor) or the targeting state
+    const activeSeed = seedOverride || targetingItem;
+    
+    if (!player || !activeSeed || !inventoryManager) return { success: false };
 
     if (player.ap < 1) {
       addLog("Not enough AP to plant (requires 1)", "warning");
@@ -1143,7 +1157,7 @@ const GameContextInner = ({ children }) => {
       'food.carrotseeds': 'provision.carrot_plant'
     };
 
-    const plantDefId = seedToPlant[targetingItem.defId];
+    const plantDefId = seedToPlant[activeSeed.defId];
     if (!plantDefId) {
       addLog("You can't plant this here.", "warning");
       return { success: false, reason: 'Invalid seed' };
@@ -1175,18 +1189,21 @@ const GameContextInner = ({ children }) => {
       player.modifyStat('ap', -1);
       
       // Consume 1 seed (handle stacks)
-      if (targetingItem.stackCount > 1) {
-        targetingItem.stackCount -= 1;
+      if (activeSeed.stackCount > 1) {
+        activeSeed.stackCount -= 1;
       } else {
         // Remove the seed item from its container
-        const seedContainer = targetingItem._container;
+        const seedContainer = activeSeed._container;
         if (seedContainer) {
-          seedContainer.removeItem(targetingItem.instanceId);
+          seedContainer.removeItem(activeSeed.instanceId);
         }
         setTargetingItem(null);
+        if (typeof window.inv?.clearSelected === 'function') {
+          window.inv.clearSelected();
+        }
       }
       
-      addLog(`You plant the ${targetingItem.name.toLowerCase()}.`, "info");
+      addLog(`You plant the ${activeSeed.name.toLowerCase()}.`, "info");
       updatePlayerStats({ ap: player.ap });
 
       return { success: true };
@@ -1958,6 +1975,10 @@ const GameContextInner = ({ children }) => {
     // Phase 6: Sleep functionality
     isSleeping,
     sleepProgress,
+    isSleepModalOpen,
+    setIsSleepModalOpen,
+    sleepMultiplier,
+    triggerSleep,
     performSleep,
 
     // Crowbar Usage Phase
@@ -1999,6 +2020,12 @@ const GameContextInner = ({ children }) => {
     loadGameDirect,
     loadAutosave,
     performSleep,
+    triggerSleep,
+    isSleeping,
+    sleepProgress,
+    isSleepModalOpen,
+    setIsSleepModalOpen,
+    sleepMultiplier,
     inventoryManager,
     targetingItem,
     startTargetingItem,

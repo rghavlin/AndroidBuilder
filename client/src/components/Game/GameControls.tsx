@@ -48,13 +48,13 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
     loadAutosave,
     isSleeping,
     sleepProgress,
+    triggerSleep,
     performSleep,
     isSkillsOpen,
     toggleSkills
   } = useGame();
 
   // Phase 2: Movement animation handled by PlayerContext
-  const [showSleepModal, setShowSleepModal] = useState(false);
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);
   const [playerIcon, setPlayerIcon] = useState<string | null>(null);
 
@@ -198,7 +198,7 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
             {/* Sleep Button */}
             <div className="flex items-center gap-1">
               <Button
-                onClick={() => setShowSleepModal(true)}
+                onClick={() => triggerSleep(1)}
                 disabled={sleepDisabled}
                 className="h-[18px] px-2 bg-indigo-600 hover:bg-indigo-700 text-[9px] font-bold text-white rounded border border-white/10 uppercase tracking-tighter disabled:bg-indigo-900/50"
                 data-testid="button-sleep-trigger"
@@ -250,36 +250,6 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
         {/* The blue line mentioned is likely this border/separator */}
       </div>
 
-      {/* Sleep Duration Modal */}
-      {showSleepModal && (
-        <div className="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-white/10 p-6 rounded-lg max-w-sm w-full shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-4 uppercase tracking-wider">How long to sleep?</h2>
-            <p className="text-zinc-400 text-[10px] mb-4 uppercase">Max sleep based on energy: {maxSleepHours}h</p>
-            <div className="grid grid-cols-4 gap-2 mb-6">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(hours => (
-                <Button
-                  key={hours}
-                  disabled={hours > maxSleepHours}
-                  onClick={() => {
-                    performSleep(hours);
-                    setShowSleepModal(false);
-                  }}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold h-10 border border-white/5 disabled:opacity-20 disabled:grayscale"
-                >
-                  {hours}h
-                </Button>
-              ))}
-            </div>
-            <Button
-              onClick={() => setShowSleepModal(false)}
-              className="w-full bg-red-900/40 hover:bg-red-900/60 text-red-100 font-bold uppercase tracking-widest text-xs border border-red-500/20"
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

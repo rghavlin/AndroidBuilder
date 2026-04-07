@@ -48,7 +48,7 @@ export default function UniversalGrid({
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire } = useInventory();
-  const { targetingItem, digHole, plantSeed, harvestPlant } = useGame();
+  const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, plantSeed, harvestPlant } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -170,6 +170,9 @@ export default function UniversalGrid({
         const result = plantSeed(x, y);
         if (result.success) {
           console.debug('[UniversalGrid] Planted seeds at:', x, y);
+        } else {
+          // If planting failed (e.g. clicking a non-hole), cancel targeting/selection
+          cancelTargetingItem();
         }
         return;
       }
@@ -202,6 +205,21 @@ export default function UniversalGrid({
       }
 
       // Try to place or stack the selected item at the clicked coordinates
+      
+      // Phase 7: Special behavior for planting seeds (left-click cursor interaction)
+      const seedTypes = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
+      const isSeedSelected = seedTypes.includes(selectedItem.item.defId);
+      const isHoleClicked = item?.defId === 'provision.hole';
+      
+      if (isSeedSelected && isHoleClicked && containerId === 'ground') {
+        console.debug('[UniversalGrid] Quick planting selected seeds into hole at:', x, y);
+        const result = plantSeed(x, y, selectedItem.item);
+        if (result.success) {
+           playSound('Click');
+           return;
+        }
+      }
+
       const result = placeSelected(containerId, x, y);
 
       // If placement/stacking succeeded, we're done
@@ -253,6 +271,14 @@ export default function UniversalGrid({
       // If placement failed (e.g. occupied by another item), and that item is NOT stackable with ours,
       // then the user likely wants to SWITCH their selection to the clicked item.
       if (item && item.instanceId) {
+        // Phase 7 Fix: Prevent switching selection to ground-only items (holes, beds, etc.)
+        const isGroundOnly = item.hasTrait?.('ground_only') || item.traits?.includes('ground_only') || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+        
+        if (isGroundOnly) {
+           console.debug('[UniversalGrid] Cannot switch selection to ground-only item:', item.name);
+           return;
+        }
+
         console.debug('[UniversalGrid] Placement failed, switching selection to:', item.name);
         // Important: use item.x/y for the origin coordinates, not the clicked x/y
         selectItem(item, containerId, item.x, item.y);
@@ -266,7 +292,9 @@ export default function UniversalGrid({
 
     // Case 2: No item selected, so we select the clicked item
     if (item && item.instanceId) {
-      if (item.isGroundOnly && item.isGroundOnly()) {
+      const isGroundOnly = item.hasTrait?.('ground_only') || item.traits?.includes('ground_only') || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+      
+      if (isGroundOnly) {
         console.debug('[UniversalGrid] Cannot pick up ground-only item:', item.name);
         return;
       }

@@ -323,8 +323,11 @@ export const GameMapProvider = ({ children }) => {
       
       const specialBuildingEntity = targetTile.contents.find(e => e.type === 'place_icon');
       const specialBuilding = specialBuildingEntity ? specialBuildingEntity.subtype : null;
+      
+      const door = targetTile.contents.find(e => e.type === 'door');
+      const window = targetTile.contents.find(e => e.type === 'window');
 
-      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo, lootItems, specialBuilding });
+      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo, lootItems, specialBuilding, door, window });
     } catch (error) {
       console.warn('[GameMapContext] Error calculating hover cost:', error);
       // Fallback calculation
@@ -347,8 +350,11 @@ export const GameMapProvider = ({ children }) => {
       
       const specialBuildingEntity = targetTile?.contents.find(e => e.type === 'place_icon');
       const specialBuilding = specialBuildingEntity ? specialBuildingEntity.subtype : null;
+      
+      const door = targetTile?.contents.find(e => e.type === 'door');
+      const window = targetTile?.contents.find(e => e.type === 'window');
 
-      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo, lootItems, specialBuilding });
+      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo, lootItems, specialBuilding, door, window });
     }
   }, []);
 

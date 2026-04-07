@@ -66,8 +66,8 @@ export class ImageLoader {
       return this.getItemImage('harvestabletomato');
     } else if (entityType === 'item' && subtype === 'harvestablecarrot') {
       return this.getItemImage('harvestablecarrot');
-    } else if (entityType === 'item' && subtype === 'rawmeat' || subtype === 'cookedmeat') {
-      return this.getItemImage(subtype);
+    } else if (entityType === 'item' && subtype === 'bed') {
+      return this.getItemImage('bed');
     }
 
     // 3. Return cached image if available

@@ -142,9 +142,15 @@ export default function MapCanvas({
       let entitySize = tileSize;
 
       if (entity.type === 'item') {
-        offsetX = tileSize * 0.25;
-        offsetY = tileSize * 0.25;
-        entitySize = tileSize * 0.5;
+        if (entity.subtype === 'bed') {
+          offsetX = 0;
+          offsetY = 0;
+          entitySize = tileSize;
+        } else {
+          offsetX = tileSize * 0.25;
+          offsetY = tileSize * 0.25;
+          entitySize = tileSize * 0.5;
+        }
       } else if (entity.type === 'place_icon') {
         entitySize = tileSize;
       } else if (entity.type !== 'window') {
@@ -376,67 +382,84 @@ export default function MapCanvas({
         break;
 
       case 'window':
-        // Bright silver color for windows
-        const windowColor = 'rgba(192, 192, 192, 0.6)';
-        const frameColor = '#e0e0e0';
-        
-        ctx.strokeStyle = frameColor;
-        ctx.lineWidth = 2;
+        // Improved window rendering for visual clarity
+        const glassFill = 'rgba(160, 180, 210, 0.35)'; // Bluish silver tint
+        const winFrameColor = '#f3f4f6'; // cool-gray-100
+        const winDividerColor = 'rgba(255, 255, 255, 0.4)';
+
+        ctx.strokeStyle = winFrameColor;
+        ctx.lineWidth = Math.max(1.5, tileSize / 12);
+
+        const winMargin = tileSize / 8;
+        const wL = pixelX + winMargin;
+        const wT = pixelY + winMargin;
+        const wR = pixelX + tileSize - winMargin;
+        const wB = pixelY + tileSize - winMargin;
+        const wW = wR - wL;
+        const wH = wB - wT;
 
         if (entity.isBroken) {
-          // Broken window: jagged jagged frame
+          // Broken window: jagged shards with high contrast
           ctx.beginPath();
-          const margin = tileSize / 8;
-          const left = pixelX + margin;
-          const top = pixelY + margin;
-          const right = pixelX + tileSize - margin;
-          const bottom = pixelY + tileSize - margin;
-          
-          // Jagged outline
-          ctx.moveTo(left, top);
-          ctx.lineTo(left + (right-left)*0.3, top + (bottom-top)*0.1);
-          ctx.lineTo(left + (right-left)*0.5, top - (bottom-top)*0.05);
-          ctx.lineTo(left + (right-left)*0.7, top + (bottom-top)*0.15);
-          ctx.lineTo(right, top);
-          ctx.lineTo(right - (right-left)*0.1, top + (bottom-top)*0.4);
-          ctx.lineTo(right + (right-left)*0.05, top + (bottom-top)*0.6);
-          ctx.lineTo(right, bottom);
-          ctx.lineTo(right - (right-left)*0.4, bottom - (bottom-top)*0.1);
-          ctx.lineTo(left, bottom);
-          ctx.lineTo(left + (right-left)*0.1, bottom - (bottom-top)*0.5);
+          ctx.moveTo(wL, wT);
+          ctx.lineTo(wL + wW * 0.3, wT + wH * 0.1);
+          ctx.lineTo(wL + wW * 0.5, wT - wH * 0.05);
+          ctx.lineTo(wL + wW * 0.7, wT + wH * 0.15);
+          ctx.lineTo(wR, wT);
+          ctx.lineTo(wR - wW * 0.1, wT + wH * 0.4);
+          ctx.lineTo(wR + wW * 0.05, wT + wH * 0.6);
+          ctx.lineTo(wR, wB);
+          ctx.lineTo(wR - wW * 0.4, wB - wH * 0.1);
+          ctx.lineTo(wL, wB);
+          ctx.lineTo(wL + wW * 0.1, wB - wH * 0.5);
           ctx.closePath();
           ctx.stroke();
           
-          // Some "glass fragments" inside
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          // Shards inside
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
           ctx.beginPath();
-          ctx.moveTo(left + (right-left)*0.2, top + (bottom-top)*0.3);
-          ctx.lineTo(left + (right-left)*0.3, top + (bottom-top)*0.2);
-          ctx.lineTo(left + (right-left)*0.4, top + (bottom-top)*0.35);
+          ctx.moveTo(wL + wW * 0.2, wT + wH * 0.3);
+          ctx.lineTo(wL + wW * 0.35, wT + wH * 0.2);
+          ctx.lineTo(wL + wW * 0.45, wT + wH * 0.4);
           ctx.fill();
         } else if (entity.isOpen) {
-          // Open window: simple frame
-          ctx.strokeRect(
-            pixelX + tileSize / 8,
-            pixelY + tileSize / 8,
-            tileSize * 3 / 4,
-            tileSize * 3 / 4
-          );
+          // OPEN WINDOW: Clear frame only (Red circle minus cross)
+          ctx.strokeRect(wL, wT, wW, wH); 
         } else {
-          // Closed window: bluish square
-          ctx.fillStyle = windowColor;
-          ctx.fillRect(
-            pixelX + tileSize / 8,
-            pixelY + tileSize / 8,
-            tileSize * 3 / 4,
-            tileSize * 3 / 4
-          );
-          ctx.strokeRect(
-            pixelX + tileSize / 8,
-            pixelY + tileSize / 8,
-            tileSize * 3 / 4,
-            tileSize * 3 / 4
-          );
+          // CLOSED WINDOW: Single horizontal sash divider
+          ctx.fillStyle = glassFill;
+          ctx.fillRect(wL, wT, wW, wH);
+          ctx.strokeRect(wL, wT, wW, wH);
+          
+          // Sash Divider (Single horizontal line in middle, same style as frame)
+          ctx.beginPath();
+          ctx.moveTo(wL, wT + wH / 2);
+          ctx.lineTo(wR, wT + wH / 2);
+          ctx.stroke();
+        }
+
+        // Draw reinforcement boards if applicable
+        if (entity.isReinforced && entity.reinforcementHp > 0) {
+          ctx.save();
+          ctx.strokeStyle = '#555555'; // Dark gray to match door outlines
+          ctx.lineWidth = Math.max(3, tileSize / 8);
+          
+          const boardCount = entity.reinforcementHp > 10 ? 2 : 1;
+          
+          // Board 1: Diagonal
+          ctx.beginPath();
+          ctx.moveTo(wL - 2, wT + 2);
+          ctx.lineTo(wR + 2, wB - 2);
+          ctx.stroke();
+          
+          if (boardCount >= 2) {
+            // Board 2: Opposite Diagonal
+            ctx.beginPath();
+            ctx.moveTo(wR + 2, wT + 2);
+            ctx.lineTo(wL - 2, wB - 2);
+            ctx.stroke();
+          }
+          ctx.restore();
         }
         break;
 

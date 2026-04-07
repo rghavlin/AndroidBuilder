@@ -131,7 +131,7 @@ export default function EquipmentSlot({
                   !hasItem && "invert" // Invert to black-on-white silhouette
                 )}
                 style={{
-                  transform: (hasItem && item.width > item.height) ? 'rotate(-45deg)' : 'none'
+                  transform: (hasItem && typeof item.shouldRotateToFit === 'function' && item.shouldRotateToFit()) ? 'rotate(-45deg)' : 'none'
                 }}
               />
             </div>

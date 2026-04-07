@@ -111,6 +111,68 @@ export class LootGenerator {
             }
         });
         console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles`);
+        
+        // 3. Spawn Furniture (Independent of loot drops)
+        this.spawnFurniture(gameMap);
+    }
+
+    /**
+     * Spawn specialized furniture (Beds) in residential buildings
+     */
+    spawnFurniture(gameMap) {
+        const buildings = (gameMap.buildings || []).filter(b => b.type === 'residential');
+        let bedsSpawned = 0;
+
+        buildings.forEach(building => {
+            // 25% chance to spawn a bed in a residential house 
+            if (Math.random() > 0.25) return;
+
+            const floorTiles = [];
+            // Interior tiles only
+            for (let y = building.y + 1; y < building.y + building.height - 1; y++) {
+                for (let x = building.x + 1; x < building.x + building.width - 1; x++) {
+                    const tile = gameMap.getTile(x, y);
+                    if (tile && tile.terrain === 'floor') {
+                        // 1. Check for existing items/loot
+                        const existingItems = gameMap.getItemsOnTile ? gameMap.getItemsOnTile(x, y) : [];
+                        if (existingItems.length > 0) continue;
+
+                        // 2. Check for adjacent doors (Distance constraint)
+                        let isAdjToDoor = false;
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                if (dx === 0 && dy === 0) continue;
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                const nTile = gameMap.getTile(nx, ny);
+                                if (nTile && nTile.contents) {
+                                    if (nTile.contents.some(e => e.type === 'door')) {
+                                        isAdjToDoor = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (isAdjToDoor) break;
+                        }
+                        if (isAdjToDoor) continue;
+
+                        floorTiles.push({ x, y });
+                    }
+                }
+            }
+
+            if (floorTiles.length > 0) {
+                const pos = floorTiles[Math.floor(Math.random() * floorTiles.length)];
+                const bedItem = createItemFromDef('placeable.bed');
+                if (bedItem) {
+                    // Place directly on tile
+                    gameMap.setItemsOnTile(pos.x, pos.y, [bedItem]);
+                    bedsSpawned++;
+                }
+            }
+        });
+
+        console.log(`[LootGenerator] Furniture: Spawned ${bedsSpawned} beds across ${buildings.length} residential buildings`);
     }
 
     /**
@@ -248,6 +310,8 @@ export class LootGenerator {
                     selectedItem.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
                 } else if (selectedItem.categories?.includes(ItemCategory.AMMO) && selectedItem.traits?.includes(ItemTrait.STACKABLE)) {
                     selectedItem.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds (Actual ammo only)
+                } else if (selectedItem.defId === 'crafting.nail') {
+                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 5); // 1-5
                 } else {
                     selectedItem.stackCount = 1;
                 }
@@ -711,12 +775,14 @@ export class LootGenerator {
                     item.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
                 } else if (item.categories?.includes(ItemCategory.AMMO) && item.traits?.includes(ItemTrait.STACKABLE)) {
                     item.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds (Actual ammo only)
+                } else if (item.defId === 'crafting.nail') {
+                    item.stackCount = 1 + Math.floor(Math.random() * 5); // 1-5
                 } else {
                     item.stackCount = 1;
                 }
-                
+               
                 // Custom stack/property rules for specialized items
-                if (pickedKey === 'food.waterbottle') {
+               if (pickedKey === 'food.waterbottle') {
                     item.ammoCount = Math.floor(Math.random() * (item.capacity + 1));
                 }
                 items.push(item);

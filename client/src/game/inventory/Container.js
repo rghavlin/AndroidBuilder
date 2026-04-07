@@ -413,8 +413,8 @@ export class Container {
         return this.placeItemAt(item, position.x, position.y);
       }
 
-      // 2. Try with alternative rotation if item is not square
-      if (item.width !== item.height) {
+      // 2. Try with alternative rotation if item is eligible for fitting
+      if (item.shouldRotateToFit()) {
         const originalRotation = item.rotation || 0;
         // Smart rotate: toggle orientation
         const currentWidth = item.getActualWidth();

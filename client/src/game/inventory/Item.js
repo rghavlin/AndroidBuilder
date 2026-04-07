@@ -229,6 +229,24 @@ export class Item extends SafeEventEmitter {
     return this.hasTrait(ItemTrait.GROUND_ONLY);
   }
 
+  /**
+   * Determine if this item is eligible for automatic rotation to fit a grid.
+   * Skip rotation for:
+   * 1. Square items (1x1, 2x2, etc.)
+   * 2. Pre-fit 3x2 icons (Crowbars, Hammers, etc.)
+   * 
+   * Only rotate "particularly wide" items (e.g. Rifles, Fire Axe, Shovel) - size 4+ in any dimension
+   */
+  shouldRotateToFit() {
+    // 1. Never rotate square items
+    if (this.width === this.height) return false;
+
+    // 2. Only rotate if one dimension is 4 or more (particularly wide items)
+    // This naturally excludes 2x1 and 3x2 items per user request
+    const maxDim = Math.max(this.width, this.height);
+    return maxDim >= 4;
+  }
+
   isMagazine() {
     // Items with capacity are magazines or weapons with internal mags
     // BUT we exclude charge-based tools like lighters and matches

@@ -69,7 +69,7 @@ export const CraftingRecipes = [
     },
     {
         id: 'medical.bandages',
-        name: 'Craft Bandages',
+        name: 'Bandage',
         tab: 'crafting',
         description: 'Sterilize rags with antiseptic to create effective bandages.',
         ingredients: [
@@ -152,10 +152,10 @@ export const CraftingRecipes = [
         ]
     },
     {
-        id: 'cooking.vegetable_soup',
-        name: 'Vegetable Soup',
-        resultItem: 'food.vegetablesoup',
-        description: 'A hearty and nutritious soup made from fresh vegetables.',
+        id: 'cooking.stew',
+        name: 'Stew',
+        resultItem: 'food.stew',
+        description: 'A rich, hearty stew made from a mix of fresh vegetables and raw meat.',
         apCost: 5,
         tab: 'cooking',
         requiresCampfire: true,
@@ -163,8 +163,8 @@ export const CraftingRecipes = [
             { category: ItemCategory.COOKING_POT, label: 'Any Cooking Pot' }
         ],
         ingredients: [
-            { category: ItemCategory.VEGETABLE, count: 1, label: 'Vegetables (1-4)' },
-            { id: 'food.waterbottle', count: 1, consumeUnits: 2, label: 'Water (2 units/veg)' }
+            { either: [ItemCategory.VEGETABLE, 'food.raw_meat'], count: 1, label: 'Meat (2 units) or Veggies (1 unit) - Max 4 units' },
+            { id: 'food.waterbottle', count: 1, consumeUnits: 2, label: '2 water per unit' }
         ]
     },
     {

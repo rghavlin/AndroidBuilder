@@ -34,8 +34,8 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater } = useInventory();
-    const { startTargetingItem, harvestPlant, igniteTorch, inventoryManager } = useGame();
+    const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater, unrollBedroll, rollupBedroll } = useInventory();
+    const { startTargetingItem, harvestPlant, igniteTorch, inventoryManager, triggerSleep } = useGame();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
 
     // ... (rest of the component)
@@ -54,8 +54,9 @@ export function ItemContextMenu({
                     {children}
                 </TooltipTrigger>
                 {tooltipContent && (
-                    <TooltipContent side="top" className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
+                    <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
                         {tooltipContent}
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
                     </TooltipContent>
                 )}
             </Tooltip>
@@ -71,8 +72,9 @@ export function ItemContextMenu({
                     </ContextMenuTrigger>
                 </TooltipTrigger>
                 {tooltipContent && (
-                    <TooltipContent side="top" className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
+                    <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
                         {tooltipContent}
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
                     </TooltipContent>
                 )}
             </Tooltip>
@@ -237,6 +239,38 @@ export function ItemContextMenu({
                                 </ContextMenuItem>
                             </>
                         )}
+                        {item?.defId === 'bedroll.closed' && (
+                            <ContextMenuItem
+                                onClick={() => unrollBedroll(item)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Unroll
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'placeable.bed' && (
+                            <ContextMenuItem
+                                onSelect={() => triggerSleep(1.25)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white font-bold text-indigo-400"
+                            >
+                                Sleep
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'bedroll.open' && (
+                            <>
+                                <ContextMenuItem
+                                    onSelect={() => triggerSleep(1.25)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white font-bold text-green-400"
+                                >
+                                    Sleep
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                    onClick={() => rollupBedroll(item)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                >
+                                    Roll up
+                                </ContextMenuItem>
+                            </>
+                        )}
                         {canSplit && (
                             <ContextMenuItem
                                 onClick={() => setIsSplitDialogOpen(true)}
@@ -245,7 +279,7 @@ export function ItemContextMenu({
                                 Split Stack
                             </ContextMenuItem>
                         )}
-                        {!canSplit && !canOpenContainer(item) && !item?.isWaterBottle?.() && (
+                        {!canSplit && !canOpenContainer(item) && !item?.isWaterBottle?.() && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && (
                             <ContextMenuItem disabled className="text-gray-500">
                                 No actions available
                             </ContextMenuItem>

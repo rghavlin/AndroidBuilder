@@ -161,6 +161,10 @@ export class GameMap {
         item.defId === 'provision.harvestable_carrot' ||
         (item.toJSON && item.toJSON().defId === 'provision.harvestable_carrot')
       );
+      const containsBed = validItems.some(item =>
+        item.defId === 'placeable.bed' ||
+        (item.toJSON && item.toJSON().defId === 'placeable.bed')
+      );
 
       let subtype = 'ground_pile';
       if (containsCampfire) subtype = 'campfire';
@@ -171,6 +175,7 @@ export class GameMap {
       else if (containsHarvestableCorn) subtype = 'harvestablecorn';
       else if (containsHarvestableTomato) subtype = 'harvestabletomato';
       else if (containsHarvestableCarrot) subtype = 'harvestablecarrot';
+      else if (containsBed) subtype = 'bed';
 
       if (!this.entityMap.has(proxyId)) {
         // Create a proxy entity for visual representation
@@ -229,6 +234,10 @@ export class GameMap {
             item.defId === 'provision.harvestable_carrot' ||
             (item.toJSON && item.toJSON().defId === 'provision.harvestable_carrot')
           );
+          const containsBed = validItems.some(item =>
+            item.defId === 'placeable.bed' ||
+            (item.toJSON && item.toJSON().defId === 'placeable.bed')
+          );
 
           if (containsCampfire) proxy.subtype = 'campfire';
           else if (containsHole) proxy.subtype = 'hole';
@@ -238,6 +247,7 @@ export class GameMap {
           else if (containsHarvestableCorn) proxy.subtype = 'harvestablecorn';
           else if (containsHarvestableTomato) proxy.subtype = 'harvestabletomato';
           else if (containsHarvestableCarrot) proxy.subtype = 'harvestablecarrot';
+          else if (containsBed) proxy.subtype = 'bed';
           else proxy.subtype = 'ground_pile';
         }
       }

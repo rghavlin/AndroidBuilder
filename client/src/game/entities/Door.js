@@ -114,6 +114,33 @@ export class Door extends Entity {
     }
 
     /**
+     * Repair or reinforce the door
+     * @param {number} amount - HP to add
+     */
+    repair(amount) {
+        this.hp = Math.min(40, this.hp + amount);
+        
+        // Grow max HP as we reinforce (up to 40)
+        if (this.hp > this.maxHp) {
+            this.maxHp = this.hp;
+        }
+        
+        if (this.hp > 0 && this.isDamaged) {
+            this.isDamaged = false;
+            // Note: door stays open if it was broken/open, but can now be closed
+        }
+
+        this.emitEvent('doorRepaired', {
+            currentHp: this.hp,
+            maxHp: this.maxHp,
+            isDamaged: this.isDamaged
+        });
+
+        this.updateBlocking();
+        return true;
+    }
+
+    /**
      * Serialize door to JSON
      */
     toJSON() {
@@ -122,7 +149,9 @@ export class Door extends Entity {
             isOpen: this.isOpen,
             isLocked: this.isLocked,
             isDamaged: this.isDamaged,
-            blocksSight: this.blocksSight
+            blocksSight: this.blocksSight,
+            hp: this.hp,
+            maxHp: this.maxHp
         };
     }
 
@@ -160,6 +189,8 @@ export class Door extends Entity {
         const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged);
         door.blocksMovement = data.blocksMovement;
         door.blocksSight = data.blocksSight;
+        door.hp = data.hp !== undefined ? data.hp : door.hp;
+        door.maxHp = data.maxHp !== undefined ? data.maxHp : door.maxHp;
         return door;
     }
 }

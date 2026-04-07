@@ -102,7 +102,8 @@ export const InventoryProvider = ({ children, manager }) => {
         equipItem: (item, slot) => inventoryRef.current?.equipItem(item, slot),
         moveItem: (itemId, from, to, x, y) =>
           inventoryRef.current?.moveItem(itemId, from, to, x, y),
-        refresh: forceRefresh
+        refresh: forceRefresh,
+        clearSelected: clearSelected
       };
       console.log('[InventoryContext] Dev console bridge updated: window.inventoryManager, window.inv');
     }
@@ -1460,6 +1461,90 @@ export const InventoryProvider = ({ children, manager }) => {
     return result;
   }, []);
 
+  const unrollBedroll = useCallback((item) => {
+    if (!inventoryRef.current || !item) return { success: false };
+
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      addLog('Not enough AP to unroll bedroll', 'warning');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    const groundContainer = inventoryRef.current.groundContainer;
+    if (!groundContainer) return { success: false, reason: 'Ground container not found' };
+
+    // Create the open bedroll item
+    const openItemData = createItemFromDef('bedroll.open');
+    const openItem = Item.fromJSON(openItemData);
+
+    // 1. Remove the closed bedroll
+    const removed = inventoryRef.current.destroyItem(item.instanceId);
+    if (!removed) return { success: false, reason: 'Could not remove item' };
+
+    // 2. Attempt to place the open bedroll on the ground
+    // Try to place at the same coords if it was already on ground
+    let placed = false;
+    if (item._container?.id === 'ground') {
+      placed = groundContainer.placeItemAt(openItem, item.x, item.y);
+    }
+    
+    // If not on ground or placement failed (lack of space), use addItem smart placement
+    if (!placed) {
+      placed = groundContainer.addItem(openItem);
+    }
+
+    if (placed) {
+      if (playerRef.current) playerRef.current.useAP(1);
+      playSound('Equip');
+      addLog('Unrolled bedroll', 'item');
+      setInventoryVersion(prev => prev + 1);
+      return { success: true };
+    } else {
+      // Fallback: Restore the closed bedroll if open one can't fit anywhere (highly unlikely on ground)
+      groundContainer.addItem(item);
+      addLog('No space to unroll bedroll!', 'warning');
+      return { success: false, reason: 'No space' };
+    }
+  }, [inventoryVersion]);
+
+  const rollupBedroll = useCallback((item) => {
+    if (!inventoryRef.current || !item) return { success: false };
+
+    // Check AP cost (1 AP)
+    if (playerRef.current && playerRef.current.ap < 1) {
+      addLog('Not enough AP to roll up bedroll', 'warning');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    // Create the closed bedroll item
+    const closedItemData = createItemFromDef('bedroll.closed');
+    const closedItem = Item.fromJSON(closedItemData);
+
+    // 1. Remove the open bedroll
+    const removed = inventoryRef.current.destroyItem(item.instanceId);
+    if (!removed) return { success: false, reason: 'Could not remove item' };
+
+    // 2. Add closed bedroll using smart addItem (tries inventory first, then ground)
+    const result = inventoryRef.current.addItem(closedItem);
+    
+    if (result.success) {
+      if (playerRef.current) playerRef.current.useAP(1);
+      playSound('Equip');
+      addLog('Rolled up bedroll', 'item');
+      setInventoryVersion(prev => prev + 1);
+      return { success: true };
+    } else {
+      // Emergency: Force back to ground if everything is full
+      const ground = inventoryRef.current.groundContainer;
+      ground.addItem(closedItem);
+      if (playerRef.current) playerRef.current.useAP(1);
+      playSound('Equip');
+      addLog('Rolled up bedroll (placed on ground)', 'item');
+      setInventoryVersion(prev => prev + 1);
+      return { success: true };
+    }
+  }, [inventoryVersion]);
+
   const contextValue = useMemo(() => {
     console.log('[InventoryContext] Creating new context value - dragVersion:', dragVersion, 'selectedItem:', selectedItem?.item?.name || 'none');
     return {
@@ -1493,6 +1578,8 @@ export const InventoryProvider = ({ children, manager }) => {
       splitStack,
       depositSelectedInto,
       attachSelectedInto,
+      unrollBedroll,
+      rollupBedroll,
       loadAmmoInto,
       loadAmmoDirectly,
       unloadMagazine,
