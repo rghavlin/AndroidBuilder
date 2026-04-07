@@ -6,6 +6,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGame } from "../../contexts/GameContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
+import { useCombat } from "../../contexts/CombatContext.jsx";
 import { ItemTrait } from "../../game/inventory/traits.js";
 
 interface UniversalGridProps {
@@ -50,6 +51,8 @@ export default function UniversalGrid({
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire } = useInventory();
   const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, plantSeed, harvestPlant } = useGame();
+  const { targetingWeapon, cancelTargeting } = useCombat();
+  const { playSound } = useAudio();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -126,7 +129,6 @@ export default function UniversalGrid({
     }
   }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
 
-  const { playSound } = useAudio();
 
   const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
     event.preventDefault();
@@ -322,10 +324,20 @@ export default function UniversalGrid({
   };
 
   const handleGridContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
+    // 1. Priority: Handle active targeting (e.g. Shovel Digging)
+    if (targetingItem || targetingWeapon) {
+      event.preventDefault();
+      event.stopPropagation();
+      console.log('[UniversalGrid] Right-click while targeting - canceling');
+      if (targetingItem) cancelTargetingItem();
+      if (targetingWeapon) cancelTargeting();
+      playSound('Click');
+      return;
+    }
 
-    // If we have a selected item, right-click anywhere rotates it
+    // 2. Secondary: If we have a selected item, right-click anywhere rotates it
     if (selectedItem) {
+      event.preventDefault();
       console.log('[UniversalGrid] Right-click on grid - rotating selected item');
       rotateSelected();
     }

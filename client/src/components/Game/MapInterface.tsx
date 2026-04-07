@@ -385,6 +385,15 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Handler for map cell right clicks
   const onCellRightClick = (x: number, y: number, screenX: number, screenY: number) => {
+    // Phase 1: Right-click to cancel targeting (Grenade throw, Shovel dig, Combat aim)
+    if (targetingItem || targetingWeapon) {
+      console.log('[MapInterface] Right-click: Canceling active targeting');
+      if (targetingItem) cancelTargetingItem();
+      if (targetingWeapon) cancelTargeting();
+      playSound('Click');
+      return;
+    }
+
     const gameMap = gameMapRef.current;
     const player = playerRef.current;
     if (!gameMap || !player) return;

@@ -78,8 +78,9 @@ export const ItemDefs = {
     imageId: 'rope',
     width: 2,
     height: 1,
-    traits: [],
-    categories: [ItemCategory.CRAFTING_MATERIAL]
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 5
   },
   'crafting.metal_plate': {
     id: 'crafting.metal_plate',
