@@ -1,0 +1,5 @@
+                        )}
+                        {(item?.defId === 'weapon.shovel' || item?.defId === 'weapon.makeshift_shovel') && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    console.log('[ItemContextMenu] Dig requested for:', item.name);

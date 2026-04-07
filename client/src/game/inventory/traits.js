@@ -56,7 +56,8 @@ export const ItemTrait = {
   GROUND_ONLY: 'groundOnly',
   CAN_BREAK_DOORS: 'canBreakDoors',
   SPOILABLE: 'spoilable',
-  IGNITABLE: 'ignitable'
+  IGNITABLE: 'ignitable',
+  CAN_DIG: 'canDig'
 };
 
 // Item rarity levels for loot generation

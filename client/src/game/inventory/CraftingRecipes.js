@@ -193,5 +193,19 @@ export const CraftingRecipes = [
         ingredients: [
             { id: 'crafting.leather_belt', count: 1 }
         ]
+    },
+    {
+        id: 'crafting.makeshift_shovel',
+        name: 'Makeshift Shovel',
+        resultItem: 'weapon.makeshift_shovel',
+        description: 'A crude shovel made from a metal plate and a sturdy stick.',
+        apCost: 8,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.metal_plate', count: 1 },
+            { id: 'weapon.stick', count: 1 },
+            { id: 'crafting.rope', count: 1 }
+        ]
     }
 ];

@@ -1337,7 +1337,7 @@ export const InventoryProvider = ({ children, manager }) => {
     
     // Crafting Skill AP Bonus (not for cooking)
     const isCooking = recipe && recipe.tab === 'cooking';
-    const craftingLvl = playerStats.craftingLvl || 1;
+    const craftingLvl = playerStats.craftingLvl ?? 0;
     const apBonus = isCooking ? 0 : craftingLvl; 
     const actualAP = Math.max(1, (recipe?.apCost || 0) - apBonus);
 
@@ -1356,7 +1356,7 @@ export const InventoryProvider = ({ children, manager }) => {
       
       // Level up the skill (not for cooking)
       if (!isCooking && playerRef.current?.onItemCrafted) {
-        playerRef.current.onItemCrafted();
+        playerRef.current.onItemCrafted(actualAP);
       }
       addLog(`Crafted ${recipe.name}`, 'item');
       if (recipeId === 'crafting.campfire') {

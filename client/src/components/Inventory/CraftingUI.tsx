@@ -302,11 +302,11 @@ export default function CraftingUI() {
                                         </div>
                                         <span className={cn(
                                             "px-1.5 py-0.5 rounded",
-                                            playerStats.ap >= Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl || 1))) 
+                                            playerStats.ap >= Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl ?? 0))) 
                                                 ? "bg-primary/10 text-primary" 
                                                 : "bg-red-500/10 text-red-400"
                                         )}>
-                                            Cost: {Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl || 1)))} AP
+                                            Cost: {Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl ?? 0)))} AP
                                         </span>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5">

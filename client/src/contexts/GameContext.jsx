@@ -13,6 +13,7 @@ import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
 import { Item, createItemFromDef } from '../game/inventory/index.js';
+import { ItemTrait } from '../game/inventory/traits.js';
 import { useAudio } from './AudioContext.jsx';
 
 const logger = Logger.scope('GameContext');
@@ -1055,8 +1056,11 @@ const GameContextInner = ({ children }) => {
       return { success: false };
     }
 
-    if (targetingItem.defId !== 'weapon.shovel') {
-      return { success: false, reason: 'Requires shovel' };
+    // The context menu already ensures the tool can dig. If targeting is active, proceed.
+    if (!targetingItem || !targetingItem.hasTrait || !targetingItem.hasTrait(ItemTrait.CAN_DIG)) {
+      if (targetingItem && !targetingItem.traits?.includes(ItemTrait.CAN_DIG) && !targetingItem.traits?.includes('canDig')) {
+        return { success: false, reason: 'Requires digging tool' };
+      }
     }
 
     // Cost 5AP
@@ -1273,7 +1277,11 @@ const GameContextInner = ({ children }) => {
     if (!player || !gameMap || !targetingItem) return { success: false };
 
     // DISPATCHER: Handle specialized tool actions
-    if (targetingItem.defId === 'weapon.shovel') {
+    if (targetingItem.hasTrait && targetingItem.hasTrait(ItemTrait.CAN_DIG)) {
+      return digHole(x, y);
+    }
+    // POJO fallback
+    if (targetingItem.traits?.includes(ItemTrait.CAN_DIG) || targetingItem.traits?.includes('canDig')) {
       return digHole(x, y);
     }
 

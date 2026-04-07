@@ -1,0 +1,5 @@
+    if (targetingItem) {
+      // Blocking Farming tools from map clicks (must use in Ground Container grid)
+      const farmingTools = ['weapon.shovel', 'weapon.makeshift_shovel', 'food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
+      if (farmingTools.includes(targetingItem.defId)) {
+        addEffect({

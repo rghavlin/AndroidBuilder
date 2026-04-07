@@ -24,11 +24,11 @@ export class Player extends Entity {
     
     // Skill Progression
     this.meleeKills = 0;
-    this.meleeLvl = 1;
+    this.meleeLvl = 0;
     this.rangedKills = 0;
-    this.rangedLvl = 1;
-    this.itemsCrafted = 0;
-    this.craftingLvl = 1;
+    this.rangedLvl = 0;
+    this.craftingApUsed = 0;
+    this.craftingLvl = 0;
 
     // Add instance tracking to detect duplicates
     this.instanceCreatedAt = Date.now();
@@ -271,26 +271,27 @@ export class Player extends Entity {
   }
 
   /**
-   * Called when an item is crafted to increment skill exp
+   * Called when an item is crafted to increment skill exp based on AP used
+   * @param {number} apUsed - Actual AP consumed for the craft
    */
-  onItemCrafted() {
-    this.itemsCrafted++;
+  onItemCrafted(apUsed = 1) {
+    this.craftingApUsed += apUsed;
     
-    // Level up calculation: 5, 10, 20, 40, 80...
-    // Threshold for Level L -> L+1 is 5 * 2^(L-1)
-    const nextTarget = 5 * Math.pow(2, this.craftingLvl - 1);
+    // Level up calculation: 10, 20, 40, 80...
+    // Threshold for Level L -> L+1 is 10 * 2^L
+    const nextTarget = 10 * Math.pow(2, this.craftingLvl);
     
-    if (this.itemsCrafted >= nextTarget) {
+    if (this.craftingApUsed >= nextTarget) {
       this.craftingLvl++;
       console.log(`[Player] ✨ CRAFTING LEVEL UP! ${this.name} reached level ${this.craftingLvl}`);
       this.emitEvent('craftingLevelUp', { 
         level: this.craftingLvl,
-        itemsCrafted: this.itemsCrafted
+        craftingApUsed: this.craftingApUsed
       });
       this.emitEvent('statChanged', { stat: 'craftingLvl', current: this.craftingLvl });
     }
     
-    this.emitEvent('statChanged', { stat: 'itemsCrafted', current: this.itemsCrafted });
+    this.emitEvent('statChanged', { stat: 'craftingApUsed', current: this.craftingApUsed });
   }
 
   /**
@@ -317,7 +318,7 @@ export class Player extends Entity {
       meleeLvl: this.meleeLvl,
       rangedKills: this.rangedKills,
       rangedLvl: this.rangedLvl,
-      itemsCrafted: this.itemsCrafted,
+      craftingApUsed: this.craftingApUsed,
       craftingLvl: this.craftingLvl
     };
   }
@@ -341,11 +342,11 @@ export class Player extends Entity {
     player.sickness = data.sickness || 0;
     player.isBleeding = data.isBleeding || false;
     player.meleeKills = data.meleeKills || 0;
-    player.meleeLvl = data.meleeLvl || 1;
+    player.meleeLvl = data.meleeLvl !== undefined ? data.meleeLvl : 0;
     player.rangedKills = data.rangedKills || 0;
-    player.rangedLvl = data.rangedLvl || 1;
-    player.itemsCrafted = data.itemsCrafted || 0;
-    player.craftingLvl = data.craftingLvl || 1;
+    player.rangedLvl = data.rangedLvl !== undefined ? data.rangedLvl : 0;
+    player.craftingApUsed = data.craftingApUsed || 0;
+    player.craftingLvl = data.craftingLvl !== undefined ? data.craftingLvl : 0;
     return player;
   }
 }

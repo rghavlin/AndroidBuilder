@@ -1,0 +1,5 @@
+
+    // Case 0: Handling Targeting (e.g. Shovel Digging)
+    if (targetingItem) {
+      if (targetingItem.defId === 'weapon.shovel' && containerId === 'ground') {
+        const canDig = x <= width - 2 && y <= height - 2;

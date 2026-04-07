@@ -159,12 +159,6 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                 </div>
             )}
 
-            {/* Description */}
-            {item.description && (
-                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 text-[10px] text-zinc-300 italic leading-relaxed">
-                    {item.description}
-                </div>
-            )}
         </div>
     );
 }

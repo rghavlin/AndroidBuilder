@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
+import { ItemTrait } from '../../game/inventory/traits.js';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
@@ -302,8 +303,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     // Handle Item Targeting (Crowbar, Grenade, Shovel, Seeds etc)
     if (targetingItem) {
       // Blocking Farming tools from map clicks (must use in Ground Container grid)
-      const farmingTools = ['weapon.shovel', 'food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
-      if (farmingTools.includes(targetingItem.defId)) {
+      const isFarmingTool = (targetingItem.hasTrait && targetingItem.hasTrait(ItemTrait.CAN_DIG)) || ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'].includes(targetingItem.defId);
+      if (isFarmingTool) {
         addEffect({
           type: 'damage',
           x, y,
@@ -669,7 +670,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           </button>
           {doorMenu.door.isLocked && !doorMenu.door.isOpen && (
             <button
-              className="w-full text-left px-3 py-2 text-sm text-amber-500 hover:bg-accent focus:bg-accent transition-colors"
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
               onClick={() => {
                 const gameMap = gameMapRef.current;
                 const player = playerRef.current;
@@ -722,8 +723,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <button
             className={`w-full text-left px-3 py-2 text-sm transition-colors ${
               doorMenu.door.hp >= 40 
-                ? 'text-gray-500 cursor-not-allowed' 
-                : 'text-blue-400 hover:bg-accent focus:bg-accent'
+                ? 'text-zinc-500 cursor-not-allowed' 
+                : 'text-white hover:bg-accent focus:bg-accent'
             }`}
             onClick={() => {
               if (doorMenu.door.hp >= 40) return;
@@ -799,7 +800,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             {doorMenu.door.hp >= 40 ? 'Fully Reinforced' : `Repair/reinforce (5ap)`}
           </button>
           <button
-            className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
             onClick={() => setDoorMenu(null)}
           >
             Cancel
@@ -815,7 +816,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           onMouseLeave={() => setWindowMenu(null)}
         >
           <button
-            className="w-full text-left px-3 py-2 text-sm text-green-400 hover:bg-accent focus:bg-accent transition-colors"
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
             onClick={() => {
               const gameMap = gameMapRef.current;
               const player = playerRef.current;
@@ -871,7 +872,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           {/* Climb Through Option */}
           {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !windowMenu.window.isReinforced && (
             <button
-              className="w-full text-left px-3 py-2 text-sm text-cyan-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
               onClick={() => {
                 const gameMap = gameMapRef.current;
                 const player = playerRef.current;
@@ -943,8 +944,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <button
             className={`w-full text-left px-3 py-2 text-sm transition-colors border-t border-[#333] mt-1 ${
               windowMenu.window.reinforcementHp >= 20 
-                ? 'text-gray-500 cursor-not-allowed' 
-                : 'text-blue-400 hover:bg-accent focus:bg-accent'
+                ? 'text-zinc-500 cursor-not-allowed' 
+                : 'text-white hover:bg-accent focus:bg-accent'
             }`}
             onClick={() => {
               if (windowMenu.window.reinforcementHp >= 20) return;
@@ -1016,7 +1017,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
           {windowMenu.window.isLocked && !windowMenu.window.isOpen && !windowMenu.window.isBroken && (
             <button
-              className="w-full text-left px-3 py-2 text-sm text-amber-500 hover:bg-accent focus:bg-accent transition-colors"
+              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
               onClick={() => {
                 const gameMap = gameMapRef.current;
                 const player = playerRef.current;
@@ -1065,7 +1066,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             </button>
           )}
           <button
-            className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
             onClick={() => setWindowMenu(null)}
           >
             Cancel
@@ -1252,7 +1253,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             Fill Bottle
           </button>
           <button
-            className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
             onClick={() => setWaterMenu(null)}
           >
             Cancel

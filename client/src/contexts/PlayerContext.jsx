@@ -22,8 +22,8 @@ export const usePlayer = () => {
           hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
           nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
           energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
-          meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1,
-          itemsCrafted: 0, craftingLvl: 1
+          meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
+          craftingApUsed: 0, craftingLvl: 0
         },
         isMoving: false,
         movementPath: [],
@@ -58,8 +58,8 @@ export const PlayerProvider = ({ children }) => {
     hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
     nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
     energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
-    meleeKills: 0, meleeLvl: 1, rangedKills: 0, rangedLvl: 1,
-    itemsCrafted: 0, craftingLvl: 1
+    meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
+    craftingApUsed: 0, craftingLvl: 0
   });
   const [isMoving, setIsMoving] = useState(false);
   const [movementPath, setMovementPath] = useState([]);
@@ -100,11 +100,11 @@ export const PlayerProvider = ({ children }) => {
         isBleeding: player.isBleeding || false,
         ammo: 0,
         meleeKills: player.meleeKills || 0,
-        meleeLvl: player.meleeLvl || 1,
+        meleeLvl: player.meleeLvl !== undefined ? player.meleeLvl : 0,
         rangedKills: player.rangedKills || 0,
-        rangedLvl: player.rangedLvl || 1,
-        itemsCrafted: player.itemsCrafted || 0,
-        craftingLvl: player.craftingLvl || 1
+        rangedLvl: player.rangedLvl !== undefined ? player.rangedLvl : 0,
+        craftingApUsed: player.craftingApUsed || 0,
+        craftingLvl: player.craftingLvl !== undefined ? player.craftingLvl : 0
       });
     } else {
       console.log('[PlayerContext] ❌ Player reference set to null');
@@ -140,7 +140,7 @@ export const PlayerProvider = ({ children }) => {
     const currentLevel = isMelee ? playerStats.meleeLvl : playerStats.rangedLvl;
     
     const updatedKills = currentKills + 1;
-    const nextMilestone = 5 * Math.pow(2, currentLevel - 1);
+    const nextMilestone = 5 * Math.pow(2, currentLevel);
     
     const leveledUp = updatedKills >= nextMilestone;
     const newLevel = leveledUp ? currentLevel + 1 : currentLevel;

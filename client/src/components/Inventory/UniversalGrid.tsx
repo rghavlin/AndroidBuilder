@@ -6,6 +6,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGame } from "../../contexts/GameContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
+import { ItemTrait } from "../../game/inventory/traits.js";
 
 interface UniversalGridProps {
   containerId: string;
@@ -136,7 +137,7 @@ export default function UniversalGrid({
 
     // Case 0: Handling Targeting (e.g. Shovel Digging)
     if (targetingItem) {
-      if (targetingItem.defId === 'weapon.shovel' && containerId === 'ground') {
+      if (targetingItem.hasTrait(ItemTrait.CAN_DIG) && containerId === 'ground') {
         const canDig = x <= width - 2 && y <= height - 2;
         if (!canDig) {
           console.warn('[UniversalGrid] Cannot dig: Too close to edge');
@@ -332,7 +333,7 @@ export default function UniversalGrid({
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (targetingItem) {
-      if (targetingItem.defId === 'weapon.shovel' && containerId === 'ground') {
+      if (targetingItem.hasTrait(ItemTrait.CAN_DIG) && containerId === 'ground') {
         const rect = event.currentTarget.getBoundingClientRect();
         const screenX = event.clientX - rect.left;
         const screenY = event.clientY - rect.top;

@@ -41,15 +41,15 @@ export default function PlayerSkillsUI() {
     }, []);
 
     const combatSkills = useMemo(() => {
-        const meleeLvl = playerStats.meleeLvl || 1;
+        const meleeLvl = (playerStats.meleeLvl !== undefined ? playerStats.meleeLvl : 0);
         const meleeKills = playerStats.meleeKills || 0;
-        const meleeNext = 5 * Math.pow(2, meleeLvl - 1);
-        const meleePrev = meleeLvl === 1 ? 0 : 5 * Math.pow(2, meleeLvl - 2);
+        const meleeNext = 5 * Math.pow(2, meleeLvl);
+        const meleePrev = meleeLvl === 0 ? 0 : 5 * Math.pow(2, meleeLvl - 1);
 
-        const rangedLvl = playerStats.rangedLvl || 1;
+        const rangedLvl = (playerStats.rangedLvl !== undefined ? playerStats.rangedLvl : 0);
         const rangedKills = playerStats.rangedKills || 0;
-        const rangedNext = 5 * Math.pow(2, rangedLvl - 1);
-        const rangedPrev = rangedLvl === 1 ? 0 : 5 * Math.pow(2, rangedLvl - 2);
+        const rangedNext = 5 * Math.pow(2, rangedLvl);
+        const rangedPrev = rangedLvl === 0 ? 0 : 5 * Math.pow(2, rangedLvl - 1);
 
         return {
             melee: { 
@@ -57,29 +57,29 @@ export default function PlayerSkillsUI() {
                 kills: meleeKills, 
                 next: meleeNext, 
                 prev: meleePrev,
-                crit: 5 + (meleeLvl - 1) * 5,
-                acc: meleeLvl
+                crit: 5 * meleeLvl, // Starting at 0% at level 0, 5% at level 1
+                acc: meleeLvl // Starting at 0% at level 0, 1% at level 1
             },
             ranged: { 
                 level: rangedLvl, 
                 kills: rangedKills, 
                 next: rangedNext, 
                 prev: rangedPrev,
-                crit: 5 + (rangedLvl - 1) * 5,
-                acc: rangedLvl
+                crit: 5 * rangedLvl, // Starting at 0% at level 0, 5% at level 1
+                acc: rangedLvl // Starting at 0% at level 0, 1% at level 1
             }
         };
     }, [playerStats]);
 
     const craftingSkills = useMemo(() => {
-        const craftingLvl = playerStats.craftingLvl || 1;
-        const itemsCrafted = playerStats.itemsCrafted || 0;
-        const next = 5 * Math.pow(2, craftingLvl - 1);
-        const prev = craftingLvl === 1 ? 0 : 5 * Math.pow(2, craftingLvl - 2);
+        const craftingLvl = (playerStats.craftingLvl !== undefined ? playerStats.craftingLvl : 0);
+        const craftingApUsed = playerStats.craftingApUsed || 0;
+        const next = 10 * Math.pow(2, craftingLvl);
+        const prev = craftingLvl === 0 ? 0 : 10 * Math.pow(2, craftingLvl - 1);
 
         return {
             level: craftingLvl,
-            itemsCrafted,
+            craftingApUsed,
             next,
             prev,
             apBonus: craftingLvl
@@ -222,13 +222,13 @@ export default function PlayerSkillsUI() {
                             {/* Progression Side */}
                             <div className="flex-1 space-y-1">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-[8px] text-muted-foreground uppercase tracking-tight text-zinc-400">Items crafted</span>
+                                    <span className="text-[8px] text-muted-foreground uppercase tracking-tight text-zinc-400">Crafting AP Used</span>
                                     <span className="text-[9px] font-mono text-foreground/80">
-                                        {craftingSkills.itemsCrafted} <span className="text-muted-foreground">/</span> {craftingSkills.next}
+                                        {craftingSkills.craftingApUsed} <span className="text-muted-foreground">/</span> {craftingSkills.next}
                                     </span>
                                 </div>
                                 <SkillProgressBar 
-                                    current={craftingSkills.itemsCrafted} 
+                                    current={craftingSkills.craftingApUsed} 
                                     next={craftingSkills.next} 
                                     prev={craftingSkills.prev}
                                     color="bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"

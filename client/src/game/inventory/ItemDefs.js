@@ -68,8 +68,28 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.CRAFTING_MATERIAL],
-    stackMax: 100,
-    description: 'A small metal nail. Useful for construction and repairs.'
+    stackMax: 100
+  },
+
+  'crafting.rope': {
+    id: 'crafting.rope',
+    name: 'Rope',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'rope',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.CRAFTING_MATERIAL]
+  },
+  'crafting.metal_plate': {
+    id: 'crafting.metal_plate',
+    name: 'Metal plate',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'metalplate',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.CRAFTING_MATERIAL]
   },
 
   // Clothing - Upper Body
@@ -290,7 +310,7 @@ export const ItemDefs = {
     imageId: 'shovel',
     width: 5,
     height: 2,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.CAN_DIG],
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
     condition: 100,
@@ -350,6 +370,24 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.65,
       damage: { min: 2, max: 5 }
+    }
+  },
+  'weapon.makeshift_shovel': {
+    id: 'weapon.makeshift_shovel',
+    name: 'Makeshift shovel',
+    rarity: Rarity.COMMON,
+    imageId: 'makeshiftshovel',
+    noLoot: true,
+    width: 5,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.CAN_DIG],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    condition: 100,
+    fragility: 4,
+    combat: {
+      hitChance: 0.75,
+      damage: { min: 3, max: 9 }
     }
   },
   'weapon.spear': {
@@ -465,7 +503,6 @@ export const ItemDefs = {
   'weapon.grenade': {
     id: 'weapon.grenade',
     name: 'Grenade',
-    description: 'A small explosive device with a 10m throw range. Area of effect damage.',
     rarity: Rarity.RARE,
     imageId: 'grenade',
     width: 1,
@@ -738,8 +775,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.MEDICAL, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
-    stackMax: 5,
-    description: 'Used for cleaning wounds and crafting medical supplies.'
+    stackMax: 5
   },
   'medical.antibiotics': {
     id: 'medical.antibiotics',
@@ -933,8 +969,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
-    noLoot: true,
-    description: "Use seeds to plant crops in the hole."
+    noLoot: true
   },
   'food.mre': {
     id: 'food.mre',
@@ -999,8 +1034,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
-    produce: 'food.corn',
-    description: "Ready to harvest!"
+    produce: 'food.corn'
   },
   'food.corn': {
     id: 'food.corn',
@@ -1066,8 +1100,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
-    produce: 'food.tomato',
-    description: "Ready to harvest!"
+    produce: 'food.tomato'
   },
   'food.carrot': {
     id: 'food.carrot',
@@ -1118,8 +1151,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
-    produce: 'food.carrot',
-    description: "Ready to harvest!"
+    produce: 'food.carrot'
   },
   'food.stew': {
     id: 'food.stew',
@@ -1378,8 +1410,7 @@ export const ItemDefs = {
     width: 2,
     height: 1,
     traits: [],
-    categories: [ItemCategory.TOOL],
-    description: 'A portable bedroll for sleeping outdoors.'
+    categories: [ItemCategory.TOOL]
   },
   'bedroll.open': {
     id: 'bedroll.open',
@@ -1390,8 +1421,7 @@ export const ItemDefs = {
     width: 4,
     height: 6,
     traits: [ItemTrait.GROUND_ONLY],
-    categories: [ItemCategory.TOOL],
-    description: 'A comfortable bedroll laid out on the ground.'
+    categories: [ItemCategory.TOOL]
   },
   'placeable.bed': {
     id: 'placeable.bed',
@@ -1403,8 +1433,7 @@ export const ItemDefs = {
     width: 4,
     height: 6,
     traits: [ItemTrait.GROUND_ONLY],
-    categories: [ItemCategory.TOOL],
-    description: 'A comfortable bed for resting.'
+    categories: [ItemCategory.TOOL]
   }
 };
 

@@ -104,7 +104,7 @@ export function ItemContextMenu({
                                 Throw
                             </ContextMenuItem>
                         )}
-                        {item?.defId === 'weapon.shovel' && (
+                        {item?.hasTrait(ItemTrait.CAN_DIG) && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Dig requested for:', item.name);
@@ -190,7 +190,7 @@ export function ItemContextMenu({
                                     onClick={() => {
                                         igniteTorch(item);
                                     }}
-                                    className="hover:bg-accent focus:bg-accent focus:text-white font-bold text-yellow-500"
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
                                 >
                                     Use (Light Torch)
                                 </ContextMenuItem>
@@ -250,7 +250,7 @@ export function ItemContextMenu({
                         {item?.defId === 'placeable.bed' && (
                             <ContextMenuItem
                                 onSelect={() => triggerSleep(1.25)}
-                                className="hover:bg-accent focus:bg-accent focus:text-white font-bold text-indigo-400"
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Sleep
                             </ContextMenuItem>
@@ -259,7 +259,7 @@ export function ItemContextMenu({
                             <>
                                 <ContextMenuItem
                                     onSelect={() => triggerSleep(1.25)}
-                                    className="hover:bg-accent focus:bg-accent focus:text-white font-bold text-green-400"
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
                                 >
                                     Sleep
                                 </ContextMenuItem>
@@ -280,7 +280,7 @@ export function ItemContextMenu({
                             </ContextMenuItem>
                         )}
                         {!canSplit && !canOpenContainer(item) && !item?.isWaterBottle?.() && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && (
-                            <ContextMenuItem disabled className="text-gray-500">
+                            <ContextMenuItem disabled className="text-zinc-500">
                                 No actions available
                             </ContextMenuItem>
                         )}
