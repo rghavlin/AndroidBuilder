@@ -63,7 +63,9 @@ function GameScreenContent() {
     mapTransition,
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel,
-    inventoryManager
+    inventoryManager,
+    isDevConsoleOpen,
+    toggleDevConsole
   } = useGame();
 
   // Hide start menu when initialization starts OR when game is ready (from init or direct load)
@@ -100,6 +102,12 @@ function GameScreenContent() {
     }
   };
 
+  const handleCustomLaunch = async (config: any) => {
+    console.log('[GameScreenContent] 🚀 handleCustomLaunch called from global context');
+    await initializeGame(config);
+    toggleDevConsole(false);
+  };
+
   const handleEndTurn = () => {
     if (isGameReady && endTurn) {
       endTurn();
@@ -118,69 +126,65 @@ function GameScreenContent() {
     }));
   };
 
-  // Show start menu if not initialized or if explicitly showing start menu
-  if (showStartMenu) {
-    return <StartMenu onStartGame={handleStartGame} />;
-  }
-
-  // Show loading if game is not ready
-  if (!isGameReady) {
-    return (
-      <div className="h-screen w-screen bg-background flex items-center justify-center">
-        <div className="text-center p-8">
-          <p className="text-foreground text-xl">Loading game...</p>
-          {initializationError && (
-            <p className="text-red-500 mt-4">Error: {initializationError}</p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Use real game state when available, fallback to demo state
-  const currentStats = isGameReady ? realPlayerStats : playerStats;
-  const currentState = isGameReady ? { ...gameState, turn } : gameState;
-
   return (
     <InventoryProvider manager={inventoryManager}>
       <CombatProvider>
-        <div className="game-container h-screen flex" data-testid="game-screen">
-          {/* Left Side: Map + Controls */}
-          <div className="w-1/2 flex flex-col h-full">
-            <MapInterface gameState={currentState} />
-            <div className="flex-shrink-0">
-              <GameControls
-                playerStats={currentStats}
-                gameState={currentState}
-                onEndTurn={handleEndTurn}
-                onRest={handleRest}
-              />
+        {/* Global Dev Console - Persistent across screens */}
+        {isDevConsoleOpen && (
+            <DevConsole 
+                onClose={() => toggleDevConsole(false)}
+                onLaunch={handleCustomLaunch}
+                isLoading={initializationState !== 'idle' && initializationState !== 'complete' && initializationState !== 'error'}
+            />
+        )}
+
+        {showStartMenu ? (
+          <StartMenu onStartGame={handleStartGame} />
+        ) : !isGameReady ? (
+          <div className="h-screen w-screen bg-background flex items-center justify-center">
+            <div className="text-center p-8">
+              <p className="text-foreground text-xl">Loading game...</p>
+              {initializationError && (
+                <p className="text-red-500 mt-4">Error: {initializationError}</p>
+              )}
             </div>
           </div>
+        ) : (
+          <div className="game-container h-screen flex" data-testid="game-screen">
+            {/* Left Side: Map + Controls */}
+            <div className="w-1/2 flex flex-col h-full">
+              <MapInterface gameState={{ ...gameState, turn }} />
+              <div className="flex-shrink-0">
+                <GameControls
+                  playerStats={isGameReady ? realPlayerStats : playerStats}
+                  gameState={{ ...gameState, turn }}
+                  onEndTurn={handleEndTurn}
+                  onRest={handleRest}
+                />
+              </div>
+            </div>
 
-          {/* Right Side: Inventory (Full Height) */}
-          <InventoryPanel />
+            {/* Right Side: Inventory (Full Height) */}
+            <InventoryPanel />
 
-          {/* Development Console */}
-          <DevConsole />
+            {/* Map Transition Dialog */}
+            {mapTransition && (
+              <MapTransitionDialog
+                open={!!mapTransition}
+                onOpenChange={(open) => !open && handleMapTransitionCancel()}
+                onConfirm={handleMapTransitionConfirmWrapper}
+                direction={mapTransition.direction}
+                currentMapId={worldManager?.currentMapId || 'unknown'}
+                nextMapId={mapTransition.nextMapId}
+              />
+            )}
 
-          {/* Map Transition Dialog */}
-          {mapTransition && (
-            <MapTransitionDialog
-              open={!!mapTransition}
-              onOpenChange={(open) => !open && handleMapTransitionCancel()}
-              onConfirm={handleMapTransitionConfirmWrapper}
-              direction={mapTransition.direction}
-              currentMapId={worldManager?.currentMapId || 'unknown'}
-              nextMapId={mapTransition.nextMapId}
-            />
-          )}
-
-          {/* Sleep Overlay */}
-          <SleepOverlay />
-          {/* Sleep Modal */}
-          <SleepModal />
-        </div>
+            {/* Sleep Overlay */}
+            <SleepOverlay />
+            {/* Sleep Modal */}
+            <SleepModal />
+          </div>
+        )}
       </CombatProvider>
     </InventoryProvider>
   );

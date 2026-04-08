@@ -18,13 +18,14 @@ export default function MapCanvas({
   isTargeting = false,
   isNight = false,
   isFlashlightOn = false,
-  flashlightRange = 8
+  flashlightRange = 8,
+  isAnimatingZombies = false
 }) {
   const canvasRef = useRef(null);
 
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
   const { isInitialized } = useGame(); // Only initialization state from GameContext
-  const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, playerFieldOfView, startAnimatedMovement } = usePlayer();
+  const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, playerFieldOfView, startAnimatedMovement, startAnimatedMovementAsync } = usePlayer();
   const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
   const { effects, addEffect, tick } = useVisualEffects();
@@ -718,8 +719,18 @@ export default function MapCanvas({
             tile.contents.forEach((entity, index) => {
               if (entity.type === 'player' || entity.type === 'item' || entity.type === 'door' || entity.type === 'window' || entity.type === 'place_icon') return;
               
-              // Skip rendering animating zombies here (they will be rendered in the animation pass)
+              // Phase 11 & Animation Bugfix:
+              // 1. Skip rendering zombies that are already in their smooth animation pass
               if (entity.type === 'zombie' && entity.isAnimating) return;
+
+              // 2. Skip rendering zombies whose logical position has changed but are waiting for the animation phase
+              // These will be rendered at their starting positions by the separate "NPCs in transition" pass below
+              if (entity.type === 'zombie' && isAnimatingZombies && entity.movementPath && entity.movementPath.length > 1) {
+                const startPos = entity.movementPath[0];
+                if (startPos.x !== entity.x || startPos.y !== entity.y) {
+                  return;
+                }
+              }
 
               if (isCurrentlyVisible) {
                 const offsetY = index * (tileSize / 8);
@@ -760,6 +771,7 @@ export default function MapCanvas({
       let zombiesAnimatedCount = 0;
 
       allZombies.forEach(zombie => {
+        // Pass A: Individually animating zombies (Smooth interpolation)
         if (zombie.isAnimating && zombie.movementPath && zombie.movementPath.length > 0) {
           zombiesAnimatedCount++;
           const pathProgress = zombie.animationProgress * (zombie.movementPath.length - 1);
@@ -782,6 +794,19 @@ export default function MapCanvas({
                 smoothPixelY >= -tileSize && smoothPixelY <= mapHeight) {
               renderEntity(ctx, zombie, smoothPixelX, smoothPixelY, tileSize, performance.now());
             }
+          }
+        } 
+        // Pass B: Zombies queued for animation (Hold at starting position)
+        // This prevents the "teleportation" look during AI processing
+        else if (isAnimatingZombies && !zombie.isAnimating && zombie.movementPath && zombie.movementPath.length > 1) {
+          const startPos = zombie.movementPath[0];
+          const screenPos = camera.worldToScreen(startPos.x, startPos.y);
+          const startPixelX = screenPos.x * tileSize;
+          const startPixelY = screenPos.y * tileSize;
+          
+          if (startPixelX >= -tileSize && startPixelX <= mapWidth &&
+              startPixelY >= -tileSize && startPixelY <= mapHeight) {
+            renderEntity(ctx, zombie, startPixelX, startPixelY, tileSize, performance.now());
           }
         }
       });
@@ -993,7 +1018,7 @@ export default function MapCanvas({
         // Only trigger movement if the click wasn't handled by MapInterface
         if (!handled) {
           // Call GameMapContext handleTileClick with required parameters
-          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovement, isNight, isFlashlightOn, flashlightRange);
+          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovementAsync, isNight, isFlashlightOn, flashlightRange);
         }
       } else {
         console.log('[MapCanvas] Click outside valid map bounds');
@@ -1001,7 +1026,7 @@ export default function MapCanvas({
     } catch (error) {
       console.error('[MapCanvas] Error handling canvas click:', error);
     }
-  }, [gameMapRef, handleTileClick, calculateTileSize, cameraRef, isDragging, playerRef, isAnimatingMovement, startAnimatedMovement, onCellClick, selectedItem, hasDragged]);
+  }, [gameMapRef, handleTileClick, calculateTileSize, cameraRef, isDragging, playerRef, isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, onCellClick, selectedItem, hasDragged]);
 
   // Handle canvas context menu (right click)
   const handleCanvasContextMenu = useCallback((event) => {

@@ -53,11 +53,13 @@ class GameInitializationManager extends EventEmitter {
     return this.error;
   }
 
-  async startInitialization(postInitCallback = null) {
+  async startInitialization(postInitCallback = null, customConfig = null) {
     if (this.state !== INIT_STATES.IDLE) {
       console.warn('[GameInitializationManager] Cannot start - not in IDLE state');
       return false;
     }
+
+    this.customConfig = customConfig;
 
     try {
       console.log('[GameInitializationManager] Starting initialization sequence...');
@@ -201,6 +203,30 @@ class GameInitializationManager extends EventEmitter {
       console.log(`[GameInitializationManager] - Constructor: ${player.constructor.name}`);
       console.log(`[GameInitializationManager] - Instance hash: ${player.constructor.name}_${player.id}_${Date.now()}`);
       console.log(`[GameInitializationManager] - HP/AP: ${player.hp}/${player.maxHp} HP, ${player.ap}/${player.maxAp} AP`);
+      
+      // Apply Custom Player Stats if provided (Dev Console)
+      if (this.customConfig && this.customConfig.playerConfig) {
+        const pc = this.customConfig.playerConfig;
+        if (pc.meleeKills !== undefined) {
+          player.meleeKills = pc.meleeKills;
+          // Calculate melee level: 0-4: L0, 5-9: L1, 10-19: L2, 20-39: L3, 40-79: L4, 80+: L5
+          let level = 0;
+          while (player.meleeKills >= 5 * Math.pow(2, level)) {
+            level++;
+          }
+          player.meleeLvl = level;
+          console.log(`[GameInitializationManager] Dev: Set Melee Skill to Lvl ${level} (${player.meleeKills} kills)`);
+        }
+        if (pc.rangedKills !== undefined) {
+          player.rangedKills = pc.rangedKills;
+          let level = 0;
+          while (player.rangedKills >= 5 * Math.pow(2, level)) {
+            level++;
+          }
+          player.rangedLvl = level;
+          console.log(`[GameInitializationManager] Dev: Set Ranged Skill to Lvl ${level} (${player.rangedKills} kills)`);
+        }
+      }
 
       // Create camera with proper bounds
       const camera = new Camera(20, 20);
@@ -320,6 +346,12 @@ class GameInitializationManager extends EventEmitter {
   _spawnInitialZombies(gameMap, player) {
     console.log('[GameInitializationManager] Spawning initial zombies using ZombieSpawner');
     
+    // Use custom zombie distribution if provided (Dev Console)
+    if (this.customConfig && this.customConfig.zombieConfig) {
+      console.log('[GameInitializationManager] Using CUSTOM spawn configuration:', this.customConfig.zombieConfig);
+      return ZombieSpawner.spawnZombies(gameMap, player, this.customConfig.zombieConfig);
+    }
+
     // Initial map typically has more zombies or specific distribution
     return ZombieSpawner.spawnZombies(gameMap, player, {
       basicCount: 15,
@@ -335,6 +367,7 @@ class GameInitializationManager extends EventEmitter {
     this.gameObjects = {};
     this.error = null;
     this.preloadData = null;
+    this.customConfig = null;
     this.removeAllListeners();
 
     // Clean up global tracking

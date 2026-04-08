@@ -235,6 +235,7 @@ export class ZombieAI {
             const moveSuccess = gameMap.moveEntity(zombie.id, nextStep.x, nextStep.y);
             if (moveSuccess) {
               zombie.useAP(apCost);
+              zombie.movementPath.push({ x: nextStep.x, y: nextStep.y });
               zombie.lastScentSequence = nextScent.sequence;
               zombie.lastDirection = { x: nextStep.x - originalPos.x, y: nextStep.y - originalPos.y };
               

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
+import { Terminal } from "lucide-react";
+import DevConsole from './DevConsole';
 
 interface StartMenuProps {
   onStartGame: (mode?: boolean | string) => void;
@@ -10,7 +12,7 @@ interface StartMenuProps {
 
 export default function StartMenu({ onStartGame }: StartMenuProps) {
   // Phase 2: Only use GameContext for game lifecycle methods
-  const { loadGame } = useGame();
+  const { loadGame, initializeGame, toggleDevConsole } = useGame();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNewGame = () => {
@@ -27,6 +29,12 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
       onStartGame('load'); // Pass 'load' to indicate we want to load after init
     }
     setIsLoading(false);
+  };
+
+  const handleCustomLaunch = async (config: any) => {
+    // This is now handled by the parent GameScreen, but we keep the prop for internal state if needed
+    // Actually, we should just call the parent's launch if we were still using local state, 
+    // but we are switching strictly to global.
   };
 
   return (
@@ -55,8 +63,25 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
           >
             {isLoading ? 'Loading...' : 'Load Game'}
           </Button>
+
+          <div className="border-t border-border/50 my-2 pt-4">
+            <Button
+              onClick={() => {
+                console.log('[StartMenu] 🖱️ Requesting Dev Console via context');
+                toggleDevConsole(true);
+              }}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 border-primary/30 text-primary/80 hover:text-primary hover:border-primary transition-all"
+              data-testid="button-start-dev-console"
+            >
+              <Terminal className="h-4 w-4" />
+              Dev Console
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+
     </div>
   );
 }

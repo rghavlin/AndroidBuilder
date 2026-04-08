@@ -32,7 +32,7 @@ interface GameControlsProps {
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
-import DevConsole from './DevConsole.jsx';
+import DevConsole from './DevConsole';
 
 export default function GameControls({ playerStats: demoStats, gameState: demoState, onEndTurn: demoEndTurn, onRest }: GameControlsProps) {
   // Phase 1: Direct sub-context access

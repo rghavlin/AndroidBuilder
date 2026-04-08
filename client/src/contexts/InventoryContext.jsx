@@ -109,15 +109,6 @@ export const InventoryProvider = ({ children, manager }) => {
     }
   }, [forceRefresh, manager]); // Re-run when manager instance changes
 
-  // ✅ Handle null manager case AFTER all hooks are declared
-  // Graceful degradation: render children without inventory context until manager exists
-  if (!manager) {
-    if (import.meta?.env?.DEV) {
-      console.warn('[InventoryProvider] No manager available - rendering without inventory context (game will load, inventory disabled until init completes)');
-    }
-    return <>{children}</>; // Pass-through: render app without inventory until manager exists
-  }
-
   // Phase 5A: Accept external manager, never construct internally
   if (!inventoryRef.current && manager) {
     inventoryRef.current = manager;
@@ -1597,6 +1588,10 @@ export const InventoryProvider = ({ children, manager }) => {
       fuelCampfire
     };
   }, [inventoryVersion, dragVersion, setInventory, getContainer, getEquippedBackpackContainer, getEncumbranceModifiers, canOpenContainer, equipItem, unequipItem, destroyItem, moveItem, dropItemToGround, organizeGroundItems, quickPickupByCategory, forceRefresh, openContainers, openContainer, closeContainer, isContainerOpen, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, equipSelectedItem, splitStack, depositSelectedInto, attachSelectedInto, loadAmmoDirectly, attachSelectedItemToWeapon, detachItemFromWeapon, consumeItem, selectedRecipeId, craftItem, clearCraftingArea, cookInCampfire, fuelCampfire]);
+
+  if (!manager) {
+    return <>{children}</>; 
+  }
 
   return (
     <InventoryContext.Provider value={contextValue}>

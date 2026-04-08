@@ -3,14 +3,15 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { X } from "lucide-react";
+import { X, Terminal } from "lucide-react";
+import DevConsole from './DevConsole';
 
 interface MainMenuWindowProps {
     onClose: () => void;
 }
 
 export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
-    const { initializeGame, loadGameDirect } = useGame();
+    const { initializeGame, loadGameDirect, toggleDevConsole } = useGame();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleNewGame = async () => {
@@ -20,6 +21,10 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
         await initializeGame();
         onClose(); // Close menu after action
         setIsLoading(false);
+    };
+
+    const handleCustomLaunch = async (config: any) => {
+        // Now handled by GameScreen global render
     };
 
     const handleLoadGame = async () => {
@@ -71,8 +76,25 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     >
                         {isLoading ? 'Loading...' : 'Load Game'}
                     </Button>
+
+                    <div className="border-t border-border/50 my-2 pt-4">
+                        <Button
+                            onClick={() => {
+                                console.log('[MainMenuWindow] 🖱️ Requesting Dev Console');
+                                toggleDevConsole(true);
+                            }}
+                            variant="outline"
+                            className="w-full flex items-center justify-center gap-2 border-primary/30 text-primary/80 hover:text-primary hover:border-primary transition-all"
+                            data-testid="button-menu-dev-console"
+                        >
+                            <Terminal className="h-4 w-4" />
+                            Dev Console
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
+
+
         </div>
     );
 }

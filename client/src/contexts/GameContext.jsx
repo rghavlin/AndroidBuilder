@@ -38,6 +38,8 @@ export const useGame = () => {
         turn: 1,
         isPlayerTurn: true,
         isAutosaving: false,
+        isDevConsoleOpen: false,
+        toggleDevConsole: () => { },
         initializeGame: () => { },
         endTurn: () => { },
         saveGame: () => { },
@@ -115,6 +117,12 @@ const GameContextInner = ({ children }) => {
     return 8;
   }, [inventoryManager, inventoryVersion]);
 
+
+  const [isDevConsoleOpen, setIsDevConsoleOpen] = useState(false);
+
+  const toggleDevConsole = useCallback((open = null) => {
+    setIsDevConsoleOpen(prev => open === null ? !prev : open);
+  }, []);
 
   /**
    * Centralized helper to check for zombies spotting the player.
@@ -610,13 +618,17 @@ const GameContextInner = ({ children }) => {
     }
   }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
-  const initializeGame = useCallback(async () => {
+  const initializeGame = useCallback(async (config = null) => {
+    console.log('[GameContext] 🎮 initializeGame called with config:', !!config);
+    setIsGameReady(false); // FORCED IMMEDIATE STATE RESET
+    
     if (!initManagerRef.current) {
       console.error('[GameContext] GameInitializationManager not available');
       return false;
     }
 
     const now = initRef.current; // Use ref, not captured state
+    console.log('[GameContext] Current initialization state:', now);
 
     // Block if actively initializing
     if (now === 'preloading' || now === 'core_setup' || now === 'world_population') {
@@ -646,7 +658,7 @@ const GameContextInner = ({ children }) => {
     setTurn(1); // Reset turn counter to 1 for new game (06:00 start)
     clearLogs(); // Clear log from previous game
 
-    const success = await initManagerRef.current.startInitialization(null);
+    const success = await initManagerRef.current.startInitialization(null, config);
     if (!success) {
       const error = initManagerRef.current.getError();
       setInitializationError(error || 'Unknown initialization error');
@@ -1408,6 +1420,7 @@ const GameContextInner = ({ children }) => {
         if (movedNPCs.length > 0) {
           console.log(`[GameContext] ${movedNPCs.length} NPCs moved, but none are currently visible in FOV`);
         }
+        setIsAnimatingZombies(false);
         resolve();
         return;
       }
@@ -1444,9 +1457,13 @@ const GameContextInner = ({ children }) => {
           requestAnimationFrame(animate);
         } else {
           // Animation complete
-          animatingNPCs.forEach(n => {
+          npcs.forEach(n => {
             n.isAnimating = false;
             n.animationProgress = 0;
+            // Clear movement path after animation to prevent snap-back on future frames
+            if (n.movementPath && n.movementPath.length > 1) {
+              n.movementPath = [{ x: n.x, y: n.y }];
+            }
           });
           setIsAnimatingZombies(false);
           resolve();
@@ -1510,6 +1527,13 @@ const GameContextInner = ({ children }) => {
 
       const zombies = gameMap.getEntitiesByType('zombie');
       console.log(`[GameContext] Processing ${zombies.length} zombie turns`);
+
+      // Phase 11 & Animation Bugfix: Lock animations globally during turn processing
+      setIsAnimatingZombies(true);
+
+      // Give React a chance to render the animation lock before logical map mutations occur.
+      // This prevents the 'flash' of the final destination during AI calculation.
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       const immediateActions = []; // Actions for stationary zombies (attack now)
       const delayedActions = [];   // Actions for moving zombies (attack after move)
@@ -1960,6 +1984,8 @@ const GameContextInner = ({ children }) => {
     isAutosaving,
     isSkillsOpen,
     toggleSkills,
+    isDevConsoleOpen,
+    toggleDevConsole,
 
     // Orchestration functions only
     initializeGame,
@@ -2016,9 +2042,12 @@ const GameContextInner = ({ children }) => {
     toggleFlashlight,
     igniteTorch,
     isPlayerTurn,
+    isAnimatingZombies,
     isAutosaving,
     isSkillsOpen,
     toggleSkills,
+    isDevConsoleOpen,
+    toggleDevConsole,
     initializeGame,
     endTurn,
     spawnTestEntities,

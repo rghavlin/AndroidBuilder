@@ -228,8 +228,8 @@ export const GameMapProvider = ({ children }) => {
       // Check path for zombie visibility changes
       checkPathForZombieVisibility(path, player);
 
-      // Start animated movement
-      startAnimatedMovement(gameMapRef.current, camera, path, movementCost, isNight, isFlashlightOn, flashlightRange);
+      // Start animated movement and WAIT for it to complete
+      await startAnimatedMovement(gameMapRef.current, camera, path, movementCost, isNight, isFlashlightOn, flashlightRange);
 
       // Check for map transitions after movement completes (no timer - immediate check)
       const finalTile = gameMapRef.current.getTile(x, y);

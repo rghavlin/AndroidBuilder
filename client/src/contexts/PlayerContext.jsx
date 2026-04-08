@@ -295,7 +295,7 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   // Smooth animation function using requestAnimationFrame
-  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
+  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false, flashlightRange = 8, onComplete = null) => {
     if (!playerRef.current || !gameMap || !camera) {
       setIsMoving(false);
       setMovementPath([]);
@@ -495,6 +495,9 @@ export const PlayerProvider = ({ children }) => {
         setMovementPath([]);
         setMovementProgress(0);
         animationFrameRef.current = null;
+        
+        // Invoke completion callback
+        if (onComplete) onComplete();
       }
     };
 
@@ -529,6 +532,53 @@ export const PlayerProvider = ({ children }) => {
     setMovementPath(path);
     setMovementProgress(0);
     smoothAnimateMovement(gameMap, camera, path, startTime, 1500, isNight, isFlashlightOn, flashlightRange);
+  }, [smoothAnimateMovement]);
+
+  /** 
+   * NEW: Async version of startAnimatedMovement that returns a promise
+   * This is used by GameMapContext to wait for movement before triggering transitions.
+   */
+  const startAnimatedMovementAsync = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
+    return new Promise((resolve) => {
+      if (!playerRef.current || !gameMap || !camera) {
+        resolve();
+        return;
+      }
+
+      console.log(`[PlayerContext] Starting async animated movement to (${path[path.length - 1].x}, ${path[path.length - 1].y})`);
+
+      // Consume AP
+      playerRef.current.useAP(cost);
+      setPlayerStats(prev => ({ ...prev, ap: playerRef.current.ap }));
+
+      // Set movement state
+      setIsMoving(true);
+      setMovementPath(path);
+      setMovementProgress(0);
+
+      // Update camera immediately to follow start of path
+      const startPosition = path[0];
+      camera.centerOn(startPosition.x, startPosition.y);
+
+      // Start smooth animation
+      const startTime = performance.now();
+      GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
+      
+      smoothAnimateMovement(
+        gameMap, 
+        camera, 
+        path, 
+        startTime, 
+        1500, 
+        isNight, 
+        isFlashlightOn, 
+        flashlightRange,
+        () => {
+          console.log('[PlayerContext] Async animated movement completed');
+          resolve();
+        }
+      );
+    });
   }, [smoothAnimateMovement]);
 
   // Calculate player render position for animation
@@ -620,6 +670,7 @@ export const PlayerProvider = ({ children }) => {
     updatePlayerStats,
     setupPlayerEventListeners,
     startAnimatedMovement,
+    startAnimatedMovementAsync,
     cancelMovement,
     updatePlayerFieldOfView,
     updatePlayerCardinalPositions,
@@ -639,6 +690,7 @@ export const PlayerProvider = ({ children }) => {
     updatePlayerStats,
     setupPlayerEventListeners,
     startAnimatedMovement,
+    startAnimatedMovementAsync,
     cancelMovement,
     updatePlayerFieldOfView,
     updatePlayerCardinalPositions,
