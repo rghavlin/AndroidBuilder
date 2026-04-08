@@ -118,12 +118,6 @@ const GameContextInner = ({ children }) => {
   }, [inventoryManager, inventoryVersion]);
 
 
-  const [isDevConsoleOpen, setIsDevConsoleOpen] = useState(false);
-
-  const toggleDevConsole = useCallback((open = null) => {
-    setIsDevConsoleOpen(prev => open === null ? !prev : open);
-  }, []);
-
   /**
    * Centralized helper to check for zombies spotting the player.
    * Updates zombie 'isAlerted' state and emits ZOMBIE_ALERTED events.
@@ -667,6 +661,17 @@ const GameContextInner = ({ children }) => {
 
     return true;
   }, [wireManagerEvents]);
+
+  // Decoupled Console Bridge: Listen for launch commands from the root UI layer
+  useEffect(() => {
+    const handleLaunch = (e) => {
+      console.log('[GameContext] 🛰️ Global launch-custom-game event received. Config:', !!e.detail);
+      initializeGame(e.detail);
+    };
+
+    window.addEventListener('launch-custom-game', handleLaunch);
+    return () => window.removeEventListener('launch-custom-game', handleLaunch);
+  }, [initializeGame]);
 
 
 
@@ -1984,8 +1989,6 @@ const GameContextInner = ({ children }) => {
     isAutosaving,
     isSkillsOpen,
     toggleSkills,
-    isDevConsoleOpen,
-    toggleDevConsole,
 
     // Orchestration functions only
     initializeGame,
@@ -2046,8 +2049,6 @@ const GameContextInner = ({ children }) => {
     isAutosaving,
     isSkillsOpen,
     toggleSkills,
-    isDevConsoleOpen,
-    toggleDevConsole,
     initializeGame,
     endTurn,
     spawnTestEntities,

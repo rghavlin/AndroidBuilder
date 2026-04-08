@@ -10,7 +10,6 @@ import GameControls from './GameControls';
 import StartMenu from './StartMenu';
 import { useWindowSize } from "@/hooks/useWindowSize";
 import { GameErrorBoundary } from './ErrorBoundary.tsx';
-import DevConsole from './DevConsole';
 import { MapTransitionDialog } from './MapTransitionDialog';
 import SleepOverlay from './SleepOverlay';
 import SleepModal from './SleepModal';
@@ -63,9 +62,7 @@ function GameScreenContent() {
     mapTransition,
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel,
-    inventoryManager,
-    isDevConsoleOpen,
-    toggleDevConsole
+    inventoryManager
   } = useGame();
 
   // Hide start menu when initialization starts OR when game is ready (from init or direct load)
@@ -102,12 +99,6 @@ function GameScreenContent() {
     }
   };
 
-  const handleCustomLaunch = async (config: any) => {
-    console.log('[GameScreenContent] 🚀 handleCustomLaunch called from global context');
-    await initializeGame(config);
-    toggleDevConsole(false);
-  };
-
   const handleEndTurn = () => {
     if (isGameReady && endTurn) {
       endTurn();
@@ -129,15 +120,6 @@ function GameScreenContent() {
   return (
     <InventoryProvider manager={inventoryManager}>
       <CombatProvider>
-        {/* Global Dev Console - Persistent across screens */}
-        {isDevConsoleOpen && (
-            <DevConsole 
-                onClose={() => toggleDevConsole(false)}
-                onLaunch={handleCustomLaunch}
-                isLoading={initializationState !== 'idle' && initializationState !== 'complete' && initializationState !== 'error'}
-            />
-        )}
-
         {showStartMenu ? (
           <StartMenu onStartGame={handleStartGame} />
         ) : !isGameReady ? (

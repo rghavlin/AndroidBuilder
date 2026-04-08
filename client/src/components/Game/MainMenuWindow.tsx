@@ -4,14 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
 import { X, Terminal } from "lucide-react";
-import DevConsole from './DevConsole';
 
 interface MainMenuWindowProps {
     onClose: () => void;
 }
 
 export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
-    const { initializeGame, loadGameDirect, toggleDevConsole } = useGame();
+    const { initializeGame, loadGameDirect } = useGame();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleNewGame = async () => {
@@ -80,8 +79,8 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     <div className="border-t border-border/50 my-2 pt-4">
                         <Button
                             onClick={() => {
-                                console.log('[MainMenuWindow] 🖱️ Requesting Dev Console');
-                                toggleDevConsole(true);
+                                console.log('[MainMenuWindow] 🖱️ Requesting Dev Console via global event');
+                                window.dispatchEvent(new CustomEvent('toggle-dev-console', { detail: true }));
                             }}
                             variant="outline"
                             className="w-full flex items-center justify-center gap-2 border-primary/30 text-primary/80 hover:text-primary hover:border-primary transition-all"
