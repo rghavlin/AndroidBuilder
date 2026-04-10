@@ -14,7 +14,7 @@ import CampfireUI from "./CampfireUI";
 export default function InventoryPanel() {
   console.log('[InventoryPanel] ===== COMPONENT MOUNT/RENDER =====');
 
-  const { openContainers, closeContainer, getContainer, inventoryVersion, inventoryRef } = useInventory();
+  const { openContainers, closeContainer, getContainer, inventoryVersion, inventoryManager } = useInventory();
 
   // Clean up containers that no longer exist
   useEffect(() => {
@@ -52,7 +52,7 @@ export default function InventoryPanel() {
           if (containerId.startsWith('clothing:')) {
             const itemId = containerId.split(':')[1];
             // Try ground first, then everywhere via manager
-            const found = inventoryRef.current?.findItem(itemId);
+            const found = inventoryManager?.findItem(itemId);
             const item = found?.item;
 
             if (!item || !item.getPocketContainers) return null;
@@ -90,7 +90,7 @@ export default function InventoryPanel() {
           // Case 2: Weapon Modification (Virtual Container)
           if (containerId.startsWith('weapon:')) {
             const itemId = containerId.split(':')[1];
-            const found = inventoryRef.current?.findItem(itemId);
+            const found = inventoryManager?.findItem(itemId);
             const item = found?.item;
 
             if (!item || !item.attachmentSlots) return null;
@@ -115,7 +115,7 @@ export default function InventoryPanel() {
           // SPECIAL CASE: Campfire UI
           if (containerId.endsWith('-container')) {
             const instanceId = containerId.replace('-container', '');
-            const found = inventoryRef.current?.findItem(instanceId);
+            const found = inventoryManager?.findItem(instanceId);
             if (found && found.item && found.item.defId === 'placeable.campfire') {
               return (
                 <FloatingContainer

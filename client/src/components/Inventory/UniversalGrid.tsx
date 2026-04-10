@@ -97,40 +97,33 @@ export default function UniversalGrid({
   useEffect(() => {
     const loadImages = async () => {
       const imageMap = new Map<string, string>();
+      
+      const itemsToProcess = items instanceof Map ? items : new Map(Object.entries(items || {}));
 
-      console.debug(`[UniversalGrid] Loading images for ${items.size} items in container ${containerId}`);
-
-      for (const [mapKey, item] of items.entries()) {
-        console.debug(`[UniversalGrid] Item Map entry - key: ${mapKey}, item.instanceId: ${item.instanceId}, item.id: ${item.id}, item.name: ${item.name}`);
-
-        if (item.imageId) {
-          try {
-            const img = await imageLoader.getItemImage(item.imageId);
-            if (img) {
-              // CRITICAL: Store using the Map key (which should be instanceId)
-              imageMap.set(mapKey, img.src);
-              console.debug(`[UniversalGrid] Stored image for key: ${mapKey}`);
-            }
-          } catch (error) {
-            console.warn('[UniversalGrid] Failed to load image for item:', item.name, error);
+      for (const [instanceId, item] of Array.from(itemsToProcess.entries())) {
+        try {
+          const imageId = item.imageId || item.defId;
+          const img = await imageLoader.getItemImage(imageId);
+          if (img) {
+            imageMap.set(instanceId, img.src);
           }
+        } catch (error) {
+          console.warn('[UniversalGrid] Failed to load image for item:', item.name, error);
         }
       }
-
-      console.debug(`[UniversalGrid] Image map populated with ${imageMap.size} images`);
       setItemImages(imageMap);
     };
-
-    if (items.size > 0) {
-      loadImages();
-    } else {
-      // Clear images when container is empty
-      setItemImages(new Map());
-    }
-  }, [inventoryVersion, containerId]); // Use inventoryVersion for stable dependency
+    loadImages();
+  }, [items, inventoryVersion]);
 
 
   const handleItemClick = (item: any, x: number, y: number, event: React.MouseEvent) => {
+    console.warn('[UniversalGrid] handleItemClick triggered:', { 
+      containerId, 
+      itemId: item?.instanceId, 
+      x, y, 
+      hasSelectedItem: !!selectedItem 
+    });
     event.preventDefault();
     event.stopPropagation();
 
@@ -456,6 +449,11 @@ export default function UniversalGrid({
   const renderGrid = () => {
     const overlays: JSX.Element[] = [];
 
+    const handleGridContainerClick = (e: React.MouseEvent) => {
+      // Prevent clicks in the gaps between slots from bubbling to the map
+      e.stopPropagation();
+    };
+
     const gridSlots = Array.from({ length: totalSlots }, (_, index) => {
       const x = index % width;
       const y = Math.floor(index / width);
@@ -565,6 +563,8 @@ export default function UniversalGrid({
                 "absolute pointer-events-none select-none z-10 border border-white/20",
                 isItemSelected && "border-white/10"
               )}
+              onClick={handleGridContainerClick}
+              data-inventory-ui="true"
               style={{
                 left: `${leftPos}px`,
                 top: `${topPos}px`,
@@ -689,6 +689,7 @@ export default function UniversalGrid({
           onMouseLeave={() => setPreviewOverlay(null)}
           onContextMenu={handleGridContextMenu}
           data-testid={testId || `grid-${containerId}`}
+          data-inventory-ui="true"
         >
           {gridSlots}
         </div>

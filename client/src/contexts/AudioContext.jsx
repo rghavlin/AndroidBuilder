@@ -17,6 +17,7 @@ export const useAudio = () => {
  */
 export const AudioProvider = ({ children }) => {
   const soundsLoadedRef = useRef(false);
+  const isFootstepLoopActive = useRef(false);
 
   // Preload common sounds
   useEffect(() => {
@@ -93,13 +94,15 @@ export const AudioProvider = ({ children }) => {
     };
 
     const handlePlayerMove = (data) => {
-      if (data.start) {
+      if (data.start && !isFootstepLoopActive.current) {
         audioManager.playSound('Footsteps', { loop: true, volume: 1.0 });
+        isFootstepLoopActive.current = true;
       }
     };
 
     const handlePlayerMoveEnded = () => {
       audioManager.stopSound('Footsteps');
+      isFootstepLoopActive.current = false;
     };
 
     const handleZombieWait = () => {
@@ -110,6 +113,62 @@ export const AudioProvider = ({ children }) => {
       audioManager.playSound('Zombie1', { volume: 0.15 });
     };
 
+    const handlePlayerAttack = (data) => {
+      if (!data.hit) {
+        audioManager.playSound('Miss');
+        return;
+      }
+
+      if (data.weaponType === 'ranged') {
+        const soundMap = {
+          'pistol': 'PistolShot',
+          'weapon.9mmPistol': 'PistolShot',
+          'weapon.357Pistol': 'PistolShot',
+          'weapon.shotgun': 'ShotgunShot',
+          'weapon.hunting_rifle': 'RifleShot',
+          'weapon.sniper_rifle': 'RifleShot',
+          'weapon.shotgun_sling': 'SlingShot'
+        };
+        audioManager.playSound(soundMap[data.weaponId] || 'PistolShot');
+      } else {
+        audioManager.playSound('MeleeHit');
+      }
+    };
+
+    const handleZombieDamage = (data) => {
+      if (data.isKillingBlow) {
+        audioManager.playSound('DeathBlow');
+      } else {
+        // We could play a zombie pain sound here if we had one, 
+        // but for now CombatContext used to play DeathBlow or MeleeHit.
+        // We'll stick to consistency.
+      }
+    };
+
+    const handlePlayerHeal = () => {
+      audioManager.playSound('Heal');
+    };
+
+    const handlePlayerDamage = () => {
+      audioManager.playSound('Miss'); // Using 'Miss' as a generic impact sound for now, or could use a new one
+    };
+
+    const handleNoiseEmitted = (data) => {
+      if (data.type === 'explosion') {
+        audioManager.playSound('Bang1', { volume: 1.0 }); // Using Bang1 as explosion for now
+      }
+    };
+
+    const handleItemEquipped = (data) => {
+      console.log('[AudioContext] 🔊 ITEM_EQUIPPED event received:', data);
+      audioManager.playSound('Equip');
+    };
+
+    const handleItemUnequipped = (data) => {
+       console.log('[AudioContext] 🔊 ITEM_UNEQUIPPED event received:', data);
+      audioManager.playSound('Equip'); // Using same sound for unequip for now
+    };
+
     GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK_RESULT, handleZombieAttackResult);
     GameEvents.on(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
     GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
@@ -118,6 +177,13 @@ export const AudioProvider = ({ children }) => {
     GameEvents.on(GAME_EVENT.WINDOW_SMASH, handleWindowSmash);
     GameEvents.on(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, handlePlayerMoveEnded);
+    GameEvents.on(GAME_EVENT.PLAYER_ATTACK, handlePlayerAttack);
+    GameEvents.on(GAME_EVENT.ZOMBIE_DAMAGE, handleZombieDamage);
+    GameEvents.on(GAME_EVENT.PLAYER_HEAL, handlePlayerHeal);
+    GameEvents.on(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
+    GameEvents.on(GAME_EVENT.NOISE_EMITTED, handleNoiseEmitted);
+    GameEvents.on(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
+    GameEvents.on(GAME_EVENT.ITEM_UNEQUIPPED, handleItemUnequipped);
 
     return () => {
       GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK_RESULT, handleZombieAttackResult);
@@ -128,6 +194,13 @@ export const AudioProvider = ({ children }) => {
       GameEvents.off(GAME_EVENT.WINDOW_SMASH, handleWindowSmash);
       GameEvents.off(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
       GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, handlePlayerMoveEnded);
+      GameEvents.off(GAME_EVENT.PLAYER_ATTACK, handlePlayerAttack);
+      GameEvents.off(GAME_EVENT.ZOMBIE_DAMAGE, handleZombieDamage);
+      GameEvents.off(GAME_EVENT.PLAYER_HEAL, handlePlayerHeal);
+      GameEvents.off(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
+      GameEvents.off(GAME_EVENT.NOISE_EMITTED, handleNoiseEmitted);
+      GameEvents.off(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
+      GameEvents.off(GAME_EVENT.ITEM_UNEQUIPPED, handleItemUnequipped);
     };
   }, []);
 

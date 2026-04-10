@@ -12,6 +12,7 @@ export const GAME_EVENT = {
   ZOMBIE_WANDER: 'zombie_wander',
   ZOMBIE_ALERTED: 'zombie_alerted',
   ZOMBIE_WAIT: 'zombie_wait',
+  ZOMBIE_DAMAGE: 'zombie_damage',
   
   // Structure Interactions
   DOOR_BANG: 'door_bang',
@@ -29,7 +30,11 @@ export const GAME_EVENT = {
   // Environmental
   NOISE_EMITTED: 'noise_emitted',
   TURN_STARTED: 'turn_started',
-  TURN_ENDED: 'turn_ended'
+  TURN_ENDED: 'turn_ended',
+  
+  // Inventory
+  ITEM_EQUIPPED: 'item_equipped',
+  ITEM_UNEQUIPPED: 'item_unequipped'
 };
 
 /**

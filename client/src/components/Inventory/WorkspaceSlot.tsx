@@ -75,6 +75,7 @@ export default function WorkspaceSlot({
                         className
                     )}
                     onClick={handleClick}
+                    data-inventory-ui="true"
                 >
                     {item ? (
                         <>

@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
-import { Pathfinding } from '../game/utils/Pathfinding.js';
 import { ScentTrail } from '../game/utils/ScentTrail.js';
 import Logger from '../game/utils/Logger.js';
-import { SafeEventEmitter } from '../game/utils/SafeEventEmitter.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import engine from '../game/GameEngine.js';
 
 const logger = Logger.scope('PlayerContext');
 
@@ -16,7 +15,6 @@ export const usePlayer = () => {
     if (process.env.NODE_ENV === 'development') {
       console.warn('[usePlayer] Context not available during hot reload, providing fallback');
       return {
-        playerRef: { current: null },
         player: null,
         playerStats: { 
           hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
@@ -47,656 +45,316 @@ export const usePlayer = () => {
 };
 
 export const PlayerProvider = ({ children }) => {
-  // Player refs and state
-  const playerRef = useRef(null);
-  const playerCardinalPositionsRef = useRef([]);
-  const animationFrameRef = useRef(null);
-  const [playerVersion, setPlayerVersion] = useState(0);
+  // Bridge to engine singleton
+  const playerRef = useRef(engine.player);
 
-  // Player state
-  const [playerStats, setPlayerStats] = useState({ 
-    hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
-    nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
-    energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
-    meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
-    craftingApUsed: 0, craftingLvl: 0
-  });
+  // Logic Migrated to GameEngine: playerRef moved to engine.player
+  const enginePulse = useSyncExternalStore(
+    (cb) => engine.subscribe(cb),
+    () => engine.getSnapshot()
+  );
+  const initializedRef = useRef(false);
+  
   const [isMoving, setIsMoving] = useState(false);
+  const isMovingRef = useRef(false);
   const [movementPath, setMovementPath] = useState([]);
   const [movementProgress, setMovementProgress] = useState(0);
   const [playerFieldOfView, setPlayerFieldOfView] = useState(null);
+  const [playerCardinalPositions, setPlayerCardinalPositions] = useState([]);
 
-  // Set player ref with version bump (Phase 1 migration pattern)
-  const setPlayerRef = useCallback((player) => {
-    console.log('[PlayerContext] 🎮 SETTING PLAYER REFERENCE (version pattern):');
-    if (playerRef.current && playerRef.current !== player) {
-      console.error('[PlayerContext] 🚨 REPLACING EXISTING PLAYER! This indicates multiple initialization!');
-      console.error('[PlayerContext] - Old player:', playerRef.current ? `${playerRef.current.id} at (${playerRef.current.x}, ${playerRef.current.y})` : 'null');
-      console.error('[PlayerContext] - New player:', player ? `${player.id} at (${player.x}, ${player.y})` : 'null');
-      console.error('[PlayerContext] - Same instance?', playerRef.current === player ? 'YES' : 'NO');
+  // Phase 3: Single source of truth for stats
+  const playerStats = useMemo(() => {
+    const player = engine.player;
+    if (!player) return {
+      hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
+      nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
+      energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
+      meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
+      craftingApUsed: 0, craftingLvl: 0
+    };
+
+    return {
+      hp: player.hp,
+      maxHp: player.maxHp,
+      ap: player.ap,
+      maxAp: player.maxAp,
+      nutrition: player.nutrition,
+      maxNutrition: player.maxNutrition,
+      hydration: player.hydration,
+      maxHydration: player.maxHydration,
+      energy: player.energy,
+      maxEnergy: player.maxEnergy,
+      condition: player.condition,
+      isBleeding: player.isBleeding,
+      meleeKills: player.meleeKills,
+      meleeLvl: player.meleeLvl,
+      rangedKills: player.rangedKills,
+      rangedLvl: player.rangedLvl,
+      craftingApUsed: player.craftingApUsed,
+      craftingLvl: player.craftingLvl,
+      ammo: 0 // Legacy
+    };
+  }, [enginePulse]);
+
+  // Sync ref whenever engine updates
+  useEffect(() => {
+    playerRef.current = engine.player;
+  }, [enginePulse]);
+  
+  // Monitor heartbeat in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && enginePulse > 0) {
+      console.log(`[PlayerContext] 💓 Heartbeat #${enginePulse} - Stats: AP ${engine.player?.ap}, HP ${engine.player?.hp}`);
     }
+  }, [enginePulse]);
 
-    playerRef.current = player;
-    setPlayerVersion(prev => prev + 1);
-    console.log('[PlayerContext] 📦 Player version bumped to trigger re-renders');
-
-    if (player) {
-      console.log('[PlayerContext] ✅ Player reference set:', `${player.id} at (${player.x}, ${player.y})`);
-      console.log('[PlayerContext] - Player constructor:', player.constructor.name);
-      console.log('[PlayerContext] - HP/AP:', `${player.hp}/${player.maxHp} HP, ${player.ap}/${player.maxAp} AP`);
-
-      setPlayerStats({
-        hp: player.hp,
-        maxHp: player.maxHp,
-        ap: player.ap,
-        maxAp: player.maxAp,
-        nutrition: player.nutrition || 25,
-        maxNutrition: player.maxNutrition || 25,
-        hydration: player.hydration || 25,
-        maxHydration: player.maxHydration || 25,
-        energy: player.energy || 25,
-        maxEnergy: player.maxEnergy || 25,
-        condition: player.condition || 'Normal',
-        isBleeding: player.isBleeding || false,
-        ammo: 0,
-        meleeKills: player.meleeKills || 0,
-        meleeLvl: player.meleeLvl !== undefined ? player.meleeLvl : 0,
-        rangedKills: player.rangedKills || 0,
-        rangedLvl: player.rangedLvl !== undefined ? player.rangedLvl : 0,
-        craftingApUsed: player.craftingApUsed || 0,
-        craftingLvl: player.craftingLvl !== undefined ? player.craftingLvl : 0
-      });
-    } else {
-      console.log('[PlayerContext] ❌ Player reference set to null');
-    }
-  }, []);
-
-  // Legacy setPlayer method (backward compatibility)
-  const setPlayer = useCallback((player) => {
-    console.log('[PlayerContext] 🔄 Legacy setPlayer called, delegating to setPlayerRef');
-    setPlayerRef(player);
-  }, [setPlayerRef]);
-
-  // Set player position (used during map transitions)
+  // Update position (Legacy compatibility for map transitions)
   const setPlayerPosition = useCallback((x, y) => {
-    if (playerRef.current) {
-      console.log(`[PlayerContext] Setting player position from (${playerRef.current.x}, ${playerRef.current.y}) to (${x}, ${y})`);
-      playerRef.current.x = x;
-      playerRef.current.y = y;
+    if (engine.player) {
+      engine.player.x = x;
+      engine.player.y = y;
+      engine.notifyUpdate();
     }
-  }, []);
-
-  // Update player stats from external source
-  const updatePlayerStats = useCallback((newStats) => {
-    setPlayerStats(prev => ({ ...prev, ...newStats }));
   }, []);
 
   /**
    * Record a kill for a specific weapon type and handle leveling
+   * Logic moved to Player.js class.
    */
   const recordKill = useCallback((type) => {
-    const isMelee = type === 'melee';
-    const currentKills = isMelee ? playerStats.meleeKills : playerStats.rangedKills;
-    const currentLevel = isMelee ? playerStats.meleeLvl : playerStats.rangedLvl;
-    
-    const updatedKills = currentKills + 1;
-    const nextMilestone = 5 * Math.pow(2, currentLevel);
-    
-    const leveledUp = updatedKills >= nextMilestone;
-    const newLevel = leveledUp ? currentLevel + 1 : currentLevel;
-
-    setPlayerStats(prev => ({
-      ...prev,
-      [isMelee ? 'meleeKills' : 'rangedKills']: updatedKills,
-      [isMelee ? 'meleeLvl' : 'rangedLvl']: newLevel
-    }));
-
-    // Sync to actual player instance if exists
-    if (playerRef.current) {
-      if (isMelee) {
-        playerRef.current.meleeLvl = newLevel;
-        playerRef.current.meleeKills = updatedKills;
-      } else {
-        playerRef.current.rangedLvl = newLevel;
-        playerRef.current.rangedKills = updatedKills;
-      }
-    }
-
-    return leveledUp ? newLevel : null;
-  }, [playerStats, playerRef]);
-
-  // Setup player event listeners
-  const setupPlayerEventListeners = useCallback(() => {
-    const player = playerRef.current;
-    if (!player) return;
-
-    // Remove any existing listeners to prevent duplicates
-    player.removeAllListeners();
-
-    // Set up fresh event listeners
-    const handleAPUsed = () => {
-      setPlayerStats(prev => ({ ...prev, ap: player.ap }));
-    };
-    const handleAPRestored = () => {
-      setPlayerStats(prev => ({ ...prev, ap: player.ap }));
-    };
-    const handleDamage = () => {
-      setPlayerStats(prev => ({ ...prev, hp: player.hp }));
-    };
-    const handleHealing = () => {
-      setPlayerStats(prev => ({ ...prev, hp: player.hp }));
-    };
-    const handleStatChanged = (data) => {
-      setPlayerStats(prev => ({ ...prev, [data.stat]: data.current }));
-    };
-
-    player.on('apUsed', handleAPUsed);
-    player.on('apRestored', handleAPRestored);
-    player.on('damageTaken', handleDamage);
-    player.on('healed', handleHealing);
-    player.on('statChanged', handleStatChanged);
-
-    console.log('[PlayerContext] Event listeners set up for player');
+    if (!engine.player) return null;
+    const result = engine.player.recordKill(type);
+    engine.notifyUpdate();
+    return result;
   }, []);
 
   // Calculate and cache player cardinal positions
   const updatePlayerCardinalPositions = useCallback((gameMap) => {
-    if (!playerRef.current || !gameMap) return;
+    if (!engine.player || !gameMap) return;
 
-    const player = playerRef.current;
-    const cardinalPositions = [
+    const player = engine.player;
+    const positions = [
       { x: player.x + 1, y: player.y, direction: 'right' },
       { x: player.x - 1, y: player.y, direction: 'left' },
       { x: player.x, y: player.y + 1, direction: 'down' },
       { x: player.x, y: player.y - 1, direction: 'up' }
-    ];
-
-    // Evaluate each position for accessibility and occupancy
-    const evaluatedPositions = cardinalPositions.map(pos => {
+    ].map(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
-      const isPassable = tile && !tile.contents.some(entity => entity.blocksMovement) &&
+      const isPassable = tile && !tile.contents.some(e => e.blocksMovement) &&
         !['wall', 'building', 'fence', 'tree'].includes(tile.terrain);
-      const hasZombie = tile && tile.contents.some(entity => entity.type === 'zombie');
-      const zombieId = hasZombie ? tile.contents.find(entity => entity.type === 'zombie')?.id : null;
+      const hasZombie = tile && tile.contents.some(e => e.type === 'zombie');
+      const zombieId = hasZombie ? tile.contents.find(e => e.type === 'zombie')?.id : null;
 
       return {
         ...pos,
         isPassable,
         hasZombie,
         zombieId,
-        priority: isPassable ? (hasZombie ? 2 : 1) : 3 // 1=available, 2=occupied, 3=blocked
+        priority: isPassable ? (hasZombie ? 2 : 1) : 3
       };
-    });
+    }).sort((a, b) => a.priority - b.priority);
 
-    // Sort by priority (available positions first)
-    evaluatedPositions.sort((a, b) => a.priority - b.priority);
-
-    playerCardinalPositionsRef.current = evaluatedPositions;
-
-    logger.debug('Updated player cardinal positions:', evaluatedPositions.map(p =>
-      `${p.direction}(${p.x},${p.y}): ${p.priority === 1 ? 'available' : p.priority === 2 ? 'occupied' : 'blocked'}`
-    ));
+    setPlayerCardinalPositions(positions);
   }, []);
 
   // Get player cardinal positions
-  const getPlayerCardinalPositions = useCallback(() => {
-    return playerCardinalPositionsRef.current;
-  }, []);
+  const getPlayerCardinalPositions = useCallback(() => playerCardinalPositions, [playerCardinalPositions]);
 
   // Update player field of view
   const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false, isAimingWithScope = false, flashlightRange = 8) => {
-    if (!gameMap || !playerRef.current) {
+    if (!gameMap || !engine.player) {
       setPlayerFieldOfView([]);
       return [];
     }
 
     try {
-      const player = playerRef.current;
-
-      // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
+      const player = engine.player;
       let maxRange = isNight ? (isFlashlightOn ? (flashlightRange) : 1.5) : 15;
+      if (isAimingWithScope) maxRange = 20;
 
-      // Scoped aiming boost
-      if (isAimingWithScope) {
-        maxRange = 20;
-      }
-
-      // Calculate field of view using LineOfSight
       const fovData = LineOfSight.calculateFieldOfView(gameMap, player, {
-        maxRange: maxRange, // Player sight range adjusted for lighting
-        ignoreTerrain: [], // Player can't see through walls
-        ignoreEntities: [player.id] // Don't include player in entity blocking
+        maxRange,
+        ignoreTerrain: [],
+        ignoreEntities: [player.id]
       });
 
       setPlayerFieldOfView(fovData.visibleTiles);
 
-      // Mark tiles as explored for Fog of War
-      if (fovData.visibleTiles) {
-        fovData.visibleTiles.forEach(pos => {
-          const tile = gameMap.getTile(pos.x, pos.y);
-          if (tile) {
-            tile.flags.explored = true;
-          }
-        });
-      }
+      // Sync to engine for persistent/background systems
+      engine.playerFieldOfView = fovData.visibleTiles;
 
-      // Debug: Log if player is inside a building
-      const playerTile = gameMap.getTile(player.x, player.y);
-      if (playerTile && (playerTile.terrain === 'building' || playerTile.terrain === 'floor')) {
-        logger.debug(`Player is inside building/floor at (${player.x}, ${player.y}), terrain: ${playerTile.terrain}`);
-      }
+      // Mark tiles as explored
+      fovData.visibleTiles.forEach(pos => {
+        const tile = gameMap.getTile(pos.x, pos.y);
+        if (tile) tile.flags.explored = true;
+      });
 
       return fovData.visibleTiles;
     } catch (error) {
-      console.error('[PlayerContext] Error calculating player field of view:', error);
-      setPlayerFieldOfView([]);
+      console.error('[PlayerContext] FOV calculation error:', error);
       return [];
     }
   }, []);
 
-  // Smooth animation function using requestAnimationFrame
+  // Smooth animation function
   const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false, flashlightRange = 8, onComplete = null) => {
-    if (!playerRef.current || !gameMap || !camera) {
+    if (!engine.player || !gameMap || !camera) {
       setIsMoving(false);
-      setMovementPath([]);
-      setMovementProgress(0);
+      isMovingRef.current = false;
       return;
     }
 
-    // Store the ORIGINAL player position at animation start
-    const originalPosition = { x: playerRef.current.x, y: playerRef.current.y };
-    console.log(`[PlayerContext] INVESTIGATION: Animation starting - player locked at (${originalPosition.x}, ${originalPosition.y}) until completion`);
-    console.log(`[PlayerContext] INVESTIGATION: Animation frame before starting:`, animationFrameRef.current);
-
-    // Check if there's already an animation running
-    if (animationFrameRef.current) {
-      console.warn(`[PlayerContext] INVESTIGATION: WARNING - Starting new animation while one is already running! Previous frame ID:`, animationFrameRef.current);
-    }
+    const originalPosition = { x: engine.player.x, y: engine.player.y };
+    let animationFrameId;
 
     const animate = (currentTime) => {
-      // INVESTIGATION POINT 2: Animation frame verification
-      if (!animationFrameRef.current) {
-        console.warn(`[PlayerContext] INVESTIGATION: Animation running but animationFrameRef is null! This suggests cancelMovement() was called.`);
-        return; // Stop animation if reference was cleared
-      }
-
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
+      const easeProgress = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-      // Use easeInOut for smooth acceleration/deceleration
-      const easeProgress = progress < 0.5
-        ? 2 * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-
-      // Calculate current position along the path
       const pathProgress = easeProgress * (path.length - 1);
-      const segmentIndex = Math.floor(pathProgress);
-      const segmentProgress = pathProgress - segmentIndex;
+      const segIdx = Math.floor(pathProgress);
+      const segProg = pathProgress - segIdx;
 
-      // Get current and next waypoints
-      const currentWaypoint = path[segmentIndex];
-      const nextWaypoint = path[Math.min(segmentIndex + 1, path.length - 1)];
+      const curr = path[segIdx];
+      const next = path[Math.min(segIdx + 1, path.length - 1)];
 
-      // Interpolate position between waypoints
-      const smoothX = currentWaypoint.x + (nextWaypoint.x - currentWaypoint.x) * segmentProgress;
-      const smoothY = currentWaypoint.y + (nextWaypoint.y - currentWaypoint.y) * segmentProgress;
+      const smoothX = curr.x + (next.x - curr.x) * segProg;
+      const smoothY = curr.y + (next.y - curr.y) * segProg;
 
-      // Update render position for smooth animation
       setMovementProgress(easeProgress);
-
-      // ENSURE player coordinates haven't changed during animation
-      if (playerRef.current.x !== originalPosition.x || playerRef.current.y !== originalPosition.y) {
-        console.warn(`[PlayerContext] PREVENTING position change during animation! Restoring from (${playerRef.current.x}, ${playerRef.current.y}) to (${originalPosition.x}, ${originalPosition.y})`);
-        playerRef.current.x = originalPosition.x;
-        playerRef.current.y = originalPosition.y;
-      }
-
-      // Update camera to follow smooth movement
       camera.centerOn(smoothX, smoothY);
 
-      // INVESTIGATION: Log camera updates to detect excessive movement
-      if (Math.random() < 0.1) { // Log ~10% of frames to avoid spam
-        logger.debug(`[INVESTIGATION] Animation frame updating camera to (${smoothX.toFixed(1)}, ${smoothY.toFixed(1)}), progress: ${(progress * 100).toFixed(1)}%`);
-      }
-
-      // Update FOV based on current smooth position during animation
-      if (gameMap && LineOfSight) {
-        try {
-          const smoothPlayer = {
-            ...playerRef.current,
-            x: Math.round(smoothX),
-            y: Math.round(smoothY)
-          };
-          // Calculate max range based on day/night and flashlight (1.5 includes diagonals)
-          const maxRange = isNight ? (isFlashlightOn ? (flashlightRange) : 1.5) : 15;
-
-          const fovResult = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, {
-            maxRange: maxRange,
-            ignoreTerrain: [],
-            ignoreEntities: [playerRef.current.id]
-          });
-          setPlayerFieldOfView(fovResult.visibleTiles);
-
-          // Real-time Zombie detection logic
-          const zombies = gameMap.getEntitiesByType('zombie');
-          zombies.forEach(z => {
-            // Check if this zombie can see the smooth position of the player
-            const canSee = z.canSeeEntity(gameMap, smoothPlayer);
-            
-            if (canSee) {
-              // If newly spotted, record the alert exactly once
+      // Real-time FOV/LOS updates during movement (60fps Local State)
+      // This ensures vision moves perfectly with the sprite without engine/react pulse lag
+      const smoothPlayer = { x: Math.round(smoothX), y: Math.round(smoothY), id: engine.player.id };
+      const maxRange = isNight ? (isFlashlightOn ? flashlightRange : 1.5) : 15;
+      const fov = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, { maxRange, ignoreTerrain: [], ignoreEntities: [engine.player.id] });
+      setPlayerFieldOfView(fov.visibleTiles);
+      
+      // Alert nearby zombies
+      gameMap.getEntitiesByType('zombie').forEach(z => {
+          if (z.canSeeEntity(gameMap, smoothPlayer)) {
               if (!z.isAlerted) {
-                z.isAlerted = true;
-                GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie: z });
-                console.log(`[PlayerContext] Zombie ${z.id} spotted player!`);
+                  z.isAlerted = true;
+                  GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie: z });
               }
-              
-              // CRITICAL: Update zombie memory so it knows where the player is in real-time
-              // This is what was missing, causing zombies to target "stale" old coordinates.
               z.setTargetSighted(smoothPlayer.x, smoothPlayer.y);
-            }
-            // Logic change: we no longer reset isAlerted = false here if sight is lost.
-            // Sight loss should trigger investigation mode (lastSeen), not a memory reset.
-          });
-
-          // Mark tiles as explored during animation for smooth uncovering
-          if (fovResult.visibleTiles) {
-            fovResult.visibleTiles.forEach(pos => {
-              const tile = gameMap.getTile(pos.x, pos.y);
-              if (tile) {
-                tile.flags.explored = true;
-              }
-            });
           }
-        } catch (error) {
-          console.error('[PlayerContext] Error updating FOV during animation:', error);
-        }
-      }
+      });
+
+      fov.visibleTiles.forEach(p => {
+        const t = gameMap.getTile(p.x, p.y);
+        if (t) t.flags.explored = true;
+      });
+
 
       if (progress < 1) {
-        // INVESTIGATION POINT 2: Check if we should continue animation
-        if (!animationFrameRef.current) {
-          console.log(`[PlayerContext] INVESTIGATION: Animation stopped mid-execution (animationFrameRef cleared)`);
-          return;
-        }
-
-        // Continue animation
-        const frameId = requestAnimationFrame(animate);
-        const oldFrameId = animationFrameRef.current;
-        animationFrameRef.current = frameId;
-
-        if (Math.random() < 0.05) { // Log ~5% of frame updates
-          logger.debug(`[INVESTIGATION] Animation frame updated from ${oldFrameId} to ${frameId}`);
-        }
+        animationFrameId = requestAnimationFrame(animate);
       } else {
-        // Animation completed - now move player from original to final position
-        const finalPosition = path[path.length - 1];
-        const finalTile = gameMap.getTile(finalPosition.x, finalPosition.y);
+        // Complete
+        const final = path[path.length - 1];
+        const start = path[0];
 
-        console.log(`[PlayerContext] Animation complete - moving player from (${originalPosition.x}, ${originalPosition.y}) to (${finalPosition.x}, ${finalPosition.y})`);
-
-        // Double-check that the final position is still walkable
-        if (finalTile && finalTile.isWalkable()) {
-          // Verify player hasn't been moved by something else during animation
-          if (playerRef.current.x !== originalPosition.x || playerRef.current.y !== originalPosition.y) {
-            console.warn(`[PlayerContext] Player position changed during animation! Expected (${originalPosition.x}, ${originalPosition.y}), found (${playerRef.current.x}, ${playerRef.current.y})`);
-            // Reset to original position before moving
-            playerRef.current.x = originalPosition.x;
-            playerRef.current.y = originalPosition.y;
-          }
-
-          // Move entity in GameMap from original to final position
-          const moveSuccess = gameMap.moveEntity(playerRef.current.id, finalPosition.x, finalPosition.y);
-
-          if (moveSuccess) {
-            console.log(`[PlayerContext] Player successfully moved from (${originalPosition.x}, ${originalPosition.y}) to (${finalPosition.x}, ${finalPosition.y})`);
-            
-            // DROP SCENTS: Leave a breadcrumb trail along the path
-            path.forEach((pos, idx) => {
-              if (idx === 0) return; // Skip starting tile
-              ScentTrail.dropScent(gameMap, pos.x, pos.y, 3);
-            });
-
-            // Check for broken window hazards in the path
-            path.forEach((pos, idx) => {
-              if (idx === 0) return; // Skip starting tile
-              const tile = gameMap.getTile(pos.x, pos.y);
-              const window = tile?.contents.find(e => e.type === 'window' && e.isBroken);
-              if (window && !playerRef.current.isBleeding && Math.random() < 0.25) {
-                playerRef.current.setBleeding(true);
-                GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { damage: 0, source: { id: 'glass' } });
-                setPlayerStats(prev => ({ ...prev, isBleeding: true }));
-              }
-            });
-          } else {
-            console.error(`[PlayerContext] Failed to move player in GameMap`);
-            // Fallback: update player position directly if GameMap move failed
-            playerRef.current.x = finalPosition.x;
-            playerRef.current.y = finalPosition.y;
-          }
-
-          console.log('[PlayerContext] Smooth movement animation completed successfully.');
-        } else {
-          // Final position became unwalkable during animation - abort movement
-          console.warn('[PlayerContext] Final position became unwalkable during animation, aborting movement');
+        // Phase 12 Fix: Sync ground loot BEFORE physically moving entity in engine.
+        if (engine.inventoryManager) {
+            engine.inventoryManager.syncWithMap(start.x, start.y, final.x, final.y, gameMap);
         }
 
-        // Calculate new field of view
-        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, (flashlightRange || 8));
+        // Final snap
+        if (engine.gameMap && engine.player) {
+           engine.gameMap.moveEntity(engine.player.id, final.x, final.y);
+           path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y, 3); });
+        }
 
-        // Update player cardinal positions after movement
+        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange);
         updatePlayerCardinalPositions(gameMap);
-
-        console.log(`[PlayerContext] Player moved from (${originalPosition.x}, ${originalPosition.y}) to (${finalPosition.x}, ${finalPosition.y}), AP: ${playerRef.current.ap}`);
-
-        // Finish animation
-        GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED); // Optional: add to GAME_EVENT
+        
         setIsMoving(false);
+        isMovingRef.current = false;
         setMovementPath([]);
         setMovementProgress(0);
-        animationFrameRef.current = null;
-        
-        // Invoke completion callback
+        GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);
         if (onComplete) onComplete();
       }
     };
 
-    const frameId = requestAnimationFrame(animate);
-    animationFrameRef.current = frameId;
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
-  // Start animated movement along path
   const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
-    if (!playerRef.current || !gameMap || !camera) return;
-
-    console.log(`[PlayerContext] Starting animated movement from (${playerRef.current.x}, ${playerRef.current.y}) to (${path[path.length - 1].x}, ${path[path.length - 1].y})`);
-
-    // Consume AP
-    playerRef.current.useAP(cost);
-    setPlayerStats(prev => ({ ...prev, ap: playerRef.current.ap }));
-
-    // Set movement state
+    if (!engine.player || !gameMap || !camera) return;
+    if (isMovingRef.current) {
+        console.debug('[PlayerContext] Rejecting movement: already moving');
+        return;
+    }
+    
+    engine.player.useAP(cost);
     setIsMoving(true);
+    isMovingRef.current = true;
     setMovementPath(path);
     setMovementProgress(0);
-
-    // Update camera immediately to follow start of path
-    const startPosition = path[0];
-    camera.centerOn(startPosition.x, startPosition.y);
-
-    // Start smooth animation
-    const startTime = performance.now();
-    // Start movement sound via Event Bus
+    camera.centerOn(path[0].x, path[0].y);
     GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
-    setIsMoving(true);
-    setMovementPath(path);
-    setMovementProgress(0);
-    smoothAnimateMovement(gameMap, camera, path, startTime, 1500, isNight, isFlashlightOn, flashlightRange);
+    smoothAnimateMovement(gameMap, camera, path, performance.now(), 1500, isNight, isFlashlightOn, flashlightRange);
   }, [smoothAnimateMovement]);
 
-  /** 
-   * NEW: Async version of startAnimatedMovement that returns a promise
-   * This is used by GameMapContext to wait for movement before triggering transitions.
-   */
   const startAnimatedMovementAsync = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
     return new Promise((resolve) => {
-      if (!playerRef.current || !gameMap || !camera) {
-        resolve();
-        return;
-      }
-
-      console.log(`[PlayerContext] Starting async animated movement to (${path[path.length - 1].x}, ${path[path.length - 1].y})`);
-
-      // Consume AP
-      playerRef.current.useAP(cost);
-      setPlayerStats(prev => ({ ...prev, ap: playerRef.current.ap }));
-
-      // Set movement state
-      setIsMoving(true);
-      setMovementPath(path);
-      setMovementProgress(0);
-
-      // Update camera immediately to follow start of path
-      const startPosition = path[0];
-      camera.centerOn(startPosition.x, startPosition.y);
-
-      // Start smooth animation
-      const startTime = performance.now();
-      GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
-      
-      smoothAnimateMovement(
-        gameMap, 
-        camera, 
-        path, 
-        startTime, 
-        1500, 
-        isNight, 
-        isFlashlightOn, 
-        flashlightRange,
-        () => {
-          console.log('[PlayerContext] Async animated movement completed');
-          resolve();
-        }
-      );
+      if (!engine.player) { resolve(); return; }
+      startAnimatedMovement(gameMap, camera, path, cost, isNight, isFlashlightOn, flashlightRange);
+      // approximation for async completion
+      setTimeout(resolve, 1600); 
     });
-  }, [smoothAnimateMovement]);
+  }, [startAnimatedMovement]);
 
-  // Calculate player render position for animation
   const playerRenderPosition = useMemo(() => {
-    if (!isMoving || movementPath.length === 0) {
-      return playerRef.current ? { x: playerRef.current.x, y: playerRef.current.y } : { x: 0, y: 0 };
+    if (!isMoving || movementPath.length === 0 || !engine.player) {
+      return engine.player ? { x: engine.player.x, y: engine.player.y } : { x: 0, y: 0 };
     }
-
     const pathProgress = movementProgress * (movementPath.length - 1);
-    const segmentIndex = Math.floor(pathProgress);
-    const segmentProgress = pathProgress - segmentIndex;
-
-    const currentWaypoint = movementPath[segmentIndex];
-    const nextWaypoint = movementPath[Math.min(segmentIndex + 1, movementPath.length - 1)];
-
-    const renderX = currentWaypoint.x + (nextWaypoint.x - currentWaypoint.x) * segmentProgress;
-    const renderY = currentWaypoint.y + (nextWaypoint.y - currentWaypoint.y) * segmentProgress;
-
-    return { x: renderX, y: renderY };
-  }, [isMoving, movementPath, movementProgress, playerVersion]); // Use version instead of .current
-
-  // Cancel any ongoing movement animation
-  const cancelMovement = useCallback(() => {
-    console.log('[PlayerContext] INVESTIGATION: cancelMovement() called');
-    console.log('[PlayerContext] - Current animation frame ID:', animationFrameRef.current);
-    console.log('[PlayerContext] - Current isMoving state:', isMoving);
-    console.log('[PlayerContext] - Current movement path length:', movementPath.length);
-    console.log('[PlayerContext] - Current movement progress:', movementProgress);
-
-    if (animationFrameRef.current) {
-      console.log('[PlayerContext] Cancelling ongoing movement animation with ID:', animationFrameRef.current);
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-      console.log('[PlayerContext] Animation frame cancelled successfully');
-    } else {
-      console.log('[PlayerContext] No animation frame to cancel');
-    }
-
-    // Reset movement state
-    console.log('[PlayerContext] Resetting movement state...');
-    GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);
-    setIsMoving(false);
-    setMovementPath([]);
-    setMovementProgress(0);
-
-    console.log('[PlayerContext] Movement cancelled and state reset completed');
-    console.log('[PlayerContext] INVESTIGATION: Post-cancellation state check:');
-    console.log('[PlayerContext] - Animation frame after cancel:', animationFrameRef.current);
-  }, [isMoving, movementPath.length, movementProgress]);
-
-  // Cleanup animation frame on unmount
-  useEffect(() => {
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+    const segIdx = Math.floor(pathProgress);
+    const segProg = pathProgress - segIdx;
+    const curr = movementPath[segIdx];
+    const next = movementPath[Math.min(segIdx + 1, movementPath.length - 1)];
+    return {
+      x: curr.x + (next.x - curr.x) * segProg,
+      y: curr.y + (next.y - curr.y) * segProg
     };
-  }, []);
-
-  // NOTE: The original `useMemo` dependency array was missing `playerRef.current`.
-  // This caused `playerRenderPosition` to not update correctly when the player's
-  // actual position changed outside of an animation. By adding `playerRef.current`,
-  // `playerRenderPosition` will now correctly reflect the player's current position
-  // when `isMoving` is false.
-
-  // Alias `isMoving` to `isAnimatingMovement` for clarity in context value,
-  // while `isMoving` state variable remains the source of truth.
-  const isAnimatingMovement = isMoving;
+  }, [isMoving, movementPath, movementProgress, enginePulse]);
 
   const contextValue = useMemo(() => ({
-    // Player data - expose both ref and current value  
-    playerRef,
-    player: playerRef.current,
-    playerStats,
-
-    // Movement state
-    isMoving, // Expose the original isMoving state
-    movementPath,
-    movementProgress,
-    playerRenderPosition,
-
-    // Field of view
-    playerFieldOfView,
-
-    // Methods
-    setPlayerRef,
-    setPlayer, // Legacy compatibility
-    setPlayerPosition,
-    updatePlayerStats,
-    setupPlayerEventListeners,
-    startAnimatedMovement,
-    startAnimatedMovementAsync,
-    cancelMovement,
-    updatePlayerFieldOfView,
-    updatePlayerCardinalPositions,
-    getPlayerCardinalPositions,
-    recordKill
-  }), [
-    playerVersion, // Version triggers updates when player ref changes
+    player: engine.player,
+    playerRef, // Static bridge ref
     playerStats,
     isMoving,
     movementPath,
     movementProgress,
     playerRenderPosition,
     playerFieldOfView,
-    setPlayerRef,
-    setPlayer,
     setPlayerPosition,
-    updatePlayerStats,
-    setupPlayerEventListeners,
     startAnimatedMovement,
     startAnimatedMovementAsync,
-    cancelMovement,
     updatePlayerFieldOfView,
     updatePlayerCardinalPositions,
     getPlayerCardinalPositions,
-    recordKill
-  ]);
+    recordKill,
+    // Legacy null placeholders to prevent crashes in other components
+    setPlayerRef: () => {},
+    setPlayer: () => {},
+    updatePlayerStats: (stats) => {
+      if (!engine.player) return;
+      Object.keys(stats).forEach(key => {
+        if (engine.player[key] !== undefined) {
+          engine.player[key] = stats[key];
+        }
+      });
+      engine.notifyUpdate();
+    },
+    setupPlayerEventListeners: () => {},
+    cancelMovement: () => {}
+   }), [enginePulse, playerStats, isMoving, movementPath, movementProgress, playerFieldOfView, playerCardinalPositions]);
 
   return (
     <PlayerContext.Provider value={contextValue}>

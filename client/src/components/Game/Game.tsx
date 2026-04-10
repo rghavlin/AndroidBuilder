@@ -7,6 +7,8 @@ import { GameProvider } from '../../contexts/GameContext.jsx';
 import { LogProvider } from '../../contexts/LogContext.jsx';
 import { AudioProvider } from '../../contexts/AudioContext.jsx';
 import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
+import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
+import { CombatProvider } from '../../contexts/CombatContext.jsx';
 import GameScreen from './GameScreen.tsx';
 
 export default function Game() {
@@ -17,9 +19,13 @@ export default function Game() {
           <CameraProvider>
             <GameMapProvider>
               <PlayerProvider>
-                <GameProvider>
-                  <GameScreen />
-                </GameProvider>
+                <InventoryProvider>
+                  <CombatProvider>
+                    <GameProvider>
+                      <GameScreen />
+                    </GameProvider>
+                  </CombatProvider>
+                </InventoryProvider>
               </PlayerProvider>
             </GameMapProvider>
           </CameraProvider>

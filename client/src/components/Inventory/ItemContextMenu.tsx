@@ -140,30 +140,25 @@ export function ItemContextMenu({
                         {canOpenContainer(item) && (
                             <ContextMenuItem
                                 onClick={() => {
-                                    console.log('[ItemContextMenu] Open container requested for:', item.name);
-                                    // 1. Use existing getContainerGrid() if available (Backpacks, toolboxes, etc.)
+                                    console.log('[ItemContextMenu] Open container requested for:', item.name, 'instanceId:', item.instanceId);
+                                    
+                                    // 1. Check for Backpacks/Toolboxes with direct grids
                                     const containerGrid = item.getContainerGrid?.();
                                     if (containerGrid) {
-                                        openContainer(containerGrid); // Pass the full object for registration
+                                        openContainer(containerGrid);
                                         return;
                                     }
 
-                                    // 2. Fallback to clothing pockets
-                                    if (item.getPocketContainerIds) {
-                                        const pocketIds = item.getPocketContainerIds();
-                                        if (pocketIds && pocketIds.length > 0) {
-                                            openContainer(item); // Pass the item object for pocket registration
-                                            return;
-                                        }
-                                    }
-
-                                    // 3. Weapon modification
+                                    // 2. Check for Weapons (Virtual Container)
+                                    // Use property check first for robustness
                                     if (item.attachmentSlots && item.attachmentSlots.length > 0) {
-                                        openContainer(item); // Virtual container weapon:id
+                                        openContainer(`weapon:${item.instanceId || item.id}`);
                                         return;
                                     }
 
-                                    console.warn('[ItemContextMenu] canOpenContainer was true but no grid/pockets/slots found for:', item.name);
+                                    // 3. Fallback to Clothing (Virtual Container)
+                                    // If canOpenContainer is true and it's not a direct grid or weapon, it's clothing/pockets
+                                    openContainer(`clothing:${item.instanceId || item.id}`);
                                 }}
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >

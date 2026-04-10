@@ -7,6 +7,7 @@ import { useInventory } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useAudio } from './AudioContext.jsx';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
+import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 import { ItemCategory } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
@@ -164,13 +165,24 @@ export const CombatProvider = ({ children }) => {
             ? Math.floor(weaponStats.damage.max * 1.5)
             : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
 
-        // 2. Immediate Sound Trigger (Zero Latency)
-        if (hit) {
-            const isKillingBlow = targetEntity && (targetEntity.hp <= damage);
-            if (isKillingBlow) playSound('DeathBlow');
-            else playSound('MeleeHit');
-        } else {
-            playSound('Miss');
+        // 2. Event emission for UI and Audio
+        const attackData = { 
+            weaponId: weapon.defId, 
+            weaponType: weapon.isRanged ? 'ranged' : 'melee',
+            hit,
+            isCrit,
+            damage,
+            targetX,
+            targetY
+        };
+        GameEvents.emit(GAME_EVENT.PLAYER_ATTACK, attackData);
+
+        if (hit && targetEntity) {
+            GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
+                zombieId: targetEntity.id, 
+                damage, 
+                isKillingBlow: targetEntity.hp <= damage 
+            });
         }
 
         // 3. Apply AP Consumption (Primary state update)
@@ -185,7 +197,7 @@ export const CombatProvider = ({ children }) => {
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
-                    playSound('GlassBreak');
+                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
                     addLog(`You smash the window with your ${weapon.name}!`, 'combat');
                     if (weapon.instanceId === 'unarmed') {
                         if (typeof player?.setBleeding === 'function') player.setBleeding(true);
@@ -329,19 +341,24 @@ export const CombatProvider = ({ children }) => {
             }
         }
 
-        // 2. Immediate Sound Trigger (Zero Latency)
-        const isKillingBlow = targetEntity && hit && (targetEntity.hp <= damage);
-        
-        if (isKillingBlow) {
-            playSound('DeathBlow');
-        } else if (isSling) {
-            playSound('SlingShot');
-        } else if (weapon.defId === 'weapon.9mmPistol' || weapon.defId === 'weapon.357Pistol') {
-            playSound('PistolShot');
-        } else if (weapon.defId === 'weapon.shotgun') {
-            playSound('ShotgunShot');
-        } else if (weapon.defId === 'weapon.hunting_rifle' || weapon.defId === 'weapon.sniper_rifle') {
-            playSound('RifleShot');
+        // 2. Event emission for UI and Audio
+        const attackData = { 
+            weaponId: weapon.defId, 
+            weaponType: 'ranged',
+            hit,
+            isCrit,
+            damage,
+            targetX,
+            targetY
+        };
+        GameEvents.emit(GAME_EVENT.PLAYER_ATTACK, attackData);
+
+        if (hit && targetEntity) {
+            GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
+                zombieId: targetEntity.id, 
+                damage, 
+                isKillingBlow: targetEntity.hp <= damage 
+            });
         }
 
         // 3. Apply AP Consumption
@@ -374,7 +391,7 @@ export const CombatProvider = ({ children }) => {
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
-                    playSound('GlassBreak');
+                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
                     addLog('The window shatters!', 'combat');
                     gameMap.emitNoise(targetX, targetY, 5);
                 } else {
@@ -405,12 +422,28 @@ export const CombatProvider = ({ children }) => {
                     if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
                     if (lootGenerator && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
-                        if (loot?.length > 0) gameMap.addItemsToTile(targetEntity.x, targetEntity.y, loot);
+                        if (loot?.length > 0) {
+                            if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
+                                loot.forEach(item => engine.inventoryManager.groundContainer.addItem(item));
+                                engine.inventoryManager.groundManager.updateCategoryAreas();
+                                engine.inventoryManager.emit('inventoryChanged');
+                            } else {
+                                gameMap.addItemsToTile(targetEntity.x, targetEntity.y, loot);
+                            }
+                        }
                     }
                 } else if (targetEntity.type === 'rabbit') {
                     // Rabbits always drop 1 raw meat
                     const meat = createItemFromDef('food.raw_meat');
-                    if (meat) gameMap.addItemsToTile(targetEntity.x, targetEntity.y, [meat]);
+                    if (meat) {
+                        if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
+                            engine.inventoryManager.groundContainer.addItem(meat);
+                            engine.inventoryManager.groundManager.updateCategoryAreas();
+                            engine.inventoryManager.emit('inventoryChanged');
+                        } else {
+                            gameMap.addItemsToTile(targetEntity.x, targetEntity.y, [meat]);
+                        }
+                    }
                 }
                 
                 gameMap.removeEntity(targetEntity.id);
@@ -475,6 +508,9 @@ export const CombatProvider = ({ children }) => {
         const FLASH_COLOR = 'rgba(255, 255, 255, 0.8)';
 
         addLog(`Grenade thrown at (${targetX}, ${targetY})!`, 'combat');
+        
+        // Emit explosion event for Audio
+        GameEvents.emit(GAME_EVENT.NOISE_EMITTED, { x: targetX, y: targetY, radius: 10, type: 'explosion' });
 
         // Visual Flash on target and within 2 tiles
         for (let dy = -radius; dy <= radius; dy++) {

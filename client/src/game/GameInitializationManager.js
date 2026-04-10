@@ -7,6 +7,7 @@ import { Camera } from './Camera.js';
 import { Zombie } from './entities/Zombie.js';
 import { ZombieSpawner } from './utils/ZombieSpawner.js';
 import { LootGenerator } from './map/LootGenerator.js';
+import engine from './GameEngine.js';
 
 const INIT_STATES = {
   IDLE: 'idle',
@@ -81,6 +82,10 @@ class GameInitializationManager extends EventEmitter {
 
       // Complete
       await this._transitionToState(INIT_STATES.COMPLETE);
+      
+      // SYNC with GameEngine (Unified Singleton Refactor)
+      engine.sync(this.gameObjects);
+      
       this.emit('initializationComplete', this.gameObjects);
       console.log('[GameInitializationManager] Initialization completed successfully');
 
@@ -111,6 +116,10 @@ class GameInitializationManager extends EventEmitter {
     const oldState = this.state;
     this.state = newState;
     console.log(`[GameInitializationManager] State transition: ${oldState} → ${newState}`);
+    
+    // Mirror to GameEngine (Unified Refactor Phase 2)
+    engine.updateProperty('initializationState', newState);
+    
     this.emit('stateChanged', { from: oldState, to: newState, current: newState });
 
     // Small delay to allow event listeners to process

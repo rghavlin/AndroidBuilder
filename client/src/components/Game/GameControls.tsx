@@ -51,59 +51,39 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
     triggerSleep,
     performSleep,
     isSkillsOpen,
-    toggleSkills
+    toggleSkills,
+    enginePulse
   } = useGame();
 
   // Phase 2: Movement animation handled by PlayerContext
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);
   const [playerIcon, setPlayerIcon] = useState<string | null>(null);
 
+  // DEBUG: Track engine pulse in UI
+  useEffect(() => {
+    if (enginePulse > 0) {
+      console.log(`[GameControls] 💓 Engine Pulse #${enginePulse} received in UI`);
+    }
+  }, [enginePulse]);
+
   // Load UI images on component mount
   useEffect(() => {
-    console.log('[GameControls] useEffect triggered - component mounted');
-    console.log('[GameControls] imageLoader object:', imageLoader);
-    console.log('[GameControls] Starting UI image loading...');
-
     const loadUIImages = async () => {
       try {
-        // Test if electron context is available
-        console.log('[GameControls] Electron context check:', {
-          hasWindow: typeof window !== 'undefined',
-          hasElectronAPI: typeof window !== 'undefined' && !!window.electronAPI,
-          electronAPI: typeof window !== 'undefined' ? window.electronAPI : 'undefined'
-        });
-
-        // Add small delay to ensure electron is fully initialized
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Test loading an entity image first (we know this works)
-        console.log('[GameControls] Testing entity image loading first...');
-        const testEntityImg = await imageLoader.getImage('player');
-        console.log('[GameControls] Test entity image result:', testEntityImg ? 'SUCCESS' : 'FAILED');
-
-        console.log('[GameControls] Loading endturn image...');
         const endTurnImg = await imageLoader.getUIImage('endturn');
-        if (endTurnImg) {
-          console.log('[GameControls] End turn image loaded successfully:', endTurnImg.src);
-          setEndTurnImage(endTurnImg.src);
-        } else {
-          console.log('[GameControls] End turn image not found or failed to load');
-        }
-
-        console.log('[GameControls] Loading player icon...');
+        if (endTurnImg) setEndTurnImage(endTurnImg.src);
+        
         const playerImg = await imageLoader.getImage('player');
-        if (playerImg) {
-          setPlayerIcon(playerImg.src);
-        }
+        if (playerImg) setPlayerIcon(playerImg.src);
       } catch (error) {
         console.error('[GameControls] Failed to load UI images:', error);
       }
     };
-
     loadUIImages();
   }, []);
 
   // Use real game state when available, fallback to demo props
+  // We prioritize the hook-provided playerStats as it is bound to the enginePulse
   const currentStats = isInitialized ? playerStats : demoStats;
   const currentTurn = isInitialized ? turn : demoState.turn;
   const handleEndTurn = isInitialized ? endTurn : demoEndTurn;

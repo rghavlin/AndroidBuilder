@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useRef, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useRef, useState, useCallback, useMemo, useEffect } from 'react';
+import engine from '../game/GameEngine.js';
 
 const CameraContext = createContext();
 
@@ -11,19 +12,53 @@ export const useCamera = () => {
 };
 
 export const CameraProvider = ({ children }) => {
-  // Camera ref as single source of truth
-  const cameraRef = useRef(null);
+  // Engine update listener to trigger context refreshes
+  const [engineUpdate, setEngineUpdate] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setEngineUpdate(v => v + 1);
+    };
+
+    engine.on('update', handleUpdate);
+    engine.on('sync', handleUpdate);
+    return () => {
+      engine.off('update', handleUpdate);
+      engine.off('sync', handleUpdate);
+    };
+  }, []);
+
+  // Camera ref as bridge to engine singleton
+  const cameraRef = useRef(engine.camera);
+
+  // Sync ref and attach listeners whenever engine updates
+  useEffect(() => {
+    cameraRef.current = engine.camera;
+
+    if (cameraRef.current) {
+      const handleCameraUpdate = () => {
+        setCameraVersion(v => v + 1);
+      };
+
+      cameraRef.current.addEventListener('cameraPositionChanged', handleCameraUpdate);
+      cameraRef.current.addEventListener('zoomChanged', handleCameraUpdate);
+
+      return () => {
+        if (cameraRef.current) {
+          cameraRef.current.removeEventListener('cameraPositionChanged', handleCameraUpdate);
+          cameraRef.current.removeEventListener('zoomChanged', handleCameraUpdate);
+        }
+      };
+    }
+  }, [engineUpdate]);
 
   // Version state for rare structural re-renders
   const [cameraVersion, setCameraVersion] = useState(0);
 
-  // Set camera ref (called during initialization)
+  // Set camera ref (Legacy/Manual support)
   const setCamera = useCallback((camera) => {
-    console.log('[CameraContext] setCamera called with:', camera ? `Camera at (${camera.x}, ${camera.y})` : 'null');
     cameraRef.current = camera;
-    setCameraVersion(v => v + 1); // Trigger useMemo recalculation
-    console.log('[CameraContext] cameraRef.current now:', cameraRef.current ? `Camera at (${cameraRef.current.x}, ${cameraRef.current.y})` : 'null');
-    console.log('[CameraContext] cameraVersion incremented to trigger context value update');
+    setCameraVersion(v => v + 1);
   }, []);
 
   // Update camera viewport size based on canvas dimensions

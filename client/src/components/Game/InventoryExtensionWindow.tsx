@@ -30,6 +30,7 @@ export default function InventoryExtensionWindow({
             height: 'calc(100vh - 120px)'
           }}
           data-testid="inventory-extension-window"
+          data-inventory-ui="true"
         >
           <CraftingUI />
         </div>

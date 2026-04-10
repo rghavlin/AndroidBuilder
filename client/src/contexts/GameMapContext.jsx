@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useRef, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { usePlayer } from './PlayerContext';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
-import { Zombie } from '../game/entities/Zombie.js';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
+import engine from '../game/GameEngine.js';
 
 const GameMapContext = createContext();
 
@@ -11,644 +11,204 @@ export const useGameMap = () => {
   const context = useContext(GameMapContext);
   if (!context) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('[useGameMap] Context not available during hot reload, providing fallback');
-      return {
-        gameMap: null,
-        worldManager: null,
-        mapTransition: null,
-        setGameMap: () => { },
-        setWorldManager: () => { },
-        handleTileClick: () => { },
-        handleTileHover: () => { },
-        checkPathForZombieVisibility: () => { },
-        executeMapTransition: () => { },
-        handleMapTransitionConfirm: () => { },
-        handleMapTransitionCancel: () => { },
-        setMapTransition: () => { }
-      };
-    }
+        console.warn('[useGameMap] Context not available during hot reload, providing fallback');
+        return {
+          gameMap: null,
+          worldManager: null,
+          mapTransition: null,
+          setGameMap: () => { },
+          setWorldManager: () => { },
+          handleTileClick: () => { },
+          handleTileHover: () => { },
+          checkPathForZombieVisibility: () => { },
+          executeMapTransition: () => { },
+          handleMapTransitionConfirm: () => { },
+          handleMapTransitionCancel: () => { },
+          setMapTransition: () => { }
+        };
+      }
     throw new Error('useGameMap must be used within a GameMapProvider');
   }
   return context;
 };
 
 export const GameMapProvider = ({ children }) => {
-  // GameMapContext focuses only on map state - camera operations passed as parameters
-
-  // Map-related refs
-  const gameMapRef = useRef(null);
-  const worldManagerRef = useRef(null);
-  const zombieTrackerRef = useRef(null);
-  const lootGeneratorRef = useRef(null);
-
-  // Map-related state - keep mapTransition and hoveredTile for UI state
+  // Map-related state - keep UI-specific states
   const [mapTransition, setMapTransition] = useState(null);
   const [hoveredTile, setHoveredTile] = useState(null);
-
-  // Phase 1: Access visual effects for interaction feedback
-  const { addEffect } = useVisualEffects();
-  const { addLog } = useLog();
-
-  // Version state for rare structural re-renders on map transitions
   const [mapVersion, setMapVersion] = useState(0);
 
-  // Set game map ref (called during initialization)
-  const setGameMap = useCallback((gameMap) => {
-    console.log('[GameMapContext] setGameMap called with:', gameMap ? `GameMap(${gameMap.width}x${gameMap.height})` : 'null');
-    gameMapRef.current = gameMap;
-    setMapVersion(v => v + 1); // Trigger useMemo recalculation
-    console.log('[GameMapContext] gameMapRef.current now:', gameMapRef.current ? `GameMap(${gameMapRef.current.width}x${gameMapRef.current.height})` : 'null');
-    console.log('[GameMapContext] mapVersion incremented to trigger context value update');
-  }, []);
+  const { addLog } = useLog();
 
-  // Set world manager ref (called during initialization)
-  const setWorldManager = useCallback((worldManager) => {
-    worldManagerRef.current = worldManager;
-  }, []);
+  // Refs as bridge to engine singleton
+  const gameMapRef = useRef(engine.gameMap);
+  const worldManagerRef = useRef(engine.worldManager);
 
-  // Set zombie tracker ref (called during initialization)
-  const setZombieTracker = useCallback((zombieTracker) => {
-    zombieTrackerRef.current = zombieTracker;
-  }, []);
+  // Sync with engine updates (especially map loads/transitions)
+  useEffect(() => {
+    const handleSync = () => {
+      console.log('[GameMapContext] 🔄 engine triggered sync, updating map version');
+      gameMapRef.current = engine.gameMap;
+      worldManagerRef.current = engine.worldManager;
+      setMapVersion(v => v + 1);
+    };
 
-  // Set loot generator ref (called during initialization)
-  const setLootGenerator = useCallback((lootGenerator) => {
-    lootGeneratorRef.current = lootGenerator;
-  }, []);
-
-  // Force map re-render
-  const triggerMapUpdate = useCallback(() => {
-    setMapVersion(v => v + 1);
-  }, []);
-
-  // Check path for zombie visibility changes during player movement
-  const checkPathForZombieVisibility = useCallback((path, player) => {
-    if (!gameMapRef.current || !player || !path || path.length === 0) {
-      console.log('[GameMapContext] Invalid parameters for zombie visibility check');
-      return;
-    }
-
-    console.log(`[GameMapContext] Checking ${path.length} tiles in path for zombie visibility changes`);
-
-    if (zombieTrackerRef.current) {
-      const zombies = gameMapRef.current.getEntitiesByType('zombie');
-      const zombieVisibilityMap = new Map();
-
-      // Record initial zombie visibility
-      zombies.forEach(zombie => {
-        const canSeePlayer = zombie.canSeeEntity(gameMapRef.current, player);
-        zombieVisibilityMap.set(zombie.id, {
-          wasVisible: canSeePlayer,
-          lastVisiblePosition: canSeePlayer ? { x: player.x, y: player.y } : null
-        });
-      });
-
-      // Check visibility along entire path
-      for (let i = 0; i < path.length; i++) {
-        const pathTile = path[i];
-        const tempPlayer = {
-          ...player,
-          x: pathTile.x,
-          y: pathTile.y
-        };
-
-        zombies.forEach(zombie => {
-          const zombieData = zombieVisibilityMap.get(zombie.id);
-          const canStillSeePlayer = zombie.canSeeEntity(gameMapRef.current, tempPlayer);
-
-          if (zombieData.wasVisible && canStillSeePlayer) {
-            // Update last known position
-            zombieData.lastVisiblePosition = { x: pathTile.x, y: pathTile.y };
-          } else if (zombieData.wasVisible && !canStillSeePlayer) {
-            // Zombie lost sight - set LastSeen position
-            if (zombieData.lastVisiblePosition) {
-              console.log(`[GameMapContext] Zombie ${zombie.id} lost sight of player at path step ${i}, setting LastSeen to (${zombieData.lastVisiblePosition.x}, ${zombieData.lastVisiblePosition.y})`);
-              zombie.setTargetSighted(zombieData.lastVisiblePosition.x, zombieData.lastVisiblePosition.y);
-            }
-            zombieData.wasVisible = false;
-          }
-        });
-      }
-    }
-
-    console.log(`[GameMapContext] Path visibility check complete for ${path.length} tiles`);
-  }, []);
-
-  // Force a refresh of zombie tracking based on current visibility
-  // Used when visibility changes without player movement (e.g. closing a door)
-  const refreshZombieTracking = useCallback((player, fovTiles) => {
-    if (!zombieTrackerRef.current || !gameMapRef.current || !player || !fovTiles) {
-      console.warn('[GameMapContext] Missing requirements for refreshZombieTracking');
-      return;
-    }
-
-    console.log('[GameMapContext] 🔄 Refreshing zombie tracking visibility...');
-    zombieTrackerRef.current.updateTracking(
-      gameMapRef.current,
-      player,
-      fovTiles,
-      null // No movement data, just a visibility refresh
-    );
+    engine.on('sync', handleSync);
+    return () => {
+      engine.off('sync', handleSync);
+    };
   }, []);
 
   // Handle tile click for movement
   const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
-    if (!gameMapRef.current || !player) {
-      console.warn('[GameMapContext] Cannot handle tile click - game map or player not available');
-      return;
-    }
+    if (!engine.gameMap || !player) return;
 
-    if (!isPlayerTurn || isAutosaving) {
-      console.log('[GameMapContext] Not player turn or autosaving, ignoring click');
-      return;
-    }
-
-    if (isMoving) {
-      console.log('[GameMapContext] Movement already in progress, ignoring click');
-      return;
-    }
+    if (!isPlayerTurn || isAutosaving || isMoving) return;
 
     try {
-      const currentPlayerPosition = { x: player.x, y: player.y };
-      console.log(`[GameMapContext] Tile clicked at coordinates: (${x}, ${y}), Player currently at: (${currentPlayerPosition.x}, ${currentPlayerPosition.y})`);
-
-      const targetTile = gameMapRef.current.getTile(x, y);
-      if (!targetTile) {
-        console.log('[GameMapContext] Target tile does not exist');
-        return;
-      }
+      const targetTile = engine.gameMap.getTile(x, y);
+      if (!targetTile) return;
 
       const entityFilter = (tile) => {
-        // Restricted Movement: Only allow movement to/through explored tiles
-        if (!tile.flags || !tile.flags.explored) {
-          return false;
-        }
-
-        // Terrain Check: Check if terrain blocks movement
-        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) {
-          return false;
-        }
-
-        const blockingEntities = tile.contents.filter(entity => {
-          return entity.blocksMovement && entity.id !== player.id;
-        });
-        return blockingEntities.length === 0;
+        if (!tile.flags || !tile.flags.explored) return false;
+        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
+        return !tile.contents.some(entity => entity.blocksMovement && entity.id !== player.id);
       };
 
-      if (!Pathfinding.isTileWalkable(targetTile, entityFilter)) {
-        console.log('[GameMapContext] Target tile is not walkable or not explored');
-        return;
+      if (!Pathfinding.isTileWalkable(targetTile, entityFilter)) return;
+
+      const path = Pathfinding.findPath(engine.gameMap, player.x, player.y, x, y, { allowDiagonal: true, entityFilter });
+
+      if (path.length === 0) return;
+
+      const movementCost = Pathfinding.calculateMovementCost(engine.gameMap, path);
+      if (movementCost > player.ap) return;
+
+      // Start movement
+      await startAnimatedMovement(engine.gameMap, camera, path, movementCost, isNight, isFlashlightOn, flashlightRange);
+
+      // Transition check
+      const finalTile = engine.gameMap.getTile(x, y);
+      if (finalTile && finalTile.terrain === 'transition' && engine.worldManager) {
+        const transitionInfo = engine.worldManager.checkTransitionPoint({ x, y }, engine.gameMap);
+        if (transitionInfo) setMapTransition(transitionInfo);
       }
-
-      const path = Pathfinding.findPath(
-        gameMapRef.current,
-        currentPlayerPosition.x,
-        currentPlayerPosition.y,
-        x,
-        y,
-        {
-          allowDiagonal: true,
-          entityFilter: entityFilter,
-          debug: true
-        }
-      );
-
-      if (path.length === 0) {
-        console.log('[GameMapContext] No path found to target location');
-        return;
-      }
-
-      const movementCost = Pathfinding.calculateMovementCost(gameMapRef.current, path);
-
-      if (movementCost > player.ap) {
-        console.log('[GameMapContext] Insufficient AP for movement:', { cost: movementCost, available: player.ap });
-        return;
-      }
-
-      // Check path for zombie visibility changes
-      checkPathForZombieVisibility(path, player);
-
-      // Start animated movement and WAIT for it to complete
-      await startAnimatedMovement(gameMapRef.current, camera, path, movementCost, isNight, isFlashlightOn, flashlightRange);
-
-      // Check for map transitions after movement completes (no timer - immediate check)
-      const finalTile = gameMapRef.current.getTile(x, y);
-      if (finalTile && finalTile.terrain === 'transition' && worldManagerRef.current) {
-        const transitionInfo = worldManagerRef.current.checkTransitionPoint(
-          { x, y },
-          gameMapRef.current
-        );
-        if (transitionInfo) {
-          console.log('[GameMapContext] Transition point detected:', transitionInfo);
-          setMapTransition(transitionInfo);
-        }
-      }
-
-      // Update last tile click
-      // setLastTileClick({ x, y, timestamp: Date.now() });
-
     } catch (error) {
       console.error('[GameMapContext] Error handling tile click:', error);
     }
-  }, [checkPathForZombieVisibility]);
+  }, []);
 
   // Handle tile hover for path preview
   const handleTileHover = useCallback(async (x, y, player, isNight = false, isFlashlightOn = false, data = null) => {
-    if (!player || !gameMapRef.current) return;
+    if (!player || !engine.gameMap) return;
 
-    const targetTile = gameMapRef.current.getTile(x, y);
-    if (!targetTile) {
-      setHoveredTile(null);
-      return;
-    }
-
-    const isExplored = targetTile.flags && targetTile.flags.explored;
-    if (!isExplored) {
+    const targetTile = engine.gameMap.getTile(x, y);
+    if (!targetTile || !targetTile.flags?.explored) {
       setHoveredTile(null);
       return;
     }
 
     try {
       const entityFilter = (tile) => {
-        // Restricted Movement: Only allow pathfinding to/through explored tiles
-        if (!tile.flags || !tile.flags.explored) {
-          return false;
-        }
-
-        // Terrain Check: Check if terrain blocks movement
-        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) {
-          return false;
-        }
-
-        const blockingEntities = tile.contents.filter(entity => {
-          return entity.blocksMovement && entity.id !== player.id;
-        });
-        return blockingEntities.length === 0;
+        if (!tile.flags || !tile.flags.explored) return false;
+        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
+        return !tile.contents.some(e => e.blocksMovement && e.id !== player.id);
       };
 
-      const path = Pathfinding.findPath(
-        gameMapRef.current,
-        player.x,
-        player.y,
-        x,
-        y,
-        {
-          allowDiagonal: true,
-          entityFilter: entityFilter
-        }
-      );
-
-      let apCost;
-      if (path.length === 0) {
-        // Fallback to Manhattan distance if no path found
-        apCost = Math.abs(x - player.x) + Math.abs(y - player.y);
-      } else {
-        apCost = Pathfinding.calculateMovementCost(gameMapRef.current, path);
-      }
-
-      const canAfford = player.ap >= apCost;
-
-      // Extract metadata (Zombies, Crops, etc.)
+      const path = Pathfinding.findPath(engine.gameMap, player.x, player.y, x, y, { allowDiagonal: true, entityFilter });
+      const apCost = path.length === 0 ? Math.abs(x - player.x) + Math.abs(y - player.y) : Pathfinding.calculateMovementCost(engine.gameMap, path);
+      
       const zombie = targetTile.contents.find(e => e.type === 'zombie');
-      const zombieInfo = zombie ? {
-        subtype: zombie.subtype,
-        hp: zombie.hp,
-        maxHp: zombie.maxHp,
-        currentAP: zombie.currentAP,
-        maxAP: zombie.maxAP
-      } : (data?.zombie || null);
-
-      const cropInfo = targetTile.cropInfo || data?.cropInfo || null;
-      const lootItems = targetTile.inventoryItems || null;
-      
-      const specialBuildingEntity = targetTile.contents.find(e => e.type === 'place_icon');
-      const specialBuilding = specialBuildingEntity ? specialBuildingEntity.subtype : null;
-      
-      const door = targetTile.contents.find(e => e.type === 'door');
-      const window = targetTile.contents.find(e => e.type === 'window');
-
-      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo, lootItems, specialBuilding, door, window });
+      setHoveredTile({ 
+        x, y, apCost, 
+        canAfford: player.ap >= apCost, 
+        zombie: zombie ? { subtype: zombie.subtype, hp: zombie.hp, maxHp: zombie.maxHp, currentAP: zombie.currentAP, maxAP: zombie.maxAP } : (data?.zombie || null),
+        cropInfo: targetTile.cropInfo || data?.cropInfo || null,
+        lootItems: targetTile.inventoryItems || null,
+        specialBuilding: targetTile.contents.find(e => e.type === 'place_icon')?.subtype || null,
+        door: targetTile.contents.find(e => e.type === 'door'),
+        window: targetTile.contents.find(e => e.type === 'window')
+      });
     } catch (error) {
-      console.warn('[GameMapContext] Error calculating hover cost:', error);
-      // Fallback calculation
-      const distance = Math.abs(x - player.x) + Math.abs(y - player.y);
-      const apCost = distance;
-      const canAfford = player.ap >= apCost;
-
-      // Check for metadata on targetTile
-      const zombie = targetTile?.contents.find(e => e.type === 'zombie');
-      const zombieInfo = zombie ? {
-        subtype: zombie.subtype,
-        hp: zombie.hp,
-        maxHp: zombie.maxHp,
-        currentAP: zombie.currentAP,
-        maxAP: zombie.maxAP
-      } : (data?.zombie || null);
-
-      const cropInfo = targetTile?.cropInfo || data?.cropInfo || null;
-      const lootItems = targetTile?.inventoryItems || null;
-      
-      const specialBuildingEntity = targetTile?.contents.find(e => e.type === 'place_icon');
-      const specialBuilding = specialBuildingEntity ? specialBuildingEntity.subtype : null;
-      
-      const door = targetTile?.contents.find(e => e.type === 'door');
-      const window = targetTile?.contents.find(e => e.type === 'window');
-
-      setHoveredTile({ x, y, apCost, canAfford, zombie: zombieInfo, cropInfo, lootItems, specialBuilding, door, window });
+      setHoveredTile(null);
     }
   }, []);
 
-  // Execute map transition
+  // Map Transition execution logic
   const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn) => {
-    if (!worldManagerRef.current || !playerEntity) {
-      console.error('[GameMapContext] Cannot execute transition - missing refs');
-      return false;
-    }
+    if (!engine.worldManager || !playerEntity) return false;
 
     try {
-      console.log('[GameMapContext] ========== STARTING MAP TRANSITION ==========');
-      console.log('[GameMapContext] Transition info:', transitionInfo);
-      console.log('[GameMapContext] Player at start:', playerEntity ? `${playerEntity.id} at (${playerEntity.x}, ${playerEntity.y})` : 'null');
-      console.log('[GameMapContext] Current map:', worldManagerRef.current?.currentMapId || 'unknown');
+        console.log('[GameMapContext] ========== EXECUTING MAP TRANSITION (Phase 3) ==========');
+        
+        // 1. Save old map
+        engine.worldManager.saveCurrentMap(engine.gameMap, engine.worldManager.currentMapId, turn);
 
-      // FIX 1: Cancel movement and wait for it to complete BEFORE any map operations
-      if (cancelMovement) {
-        console.log('[GameMapContext] Cancelling movement before transition...');
-        cancelMovement();
-        // Wait for animation frame to fully stop
-        await new Promise(resolve => setTimeout(resolve, 150));
-        console.log('[GameMapContext] Movement cancelled, proceeding with transition');
-      }
+        // 2. Perform transition
+        const result = await engine.worldManager.executeTransition(transitionInfo.nextMapId, transitionInfo.spawnPosition, turn);
+        if (!result.success) return false;
 
-      // CRITICAL: Check for multiple player entities and DUPLICATES
-      const currentMapPlayers = gameMapRef.current.getEntitiesByType('player');
-      console.log('[GameMapContext] 🔍 DUPLICATE INVESTIGATION: Players on current map before transition:');
-      currentMapPlayers.forEach((mapPlayer, index) => {
-        console.log(`[GameMapContext] - Player ${index + 1}: ${mapPlayer.id} at (${mapPlayer.x}, ${mapPlayer.y}), instance hash: ${mapPlayer.constructor.name}_${mapPlayer.id}_${Date.now()}`);
-        console.log(`[GameMapContext] - Is same as passed player?`, mapPlayer === playerEntity ? '✅ SAME INSTANCE' : '❌ DIFFERENT INSTANCE');
-      });
-      console.log('[GameMapContext] 🚨 TOTAL PLAYER ENTITIES FOUND:', currentMapPlayers.length);
+        const newMap = result.gameMap;
 
-      if (currentMapPlayers.length > 1) {
-        console.error('[GameMapContext] 🚨🚨🚨 CRITICAL: MULTIPLE PLAYERS DETECTED! This indicates initialization ran multiple times!');
-        console.error('[GameMapContext] All players on map:');
-        currentMapPlayers.forEach((p, i) => {
-          console.error(`[GameMapContext]   Player ${i + 1}: ${p.id} at (${p.x}, ${p.y}), constructor: ${p.constructor.name}`);
-          console.error(`[GameMapContext]     - Event listeners count: ${p.listeners ? p.listeners.size || 'no size prop' : 'no listeners'}`);
-          console.error(`[GameMapContext]     - HP/AP: ${p.hp}/${p.maxHp} HP, ${p.ap}/${p.maxAp} AP`);
-        });
-      }
+        // 3. Update player reference and position
+        engine.gameMap.removeEntity(playerEntity.id);
+        playerEntity.x = result.spawnPosition.x;
+        playerEntity.y = result.spawnPosition.y;
+        newMap.addEntity(playerEntity, playerEntity.x, playerEntity.y);
 
-      // INVESTIGATION POINT 2: Verify player instance references
-      console.log('[GameMapContext] 🔍 PLAYER REFERENCE VERIFICATION:');
-      console.log('[GameMapContext] - Passed player instance:', playerEntity.id, 'at', `(${playerEntity.x}, ${playerEntity.y})`);
-      console.log('[GameMapContext] - Player object type:', typeof playerEntity, 'constructor:', playerEntity.constructor.name);
-      console.log('[GameMapContext] - Player in entityMap:', gameMapRef.current.entityMap.has(playerEntity.id) ? 'EXISTS' : 'MISSING');
+        // 4. Update Engine
+        engine.gameMap = newMap;
+        engine.zombieTracker?.updateVisibility?.(newMap, playerEntity, []); // Initial blackout
 
-      const entityMapPlayer = gameMapRef.current.entityMap.get(playerEntity.id);
-      if (entityMapPlayer) {
-        console.log('[GameMapContext] - EntityMap player:', entityMapPlayer.id, 'at', `(${entityMapPlayer.x}, ${entityMapPlayer.y})`);
-        console.log('[GameMapContext] - Same instance reference?', playerEntity === entityMapPlayer ? '✅ YES' : '❌ NO - THIS IS THE PROBLEM!');
-        console.log('[GameMapContext] - EntityMap player type:', typeof entityMapPlayer, 'constructor:', entityMapPlayer.constructor.name);
-      }
-
-      // INVESTIGATION POINT 3: Animation cancellation verification
-      console.log('[GameMapContext] 🔍 ANIMATION CANCELLATION CHECK:');
-      if (cancelMovement) {
-        console.log('[GameMapContext] - cancelMovement function available: YES');
-        console.log('[GameMapContext] Calling cancelMovement() before map transition...');
-        cancelMovement();
-        console.log('[GameMapContext] - cancelMovement() called successfully');
-
-        // Wait to see if movement stops
-        await new Promise(resolve => setTimeout(resolve, 200));
-        console.log('[GameMapContext] - cancelMovement completed');
-      } else {
-        console.log('[GameMapContext] - cancelMovement function available: NO');
-      }
-
-      // Store current player reference to ensure consistency
-      const currentPlayerRef = playerEntity;
-      const oldMapRef = gameMapRef.current;
-
-      // Save current map before transitioning
-      worldManagerRef.current.saveCurrentMap(oldMapRef, worldManagerRef.current.currentMapId, turn);
-      console.log('[GameMapContext] Current map saved');
-
-      // GHOST ITEM FIX: Sync ground items with the OLD map tile before moving
-      if (oldMapRef && inventoryManager) {
-        console.log(`[GameMapTransition] Syncing ground items to OLD map at (${currentPlayerRef.x}, ${currentPlayerRef.y})`);
-        inventoryManager.syncWithMap(
-          currentPlayerRef.x, currentPlayerRef.y,
-          currentPlayerRef.x, currentPlayerRef.y, // Stay on same tile to force save
-          oldMapRef
-        );
-      }
-
-      const result = await worldManagerRef.current.executeTransition(
-        transitionInfo.nextMapId,
-        transitionInfo.spawnPosition,
-        turn
-      );
-
-      if (!result.success) {
-        console.error('[GameMapContext] Map transition failed:', result.error || 'Unknown error');
-        return false;
-      }
-
-      console.log('[GameMapContext] WorldManager transition successful, updating contexts...');
-
-      // Remove player from OLD map using the saved reference
-      if (oldMapRef && oldMapRef.entityMap.has(currentPlayerRef.id)) {
-        console.log(`[GameMapContext] Removing player from old map at (${currentPlayerRef.x}, ${currentPlayerRef.y})`);
-        oldMapRef.removeEntity(currentPlayerRef.id);
-      }
-
-      // Remove any existing player entities from the new map to prevent duplicates
-      const existingPlayer = result.gameMap.entityMap.get(currentPlayerRef.id);
-      if (existingPlayer) {
-        console.log(`[GameMapContext] Removing existing player entity from new map at (${existingPlayer.x}, ${existingPlayer.y})`);
-        result.gameMap.removeEntity(currentPlayerRef.id);
-      }
-
-      // CORRECTED FIX: Update player position FIRST, before any camera operations
-      console.log(`[GameMapContext] Updating player position from (${currentPlayerRef.x}, ${currentPlayerRef.y}) to spawn position (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
-
-      // Update player coordinates directly BEFORE camera centering
-      currentPlayerRef.x = result.spawnPosition.x;
-      currentPlayerRef.y = result.spawnPosition.y;
-
-      // Verify player position was updated
-      console.log(`[GameMapContext] Player position after update: (${currentPlayerRef.x}, ${currentPlayerRef.y})`);
-
-      // Add player to new map at spawn position
-      const addSuccess = result.gameMap.addEntity(currentPlayerRef, result.spawnPosition.x, result.spawnPosition.y);
-      if (!addSuccess) {
-        console.error(`[GameMapContext] Failed to add player to new map at (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
-
-        // Try to force add the player by clearing the tile first
-        const spawnTile = result.gameMap.getTile(result.spawnPosition.x, result.spawnPosition.y);
-        if (spawnTile) {
-          console.log('[GameMapContext] Attempting to clear spawn tile and re-add player...');
-          spawnTile.contents = spawnTile.contents.filter(e => e.id !== currentPlayerRef.id);
-          const retryAdd = result.gameMap.addEntity(currentPlayerRef, result.spawnPosition.x, result.spawnPosition.y);
-          if (!retryAdd) {
-            console.error('[GameMapContext] Retry add also failed');
-            return false;
-          }
-          console.log('[GameMapContext] Retry add succeeded');
+        // 5. Centering and Syncing
+        if (cameraOperations?.setWorldBounds) cameraOperations.setWorldBounds(newMap.width, newMap.height);
+        if (cameraOperations?.centerOn) cameraOperations.centerOn(playerEntity.x, playerEntity.y);
+        
+        if (inventoryManager) {
+            inventoryManager.syncWithMap(playerEntity.x, playerEntity.y, playerEntity.x, playerEntity.y, newMap);
         }
-      }
 
-      console.log(`[GameMapContext] Player successfully placed at (${currentPlayerRef.x}, ${currentPlayerRef.y}) on new map`);
-
-      // Verify player is at correct position on the map
-      const verifyTile = result.gameMap.getTile(result.spawnPosition.x, result.spawnPosition.y);
-      const playerOnTile = verifyTile ? verifyTile.contents.find(e => e.id === currentPlayerRef.id) : null;
-      if (!playerOnTile) {
-        console.error(`[GameMapContext] CRITICAL: Player not found on spawn tile after placement! Expected at (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
-        console.error(`[GameMapContext] Spawn tile contents:`, verifyTile ? verifyTile.contents.map(e => `${e.id}(${e.x},${e.y})`) : 'tile not found');
-        console.error(`[GameMapContext] Player entity:`, `${currentPlayerRef.id}(${currentPlayerRef.x},${currentPlayerRef.y})`);
-        return false;
-      } else {
-        console.log(`[GameMapContext] Verified: Player ${currentPlayerRef.id} is on spawn tile (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
-      }
-
-      // Update camera bounds FIRST
-      console.log('[GameMapContext] Setting camera world bounds:', result.gameMap.width, 'x', result.gameMap.height);
-      if (cameraOperations && cameraOperations.setWorldBounds) {
-        cameraOperations.setWorldBounds(result.gameMap.width, result.gameMap.height);
-      }
-
-      // CORRECTED FIX: Now center camera on player's UPDATED position (not stale coordinates)
-      if (cameraOperations && cameraOperations.centerOn) {
-        cameraOperations.centerOn(currentPlayerRef.x, currentPlayerRef.y);
-        console.log(`[GameMapContext] Camera centered on player's updated position (${currentPlayerRef.x}, ${currentPlayerRef.y})`);
-      }
-
-      // GHOST ITEM FIX: Sync ground items with the NEW map tile after transition
-      if (inventoryManager) {
-        console.log(`[GameMapTransition] Loading ground items from NEW map at (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
-        inventoryManager.syncWithMap(
-          result.spawnPosition.x, result.spawnPosition.y,
-          result.spawnPosition.x, result.spawnPosition.y, // Double-load logic for init
-          result.gameMap
-        );
-      }
-
-      // Metadata propagation: Link map generator metadata to the live map instance if needed
-      if (result.metadata) {
-        console.log('[GameMapContext] Applying metadata to new map:', result.metadata);
-        result.gameMap.metadata = { ...result.gameMap.metadata, ...result.metadata };
-      }
-
-      // FIX: Stamp reciprocal south transition on new map (if not first map)
-      if (result.mapId !== 'map_001') {
-        const centerX = Math.floor(result.gameMap.width / 2);
-        console.log(`[GameMapContext] Stamping south transition at (${centerX}, 124) on ${result.mapId}`);
-        result.gameMap.setTerrain(centerX, 124, 'transition');
-      }
-
-      // FIX: Re-save the map to WorldManager with player included (using result.mapId, not undefined targetMapId)
-      console.log(`[GameMapContext] Re-saving map ${result.mapId} to WorldManager with player included...`);
-      worldManagerRef.current.saveCurrentMap(result.gameMap, result.mapId);
-      console.log('[GameMapContext] Map re-saved with player successfully');
-
-      // FIX: Update game map reference using setGameMap
-      // This also increments mapVersion for structural re-render
-      console.log(`[GameMapContext] Finalizing transition: setting new map ${result.mapId} as current`);
-      setGameMap(result.gameMap);
-      console.log('[GameMapContext] Game map reference updated and version incremented');
-
-      console.log(`[GameMapContext] Map transition completed successfully to ${result.mapId}`);
-      addLog(`Player moved to map ${result.mapId}`, 'world');
-      console.log(`[GameMapContext] Player spawned at (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
-
-      triggerMapUpdate(); // Ensure UI reflects new map
-
-      // FIX 3: PATCH code removed - player position is now set once and remains consistent
-      // Animation is cancelled before transition, camera follows actual player position
-
-      return true;
-
+        console.log('[GameMapContext] Map transition successful, triggering global sync...');
+        engine.notifySync();
+        addLog(`Entered ${result.mapId}`, 'world');
+        return true;
     } catch (error) {
       console.error('[GameMapContext] Map transition error:', error);
-      console.error('[GameMapContext] Error stack:', error.stack);
       return false;
     }
   }, []);
 
-  // Handle map transition confirmation
   const handleMapTransitionConfirm = useCallback(async (player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn) => {
-    console.log(`[GameMapContext] Starting map transition confirmation with player: ${typeof player !== 'undefined' && player ? `${player.id} at (${player.x}, ${player.y})` : 'null'} at Turn ${turn}`);
-    console.log('[GameMapContext] Player object type:', typeof player, 'constructor:', player?.constructor?.name || 'undefined');
-
-    if (!player) {
-      console.error('[GameMapContext] Cannot execute transition - no player available');
-      return false;
-    }
-
+    if (!player) return false;
     const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn);
-    if (success) {
-      setMapTransition(null);
-      console.log('[GameMapContext] Map transition completed successfully, dialog closed');
-      return true;
-    } else {
-      console.error('[GameMapContext] Map transition failed, keeping dialog open');
-      return false;
-    }
+    if (success) setMapTransition(null);
+    return success;
   }, [mapTransition, executeMapTransition]);
 
-  // Handle map transition cancellation
-  const handleMapTransitionCancel = useCallback(() => {
-    setMapTransition(null);
-  }, []);
+  const handleMapTransitionCancel = useCallback(() => setMapTransition(null), []);
 
   const contextValue = useMemo(() => ({
-    // Map data - expose both ref and current value
+    gameMap: engine.gameMap,
     gameMapRef,
-    gameMap: gameMapRef.current,
+    worldManager: engine.worldManager,
     worldManagerRef,
-    worldManager: worldManagerRef.current,
     mapVersion,
-
-    // Map state
-    mapTransition, // Kept for handleMapTransitionConfirm/Cancel
-    hoveredTile, // UI state for tile hover effects
-
-    // Methods
-    setGameMap,
-    setWorldManager,
-    setZombieTracker,
-    handleTileClick,
-    handleTileHover,
-    checkPathForZombieVisibility,
-    executeMapTransition,
-    handleMapTransitionConfirm,
-    handleMapTransitionCancel,
-    setMapTransition,
-    triggerMapUpdate,
-    refreshZombieTracking,
-    zombieTracker: zombieTrackerRef.current,
-    lootGenerator: lootGeneratorRef.current,
-    setLootGenerator
-  }), [
-    mapVersion, // Version triggers updates when gameMap ref changes
     mapTransition,
     hoveredTile,
-    setGameMap,
-    setWorldManager,
-    setZombieTracker,
+    setGameMap: () => {}, // Null-op for Phase 3
+    setWorldManager: () => {},
     handleTileClick,
     handleTileHover,
-    checkPathForZombieVisibility,
     executeMapTransition,
     handleMapTransitionConfirm,
     handleMapTransitionCancel,
     setMapTransition,
-    triggerMapUpdate,
-    refreshZombieTracking
-  ]);
+    triggerMapUpdate: () => setMapVersion(v => v + 1),
+    refreshZombieTracking: (p, fov) => engine.zombieTracker?.updateTracking(engine.gameMap, p, fov, null),
+    zombieTracker: engine.zombieTracker,
+    lootGenerator: engine.lootGenerator,
+    setLootGenerator: () => {}
+  }), [mapVersion, mapTransition, hoveredTile, handleTileClick, handleTileHover, executeMapTransition, handleMapTransitionConfirm, handleMapTransitionCancel]);
 
   return (
     <GameMapContext.Provider value={contextValue}>

@@ -10,11 +10,13 @@ export default function UnifiedClothingPanel() {
 
   const { getEquippedBackpackContainer, inventoryRef, inventoryVersion } = useInventory();
 
+  /*
   logger.debug('Context values received:', {
     hasInventoryRef: !!inventoryRef,
     hasGetEquippedBackpack: !!getEquippedBackpackContainer,
     inventoryVersion
   });
+  */
 
   // Independent collapse states for each section
   const [upperCollapsed, setUpperCollapsed] = useState(false);
@@ -26,6 +28,7 @@ export default function UnifiedClothingPanel() {
   const lowerBodyItem = inventoryRef.current?.equipment?.lower_body || null;
   const backpackItem = inventoryRef.current?.equipment?.backpack || null;
 
+  /*
   logger.debug('===== FULL DIAGNOSTIC =====');
   logger.debug('inventoryRef.current exists:', !!inventoryRef.current);
   logger.debug('inventoryRef.current.equipment:', inventoryRef.current?.equipment);
@@ -46,6 +49,7 @@ export default function UnifiedClothingPanel() {
     lowerBodyName: lowerBodyItem?.name,
     backpackName: backpackItem?.name
   });
+  */
 
   // Get backpack container
   const backpackContainer = getEquippedBackpackContainer();
@@ -60,6 +64,7 @@ export default function UnifiedClothingPanel() {
     ? (lowerBodyItem.getPocketContainerIds?.() || [])
     : [];
 
+  /*
   logger.debug('===== POCKET DIAGNOSTIC =====');
   logger.debug('Upper body item:', upperBodyItem?.name || 'none');
   logger.debug('- isContainer():', upperBodyItem?.isContainer?.());
@@ -83,6 +88,7 @@ export default function UnifiedClothingPanel() {
     backpackContainer: backpackContainer?.id || 'none',
     inventoryVersion
   });
+  */
 
   return (
     <div className="w-1/2 border-r border-border flex flex-col h-full" data-testid="unified-clothing-panel">

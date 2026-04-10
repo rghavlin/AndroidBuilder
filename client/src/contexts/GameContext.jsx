@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
 import { Zombie } from '../game/entities/Zombie.js';
 import { ZombieAI } from '../game/ai/ZombieAI.js';
@@ -15,6 +15,7 @@ import Logger from '../game/utils/Logger.js';
 import { Item, createItemFromDef } from '../game/inventory/index.js';
 import { ItemTrait } from '../game/inventory/traits.js';
 import { useAudio } from './AudioContext.jsx';
+import engine from '../game/GameEngine.js';
 
 const logger = Logger.scope('GameContext');
 
@@ -59,17 +60,17 @@ export const useGame = () => {
 
 const GameContextInner = ({ children }) => {
   // Use context hooks
-  const { playerRef, setPlayerRef, setPlayerPosition, setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, startAnimatedMovement, cancelMovement, isMoving: isAnimatingMovement, playerFieldOfView } = usePlayer();
-  const { gameMapRef, worldManagerRef, gameMap, worldManager, setGameMap, setWorldManager, setZombieTracker, setLootGenerator, triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
-  const { cameraRef, camera, setCamera, setCameraWorldBounds } = useCamera();
+  const { setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, cancelMovement, playerFieldOfView, playerCardinalPositions } = usePlayer();
+  const { triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
+  const { setCameraWorldBounds } = useCamera();
   const { addEffect } = useVisualEffects();
   const { addLog, clearLogs } = useLog();
   const { playSound } = useAudio();
   const [inventoryVersion, setInventoryVersion] = useState(0);
 
 
-  // Phase 5A: Store inventoryManager from initialization
-  const [inventoryManager, setInventoryManager] = useState(null);
+  // Phase 5A: inventoryManager is now managed by engine.inventoryManager
+  const inventoryManager = engine.inventoryManager;
 
   // Refs for internal use
   const initManagerRef = useRef(null);
@@ -78,7 +79,8 @@ const GameContextInner = ({ children }) => {
   const lastSeenTaggedTilesRef = useRef(new Set());
 
   // State machine state
-  const [initializationState, setInitializationState] = useState('idle');
+  const [initializationState, setInitializationState] = useState(engine.initializationState);
+  const [engineUpdate, setEngineUpdate] = useState(0); // For triggering re-renders on engine changes
   const initRef = useRef('idle'); // Mirror state in ref to avoid closure issues
   const runIdRef = useRef(0); // Track initialization runs
   const [initializationError, setInitializationError] = useState(null);
@@ -92,11 +94,25 @@ const GameContextInner = ({ children }) => {
   // Computed from state machine and explicit gate
   const isInitialized = initializationState === 'complete' && isGameReady;
 
-  // Sync ref whenever state changes
   useEffect(() => {
     initRef.current = initializationState;
   }, [initializationState]);
-  const [turn, setTurn] = useState(1);
+
+  // Phase 2: Listen for engine updates to trigger React re-renders
+  // Phase 1: Engine heartbeat bridge (Atomic Sync)
+  const enginePulse = useSyncExternalStore(
+    (cb) => engine.subscribe(cb),
+    () => engine.getSnapshot()
+  );
+
+  // Sync vital lifecycle flags on every pulse
+  useEffect(() => {
+    if (engine.initializationState) {
+      setInitializationState(engine.initializationState);
+    }
+  }, [enginePulse]);
+
+  const initializedRef = useRef(false);  const [turn, setTurn] = useState(1);
   const [isFlashlightOn, setIsFlashlightOn] = useState(false);
   const hour = (6 + (turn - 1)) % 24;
   const isNight = hour >= 20 || hour < 6;
@@ -124,8 +140,8 @@ const GameContextInner = ({ children }) => {
    * @param {Object} overridePlayerPos - Optional {x,y} to check visibility from (e.g. during animations)
    */
   const checkZombieAwareness = useCallback((overridePlayerPos = null) => {
-    const currentMap = gameMapRef.current;
-    const currentPlayer = playerRef.current;
+    const currentMap = engine.gameMap;
+    const currentPlayer = engine.player;
     if (!currentMap || !currentPlayer) return false;
 
     const checkPlayer = overridePlayerPos || { x: currentPlayer.x, y: currentPlayer.y };
@@ -153,13 +169,13 @@ const GameContextInner = ({ children }) => {
     });
 
     return alertedNew;
-  }, [gameMapRef, playerRef]);
+  }, [engine]);
 
   const igniteTorch = useCallback((sourceItem = null) => {
-    if (!playerRef.current || !inventoryManager) return;
+    if (!engine.player || !inventoryManager) return;
     
     // Check AP (1 AP)
-    if (playerRef.current.ap < 1) {
+    if (engine.player.ap < 1) {
       addLog('Not enough AP to ignite torch (1 required)', 'error');
       return;
     }
@@ -216,7 +232,7 @@ const GameContextInner = ({ children }) => {
     }
 
     // Perform ignition
-    playerRef.current.useAP(1);
+    engine.player.useAP(1);
     source.ammoCount = Math.max(0, (source.ammoCount || 0) - 1);
     torch.isLit = true;
     setIsFlashlightOn(true);
@@ -231,7 +247,7 @@ const GameContextInner = ({ children }) => {
     }
 
     setInventoryVersion(prev => prev + 1);
-  }, [playerRef, inventoryManager, addLog, playSound, setInventoryVersion]);
+  }, [inventoryManager, addLog, playSound, setInventoryVersion]);
 
   const toggleFlashlight = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
@@ -273,10 +289,10 @@ const GameContextInner = ({ children }) => {
         playSound('SwitchOff');
       }
 
-      updatePlayerFieldOfView(gameMapRef.current, isNight, newState, false, getActiveFlashlightRange());
+      updatePlayerFieldOfView(engine.gameMap, isNight, newState, false, getActiveFlashlightRange());
       return newState;
     });
-  }, [gameMapRef, isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
+  }, [isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
 
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAnimatingZombies, setIsAnimatingZombies] = useState(false);
@@ -302,7 +318,7 @@ const GameContextInner = ({ children }) => {
     // This listener handles moving items between the ground container and map tiles
     player.on('playerMoved', ({ oldPosition, newPosition }) => {
       // ALWAYS use the latest map from the ref to avoid stale closures during map transitions
-      const currentMap = gameMapRef.current;
+      const currentMap = engine.gameMap;
       if (!currentMap) return;
 
       logger.info(`Player shifted from (${oldPosition.x}, ${oldPosition.y}) to (${newPosition.x}, ${newPosition.y}) - syncing ground items`);
@@ -319,7 +335,7 @@ const GameContextInner = ({ children }) => {
     });
 
     console.log('[GameContext] Inventory synchronization listener attached to player');
-  }, [gameMapRef]);
+  }, [engine]);
 
   const wireManagerEvents = useCallback((manager, runId) => {
     const handleStateChanged = ({ current }) => {
@@ -338,28 +354,33 @@ const GameContextInner = ({ children }) => {
         return;
       }
 
-      console.log('[GameContext] State machine initialization completed');
-      setContextSyncPhase('updating');
+      console.log('[GameContext] ✅ Initialization complete, synchronizing sub-contexts...');
+      
+      // Sub-contexts (Player, Map, Inventory) already provide reactive access to engine data
+      // Orchestration functions below use the engine directly.
 
-      // Set up context references synchronously (Phase 5A: includes inventoryManager)
-      setInventoryManager(gameObjects.inventoryManager);
-      setGameMap(gameObjects.gameMap);
-      setPlayerRef(gameObjects.player);
-      setCamera(gameObjects.camera);
-      setWorldManager(gameObjects.worldManager);
-      setZombieTracker(gameObjects.zombieTracker);
-      setLootGenerator(gameObjects.lootGenerator);
-
-      // Set up camera and player
-      const { gameMap, player, camera } = gameObjects;
-      camera.setWorldBounds(gameMap.width, gameMap.height);
-      camera.centerOn(player.x, player.y);
+      // Final setup on engine objects
+      engine.camera.setWorldBounds(engine.gameMap.width, engine.gameMap.height);
+      engine.camera.centerOn(engine.player.x, engine.player.y);
       setupPlayerEventListeners();
 
-      attachInventorySyncListener(player, gameObjects.inventoryManager);
+      attachInventorySyncListener(engine.player, engine.inventoryManager);
 
+      // Phase 3: Final Settle Handshake
+      // Execute handshake immediately to prevent mount/unmount flickering
+      console.log('[GameContext] 🤝 Handshake settle starting. Syncing engine...');
+      
+      // Initial ground sync for the starting tile
+      if (engine.inventoryManager && engine.player && engine.gameMap) {
+        engine.inventoryManager.syncWithMap(engine.player.x, engine.player.y, engine.player.x, engine.player.y, engine.gameMap);
+      }
+
+      engine.emit('sync', engine);
+      engine.notifyUpdate();
+      if (engine.player) engine.camera.centerOn(engine.player.x, engine.player.y);
       setIsGameReady(true);
-      console.log('[GameContext] Game is ready - UI gate opened');
+      console.log('[GameContext] 🚀 Game ready - UI gate opened (Atomic Sync)');
+
     };
 
     const handleInitializationError = (error) => {
@@ -375,7 +396,7 @@ const GameContextInner = ({ children }) => {
     manager.on('stateChanged', handleStateChanged);
     manager.on('initializationComplete', handleInitializationComplete);
     manager.on('initializationError', handleInitializationError);
-  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setLootGenerator, setupPlayerEventListeners]);
+  }, [setupPlayerEventListeners]);
 
   // Phase 5B: Sync local inventory version with manager events
   useEffect(() => {
@@ -420,7 +441,7 @@ const GameContextInner = ({ children }) => {
     console.log('[GameContext] ✅ Creating NEW GameInitializationManager...');
 
     const zombieTracker = new PlayerZombieTracker();
-    setZombieTracker(zombieTracker);
+    engine.zombieTracker = zombieTracker;
 
     initManagerRef.current = new GameInitializationManager();
     console.log('[GameContext] ✅ GameInitializationManager created:', initManagerRef.current.instanceId);
@@ -448,35 +469,35 @@ const GameContextInner = ({ children }) => {
 
   // Context Synchronization: Wait for all sub-contexts to have data before marking as ready
   useEffect(() => {
-    if (contextSyncPhase === 'updating' && gameMap && playerRef.current && camera && worldManager) {
+    if (contextSyncPhase === 'updating' && engine.gameMap && engine.player && engine.camera && engine.worldManager) {
       console.log('[GameContext] All contexts synchronized, executing final setup...');
 
       // Development assertions
       if (process.env.NODE_ENV === 'development') {
-        if (!playerRef.current.x || !playerRef.current.y) {
-          console.error('[GameContext] DEV ASSERTION FAILED: Player has invalid position', playerRef.current);
+        if (!engine.player.x || !engine.player.y) {
+          console.error('[GameContext] DEV ASSERTION FAILED: Player has invalid position', engine.player);
         }
-        if (!gameMap.width || !gameMap.height) {
-          console.error('[GameContext] DEV ASSERTION FAILED: GameMap has invalid dimensions', gameMap);
+        if (!engine.gameMap.width || !engine.gameMap.height) {
+          console.error('[GameContext] DEV ASSERTION FAILED: GameMap has invalid dimensions', engine.gameMap);
         }
-        if (!camera.x && camera.x !== 0 || !camera.y && camera.y !== 0) {
-          console.error('[GameContext] DEV ASSERTION FAILED: Camera has invalid position', camera);
+        if (!engine.camera.x && engine.camera.x !== 0 || !engine.camera.y && engine.camera.y !== 0) {
+          console.error('[GameContext] DEV ASSERTION FAILED: Camera has invalid position', engine.camera);
         }
       }
 
       // Now safe to do operations that depend on all contexts
       if (typeof updatePlayerFieldOfView === 'function') {
-        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+        updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
       }
       if (typeof updatePlayerCardinalPositions === 'function') {
-        updatePlayerCardinalPositions(gameMap);
+        updatePlayerCardinalPositions(engine.gameMap);
       }
 
       // Mark as fully ready
       setContextSyncPhase('ready');
       console.log('[GameContext] Initialization fully complete - all contexts ready for operations');
     }
-  }, [contextSyncPhase, gameMap, camera, worldManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
+  }, [contextSyncPhase, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
 
 
@@ -495,15 +516,9 @@ const GameContextInner = ({ children }) => {
       console.log(`[GameContext] - Player: ${loadedState.player.id} at (${loadedState.player.x}, ${loadedState.player.y})`);
       console.log(`[GameContext] - Map: ${loadedState.gameMap.width}x${loadedState.gameMap.height}`);
 
-      // Set all contexts directly from loaded state (Phase 5A: includes inventoryManager)
-      setInventoryManager(loadedState.inventoryManager);
-      setGameMap(loadedState.gameMap);
-      setPlayerRef(loadedState.player);
-      setCamera(loadedState.camera);
-      setWorldManager(loadedState.worldManager);
-      setLootGenerator(loadedState.lootGenerator);
-      setTurn(loadedState.turn);
-      setIsPlayerTurn(true);
+      // Sync ALL engine state atomically from loaded save
+      engine.sync(loadedState);
+      
       setIsAutosaving(false);
       lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
 
@@ -539,7 +554,7 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] ❌ DIRECT LOAD FAILED:', error);
       return false;
     }
-  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
   const loadGame = useCallback(async (slotName = 'quicksave') => {
     try {
@@ -550,35 +565,9 @@ const GameContextInner = ({ children }) => {
       }
       console.log('[GameContext] Applying loaded state...');
 
-      // CRITICAL: Set ALL state synchronously in the correct order
-      // 1. WorldManager (no dependencies)
-      setWorldManager(loadedState.worldManager);
-
-      // 2. GameMap (needed for player FOV calculations)
-      setGameMap(loadedState.gameMap);
-
-      // 3. Camera (independent of player)
-      setCamera(loadedState.camera);
-
-      // 4. InventoryManager BEFORE player to ensure equipment references are valid
-      if (loadedState.inventoryManager) {
-        setInventoryManager(loadedState.inventoryManager);
-        console.log('[GameContext] InventoryManager restored from save');
-        console.log('[GameContext] Equipped backpack:', loadedState.inventoryManager.equipment.backpack?.name || 'none');
-
-        // Log equipment state for debugging
-        const equippedItems = Object.entries(loadedState.inventoryManager.equipment)
-          .filter(([slot, item]) => item !== null)
-          .map(([slot, item]) => `${slot}: ${item.name}`);
-        console.log('[GameContext] All equipped items:', equippedItems.length > 0 ? equippedItems.join(', ') : 'none');
-      }
-
-      // 5. LootGenerator
-      setLootGenerator(loadedState.lootGenerator);
-
-      // 6. Player LAST - after inventory is ready
-      setPlayerRef(loadedState.player);
-
+      // Atomic engine sync
+      engine.sync(loadedState);
+      
       setTurn(loadedState.turn);
       setIsPlayerTurn(true);
       setIsAutosaving(false);
@@ -610,7 +599,7 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] Failed to load game:', error);
       return false;
     }
-  }, [setInventoryManager, setGameMap, setPlayerRef, setCamera, setWorldManager, setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
   const initializeGame = useCallback(async (config = null) => {
     console.log('[GameContext] 🎮 initializeGame called with config:', !!config);
@@ -682,7 +671,7 @@ const GameContextInner = ({ children }) => {
       setIsAutosaving(true);
 
       // FIX 4: CRITICAL - Verify player is on map before saving
-      const playersOnMap = gameMapRef.current?.getEntitiesByType('player') || [];
+      const playersOnMap = engine.gameMap?.getEntitiesByType('player') || [];
       if (playersOnMap.length === 0) {
         console.error('[GameContext] Autosave aborted - no player on map!');
         setIsAutosaving(false);
@@ -692,13 +681,13 @@ const GameContextInner = ({ children }) => {
       console.log('[GameContext] Performing autosave with valid game state...');
 
       const currentGameState = {
-        gameMap: gameMapRef.current,
-        worldManager: worldManagerRef.current,
-        player: playerRef.current,
-        camera: cameraRef.current,
+        gameMap: engine.gameMap,
+        worldManager: engine.worldManager,
+        player: engine.player,
+        camera: engine.camera,
         inventoryManager: inventoryManager,
         turn: turn,
-        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 12, maxAp: playerRef.current?.maxAp || 12, ammo: 0 }
+        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
       };
 
       const success = GameSaveSystem.saveToLocalStorage(currentGameState, 'autosave');
@@ -715,7 +704,7 @@ const GameContextInner = ({ children }) => {
       setIsAutosaving(false);
       return false;
     }
-  }, [isInitialized, gameMapRef, worldManagerRef, playerRef, cameraRef, inventoryManager, turn]);
+  }, [isInitialized, inventoryManager, turn]);
 
   const checkIsSheltered = useCallback((player, gameMap) => {
     if (!player || !gameMap) return false;
@@ -841,14 +830,15 @@ const GameContextInner = ({ children }) => {
   }, []);
 
   const performSleep = useCallback(async (hours, energyMultiplier = 1) => {
-    if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn || isSleeping) return;
+    const gameMap = engine.gameMap;
+    if (!isInitialized || !engine.player || !gameMap || !isPlayerTurn || isSleeping) return;
 
     try {
       setIsSleeping(true);
       setIsPlayerTurn(false);
       setSleepProgress(hours);
 
-      const player = playerRef.current;
+      const player = engine.player;
       let currentTurn = turn;
 
       for (let i = 0; i < hours; i++) {
@@ -924,7 +914,6 @@ const GameContextInner = ({ children }) => {
           if (turnResult.success) {
             turnResult.actions.forEach(action => {
               if (action.type === 'attackDoor' && action.doorPos) {
-                playSound('Bang1');
                 if (isPlayerInSameBuildingAsDoor({ x: player.x, y: player.y }, action.doorPos, gameMap)) {
                   addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
                   doorAttackedInBuilding = true;
@@ -934,7 +923,6 @@ const GameContextInner = ({ children }) => {
                   addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
                 }
               } else if (action.type === 'attackWindow' && action.windowPos) {
-                playSound('GlassBreak');
                 addLog('Zombie smashes a window!', 'combat');
                 if (addEffect) {
                   addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
@@ -1040,7 +1028,7 @@ const GameContextInner = ({ children }) => {
       setIsPlayerTurn(true);
       setSleepProgress(0);
     }
-  }, [isInitialized, playerRef, gameMap, isPlayerTurn, isSleeping, checkIsSheltered, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave]);
+  }, [isInitialized, engine, isPlayerTurn, isSleeping, checkIsSheltered, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave]);
 
   const triggerSleep = useCallback((multiplier = 1) => {
     setSleepMultiplier(multiplier);
@@ -1059,8 +1047,8 @@ const GameContextInner = ({ children }) => {
   }, []);
 
   const digHole = useCallback((x, y) => {
-    const player = playerRef.current;
-    const gameMap = gameMapRef.current;
+    const player = engine.player;
+    const gameMap = engine.gameMap;
     
     // Safety guards
     if (!player || !gameMap || !targetingItem || !inventoryManager) {
@@ -1144,11 +1132,11 @@ const GameContextInner = ({ children }) => {
     }
     
     return { success: true, item: holeItem };
-  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, addLog, addEffect]);
+  }, [engine, targetingItem, inventoryManager, updatePlayerStats, addLog, addEffect]);
 
   const plantSeed = useCallback((gridX, gridY, seedOverride = null) => {
-    const player = playerRef.current;
-    const gameMap = gameMapRef.current;
+    const player = engine.player;
+    const gameMap = engine.gameMap;
     
     // Choose which seed to use: the override (from cursor) or the targeting state
     const activeSeed = seedOverride || targetingItem;
@@ -1231,10 +1219,10 @@ const GameContextInner = ({ children }) => {
     }
 
     return { success: false };
-  }, [playerRef, targetingItem, inventoryManager, addLog, updatePlayerStats]);
+  }, [engine, targetingItem, inventoryManager, addLog, updatePlayerStats]);
 
   const harvestPlant = useCallback((plantItem) => {
-    const player = playerRef.current;
+    const player = engine.player;
     if (!player || !inventoryManager) return;
 
     const ground = inventoryManager.groundContainer;
@@ -1268,8 +1256,8 @@ const GameContextInner = ({ children }) => {
     if (success) {
       addLog(`You harvest ${count} ${logName}.`, "info");
       if (inventoryManager) {
-        if (player && gameMapRef.current) {
-          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
+        if (player && engine.gameMap) {
+          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, engine.gameMap);
         }
         inventoryManager.emit('inventoryChanged');
       }
@@ -1279,18 +1267,18 @@ const GameContextInner = ({ children }) => {
       ground.addItem(produceItem);
       addLog(`You harvest ${count} ${logName}.`, "info");
       if (inventoryManager) {
-        if (player && gameMapRef.current) {
-          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, gameMapRef.current);
+        if (player && engine.gameMap) {
+          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, engine.gameMap);
         }
         inventoryManager.emit('inventoryChanged');
       }
       if (triggerMapUpdate) triggerMapUpdate();
     }
-  }, [playerRef, inventoryManager, addLog, triggerMapUpdate]);
+  }, [engine, inventoryManager, addLog, triggerMapUpdate]);
 
   const useBreakingToolOnStructure = useCallback((x, y) => {
-    const player = playerRef.current;
-    const gameMap = gameMapRef.current;
+    const player = engine.player;
+    const gameMap = engine.gameMap;
     if (!player || !gameMap || !targetingItem) return { success: false };
 
     // DISPATCHER: Handle specialized tool actions
@@ -1402,7 +1390,7 @@ const GameContextInner = ({ children }) => {
     }
 
     return { success: true };
-  }, [playerRef, gameMapRef, targetingItem, inventoryManager, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange, addLog, playSound, addEffect, digHole, plantSeed]);
+  }, [engine, targetingItem, inventoryManager, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange, addLog, playSound, addEffect, digHole, plantSeed]);
 
   const animateVisibleNPCs = useCallback((npcs, currentFov) => {
     return new Promise((resolve) => {
@@ -1480,10 +1468,12 @@ const GameContextInner = ({ children }) => {
   }, [triggerMapUpdate]);
 
   const endTurn = useCallback(async () => {
-    if (!isInitialized || !playerRef.current || !gameMap || !isPlayerTurn) {
+    const gameMap = engine.gameMap;
+    const player = engine.player;
+    if (!isInitialized || !player || !gameMap || !isPlayerTurn) {
       console.warn('[GameContext] Cannot end turn - missing requirements', {
         isInitialized,
-        hasPlayer: !!playerRef.current,
+        hasPlayer: !!player,
         hasGameMap: !!gameMap,
         isPlayerTurn
       });
@@ -1508,7 +1498,7 @@ const GameContextInner = ({ children }) => {
       logger.debug('Cleared all LastSeen tagged tiles for new zombie turn phase');
 
       // Process Player Turn-End Status (Sickness, Regen, etc.)
-      const player = playerRef.current;
+      const player = engine.player;
       if (player.sickness > 0) {
         player.sickness -= 1;
         // Take damage from sickness (e.g. 1 hp per turn)
@@ -1602,14 +1592,12 @@ const GameContextInner = ({ children }) => {
           if (!zombieEntity) return;
 
           if (action.type === 'attackDoor' && action.doorPos) {
-            playSound('Bang1');
             GameEvents.emit(action.doorBroken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action);
             if (addEffect) {
               addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
               addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
             }
           } else if (action.type === 'attackWindow' && action.windowPos) {
-            playSound('GlassBreak');
             GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action);
             if (addEffect) {
               addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
@@ -1791,13 +1779,16 @@ const GameContextInner = ({ children }) => {
 
       await performAutosave();
 
+      // Final synchronization after all turn processing (zombies, survival, AP regen)
+      engine.notifyUpdate();
+
       setIsPlayerTurn(true);
 
     } catch (error) {
       console.error('[GameContext] Error ending turn:', error);
       setIsPlayerTurn(true);
     }
-  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleNPCs, checkZombieAwareness, playerRef, gameMap, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
+  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleNPCs, checkZombieAwareness, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
 
   // Legacy wrapper methods (these should be removed in Phase 2)
   const handleTileClick = useCallback((x, y) => {
@@ -1817,9 +1808,10 @@ const GameContextInner = ({ children }) => {
   }, []);
 
   const spawnTestEntities = useCallback(() => {
-    if (!gameMap || !playerRef.current) return;
+    const gameMap = engine.gameMap;
+    const player = engine.player;
+    if (!gameMap || !player) return;
 
-    const player = playerRef.current;
     const existingTestEntities = gameMap.getEntitiesByType('test').concat(gameMap.getEntitiesByType('item'));
     existingTestEntities.forEach(entity => {
       if (entity.id.startsWith('test-') || entity.id.startsWith('item-')) {
@@ -1848,7 +1840,7 @@ const GameContextInner = ({ children }) => {
     console.log(`[GameContext] Spawned ${spawnedCount} test entities for LOS testing`);
     updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
     return spawnedCount;
-  }, [updatePlayerFieldOfView, playerRef, gameMap]);
+  }, [updatePlayerFieldOfView, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
   const saveGame = useCallback((slotName = 'quicksave') => {
     if (!isInitialized || contextSyncPhase !== 'ready') {
@@ -1860,15 +1852,18 @@ const GameContextInner = ({ children }) => {
     try {
       // Development assertions before save
       if (process.env.NODE_ENV === 'development') {
-        if (!gameMapRef.current) {
+        const gameMap = engine.gameMap;
+        const player = engine.player;
+
+        if (!gameMap) {
           console.error('[GameContext] DEV ASSERTION FAILED: Attempting to save with null gameMap');
           return false;
         }
-        if (!playerRef.current) {
+        if (!player) {
           console.error('[GameContext] DEV ASSERTION FAILED: Attempting to save with null player');
           return false;
         }
-        const playersOnMap = gameMapRef.current.getEntitiesByType('player');
+        const playersOnMap = gameMap.getEntitiesByType('player');
         if (playersOnMap.length === 0) {
           console.error('[GameContext] DEV ASSERTION FAILED: No player on map before save');
           return false;
@@ -1877,25 +1872,25 @@ const GameContextInner = ({ children }) => {
           console.error('[GameContext] DEV ASSERTION FAILED: Multiple players on map before save', playersOnMap.length);
         }
 
-        // CRITICAL: Verify player on map matches playerRef
+        // CRITICAL: Verify player on map matches engine
         const playerOnMap = playersOnMap[0];
-        if (playerOnMap !== playerRef.current) {
+        if (playerOnMap !== player) {
           console.error('[GameContext] DEV ASSERTION FAILED: Player instance mismatch!');
-          console.error('[GameContext] - playerRef.current:', playerRef.current.id, 'at', playerRef.current.x, playerRef.current.y);
+          console.error('[GameContext] - Engine Player:', player.id, 'at', player.x, player.y);
           console.error('[GameContext] - Player on map:', playerOnMap.id, 'at', playerOnMap.x, playerOnMap.y);
-          console.error('[GameContext] - Same instance?', playerOnMap === playerRef.current);
+          console.error('[GameContext] - Same instance?', playerOnMap === player);
           return false;
         }
       }
 
       const currentGameState = {
-        gameMap: gameMapRef.current,
-        worldManager: worldManagerRef.current,
-        player: playerRef.current,
-        camera: cameraRef.current,
+        gameMap: engine.gameMap,
+        worldManager: engine.worldManager,
+        player: engine.player,
+        camera: engine.camera,
         inventoryManager: inventoryManager,
         turn: turn,
-        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 12, maxAp: playerRef.current?.maxAp || 12, ammo: 0 }
+        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
       };
       const success = GameSaveSystem.saveToLocalStorage(currentGameState, slotName);
       if (success) {
@@ -1921,13 +1916,13 @@ const GameContextInner = ({ children }) => {
     }
     try {
       const currentGameState = {
-        gameMap: gameMapRef.current,
-        worldManager: worldManagerRef.current,
-        player: playerRef.current,
-        camera: cameraRef.current,
+        gameMap: engine.gameMap,
+        worldManager: engine.worldManager,
+        player: engine.player,
+        camera: engine.camera,
         inventoryManager: inventoryManager,
         turn: turn,
-        playerStats: { hp: playerRef.current?.hp || 100, maxHp: playerRef.current?.maxHp || 100, ap: playerRef.current?.ap || 12, maxAp: playerRef.current?.maxAp || 12, ammo: 0 },
+        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 },
         lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
       };
       return GameSaveSystem.exportToFile(currentGameState, filename);
@@ -1935,14 +1930,14 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] Failed to export game:', error);
       return false;
     }
-  }, [isInitialized, turn, playerRef, gameMapRef, worldManagerRef, cameraRef]);
+  }, [isInitialized, turn, inventoryManager]);
 
   // Wrapper methods for map transitions that include player context functions
   const handleMapTransitionConfirmWrapper = useCallback(async () => {
     console.log('[GameContext] Map transition confirmation wrapper called');
-    console.log('[GameContext] - Player:', playerRef.current ? `${playerRef.current.id} at (${playerRef.current.x}, ${playerRef.current.y})` : 'null');
+    console.log('[GameContext] - Player:', engine.player ? `${engine.player.id} at (${engine.player.x}, ${engine.player.y})` : 'null');
 
-    if (!playerRef.current) {
+    if (!engine.player) {
       console.error('[GameContext] Cannot execute transition - no player available');
       return false;
     }
@@ -1951,24 +1946,24 @@ const GameContextInner = ({ children }) => {
     const cameraOperations = {
       setWorldBounds: setCameraWorldBounds,
       centerOn: (x, y) => {
-        if (cameraRef.current) {
-          cameraRef.current.centerOn(x, y);
+        if (engine.camera) {
+          engine.camera.centerOn(x, y);
         }
       }
     };
 
     // Call GameMapContext handleMapTransitionConfirm with required parameters including camera operations
-    const success = await mapTransitionConfirm(playerRef.current, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn);
+    const success = await mapTransitionConfirm(engine.player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn);
 
     if (success) {
       // Update PlayerContext data after successful transition (no timer)
-      updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOn, false, getActiveFlashlightRange());
-      updatePlayerCardinalPositions(gameMapRef.current);
+      updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
+      updatePlayerCardinalPositions(engine.gameMap);
       console.log('[GameContext] Player FOV and cardinal positions updated after map transition');
     }
 
     return success;
-  }, [mapTransitionConfirm, playerRef, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, gameMapRef, setCameraWorldBounds, cameraRef, inventoryManager, isNight, isFlashlightOn, getActiveFlashlightRange]);
+  }, [mapTransitionConfirm, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, setCameraWorldBounds, inventoryManager, isNight, isFlashlightOn, getActiveFlashlightRange]);
 
   const contextValue = useMemo(() => ({
     // Game lifecycle state only
@@ -1989,6 +1984,8 @@ const GameContextInner = ({ children }) => {
     isAutosaving,
     isSkillsOpen,
     toggleSkills,
+    engine,
+    enginePulse,
 
     // Orchestration functions only
     initializeGame,
@@ -2049,6 +2046,7 @@ const GameContextInner = ({ children }) => {
     isAutosaving,
     isSkillsOpen,
     toggleSkills,
+    enginePulse,
     initializeGame,
     endTurn,
     spawnTestEntities,
@@ -2073,6 +2071,7 @@ const GameContextInner = ({ children }) => {
     harvestPlant,
     useBreakingToolOnStructure,
     checkZombieAwareness,
+    enginePulse,
     mapTransition,
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel

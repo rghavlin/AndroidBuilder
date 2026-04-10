@@ -30,7 +30,7 @@ export default function CraftingUI() {
             console.log("[CraftingUI] Unmounting - clearing crafting area");
             clearCraftingArea();
         };
-    }, [clearCraftingArea]);
+    }, []); // Only clear when window actually closes, not on every inventory update
 
     const nearbyCampfire = useMemo(() => {
         if (!inventoryRef.current) return null;
@@ -164,7 +164,10 @@ export default function CraftingUI() {
     const isBurning = nearbyCampfire && (nearbyCampfire.lifetimeTurns ?? 0) > 0;
 
     return (
-        <div className="flex flex-col h-full bg-background/50 rounded-lg overflow-hidden border border-border">
+        <div 
+            className="flex flex-col h-full bg-background/50 rounded-lg overflow-hidden border border-border"
+            data-inventory-ui="true"
+        >
             {/* Header Tabs */}
             <div className="flex border-b border-border bg-card/30">
                 <button

@@ -57,19 +57,19 @@ export default function App() {
         </Switch>
       </Router>
 
-      {/* Global Dev Console - Temporarily disabled until Startup Refactor resolves context dependency issues
+      {/* Global Dev Console - Completely decoupled from game logic layers */}
       {isDevConsoleOpen && (
         <DevConsole 
           onClose={() => setIsDevConsoleOpen(false)}
           onLaunch={(config) => {
              console.log('[App] 🚀 Custom launch triggered from root App');
+             // Dispatch to whoever is listening (GameContext)
              window.dispatchEvent(new CustomEvent('launch-custom-game', { detail: config }));
              setIsDevConsoleOpen(false);
           }}
-          isLoading={false}
+          isLoading={false} // Root App doesn't track loading, but console can handle its own state
         />
       )}
-      */}
     </div>
   );
 }

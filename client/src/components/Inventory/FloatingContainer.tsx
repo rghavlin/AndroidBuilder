@@ -129,6 +129,8 @@ export default function FloatingContainer({
         minHeight,
       }}
       data-testid={`floating-container-${id}`}
+      data-inventory-ui="true"
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Title Bar */}
       <div

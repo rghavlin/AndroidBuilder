@@ -981,8 +981,14 @@ export class Item extends SafeEventEmitter {
     return data;
   }
 
-  // Helper for static instantiation
   static fromJSON(data) {
+    if (!data) return null;
+    
+    // Phase 12 Fix: Robust type check - if it's already an instantiated Item, return it directly
+    if (data.type === 'item' && typeof data.isStackable === 'function') {
+      return data;
+    }
+
     const item = new Item({
       ...data,
       _containerGridData: data.containerGrid,

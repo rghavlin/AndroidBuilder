@@ -73,7 +73,7 @@ export class InventoryManager extends SafeEventEmitter {
       name: 'Cooking Pot Slot',
       width: 1,
       height: 1,
-      allowedCategories: [ItemCategory.TOOL],
+      allowedCategories: [ItemCategory.TOOL, ItemCategory.COOKING_POT],
       ignoreSize: true
     }));
 
@@ -86,6 +86,10 @@ export class InventoryManager extends SafeEventEmitter {
     }));
 
     this.craftingManager = new CraftingManager(this);
+
+    // Coordinate Ownership Tracking (Phase 12 Persistence Fix)
+    this.lastSyncedX = null;
+    this.lastSyncedY = null;
   }
 
   /**
@@ -104,54 +108,90 @@ export class InventoryManager extends SafeEventEmitter {
 
     // 1. Save items from ground container to the map square we are leaving
     const itemsToSave = this.groundContainer.getAllItems();
+    
+    // Phase 12 Fix: Robust Ownership Verification
+    // Only save items back to the map if we are CERTAIN they belong to that tile.
+    const isOwnerOfOldTile = this.lastSyncedX === oldX && this.lastSyncedY === oldY;
+    const isOwnerOfNewTile = this.lastSyncedX === newX && this.lastSyncedY === newY;
+
     if (itemsToSave.length > 0) {
-      console.log(`[InventoryManager] Saving ${itemsToSave.length} items to tile (${oldX}, ${oldY})`);
-      gameMap.setItemsOnTile(oldX, oldY, itemsToSave.map(item => item.toJSON()));
-      
-      // Clear ground container
-      this.groundContainer.clear();
-      this.groundManager.updateCategoryAreas();
-      changed = true;
-    } else {
-      console.log(`[InventoryManager]   -> No items to save on old tile (${oldX}, ${oldY})`);
-      // Ensure if map tile has items but container is empty (somehow), we clear the map tile proxy
-      gameMap.setItemsOnTile(oldX, oldY, []);
+      if (isOwnerOfOldTile) {
+        console.log(`[InventoryManager] ✅ VALID SAVE: Moving ${itemsToSave.length} items back to map tile (${oldX}, ${oldY})`);
+        gameMap.setItemsOnTile(oldX, oldY, itemsToSave.map(item => item.toJSON()));
+        this.groundContainer.clear();
+        this.groundManager.updateCategoryAreas();
+        changed = true;
+      } else if (isOwnerOfNewTile) {
+        console.warn(`[InventoryManager] ⚠️ ABORT SAVE: Items in container already belong to destination (${newX}, ${newY}). Skipping save to ORIGIN (${oldX}, ${oldY}) to prevent teleportation!`);
+        // We DON'T clear the container here because we want to KEEP the items for the new tile
+      } else {
+        console.warn(`[InventoryManager] ⚠️ ABORT SAVE: Ground items ownership mismatch. Expected (${this.lastSyncedX}, ${this.lastSyncedY}), but sync requested save to (${oldX}, ${oldY}). Clearing container for safety.`);
+        this.groundContainer.clear();
+        this.groundManager.updateCategoryAreas();
+        changed = true;
+      }
+    } else if (oldX !== null && oldY !== null && isOwnerOfOldTile) {
+      console.log(`[InventoryManager]   -> Tile at (${oldX}, ${oldY}) is now empty. Clearing map tile...`);
+      if (oldX !== newX || oldY !== newY) {
+          gameMap.setItemsOnTile(oldX, oldY, []);
+      }
     }
 
     // 2. Load items from the new map square into ground container
+    // If we already loaded them (isOwnerOfNewTile), we might skip this step or re-verify.
     const itemsToLoad = gameMap.getItemsFromTile(newX, newY);
     if (itemsToLoad && itemsToLoad.length > 0) {
-      console.log(`[InventoryManager]   -> Loading ${itemsToLoad.length} items from tile (${newX}, ${newY})`);
+      // If the container is ALREADY holding these items (isOwnerOfNewTile was true),
+      // we don't want to load them AGAIN (which would double them up).
+      if (isOwnerOfNewTile && this.groundContainer.getItemCount() > 0) {
+        console.log(`[InventoryManager]   -> Tile (${newX}, ${newY}) already synced. Skipping reload.`);
+      } else {
+        console.log(`[InventoryManager]   -> Loading ${itemsToLoad.length} items from tile (${newX}, ${newY})`);
+        this.groundContainer.clear(); // Safety clear
 
-      itemsToLoad.forEach((itemData, index) => {
-        try {
-          const item = Item.fromJSON(itemData);
-          console.log(`[InventoryManager]     [${index}] Restored item: ${item.name} (${item.instanceId})`);
+        itemsToLoad.forEach((itemData, index) => {
+          try {
+            let item;
+            if (itemData && itemData.type === 'item' && typeof itemData.isStackable === 'function') {
+               item = itemData;
+            } else {
+               item = Item.fromJSON(itemData);
+            }
+            console.log(`[InventoryManager]     [${index}] Restored item: ${item.name} (${item.instanceId})`);
 
-          const success = this.groundManager.addItemSmart(item);
-          if (success) {
-            console.log(`[InventoryManager]     [${index}] ✅ Successfully added to ground container`);
-            changed = true;
-          } else {
-            console.error(`[InventoryManager]     [${index}] ❌ FAILED to add via addItemSmart!`);
-            // Last resort: force add
-            const result = this.groundContainer.addItem(item);
-            if (result) {
-              console.log(`[InventoryManager]     [${index}] ⚠️ Forced add to ground as fallback`);
+            const success = this.groundManager.addItemSmart(item);
+            if (success) {
+              console.log(`[InventoryManager]     [${index}] ✅ Successfully added to ground container`);
               changed = true;
             } else {
-              console.error(`[InventoryManager]     [${index}] 🚨 CRITICAL: Force add also failed!`);
+              console.error(`[InventoryManager]     [${index}] ❌ FAILED to add via addItemSmart!`);
+              // Last resort: force add
+              const result = this.groundContainer.addItem(item);
+              if (result) {
+                console.log(`[InventoryManager]     [${index}] ⚠️ Forced add to ground as fallback`);
+                changed = true;
+              } else {
+                console.error(`[InventoryManager]     [${index}] 🚨 CRITICAL: Force add also failed!`);
+              }
             }
+          } catch (err) {
+            console.error(`[InventoryManager]     [${index}] 🚨 Error restoring item from JSON:`, err);
           }
-        } catch (err) {
-          console.error(`[InventoryManager]     [${index}] 🚨 Error restoring item from JSON:`, err);
-        }
-      });
+        });
 
-      this.groundManager.updateCategoryAreas();
+        // Phase 12 Fix: Once items are loaded into the ground container, 
+        // we MUST clear them from the map tile to prevent duplication.
+        console.log(`[InventoryManager]   -> Items "Moved" from map to local container at (${newX}, ${newY}). Clearing map tile source.`);
+        gameMap.setItemsOnTile(newX, newY, []);
+        this.groundManager.updateCategoryAreas();
+      }
     } else {
-      console.log(`[InventoryManager]   -> No items found on tile (${newX}, ${newY})`);
+      console.log(`[InventoryManager]   -> No items found on map at (${newX}, ${newY})`);
     }
+
+    // Update ownership tracking
+    this.lastSyncedX = newX;
+    this.lastSyncedY = newY;
 
     if (changed) {
       console.log(`[InventoryManager] 🔄 syncWithMap END: Ground container now has ${this.groundContainer.getItemCount()} items. Emitting change...`);
@@ -161,6 +201,49 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     return changed;
+  }
+  
+  /**
+   * Force refresh the ground container using items from a specific map tile
+   * Useful for initial load or when items are added to map tiles without movement
+   */
+  refreshGroundItems(x, y, gameMap) {
+    if (!gameMap) return;
+    
+    console.log(`[InventoryManager] 🔄 refreshGroundItems for tile (${x}, ${y})`);
+    
+    // 1. Clear current ground items
+    this.groundContainer.clear();
+    
+    // 2. Pull from map
+    const itemsToLoad = gameMap.getItemsFromTile(x, y);
+    if (!itemsToLoad || itemsToLoad.length === 0) {
+      console.log('[InventoryManager]   -> Tile is empty');
+      this.groundManager.updateCategoryAreas();
+      this.emit('inventoryChanged');
+      return;
+    }
+
+    console.log(`[InventoryManager]   -> Found ${itemsToLoad.length} items on tile to load`);
+    itemsToLoad.forEach(itemData => {
+      try {
+        const item = Item.fromJSON(itemData);
+        this.groundManager.addItemSmart(item);
+      } catch (err) {
+        console.error('[InventoryManager] Error refreshing item:', err);
+      }
+    });
+
+    // Phase 12 Fix: Once items are refreshed into the container, clear them from the map tile
+    console.log(`[InventoryManager]   -> Successfully refreshed items from tile (${x}, ${y}). Clearing map tile...`);
+    gameMap.setItemsOnTile(x, y, []);
+
+    // Update ownership tracking
+    this.lastSyncedX = x;
+    this.lastSyncedY = y;
+
+    this.groundManager.updateCategoryAreas();
+    this.emit('inventoryChanged');
   }
 
   /**
@@ -225,11 +308,15 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     this.updateDynamicContainers();
+    
+    // Emit equip event for audio/UI feedback
+    this.emit('itemEquipped', { item, slot });
 
     console.debug('[InventoryManager] Equipped item:', item.name, 'to slot:', slot);
 
     return {
       success: true,
+      slot,
       unequippedItem,
       sourceContainer: sourceContainer?.id
     };
@@ -330,7 +417,10 @@ export class InventoryManager extends SafeEventEmitter {
     // Handle dynamic container removal
     this.updateDynamicContainers();
 
-    return { success: true, item, placedIn: addResult.container };
+    // Emit unequip event for audio/UI feedback
+    this.emit('itemUnequipped', { item, slot });
+
+    return { success: true, item, slot, placedIn: addResult.container };
   }
 
   destroyItem(instanceId) {
@@ -408,64 +498,46 @@ export class InventoryManager extends SafeEventEmitter {
 
   /**
    * Check if a container can be opened
-   * Phase 5H: Backpacks open only when on ground, not nested, not equipped
+   * Phase 16 Fix: Harmonize Backpack and Clothing ground logic
    */
   canOpenContainer(item) {
-    // Check if item exists
     if (!item) return false;
 
-    // Check if item is a container OR has pockets (clothing)
-    const isContainer = item.isContainer && item.isContainer();
-    // Use optional chaining and check for pockets safely
-    const hasPockets = item.getPocketContainers && item.getPocketContainers().length > 0;
+    // Phase 19/20: Robust property checks (support plain objects)
+    const isContainer = (item.isContainer && item.isContainer()) || (item.traits && item.traits.includes(ItemTrait.CONTAINER));
+    const hasPockets = (item.getPocketContainers && item.getPocketContainers().length > 0) || !!item.pocketLayoutId;
+    const hasAttachments = (item.attachmentSlots && item.attachmentSlots.length > 0);
+    const equippableSlot = item.equippableSlot;
 
-    // DEBUG: Diagnose failure
-    if (item.equippableSlot === 'upper_body' || item.equippableSlot === 'lower_body') {
-      const isOnGround = item._container?.id === 'ground';
-      console.debug('[InventoryManager] canOpenContainer check for:', item.name, {
-        isContainer,
-        hasPockets,
-        equippableSlot: item.equippableSlot,
-        isOnGround,
-        containerId: item._container?.id,
-        isEquipped: item.isEquipped
-      });
+    // Phase 17/18/20: Restore Weapon Mod support
+    // Guns must be openable even when empty to allow attaching mods
+    if (hasAttachments) {
+      return true;
     }
 
-    const hasAttachments = !!(item.attachmentSlots && item.attachmentSlots.length > 0);
+    // Phase 16 Fix: Harmonize Backpack and Clothing ground logic
+    const isBackpack = equippableSlot === EquipmentSlot.BACKPACK;
+    const isClothing = equippableSlot === EquipmentSlot.UPPER_BODY || equippableSlot === EquipmentSlot.LOWER_BODY || (item.categories && item.categories.includes(ItemCategory.CLOTHING));
 
-    if (!isContainer && !hasPockets && !hasAttachments) {
-      return false;
-    }
-
-    // Backpack-specific rules (Phase 5H)
-    if (item.equippableSlot === 'backpack') {
-      // Only allow opening when on ground, not nested, not equipped
-      const isOnGround = item._container?.id === 'ground';
-      const isNested = item._container?.type === 'equipped-backpack';
+    if (isBackpack || isClothing) {
+      // Clothing and Backpacks can only be opened when on the ground
+      const isOnGround = (this.groundContainer?.items.has(item.instanceId)) || (item._container?.id === 'ground');
       const isEquipped = item.isEquipped;
+      
+      // Prevent opening nested backpacks in your own inventory if not explicitly allowed
+      const isNested = item._container?.type === 'equipped-backpack';
 
-      return isOnGround && !isNested && !isEquipped;
-    }
-
-    // Clothing rules (Phase 6): Allow opening on ground
-    if (item.equippableSlot === 'upper_body' || item.equippableSlot === 'lower_body') {
-      const isOnGround = item._container?.id === 'ground';
-      return isOnGround && !item.isEquipped;
+      return isOnGround && !isEquipped && !isNested;
     }
 
     // Specialty containers with openableWhenNested trait can always be opened
-    if (item.isOpenableWhenNested()) {
+    const isOpenableWhenNested = (item.isOpenableWhenNested && item.isOpenableWhenNested()) || (item.traits && item.traits.includes(ItemTrait.OPENABLE_WHEN_NESTED));
+    if (isOpenableWhenNested) {
       return true;
     }
 
-    // Weapon mod interface: Allow opening if it's a weapon with attachment slots
-    if (item.attachmentSlots && item.attachmentSlots.length > 0) {
-      return true;
-    }
-
-    // Other containers can be opened if not nested
-    return !item._container;
+    // Default catch-all for other containers (Toolboxes, etc.)
+    return isContainer && !item.isEquipped;
   }
 
   /**
@@ -1075,6 +1147,7 @@ export class InventoryManager extends SafeEventEmitter {
     const result = this.groundManager.addItemSmart(item, preferredX, preferredY);
     if (result) {
       this.groundManager.optimizeIfNeeded();
+      this.emit('inventoryChanged');
     }
 
     return result;
@@ -1170,40 +1243,88 @@ export class InventoryManager extends SafeEventEmitter {
   }
 
   /**
-   * Try to add item to any suitable container
+   * Add item to the system, automatically finding a suitable container
+   * Priority: Preferred -> Stacking -> Backpack -> Pockets -> Ground
    */
   addItem(item, preferredContainerId = null, preferredX = null, preferredY = null) {
-    // GROUND_ONLY items can ONLY be added to ground container
-    if (item.isGroundOnly && item.isGroundOnly()) {
-      if (this.groundContainer.addItem(item, preferredX, preferredY)) {
-        return { success: true, container: 'ground' };
+    if (!item) return { success: false, reason: 'No item provided' };
+
+    // 1. Stack Merging Logic (Phase 17 Restoration)
+    if (item.isStackable && item.isStackable()) {
+      console.debug(`[InventoryManager] Attempting to find stack for: ${item.name} (${item.defId})`);
+      
+      // List of containers to search for stacking, in priority order
+      const potentialContainers = [];
+      
+      // A. Preferred container
+      if (preferredContainerId) {
+        const pref = this.getContainer(preferredContainerId);
+        if (pref) potentialContainers.push(pref);
       }
-      return { success: false, reason: 'No space available on ground' };
+      
+      // B. Equipped Backpack (high priority for stacking)
+      const backpack = this.getBackpackContainer();
+      if (backpack && backpack.id !== preferredContainerId) potentialContainers.push(backpack);
+      
+      // C. Pockets
+      const pockets = this.getPocketContainers();
+      pockets.forEach(p => {
+        if (p.id !== preferredContainerId) potentialContainers.push(p);
+      });
+      
+      // D. Ground (lowest priority for automatic stacking)
+      if (this.groundContainer.id !== preferredContainerId) potentialContainers.push(this.groundContainer);
+
+      // Search and merge
+      for (const container of potentialContainers) {
+        // Find existing items with same defId
+        for (const existingItem of container.items.values()) {
+          if (existingItem.defId === item.defId && existingItem.stackCount < existingItem.stackMax) {
+            const spaceInStack = existingItem.stackMax - existingItem.stackCount;
+            const amountToTake = Math.min(item.stackCount, spaceInStack);
+            
+            existingItem.stackCount += amountToTake;
+            item.stackCount -= amountToTake;
+            
+            console.debug(`[InventoryManager] Merged ${amountToTake} into existing stack in ${container.id}. Item remaining: ${item.stackCount}`);
+            
+            if (item.stackCount <= 0) {
+              this.emit('inventoryChanged');
+              return { success: true, container: container.id, merged: true };
+            }
+          }
+        }
+      }
     }
 
+    // 2. Regular Grid Placement Logic
     // Try preferred container first
     if (preferredContainerId) {
-      const container = this.containers.get(preferredContainerId);
+      const container = this.getContainer(preferredContainerId);
       if (container && container.addItem(item, preferredX, preferredY)) {
+        this.emit('inventoryChanged');
         return { success: true, container: container.id };
       }
     }
 
-    // Try backpack (no preferred coords, usually auto-placed)
+    // Try backpack
     const backpack = this.getBackpackContainer();
     if (backpack && backpack.addItem(item)) {
+      this.emit('inventoryChanged');
       return { success: true, container: backpack.id };
     }
 
     // Try pockets
     for (const pocket of this.getPocketContainers()) {
       if (pocket.addItem(item)) {
+        this.emit('inventoryChanged');
         return { success: true, container: pocket.id };
       }
     }
 
-    // Try ground as last resort (use preferred coords if targeting ground)
+    // Try ground as last resort
     if (this.groundContainer.addItem(item, preferredX, preferredY)) {
+      this.emit('inventoryChanged');
       return { success: true, container: 'ground' };
     }
 
@@ -1324,22 +1445,25 @@ export class InventoryManager extends SafeEventEmitter {
   /**
    * Move item between containers
    */
-  moveItem(itemId, fromContainerId, toContainerId, x = null, y = null) {
-    const fromContainer = this.containers.get(fromContainerId);
-    // Use getContainer to support dynamic pocket/weapon resolution
+  moveItem(itemId, fromContainerId, toContainerId, x = null, y = null, rotation = null) {
+    // Support dynamic resolving for source containers (like pockets or equipment slots)
+    const fromContainer = this.getContainer(fromContainerId);
     const toContainer = this.getContainer(toContainerId);
 
-    // Virtual source handling (weapon attachments, etc.)
+    // Virtual source handling
+    const isEquipmentSource = fromContainerId.startsWith('equipment-');
     const isVirtualSource = fromContainerId.startsWith('weapon-mod-');
 
-    if ((!fromContainer && !isVirtualSource) || !toContainer) {
-      console.warn('[InventoryManager] Source or target container not found:', { fromContainerId, toContainerId });
+    if ((!fromContainer && !isVirtualSource && !isEquipmentSource) || !toContainer) {
       return { success: false, reason: 'Container not found' };
     }
 
-    // Get the item using generic find or specific map lookup
+    // Get the item using generic find or specific map/poxel lookup
     let itemToMove;
-    if (isVirtualSource) {
+    if (isEquipmentSource) {
+        const slotId = fromContainerId.replace('equipment-', '');
+        itemToMove = this.equipment[slotId];
+    } else if (isVirtualSource) {
       const found = this.findItem(itemId);
       itemToMove = found?.item;
     } else {
@@ -1399,29 +1523,59 @@ export class InventoryManager extends SafeEventEmitter {
       item.initializeContainerGrid();
     }
 
+    // Apply rotation if provided
+    if (rotation !== null) {
+      item.rotation = rotation;
+    }
+
     console.log('[InventoryManager] Moving item:', {
       itemId,
       itemName: item.name,
       from: fromContainerId,
       to: toContainerId,
-      position: x !== null && y !== null ? `(${x}, ${y})` : 'auto'
+      position: x !== null && y !== null ? `(${x}, ${y})` : 'auto',
+      rotation: item.rotation
     });
 
     let success = false;
     if (x !== null && y !== null) {
       success = toContainer.placeItemAt(item, x, y);
+      
+      // Phase 18 Stacking on Drop: If placement failed due to collision, check for a merge
+      if (!success && item.isStackable && item.isStackable()) {
+        const occupant = toContainer.getItemAt(x, y);
+        if (occupant && occupant.defId === item.defId && occupant.stackCount < occupant.stackMax) {
+          const spaceInStack = occupant.stackMax - occupant.stackCount;
+          const amountToTake = Math.min(item.stackCount, spaceInStack);
+          
+          occupant.stackCount += amountToTake;
+          item.stackCount -= amountToTake;
+          
+          console.debug(`[InventoryManager] moveItem: Merged ${amountToTake} into existing stack at (${x},${y})`);
+          
+          if (item.stackCount <= 0) {
+            // Merge complete - item swallowed
+            this.emit('inventoryChanged');
+            return { success: true, container: toContainer.id, merged: true };
+          } else {
+            // Partially merged - check if it can be placed elsewhere? 
+            // For now, let's just fail and restore so the user sees it failed.
+            console.debug('[InventoryManager] moveItem: Partial merge complete, but item still remains.');
+          }
+        }
+      }
     } else {
-      success = toContainer.addItem(item);
+      // Logic for auto-placement without coordinates
+      const addResult = this.addItem(item, toContainerId);
+      success = addResult.success;
     }
 
     if (!success) {
-      console.warn('[InventoryManager] Failed to place item, restoring to original container');
       // Restore item to original container at its original position
       fromContainer.placeItemAt(item, item.x, item.y);
       return { success: false, reason: 'Cannot place item' };
     }
 
-    console.log('[InventoryManager] Move successful');
     return { success: true };
   }
 

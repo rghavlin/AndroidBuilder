@@ -44,6 +44,7 @@ export default function ClothingContainerPanel({
   // Check if we have any content to show
   const hasContent = container || hasPockets || equippedItem;
 
+  /*
   logger.debug(title, {
     hasContainer: !!container,
     hasPockets,
@@ -51,6 +52,7 @@ export default function ClothingContainerPanel({
     pocketIds: pocketContainerIds,
     equippedItemName: equippedItem?.name
   });
+  */
 
   return (
     <div className={cn("border-b border-border", className)}>

@@ -118,57 +118,55 @@ function GameScreenContent() {
   };
 
   return (
-    <InventoryProvider manager={inventoryManager}>
-      <CombatProvider>
-        {showStartMenu ? (
-          <StartMenu onStartGame={handleStartGame} />
-        ) : !isGameReady ? (
-          <div className="h-screen w-screen bg-background flex items-center justify-center">
-            <div className="text-center p-8">
-              <p className="text-foreground text-xl">Loading game...</p>
-              {initializationError && (
-                <p className="text-red-500 mt-4">Error: {initializationError}</p>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="game-container h-screen flex" data-testid="game-screen">
-            {/* Left Side: Map + Controls */}
-            <div className="w-1/2 flex flex-col h-full">
-              <MapInterface gameState={{ ...gameState, turn }} />
-              <div className="flex-shrink-0">
-                <GameControls
-                  playerStats={isGameReady ? realPlayerStats : playerStats}
-                  gameState={{ ...gameState, turn }}
-                  onEndTurn={handleEndTurn}
-                  onRest={handleRest}
-                />
-              </div>
-            </div>
-
-            {/* Right Side: Inventory (Full Height) */}
-            <InventoryPanel />
-
-            {/* Map Transition Dialog */}
-            {mapTransition && (
-              <MapTransitionDialog
-                open={!!mapTransition}
-                onOpenChange={(open) => !open && handleMapTransitionCancel()}
-                onConfirm={handleMapTransitionConfirmWrapper}
-                direction={mapTransition.direction}
-                currentMapId={worldManager?.currentMapId || 'unknown'}
-                nextMapId={mapTransition.nextMapId}
-              />
+    <>
+      {showStartMenu ? (
+        <StartMenu onStartGame={handleStartGame} />
+      ) : !isGameReady ? (
+        <div className="h-screen w-screen bg-background flex items-center justify-center">
+          <div className="text-center p-8">
+            <p className="text-foreground text-xl">Loading game...</p>
+            {initializationError && (
+              <p className="text-red-500 mt-4">Error: {initializationError}</p>
             )}
-
-            {/* Sleep Overlay */}
-            <SleepOverlay />
-            {/* Sleep Modal */}
-            <SleepModal />
           </div>
-        )}
-      </CombatProvider>
-    </InventoryProvider>
+        </div>
+      ) : (
+        <div className="game-container h-screen flex" data-testid="game-screen">
+          {/* Left Side: Map + Controls */}
+          <div className="w-1/2 flex flex-col h-full">
+            <MapInterface gameState={{ ...gameState, turn }} />
+            <div className="flex-shrink-0">
+              <GameControls
+                playerStats={isGameReady ? realPlayerStats : playerStats}
+                gameState={{ ...gameState, turn }}
+                onEndTurn={handleEndTurn}
+                onRest={handleRest}
+              />
+            </div>
+          </div>
+
+          {/* Right Side: Inventory (Full Height) */}
+          <InventoryPanel />
+
+          {/* Map Transition Dialog */}
+          {mapTransition && (
+            <MapTransitionDialog
+              open={!!mapTransition}
+              onOpenChange={(open) => !open && handleMapTransitionCancel()}
+              onConfirm={handleMapTransitionConfirmWrapper}
+              direction={mapTransition.direction}
+              currentMapId={worldManager?.currentMapId || 'unknown'}
+              nextMapId={mapTransition.nextMapId}
+            />
+          )}
+
+          {/* Sleep Overlay */}
+          <SleepOverlay />
+          {/* Sleep Modal */}
+          <SleepModal />
+        </div>
+      )}
+    </>
   );
 }
 

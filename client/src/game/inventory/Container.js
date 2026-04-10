@@ -289,7 +289,6 @@ export class Container {
     const itemId = item.instanceId;
 
     if (!itemId) {
-      console.error('[Container] REJECT: No instanceId', item);
       return false;
     }
 
@@ -298,20 +297,13 @@ export class Container {
       const itemCategories = item.categories || [];
       const isAllowed = this.allowedCategories.some(cat => itemCategories.includes(cat));
       if (!isAllowed) {
-        console.warn(`[Container] REJECT: Category mismatch for ${item.name} in ${this.id}`);
         return false;
       }
     }
 
-    console.debug('[Container] ===== PLACEMENT ATTEMPT =====');
-    console.debug('[Container] Item:', item.name, 'instanceId:', itemId);
-    console.debug('[Container] Target position:', `(${x}, ${y})`, 'Size:', `${width}x${height}`);
-    console.debug('[Container] Current items in container:', this.items.size);
-
     // Consistently enforce nesting rules (even for programmatic placement)
     const nestingResult = this.validateNesting(item);
     if (!nestingResult.valid) {
-      console.warn('[Container] REJECT: Nesting rule violation for:', item.name, '-', nestingResult.reason);
       return false;
     }
 
@@ -319,14 +311,12 @@ export class Container {
     if (item.isContainer && item.isContainer()) {
       const itemContainer = item.getContainerGrid();
       if (itemContainer && itemContainer.id === this.id) {
-        console.warn('[Container] REJECT: Cannot place container inside itself:', item.name);
         return false;
       }
     }
 
     // Validate bounds first
     if (!this.ignoreSize && !this.isValidPosition(x, y, width, height)) {
-      console.warn('[Container] REJECT: Invalid position for item:', item.name, 'at', x, y, 'size:', width, 'x', height);
       return false;
     }
 

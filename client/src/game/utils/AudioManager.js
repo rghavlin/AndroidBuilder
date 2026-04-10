@@ -133,6 +133,7 @@ class AudioManager {
       pool.instances.forEach(audio => {
         audio.pause();
         audio.currentTime = 0;
+        audio.loop = false; // Safety: reset loop flag
       });
     }
   }

@@ -404,14 +404,16 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
     const door = tile.contents.find((e: any) => e.type === 'door');
     if (door) {
-      // Check adjacency
-      const distance = Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2));
-      const isAdjacent = distance < 2.0;
+      const px = Math.floor(player.x);
+      const py = Math.floor(player.y);
+      const dx = x - px;
+      const dy = y - py;
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (isAdjacent) {
+      if (distance < 2.5) {
         setDoorMenu({ x, y, screenX, screenY, door });
       } else {
-        console.log('[MapInterface] Door too far for interaction');
+        console.log('[MapInterface] Door too far for interaction:', distance.toFixed(2));
       }
       return;
     }
@@ -515,22 +517,18 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         style={{ padding: 0, margin: 0 }}
         onClick={handleMapAreaClick}
       >
-        {isInitialized ? (
-          <MapCanvas
-            onCellClick={onCellClick}
-            onCellRightClick={onCellRightClick}
-            selectedItem={selectedItem}
-            isTargeting={!!targetingWeapon || (targetingItem ? true : false)}
-            isNight={isNight}
-            isFlashlightOn={isFlashlightOnActual}
-            flashlightRange={getActiveFlashlightRange()}
-            isAnimatingZombies={isAnimatingZombies}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">Initializing game...</p>
-          </div>
-        )}
+        <MapCanvas
+          onCellClick={onCellClick}
+          onCellRightClick={onCellRightClick}
+          selectedItem={selectedItem}
+          isTargeting={!!targetingWeapon || (targetingItem ? true : false)}
+          isNight={isNight}
+          isFlashlightOn={isFlashlightOnActual}
+          flashlightRange={getActiveFlashlightRange()}
+          isAnimatingZombies={isAnimatingZombies}
+          isInitialized={isInitialized}
+        />
+
 
         {/* Tile Tooltip Overlay (Phase 6 & Generic Refactor) */}
         {(() => {
@@ -574,6 +572,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               height: 'calc(100vh - 120px)'
             }}
             data-testid="log-history-window"
+            data-inventory-ui="true"
           >
             <LogHistoryWindow onClose={() => setIsLogHistoryOpen(false)} />
           </div>

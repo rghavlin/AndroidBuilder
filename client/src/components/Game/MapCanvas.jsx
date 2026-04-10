@@ -5,6 +5,7 @@ import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
+import engine from '../../game/GameEngine';
 
 /**
  * MapCanvas - Visual map rendering system for tile-based display
@@ -22,18 +23,24 @@ export default function MapCanvas({
   isAnimatingZombies = false
 }) {
   const canvasRef = useRef(null);
+  const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
+
 
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
-  const { isInitialized } = useGame(); // Only initialization state from GameContext
-  const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, playerFieldOfView, startAnimatedMovement, startAnimatedMovementAsync } = usePlayer();
+  // Phase 1: Engine data is read DIRECTLY from the engine singleton in the render loop
+  // We use hooks only for initialization and non-realtime settings
+  const { isInitialized } = useGame(); 
+  const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync } = usePlayer();
   const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
-  const { effects, addEffect, tick } = useVisualEffects();
+  const { effects, addEffect } = useVisualEffects();
+
   const [isDragging, setIsDragging] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [hasDragged, setHasDragged] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 }); // Phase 12: Atomic 1:1 CSS scaling
   const nextEffectTimeRef = useRef(0);
 
 
@@ -184,10 +191,10 @@ export default function MapCanvas({
     // Add Zombie HP bars (Phase 6)
     if (entity.type === 'zombie' && entity.hp !== undefined && entity.maxHp !== undefined) {
       // Draw HP bar above the entity within the tile
-      const barWidth = tileSize * 0.7;
-      const barHeight = Math.max(2, tileSize / 16);
-      const barX = pixelX + (tileSize - barWidth) / 2;
-      const barY = pixelY + (tileSize * 0.1); // 10% from the top
+      const barWidth = Math.round(tileSize * 0.7);
+      const barHeight = Math.max(2, Math.round(tileSize / 16));
+      const barX = pixelX + Math.round((tileSize - barWidth) / 2);
+      const barY = pixelY + Math.round(tileSize * 0.1); // 10% from the top
 
       // Background (gray/semi-transparent)
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -234,9 +241,9 @@ export default function MapCanvas({
         ctx.fillStyle = '#3b82f6';
         ctx.beginPath();
         ctx.arc(
-          pixelX + tileSize / 2,
-          pixelY + tileSize / 2,
-          tileSize / 3,
+          pixelX + Math.round(tileSize / 2),
+          pixelY + Math.round(tileSize / 2),
+          Math.round(tileSize / 3),
           0,
           2 * Math.PI
         );
@@ -253,9 +260,9 @@ export default function MapCanvas({
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc(
-          pixelX + tileSize / 2,
-          pixelY + tileSize / 2,
-          tileSize / 3,
+          pixelX + Math.round(tileSize / 2),
+          pixelY + Math.round(tileSize / 2),
+          Math.round(Math.round(tileSize / 3)),
           0,
           2 * Math.PI
         );
@@ -272,9 +279,9 @@ export default function MapCanvas({
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.arc(
-            pixelX + tileSize / 2,
-            pixelY + tileSize / 2,
-            entity.sightRange * tileSize,
+            pixelX + Math.round(tileSize / 2),
+            pixelY + Math.round(tileSize / 2),
+            Math.round(entity.sightRange * tileSize),
             0,
             2 * Math.PI
           );
@@ -284,9 +291,9 @@ export default function MapCanvas({
 
       case 'item':
         // Draw items as small colored squares
-        const itemSize = tileSize / 4;
-        const itemX = pixelX + tileSize / 2 - itemSize / 2;
-        const itemY = pixelY + tileSize / 2 - itemSize / 2;
+        const itemSize = Math.round(tileSize / 4);
+        const itemX = pixelX + Math.round(tileSize / 2 - itemSize / 2);
+        const itemY = pixelY + Math.round(tileSize / 2 - itemSize / 2);
 
         // Color based on item subtype or default yellow
         const itemColor = getItemColor(entity.subtype || entity.name);
@@ -304,15 +311,12 @@ export default function MapCanvas({
         ctx.fillStyle = '#10b981';
         ctx.beginPath();
         ctx.arc(
-          pixelX + tileSize / 2,
-          pixelY + tileSize / 2,
-          tileSize / 3,
+          pixelX + Math.round(tileSize / 2),
+          pixelY + Math.round(tileSize / 2),
+          Math.round(Math.round(tileSize / 3)),
           0,
           2 * Math.PI
         );
-        ctx.fill();
-
-        // NPC border
         ctx.strokeStyle = '#047857';
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -341,9 +345,9 @@ export default function MapCanvas({
           // Draw other test entities as purple diamonds
           ctx.fillStyle = '#7c3aed';
           ctx.save();
-          ctx.translate(pixelX + tileSize / 2, pixelY + tileSize / 2);
+          ctx.translate(pixelX + Math.round(tileSize / 2), pixelY + Math.round(tileSize / 2));
           ctx.rotate(Math.PI / 4);
-          ctx.fillRect(-tileSize / 6, -tileSize / 6, tileSize / 3, tileSize / 3);
+          ctx.fillRect(-tileSize / 6, -tileSize / 6, Math.round(tileSize / 3), Math.round(tileSize / 3));
           ctx.restore();
         }
         break;
@@ -468,27 +472,25 @@ export default function MapCanvas({
         // Place icons (signs, landmarks) - Blue square with white border
         ctx.fillStyle = '#3b82f6'; // blue-500
         ctx.fillRect(
-          pixelX + tileSize / 8,
-          pixelY + tileSize / 8,
-          tileSize * 3 / 4,
-          tileSize * 3 / 4
+          pixelX + Math.round(tileSize / 8),
+          pixelY + Math.round(tileSize / 8),
+          Math.round(tileSize * 3 / 4),
+          Math.round(tileSize * 3 / 4)
         );
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         ctx.strokeRect(
-          pixelX + tileSize / 8,
-          pixelY + tileSize / 8,
-          tileSize * 3 / 4,
-          tileSize * 3 / 4
+          pixelX + Math.round(tileSize / 8),
+          pixelY + Math.round(tileSize / 8),
+          Math.round(tileSize * 3 / 4),
+          Math.round(tileSize * 3 / 4)
         );
-        
-        // Add a letter or icon placeholder
         ctx.fillStyle = '#ffffff';
         ctx.font = `bold ${Math.floor(tileSize / 2)}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const label = entity.subtype ? entity.subtype.charAt(0).toUpperCase() : '?';
-        ctx.fillText(label, pixelX + tileSize / 2, pixelY + tileSize / 2);
+        ctx.fillText(label, pixelX + Math.round(tileSize / 2), pixelY + Math.round(tileSize / 2));
         break;
 
       default:
@@ -505,32 +507,31 @@ export default function MapCanvas({
   }, [getItemColor]);
 
   // Render visual effects
-  const renderEffect = useCallback((ctx, effect, camera, tileSize, currentTime) => {
+  const renderEffect = useCallback((ctx, effect, rTileSize, globalOffsetX, globalOffsetY, currentTime) => {
     const elapsed = currentTime - effect.startTime;
     const progress = elapsed / effect.duration;
 
     if (progress > 1) return; // Effect has ended
 
-    const screenPos = camera.worldToScreen(effect.x, effect.y);
-    const pixelX = screenPos.x * tileSize;
-    const pixelY = screenPos.y * tileSize;
+    const pixelX = Math.round(effect.x * rTileSize + globalOffsetX);
+    const pixelY = Math.round(effect.y * rTileSize + globalOffsetY);
 
     switch (effect.type) {
       case 'damage':
         {
-          const startY = pixelY + tileSize / 2;
-          const endY = startY - tileSize; // Move upwards
+          const startY = pixelY + Math.round(rTileSize / 2);
+          const endY = startY - rTileSize; // Move upwards
           const currentY = startY - (endY - startY) * progress;
           const opacity = 1 - progress;
 
           ctx.save();
           ctx.globalAlpha = opacity;
           ctx.fillStyle = effect.color;
-          ctx.font = `${Math.floor(tileSize / 2)}px Arial`;
+          ctx.font = `${Math.floor(rTileSize / 2)}px Arial`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const valueText = typeof effect.value === 'number' ? `-${effect.value}` : effect.value;
-          ctx.fillText(valueText, pixelX + tileSize / 2, currentY);
+          ctx.fillText(valueText, pixelX + Math.round(rTileSize / 2), currentY);
           ctx.restore();
         }
         break;
@@ -540,7 +541,7 @@ export default function MapCanvas({
           ctx.save();
           ctx.globalAlpha = opacity;
           ctx.fillStyle = effect.color;
-          ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+          ctx.fillRect(pixelX, pixelY, rTileSize, rTileSize);
           ctx.restore();
         }
         break;
@@ -552,66 +553,122 @@ export default function MapCanvas({
     }
   }, []);
 
+  // Phase 19: Layout Synchronization Helper
+  const getLayoutDimensions = useCallback((canvas) => {
+    const dpr = window.devicePixelRatio || 1;
+    const container = canvas.parentElement;
+    if (!container) return null;
+    
+    const rect = container.getBoundingClientRect();
+    const logicalWidth = Math.floor(rect.width) || 800;
+    const logicalHeight = Math.floor(rect.height) || 600;
+    
+    return {
+      dpr,
+      logicalWidth,
+      logicalHeight,
+      physicalWidth: Math.round(logicalWidth * dpr),
+      physicalHeight: Math.round(logicalHeight * dpr),
+      rect
+    };
+  }, []);
+
   // Calculate responsive tile size based on container
   const calculateTileSize = useCallback((containerWidth, containerHeight) => {
-    //const minTileSize = 16;  // Reduced minimum
-    const minTileSize = 48;  // Increased minimum
-    const maxTileSize = 200; // Increased maximum
-    //return 48; // Fixed size for now
+    const minTileSize = 48;
+    const maxTileSize = 200;
 
-    // Calculate optimal tile size to fit 20x20 grid with minimal padding
-    const availableWidth = containerWidth - 10; // Even less padding
+    const availableWidth = containerWidth - 10;
     const availableHeight = containerHeight - 10;
 
     const tileWidthSize = Math.floor(availableWidth / 20);
     const tileHeightSize = Math.floor(availableHeight / 20);
 
-    // Use the smaller dimension to ensure square tiles that fit
     const optimalSize = Math.min(tileWidthSize, tileHeightSize);
-
-    // Clamp between min and max, but prefer larger tiles when space allows
     const finalSize = Math.max(minTileSize, Math.min(maxTileSize, optimalSize));
 
     return finalSize;
   }, []);
 
+
   // Render the map on canvas
   const renderMap = useCallback(() => {
     const canvas = canvasRef.current;
-    const gameMap = gameMapRef.current;
-    const camera = cameraRef.current;
-    const player = playerRef.current;
-
-    if (!canvas || !gameMap || !isInitialized || !camera) {
-      console.log('[MapCanvas] Skipping render - missing requirements');
-      return;
-    }
+    if (!canvas) return;
 
     try {
+      // --- 1. HARDWARE CALIBRATION & DIAGNOSTIC FILL ---
+      const layout = getLayoutDimensions(canvas);
+      if (!layout) return;
+      
+      const { dpr, logicalWidth, logicalHeight, physicalWidth, physicalHeight } = layout;
+
+      // Atomic Canvas Setup
+      if (dimensionsRef.current.width !== physicalWidth || dimensionsRef.current.height !== physicalHeight) {
+        canvas.width = physicalWidth;
+        canvas.height = physicalHeight;
+        canvas.style.width = `${logicalWidth}px`;
+        canvas.style.height = `${logicalHeight}px`;
+        dimensionsRef.current = { width: physicalWidth, height: physicalHeight, dpr };
+        // setCanvasSize is still used by UI components for overlay positioning
+        setCanvasSize({ width: logicalWidth, height: logicalHeight });
+      }
+
+
       const ctx = canvas.getContext('2d');
-      const containerRect = canvas.parentElement.getBoundingClientRect();
+      if (!ctx) return;
 
-      // Calculate base tile size and adjust for zoom
-      const baseTileSize = calculateTileSize(containerRect.width, containerRect.height);
-      const tileSize = baseTileSize * camera.zoomLevel;
+      // Reset transform - we will work in PHYSICAL PIXELS
+      ctx.setTransform(1, 0, 0, 1, 0, 0); 
+      ctx.imageSmoothingEnabled = false;
 
-      // Use full container dimensions for canvas (ensure no gaps)
-      const mapWidth = Math.floor(containerRect.width);
-      const mapHeight = Math.floor(containerRect.height);
+      // --- DIAGNOSTIC FILL ---
+      // If the screen turns Gray, the loop is confirmed ALIVE.
+      ctx.fillStyle = '#1a1a1a'; // Dark Gray
+      ctx.fillRect(0, 0, physicalWidth, physicalHeight);
 
-      // Set canvas size to fill container completely with no gaps
-      canvas.width = mapWidth;
-      canvas.height = mapHeight;
-      canvas.style.width = `${mapWidth}px`;
-      canvas.style.height = `${mapHeight}px`;
+      // --- 2. ENGINE READINESS CHECK ---
+      if (!engine.isReady()) {
+         return;
+      }
 
-      // Update camera viewport size based on actual canvas dimensions
-      // Use base tile size (without zoom) for viewport calculations
-      camera.updateViewportSize(mapWidth, mapHeight, baseTileSize);
+      // Phase 19: Movement Logic - Update FOV in real-time during animation
+      if (isAnimatingMovement && playerRenderPosition) {
+        engine.recalculateFOV(playerRenderPosition);
+      }
 
-      // Clear canvas - match game controls background (--card color)
+      // Read directly from engine
+      const player = engine.player;
+      const gameMap = engine.gameMap;
+      const camera = engine.camera;
+      const playerFieldOfView = engine.playerFieldOfView;
+
+
+
+      // --- 2. THE HARDWARE GRID (Anti-Fuzziness) ---
+      const baseTileSize = calculateTileSize(logicalWidth, logicalHeight) || 48;
+      const zoom = camera.zoomLevel || 1;
+      const physicalTileSize = Math.max(1, Math.round(baseTileSize * zoom * dpr));
+      const rTileSize = physicalTileSize; // Unified local name
+
+      // Snap camera to the hardware grid with NaN protection
+      const camX = camera.x || 0;
+      const camY = camera.y || 0;
+      const snappedCamX = Math.round(camX * physicalTileSize) / physicalTileSize;
+      const snappedCamY = Math.round(camY * physicalTileSize) / physicalTileSize;
+
+      // Offsets in physical pixels (Hardware Center)
+      const globalOffsetX = Math.round((physicalWidth / 2) - (snappedCamX * physicalTileSize));
+      const globalOffsetY = Math.round((physicalHeight / 2) - (snappedCamY * physicalTileSize));
+
+      // Update camera viewport size (silent update)
+      camera.updateViewportSize(logicalWidth, logicalHeight, baseTileSize);
+
+
+      // Clear with solid black (Hardware pixels)
       ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, mapWidth, mapHeight);
+      ctx.fillRect(0, 0, physicalWidth, physicalHeight);
+
 
       // Get visible tile bounds from camera and extend them to fill canvas completely
       const visibleTiles = camera.getVisibleTiles();
@@ -633,10 +690,11 @@ export default function MapCanvas({
           const tile = gameMap.getTile(worldX, worldY);
           if (!tile) continue;
 
-          // Convert world coordinates to screen coordinates
-          const screenPos = camera.worldToScreen(worldX, worldY);
-          const pixelX = screenPos.x * tileSize;
-          const pixelY = screenPos.y * tileSize;
+          // Draw at physical pixel coordinates
+          const pixelX = worldX * rTileSize + globalOffsetX;
+          const pixelY = worldY * rTileSize + globalOffsetY;
+
+
 
           // --- FOG OF WAR LOGIC ---
           const isExplored = tile.flags && tile.flags.explored;
@@ -647,7 +705,7 @@ export default function MapCanvas({
           if (!isExplored) {
             // Unexplored: Solid black
             ctx.fillStyle = '#000000';
-            ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+            ctx.fillRect(pixelX, pixelY, rTileSize, rTileSize);
             continue; // Skip rest of tile rendering
           }
 
@@ -661,17 +719,17 @@ export default function MapCanvas({
 
           if (tileImage) {
              // Draw tile texture
-             ctx.drawImage(tileImage, pixelX, pixelY, tileSize, tileSize);
+             ctx.drawImage(tileImage, pixelX, pixelY, rTileSize, rTileSize);
           } else {
              // Fill tile with solid grayscale terrain color fallback
              ctx.fillStyle = terrainColors[tile.terrain] || terrainColors.default;
-             ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+             ctx.fillRect(pixelX, pixelY, rTileSize, rTileSize);
           }
 
-          // Draw tile border
+          // Draw tile border (Stable 1-pixel line)
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-          ctx.lineWidth = 0.5;
-          ctx.strokeRect(pixelX, pixelY, tileSize, tileSize);
+          ctx.lineWidth = 1;
+          ctx.strokeRect(pixelX, pixelY, rTileSize, rTileSize);
 
           // Noticeable green outline for tiles with crops (growth in progress)
           if (tile.cropInfo && tile.cropInfo.shortestTime !== null) {
@@ -679,7 +737,7 @@ export default function MapCanvas({
             if (!tile.cropInfo.isWild || tile.cropInfo.discovered) {
               ctx.strokeStyle = '#22c55e'; // emerald-500
               ctx.lineWidth = 2;
-              ctx.strokeRect(pixelX + 1, pixelY + 1, tileSize - 2, tileSize - 2);
+              ctx.strokeRect(pixelX + 1, pixelY + 1, rTileSize - 2, rTileSize - 2);
             }
           }
 
@@ -689,16 +747,16 @@ export default function MapCanvas({
 
             // Hover highlight
             ctx.fillStyle = canAfford ? 'rgba(59, 130, 246, 0.3)' : 'rgba(239, 68, 68, 0.3)';
-            ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+            ctx.fillRect(pixelX, pixelY, rTileSize, rTileSize);
 
             // AP cost text
             ctx.fillStyle = '#ffffff'; // White text
-            ctx.font = `bold ${Math.floor(tileSize / 3)}px Arial`;
+            ctx.font = `bold ${Math.floor(Math.round(rTileSize / 3))}px Arial`;
             ctx.textAlign = 'center';
             ctx.fillText(
               hoveredTile.apCost.toFixed(1),
-              pixelX + tileSize / 2,
-              pixelY + tileSize / 2 + Math.floor(tileSize / 8)
+              pixelX + Math.round(rTileSize / 2),
+              pixelY + Math.round(rTileSize / 2 + rTileSize / 8)
             );
 
 
@@ -710,8 +768,8 @@ export default function MapCanvas({
             tile.contents.forEach((entity, index) => {
               if (entity.type !== 'item' && entity.type !== 'door' && entity.type !== 'window' && entity.type !== 'place_icon') return;
               if (isExplored) {
-                const offsetY = index * (tileSize / 8);
-                renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
+                const offsetY = index * (rTileSize / 8);
+                renderEntity(ctx, entity, pixelX, pixelY + offsetY, rTileSize, performance.now());
               }
             });
 
@@ -733,8 +791,8 @@ export default function MapCanvas({
               }
 
               if (isCurrentlyVisible) {
-                const offsetY = index * (tileSize / 8);
-                renderEntity(ctx, entity, pixelX, pixelY + offsetY, tileSize, performance.now());
+                const offsetY = index * (rTileSize / 8);
+                renderEntity(ctx, entity, pixelX, pixelY + offsetY, rTileSize, performance.now());
               }
             });
           }
@@ -742,13 +800,13 @@ export default function MapCanvas({
           // Apply "Fog" (dimming) for explored but NOT currently visible tiles
           if (isExplored && !isCurrentlyVisible) {
             ctx.fillStyle = isNight ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.25)'; // Much lighter fog during day
-            ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+            ctx.fillRect(pixelX, pixelY, rTileSize, rTileSize);
 
             // Add more prominent border for building/wall tiles in fog
             if (tile.terrain === 'building' || tile.terrain === 'wall') {
               ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
               ctx.lineWidth = 1;
-              ctx.strokeRect(pixelX, pixelY, tileSize, tileSize);
+              ctx.strokeRect(pixelX, pixelY, rTileSize, rTileSize);
             }
           }
 
@@ -756,12 +814,13 @@ export default function MapCanvas({
           if (isCurrentlyVisible && player && !(worldX === player.x && worldY === player.y)) {
             // Light blue tint for visible tiles
             ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
-            ctx.fillRect(pixelX, pixelY, tileSize, tileSize);
+            ctx.fillRect(pixelX, pixelY, rTileSize, rTileSize);
           }
+
 
           // Render player on TOP of other entities
           if (player && !isAnimatingMovement && player.x === worldX && player.y === worldY) {
-            renderEntity(ctx, player, pixelX, pixelY, tileSize, performance.now());
+            renderEntity(ctx, player, pixelX, pixelY, rTileSize, performance.now());
           }
         }
       }
@@ -785,14 +844,14 @@ export default function MapCanvas({
             const smoothX = currentWaypoint.x + (nextWaypoint.x - currentWaypoint.x) * segmentProgress;
             const smoothY = currentWaypoint.y + (nextWaypoint.y - currentWaypoint.y) * segmentProgress;
             
-            const screenPos = camera.worldToScreen(smoothX, smoothY);
-            const smoothPixelX = screenPos.x * tileSize;
-            const smoothPixelY = screenPos.y * tileSize;
+            const smoothPixelX = Math.round(smoothX * rTileSize + globalOffsetX);
+            const smoothPixelY = Math.round(smoothY * rTileSize + globalOffsetY);
             
-            // Only render if visible on screen
-            if (smoothPixelX >= -tileSize && smoothPixelX <= mapWidth &&
-                smoothPixelY >= -tileSize && smoothPixelY <= mapHeight) {
-              renderEntity(ctx, zombie, smoothPixelX, smoothPixelY, tileSize, performance.now());
+            // Only render if visible on physical screen
+            if (smoothPixelX >= -rTileSize && smoothPixelX <= physicalWidth &&
+                smoothPixelY >= -rTileSize && smoothPixelY <= physicalHeight) {
+
+              renderEntity(ctx, zombie, smoothPixelX, smoothPixelY, rTileSize, performance.now());
             }
           }
         } 
@@ -800,28 +859,29 @@ export default function MapCanvas({
         // This prevents the "teleportation" look during AI processing
         else if (isAnimatingZombies && !zombie.isAnimating && zombie.movementPath && zombie.movementPath.length > 1) {
           const startPos = zombie.movementPath[0];
-          const screenPos = camera.worldToScreen(startPos.x, startPos.y);
-          const startPixelX = screenPos.x * tileSize;
-          const startPixelY = screenPos.y * tileSize;
+          const startPixelX = Math.round(startPos.x * rTileSize + globalOffsetX);
+          const startPixelY = Math.round(startPos.y * rTileSize + globalOffsetY);
           
-          if (startPixelX >= -tileSize && startPixelX <= mapWidth &&
-              startPixelY >= -tileSize && startPixelY <= mapHeight) {
-            renderEntity(ctx, zombie, startPixelX, startPixelY, tileSize, performance.now());
+          if (startPixelX >= -rTileSize && startPixelX <= physicalWidth &&
+              startPixelY >= -rTileSize && startPixelY <= physicalHeight) {
+
+            renderEntity(ctx, zombie, startPixelX, startPixelY, rTileSize, performance.now());
           }
         }
       });
  
       // Render player with smooth animation if moving
       if (player && isAnimatingMovement) {
-        // Convert smooth world coordinates to screen coordinates
-        const screenPos = camera.worldToScreen(playerRenderPosition.x, playerRenderPosition.y);
-        const smoothPixelX = screenPos.x * tileSize;
-        const smoothPixelY = screenPos.y * tileSize;
+        // Convert smooth world coordinates to physical screen coordinates
+        const smoothPixelX = Math.round(playerRenderPosition.x * rTileSize + globalOffsetX);
+        const smoothPixelY = Math.round(playerRenderPosition.y * rTileSize + globalOffsetY);
 
-        // Only render if player is visible on screen
-        if (smoothPixelX >= -tileSize && smoothPixelX <= mapWidth &&
-          smoothPixelY >= -tileSize && smoothPixelY <= mapHeight) {
-          renderEntity(ctx, player, smoothPixelX, smoothPixelY, tileSize, performance.now());
+
+        // Only render if player is visible on physical screen
+        if (smoothPixelX >= -rTileSize && smoothPixelX <= physicalWidth &&
+          smoothPixelY >= -rTileSize && smoothPixelY <= physicalHeight) {
+
+          renderEntity(ctx, player, smoothPixelX, smoothPixelY, rTileSize, performance.now());
         }
       }
 
@@ -829,17 +889,21 @@ export default function MapCanvas({
       if (effects && effects.length > 0) {
         const currentTime = performance.now();
         effects.forEach(effect => {
-          renderEffect(ctx, effect, camera, tileSize, currentTime);
+          renderEffect(ctx, effect, rTileSize, globalOffsetX, globalOffsetY, currentTime);
         });
       }
 
       if (zombiesAnimatedCount > 0 && Math.random() < 0.05) {
         console.log(`[MapCanvas] Smooth rendering ${zombiesAnimatedCount} zombies`);
       }
+
+      // --- END RENDER ---
     } catch (error) {
-      console.error('[MapCanvas] Error rendering map:', error);
+       console.error('[MapCanvas] Critical Rendering Error:', error);
     }
-  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, cameraRef.current, effects, renderEffect, renderEntity, isNight, isFlashlightOn, mapVersion]); // Include mapVersion to react to triggerMapUpdate
+
+  }, [gameMapRef.current, isInitialized, calculateTileSize, terrainColors, hoveredTile, playerRef.current, effects, renderEffect, renderEntity, isNight, isFlashlightOn, mapVersion]);
+
 
   // Handle mouse down for dragging
   const handleMouseDown = useCallback((event) => {
@@ -863,34 +927,42 @@ export default function MapCanvas({
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const containerRect = canvas.parentElement.getBoundingClientRect();
+      const layout = getLayoutDimensions(canvas);
+      if (!layout) return;
 
-      const baseTileSize = calculateTileSize(containerRect.width, containerRect.height);
-      const tileSize = baseTileSize * camera.zoomLevel;
+      const { dpr, logicalWidth, logicalHeight, physicalWidth, physicalHeight, rect } = layout;
 
-      // Calculate hovered pixel coordinates
-      const hoverX = event.clientX - rect.left;
-      const hoverY = event.clientY - rect.top;
+      // Precision Math Sync: Use the exact same physical coordinates as renderMap
+      const baseTileSize = calculateTileSize(logicalWidth, logicalHeight) || 48;
+      const zoom = camera.zoomLevel || 1;
+      const rTileSize = Math.max(1, Math.round(baseTileSize * zoom * dpr));
+      
+      const camX = camera.x || 0;
+      const camY = camera.y || 0;
+      const snappedCamX = Math.round(camX * rTileSize) / rTileSize;
+      const snappedCamY = Math.round(camY * rTileSize) / rTileSize;
 
-      // Convert pixel coordinates to screen tile coordinates (accounting for zoom)
-      const screenTileX = hoverX / tileSize;
-      const screenTileY = hoverY / tileSize;
+      const globalOffsetX = Math.round((physicalWidth / 2) - (snappedCamX * rTileSize));
+      const globalOffsetY = Math.round((physicalHeight / 2) - (snappedCamY * rTileSize));
 
-      // Convert screen coordinates to world coordinates using camera
-      let worldPos = camera.screenToWorld(screenTileX, screenTileY);
-      worldPos = { x: Math.floor(worldPos.x), y: Math.floor(worldPos.y) };
+      // Calculate world coordinates using PHYSICAL PIXEL offsets
+      const hoverX = (event.clientX - rect.left) * dpr;
+      const hoverY = (event.clientY - rect.top) * dpr;
+
+      const worldX = Math.floor((hoverX - globalOffsetX) / rTileSize);
+      const worldY = Math.floor((hoverY - globalOffsetY) / rTileSize);
+
 
       // Store hovered position for rendering
-      if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
-        worldPos.y >= 0 && worldPos.y < gameMap.height) {
+      if (worldX >= 0 && worldX < gameMap.width &&
+        worldY >= 0 && worldY < gameMap.height) {
         
-        const tile = gameMap.getTile(worldPos.x, worldPos.y);
+        const tile = gameMap.getTile(worldX, worldY);
         const zombie = tile?.contents.find((e) => e.type === 'zombie');
         const cropInfo = tile?.cropInfo;
         
         // Pass enriched hover data to MapInterface
-        handleTileHover(worldPos.x, worldPos.y, player, isNight, isFlashlightOn, { zombie, cropInfo });
+        handleTileHover(worldX, worldY, player, isNight, isFlashlightOn, { zombie, cropInfo });
       }
     } catch (error) {
       console.warn('[MapCanvas] Error handling tile hover:', error);
@@ -990,35 +1062,42 @@ export default function MapCanvas({
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const containerRect = canvas.parentElement.getBoundingClientRect();
+      const layout = getLayoutDimensions(canvas);
+      if (!layout) return;
 
-      const baseTileSize = calculateTileSize(containerRect.width, containerRect.height);
-      const tileSize = baseTileSize * camera.zoomLevel;
+      const { dpr, logicalWidth, logicalHeight, physicalWidth, physicalHeight, rect } = layout;
 
-      // Calculate clicked pixel coordinates
-      const clickX = event.clientX - rect.left;
-      const clickY = event.clientY - rect.top;
+      // Precision Math Sync: Use the exact same formula as renderMap
+      const baseTileSize = calculateTileSize(logicalWidth, logicalHeight) || 48;
+      const zoom = camera.zoomLevel || 1;
+      const rTileSize = Math.max(1, Math.round(baseTileSize * zoom * dpr));
+      
+      const clickX = (event.clientX - rect.left) * dpr;
+      const clickY = (event.clientY - rect.top) * dpr;
 
-      // Convert pixel coordinates to screen tile coordinates (accounting for zoom)
-      const screenTileX = clickX / tileSize;
-      const screenTileY = clickY / tileSize;
+      const camX = camera.x || 0;
+      const camY = camera.y || 0;
+      const snappedCamX = Math.round(camX * rTileSize) / rTileSize;
+      const snappedCamY = Math.round(camY * rTileSize) / rTileSize;
+      
+      const globalOffsetX = Math.round((physicalWidth / 2) - (snappedCamX * rTileSize));
+      const globalOffsetY = Math.round((physicalHeight / 2) - (snappedCamY * rTileSize));
 
-      // Convert screen coordinates to world coordinates using camera
-      let worldPos = camera.screenToWorld(screenTileX, screenTileY);
-      worldPos = { x: Math.floor(worldPos.x), y: Math.floor(worldPos.y) };
+      const worldX = Math.floor((clickX - globalOffsetX) / rTileSize);
+      const worldY = Math.floor((clickY - globalOffsetY) / rTileSize);
+
 
       // Validate coordinates and trigger tile click
-      if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
-        worldPos.y >= 0 && worldPos.y < gameMap.height) {
+      if (worldX >= 0 && worldX < gameMap.width &&
+        worldY >= 0 && worldY < gameMap.height) {
 
         // Pass click to MapInterface handler first (handles targeting, selection etc)
-        const handled = onCellClick && onCellClick(worldPos.x, worldPos.y);
+        const handled = onCellClick && onCellClick(worldX, worldY);
 
         // Only trigger movement if the click wasn't handled by MapInterface
         if (!handled) {
           // Call GameMapContext handleTileClick with required parameters
-          handleTileClick(worldPos.x, worldPos.y, player, camera, true, isAnimatingMovement, false, startAnimatedMovementAsync, isNight, isFlashlightOn, flashlightRange);
+          handleTileClick(worldX, worldY, player, camera, true, isAnimatingMovement, false, startAnimatedMovementAsync, isNight, isFlashlightOn, flashlightRange);
         }
       } else {
         console.log('[MapCanvas] Click outside valid map bounds');
@@ -1041,28 +1120,36 @@ export default function MapCanvas({
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const containerRect = canvas.parentElement.getBoundingClientRect();
+      const layout = getLayoutDimensions(canvas);
+      if (!layout) return;
 
-      const baseTileSize = calculateTileSize(containerRect.width, containerRect.height);
-      const tileSize = baseTileSize * camera.zoomLevel;
+      const { dpr, logicalWidth, logicalHeight, physicalWidth, physicalHeight, rect } = layout;
 
-      // Calculate clicked pixel coordinates
-      const clickX = event.clientX - rect.left;
-      const clickY = event.clientY - rect.top;
+      // Precision Math Sync: Use the exact same hardware logic as renderMap
+      const baseTileSize = calculateTileSize(logicalWidth, logicalHeight) || 48;
+      const zoom = camera.zoomLevel || 1;
+      const rTileSize = Math.max(1, Math.round(baseTileSize * zoom * dpr));
+      
+      const clickX = (event.clientX - rect.left) * dpr;
+      const clickY = (event.clientY - rect.top) * dpr;
 
-      // Convert pixel coordinates to screen tile coordinates
-      const screenTileX = clickX / tileSize;
-      const screenTileY = clickY / tileSize;
+      const camX = camera.x || 0;
+      const camY = camera.y || 0;
+      const snappedCamX = Math.round(camX * rTileSize) / rTileSize;
+      const snappedCamY = Math.round(camY * rTileSize) / rTileSize;
 
-      // Convert screen coordinates to world coordinates
-      let worldPos = camera.screenToWorld(screenTileX, screenTileY);
-      worldPos = { x: Math.floor(worldPos.x), y: Math.floor(worldPos.y) };
+      const globalOffsetX = Math.round((physicalWidth / 2) - (snappedCamX * rTileSize));
+      const globalOffsetY = Math.round((physicalHeight / 2) - (snappedCamY * rTileSize));
+
+      // worldX = (clickX - globalOffsetX) / rTileSize
+      const worldX = Math.floor((clickX - globalOffsetX) / rTileSize);
+      const worldY = Math.floor((clickY - globalOffsetY) / rTileSize);
+
 
       // Validate coordinates and trigger right click
-      if (worldPos.x >= 0 && worldPos.x < gameMap.width &&
-        worldPos.y >= 0 && worldPos.y < gameMap.height) {
-        onCellRightClick(worldPos.x, worldPos.y, event.clientX, event.clientY);
+      if (worldX >= 0 && worldX < gameMap.width &&
+        worldY >= 0 && worldY < gameMap.height) {
+        onCellRightClick(worldX, worldY, event.clientX, event.clientY);
       }
     } catch (error) {
       console.error('[MapCanvas] Error handling context menu:', error);
@@ -1165,12 +1252,6 @@ export default function MapCanvas({
     loadPlaceIcons();
   }, [isInitialized, mapVersion]);
 
-  // Re-render when game state changes
-  useEffect(() => {
-    if (isInitialized && gameMapRef.current && cameraRef.current) {
-      renderMap();
-    }
-  }, [renderMap, isInitialized, gameMapRef, cameraRef, hoveredTile, imagesLoaded, playerRenderPosition, isAnimatingMovement, playerFieldOfView, effects, tick, mapVersion, isNight, isFlashlightOn]);
 
   // Add mouse event listeners for panning and zooming
   useEffect(() => {
@@ -1193,7 +1274,21 @@ export default function MapCanvas({
     };
   }, [handleMouseMove, handleMouseUp, handleWheel]);
 
-  // Handle window resize for responsive tile sizing
+  // Phase 17 & 18: Autonomous 60fps Rendering Loop
+  // This loop runs independently of React state, reading directly from the engine.
+  // We no longer guard with 'isInitialized' to ensure the heartbeat starts immediately.
+  useEffect(() => {
+    let rafId;
+    const tick = () => {
+      renderMap();
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [renderMap]);
+
+
   useEffect(() => {
     const handleResize = () => {
       if (isInitialized && gameMapRef.current && cameraRef.current) {
@@ -1230,26 +1325,8 @@ export default function MapCanvas({
       cameraIsUndefined: camera === undefined
     });*/
 
-  if (!isInitialized) {
-    console.log('[MapCanvas] Not initialized yet');
-    return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <p className="text-sm">Initializing map canvas...</p>
-      </div>
-    );
-  }
-
-  if (!gameMap || !camera) {
-    console.log('[MapCanvas] Missing components:', { gameMap: !!gameMap, camera: !!camera });
-    return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <p className="text-sm">Loading game components...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-full w-full overflow-hidden min-h-0" style={{ padding: 0, margin: 0 }}>
+    <div className="h-full w-full overflow-hidden min-h-0 flex items-center justify-center bg-black" style={{ padding: 0, margin: 0 }}>
       <canvas
         ref={canvasRef}
         className={`${isTargeting ? 'cursor-crosshair' : (isDragging ? 'cursor-grabbing' : 'cursor-grab')}`}
@@ -1258,16 +1335,17 @@ export default function MapCanvas({
         onMouseDown={handleMouseDown}
         onMouseMove={handleCanvasHover}
         style={{
-          imageRendering: 'crisp-edges', // Sharp pixel rendering
+          imageRendering: 'pixelated', 
           display: 'block',
-          width: '100%',
-          height: '100%',
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
           padding: 0,
           margin: 0,
           border: 'none',
-          pointerEvents: selectedItem ? 'none' : 'auto' // Disable all mouse events when item selected
+          pointerEvents: 'auto' 
         }}
       />
     </div>
   );
+
 }

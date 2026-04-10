@@ -1,4 +1,5 @@
 import { Entity } from './Entity.js';
+import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 
 /**
  * Player entity with health, action points, and player-specific behavior
@@ -7,27 +8,28 @@ export class Player extends Entity {
   constructor(id, name, x = 0, y = 0) {
     super(id, 'player', x, y);
     this.name = name;
-    this.hp = 20;
+    // Survival Stats with backing properties for reactivity
+    this._hp = 20;
     this.maxHp = 20;
-    this.ap = 20;
+    this._ap = 20;
     this.maxAp = 20;
-    this.nutrition = 25;
+    this._nutrition = 25;
     this.maxNutrition = 25;
-    this.hydration = 25;
+    this._hydration = 25;
     this.maxHydration = 25;
-    this.energy = 25;
+    this._energy = 25;
     this.maxEnergy = 25;
-    this.condition = 'Normal';
+    this._condition = 'Normal';
     this.sickness = 0; // Turns of sickness left
     this.isBleeding = false; // New bleeding status
     this.blocksMovement = true; // Players block other entities
     
     // Skill Progression
-    this.meleeKills = 0;
+    this._meleeKills = 0;
     this.meleeLvl = 0;
-    this.rangedKills = 0;
+    this._rangedKills = 0;
     this.rangedLvl = 0;
-    this.craftingApUsed = 0;
+    this._craftingApUsed = 0;
     this.craftingLvl = 0;
 
     // Add instance tracking to detect duplicates
@@ -53,6 +55,58 @@ export class Player extends Entity {
     }
   }
 
+  // --- Reactive Getters/Setters ---
+  get hp() { return this._hp; }
+  set hp(v) { 
+    if (this._hp === v) return;
+    this._hp = v; 
+    this.notifyChange(); 
+  }
+
+  get ap() { return this._ap; }
+  set ap(v) { 
+    if (this._ap === v) return;
+    this._ap = v; 
+    this.notifyChange(); 
+  }
+
+  get nutrition() { return this._nutrition; }
+  set nutrition(v) { 
+    if (this._nutrition === v) return;
+    this._nutrition = v; 
+    this.notifyChange(); 
+  }
+
+  get hydration() { return this._hydration; }
+  set hydration(v) { 
+    if (this._hydration === v) return;
+    this._hydration = v; 
+    this.notifyChange(); 
+  }
+
+  get energy() { return this._energy; }
+  set energy(v) { 
+    if (this._energy === v) return;
+    this._energy = v; 
+    this.notifyChange(); 
+  }
+
+  get condition() { return this._condition; }
+  set condition(v) { 
+    if (this._condition === v) return;
+    this._condition = v; 
+    this.notifyChange(); 
+  }
+
+  get meleeKills() { return this._meleeKills; }
+  set meleeKills(v) { this._meleeKills = v; this.notifyChange(); }
+
+  get rangedKills() { return this._rangedKills; }
+  set rangedKills(v) { this._rangedKills = v; this.notifyChange(); }
+
+  get craftingApUsed() { return this._craftingApUsed; }
+  set craftingApUsed(v) { this._craftingApUsed = v; this.notifyChange(); }
+
   /**
    * Use AP for an action
    * @param {number} amount - Amount of AP to use
@@ -65,6 +119,7 @@ export class Player extends Entity {
         used: amount,
         remaining: this.ap
       });
+      this.emit('stateChanged', this);
       return true;
     }
     return false;
@@ -85,7 +140,16 @@ export class Player extends Entity {
         current: this.ap,
         maxAp: this.maxAp
       });
+      this.emit('stateChanged', this);
     }
+  }
+
+  /**
+   * Explicitly notify listeners that player state has changed.
+   * Useful when properties are modified directly instead of via methods.
+   */
+  notifyChange() {
+    this.emit('stateChanged', this);
   }
 
   /**
@@ -128,9 +192,14 @@ export class Player extends Entity {
       source: source ? { id: source.id, type: source.type, x: source.x, y: source.y } : null
     });
 
+    // Global event for UI and Audio
+    GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { amount, currentHp: this.hp });
+
     if (this.hp === 0) {
       this.emitEvent('playerDied', {});
     }
+
+    this.emit('stateChanged', this);
   }
 
   /**
@@ -147,11 +216,17 @@ export class Player extends Entity {
     this.hp = Math.min(this.hp + amount, this.maxHp);
 
     if (this.hp !== oldHp) {
+      const amountHealed = this.hp - oldHp;
       this.emitEvent('healed', {
-        amount: this.hp - oldHp,
+        amount: amountHealed,
         currentHp: this.hp,
         maxHp: this.maxHp
       });
+
+      // Global event
+      GameEvents.emit(GAME_EVENT.PLAYER_HEAL, { amount: amountHealed, currentHp: this.hp });
+      
+      this.emit('stateChanged', this);
     }
   }
 
@@ -180,7 +255,33 @@ export class Player extends Entity {
         current: this[statName],
         max: maxVal
       });
+      this.emit('stateChanged', this);
     }
+  }
+
+  /**
+   * Record a kill for a specific weapon type and handle leveling
+   * @param {'melee' | 'ranged'} type 
+   * @returns {number | null} New level if leveled up, else null
+   */
+  recordKill(type) {
+    const isMelee = type === 'melee';
+    const currentKills = isMelee ? this.meleeKills : this.rangedKills;
+    const currentLevel = isMelee ? this.meleeLvl : this.rangedLvl;
+    
+    this.modifyStat(isMelee ? 'meleeKills' : 'rangedKills', 1);
+    
+    // Milestones: 5, 10, 20, 40, 80...
+    const nextMilestone = 5 * Math.pow(2, currentLevel);
+    
+    if (this[isMelee ? 'meleeKills' : 'rangedKills'] >= nextMilestone) {
+      const newLevel = currentLevel + 1;
+      this.setStat(isMelee ? 'meleeLvl' : 'rangedLvl', newLevel);
+      console.log(`[Player] ✨ ${isMelee ? 'MELEE' : 'RANGED'} LEVEL UP! ${this.name} reached level ${newLevel}`);
+      return newLevel;
+    }
+    
+    return null;
   }
 
   /**
@@ -207,6 +308,7 @@ export class Player extends Entity {
         current: this[statName],
         max: maxVal
       });
+      // setter will handle notifyChange
     }
   }
 
@@ -227,6 +329,7 @@ export class Player extends Entity {
       stat: 'sickness',
       current: this.sickness
     });
+    this.emit('stateChanged', this);
   }
 
   /**
@@ -249,6 +352,10 @@ export class Player extends Entity {
         stat: 'isBleeding',
         current: this.isBleeding
       });
+
+      // Global event
+      GameEvents.emit(GAME_EVENT.PLAYER_BLEEDING, { isBleeding: this.isBleeding });
+      this.emit('stateChanged', this);
     }
   }
 
@@ -268,6 +375,7 @@ export class Player extends Entity {
       stat: 'sickness',
       current: this.sickness
     });
+    this.emit('stateChanged', this);
   }
 
   /**
@@ -291,6 +399,7 @@ export class Player extends Entity {
       this.emitEvent('statChanged', { stat: 'craftingLvl', current: this.craftingLvl });
     }
     
+    this.emit('stateChanged', this);
     this.emitEvent('statChanged', { stat: 'craftingApUsed', current: this.craftingApUsed });
   }
 
