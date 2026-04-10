@@ -46,6 +46,9 @@ export const useInventory = () => {
           loadAmmoInto: () => ({ success: false }),
           loadAmmoDirectly: () => ({ success: false }),
           unloadMagazine: () => ({ success: false }),
+          drinkWater: () => ({ success: false }),
+          unrollBedroll: () => ({ success: false }),
+          rollupBedroll: () => ({ success: false }),
           attachSelectedItemToWeapon: () => ({ success: false }),
           detachItemFromWeapon: () => null
         };
@@ -273,6 +276,95 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, []);
 
+  const drinkWater = useCallback((item, amount) => {
+    if (!engine.player || !engine.inventoryManager) return { success: false };
+    const player = engine.player;
+
+    const currentAmmo = item.ammoCount || 0;
+    if (currentAmmo <= 0) {
+      addLog(`${item.name} is empty.`, 'error');
+      playSound('EmptyClick');
+      return { success: false };
+    }
+
+    // Determine how much to drink
+    const hydrationPerUnit = 1; // Based on ItemDefs.js consumptionEffects
+    let unitsToDrink = 0;
+
+    if (amount === 'max') {
+      const hydrationNeeded = player.maxHydration - player.hydration;
+      unitsToDrink = Math.min(currentAmmo, Math.ceil(hydrationNeeded / hydrationPerUnit));
+      if (unitsToDrink <= 0 && currentAmmo > 0) unitsToDrink = 1;
+    } else {
+      unitsToDrink = Math.min(currentAmmo, Number(amount));
+    }
+
+    if (unitsToDrink <= 0) return { success: false };
+
+    // Apply Hydration
+    player.modifyStat('hydration', unitsToDrink * hydrationPerUnit);
+    item.ammoCount -= unitsToDrink;
+
+    // Handle sickness for dirty water
+    if (item.waterQuality === 'dirty') {
+      player.inflictSickness(unitsToDrink);
+      addLog(`The water was dirty. You feel sick.`, 'warning');
+    }
+
+    addLog(`You drink ${unitsToDrink} units of water from ${item.name}.`, 'item');
+    playSound('Consume');
+
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
+  const unrollBedroll = useCallback((item) => {
+    if (!engine.inventoryManager) return { success: false };
+    
+    console.log(`[InventoryContext] Unrolling bedroll: ${item.name}`);
+    
+    // 1. Create open bedroll
+    const openBedroll = createItemFromDef('bedroll.open');
+    if (!openBedroll) return { success: false };
+
+    // 2. Remove closed one
+    engine.inventoryManager.destroyItem(item.instanceId);
+
+    // 3. Add open one to ground
+    engine.inventoryManager.dropItemToGround(new Item(openBedroll));
+
+    addLog(`You unroll the bedroll onto the ground.`, 'item');
+    playSound('Equip');
+    
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
+  const rollupBedroll = useCallback((item) => {
+    if (!engine.inventoryManager) return { success: false };
+
+    console.log(`[InventoryContext] Rolling up bedroll: ${item.name}`);
+
+    // 1. Create closed bedroll
+    const closedBedroll = createItemFromDef('bedroll.closed');
+    if (!closedBedroll) return { success: false };
+
+    // 2. Remove open one
+    engine.inventoryManager.destroyItem(item.instanceId);
+
+    // 3. Add closed one to inventory (or ground if full)
+    const result = engine.inventoryManager.addItem(new Item(closedBedroll));
+    
+    addLog(`You roll up the bedroll.`, 'item');
+    playSound('Equip');
+
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
   const craftItem = useCallback((recipeId) => {
     if (!engine.inventoryManager || !engine.player) return { success: false };
     const result = engine.inventoryManager.craftingManager.craft(recipeId);
@@ -447,6 +539,9 @@ export const InventoryProvider = ({ children }) => {
     placeSelected,
     craftItem,
     consumeItem,
+    drinkWater,
+    unrollBedroll,
+    rollupBedroll,
     selectedRecipeId,
     setSelectedRecipeId,
     craftingRecipes: CraftingRecipes,
