@@ -169,10 +169,33 @@ export const PlayerProvider = ({ children }) => {
 
     try {
       const player = engine.player;
+      
+      // MOVEMENT LOCK: If player is currently animating movement, the animation loop handles FOV updates.
+      // We skip the redundant turn-based update here to prevent "flickering" between floor/round positions.
+      if (isMovingRef.current && !gameMap._forcedFovUpdate) {
+        return engine.playerFieldOfView || [];
+      }
+
+      const flooredPlayer = {
+        x: Math.round(player.x),
+        y: Math.round(player.y),
+        id: player.id,
+        sightRange: player.sightRange
+      };
+      
       let maxRange = isNight ? (isFlashlightOn ? (flashlightRange) : 1.5) : 15;
       if (isAimingWithScope) maxRange = 20;
 
-      const fovData = LineOfSight.calculateFieldOfView(gameMap, player, {
+      // Sync vision parameters to engine for frame-by-frame movement recalculation
+      engine.setFOVOptions({ 
+        isNight, 
+        isFlashlightOn, 
+        isAimingWithScope, 
+        flashlightRange,
+        maxRange: 15 // Default daylight range
+      });
+
+      const fovData = LineOfSight.calculateFieldOfView(gameMap, flooredPlayer, {
         maxRange,
         ignoreTerrain: [],
         ignoreEntities: [player.id]
@@ -267,11 +290,13 @@ export const PlayerProvider = ({ children }) => {
            path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y, 3); });
         }
 
+        // Release lock before final snap so updatePlayerFieldOfView isn't blocked
+        setIsMoving(false);
+        isMovingRef.current = false;
+
         updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange);
         updatePlayerCardinalPositions(gameMap);
         
-        setIsMoving(false);
-        isMovingRef.current = false;
         setMovementPath([]);
         setMovementProgress(0);
         GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);
@@ -290,7 +315,12 @@ export const PlayerProvider = ({ children }) => {
         return;
     }
     
+    
     engine.player.useAP(cost);
+    
+    // Prime vision at the start position before locking
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange);
+
     setIsMoving(true);
     isMovingRef.current = true;
     setMovementPath(path);

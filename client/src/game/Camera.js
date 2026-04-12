@@ -124,12 +124,10 @@ export class Camera {
    * Update viewport size based on actual canvas dimensions and tile size
    */
   updateViewportSize(canvasWidth, canvasHeight, tileSize) {
-    const tilesWide = Math.floor(canvasWidth / tileSize);
-    const tilesHigh = Math.floor(canvasHeight / tileSize);
-
-    // Ensure we have valid viewport dimensions
-    this.baseViewportWidth = Math.max(1, tilesWide);
-    this.baseViewportHeight = Math.max(1, tilesHigh);
+    // Store exact logical dimensions in tile units for precise centering
+    this.baseViewportWidth = canvasWidth / tileSize;
+    this.baseViewportHeight = canvasHeight / tileSize;
+    this.tileSize = tileSize; // Synchronize base tile size for UI overlays
 
     // Viewport updated silently
   }
@@ -273,9 +271,11 @@ export class Camera {
   }
 
   /**
-   * Convert world coordinates to screen coordinates
+   * Convert world coordinates to screen coordinates (logical units)
+   * accounts for centering logic used in MapCanvas
    */
   worldToScreen(worldX, worldY) {
+    // Current EFFECTIVE logical viewport dimensions (zoom-aware)
     const centerX = this.viewportWidth / 2;
     const centerY = this.viewportHeight / 2;
 

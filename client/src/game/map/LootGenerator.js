@@ -74,8 +74,9 @@ export class LootGenerator {
             }
 
             if (dropCount > 0) {
-                // Exclude doorway tiles from building loot candidates
-                const nonDoorTiles = buildingTiles.filter(pos => !this.hasDoorOnTile(gameMap, pos.x, pos.y));
+                // Exclude doorway tiles and their immediate neighbors from building loot candidates
+                // PHASE 15 Fix: Strict door buffer zone (1-tile radius)
+                const nonDoorTiles = buildingTiles.filter(pos => !this.isNearDoor(gameMap, pos.x, pos.y));
                 const selectedTiles = this.getRandomSubarray(nonDoorTiles, dropCount);
                 selectedTiles.forEach(pos => {
                     const items = this.generateRandomItems('inside');
@@ -93,7 +94,9 @@ export class LootGenerator {
             for (let x = 0; x < gameMap.width; x++) {
                 const tile = gameMap.getTile(x, y);
                 if (!tile || !tile.isWalkable()) continue;
-                if (this.hasDoorOnTile(gameMap, x, y)) continue;
+                
+                // PHASE 15 Fix: Strict door buffer zone for outdoor loot
+                if (this.isNearDoor(gameMap, x, y)) continue;
 
                 if (['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
                     outdoorTiles.push({ x, y });
@@ -137,24 +140,9 @@ export class LootGenerator {
                         const existingItems = gameMap.getItemsOnTile ? gameMap.getItemsOnTile(x, y) : [];
                         if (existingItems.length > 0) continue;
 
-                        // 2. Check for adjacent doors (Distance constraint)
-                        let isAdjToDoor = false;
-                        for (let dy = -1; dy <= 1; dy++) {
-                            for (let dx = -1; dx <= 1; dx++) {
-                                if (dx === 0 && dy === 0) continue;
-                                const nx = x + dx;
-                                const ny = y + dy;
-                                const nTile = gameMap.getTile(nx, ny);
-                                if (nTile && nTile.contents) {
-                                    if (nTile.contents.some(e => e.type === 'door')) {
-                                        isAdjToDoor = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (isAdjToDoor) break;
-                        }
-                        if (isAdjToDoor) continue;
+                        // 2. Check for doors (Strict 1-tile buffer zone: prevents spawning ON door or ADJACENT to it)
+                        // PHASE 15 Fix: Corrected adjacency loop to include current tile and diagonals properly
+                        if (this.isNearDoor(gameMap, x, y)) continue;
 
                         floorTiles.push({ x, y });
                     }
@@ -382,7 +370,7 @@ export class LootGenerator {
         for (let curY = y + 1; curY < y + height - 1; curY++) {
             for (let curX = x + 1; curX < x + width - 1; curX++) {
                 const tile = gameMap.getTile(curX, curY);
-                if (tile && tile.terrain === 'floor' && !this.hasDoorOnTile(gameMap, curX, curY)) {
+                if (tile && tile.terrain === 'floor' && !this.isNearDoor(gameMap, curX, curY)) {
                     floorTiles.push({ x: curX, y: curY });
                 }
             }
@@ -582,6 +570,22 @@ export class LootGenerator {
     hasDoorOnTile(gameMap, x, y) {
         const tile = gameMap.getTile(x, y);
         return !!(tile && tile.contents.some(e => e.type === 'door'));
+    }
+
+    /**
+     * Check whether a tile or any of its 8 neighbors has a door entity
+     * @param {GameMap} gameMap
+     * @param {number} x
+     * @param {number} y
+     * @returns {boolean}
+     */
+    isNearDoor(gameMap, x, y) {
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (this.hasDoorOnTile(gameMap, x + dx, y + dy)) return true;
+            }
+        }
+        return false;
     }
 
     /**

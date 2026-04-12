@@ -111,7 +111,7 @@ export class Pathfinding {
           continue;
         }
 
-        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, options);
+        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, isPathfinding: true });
 
         // Check if this neighbor is already in open set
         const existingNode = openSetMap.get(neighborKey);
@@ -227,7 +227,7 @@ export class Pathfinding {
           continue;
         }
 
-        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, options);
+        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, isPathfinding: true });
         const totalCost = current.cost + moveCost;
 
         if (totalCost <= maxCost && !visited.has(`${neighbor.x},${neighbor.y}`)) {
@@ -268,9 +268,9 @@ export class Pathfinding {
       const window = targetTile.contents.find(e => e.type === 'window');
       if (window) {
         if (options?.isZombie) {
-          // Zombies pay 4 AP to move through any window (base 1 + 3)
-          // If the window is closed, they will break it first in ZombieAI.js (1 AP break + 4 AP move)
-          baseCost += 3;
+          // Rule: Vaulting costs 3.0 AP. Pathfinding adds +25 penalty to avoid shortcuts.
+          const penalty = options?.isPathfinding ? 25 : 0;
+          baseCost = 3.0 + penalty;
         } else {
           baseCost += 1;
         }
@@ -280,9 +280,9 @@ export class Pathfinding {
       if (options?.isZombie) {
         const door = targetTile.contents.find(e => e.type === 'door');
         if (door && !door.isOpen) {
-          // Closed door: +4 AP penalty (makes it much more expensive than open floor,
-          // but cheaper than walking 15 tiles around a building)
-          baseCost += 4;
+          // Closed door: +4 AP base penalty, +35 heuristic penalty to avoid shortcuts
+          const penalty = options?.isPathfinding ? 35 : 4;
+          baseCost = 1.0 + penalty;
         }
 
         const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');

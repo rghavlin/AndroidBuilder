@@ -14,6 +14,9 @@ export const useLog = () => {
 export const LogProvider = ({ children }) => {
     const [logs, setLogs] = useState([]);
     const MAX_LOGS = 100;
+    
+    // Ref to throttle atmospheric messages (prevent spamming the same message multiple times per turn)
+    const lastAtmosphereLogTime = React.useRef(0);
 
     const addLog = useCallback((message, type = 'info') => {
         const id = Math.random().toString(36).substr(2, 9);
@@ -94,10 +97,15 @@ export const LogProvider = ({ children }) => {
         };
 
         const handleZombieWait = (data) => {
-            // Only log if it's a specific "blocked" wait to avoid spamming general waits
-            if (data.reason === 'Blocked by zombie on trail') {
-                addLog('Zombies are stacking up behind the door...', 'world');
+            const now = performance.now();
+            // Only log if it's a structural block AND we haven't logged an atmosphere message recently (1.5s)
+            if (data.reason === 'Blocked by zombie at structure') {
+                if (now - lastAtmosphereLogTime.current > 1500) {
+                    addLog('Zombies are stacking up behind the door...', 'world');
+                    lastAtmosphereLogTime.current = now;
+                }
             }
+            // User requested NO message for generic trail blocking, so we suppress it entirely
         };
 
         GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttack);

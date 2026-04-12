@@ -3,6 +3,7 @@ import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { ItemTrait } from '../../game/inventory/traits.js';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
+import { useAction } from '../../contexts/ActionContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
 import MapCanvas from './MapCanvas.jsx';
 import InventoryExtensionWindow from './InventoryExtensionWindow';
@@ -147,9 +148,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     isInitialized,
     initializationError,
     initializeGame,
-    targetingItem,
-    cancelTargetingItem,
-    useBreakingToolOnStructure,
     isNight,
     isFlashlightOn,
     setIsFlashlightOn,
@@ -158,6 +156,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     isSkillsOpen,
     toggleSkills
   } = useGame();
+
+  const {
+    targetingItem,
+    cancelTargetingItem,
+    useBreakingToolOnStructure
+  } = useAction();
 
   // Phase 1: Direct sub-context access 
   const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
@@ -1195,13 +1199,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                       }
                     } else {
                       // SINGLE ITEM or PARTIAL: Transform or add in place 
-                      emptyBottle.defId = fullId;
+                      emptyBottle.updateFromDef(fullId);
                       emptyBottle.ammoCount = (emptyBottle.ammoCount || 0) + fillAmount;
                       emptyBottle.waterQuality = 'dirty';
-                      // Re-initialize from definition to ensure image and traits are correct
-                      const def = createItemFromDef(fullId);
-                      emptyBottle.name = def.name;
-                      emptyBottle.imageId = def.imageId;
+                      
+                      // Notify inventory that an item has changed
+                      manager.emit('inventoryChanged');
+                      
                       addLog(`Filled ${emptyBottle.name}.`, 'item');
                     }
 
@@ -1306,8 +1310,8 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
   // Calculate screen position
   const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
   
-  // Get tileSize from camera (this is the base tile size * zoom)
-  const baseTileSize = (cameraRef.current as any).baseTileSize || 48;
+  // Get tileSize from camera (this is the synchronized base tile size * zoom)
+  const baseTileSize = (cameraRef.current as any).tileSize || 48;
   const tileSize = baseTileSize * cameraRef.current.zoomLevel;
 
   // Position above the tile

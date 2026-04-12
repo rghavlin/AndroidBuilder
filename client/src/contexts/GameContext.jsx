@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
-import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
-import { Zombie } from '../game/entities/Zombie.js';
-import { ZombieAI } from '../game/ai/ZombieAI.js';
 import { PlayerZombieTracker } from '../game/ai/PlayerZombieTracker.js';
+import { ZombieAI } from '../game/ai/ZombieAI.js';
 import { GameSaveSystem } from '../game/GameSaveSystem.js';
 import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
@@ -12,8 +10,6 @@ import { InventoryProvider } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
-import { Item, createItemFromDef } from '../game/inventory/index.js';
-import { ItemTrait } from '../game/inventory/traits.js';
 import { useAudio } from './AudioContext.jsx';
 import engine from '../game/GameEngine.js';
 
@@ -297,11 +293,6 @@ const GameContextInner = ({ children }) => {
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [isAnimatingZombies, setIsAnimatingZombies] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
-  const [isSleeping, setIsSleeping] = useState(false);
-  const [sleepProgress, setSleepProgress] = useState(0);
-  const [isSleepModalOpen, setIsSleepModalOpen] = useState(false);
-  const [sleepMultiplier, setSleepMultiplier] = useState(1);
-  const [targetingItem, setTargetingItem] = useState(null);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
 
   const toggleSkills = useCallback(() => {
@@ -519,6 +510,10 @@ const GameContextInner = ({ children }) => {
       // Sync ALL engine state atomically from loaded save
       engine.sync(loadedState);
       
+      // Phase 23 Fix: Ensure Turn state and derived values are set correctly during autosave load
+      setTurn(loadedState.turn);
+      setIsPlayerTurn(true);
+      setIsGameReady(true);
       setIsAutosaving(false);
       lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
 
@@ -571,6 +566,8 @@ const GameContextInner = ({ children }) => {
       setTurn(loadedState.turn);
       setIsPlayerTurn(true);
       setIsAutosaving(false);
+      setIsGameReady(true);
+      setInitializationState('complete');
       lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
 
       console.log('[GameContext] Setting up event listeners for loaded player...');
@@ -664,7 +661,7 @@ const GameContextInner = ({ children }) => {
 
 
 
-  const performAutosave = useCallback(() => {
+  const performAutosave = useCallback((turnOverride = null) => {
     if (!isInitialized) return false;
 
     try {
@@ -686,7 +683,7 @@ const GameContextInner = ({ children }) => {
         player: engine.player,
         camera: engine.camera,
         inventoryManager: inventoryManager,
-        turn: turn,
+        turn: turnOverride !== null ? turnOverride : turn,
         playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
       };
 
@@ -706,692 +703,7 @@ const GameContextInner = ({ children }) => {
     }
   }, [isInitialized, inventoryManager, turn]);
 
-  const checkIsSheltered = useCallback((player, gameMap) => {
-    if (!player || !gameMap) return false;
-
-    const startTile = gameMap.getTile(player.x, player.y);
-    // If not on floor, definitely not sheltered
-    if (!startTile || startTile.terrain !== 'floor') return false;
-
-    // BFS to find if there's a path to any non-floor, non-wall tile
-    const queue = [{ x: player.x, y: player.y }];
-    const visited = new Set([`${player.x},${player.y}`]);
-    const maxCheckedTiles = 400; // Safety limit for performance
-
-    let head = 0;
-    while (head < queue.length && queue.length < maxCheckedTiles) {
-      const { x, y } = queue[head++];
-
-      const neighbors = [
-        { x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }
-      ];
-
-      for (const next of neighbors) {
-        const key = `${next.x},${next.y}`;
-        if (visited.has(key)) continue;
-
-        const tile = gameMap.getTile(next.x, next.y);
-        if (!tile) continue;
-
-        // Find entities on this tile that might block the search
-        const door = tile.contents.find(e => e.type === 'door');
-        const isClosedDoor = door && !door.isOpen;
-
-        const window = tile.contents.find(e => e.type === 'window');
-        const isClosedWindow = window && !window.isOpen && !window.isBroken;
-
-        // Blockers: Walls, Building, Fence, Closed Door, Closed Window
-        // Note: 'building' and 'window' are terrain types used by the generator
-        const blocksBFS = (
-          tile.terrain === 'wall' || 
-          tile.terrain === 'building' || 
-          tile.terrain === 'fence' || 
-          (tile.terrain === 'window' && isClosedWindow) || 
-          isClosedDoor
-        );
-
-        if (blocksBFS) {
-          visited.add(key);
-          continue;
-        }
-
-        // Openings: Anything not floor (grass, road, etc.) OR an open/broken window
-        if (tile.terrain !== 'floor' || (tile.terrain === 'window' && !isClosedWindow)) {
-          return false; // Not sheltered
-        }
-
-        visited.add(key);
-        queue.push(next);
-      }
-    }
-
-    return true; // No opening found, or limit reached (assume sheltered if building is HUGE)
-  }, []);
-
-  const isPlayerInSameBuildingAsDoor = useCallback((player, doorPos, gameMap) => {
-    if (!player || !gameMap || !doorPos) {
-      console.log(`[GameContext] isPlayerInSameBuildingAsDoor failed due to missing params`);
-      return false;
-    }
-
-    const startTile = gameMap.getTile(player.x, player.y);
-    if (!startTile) return false;
-
-    if (startTile.terrain !== 'floor') {
-      console.log(`[GameContext] isPlayerInSameBuildingAsDoor failed: player not on floor (terrain: ${startTile.terrain})`);
-      return false;
-    }
-
-    const queue = [{ x: player.x, y: player.y }];
-    const visited = new Set([`${player.x},${player.y}`]);
-    const maxCheckedTiles = 400;
-
-    let head = 0;
-    while (head < queue.length && queue.length < maxCheckedTiles) {
-      const { x, y } = queue[head++];
-      
-      const neighbors = [
-        { x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }
-      ];
-
-      for (const next of neighbors) {
-        if (next.x === doorPos.x && next.y === doorPos.y) {
-          console.log(`[GameContext] isPlayerInSameBuildingAsDoor SUCCESS: reached door at (${doorPos.x}, ${doorPos.y})`);
-          return true; // Reached the door!
-        }
-
-        const key = `${next.x},${next.y}`;
-        if (visited.has(key)) continue;
-
-        const tile = gameMap.getTile(next.x, next.y);
-        if (!tile) continue;
-
-        const isWall = tile.terrain === 'wall' || tile.terrain === 'building' || tile.terrain === 'fence';
-        const door = tile.contents.find(e => e.type === 'door');
-        const isClosedDoor = door && !door.isOpen;
-
-        if (isWall || isClosedDoor) {
-          visited.add(key);
-          continue;
-        }
-
-        if (tile.terrain !== 'floor') {
-          visited.add(key);
-          continue;
-        }
-
-        visited.add(key);
-        queue.push(next);
-      }
-    }
-    
-    console.log(`[GameContext] isPlayerInSameBuildingAsDoor failed: BFS exhausted without finding door`);
-    return false;
-  }, []);
-
-  const performSleep = useCallback(async (hours, energyMultiplier = 1) => {
-    const gameMap = engine.gameMap;
-    if (!isInitialized || !engine.player || !gameMap || !isPlayerTurn || isSleeping) return;
-
-    try {
-      setIsSleeping(true);
-      setIsPlayerTurn(false);
-      setSleepProgress(hours);
-
-      const player = engine.player;
-      let currentTurn = turn;
-
-      for (let i = 0; i < hours; i++) {
-        // 1 second delay per hour slept
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Update stats for this hour
-        player.modifyStat('energy', 2.5 * energyMultiplier);
-        player.modifyStat('nutrition', -1);
-        player.modifyStat('hydration', -1);
-
-        // HP recovery: 0.5 HP per hour if nutrition and hydration are > 0
-        // HP recovery: 0.5 HP per hour if healthy, nutrition and hydration are > 0
-        if (player.nutrition > 0 && player.hydration > 0 && player.condition === 'Normal' && !player.isBleeding) {
-          player.heal(0.5);
-        } else if (player.condition !== 'Normal' || player.isBleeding) {
-          console.log(`[GameContext] Sleep HP regeneration cancelled due to condition: ${player.condition}${player.isBleeding ? ', Bleeding' : ''}`);
-        }
-
-        // Apply bleeding damage during sleep
-        if (player.isBleeding) {
-          player.takeDamage(1, { id: 'bleeding', type: 'status' });
-        }
-
-        // Advanced Turn and Progress
-        currentTurn++;
-        const hour = (6 + (currentTurn - 1)) % 24;
-        const isNight = hour >= 20 || hour < 6;
-        
-        setTurn(currentTurn);
-        setSleepProgress(prev => prev - 1);
-
-        // 1. World & Inventory Processing
-        gameMap.processTurn();
-        inventoryManager?.processTurn();
-
-        // 2. Battery consumption if flashlight left ON
-        if (isFlashlightOn) {
-          const flashlight = inventoryManager?.equipment['flashlight'];
-          if (flashlight) {
-            const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
-            if (battery && battery.ammoCount > 0) {
-              battery.ammoCount = Math.max(0, battery.ammoCount - 1);
-              if (battery.ammoCount <= 0) {
-                setIsFlashlightOn(false);
-              }
-            } else {
-              setIsFlashlightOn(false);
-            }
-          } else {
-            setIsFlashlightOn(false);
-          }
-        }
-
-        // 3. NPC/Zombie processing
-        const zombies = gameMap.getEntitiesByType('zombie');
-        const rabbits = gameMap.getEntitiesByType('rabbit');
-        const cardinalPositions = getPlayerCardinalPositions(gameMap);
-        lastSeenTaggedTilesRef.current.clear();
-        let doorAttackedInBuilding = false;
-
-        // Process Zombie Turns
-        zombies.forEach(zombie => {
-          const turnResult = ZombieAI.executeZombieTurn(
-            zombie,
-            gameMap,
-            player,
-            cardinalPositions,
-            lastSeenTaggedTilesRef.current
-          );
-
-          // Trigger visual effects for attacks (even if player is sleeping, state should be consistent)
-          if (turnResult.success) {
-            turnResult.actions.forEach(action => {
-              if (action.type === 'attackDoor' && action.doorPos) {
-                if (isPlayerInSameBuildingAsDoor({ x: player.x, y: player.y }, action.doorPos, gameMap)) {
-                  addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
-                  doorAttackedInBuilding = true;
-                }
-                if (addEffect) {
-                  addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
-                  addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
-                }
-              } else if (action.type === 'attackWindow' && action.windowPos) {
-                addLog('Zombie smashes a window!', 'combat');
-                if (addEffect) {
-                  addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
-                  addEffect({ type: 'tile_flash', x: action.windowPos.x, y: action.windowPos.y, color: 'rgba(255, 255, 255, 0.6)', duration: 400 });
-                }
-              } else if (action.type === 'attack' && action.target === 'player') {
-                addLog(`Zombie attacks: ${action.damage} damage`, 'combat');
-              }
-            });
-          }
-        });
-
-        // Process Rabbit Turns
-        const { RabbitAI } = await import('../game/ai/RabbitAI.js');
-        rabbits.forEach(rabbit => {
-          RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
-        });
- 
-        // Animate visible NPCs (zombies and rabbits) during sleep
-        await animateVisibleNPCs([...zombies, ...rabbits], playerFieldOfView);
-
-        // Sync stats to UI
-        updatePlayerStats({
-          hp: player.hp,
-          energy: player.energy,
-          nutrition: player.nutrition,
-          hydration: player.hydration,
-          isBleeding: player.isBleeding
-        });
-
-        // 4. Interruption check
-        let interruption = false;
-        let interruptionReason = "";
-
-        // Check if zombies can see player OR if they are adjacent (possibly attacking) 
-        // OR if they are banging on the building's door
-        const seePlayer = zombies.some(z => z.canSeeEntity(gameMap, player));
-        const adjacentZombie = zombies.some(z => Math.abs(z.x - player.x) <= 1 && Math.abs(z.y - player.y) <= 1);
-
-        if (seePlayer || adjacentZombie) {
-          interruption = true;
-          interruptionReason = "You were woken up by a nearby zombie!";
-        } else if (doorAttackedInBuilding) {
-          interruption = true;
-          interruptionReason = "You were woken up by a zombie banging on the door!";
-        }
-
-        // Only check for random spawns if sheltered and not already interrupted
-        if (!interruption) {
-          const isSheltered = checkIsSheltered(player, gameMap);
-          if (!isSheltered && Math.random() < 0.25) {
-            const neighbors = [
-              { x: player.x + 1, y: player.y }, { x: player.x - 1, y: player.y },
-              { x: player.x, y: player.y + 1 }, { x: player.x, y: player.y - 1 }
-            ].filter(n => {
-              const t = gameMap.getTile(n.x, n.y);
-              return t && t.isWalkable();
-            });
-
-            if (neighbors.length > 0) {
-              const spawnPos = neighbors[Math.floor(Math.random() * neighbors.length)];
-              const zombieId = `sleep-interrupter-${Date.now()}`;
-              const zombie = new Zombie(zombieId, spawnPos.x, spawnPos.y);
-              gameMap.addEntity(zombie, spawnPos.x, spawnPos.y);
-              interruption = true;
-              interruptionReason = "Something woke you up!";
-            }
-          }
-        }
-
-        if (interruption) {
-          addLog(interruptionReason, 'warning');
-          console.log(`[GameContext] Sleep interrupted: ${interruptionReason}`);
-          setIsSleeping(false);
-          setSleepProgress(0);
-          
-          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
-          updatePlayerCardinalPositions(gameMap);
-          setIsPlayerTurn(true);
-          return; // Exit loop
-        }
-      }
-
-      // After sleep completes
-      player.restoreAP(player.maxAp - player.ap);
-      updatePlayerStats({ ap: player.ap });
-
-      setIsSleeping(false);
-      setIsPlayerTurn(true);
-      setSleepProgress(0);
-
-      // Final state sync and effects
-      const finalHour = (6 + (currentTurn - 1)) % 24;
-      const finalIsNight = finalHour >= 20 || finalHour < 6;
-      updatePlayerFieldOfView(gameMap, finalIsNight, isFlashlightOn);
-      updatePlayerCardinalPositions(gameMap);
-
-      await performAutosave();
-
-    } catch (error) {
-      console.error('[GameContext] Error during sleep:', error);
-      setIsSleeping(false);
-      setIsPlayerTurn(true);
-      setSleepProgress(0);
-    }
-  }, [isInitialized, engine, isPlayerTurn, isSleeping, checkIsSheltered, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave]);
-
-  const triggerSleep = useCallback((multiplier = 1) => {
-    setSleepMultiplier(multiplier);
-    setIsSleepModalOpen(true);
-  }, []);
-
-  const startTargetingItem = useCallback((item) => {
-    setTargetingItem(item);
-  }, []);
-
-  const cancelTargetingItem = useCallback(() => {
-    setTargetingItem(null);
-    if (typeof window.inv?.clearSelected === 'function') {
-      window.inv.clearSelected();
-    }
-  }, []);
-
-  const digHole = useCallback((x, y) => {
-    const player = engine.player;
-    const gameMap = engine.gameMap;
-    
-    // Safety guards
-    if (!player || !gameMap || !targetingItem || !inventoryManager) {
-      console.warn('[GameContext] digHole guard triggered', { 
-        hasPlayer: !!player, 
-        hasMap: !!gameMap, 
-        hasTarget: !!targetingItem, 
-        hasInv: !!inventoryManager 
-      });
-      return { success: false };
-    }
-
-    // The context menu already ensures the tool can dig. If targeting is active, proceed.
-    if (!targetingItem || !targetingItem.hasTrait || !targetingItem.hasTrait(ItemTrait.CAN_DIG)) {
-      if (targetingItem && !targetingItem.traits?.includes(ItemTrait.CAN_DIG) && !targetingItem.traits?.includes('canDig')) {
-        return { success: false, reason: 'Requires digging tool' };
-      }
-    }
-
-    // Cost 5AP
-    if (player.ap < 5) {
-      addLog("Not enough AP to dig (requires 5)", "warning");
-      return { success: false, reason: 'Need 5 AP' };
-    }
-
-    // Get the ground container for the tile we are targeting
-    if (!inventoryManager.groundContainer) {
-      console.error('[GameContext] No ground container found in InventoryManager');
-          return { success: false };
-    }
-
-    // Create hole item
-    const itemData = createItemFromDef('provision.hole');
-    const holeItem = Item.fromJSON(itemData);
-    
-    // Add to ground container (x, y are grid coordinates passed from UI)
-    const success = inventoryManager.groundContainer.addItem(holeItem, x, y);
-    
-    if (!success) {
-      addLog("Could not dig here - space is occupied", "system");
-      return { success: false, reason: 'Grid placement failed' };
-    }
-
-    // Deduct AP
-    const DIG_AP_COST = 5;
-    const newAp = Math.max(0, player.ap - DIG_AP_COST);
-    player.useAP(DIG_AP_COST);
-    updatePlayerStats({ ap: newAp });
-    
-    addLog("You dig a hole in the ground.", "world");
-    gameMap.emitNoise(player.x, player.y, 5);
-    
-    if (addEffect) {
-      addEffect({
-        type: 'tile_flash',
-        x: player.x,
-        y: player.y,
-        color: 'rgba(139, 115, 85, 0.4)',
-        duration: 300
-      });
-    }
-
-    // Degrade shovel
-    if (targetingItem.hasTrait('degradable')) {
-      targetingItem.degrade(2);
-      if (targetingItem.condition <= 0) {
-        addLog(`Your ${targetingItem.name} broke!`, 'warning');
-        inventoryManager.destroyItem(targetingItem.instanceId);
-        setTargetingItem(null);
-      }
-    }
-
-    // Clear targeting after success
-    setTargetingItem(null);
-    
-    // Refresh UI directly
-    if (typeof window.inv?.refresh === 'function') {
-      window.inv.refresh();
-    } else {
-      inventoryManager.emit('inventoryChanged');
-    }
-    
-    return { success: true, item: holeItem };
-  }, [engine, targetingItem, inventoryManager, updatePlayerStats, addLog, addEffect]);
-
-  const plantSeed = useCallback((gridX, gridY, seedOverride = null) => {
-    const player = engine.player;
-    const gameMap = engine.gameMap;
-    
-    // Choose which seed to use: the override (from cursor) or the targeting state
-    const activeSeed = seedOverride || targetingItem;
-    
-    if (!player || !activeSeed || !inventoryManager) return { success: false };
-
-    if (player.ap < 1) {
-      addLog("Not enough AP to plant (requires 1)", "warning");
-      return { success: false, reason: 'Need 1 AP' };
-    }
-
-    // Find the hole in the ground container at gridX, gridY
-    const groundSource = inventoryManager.groundContainer;
-    const hole = groundSource.getAllItems().find(i => 
-      i.defId === 'provision.hole' && i.x === gridX && i.y === gridY
-    );
-
-    if (!hole) {
-      addLog("Must plant in a hole!", "warning");
-      return { success: false, reason: 'No hole' };
-    }
-
-    // Determine plant type from seed
-    const seedToPlant = {
-      'food.cornseeds': 'provision.corn_plant',
-      'food.tomatoseeds': 'provision.tomato_plant',
-      'food.carrotseeds': 'provision.carrot_plant'
-    };
-
-    const plantDefId = seedToPlant[activeSeed.defId];
-    if (!plantDefId) {
-      addLog("You can't plant this here.", "warning");
-      return { success: false, reason: 'Invalid seed' };
-    }
-
-    // Replace hole with plant
-    const plantData = createItemFromDef(plantDefId);
-    const plantItem = Item.fromJSON(plantData);
-
-    // Ground container update: remove hole and add plant at SAME position
-    groundSource.removeItem(hole.instanceId);
-    const success = groundSource.addItem(plantItem, gridX, gridY);
-    
-    if (!success) {
-       console.error('[GameContext] Failed to place plant in hole at:', gridX, gridY);
-       // Fallback: try to put the hole back
-       groundSource.addItem(hole, gridX, gridY);
-       return { success: false, reason: 'Placement failed' };
-    }
-
-    // Refresh UI
-    if (typeof window.inv?.refresh === 'function') {
-      window.inv.refresh();
-    } else {
-      inventoryManager.emit('inventoryChanged');
-    }
-    if (success) {
-      console.log(`[GameContext] Planting success: ${plantItem.name} (${plantItem.instanceId}), imageId: ${plantItem.imageId}`);
-      player.modifyStat('ap', -1);
-      
-      // Consume 1 seed (handle stacks)
-      if (activeSeed.stackCount > 1) {
-        activeSeed.stackCount -= 1;
-      } else {
-        // Remove the seed item from its container
-        const seedContainer = activeSeed._container;
-        if (seedContainer) {
-          seedContainer.removeItem(activeSeed.instanceId);
-        }
-        setTargetingItem(null);
-        if (typeof window.inv?.clearSelected === 'function') {
-          window.inv.clearSelected();
-        }
-      }
-      
-      addLog(`You plant the ${activeSeed.name.toLowerCase()}.`, "info");
-      updatePlayerStats({ ap: player.ap });
-
-      return { success: true };
-    }
-
-    return { success: false };
-  }, [engine, targetingItem, inventoryManager, addLog, updatePlayerStats]);
-
-  const harvestPlant = useCallback((plantItem) => {
-    const player = engine.player;
-    if (!player || !inventoryManager) return;
-
-    const ground = inventoryManager.groundContainer;
-    const x = plantItem.x;
-    const y = plantItem.y;
-
-    // Remove plant
-    ground.removeItem(plantItem.instanceId);
-
-    // Generate 4-7 produce
-    const count = 4 + Math.floor(Math.random() * 4);
-    const produceDefId = plantItem.produce || 'food.corn'; // Fallback to corn for safety
-    const produceData = createItemFromDef(produceDefId);
-    const produceItem = Item.fromJSON(produceData);
-    produceItem.stackCount = count;
-
-    // Helper for correct pluralization
-    const getLogName = (item, qty) => {
-      const name = item.name.toLowerCase();
-      if (qty <= 1) return name;
-      if (item.defId === 'food.corn') return name; // Corn remains corn
-      if (name === 'tomato') return 'tomatoes';
-      return name.endsWith('s') ? name : `${name}s`;
-    };
-
-    const logName = getLogName(produceItem, count);
-
-    // Add to ground at same position
-    const success = ground.addItem(produceItem, x, y);
-    
-    if (success) {
-      addLog(`You harvest ${count} ${logName}.`, "info");
-      if (inventoryManager) {
-        if (player && engine.gameMap) {
-          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, engine.gameMap);
-        }
-        inventoryManager.emit('inventoryChanged');
-      }
-      if (triggerMapUpdate) triggerMapUpdate();
-    } else {
-      // Fallback: try adding anywhere in ground
-      ground.addItem(produceItem);
-      addLog(`You harvest ${count} ${logName}.`, "info");
-      if (inventoryManager) {
-        if (player && engine.gameMap) {
-          inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, engine.gameMap);
-        }
-        inventoryManager.emit('inventoryChanged');
-      }
-      if (triggerMapUpdate) triggerMapUpdate();
-    }
-  }, [engine, inventoryManager, addLog, triggerMapUpdate]);
-
-  const useBreakingToolOnStructure = useCallback((x, y) => {
-    const player = engine.player;
-    const gameMap = engine.gameMap;
-    if (!player || !gameMap || !targetingItem) return { success: false };
-
-    // DISPATCHER: Handle specialized tool actions
-    if (targetingItem.hasTrait && targetingItem.hasTrait(ItemTrait.CAN_DIG)) {
-      return digHole(x, y);
-    }
-    // POJO fallback
-    if (targetingItem.traits?.includes(ItemTrait.CAN_DIG) || targetingItem.traits?.includes('canDig')) {
-      return digHole(x, y);
-    }
-
-    const seeds = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
-    if (seeds.includes(targetingItem.defId)) {
-      return plantSeed(x, y);
-    }
-
-    // Guard: Prevent action with broken tool
-    if (targetingItem.condition !== null && targetingItem.condition <= 0) {
-      console.warn(`[GameContext] Blocked structure action with broken tool: ${targetingItem.name}`);
-      if (addEffect) {
-        addEffect({
-          type: 'damage',
-          x: player.x,
-          y: player.y,
-          value: 'Broke!',
-          color: '#ef4444',
-          duration: 1000
-        });
-      }
-      // Try destroying it again
-      if (inventoryManager) {
-        inventoryManager.destroyItem(targetingItem.instanceId);
-      }
-      setTargetingItem(null);
-      return { success: false, reason: 'Tool is broken' };
-    }
-
-    // Distance check (adjacency)
-    const dx = Math.abs(player.x - x);
-    const dy = Math.abs(player.y - y);
-    const isAdjacent = (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
-
-    if (!isAdjacent) {
-      return { success: false, reason: 'Too far' };
-    }
-
-    const tile = gameMap.getTile(x, y);
-    const structure = tile?.contents.find(e => e.type === 'door' || e.type === 'window');
-
-    if (!structure) {
-      return { success: false, reason: 'No door or window' };
-    }
-
-    if (!structure.isLocked || structure.isOpen || structure.isBroken) {
-      return { success: false, reason: 'Already open or broken' };
-    }
-
-    if (player.ap < 2) {
-      return { success: false, reason: 'Need 2 AP' };
-    }
-
-    // Perform action: Unlock and open the structure (don't break windows, just pry them open)
-    structure.isLocked = false;
-    structure.isOpen = true;
-    structure.isDamaged = true; // Use damaged flag to show it was forced
-    structure.updateBlocking();
-    
-    // Play sound (prying a structure usually sounds like opening it forcibly)
-    playSound('ForceOpen');
-    
-    addLog(`You pry the ${structure.type} open with your ${targetingItem.name}.`, 'world');
-    gameMap.emitNoise(x, y, 3);
-
-    player.useAP(2);
-
-    // Reduce condition
-    if (targetingItem.hasTrait('degradable')) {
-      targetingItem.degrade(2);
-      
-      if (targetingItem.condition <= 0) {
-        console.log(`[GameContext] Tool ${targetingItem.name} BROKE!`);
-        if (addEffect) {
-          addEffect({
-            type: 'damage',
-            x: player.x,
-            y: player.y,
-            value: 'Broke!',
-            color: '#fbbf24',
-            duration: 1500
-          });
-        }
-        
-        // Destroy broken tool
-        if (inventoryManager) {
-          inventoryManager.destroyItem(targetingItem.instanceId);
-        }
-        setTargetingItem(null); // Stop targeting since it broke
-      }
-    }
-
-    setTargetingItem(null);
-    updatePlayerStats({ ap: player.ap });
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
-    updatePlayerCardinalPositions(gameMap);
-
-    // Force re-render of map
-    if (typeof gameMap.emitEvent === 'function') {
-      gameMap.emitEvent('mapUpdated'); // Generic update event
-    }
-
-    return { success: true };
-  }, [engine, targetingItem, inventoryManager, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange, addLog, playSound, addEffect, digHole, plantSeed]);
-
+  // NPC Animation Orchestration
   const animateVisibleNPCs = useCallback((npcs, currentFov) => {
     return new Promise((resolve) => {
       // 1. Identify NPCs that moved and are visible
@@ -1411,7 +723,14 @@ const GameContextInner = ({ children }) => {
 
       if (animatingNPCs.length === 0) {
         if (movedNPCs.length > 0) {
-          console.log(`[GameContext] ${movedNPCs.length} NPCs moved, but none are currently visible in FOV`);
+          console.log(`[GameContext] ${movedNPCs.length} NPCs moved, but none are currently visible in FOV. Resetting paths.`);
+          movedNPCs.forEach(n => {
+            n.isAnimating = false;
+            n.animationProgress = 0;
+            if (n.movementPath && n.movementPath.length > 1) {
+              n.movementPath = [{ x: n.x, y: n.y }];
+            }
+          });
         }
         setIsAnimatingZombies(false);
         resolve();
@@ -1435,6 +754,13 @@ const GameContextInner = ({ children }) => {
 
       const startTime = performance.now();
 
+      // PHASE 11 FIXED: Global timeout safety for animations
+      const safetyTimeout = setTimeout(() => {
+        console.warn('[GameContext] ⚠️ Animation timeout reached! Forcing resolution.');
+        setIsAnimatingZombies(false);
+        resolve();
+      }, duration + 500);
+
       const animate = (currentTime) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(1, elapsed / duration);
@@ -1450,6 +776,7 @@ const GameContextInner = ({ children }) => {
           requestAnimationFrame(animate);
         } else {
           // Animation complete
+          clearTimeout(safetyTimeout);
           npcs.forEach(n => {
             n.isAnimating = false;
             n.animationProgress = 0;
@@ -1481,6 +808,7 @@ const GameContextInner = ({ children }) => {
     }
 
     try {
+      console.log('[GameContext] >>> END TURN START');
       // Process map-level turn effects (e.g. campfire expiration) EARLY 
       // This ensures 0.5 turns vanish as soon as player hits endTurn.
       if (gameMap && gameMap.processTurn) {
@@ -1493,7 +821,7 @@ const GameContextInner = ({ children }) => {
       }
 
       setIsPlayerTurn(false);
-      setTargetingItem(null); // Cancel targeting on end turn
+      GameEvents.emit(GAME_EVENT.TURN_ENDED);
       lastSeenTaggedTilesRef.current.clear();
       logger.debug('Cleared all LastSeen tagged tiles for new zombie turn phase');
 
@@ -1531,6 +859,7 @@ const GameContextInner = ({ children }) => {
       await new Promise(resolve => setTimeout(resolve, 0));
 
       const immediateActions = []; // Actions for stationary zombies (attack now)
+      const midAnimationActions = []; // BREACH ACTIONS (attack window/door while moving)
       const delayedActions = [];   // Actions for moving zombies (attack after move)
 
       zombies.forEach(zombie => {
@@ -1543,15 +872,32 @@ const GameContextInner = ({ children }) => {
         );
 
         if (turnResult.success) {
-          const hasMoved = zombie.movementPath && zombie.movementPath.length > 1;
+          const willMoveInTurn = turnResult.actions.some(a => a.type === 'move' || a.type === 'momentum_move');
+          let hasMovedYet = false;
           
           turnResult.actions.forEach(action => {
+            // Track if the zombie has started moving during this turn sequence
+            if (action.type === 'move' || action.type === 'momentum_move') {
+              hasMovedYet = true;
+            }
+
             if (action.type === 'attackDoor' || action.type === 'attackWindow' || action.type === 'attack' || action.type === 'wait') {
               const actionData = { zombieId: zombie.id, ...action };
-              if (hasMoved) {
-                delayedActions.push(actionData);
+              
+              // New Timing Heuristic:
+              // 1. Structure Breaches by moving zombies -> midAnimation (150ms delay)
+              // 2. Pre-movement actions -> immediate (0ms delay)
+              // 3. Post-movement actions -> delayed (plays after arrival)
+              
+              if (!hasMovedYet) {
+                // If it's a structure attack and the zombie moves later, trigger it mid-way for visual impact
+                if (willMoveInTurn && (action.type === 'attackDoor' || action.type === 'attackWindow')) {
+                  midAnimationActions.push(actionData);
+                } else {
+                  immediateActions.push(actionData);
+                }
               } else {
-                immediateActions.push(actionData);
+                delayedActions.push(actionData);
               }
             }
           });
@@ -1592,12 +938,26 @@ const GameContextInner = ({ children }) => {
           if (!zombieEntity) return;
 
           if (action.type === 'attackDoor' && action.doorPos) {
+            // Trigger visual synchronization for animations
+            const doorTile = gameMap.getTile(action.doorPos.x, action.doorPos.y);
+            const doorEntity = doorTile?.contents.find(e => e.type === 'door');
+            if (doorEntity && typeof doorEntity.syncVisualState === 'function') {
+                doorEntity.syncVisualState();
+            }
+
             GameEvents.emit(action.doorBroken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action);
             if (addEffect) {
               addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
               addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
             }
           } else if (action.type === 'attackWindow' && action.windowPos) {
+            // Trigger visual synchronization for animations
+            const windowTile = gameMap.getTile(action.windowPos.x, action.windowPos.y);
+            const windowEntity = windowTile?.contents.find(e => e.type === 'window');
+            if (windowEntity && typeof windowEntity.syncVisualState === 'function') {
+                windowEntity.syncVisualState();
+            }
+
             GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action);
             if (addEffect) {
               addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
@@ -1631,7 +991,21 @@ const GameContextInner = ({ children }) => {
           RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
         });
 
-        await animateVisibleNPCs([...zombies, ...rabbits], playerFieldOfView);
+        console.log('[GameContext] Starting NPC animations...');
+        
+        // Non-blocking call to start animations
+        const animationPromise = animateVisibleNPCs([...zombies, ...rabbits], playerFieldOfView);
+
+        // SYNC: Process mid-animation breach actions after a short delay
+        // This allows the zombie to "step forward" into the window before it shatters
+        if (midAnimationActions.length > 0) {
+          setTimeout(() => {
+            console.log(`[GameContext] Executing ${midAnimationActions.length} mid-animation breach actions`);
+            processZombieActions(midAnimationActions);
+          }, 150); // 150ms is roughly 1/4 of a standard tile move duration
+        }
+
+        await animationPromise;
       }
 
       // 3. Process DELAYED actions (Moving zombies attack after arrival)
@@ -1640,11 +1014,11 @@ const GameContextInner = ({ children }) => {
         processZombieActions(delayedActions);
       }
 
- 
+      console.log('[GameContext] Processing survival stats and AP regeneration...');
       // Regenerate 1 HP at start of new turn phase if survival stats are sufficient (>= 5)
       // Regen logic: 1 HP per turn if healthy, nutrition/hydration threshold met
       if (player.nutrition >= 5 && player.hydration >= 5 && player.condition === 'Normal' && !player.isBleeding) {
-        player.heal(1);
+        player.heal(1, true); // Silent heal for turn-based regen
       } else if (player.condition !== 'Normal' || player.isBleeding) {
         console.log(`[GameContext] Turn HP regeneration cancelled due to condition: ${player.condition}${player.isBleeding ? ', Bleeding' : ''}`);
       } else {
@@ -1722,31 +1096,19 @@ const GameContextInner = ({ children }) => {
       }
 
       // Restore AP based on energy and HP levels
-      // 1. Energy Penalty: 
-      //    For every 5 points below 25, gain one less AP.
-      //    Below 5, regain 1 less AP for every point.
       const energyLost = Math.max(0, 25 - player.energy);
       let energyPenalty = 0;
       if (player.energy >= 5) {
         energyPenalty = Math.floor(energyLost / 5);
       } else {
-        // Penalty at 5 is 4. At 4 it is 4, at 3 it is 5... so (8 - energy) works:
-        // 5 -> 3? No, user said "regain 1 less ap every turn that their energy does not go above 5"
-        // At 4 energy, they get 16ap (Penalty 4).
-        // At 3 energy, they get 15ap (Penalty 5).
-        // Penalty = 8 - energy.
         energyPenalty = 8 - player.energy;
       }
 
-      // 2. HP Penalty: Same effect as energy (threshold 20 instead of 25)
       const hpLost = Math.max(0, 20 - player.hp);
       let hpPenalty = 0;
       if (player.hp >= 5) {
         hpPenalty = Math.floor(hpLost / 5);
       } else {
-        // Penalty at 5 is 3. At 4 it is 3, at 3 it is 4... so (7 - HP) works:
-        // 5 -> 2? No, 20-5 = 15. 15/5 = 3.
-        // HP Penalty = 7 - player.hp.
         hpPenalty = 7 - player.hp;
       }
 
@@ -1775,20 +1137,21 @@ const GameContextInner = ({ children }) => {
       triggerMapUpdate();
 
       setTurn(newTurn);
-      console.log('[GameContext] Turn ended. Current turn:', newTurn);
+      console.log('[GameContext] Turn processing logic complete. New turn:', newTurn);
 
-      await performAutosave();
+      await performAutosave(newTurn);
 
       // Final synchronization after all turn processing (zombies, survival, AP regen)
       engine.notifyUpdate();
 
-      setIsPlayerTurn(true);
-
     } catch (error) {
-      console.error('[GameContext] Error ending turn:', error);
+      console.error('[GameContext] ❌ ERROR during endTurn:', error);
+    } finally {
       setIsPlayerTurn(true);
+      setIsAnimatingZombies(false);
+      console.log('[GameContext] <<< END TURN FINISHED (Input Unlocked)');
     }
-  }, [turn, isInitialized, isPlayerTurn, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleNPCs, checkZombieAwareness, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
+  }, [turn, isInitialized, isPlayerTurn, playerFieldOfView, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleNPCs, checkZombieAwareness, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
 
   // Legacy wrapper methods (these should be removed in Phase 2)
   const handleTileClick = useCallback((x, y) => {
@@ -1974,6 +1337,7 @@ const GameContextInner = ({ children }) => {
 
     // Turn management
     turn,
+    setTurn,
     isNight,
     hour,
     isFlashlightOn,
@@ -1981,7 +1345,9 @@ const GameContextInner = ({ children }) => {
     toggleFlashlight,
     igniteTorch,
     isPlayerTurn,
+    setIsPlayerTurn,
     isAutosaving,
+    isAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
     engine,
@@ -2006,24 +1372,10 @@ const GameContextInner = ({ children }) => {
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel,
 
-    // Phase 6: Sleep functionality
-    isSleeping,
-    sleepProgress,
-    isSleepModalOpen,
-    setIsSleepModalOpen,
-    sleepMultiplier,
-    triggerSleep,
-    performSleep,
-
-    // Crowbar Usage Phase
-    targetingItem,
-    startTargetingItem,
-    cancelTargetingItem,
-    digHole,
-    plantSeed,
-    harvestPlant,
-    useBreakingToolOnStructure,
     checkZombieAwareness,
+    animateVisibleNPCs,
+    isFlashlightOnActual,
+    getActiveFlashlightRange,
 
     // Phase 5A: Expose inventoryManager for InventoryProvider
     inventoryManager,
@@ -2035,15 +1387,17 @@ const GameContextInner = ({ children }) => {
     isGameReady,
     initializationState,
     initializationError,
-    turn,
+    setTurn,
     isNight,
     hour,
     isFlashlightOn,
+    setIsFlashlightOn,
     toggleFlashlight,
     igniteTorch,
     isPlayerTurn,
-    isAnimatingZombies,
+    setIsPlayerTurn,
     isAutosaving,
+    isAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
     enginePulse,
@@ -2055,23 +1409,10 @@ const GameContextInner = ({ children }) => {
     loadGame,
     loadGameDirect,
     loadAutosave,
-    performSleep,
-    triggerSleep,
-    isSleeping,
-    sleepProgress,
-    isSleepModalOpen,
-    setIsSleepModalOpen,
-    sleepMultiplier,
-    inventoryManager,
-    targetingItem,
-    startTargetingItem,
-    cancelTargetingItem,
-    digHole,
-    plantSeed,
-    harvestPlant,
-    useBreakingToolOnStructure,
     checkZombieAwareness,
-    enginePulse,
+    animateVisibleNPCs,
+    isFlashlightOnActual,
+    getActiveFlashlightRange,
     mapTransition,
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel

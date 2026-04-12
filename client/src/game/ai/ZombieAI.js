@@ -23,6 +23,12 @@ export class ZombieAI {
     }
 
     zombie.startTurn();
+    
+    // Decrement persistence memory
+    if (zombie.interactionMemory > 0) {
+      zombie.interactionMemory--;
+    }
+
     const turnResult = {
       zombieId: zombie.id,
       actions: [],
@@ -40,6 +46,15 @@ export class ZombieAI {
         
         // Update "Last Seen" coordinates so the zombie tracks the player if sight is lost later
         zombie.setTargetSighted(player.x, player.y);
+
+        // PHASE 14: Scent Cancellation - Sync with player current sequence to "skip" old breadcrumbs
+        const playerTile = gameMap.getTile(player.x, player.y);
+        if (playerTile && playerTile.scentSequence) {
+          zombie.lastScentSequence = Math.max(zombie.lastScentSequence || 0, playerTile.scentSequence);
+        } else {
+          // Fallback to global counter to skip everything up to this moment
+          zombie.lastScentSequence = Math.max(zombie.lastScentSequence || 0, gameMap.scentSequenceCounter);
+        }
         
         turnResult.behaviorTriggered = 'canSeePlayer';
         this.executeCanSeePlayerBehavior(zombie, gameMap, player, turnResult, playerCardinalPositions);
@@ -56,11 +71,26 @@ export class ZombieAI {
         turnResult.behaviorTriggered = 'heardNoise';
         this.executeHeardNoiseBehavior(zombie, gameMap, turnResult, playerCardinalPositions, lastSeenTaggedTiles);
       }
-      // 4. Random wandering - Default behavior
-      else {
+      // 4. Random wandering - Default behavior (only if no recent interactions)
+      else if (zombie.interactionMemory <= 0) {
         zombie.isAlerted = false;
         turnResult.behaviorTriggered = 'randomWander';
         this.executeRandomWanderBehavior(zombie, gameMap, turnResult);
+      }
+      else {
+        // Dwell at the structure for 1-2 turns
+        zombie.isAlerted = false;
+        zombie.behaviorState = 'investigating';
+        console.log(`[ZombieAI] Zombie ${zombie.id} is dwelling at structure (memory=${zombie.interactionMemory})`);
+        turnResult.behaviorTriggered = 'dwell';
+        zombie.useAP(1.0);
+        turnResult.actions.push({
+          type: 'wait',
+          from: { x: zombie.x, y: zombie.y },
+          to: { x: zombie.x, y: zombie.y },
+          apCost: 1.0,
+          reason: 'Dwelling at structure'
+        });
       }
 
     } catch (error) {
@@ -183,25 +213,29 @@ export class ZombieAI {
           if (blockingZombie) {
             console.log(`[ZombieAI] Zombie ${zombie.id} trail blocked by zombie ${blockingZombie.id} at (${nextStep.x}, ${nextStep.y}), waiting...`);
             zombie.useAP(1.0);
+            
+            // Check if the blocked position is a structure (door/window)
+            const isStructure = nextTile.contents.some(e => e.type === 'door' || e.type === 'window');
+            
             turnResult.actions.push({
               type: 'wait',
               from: { x: zombie.x, y: zombie.y },
               to: { x: zombie.x, y: zombie.y },
               apCost: 1.0,
-              reason: 'Blocked by zombie on trail'
+              reason: isStructure ? 'Blocked by zombie at structure' : 'Blocked by zombie on trail'
             });
             continue; // Wait this turn and try again next loop (if AP remains)
           }
 
-          // B. Check for closed structures (STRICT ATTACHMENT)
+          // B. Check for closed structures (STRICT ATTACHMENT / 1 AP Breach)
           const door = nextTile?.contents.find(e => e.type === 'door' && !e.isOpen);
           const window = nextTile?.contents.find(e => e.type === 'window' && !e.isBroken && !e.isOpen);
 
           if ((door || window) && zombie.currentAP >= 1.0) {
             console.log(`[ZombieAI] Zombie ${zombie.id} trail blocked by ${door ? 'door' : 'window'} (closed/unbroken), attacking...`);
             const structure = door || window;
-            const damageAmount = 5 + Math.floor(Math.random() * 6);
-            const damageResult = structure.takeDamage(damageAmount, true); // Silent for logic
+            const damageResult = structure.takeDamage(1, true); // 1 damage per hit for zombies
+            zombie.interactionMemory = 3;
             zombie.useAP(1.0);
 
             turnResult.actions.push({
@@ -214,15 +248,49 @@ export class ZombieAI {
             });
 
             zombie.lastScentSequence = nextScent.sequence;
-            
-            // Check visibility after break
-            const playerEntity = gameMap.getAllEntities().find(e => e.type === 'player');
-            if (playerEntity && zombie.canSeeEntity(gameMap, playerEntity)) {
-              zombie.setTargetSighted(playerEntity.x, playerEntity.y);
-              this.executeCanSeePlayerBehavior(zombie, gameMap, playerEntity, turnResult, playerCardinalPositions);
-              break;
-            }
             continue;
+          }
+
+          // B.2 Check for Open/Broken Window (STRICT 3 AP VAULT)
+          const openWindow = nextTile?.contents.find(e => e.type === 'window' && (e.isBroken || e.isOpen));
+          if (openWindow) {
+            if (zombie.currentAP < 3.0) {
+              console.log(`[ZombieAI] Zombie lacks 3 AP to vault window, ending turn outside.`);
+              zombie.useAP(zombie.currentAP); // End turn
+              break;
+            } else {
+              // Atomic 2-tile Vault (Phase 12 Rule)
+              const dx = nextStep.x - zombie.x;
+              const dy = nextStep.y - zombie.y;
+              const targetX = nextStep.x + dx;
+              const targetY = nextStep.y + dy;
+              
+              const targetTile = gameMap.getTile(targetX, targetY);
+              const isVaultBlocked = !targetTile || !Pathfinding.isTileWalkable(targetTile, (tile) => !['wall', 'fence', 'tree'].includes(tile.terrain));
+
+              if (isVaultBlocked) {
+                console.log(`[ZombieAI] Vault into (${targetX}, ${targetY}) is blocked, waiting...`);
+                zombie.useAP(1.0);
+                break;
+              }
+
+              const originalPos = { x: zombie.x, y: zombie.y };
+              const success = gameMap.moveEntity(zombie.id, targetX, targetY);
+              if (success) {
+                zombie.useAP(3.0);
+                zombie.lastScentSequence = nextScent.sequence;
+                zombie.movementPath.push({ x: targetX, y: targetY });
+                
+                turnResult.actions.push({
+                  type: 'move',
+                  from: originalPos,
+                  to: { x: targetX, y: targetY },
+                  apCost: 3.0,
+                  reason: 'vauling through window'
+                });
+                continue;
+              }
+            }
           }
 
           // C. Try normal move
@@ -275,6 +343,12 @@ export class ZombieAI {
 
       if (zombie.x === targetX && zombie.y === targetY) {
         zombie.clearLastSeen();
+        
+        // If we reached our LKP at a door and can't see the player,
+        // we "hear" ourselves and start investigating the noise.
+        zombie.heardNoise = true;
+        zombie.noiseCoords = { x: targetX, y: targetY };
+
         turnResult.actions.push({
           type: 'targetReached',
           coordinates: { x: targetX, y: targetY }
@@ -413,6 +487,7 @@ export class ZombieAI {
             const structure = door || window;
             const damageAmount = door ? (5 + Math.floor(Math.random() * 6)) : (1 + Math.floor(Math.random() * 2));
             const damageResult = structure.takeDamage(damageAmount, true); // Silent for logic
+            zombie.interactionMemory = 3;
             zombie.useAP(1.0);
 
             turnResult.actions.push({
@@ -708,6 +783,18 @@ export class ZombieAI {
         console.log(`[ZombieAI] Insufficient AP for specific move: has ${zombie.currentAP}, needs ${apCost}`);
         return { success: false, reason: 'Insufficient AP', apRequired: apCost };
       }
+      // ── WINDOW GUARD: Prevent ending turn in window frame (3.0 AP Vault) ──────────────────
+      const windowOnTarget = nextTile?.contents.find(e => e.type === 'window');
+      if (windowOnTarget) {
+        // Vaulting rule: 1 AP to break (if needed) + 3 AP to vault through (atomic 2-tile move)
+        const isClosed = windowOnTarget.isReinforced || (!windowOnTarget.isBroken && !windowOnTarget.isOpen);
+        const requiredAP = isClosed ? 4.0 : 3.0;
+
+        if (zombie.currentAP < requiredAP) {
+          console.log(`[ZombieAI] Zombie ${zombie.id} waiting: needs ${requiredAP} AP to clear window, has ${zombie.currentAP}`);
+          return { success: false, reason: 'Insufficient AP to vault window', apRequired: requiredAP };
+        }
+      }
 
       // ── PRIORITY 1: Closed door in the way → attack it ──────────────────────
       // Check this BEFORE canMoveToTile because canMoveToTile now correctly
@@ -724,17 +811,16 @@ export class ZombieAI {
         // Zombies do 1-2 damage to doors per attack
         const doorDamage = Math.floor(Math.random() * 2) + 1;
         door.takeDamage(doorDamage, true); // Silent damage for logic only
+        zombie.interactionMemory = 3; // Stay here for 3 turns (1 now + 2 more)
 
         console.log(`[ZombieAI] Zombie ${zombie.id} (at ${zombie.x},${zombie.y}) logically attacked door at (${nextMove.x}, ${nextMove.y}) for ${doorDamage} damage, remaining AP: ${zombie.currentAP}`);
 
-        // Attract nearby zombies to the noise
+        // Attract zombies (including ourselves) to the noise
         const otherZombies = gameMap.getEntitiesByType('zombie');
         otherZombies.forEach(z => {
-          if (z.id !== zombie.id) {
-            const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
-            if (distance <= 6) {
-              z.setNoiseHeard(nextMove.x, nextMove.y);
-            }
+          const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
+          if (distance <= 6) {
+            z.setNoiseHeard(nextMove.x, nextMove.y);
           }
         });
 
@@ -761,17 +847,16 @@ export class ZombieAI {
         // Attack the window (Logic handles glass vs reinforcement)
         const damageAmount = 1 + Math.floor(Math.random() * 2);
         const damageResult = window.takeDamage(damageAmount, true); 
+        zombie.interactionMemory = 3;
         
         console.log(`[ZombieAI] Zombie ${zombie.id} attacked window, broken=${damageResult.isBroken}, reinforced=${damageResult.isReinforced}`);
 
-        // Attract nearby zombies to the noise
+        // Attract zombies (including ourselves) to the noise
         const otherZombies = gameMap.getEntitiesByType('zombie');
         otherZombies.forEach(z => {
-          if (z.id !== zombie.id) {
-            const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
-            if (distance <= 6) {
-              z.setNoiseHeard(nextMove.x, nextMove.y);
-            }
+          const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
+          if (distance <= 6) {
+            z.setNoiseHeard(nextMove.x, nextMove.y);
           }
         });
 
@@ -790,6 +875,42 @@ export class ZombieAI {
           windowBroken: damageResult.isBroken,
           windowReinforced: damageResult.isReinforced
         };
+      }
+
+      // ── PRIORITY 1c: Open Window Vaulting (Atomic Move to opposite side) ──
+      if (windowOnTarget && (!windowOnTarget.isReinforced && (windowOnTarget.isBroken || windowOnTarget.isOpen))) {
+          // Rule: Vault to opposite side costs 3.0 AP
+          const vaultCost = 3.0;
+          const dx = nextMove.x - fromPos.x;
+          const dy = nextMove.y - fromPos.y;
+          const targetX = nextMove.x + dx;
+          const targetY = nextMove.y + dy;
+
+          const vaultTile = gameMap.getTile(targetX, targetY);
+          const isVaultBlocked = !vaultTile || !ZombieAI.canMoveToTile(gameMap, targetX, targetY, zombie.subtype);
+
+          if (isVaultBlocked) {
+            console.log(`[ZombieAI] Window vault into (${targetX}, ${targetY}) is blocked, cannot proceed`);
+            return { success: false, reason: 'Vault destination blocked' };
+          }
+
+          try {
+            const success = gameMap.moveEntity(zombie.id, targetX, targetY);
+            if (success) {
+               zombie.useAP(vaultCost);
+               zombie.movementPath.push({ x: targetX, y: targetY });
+               return {
+                 success: true,
+                 from: fromPos,
+                 to: { x: targetX, y: targetY },
+                 apCost: vaultCost,
+                 reason: 'vault through window'
+               };
+            }
+          } catch (e) {
+            console.error('[ZombieAI] Vault failed:', e);
+            return { success: false, reason: 'Vault failed' };
+          }
       }
 
       // ── PRIORITY 2: Normal movement check ──────────────────────────────────

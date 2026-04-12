@@ -6,10 +6,12 @@ import { useState } from 'react';
 import DevConsole from '../Game/DevConsole.jsx';
 import { useGame } from "@/contexts/GameContext.jsx";
 import { usePlayer } from "@/contexts/PlayerContext.jsx";
+import { useSleep } from "@/contexts/SleepContext.jsx";
 
 export default function EquipmentSlots() {
   const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto, loadAmmoDirectly } = useInventory();
-  const { isPlayerTurn, isAutosaving, isSleeping } = useGame();
+  const { isPlayerTurn, isAutosaving } = useGame();
+  const { isSleeping } = useSleep();
   const { isMoving: isAnimatingMovement } = usePlayer();
   const [showDevConsole, setShowDevConsole] = useState(false);
 

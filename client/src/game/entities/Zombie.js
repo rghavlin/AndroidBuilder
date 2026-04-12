@@ -17,6 +17,7 @@ export class Zombie extends Entity {
     this.heardNoise = false; // Has the zombie heard a noise?
     this.targetSightedCoords = { x: 0, y: 0 }; // Last known player position
     this.noiseCoords = { x: 0, y: 0 }; // Location of heard noise
+    this.interactionMemory = 0; // Turns remaining to "dwell" at entry points after attacking structure
 
     // Set stats based on subtype
     if (subtype === 'crawler') {
@@ -264,8 +265,13 @@ export class Zombie extends Entity {
    */
   toJSON() {
     return {
-      ...super.toJSON(),
+      id: this.id,
+      type: 'zombie',
       subtype: this.subtype,
+      x: this.x,
+      y: this.y,
+      hp: this.hp,
+      maxHp: this.maxHp,
       lastSeen: this.lastSeen,
       heardNoise: this.heardNoise,
       targetSightedCoords: this.targetSightedCoords,
@@ -276,10 +282,7 @@ export class Zombie extends Entity {
       behaviorState: this.behaviorState,
       isActive: this.isActive,
       isAlerted: this.isAlerted,
-      lastScentSequence: this.lastScentSequence,
-      movementPath: this.movementPath,
-      isAnimating: this.isAnimating,
-      animationProgress: this.animationProgress
+      lastScentSequence: this.lastScentSequence
     };
   }
 
@@ -288,20 +291,28 @@ export class Zombie extends Entity {
    */
   static fromJSON(data) {
     const zombie = new Zombie(data.id, data.x, data.y, data.subtype);
-    zombie.lastSeen = data.lastSeen || false;
-    zombie.heardNoise = data.heardNoise || false;
+    zombie.lastSeen = !!data.lastSeen;
+    zombie.heardNoise = !!data.heardNoise;
     zombie.targetSightedCoords = data.targetSightedCoords || { x: 0, y: 0 };
     zombie.noiseCoords = data.noiseCoords || { x: 0, y: 0 };
-    zombie.maxAP = data.maxAP || 12;
-    zombie.currentAP = data.currentAP || 12;
     zombie.sightRange = data.sightRange || 18;
     zombie.behaviorState = data.behaviorState || 'idle';
     zombie.isActive = data.isActive || false;
     zombie.isAlerted = data.isAlerted || false;
     zombie.lastScentSequence = data.lastScentSequence || 0;
-    zombie.movementPath = data.movementPath || [];
-    zombie.isAnimating = data.isAnimating || false;
-    zombie.animationProgress = data.animationProgress || 0;
+    zombie.hp = data.hp !== undefined ? data.hp : (data.maxHP || 10);
+    zombie.x = data.x;
+    zombie.y = data.y;
+    
+    // Reset ALL transient rendering state on load 
+    zombie.isMoving = false;
+    zombie.movementStartTime = null;
+    zombie.movementPath = [];
+    zombie.isAnimating = false;
+    zombie.animationProgress = 0;
+    zombie.prevX = data.x;
+    zombie.prevY = data.y;
+    
     return zombie;
   }
 }

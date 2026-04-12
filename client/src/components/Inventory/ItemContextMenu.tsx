@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { ItemTrait } from '../../game/inventory/traits.js';
 import { useInventory } from "@/contexts/InventoryContext";
 import { useGame } from '../../contexts/GameContext.jsx';
+import { useSleep } from '../../contexts/SleepContext.jsx';
+import { useAction } from '../../contexts/ActionContext.jsx';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -35,7 +37,9 @@ export function ItemContextMenu({
     isDisabled = false
 }: ItemContextMenuProps) {
     const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater, unrollBedroll, rollupBedroll } = useInventory();
-    const { startTargetingItem, harvestPlant, igniteTorch, inventoryManager, triggerSleep } = useGame();
+    const { igniteTorch, inventoryManager } = useGame();
+    const { triggerSleep } = useSleep();
+    const { startTargetingItem, harvestPlant } = useAction();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
 
     // ... (rest of the component)

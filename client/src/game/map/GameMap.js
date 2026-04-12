@@ -394,6 +394,11 @@ export class GameMap {
       }
 
       this.entityMap.set(entity.id, entity);
+      
+      // Force synchronization of coordinates to prevent 'ghosting' desyncs
+      entity.x = x;
+      entity.y = y;
+      
       tile.addEntity(entity);
       
       // Update crop metadata to handle wild crop discovery if player enters
@@ -457,17 +462,20 @@ export class GameMap {
         return true;
       }
 
+      // Sanitize inputs to integers to prevent floating-point tile misses
+      newX = Math.floor(newX);
+      newY = Math.floor(newY);
+
       // Remove from old tile FIRST (while entity still has old coordinates)
       const oldTile = this.getTile(entity.x, entity.y);
       if (oldTile) {
         console.log(`[GameMap] Removing entity ${entityId} from old tile (${oldTile.x}, ${oldTile.y})`);
         const removedEntity = oldTile.removeEntity(entityId);
         if (!removedEntity) {
-          console.error(`[GameMap] Failed to remove entity ${entityId} from old tile`);
-          return false; // Abort if removal failed
+          console.warn(`[GameMap] ⚠️ Entity ${entityId} claimed to be at (${entity.x}, ${entity.y}) but was missing from that tile's contents. Proceeding with synchronization.`);
         }
       } else {
-        console.warn(`[GameMap] No old tile found at (${entity.x}, ${entity.y})`);
+        console.warn(`[GameMap] No old tile found at (${entity.x}, ${entity.y}) during move. Force-syncing to new tile.`);
       }
 
       // THEN update entity position via moveTo to trigger events
@@ -879,7 +887,9 @@ export class GameMap {
               if (entityData.type === 'item' && entityData.subtype === 'ground_pile') {
                 entity = {
                   ...entityData,
-                  toJSON: () => ({ ...entityData })
+                  type: 'item',
+                  subtype: 'ground_pile',
+                  toJSON: () => ({ ...entityData, type: 'item', subtype: 'ground_pile' })
                 };
               } else {
                 switch (entityData.type) {

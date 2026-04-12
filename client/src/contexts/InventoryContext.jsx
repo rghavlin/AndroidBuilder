@@ -84,6 +84,7 @@ export const InventoryProvider = ({ children }) => {
     const manager = engine.inventoryManager;
     if (!manager) return;
 
+    // Initial sync / Re-sync on engine pulse
     if (engine.player && engine.gameMap) {
       manager.syncWithMap(
         engine.player.x, engine.player.y,
@@ -94,13 +95,13 @@ export const InventoryProvider = ({ children }) => {
 
     const handleManagerUpdate = () => {
         logger.debug('🔄 Manager event -> Engine Pulse');
+        // We only increment version here. notified by engine.notifyUpdate later if needed
         setInventoryVersion(prev => prev + 1);
-        engine.notifyUpdate();
     };
 
     manager.on('inventoryChanged', handleManagerUpdate);
     return () => manager.off('inventoryChanged', handleManagerUpdate);
-  }, [inventoryPulse]);
+  }, [inventoryPulse]); // Still depend on pulse to catch loads/transitions, but syncWithMap is now guarded.
 
   const getContainer = useCallback((id) => engine.inventoryManager?.getContainer(id), [inventoryPulse, inventoryVersion]);
   const getEquippedBackpackContainer = useCallback(() => engine.inventoryManager?.getBackpackContainer(), [inventoryPulse, inventoryVersion]);
@@ -197,7 +198,7 @@ export const InventoryProvider = ({ children }) => {
   const rotateSelected = useCallback(() => {
     setSelectedItem(prev => {
       if (!prev || prev.item.width === prev.item.height) return prev;
-      return { ...prev, rotation: (prev.rotation + 90) % 360 };
+      return { ...prev, rotation: (prev.rotation === 0 ? 90 : 0) };
     });
     setDragVersion(v => v + 1);
   }, []);
@@ -255,26 +256,99 @@ export const InventoryProvider = ({ children }) => {
     return { success: false, reason: result.reason };
   }, [selectedItem]);
 
+  /**
+   * Internal helper to apply item consumption effects to the player.
+   * Handles legacy object-style effects, new array-style effects, 
+   * and random ranges {min, max}.
+   */
+  const applyConsumptionEffects = useCallback((player, item) => {
+    if (!item || !item.consumptionEffects) return;
+    const effects = item.consumptionEffects;
+
+    // Apply sickness / spoiled logic
+    if (item.isSpoiled) {
+      player.inflictSickness(3);
+    }
+
+    // Helper to process a single effect data object
+    const processEffect = (effect) => {
+      // Handle value ranges { min, max }
+      let val = effect.value;
+      if (val && typeof val === 'object' && val.min !== undefined && val.max !== undefined) {
+          val = Math.floor(Math.random() * (val.max - val.min + 1)) + val.min;
+      }
+
+      switch (effect.type) {
+        case 'heal':
+          player.heal(val);
+          break;
+        case 'modifyStat':
+        case 'nutrition':
+        case 'hydration':
+          const stat = effect.stat || effect.type; // Allow type as stat name for common stats
+          player.modifyStat(stat, val);
+          break;
+        case 'stop_bleeding':
+          player.setBleeding(false);
+          break;
+        case 'cure':
+          player.cure();
+          break;
+        case 'sickness':
+          player.inflictSickness(val);
+          break;
+        default:
+          console.warn(`[InventoryContext] Unknown effect type: ${effect.type}`, effect);
+      }
+    };
+
+    // 1. Process Legacy Object-style effects (e.g. { nutrition: 5 })
+    if (!Array.isArray(effects)) {
+        Object.entries(effects).forEach(([key, value]) => {
+           if (key === 'hp' || key === 'heal') player.heal(value);
+           else if (key === 'sickness') player.inflictSickness(value);
+           else if (key === 'cure' && value === true) player.cure();
+           else if (key === 'condition') {
+               player.condition = value;
+               player.notifyChange();
+           } else if (['nutrition', 'hydration'].includes(key)) {
+               player.modifyStat(key, value);
+           } else {
+               // Fallback for any other numeric stats
+               if (typeof value === 'number') player.modifyStat(key, value);
+           }
+        });
+        return;
+    }
+
+    // 2. Process Modern Array-style effects (e.g. for medical items)
+    effects.forEach(processEffect);
+  }, []);
+
   const consumeItem = useCallback((item) => {
     if (!engine.player || !engine.inventoryManager) return { success: false };
     
-    // Apply sickness / spoiled logic
-    if (item.isSpoiled) engine.player.inflictSickness(3);
+    // 1. Apply Effects
+    applyConsumptionEffects(engine.player, item);
     
-    // Apply consumption effects...
-    const effects = item.consumptionEffects;
-    if (effects) {
-        // Simple mock of effect application
-        if (effects.hp) engine.player.heal(effects.hp);
-        if (effects.nutrition) engine.player.modifyStat('nutrition', effects.nutrition);
-        if (effects.hydration) engine.player.modifyStat('hydration', effects.hydration);
+    // 2. Handle Stacking (Phase 12 Stack Fix)
+    if (item.isStackable() && item.stackCount > 1) {
+        item.stackCount -= 1;
+        console.log(`[InventoryContext] Consumed 1 ${item.name}. Remaining stack: ${item.stackCount}`);
+        
+        // Notify changes locally and globally
+        setInventoryVersion(v => v + 1);
+        engine.notifyUpdate();
+    } else {
+        // Not a stack, or last item in stack
+        engine.inventoryManager.destroyItem(item.instanceId);
+        setInventoryVersion(v => v + 1);
+        engine.notifyUpdate();
     }
 
-    engine.inventoryManager.destroyItem(item.instanceId);
-    setInventoryVersion(v => v + 1);
-    engine.notifyUpdate();
+    playSound('Eat');
     return { success: true };
-  }, []);
+  }, [applyConsumptionEffects, playSound]);
 
   const drinkWater = useCallback((item, amount) => {
     if (!engine.player || !engine.inventoryManager) return { success: false };
@@ -312,7 +386,7 @@ export const InventoryProvider = ({ children }) => {
     }
 
     addLog(`You drink ${unitsToDrink} units of water from ${item.name}.`, 'item');
-    playSound('Consume');
+    playSound('Drink');
 
     setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
@@ -367,19 +441,33 @@ export const InventoryProvider = ({ children }) => {
 
   const craftItem = useCallback((recipeId) => {
     if (!engine.inventoryManager || !engine.player) return { success: false };
-    const result = engine.inventoryManager.craftingManager.craft(recipeId);
+    
+    const player = engine.player;
+    const craftingLevel = player.craftingLvl || 0;
+    
+    // Perform the craft through the manager
+    const result = engine.inventoryManager.craftingManager.craft(recipeId, craftingLevel, player.ap);
+    
     if (result.success) {
       if (result.item && !result.placedInGround) {
-        // Normal items: add to inventory or drop to ground
-        engine.inventoryManager.addItem(result.item);
+        // Normal items: add to inventory or drop to ground (Auto-merge crafted items)
+        engine.inventoryManager.addItem(result.item, null, null, null, true);
+      }
+      
+      // DEDUCT AP AND REWARD EXP
+      const apUsed = result.apCost || 0;
+      if (apUsed > 0) {
+        player.useAP(apUsed);
+        player.onItemCrafted(apUsed);
       }
       
       setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
       addLog(`Crafted ${result.item?.name || 'item'}`, 'item');
+      playSound('Craft');
     }
     return result;
-  }, [addLog]);
+  }, [addLog, playSound]);
 
   const clearCraftingArea = useCallback(() => engine.inventoryManager?.clearCraftingArea(), []);
 
@@ -425,34 +513,67 @@ export const InventoryProvider = ({ children }) => {
     return result;
   }, [selectedItem, inventoryPulse]);
 
-  const splitStack = useCallback((item, count) => {
+   const splitStack = useCallback((item, count) => {
     if (!item || !engine.inventoryManager) return { success: false };
-    const newItem = item.splitStack(count);
-    if (newItem) {
-      engine.inventoryManager.addItem(newItem);
-      setInventoryVersion(v => v + 1);
-      return { success: true };
+    
+    try {
+      const newItem = item.splitStack(count);
+      if (newItem) {
+        const result = engine.inventoryManager.addItem(newItem);
+        if (result.success) {
+          // Atomically reduce the original stack ONLY if the new one was successfully placed
+          item.stackCount -= count;
+          setInventoryVersion(v => v + 1);
+          engine.notifyUpdate();
+          return { success: true };
+        } else {
+          addLog('Not enough space to split stack!', 'error');
+        }
+      }
+    } catch (err) {
+      console.error('[InventoryContext] splitStack error:', err);
+      addLog('Failed to split stack due to an error.', 'error');
     }
     return { success: false };
-  }, [inventoryPulse]);
+  }, [inventoryPulse, addLog]);
 
   const depositSelectedInto = useCallback((targetContainerItem) => {
     if (!selectedItem || !engine.inventoryManager || !targetContainerItem) return { success: false };
-    const container = engine.inventoryManager.getContainer(targetContainerItem.containerGrid?.id || `${targetContainerItem.instanceId}-container`);
-    if (container && container.addItem(selectedItem.item)) {
-       setSelectedItem(null);
-       setInventoryVersion(v => v + 1);
-       playSound('Click');
-       return { success: true };
+    
+    const { item, originContainerId } = selectedItem;
+    const targetId = targetContainerItem.containerGrid?.id || `${targetContainerItem.instanceId}-container`;
+    const container = engine.inventoryManager.getContainer(targetId);
+
+    // 1. Recursion Check (Prevent putting container into itself)
+    if (container && engine.inventoryManager.checkRecursion(item, container)) {
+        addLog(`Cannot put ${item.name} inside itself!`, 'error');
+        return { success: false };
     }
+
+    // 2. Add Item to Target (Enable allowStacking: true for special containers)
+    if (container && container.addItem(item, null, null, true)) {
+        // 3. CRITICAL: Remove item from original source container to prevent duplication
+        const originContainer = engine.inventoryManager.getContainer(originContainerId);
+        if (originContainer) {
+            console.debug(`[InventoryContext] Removing ${item.name} from origin ${originContainerId}`);
+            originContainer.removeItem(item.instanceId);
+        }
+
+        setSelectedItem(null);
+        setInventoryVersion(v => v + 1);
+        playSound('Click');
+        return { success: true };
+    }
+
+    addLog(`No space in ${targetContainerItem.name}!`, 'error');
     return { success: false };
-  }, [selectedItem, playSound, inventoryPulse]);
+  }, [selectedItem, playSound, addLog]);
 
   const attachSelectedInto = useCallback((weapon) => {
     if (!selectedItem || !engine.inventoryManager || !weapon) return { success: false };
     const item = selectedItem.item;
     const slotId = weapon.attachmentSlots?.find(slot => {
-       if (weapon.attachments[slot.id]) return false;
+       // REFINEMENT: Allow targeting occupied slots to trigger swapping/displacement
        return slot.allowedCategories?.some(cat => item.categories?.includes(cat));
     })?.id;
 
@@ -465,6 +586,24 @@ export const InventoryProvider = ({ children }) => {
        }
     }
     return { success: false };
+  }, [selectedItem, inventoryPulse]);
+
+  const attachSelectedItemToWeapon = useCallback((weapon, slotId) => {
+    if (!selectedItem || !engine.inventoryManager || !weapon || !slotId) return { success: false };
+    
+    const result = engine.inventoryManager.attachItemToWeapon(
+      weapon, 
+      slotId, 
+      selectedItem.item, 
+      selectedItem.originContainerId
+    );
+    
+    if (result.success) {
+        setSelectedItem(null);
+        setInventoryVersion(v => v + 1);
+        return { success: true };
+    }
+    return result;
   }, [selectedItem, inventoryPulse]);
 
   const loadAmmoInto = useCallback((magazine) => {
@@ -551,6 +690,7 @@ export const InventoryProvider = ({ children }) => {
     splitStack,
     depositSelectedInto,
     attachSelectedInto,
+    attachSelectedItemToWeapon,
     loadAmmoInto,
     loadAmmoDirectly,
     fuelCampfire,

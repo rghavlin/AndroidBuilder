@@ -329,8 +329,7 @@ export class TemplateMapGenerator {
         x: spot.x,
         y: spot.y,
         isWild: true,
-        isHarvestable: true,
-        lifetimeTurns: 0
+        isHarvestable: true
       });
 
       if (!tile.inventoryItems) tile.inventoryItems = [];

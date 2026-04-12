@@ -204,8 +204,10 @@ export class Player extends Entity {
 
   /**
    * Heal player
+   * @param {number} amount
+   * @param {boolean} silent - If true, suppressed global sound events
    */
-  heal(amount) {
+  heal(amount, silent = false) {
     // Cannot heal if already dead (hp must be > 0)
     if (this.hp <= 0) {
       console.log(`[Player] ${this.name} is dead (HP: ${this.hp}), healing ignored.`);
@@ -223,8 +225,10 @@ export class Player extends Entity {
         maxHp: this.maxHp
       });
 
-      // Global event
-      GameEvents.emit(GAME_EVENT.PLAYER_HEAL, { amount: amountHealed, currentHp: this.hp });
+      if (!silent) {
+        // Global event
+        GameEvents.emit(GAME_EVENT.PLAYER_HEAL, { amount: amountHealed, currentHp: this.hp });
+      }
       
       this.emit('stateChanged', this);
     }
@@ -271,7 +275,6 @@ export class Player extends Entity {
     
     this.modifyStat(isMelee ? 'meleeKills' : 'rangedKills', 1);
     
-    // Milestones: 5, 10, 20, 40, 80...
     const nextMilestone = 5 * Math.pow(2, currentLevel);
     
     if (this[isMelee ? 'meleeKills' : 'rangedKills'] >= nextMilestone) {
@@ -408,8 +411,11 @@ export class Player extends Entity {
    */
   toJSON() {
     return {
-      ...super.toJSON(),
+      id: this.id,
       name: this.name,
+      type: 'player',
+      x: this.x,
+      y: this.y,
       hp: this.hp,
       maxHp: this.maxHp,
       ap: this.ap,
@@ -456,6 +462,14 @@ export class Player extends Entity {
     player.rangedLvl = data.rangedLvl !== undefined ? data.rangedLvl : 0;
     player.craftingApUsed = data.craftingApUsed || 0;
     player.craftingLvl = data.craftingLvl !== undefined ? data.craftingLvl : 0;
+    
+    // Reset transient movement state
+    player.isMoving = false;
+    player.movementStartTime = null;
+    player.movementPath = [];
+    player.prevX = data.x;
+    player.prevY = data.y;
+    
     return player;
   }
 }

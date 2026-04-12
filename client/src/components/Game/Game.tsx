@@ -4,6 +4,8 @@ import { CameraProvider } from '../../contexts/CameraContext.jsx';
 import { GameMapProvider } from '../../contexts/GameMapContext.jsx';
 import { PlayerProvider } from '../../contexts/PlayerContext.jsx';
 import { GameProvider } from '../../contexts/GameContext.jsx';
+import { SleepProvider } from '../../contexts/SleepContext.jsx';
+import { ActionProvider } from '../../contexts/ActionContext.jsx';
 import { LogProvider } from '../../contexts/LogContext.jsx';
 import { AudioProvider } from '../../contexts/AudioContext.jsx';
 import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
@@ -22,7 +24,11 @@ export default function Game() {
                 <InventoryProvider>
                   <CombatProvider>
                     <GameProvider>
-                      <GameScreen />
+                      <SleepProvider>
+                        <ActionProvider>
+                          <GameScreen />
+                        </ActionProvider>
+                      </SleepProvider>
                     </GameProvider>
                   </CombatProvider>
                 </InventoryProvider>

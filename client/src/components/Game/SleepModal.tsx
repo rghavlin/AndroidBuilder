@@ -1,17 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { useGame } from "../../contexts/GameContext.jsx";
 import { usePlayer } from "../../contexts/PlayerContext.jsx";
+import { useSleep } from "../../contexts/SleepContext.jsx";
 
 export default function SleepModal() {
+  const { isPlayerTurn, isAutosaving } = useGame();
   const { 
     isSleepModalOpen: isOpen, 
     setIsSleepModalOpen: setIsOpen, 
     sleepMultiplier, 
     performSleep,
-    isSleeping,
-    isPlayerTurn,
-    isAutosaving
-  } = useGame();
+    isSleeping
+  } = useSleep();
   
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
 

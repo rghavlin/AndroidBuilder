@@ -38,6 +38,12 @@ class GameEngine extends SafeEventEmitter {
     this.updateCount = 0;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
     this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8 };
+    this.renderDebugColors = false; 
+
+    // Phase 24: Interaction State (Silo Bridge)
+    this.isSleeping = false;
+    this.sleepProgress = 0;
+    this.targetingItemInstanceId = null;
   }
 
   /**
@@ -67,7 +73,15 @@ class GameEngine extends SafeEventEmitter {
     if (gameObjects.zombieTracker) this.zombieTracker = gameObjects.zombieTracker;
     if (gameObjects.lootGenerator) this.lootGenerator = gameObjects.lootGenerator;
     
+    // Restore Phase 24 interaction state if present
+    if (gameObjects.interactionState) {
+      this.isSleeping = gameObjects.interactionState.isSleeping || false;
+      this.sleepProgress = gameObjects.interactionState.sleepProgress || 0;
+      this.targetingItemInstanceId = gameObjects.interactionState.targetingItemInstanceId || null;
+    }
+
     this.isInitialized = true;
+    this.initializationState = 'complete';
     
     // Immediate FOV update on sync
     this.recalculateFOV();
@@ -119,11 +133,20 @@ class GameEngine extends SafeEventEmitter {
   }
 
   /**
-   * Update FOV options and trigger a pulse
+   * Update FOV options and trigger a pulse ONLY if values have changed.
    */
   setFOVOptions(options) {
-    this._fovOptions = { ...this._fovOptions, ...options };
-    this.notifyUpdate();
+    let changed = false;
+    for (const key in options) {
+      if (this._fovOptions[key] !== options[key]) {
+        this._fovOptions[key] = options[key];
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      this.notifyUpdate();
+    }
   }
 
    /**

@@ -93,6 +93,13 @@ export class Tile {
     } else {
       console.warn(`[Tile] Entity ${entity.id} already exists on tile (${this.x}, ${this.y})`);
     }
+
+    // Diagnostic validation: Ensure coordinate symmetry
+    if (entity.x !== undefined && entity.y !== undefined) {
+      if (entity.x !== this.x || entity.y !== this.y) {
+        console.error(`[Tile] ⚠️ Property Desync Detected! Adding entity ${entity.id} to tile (${this.x}, ${this.y}) but entity says it is at (${entity.x}, ${entity.y})`);
+      }
+    }
   }
 
   /**

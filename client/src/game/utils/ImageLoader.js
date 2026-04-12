@@ -4,8 +4,12 @@
  */
 export class ImageLoader {
   constructor() {
-    this.imageCache = new Map();
+    this.images = {};
     this.loadingPromises = new Map();
+    this.failedImagesCount = new Map();
+    this.permanentFailures = new Set(); // New: Track images that consistently fail to load
+    this.maxRetries = 3;
+    this.onImageLoaded = null; // Callback for reactive re-rendering (MapCanvas)
 
     // Determine the correct base path for images
     this.basePath = this.determineBasePath();
@@ -19,14 +23,19 @@ export class ImageLoader {
   determineBasePath() {
     // Check if running in electron
     const isElectron = typeof window !== 'undefined' && window.electronAPI;
-
-    if (isElectron) {
-      // In electron, try multiple possible paths
-      return './images/entities/';
-    } else {
-      // In web browser or development mode
-      return '/images/entities/';
-    }
+    
+    // Determine the root public/images/ path
+    // USE ABSOLUTE PATHS FROM DOMAIN ROOT to prevent resolution errors on reload.
+    const rootPath = isElectron ? './images/' : '/images/';
+    
+    return {
+      root: rootPath,
+      entities: `${rootPath}entities/`,
+      tiles: `${rootPath}tiles/`,
+      items: `${rootPath}items/`,
+      places: `${rootPath}places/`,
+      UI: `${rootPath}UI/`
+    };
   }
 
   async getImage(entityType, subtype = null) {
@@ -45,34 +54,24 @@ export class ImageLoader {
       else if (subtype === 'swat') imageKey = 'swatzombie';
       else if (subtype === 'fat') imageKey = 'fatzombie';
       else if (subtype === 'soldier') imageKey = 'soldierzombie';
-      else imageKey = 'zombie'; // Default zombie for basic/null
+      else imageKey = 'zombie';
     } else if (entityType === 'rabbit') {
       imageKey = 'rabbit';
-    } else if (entityType === 'item' && subtype === 'ground_pile') {
-      // LOOT DROP ICON: Use default.png from items folder
-      return this.getItemImage('default');
-    } else if (entityType === 'item' && subtype === 'hole') {
-      // HOLE ICON: Use hole.png from items folder
-      return this.getItemImage('hole');
-    } else if (entityType === 'item' && subtype === 'cornplant') {
-      return this.getItemImage('cornplant');
-    } else if (entityType === 'item' && subtype === 'tomatoplant') {
-      return this.getItemImage('tomatoplant');
-    } else if (entityType === 'item' && subtype === 'carrotplant') {
-      return this.getItemImage('carrotplant');
-    } else if (entityType === 'item' && subtype === 'harvestablecorn') {
-      return this.getItemImage('harvestablecorn');
-    } else if (entityType === 'item' && subtype === 'harvestabletomato') {
-      return this.getItemImage('harvestabletomato');
-    } else if (entityType === 'item' && subtype === 'harvestablecarrot') {
-      return this.getItemImage('harvestablecarrot');
-    } else if (entityType === 'item' && subtype === 'bed') {
-      return this.getItemImage('bed');
+    } else if (entityType === 'item') {
+      // Specialized items (e.g., weapons, tools, furniture) load from /images/items/
+      if (subtype && subtype !== 'basic' && subtype !== 'ground_pile' && subtype !== 'hole') {
+        return this.getItemImage(subtype);
+      }
+      // Generic loot drops or holes fall through to standard getImage('item') or specific mapping
+      if (subtype === 'hole') imageKey = 'hole';
+      else imageKey = 'item';
+    } else if (['cornplant', 'tomatoplant', 'carrotplant', 'harvestablecorn', 'harvestabletomato', 'harvestablecarrot', 'bed'].includes(subtype)) {
+      return this.getItemImage(subtype);
     }
 
-    // 3. Return cached image if available
-    if (this.imageCache.has(imageKey)) {
-      return this.imageCache.get(imageKey);
+    // 3. Return cached image if available and valid
+    if (this.images[imageKey]) {
+      return this.images[imageKey];
     }
 
     // 4. Return existing loading promise if already in flight
@@ -80,45 +79,44 @@ export class ImageLoader {
       return this.loadingPromises.get(imageKey);
     }
 
-    // 5. Special routing for place icons
-    if (entityType === 'place_icon' && subtype) {
-      // Use getPlaceImage but ensure we cache it under the canonical entity imageKey too
-      const getPromise = this.getPlaceImage(subtype);
-      this.loadingPromises.set(imageKey, getPromise);
-      try {
-        const image = await getPromise;
-        if (image) {
-          this.imageCache.set(imageKey, image);
-          this.loadingPromises.delete(imageKey);
-          return image;
-        }
-      } catch (error) {
-        console.warn(`[ImageLoader] Place image load failed for ${subtype}`);
-      }
-    }
-
-    // 6. Generic load attempt for entities
-    const loadPromise = this.loadImage(imageKey);
-    this.loadingPromises.set(imageKey, loadPromise);
-
-    try {
-      const image = await loadPromise;
-      this.imageCache.set(imageKey, image);
-      this.loadingPromises.delete(imageKey);
-      return image;
-    } catch (error) {
-      // On failure, try to fall back to the base entity type image
-      if (imageKey !== entityType) {
-        console.log(`[ImageLoader] Failed to load ${imageKey}, falling back to ${entityType}`);
-        return this.getImage(entityType);
-      }
-      
-      // Complete failure: cache null to prevent thrashing
-      console.warn(`[ImageLoader] No asset found for ${imageKey} or fallback`);
-      this.imageCache.set(imageKey, null);
-      this.loadingPromises.delete(imageKey);
+    // Stop trying if we have permanently failed (>= 3 times)
+    if ((this.failedImagesCount.get(imageKey) || 0) >= 3) {
       return null;
     }
+
+    // 5. Atomic loading wrapper to prevent race conditions and unhandled rejections
+    const loadPromise = (async () => {
+      try {
+        // Special routing for place icons
+        if (entityType === 'place_icon' && subtype) {
+          const image = await this.getPlaceImage(subtype);
+          if (image) return image;
+        }
+
+        // Generic load attempt for entities
+        const image = await this.loadImage(imageKey);
+        this.images[imageKey] = image;
+        this.failedImagesCount.delete(imageKey);
+        return image;
+      } catch (error) {
+        // On failure, try to fall back to the base entity type image
+        if (imageKey !== entityType) {
+          console.log(`[ImageLoader] Failed to load ${imageKey}, falling back to ${entityType}`);
+          const fallback = await this.getImage(entityType);
+          if (fallback) return fallback;
+        }
+        
+        const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
+        this.failedImagesCount.set(imageKey, fails);
+        console.warn(`[ImageLoader] No asset found for ${imageKey} or fallback (Attempt ${fails}/3)`);
+        return null;
+      } finally {
+        this.loadingPromises.delete(imageKey);
+      }
+    })();
+
+    this.loadingPromises.set(imageKey, loadPromise);
+    return loadPromise;
   }
 
   /**
@@ -132,8 +130,8 @@ export class ImageLoader {
     const imageKey = `place_${canonicalName}`;
 
     // Return cached image if available
-    if (this.imageCache.has(imageKey)) {
-      return this.imageCache.get(imageKey);
+    if (this.images[imageKey]) {
+      return this.images[imageKey];
     }
 
     // Return existing loading promise if already loading
@@ -141,21 +139,24 @@ export class ImageLoader {
       return this.loadingPromises.get(imageKey);
     }
 
-    // Start loading the place image
-    const loadPromise = this.loadPlaceImage(canonicalName);
-    this.loadingPromises.set(imageKey, loadPromise);
+    const loadPromise = (async () => {
+      try {
+        const image = await this.loadPlaceImage(canonicalName);
+        this.images[imageKey] = image;
+        this.failedImagesCount.delete(imageKey); // Reset on success
+        return image;
+      } catch (error) {
+        const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
+        this.failedImagesCount.set(imageKey, fails);
+        console.warn(`[ImageLoader] Failed to load place image: ${placeName} (Attempt ${fails}/3)`);
+        return null;
+      } finally {
+        this.loadingPromises.delete(imageKey);
+      }
+    })();
 
-    try {
-      const image = await loadPromise;
-      this.imageCache.set(imageKey, image);
-      this.loadingPromises.delete(imageKey);
-      return image;
-    } catch (error) {
-      console.log(`[ImageLoader] Place image not found: ${canonicalName}`);
-      this.imageCache.set(imageKey, null);
-      this.loadingPromises.delete(imageKey);
-      return null;
-    }
+    this.loadingPromises.set(imageKey, loadPromise);
+    return loadPromise;
   }
 
   /**
@@ -171,11 +172,9 @@ export class ImageLoader {
       let basePathIndex = 0;
 
       const basePaths = [
+        this.basePath.places,
         '/images/places/',
-        './images/places/',
-        '../images/places/',
-        './client/public/images/places/',
-        '../client/public/images/places/'
+        './images/places/'
       ];
 
       const tryNextPath = () => {
@@ -206,6 +205,7 @@ export class ImageLoader {
       img.onload = () => {
         if (img.naturalWidth > 0) {
           console.log(`[ImageLoader] Successfully loaded place image: ${img.src}`);
+          if (this.onImageLoaded) this.onImageLoaded();
           resolve(img);
         } else {
           // Some browsers trigger onload even for broken images
@@ -236,13 +236,11 @@ export class ImageLoader {
       let extensionIndex = 0;
       let basePathIndex = 0;
 
-      // Multiple base paths to try in electron
+      // Robust absolute paths based on environment detection
       const basePaths = [
-        this.basePath,
-        './images/entities/',
-        '../images/entities/',
-        './client/public/images/entities/',
-        '../client/public/images/entities/'
+        this.basePath.entities,
+        '/images/entities/',
+        './images/entities/'
       ];
 
       const tryNextPath = () => {
@@ -273,6 +271,7 @@ export class ImageLoader {
       img.onload = () => {
         if (img.naturalWidth > 0) {
           console.log(`[ImageLoader] Successfully loaded image: ${img.src}`);
+          if (this.onImageLoaded) this.onImageLoaded();
           resolve(img);
         } else {
           // Some browsers trigger onload even for broken images
@@ -312,7 +311,7 @@ export class ImageLoader {
    */
   hasImage(entityType, subtype = null) {
     const imageKey = subtype ? `${entityType}_${subtype}` : entityType;
-    const cachedImage = this.imageCache.get(imageKey);
+    const cachedImage = this.images[imageKey];
     return cachedImage !== null && cachedImage !== undefined;
   }
 
@@ -325,8 +324,8 @@ export class ImageLoader {
     const imageKey = `ui_${imageName}`;
 
     // Return cached image if available
-    if (this.imageCache.has(imageKey)) {
-      return this.imageCache.get(imageKey);
+    if (this.images[imageKey]) {
+      return this.images[imageKey];
     }
 
     // Return existing loading promise if already loading
@@ -334,21 +333,22 @@ export class ImageLoader {
       return this.loadingPromises.get(imageKey);
     }
 
-    // Start loading the UI image
-    const loadPromise = this.loadUIImage(imageName);
-    this.loadingPromises.set(imageKey, loadPromise);
+    const loadPromise = (async () => {
+      try {
+        const image = await this.loadUIImage(imageName);
+        this.images[imageKey] = image;
+        return image;
+      } catch (error) {
+        console.warn(`[ImageLoader] UI image not found: ${imageName}`);
+        this.images[imageKey] = null;
+        return null;
+      } finally {
+        this.loadingPromises.delete(imageKey);
+      }
+    })();
 
-    try {
-      const image = await loadPromise;
-      this.imageCache.set(imageKey, image);
-      this.loadingPromises.delete(imageKey);
-      return image;
-    } catch (error) {
-      // Cache null result to avoid repeated failed attempts
-      this.imageCache.set(imageKey, null);
-      this.loadingPromises.delete(imageKey);
-      return null;
-    }
+    this.loadingPromises.set(imageKey, loadPromise);
+    return loadPromise;
   }
 
   /**
@@ -370,11 +370,9 @@ export class ImageLoader {
       // Use EXACT same paths as entity images but point to UI folder
       // This should work since entity images are loading successfully
       const basePaths = [
-        '/images/UI/',                    // Web mode path (will fail in electron)
-        './images/UI/',                   // Working entity path equivalent
-        '../images/UI/',                  // Working entity path equivalent  
-        './client/public/images/UI/',     // Working entity path equivalent
-        '../client/public/images/UI/'     // Working entity path equivalent
+        this.basePath.UI,
+        '/images/UI/',
+        './images/UI/'
       ];
 
       const tryNextPath = () => {
@@ -404,6 +402,7 @@ export class ImageLoader {
 
       img.onload = () => {
         console.log(`[ImageLoader] Successfully loaded UI image: ${img.src}`);
+        if (this.onImageLoaded) this.onImageLoaded();
         resolve(img);
       };
 
@@ -425,8 +424,8 @@ export class ImageLoader {
     const imageKey = `item_${imageId}`;
 
     // Return cached image if available
-    if (this.imageCache.has(imageKey)) {
-      return this.imageCache.get(imageKey);
+    if (this.images[imageKey]) {
+      return this.images[imageKey];
     }
 
     // Return existing loading promise if already loading
@@ -434,31 +433,33 @@ export class ImageLoader {
       return this.loadingPromises.get(imageKey);
     }
 
-    // Start loading the item image
-    const loadPromise = this.loadItemImage(imageId);
-    this.loadingPromises.set(imageKey, loadPromise);
-
-    try {
-      const image = await loadPromise;
-      this.imageCache.set(imageKey, image);
-      this.loadingPromises.delete(imageKey);
-      return image;
-    } catch (error) {
-      // Try to load default image as fallback
-      console.log(`[ImageLoader] Item image not found: ${imageId}, trying default...`);
-      const defaultPromise = this.loadItemImage('default');
+    const loadPromise = (async () => {
       try {
-        const defaultImage = await defaultPromise;
-        this.imageCache.set(imageKey, defaultImage);
+        const image = await this.loadItemImage(imageId);
+        this.images[imageKey] = image;
+        this.failedImagesCount.delete(imageKey);
+        return image;
+      } catch (error) {
+        // Try to load default image as fallback
+        console.log(`[ImageLoader] Item image not found: ${imageId}, trying default...`);
+        try {
+          const defaultImage = await this.loadItemImage('default');
+          this.images[imageKey] = defaultImage;
+          this.failedImagesCount.delete(imageKey); // Reset on fallback success
+          return defaultImage;
+        } catch (defaultError) {
+          const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
+          this.failedImagesCount.set(imageKey, fails);
+          console.warn(`[ImageLoader] Failed to load item image: ${imageId} (Attempt ${fails}/3)`);
+          return null;
+        }
+      } finally {
         this.loadingPromises.delete(imageKey);
-        return defaultImage;
-      } catch (defaultError) {
-        // Cache null result to avoid repeated failed attempts
-        this.imageCache.set(imageKey, null);
-        this.loadingPromises.delete(imageKey);
-        return null;
       }
-    }
+    })();
+
+    this.loadingPromises.set(imageKey, loadPromise);
+    return loadPromise;
   }
 
   /**
@@ -477,11 +478,9 @@ export class ImageLoader {
 
       // Use same path structure as entity and UI images
       const basePaths = [
+        this.basePath.items,
         '/images/items/',
-        './images/items/',
-        '../images/items/',
-        './client/public/images/items/',
-        '../client/public/images/items/'
+        './images/items/'
       ];
 
       const tryNextPath = () => {
@@ -511,6 +510,7 @@ export class ImageLoader {
 
       img.onload = () => {
         console.log(`[ImageLoader] Successfully loaded item image: ${img.src}`);
+        if (this.onImageLoaded) this.onImageLoaded();
         resolve(img);
       };
 
@@ -532,8 +532,13 @@ export class ImageLoader {
     const imageKey = `tile_${terrainType}`;
 
     // Return cached image if available
-    if (this.imageCache.has(imageKey)) {
-      return this.imageCache.get(imageKey);
+    if (this.images[imageKey]) {
+      return this.images[imageKey];
+    }
+
+    // Return null immediately if this image is known to fail (prevents rendering loops)
+    if (this.permanentFailures.has(imageKey)) {
+        return null;
     }
 
     // Return existing loading promise if already loading
@@ -541,22 +546,30 @@ export class ImageLoader {
       return this.loadingPromises.get(imageKey);
     }
 
-    // Start loading the tile image
-    const loadPromise = this.loadTileImage(terrainType);
-    this.loadingPromises.set(imageKey, loadPromise);
+    const loadPromise = (async () => {
+      try {
+        const image = await this.loadTileImage(terrainType);
+        this.images[imageKey] = image;
+        this.failedImagesCount.delete(imageKey);
+        return image;
+      } catch (error) {
+        const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
+        this.failedImagesCount.set(imageKey, fails);
+        
+        if (fails >= this.maxRetries) {
+            this.permanentFailures.add(imageKey);
+            console.error(`[ImageLoader] Permanent failure for tile image: ${terrainType} (Retries exhausted)`);
+        } else {
+            console.warn(`[ImageLoader] Failed to load tile image: ${terrainType} (Attempt ${fails}/${this.maxRetries})`);
+        }
+        return null;
+      } finally {
+        this.loadingPromises.delete(imageKey);
+      }
+    })();
 
-    try {
-      const image = await loadPromise;
-      this.imageCache.set(imageKey, image);
-      this.loadingPromises.delete(imageKey);
-      return image;
-    } catch (error) {
-      // Cache null result to avoid repeated failed attempts
-      console.log(`[ImageLoader] Tile image not found: ${terrainType}`);
-      this.imageCache.set(imageKey, null);
-      this.loadingPromises.delete(imageKey);
-      return null;
-    }
+    this.loadingPromises.set(imageKey, loadPromise);
+    return loadPromise;
   }
 
   /**
@@ -575,11 +588,9 @@ export class ImageLoader {
 
       // Use same path structure
       const basePaths = [
+        this.basePath.tiles,
         '/images/tiles/',
-        './images/tiles/',
-        '../images/tiles/',
-        './client/public/images/tiles/',
-        '../client/public/images/tiles/'
+        './images/tiles/'
       ];
 
       const tryNextPath = () => {
@@ -609,6 +620,7 @@ export class ImageLoader {
 
       img.onload = () => {
         console.log(`[ImageLoader] Successfully loaded tile image: ${img.src}`);
+        if (this.onImageLoaded) this.onImageLoaded();
         resolve(img);
       };
 
@@ -624,7 +636,7 @@ export class ImageLoader {
    * Clear the image cache
    */
   clearCache() {
-    this.imageCache.clear();
+    this.images = {};
     this.loadingPromises.clear();
     console.log('[ImageLoader] Cache cleared');
   }

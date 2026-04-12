@@ -424,7 +424,7 @@ export const CombatProvider = ({ children }) => {
                         const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
                         if (loot?.length > 0) {
                             if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
-                                loot.forEach(item => engine.inventoryManager.groundContainer.addItem(item));
+                                loot.forEach(item => engine.inventoryManager.groundContainer.addItem(item, null, null, true));
                                 engine.inventoryManager.groundManager.updateCategoryAreas();
                                 engine.inventoryManager.emit('inventoryChanged');
                             } else {
@@ -437,7 +437,7 @@ export const CombatProvider = ({ children }) => {
                     const meat = createItemFromDef('food.raw_meat');
                     if (meat) {
                         if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
-                            engine.inventoryManager.groundContainer.addItem(meat);
+                            engine.inventoryManager.groundContainer.addItem(meat, null, null, true);
                             engine.inventoryManager.groundManager.updateCategoryAreas();
                             engine.inventoryManager.emit('inventoryChanged');
                         } else {

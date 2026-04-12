@@ -164,7 +164,7 @@ export const CraftingRecipes = [
         ],
         ingredients: [
             { either: [ItemCategory.VEGETABLE, 'food.raw_meat'], count: 1, label: 'Meat (2 units) or Veggies (1 unit) - Max 4 units' },
-            { id: 'food.waterbottle', count: 1, consumeUnits: 2, label: '2 water per unit' }
+            { either: ['food.waterbottle', 'food.waterjug'], count: 1, consumeUnits: 2, label: '2 water per unit' }
         ]
     },
     {

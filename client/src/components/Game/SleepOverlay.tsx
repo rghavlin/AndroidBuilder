@@ -1,8 +1,8 @@
-import React from 'react';
 import { useGame } from '../../contexts/GameContext.jsx';
+import { useSleep } from '../../contexts/SleepContext.jsx';
 
 export default function SleepOverlay() {
-    const { isSleeping, sleepProgress } = useGame();
+    const { isSleeping, sleepProgress } = useSleep();
 
     if (!isSleeping) return null;
 

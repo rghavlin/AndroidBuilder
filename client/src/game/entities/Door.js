@@ -10,11 +10,21 @@ export class Door extends Entity {
         this.isOpen = isOpen;
         this.isLocked = isLocked;
         this.isDamaged = isDamaged;
+        this.visualIsOpen = isOpen; // Mirror state for animation-safe rendering
         this.maxHp = 20;
         this.hp = isDamaged ? 0 : this.maxHp;
 
 
         // Update blocking status based on initial state
+        this.updateBlocking();
+    }
+
+    /**
+     * Force sync visual state with logical state
+     * Used for animating world changes at the correct frame
+     */
+    syncVisualState() {
+        this.visualIsOpen = this.isOpen;
         this.updateBlocking();
     }
 
@@ -28,6 +38,7 @@ export class Door extends Entity {
         // Emit event to notify map/renderer of state change
         this.emitEvent('doorStateChanged', {
             isOpen: this.isOpen,
+            visualIsOpen: this.visualIsOpen,
             isLocked: this.isLocked,
             blocksMovement: this.blocksMovement,
             blocksSight: this.blocksSight
@@ -54,6 +65,7 @@ export class Door extends Entity {
 
         if (!this.isOpen) {
             this.isOpen = true;
+            this.visualIsOpen = true;
             this.updateBlocking();
             return true;
         }
@@ -85,6 +97,7 @@ export class Door extends Entity {
         }
 
         this.isOpen = false;
+        this.visualIsOpen = false;
         this.updateBlocking();
         return true;
     }
@@ -169,7 +182,9 @@ export class Door extends Entity {
             this.isOpen = true;
             if (silent) {
                 this._updateBlockingState();
+                // We do NOT update visualIsOpen here to allow for animation delay
             } else {
+                this.visualIsOpen = true;
                 this.updateBlocking();
                 this.emitEvent('doorBroken');
             }

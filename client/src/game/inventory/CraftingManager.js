@@ -15,15 +15,24 @@ export class CraftingManager {
     }
 
     /**
+     * Centralized AP cost calculation
+     */
+    static calculateAPCost(recipe, craftingLevel = 0) {
+        if (!recipe.apCost) return 0;
+        const isCooking = recipe.tab === 'cooking';
+        // Cooking does not currently benefit from crafting skill level discounts
+        const apBonus = isCooking ? 0 : (craftingLevel || 0);
+        return Math.max(1, recipe.apCost - apBonus);
+    }
+
+    /**
      * Check if a recipe can be crafted with current workspace items
      */
     checkRequirements(recipeId, availableAP = null, craftingLevel = 0) {
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
         if (!recipe) return { canCraft: false, missing: [] };
 
-        const isCooking = recipe.tab === 'cooking';
-        const apBonus = isCooking ? 0 : craftingLevel;
-        const actualAP = Math.max(1, (recipe.apCost || 0) - apBonus);
+        const actualAP = CraftingManager.calculateAPCost(recipe, craftingLevel);
 
         const prefix = recipe.tab === 'cooking' ? 'cooking' : 'crafting';
         const toolContainer = this.inv.getContainer(`${prefix}-tools`);
@@ -131,11 +140,13 @@ export class CraftingManager {
     /**
      * Perform the craft: consume items and return the new item
      */
-    craft(recipeId) {
+    craft(recipeId, craftingLevel = 0, availableAP = null) {
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
         if (!recipe) return { success: false, reason: 'Recipe not found' };
 
-        const status = this.checkRequirements(recipeId);
+        const actualAP = CraftingManager.calculateAPCost(recipe, craftingLevel);
+
+        const status = this.checkRequirements(recipeId, availableAP, craftingLevel);
         if (!status.canCraft) return { success: false, reason: 'Requirements not met: ' + status.missing.join(', ') };
 
         const prefix = recipe.tab === 'cooking' ? 'cooking' : 'crafting';
@@ -250,18 +261,29 @@ export class CraftingManager {
             });
             const stewItem = new Item(stewData);
 
-            return { success: true, item: stewItem };
+            return { success: true, item: stewItem, apCost: actualAP };
         }
 
         if (recipeId === 'cooking.clean_water' || recipeId === 'cooking.clean_water_jug') {
+            console.log(`[CraftingManager] Starting purification for ${recipeId}...`);
             const candidates = ingredientContainer.getAllItems();
+            
+            // Look for the specific dirty container that triggered the craft
             const sourceBottle = candidates.find(i =>
-                (i.defId === 'food.waterbottle' || i.defId === 'food.waterjug') && i.waterQuality === 'dirty'
+                i.isWaterBottle() && i.waterQuality === 'dirty' && (i.ammoCount || 0) > 0
             );
+
             if (sourceBottle) {
                 preservedProperties.ammoCount = sourceBottle.ammoCount;
                 preservedProperties.waterQuality = 'clean';
-                console.log(`[CraftingManager] Preserving water level for purification: ${sourceBottle.ammoCount}`);
+                console.log(`[CraftingManager] Found dirty source: ${sourceBottle.name} with ${sourceBottle.ammoCount} units. Preserving ammo.`);
+            } else {
+                // FALLBACK: If for some reason we can't find the source container (e.g. ID mismatch), 
+                // default the result to FULL based on its definition capacity.
+                const resultDef = ItemDefs[recipe.resultItem];
+                preservedProperties.ammoCount = resultDef?.capacity || 20;
+                preservedProperties.waterQuality = 'clean';
+                console.warn(`[CraftingManager] No valid dirty source found! Defaulting result ${recipe.resultItem} to FULL (${preservedProperties.ammoCount} units).`);
             }
         }
 
@@ -303,7 +325,7 @@ export class CraftingManager {
                         targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
 
                         // Place the new single item back into the workspace so it remains visible
-                        ingredientContainer.addItem(targetItem);
+                        ingredientContainer.addItem(targetItem, null, null, true);
                     } else {
                         // Single item, just reduce units
                         targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
@@ -369,20 +391,21 @@ export class CraftingManager {
                 // 3. Re-add displaced items to any available spot, preferably below the campfire
                 displacedItems.forEach(item => {
                     // Try to place at row 5 (index 4) or below to avoid the 4x4 campfire area
-                    const result = this.inv.addItem(item, 'ground', 0, 4);
+                    const result = this.inv.addItem(item, 'ground', 0, 4, true);
                 });
                 return { success: true, item: newItem, placedInGround: true };
             } else {
                 console.error('[CraftingManager] Failed to place ground-only item even after clearing!');
                 // Try to restore displaced items if placement fails
-                displacedItems.forEach(item => this.inv.addItem(item));
+                displacedItems.forEach(item => this.inv.addItem(item, null, null, null, true));
                 return { success: false, reason: 'Ground is blocked (Internal Error)' };
             }
         }
 
         return {
             success: true,
-            item: newItem
+            item: newItem,
+            apCost: actualAP
         };
     }
 }

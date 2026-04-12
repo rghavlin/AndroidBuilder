@@ -31,6 +31,7 @@ interface GameControlsProps {
 
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
+import { useSleep } from '../../contexts/SleepContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import DevConsole from './DevConsole';
 
@@ -45,15 +46,17 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
     isInitialized,
     isPlayerTurn,
     isAutosaving,
-    loadAutosave,
-    isSleeping,
-    sleepProgress,
-    triggerSleep,
-    performSleep,
     isSkillsOpen,
     toggleSkills,
     enginePulse
   } = useGame();
+
+  const {
+    isSleeping,
+    sleepProgress,
+    triggerSleep,
+    performSleep
+  } = useSleep();
 
   // Phase 2: Movement animation handled by PlayerContext
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);

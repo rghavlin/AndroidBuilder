@@ -1,3 +1,4 @@
+import engine from './GameEngine.js';
 
 /**
  * Game Save System - Handles serialization and deserialization of complete game state
@@ -47,6 +48,13 @@ export class GameSaveSystem {
         metadata: {
           mapTemplate: 'road',
           gameMode: 'survival'
+        },
+
+        // Phase 24 Additions: Engine interaction state
+        interactionState: {
+          isSleeping: engine.isSleeping,
+          sleepProgress: engine.sleepProgress,
+          targetingItemInstanceId: engine.targetingItemInstanceId
         }
       };
 
@@ -140,7 +148,8 @@ export class GameSaveSystem {
         turn: saveData.turn || 1,
         playerStats: saveData.playerStats || { hp: 100, maxHp: 100, ap: 100, maxAp: 100, ammo: 0 },
         lastSeenTaggedTiles: new Set(), // Reset this - will be rebuilt
-        metadata: saveData.metadata || {}
+        metadata: saveData.metadata || {},
+        interactionState: saveData.interactionState || null
       };
 
       console.log('[GameSaveSystem] Game state loaded successfully');

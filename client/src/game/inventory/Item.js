@@ -177,6 +177,33 @@ export class Item extends SafeEventEmitter {
   }
 
   /**
+   * Update item properties from a new definition ID.
+   * Useful for "transforming" items (e.g. empty bottle -> filled bottle).
+   */
+  updateFromDef(newDefId) {
+    if (!newDefId || !ItemDefs[newDefId]) {
+      console.warn(`[Item] Cannot update from definition: ${newDefId} not found`);
+      return false;
+    }
+
+    const def = ItemDefs[newDefId];
+    this.defId = newDefId;
+    this.id = newDefId; // Maintain legacy id sync
+    this.name = def.name || this.name;
+    this.imageId = def.imageId || this.imageId;
+    this.width = def.width || this.width;
+    this.height = def.height || this.height;
+    this.traits = Array.isArray(def.traits) ? [...def.traits] : this.traits;
+    this.categories = Array.isArray(def.categories) ? [...def.categories] : this.categories;
+    this.capacity = def.capacity !== undefined ? def.capacity : this.capacity;
+    this.consumptionEffects = def.consumptionEffects ? { ...def.consumptionEffects } : this.consumptionEffects;
+
+    // Signal update
+    this.emit('updated', this);
+    return true;
+  }
+
+  /**
    * Check if item can be equipped in a specific slot
    */
   canEquipIn(slotId) {
@@ -197,7 +224,9 @@ export class Item extends SafeEventEmitter {
   static isWaterBottle(item) {
     if (!item) return false;
     if (typeof item.isWaterBottle === 'function') return item.isWaterBottle();
-    return !!(item.defId && (item.defId.startsWith('food.waterbottle') || item.defId === 'food.waterjug'));
+    const id = item.defId || item.id;
+    return !!(id && (id.startsWith('food.waterbottle') || id.startsWith('food.waterjug'))) ||
+           (item.traits && item.traits.includes('water_bottle'));
   }
 
   // Trait checks
@@ -580,17 +609,8 @@ export class Item extends SafeEventEmitter {
 
     const oldRotation = this.rotation;
 
-    // Smart rotation: toggle between landscape and portrait
-    // Landscape items (width > height) rotate 90° clockwise
-    // Portrait items (width < height) rotate 90° counter-clockwise
-    const currentWidth = this.getActualWidth();
-    const currentHeight = this.getActualHeight();
-    const isLandscape = currentWidth > currentHeight;
-
-    // Toggle rotation: landscape rotates clockwise, portrait rotates counter-clockwise
-    const newRotation = isLandscape
-      ? (this.rotation + 90) % 360  // Clockwise
-      : (this.rotation - 90 + 360) % 360;  // Counter-clockwise
+    // Toggle rotation: 0 (default) <-> 90 (rotated)
+    const newRotation = (this.rotation === 0) ? 90 : 0;
 
     if (checkContainer && this._container) {
       this.rotation = newRotation;
@@ -627,13 +647,25 @@ export class Item extends SafeEventEmitter {
 
     // Special rule for Water Bottles: They only stack if they are EMPTY or FULL and levels match
     if (this.isWaterBottle()) {
-      const capacity = this.capacity || 20;
+      // 1. Quality must match (Clean vs Dirty)
+      if (this.waterQuality !== otherItem.waterQuality) {
+        return false;
+      }
+
+      const capacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
       const ammo = this.ammoCount || 0;
       const otherAmmo = otherItem.ammoCount || 0;
 
+      // 2. Both must be exactly Full or exactly Empty to stack, and the amounts must be identical
+      // (This prevents a bottle with 19 units from stacking with one with 20 units, or 20 from stacking with 0).
       const isFull = ammo === capacity;
       const isEmpty = ammo === 0;
-      if (!(isFull || isEmpty) || ammo !== otherAmmo) {
+      
+      const otherIsFull = otherAmmo === capacity;
+      const otherIsEmpty = otherAmmo === 0;
+
+      // Must have same state (Full/Empty) AND same ammo amount
+      if (!(isFull || isEmpty) || !(otherIsFull || otherIsEmpty) || ammo !== otherAmmo) {
         return false;
       }
     }
@@ -664,24 +696,44 @@ export class Item extends SafeEventEmitter {
   canCombineWith(otherItem) {
     if (!otherItem) return false;
     if (this.instanceId === otherItem.instanceId) return false;
-
-    // Both must be water bottles
     if (!this.isWaterBottle() || !Item.isWaterBottle(otherItem)) return false;
 
-    // Target must have space or source must have water
-    return this.ammoCount < this.capacity || otherItem.ammoCount > 0;
+    const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
+    const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
+
+    const canFillMe = (this.ammoCount || 0) < myCapacity && (otherItem.ammoCount || 0) > 0;
+    const canFillOther = (otherItem.ammoCount || 0) < otherCapacity && (this.ammoCount || 0) > 0;
+
+    return canFillMe || canFillOther;
   }
 
   combineWith(otherItem) {
     if (!this.canCombineWith(otherItem)) return false;
 
-    const spaceLeft = (this.capacity || 20) - (this.ammoCount || 0);
-    const amountToTransfer = Math.min(spaceLeft, otherItem.ammoCount || 0);
+    const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
+    const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
+    
+    // 1. Try Dragged -> Occupant (Filling the grid item)
+    const spaceInMe = myCapacity - (this.ammoCount || 0);
+    const amountToMe = Math.min(spaceInMe, otherItem.ammoCount || 0);
+    
+    if (amountToMe > 0) {
+      this.ammoCount = (this.ammoCount || 0) + amountToMe;
+      otherItem.ammoCount = (otherItem.ammoCount || 0) - amountToMe;
+      return true;
+    }
+    
+    // 2. Try Occupant -> Dragged (Filling the hand item)
+    const spaceInOther = otherCapacity - (otherItem.ammoCount || 0);
+    const amountToOther = Math.min(spaceInOther, this.ammoCount || 0);
+    
+    if (amountToOther > 0) {
+      otherItem.ammoCount = (otherItem.ammoCount || 0) + amountToOther;
+      this.ammoCount = (this.ammoCount || 0) - amountToOther;
+      return true;
+    }
 
-    this.ammoCount = (this.ammoCount || 0) + amountToTransfer;
-    otherItem.ammoCount = (otherItem.ammoCount || 0) - amountToTransfer;
-
-    return true;
+    return false;
   }
 
   getStackableAmount(otherItem) {
@@ -704,10 +756,16 @@ export class Item extends SafeEventEmitter {
       return null;
     }
 
+    // Create a clone but don't mutate original here.
+    // Atomically reduce original stack ONLY if placement succeeds (handled in InventoryContext).
     const newItem = Item.fromJSON(this.toJSON());
     newItem.instanceId = `${this.instanceId}-split-${Date.now()}`;
     newItem.stackCount = count;
-    this.stackCount -= count;
+    
+    // Reset position for fresh placement
+    newItem.x = 0;
+    newItem.y = 0;
+    newItem._container = null;
 
     return newItem;
   }
@@ -919,6 +977,7 @@ export class Item extends SafeEventEmitter {
   // Serialization
   toJSON() {
     const data = {
+      type: 'item',
       instanceId: this.instanceId,
       defId: this.defId,
       name: this.name,

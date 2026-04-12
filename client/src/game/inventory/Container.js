@@ -377,12 +377,14 @@ export class Container {
   /**
    * Add item to container (auto-position)
    */
-  addItem(item, preferredX = null, preferredY = null) {
-    console.debug('[Container] addItem called:', item.name, 'preferred:', preferredX, preferredY);
+  addItem(item, preferredX = null, preferredY = null, allowStacking = false) {
+    if (allowStacking) {
+        console.debug('[Container] addItem called with allowStacking=true for:', item.name);
+    }
 
-    // Try stacking first if item is stackable
+    // Try stacking first if explicitly allowed
     const isStackable = typeof item.isStackable === 'function' ? item.isStackable() : item.stackable;
-    if (isStackable) {
+    if (allowStacking && isStackable) {
       const result = this.attemptStacking(item);
       if (result.success && !result.remainingItem) {
         console.debug('[Container] Item fully stacked:', item.name);

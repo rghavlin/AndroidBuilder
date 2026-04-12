@@ -103,6 +103,15 @@ export class InventoryManager extends SafeEventEmitter {
   syncWithMap(oldX, oldY, newX, newY, gameMap) {
     if (!gameMap) return false;
 
+    // Phase 22 Guard: Prevent identity sync loops. 
+    // If we've already synced the container for this specific tile, do NOTHING. 
+    // This stops 'save->clear->reload' cycles that trigger infinite change events when player is stationary.
+    if (this.lastSyncedX === newX && this.lastSyncedY === newY && this.groundContainer.getItemCount() > 0) {
+        // Special case: if container is empty but map has items, we might need a refresh, 
+        // but for moving/stationary guards this is exactly what we need.
+        return false;
+    }
+
     console.log(`[InventoryManager] 🔄 syncWithMap START: (${oldX}, ${oldY}) -> (${newX}, ${newY})`);
     let changed = false;
 
@@ -947,8 +956,30 @@ export class InventoryManager extends SafeEventEmitter {
     if (existingAttachment) {
       console.log(`[InventoryManager] Displacement triggered: removing existing ${existingAttachment.name} from ${slotId}`);
       weapon.detachItem(slotId);
-      // Try to put back into inventory, then pockets, then ground
-      const displacedResult = this.addItem(existingAttachment);
+      
+      // Try to put back into the EXACT vacated slot if possible (Magazine Exchange Logic)
+      let displacedResult = { success: false };
+      if (removed.container && removed.container.placeItemAt) {
+          const placed = removed.container.placeItemAt(existingAttachment, removed.x, removed.y);
+          if (placed) {
+            displacedResult = { success: true, container: removed.container.id };
+          }
+      }
+      
+      // Try equipment slot if it came from there
+      if (!displacedResult.success && removed.equipment) {
+        if (!this.equipment[removed.equipment]) {
+          this.equipment[removed.equipment] = existingAttachment;
+          existingAttachment.isEquipped = true;
+          displacedResult = { success: true, container: 'equipment-' + removed.equipment };
+        }
+      }
+
+      // Fallback: Try to put back into anywhere (inventory, then pockets, then ground)
+      if (!displacedResult.success) {
+        displacedResult = this.addItem(existingAttachment);
+      }
+      
       console.log(`[InventoryManager] Displaced ${existingAttachment.name} to ${displacedResult.container || 'FAILED'}`);
     }
 
@@ -1246,11 +1277,12 @@ export class InventoryManager extends SafeEventEmitter {
    * Add item to the system, automatically finding a suitable container
    * Priority: Preferred -> Stacking -> Backpack -> Pockets -> Ground
    */
-  addItem(item, preferredContainerId = null, preferredX = null, preferredY = null) {
+  addItem(item, preferredContainerId = null, preferredX = null, preferredY = null, allowStacking = false) {
     if (!item) return { success: false, reason: 'No item provided' };
 
     // 1. Stack Merging Logic (Phase 17 Restoration)
-    if (item.isStackable && item.isStackable()) {
+    // Only attempt auto-merging if allowStacking is TRUE
+    if (allowStacking && item.isStackable && item.isStackable()) {
       console.debug(`[InventoryManager] Attempting to find stack for: ${item.name} (${item.defId})`);
       
       // List of containers to search for stacking, in priority order
@@ -1301,7 +1333,7 @@ export class InventoryManager extends SafeEventEmitter {
     // Try preferred container first
     if (preferredContainerId) {
       const container = this.getContainer(preferredContainerId);
-      if (container && container.addItem(item, preferredX, preferredY)) {
+      if (container && container.addItem(item, preferredX, preferredY, allowStacking)) {
         this.emit('inventoryChanged');
         return { success: true, container: container.id };
       }
@@ -1309,21 +1341,21 @@ export class InventoryManager extends SafeEventEmitter {
 
     // Try backpack
     const backpack = this.getBackpackContainer();
-    if (backpack && backpack.addItem(item)) {
+    if (backpack && backpack.addItem(item, null, null, allowStacking)) {
       this.emit('inventoryChanged');
       return { success: true, container: backpack.id };
     }
 
     // Try pockets
     for (const pocket of this.getPocketContainers()) {
-      if (pocket.addItem(item)) {
+      if (pocket.addItem(item, null, null, allowStacking)) {
         this.emit('inventoryChanged');
         return { success: true, container: pocket.id };
       }
     }
 
     // Try ground as last resort
-    if (this.groundContainer.addItem(item, preferredX, preferredY)) {
+    if (this.groundContainer.addItem(item, preferredX, preferredY, allowStacking)) {
       this.emit('inventoryChanged');
       return { success: true, container: 'ground' };
     }
@@ -1541,26 +1573,74 @@ export class InventoryManager extends SafeEventEmitter {
     if (x !== null && y !== null) {
       success = toContainer.placeItemAt(item, x, y);
       
-      // Phase 18 Stacking on Drop: If placement failed due to collision, check for a merge
-      if (!success && item.isStackable && item.isStackable()) {
-        const occupant = toContainer.getItemAt(x, y);
-        if (occupant && occupant.defId === item.defId && occupant.stackCount < occupant.stackMax) {
-          const spaceInStack = occupant.stackMax - occupant.stackCount;
-          const amountToTake = Math.min(item.stackCount, spaceInStack);
-          
-          occupant.stackCount += amountToTake;
-          item.stackCount -= amountToTake;
-          
-          console.debug(`[InventoryManager] moveItem: Merged ${amountToTake} into existing stack at (${x},${y})`);
-          
-          if (item.stackCount <= 0) {
-            // Merge complete - item swallowed
-            this.emit('inventoryChanged');
-            return { success: true, container: toContainer.id, merged: true };
-          } else {
-            // Partially merged - check if it can be placed elsewhere? 
-            // For now, let's just fail and restore so the user sees it failed.
-            console.debug('[InventoryManager] moveItem: Partial merge complete, but item still remains.');
+      // Phase Stacking/Combining Collision Check:
+      // If placement failed due to collision, we scan the footprint to find if we're dropping on a valid target.
+      if (!success) {
+        const width = item.getActualWidth();
+        const height = item.getActualHeight();
+        const blockingItemIds = new Set();
+
+        for (let dy = 0; dy < height; dy++) {
+          for (let dx = 0; dx < width; dx++) {
+            const gridX = x + dx;
+            const gridY = y + dy;
+            const cellId = toContainer.grid[gridY]?.[gridX];
+            if (cellId && cellId !== item.instanceId) {
+              blockingItemIds.add(cellId);
+            }
+          }
+        }
+
+        // We only trigger special logic if there is exactly ONE unique item blocking the entire footprint
+        if (blockingItemIds.size === 1) {
+          const targetId = Array.from(blockingItemIds)[0];
+          const occupant = toContainer.items.get(targetId);
+
+          if (occupant) {
+            // 1. ATTEMPT STACKING (Standard)
+            const isStackable = typeof item.isStackable === 'function' ? item.isStackable() : item.stackable;
+            if (isStackable && occupant.canStackWith(item)) {
+              const spaceInStack = occupant.stackMax - occupant.stackCount;
+              const amountToTake = Math.min(item.stackCount, spaceInStack);
+              
+              if (amountToTake > 0) {
+                occupant.stackCount += amountToTake;
+                item.stackCount -= amountToTake;
+                console.debug(`[InventoryManager] moveItem: Merged ${amountToTake} into existing stack at (${x},${y})`);
+                
+                if (item.stackCount <= 0) {
+                  this.emit('inventoryChanged');
+                  return { success: true, container: toContainer.id, merged: true };
+                }
+              }
+            }
+
+            // 2. ATTEMPT WATER TRANSFER (Bidirectional)
+            // occupant.combineWith handles the bidirectional logic correctly
+            if (occupant.canCombineWith && occupant.canCombineWith(item)) {
+              console.debug(`[InventoryManager] moveItem: Attempting water transferFootprint drop: ${item.name} <-> ${occupant.name}`);
+              const transferred = occupant.combineWith(item);
+              if (transferred) {
+                this.emit('inventoryChanged');
+                
+                // AUTO-STACK: Check if they are now stackable (e.g. both became empty or full)
+                if (occupant.canStackWith(item)) {
+                  const stackableAmt = occupant.getStackableAmount ? occupant.getStackableAmount(item) : (occupant.stackMax - occupant.stackCount);
+                  if (stackableAmt >= item.stackCount) {
+                    occupant.stackCount += item.stackCount;
+                    item.stackCount = 0;
+                    this.emit('inventoryChanged');
+                    return { success: true, container: toContainer.id, combined: true, merged: true };
+                  }
+                }
+                
+                console.debug('[InventoryManager] moveItem: Water transfer complete, but items did not merge into a stack.');
+                // Fix: Return success so the UI clears the selection, but actually restore the item to its original slot
+                fromContainer.placeItemAt(item, item.x, item.y);
+                this.emit('inventoryChanged');
+                return { success: true, container: fromContainerId, combined: true };
+              }
+            }
           }
         }
       }
@@ -1867,7 +1947,9 @@ export class InventoryManager extends SafeEventEmitter {
         handgun: this.equipment.handgun?.toJSON() || null,
         long_gun: this.equipment.long_gun?.toJSON() || null,
         flashlight: this.equipment.flashlight?.toJSON() || null
-      }
+      },
+      lastSyncedX: this.lastSyncedX,
+      lastSyncedY: this.lastSyncedY
     };
   }
 
@@ -2013,6 +2095,10 @@ export class InventoryManager extends SafeEventEmitter {
         }
       }
     }
+    
+    // Restore ownership tracking (Phase 12 Persistence Fix)
+    manager.lastSyncedX = data.lastSyncedX !== undefined ? data.lastSyncedX : null;
+    manager.lastSyncedY = data.lastSyncedY !== undefined ? data.lastSyncedY : null;
 
     // Update dynamic containers based on restored equipment
     manager.updateDynamicContainers();

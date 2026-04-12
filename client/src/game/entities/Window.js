@@ -43,6 +43,14 @@ export class Window extends Entity {
     }
 
     /**
+     * Force sync visual state with logical state
+     * Used for animating world changes at the correct frame
+     */
+    syncVisualState() {
+        this.updateBlocking();
+    }
+
+    /**
      * Internal state update without emitting events
      * @private
      */
@@ -149,7 +157,7 @@ export class Window extends Entity {
             // A broken window is effectively "open" for movement
             if (silent) {
                 this._updateBlockingState();
-                this.subtype = 'broken';
+                // Logical break occurred, but we delay subtype change for animations
             } else {
                 this.updateBlocking();
                 this.emitEvent('windowBroken');
@@ -196,8 +204,12 @@ export class Window extends Entity {
             });
         }
         
-        // Update blocking state
-        this.updateBlocking();
+        // Update blocking state visually only if not silent
+        if (!silent) {
+            this.updateBlocking();
+        } else {
+            this._updateBlockingState();
+        }
         
         return { 
             isBroken: this.isBroken, 

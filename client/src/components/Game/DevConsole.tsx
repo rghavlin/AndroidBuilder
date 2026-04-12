@@ -184,6 +184,11 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         engine.notifyUpdate();
     };
 
+    const toggleTextures = () => {
+        engine.renderDebugColors = !engine.renderDebugColors;
+        engine.notifyUpdate();
+    };
+
     return (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-background/90 backdrop-blur-md p-4 pointer-events-auto shadow-2xl">
             <Card className="w-full max-w-4xl bg-card border-primary/20 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -287,6 +292,12 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                                 title="Clear Population" 
                                 desc="Kill every zombie on map" 
                                 onClick={clearZombies} 
+                            />
+                            <WorldToolButton 
+                                icon={<Globe className={`h-5 w-5 ${engine.renderDebugColors ? 'text-red-500' : 'text-primary'}`} />} 
+                                title="Toggle Textures" 
+                                desc={engine.renderDebugColors ? "Currently: OFF (Simple Mode)" : "Currently: ON (Textured)"} 
+                                onClick={toggleTextures} 
                             />
                         </div>
                     )}
