@@ -235,8 +235,19 @@ export const ActionProvider = ({ children }) => {
 
     structure.isLocked = false;
     structure.isOpen = true;
-    structure.isDamaged = true;
-    structure.updateBlocking();
+    structure.hp = 0; // Forced to 0 HP - requires repair to close
+    if (structure.type === 'window') {
+      structure.isBroken = true;
+    } else {
+      structure.isDamaged = true;
+    }
+    
+    // Force renderer to see the change
+    if (typeof structure.syncVisualState === 'function') {
+      structure.syncVisualState();
+    } else if (typeof structure.updateBlocking === 'function') {
+      structure.updateBlocking();
+    }
     
     playSound('ForceOpen');
     addLog(`You pry the ${structure.type} open with your ${targetingItem.name}.`, 'world');

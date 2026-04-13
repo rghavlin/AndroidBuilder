@@ -89,10 +89,24 @@ export const CraftingRecipes = [
         apCost: 5,
         tab: 'crafting',
         tools: [
-            { either: ['tool.lighter', 'tool.matchbook'], count: 1, label: 'Lighter or Matchbook' }
+            { either: ['tool.lighter', 'tool.matchbook', 'tool.bowdrill'], count: 1, label: 'Lighter, Matchbook or Bow drill' }
         ],
         ingredients: [
             { category: ItemCategory.FUEL, count: 1, label: 'Fuel (Rag, Stick, 2x4, or Clothing)' }
+        ]
+    },
+    {
+        id: 'crafting.bowdrill',
+        name: 'Bow drill',
+        resultItem: 'tool.bowdrill',
+        description: 'A primitive survival tool for starting fires. Requires manual effort to generate heat.',
+        apCost: 5,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'weapon.stick', count: 1 },
+            { id: 'crafting.rope', count: 1 },
+            { id: 'weapon.2x4', count: 1 }
         ]
     },
     {

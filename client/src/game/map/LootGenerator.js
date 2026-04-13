@@ -304,33 +304,25 @@ export class LootGenerator {
                     selectedItem.stackCount = 1;
                 }
 
-                // 4. Weapon Condition Randomization (found in loot)
-                const isWeaponItem = (selectedItem.categories && selectedItem.categories.includes(ItemCategory.WEAPON)) || !!selectedItem.attachmentSlots;
-                const isDegradableItem = selectedItem.traits && selectedItem.traits.includes(ItemTrait.DEGRADABLE);
-
-                if (isWeaponItem && isDegradableItem) {
-                    const minCondition = 15;
-                    const maxCondition = 100;
-                    selectedItem.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
-                    console.log(`[Loot] Randomized condition for ${selectedItem.name}: ${selectedItem.condition}%`);
-                }
-
                 // 4. Custom Water rules: Standardize to uniform distribution
                 if (selectedItem.capacity !== undefined && isFood && (selectedItem.defId === 'food.waterbottle' || selectedItem.defId === 'food.waterjug')) {
                     selectedItem.ammoCount = Math.floor(Math.random() * (selectedItem.capacity + 1));
                 }
 
-                // 5. Firearm Attachment logic: Spawn with magazines and random ammo
-                if (randomKey === 'weapon.9mmPistol' || randomKey === 'weapon.sniper_rifle') {
-                    this._initFirearmWithMagazine(selectedItem);
-                } else if (randomKey === 'weapon.357Pistol' || randomKey === 'weapon.hunting_rifle') {
-                    // .357 / Hunting Rifle: Load with 1 round
-                    const ammoType = randomKey === 'weapon.357Pistol' ? 'ammo.357' : 'ammo.308';
-                    const ammoData = createItemFromDef(ammoType);
-                    if (ammoData) {
-                        ammoData.stackCount = 1;
-                        selectedItem.attachments = { 'ammo': ammoData };
+                // 5. Weapon-specific logic: Random condition and ammo
+                const isWeaponItem = (selectedItem.categories && selectedItem.categories.includes(ItemCategory.WEAPON)) || !!selectedItem.attachmentSlots;
+                const isDegradableItem = selectedItem.traits && selectedItem.traits.includes(ItemTrait.DEGRADABLE);
+                
+                if (isWeaponItem) {
+                    if (isDegradableItem) {
+                        const minCondition = 15;
+                        const maxCondition = 100;
+                        selectedItem.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+                        console.log(`[Loot] Randomized condition for ${selectedItem.name}: ${selectedItem.condition}%`);
                     }
+
+                    // Initialize ammo (magazines or internal rounds)
+                    this._initializeWeaponAmmo(selectedItem);
                 } else if (randomKey === 'tool.smallflashlight') {
                     // Flashlight: Spawn with a battery and random charges
                     const battery = createItemFromDef('tool.battery');
@@ -501,7 +493,10 @@ export class LootGenerator {
                         const gunKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
                         const gunKey = gunKeys[Math.floor(Math.random() * gunKeys.length)];
                         const gun = createItemFromDef(gunKey);
-                        if (gun) items.push(gun);
+                        if (gun) {
+                            this._initializeWeaponAmmo(gun);
+                            items.push(gun);
+                        }
                     }
 
                     // 25% chance for ONE backpack in building
@@ -536,14 +531,14 @@ export class LootGenerator {
                     if (index === buildingState.sniperDropIndex) {
                         const sniper = createItemFromDef('weapon.sniper_rifle');
                         if (sniper) {
-                            this._initFirearmWithMagazine(sniper);
+                            this._initializeWeaponAmmo(sniper);
                             items.push(sniper);
                         }
                     }
                     if (index === buildingState.gun9mmDropIndex) {
                         const pistol = createItemFromDef('weapon.9mmPistol');
                         if (pistol) {
-                            this._initFirearmWithMagazine(pistol);
+                            this._initializeWeaponAmmo(pistol);
                             items.push(pistol);
                         }
                     }
@@ -721,24 +716,9 @@ export class LootGenerator {
                             const maxCondition = 70; // Slightly worse than world loot
                             item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
                         }
-                    }
 
-                    // For firearms, if they have an ammo slot, give them a chance to have some rounds
-                    if (selectedKey === 'weapon.9mmPistol' || selectedKey === 'weapon.sniper_rifle') {
-                        this._initFirearmWithMagazine(item);
-                    } else if (selectedKey === 'weapon.357Pistol') {
-                        const ammoData = createItemFromDef('ammo.357');
-                        if (ammoData) {
-                            ammoData.stackCount = 1;
-                            item.attachments = { 'ammo': ammoData };
-                        }
-                    } else if (selectedKey === 'weapon.shotgun') {
-                        // Shotgun: 1 shell loaded
-                        const ammoData = createItemFromDef('ammo.shotgun_shells');
-                        if (ammoData) {
-                            ammoData.stackCount = 1;
-                            item.attachments = { 'ammo': ammoData };
-                        }
+                        // Initialize ammo (magazines or internal rounds)
+                        this._initializeWeaponAmmo(item);
                     } else if (selectedKey === 'tool.smallflashlight') {
                         // Flashlight from zombie: spawn with a battery and random charges
                         const battery = createItemFromDef('tool.battery');
@@ -798,25 +778,42 @@ export class LootGenerator {
      * Helper to initialize magazine-fed firearms with a partially filled magazine.
      * @param {Item} item - Firearm item instance
      */
-    _initFirearmWithMagazine(item) {
+    /**
+     * Centralized weapon initialization logic
+     * Handles spawning appropriate magazines or loose ammo with randomized counts
+     */
+    _initializeWeaponAmmo(item) {
         if (!item || !item.defId) return;
 
-        if (item.defId === 'weapon.9mmPistol') {
-            const magData = createItemFromDef('attachment.9mm_magazine');
-            if (magData) {
-                // Randomly fill (1 to 10 rounds)
-                magData.ammoCount = 1 + Math.floor(Math.random() * 10);
-                item.attachments = { 'ammo': magData };
-                console.log(`[LootGenerator] Spawning 9mm with magazine (${magData.ammoCount} rounds)`);
-            }
-        } else if (item.defId === 'weapon.sniper_rifle') {
-            const magData = createItemFromDef('attachment.sniper_magazine');
-            if (magData) {
-                // Randomly fill (1 to 5 rounds)
-                magData.ammoCount = 1 + Math.floor(Math.random() * 5);
-                item.attachments = { 'ammo': magData };
-                console.log(`[LootGenerator] Spawning Sniper Rifle with magazine (${magData.ammoCount} rounds)`);
-            }
+        // 1. Locate the 'ammo' slot (contains Magazines OR loose ammo)
+        const ammoSlot = item.attachmentSlots?.find(s => 
+            s.id === 'ammo' || (s.allowedCategories && s.allowedCategories.includes('ammunition'))
+        );
+        if (!ammoSlot) return;
+
+        // 2. Identify the appropriate ammo source
+        const ammoDefId = ammoSlot.allowedItems?.[0]; // Default to first allowed item
+        if (!ammoDefId) return;
+
+        const ammoData = createItemFromDef(ammoDefId);
+        if (!ammoData) return;
+
+        // 3. Randomize based on weapon type and capacity
+        if (ammoData.capacity !== undefined && ammoData.capacity > 0) {
+            // MAGAZINE-FED (9mm, Sniper)
+            ammoData.ammoCount = 1 + Math.floor(Math.random() * ammoData.capacity);
+            console.log(`[Loot] Initialized ${item.defId} with magazine (${ammoData.ammoCount}/${ammoData.capacity} rounds)`);
+        } else {
+            // INTERNALLY-FED (.357, Shotgun, Hunting Rifle)
+            let maxRand = 6;
+            if (item.defId === 'weapon.hunting_rifle') maxRand = 4;
+            
+            ammoData.stackCount = 1 + Math.floor(Math.random() * maxRand);
+            console.log(`[Loot] Initialized ${item.defId} with ${ammoData.stackCount} internally loaded rounds`);
         }
+
+        // 4. Attach to item
+        if (!item.attachments) item.attachments = {};
+        item.attachments[ammoSlot.id] = ammoData;
     }
 }

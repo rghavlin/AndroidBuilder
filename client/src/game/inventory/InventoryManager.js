@@ -441,10 +441,9 @@ export class InventoryManager extends SafeEventEmitter {
     let destroyed = false;
     console.log(`[InventoryManager] 🗑️ destroyItem attempt for: ${instanceId}`);
 
-    // 1. Search equipment slots
+    // 1. Search equipment slots directly
     for (const [slot, item] of Object.entries(this.equipment)) {
       if (item) {
-        console.debug(`[InventoryManager]   Checking slot ${slot}: ${item.name} (${item.instanceId})`);
         if (item.instanceId === instanceId) {
           console.log(`[InventoryManager] ✅ Destroying ${item.name} from equipment slot: ${slot}`);
           this.equipment[slot] = null;
@@ -452,16 +451,20 @@ export class InventoryManager extends SafeEventEmitter {
           destroyed = true;
           break;
         }
+        
+        // 1b. Check nested containers in equipped items (if not already in this.containers)
+        if (this._destroyItemDeep(item, instanceId)) {
+          destroyed = true;
+          break;
+        }
       }
     }
 
     if (!destroyed) {
-      // 2. Search all registered containers
+      // 2. Search all registered root containers (Backpack, Ground, etc.)
       for (const [id, container] of this.containers.entries()) {
-        if (container.items.has(instanceId)) {
-          const item = container.items.get(instanceId);
-          console.log(`[InventoryManager] ✅ Destroying ${item?.name || instanceId} from container: ${id}`);
-          container.removeItem(instanceId);
+        if (this._destroyItemDeepInContainer(container, instanceId)) {
+          console.log(`[InventoryManager] ✅ Destroyed ${instanceId} from container hierarchy starting at: ${id}`);
           destroyed = true;
           break;
         }
@@ -474,11 +477,77 @@ export class InventoryManager extends SafeEventEmitter {
       console.log(`[InventoryManager] 🗑️ Item ${instanceId} successfully destroyed and inventoryChanged emitted`);
     } else {
       console.warn(`[InventoryManager] ❌ destroyItem FAILED: Item ${instanceId} not found in any slot or container`);
-      console.debug('[InventoryManager] Current equipment slots:', Object.keys(this.equipment));
     }
 
     return destroyed;
   }
+
+  /**
+   * Helper: Deeply search an item for a nested instanceId and remove it
+   * @private
+   */
+  _destroyItemDeep(item, instanceId) {
+    if (!item) return false;
+
+    // Check attachments first
+    if (item.attachments) {
+      for (const slotId in item.attachments) {
+        const attachment = item.attachments[slotId];
+        if (attachment) {
+          if (attachment.instanceId === instanceId) {
+            console.log(`[InventoryManager] ✅ Deep Destroy: Found ${attachment.name} as attachment on ${item.name}`);
+            item.detachItem(slotId);
+            return true;
+          }
+          // Recurse into attachment? (Usually unnecessary for currently supported items)
+        }
+      }
+    }
+
+    // Check primary container grid (Backpacks, lunchboxes, etc.)
+    const grid = item.getContainerGrid?.();
+    if (grid && this._destroyItemDeepInContainer(grid, instanceId)) {
+      return true;
+    }
+
+    // Check pocket grids (Clothing)
+    const pockets = item.getPocketContainers?.();
+    if (pockets && Array.isArray(pockets)) {
+      for (const pocket of pockets) {
+        if (this._destroyItemDeepInContainer(pocket, instanceId)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Helper: Deeply search a container for an instanceId and remove it
+   * @private
+   */
+  _destroyItemDeepInContainer(container, instanceId) {
+    if (!container) return false;
+
+    // 1. Direct hit
+    if (container.items.has(instanceId)) {
+      const item = container.items.get(instanceId);
+      console.log(`[InventoryManager] ✅ Deep Destroy: Found ${item?.name || instanceId} in container: ${container.id}`);
+      container.removeItem(instanceId);
+      return true;
+    }
+
+    // 2. Recurse into all items in this container
+    for (const item of container.items.values()) {
+      if (this._destroyItemDeep(item, instanceId)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
 
 
   /**

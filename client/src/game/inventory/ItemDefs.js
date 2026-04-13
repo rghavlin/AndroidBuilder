@@ -67,7 +67,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE],
-    categories: [ItemCategory.CRAFTING_MATERIAL],
+    categories: [ItemCategory.TOOL, ItemCategory.CRAFTING_MATERIAL],
     stackMax: 100
   },
 
@@ -1293,6 +1293,20 @@ export const ItemDefs = {
     stackMax: 1,
     capacity: 15,
     ammoCount: 15
+  },
+  'tool.bowdrill': {
+    id: 'tool.bowdrill',
+    name: 'Bow drill',
+    rarity: Rarity.COMMON,
+    imageId: 'bowdrill',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.TOOL],
+    stackMax: 1,
+    capacity: 5,
+    ammoCount: 5,
+    noLoot: true
   },
   'crafting.glass_shard': {
     id: 'crafting.glass_shard',

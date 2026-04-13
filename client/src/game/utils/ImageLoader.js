@@ -90,7 +90,10 @@ export class ImageLoader {
         // Special routing for place icons
         if (entityType === 'place_icon' && subtype) {
           const image = await this.getPlaceImage(subtype);
-          if (image) return image;
+          if (image) {
+            this.images[imageKey] = image;
+            return image;
+          }
         }
 
         // Generic load attempt for entities

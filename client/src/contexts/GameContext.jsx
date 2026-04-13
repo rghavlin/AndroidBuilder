@@ -294,6 +294,7 @@ const GameContextInner = ({ children }) => {
   const [isAnimatingZombies, setIsAnimatingZombies] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+  const [isDefeated, setIsDefeated] = useState(false);
 
   const toggleSkills = useCallback(() => {
     setIsSkillsOpen(prev => !prev);
@@ -405,6 +406,15 @@ const GameContextInner = ({ children }) => {
       };
     }
   }, [inventoryManager]);
+  
+  // REACTIVE DEFEAT DETECTION: Monitor engine stats directly to catch death immediately
+  useEffect(() => {
+    if (isInitialized && engine.player && engine.player.hp < 1 && !isDefeated) {
+      console.warn('[GameContext] 💀 REACTIVE DEATH DETECTED - Triggering Defeat Dialog');
+      setIsDefeated(true);
+      setIsPlayerTurn(false); // Lock input immediately
+    }
+  }, [enginePulse, isInitialized, isDefeated]);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
@@ -515,6 +525,7 @@ const GameContextInner = ({ children }) => {
       setIsPlayerTurn(true);
       setIsGameReady(true);
       setIsAutosaving(false);
+      setIsDefeated(false);
       lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
 
       // Set camera world bounds and recenter on loaded player position
@@ -567,6 +578,7 @@ const GameContextInner = ({ children }) => {
       setIsPlayerTurn(true);
       setIsAutosaving(false);
       setIsGameReady(true);
+      setIsDefeated(false);
       setInitializationState('complete');
       lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
 
@@ -632,6 +644,7 @@ const GameContextInner = ({ children }) => {
       wireManagerEvents(initManagerRef.current, runIdRef.current);
     }
 
+    setIsDefeated(false);
     console.log(`[GameContext] Starting new game initialization (run ${runIdRef.current})...`);
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization
@@ -1139,17 +1152,27 @@ const GameContextInner = ({ children }) => {
       setTurn(newTurn);
       console.log('[GameContext] Turn processing logic complete. New turn:', newTurn);
 
-      await performAutosave(newTurn);
-
       // Final synchronization after all turn processing (zombies, survival, AP regen)
       engine.notifyUpdate();
+
+      // DEFEAT DETECTION: Check at the absolute start of the NEW turn
+      if (player.hp < 1) {
+        console.warn('[GameContext] 💀 Player is dead! Suppressing autosave and triggering defeat dialog.');
+        setIsDefeated(true);
+        setIsPlayerTurn(false); // Explicit lock
+        return; // HALT everything else
+      }
+
+      await performAutosave(newTurn);
 
     } catch (error) {
       console.error('[GameContext] ❌ ERROR during endTurn:', error);
     } finally {
-      setIsPlayerTurn(true);
+      // Only unlock turn if the player survived
+      const isDead = engine.player?.hp < 1;
+      setIsPlayerTurn(!isDead);
       setIsAnimatingZombies(false);
-      console.log('[GameContext] <<< END TURN FINISHED (Input Unlocked)');
+      console.log(`[GameContext] <<< END TURN FINISHED (Input ${!isDead ? 'Unlocked' : 'LOCKED - Player Dead'})`);
     }
   }, [turn, isInitialized, isPlayerTurn, playerFieldOfView, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleNPCs, checkZombieAwareness, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
 
@@ -1380,6 +1403,9 @@ const GameContextInner = ({ children }) => {
     // Phase 5A: Expose inventoryManager for InventoryProvider
     inventoryManager,
 
+    isDefeated,
+    setIsDefeated,
+
     // Internal refs for debugging
     lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
   }), [
@@ -1415,7 +1441,9 @@ const GameContextInner = ({ children }) => {
     getActiveFlashlightRange,
     mapTransition,
     handleMapTransitionConfirmWrapper,
-    handleMapTransitionCancel
+    handleMapTransitionCancel,
+    isDefeated,
+    setIsDefeated
   ]);
 
   return (

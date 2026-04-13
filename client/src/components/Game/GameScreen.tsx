@@ -13,6 +13,7 @@ import { GameErrorBoundary } from './ErrorBoundary.tsx';
 import { MapTransitionDialog } from './MapTransitionDialog';
 import SleepOverlay from './SleepOverlay';
 import SleepModal from './SleepModal';
+import DefeatDialog from './DefeatDialog';
 
 
 function GameScreenContent() {
@@ -164,6 +165,8 @@ function GameScreenContent() {
           <SleepOverlay />
           {/* Sleep Modal */}
           <SleepModal />
+          {/* Defeat Dialog */}
+          <DefeatDialog />
         </div>
       )}
     </>

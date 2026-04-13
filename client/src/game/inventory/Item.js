@@ -297,7 +297,7 @@ export class Item extends SafeEventEmitter {
   }
 
   isChargeBased() {
-    return (this.defId && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook')) ||
+    return (this.defId && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook' || this.defId === 'tool.bowdrill')) ||
            this.isBattery?.();
   }
 
@@ -417,6 +417,8 @@ export class Item extends SafeEventEmitter {
     if (spaceLeft <= 0) return { success: false, reason: 'Full' };
 
     const amountToTransfer = Math.min(spaceLeft, ammoItem.stackCount);
+    if (amountToTransfer <= 0) return { success: false, reason: 'Empty' };
+    
     this.ammoCount += amountToTransfer;
     ammoItem.stackCount -= amountToTransfer;
 

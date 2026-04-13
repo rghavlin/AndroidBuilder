@@ -610,7 +610,11 @@ export const InventoryProvider = ({ children }) => {
     if (!selectedItem || !engine.inventoryManager || !magazine) return { success: false };
     const result = magazine.loadAmmo(selectedItem.item);
     if (result.success) {
-      if (result.isStackEmpty) setSelectedItem(null);
+      if (result.isStackEmpty) {
+        // Remove empty stack from world
+        engine.inventoryManager.destroyItem(selectedItem.item.instanceId);
+        setSelectedItem(null);
+      }
       setInventoryVersion(v => v + 1);
       playSound('ReloadShot');
       return { success: true };
