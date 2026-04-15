@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useInventory } from "@/contexts/InventoryContext";
 
 interface AttachmentSlotProps {
@@ -10,11 +10,11 @@ interface AttachmentSlotProps {
     className?: string;
 }
 
-export default function AttachmentSlot({
+const AttachmentSlot = memo(({
     weapon,
     slot,
     className
-}: AttachmentSlotProps) {
+}: AttachmentSlotProps) => {
     const { attachSelectedItemToWeapon, detachItemFromWeapon, selectedItem, inventoryVersion } = useInventory();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
@@ -62,8 +62,7 @@ export default function AttachmentSlot({
     };
 
     return (
-        <TooltipProvider delayDuration={300}>
-            <Tooltip>
+        <Tooltip>
                 <TooltipTrigger asChild>
                     <div
                         className={cn(
@@ -121,6 +120,7 @@ export default function AttachmentSlot({
                     )}
                 </TooltipContent>
             </Tooltip>
-        </TooltipProvider>
     );
-}
+});
+
+export default AttachmentSlot;

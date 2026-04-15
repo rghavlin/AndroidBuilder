@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { useInventory } from "@/contexts/InventoryContext";
 
@@ -14,13 +13,13 @@ interface WorkspaceSlotProps {
     className?: string;
 }
 
-export default function WorkspaceSlot({
+const WorkspaceSlot = memo(({
     containerId,
     slotIndex,
     label,
     icon,
     className
-}: WorkspaceSlotProps) {
+}: WorkspaceSlotProps) => {
     const { getContainer, selectItem, selectedItem, placeSelected, inventoryVersion } = useInventory();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
@@ -61,8 +60,7 @@ export default function WorkspaceSlot({
     };
 
     return (
-        <TooltipProvider delayDuration={300}>
-            <ItemContextMenu
+        <ItemContextMenu
                 item={item}
                 tooltipContent={<p className="font-medium text-xs">{item ? item.name : label}</p>}
             >
@@ -104,6 +102,7 @@ export default function WorkspaceSlot({
                     )}
                 </div>
             </ItemContextMenu>
-        </TooltipProvider>
-    );
-}
+        );
+});
+
+export default WorkspaceSlot;

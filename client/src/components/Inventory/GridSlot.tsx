@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 import { useGridSize } from "@/contexts/GridSizeContext";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
 
@@ -27,7 +27,7 @@ interface GridSlotProps {
   "data-testid"?: string;
 }
 
-export default function GridSlot({
+const GridSlot = memo(({
   item,
   isEmpty = true,
   isHighlighted = false,
@@ -44,7 +44,7 @@ export default function GridSlot({
   children,
   isTopLeft = false,
   "data-testid": testId,
-}: GridSlotProps) {
+}: GridSlotProps) => {
   const { scalableSlotSize, fixedSlotSize } = useGridSize();
 
   // Choose slot size based on grid type
@@ -62,8 +62,7 @@ export default function GridSlot({
   ) : null;
 
   return (
-    <TooltipProvider delayDuration={300}>
-      <ItemContextMenu
+    <ItemContextMenu
         item={item}
         tooltipContent={tooltipContent}
         isDisabled={item?.defId === 'placeable.campfire'}
@@ -106,6 +105,7 @@ export default function GridSlot({
           {children}
         </div>
       </ItemContextMenu>
-    </TooltipProvider>
-  );
-}
+    );
+});
+
+export default GridSlot;

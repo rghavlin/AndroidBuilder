@@ -12,31 +12,34 @@ import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
 import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
 import { CombatProvider } from '../../contexts/CombatContext.jsx';
 import GameScreen from './GameScreen.tsx';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function Game() {
   return (
-    <LogProvider>
-      <AudioProvider>
-        <VisualEffectsProvider>
-          <CameraProvider>
-            <GameMapProvider>
-              <PlayerProvider>
-                <InventoryProvider>
-                  <CombatProvider>
-                    <GameProvider>
-                      <SleepProvider>
-                        <ActionProvider>
-                          <GameScreen />
-                        </ActionProvider>
-                      </SleepProvider>
-                    </GameProvider>
-                  </CombatProvider>
-                </InventoryProvider>
-              </PlayerProvider>
-            </GameMapProvider>
-          </CameraProvider>
-        </VisualEffectsProvider>
-      </AudioProvider>
-    </LogProvider>
+    <TooltipProvider delayDuration={300}>
+      <LogProvider>
+        <AudioProvider>
+          <VisualEffectsProvider>
+            <CameraProvider>
+              <GameMapProvider>
+                <PlayerProvider>
+                  <InventoryProvider>
+                    <CombatProvider>
+                      <GameProvider>
+                        <SleepProvider>
+                          <ActionProvider>
+                            <GameScreen />
+                          </ActionProvider>
+                        </SleepProvider>
+                      </GameProvider>
+                    </CombatProvider>
+                  </InventoryProvider>
+                </PlayerProvider>
+              </GameMapProvider>
+            </CameraProvider>
+          </VisualEffectsProvider>
+        </AudioProvider>
+      </LogProvider>
+    </TooltipProvider>
   );
 }

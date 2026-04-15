@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
 
@@ -25,13 +24,13 @@ const SLOT_INFO: Record<string, { name: string; icon: string; imageId: string }>
   flashlight: { name: 'Flashlight', icon: '🔦', imageId: 'flashlight' },
 };
 
-export default function EquipmentSlot({
+const EquipmentSlot = memo(({
   slotId,
   item,
   isSelected = false,
   onClick,
   className
-}: EquipmentSlotProps) {
+}: EquipmentSlotProps) => {
   const slotInfo = SLOT_INFO[slotId] || { name: slotId, icon: '?' };
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
@@ -97,8 +96,7 @@ export default function EquipmentSlot({
     const occupiedBgColor = getSlotBgColor();
 
   return (
-    <TooltipProvider delayDuration={300}>
-      <ItemContextMenu
+    <ItemContextMenu
         item={item}
         tooltipContent={item ? <ItemTooltip item={item} /> : <p className="font-medium text-xs">{tooltipText}</p>}
       >
@@ -152,6 +150,7 @@ export default function EquipmentSlot({
           )}
         </div>
       </ItemContextMenu>
-    </TooltipProvider>
-  );
-}
+    );
+});
+
+export default EquipmentSlot;
