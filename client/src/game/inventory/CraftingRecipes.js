@@ -110,6 +110,21 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'crafting.spikedbat',
+        name: 'Spiked Bat',
+        resultItem: 'weapon.spikedbat',
+        description: 'A wooden bat reinforced with nasty, protruding nails.',
+        apCost: 6,
+        tab: 'crafting',
+        tools: [
+            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], label: 'Any Hammer' }
+        ],
+        ingredients: [
+            { id: 'weapon.woodenbat', count: 1 },
+            { id: 'crafting.nail', count: 4 }
+        ]
+    },
+    {
         id: 'crafting.makeshift_pack',
         name: 'Makeshift pack',
         resultItem: 'backpack.makeshift',
@@ -220,6 +235,19 @@ export const CraftingRecipes = [
             { id: 'crafting.metal_plate', count: 1 },
             { id: 'weapon.stick', count: 1 },
             { id: 'crafting.rope', count: 1 }
+        ]
+    },
+    {
+        id: 'crafting.rabbit_snare',
+        name: 'Rabbit Snare',
+        resultItem: 'tool.snare_undeployed',
+        description: 'A simple snare for catching small animals. Can be set on the ground and retrieved later.',
+        apCost: 5,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'weapon.stick', count: 1 },
+            { either: ['crafting.wire', 'crafting.rope'], count: 1, label: 'Wire or Rope' }
         ]
     }
 ];

@@ -1000,6 +1000,9 @@ export class InventoryManager extends SafeEventEmitter {
           const surplusCount = item.stackCount - maxCapacity;
           const surplus = item.splitStack(surplusCount);
           if (surplus) {
+            // REDUCE the original stack count after splitting the surplus
+            item.stackCount -= surplusCount;
+            
             if (removed.container) removed.container.addItem(surplus, removed.x, removed.y, item.rotation);
             else if (removed.equipment) { this.equipment[removed.equipment] = surplus; surplus.isEquipped = true; }
           }
@@ -1189,13 +1192,64 @@ export class InventoryManager extends SafeEventEmitter {
 
   detachItemFromWeapon(weapon, slotId) {
     if (!weapon) return null;
-    return weapon.detachItem(slotId);
+    const detached = weapon.detachItem(slotId);
+    if (detached) {
+      this.emit('inventoryChanged');
+    }
+    return detached;
+  }
+
+  unloadWeapon(weapon) {
+    if (!weapon || !weapon.attachments) return { success: false, reason: 'Invalid weapon' };
+    
+    const ammoItem = weapon.attachments['ammo'];
+    if (!ammoItem) return { success: false, reason: 'Weapon is already empty' };
+    
+    // Detach the ammo/magazine
+    weapon.detachItem('ammo');
+    
+    // Attempt to add it back to inventory
+    const addResult = this.addItem(ammoItem);
+    let container = 'inventory';
+    if (!addResult.success) {
+      // If inventory is full, drop to ground
+      this.groundContainer.addItem(ammoItem);
+      container = 'ground';
+    }
+    
+    this.emit('inventoryChanged');
+    return { success: true, item: ammoItem, container };
   }
 
 
 
-  /**
-   * Get all containers
+    /**
+     * Remove all rounds from a magazine and return them as a new ammo stack.
+     * @param {Item} magazine - Magazine item instance
+     * @returns {Object} Result with the new ammo item
+     */
+    unloadMagazine(magazine) {
+      if (!magazine || magazine.ammoCount <= 0 || !magazine.ammoDefId) {
+        return { success: false, reason: 'Nothing to unload' };
+      }
+
+      const ammoCount = magazine.ammoCount;
+      const ammoDefId = magazine.ammoDefId;
+      
+      const ammoData = createItemFromDef(ammoDefId);
+      if (!ammoData) return { success: false, reason: 'Invalid ammo type in magazine' };
+      
+      // CRITICAL: Must inflate to Item class so methods like shouldRotateToFit exist for addItem
+      const ammoItem = Item.fromJSON(ammoData);
+      ammoItem.stackCount = ammoCount;
+      magazine.ammoCount = 0;
+      
+      this.emit('inventoryChanged');
+      return { success: true, item: ammoItem };
+    }
+  
+    /**
+     * Get all containers
    */
   getAllContainers() {
     return Array.from(this.containers.values());
@@ -1380,7 +1434,7 @@ export class InventoryManager extends SafeEventEmitter {
       for (const container of potentialContainers) {
         // Find existing items with same defId
         for (const existingItem of container.items.values()) {
-          if (existingItem.defId === item.defId && existingItem.stackCount < existingItem.stackMax) {
+          if (existingItem.canStackWith(item) && existingItem.stackCount < existingItem.stackMax) {
             const spaceInStack = existingItem.stackMax - existingItem.stackCount;
             const amountToTake = Math.min(item.stackCount, spaceInStack);
             
@@ -1685,31 +1739,43 @@ export class InventoryManager extends SafeEventEmitter {
             }
 
             // 2. ATTEMPT WATER TRANSFER (Bidirectional)
-            // occupant.combineWith handles the bidirectional logic correctly
             if (occupant.canCombineWith && occupant.canCombineWith(item)) {
-              console.debug(`[InventoryManager] moveItem: Attempting water transferFootprint drop: ${item.name} <-> ${occupant.name}`);
-              const transferred = occupant.combineWith(item);
-              if (transferred) {
-                this.emit('inventoryChanged');
+              console.debug(`[InventoryManager] moveItem: Attempting water transfer: ${item.name} <-> ${occupant.name}`);
+              
+              const result = occupant.combineWith(item);
+              if (result) {
+                const success = typeof result === 'object' ? result.success : result;
+                const ejected = result.ejected;
+
+                if (success) {
+                  this.emit('inventoryChanged');
+
+                  if (ejected) {
+                    console.log(`[InventoryManager] Successfully swapped battery. Adding ejected ${ejected.name} to inventory.`);
+                    this.addItem(ejected);
+                  }
                 
                 // AUTO-STACK: Check if they are now stackable (e.g. both became empty or full)
                 if (occupant.canStackWith(item)) {
-                  const stackableAmt = occupant.getStackableAmount ? occupant.getStackableAmount(item) : (occupant.stackMax - occupant.stackCount);
-                  if (stackableAmt >= item.stackCount) {
-                    occupant.stackCount += item.stackCount;
-                    item.stackCount = 0;
-                    this.emit('inventoryChanged');
-                    return { success: true, container: toContainer.id, combined: true, merged: true };
+                  const space = occupant.stackMax - occupant.stackCount;
+                  const toMerge = Math.min(space, item.stackCount);
+                  if (toMerge > 0) {
+                    occupant.stackCount += toMerge;
+                    item.stackCount -= toMerge;
                   }
                 }
                 
-                console.debug('[InventoryManager] moveItem: Water transfer complete, but items did not merge into a stack.');
-                // Fix: Return success so the UI clears the selection, but actually restore the item to its original slot
+                if (item.stackCount <= 0) {
+                  return { success: true, container: toContainer.id, combined: true, merged: true };
+                }
+
+                // If item remains (it didn't merge), it must go back to its origin or be dropped
                 fromContainer.placeItemAt(item, item.x, item.y);
                 this.emit('inventoryChanged');
                 return { success: true, container: fromContainerId, combined: true };
               }
             }
+          }
           }
         }
       }

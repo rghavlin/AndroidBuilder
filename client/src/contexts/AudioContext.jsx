@@ -56,7 +56,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Heal', url: 'sounds/heal.ogg', volume: 0.6 },
           { name: 'Eat', url: 'sounds/eat.ogg', volume: 0.6 },
           { name: 'FillBottle', url: 'sounds/fillbottle.ogg', volume: 0.6 },
-          { name: 'SlingShot', url: 'sounds/sling.ogg', volume: 0.6 }
+          { name: 'SlingShot', url: 'sounds/sling.ogg', volume: 0.6 },
+          { name: 'Fail', url: 'sounds/fail.ogg', volume: 0.22 }
         ];
         await Promise.all(
           sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))
@@ -114,24 +115,23 @@ export const AudioProvider = ({ children }) => {
     };
 
     const handlePlayerAttack = (data) => {
-      if (!data.hit) {
-        audioManager.playSound('Miss');
-        return;
-      }
-
       if (data.weaponType === 'ranged') {
         const soundMap = {
-          'pistol': 'PistolShot',
           'weapon.9mmPistol': 'PistolShot',
           'weapon.357Pistol': 'PistolShot',
           'weapon.shotgun': 'ShotgunShot',
           'weapon.hunting_rifle': 'RifleShot',
           'weapon.sniper_rifle': 'RifleShot',
-          'weapon.shotgun_sling': 'SlingShot'
+          'weapon.sling': 'SlingShot'
         };
         audioManager.playSound(soundMap[data.weaponId] || 'PistolShot');
       } else {
-        audioManager.playSound('MeleeHit');
+        // Melee logic
+        if (!data.hit) {
+          audioManager.playSound('Miss');
+        } else if (!data.isKillingBlow) {
+          audioManager.playSound('MeleeHit');
+        }
       }
     };
 

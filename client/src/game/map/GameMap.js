@@ -99,6 +99,17 @@ export class GameMap {
   }
 
   /**
+   * Get items on a tile without removing them (non-destructive)
+   * @param {number} x - Tile X
+   * @param {number} y - Tile Y
+   * @returns {Array} - Array of item data
+   */
+  getItemsOnTile(x, y) {
+    const tile = this.getTile(x, y);
+    return tile ? (tile.inventoryItems || []) : [];
+  }
+
+  /**
    * Get tile at coordinates
    */
   getTile(x, y) {
@@ -165,10 +176,20 @@ export class GameMap {
         item.defId === 'placeable.bed' ||
         (item.toJSON && item.toJSON().defId === 'placeable.bed')
       );
+      const containsSnare = validItems.some(item =>
+        item.defId === 'tool.snare_deployed' ||
+        (item.toJSON && item.toJSON().defId === 'tool.snare_deployed')
+      );
+      const containsRawMeat = validItems.some(item =>
+        item.defId === 'food.raw_meat' ||
+        (item.toJSON && item.toJSON().defId === 'food.raw_meat')
+      );
 
       let subtype = 'ground_pile';
       if (containsCampfire) subtype = 'campfire';
       else if (containsHole) subtype = 'hole';
+      else if (containsSnare) subtype = 'deployedsnare';
+      else if (containsRawMeat && !containsSnare) subtype = 'rawmeat';
       else if (containsCornPlant) subtype = 'cornplant';
       else if (containsTomatoPlant) subtype = 'tomatoplant';
       else if (containsCarrotPlant) subtype = 'carrotplant';
@@ -238,9 +259,19 @@ export class GameMap {
             item.defId === 'placeable.bed' ||
             (item.toJSON && item.toJSON().defId === 'placeable.bed')
           );
+          const containsSnare = validItems.some(item =>
+            item.defId === 'tool.snare_deployed' ||
+            (item.toJSON && item.toJSON().defId === 'tool.snare_deployed')
+          );
+          const containsRawMeat = validItems.some(item =>
+            item.defId === 'food.raw_meat' ||
+            (item.toJSON && item.toJSON().defId === 'food.raw_meat')
+          );
 
           if (containsCampfire) proxy.subtype = 'campfire';
           else if (containsHole) proxy.subtype = 'hole';
+          else if (containsSnare) proxy.subtype = 'deployedsnare';
+          else if (containsRawMeat && !containsSnare) proxy.subtype = 'rawmeat';
           else if (containsCornPlant) proxy.subtype = 'cornplant';
           else if (containsTomatoPlant) proxy.subtype = 'tomatoplant';
           else if (containsCarrotPlant) proxy.subtype = 'carrotplant';
@@ -527,9 +558,11 @@ export class GameMap {
   }
 
   /**
-   * Process turn-based effects on the map (e.g. item expiration)
+   * Process turn-based effects on the map (e.g. item expiration, snare catching)
+   * @param {Player} player - Current player instance for distance checks
+   * @param {boolean} isSleeping - Whether the player is currently sleeping
    */
-  processTurn() {
+  processTurn(player = null, isSleeping = false) {
     console.log('[GameMap] Processing turn-based effects...');
     
     // Decay scent trails
@@ -541,7 +574,55 @@ export class GameMap {
         if (tile.inventoryItems && tile.inventoryItems.length > 0) {
           let itemsModified = false;
 
-          // Use recursive helper to process each item and its contents
+          // --- SNARE CATCHING LOGIC ---
+          // Check for deployed snares on grass tiles
+          const deployedSnareIndex = tile.inventoryItems.findIndex(item => item.defId === 'tool.snare_deployed');
+          if (deployedSnareIndex !== -1 && tile.terrain === 'grass') {
+            const deployedSnare = tile.inventoryItems[deployedSnareIndex];
+            let catchChance = 0;
+
+            if (isSleeping) {
+              catchChance = 0.20;
+            } else if (player) {
+              const dx = x - player.x;
+              const dy = y - player.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+
+              if (dist >= 15 && dist <= 30) {
+                catchChance = 0.10;
+              } else if (dist > 30) {
+                catchChance = 0.15;
+              }
+            }
+
+            if (Math.random() < catchChance) {
+              console.log(`[GameMap] 🐰 Rabbit CAUGHT in snare at (${x}, ${y})!`);
+              
+              // Remove deployed snare
+              tile.inventoryItems.splice(deployedSnareIndex, 1);
+              
+              // Calculate new condition
+              const currentCondition = deployedSnare.condition !== undefined ? deployedSnare.condition : 100;
+              const newCondition = currentCondition - 25;
+              
+              // If snare still has life, return it to undeployed state
+              if (newCondition > 0) {
+                const undeployedSnare = createItemFromDef('tool.snare_undeployed');
+                undeployedSnare.condition = newCondition;
+                tile.inventoryItems.push(undeployedSnare);
+              } else {
+                console.log('[GameMap] Snare destroyed by rabbit catch (0 condition)');
+              }
+
+              // Always spawn raw meat
+              const rawMeat = createItemFromDef('food.raw_meat');
+              tile.inventoryItems.push(rawMeat);
+
+              itemsModified = true;
+            }
+          }
+
+          // --- STANDARD EXPIRATION LOGIC ---
           const remainingItems = tile.inventoryItems.filter(itemData => {
             const turnResult = this._processItemDataTurn(itemData);
             if (turnResult.expired) {
@@ -554,7 +635,7 @@ export class GameMap {
               itemsModified = true;
             }
 
-            // Even if the root item didn't expire, some of its contents might have (recurse handles this inside)
+            // Even if the root item didn't expire, some of its contents might have
             if (itemData.attachments || itemData.containerGrid || itemData.pocketGrids) {
               itemsModified = true;
             }
@@ -593,12 +674,8 @@ export class GameMap {
       itemData.shelfLife -= 1;
       itemModified = true;
 
-      // Handle Expiration (Vanishing)
-      const traits = itemData.traits || [];
-      const isSpoilable = traits.includes('spoilable');
-
-      // If it's NOT spoilable and reaches 0, it vanishes
-      if (itemData.shelfLife <= 0 && !isSpoilable) {
+      // If reaches 0, it vanishes or transforms
+      if (itemData.shelfLife <= 0) {
         itemExpired = true;
       }
     }

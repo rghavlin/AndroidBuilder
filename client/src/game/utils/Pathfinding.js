@@ -268,9 +268,9 @@ export class Pathfinding {
       const window = targetTile.contents.find(e => e.type === 'window');
       if (window) {
         if (options?.isZombie) {
-          // Rule: Vaulting costs 3.0 AP. Pathfinding adds +25 penalty to avoid shortcuts.
-          const penalty = options?.isPathfinding ? 25 : 0;
-          baseCost = 3.0 + penalty;
+          // Rule: Moving into a window frame costs 2.0 AP for zombies.
+          const penalty = options?.isPathfinding ? 10 : 0;
+          baseCost = 2.0 + penalty;
         } else {
           baseCost += 1;
         }

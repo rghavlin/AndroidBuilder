@@ -117,6 +117,9 @@ export class LootGenerator {
         
         // 3. Spawn Furniture (Independent of loot drops)
         this.spawnFurniture(gameMap);
+
+        // 4. Final Pass: Apply map-wide unique loot rules
+        this.applyMapWideUniqueRules(gameMap);
     }
 
     /**
@@ -446,8 +449,7 @@ export class LootGenerator {
                     const gasTable = [
                         { key: 'food.chips', weight: 35 },
                         { key: 'food.granolabar', weight: 35 },
-                        { key: 'food.waterbottle', weight: 20 },
-                        { key: 'tool.lighter', weight: 10 }
+                        { key: 'food.waterbottle', weight: 20 }
                     ];
                     this.addItemsFromTable(items, gasTable, 1, 2);
                     break;
@@ -752,6 +754,12 @@ export class LootGenerator {
                 random -= entry.weight;
             }
             
+            // Safety Check: Avoid spawning items marked as noLoot (Map-Wide unique rule)
+            if (ItemDefs[pickedKey] && ItemDefs[pickedKey].noLoot) {
+                console.warn(`[LootGenerator] Skipping illegal 'noLoot' item picked from specialized table: ${pickedKey}`);
+                continue; 
+            }
+
             const item = createItemFromDef(pickedKey);
             if (item) {
                 // Default stack count
@@ -815,5 +823,56 @@ export class LootGenerator {
         // 4. Attach to item
         if (!item.attachments) item.attachments = {};
         item.attachments[ammoSlot.id] = ammoData;
+    }
+
+    /**
+     * Final pass logic to ensure specific rare items spawn exactly once map-wide.
+     * Items are added to existing loot piles to ensure they are found in logical locations.
+     */
+    applyMapWideUniqueRules(gameMap) {
+        if (!gameMap) return;
+        
+        // 1. Collect all tiles that currently have loot
+        const lootTiles = [];
+        for (let y = 0; y < gameMap.height; y++) {
+            for (let x = 0; x < gameMap.width; x++) {
+                const items = gameMap.getItemsOnTile(x, y);
+                if (items && items.length > 0) {
+                    lootTiles.push({ x, y });
+                }
+            }
+        }
+
+        if (lootTiles.length === 0) {
+            console.warn('[LootGenerator] No loot piles found on map to place unique items!');
+            return;
+        }
+
+        // 2. Define unique items to spawn exactly once
+        const uniqueSpawns = [
+            { defId: 'tool.lighter' },
+            { defId: 'tool.matchbook' }
+        ];
+
+        console.log(`[LootGenerator] Applying map-wide rules for ${uniqueSpawns.length} unique items...`);
+
+        uniqueSpawns.forEach(config => {
+            // Pick a random existing loot pile
+            const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
+            const item = createItemFromDef(config.defId);
+            
+            if (item) {
+                // Randomize charges (ammoCount)
+                if (item.capacity) {
+                    item.ammoCount = 1 + Math.floor(Math.random() * item.capacity);
+                }
+
+                // Add to the tile
+                const currentItems = gameMap.getItemsOnTile(tilePos.x, tilePos.y);
+                gameMap.setItemsOnTile(tilePos.x, tilePos.y, [...currentItems, item]);
+                
+                console.log(`[LootGenerator]   -> Placed ${item.name} at (${tilePos.x}, ${tilePos.y}) with ${item.ammoCount || 'fixed'} charges.`);
+            }
+        });
     }
 }

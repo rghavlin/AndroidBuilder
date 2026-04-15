@@ -37,7 +37,7 @@ class GameEngine extends SafeEventEmitter {
     this.lastUpdate = Date.now();
     this.updateCount = 0;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
-    this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8 };
+    this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8, isNightVision: false };
     this.renderDebugColors = false; 
 
     // Phase 24: Interaction State (Silo Bridge)
@@ -157,10 +157,26 @@ class GameEngine extends SafeEventEmitter {
      if (!this.gameMap || !this.player) return;
  
      try {
-       const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope } = this._fovOptions;
+       const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
        
        let range = isNight ? (isFlashlightOn ? flashlightRange : 1.5) : maxRange;
-       if (isAimingWithScope) range = 20;
+       
+       // Phase NVG: Night Vision range override
+       if (isFlashlightOn && isNightVision) {
+         if (isNight) {
+           range = maxRange; // Full day range at night
+         } else {
+           range = 0.5; // Blindingly bright during day - only see own tile
+         }
+       }
+       
+       // Scope Visibility restriction
+       if (isAimingWithScope) {
+         const canSeeThroughScope = !isNight || (isFlashlightOn && isNightVision);
+         if (canSeeThroughScope) {
+           range = 20;
+         }
+       }
  
        // Phase 13 & 19 Fix: LOS center MUST be integers for Bresenham's algorithm to function.
        // We allow passing a custom position (like playerRenderPosition) for smooth vision updates.

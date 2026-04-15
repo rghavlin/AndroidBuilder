@@ -23,7 +23,8 @@ export default function MapCanvas({
   isNight = false,
   isFlashlightOn = false,
   flashlightRange = 8,
-  isAnimatingZombies = false
+  isAnimatingZombies = false,
+  isNightVision = false
 }) {
   const canvasRef = useRef(null);
   const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
@@ -254,6 +255,43 @@ export default function MapCanvas({
         ctx.restore();
       }
 
+      // Layer 4.5: Night Vision Overlay
+      if (isFlashlightOn && isNightVision) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Overlay in screen space
+        
+        if (isNight) {
+          // Classic Green Night Vision Filter
+          ctx.fillStyle = 'rgba(0, 255, 0, 0.15)';
+          ctx.fillRect(0, 0, physicalWidth, physicalHeight);
+          
+          // Add subtle scanlines for "high-tech" feel
+          ctx.strokeStyle = 'rgba(0, 50, 0, 0.1)';
+          ctx.lineWidth = dpr;
+          for (let i = 0; i < physicalHeight; i += 4 * dpr) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(physicalWidth, i);
+            ctx.stroke();
+          }
+        } else {
+          // Blinding Daylight Overexposure
+          ctx.fillStyle = 'rgba(200, 255, 200, 0.75)';
+          ctx.fillRect(0, 0, physicalWidth, physicalHeight);
+          
+          // White-out center glow
+          const radial = ctx.createRadialGradient(
+            physicalWidth / 2, physicalHeight / 2, 0,
+            physicalWidth / 2, physicalHeight / 2, Math.max(physicalWidth, physicalHeight) / 2
+          );
+          radial.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+          radial.addColorStop(1, 'transparent');
+          ctx.fillStyle = radial;
+          ctx.fillRect(0, 0, physicalWidth, physicalHeight);
+        }
+        ctx.restore();
+      }
+
       // Layer 5: Effects
       if (effects && effects.length > 0) {
         ctx.save();
@@ -266,7 +304,7 @@ export default function MapCanvas({
       console.error('[MapCanvas] Critical Rendering Error:', error);
     }
 
-  }, [getLayoutDimensions, calculateTileSize, isAnimatingMovement, playerRenderPosition, hoveredTile, isNight, effects]);
+  }, [getLayoutDimensions, calculateTileSize, isAnimatingMovement, playerRenderPosition, hoveredTile, isNight, isFlashlightOn, isNightVision, effects]);
 
 
   // Handle mouse down for dragging
@@ -575,7 +613,7 @@ export default function MapCanvas({
   // Preload entity images on initialization
   useEffect(() => {
     const preloadEntityImages = async () => {
-      const commonEntityTypes = ['player', 'zombie', 'item', 'npc', 'place_icon'];
+      const commonEntityTypes = ['player', 'zombie', 'item', 'npc', 'place_icon', 'rabbit'];
       await imageLoader.preloadImages(commonEntityTypes);
 
       // Preload the default item image for ground piles

@@ -213,6 +213,11 @@ export default function UniversalGrid({
         const result = plantSeed(x, y, selectedItem.item);
         if (result.success) {
            playSound('Click');
+           // If the last seed was used, clear the selection state
+           if (selectedItem.item.stackCount <= 0) {
+             console.debug('[UniversalGrid] Last seed planted, clearing selection');
+             clearSelected();
+           }
            return;
         }
       }

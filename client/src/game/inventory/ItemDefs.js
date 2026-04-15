@@ -135,7 +135,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     encumbranceTier: EncumbranceTier.MEDIUM,
-    pocketLayoutId: 'paramedic_shirt'
+    pocketLayoutId: 'paramedic_shirt',
+    backgroundColor: '#8a0303'
   },
 
   'clothing.police_shirt': {
@@ -149,7 +150,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     encumbranceTier: EncumbranceTier.MEDIUM,
-    pocketLayoutId: 'police_shirt'
+    pocketLayoutId: 'police_shirt',
+    backgroundColor: '#0a2e5c'
   },
 
 
@@ -221,6 +223,24 @@ export const ItemDefs = {
     }
   },
 
+  'weapon.spikedbat': {
+    id: 'weapon.spikedbat',
+    name: 'Spiked Bat',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'spikedbat',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.85,
+      damage: { min: 3, max: 9 }
+    }
+  },
+
   'weapon.2x4': {
     id: 'weapon.2x4',
     name: '2x4',
@@ -234,7 +254,7 @@ export const ItemDefs = {
     condition: 100,
     combat: {
       hitChance: 0.65,
-      damage: { min: 3, max: 9 }
+      damage: { min: 1, max: 6 }
     }
   },
 
@@ -425,7 +445,7 @@ export const ItemDefs = {
     attachmentSlots: [
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
-      { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.9mm_magazine', 'attachment.9mm_extended_magazine'] }
+      { id: 'ammo', name: 'Magazine', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.9mm_magazine', 'attachment.9mm_extended_magazine'] }
     ],
     rangedStats: {
       noiseRadius: 12,
@@ -449,7 +469,7 @@ export const ItemDefs = {
     attachmentSlots: [
       { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE] },
-      { id: 'ammo', name: 'Magazine', allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.sniper_magazine'] }
+      { id: 'ammo', name: 'Magazine', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.sniper_magazine'] }
     ],
     rangedStats: {
       noiseRadius: 22,
@@ -470,7 +490,7 @@ export const ItemDefs = {
     categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
-      { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.357'] }
+      { id: 'ammo', name: 'Ammo', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.357'] }
     ],
     rangedStats: {
       noiseRadius: 15,
@@ -491,7 +511,7 @@ export const ItemDefs = {
     categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
       { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE, ItemCategory.LASER_SIGHT] },
-      { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.308'] }
+      { id: 'ammo', name: 'Ammo', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.308'] }
     ],
     rangedStats: {
       noiseRadius: 18,
@@ -557,6 +577,45 @@ export const ItemDefs = {
   },
 
   // Specialty Containers (openable when nested)
+  'tool.nightvision': {
+    id: 'tool.nightvision',
+    name: 'Night vision goggles',
+    rarity: Rarity.EXTREMELY_RARE,
+    imageId: 'nightvision',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.FLASHLIGHT,
+    categories: [ItemCategory.TOOL],
+    condition: 100,
+    attachmentSlots: [
+      { id: 'battery', name: 'Battery', type: 'battery', allowedCategories: [ItemCategory.BATTERY] }
+    ]
+  },
+  'tool.snare_undeployed': {
+    id: 'tool.snare_undeployed',
+    name: 'Rabbit snare',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'undeployedsnare',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.DEGRADABLE],
+    categories: [ItemCategory.TOOL],
+    condition: 100
+  },
+  'tool.snare_deployed': {
+    id: 'tool.snare_deployed',
+    name: 'Deployed snare',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'deployedsnare',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.DEGRADABLE, ItemTrait.GROUND_ONLY],
+    categories: [ItemCategory.TOOL],
+    condition: 100
+  },
   'container.toolbox': {
     id: 'container.toolbox',
     name: 'Tool Box',
@@ -1179,11 +1238,11 @@ export const ItemDefs = {
     imageId: 'rawmeat',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
     categories: [ItemCategory.FOOD],
     stackMax: 10,
     noLoot: true, // Not found in loot drops
-    lifetimeTurns: 48, // Spoils in 48 hours
+    shelfLife: 48, // Spoils in 48 hours
     transformInto: 'food.rotten_meat',
     consumptionEffects: {
       nutrition: 10,
@@ -1198,10 +1257,11 @@ export const ItemDefs = {
     imageId: 'rawmeat', // Using rawmeat icon for now per user
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
     categories: [ItemCategory.FOOD],
     stackMax: 10,
     noLoot: true,
+    shelfLife: 24, // Eventually vanishes
     consumptionEffects: {
       nutrition: 4,
       condition: 'Diseased' // Causes disease condition
@@ -1215,10 +1275,11 @@ export const ItemDefs = {
     imageId: 'cookedmeat',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
     categories: [ItemCategory.FOOD],
     stackMax: 10,
     noLoot: true,
+    shelfLife: 72,
     consumptionEffects: {
       nutrition: 12
     }
@@ -1279,7 +1340,8 @@ export const ItemDefs = {
     categories: [ItemCategory.TOOL],
     stackMax: 1,
     capacity: 10,
-    ammoCount: 10
+    ammoCount: 10,
+    noLoot: true
   },
   'tool.matchbook': {
     id: 'tool.matchbook',
@@ -1292,7 +1354,8 @@ export const ItemDefs = {
     categories: [ItemCategory.TOOL],
     stackMax: 1,
     capacity: 15,
-    ammoCount: 15
+    ammoCount: 15,
+    noLoot: true
   },
   'tool.bowdrill': {
     id: 'tool.bowdrill',
@@ -1341,7 +1404,7 @@ export const ItemDefs = {
     equippableSlot: ['handgun', 'long_gun'], // Dual equip slot
     categories: [ItemCategory.WEAPON, ItemCategory.GUN],
     attachmentSlots: [
-      { id: 'ammo', name: 'Ammo', allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.shotgun_shells'] }
+      { id: 'ammo', name: 'Ammo', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.shotgun_shells'] }
     ],
     rangedStats: {
       isShotgun: true,

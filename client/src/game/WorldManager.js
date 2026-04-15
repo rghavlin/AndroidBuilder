@@ -232,6 +232,12 @@ export class WorldManager {
 
       // SPECIAL BUILDING SPAWNS: Army Tent Soldier Zombies, etc.
       await this._spawnSpecialBuildingZombies(gameMap);
+      
+      // SPAWN ANIMALS: Procedural rabbit generation
+      const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
+      AnimalSpawner.spawnAnimals(gameMap, null, {
+        rabbitRange: { min: 1, max: 2 }
+      });
 
       // Save to world collection
       const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn);

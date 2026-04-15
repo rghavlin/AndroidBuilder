@@ -31,7 +31,7 @@ export default function WeaponModPanel({
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-center">
-                {weapon.attachmentSlots.map((slot: any) => (
+                {weapon.attachmentSlots.filter((slot: any) => !slot.hidden).map((slot: any) => (
                     <div key={slot.id} className="flex flex-col items-center gap-2">
                         <span className="text-xs font-semibold text-muted-foreground px-2 py-0.5 bg-muted rounded truncate w-full text-center">
                             {slot.name}

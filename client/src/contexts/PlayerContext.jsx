@@ -161,7 +161,7 @@ export const PlayerProvider = ({ children }) => {
   const getPlayerCardinalPositions = useCallback(() => playerCardinalPositions, [playerCardinalPositions]);
 
   // Update player field of view
-  const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false, isAimingWithScope = false, flashlightRange = 8) => {
+  const updatePlayerFieldOfView = useCallback((gameMap, isNight = false, isFlashlightOn = false, isAimingWithScope = false, flashlightRange = 8, isNightVision = false) => {
     if (!gameMap || !engine.player) {
       setPlayerFieldOfView([]);
       return [];
@@ -184,7 +184,23 @@ export const PlayerProvider = ({ children }) => {
       };
       
       let maxRange = isNight ? (isFlashlightOn ? (flashlightRange) : 1.5) : 15;
-      if (isAimingWithScope) maxRange = 20;
+      
+      // Phase NVG: Night Vision range override
+      if (isFlashlightOn && isNightVision) {
+          if (isNight) {
+              maxRange = 15; // Full day range at night
+          } else {
+              maxRange = 0.5; // Blinded during day
+          }
+      }
+
+      // Scope Visibility restriction
+      if (isAimingWithScope) {
+          const canSeeThroughScope = !isNight || (isFlashlightOn && isNightVision);
+          if (canSeeThroughScope) {
+              maxRange = 20;
+          }
+      }
 
       // Sync vision parameters to engine for frame-by-frame movement recalculation
       engine.setFOVOptions({ 
@@ -192,6 +208,7 @@ export const PlayerProvider = ({ children }) => {
         isFlashlightOn, 
         isAimingWithScope, 
         flashlightRange,
+        isNightVision,
         maxRange: 15 // Default daylight range
       });
 
@@ -220,7 +237,7 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   // Smooth animation function
-  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false, flashlightRange = 8, onComplete = null) => {
+  const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false, flashlightRange = 8, onComplete = null, isNightVision = false) => {
     if (!engine.player || !gameMap || !camera) {
       setIsMoving(false);
       isMovingRef.current = false;
@@ -251,7 +268,12 @@ export const PlayerProvider = ({ children }) => {
       // Real-time FOV/LOS updates during movement (60fps Local State)
       // This ensures vision moves perfectly with the sprite without engine/react pulse lag
       const smoothPlayer = { x: Math.round(smoothX), y: Math.round(smoothY), id: engine.player.id };
-      const maxRange = isNight ? (isFlashlightOn ? flashlightRange : 1.5) : 15;
+      let maxRange = isNight ? (isFlashlightOn ? (isNightVision ? 15 : flashlightRange) : 1.5) : (isFlashlightOn && isNightVision ? 0.5 : 15);
+      
+      // Note: Smooth animation doesn't typicaly have isAimingWithScope passed in currently, 
+      // but if we ever add it, it should follow the same rules as updatePlayerFieldOfView.
+      // For now we keep it consistent with the base range calculation.
+
       const fov = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, { maxRange, ignoreTerrain: [], ignoreEntities: [engine.player.id] });
       setPlayerFieldOfView(fov.visibleTiles);
       
@@ -294,7 +316,7 @@ export const PlayerProvider = ({ children }) => {
         setIsMoving(false);
         isMovingRef.current = false;
 
-        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange);
+        updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange, isNightVision);
         updatePlayerCardinalPositions(gameMap);
         
         setMovementPath([]);
@@ -308,7 +330,7 @@ export const PlayerProvider = ({ children }) => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
-  const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
+  const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8, isNightVision = false) => {
     if (!engine.player || !gameMap || !camera) return;
     if (isMovingRef.current) {
         console.debug('[PlayerContext] Rejecting movement: already moving');
@@ -319,7 +341,7 @@ export const PlayerProvider = ({ children }) => {
     engine.player.useAP(cost);
     
     // Prime vision at the start position before locking
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange);
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange, isNightVision);
 
     setIsMoving(true);
     isMovingRef.current = true;
@@ -327,13 +349,13 @@ export const PlayerProvider = ({ children }) => {
     setMovementProgress(0);
     camera.centerOn(path[0].x, path[0].y);
     GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
-    smoothAnimateMovement(gameMap, camera, path, performance.now(), 1500, isNight, isFlashlightOn, flashlightRange);
+    smoothAnimateMovement(gameMap, camera, path, performance.now(), 1500, isNight, isFlashlightOn, flashlightRange, null, isNightVision);
   }, [smoothAnimateMovement]);
 
-  const startAnimatedMovementAsync = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
+  const startAnimatedMovementAsync = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8, isNightVision = false) => {
     return new Promise((resolve) => {
       if (!engine.player) { resolve(); return; }
-      startAnimatedMovement(gameMap, camera, path, cost, isNight, isFlashlightOn, flashlightRange);
+      startAnimatedMovement(gameMap, camera, path, cost, isNight, isFlashlightOn, flashlightRange, isNightVision);
       // approximation for async completion
       setTimeout(resolve, 1600); 
     });

@@ -324,6 +324,13 @@ class GameInitializationManager extends EventEmitter {
         await worldManager._spawnSpecialBuildingZombies(gameMap);
         console.log('[GameInitializationManager] Spawned special building zombies');
       }
+      
+      // SPAWN ANIMALS: Initial procedural rabbit generation
+      const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
+      AnimalSpawner.spawnAnimals(gameMap, player, {
+        rabbitRange: { min: 1, max: 2 }
+      });
+      console.log('[GameInitializationManager] Spawned initial rabbits');
 
       // SPAWN LOOT: Initial procedural loot generation
       const lootGenerator = new LootGenerator();

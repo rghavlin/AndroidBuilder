@@ -17,7 +17,12 @@ export default function PlayerSkillsWindow({
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Backdrop covers only map area */}
       <div
-        className="absolute left-0 w-1/2 h-full bg-black/50 pointer-events-auto transition-opacity duration-300"
+        className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto transition-opacity duration-300"
+        style={{
+          top: '48px',
+          bottom: '72px',
+          height: 'calc(100vh - 120px)'
+        }}
         onClick={onClose}
       />
 

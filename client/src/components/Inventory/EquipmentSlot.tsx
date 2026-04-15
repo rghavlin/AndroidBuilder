@@ -85,9 +85,9 @@ export default function EquipmentSlot({
     const getSlotBgColor = () => {
         if (!hasItem) return '#ffffff'; // White background for empty inverted icons
         
-        // Special case for clothing with blue backgrounds
-        if (item.id?.includes('police') || item.id?.includes('paramedic')) {
-            return '#0a2e5c'; // Dark Blue from screenshot
+        // Use the dynamically defined background color from the item definition
+        if (item.backgroundColor) {
+            return item.backgroundColor;
         }
         
         // Default to black for most occupied items

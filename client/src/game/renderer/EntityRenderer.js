@@ -114,7 +114,7 @@ export const EntityRenderer = {
           }
         } else {
           sprite = sprites[entity.type];
-          if (!sprite && ['player', 'zombie', 'npc'].includes(entity.type)) {
+          if (!sprite && ['player', 'zombie', 'npc', 'rabbit'].includes(entity.type)) {
              // Reactive lazy-loading for core missing entities
              imageLoader.getImage(entity.type);
           }
@@ -128,7 +128,9 @@ export const EntityRenderer = {
         let drawSize = tileSize;
 
         // PHASE 15 Fix: Scale loot drops to 2/3 size and center them
-        if (entity.type === 'item') {
+        // Snare catches and deployed snares show full-tile
+        const isFullTileItem = entity.subtype === 'deployedsnare' || entity.subtype === 'rawmeat';
+        if (entity.type === 'item' && !isFullTileItem) {
           drawSize = tileSize * (2 / 3);
           drawX = screenX + (tileSize - drawSize) / 2;
           drawY = screenY + (tileSize - drawSize) / 2;

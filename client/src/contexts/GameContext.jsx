@@ -125,7 +125,10 @@ const GameContextInner = ({ children }) => {
 
   const getActiveFlashlightRange = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
-    if (flashlight && flashlight.defId === 'tool.torch') return 5;
+    if (flashlight) {
+      if (flashlight.defId === 'tool.nightvision') return 15;
+      if (flashlight.defId === 'tool.torch') return 5;
+    }
     return 8;
   }, [inventoryManager, inventoryVersion]);
 
@@ -825,7 +828,7 @@ const GameContextInner = ({ children }) => {
       // Process map-level turn effects (e.g. campfire expiration) EARLY 
       // This ensures 0.5 turns vanish as soon as player hits endTurn.
       if (gameMap && gameMap.processTurn) {
-        gameMap.processTurn();
+        gameMap.processTurn(player, engine.isSleeping);
       }
 
       // Also process turn effects for items currently in the active ground container
@@ -839,7 +842,6 @@ const GameContextInner = ({ children }) => {
       logger.debug('Cleared all LastSeen tagged tiles for new zombie turn phase');
 
       // Process Player Turn-End Status (Sickness, Regen, etc.)
-      const player = engine.player;
       if (player.sickness > 0) {
         player.sickness -= 1;
         // Take damage from sickness (e.g. 1 hp per turn)
@@ -1079,10 +1081,10 @@ const GameContextInner = ({ children }) => {
             const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
             if (battery && (battery.ammoCount || 0) > 0) {
               battery.ammoCount = Math.max(0, battery.ammoCount - 1);
-              console.log(`[GameContext] Flashlight consumption (End Turn): 1 charge. Remaining: ${battery.ammoCount}`);
+              console.log(`[GameContext] ${flashlight.name} consumption (End Turn): 1 charge. Remaining: ${battery.ammoCount}`);
 
               if (battery.ammoCount <= 0) {
-                console.log('[GameContext] Flashlight battery depleted. Turning off.');
+                console.log(`[GameContext] ${flashlight.name} battery depleted. Turning off.`);
                 setIsFlashlightOn(false);
               }
             } else {

@@ -166,9 +166,16 @@ export const ActionProvider = ({ children }) => {
       if (activeSeed.stackCount > 1) {
         activeSeed.stackCount -= 1;
       } else {
+        activeSeed.stackCount = 0;
         const seedContainer = activeSeed._container;
-        if (seedContainer) seedContainer.removeItem(activeSeed.instanceId);
+        if (seedContainer) {
+          seedContainer.removeItem(activeSeed.instanceId);
+        }
+        // Ensure thorough cleanup in the manager
+        inventoryManager.destroyItem(activeSeed.instanceId);
+        
         setTargetingItem(null);
+        engine.targetingItemInstanceId = null;
       }
       addLog(`You plant the ${activeSeed.name.toLowerCase()}.`, "info");
       updatePlayerStats({ ap: player.ap });

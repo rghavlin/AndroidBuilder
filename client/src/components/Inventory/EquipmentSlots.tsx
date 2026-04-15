@@ -7,12 +7,14 @@ import DevConsole from '../Game/DevConsole.jsx';
 import { useGame } from "@/contexts/GameContext.jsx";
 import { usePlayer } from "@/contexts/PlayerContext.jsx";
 import { useSleep } from "@/contexts/SleepContext.jsx";
+import { useAudio } from "@/contexts/AudioContext.jsx";
 
 export default function EquipmentSlots() {
   const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto, loadAmmoDirectly } = useInventory();
   const { isPlayerTurn, isAutosaving } = useGame();
+  const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
+  const { playSound } = useAudio();
   const { isSleeping } = useSleep();
-  const { isMoving: isAnimatingMovement } = usePlayer();
   const [showDevConsole, setShowDevConsole] = useState(false);
 
   const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping;
@@ -30,6 +32,12 @@ export default function EquipmentSlots() {
 
   const handleSlotClick = (slotId: string) => {
     const equippedItem = inventoryRef.current?.equipment[slotId];
+
+    // disallow selection/unequip if no AP
+    if (playerStats.ap < 1 && (selectedItem || equippedItem)) {
+      playSound('Fail');
+      return;
+    }
 
     console.log('[EquipmentSlots] handleSlotClick', {
       slotId,

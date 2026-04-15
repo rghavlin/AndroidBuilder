@@ -45,6 +45,7 @@ export const useInventory = () => {
           depositSelectedInto: () => ({ success: false }),
           loadAmmoInto: () => ({ success: false }),
           loadAmmoDirectly: () => ({ success: false }),
+          unloadWeapon: () => ({ success: false }),
           unloadMagazine: () => ({ success: false }),
           drinkWater: () => ({ success: false }),
           unrollBedroll: () => ({ success: false }),
@@ -115,6 +116,7 @@ export const InventoryProvider = ({ children }) => {
     const result = engine.inventoryManager.equipItem(item, slot);
     if (result.success) {
       engine.player.useAP(1);
+      closeAssociatedContainers(item);
       addLog(`Equipped ${item.name}`, 'item');
       playSound('Equip');
       setInventoryVersion(v => v + 1);
@@ -176,6 +178,24 @@ export const InventoryProvider = ({ children }) => {
   }, []);
 
   const isContainerOpen = useCallback((cid) => openContainers.has(cid), [openContainers]);
+  
+  // Helper: Close any UI panels associated with a specific item instance
+  const closeAssociatedContainers = useCallback((item) => {
+    if (!item) return;
+    const instanceId = item.instanceId || item.id;
+    const idsToClose = [
+        `${instanceId}-container`,
+        `clothing:${instanceId}`,
+        `weapon:${instanceId}`
+    ];
+    
+    idsToClose.forEach(cid => {
+        if (openContainers.has(cid)) {
+            console.debug(`[InventoryContext] Auto-closing associated container for equipped item: ${cid}`);
+            closeContainer(cid);
+        }
+    });
+  }, [openContainers, closeContainer]);
 
   const selectItem = useCallback((item, originId, x, y, extraProps = {}) => {
     // If fifth argument is a boolean, treat it as isEquipment for backward compatibility with older components
@@ -206,11 +226,15 @@ export const InventoryProvider = ({ children }) => {
   const clearSelected = useCallback(() => {
     if (selectedItem && engine.inventoryManager) {
         const { item, originContainerId, originX, originY, originalRotation } = selectedItem;
-        const container = engine.inventoryManager.getContainer(originContainerId);
-        if (container) {
-            item.rotation = originalRotation;
-            container.placeItemAt(item, originX, originY);
-            setInventoryVersion(v => v + 1);
+        // ONLY put it back if it still exists (stackCount > 0)
+        // This prevents consumed/spent items from "resurrecting" in the inventory
+        if (item.stackCount > 0) {
+            const container = engine.inventoryManager.getContainer(originContainerId);
+            if (container) {
+                item.rotation = originalRotation;
+                container.placeItemAt(item, originX, originY);
+                setInventoryVersion(v => v + 1);
+            }
         }
     }
     setSelectedItem(null);
@@ -247,6 +271,7 @@ export const InventoryProvider = ({ children }) => {
 
         setSelectedItem(null);
         setInventoryVersion(v => v + 1);
+        if (isEquipping) closeAssociatedContainers(item);
         playSound(dropSound);
         engine.notifyUpdate();
         return { success: true };
@@ -377,10 +402,30 @@ export const InventoryProvider = ({ children }) => {
 
     // Apply Hydration
     player.modifyStat('hydration', unitsToDrink * hydrationPerUnit);
-    item.ammoCount -= unitsToDrink;
+    
+    // BUG FIX: Handle stacked containers correctly by splitting one off
+    let itemToDrinkFrom = item;
+    if (item.stackCount > 1) {
+      // 1. Decrease original stack
+      item.stackCount -= 1;
+      
+      // 2. Create single instance for the one being drunk from
+      itemToDrinkFrom = Item.fromJSON(item.toJSON());
+      itemToDrinkFrom.instanceId = `${item.instanceId}-drunk-${Date.now()}`;
+      itemToDrinkFrom.stackCount = 1;
+      
+      // 3. Subtract from the new one
+      itemToDrinkFrom.ammoCount -= unitsToDrink;
+      
+      // 4. Place it back in inventory (it will land in a new slot since it is now partial)
+      engine.inventoryManager.addItem(itemToDrinkFrom);
+    } else {
+      // Normal single item subtraction
+      itemToDrinkFrom.ammoCount -= unitsToDrink;
+    }
 
     // Handle sickness for dirty water
-    if (item.waterQuality === 'dirty') {
+    if (itemToDrinkFrom.waterQuality === 'dirty') {
       player.inflictSickness(unitsToDrink);
       addLog(`The water was dirty. You feel sick.`, 'warning');
     }
@@ -505,6 +550,7 @@ export const InventoryProvider = ({ children }) => {
     
     if (result.success) {
       engine.player.useAP(1);
+      closeAssociatedContainers(item);
       setSelectedItem(null);
       playSound('Equip');
       setInventoryVersion(v => v + 1);
@@ -537,6 +583,80 @@ export const InventoryProvider = ({ children }) => {
     return { success: false };
   }, [inventoryPulse, addLog]);
 
+  const deploySnare = useCallback((item) => {
+    if (!engine.player || !engine.inventoryManager) return { success: false };
+    
+    // Check AP (1 AP)
+    if (engine.player.ap < 1) {
+      playSound('Fail');
+      addLog('Not enough AP to set snare.', 'error');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    console.log(`[InventoryContext] Deploying snare: ${item.name}`);
+    
+    // 1. Create deployed snare
+    const deployedData = createItemFromDef('tool.snare_deployed');
+    if (!deployedData) return { success: false };
+    
+    const deployedSnare = new Item(deployedData);
+    // Preserve condition
+    deployedSnare.condition = item.condition;
+
+    // 2. Remove undeployed one
+    engine.inventoryManager.destroyItem(item.instanceId);
+
+    // 3. Add deployed one to ground
+    engine.inventoryManager.groundManager.addItemSmart(deployedSnare);
+
+    // 4. Deduct AP
+    engine.player.useAP(1);
+
+    addLog(`You set the rabbit snare on the ground.`, 'item');
+    playSound('Equip');
+    
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
+  const retrieveSnare = useCallback((item) => {
+    if (!engine.player || !engine.inventoryManager) return { success: false };
+
+    // Check AP (1 AP)
+    if (engine.player.ap < 1) {
+      playSound('Fail');
+      addLog('Not enough AP to retrieve snare.', 'error');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    console.log(`[InventoryContext] Retrieving snare: ${item.name}`);
+
+    // 1. Create undeployed snare
+    const undeployedData = createItemFromDef('tool.snare_undeployed');
+    if (!undeployedData) return { success: false };
+
+    const undeployedSnare = new Item(undeployedData);
+    // Preserve condition
+    undeployedSnare.condition = item.condition;
+
+    // 2. Remove deployed one
+    engine.inventoryManager.destroyItem(item.instanceId);
+
+    // 3. Add undeployed one to inventory (or ground if full)
+    const result = engine.inventoryManager.addItem(undeployedSnare);
+    
+    // 4. Deduct AP
+    engine.player.useAP(1);
+
+    addLog(`You retrieve the rabbit snare.`, 'item');
+    playSound('Equip');
+
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
   const depositSelectedInto = useCallback((targetContainerItem) => {
     if (!selectedItem || !engine.inventoryManager || !targetContainerItem) return { success: false };
     
@@ -551,18 +671,42 @@ export const InventoryProvider = ({ children }) => {
     }
 
     // 2. Add Item to Target (Enable allowStacking: true for special containers)
-    if (container && container.addItem(item, null, null, true)) {
-        // 3. CRITICAL: Remove item from original source container to prevent duplication
-        const originContainer = engine.inventoryManager.getContainer(originContainerId);
-        if (originContainer) {
-            console.debug(`[InventoryContext] Removing ${item.name} from origin ${originContainerId}`);
-            originContainer.removeItem(item.instanceId);
+    // Only allow implicit storage for non-equipped items
+    if (!targetContainerItem.isEquipped) {
+        // Case A: Standard container grid (Backpacks, toolboxes, etc.)
+        if (container && container.addItem(item, null, null, true)) {
+            // 3. CRITICAL: Remove item from original source container to prevent duplication
+            const originContainer = engine.inventoryManager.getContainer(originContainerId);
+            if (originContainer) {
+                console.debug(`[InventoryContext] Removing ${item.name} from origin ${originContainerId}`);
+                originContainer.removeItem(item.instanceId);
+            }
+
+            setSelectedItem(null);
+            setInventoryVersion(v => v + 1);
+            playSound('Click');
+            return { success: true };
         }
 
-        setSelectedItem(null);
-        setInventoryVersion(v => v + 1);
-        playSound('Click');
-        return { success: true };
+        // Case B: Multi-pocket items (Clothing)
+        const pocketContainers = targetContainerItem.getPocketContainers?.();
+        if (pocketContainers && pocketContainers.length > 0) {
+            for (const pocket of pocketContainers) {
+                if (pocket.addItem(item, null, null, true)) {
+                    // Remove from origin
+                    const originContainer = engine.inventoryManager.getContainer(originContainerId);
+                    if (originContainer) {
+                        originContainer.removeItem(item.instanceId);
+                    }
+
+                    setSelectedItem(null);
+                    setInventoryVersion(v => v + 1);
+                    playSound('Click');
+                    addLog(`Stored ${item.name} in ${targetContainerItem.name}.`, 'item');
+                    return { success: true };
+                }
+            }
+        }
     }
 
     addLog(`No space in ${targetContainerItem.name}!`, 'error');
@@ -578,8 +722,17 @@ export const InventoryProvider = ({ children }) => {
     })?.id;
 
     if (slotId) {
+       // Phase: AP Check for Loading (Ammo/Magazine into Gun)
+       const isLoading = slotId === 'ammo';
+       if (isLoading && (!engine.player || engine.player.ap < 1)) {
+           playSound('Fail');
+           addLog('Not enough AP to load weapon.', 'error');
+           return { success: false, reason: 'Not enough AP' };
+       }
+
        const result = engine.inventoryManager.attachItemToWeapon(weapon, slotId, item, selectedItem.originContainerId);
        if (result.success) {
+           if (isLoading && engine.player) engine.player.useAP(1);
            setSelectedItem(null);
            setInventoryVersion(v => v + 1);
            return { success: true };
@@ -591,6 +744,14 @@ export const InventoryProvider = ({ children }) => {
   const attachSelectedItemToWeapon = useCallback((weapon, slotId) => {
     if (!selectedItem || !engine.inventoryManager || !weapon || !slotId) return { success: false };
     
+    // Phase: AP Check for Loading (Ammo/Magazine into Gun)
+    const isLoading = slotId === 'ammo';
+    if (isLoading && (!engine.player || engine.player.ap < 1)) {
+        playSound('Fail');
+        addLog('Not enough AP to load weapon.', 'error');
+        return { success: false, reason: 'Not enough AP' };
+    }
+
     const result = engine.inventoryManager.attachItemToWeapon(
       weapon, 
       slotId, 
@@ -599,6 +760,7 @@ export const InventoryProvider = ({ children }) => {
     );
     
     if (result.success) {
+        if (isLoading && engine.player) engine.player.useAP(1);
         setSelectedItem(null);
         setInventoryVersion(v => v + 1);
         return { success: true };
@@ -621,13 +783,20 @@ export const InventoryProvider = ({ children }) => {
     }
     return result;
   }, [selectedItem, playSound, inventoryPulse]);
-
   const loadAmmoDirectly = useCallback((weapon) => {
     if (!selectedItem || !engine.inventoryManager || !weapon) return { success: false };
     const slotId = weapon.attachmentSlots?.find(s => s.id === 'ammo')?.id;
     if (slotId) {
+      // Phase: AP Check for Loading (Ammo into Gun)
+      if (!engine.player || engine.player.ap < 1) {
+          playSound('Fail');
+          addLog('Not enough AP to load weapon.', 'error');
+          return { success: false, reason: 'Not enough AP' };
+      }
+
       const result = engine.inventoryManager.attachItemToWeapon(weapon, slotId, selectedItem.item, selectedItem.originContainerId);
       if (result.success) {
+        if (engine.player) engine.player.useAP(1);
         setSelectedItem(null);
         setInventoryVersion(v => v + 1);
         return { success: true };
@@ -635,6 +804,42 @@ export const InventoryProvider = ({ children }) => {
     }
     return { success: false };
   }, [selectedItem, inventoryPulse]);
+
+  const unloadWeapon = useCallback((weapon) => {
+    if (!engine.inventoryManager || !engine.player || !weapon) return { success: false };
+    
+    // Check AP (1 AP)
+    if (engine.player.ap < 1) {
+      playSound('Fail');
+      addLog('Not enough AP to unload weapon.', 'error');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    const result = engine.inventoryManager.unloadWeapon(weapon);
+      if (result.success) {
+        engine.player.useAP(1);
+        addLog(`Unloaded ${result.item.name} from ${weapon.name}.`, 'item');
+        playSound('ReloadShot');
+        setInventoryVersion(v => v + 1);
+      engine.notifyUpdate();
+    }
+    return result;
+  }, [playSound, addLog]);
+
+  const unloadMagazine = useCallback((magazine) => {
+    if (!engine.inventoryManager || !magazine) return { success: false };
+
+    const result = engine.inventoryManager.unloadMagazine(magazine);
+    if (result.success) {
+      // No AP cost for magazine-only interactions
+      engine.inventoryManager.addItem(result.item);
+      addLog(`Unloaded ${result.item.stackCount} rounds of ${result.item.name}.`, 'item');
+      playSound('ReloadShot');
+      setInventoryVersion(v => v + 1);
+      engine.notifyUpdate();
+    }
+    return result;
+  }, [playSound, addLog]);
 
   const fuelCampfire = useCallback((fuelItem, campfire) => {
     if (!engine.inventoryManager || !fuelItem || !campfire) return { success: false };
@@ -697,6 +902,10 @@ export const InventoryProvider = ({ children }) => {
     attachSelectedItemToWeapon,
     loadAmmoInto,
     loadAmmoDirectly,
+    unloadWeapon,
+    unloadMagazine,
+    deploySnare,
+    retrieveSnare,
     fuelCampfire,
     detachItemFromWeapon,
     // Add legacy fields to prevent crashes

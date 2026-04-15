@@ -120,15 +120,25 @@ export const SleepProvider = ({ children }) => {
     
     if (!isIndoors(startTile)) return false;
 
-    const queue = [{ x: playerPos.x, y: playerPos.y, dist: 0 }];
+    // Phase 22: Manhattan distance check first - if it's too far, it's irrelevant for sleep noise
+    const manhattanDist = Math.abs(playerPos.x - targetPos.x) + Math.abs(playerPos.y - targetPos.y);
+    if (manhattanDist > 15) return false; 
+
+    const queue = [{ x: playerPos.x, y: playerPos.y, dist: 0, closedDoors: 0 }];
     const visited = new Set([`${playerPos.x},${playerPos.y}`]);
     const maxDist = 30; // Search up to 30 tiles for building bounds
 
     while (queue.length > 0) {
-      const { x, y, dist } = queue.shift();
+      const { x, y, dist, closedDoors } = queue.shift();
 
-      if (x === targetPos.x && y === targetPos.y) return true;
+      if (x === targetPos.x && y === targetPos.y) {
+          // INTERRUPTION RULE: Noise only wakes player if it passes through 0 or 1 closed doors.
+          // 2 or more closed doors (e.g. hallway door + bedroom door) provide complete insulation.
+          return closedDoors <= 1;
+      }
+      
       if (dist >= maxDist) continue;
+      if (closedDoors > 1) continue; // Optimization: Stop searching paths that are already too insulated
 
       const neighbors = [
         { x: x + 1, y: y }, { x: x - 1, y: y },
@@ -150,8 +160,15 @@ export const SleepProvider = ({ children }) => {
           continue;
         }
 
+        // Phase 22: Insulation detection - Track how many closed doors we pass through
+        let nextClosedDoors = closedDoors;
+        const door = tile.contents.find(e => e.type === 'door');
+        if (door && !door.isOpen) {
+            nextClosedDoors++;
+        }
+
         visited.add(key);
-        queue.push({ ...next, dist: dist + 1 });
+        queue.push({ ...next, dist: dist + 1, closedDoors: nextClosedDoors });
       }
     }
 
@@ -191,7 +208,7 @@ export const SleepProvider = ({ children }) => {
 
         // Suspended HP loss for sickness during sleep; heal only if healthy/normal
         if (player.nutrition > 0 && player.hydration > 0 && player.condition === 'Normal' && !player.isBleeding) {
-          player.heal(0.5);
+          player.heal(0.5, true);
         }
 
         if (player.isBleeding) {

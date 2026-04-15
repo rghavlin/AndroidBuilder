@@ -1,7 +1,7 @@
 
 import { CraftingRecipes } from './CraftingRecipes.js';
 import { Item } from './Item.js';
-import { createItemFromDef, getItemName } from './ItemDefs.js';
+import { ItemDefs, createItemFromDef, getItemName } from './ItemDefs.js';
 import { ItemCategory } from './traits.js';
 
 export class CraftingManager {
@@ -244,10 +244,25 @@ export class CraftingManager {
             }
 
             let waterToConsume = unitsUsed * 2;
-            for (const container of waterContainers) {
+            for (const item of waterContainers) {
                 if (waterToConsume <= 0) break;
-                const consume = Math.min(container.ammoCount, waterToConsume);
-                container.ammoCount -= consume;
+                
+                const consume = Math.min(item.ammoCount, waterToConsume);
+                
+                if (item.stackCount > 1) {
+                    // Split 1 bottle to modify units individually
+                    const targetItem = item.splitStack(1);
+                    targetItem.ammoCount -= consume;
+                    
+                    // Add partial bottle back to workspace
+                    ingredientContainer.addItem(targetItem, null, null, true);
+                    console.log(`[CraftingManager] Split bottle from stack for stew. Consumed ${consume} units. Remaining: ${targetItem.ammoCount}`);
+                } else {
+                    // Single item, just reduce units
+                    item.ammoCount -= consume;
+                    console.log(`[CraftingManager] Consumed ${consume} units from ${item.name} for stew. Remaining: ${item.ammoCount}`);
+                }
+
                 waterToConsume -= consume;
             }
 
@@ -265,25 +280,27 @@ export class CraftingManager {
         }
 
         if (recipeId === 'cooking.clean_water' || recipeId === 'cooking.clean_water_jug') {
-            console.log(`[CraftingManager] Starting purification for ${recipeId}...`);
             const candidates = ingredientContainer.getAllItems();
             
             // Look for the specific dirty container that triggered the craft
+            // We search for a water container with some dirty water in it
             const sourceBottle = candidates.find(i =>
-                i.isWaterBottle() && i.waterQuality === 'dirty' && (i.ammoCount || 0) > 0
+                i.isWaterBottle() && (i.waterQuality === 'dirty' || !i.waterQuality) && (i.ammoCount || 0) > 0
             );
 
             if (sourceBottle) {
-                preservedProperties.ammoCount = sourceBottle.ammoCount;
+                // Determine ammo count (fill level) - default to 20 if instance property is somehow missing
+                const level = sourceBottle.ammoCount !== undefined ? sourceBottle.ammoCount : (ItemDefs[sourceBottle.defId]?.ammoCount || 20);
+                preservedProperties.ammoCount = level;
                 preservedProperties.waterQuality = 'clean';
-                console.log(`[CraftingManager] Found dirty source: ${sourceBottle.name} with ${sourceBottle.ammoCount} units. Preserving ammo.`);
+                console.log(`[CraftingManager] Purifying ${sourceBottle.name}: ${level} units. Setting result to CLEAN.`);
             } else {
-                // FALLBACK: If for some reason we can't find the source container (e.g. ID mismatch), 
-                // default the result to FULL based on its definition capacity.
+                // FALLBACK: Use definition capacity for the result item
                 const resultDef = ItemDefs[recipe.resultItem];
-                preservedProperties.ammoCount = resultDef?.capacity || 20;
+                const capacity = resultDef?.capacity || (recipeId === 'cooking.clean_water_jug' ? 50 : 20);
+                preservedProperties.ammoCount = capacity;
                 preservedProperties.waterQuality = 'clean';
-                console.warn(`[CraftingManager] No valid dirty source found! Defaulting result ${recipe.resultItem} to FULL (${preservedProperties.ammoCount} units).`);
+                console.warn(`[CraftingManager] No dirty source found in workspace! Defaulting result ${recipe.resultItem} to FULL (${capacity} units).`);
             }
         }
 
@@ -359,8 +376,17 @@ export class CraftingManager {
             }
 
             if (found && found.capacity !== null && (found.ammoCount !== null && found.ammoCount > 0)) {
-                found.ammoCount -= 1;
-                console.log(`[CraftingManager] Consumed 1 charge from ${found.name} (${found.instanceId}). Remaining: ${found.ammoCount}`);
+                if (found.stackCount > 1) {
+                    // Split 1 off to consume charge individually
+                    const toolContainer = this.inv.getContainer(toolContainerId);
+                    const singleTool = found.splitStack(1);
+                    singleTool.ammoCount -= 1;
+                    toolContainer.addItem(singleTool, null, null, true);
+                    console.log(`[CraftingManager] Split tool from stack. Consumed 1 charge from ${singleTool.name}. Remaining: ${singleTool.ammoCount}`);
+                } else {
+                    found.ammoCount -= 1;
+                    console.log(`[CraftingManager] Consumed 1 charge from ${found.name} (${found.instanceId}). Remaining: ${found.ammoCount}`);
+                }
             } else if (found) {
                 console.warn(`[CraftingManager] Found ${found.name} but cannot consume charge (capacity: ${found.capacity}, ammo: ${found.ammoCount})`);
             }

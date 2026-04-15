@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 // @ts-ignore
-import { ItemTrait } from '../../game/inventory/traits.js';
+import { ItemTrait, ItemCategory } from '../../game/inventory/traits.js';
 import { useInventory } from "@/contexts/InventoryContext";
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useSleep } from '../../contexts/SleepContext.jsx';
@@ -36,7 +36,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadMagazine, consumeItem, drinkWater, unrollBedroll, rollupBedroll } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, consumeItem, drinkWater, unrollBedroll, rollupBedroll } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -179,6 +179,16 @@ export function ItemContextMenu({
                                 Unload
                             </ContextMenuItem>
                         )}
+                        {item?.categories?.includes(ItemCategory.GUN) && item?.attachments?.['ammo'] && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    unloadWeapon(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Unload (1ap)
+                            </ContextMenuItem>
+                        )}
                         {item?.isChargeBased?.() && (() => {
                             const torch = inventoryManager?.equipment?.['flashlight'];
                             const canIgnite = torch && torch.defId === 'tool.torch' && !torch.isLit;
@@ -269,6 +279,22 @@ export function ItemContextMenu({
                                     Roll up
                                 </ContextMenuItem>
                             </>
+                        )}
+                        {item?.defId === 'tool.snare_undeployed' && (
+                            <ContextMenuItem
+                                onClick={() => deploySnare(item)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Set snare
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'tool.snare_deployed' && (
+                            <ContextMenuItem
+                                onClick={() => retrieveSnare(item)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Retrieve snare
+                            </ContextMenuItem>
                         )}
                         {canSplit && (
                             <ContextMenuItem

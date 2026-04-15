@@ -165,12 +165,15 @@ export const CombatProvider = ({ children }) => {
             ? Math.floor(weaponStats.damage.max * 1.5)
             : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
 
+        const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
+
         // 2. Event emission for UI and Audio
         const attackData = { 
             weaponId: weapon.defId, 
             weaponType: weapon.isRanged ? 'ranged' : 'melee',
             hit,
             isCrit,
+            isKillingBlow,
             damage,
             targetX,
             targetY
@@ -181,7 +184,7 @@ export const CombatProvider = ({ children }) => {
             GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
                 zombieId: targetEntity.id, 
                 damage, 
-                isKillingBlow: targetEntity.hp <= damage 
+                isKillingBlow
             });
         }
 
@@ -341,12 +344,15 @@ export const CombatProvider = ({ children }) => {
             }
         }
 
+        const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
+
         // 2. Event emission for UI and Audio
         const attackData = { 
             weaponId: weapon.defId, 
             weaponType: 'ranged',
             hit,
             isCrit,
+            isKillingBlow,
             damage,
             targetX,
             targetY
@@ -357,7 +363,7 @@ export const CombatProvider = ({ children }) => {
             GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
                 zombieId: targetEntity.id, 
                 damage, 
-                isKillingBlow: targetEntity.hp <= damage 
+                isKillingBlow
             });
         }
 

@@ -176,20 +176,28 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { playSound } = useAudio();
   const { addLog } = useLog();
 
-  // Phase 7: Locally derived robust lighting state (since we have access to real InventoryContext here)
   const isFlashlightOnActual = useMemo(() => {
     if (!isFlashlightOn) return false;
     const fl = inventoryRef.current?.equipment['flashlight'];
     if (!fl) return false;
     if (fl.defId === 'tool.torch' && !fl.isLit) return false;
     return true;
-  }, [isFlashlightOn, inventoryVersion, inventoryRef.current]);
+  }, [isFlashlightOn, inventoryVersion]);
+
+  const isNightVision = useMemo(() => {
+    if (!isFlashlightOnActual) return false;
+    const fl = inventoryRef.current?.equipment['flashlight'];
+    return fl?.defId === 'tool.nightvision';
+  }, [isFlashlightOnActual, inventoryVersion]);
 
   const getActiveFlashlightRange = useCallback(() => {
     const flashlight = inventoryRef.current?.equipment['flashlight'];
-    if (flashlight && flashlight.defId === 'tool.torch') return 5;
+    if (flashlight) {
+      if (flashlight.defId === 'tool.nightvision') return 15;
+      if (flashlight.defId === 'tool.torch') return 5;
+    }
     return 8;
-  }, [inventoryVersion, inventoryRef.current]);
+  }, [inventoryVersion]);
 
   // Phase 7: Master FOV and lighting synchronization
   useEffect(() => {
@@ -230,9 +238,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       const hasScope = sightItem && sightItem.categories?.includes('rifle_scope');
 
       const range = getActiveFlashlightRange();
-      console.log(`[MapInterface] Sync: FOV update. Light: ${isFlashlightOnActual}, Range: ${range}, TargetScope: ${!!hasScope}`);
+      console.log(`[MapInterface] Sync: FOV update. Light: ${isFlashlightOnActual}, Range: ${range}, TargetScope: ${!!hasScope}, NVG: ${isNightVision}`);
       
-      const newFov = updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOnActual, !!hasScope, range);
+      const newFov = updatePlayerFieldOfView(gameMapRef.current, isNight, isFlashlightOnActual, !!hasScope, range, isNightVision);
       refreshZombieTracking(playerRef.current, newFov);
     }
   }, [isFlashlightOn, isFlashlightOnActual, inventoryVersion, isNight, targetingWeapon, updatePlayerFieldOfView, refreshZombieTracking, getActiveFlashlightRange]);
@@ -531,6 +539,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           flashlightRange={getActiveFlashlightRange()}
           isAnimatingZombies={isAnimatingZombies}
           isInitialized={isInitialized}
+          isNightVision={isNightVision}
         />
 
 
@@ -563,7 +572,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         <div className="fixed inset-0 z-50 pointer-events-none">
           {/* Backdrop covers only map area */}
           <div
-            className="absolute left-0 w-1/2 h-full bg-black/50 pointer-events-auto"
+            className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
+            style={{
+              top: '48px',
+              bottom: '72px',
+              height: 'calc(100vh - 120px)'
+            }}
             onClick={() => setIsLogHistoryOpen(false)}
           />
 

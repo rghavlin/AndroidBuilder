@@ -44,7 +44,8 @@ export class Item extends SafeEventEmitter {
     rangedStats = null,
     description = null,
     transformInto = null,
-    produce = null
+    produce = null,
+    backgroundColor = null
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -104,6 +105,7 @@ export class Item extends SafeEventEmitter {
     this.description = description;
     this.transformInto = transformInto;
     this.produce = produce;
+    this.backgroundColor = backgroundColor;
 
     // Container properties (single container for backpacks, etc.)
     this._containerGridData = _containerGridData || containerGrid;
@@ -146,6 +148,7 @@ export class Item extends SafeEventEmitter {
       if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
       if (def.imageId && !this.imageId) this.imageId = def.imageId;
       if (def.produce && !this.produce) this.produce = def.produce;
+      if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;
       
       // Auto-inherit categories from definition if not already present
       if (def.categories && Array.isArray(def.categories)) {
@@ -649,24 +652,22 @@ export class Item extends SafeEventEmitter {
 
     // Special rule for Water Bottles: They only stack if they are EMPTY or FULL and levels match
     if (this.isWaterBottle()) {
-      // 1. Quality must match (Clean vs Dirty)
-      if (this.waterQuality !== otherItem.waterQuality) {
-        return false;
-      }
-
       const capacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
       const ammo = this.ammoCount || 0;
       const otherAmmo = otherItem.ammoCount || 0;
 
-      // 2. Both must be exactly Full or exactly Empty to stack, and the amounts must be identical
-      // (This prevents a bottle with 19 units from stacking with one with 20 units, or 20 from stacking with 0).
       const isFull = ammo === capacity;
       const isEmpty = ammo === 0;
-      
       const otherIsFull = otherAmmo === capacity;
       const otherIsEmpty = otherAmmo === 0;
 
-      // Must have same state (Full/Empty) AND same ammo amount
+      // 1. Quality must match (Unless both are empty)
+      if (!isEmpty && !otherIsEmpty && this.waterQuality !== otherItem.waterQuality) {
+        return false;
+      }
+
+      // 2. Both must be exactly Full or exactly Empty to stack, and the amounts must be identical
+      // (This prevents a bottle with 19 units from stacking with one with 20 units, or 20 from stacking with 0).
       if (!(isFull || isEmpty) || !(otherIsFull || otherIsEmpty) || ammo !== otherAmmo) {
         return false;
       }
@@ -674,9 +675,12 @@ export class Item extends SafeEventEmitter {
 
     // Special rule for Batteries: They only stack if they are EMPTY or FULL
     if (this.isBattery()) {
-      const isFull = this.ammoCount === (this.capacity || 10);
-      const isEmpty = this.ammoCount === 0;
-      if (!(isFull || isEmpty) || this.ammoCount !== otherItem.ammoCount) {
+      const ammo = this.ammoCount || 0;
+      const otherAmmo = otherItem.ammoCount || 0;
+
+      // 2. ONLY FULL batteries are stackable (User Rule)
+      const isFull = ammo === (this.capacity || 10);
+      if (!isFull || ammo !== otherAmmo) {
         return false;
       }
     }
@@ -698,41 +702,93 @@ export class Item extends SafeEventEmitter {
   canCombineWith(otherItem) {
     if (!otherItem) return false;
     if (this.instanceId === otherItem.instanceId) return false;
-    if (!this.isWaterBottle() || !Item.isWaterBottle(otherItem)) return false;
 
-    const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
-    const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
+    // 1. Water Bottle Interaction
+    if (this.isWaterBottle() && Item.isWaterBottle(otherItem)) {
+      // STRICT RULE: Only individual, non-stacked bottles can transfer water
+      if ((this.stackCount || 1) > 1 || (otherItem.stackCount || 1) > 1) {
+        return false;
+      }
 
-    const canFillMe = (this.ammoCount || 0) < myCapacity && (otherItem.ammoCount || 0) > 0;
-    const canFillOther = (otherItem.ammoCount || 0) < otherCapacity && (this.ammoCount || 0) > 0;
+      const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
+      const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
 
-    return canFillMe || canFillOther;
+      const canFillMe = (this.ammoCount || 0) < myCapacity && (otherItem.ammoCount || 0) > 0;
+      const canFillOther = (otherItem.ammoCount || 0) < otherCapacity && (this.ammoCount || 0) > 0;
+
+      if (!canFillMe && !canFillOther) return false;
+
+      // Quality check: Only allow if both match OR target is empty
+      const isMeEmpty = (this.ammoCount || 0) === 0;
+      const isOtherEmpty = (otherItem.ammoCount || 0) === 0;
+
+      if (canFillMe && !isMeEmpty && this.waterQuality !== otherItem.waterQuality) return false;
+      if (canFillOther && !isOtherEmpty && this.waterQuality !== otherItem.waterQuality) return false;
+
+      return true;
+    }
+
+    // 2. Battery Interaction (Replacement)
+    if (this.isBatteryPowered() && otherItem.isBattery()) {
+      return true;
+    }
+
+    return false;
   }
 
   combineWith(otherItem) {
     if (!this.canCombineWith(otherItem)) return false;
 
-    const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
-    const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
-    
-    // 1. Try Dragged -> Occupant (Filling the grid item)
-    const spaceInMe = myCapacity - (this.ammoCount || 0);
-    const amountToMe = Math.min(spaceInMe, otherItem.ammoCount || 0);
-    
-    if (amountToMe > 0) {
-      this.ammoCount = (this.ammoCount || 0) + amountToMe;
-      otherItem.ammoCount = (otherItem.ammoCount || 0) - amountToMe;
-      return true;
+    // 1. Water Bottle Interaction
+    if (this.isWaterBottle() && Item.isWaterBottle(otherItem)) {
+      const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
+      const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
+      
+      // 1a. Try Dragged -> Occupant (Filling the grid item)
+      const spaceInMe = myCapacity - (this.ammoCount || 0);
+      const amountToMe = Math.min(spaceInMe, otherItem.ammoCount || 0);
+      
+      if (amountToMe > 0) {
+        if ((this.ammoCount || 0) === 0) {
+          this.waterQuality = otherItem.waterQuality;
+        }
+        this.ammoCount = (this.ammoCount || 0) + amountToMe;
+        otherItem.ammoCount = (otherItem.ammoCount || 0) - amountToMe;
+        return true;
+      }
+      
+      // 1b. Try Occupant -> Dragged (Filling the hand item)
+      const spaceInOther = otherCapacity - (otherItem.ammoCount || 0);
+      const amountToOther = Math.min(spaceInOther, this.ammoCount || 0);
+      
+      if (amountToOther > 0) {
+        if ((otherItem.ammoCount || 0) === 0) {
+          otherItem.waterQuality = this.waterQuality;
+        }
+        otherItem.ammoCount = (otherItem.ammoCount || 0) + amountToOther;
+        this.ammoCount = (this.ammoCount || 0) - amountToOther;
+        return true;
+      }
+      return false;
     }
-    
-    // 2. Try Occupant -> Dragged (Filling the hand item)
-    const spaceInOther = otherCapacity - (otherItem.ammoCount || 0);
-    const amountToOther = Math.min(spaceInOther, this.ammoCount || 0);
-    
-    if (amountToOther > 0) {
-      otherItem.ammoCount = (otherItem.ammoCount || 0) + amountToOther;
-      this.ammoCount = (this.ammoCount || 0) - amountToOther;
-      return true;
+
+    // 2. Battery Interaction (Replacement)
+    if (this.isBatteryPowered() && otherItem.isBattery()) {
+      // 2a. Take 1 from source stack if needed
+      let batteryToInsert = otherItem;
+      if (otherItem.stackCount > 1) {
+        batteryToInsert = otherItem.splitStack(1);
+      }
+
+      // 2b. Eject existing battery
+      const ejected = this.detachItem('battery');
+
+      // 2c. Attach new battery
+      this.attachItem('battery', batteryToInsert);
+
+      console.log(`[Item] Replaced battery in ${this.name}. Ejected: ${ejected ? ejected.name : 'None'}`);
+
+      return { success: true, ejected };
     }
 
     return false;
@@ -1009,7 +1065,8 @@ export class Item extends SafeEventEmitter {
       rangedStats: this.rangedStats,
       description: this.description,
       transformInto: this.transformInto,
-      produce: this.produce
+      produce: this.produce,
+      backgroundColor: this.backgroundColor
     };
 
     // Serialize Traits

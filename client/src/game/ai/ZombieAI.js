@@ -251,48 +251,6 @@ export class ZombieAI {
             continue;
           }
 
-          // B.2 Check for Open/Broken Window (STRICT 3 AP VAULT)
-          const openWindow = nextTile?.contents.find(e => e.type === 'window' && (e.isBroken || e.isOpen));
-          if (openWindow) {
-            if (zombie.currentAP < 3.0) {
-              console.log(`[ZombieAI] Zombie lacks 3 AP to vault window, ending turn outside.`);
-              zombie.useAP(zombie.currentAP); // End turn
-              break;
-            } else {
-              // Atomic 2-tile Vault (Phase 12 Rule)
-              const dx = nextStep.x - zombie.x;
-              const dy = nextStep.y - zombie.y;
-              const targetX = nextStep.x + dx;
-              const targetY = nextStep.y + dy;
-              
-              const targetTile = gameMap.getTile(targetX, targetY);
-              const isVaultBlocked = !targetTile || !Pathfinding.isTileWalkable(targetTile, (tile) => !['wall', 'fence', 'tree'].includes(tile.terrain));
-
-              if (isVaultBlocked) {
-                console.log(`[ZombieAI] Vault into (${targetX}, ${targetY}) is blocked, waiting...`);
-                zombie.useAP(1.0);
-                break;
-              }
-
-              const originalPos = { x: zombie.x, y: zombie.y };
-              const success = gameMap.moveEntity(zombie.id, targetX, targetY);
-              if (success) {
-                zombie.useAP(3.0);
-                zombie.lastScentSequence = nextScent.sequence;
-                zombie.movementPath.push({ x: targetX, y: targetY });
-                
-                turnResult.actions.push({
-                  type: 'move',
-                  from: originalPos,
-                  to: { x: targetX, y: targetY },
-                  apCost: 3.0,
-                  reason: 'vauling through window'
-                });
-                continue;
-              }
-            }
-          }
-
           // C. Try normal move
           const subtypeMult = zombie.subtype === 'runner' ? 0.5 : (zombie.subtype === 'fat' ? 1.5 : 1);
           const moveDist = Pathfinding.getMovementCost(zombie.x, zombie.y, nextStep.x, nextStep.y, nextTile, { isZombie: true });
@@ -783,18 +741,6 @@ export class ZombieAI {
         console.log(`[ZombieAI] Insufficient AP for specific move: has ${zombie.currentAP}, needs ${apCost}`);
         return { success: false, reason: 'Insufficient AP', apRequired: apCost };
       }
-      // ── WINDOW GUARD: Prevent ending turn in window frame (3.0 AP Vault) ──────────────────
-      const windowOnTarget = nextTile?.contents.find(e => e.type === 'window');
-      if (windowOnTarget) {
-        // Vaulting rule: 1 AP to break (if needed) + 3 AP to vault through (atomic 2-tile move)
-        const isClosed = windowOnTarget.isReinforced || (!windowOnTarget.isBroken && !windowOnTarget.isOpen);
-        const requiredAP = isClosed ? 4.0 : 3.0;
-
-        if (zombie.currentAP < requiredAP) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} waiting: needs ${requiredAP} AP to clear window, has ${zombie.currentAP}`);
-          return { success: false, reason: 'Insufficient AP to vault window', apRequired: requiredAP };
-        }
-      }
 
       // ── PRIORITY 1: Closed door in the way → attack it ──────────────────────
       // Check this BEFORE canMoveToTile because canMoveToTile now correctly
@@ -877,41 +823,6 @@ export class ZombieAI {
         };
       }
 
-      // ── PRIORITY 1c: Open Window Vaulting (Atomic Move to opposite side) ──
-      if (windowOnTarget && (!windowOnTarget.isReinforced && (windowOnTarget.isBroken || windowOnTarget.isOpen))) {
-          // Rule: Vault to opposite side costs 3.0 AP
-          const vaultCost = 3.0;
-          const dx = nextMove.x - fromPos.x;
-          const dy = nextMove.y - fromPos.y;
-          const targetX = nextMove.x + dx;
-          const targetY = nextMove.y + dy;
-
-          const vaultTile = gameMap.getTile(targetX, targetY);
-          const isVaultBlocked = !vaultTile || !ZombieAI.canMoveToTile(gameMap, targetX, targetY, zombie.subtype);
-
-          if (isVaultBlocked) {
-            console.log(`[ZombieAI] Window vault into (${targetX}, ${targetY}) is blocked, cannot proceed`);
-            return { success: false, reason: 'Vault destination blocked' };
-          }
-
-          try {
-            const success = gameMap.moveEntity(zombie.id, targetX, targetY);
-            if (success) {
-               zombie.useAP(vaultCost);
-               zombie.movementPath.push({ x: targetX, y: targetY });
-               return {
-                 success: true,
-                 from: fromPos,
-                 to: { x: targetX, y: targetY },
-                 apCost: vaultCost,
-                 reason: 'vault through window'
-               };
-            }
-          } catch (e) {
-            console.error('[ZombieAI] Vault failed:', e);
-            return { success: false, reason: 'Vault failed' };
-          }
-      }
 
       // ── PRIORITY 2: Normal movement check ──────────────────────────────────
       if (!ZombieAI.canMoveToTile(gameMap, nextMove.x, nextMove.y, zombie.subtype)) {
