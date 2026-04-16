@@ -3,12 +3,6 @@
  * Item Trait System - Defines item capabilities and properties
  */
 
-// Encumbrance tiers for clothing
-export const EncumbranceTier = {
-  LIGHT: 'light',    // +2 evade, +0 AP
-  MEDIUM: 'medium',  // +0 evade, -1 AP
-  HEAVY: 'heavy'     // -2 evade, -2 AP
-};
 
 // Equipment slot definitions (exactly these)
 export const EquipmentSlot = {
@@ -57,7 +51,8 @@ export const ItemTrait = {
   CAN_BREAK_DOORS: 'canBreakDoors',
   SPOILABLE: 'spoilable',
   IGNITABLE: 'ignitable',
-  CAN_DIG: 'canDig'
+  CAN_DIG: 'canDig',
+  CHARGE_BASED: 'charge-based'
 };
 
 // Item rarity levels for loot generation
@@ -76,9 +71,3 @@ export const RarityWeights = {
   [Rarity.EXTREMELY_RARE]: 1
 };
 
-// Encumbrance modifiers
-export const EncumbranceModifiers = {
-  [EncumbranceTier.LIGHT]: { evade: 2, ap: 0 },
-  [EncumbranceTier.MEDIUM]: { evade: 0, ap: -1 },
-  [EncumbranceTier.HEAVY]: { evade: -2, ap: -2 }
-};

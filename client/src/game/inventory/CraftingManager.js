@@ -9,6 +9,24 @@ export class CraftingManager {
         this.inv = inventoryManager;
     }
 
+    /**
+     * Internal helper to atomically split 1 unit from a stack for partial consumption/modification
+     * Handles the "split-but-don't-decrement" bug in Item.splitStack contract.
+     */
+    _consumeFromStack(item, container) {
+        if (!item || !container) return item;
+        
+        if (item.stackCount > 1) {
+            const singleItem = item.splitStack(1);
+            // CRITICAL: Must reduce source since splitStack is non-mutating
+            item.stackCount -= 1;
+            // Add back to workspace so it's tracked as a separate instance
+            container.addItem(singleItem, null, null, true);
+            return singleItem;
+        }
+        return item;
+    }
+
     getNearbyCampfire() {
         if (!this.inv.groundContainer) return null;
         return this.inv.groundContainer.getAllItems().find(item => item.defId === 'placeable.campfire');
@@ -249,19 +267,10 @@ export class CraftingManager {
                 
                 const consume = Math.min(item.ammoCount, waterToConsume);
                 
-                if (item.stackCount > 1) {
-                    // Split 1 bottle to modify units individually
-                    const targetItem = item.splitStack(1);
-                    targetItem.ammoCount -= consume;
-                    
-                    // Add partial bottle back to workspace
-                    ingredientContainer.addItem(targetItem, null, null, true);
-                    console.log(`[CraftingManager] Split bottle from stack for stew. Consumed ${consume} units. Remaining: ${targetItem.ammoCount}`);
-                } else {
-                    // Single item, just reduce units
-                    item.ammoCount -= consume;
-                    console.log(`[CraftingManager] Consumed ${consume} units from ${item.name} for stew. Remaining: ${item.ammoCount}`);
-                }
+                // Use the new helper for robust stacking support
+                const targetItem = this._consumeFromStack(item, ingredientContainer);
+                targetItem.ammoCount -= consume;
+                console.log(`[CraftingManager] Consumed ${consume} units for stew. Remaining in bottle: ${targetItem.ammoCount}`);
 
                 waterToConsume -= consume;
             }
@@ -329,24 +338,9 @@ export class CraftingManager {
                 if (remainingToConsume <= 0) break;
 
                 if (req.consumeUnits) {
-                    // PARTIAL UNIT CONSUMPTION
-                    // Handle stacking: if it's a stack, we must split 1 item off to modify its units
-                    let targetItem = item;
-                    if (item.stackCount > 1) {
-                        // Create a new instance with 1 count
-                        targetItem = item.splitStack(1);
-
-                        // CRITICAL: Reduce units BEFORE adding back to container
-                        // This ensures it doesn't immediately merge back into the original stack
-                        // (since bottles with different fill levels don't stack)
-                        targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
-
-                        // Place the new single item back into the workspace so it remains visible
-                        ingredientContainer.addItem(targetItem, null, null, true);
-                    } else {
-                        // Single item, just reduce units
-                        targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
-                    }
+                    // PARTIAL UNIT CONSUMPTION using the helper
+                    const targetItem = this._consumeFromStack(item, ingredientContainer);
+                    targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
 
                     console.log(`[CraftingManager] Consumed ${req.consumeUnits} units from ${targetItem.name}. Remaining: ${targetItem.ammoCount}`);
                     remainingToConsume -= 1;
@@ -376,17 +370,10 @@ export class CraftingManager {
             }
 
             if (found && found.capacity !== null && (found.ammoCount !== null && found.ammoCount > 0)) {
-                if (found.stackCount > 1) {
-                    // Split 1 off to consume charge individually
-                    const toolContainer = this.inv.getContainer(toolContainerId);
-                    const singleTool = found.splitStack(1);
-                    singleTool.ammoCount -= 1;
-                    toolContainer.addItem(singleTool, null, null, true);
-                    console.log(`[CraftingManager] Split tool from stack. Consumed 1 charge from ${singleTool.name}. Remaining: ${singleTool.ammoCount}`);
-                } else {
-                    found.ammoCount -= 1;
-                    console.log(`[CraftingManager] Consumed 1 charge from ${found.name} (${found.instanceId}). Remaining: ${found.ammoCount}`);
-                }
+                // Use the helper for tool consumption from stack
+                const singleTool = this._consumeFromStack(found, toolContainer);
+                singleTool.ammoCount -= 1;
+                console.log(`[CraftingManager] Consumed 1 charge from tool: ${singleTool.name}. Remaining: ${singleTool.ammoCount}`);
             } else if (found) {
                 console.warn(`[CraftingManager] Found ${found.name} but cannot consume charge (capacity: ${found.capacity}, ammo: ${found.ammoCount})`);
             }

@@ -26,7 +26,6 @@ export class Item extends SafeEventEmitter {
     condition = null,
     equippableSlot = null,
     isEquipped = false,
-    encumbranceTier = null,
     containerGrid = null,
     _containerGridData = null,
     pocketLayoutId = null,
@@ -101,7 +100,6 @@ export class Item extends SafeEventEmitter {
     // Equipment properties
     this.equippableSlot = equippableSlot;
     this.isEquipped = isEquipped;
-    this.encumbranceTier = encumbranceTier;
     this.description = description;
     this.transformInto = transformInto;
     this.produce = produce;
@@ -300,8 +298,7 @@ export class Item extends SafeEventEmitter {
   }
 
   isChargeBased() {
-    return (this.defId && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook' || this.defId === 'tool.bowdrill')) ||
-           this.isBattery?.();
+    return this.hasTrait(ItemTrait.CHARGE_BASED) || this.isBattery?.();
   }
 
   isBatteryPowered() {
@@ -319,7 +316,49 @@ export class Item extends SafeEventEmitter {
       const battery = this.getBattery();
       return battery ? (battery.ammoCount || 0) : 0;
     }
+    if (this.hasTrait(ItemTrait.IGNITABLE)) {
+      return this.condition || 0;
+    }
     return 0;
+  }
+
+  /**
+   * Consume a specific amount of charges from the item or its battery.
+   * Handles Flashlights, Torches, Batteries, and Lighters.
+   * @param {number} amount - Number of charges to consume
+   * @returns {boolean} - True if charges were successfully consumed, false if insufficient
+   */
+  consumeCharge(amount = 1) {
+    // 1. Battery Powered items (Flashlight, NVG) - consume from attached battery
+    if (this.isBatteryPowered()) {
+      const battery = this.getBattery();
+      if (battery && (battery.ammoCount || 0) >= amount) {
+        battery.ammoCount -= amount;
+        return true;
+      }
+      return false;
+    }
+
+    // 2. Standalone Battery or Charge-based tool (Lighter) - consume from own ammoCount
+    if (this.isBattery() || this.hasTrait(ItemTrait.CHARGE_BASED)) {
+      if ((this.ammoCount || 0) >= amount) {
+        this.ammoCount -= amount;
+        return true;
+      }
+      return false;
+    }
+
+    // 3. Ignitable items (Torch) - consume from condition
+    if (this.hasTrait(ItemTrait.IGNITABLE)) {
+      if ((this.condition || 0) >= amount) {
+        // Use degrade to handle auto-destruction if it hits 0
+        this.degrade(amount);
+        return true;
+      }
+      return false;
+    }
+
+    return false;
   }
 
   isSpoilable() {
@@ -685,8 +724,8 @@ export class Item extends SafeEventEmitter {
       }
     }
 
-    // Special rule for Lighters and Matchbooks: They only stack if they have the SAME number of charges
-    if (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook') {
+    // Special rule for Charge-based items: They only stack if they have the SAME number of charges
+    if (this.hasTrait(ItemTrait.CHARGE_BASED)) {
       if (this.ammoCount !== otherItem.ammoCount) {
         return false;
       }
@@ -778,6 +817,11 @@ export class Item extends SafeEventEmitter {
       let batteryToInsert = otherItem;
       if (otherItem.stackCount > 1) {
         batteryToInsert = otherItem.splitStack(1);
+        otherItem.stackCount -= 1;
+        console.log(`[Item] Splitting 1 battery from stack of ${otherItem.stackCount + 1}`);
+      } else {
+        // Mark as consumed for the caller (moveItem)
+        otherItem.stackCount = 0;
       }
 
       // 2b. Eject existing battery
@@ -1053,7 +1097,6 @@ export class Item extends SafeEventEmitter {
       ammoCount: this.ammoCount,
       equippableSlot: this.equippableSlot,
       isEquipped: this.isEquipped,
-      encumbranceTier: this.encumbranceTier,
       pocketLayoutId: this.pocketLayoutId, // Persist the layout ID
       categories: this.categories,
       consumptionEffects: this.consumptionEffects,

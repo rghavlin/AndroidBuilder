@@ -1,5 +1,6 @@
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
+import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES } from './LootTables.js';
 
 /**
  * LootGenerator - Handles random item spawning on maps
@@ -296,56 +297,8 @@ export class LootGenerator {
                 if (randomKey === 'crafting.glass_shard') hasGlassInPile = true;
                 if (randomKey === 'crafting.leather_belt') hasBeltInPile = true;
 
-                // 3. Conditional Stacks (Seeds drop in stacks of 2-3, others 1 unit)
-                if (selectedItem.defId === 'food.cornseeds' || selectedItem.defId === 'food.tomatoseeds' || selectedItem.defId === 'food.carrotseeds') {
-                    selectedItem.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
-                } else if (selectedItem.categories?.includes(ItemCategory.AMMO) && selectedItem.traits?.includes(ItemTrait.STACKABLE)) {
-                    selectedItem.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds (Actual ammo only)
-                } else if (selectedItem.defId === 'crafting.nail') {
-                    selectedItem.stackCount = 1 + Math.floor(Math.random() * 5); // 1-5
-                } else {
-                    selectedItem.stackCount = 1;
-                }
-
-                // 4. Custom Water rules: Standardize to uniform distribution
-                if (selectedItem.capacity !== undefined && isFood && (selectedItem.defId === 'food.waterbottle' || selectedItem.defId === 'food.waterjug')) {
-                    selectedItem.ammoCount = Math.floor(Math.random() * (selectedItem.capacity + 1));
-                }
-
-                // 5. Weapon-specific logic: Random condition and ammo
-                const isWeaponItem = (selectedItem.categories && selectedItem.categories.includes(ItemCategory.WEAPON)) || !!selectedItem.attachmentSlots;
-                const isDegradableItem = selectedItem.traits && selectedItem.traits.includes(ItemTrait.DEGRADABLE);
-                
-                if (isWeaponItem) {
-                    if (isDegradableItem) {
-                        const minCondition = 15;
-                        const maxCondition = 100;
-                        selectedItem.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
-                        console.log(`[Loot] Randomized condition for ${selectedItem.name}: ${selectedItem.condition}%`);
-                    }
-
-                    // Initialize ammo (magazines or internal rounds)
-                    this._initializeWeaponAmmo(selectedItem);
-                } else if (randomKey === 'tool.smallflashlight') {
-                    // Flashlight: Spawn with a battery and random charges
-                    const battery = createItemFromDef('tool.battery');
-                    if (battery) {
-                        battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
-                        selectedItem.attachments = { 'battery': battery };
-                    }
-                }
-
-                // 6. Tool-specific logic: always a single unit with random charges
-                if (randomKey === 'tool.lighter' || randomKey === 'tool.matchbook') {
-                    selectedItem.stackCount = 1;
-                    if (selectedItem.capacity) {
-                        selectedItem.ammoCount = 1 + Math.floor(Math.random() * selectedItem.capacity);
-                    }
-                } else if (randomKey === 'tool.battery') {
-                    // Batteries always spawn as a single item with a FULL charge
-                    selectedItem.stackCount = 1;
-                    selectedItem.ammoCount = selectedItem.capacity || 10;
-                }
+                // Apply defaults (stack count, condition, ammo, etc.)
+                this._applySpawnDefaults(selectedItem, false);
 
                 items.push(selectedItem);
             }
@@ -430,33 +383,16 @@ export class LootGenerator {
             // Building specific loot tables/logic
             switch(type) {
                 case 'grocer':
-                    const grocerTable = [
-                        { key: 'food.granolabar', weight: 25 },
-                        { key: 'food.chips', weight: 25 },
-                        { key: 'food.beans', weight: 15 },
-                        { key: 'food.tomato', weight: 10 },
-                        { key: 'food.carrot', weight: 10 },
-                        { key: 'food.corn', weight: 10 },
-                        { key: 'food.cornseeds', weight: 5 },
-                        { key: 'food.tomatoseeds', weight: 5 },
-                        { key: 'food.carrotseeds', weight: 5 },
-                        { key: 'food.waterbottle', weight: 10 },
-                        { key: 'backpack.school', weight: 5 }
-                    ];
-                    this.addItemsFromTable(items, grocerTable, 1, 3);
+                    this.addItemsFromTable(items, SPECIAL_BUILDING_LOOT.grocer, 1, 3);
                     break;
                 case 'gas_station':
-                    const gasTable = [
-                        { key: 'food.chips', weight: 35 },
-                        { key: 'food.granolabar', weight: 35 },
-                        { key: 'food.waterbottle', weight: 20 }
-                    ];
-                    this.addItemsFromTable(items, gasTable, 1, 2);
+                    this.addItemsFromTable(items, SPECIAL_BUILDING_LOOT.gas_station, 1, 2);
                     break;
                 case 'firestation':
                     // 50% chance for bandages or antibiotics in each loot drop
                     if (Math.random() < 0.5) {
-                        const medKey = Math.random() < 0.5 ? 'medical.bandage' : 'medical.antibiotics';
+                        const medKeys = SPECIAL_BUILDING_LOOT.firestation.medical;
+                        const medKey = medKeys[Math.floor(Math.random() * medKeys.length)];
                         const med = createItemFromDef(medKey);
                         if (med) {
                             med.stackCount = 1;
@@ -466,7 +402,7 @@ export class LootGenerator {
 
                     // 50% chance for ONE fire tool in building
                     if (index === buildingState.toolDropIndex) {
-                        const toolKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete'];
+                        const toolKeys = SPECIAL_BUILDING_LOOT.firestation.tools;
                         const toolKey = toolKeys[Math.floor(Math.random() * toolKeys.length)];
                         const tool = createItemFromDef(toolKey);
                         if (tool) items.push(tool);
@@ -481,7 +417,7 @@ export class LootGenerator {
                 case 'police':
                     // 50% chance for ammo in each loot drop
                     if (Math.random() < 0.5) {
-                        const ammoKeys = ['ammo.9mm', 'ammo.357', 'ammo.308', 'ammo.shotgun_shells'];
+                        const ammoKeys = SPECIAL_BUILDING_LOOT.police.ammo;
                         const ammoKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
                         const ammo = createItemFromDef(ammoKey);
                         if (ammo) {
@@ -492,7 +428,7 @@ export class LootGenerator {
                     
                     // 50% chance for ONE gun in building
                     if (index === buildingState.gunDropIndex) {
-                        const gunKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
+                        const gunKeys = SPECIAL_BUILDING_LOOT.police.guns;
                         const gunKey = gunKeys[Math.floor(Math.random() * gunKeys.length)];
                         const gun = createItemFromDef(gunKey);
                         if (gun) {
@@ -512,7 +448,7 @@ export class LootGenerator {
                     // 1-2 stacks of ammo in EVERY drop
                     const ammoStackCount = 1 + Math.floor(Math.random() * 2); 
                     for(let i=0; i < ammoStackCount; i++) {
-                        const ammoTypes = ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells'];
+                        const ammoTypes = SPECIAL_BUILDING_LOOT.army_tent.ammo;
                         const ammoKey = ammoTypes[Math.floor(Math.random() * ammoTypes.length)];
                         const ammo = createItemFromDef(ammoKey);
                         if (ammo) {
@@ -523,7 +459,7 @@ export class LootGenerator {
 
                     // Gun mods: possible in every drop
                     if (Math.random() < 0.25) { // 25% chance for a mod in a drop
-                        const modKeys = ['attachment.suppressor', 'attachment.lasersight', 'attachment.riflescope'];
+                        const modKeys = SPECIAL_BUILDING_LOOT.army_tent.mods;
                         const modKey = modKeys[Math.floor(Math.random() * modKeys.length)];
                         const mod = createItemFromDef(modKey);
                         if (mod) items.push(mod);
@@ -624,27 +560,25 @@ export class LootGenerator {
             if (subtype === 'firefighter') {
                 const firefighterRoll = Math.random();
                 if (firefighterRoll < 0.3) {
-                    const specializedKeys = ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'clothing.paramedic_shirt'];
+                    const specializedKeys = ZOMBIE_LOOT.firefighter.specialized;
                     selectedKey = specializedKeys[Math.floor(Math.random() * specializedKeys.length)];
                 } else if (firefighterRoll < 0.6) {
-                    const medicalKeys = ['medical.bandage', 'medical.antibiotics'];
+                    const medicalKeys = ZOMBIE_LOOT.firefighter.medical;
                     selectedKey = medicalKeys[Math.floor(Math.random() * medicalKeys.length)];
                 } else if (firefighterRoll < 0.8) {
                     selectedKey = 'food.waterbottle';
                 } else {
                     // Fall back to common items for remaining chance
-                    const commonKeys = [
-                        'clothing.pocket_t', 'clothing.sweatpants', 'crafting.rag'
-                    ];
+                    const commonKeys = ZOMBIE_LOOT.firefighter.common;
                     selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
                 }
             } else if (subtype === 'swat') {
                 const swatRoll = Math.random();
                 if (swatRoll < 0.4) {
-                    const swatGear = ['weapon.9mmPistol', 'weapon.357Pistol', 'clothing.police_shirt'];
+                    const swatGear = ZOMBIE_LOOT.swat.gear;
                     selectedKey = swatGear[Math.floor(Math.random() * swatGear.length)];
                 } else if (swatRoll < 0.8) {
-                    const ammoKeys = ['ammo.9mm', 'ammo.357', 'ammo.shotgun_shells', 'ammo.308'];
+                    const ammoKeys = ZOMBIE_LOOT.swat.ammo;
                     selectedKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
                 } else {
                     selectedKey = 'food.waterbottle';
@@ -652,10 +586,10 @@ export class LootGenerator {
             } else if (subtype === 'soldier') {
                 const soldierRoll = Math.random();
                 if (soldierRoll < 0.4) {
-                    const soldierGear = ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.police_shirt']; 
+                    const soldierGear = ZOMBIE_LOOT.soldier.gear;
                     selectedKey = soldierGear[Math.floor(Math.random() * soldierGear.length)];
                 } else if (soldierRoll < 0.8) {
-                    const ammoKeys = ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells'];
+                    const ammoKeys = ZOMBIE_LOOT.soldier.ammo;
                     selectedKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
                 } else {
                     selectedKey = 'food.waterbottle';
@@ -671,10 +605,7 @@ export class LootGenerator {
                     selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
                 } else if (tierRoll < 0.85) {
                     // Uncommon: granola bar, chips, water bottle (small amount), soft drink, energy drink, bandage, antibiotics
-                    const uncommonKeys = [
-                        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.energydrink',
-                        'medical.bandage', 'medical.antibiotics', 'crafting.leather_belt'
-                    ];
+                    const uncommonKeys = ZOMBIE_LOOT.uncommon;
                     selectedKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
                 } else if (tierRoll < 0.95) {
                     // Rare: Any ammo, knife, lighter, matches
@@ -686,7 +617,7 @@ export class LootGenerator {
                     selectedKey = rareKeys[Math.floor(Math.random() * rareKeys.length)];
                 } else {
                     // Extremely rare: 9mm pistol, 357 pistol, shotgun, Flashlight
-                    const exoticKeys = ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight'];
+                    const exoticKeys = ZOMBIE_LOOT.exotic;
                     selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
                 }
             }
@@ -699,36 +630,8 @@ export class LootGenerator {
                 if (item) {
                     if (selectedKey === 'crafting.leather_belt') hasBeltInLoot = true;
                     
-                    // Conditional stacks for zombie loot
-                    if (selectedKey === 'food.cornseeds' || selectedKey === 'food.tomatoseeds' || selectedKey === 'food.carrotseeds') {
-                        item.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
-                    } else if (item.categories?.includes(ItemCategory.AMMO) && item.traits?.includes(ItemTrait.STACKABLE)) {
-                        item.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 (Actual ammo only)
-                    } else {
-                        item.stackCount = 1;
-                    }
-
-                    // Custom rules for items dropped by zombies: Standardize to uniform distribution
-                    if (selectedKey === 'food.waterbottle') {
-                        item.ammoCount = Math.floor(Math.random() * (item.capacity + 1));
-                    } else if (item.categories && (item.categories.includes(ItemCategory.WEAPON) || item.attachmentSlots)) {
-                        // Random condition for DEGRADABLE weapons (found on corpse)
-                        if (item.traits && item.traits.includes(ItemTrait.DEGRADABLE)) {
-                            const minCondition = 10;
-                            const maxCondition = 70; // Slightly worse than world loot
-                            item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
-                        }
-
-                        // Initialize ammo (magazines or internal rounds)
-                        this._initializeWeaponAmmo(item);
-                    } else if (selectedKey === 'tool.smallflashlight') {
-                        // Flashlight from zombie: spawn with a battery and random charges
-                        const battery = createItemFromDef('tool.battery');
-                        if (battery) {
-                            battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
-                            item.attachments = { 'battery': battery };
-                        }
-                    }
+                    // Apply defaults (stack count, condition, ammo, etc.)
+                    this._applySpawnDefaults(item, true);
 
                     items.push(item);
                 }
@@ -762,21 +665,7 @@ export class LootGenerator {
 
             const item = createItemFromDef(pickedKey);
             if (item) {
-                // Default stack count
-                if (item.defId === 'food.cornseeds' || item.defId === 'food.tomatoseeds' || item.defId === 'food.carrotseeds') {
-                    item.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3
-                } else if (item.categories?.includes(ItemCategory.AMMO) && item.traits?.includes(ItemTrait.STACKABLE)) {
-                    item.stackCount = 3 + Math.floor(Math.random() * 4); // 3-6 rounds (Actual ammo only)
-                } else if (item.defId === 'crafting.nail') {
-                    item.stackCount = 1 + Math.floor(Math.random() * 5); // 1-5
-                } else {
-                    item.stackCount = 1;
-                }
-               
-                // Custom stack/property rules for specialized items
-               if (pickedKey === 'food.waterbottle') {
-                    item.ammoCount = Math.floor(Math.random() * (item.capacity + 1));
-                }
+                this._applySpawnDefaults(item, false);
                 items.push(item);
             }
         }
@@ -786,6 +675,56 @@ export class LootGenerator {
      * Helper to initialize magazine-fed firearms with a partially filled magazine.
      * @param {Item} item - Firearm item instance
      */
+    /**
+     * Centralized logic to apply spawn-time defaults (stack counts, charges, condition)
+     * based on metadata in ItemDefs.
+     * @param {Item} item - The item instance to modify
+     * @param {boolean} isZombieLoot - Whether this item is dropped by a zombie (affects condition)
+     */
+    _applySpawnDefaults(item, isZombieLoot = false) {
+        if (!item || !item.defId) return;
+        const def = ItemDefs[item.defId];
+        if (!def) return;
+
+        // 1. Stack Count Randomization
+        if (def.spawnStackMin !== undefined && def.spawnStackMax !== undefined) {
+            item.stackCount = def.spawnStackMin + Math.floor(Math.random() * (def.spawnStackMax - def.spawnStackMin + 1));
+        } else {
+            // Default stack count for non-special items
+            item.stackCount = 1;
+        }
+
+        // 2. Ammo / Charge / Water Randomization
+        if (def.spawnAmmoPercent !== undefined && item.capacity) {
+            // Apply randomized fill based on capacity
+            item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
+        } else if (item.defId === 'tool.battery') {
+            // Batteries always spawn as a single item with a FULL charge
+            item.ammoCount = item.capacity || 10;
+        }
+
+        // 3. Condition Randomization (for DEGRADABLE items)
+        if (item.traits && item.traits.includes(ItemTrait.DEGRADABLE)) {
+            const minCondition = isZombieLoot ? 10 : 15;
+            const maxCondition = isZombieLoot ? 70 : 100;
+            item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+        }
+
+        // 4. Special cases (Flashlights, Weapons)
+        if (item.defId === 'tool.smallflashlight') {
+            const battery = createItemFromDef('tool.battery');
+            if (battery) {
+                battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
+                item.attachments = { 'battery': battery };
+            }
+        }
+
+        const isWeapon = (item.categories && item.categories.includes(ItemCategory.WEAPON)) || !!item.attachmentSlots;
+        if (isWeapon && (item.categories?.includes(ItemCategory.GUN) || item.attachmentSlots)) {
+            this._initializeWeaponAmmo(item);
+        }
+    }
+
     /**
      * Centralized weapon initialization logic
      * Handles spawning appropriate magazines or loose ammo with randomized counts
@@ -813,8 +752,8 @@ export class LootGenerator {
             console.log(`[Loot] Initialized ${item.defId} with magazine (${ammoData.ammoCount}/${ammoData.capacity} rounds)`);
         } else {
             // INTERNALLY-FED (.357, Shotgun, Hunting Rifle)
-            let maxRand = 6;
-            if (item.defId === 'weapon.hunting_rifle') maxRand = 4;
+            const def = ItemDefs[item.defId];
+            const maxRand = def?.spawnMaxRounds || 6;
             
             ammoData.stackCount = 1 + Math.floor(Math.random() * maxRand);
             console.log(`[Loot] Initialized ${item.defId} with ${ammoData.stackCount} internally loaded rounds`);
@@ -849,10 +788,7 @@ export class LootGenerator {
         }
 
         // 2. Define unique items to spawn exactly once
-        const uniqueSpawns = [
-            { defId: 'tool.lighter' },
-            { defId: 'tool.matchbook' }
-        ];
+        const uniqueSpawns = MAP_WIDE_UNIQUES;
 
         console.log(`[LootGenerator] Applying map-wide rules for ${uniqueSpawns.length} unique items...`);
 

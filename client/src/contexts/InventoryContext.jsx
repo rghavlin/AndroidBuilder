@@ -22,7 +22,6 @@ export const useInventory = () => {
           inventoryVersion: 0,
           getContainer: () => null,
           getEquippedBackpackContainer: () => null,
-          getEncumbranceModifiers: () => ({ evade: 0, ap: 0 }),
           canOpenContainer: () => false,
           equipItem: () => ({ success: false }),
           unequipItem: () => ({ success: false }),
@@ -106,7 +105,6 @@ export const InventoryProvider = ({ children }) => {
 
   const getContainer = useCallback((id) => engine.inventoryManager?.getContainer(id), [inventoryPulse, inventoryVersion]);
   const getEquippedBackpackContainer = useCallback(() => engine.inventoryManager?.getBackpackContainer(), [inventoryPulse, inventoryVersion]);
-  const getEncumbranceModifiers = useCallback(() => engine.inventoryManager?.getEncumbranceModifiers() || { evade: 0, ap: 0 }, [inventoryPulse, inventoryVersion]);
   const canOpenContainer = useCallback((item) => engine.inventoryManager?.canOpenContainer(item) || false, [inventoryPulse, inventoryVersion]);
 
   const equipItem = useCallback((item, slot) => {
@@ -869,7 +867,6 @@ export const InventoryProvider = ({ children }) => {
     inventoryPulse,
     getContainer,
     getEquippedBackpackContainer,
-    getEncumbranceModifiers,
     canOpenContainer,
     equipItem,
     unequipItem,

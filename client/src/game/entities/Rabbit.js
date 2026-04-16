@@ -1,12 +1,11 @@
-import { Entity } from './Entity.js';
+import { Entity, EntityType } from './Entity.js';
 
 /**
  * Rabbit entity with fleeing AI behavior
- * Faster than zombies and players (25 AP), but low HP (5 HP)
  */
 export class Rabbit extends Entity {
   constructor(id, x = 0, y = 0) {
-    super(id, 'rabbit', x, y);
+    super(id, EntityType.RABBIT, x, y);
     this.blocksMovement = true; // Rabbits block movement (can be hit)
     this.blocksSight = false; // Rabbits don't block sight
 

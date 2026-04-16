@@ -232,12 +232,18 @@ const GameContextInner = ({ children }) => {
 
     // Perform ignition
     engine.player.useAP(1);
-    source.ammoCount = Math.max(0, (source.ammoCount || 0) - 1);
+    
+    // 1. Consume 1 from source (Lighter/Matches)
+    source.consumeCharge(1);
+    
+    // 2. Consume 1 from the torch instantly (Initial burn)
+    torch.consumeCharge(1);
+    
     torch.isLit = true;
     setIsFlashlightOn(true);
     
     playSound('Ignite'); 
-    addLog(`You ignite the torch using ${source.name}.`, 'item');
+    addLog(`You ignite the torch using ${source.name}. It uses 1 charge immediately.`, 'item');
     
     // If source empty and is matchbook, discard it
     if ((source.ammoCount || 0) <= 0 && source.defId === 'tool.matchbook' && container) {
@@ -275,14 +281,19 @@ const GameContextInner = ({ children }) => {
           return false;
         }
 
-        const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
-        if (!battery || (battery.ammoCount || 0) <= 0) {
+        // Apply INSTANT CONSUMPTION rule (Use 1 charge immediately when turning ON)
+        const chargesBefore = flashlight.getCharges();
+        const success = flashlight.consumeCharge(1);
+
+        if (!success) {
           console.warn('[GameContext] Cannot turn on flashlight: No battery or empty');
-          addLog('Flashlight battery is dead or missing.', 'error');
+          addLog(`${flashlight.name} has no charges left.`, 'error');
           playSound('EmptyClick');
           return false;
         }
 
+        console.log(`[GameContext] ${flashlight.name} turned on. Instant consumption: 1 charge. Charges remaining: ${flashlight.getCharges()}`);
+        addLog(`${flashlight.name} turned on (Uses 1 charge).`, 'info');
         playSound('SwitchOn');
       } else {
         playSound('SwitchOff');
@@ -1064,33 +1075,17 @@ const GameContextInner = ({ children }) => {
       if (isFlashlightOn) {
         const flashlight = inventoryManager?.equipment['flashlight'];
         if (flashlight) {
-          if (flashlight.defId === 'tool.torch') {
-            // Torch consumption (uses condition)
-            flashlight.condition = Math.max(0, (flashlight.condition || 0) - 1);
-            console.log(`[GameContext] Torch consumption (End Turn): 1 charge. Remaining: ${flashlight.condition}`);
-            
-            if (flashlight.condition <= 0) {
-              addLog('The torch has burned out and crumbles into ash.', 'item');
-              setIsFlashlightOn(false);
-              inventoryManager.unequipItem('flashlight');
-              inventoryManager.destroyItem(flashlight.instanceId);
-              forceRefresh();
-            }
+          const success = flashlight.consumeCharge(1);
+          if (success) {
+            console.log(`[GameContext] ${flashlight.name} consumption (Turn change): 1 charge. Remaining: ${flashlight.getCharges()}`);
           } else {
-            // Flashlight consumption (uses battery ammoCount)
-            const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
-            if (battery && (battery.ammoCount || 0) > 0) {
-              battery.ammoCount = Math.max(0, battery.ammoCount - 1);
-              console.log(`[GameContext] ${flashlight.name} consumption (End Turn): 1 charge. Remaining: ${battery.ammoCount}`);
-
-              if (battery.ammoCount <= 0) {
-                console.log(`[GameContext] ${flashlight.name} battery depleted. Turning off.`);
-                setIsFlashlightOn(false);
-              }
+            if (flashlight.defId === 'tool.torch') {
+              addLog('The torch has burned out.', 'item');
             } else {
-              // Flashlight was on but battery is gone/empty
-              setIsFlashlightOn(false);
+              addLog(`${flashlight.name} has run out of power.`, 'item');
             }
+            setIsFlashlightOn(false);
+            setInventoryVersion(prev => prev + 1);
           }
         } else {
           setIsFlashlightOn(false);

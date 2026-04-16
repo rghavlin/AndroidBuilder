@@ -1,63 +1,38 @@
-import { Entity } from './Entity.js';
+import { Entity, EntityType } from './Entity.js';
+import { ZombieTypes } from './ZombieTypes.js';
 import { LineOfSight } from '../utils/LineOfSight.js';
 
 /**
  * Zombie entity with AI behavior for turn-based zombie survival game
- * Implements behavior patterns from ZombieInfo.md
  */
 export class Zombie extends Entity {
-  constructor(id, x = 0, y = 0, subtype = 'basic') {
-    super(id, 'zombie', x, y);
+  constructor(id, x = 0, y = 0, subtype = 'walker') {
+    super(id, EntityType.ZOMBIE, x, y, subtype);
+    
+    // 1. Load data from ZombieTypes config
+    const stats = ZombieTypes[subtype] || ZombieTypes.walker;
     this.subtype = subtype;
-    this.blocksMovement = true; // Zombies block movement
-    this.blocksSight = false; // Zombies don't block sight
+    this.name = stats.name || 'Zombie';
+    this.maxHp = stats.hp || 10;
+    this.hp = this.maxHp;
+    this.maxAP = stats.maxAP || 12;
+    this.currentAP = this.maxAP;
+    this.sightRange = stats.sightRange || 15;
+    
+    // Movement multipliers (used by ZombieAI)
+    this.moveCostMultiplier = stats.moveCostMultiplier || 1.0;
+    this.canPassWindows = stats.canPassWindows !== undefined ? stats.canPassWindows : true;
 
-    // Zombie-specific properties from ZombieInfo.md
-    this.lastSeen = false; // Has the zombie lost sight of player recently?
-    this.heardNoise = false; // Has the zombie heard a noise?
-    this.targetSightedCoords = { x: 0, y: 0 }; // Last known player position
-    this.noiseCoords = { x: 0, y: 0 }; // Location of heard noise
-    this.interactionMemory = 0; // Turns remaining to "dwell" at entry points after attacking structure
+    // 2. Default entity behaviors
+    this.blocksMovement = true; 
+    this.blocksSight = false; 
 
-    // Set stats based on subtype
-    if (subtype === 'crawler') {
-      this.maxAP = 6; // Half of regular 12
-      this.currentAP = 6;
-      this.hp = 7.5; // 75% of regular 10
-      this.maxHp = 7.5;
-    } else if (subtype === 'runner') {
-      this.maxAP = 12; // Maximum action points
-      this.currentAP = 12;
-      this.hp = 10; // Same as regular
-      this.maxHp = 10;
-    } else if (subtype === 'acid') {
-      this.maxAP = 12;
-      this.currentAP = 12;
-      this.hp = 10;
-      this.maxHp = 10;
-    } else if (subtype === 'fat') {
-      this.maxAP = 12;
-      this.currentAP = 12;
-      this.hp = 20;
-      this.maxHp = 20;
-    } else if (subtype === 'soldier') {
-      this.maxAP = 12;
-      this.currentAP = 12;
-      this.hp = 25;
-      this.maxHp = 25;
-    } else if (subtype === 'firefighter' || subtype === 'swat') {
-      this.maxAP = 12; // Maximum action points
-      this.currentAP = 12;
-      this.hp = 15; // 15 HP as specified
-      this.maxHp = 15;
-    } else {
-      this.maxAP = 12; // Maximum action points
-      this.currentAP = 12; // Current action points
-      this.hp = 10;
-      this.maxHp = 10;
-    }
-
-    this.sightRange = 15; // Sight distance as specified
+    // 3. AI State properties
+    this.lastSeen = false; 
+    this.heardNoise = false; 
+    this.targetSightedCoords = { x: 0, y: 0 }; 
+    this.noiseCoords = { x: 0, y: 0 }; 
+    this.interactionMemory = 0; 
 
     // Current behavior state
     this.behaviorState = 'idle'; // 'idle', 'pursuing', 'investigating', 'wandering'
@@ -65,10 +40,17 @@ export class Zombie extends Entity {
     this.isAlerted = false; // Persistent flag for "spotted player" sound trigger
     this.lastScentSequence = 0; // Last scent in the trail this zombie followed
 
-    // Animation state for smooth movement (Phase 11)
     this.movementPath = []; // Array of {x, y} coordinates for the current turn
     this.isAnimating = false;
     this.animationProgress = 0; // 0.0 to 1.0
+  }
+
+  /**
+   * Get the movement cost multiplier for this zombie
+   * @returns {number}
+   */
+  getMovementMultiplier() {
+    return this.moveCostMultiplier || 1.0;
   }
 
   /**

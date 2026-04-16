@@ -2,7 +2,7 @@ import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { ItemDefs, createItemFromDef } from './ItemDefs.js';
 import { GroundManager } from './GroundManager.js';
-import { ItemTrait, EquipmentSlot, ItemCategory, EncumbranceModifiers } from './traits.js';
+import { ItemTrait, EquipmentSlot, ItemCategory } from './traits.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { CraftingManager } from './CraftingManager.js';
 import audioManager from '../utils/AudioManager.js';
@@ -550,29 +550,6 @@ export class InventoryManager extends SafeEventEmitter {
 
 
 
-  /**
-   * Calculate encumbrance modifiers from equipped clothing
-   */
-  getEncumbranceModifiers() {
-    let totalEvade = 0;
-    let totalAP = 0;
-
-    // Check upper body
-    if (this.equipment.upper_body && this.equipment.upper_body.encumbranceTier) {
-      const mods = EncumbranceModifiers[this.equipment.upper_body.encumbranceTier];
-      totalEvade += mods.evade;
-      totalAP += mods.ap;
-    }
-
-    // Check lower body
-    if (this.equipment.lower_body && this.equipment.lower_body.encumbranceTier) {
-      const mods = EncumbranceModifiers[this.equipment.lower_body.encumbranceTier];
-      totalEvade += mods.evade;
-      totalAP += mods.ap;
-    }
-
-    return { evade: totalEvade, ap: totalAP };
-  }
 
   /**
    * Check if a container can be opened
@@ -1059,17 +1036,18 @@ export class InventoryManager extends SafeEventEmitter {
     let itemToAttach = item;
     if (item.stackCount > 1) {
       console.log(`[InventoryManager] Splitting stack for attachment: taking 1 from ${item.stackCount}`);
-      const remainder = item.splitStack(item.stackCount - 1);
-      // item now has 1 unit, remainder has the rest
-      itemToAttach = item;
+      // Split off the one we want to keep/attach
+      itemToAttach = item.splitStack(1);
+      // Decrement the original stack (which stays in the world)
+      item.stackCount -= 1;
       
-      // Put remainder back into original source if possible
-      if (remainder) {
-        if (removed.container) {
-          removed.container.addItem(remainder, removed.x, removed.y);
-        } else {
-          this.addItem(remainder);
-        }
+      const remainder = item;
+      
+      // Put remainder (original item instance) back into original source if possible
+      if (removed.container) {
+        removed.container.addItem(remainder, removed.x, removed.y);
+      } else {
+        this.addItem(remainder);
       }
     }
 

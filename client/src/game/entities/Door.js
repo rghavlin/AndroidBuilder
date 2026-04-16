@@ -1,4 +1,4 @@
-import { Entity } from './Entity.js';
+import { Entity, EntityType } from './Entity.js';
 
 /**
  * Door entity for buildings
@@ -6,7 +6,7 @@ import { Entity } from './Entity.js';
  */
 export class Door extends Entity {
     constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false) {
-        super(id, 'door', x, y);
+        super(id, EntityType.DOOR, x, y);
         this.isOpen = isOpen;
         this.isLocked = isLocked;
         this.isDamaged = isDamaged;
@@ -84,7 +84,7 @@ export class Door extends Entity {
             const tile = gameMap.getTile(this.x, this.y);
             if (tile) {
                 // Block closing if a player or zombie is in the doorway
-                if (tile.contents.some(e => e.id !== this.id && (e.type === 'player' || e.type === 'zombie'))) {
+                if (tile.contents.some(e => e.id !== this.id && (e.type === EntityType.PLAYER || e.type === EntityType.ZOMBIE))) {
                     this.emitEvent('doorInteractionFailed', { reason: 'occupied' });
                     return false;
                 }

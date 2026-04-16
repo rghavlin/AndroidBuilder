@@ -1,4 +1,4 @@
-import { Entity } from './Entity.js';
+import { Entity, EntityType } from './Entity.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 
 /**
@@ -6,7 +6,7 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
  */
 export class Player extends Entity {
   constructor(id, name, x = 0, y = 0) {
-    super(id, 'player', x, y);
+    super(id, EntityType.PLAYER, x, y);
     this.name = name;
     // Survival Stats with backing properties for reactivity
     this._hp = 20;
@@ -32,27 +32,7 @@ export class Player extends Entity {
     this._craftingApUsed = 0;
     this.craftingLvl = 0;
 
-    // Add instance tracking to detect duplicates
-    this.instanceCreatedAt = Date.now();
-    this.creationStack = new Error().stack;
-    console.log(`[Player] 🎮 NEW PLAYER INSTANCE CREATED: ${id} at (${x}, ${y})`);
-    console.log(`[Player] - Creation timestamp: ${this.instanceCreatedAt}`);
 
-    // Track all player instances globally
-    if (!window.playerInstances) {
-      window.playerInstances = new Map();
-    }
-    window.playerInstances.set(this.instanceCreatedAt, { id, x, y, createdAt: this.instanceCreatedAt });
-    console.log(`[Player] 📊 TOTAL PLAYER INSTANCES CREATED: ${window.playerInstances.size}`);
-    if (window.playerInstances.size > 1) {
-      console.error(`[Player] 🚨🚨🚨 MULTIPLE PLAYER INSTANCES DETECTED!`);
-      console.error(`[Player] All instances:`, Array.from(window.playerInstances.values()));
-    }
-
-    // Ensure event emitter methods are available
-    if (!this.on || !this.emit) {
-      console.error('[Player] Event emitter methods not available from Entity parent class');
-    }
   }
 
   // --- Reactive Getters/Setters ---

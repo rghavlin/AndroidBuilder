@@ -1,6 +1,20 @@
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 
 /**
+ * Common entity types for the game
+ */
+export const EntityType = {
+  PLAYER: 'player',
+  ZOMBIE: 'zombie',
+  DOOR: 'door',
+  WINDOW: 'window',
+  ANIMAL: 'animal',
+  RABBIT: 'rabbit',
+  PLACE_ICON: 'place_icon',
+  STRUCTURE: 'structure' // Generic structure type if needed
+};
+
+/**
  * Base Entity class for all game objects (players, zombies, items, etc.)
  * Provides common functionality like position, ID, and event handling
  */

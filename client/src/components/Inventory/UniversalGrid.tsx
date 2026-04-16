@@ -319,7 +319,7 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     // If an item is selected, right-click on it rotates it
@@ -440,7 +440,7 @@ export default function UniversalGrid({
     } else {
       setPreviewOverlay(null);
     }
-  }, [targetingItem, containerId, slotSize, width, height, grid, items, selectedItem, getPlacementPreview]);
+  }, [targetingItem, containerId, slotSize, width, height, grid, items, selectedItem, getPlacementPreview, inventoryVersion]);
 
   // Dynamic grid dimensions based on calculated slot size (+ gaps)
   const totalGridWidth = (width * slotSize) + ((width - 1) * GAP_SIZE);
@@ -512,7 +512,7 @@ export default function UniversalGrid({
         />
       );
     });
-  }, [totalSlots, width, grid, items, gridType, hoveredItem, previewOverlay, containerId, handleItemClick, handleItemContextMenu]);
+  }, [totalSlots, width, grid, items, gridType, hoveredItem, previewOverlay, containerId, handleItemClick, handleItemContextMenu, inventoryVersion]);
 
   const overlays = useMemo(() => {
     const result: JSX.Element[] = [];
@@ -661,7 +661,7 @@ export default function UniversalGrid({
     });
 
     return result;
-  }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick]);
+  }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick, inventoryVersion]);
 
   const renderGrid = () => {
     return (

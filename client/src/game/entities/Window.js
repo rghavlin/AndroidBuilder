@@ -1,4 +1,4 @@
-import { Entity } from './Entity.js';
+import { Entity, EntityType } from './Entity.js';
 
 /**
  * Window entity for buildings
@@ -7,7 +7,7 @@ import { Entity } from './Entity.js';
  */
 export class Window extends Entity {
     constructor(id, x, y, isLocked = false, isOpen = false, isBroken = false) {
-        super(id, 'window', x, y);
+        super(id, EntityType.WINDOW, x, y);
         this.isOpen = isOpen;
         this.isLocked = isLocked;
         this.isReinforced = false;
@@ -89,7 +89,7 @@ export class Window extends Entity {
         // Check for occupants if map is provided
         if (gameMap) {
             const tile = gameMap.getTile(this.x, this.y);
-            if (tile && tile.contents.some(e => e.id !== this.id && (e.type === 'player' || e.type === 'zombie'))) {
+            if (tile && tile.contents.some(e => e.id !== this.id && (e.type === EntityType.PLAYER || e.type === EntityType.ZOMBIE))) {
                 this.emitEvent('windowInteractionFailed', { reason: 'occupied' });
                 return false;
             }

@@ -1,9 +1,7 @@
-import { Entity } from './Entity.js';
+import { Entity, EntityType } from './Entity.js';
 
 /**
  * PlaceIcon entity for special buildings and landmarks
- * Used for building signs (Grocery, Police, Fire) and objects like fuel pumps.
- * Non-blocking and non-interactable.
  */
 export class PlaceIcon extends Entity {
     /**
@@ -13,7 +11,7 @@ export class PlaceIcon extends Entity {
      * @param {string} subtype - The specific place type (grocer, police, firestation, fuelpump)
      */
     constructor(id, x, y, subtype) {
-        super(id, 'place_icon', x, y);
+        super(id, EntityType.PLACE_ICON, x, y);
         this.subtype = subtype;
         this.blocksMovement = false;
         this.blocksSight = false;

@@ -3,7 +3,7 @@
  * Static item templates following trait-based model
  */
 
-import { EncumbranceTier, EquipmentSlot, ItemTrait, ItemCategory, Rarity } from './traits.js';
+import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from './traits.js';
 
 export const ItemDefs = {
   // Backpacks (containers, equippable)
@@ -68,7 +68,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.TOOL, ItemCategory.CRAFTING_MATERIAL],
-    stackMax: 100
+    stackMax: 100,
+    spawnStackMin: 1,
+    spawnStackMax: 5
   },
 
   'crafting.rope': {
@@ -106,7 +108,6 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
 
-    encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'pocket_tee'
   },
 
@@ -120,7 +121,6 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'work_shirt'
   },
 
@@ -134,7 +134,6 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    encumbranceTier: EncumbranceTier.MEDIUM,
     pocketLayoutId: 'paramedic_shirt',
     backgroundColor: '#8a0303'
   },
@@ -149,7 +148,6 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    encumbranceTier: EncumbranceTier.MEDIUM,
     pocketLayoutId: 'police_shirt',
     backgroundColor: '#0a2e5c'
   },
@@ -168,7 +166,6 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    encumbranceTier: EncumbranceTier.LIGHT,
     pocketLayoutId: 'sweatpants'
   },
 
@@ -182,7 +179,6 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    encumbranceTier: EncumbranceTier.MEDIUM,
     pocketLayoutId: 'cargo_pants'
   },
 
@@ -497,7 +493,8 @@ export const ItemDefs = {
       damage: { min: 5, max: 12 },
       accuracyFalloff: 0.1,
       minAccuracy: 0.01
-    }
+    },
+    spawnMaxRounds: 6
   },
   'weapon.hunting_rifle': {
     id: 'weapon.hunting_rifle',
@@ -518,7 +515,8 @@ export const ItemDefs = {
       damage: { min: 4, max: 15 },
       accuracyFalloff: 0.07,
       minAccuracy: 0.01
-    }
+    },
+    spawnMaxRounds: 4
   },
 
   'weapon.grenade': {
@@ -774,7 +772,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
-    stackMax: 50
+    stackMax: 50,
+    spawnStackMin: 3,
+    spawnStackMax: 6
   },
   'ammo.sniper': {
     id: 'ammo.sniper',
@@ -785,7 +785,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
-    stackMax: 20
+    stackMax: 20,
+    spawnStackMin: 3,
+    spawnStackMax: 6
   },
   'ammo.357': {
     id: 'ammo.357',
@@ -796,7 +798,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
-    stackMax: 50
+    stackMax: 50,
+    spawnStackMin: 3,
+    spawnStackMax: 6
   },
   'ammo.308': {
     id: 'ammo.308',
@@ -807,7 +811,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
-    stackMax: 50
+    stackMax: 50,
+    spawnStackMin: 3,
+    spawnStackMax: 6
   },
 
   'medical.bandage': {
@@ -880,6 +886,7 @@ export const ItemDefs = {
     stackMax: 10,
     capacity: 20,
     ammoCount: 20,
+    spawnAmmoPercent: 1.0,
     consumptionEffects: {
       hydration: 1
     }
@@ -943,6 +950,7 @@ export const ItemDefs = {
     stackMax: 5,
     capacity: 50,
     ammoCount: 50,
+    spawnAmmoPercent: 1.0,
     consumptionEffects: {
       hydration: 1
     }
@@ -1069,7 +1077,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.FOOD],
-    stackMax: 100
+    stackMax: 100,
+    spawnStackMin: 2,
+    spawnStackMax: 3
   },
   'provision.corn_plant': {
     id: 'provision.corn_plant',
@@ -1135,7 +1145,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.FOOD],
-    stackMax: 100
+    stackMax: 100,
+    spawnStackMin: 2,
+    spawnStackMax: 3
   },
   'provision.tomato_plant': {
     id: 'provision.tomato_plant',
@@ -1186,7 +1198,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.FOOD],
-    stackMax: 100
+    stackMax: 100,
+    spawnStackMin: 2,
+    spawnStackMax: 3
   },
   'provision.carrot_plant': {
     id: 'provision.carrot_plant',
@@ -1336,11 +1350,12 @@ export const ItemDefs = {
     imageId: 'lighter',
     width: 1,
     height: 1,
-    traits: [],
+    traits: [ItemTrait.CHARGE_BASED],
     categories: [ItemCategory.TOOL],
     stackMax: 1,
     capacity: 10,
     ammoCount: 10,
+    spawnAmmoPercent: 1.0,
     noLoot: true
   },
   'tool.matchbook': {
@@ -1350,11 +1365,12 @@ export const ItemDefs = {
     imageId: 'matchbook',
     width: 1,
     height: 1,
-    traits: [],
+    traits: [ItemTrait.CHARGE_BASED],
     categories: [ItemCategory.TOOL],
     stackMax: 1,
     capacity: 15,
     ammoCount: 15,
+    spawnAmmoPercent: 1.0,
     noLoot: true
   },
   'tool.bowdrill': {
@@ -1364,7 +1380,7 @@ export const ItemDefs = {
     imageId: 'bowdrill',
     width: 2,
     height: 1,
-    traits: [],
+    traits: [ItemTrait.CHARGE_BASED],
     categories: [ItemCategory.TOOL],
     stackMax: 1,
     capacity: 5,
@@ -1427,7 +1443,9 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
-    stackMax: 20
+    stackMax: 20,
+    spawnStackMin: 3,
+    spawnStackMax: 6
   },
 
   'placeable.campfire': {
