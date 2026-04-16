@@ -1,6 +1,7 @@
 import { Tile } from './Tile.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
+import { EntityType } from '../entities/Entity.js';
 
 /**
  * 20x20 map container with tile management and serialization
@@ -81,7 +82,7 @@ export class GameMap {
     console.log(`[GameMap] 📢 Noise emitted at (${x}, ${y}) with radius ${radius}`);
     let alertedCount = 0;
 
-    this.getEntitiesByType('zombie').forEach(zombie => {
+    this.getEntitiesByType(EntityType.ZOMBIE).forEach(zombie => {
       const dist = Math.sqrt(Math.pow(zombie.x - x, 2) + Math.pow(zombie.y - y, 2));
       if (dist <= radius) {
         if (typeof zombie.setNoiseHeard === 'function') {
@@ -202,7 +203,7 @@ export class GameMap {
         // Create a proxy entity for visual representation
         const proxy = {
           id: proxyId,
-          type: 'item',
+          type: EntityType.ITEM,
           subtype,
           x,
           y,
@@ -210,7 +211,7 @@ export class GameMap {
           blocksSight: false,
           toJSON: () => ({
             id: proxyId,
-            type: 'item',
+            type: EntityType.ITEM,
             subtype,
             x,
             y,
@@ -334,7 +335,7 @@ export class GameMap {
       const wasDiscovered = tile.cropInfo?.discovered || false;
       
       // Discovery occurs if player is on the tile OR was already discovered
-      const isPlayerHere = tile.contents.some(e => e.type === 'player');
+      const isPlayerHere = tile.contents.some(e => e.type === EntityType.PLAYER);
       const isDiscovered = wasDiscovered || isPlayerHere;
 
       tile.cropInfo = { 
@@ -418,7 +419,7 @@ export class GameMap {
         console.error(`[GameMap] - New entity:`, `${entity.id} at (${x}, ${y}), type: ${entity.type}`);
         console.error(`[GameMap] - Same instance?`, existingEntity === entity ? 'YES' : 'NO - DIFFERENT INSTANCES!');
 
-        if (entity.type === 'player') {
+        if (entity.type === EntityType.PLAYER) {
           console.error(`[GameMap] 🚨🚨🚨 DUPLICATE PLAYER BEING ADDED TO MAP!`);
           console.error(`[GameMap] - This indicates multiple initialization managers are running!`);
         }
@@ -433,13 +434,13 @@ export class GameMap {
       tile.addEntity(entity);
       
       // Update crop metadata to handle wild crop discovery if player enters
-      if (entity.type === 'player') {
+      if (entity.type === EntityType.PLAYER) {
         this.updateCropMetadata(x, y);
       }
 
       console.log(`[GameMap] ✅ Entity added: ${entity.id} (${entity.type}) at (${x}, ${y})`);
-      if (entity.type === 'player') {
-        console.log(`[GameMap] 🎮 PLAYER ADDED TO MAP - Total players now: ${this.getEntitiesByType('player').length}`);
+      if (entity.type === EntityType.PLAYER) {
+        console.log(`[GameMap] 🎮 PLAYER ADDED TO MAP - Total players now: ${this.getEntitiesByType(EntityType.PLAYER).length}`);
       }
 
       this.emit('entityAdded', {

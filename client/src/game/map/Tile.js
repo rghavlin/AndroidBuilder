@@ -1,7 +1,8 @@
 /**
- * Individual tile logic with position, terrain, and contents
  * Tiles are the core building blocks - they know their state and emit events
  */
+import { EntityType } from '../entities/Entity.js';
+
 export class Tile {
   constructor(x, y, terrain = 'grass') {
     this.x = x;
@@ -62,9 +63,9 @@ export class Tile {
 
     // Check if any entity blocks movement
     // ZOMBIE EXCEPTION: Zombies can move through windows (even though windows block player movement)
-    const isZombie = entity && entity.type === 'zombie';
+    const isZombie = entity && entity.type === EntityType.ZOMBIE;
     const blocked = this.contents.some(e => {
-        if (isZombie && e.type === 'window') return false;
+        if (isZombie && e.type === EntityType.WINDOW) return false;
         return e.blocksMovement;
     });
 
@@ -158,10 +159,10 @@ export class Tile {
       actions.push('examine');
       // Add entity-specific actions
       this.contents.forEach(entity => {
-        if (entity.type === 'item') {
+        if (entity.type === EntityType.ITEM) {
           actions.push('pickup');
         }
-        if (entity.type === 'zombie') {
+        if (entity.type === EntityType.ZOMBIE) {
           actions.push('attack');
         }
       });

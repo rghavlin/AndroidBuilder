@@ -4,6 +4,7 @@ import { ScentTrail } from '../game/utils/ScentTrail.js';
 import Logger from '../game/utils/Logger.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import engine from '../game/GameEngine.js';
+import { EntityType } from '../game/entities/Entity.js';
 
 const logger = Logger.scope('PlayerContext');
 

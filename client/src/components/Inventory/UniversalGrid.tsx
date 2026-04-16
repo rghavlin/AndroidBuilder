@@ -449,21 +449,6 @@ export default function UniversalGrid({
 
   // For fixed grids, don't wait for calculation - they use a constant size
   // For scalable grids, wait for calculation to prevent layout shifts
-  if (gridType === 'scalable' && !isCalculated) {
-    return (
-      <div className={cn("flex flex-col h-full", className)}>
-        {title && (
-          <h4 className="text-xs font-medium text-muted-foreground mb-2 text-center flex-shrink-0">
-            {title}
-          </h4>
-        )}
-        <div className="border rounded bg-card flex-1 min-h-0 flex items-center justify-center">
-          <div className="text-sm text-muted-foreground">Calculating grid size...</div>
-        </div>
-      </div>
-    );
-  }
-
 
   const handleGridContainerClick = useCallback((e: React.MouseEvent) => {
     // Prevent clicks in the gaps between slots from bubbling to the map
@@ -662,6 +647,24 @@ export default function UniversalGrid({
 
     return result;
   }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick, inventoryVersion]);
+
+  if (gridType === 'scalable' && !isCalculated) {
+    return (
+      <div className={cn("flex flex-col h-full", className)}>
+        {title && (
+          <h4 className="text-xs font-medium text-muted-foreground mb-2 text-center flex-shrink-0">
+            {title}
+          </h4>
+        )}
+        <div className="border rounded bg-card flex-1 min-h-0 flex items-center justify-center">
+          <div className="text-sm text-muted-foreground">Calculating grid size...</div>
+        </div>
+      </div>
+    );
+  }
+
+
+
 
   const renderGrid = () => {
     return (

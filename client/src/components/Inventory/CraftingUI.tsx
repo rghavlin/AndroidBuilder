@@ -97,7 +97,7 @@ export default function CraftingUI() {
         const vegItems = allItems.filter(i => (i.hasCategory && i.hasCategory('vegetable')) || (i.categories && i.categories.includes('vegetable')));
         const meatItems = allItems.filter(i => i.defId === 'food.raw_meat');
         
-        const waterContainers = allItems.filter(i => (i.isWaterBottle && i.isWaterBottle()) || (i.defId && (i.defId.startsWith('food.waterbottle') || i.defId.startsWith('food.waterjug'))));
+        const waterContainers = allItems.filter(i => (i.isWaterBottle && i.isWaterBottle()));
         const totalWater = waterContainers.reduce((sum, i) => sum + (i.ammoCount || 0), 0);
         
         // 2. Greedy simulation (matching CraftingManager.js)

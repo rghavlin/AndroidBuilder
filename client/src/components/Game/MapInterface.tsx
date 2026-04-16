@@ -13,6 +13,7 @@ import { Menu, Hammer } from "lucide-react";
 import MainMenuWindow from './MainMenuWindow';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
+import { EntityType } from '../../game/entities/Entity.js';
 import { cn } from "@/lib/utils";
 import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
@@ -180,21 +181,20 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     if (!isFlashlightOn) return false;
     const fl = inventoryRef.current?.equipment['flashlight'];
     if (!fl) return false;
-    if (fl.defId === 'tool.torch' && !fl.isLit) return false;
+    if (fl.hasTrait(ItemTrait.IGNITABLE) && !fl.isLit) return false;
     return true;
   }, [isFlashlightOn, inventoryVersion]);
 
   const isNightVision = useMemo(() => {
     if (!isFlashlightOnActual) return false;
     const fl = inventoryRef.current?.equipment['flashlight'];
-    return fl?.defId === 'tool.nightvision';
+    return fl?.lightType === 'nightvision';
   }, [isFlashlightOnActual, inventoryVersion]);
 
   const getActiveFlashlightRange = useCallback(() => {
     const flashlight = inventoryRef.current?.equipment['flashlight'];
     if (flashlight) {
-      if (flashlight.defId === 'tool.nightvision') return 15;
-      if (flashlight.defId === 'tool.torch') return 5;
+      return flashlight.lightRange || 8;
     }
     return 8;
   }, [inventoryVersion]);
@@ -213,7 +213,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       // Check containers
       for (const [id, container] of inv.containers.entries()) {
         for (const item of container.items.values()) {
-          if (item.defId === 'tool.torch' && item.isLit) {
+          if (item.hasTrait(ItemTrait.IGNITABLE) && item.isLit) {
             console.log('[MapInterface] Sync: Extinguishing torch moved to container:', id);
             item.isLit = false;
           }
@@ -223,7 +223,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       for (const slot in inv.equipment) {
         if (slot === 'flashlight') continue;
         const item = inv.equipment[slot];
-        if (item && item.defId === 'tool.torch' && item.isLit) {
+        if (item && item.hasTrait(ItemTrait.IGNITABLE) && item.isLit) {
           console.log('[MapInterface] Sync: Extinguishing torch moved to equipment slot:', slot);
           item.isLit = false;
         }
@@ -414,7 +414,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     const tile = gameMap.getTile(x, y);
     if (!tile) return;
 
-    const door = tile.contents.find((e: any) => e.type === 'door');
+    const door = tile.contents.find((e: any) => e.type === EntityType.DOOR);
     if (door) {
       const px = Math.floor(player.x);
       const py = Math.floor(player.y);
@@ -430,7 +430,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       return;
     }
 
-    const windowEntity = tile.contents.find((e: any) => e.type === 'window');
+    const windowEntity = tile.contents.find((e: any) => e.type === EntityType.WINDOW);
     if (windowEntity) {
       // Use robust floored distance for adjacency
       const px = Math.floor(player.x);

@@ -347,6 +347,7 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON, ItemCategory.CRAFTING_MATERIAL, ItemCategory.FUEL],
+    spawnBias: { outside: 10, inside: 0 },
     condition: 100,
     combat: {
       hitChance: 0.60,
@@ -357,6 +358,7 @@ export const ItemDefs = {
   'weapon.makeshift_hammer': {
     id: 'weapon.makeshift_hammer',
     name: 'Makeshift hammer',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'Makeshifthammer',
     width: 3,
@@ -542,6 +544,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.FLASHLIGHT,
     categories: [ItemCategory.TOOL],
     condition: 100,
+    lightRange: 8,
+    lightType: 'beam',
     attachmentSlots: [
       { id: 'battery', name: 'Battery', type: 'battery', allowedCategories: [ItemCategory.BATTERY] }
     ]
@@ -558,6 +562,8 @@ export const ItemDefs = {
     categories: [ItemCategory.TORCH],
     condition: 10,
     isLit: false,
+    lightRange: 5,
+    lightType: 'glow',
     noLoot: true // Craftable only
   },
   'tool.battery': {
@@ -586,6 +592,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.FLASHLIGHT,
     categories: [ItemCategory.TOOL],
     condition: 100,
+    lightRange: 15,
+    lightType: 'nightvision',
     attachmentSlots: [
       { id: 'battery', name: 'Battery', type: 'battery', allowedCategories: [ItemCategory.BATTERY] }
     ]
@@ -606,6 +614,7 @@ export const ItemDefs = {
     id: 'tool.snare_deployed',
     name: 'Deployed snare',
     noLoot: true,
+    renderFullTile: true,
     rarity: Rarity.UNCOMMON,
     imageId: 'deployedsnare',
     width: 2,
@@ -825,6 +834,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
+    pileLimitOne: true,
     stackMax: 10,
     consumptionEffects: [
       { type: 'heal', value: { min: 4, max: 7 } },
@@ -852,6 +862,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.MEDICAL],
+    pileLimitOne: true,
     stackMax: 10,
     consumptionEffects: {
       cure: true
@@ -881,7 +892,7 @@ export const ItemDefs = {
     imageId: 'waterbottle',
     width: 2,
     height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.WATER_CONTAINER],
     categories: [ItemCategory.FOOD],
     stackMax: 10,
     capacity: 20,
@@ -898,11 +909,12 @@ export const ItemDefs = {
     imageId: 'waterbottle',
     width: 2,
     height: 1,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.WATER_CONTAINER],
     categories: [ItemCategory.FOOD],
     stackMax: 10,
     capacity: 20,
     ammoCount: 0,
+    noLoot: true,
     consumptionEffects: {
       hydration: 0
     }
@@ -945,7 +957,7 @@ export const ItemDefs = {
     imageId: 'waterjug',
     width: 2,
     height: 2,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.WATER_CONTAINER],
     categories: [ItemCategory.FOOD],
     stackMax: 5,
     capacity: 50,
@@ -962,7 +974,7 @@ export const ItemDefs = {
     imageId: 'waterjug',
     width: 2,
     height: 2,
-    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.WATER_CONTAINER],
     categories: [ItemCategory.FOOD],
     stackMax: 5,
     capacity: 50,
@@ -1032,6 +1044,7 @@ export const ItemDefs = {
     id: 'provision.hole',
     name: 'Hole',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'hole',
     width: 2,
     height: 2,
@@ -1085,6 +1098,7 @@ export const ItemDefs = {
     id: 'provision.corn_plant',
     name: 'Corn plant',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'cornplant',
     width: 2,
     height: 2,
@@ -1098,6 +1112,7 @@ export const ItemDefs = {
     id: 'provision.harvestable_corn',
     name: 'Harvestable corn',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'harvestablecorn',
     width: 2,
     height: 2,
@@ -1153,6 +1168,7 @@ export const ItemDefs = {
     id: 'provision.tomato_plant',
     name: 'Tomato plant',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'tomatoplant',
     width: 2,
     height: 2,
@@ -1166,6 +1182,7 @@ export const ItemDefs = {
     id: 'provision.harvestable_tomato',
     name: 'Harvestable tomato',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'harvestabletomato',
     width: 2,
     height: 2,
@@ -1206,6 +1223,7 @@ export const ItemDefs = {
     id: 'provision.carrot_plant',
     name: 'Carrot plant',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'carrotplant',
     width: 2,
     height: 2,
@@ -1219,6 +1237,7 @@ export const ItemDefs = {
     id: 'provision.harvestable_carrot',
     name: 'Harvestable carrot',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'harvestablecarrot',
     width: 2,
     height: 2,
@@ -1249,6 +1268,7 @@ export const ItemDefs = {
     id: 'food.raw_meat',
     name: 'Raw meat',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'rawmeat',
     width: 1,
     height: 1,
@@ -1268,6 +1288,7 @@ export const ItemDefs = {
     id: 'food.rotten_meat',
     name: 'Rotten meat',
     rarity: Rarity.COMMON,
+    renderFullTile: true,
     imageId: 'rawmeat', // Using rawmeat icon for now per user
     width: 1,
     height: 1,
@@ -1308,6 +1329,8 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.CRAFTING_MATERIAL],
+    spawnBias: { outside: 10, inside: 0 },
+    pileLimitOne: true,
     stackMax: 50
   },
   'crafting.tape': {
@@ -1396,6 +1419,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.CRAFTING_MATERIAL],
+    pileLimitOne: true,
     stackMax: 20
   },
   'tool.cooking_pot': {
@@ -1476,6 +1500,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.CRAFTING_MATERIAL],
+    pileLimitOne: true,
     stackMax: 20
   },
   'weapon.sling': {
@@ -1525,6 +1550,7 @@ export const ItemDefs = {
     rarity: Rarity.RARE,
     noLoot: true,
     noPickup: true,
+    renderFullTile: true,
     imageId: 'bed',
     width: 4,
     height: 6,

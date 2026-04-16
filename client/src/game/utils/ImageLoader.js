@@ -2,6 +2,8 @@
  * ImageLoader - Handles loading and caching of entity images
  * Falls back to default rendering if images are not found
  */
+import { getZombieType } from '../entities/ZombieTypes.js';
+
 export class ImageLoader {
   constructor() {
     this.images = {};
@@ -47,14 +49,8 @@ export class ImageLoader {
 
     // 2. Specialized mapping for known subtypes
     if (entityType === 'zombie') {
-      if (subtype === 'crawler') imageKey = 'crawlerzombie';
-      else if (subtype === 'runner') imageKey = 'runnerzombie';
-      else if (subtype === 'acid') imageKey = 'acidzombie';
-      else if (subtype === 'firefighter') imageKey = 'firefighterzombie';
-      else if (subtype === 'swat') imageKey = 'swatzombie';
-      else if (subtype === 'fat') imageKey = 'fatzombie';
-      else if (subtype === 'soldier') imageKey = 'soldierzombie';
-      else imageKey = 'zombie';
+      const typeDef = getZombieType(subtype);
+      imageKey = typeDef?.spriteKey || 'zombie';
     } else if (entityType === 'rabbit') {
       imageKey = 'rabbit';
     } else if (entityType === 'item') {

@@ -191,7 +191,7 @@ export function ItemContextMenu({
                         )}
                         {item?.isChargeBased?.() && (() => {
                             const torch = inventoryManager?.equipment?.['flashlight'];
-                            const canIgnite = torch && torch.defId === 'tool.torch' && !torch.isLit;
+                            const canIgnite = torch && torch.hasTrait(ItemTrait.IGNITABLE) && !torch.isLit;
                             if (!canIgnite) return null;
 
                             return (

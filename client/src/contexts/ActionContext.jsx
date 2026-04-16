@@ -8,6 +8,7 @@ import { useGameMap } from './GameMapContext.jsx';
 import { useAudio } from './AudioContext.jsx';
 import { useGame } from './GameContext.jsx';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import { EntityType } from '../game/entities/Entity.js';
 
 const ActionContext = createContext();
 
@@ -229,7 +230,7 @@ export const ActionProvider = ({ children }) => {
     if ((dx + dy) !== 1) return { success: false, reason: 'Too far' };
 
     const tile = gameMap.getTile(x, y);
-    const structure = tile?.contents.find(e => e.type === 'door' || e.type === 'window');
+    const structure = tile?.contents.find(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
 
     if (!structure || !structure.isLocked || structure.isOpen || structure.isBroken) {
       return { success: false, reason: 'Cannot use here' };
@@ -243,7 +244,7 @@ export const ActionProvider = ({ children }) => {
     structure.isLocked = false;
     structure.isOpen = true;
     structure.hp = 0; // Forced to 0 HP - requires repair to close
-    if (structure.type === 'window') {
+    if (structure.type === EntityType.WINDOW) {
       structure.isBroken = true;
     } else {
       structure.isDamaged = true;

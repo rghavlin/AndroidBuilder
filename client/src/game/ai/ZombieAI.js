@@ -3,6 +3,7 @@ import { MovementHelper } from '../utils/MovementHelper.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import audioManager from '../utils/AudioManager.js';
+import { getZombieType } from '../entities/ZombieTypes.js';
 
 /**
  * Zombie AI system implementing the behavior loop from ZombieInfo.md
@@ -799,7 +800,7 @@ export class ZombieAI {
         console.log(`[ZombieAI] Zombie ${zombie.id} attacked window, broken=${damageResult.isBroken}, reinforced=${damageResult.isReinforced}`);
 
         // Attract zombies (including ourselves) to the noise
-        const otherZombies = gameMap.getEntitiesByType('zombie');
+        const otherZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
         otherZombies.forEach(z => {
           const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
           if (distance <= 6) {
@@ -829,7 +830,7 @@ export class ZombieAI {
       if (!ZombieAI.canMoveToTile(gameMap, nextMove.x, nextMove.y, zombie.subtype)) {
         // PACK LOGIC: If blocked by another zombie, just wait/shuffle instead of pathing around
         const targetTile = gameMap.getTile(nextMove.x, nextMove.y);
-        const blockingZombie = targetTile?.contents.find(e => e.type === 'zombie');
+        const blockingZombie = targetTile?.contents.find(e => e.type === EntityType.ZOMBIE);
         
         if (blockingZombie && zombie.currentAP >= 1.0) {
           console.log(`[ZombieAI] Zombie ${zombie.id} at (${zombie.x}, ${zombie.y}) blocked by zombie ${blockingZombie.id} at (${nextMove.x}, ${nextMove.y}), waiting for turn...`);
@@ -897,10 +898,10 @@ export class ZombieAI {
     // Check for blocking entities
     const hasBlockingEntities = targetTile.contents.some(entity => {
       // CRAWLERS cannot use windows
-      if (zombieSubtype === 'crawler' && entity.type === 'window') return true;
+      if (zombieSubtype === 'crawler' && entity.type === EntityType.WINDOW) return true;
 
       // Doors, windows and player are handled by specific logic in attemptMoveTowards
-      if (entity.type === 'door' || entity.type === 'window' || entity.type === 'player') return false;
+      if (entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW || entity.type === EntityType.PLAYER) return false;
 
       // Other zombies block actual movement
       return entity.blocksMovement;
@@ -926,7 +927,7 @@ export class ZombieAI {
 
       // A tile is a candidate if it's walkable (floor/grass) OR contains a door/window
       const isTerrainWalkable = !['wall', 'building', 'fence', 'tree', 'water'].includes(tile.terrain);
-      const hasInteractiveEnt = tile.contents.some(e => e.type === 'door' || e.type === 'window');
+      const hasInteractiveEnt = tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
       
       return isTerrainWalkable || hasInteractiveEnt;
     });
@@ -936,7 +937,7 @@ export class ZombieAI {
     const scoredPositions = candidatePositions.map(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
       // Actual occupancy check (other zombies block standing here)
-      const isOccupied = tile?.contents.some(e => e.type === 'zombie' && e.id !== zombie.id);
+      const isOccupied = tile?.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
       const distance = Math.abs(zombie.x - pos.x) + Math.abs(zombie.y - pos.y);
 
       // 2. Accessibility check (findPath now penalizes but doesn't block zombies/doors)
@@ -946,7 +947,7 @@ export class ZombieAI {
         entityFilter: (t) => {
           // Allow pathing through building/wall terrain ONLY if a door or window is present
           if (['wall', 'fence', 'tree', 'building', 'water', 'tent_wall'].includes(t.terrain)) {
-            const hasEntrableStructure = t.contents.some(e => e.type === 'door' || e.type === 'window');
+            const hasEntrableStructure = t.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
             if (!hasEntrableStructure) return false;
           }
           return true;
@@ -981,8 +982,8 @@ export class ZombieAI {
       // 4. Secondary: Tie-breaker - prefer tiles containing interactive structures (engagement points)
       const aTile = gameMap.getTile(a.x, a.y);
       const bTile = gameMap.getTile(b.x, b.y);
-      const aHasStructure = aTile?.contents.some(e => e.type === 'door' || e.type === 'window');
-      const bHasStructure = bTile?.contents.some(e => e.type === 'door' || e.type === 'window');
+      const aHasStructure = aTile?.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+      const bHasStructure = bTile?.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
       
       if (aHasStructure && !bHasStructure) return -1;
       if (!aHasStructure && bHasStructure) return 1;
@@ -1060,8 +1061,9 @@ export class ZombieAI {
     let bleedingInflicted = false;
 
     if (hit) {
-      const minDamage = zombie.subtype === 'acid' ? 2 : (zombie.subtype === 'fat' ? 3 : 1);
-      damage = Math.floor(Math.random() * 4) + minDamage;
+      const typeDef = getZombieType(zombie.subtype);
+      const { min, max } = typeDef.combat.damage;
+      damage = Math.floor(Math.random() * (max - min + 1)) + min;
 
       // Logic check for bleeding (don't apply it yet)
       if (target.type === 'player' && Math.random() < 0.05) {

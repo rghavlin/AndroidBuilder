@@ -2,6 +2,9 @@
  * EntityRenderer - Pure functions for drawing world entities (Players, NPCs, Items)
  */
 import { imageLoader } from '../../game/utils/ImageLoader.js';
+import { EntityType } from '../entities/Entity.js';
+import { getZombieType } from '../entities/ZombieTypes.js';
+import { ItemDefs } from '../inventory/ItemDefs.js';
 
 export const EntityRenderer = {
   renderEntity: (ctx, entity, tileSize, sprites, visibilitySet, isExplored, engine, currentTime = performance.now(), isGlobalAnimating = false) => {
@@ -64,17 +67,17 @@ export const EntityRenderer = {
     const screenY = renderY * tileSize;
 
     // 2. Specialized Rendering by Subtype/Type
-    if (entity.type === 'door') {
+    if (entity.type === EntityType.DOOR) {
       EntityRenderer.drawDoor(ctx, entity, screenX, screenY, tileSize);
-    } else if (entity.type === 'window') {
+    } else if (entity.type === EntityType.WINDOW) {
       EntityRenderer.drawWindow(ctx, entity, screenX, screenY, tileSize);
-    } else if (entity.type === 'place_icon') {
+    } else if (entity.type === EntityType.PLACE_ICON) {
       EntityRenderer.drawPlaceIcon(ctx, entity, screenX, screenY, tileSize, sprites);
     } else {
       // Standard Sprite Rendering
       // Standard Sprite Rendering
       // Standardize subtype: use 'basic' if null/undefined to hit base sprite entries
-      const subtype = entity.type === 'player' ? null : (entity.subtype || 'basic');
+      const subtype = entity.type === EntityType.PLAYER ? null : (entity.subtype || 'basic');
       
       // PHASE 26 FIX: Normalize sprite keys to match ImageLoader canonical forms
       // e.g. 'zombie_basic' -> 'zombie'
@@ -84,15 +87,9 @@ export const EntityRenderer = {
       }
       
       // Special mappings for zombie subtypes to match ImageLoader's specific naming
-      if (entity.type === 'zombie') {
-        if (subtype === 'crawler') spriteKey = 'crawlerzombie';
-        else if (subtype === 'firefighter') spriteKey = 'firefighterzombie';
-        else if (subtype === 'runner') spriteKey = 'runnerzombie';
-        else if (subtype === 'swat') spriteKey = 'swatzombie';
-        else if (subtype === 'fat') spriteKey = 'fatzombie';
-        else if (subtype === 'soldier') spriteKey = 'soldierzombie';
-        else if (subtype === 'acid') spriteKey = 'acidzombie';
-        else spriteKey = 'zombie'; // All other subtypes (including 'basic') map to base 'zombie'
+      if (entity.type === EntityType.ZOMBIE) {
+        const typeDef = getZombieType(subtype);
+        spriteKey = typeDef?.spriteKey || 'zombie';
       }
 
       let sprite = sprites[spriteKey];
@@ -128,8 +125,11 @@ export const EntityRenderer = {
         let drawSize = tileSize;
 
         // PHASE 15 Fix: Scale loot drops to 2/3 size and center them
-        // Snare catches and deployed snares show full-tile
-        const isFullTileItem = entity.subtype === 'deployedsnare' || entity.subtype === 'rawmeat';
+        // Metadata driven: check if the item is marked as full-tile
+        const isFullTileItem = entity.renderFullTile || 
+                               ItemDefs[entity.subtype]?.renderFullTile || 
+                               (entity.type === 'item' && Object.values(ItemDefs).some(d => d.imageId === entity.subtype && d.renderFullTile));
+        
         if (entity.type === 'item' && !isFullTileItem) {
           drawSize = tileSize * (2 / 3);
           drawX = screenX + (tileSize - drawSize) / 2;
@@ -139,7 +139,7 @@ export const EntityRenderer = {
         ctx.drawImage(sprite, drawX, drawY, drawSize, drawSize);
         
         // Square 'Picture Frame' for Player and Zombies
-        if (entity.type === 'player' || entity.type === 'zombie') {
+        if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE) {
           ctx.save();
           ctx.strokeStyle = '#333'; // Very thin dark frame
           ctx.lineWidth = 1;
@@ -153,7 +153,7 @@ export const EntityRenderer = {
 
     // 3. Health Bars (Show if damaged, excluding structural obstacles)
     const isWounded = entity.hp !== undefined && entity.maxHp !== undefined && entity.hp < entity.maxHp;
-    const isStructural = entity.type === 'door' || entity.type === 'window';
+    const isStructural = entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW;
     if (isVisible && isWounded && !isStructural) {
       EntityRenderer.renderHealthBar(ctx, entity, screenX, screenY, tileSize);
     }
@@ -237,8 +237,8 @@ export const EntityRenderer = {
    * Simple square fallback for missing sprites
    */
   renderDefaultSquare: (ctx, entity, x, y, tileSize) => {
-    ctx.fillStyle = entity.type === 'player' ? '#44f' : 
-                   entity.type === 'zombie' ? '#f44' : '#888';
+    ctx.fillStyle = entity.type === EntityType.PLAYER ? '#44f' : 
+                   entity.type === EntityType.ZOMBIE ? '#f44' : '#888';
     
     ctx.fillRect(x, y, tileSize, tileSize);
     ctx.strokeStyle = '#333';

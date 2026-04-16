@@ -8,6 +8,7 @@ import { useAudio } from './AudioContext.jsx';
 import { Zombie } from '../game/entities/Zombie.js';
 import { ZombieAI } from '../game/ai/ZombieAI.js';
 import { useGame } from './GameContext.jsx';
+import { EntityType } from '../game/entities/Entity.js';
 
 const SleepContext = createContext();
 
@@ -81,9 +82,9 @@ export const SleepProvider = ({ children }) => {
         const tile = gameMap.getTile(next.x, next.y);
         if (!tile) continue;
 
-        const door = tile.contents.find(e => e.type === 'door');
+        const door = tile.contents.find(e => e.type === EntityType.DOOR);
         const isClosedDoor = door && !door.isOpen;
-        const window = tile.contents.find(e => e.type === 'window');
+        const window = tile.contents.find(e => e.type === EntityType.WINDOW);
         const isClosedWindow = window && !window.isOpen && !window.isBroken;
 
         const blocksBFS = (
@@ -162,7 +163,7 @@ export const SleepProvider = ({ children }) => {
 
         // Phase 22: Insulation detection - Track how many closed doors we pass through
         let nextClosedDoors = closedDoors;
-        const door = tile.contents.find(e => e.type === 'door');
+        const door = tile.contents.find(e => e.type === EntityType.DOOR);
         if (door && !door.isOpen) {
             nextClosedDoors++;
         }
@@ -240,8 +241,8 @@ export const SleepProvider = ({ children }) => {
         }
 
         // NPC turns
-        const zombies = gameMap.getEntitiesByType('zombie');
-        const rabbits = gameMap.getEntitiesByType('rabbit');
+        const zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
+        const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT);
         const cardinalPos = getPlayerCardinalPositions();
         lastSeenTaggedTilesRef.current.clear();
         

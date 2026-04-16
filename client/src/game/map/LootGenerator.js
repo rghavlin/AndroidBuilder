@@ -199,8 +199,6 @@ export class LootGenerator {
             this.itemKeys = Object.keys(ItemDefs).filter(key => {
                 // Ignore sprite/icon metadata and specialized sub-types
                 if (key.includes('.icon') || key.includes('.sprite')) return false;
-                if (key.startsWith('food.waterbottle_')) return false;
-                if (key === 'weapon.makeshift_hammer') return false;
                 if (ItemDefs[key].noLoot) return false;
                 return true;
             });
@@ -214,22 +212,19 @@ export class LootGenerator {
     getWeightedRandomItemKey(location = 'any') {
         this.initItemKeys();
         const filteredKeys = this.itemKeys.filter(key => {
-            // Outdoor items restricted logic if any (currently none, but location used for weighting)
-            if (location === 'inside') {
-                if (key === 'weapon.stick' || key === 'crafting.stone') return false;
-            }
+            const def = ItemDefs[key];
+            if (def.spawnBias && def.spawnBias[location] === 0) return false;
             return true;
         });
 
         const totalWeight = filteredKeys.reduce((sum, key) => {
-            const rarity = ItemDefs[key].rarity || Rarity.COMMON;
+            const def = ItemDefs[key];
+            const rarity = def.rarity || Rarity.COMMON;
             let weight = RarityWeights[rarity] || 100;
 
-            // Prioritize outdoor items when spawning outside
-            if (location === 'outside' || location === 'any') {
-                if (key === 'weapon.stick' || key === 'crafting.stone') {
-                    weight *= 10; // 10x bias for sticks and stones outdoors
-                }
+            // Apply location-based weight bias
+            if (def.spawnBias) {
+                weight *= (def.spawnBias[location] ?? 1);
             }
 
             return sum + weight;
@@ -237,13 +232,12 @@ export class LootGenerator {
 
         let random = Math.random() * totalWeight;
         for (const key of filteredKeys) {
-            const rarity = ItemDefs[key].rarity || Rarity.COMMON;
+            const def = ItemDefs[key];
+            const rarity = def.rarity || Rarity.COMMON;
             let weight = RarityWeights[rarity] || 100;
 
-            if (location === 'outside' || location === 'any') {
-                if (key === 'weapon.stick' || key === 'crafting.stone') {
-                    weight *= 10;
-                }
+            if (def.spawnBias) {
+                weight *= (def.spawnBias[location] ?? 1);
             }
 
             if (random < weight) return key;
@@ -259,11 +253,7 @@ export class LootGenerator {
         const count = 1 + Math.floor(Math.random() * 3);
         const items = [];
         let hasFoodInPile = false;
-        let hasStoneInPile = false;
-        let hasBandageInPile = false;
-        let hasAntibioticsInPile = false;
-        let hasGlassInPile = false;
-        let hasBeltInPile = false;
+        const seenKeysInPile = new Set();
 
         for (let i = 0; i < count; i++) {
             // Pick a weighted random item
@@ -278,12 +268,8 @@ export class LootGenerator {
             const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
             if (isFood && hasFoodInPile) continue;
 
-            // 2b. Pile limit: Max 1 stone/bandage/belt per pile
-            if (randomKey === 'crafting.stone' && hasStoneInPile) continue;
-            if (randomKey === 'medical.bandage' && hasBandageInPile) continue;
-            if (randomKey === 'medical.antibiotics' && hasAntibioticsInPile) continue;
-            if (randomKey === 'crafting.glass_shard' && hasGlassInPile) continue;
-            if (randomKey === 'crafting.leather_belt' && hasBeltInPile) continue;
+            // 2b. Pile limit: Items that should be restricted to 1 per pile
+            if (def.pileLimitOne && seenKeysInPile.has(randomKey)) continue;
 
             // Create the item instance
             const selectedItem = createItemFromDef(randomKey);
@@ -291,11 +277,7 @@ export class LootGenerator {
                 // Track limits
                 if (isBackpack) this.backpacksSpawned++;
                 if (isFood) hasFoodInPile = true;
-                if (randomKey === 'crafting.stone') hasStoneInPile = true;
-                if (randomKey === 'medical.bandage') hasBandageInPile = true;
-                if (randomKey === 'medical.antibiotics') hasAntibioticsInPile = true;
-                if (randomKey === 'crafting.glass_shard') hasGlassInPile = true;
-                if (randomKey === 'crafting.leather_belt') hasBeltInPile = true;
+                seenKeysInPile.add(randomKey);
 
                 // Apply defaults (stack count, condition, ammo, etc.)
                 this._applySpawnDefaults(selectedItem, false);
@@ -698,7 +680,7 @@ export class LootGenerator {
         if (def.spawnAmmoPercent !== undefined && item.capacity) {
             // Apply randomized fill based on capacity
             item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
-        } else if (item.defId === 'tool.battery') {
+        } else if (item.traits && item.traits.includes(ItemTrait.BATTERY)) {
             // Batteries always spawn as a single item with a FULL charge
             item.ammoCount = item.capacity || 10;
         }
@@ -710,12 +692,16 @@ export class LootGenerator {
             item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
         }
 
-        // 4. Special cases (Flashlights, Weapons)
-        if (item.defId === 'tool.smallflashlight') {
-            const battery = createItemFromDef('tool.battery');
-            if (battery) {
-                battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
-                item.attachments = { 'battery': battery };
+        // 4. Special cases (Battery Powered items, Weapons)
+        if (item.traits && item.traits.includes(ItemTrait.BATTERY_POWERED)) {
+            const batterySlot = item.attachmentSlots?.find(s => s.type === 'battery' || s.id === 'battery');
+            if (batterySlot) {
+                const battery = createItemFromDef('tool.battery');
+                if (battery) {
+                    battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
+                    if (!item.attachments) item.attachments = {};
+                    item.attachments[batterySlot.id] = battery;
+                }
             }
         }
 

@@ -4,6 +4,7 @@ import { Pathfinding } from '../game/utils/Pathfinding.js';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import engine from '../game/GameEngine.js';
+import { EntityType } from '../game/entities/Entity.js';
 
 const GameMapContext = createContext();
 
@@ -118,16 +119,16 @@ export const GameMapProvider = ({ children }) => {
       const path = Pathfinding.findPath(engine.gameMap, player.x, player.y, x, y, { allowDiagonal: true, entityFilter });
       const apCost = path.length === 0 ? Math.abs(x - player.x) + Math.abs(y - player.y) : Pathfinding.calculateMovementCost(engine.gameMap, path);
       
-      const zombie = targetTile.contents.find(e => e.type === 'zombie');
+      const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);
       setHoveredTile({ 
         x, y, apCost, 
         canAfford: player.ap >= apCost, 
         zombie: zombie ? { subtype: zombie.subtype, hp: zombie.hp, maxHp: zombie.maxHp, currentAP: zombie.currentAP, maxAP: zombie.maxAP } : (data?.zombie || null),
         cropInfo: targetTile.cropInfo || data?.cropInfo || null,
         lootItems: targetTile.inventoryItems || null,
-        specialBuilding: targetTile.contents.find(e => e.type === 'place_icon')?.subtype || null,
-        door: targetTile.contents.find(e => e.type === 'door'),
-        window: targetTile.contents.find(e => e.type === 'window')
+        specialBuilding: targetTile.contents.find(e => e.type === EntityType.PLACE_ICON)?.subtype || null,
+        door: targetTile.contents.find(e => e.type === EntityType.DOOR),
+        window: targetTile.contents.find(e => e.type === EntityType.WINDOW)
       });
     } catch (error) {
       setHoveredTile(null);

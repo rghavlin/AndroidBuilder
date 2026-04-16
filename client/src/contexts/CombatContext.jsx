@@ -9,8 +9,9 @@ import { useAudio } from './AudioContext.jsx';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
-import { ItemCategory } from '../game/inventory/traits.js';
+import { ItemCategory, ItemTrait } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
+import { EntityType } from '../game/entities/Entity.js';
 
 const CombatContext = createContext();
 
@@ -87,11 +88,11 @@ export const CombatProvider = ({ children }) => {
             
             const dist = Math.sqrt(Math.pow(entity.x - zombie.x, 2) + Math.pow(entity.y - zombie.y, 2));
             if (dist <= radius) {
-                if (entity.type === 'player' || entity.type === 'zombie') {
+                if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE) {
                     const damage = Math.floor(Math.random() * (dMax - dMin + 1)) + dMin;
                     
                     if (typeof entity.takeDamage === 'function') {
-                        entity.takeDamage(damage, { id: zombie.id, type: 'zombie', subtype: 'acid' });
+                        entity.takeDamage(damage, { id: zombie.id, type: EntityType.ZOMBIE, subtype: 'acid' });
                         
                         addEffect({
                             type: 'damage',
@@ -102,7 +103,7 @@ export const CombatProvider = ({ children }) => {
                             duration: 1200
                         });
 
-                        addLog(`${isDeath ? 'Acid explosion' : 'Acid splash'} deals ${damage} damage to ${entity.type === 'player' ? 'you' : 'zombie'}`, 'combat');
+                        addLog(`${isDeath ? 'Acid explosion' : 'Acid splash'} deals ${damage} damage to ${entity.type === EntityType.PLAYER ? 'you' : 'zombie'}`, 'combat');
                     }
                 }
             }
@@ -148,8 +149,8 @@ export const CombatProvider = ({ children }) => {
         }
 
         const tile = gameMap.getTile(targetX, targetY);
-        const targetEntity = tile?.contents.find(e => e.type === 'zombie' || e.type === 'rabbit');
-        const structure = !targetEntity ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
+        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT);
+        const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
 
         if (!targetEntity && !structure) return { success: false, reason: 'No target here' };
 
@@ -232,7 +233,7 @@ export const CombatProvider = ({ children }) => {
                     addLog(`LEVEL UP! Melee skill is now level ${newLevel}!`, 'warning');
                 }
                 
-                if (targetEntity.type === 'zombie') {
+                if (targetEntity.type === EntityType.ZOMBIE) {
                     if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
                     if (lootGenerator && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
@@ -307,8 +308,8 @@ export const CombatProvider = ({ children }) => {
         if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
 
         const tile = gameMap.getTile(targetX, targetY);
-        const targetEntity = tile?.contents.find(e => e.type === 'zombie' || e.type === 'rabbit');
-        const structure = !targetEntity ? tile?.contents.find(e => e.type === 'window' || e.type === 'door') : null;
+        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT);
+        const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
         if (!targetEntity && !structure) return { success: false, reason: 'No target at location' };
 
         // 1. Calculate Outcome
@@ -393,9 +394,9 @@ export const CombatProvider = ({ children }) => {
             if (targetEntity) {
                 targetEntity.takeDamage(damage);
                 addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
-                if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
+                if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
             } else if (structure) {
-                if (structure.type === 'window') {
+                if (structure.type === EntityType.WINDOW) {
                     structure.break();
                     GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
                     addLog('The window shatters!', 'combat');
@@ -424,7 +425,7 @@ export const CombatProvider = ({ children }) => {
                     addLog(`LEVEL UP! Ranged skill is now level ${newLevel}!`, 'warning');
                 }
                 
-                if (targetEntity.type === 'zombie') {
+                if (targetEntity.type === EntityType.ZOMBIE) {
                     if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
                     if (lootGenerator && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
@@ -438,7 +439,7 @@ export const CombatProvider = ({ children }) => {
                             }
                         }
                     }
-                } else if (targetEntity.type === 'rabbit') {
+                } else if (targetEntity.type === EntityType.RABBIT) {
                     // Rabbits always drop 1 raw meat
                     const meat = createItemFromDef('food.raw_meat');
                     if (meat) {
@@ -541,7 +542,7 @@ export const CombatProvider = ({ children }) => {
         // Damage Entities within 2 tiles
         const allEntities = Array.from(gameMap.entityMap.values());
         allEntities.forEach(entity => {
-            if (entity.type !== 'player' && entity.type !== 'zombie' && entity.type !== 'rabbit') return;
+            if (entity.type !== EntityType.PLAYER && entity.type !== EntityType.ZOMBIE && entity.type !== EntityType.RABBIT) return;
 
             const dist = Math.sqrt(Math.pow(entity.x - targetX, 2) + Math.pow(entity.y - targetY, 2));
             if (dist > radius + 0.1) return;
@@ -578,10 +579,10 @@ export const CombatProvider = ({ children }) => {
                 if (entity.isDead()) {
                     addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed by grenade!`, 'combat');
                     // Loot drop logic for zombies killed by grenade
-                    if (entity.type === 'zombie' && lootGenerator && Math.random() < 0.75) {
+                    if (entity.type === EntityType.ZOMBIE && lootGenerator && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(entity.subtype);
                         if (loot?.length > 0) gameMap.addItemsToTile(entity.x, entity.y, loot);
-                    } else if (entity.type === 'rabbit') {
+                    } else if (entity.type === EntityType.RABBIT) {
                         const meat = createItemFromDef('food.raw_meat');
                         if (meat) gameMap.addItemsToTile(entity.x, entity.y, [meat]);
                     }

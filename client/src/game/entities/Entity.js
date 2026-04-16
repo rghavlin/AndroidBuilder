@@ -8,8 +8,10 @@ export const EntityType = {
   ZOMBIE: 'zombie',
   DOOR: 'door',
   WINDOW: 'window',
-  ANIMAL: 'animal',
   RABBIT: 'rabbit',
+  ANIMAL: 'animal',
+  ITEM: 'item',
+  NPC: 'npc',
   PLACE_ICON: 'place_icon',
   STRUCTURE: 'structure' // Generic structure type if needed
 };

@@ -1,4 +1,4 @@
-import { ItemTrait, ItemCategory } from './traits.js';
+import { ItemTrait, ItemCategory, CategoryDisplayName, SlotDisplayName } from './traits.js';
 import { Container } from './Container.js';
 import { PocketLayouts } from './PocketLayouts.js';
 import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
@@ -225,9 +225,7 @@ export class Item extends SafeEventEmitter {
   static isWaterBottle(item) {
     if (!item) return false;
     if (typeof item.isWaterBottle === 'function') return item.isWaterBottle();
-    const id = item.defId || item.id;
-    return !!(id && (id.startsWith('food.waterbottle') || id.startsWith('food.waterjug'))) ||
-           (item.traits && item.traits.includes('water_bottle'));
+    return !!(item.traits && item.traits.includes(ItemTrait.WATER_CONTAINER));
   }
 
   // Trait checks
@@ -288,9 +286,7 @@ export class Item extends SafeEventEmitter {
   }
 
   isWaterBottle() {
-    // Both standard water bottles and the larger water jug follow the same stacking/filling rules
-    return (this.defId && (this.defId.startsWith('food.waterbottle') || this.defId.startsWith('food.waterjug'))) ||
-           (this.traits && this.traits.includes('water_bottle'));
+    return this.hasTrait(ItemTrait.WATER_CONTAINER);
   }
 
   isBattery() {
@@ -303,6 +299,14 @@ export class Item extends SafeEventEmitter {
 
   isBatteryPowered() {
     return this.hasTrait(ItemTrait.BATTERY_POWERED);
+  }
+  
+  get lightRange() {
+    return this._def?.lightRange || 8;
+  }
+  
+  get lightType() {
+    return this._def?.lightType || null;
   }
 
   getBattery() {
@@ -564,16 +568,13 @@ export class Item extends SafeEventEmitter {
    * Get primary category for organization/grouping
    */
   getCategory() {
-    // 1. Return first explicit category if available
+    // 1. Return first explicit category group if available
     if (this.categories && this.categories.length > 0) {
-      // Normalize common singular categories to plural forms used by GroundManager
-      const cat = this.categories[0];
-      if (cat === 'weapon') return 'weapons';
-      if (cat === 'ammo') return 'ammunition';
-      if (cat === 'tool') return 'tools';
-      if (cat === 'clothing') return 'armor';
-      if (cat === 'food' || cat === 'medical') return 'consumables';
-      return cat;
+      const primaryCat = this.categories[0];
+      if (CategoryDisplayName[primaryCat]) {
+        return CategoryDisplayName[primaryCat];
+      }
+      return primaryCat;
     }
 
     // 2. Fallbacks based on traits
@@ -582,19 +583,11 @@ export class Item extends SafeEventEmitter {
     if (this.isContainer()) return 'containers';
 
     // 3. Fallback based on slot
-    if (this.equippableSlot) {
-      if (this.equippableSlot === 'melee' || this.equippableSlot === 'handgun' || this.equippableSlot === 'long_gun') {
-        return 'weapons';
-      }
-      if (this.equippableSlot === 'upper_body' || this.equippableSlot === 'lower_body') {
-        return 'armor';
-      }
-      if (this.equippableSlot === 'backpack') {
-        return 'containers';
-      }
+    if (this.equippableSlot && SlotDisplayName[this.equippableSlot]) {
+      return SlotDisplayName[this.equippableSlot];
     }
 
-    return 'misc';
+    return 'generic';
   }
 
   // Rotation
@@ -691,7 +684,7 @@ export class Item extends SafeEventEmitter {
 
     // Special rule for Water Bottles: They only stack if they are EMPTY or FULL and levels match
     if (this.isWaterBottle()) {
-      const capacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
+      const capacity = this.capacity;
       const ammo = this.ammoCount || 0;
       const otherAmmo = otherItem.ammoCount || 0;
 
@@ -749,8 +742,8 @@ export class Item extends SafeEventEmitter {
         return false;
       }
 
-      const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
-      const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
+      const myCapacity = this.capacity;
+      const otherCapacity = otherItem.capacity;
 
       const canFillMe = (this.ammoCount || 0) < myCapacity && (otherItem.ammoCount || 0) > 0;
       const canFillOther = (otherItem.ammoCount || 0) < otherCapacity && (this.ammoCount || 0) > 0;
@@ -780,8 +773,8 @@ export class Item extends SafeEventEmitter {
 
     // 1. Water Bottle Interaction
     if (this.isWaterBottle() && Item.isWaterBottle(otherItem)) {
-      const myCapacity = this.capacity || (this.defId?.startsWith('food.waterjug') ? 50 : 20);
-      const otherCapacity = otherItem.capacity || (otherItem.defId?.startsWith('food.waterjug') || otherItem.id?.startsWith('food.waterjug') ? 50 : 20);
+      const myCapacity = this.capacity;
+      const otherCapacity = otherItem.capacity;
       
       // 1a. Try Dragged -> Occupant (Filling the grid item)
       const spaceInMe = myCapacity - (this.ammoCount || 0);

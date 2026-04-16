@@ -8,6 +8,7 @@ import { TileRenderer } from '../../game/renderer/TileRenderer.js';
 import { EntityRenderer } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
+import { EntityType } from '../../game/entities/Entity.js';
 import engine from '../../game/GameEngine.js';
 
 /**
@@ -209,13 +210,13 @@ export default function MapCanvas({
       const livingEntities = [];
 
       allEntities.forEach(entity => {
-        if (entity.type === 'player') return;
+        if (entity.type === EntityType.PLAYER) return;
         
         // Use logic-position bounds check
         if (entity.x < extendedBounds.startX || entity.x > extendedBounds.endX || entity.y < extendedBounds.startY || entity.y > extendedBounds.endY) return;
 
         // Categorize into layers: Persistent structures and ground items go to bottom
-        if (['item', 'place_icon', 'door', 'window'].includes(entity.type)) {
+        if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW].includes(entity.type)) {
           groundEntities.push(entity);
         } else {
           livingEntities.push(entity);
@@ -360,7 +361,7 @@ export default function MapCanvas({
         worldY >= 0 && worldY < gameMap.height) {
         
         const tile = gameMap.getTile(worldX, worldY);
-        const zombie = tile?.contents.find((e) => e.type === 'zombie');
+        const zombie = tile?.contents.find((e) => e.type === EntityType.ZOMBIE);
         const cropInfo = tile?.cropInfo;
         
         // Pass enriched hover data to MapInterface
@@ -613,23 +614,23 @@ export default function MapCanvas({
   // Preload entity images on initialization
   useEffect(() => {
     const preloadEntityImages = async () => {
-      const commonEntityTypes = ['player', 'zombie', 'item', 'npc', 'place_icon', 'rabbit'];
+      const commonEntityTypes = [EntityType.PLAYER, EntityType.ZOMBIE, EntityType.ITEM, EntityType.NPC, EntityType.PLACE_ICON, EntityType.RABBIT];
       await imageLoader.preloadImages(commonEntityTypes);
 
       // Preload the default item image for ground piles
       await imageLoader.getItemImage('default');
       
       // Preload special zombie variant images
-      await imageLoader.getImage('zombie', 'crawler');
-      await imageLoader.getImage('zombie', 'firefighter');
-      await imageLoader.getImage('zombie', 'swat');
+      await imageLoader.getImage(EntityType.ZOMBIE, 'crawler');
+      await imageLoader.getImage(EntityType.ZOMBIE, 'firefighter');
+      await imageLoader.getImage(EntityType.ZOMBIE, 'swat');
 
       // PHASE 23 Fix: Use engine.gameMap directly instead of a ref to avoid race conditions during save loading.
       const currentMap = engine.gameMap;
       
       if (currentMap) {
         // Preload ALL item subtypes found on the map (including ground_pile/loot drops)
-        const itemEntities = currentMap.getEntitiesByType('item');
+        const itemEntities = currentMap.getEntitiesByType(EntityType.ITEM);
         const itemSubtypes = [...new Set(itemEntities.map(i => i.subtype).filter(s => s))];
         if (itemSubtypes.length > 0) {
           console.log(`[MapCanvas] Preloading ${itemSubtypes.length} item subtypes:`, itemSubtypes);
@@ -637,11 +638,11 @@ export default function MapCanvas({
         }
 
         // Preload ALL zombie subtypes found on the map
-        const zombieEntities = currentMap.getEntitiesByType('zombie');
+        const zombieEntities = currentMap.getEntitiesByType(EntityType.ZOMBIE);
         const zombieSubtypes = [...new Set(zombieEntities.map(z => z.subtype).filter(s => s && s !== 'basic'))];
         if (zombieSubtypes.length > 0) {
           console.log(`[MapCanvas] Preloading ${zombieSubtypes.length} zombie subtypes:`, zombieSubtypes);
-          await Promise.all(zombieSubtypes.map(s => imageLoader.getImage('zombie', s)));
+          await Promise.all(zombieSubtypes.map(s => imageLoader.getImage(EntityType.ZOMBIE, s)));
         }
       }
 
@@ -663,13 +664,13 @@ export default function MapCanvas({
 
     const loadPlaceIcons = async () => {
       const gameMap = gameMapRef.current;
-      const placeIcons = gameMap.getEntitiesByType('place_icon');
+      const placeIcons = gameMap.getEntitiesByType(EntityType.PLACE_ICON);
       
       if (placeIcons.length === 0) return;
 
       const subtypes = [...new Set(placeIcons.map(icon => icon.subtype))];
       const loadPromises = subtypes.map(subtype => 
-        imageLoader.getImage('place_icon', subtype)
+        imageLoader.getImage(EntityType.PLACE_ICON, subtype)
       );
 
       await Promise.all(loadPromises);

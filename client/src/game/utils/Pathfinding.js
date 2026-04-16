@@ -4,6 +4,7 @@
  * Pure functional pathfinding utility for all entities
  * Follows UniversalGoals.md: modular, testable, serializable
  */
+import { EntityType } from '../entities/Entity.js';
 
 export class Pathfinding {
   /**
@@ -265,7 +266,7 @@ export class Pathfinding {
     // Additional costs based on tile contents
     if (targetTile && targetTile.contents && Array.isArray(targetTile.contents)) {
       // 1. Windows (Zombies pay extra)
-      const window = targetTile.contents.find(e => e.type === 'window');
+      const window = targetTile.contents.find(e => e.type === EntityType.WINDOW);
       if (window) {
         if (options?.isZombie) {
           // Rule: Moving into a window frame costs 2.0 AP for zombies.
@@ -278,14 +279,14 @@ export class Pathfinding {
 
       // 2. Door/Zombie Penalties (Zombie pathfinding only)
       if (options?.isZombie) {
-        const door = targetTile.contents.find(e => e.type === 'door');
+        const door = targetTile.contents.find(e => e.type === EntityType.DOOR);
         if (door && !door.isOpen) {
           // Closed door: +4 AP base penalty, +35 heuristic penalty to avoid shortcuts
           const penalty = options?.isPathfinding ? 35 : 4;
           baseCost = 1.0 + penalty;
         }
 
-        const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');
+        const hasOtherZombie = targetTile.contents.some(e => e.type === EntityType.ZOMBIE);
         if (hasOtherZombie) {
           // Other zombie: +4 AP penalty (prefers empty tiles but won't detour into the woods)
           baseCost += 4;

@@ -16,7 +16,8 @@ export const ZombieTypes = {
     maxAP: 12,
     sightRange: 15,
     moveCostMultiplier: 1.0,
-    canPassWindows: true
+    spriteKey: 'zombie',
+    combat: { damage: { min: 1, max: 4 } }
   },
   runner: {
     name: 'Runner',
@@ -24,7 +25,9 @@ export const ZombieTypes = {
     maxAP: 12,
     sightRange: 15,
     moveCostMultiplier: 0.5,
-    canPassWindows: true
+    canPassWindows: true,
+    spriteKey: 'runnerzombie',
+    combat: { damage: { min: 1, max: 4 } }
   },
   crawler: {
     name: 'Crawler',
@@ -32,7 +35,9 @@ export const ZombieTypes = {
     maxAP: 6,
     sightRange: 15,
     moveCostMultiplier: 1.0,
-    canPassWindows: false
+    canPassWindows: false,
+    spriteKey: 'crawlerzombie',
+    combat: { damage: { min: 1, max: 4 } }
   },
   fat: {
     name: 'Fat Zombie',
@@ -40,7 +45,9 @@ export const ZombieTypes = {
     maxAP: 12,
     sightRange: 15,
     moveCostMultiplier: 1.5,
-    canPassWindows: true
+    canPassWindows: true,
+    spriteKey: 'fatzombie',
+    combat: { damage: { min: 3, max: 6 } }
   },
   soldier: {
     name: 'Soldier Zombie',
@@ -48,7 +55,9 @@ export const ZombieTypes = {
     maxAP: 12,
     sightRange: 15,
     moveCostMultiplier: 1.0,
-    canPassWindows: true
+    canPassWindows: true,
+    spriteKey: 'soldierzombie',
+    combat: { damage: { min: 1, max: 4 } }
   },
   firefighter: {
     name: 'Firefighter Zombie',
@@ -56,7 +65,9 @@ export const ZombieTypes = {
     maxAP: 12,
     sightRange: 15,
     moveCostMultiplier: 1.0,
-    canPassWindows: true
+    canPassWindows: true,
+    spriteKey: 'firefighterzombie',
+    combat: { damage: { min: 1, max: 4 } }
   },
   swat: {
     name: 'SWAT Zombie',
@@ -64,7 +75,9 @@ export const ZombieTypes = {
     maxAP: 12,
     sightRange: 15,
     moveCostMultiplier: 1.0,
-    canPassWindows: true
+    canPassWindows: true,
+    spriteKey: 'swatzombie',
+    combat: { damage: { min: 1, max: 4 } }
   },
   acid: {
     name: 'Acid Zombie',
@@ -72,7 +85,9 @@ export const ZombieTypes = {
     maxAP: 12,
     sightRange: 15,
     moveCostMultiplier: 1.0,
-    canPassWindows: true
+    canPassWindows: true,
+    spriteKey: 'acidzombie',
+    combat: { damage: { min: 2, max: 5 } }
   }
 };
 

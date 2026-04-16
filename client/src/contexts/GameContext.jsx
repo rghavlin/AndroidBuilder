@@ -12,11 +12,13 @@ import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
 import { useAudio } from './AudioContext.jsx';
 import engine from '../game/GameEngine.js';
+import { EntityType } from '../game/entities/Entity.js';
 
 const logger = Logger.scope('GameContext');
 
 // Test functions are imported via inventory system
 
+import { ItemTrait } from '../game/inventory/traits.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 const GameContext = createContext();
@@ -119,15 +121,14 @@ const GameContextInner = ({ children }) => {
     if (!isFlashlightOn) return false;
     const fl = inventoryManager?.equipment['flashlight'];
     if (!fl) return false;
-    if (fl.defId === 'tool.torch' && !fl.isLit) return false;
+    if (fl.hasTrait(ItemTrait.IGNITABLE) && !fl.isLit) return false;
     return true;
   }, [isFlashlightOn, inventoryVersion, inventoryManager]);
 
   const getActiveFlashlightRange = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
     if (flashlight) {
-      if (flashlight.defId === 'tool.nightvision') return 15;
-      if (flashlight.defId === 'tool.torch') return 5;
+      return flashlight.lightRange || 8;
     }
     return 8;
   }, [inventoryManager, inventoryVersion]);
@@ -225,7 +226,7 @@ const GameContextInner = ({ children }) => {
 
     // Get the torch
     const torch = inventoryManager.equipment['flashlight'];
-    if (!torch || torch.defId !== 'tool.torch') {
+    if (!torch || !torch.hasTrait(ItemTrait.IGNITABLE)) {
        addLog('Equip a torch in your hand to ignite it.', 'error');
        return;
     }
@@ -262,7 +263,7 @@ const GameContextInner = ({ children }) => {
     }
 
     // Special logic for Torch
-    if (flashlight.defId === 'tool.torch') {
+    if (flashlight.hasTrait(ItemTrait.IGNITABLE)) {
       if (!flashlight.isLit) {
         igniteTorch();
       } else {
@@ -966,7 +967,7 @@ const GameContextInner = ({ children }) => {
           if (action.type === 'attackDoor' && action.doorPos) {
             // Trigger visual synchronization for animations
             const doorTile = gameMap.getTile(action.doorPos.x, action.doorPos.y);
-            const doorEntity = doorTile?.contents.find(e => e.type === 'door');
+            const doorEntity = doorTile?.contents.find(e => e.type === EntityType.DOOR);
             if (doorEntity && typeof doorEntity.syncVisualState === 'function') {
                 doorEntity.syncVisualState();
             }
@@ -979,7 +980,7 @@ const GameContextInner = ({ children }) => {
           } else if (action.type === 'attackWindow' && action.windowPos) {
             // Trigger visual synchronization for animations
             const windowTile = gameMap.getTile(action.windowPos.x, action.windowPos.y);
-            const windowEntity = windowTile?.contents.find(e => e.type === 'window');
+            const windowEntity = windowTile?.contents.find(e => e.type === EntityType.WINDOW);
             if (windowEntity && typeof windowEntity.syncVisualState === 'function') {
                 windowEntity.syncVisualState();
             }
@@ -989,7 +990,7 @@ const GameContextInner = ({ children }) => {
               addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
               addEffect({ type: 'tile_flash', x: action.windowPos.x, y: action.windowPos.y, color: 'rgba(255, 255, 255, 0.6)', duration: 400 });
             }
-          } else if (action.type === 'attack' && action.target === 'player') {
+          } else if (action.type === 'attack' && action.target === EntityType.PLAYER) {
             if (action.success) {
               player.takeDamage(action.damage, zombieEntity);
               if (action.bleedingInflicted) player.setBleeding(true);
@@ -1079,7 +1080,7 @@ const GameContextInner = ({ children }) => {
           if (success) {
             console.log(`[GameContext] ${flashlight.name} consumption (Turn change): 1 charge. Remaining: ${flashlight.getCharges()}`);
           } else {
-            if (flashlight.defId === 'tool.torch') {
+            if (flashlight.hasTrait(ItemTrait.IGNITABLE)) {
               addLog('The torch has burned out.', 'item');
             } else {
               addLog(`${flashlight.name} has run out of power.`, 'item');

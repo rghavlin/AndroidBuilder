@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
+import { ZombieTypes } from '../../game/entities/ZombieTypes';
 
 interface ZombieTooltipProps {
     zombie: {
@@ -18,14 +19,7 @@ interface ZombieTooltipProps {
 export function ZombieTooltip({ zombie }: ZombieTooltipProps) {
     if (!zombie) return null;
 
-    let name = 'Zombie';
-    if (zombie.subtype === 'crawler') name = 'Crawler';
-    else if (zombie.subtype === 'runner') name = 'Runner Zombie';
-    else if (zombie.subtype === 'acid') name = 'Acid Zombie';
-    else if (zombie.subtype === 'firefighter') name = 'Firefighter Zombie';
-    else if (zombie.subtype === 'swat') name = 'Swat Zombie';
-    else if (zombie.subtype === 'fat') name = 'Fat Zombie';
-    else if (zombie.subtype === 'soldier') name = 'Soldier Zombie';
+    const name = ZombieTypes[zombie.subtype]?.name || 'Zombie';
     const hpPercent = Math.max(0, Math.min(100, (zombie.hp / zombie.maxHp) * 100));
     
     // Color coded by health

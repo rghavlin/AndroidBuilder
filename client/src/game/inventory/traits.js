@@ -52,7 +52,8 @@ export const ItemTrait = {
   SPOILABLE: 'spoilable',
   IGNITABLE: 'ignitable',
   CAN_DIG: 'canDig',
-  CHARGE_BASED: 'charge-based'
+  CHARGE_BASED: 'charge-based',
+  WATER_CONTAINER: 'water_bottle'
 };
 
 // Item rarity levels for loot generation
@@ -69,5 +70,26 @@ export const RarityWeights = {
   [Rarity.UNCOMMON]: 40,
   [Rarity.RARE]: 10,
   [Rarity.EXTREMELY_RARE]: 1
+};
+
+// Map internal categories to user-friendly group names
+export const CategoryDisplayName = {
+  [ItemCategory.WEAPON]: 'weapons',
+  [ItemCategory.AMMO]: 'ammunition',
+  [ItemCategory.TOOL]: 'tools',
+  [ItemCategory.CLOTHING]: 'armor',
+  [ItemCategory.FOOD]: 'consumables',
+  [ItemCategory.MEDICAL]: 'consumables',
+  [ItemCategory.GUN]: 'weapons'
+};
+
+// Map equipment slots to user-friendly category fallbacks
+export const SlotDisplayName = {
+  [EquipmentSlot.MELEE]: 'weapons',
+  [EquipmentSlot.HANDGUN]: 'weapons',
+  [EquipmentSlot.LONG_GUN]: 'weapons',
+  [EquipmentSlot.UPPER_BODY]: 'armor',
+  [EquipmentSlot.LOWER_BODY]: 'armor',
+  [EquipmentSlot.BACKPACK]: 'containers'
 };
 
