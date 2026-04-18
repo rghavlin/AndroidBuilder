@@ -552,47 +552,53 @@ export class InventoryManager extends SafeEventEmitter {
 
 
   /**
+   * Check if a container item is currently accessible for interaction
+   * (e.g., opening, depositing items)
+   */
+  isContainerAccessible(item) {
+    if (!item) return false;
+
+    // 1. Specialty containers with OPENABLE_WHEN_NESTED trait can always be accessed
+    const isOpenableWhenNested = (item.isOpenableWhenNested && item.isOpenableWhenNested()) || 
+                                 (item.traits && item.traits.includes(ItemTrait.OPENABLE_WHEN_NESTED));
+    if (isOpenableWhenNested) {
+      return true;
+    }
+
+    // 2. Items with attachment slots (weapons) are always accessible for modification
+    const hasAttachments = (item.attachmentSlots && item.attachmentSlots.length > 0);
+    if (hasAttachments) {
+      return true;
+    }
+
+    // 3. For everything else (Backpacks, Clothing, Toolboxes), they MUST be either:
+    //    a) Equipped by the player
+    //    b) On the ground
+    const isEquipped = item.isEquipped;
+    const isOnGround = (this.groundContainer?.items.has(item.instanceId)) || (item._container?.id === 'ground');
+    
+    // Prevent access to nested containers in equipped items (e.g. backpack-in-a-backpack)
+    const isNestedInEquipped = item._container?.type === 'equipped-backpack';
+
+    return (isEquipped || isOnGround) && !isNestedInEquipped;
+  }
+
+  /**
    * Check if a container can be opened
    * Phase 16 Fix: Harmonize Backpack and Clothing ground logic
    */
   canOpenContainer(item) {
     if (!item) return false;
 
-    // Phase 19/20: Robust property checks (support plain objects)
     const isContainer = (item.isContainer && item.isContainer()) || (item.traits && item.traits.includes(ItemTrait.CONTAINER));
     const hasPockets = (item.getPocketContainers && item.getPocketContainers().length > 0) || !!item.pocketLayoutId;
-    const hasAttachments = (item.attachmentSlots && item.attachmentSlots.length > 0);
-    const equippableSlot = item.equippableSlot;
-
-    // Phase 17/18/20: Restore Weapon Mod support
-    // Guns must be openable even when empty to allow attaching mods
-    if (hasAttachments) {
-      return true;
+    
+    if (!isContainer && !hasPockets) {
+      // Check if it has attachments even if not a container
+      return (item.attachmentSlots && item.attachmentSlots.length > 0);
     }
 
-    // Phase 16 Fix: Harmonize Backpack and Clothing ground logic
-    const isBackpack = equippableSlot === EquipmentSlot.BACKPACK;
-    const isClothing = equippableSlot === EquipmentSlot.UPPER_BODY || equippableSlot === EquipmentSlot.LOWER_BODY || (item.categories && item.categories.includes(ItemCategory.CLOTHING));
-
-    if (isBackpack || isClothing) {
-      // Clothing and Backpacks can only be opened when on the ground
-      const isOnGround = (this.groundContainer?.items.has(item.instanceId)) || (item._container?.id === 'ground');
-      const isEquipped = item.isEquipped;
-      
-      // Prevent opening nested backpacks in your own inventory if not explicitly allowed
-      const isNested = item._container?.type === 'equipped-backpack';
-
-      return isOnGround && !isEquipped && !isNested;
-    }
-
-    // Specialty containers with openableWhenNested trait can always be opened
-    const isOpenableWhenNested = (item.isOpenableWhenNested && item.isOpenableWhenNested()) || (item.traits && item.traits.includes(ItemTrait.OPENABLE_WHEN_NESTED));
-    if (isOpenableWhenNested) {
-      return true;
-    }
-
-    // Default catch-all for other containers (Toolboxes, etc.)
-    return isContainer && !item.isEquipped;
+    return this.isContainerAccessible(item);
   }
 
   /**
@@ -778,10 +784,34 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // 4. Try dynamic lookup for virtual containers (clothing/weapon UI panels)
-    if (containerId && (containerId.startsWith('clothing:') || containerId.startsWith('weapon:') || containerId.startsWith('weapon-mod-'))) {
+    // 4. Try dynamic lookup for virtual containers (clothing/weapon UI panels or equipment slots)
+    if (containerId && (containerId.startsWith('clothing:') || containerId.startsWith('weapon:') || containerId.startsWith('weapon-mod-') || containerId.startsWith('equipment-'))) {
       let instanceId;
       let slotId = null;
+      
+      if (containerId.startsWith('equipment-')) {
+          slotId = containerId.replace('equipment-', '');
+          return {
+              id: containerId,
+              isEquipment: true,
+              placeItemAt: (item) => {
+                  this.equipment[slotId] = item;
+                  item.isEquipped = true;
+                  return true;
+              },
+              removeItem: (itemId) => {
+                  const item = this.equipment[slotId];
+                  if (item && item.instanceId === itemId) {
+                      this.equipment[slotId] = null;
+                      item.isEquipped = false;
+                      return item;
+                  }
+                  return null;
+              },
+              items: new Map() // satisfy checks
+          };
+      }
+
       if (containerId.startsWith('weapon-mod-')) {
         // Format: weapon-mod-instanceId:slotId
         const parts = containerId.replace('weapon-mod-', '').split(':');
@@ -799,12 +829,18 @@ export class InventoryManager extends SafeEventEmitter {
           id: containerId,
           isVirtual: true,
           item: weaponOrClothing,
-          // NEW: Support removal for weapon attachments
+          // NEW: Support removal/restoration for weapon attachments
           removeItem: (itemId) => {
             if (slotId && weaponOrClothing.detachItem) {
               return weaponOrClothing.detachItem(slotId);
             }
             return null;
+          },
+          placeItemAt: (item) => {
+            if (slotId && weaponOrClothing.attachItem) {
+              return weaponOrClothing.attachItem(slotId, item);
+            }
+            return false;
           },
           items: new Map() // Empty map to satisfy iteration checks
         };
@@ -870,6 +906,30 @@ export class InventoryManager extends SafeEventEmitter {
       itemId,
       source: sourceContainerId || 'anywhere'
     });
+    
+    // Preliminary compatibility check to avoid stack splitting on failure
+    if (weapon.attachmentSlots) {
+        const slot = weapon.attachmentSlots.find(s => s.id === slotId);
+        if (slot) {
+            // Validate category compatibility
+            if (slot.allowedCategories && slot.allowedCategories.length > 0) {
+                const isCompatible = item.categories.some(c => slot.allowedCategories.includes(c));
+                if (!isCompatible) {
+                    console.debug('[InventoryManager] REJECT: Incompatible category for slot:', slotId);
+                    return { success: false, reason: 'Incompatible item type' };
+                }
+            }
+            // Validate specific item ID compatibility
+            if (slot.allowedItems && slot.allowedItems.length > 0) {
+                if (!slot.allowedItems.includes(item.defId)) {
+                    console.debug('[InventoryManager] REJECT: Item ID not allowed in slot:', item.defId, slotId);
+                    return { success: false, reason: 'This weapon does not use this item' };
+                }
+            }
+        } else {
+            return { success: false, reason: 'Invalid attachment slot' };
+        }
+    }
 
     // 1. Remove item from specific source container if provided, otherwise general search
     const sourceContainer = sourceContainerId ? this.getContainer(sourceContainerId) : null;
@@ -1055,12 +1115,13 @@ export class InventoryManager extends SafeEventEmitter {
     const success = weapon.attachItem(slotId, itemToAttach);
     if (!success) {
       console.warn('[InventoryManager] Attachment failed, restoring item to original source');
-      // Re-add to original container if fails
+      // Re-add the item (or the split portion) back to original container
+      const itemToRestore = itemToAttach;
       if (removed.container) {
-        removed.container.addItem(item, removed.x, removed.y, item.rotation);
+        removed.container.addItem(itemToRestore, removed.x, removed.y, itemToRestore.rotation);
       } else if (removed.equipment) {
-        this.equipment[removed.equipment] = item;
-        item.isEquipped = true;
+        this.equipment[removed.equipment] = itemToRestore;
+        itemToRestore.isEquipped = true;
       }
       return { success: false, reason: 'Incompatible attachment slot' };
     }
@@ -1608,6 +1669,26 @@ export class InventoryManager extends SafeEventEmitter {
       return { success: false, reason: 'Item not found' };
     }
 
+    // Phase 21: Enforce Nesting/Accessibility Rules
+    // Check if TARGET container is accessible
+    if (toContainer && toContainer.ownerId) {
+        const targetOwner = this.findItem(toContainer.ownerId)?.item;
+        if (targetOwner && !this.isContainerAccessible(targetOwner)) {
+            console.warn('[InventoryManager] Target container is not accessible:', targetOwner.name);
+            return { success: false, reason: 'Target container not accessible' };
+        }
+    }
+
+    // Check if SOURCE container is accessible (unless it's equipment/ground/virtual)
+    const isStandardSource = fromContainer && !isEquipmentSource && !isVirtualSource && fromContainerId !== 'ground';
+    if (isStandardSource && fromContainer.ownerId) {
+        const sourceOwner = this.findItem(fromContainer.ownerId)?.item;
+        if (sourceOwner && !this.isContainerAccessible(sourceOwner)) {
+            console.warn('[InventoryManager] Source container is not accessible:', sourceOwner.name);
+            return { success: false, reason: 'Source container not accessible' };
+        }
+    }
+
     // CRITICAL: Prevent self-nesting (placing item into itself or its own pockets)
     // 1. Check if target container IS the item's internal container (e.g. backpack)
     if (itemToMove.containerGrid && itemToMove.containerGrid.id === toContainer.id) {
@@ -1765,7 +1846,14 @@ export class InventoryManager extends SafeEventEmitter {
 
     if (!success) {
       // Restore item to original container at its original position
-      fromContainer.placeItemAt(item, item.x, item.y);
+      console.warn('[InventoryManager] Move failed, restoring item to source:', fromContainerId);
+      if (fromContainer && typeof fromContainer.placeItemAt === 'function') {
+          fromContainer.placeItemAt(item, item.x, item.y);
+      } else {
+          // Emergency: If we can't restore to source, drop it to the ground
+          console.error('[InventoryManager] CRITICAL: Cannot restore item to source, emergency drop to ground!', item.name);
+          this.addItem(item, 'ground');
+      }
       return { success: false, reason: 'Cannot place item' };
     }
 

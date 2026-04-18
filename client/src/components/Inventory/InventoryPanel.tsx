@@ -33,9 +33,9 @@ export default function InventoryPanel() {
   return (
     <GridSizeProvider>
       <>
-        <div className="w-1/2 h-full flex flex-col bg-card border-l border-border" data-testid="inventory-panel" data-inventory-ui="true">
-          {/* Equipment Section */}
-          <div className="border-b border-border p-3 flex-shrink-0" data-equipment-area="true">
+        <div className="w-full h-full flex flex-col bg-card" data-testid="inventory-panel" data-inventory-ui="true">
+          {/* Expanded HUD Header (80px) - Cleans up icons and prevents scrollbar overlap */}
+          <div className="h-[80px] border-b border-border flex items-center bg-zinc-950/40 shadow-inner shrink-0" data-equipment-area="true">
             <EquipmentSlots />
           </div>
 

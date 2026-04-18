@@ -106,30 +106,24 @@ export default function EquipmentSlots() {
   };
 
   return (
-    <div className="border-b border-border p-3" data-testid="equipment-slots">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-sm font-semibold text-muted-foreground">EQUIPMENT</h2>
-        
-        {/* Dev Console Button - Relocated from bottom bar */}
+    <div className="flex items-center gap-2 w-full h-full px-1" data-testid="equipment-slots">
+      {/* Label and Tucked Dev Button - vertically centered, shifted left */}
+      <div className="flex flex-col justify-center min-w-[50px] shrink-0 pl-1">
         <Button
           onClick={() => setShowDevConsole(true)}
           disabled={buttonsDisabled}
-          className="bg-secondary/50 hover:bg-secondary/70 text-secondary-foreground h-6 px-2 text-[10px] font-mono border border-white/5"
+          className="bg-zinc-800/60 hover:bg-zinc-700/80 text-zinc-400 h-3.5 px-1 text-[7px] font-mono border border-white/5 leading-none transition-all mb-1 w-fit shadow-sm"
           data-testid="button-dev-console"
         >
           DEV
         </Button>
+        <h2 className="text-[8px] font-black text-zinc-500 uppercase tracking-tighter pl-0.5">
+          EQUIPMENT
+        </h2>
       </div>
 
-      {/* Dev Console Window */}
-      {showDevConsole && (
-        <DevConsole
-          isOpen={showDevConsole}
-          onClose={() => setShowDevConsole(false)}
-        />
-      )}
-
-      <div className="flex gap-1.5 justify-start flex-nowrap overflow-x-auto">
+      {/* Slots Row - Shifting left by using smaller gap and minimal padding */}
+      <div className="flex gap-1.5 items-start pt-2 pb-4 h-full flex-nowrap overflow-x-auto scrollbar-hide">
         {equipmentSlots.map((slot) => {
           // Read equipped item from inventory manager (reactive to inventoryVersion)
           const equippedItem = inventoryRef.current?.equipment[slot.id] || null;
@@ -139,17 +133,27 @@ export default function EquipmentSlots() {
             selectedItem?.item?.instanceId === equippedItem?.instanceId;
 
           return (
-            <EquipmentSlot
-              key={slot.id}
-              slotId={slot.id}
-              item={equippedItem}
-              isEquipped={!!equippedItem}
-              isSelected={isSelected}
-              onClick={() => handleSlotClick(slot.id)}
-            />
+            <div key={slot.id} className="w-12 h-12 flex-shrink-0 shadow-md">
+              <EquipmentSlot
+                slotId={slot.id}
+                item={equippedItem}
+                isEquipped={!!equippedItem}
+                isSelected={isSelected}
+                onClick={() => handleSlotClick(slot.id)}
+                className="w-full h-full"
+              />
+            </div>
           );
         })}
       </div>
+
+      {/* Dev Console Window */}
+      {showDevConsole && (
+        <DevConsole
+          isOpen={showDevConsole}
+          onClose={() => setShowDevConsole(false)}
+        />
+      )}
     </div>
   );
 }

@@ -43,14 +43,14 @@ export const ZOMBIE_LOOT = {
     firefighter: {
         specialized: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'clothing.paramedic_shirt'],
         medical: ['medical.bandage', 'medical.antibiotics'],
-        common: ['clothing.pocket_t', 'clothing.sweatpants', 'crafting.rag']
+        common: ['clothing.pocket_t', 'clothing.sweatpants', 'clothing.blue_jeans', 'crafting.rag']
     },
     swat: {
         gear: ['weapon.9mmPistol', 'weapon.357Pistol', 'clothing.police_shirt'],
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.shotgun_shells', 'ammo.308']
     },
     soldier: {
-        gear: ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.police_shirt'],
+        gear: ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.police_shirt', 'clothing.military_shirt'],
         ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells']
     },
     uncommon: [

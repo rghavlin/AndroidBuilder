@@ -132,22 +132,29 @@ function GameScreenContent() {
           </div>
         </div>
       ) : (
-        <div className="game-container h-screen flex" data-testid="game-screen">
-          {/* Left Side: Map + Controls */}
-          <div className="w-1/2 flex flex-col h-full">
-            <MapInterface gameState={{ ...gameState, turn }} />
-            <div className="flex-shrink-0">
-              <GameControls
-                playerStats={isGameReady ? realPlayerStats : playerStats}
-                gameState={{ ...gameState, turn }}
-                onEndTurn={handleEndTurn}
-                onRest={handleRest}
-              />
+        <div className="game-container h-screen flex flex-col overflow-hidden bg-background" data-testid="game-screen">
+          {/* Top Section: Map and Inventory Side-by-Side */}
+          <div className="flex flex-grow overflow-hidden min-h-0">
+            {/* Left Column: Map Interface */}
+            <div className="w-1/2 h-full flex flex-col border-r border-border overflow-hidden">
+              <MapInterface gameState={{ ...gameState, turn }} />
+            </div>
+
+            {/* Right Column: Inventory Panel - Overflow managed by internal components */}
+            <div className="w-1/2 h-full flex flex-col overflow-hidden">
+              <InventoryPanel />
             </div>
           </div>
 
-          {/* Right Side: Inventory (Full Height) */}
-          <InventoryPanel />
+          {/* Bottom Section: Full-Width Stats Bar */}
+          <div className="flex-shrink-0 w-full z-10">
+            <GameControls
+              playerStats={isGameReady ? realPlayerStats : playerStats}
+              gameState={{ ...gameState, turn }}
+              onEndTurn={handleEndTurn}
+              onRest={handleRest}
+            />
+          </div>
 
           {/* Map Transition Dialog */}
           {mapTransition && (

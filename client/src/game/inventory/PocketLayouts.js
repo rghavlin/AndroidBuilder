@@ -64,5 +64,25 @@ export const PocketLayouts = {
             { name: 'Cargo Left', width: 2, height: 2 },
             { name: 'Cargo Right', width: 2, height: 2 }
         ]
+    },
+    'blue_jeans': {
+        id: 'blue_jeans',
+        name: 'Blue Jeans Layout',
+        pockets: [
+            { name: 'Front Left', width: 1, height: 2 },
+            { name: 'Front Right', width: 1, height: 2 },
+            { name: 'Back Left', width: 1, height: 1 },
+            { name: 'Back Right', width: 1, height: 1 }
+        ]
+    },
+    'military_shirt': {
+        id: 'military_shirt',
+        name: 'Military Shirt Pockets',
+        pockets: [
+            { id: 'front_left', name: 'Left Front', width: 2, height: 2 },
+            { id: 'front_right', name: 'Right Front', width: 2, height: 2 },
+            { id: 'cargo_left', name: 'Left Cargo', width: 2, height: 3 },
+            { id: 'cargo_right', name: 'Right Cargo', width: 2, height: 3 }
+        ]
     }
 };

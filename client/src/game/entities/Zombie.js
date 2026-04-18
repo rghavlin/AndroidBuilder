@@ -6,11 +6,11 @@ import { LineOfSight } from '../utils/LineOfSight.js';
  * Zombie entity with AI behavior for turn-based zombie survival game
  */
 export class Zombie extends Entity {
-  constructor(id, x = 0, y = 0, subtype = 'walker') {
+  constructor(id, x = 0, y = 0, subtype = 'basic') {
     super(id, EntityType.ZOMBIE, x, y, subtype);
     
     // 1. Load data from ZombieTypes config
-    const stats = ZombieTypes[subtype] || ZombieTypes.walker;
+    const stats = ZombieTypes[subtype] || ZombieTypes.basic;
     this.subtype = subtype;
     this.name = stats.name || 'Zombie';
     this.maxHp = stats.hp || 10;
@@ -39,6 +39,9 @@ export class Zombie extends Entity {
     this.isActive = false; // Whether it's this zombie's turn
     this.isAlerted = false; // Persistent flag for "spotted player" sound trigger
     this.lastScentSequence = 0; // Last scent in the trail this zombie followed
+    
+    // Myopic Targeting System
+    this.currentTarget = null; // { type: 'entity'|'tile', id: string, x: number, y: number }
 
     this.movementPath = []; // Array of {x, y} coordinates for the current turn
     this.isAnimating = false;
@@ -264,7 +267,9 @@ export class Zombie extends Entity {
       behaviorState: this.behaviorState,
       isActive: this.isActive,
       isAlerted: this.isAlerted,
-      lastScentSequence: this.lastScentSequence
+      lastScentSequence: this.lastScentSequence,
+      interactionMemory: this.interactionMemory,
+      lastDirection: this.lastDirection
     };
   }
 
@@ -282,6 +287,8 @@ export class Zombie extends Entity {
     zombie.isActive = data.isActive || false;
     zombie.isAlerted = data.isAlerted || false;
     zombie.lastScentSequence = data.lastScentSequence || 0;
+    zombie.interactionMemory = data.interactionMemory || 0;
+    zombie.lastDirection = data.lastDirection || null;
     zombie.hp = data.hp !== undefined ? data.hp : (data.maxHP || 10);
     zombie.x = data.x;
     zombie.y = data.y;

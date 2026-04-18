@@ -151,6 +151,20 @@ export const ItemDefs = {
     pocketLayoutId: 'police_shirt',
     backgroundColor: '#0a2e5c'
   },
+  'clothing.military_shirt': {
+    id: 'clothing.military_shirt',
+    name: 'Military Shirt',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'militaryshirt',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.UPPER_BODY,
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
+    pocketLayoutId: 'military_shirt',
+    backgroundColor: '#5C653A'
+  },
 
 
 
@@ -180,6 +194,18 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.LOWER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     pocketLayoutId: 'cargo_pants'
+  },
+  'clothing.blue_jeans': {
+    id: 'clothing.blue_jeans',
+    name: 'Blue Jeans',
+    rarity: Rarity.COMMON,
+    imageId: 'jeans',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    equippableSlot: EquipmentSlot.LOWER_BODY,
+    categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
+    pocketLayoutId: 'blue_jeans'
   },
 
 

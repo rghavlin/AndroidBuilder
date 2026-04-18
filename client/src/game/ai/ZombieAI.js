@@ -39,51 +39,77 @@ export class ZombieAI {
     };
 
     try {
-      // Zombie Behavior Loop (from ZombieInfo.md)
-
-      // 1. Can see player - Highest priority
-      if (zombie.canSeeEntity(gameMap, player)) {
-        // Tag as alerted (immediate sound is handled in PlayerContext.jsx)
-        zombie.isAlerted = true;
+      // 0. PASSIVE BREACH CHECK: If we are already adjacent to a closed mission structure, attack it!
+      // This catches cases where the zombie is already at the door but lost direct sight of the player.
+      if (zombie.currentTarget && zombie.currentTarget.type === 'structure') {
+        const tile = gameMap.getTile(zombie.currentTarget.x, zombie.currentTarget.y);
+        const structure = tile?.contents.find(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.id === zombie.currentTarget.id);
+        const isClosed = structure && (structure.type === EntityType.DOOR ? !structure.isOpen : (structure.isReinforced || (!structure.isBroken && !structure.isOpen)));
         
-        // Update "Last Seen" coordinates so the zombie tracks the player if sight is lost later
+        if (isClosed && Math.abs(zombie.x - zombie.currentTarget.x) + Math.abs(zombie.y - zombie.currentTarget.y) === 1) {
+          // Adjacent to mission door! Dump AP into it.
+          while (zombie.currentAP > 0 && turnResult.actions.length < 20) {
+            const attackResult = this.executeStructureAttack(zombie, gameMap, structure, { x: zombie.currentTarget.x, y: zombie.currentTarget.y }, { x: zombie.x, y: zombie.y });
+            if (attackResult.success) {
+              turnResult.actions.push(attackResult);
+      // 1. Can see player - Highest priority
+      const canSee = zombie.canSeeEntity(gameMap, player);
+      if (canSee) {
+        zombie.currentTarget = null;
         zombie.setTargetSighted(player.x, player.y);
-
-        // PHASE 14: Scent Cancellation - Sync with player current sequence to "skip" old breadcrumbs
+        console.log(`[ZombieAI] Zombie ${zombie.id} sees player at (${player.x}, ${player.y})`);
+        
         const playerTile = gameMap.getTile(player.x, player.y);
         if (playerTile && playerTile.scentSequence) {
           zombie.lastScentSequence = Math.max(zombie.lastScentSequence || 0, playerTile.scentSequence);
         } else {
-          // Fallback to global counter to skip everything up to this moment
           zombie.lastScentSequence = Math.max(zombie.lastScentSequence || 0, gameMap.scentSequenceCounter);
         }
-        
+
         turnResult.behaviorTriggered = 'canSeePlayer';
         this.executeCanSeePlayerBehavior(zombie, gameMap, player, turnResult, playerCardinalPositions);
       }
-      // 2. LastSeen is true - Move to last known position
+      // 2. Mission Target (e.g. Breaching a door identified in a previous action)
+      else if (zombie.currentTarget && zombie.currentTarget.type === 'structure') {
+        console.log(`[ZombieAI] Zombie ${zombie.id} continuing mission on structure at (${zombie.currentTarget.x}, ${zombie.currentTarget.y})`);
+        turnResult.behaviorTriggered = 'breaching';
+        zombie.behaviorState = 'pursuing'; // Actively trying to kill something
+        
+        while (zombie.currentAP > 0 && turnResult.actions.length < 20) {
+          const moveResult = this.attemptMoveTowards(zombie, gameMap, zombie.currentTarget.x, zombie.currentTarget.y);
+          if (moveResult.success) {
+            turnResult.actions.push(moveResult);
+          } else {
+            break;
+          }
+        }
+      }
+      // 3. LastSeen is true - Move to last known position
       else if (zombie.lastSeen) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} lost player, entering LastSeen behavior targeting (${zombie.targetSightedCoords.x}, ${zombie.targetSightedCoords.y})`);
         zombie.isAlerted = false;
         turnResult.behaviorTriggered = 'lastSeen';
         this.executeLastSeenBehavior(zombie, gameMap, turnResult, playerCardinalPositions, lastSeenTaggedTiles);
       }
-      // 3. HeardNoise is true - Investigate noise
+      // 4. HeardNoise is true - Investigate noise
       else if (zombie.heardNoise) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} investigating noise at (${zombie.noiseCoords.x}, ${zombie.noiseCoords.y})`);
         zombie.isAlerted = false;
         turnResult.behaviorTriggered = 'heardNoise';
         this.executeHeardNoiseBehavior(zombie, gameMap, turnResult, playerCardinalPositions, lastSeenTaggedTiles);
       }
-      // 4. Random wandering - Default behavior (only if no recent interactions)
+      // 5. Random wandering or Dwelling
       else if (zombie.interactionMemory <= 0) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} idling/wandering`);
         zombie.isAlerted = false;
         turnResult.behaviorTriggered = 'randomWander';
         this.executeRandomWanderBehavior(zombie, gameMap, turnResult);
       }
       else {
-        // Dwell at the structure for 1-2 turns
+        // Dwell at the structure (e.g. just finished breaching or reached last seen)
+        console.log(`[ZombieAI] Zombie ${zombie.id} dwelling (interactionMemory: ${zombie.interactionMemory})`);
         zombie.isAlerted = false;
         zombie.behaviorState = 'investigating';
-        console.log(`[ZombieAI] Zombie ${zombie.id} is dwelling at structure (memory=${zombie.interactionMemory})`);
         turnResult.behaviorTriggered = 'dwell';
         zombie.useAP(1.0);
         turnResult.actions.push({
@@ -105,6 +131,7 @@ export class ZombieAI {
     turnResult.apUsed = zombie.maxAP - zombie.currentAP;
     turnResult.success = true;
 
+    console.log(`[ZombieAI] --- Zombie ${zombie.id} Turn End. Actions: ${turnResult.actions.length} ---`);
     return turnResult;
   }
 
@@ -114,10 +141,26 @@ export class ZombieAI {
    * @param {GameMap} gameMap - The game map
    * @param {Player} player - The player
    * @param {Object} turnResult - Result object to update
-   * @param {Array} playerCardinalPositions - Evaluated cardinal positions around player
    */
   static executeCanSeePlayerBehavior(zombie, gameMap, player, turnResult, playerCardinalPositions = []) {
     zombie.behaviorState = 'pursuing';
+
+    // 1. Mission override: If we see the player, the door mission is aborted!
+    if (zombie.currentTarget) {
+      console.log(`[ZombieAI] Zombie ${zombie.id} spotted player! Aborting mission at (${zombie.currentTarget.x}, ${zombie.currentTarget.y})`);
+      zombie.currentTarget = null;
+    }
+
+    // 2. Alert sound (only if not already alerted this turn)
+    if (!zombie.isAlerted) {
+      if (gameMap.emitNoise) gameMap.emitNoise(zombie.x, zombie.y, 10);
+      zombie.isAlerted = true;
+      turnResult.actions.push({
+        type: 'alert',
+        from: { x: zombie.x, y: zombie.y },
+        zombieId: zombie.id
+      });
+    }
 
     // Use all AP moving toward and attacking the player
     while (zombie.currentAP > 0) {
@@ -192,161 +235,75 @@ export class ZombieAI {
     let safetyCounter = 0;
     while (zombie.currentAP > 0 && turnResult.actions.length < 20 && safetyCounter < 30) {
       safetyCounter++;
-      // 1. LOOK FOR IMMEDIATE BREADCRUMBS (Scent Trail)
-      // We look in a tight radius (2) to find the player's specific path
-      const nextScent = ScentTrail.findFreshestScent(gameMap, zombie.x, zombie.y, 2, zombie.lastScentSequence || 0);
       
+      // 1. LOOK FOR IMMEDIATE BREADCRUMBS (Scent Trail)
+      const nextScent = ScentTrail.findFreshestScent(gameMap, zombie.x, zombie.y, 3, zombie.lastScentSequence || 0);
+      
+      let targetX, targetY;
+      let isBreadcrumb = false;
+
       if (nextScent) {
-        console.log(`[ZombieAI] Zombie ${zombie.id} following immediate breadcrumb at (${nextScent.x}, ${nextScent.y}), seq ${nextScent.sequence}`);
-        
-        // Find the single next step towards this specific scent tile
-        const path = Pathfinding.findPath(gameMap, zombie.x, zombie.y, nextScent.x, nextScent.y, {
-          allowDiagonal: true,
-          entityFilter: (tile) => !['wall', 'fence', 'tree'].includes(tile.terrain), // Only block terrain
-          isZombie: true
-        });
-
-        if (path && path.length > 1) {
-          const nextStep = path[1];
-          const nextTile = gameMap.getTile(nextStep.x, nextStep.y);
-          
-          // A. Check for blocking zombies (STRICT STACKING)
-          const blockingZombie = nextTile?.contents.find(e => e.type === EntityType.ZOMBIE);
-          if (blockingZombie) {
-            console.log(`[ZombieAI] Zombie ${zombie.id} trail blocked by zombie ${blockingZombie.id} at (${nextStep.x}, ${nextStep.y}), waiting...`);
-            zombie.useAP(1.0);
-            
-            // Check if the blocked position is a structure (door/window)
-            const isStructure = nextTile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-            
-            turnResult.actions.push({
-              type: 'wait',
-              from: { x: zombie.x, y: zombie.y },
-              to: { x: zombie.x, y: zombie.y },
-              apCost: 1.0,
-              reason: isStructure ? 'Blocked by zombie at structure' : 'Blocked by zombie on trail'
-            });
-            continue; // Wait this turn and try again next loop (if AP remains)
-          }
-
-          // B. Check for closed structures (STRICT ATTACHMENT / 1 AP Breach)
-          const door = nextTile?.contents.find(e => e.type === EntityType.DOOR && !e.isOpen);
-          const window = nextTile?.contents.find(e => e.type === EntityType.WINDOW && !e.isBroken && !e.isOpen);
-
-          if ((door || window) && zombie.currentAP >= 1.0) {
-            console.log(`[ZombieAI] Zombie ${zombie.id} trail blocked by ${door ? 'door' : 'window'} (closed/unbroken), attacking...`);
-            const structure = door || window;
-            const damageResult = structure.takeDamage(1, true); // 1 damage per hit for zombies
-            zombie.interactionMemory = 3;
-            zombie.useAP(1.0);
-
-            turnResult.actions.push({
-              type: door ? 'attackDoor' : 'attackWindow',
-              doorPos: door ? { x: nextStep.x, y: nextStep.y } : null,
-              windowPos: window ? { x: nextStep.x, y: nextStep.y } : null,
-              apCost: 1.0,
-              doorBroken: door ? damageResult.isBroken : false,
-              windowBroken: window ? damageResult.isBroken : false
-            });
-
-            zombie.lastScentSequence = nextScent.sequence;
-            continue;
-          }
-
-          // C. Try normal move
-          const subtypeMult = zombie.getMovementMultiplier();
-          const moveDist = Pathfinding.getMovementCost(zombie.x, zombie.y, nextStep.x, nextStep.y, nextTile, { isZombie: true });
-          const apCost = subtypeMult * moveDist;
-
-          if (zombie.currentAP >= apCost) {
-            const originalPos = { x: zombie.x, y: zombie.y };
-            const moveSuccess = gameMap.moveEntity(zombie.id, nextStep.x, nextStep.y);
-            if (moveSuccess) {
-              zombie.useAP(apCost);
-              zombie.movementPath.push({ x: nextStep.x, y: nextStep.y });
-              zombie.lastScentSequence = nextScent.sequence;
-              zombie.lastDirection = { x: nextStep.x - originalPos.x, y: nextStep.y - originalPos.y };
-              
-              turnResult.actions.push({
-                type: 'move',
-                from: originalPos,
-                to: { x: nextStep.x, y: nextStep.y },
-                apCost: apCost
-              });
-
-              // Check visibility
-              const playerEntity = gameMap.getAllEntities().find(e => e.type === EntityType.PLAYER);
-              if (playerEntity && zombie.canSeeEntity(gameMap, playerEntity)) {
-                zombie.setTargetSighted(playerEntity.x, playerEntity.y);
-                this.executeCanSeePlayerBehavior(zombie, gameMap, playerEntity, turnResult, playerCardinalPositions);
-                break;
-              }
-              continue;
-            }
-          }
+        // If we're already standing on the freshest scent we found, consume it and look for the next one
+        if (zombie.x === nextScent.x && zombie.y === nextScent.y) {
+          zombie.lastScentSequence = nextScent.sequence;
+          continue; 
         }
-      }
+        targetX = nextScent.x;
+        targetY = nextScent.y;
+        isBreadcrumb = true;
+        console.log(`[ZombieAI] Zombie ${zombie.id} found scent breadcrumb at (${targetX}, ${targetY}) sequence ${nextScent.sequence}`);
+      } else {
+        // 2. FALLBACK: Move towards last seen coordinates
+        targetX = zombie.targetSightedCoords.x;
+        targetY = zombie.targetSightedCoords.y;
+        console.log(`[ZombieAI] Zombie ${zombie.id} following LKP fallback to (${targetX}, ${targetY})`);
 
-      // 2. FALLBACK: Move towards last seen coordinates (A* only if trail is lost)
-      let targetX = zombie.targetSightedCoords.x;
-      let targetY = zombie.targetSightedCoords.y;
-      console.log(`[ZombieAI] Zombie ${zombie.id} following LKP to (${targetX}, ${targetY})`);
-
-      // Update target based on longer-range scent if no immediate scent found
-      const distantScent = ScentTrail.findFreshestScent(gameMap, zombie.x, zombie.y, 5, zombie.lastScentSequence || 0);
-      if (distantScent) {
-        targetX = distantScent.x;
-        targetY = distantScent.y;
-        zombie.targetSightedCoords.x = targetX;
-        zombie.targetSightedCoords.y = targetY;
-      }
-
-      if (zombie.x === targetX && zombie.y === targetY) {
-        zombie.clearLastSeen();
-        
-        // If we reached our LKP at a door and can't see the player,
-        // we "hear" ourselves and start investigating the noise.
-        zombie.heardNoise = true;
-        zombie.noiseCoords = { x: targetX, y: targetY };
-
-        turnResult.actions.push({
-          type: 'targetReached',
-          coordinates: { x: targetX, y: targetY }
-        });
-
-        const player = gameMap.getAllEntities().find(e => e.type === EntityType.PLAYER);
-        if (player && zombie.canSeeEntity(gameMap, player)) {
-          this.executeCanSeePlayerBehavior(zombie, gameMap, player, turnResult, playerCardinalPositions);
-        } else if (zombie.lastDirection) {
-          this.executeMomentumBehavior(zombie, gameMap, zombie.lastDirection, turnResult, playerCardinalPositions);
+        // If we've reached the last seen spot and still have no new scent, we are done
+        if (zombie.x === targetX && zombie.y === targetY) {
+          console.log(`[ZombieAI] Zombie ${zombie.id} reached LKP, ending search`);
+          zombie.lastSeen = false;
+          break;
         }
-        break;
       }
 
       const moveResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
+
       if (moveResult.success) {
-        if (moveResult.from && moveResult.to) {
-          zombie.lastDirection = { x: moveResult.to.x - moveResult.from.x, y: moveResult.to.y - moveResult.from.y };
-        }
+        // Record action
         turnResult.actions.push({
           type: moveResult.type || 'move',
           from: moveResult.from,
           to: moveResult.to,
-          doorPos: moveResult.doorPos,
           apCost: moveResult.apCost,
+          doorPos: moveResult.doorPos,
           doorBroken: moveResult.doorBroken,
           windowPos: moveResult.windowPos,
           windowBroken: moveResult.windowBroken
         });
 
+        // Update scent sequence ONLY if we actually moved onto a tile (not just attacked a door)
+        if (isBreadcrumb && (moveResult.to.x !== moveResult.from.x || moveResult.to.y !== moveResult.from.y)) {
+          zombie.lastScentSequence = nextScent.sequence;
+          zombie.lastDirection = { x: moveResult.to.x - moveResult.from.x, y: moveResult.to.y - moveResult.from.y };
+        }
+
+        // Check if we can now see the player
         const player = gameMap.getAllEntities().find(e => e.type === EntityType.PLAYER);
         if (player && zombie.canSeeEntity(gameMap, player)) {
           zombie.setTargetSighted(player.x, player.y);
           this.executeCanSeePlayerBehavior(zombie, gameMap, player, turnResult, playerCardinalPositions);
           break;
         }
+
+        // If we reached our final target (not a breadcrumb), end investigating
+        if (!isBreadcrumb && zombie.x === targetX && zombie.y === targetY) {
+          zombie.lastSeen = false;
+          break;
+        }
       } else {
-        break; // Completely stuck - exit fallback loop
+        // Path blocked or no path found
+        console.log(`[ZombieAI] Investigation path to (${targetX}, ${targetY}) blocked: ${moveResult.reason}`);
+        break;
       }
     }
     if (safetyCounter >= 30) {
@@ -398,81 +355,35 @@ export class ZombieAI {
         break;
       }
 
-      // Spotted player?
-      const player = gameMap.getEntitiesByType(EntityType.PLAYER)[0];
-      if (player && zombie.canSeeEntity(gameMap, player)) {
-        zombie.setTargetSighted(player.x, player.y);
-        break;
-      }
-
-      console.log(`[ZombieAI] Zombie ${zombie.id} investigating noise at (${targetX}, ${targetY}), AP: ${zombie.currentAP}`);
-
       const moveResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
+
       if (moveResult.success) {
         turnResult.actions.push({
           type: moveResult.type || 'move',
           from: moveResult.from,
           to: moveResult.to,
-          doorPos: moveResult.doorPos,
           apCost: moveResult.apCost,
+          doorPos: moveResult.doorPos,
           doorBroken: moveResult.doorBroken,
           windowPos: moveResult.windowPos,
           windowBroken: moveResult.windowBroken
         });
 
-        // Check if player is now visible after move or structure break
+        // Update direction for momentum if it was a real move
+        if (moveResult.to.x !== moveResult.from.x || moveResult.to.y !== moveResult.from.y) {
+           zombie.lastDirection = { x: moveResult.to.x - moveResult.from.x, y: moveResult.to.y - moveResult.from.y };
+        }
+
+        // Check if player is now visible
         const playerEntity = gameMap.getAllEntities().find(e => e.type === EntityType.PLAYER);
         if (playerEntity && zombie.canSeeEntity(gameMap, playerEntity)) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} spotted player after action while investigating noise, switching to pursuit`);
           zombie.setTargetSighted(playerEntity.x, playerEntity.y);
           this.executeCanSeePlayerBehavior(zombie, gameMap, playerEntity, turnResult, playerCardinalPositions);
           break;
         }
-
-        continue;
       } else {
-        const path = Pathfinding.findPath(gameMap, zombie.x, zombie.y, targetX, targetY, {
-          allowDiagonal: true,
-          entityFilter: (tile) => !['wall', 'fence', 'tree'].includes(tile.terrain),
-          isZombie: true
-        });
-
-        if (path && path.length > 1) {
-          const nextStep = path[1];
-          const nextTile = gameMap.getTile(nextStep.x, nextStep.y);
-          const door = nextTile?.contents.find(e => e.type === EntityType.DOOR && !e.isOpen);
-          const window = nextTile?.contents.find(e => e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)));
-
-          if ((door || window) && zombie.currentAP >= 1.0) {
-            const structure = door || window;
-            const damageAmount = door ? (5 + Math.floor(Math.random() * 6)) : (1 + Math.floor(Math.random() * 2));
-            const damageResult = structure.takeDamage(damageAmount, true); // Silent for logic
-            zombie.interactionMemory = 3;
-            zombie.useAP(1.0);
-
-            turnResult.actions.push({
-              type: door ? 'attackDoor' : 'attackWindow',
-              doorPos: door ? { x: nextStep.x, y: nextStep.y } : null,
-              windowPos: window ? { x: nextStep.x, y: nextStep.y } : null,
-              apCost: 1.0,
-              doorBroken: door ? (structure.hp <= 0) : false,
-              windowBroken: window ? damageResult.isBroken : false,
-              windowReinforced: window ? damageResult.isReinforced : false
-            });
-
-            // Check if player is now visible after structure damage/break
-            const playerEntity = gameMap.getAllEntities().find(e => e.type === EntityType.PLAYER);
-            if (playerEntity && zombie.canSeeEntity(gameMap, playerEntity)) {
-              console.log(`[ZombieAI] Zombie ${zombie.id} spotted player after attacking structure, switching to pursuit`);
-              zombie.setTargetSighted(playerEntity.x, playerEntity.y);
-              this.executeCanSeePlayerBehavior(zombie, gameMap, playerEntity, turnResult, playerCardinalPositions);
-              break;
-            }
-
-            continue;
-          }
-        }
-        break; // Fallback: if no door/window, break the noise investigation
+        console.log(`[ZombieAI] Noise investigation to (${targetX}, ${targetY}) blocked: ${moveResult.reason}`);
+        break;
       }
     }
     if (noiseSafety >= 30) {
@@ -490,67 +401,34 @@ export class ZombieAI {
    * @param {Array} playerCardinalPositions - Evaluated cardinal positions around player
    */
   static executeMomentumBehavior(zombie, gameMap, direction, turnResult, playerCardinalPositions = []) {
-    console.log(`[ZombieAI] Zombie ${zombie.id} initiating momentum behavior in direction (${direction.x}, ${direction.y})`);
-
-    zombie.behaviorState = 'investigating'; // Keep investigative state until turn ends or player seen
+    zombie.behaviorState = 'investigating';
 
     while (zombie.currentAP > 0) {
       const nextX = zombie.x + direction.x;
       const nextY = zombie.y + direction.y;
-      const subtypeMult = zombie.getMovementMultiplier();
 
-      // Determine movement cost for this specific move
-      const nextTile = gameMap.getTile(nextX, nextY);
-      if (!nextTile) break; // Off map
+      const moveResult = this.attemptMoveTowards(zombie, gameMap, nextX, nextY);
 
-      const moveDist = Pathfinding.getMovementCost(zombie.x, zombie.y, nextX, nextY, nextTile, { isZombie: true });
-      const apCost = subtypeMult * moveDist;
-
-      if (zombie.currentAP < apCost) {
-        console.log(`[ZombieAI] Zombie ${zombie.id} momentum stopped: insufficient AP`);
-        break;
-      }
-
-      // Check if the move is valid (terrain/blocking entities)
-      if (!this.canMoveToTile(gameMap, nextX, nextY, zombie.subtype)) {
-        console.log(`[ZombieAI] Zombie ${zombie.id} momentum stopped: path blocked at (${nextX}, ${nextY})`);
-        break;
-      }
-
-      // Check for closed doors/unbroken windows (obstacles)
-      const door = nextTile.contents.find(e => e.type === EntityType.DOOR && !e.isOpen);
-      const window = nextTile.contents.find(e => e.type === EntityType.WINDOW && !e.isBroken && !e.isOpen);
-      if (door || window) {
-        console.log(`[ZombieAI] momentum stopped: encountered ${door ? 'door' : 'window'} (closed/unbroken)`);
-        break;
-      }
-
-      // Execute move
-      const fromPos = { x: zombie.x, y: zombie.y };
-      try {
-        gameMap.moveEntity(zombie.id, nextX, nextY);
-        zombie.useAP(apCost);
-        zombie.movementPath.push({ x: nextX, y: nextY });
-
+      if (moveResult.success) {
         turnResult.actions.push({
-          type: 'momentum_move',
-          from: fromPos,
-          to: { x: nextX, y: nextY },
-          apCost: apCost
+          type: moveResult.type || 'move',
+          from: moveResult.from,
+          to: moveResult.to,
+          apCost: moveResult.apCost,
+          doorPos: moveResult.doorPos,
+          doorBroken: moveResult.doorBroken,
+          windowPos: moveResult.windowPos,
+          windowBroken: moveResult.windowBroken
         });
 
-        console.log(`[ZombieAI] Zombie ${zombie.id} momentum move to (${nextX}, ${nextY}), remaining AP: ${zombie.currentAP}`);
-
-        // Check if player is visible after the move
-        const actualPlayer = gameMap.getEntitiesByType(EntityType.PLAYER)[0];
-        if (actualPlayer && zombie.canSeeEntity(gameMap, actualPlayer)) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} spotted player during momentum, switching to pursuit`);
-          zombie.setTargetSighted(actualPlayer.x, actualPlayer.y);
-          this.executeCanSeePlayerBehavior(zombie, gameMap, actualPlayer, turnResult, playerCardinalPositions);
-          break; // Stop momentum loop as behavior shifted to pursuit
+        // Check for player visibility
+        const player = gameMap.getAllEntities().find(e => e.type === EntityType.PLAYER);
+        if (player && zombie.canSeeEntity(gameMap, player)) {
+          zombie.setTargetSighted(player.x, player.y);
+          this.executeCanSeePlayerBehavior(zombie, gameMap, player, turnResult, playerCardinalPositions);
+          break;
         }
-      } catch (e) {
-        console.error(`[ZombieAI] Momentum move failed:`, e);
+      } else {
         break;
       }
     }
@@ -641,242 +519,203 @@ export class ZombieAI {
    * @param {number} targetX - Target X coordinate
    * @param {number} targetY - Target Y coordinate
    * @returns {Object} - Move result
-   */
-  static attemptMoveTowards(zombie, gameMap, targetX, targetY) {
+   */  static attemptMoveTowards(zombie, gameMap, targetX, targetY, options = {}) {
     console.log(`[ZombieAI] attemptMoveTowards: zombie at (${zombie.x}, ${zombie.y}), target (${targetX}, ${targetY}), AP: ${zombie.currentAP}`);
+
+    // 1. Check if we already have a mission target (e.g. a door we are breaching)
+    if (zombie.currentTarget && zombie.currentTarget.type === 'structure') {
+      const tile = gameMap.getTile(zombie.currentTarget.x, zombie.currentTarget.y);
+      const structure = tile?.contents.find(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.id === zombie.currentTarget.id);
+      
+      const isClosed = structure && (structure.type === EntityType.DOOR ? !structure.isOpen : (structure.isReinforced || (!structure.isBroken && !structure.isOpen)));
+      
+      if (isClosed) {
+        // We have a door to kill! Are we targeting it right now?
+        if (targetX !== zombie.currentTarget.x || targetY !== zombie.currentTarget.y) {
+           console.log(`[ZombieAI] Zombie ${zombie.id} overriding target (${targetX}, ${targetY}) to focus on mission door at (${zombie.currentTarget.x}, ${zombie.currentTarget.y})`);
+           return this.attemptMoveTowards(zombie, gameMap, zombie.currentTarget.x, zombie.currentTarget.y, options);
+        }
+      } else {
+        // Mission complete! Door is dead/open.
+        console.log(`[ZombieAI] Zombie ${zombie.id} mission door at (${zombie.currentTarget.x}, ${zombie.currentTarget.y}) is breached. Clearing target.`);
+        zombie.currentTarget = null;
+        // Proceed with original target (e.g. player)
+      }
+    }
 
     // Check if already at target
     if (zombie.x === targetX && zombie.y === targetY) {
-      console.log(`[ZombieAI] Already at target`);
       return { success: false, reason: 'Already at target' };
     }
 
     const fromPos = { x: zombie.x, y: zombie.y };
     const subtypeMult = zombie.getMovementMultiplier();
-    const minMoveCost = subtypeMult * 1.0; // Minimum cardinal cost
+    const minMoveCost = subtypeMult * 1.0;
 
-    // Check if zombie has enough AP for at least one cardinal step
     if (zombie.currentAP < minMoveCost) {
-      console.log(`[ZombieAI] Insufficient AP for any move: has ${zombie.currentAP}, needs ${minMoveCost}`);
-      return { success: false, reason: 'Insufficient AP', apRequired: minMoveCost };
+      return { success: false, reason: 'Insufficient AP' };
     }
 
-    // Create entity filter to ignore the zombie itself during pathfinding
-    // Update: Also allow pathing THROUGH doors (while still being blocked for actual move)
-    // This ensures zombies track to last seen/heard positions behind closed doors
-    // Create entity filters for two-pass pathfinding
-    const createFilter = (ignoreZombies) => (tile) => {
-      if (['wall', 'fence', 'tree', 'water'].includes(tile.terrain)) {
-        const hasEntrableStructure = tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-        if (!hasEntrableStructure) return false;
-      }
-      
-      if (tile.terrain === 'building') {
-        const hasEntrableStructure = tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-        if (!hasEntrableStructure) return false;
-      }
+    // --- MYOPIC FILTER: Closed doors and windows are SOLID WALLS ---
+    const myopicFilter = (tile) => {
+      // 1. Interactive structures take precedence (allow pathing TO them)
+      const door = tile.contents.find(e => e.type === EntityType.DOOR);
+      if (door) return door.isOpen;
 
-      const blockingEntities = tile.contents.filter(entity => {
-        if (!zombie.canPassWindows && entity.type === EntityType.WINDOW) return true;
-        if (entity.id === zombie.id) return false;
-        if (entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW) return false;
-        
-        // Pass 1: Treat other zombies as obstacles
-        // Pass 2: Ignore other zombies
-        if (entity.type === EntityType.ZOMBIE) return !ignoreZombies;
-        
-        if (entity.type === EntityType.PLAYER && entity.x === targetX && entity.y === targetY) return false;
-        return entity.blocksMovement;
-      });
-      return blockingEntities.length === 0;
+      const window = tile.contents.find(e => e.type === EntityType.WINDOW);
+      if (window) return window.isBroken || window.isOpen;
+
+      // 2. Terrain blocks
+      if (['wall', 'fence', 'tree', 'water', 'building', 'tent_wall'].includes(tile.terrain)) return false;
+      
+      // 3. Other zombies block pathfinding
+      const hasOtherZombie = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
+      if (hasOtherZombie) return false;
+
+      return !tile.unwalkable;
     };
 
-    // STUBBORNNESS LOGIC: Two-pass pathfinding with a "Detour Penalty"
-    // PASS 1: Try to find a path AROUND other zombies (Optimization)
-    const pass1 = Pathfinding.findPath(gameMap, zombie.x, zombie.y, targetX, targetY, {
+    // Attempt Primary Path (Doors = Walls)
+    let path = Pathfinding.findPath(gameMap, zombie.x, zombie.y, targetX, targetY, {
       allowDiagonal: true,
-      entityFilter: createFilter(false),
-      maxDistance: 20,
+      entityFilter: myopicFilter,
+      maxDistance: 25,
       isZombie: true
     });
 
-    // PASS 2: Find the DIRECT path (Ignoring other zombies)
-    const pass2 = Pathfinding.findPath(gameMap, zombie.x, zombie.y, targetX, targetY, {
-      allowDiagonal: true,
-      entityFilter: createFilter(true),
-      maxDistance: 20,
-      isZombie: true
-    });
+    // --- GHOST PATH FALLBACK: Identify the door to kill ---
+    if (path.length <= 1) {
+      console.log(`[ZombieAI] Myopic path blocked. Identifying obstacle target...`);
+      
+      const ghostFilter = (tile) => !['water', 'deep_water'].includes(tile.terrain);
 
-    // Choose the best path based on "Stubbornness"
-    let path = [];
-    const DETOUR_PENALTY = 5; // How many extra tiles is a window worth?
+      const ghostPath = Pathfinding.findPath(gameMap, zombie.x, zombie.y, targetX, targetY, {
+        allowDiagonal: true,
+        entityFilter: ghostFilter,
+        maxDistance: 25,
+        isZombie: true
+      });
 
-    if (pass1.length > 1 && pass2.length > 1) {
-      if (pass1.length <= pass2.length + DETOUR_PENALTY) {
-        // Detour is reasonable, take it
-        path = pass1;
-      } else {
-        // Detour is too long, stubbornly go to the blocked door
-        console.log(`[ZombieAI] Detour to window is too long (${pass1.length} vs direct ${pass2.length}), choosing direct path instead.`);
-        path = pass2;
+      console.log(`[ZombieAI] Ghost path to (${targetX}, ${targetY}): length ${ghostPath.length}`);
+
+      if (ghostPath.length > 1) {
+        let obstacleIndex = -1;
+        let structure = null;
+
+        for (let i = 1; i < ghostPath.length; i++) {
+          const step = ghostPath[i];
+          const stepTile = gameMap.getTile(step.x, step.y);
+          const s = stepTile?.contents.find(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+          const isClosed = s && (s.type === EntityType.DOOR ? !s.isOpen : (s.isReinforced || (!s.isBroken && !s.isOpen)));
+          
+          if (isClosed) {
+            obstacleIndex = i;
+            structure = s;
+            break;
+          }
+          if (stepTile?.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id)) {
+            obstacleIndex = i;
+            break;
+          }
+        }
+
+        if (obstacleIndex !== -1) {
+          const obstaclePos = ghostPath[obstacleIndex];
+          
+          if (obstacleIndex === 1) {
+            if (structure) {
+              // SET AS MISSION TARGET
+              zombie.currentTarget = { type: 'structure', id: structure.id, x: obstaclePos.x, y: obstaclePos.y };
+              
+              // Cardinal attack only
+              if (Math.abs(zombie.x - obstaclePos.x) + Math.abs(zombie.y - obstaclePos.y) === 1) {
+                return this.executeStructureAttack(zombie, gameMap, structure, obstaclePos, fromPos);
+              } else {
+                // Diagonal: Move cardinal
+                const candidates = [{ x: obstaclePos.x, y: zombie.y }, { x: zombie.x, y: obstaclePos.y }];
+                for (const cand of candidates) {
+                  if (this.canMoveToTile(gameMap, cand.x, cand.y, zombie.subtype)) {
+                    const moveDist = Pathfinding.getMovementCost(zombie.x, zombie.y, cand.x, cand.y, gameMap.getTile(cand.x, cand.y), { isZombie: true });
+                    const apCost = subtypeMult * moveDist;
+                    if (zombie.currentAP >= apCost) {
+                      if (gameMap.moveEntity(zombie.id, cand.x, cand.y)) {
+                        zombie.useAP(apCost);
+                        zombie.movementPath.push({ x: cand.x, y: cand.y });
+                        return { success: true, from: fromPos, to: { x: cand.x, y: cand.y }, apCost: apCost };
+                      }
+                    }
+                  }
+                }
+                zombie.useAP(1.0);
+                return { success: true, from: fromPos, to: fromPos, type: 'wait', apCost: 1.0, reason: 'Waiting to engage structure' };
+              }
+            } else {
+              zombie.useAP(1.0);
+              return { success: true, from: fromPos, to: fromPos, type: 'wait', apCost: 1.0, reason: 'Waiting for horde' };
+            }
+          } else {
+            // Obstacle is further away.
+            path = Pathfinding.findPath(gameMap, zombie.x, zombie.y, ghostPath[obstacleIndex - 1].x, ghostPath[obstacleIndex - 1].y, {
+              allowDiagonal: true,
+              entityFilter: myopicFilter,
+              maxDistance: 25,
+              isZombie: true
+            });
+          }
+        } else {
+          path = ghostPath;
+        }
       }
-    } else {
-      // Fallback to whichever one found a path
-      path = pass1.length > 1 ? pass1 : pass2;
     }
 
-
+    // Execute Move
     if (path.length > 1) {
-      // Move to the next step in the path (path[0] is current position, path[1] is next step)
       const nextMove = path[1];
-
-      console.log(`[ZombieAI] Following path step 1 of ${path.length - 1}: moving to (${nextMove.x}, ${nextMove.y})`);
-
       const nextTile = gameMap.getTile(nextMove.x, nextMove.y);
+      const apCost = subtypeMult * Pathfinding.getMovementCost(zombie.x, zombie.y, nextMove.x, nextMove.y, nextTile, { isZombie: true });
 
-      const moveDist = Pathfinding.getMovementCost(fromPos.x, fromPos.y, nextMove.x, nextMove.y, nextTile, { isZombie: true });
-      const apCost = zombie.getMovementMultiplier() * moveDist;
-
-      // Final dynamic AP check for this specific move
-      if (zombie.currentAP < apCost) {
-        console.log(`[ZombieAI] Insufficient AP for specific move: has ${zombie.currentAP}, needs ${apCost}`);
-        return { success: false, reason: 'Insufficient AP', apRequired: apCost };
-      }
-
-      // ── PRIORITY 1: Closed door in the way → attack it ──────────────────────
-      // Check this BEFORE canMoveToTile because canMoveToTile now correctly
-      // returns true for door tiles (letting pathfinding route through them),
-      // which means we must intercept the closed-door case here first.
-      const door = nextTile?.contents.find(e => e.type === EntityType.DOOR);
-      if (door && !door.isOpen) {
-        console.log(`[ZombieAI] Next path step blocked by closed door at (${nextMove.x}, ${nextMove.y}), attacking door`);
-
-        // Zombie attacks the door (costing cardinal AP cost)
-        const cardinalCost = subtypeMult * 1.0;
-        zombie.useAP(cardinalCost);
-
-        // Zombies do 1-2 damage to doors per attack
-        const doorDamage = Math.floor(Math.random() * 2) + 1;
-        door.takeDamage(doorDamage, true); // Silent damage for logic only
-        zombie.interactionMemory = 3; // Stay here for 3 turns (1 now + 2 more)
-
-        console.log(`[ZombieAI] Zombie ${zombie.id} (at ${zombie.x},${zombie.y}) logically attacked door at (${nextMove.x}, ${nextMove.y}) for ${doorDamage} damage, remaining AP: ${zombie.currentAP}`);
-
-        // Attract zombies (including ourselves) to the noise
-        const otherZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
-        otherZombies.forEach(z => {
-          const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
-          if (distance <= 6) {
-            z.setNoiseHeard(nextMove.x, nextMove.y);
-          }
-        });
-
-        return {
-          success: true,
-          from: fromPos,
-          to: fromPos, // Zombie didn't move
-          type: 'attackDoor',
-          doorPos: { x: nextMove.x, y: nextMove.y },
-          apCost: cardinalCost,
-          doorBroken: door.hp <= 0
-        };
-      }
-
-      // ── PRIORITY 1b: Window in the way → break it (or destroy reinforcement) ─
-      const window = nextTile?.contents.find(e => e.type === EntityType.WINDOW);
-      if (window && (window.isReinforced || (!window.isBroken && !window.isOpen))) {
-        console.log(`[ZombieAI] Next path step blocked by window at (${nextMove.x}, ${nextMove.y}), attacking window`);
-
-        // Spending 1 AP for the attack action
-        const attackCost = 1.0;
-        zombie.useAP(attackCost);
-
-        // Attack the window (Logic handles glass vs reinforcement)
-        const damageAmount = 1 + Math.floor(Math.random() * 2);
-        const damageResult = window.takeDamage(damageAmount, true); 
-        zombie.interactionMemory = 3;
-        
-        console.log(`[ZombieAI] Zombie ${zombie.id} attacked window, broken=${damageResult.isBroken}, reinforced=${damageResult.isReinforced}`);
-
-        // Attract zombies (including ourselves) to the noise
-        const otherZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
-        otherZombies.forEach(z => {
-          const distance = Math.abs(z.x - nextMove.x) + Math.abs(z.y - nextMove.y);
-          if (distance <= 6) {
-            z.setNoiseHeard(nextMove.x, nextMove.y);
-          }
-        });
-
-        // Noise on map
-        if (gameMap.emitNoise) {
-            gameMap.emitNoise(nextMove.x, nextMove.y, 6);
-        }
-
-        return {
-          success: true,
-          from: fromPos,
-          to: fromPos, // Zombie didn't move yet
-          type: 'attackWindow',
-          windowPos: { x: nextMove.x, y: nextMove.y },
-          apCost: attackCost,
-          windowBroken: damageResult.isBroken,
-          windowReinforced: damageResult.isReinforced
-        };
-      }
-
-
-      // ── PRIORITY 2: Normal movement check ──────────────────────────────────
-      if (!ZombieAI.canMoveToTile(gameMap, nextMove.x, nextMove.y, zombie.subtype)) {
-        // PACK LOGIC: If blocked by another zombie, just wait/shuffle instead of pathing around
-        const targetTile = gameMap.getTile(nextMove.x, nextMove.y);
-        const blockingZombie = targetTile?.contents.find(e => e.type === EntityType.ZOMBIE);
-        
-        if (blockingZombie && zombie.currentAP >= 1.0) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} at (${zombie.x}, ${zombie.y}) blocked by zombie ${blockingZombie.id} at (${nextMove.x}, ${nextMove.y}), waiting for turn...`);
-          zombie.useAP(1.0); // Spend 1 AP to "Wait"
-          return {
-            success: true,
-            from: fromPos,
-            to: fromPos,
-            type: 'wait',
-            apCost: 1.0,
-            reason: 'Blocked by zombie'
-          };
-        }
-
-        console.log(`[ZombieAI] Next path step blocked by non-door entity or terrain, cannot move`);
-        return { success: false, reason: 'Next path step blocked' };
-      }
-
-      // Perform the move
-      try {
-        const moveSuccess = gameMap.moveEntity(zombie.id, nextMove.x, nextMove.y);
-        
-        if (moveSuccess) {
+      if (zombie.currentAP >= apCost) {
+        if (gameMap.moveEntity(zombie.id, nextMove.x, nextMove.y)) {
           zombie.useAP(apCost);
           zombie.movementPath.push({ x: nextMove.x, y: nextMove.y });
-          console.log(`[ZombieAI] Move successful: ${fromPos.x},${fromPos.y} -> ${nextMove.x},${nextMove.y}, remaining AP: ${zombie.currentAP}`);
-
-          return {
-            success: true,
-            from: fromPos,
-            to: { x: nextMove.x, y: nextMove.y },
-            apCost: apCost
-          };
-        } else {
-          console.log(`[ZombieAI] gameMap.moveEntity failed to tile (${nextMove.x}, ${nextMove.y}) despite passing validation`);
-          return { success: false, reason: 'Movement failed' };
+          return { success: true, from: fromPos, to: { x: nextMove.x, y: nextMove.y }, apCost: apCost };
         }
-      } catch (error) {
-        console.log(`[ZombieAI] Move failed with error: ${error.message}`);
-        return { success: false, reason: error.message };
       }
     }
 
-    console.log(`[ZombieAI] No path found to target`);
-    return { success: false, reason: 'No path to target' };
+    return { success: false, reason: 'No path found' };
   }
+
+
+  /**
+   * Helper to execute attack on a structure (door/window)
+   */
+  static executeStructureAttack(zombie, gameMap, structure, pos, fromPos) {
+    const subtypeMult = zombie.getMovementMultiplier();
+    const cost = structure.type === EntityType.DOOR ? (subtypeMult * 1.0) : 1.0;
+
+    if (zombie.currentAP < cost) return { success: false, reason: 'Insufficient AP' };
+
+    zombie.useAP(cost);
+    const result = structure.takeDamage(1, false); // Loud attack (triggers sounds and UI events)
+    zombie.interactionMemory = 0; // No delay while breaching
+
+    // Noise propagation
+    if (gameMap.emitNoise) gameMap.emitNoise(pos.x, pos.y, 6);
+
+    return {
+      success: true,
+      from: fromPos,
+      to: fromPos,
+      type: structure.type === EntityType.DOOR ? 'attackDoor' : 'attackWindow',
+      doorPos: structure.type === EntityType.DOOR ? pos : null,
+      windowPos: structure.type === EntityType.WINDOW ? pos : null,
+      apCost: cost,
+      doorBroken: structure.type === EntityType.DOOR ? structure.hp <= 0 : false,
+      windowBroken: structure.type === EntityType.WINDOW ? result.isBroken : false
+    };
+  }
+
 
   /**
    * Check if a zombie can move to a specific tile
@@ -900,7 +739,11 @@ export class ZombieAI {
       // CRAWLERS cannot use windows
       if (zombieSubtype === 'crawler' && entity.type === EntityType.WINDOW) return true;
 
-      // Doors, windows and player are handled by specific logic in attemptMoveTowards
+      // Closed structures block movement
+      if (entity.type === EntityType.DOOR && !entity.isOpen) return true;
+      if (entity.type === EntityType.WINDOW && (entity.isReinforced || (!entity.isBroken && !entity.isOpen))) return true;
+
+      // Player and open structures are NOT blocking for move validation (handled by attemptMoveTowards)
       if (entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW || entity.type === EntityType.PLAYER) return false;
 
       // Other zombies block actual movement

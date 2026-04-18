@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Zap } from "lucide-react";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
+import { usePlayer } from '../../contexts/PlayerContext.jsx';
+import { useGame } from '../../contexts/GameContext.jsx';
+import { useSleep } from '../../contexts/SleepContext.jsx';
+import { useCombat } from '../../contexts/CombatContext.jsx';
+import { useAction } from '../../contexts/ActionContext.jsx';
+import { imageLoader } from '../../game/utils/ImageLoader.js';
 
 interface GameControlsProps {
   playerStats: {
@@ -9,67 +14,70 @@ interface GameControlsProps {
     maxHp: number;
     ap: number;
     maxAp: number;
-    ammo: number;
     nutrition: number;
-    maxNutrition: number;
     hydration: number;
-    maxHydration: number;
     energy: number;
-    maxEnergy: number;
     condition: string;
     isBleeding: boolean;
   };
   gameState: {
     turn: number;
     playerName: string;
-    location: string;
-    zombieCount: number;
   };
   onEndTurn: () => void;
   onRest: () => void;
 }
 
-import { usePlayer } from '../../contexts/PlayerContext.jsx';
-import { useGame } from '../../contexts/GameContext.jsx';
-import { useSleep } from '../../contexts/SleepContext.jsx';
-import { imageLoader } from '../../game/utils/ImageLoader.js';
-import DevConsole from './DevConsole';
+interface StatBarProps {
+  label: string;
+  current: number;
+  max: number;
+  className?: string;
+}
 
-export default function GameControls({ playerStats: demoStats, gameState: demoState, onEndTurn: demoEndTurn, onRest }: GameControlsProps) {
-  // Phase 1: Direct sub-context access
+const StatBar = ({ label, current, max, className }: StatBarProps) => (
+  <div className={cn("flex flex-col gap-0.5", className)}>
+    <div className="flex justify-between items-baseline px-0.5">
+      <span className="text-[9px] font-black text-white/40 uppercase tracking-tight">{label}</span>
+      <span className="text-[10px] font-bold text-white/80 tabular-nums">
+        {Number.isInteger(current) ? current : current.toFixed(1)}<span className="text-white/20 mx-0.5 text-[8px]">/</span>{max}
+      </span>
+    </div>
+    <div className="h-2 w-full bg-zinc-800/80 rounded-sm overflow-hidden border border-white/5 p-[1px]">
+      <div 
+        className="h-full bg-white transition-all duration-500 ease-out rounded-[1px]" 
+        style={{ width: `${Math.min(100, Math.max(0, (current / max) * 100))}%` }} 
+      />
+    </div>
+  </div>
+);
+
+export default function GameControls({ 
+  playerStats: demoStats, 
+  gameState: demoState, 
+  onEndTurn: demoEndTurn 
+}: GameControlsProps) {
+  
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
-
-  // Get only orchestration functions from GameContext (no data aggregation)
-  const {
-    turn,
-    endTurn,
-    isInitialized,
-    isPlayerTurn,
+  const { 
+    turn, 
+    endTurn, 
+    isInitialized, 
+    isPlayerTurn, 
     isAutosaving,
+    isAnimatingZombies,
     isSkillsOpen,
-    toggleSkills,
-    enginePulse
+    toggleSkills
   } = useGame();
+  
+  const { isSleeping, triggerSleep } = useSleep();
+  // We keep useCombat for possible future combat-related HUD elements, but remove non-existent handleEndTurn
+  const combatContext = useCombat();
 
-  const {
-    isSleeping,
-    sleepProgress,
-    triggerSleep,
-    performSleep
-  } = useSleep();
-
-  // Phase 2: Movement animation handled by PlayerContext
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);
   const [playerIcon, setPlayerIcon] = useState<string | null>(null);
 
-  // DEBUG: Track engine pulse in UI
-  useEffect(() => {
-    if (enginePulse > 0) {
-      console.log(`[GameControls] 💓 Engine Pulse #${enginePulse} received in UI`);
-    }
-  }, [enginePulse]);
-
-  // Load UI images on component mount
+  // Load UI images
   useEffect(() => {
     const loadUIImages = async () => {
       try {
@@ -86,151 +94,123 @@ export default function GameControls({ playerStats: demoStats, gameState: demoSt
   }, []);
 
   // Use real game state when available, fallback to demo props
-  // We prioritize the hook-provided playerStats as it is bound to the enginePulse
   const currentStats = isInitialized ? playerStats : demoStats;
   const currentTurn = isInitialized ? turn : demoState.turn;
-  const handleEndTurn = isInitialized ? endTurn : demoEndTurn;
+  const onEndTurnAction = isInitialized ? endTurn : demoEndTurn;
 
-  // Calculate if buttons should be disabled
-
-  // Calculate if buttons should be disabled
-  const maxSleepHours = Math.max(0, Math.ceil((25 - currentStats.energy) / 2.5));
-  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping;
+  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isAnimatingZombies || (combatContext?.isProcessing);
   const sleepDisabled = buttonsDisabled || currentStats.energy >= 25;
 
   return (
-    <div className="bg-card border-t border-border p-1.5 flex items-center" data-testid="game-controls">
-
-      {/* End Turn Button and Stats with tighter gap */}
-      <div className="flex items-center gap-2">
-        {/* End Turn Button - Square image button */}
+    <div className="bg-card border-t border-border px-4 py-1 flex items-center h-[82px] w-full shadow-[0_-8px_25px_rgba(0,0,0,0.8)] z-20" data-testid="game-controls">
+      
+      {/* 1. Primary Action: End Turn */}
+      <div className="flex items-center pr-4 border-r border-white/10 h-full">
         <Button
-          onClick={handleEndTurn}
+          onClick={onEndTurnAction}
           disabled={buttonsDisabled}
-          className="p-1 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ width: '40px', height: '40px' }}
+          className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
+          style={{ width: '56px', height: '56px' }}
           data-testid="button-end-turn"
         >
           {endTurnImage ? (
-            <img
-              src={endTurnImage}
-              alt="End Turn"
-              className="w-full h-full object-contain"
-            />
+            <img src={endTurnImage} alt="End Turn" className="w-full h-full object-contain" />
           ) : (
-            <span className="text-xs font-bold">END</span>
+            <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
           )}
         </Button>
+      </div>
 
-        {/* Stats - Expanded to fill middle area, now with flexible width and tighter padding */}
-        <div className="flex flex-col flex-1 min-w-0 gap-1.5 px-1">
-          {/* Row 1: Combat Stats */}
-          <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-wider">
-            <div className="flex items-center gap-1.5" data-testid="stat-health">
-              <span className="text-white mr-0.5">HP</span>
-              <span className="text-white font-bold">{currentStats.hp}</span>
-              <span className="text-white/40">/</span>
-              <span className="text-white/60">{currentStats.maxHp}</span>
-            </div>
+      {/* 2. Central HUD: 2-Row Stats Display - Tightened vertical spacing */}
+      <div className="flex-1 flex flex-col justify-center px-4 md:px-8 gap-1.5 min-w-0">
+        
+        {/* Row 1: Combat (HP and AP) */}
+        <div className="flex items-center gap-6 md:gap-12">
+          <StatBar 
+            label="Health" 
+            current={currentStats.hp} 
+            max={currentStats.maxHp} 
+            className="flex-1"
+          />
+          <StatBar 
+            label="Action" 
+            current={currentStats.ap} 
+            max={currentStats.maxAp} 
+            className="flex-1"
+          />
+        </div>
 
-            <div className="flex items-center gap-1.5 ml-4" data-testid="stat-action-points">
-              <span className="text-white mr-0.5">AP</span>
-              <span className="text-white font-bold">{currentStats.ap}</span>
-              <span className="text-white/40">/</span>
-              <span className="text-white/60">{currentStats.maxAp}</span>
-            </div>
+        {/* Row 2: Survival (Nutrition, Hydration, Energy) */}
+        <div className="flex items-center gap-4 md:gap-8 opacity-90">
+          <StatBar 
+            label="Nutrition" 
+            current={currentStats.nutrition} 
+            max={25} 
+            className="flex-1"
+          />
+          <StatBar 
+            label="Hydration" 
+            current={currentStats.hydration} 
+            max={25} 
+            className="flex-1"
+          />
+          <StatBar 
+            label="Energy" 
+            current={currentStats.energy} 
+            max={25} 
+            className="flex-1"
+          />
+        </div>
+      </div>
 
-            <div className="flex items-center gap-1 border-l border-white/10 pl-4" data-testid="stat-condition">
-              <span className="text-white/60 mr-0.5 lowercase font-normal italic">Condition:</span>
-              <span className="text-white font-bold">
-                {[
-                  currentStats.condition !== 'Normal' ? currentStats.condition : null,
-                  currentStats.isBleeding ? 'Bleeding' : null
-                ].filter(Boolean).join(', ') || 'Normal'}
-              </span>
-            </div>
+      {/* 3. Secondary HUD: World Info & Actions */}
+      <div className="flex items-center gap-3 pl-4 border-l border-white/10 h-full shrink-0">
+        
+        {/* Compact Turn/Time vertical group */}
+        <div className="flex flex-col gap-1.5 mr-1 hidden sm:flex">
+          <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-white/30 uppercase tracking-tighter tabular-nums">
+            <span>Turn</span>
+            <span className="text-white/80">T{currentTurn}</span>
           </div>
-
-          {/* Row 2: Survival Stats + Turn Info + Clock - Compressed Gaps */}
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight">
-            <div className="flex items-center gap-1.5" data-testid="stat-nutrition">
-              <span className="text-white/60 mr-0.5">Nutrition</span>
-              <span className="text-white">{currentStats.nutrition}</span>
-            </div>
-
-            <div className="flex items-center gap-1.5" data-testid="stat-hydration">
-              <span className="text-white/60 mr-0.5">Hydration</span>
-              <span className="text-white">{currentStats.hydration}</span>
-            </div>
-
-            <div className="flex items-center gap-1.5" data-testid="stat-energy">
-              <span className="text-white/60 mr-0.5">Energy</span>
-              <span className="text-white">{currentStats.energy}</span>
-            </div>
-
-            {/* Turn Pill - Flexible margin */}
-            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white">
-              T{currentTurn}
-            </div>
-
-            {/* 24-Hour Clock Pill */}
-            <div className="bg-zinc-800 px-2 py-0.5 rounded border border-white/10 text-white font-mono">
-              {String((6 + (currentTurn - 1)) % 24).padStart(2, '0')}00
-            </div>
-
-            {/* Sleep Button */}
-            <div className="flex items-center gap-1">
-              <Button
-                onClick={() => triggerSleep(1)}
-                disabled={sleepDisabled}
-                className="h-[18px] px-2 bg-indigo-600 hover:bg-indigo-700 text-[9px] font-bold text-white rounded border border-white/10 uppercase tracking-tighter disabled:bg-indigo-900/50"
-                data-testid="button-sleep-trigger"
-              >
-                Sleep
-              </Button>
-            </div>
-
-            </div>
-
-            {/* Status Messages */}
-            {!isPlayerTurn && isAutosaving && (
-              <span className="text-white animate-pulse ml-1 text-[9px]">
-                AUTOSAVING
-              </span>
-            )}
-
+          <div className="flex items-center justify-between gap-3 text-[10px] font-mono font-bold text-white/30 uppercase tracking-tighter tabular-nums">
+            <span>Time</span>
+            <span className="text-white/80">
+              {String((6 + (currentTurn - 1)) % 24).padStart(2, '0')}:00
+            </span>
           </div>
         </div>
 
-        {/* Skills Button - Tighter fixed position */}
-        <div className="flex-shrink-0 flex items-center gap-1 ml-2 border-l border-white/5 pl-2">
-          <Button
-            onClick={toggleSkills}
-            disabled={buttonsDisabled}
-            className={cn(
-              "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border",
-              isSkillsOpen ? "border-primary shadow-[0_0_8px_rgba(34,197,94,0.3)] bg-primary/10" : "border-white/10"
-            )}
-            style={{ width: '40px', height: '40px' }}
-            title="Character Skills"
-            data-testid="button-skills-toggle"
-          >
-            {playerIcon ? (
-              <img
-                src={playerIcon}
-                alt="Skills"
-                className="w-full h-full object-contain p-1"
-              />
-            ) : (
-              <span className="text-[10px] font-bold">SKILLS</span>
-            )}
-          </Button>
-        </div>
+        <Button
+          onClick={() => triggerSleep(1)}
+          disabled={sleepDisabled}
+          className="h-10 px-3 bg-zinc-800 hover:bg-zinc-700 text-[9px] font-black text-white/70 rounded border border-white/10 uppercase tracking-widest disabled:opacity-20 transition-all font-mono"
+        >
+          Sleep
+        </Button>
 
-
-      {/* Right side buttons container - kept for structural balance but empty of buttons */}
-      <div className="ml-auto flex items-center gap-2 pr-4 border-l border-white/10 h-10">
-        {/* The blue line mentioned is likely this border/separator */}
+        <Button
+          onClick={toggleSkills}
+          disabled={buttonsDisabled}
+          className={cn(
+            "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border shadow-lg active:scale-95",
+            isSkillsOpen ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] bg-zinc-700" : "border-white/10"
+          )}
+          style={{ width: '56px', height: '56px' }}
+          title="Character Stats"
+        >
+          {playerIcon ? (
+            <img
+              src={playerIcon}
+              alt="Skills"
+              className={cn(
+                "w-full h-full object-contain p-1 invert grayscale",
+                isSkillsOpen ? "opacity-100" : "opacity-40"
+              )}
+            />
+          ) : (
+            <span className="text-[10px] font-black leading-tight text-white/60">CHR</span>
+          )}
+        </Button>
       </div>
 
     </div>

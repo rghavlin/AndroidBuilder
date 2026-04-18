@@ -155,4 +155,13 @@
   .custom-scrollbar::-webkit-scrollbar-corner {
     background: hsl(240 10% 10%);
   }
+
+  /* Utility to hide scrollbars while maintaining functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
 }

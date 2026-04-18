@@ -20,8 +20,12 @@ export class CraftingManager {
             const singleItem = item.splitStack(1);
             // CRITICAL: Must reduce source since splitStack is non-mutating
             item.stackCount -= 1;
+            
             // Add back to workspace so it's tracked as a separate instance
-            container.addItem(singleItem, null, null, true);
+            // FIX: Must set allowStacking=false so it doesn't immediately merge back!
+            // We also pass the item's current position as a hint to keep it nearby.
+            container.addItem(singleItem, item.x, item.y, false);
+            
             return singleItem;
         }
         return item;
@@ -199,7 +203,7 @@ export class CraftingManager {
             const meatItems = allItems.filter(i => i.defId === 'food.raw_meat');
             
             const waterContainers = allItems.filter(i => i.isWaterBottle() && (i.ammoCount || 0) > 0);
-            const totalWaterAvailable = waterContainers.reduce((sum, i) => sum + (i.ammoCount || 0), 0);
+            const totalWaterAvailable = waterContainers.reduce((sum, i) => sum + ((i.ammoCount || 0) * i.stackCount), 0);
 
             // 2. Greedily determine what to cook (Max 4 units: Meat = 2, Veg = 1)
             let unitsUsed = 0;
@@ -265,14 +269,24 @@ export class CraftingManager {
             for (const item of waterContainers) {
                 if (waterToConsume <= 0) break;
                 
-                const consume = Math.min(item.ammoCount, waterToConsume);
-                
-                // Use the new helper for robust stacking support
-                const targetItem = this._consumeFromStack(item, ingredientContainer);
-                targetItem.ammoCount -= consume;
-                console.log(`[CraftingManager] Consumed ${consume} units for stew. Remaining in bottle: ${targetItem.ammoCount}`);
+                // If it's a stack, we might need to take from multiple bottles in it
+                while (waterToConsume > 0 && (item.ammoCount || 0) > 0) {
+                    const consume = Math.min(item.ammoCount, waterToConsume);
+                    
+                    // Use the new helper for robust stacking support
+                    const targetItem = this._consumeFromStack(item, ingredientContainer);
+                    targetItem.ammoCount -= consume;
+                    console.log(`[CraftingManager] Consumed ${consume} units for stew. Remaining in bottle: ${targetItem.ammoCount}`);
 
-                waterToConsume -= consume;
+                    waterToConsume -= consume;
+                    
+                    // If targetItem is NOT the stack itself (i.e. it was split), 
+                    // then targetItem now represents a single modified bottle.
+                    // The 'item' variable still points to the (now smaller) stack.
+                    // If it was NOT a stack, item === targetItem and we loop again if needed.
+                    if (item !== targetItem && item.stackCount <= 0) break;
+                    if (item === targetItem) break; // Standalone bottle fully used or remaining units handled by loop
+                }
             }
 
             // 5. Create final item

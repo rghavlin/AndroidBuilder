@@ -10,8 +10,8 @@
  * - canPassWindows: Whether the zombie can climb through windows (crawlers cannot)
  */
 export const ZombieTypes = {
-  walker: {
-    name: 'Walker',
+  basic: {
+    name: 'Zombie',
     hp: 10,
     maxAP: 12,
     sightRange: 15,
@@ -97,5 +97,5 @@ export const ZombieTypes = {
  * @returns {Object}
  */
 export function getZombieType(subtype) {
-  return ZombieTypes[subtype] || ZombieTypes.walker;
+  return ZombieTypes[subtype] || ZombieTypes.basic;
 }

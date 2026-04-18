@@ -270,8 +270,7 @@ export class Pathfinding {
       if (window) {
         if (options?.isZombie) {
           // Rule: Moving into a window frame costs 2.0 AP for zombies.
-          const penalty = options?.isPathfinding ? 10 : 0;
-          baseCost = 2.0 + penalty;
+          baseCost = 2.0;
         } else {
           baseCost += 1;
         }
@@ -281,15 +280,14 @@ export class Pathfinding {
       if (options?.isZombie) {
         const door = targetTile.contents.find(e => e.type === EntityType.DOOR);
         if (door && !door.isOpen) {
-          // Closed door: +4 AP base penalty, +35 heuristic penalty to avoid shortcuts
-          const penalty = options?.isPathfinding ? 35 : 4;
-          baseCost = 1.0 + penalty;
+          // Closed door: 1.0 base cost (damage/AP handled in ZombieAI)
+          baseCost = 1.0;
         }
 
         const hasOtherZombie = targetTile.contents.some(e => e.type === EntityType.ZOMBIE);
         if (hasOtherZombie) {
-          // Other zombie: +4 AP penalty (prefers empty tiles but won't detour into the woods)
-          baseCost += 4;
+          // Other zombie: slight preference for empty tiles but not a wall
+          baseCost += 1;
         }
       }
     }

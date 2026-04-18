@@ -669,8 +669,8 @@ export const InventoryProvider = ({ children }) => {
     }
 
     // 2. Add Item to Target (Enable allowStacking: true for special containers)
-    // Only allow implicit storage for non-equipped items
-    if (!targetContainerItem.isEquipped) {
+    // Only allow implicit storage if the target container is accessible (e.g. on ground)
+    if (engine.inventoryManager.isContainerAccessible(targetContainerItem)) {
         // Case A: Standard container grid (Backpacks, toolboxes, etc.)
         if (container && container.addItem(item, null, null, true)) {
             // 3. CRITICAL: Remove item from original source container to prevent duplication
