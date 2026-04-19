@@ -39,6 +39,8 @@ export class Zombie extends Entity {
     this.isActive = false; // Whether it's this zombie's turn
     this.isAlerted = false; // Persistent flag for "spotted player" sound trigger
     this.lastScentSequence = 0; // Last scent in the trail this zombie followed
+    this.lastDirection = null; // Direction vector {x, y} when player was last seen
+    this.momentumSteps = 0; // Remaining steps to move in lastDirection after losing sight
     
     // Myopic Targeting System
     this.currentTarget = null; // { type: 'entity'|'tile', id: string, x: number, y: number }
@@ -269,7 +271,8 @@ export class Zombie extends Entity {
       isAlerted: this.isAlerted,
       lastScentSequence: this.lastScentSequence,
       interactionMemory: this.interactionMemory,
-      lastDirection: this.lastDirection
+      lastDirection: this.lastDirection,
+      momentumSteps: this.momentumSteps
     };
   }
 

@@ -87,6 +87,22 @@ export class LootGenerator {
                 });
                 console.log(`[LootGenerator] Building ${index + 1}: Spawned ${dropCount} loot drops on ${nonDoorTiles.length} eligible tiles (${buildingTiles.length - nonDoorTiles.length} door tiles excluded)`);
             }
+
+            // Phase 25: Guaranteed Building Loot (Every building has 1-3 planks)
+            const guaranteedTiles = buildingTiles.filter(pos => !this.isNearDoor(gameMap, pos.x, pos.y));
+            if (guaranteedTiles.length > 0) {
+                const plankCount = 1 + Math.floor(Math.random() * 3);
+                const plankTiles = this.getRandomSubarray(guaranteedTiles, plankCount);
+                plankTiles.forEach(pos => {
+                    const plank = createItemFromDef('weapon.plank');
+                    if (plank) {
+                        // Append to existing items if any
+                        const current = gameMap.getItemsOnTile(pos.x, pos.y) || [];
+                        gameMap.setItemsOnTile(pos.x, pos.y, [...current, plank]);
+                    }
+                });
+                console.log(`[LootGenerator] Building ${index + 1}: Spawned ${plankCount} guaranteed planks`);
+            }
         });
 
         // 2. Identify outdoor tiles and spawn outdoor loot (excluding doorway tiles)
@@ -165,6 +181,44 @@ export class LootGenerator {
         });
 
         console.log(`[LootGenerator] Furniture: Spawned ${bedsSpawned} beds across ${buildings.length} residential buildings`);
+        
+        // Phase 25: Toy Wagon Spawn (35% chance per map, strictly outdoor)
+        if (Math.random() < 0.35) {
+            const outdoorTiles = [];
+            const buildings = gameMap.buildings || [];
+            
+            for (let y = 0; y < gameMap.height; y++) {
+                for (let x = 0; x < gameMap.width; x++) {
+                    const tile = gameMap.getTile(x, y);
+                    // 1. Terrain must be outdoor
+                    if (tile && ['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
+                        // 2. Must NOT be inside a building rectangle
+                        const isInside = buildings.some(b => 
+                            x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+                        );
+                        if (isInside) continue;
+
+                        // 3. Must NOT be near a door
+                        if (this.isNearDoor(gameMap, x, y)) continue;
+
+                        // 4. Must be empty
+                        const existing = gameMap.getItemsOnTile(x, y);
+                        if (!existing || existing.length === 0) {
+                            outdoorTiles.push({ x, y });
+                        }
+                    }
+                }
+            }
+            
+            if (outdoorTiles.length > 0) {
+                const pos = outdoorTiles[Math.floor(Math.random() * outdoorTiles.length)];
+                const wagon = createItemFromDef('toy_wagon');
+                if (wagon) {
+                    gameMap.setItemsOnTile(pos.x, pos.y, [wagon]);
+                    console.log(`[LootGenerator] Furniture: Spawned single Toy Wagon at (${pos.x}, ${pos.y})`);
+                }
+            }
+        }
     }
 
     /**

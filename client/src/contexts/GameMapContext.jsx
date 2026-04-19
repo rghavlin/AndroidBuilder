@@ -82,7 +82,26 @@ export const GameMapProvider = ({ children }) => {
 
       if (path.length === 0) return;
 
-      const movementCost = Pathfinding.calculateMovementCost(engine.gameMap, path);
+      let movementCost = Pathfinding.calculateMovementCost(engine.gameMap, path);
+      
+      // Phase 25: Drag AP Penalty (with Terrain Bonuses)
+      const dragging = engine.dragging;
+      if (dragging && path.length > 1) {
+        const basePenalty = dragging.item.dragApPenalty || 2;
+        let dragPenaltyTotal = 0;
+        
+        // Calculate penalty per step based on terrain
+        for (let i = 1; i < path.length; i++) {
+          const tile = engine.gameMap.getTile(path[i].x, path[i].y);
+          let stepPenalty = basePenalty;
+          if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
+            stepPenalty -= 0.5;
+          }
+          dragPenaltyTotal += stepPenalty;
+        }
+        movementCost += dragPenaltyTotal;
+      }
+
       if (movementCost > player.ap) return;
 
       // Start movement
@@ -92,7 +111,9 @@ export const GameMapProvider = ({ children }) => {
       const finalTile = engine.gameMap.getTile(x, y);
       if (finalTile && finalTile.terrain === 'transition' && engine.worldManager) {
         const transitionInfo = engine.worldManager.checkTransitionPoint({ x, y }, engine.gameMap);
-        if (transitionInfo) setMapTransition(transitionInfo);
+        if (transitionInfo) {
+          setMapTransition(transitionInfo);
+        }
       }
     } catch (error) {
       console.error('[GameMapContext] Error handling tile click:', error);
@@ -117,7 +138,23 @@ export const GameMapProvider = ({ children }) => {
       };
 
       const path = Pathfinding.findPath(engine.gameMap, player.x, player.y, x, y, { allowDiagonal: true, entityFilter });
-      const apCost = path.length === 0 ? Math.abs(x - player.x) + Math.abs(y - player.y) : Pathfinding.calculateMovementCost(engine.gameMap, path);
+      let apCost = path.length === 0 ? Math.abs(x - player.x) + Math.abs(y - player.y) : Pathfinding.calculateMovementCost(engine.gameMap, path);
+      
+      // Phase 25: Drag AP Penalty Preview (with Terrain Bonuses)
+      const dragging = engine.dragging;
+      if (dragging && path.length > 1) {
+        const basePenalty = dragging.item.dragApPenalty || 2;
+        let dragPenaltyTotal = 0;
+        for (let i = 1; i < path.length; i++) {
+          const tile = engine.gameMap.getTile(path[i].x, path[i].y);
+          let stepPenalty = basePenalty;
+          if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
+            stepPenalty -= 0.5;
+          }
+          dragPenaltyTotal += stepPenalty;
+        }
+        apCost += dragPenaltyTotal;
+      }
       
       const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);
       setHoveredTile({ 
@@ -143,6 +180,10 @@ export const GameMapProvider = ({ children }) => {
         console.log('[GameMapContext] ========== EXECUTING MAP TRANSITION (Phase 3) ==========');
         
         // 1. Save old map
+        if (inventoryManager) {
+            // Phase 25: Flush items to old map, carrying only the dragged item
+            inventoryManager.flushGroundItems(engine.gameMap);
+        }
         engine.worldManager.saveCurrentMap(engine.gameMap, engine.worldManager.currentMapId, turn);
 
         // 2. Perform transition

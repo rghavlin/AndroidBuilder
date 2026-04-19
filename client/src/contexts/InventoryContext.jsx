@@ -482,6 +482,34 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, playSound]);
 
+  const disassembleItem = useCallback((item) => {
+    if (!engine.inventoryManager || !engine.player) return { success: false };
+    
+    const def = ItemDefs[item.defId];
+    if (!def || !def.disassembleData) return { success: false };
+
+    const apCost = def.disassembleData.apCost || 10;
+    if (engine.player.ap < apCost) {
+      addLog("Not enough AP to disassemble this.", 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    const success = engine.inventoryManager.disassembleItem(item);
+    if (success) {
+      engine.player.useAP(apCost);
+      addLog(`You disassembled the ${item.name}.`, 'item');
+      playSound('Craft'); // Using Craft sound for disassembly success
+      setInventoryVersion(v => v + 1);
+      engine.notifyUpdate();
+      return { success: true };
+    } else {
+      addLog(`You need the required tool in the same container to disassemble this.`, 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Missing tool' };
+    }
+  }, [addLog, playSound]);
+
   const craftItem = useCallback((recipeId) => {
     if (!engine.inventoryManager || !engine.player) return { success: false };
     
@@ -852,14 +880,71 @@ export const InventoryProvider = ({ children }) => {
   }, [playSound, inventoryPulse]);
 
   const detachItemFromWeapon = useCallback((weapon, slotId) => {
-    if (!engine.inventoryManager || !weapon) return null;
-    const item = engine.inventoryManager.detachItemFromWeapon(weapon, slotId);
-    if (item) {
-      engine.inventoryManager.addItem(item);
-      setInventoryVersion(v => v + 1);
-    }
-    return item;
+    if (!engine.inventoryManager) return null;
+    const detached = engine.inventoryManager.detachItemFromWeapon(weapon, slotId);
+    if (detached) setInventoryVersion(v => v + 1);
+    return detached;
   }, [inventoryPulse]);
+
+  // Phase 25: Drag Mechanic
+  const startDrag = useCallback((item) => {
+    if (!engine.player || !engine.gameMap || !item) return { success: false };
+
+    // Find the item's current position on the map
+    let itemPos = null;
+    const width = engine.gameMap.width;
+    const height = engine.gameMap.height;
+
+    // Check if it's in the ground container (synced to current tile)
+    const inGround = engine.inventoryManager.groundContainer.items.has(item.instanceId);
+    if (inGround) {
+      itemPos = { 
+        x: engine.inventoryManager.lastSyncedX, 
+        y: engine.inventoryManager.lastSyncedY 
+      };
+    }
+
+    if (!itemPos) {
+      return { success: false, reason: 'Item not found on ground.' };
+    }
+
+    // Check distance (must be adjacent or on tile)
+    const dist = Math.sqrt((itemPos.x - engine.player.x) ** 2 + (itemPos.y - engine.player.y) ** 2);
+    if (dist > 1.5) {
+      return { success: false, reason: 'Item is too far away to drag.' };
+    }
+
+    engine.dragging = {
+      item,
+      tileX: itemPos.x,
+      tileY: itemPos.y
+    };
+    
+    // Phase 25: Signal to inventory manager to carry this item
+    if (engine.inventoryManager) {
+      engine.inventoryManager.draggedItem = item;
+    }
+
+    addLog(`You start dragging the ${item.name}.`, 'item');
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, inventoryPulse]);
+
+  const stopDrag = useCallback(() => {
+    if (engine.dragging) {
+      addLog(`You set down the ${engine.dragging.item.name}.`, 'item');
+      
+      // Phase 25: Stop carrying in inventory manager
+      if (engine.inventoryManager) {
+        engine.inventoryManager.draggedItem = null;
+      }
+
+      engine.dragging = null;
+      setInventoryVersion(v => v + 1);
+      engine.notifyUpdate();
+    }
+  }, [addLog, inventoryPulse]);
 
   const contextValue = useMemo(() => ({
     inventoryVersion,
@@ -887,6 +972,7 @@ export const InventoryProvider = ({ children }) => {
     drinkWater,
     unrollBedroll,
     rollupBedroll,
+    disassembleItem,
     selectedRecipeId,
     setSelectedRecipeId,
     craftingRecipes: CraftingRecipes,
@@ -905,10 +991,12 @@ export const InventoryProvider = ({ children }) => {
     retrieveSnare,
     fuelCampfire,
     detachItemFromWeapon,
+    startDrag,
+    stopDrag,
     // Add legacy fields to prevent crashes
     inventoryRef: { current: engine.inventoryManager },
     forceRefresh: () => setInventoryVersion(v => v + 1)
-  }), [inventoryVersion, dragVersion, openContainers, selectedItem, selectedRecipeId, inventoryPulse]);
+  }), [inventoryVersion, dragVersion, openContainers, selectedItem, selectedRecipeId, inventoryPulse, startDrag, stopDrag]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

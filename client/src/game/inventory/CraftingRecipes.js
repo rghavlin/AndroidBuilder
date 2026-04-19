@@ -92,7 +92,7 @@ export const CraftingRecipes = [
             { either: ['tool.lighter', 'tool.matchbook', 'tool.bowdrill'], count: 1, label: 'Lighter, Matchbook or Bow drill' }
         ],
         ingredients: [
-            { category: ItemCategory.FUEL, count: 1, label: 'Fuel (Rag, Stick, 2x4, or Clothing)' }
+            { category: ItemCategory.FUEL, count: 1, label: 'Fuel (Rag, Stick, Plank, or Clothing)' }
         ]
     },
     {
@@ -106,7 +106,7 @@ export const CraftingRecipes = [
         ingredients: [
             { id: 'weapon.stick', count: 1 },
             { id: 'crafting.rope', count: 1 },
-            { id: 'weapon.2x4', count: 1 }
+            { id: 'weapon.plank', count: 1 }
         ]
     },
     {
@@ -248,6 +248,36 @@ export const CraftingRecipes = [
         ingredients: [
             { id: 'weapon.stick', count: 1 },
             { either: ['crafting.wire', 'crafting.rope'], count: 1, label: 'Wire or Rope' }
+        ]
+    },
+    {
+        id: 'crafting.bedroll',
+        name: 'Bedroll',
+        resultItem: 'bedroll.closed',
+        description: 'A comfortable portable bedroll made from salvaged padding and rags.',
+        apCost: 10,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.feather_padding', count: 1 },
+            { id: 'crafting.rag', count: 6 },
+            { either: ['crafting.rope', 'crafting.leather_belt'], count: 1, label: 'Rope or Leather Belt' }
+        ]
+    },
+    {
+        id: 'crafting.small_sled',
+        name: 'Small Sled',
+        resultItem: 'placeable.small_sled',
+        description: 'A sturdy wooden sled for hauling large quantities of gear across the ground.',
+        resultCount: 1,
+        apCost: 15,
+        tab: 'crafting',
+        tools: [
+            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], count: 1, label: 'Hammer' }
+        ],
+        ingredients: [
+            { id: 'weapon.plank', count: 4 },
+            { id: 'crafting.nail', count: 4 }
         ]
     }
 ];

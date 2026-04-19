@@ -12,7 +12,7 @@ export class Window extends Entity {
         this.isLocked = isLocked;
         this.isReinforced = false;
         this.reinforcementHp = 0;
-        this.maxReinforcementHp = 20; // 2x 2x4s max
+        this.maxReinforcementHp = 20; // 2x planks max
         this.subtype = isBroken ? 'broken' : (isOpen ? 'open' : 'closed');
         this.maxHp = 1; // Windows break in 1 hit (1 AP act)
         this.hp = isBroken ? 0 : this.maxHp;
@@ -128,7 +128,7 @@ export class Window extends Entity {
     }
 
     /**
-     * Reinforce the window with 2x4s
+     * Reinforce the window with planks
      * @param {number} amount - Reinforcement HP to add
      */
     reinforce(amount) {

@@ -44,6 +44,8 @@ class GameEngine extends SafeEventEmitter {
     this.isSleeping = false;
     this.sleepProgress = 0;
     this.targetingItemInstanceId = null;
+    this.dragging = null; // Phase 25: Drag Mechanic
+    if (this.inventoryManager) this.inventoryManager.draggedItem = null;
   }
 
   /**
@@ -78,6 +80,26 @@ class GameEngine extends SafeEventEmitter {
       this.isSleeping = gameObjects.interactionState.isSleeping || false;
       this.sleepProgress = gameObjects.interactionState.sleepProgress || 0;
       this.targetingItemInstanceId = gameObjects.interactionState.targetingItemInstanceId || null;
+      
+      // Phase 25: Restore dragging state
+      if (gameObjects.interactionState.dragging && this.inventoryManager) {
+        const draggingData = gameObjects.interactionState.dragging;
+        const item = this.inventoryManager.groundContainer.getAllItems().find(it => it.instanceId === draggingData.itemInstanceId);
+        if (item) {
+          this.dragging = {
+            item,
+            tileX: draggingData.tileX,
+            tileY: draggingData.tileY
+          };
+          this.inventoryManager.draggedItem = item;
+        } else {
+          this.dragging = null;
+          this.inventoryManager.draggedItem = null;
+        }
+      } else {
+        this.dragging = null;
+        if (this.inventoryManager) this.inventoryManager.draggedItem = null;
+      }
     }
 
     this.isInitialized = true;

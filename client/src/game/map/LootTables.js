@@ -27,7 +27,7 @@ export const SPECIAL_BUILDING_LOOT = {
     ],
     firestation: {
         medical: ['medical.bandage', 'medical.antibiotics'],
-        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete']
+        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench']
     },
     police: {
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.308', 'ammo.shotgun_shells'],

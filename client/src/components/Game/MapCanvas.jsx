@@ -9,6 +9,7 @@ import { EntityRenderer } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../../game/entities/Entity.js';
+import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 import engine from '../../game/GameEngine.js';
 
 /**
@@ -631,10 +632,15 @@ export default function MapCanvas({
       if (currentMap) {
         // Preload ALL item subtypes found on the map (including ground_pile/loot drops)
         const itemEntities = currentMap.getEntitiesByType(EntityType.ITEM);
-        const itemSubtypes = [...new Set(itemEntities.map(i => i.subtype).filter(s => s))];
-        if (itemSubtypes.length > 0) {
-          console.log(`[MapCanvas] Preloading ${itemSubtypes.length} item subtypes:`, itemSubtypes);
-          await Promise.all(itemSubtypes.map(s => imageLoader.getImage('item', s)));
+        // Map to their effective imageIds from definitions if available
+        const itemImageIds = [...new Set(itemEntities.map(i => {
+          const subtype = i.subtype || 'basic';
+          return i.imageId || (ItemDefs[subtype]?.imageId) || subtype;
+        }).filter(id => id && id !== 'basic'))];
+
+        if (itemImageIds.length > 0) {
+          console.log(`[MapCanvas] Preloading ${itemImageIds.length} item imageIds:`, itemImageIds);
+          await Promise.all(itemImageIds.map(id => imageLoader.getItemImage(id)));
         }
 
         // Preload ALL zombie subtypes found on the map

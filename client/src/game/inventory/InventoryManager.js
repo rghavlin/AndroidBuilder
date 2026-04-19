@@ -125,9 +125,27 @@ export class InventoryManager extends SafeEventEmitter {
 
     if (itemsToSave.length > 0) {
       if (isOwnerOfOldTile) {
-        console.log(`[InventoryManager] ✅ VALID SAVE: Moving ${itemsToSave.length} items back to map tile (${oldX}, ${oldY})`);
-        gameMap.setItemsOnTile(oldX, oldY, itemsToSave.map(item => item.toJSON()));
+        // Phase 25: Filter out dragged item from map save
+        const saveList = this.draggedItem 
+            ? itemsToSave.filter(it => it.instanceId !== this.draggedItem.instanceId)
+            : itemsToSave;
+
+        console.log(`[InventoryManager] ✅ VALID SAVE: Moving ${saveList.length} items back to map tile (${oldX}, ${oldY})`);
+        gameMap.setItemsOnTile(oldX, oldY, saveList.map(item => item.toJSON()));
+        
+        // Clear container but KEEP the dragged item
         this.groundContainer.clear();
+        if (this.draggedItem) {
+            // Find the actual item object to ensure reference integrity
+            const itemToKeep = itemsToSave.find(it => it.instanceId === this.draggedItem.instanceId);
+            if (itemToKeep) {
+                this.groundContainer.addItem(itemToKeep);
+                console.log(`[InventoryManager] 📦 Carried dragged item: ${itemToKeep.name} (ID: ${itemToKeep.instanceId}) to (${newX}, ${newY})`);
+            } else {
+                console.warn(`[InventoryManager] ❌ Could not find dragged item ${this.draggedItem.instanceId} in container to carry!`);
+            }
+        }
+        
         this.groundManager.updateCategoryAreas();
         changed = true;
       } else if (isOwnerOfNewTile) {
@@ -135,7 +153,20 @@ export class InventoryManager extends SafeEventEmitter {
         // We DON'T clear the container here because we want to KEEP the items for the new tile
       } else {
         console.warn(`[InventoryManager] ⚠️ ABORT SAVE: Ground items ownership mismatch. Expected (${this.lastSyncedX}, ${this.lastSyncedY}), but sync requested save to (${oldX}, ${oldY}). Clearing container for safety.`);
-        this.groundContainer.clear();
+        
+        // Phase 25: Even in abort, PRESERVE the dragged item
+        if (this.draggedItem) {
+            const allItems = this.groundContainer.getAllItems();
+            const draggedObj = allItems.find(it => it.instanceId === this.draggedItem.instanceId);
+            this.groundContainer.clear();
+            if (draggedObj) {
+                this.groundContainer.addItem(draggedObj);
+                console.log(`[InventoryManager] 📦 Preserved dragged item ${draggedObj.name} during abort-clear`);
+            }
+        } else {
+            this.groundContainer.clear();
+        }
+        
         this.groundManager.updateCategoryAreas();
         changed = true;
       }
@@ -156,7 +187,19 @@ export class InventoryManager extends SafeEventEmitter {
         console.log(`[InventoryManager]   -> Tile (${newX}, ${newY}) already synced. Skipping reload.`);
       } else {
         console.log(`[InventoryManager]   -> Loading ${itemsToLoad.length} items from tile (${newX}, ${newY})`);
-        this.groundContainer.clear(); // Safety clear
+        
+        // Phase 25: Safety clear but PRESERVE the dragged item
+        if (this.draggedItem) {
+            const allItems = this.groundContainer.getAllItems();
+            const draggedObj = allItems.find(it => it.instanceId === this.draggedItem.instanceId);
+            this.groundContainer.clear();
+            if (draggedObj) {
+                this.groundContainer.addItem(draggedObj);
+                console.log(`[InventoryManager] 📦 Preserved dragged item ${draggedObj.name} during tile load`);
+            }
+        } else {
+            this.groundContainer.clear();
+        }
 
         itemsToLoad.forEach((itemData, index) => {
           try {
@@ -251,6 +294,44 @@ export class InventoryManager extends SafeEventEmitter {
     this.lastSyncedX = x;
     this.lastSyncedY = y;
 
+    this.groundManager.updateCategoryAreas();
+    this.emit('inventoryChanged');
+  }
+  
+  /**
+   * Phase 25: Flush ground items back to map before transition
+   * Keeps the dragged item in the container to carry it over
+   */
+  flushGroundItems(gameMap) {
+    if (!gameMap || this.lastSyncedX === null) return;
+    
+    console.log(`[InventoryManager] 🚽 Flushing ground items at (${this.lastSyncedX}, ${this.lastSyncedY})`);
+    
+    const itemsToSave = this.groundContainer.getAllItems();
+    if (itemsToSave.length > 0) {
+      // Filter out dragged item
+      const saveList = this.draggedItem 
+          ? itemsToSave.filter(it => it.instanceId !== this.draggedItem.instanceId)
+          : itemsToSave;
+          
+      gameMap.setItemsOnTile(this.lastSyncedX, this.lastSyncedY, saveList.map(item => item.toJSON()));
+      
+      // Clear container but KEEP dragged item
+      this.groundContainer.clear();
+      if (this.draggedItem) {
+        const itemToKeep = itemsToSave.find(it => it.instanceId === this.draggedItem.instanceId);
+        if (itemToKeep) {
+          this.groundContainer.addItem(itemToKeep);
+          console.log(`[InventoryManager] 📦 Holding dragged item ${itemToKeep.name} (ID: ${itemToKeep.instanceId}) for transition`);
+        } else {
+          console.warn(`[InventoryManager] ❌ Could not find dragged item ${this.draggedItem.instanceId} in container to flush-hold!`);
+        }
+      }
+    }
+    
+    // Reset ownership tracking so next sync on new map works correctly
+    this.lastSyncedX = null;
+    this.lastSyncedY = null;
     this.groundManager.updateCategoryAreas();
     this.emit('inventoryChanged');
   }
@@ -863,7 +944,7 @@ export class InventoryManager extends SafeEventEmitter {
     let turnExtension = 0;
     if (fuelItem.defId === 'crafting.rag') turnExtension = 0.5;
     else if (fuelItem.defId === 'weapon.stick') turnExtension = 1.0;
-    else if (fuelItem.defId === 'weapon.2x4') turnExtension = 1.0;
+    else if (fuelItem.defId === 'weapon.plank') turnExtension = 1.0;
     else if (fuelItem.hasCategory?.(ItemCategory.CLOTHING)) turnExtension = 0.5;
     else if (fuelItem.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback
 
@@ -979,7 +1060,7 @@ export class InventoryManager extends SafeEventEmitter {
       let turnExtension = 0;
       if (item.defId === 'crafting.rag') turnExtension = 0.5;
       else if (item.defId === 'weapon.stick') turnExtension = 1.0;
-      else if (item.defId === 'weapon.2x4') turnExtension = 1.0;
+      else if (item.defId === 'weapon.plank') turnExtension = 1.0;
       else if (item.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback for other fuel items
 
       if (turnExtension > 0) {
@@ -2132,6 +2213,75 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     return total;
+  }
+
+  /**
+   * Disassemble a furniture item into its component parts
+   * @param {Item} item - The item to disassemble
+   * @returns {boolean} - Whether disassembly was successful
+   */
+  disassembleItem(item) {
+    if (!item) return false;
+    const def = ItemDefs[item.defId];
+    if (!def || !def.disassembleData) return false;
+    
+    const data = def.disassembleData;
+    const container = item._container;
+    if (!container) return false;
+    
+    // Check for tool in the SAME container
+    const itemsInContainer = container.getAllItems();
+    let hasTool = false;
+    
+    const toolId = data.toolId;
+    if (typeof toolId === 'string') {
+      hasTool = itemsInContainer.some(i => i.defId === toolId);
+    } else if (toolId && toolId.either) {
+      hasTool = itemsInContainer.some(i => toolId.either.includes(i.defId));
+    }
+    
+    if (!hasTool) {
+      console.warn('[InventoryManager] Missing required tool for disassembly:', toolId);
+      return false;
+    }
+    
+    // 1. Remove the item from its container
+    container.removeItem(item.instanceId);
+    
+    // 2. Add component parts to the SAME container
+    data.components.forEach(comp => {
+      const def = ItemDefs[comp.id];
+      if (!def) return;
+
+      const isStackable = def.traits?.includes(ItemTrait.STACKABLE);
+      const stackMax = def.stackMax || 1;
+
+      if (isStackable) {
+        let remaining = comp.count;
+        while (remaining > 0) {
+          const currentStack = Math.min(remaining, stackMax);
+          const componentData = createItemFromDef(comp.id, { stackCount: currentStack });
+          if (componentData) {
+            const componentItem = new Item(componentData);
+            // Attempt to stack with existing items first in the same container
+            container.addItem(componentItem, null, null, true);
+          }
+          remaining -= currentStack;
+        }
+      } else {
+        // Non-stackable: create individual instances
+        for (let i = 0; i < comp.count; i++) {
+          const componentData = createItemFromDef(comp.id);
+          if (componentData) {
+            const componentItem = new Item(componentData);
+            container.addItem(componentItem);
+          }
+        }
+      }
+    });
+    
+    this.emit('update');
+    return true;
   }
 
   /**

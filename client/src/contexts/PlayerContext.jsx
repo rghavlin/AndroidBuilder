@@ -278,16 +278,16 @@ export const PlayerProvider = ({ children }) => {
       const fov = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, { maxRange, ignoreTerrain: [], ignoreEntities: [engine.player.id] });
       setPlayerFieldOfView(fov.visibleTiles);
       
-      // Alert nearby zombies
-      gameMap.getEntitiesByType('zombie').forEach(z => {
-          if (z.canSeeEntity(gameMap, smoothPlayer)) {
-              if (!z.isAlerted) {
-                  z.isAlerted = true;
-                  GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie: z });
-              }
-              z.setTargetSighted(smoothPlayer.x, smoothPlayer.y);
-          }
-      });
+      // BUG 2 FIX: Instead of calling z.setTargetSighted every frame with rounded coordinates,
+      // we use the PlayerZombieTracker to handle LKP precisely when LOS is lost.
+      // We only update the tracker when the physical tile coordinate changes to avoid redundant checks.
+      if (engine.zombieTracker) {
+        if (engine.zombieTracker._lastTrackedX !== smoothPlayer.x || engine.zombieTracker._lastTrackedY !== smoothPlayer.y) {
+          engine.zombieTracker.updateTracking(gameMap, smoothPlayer, fov.visibleTiles);
+          engine.zombieTracker._lastTrackedX = smoothPlayer.x;
+          engine.zombieTracker._lastTrackedY = smoothPlayer.y;
+        }
+      }
 
       fov.visibleTiles.forEach(p => {
         const t = gameMap.getTile(p.x, p.y);

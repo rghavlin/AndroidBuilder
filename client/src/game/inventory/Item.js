@@ -147,6 +147,10 @@ export class Item extends SafeEventEmitter {
       if (def.imageId && !this.imageId) this.imageId = def.imageId;
       if (def.produce && !this.produce) this.produce = def.produce;
       if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;
+      if (def.disassembleData) this.disassembleData = def.disassembleData;
+      if (def.renderFullTile) this.renderFullTile = def.renderFullTile;
+      if (def.isFurniture) this.isFurniture = def.isFurniture;
+      if (def.dragApPenalty) this.dragApPenalty = def.dragApPenalty;
       
       // Auto-inherit categories from definition if not already present
       if (def.categories && Array.isArray(def.categories)) {
@@ -155,6 +159,23 @@ export class Item extends SafeEventEmitter {
             this.categories.push(cat);
           }
         });
+      }
+
+      // Phase 25: Sync traits from definition to handle updates to existing items
+      if (def.traits && Array.isArray(def.traits)) {
+        def.traits.forEach(trait => {
+          if (!this.traits.includes(trait)) {
+            this.traits.push(trait);
+          }
+        });
+      }
+
+      // Sync dragApPenalty
+      if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) {
+        this.dragApPenalty = def.dragApPenalty;
+      }
+      if (def.noDrag !== undefined && this.noDrag === undefined) {
+        this.noDrag = def.noDrag;
       }
     }
 

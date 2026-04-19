@@ -160,8 +160,10 @@ const GameContextInner = ({ children }) => {
           console.log(`[GameContext] Zombie ${zombie.id} spotted player at (${checkPlayer.x}, ${checkPlayer.y})!`);
         }
         
-        // Critical: Update coordinates so the zombie tracks the player in real-time
-        zombie.setTargetSighted(checkPlayer.x, checkPlayer.y);
+        // BUG 1 FIX: We no longer call zombie.setTargetSighted(checkPlayer.x, checkPlayer.y) here.
+        // Doing so overwrites the Last Known Position (LKP) with the player's live position, 
+        // even if the zombie lost sight of the player during movement.
+        // The PlayerZombieTracker now handles LKP setting accurately when LOS is lost.
       } else if (zombie.isAlerted) {
         // If they lost line of sight, they stay alerted (lastSeen mode)
         // until they reach the LastSeen position (handled in ZombieAI)

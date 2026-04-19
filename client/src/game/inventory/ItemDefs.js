@@ -59,6 +59,31 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.BACKPACK,
     containerGrid: { width: 6, height: 10 }
   },
+
+  // Toy Wagon: 3x4 Ground Container / Furniture
+  'toy_wagon': {
+    id: 'toy_wagon',
+    name: 'Toy Wagon',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'toywagon',
+    width: 3,
+    height: 4,
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER],
+    isFurniture: true,
+    dragApPenalty: 1,
+    renderFullTile: true,
+    containerGrid: { width: 4, height: 5 },
+    disassembleData: {
+      toolId: 'weapon.wrench',
+      apCost: 10,
+      components: [
+        { id: 'crafting.wheel', count: 4 },
+        { id: 'weapon.metal_rod', count: 2 },
+        { id: 'crafting.metal_plate', count: 1 }
+      ]
+    }
+  },
   'crafting.nail': {
     id: 'crafting.nail',
     name: 'Nail',
@@ -91,6 +116,29 @@ export const ItemDefs = {
     imageId: 'metalplate',
     width: 2,
     height: 1,
+    traits: [],
+    categories: [ItemCategory.CRAFTING_MATERIAL]
+  },
+
+  'crafting.wheel': {
+    id: 'crafting.wheel',
+    name: 'Wheel',
+    rarity: Rarity.RARE,
+    imageId: 'wheel',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 4
+  },
+
+  'crafting.feather_padding': {
+    id: 'crafting.feather_padding',
+    name: 'Feather padding',
+    rarity: Rarity.RARE,
+    imageId: 'featherpadding',
+    width: 3,
+    height: 2,
     traits: [],
     categories: [ItemCategory.CRAFTING_MATERIAL]
   },
@@ -263,11 +311,11 @@ export const ItemDefs = {
     }
   },
 
-  'weapon.2x4': {
-    id: 'weapon.2x4',
-    name: '2x4',
+  'weapon.plank': {
+    id: 'weapon.plank',
+    name: 'Plank',
     rarity: Rarity.COMMON,
-    imageId: '2by4',
+    imageId: 'plank',
     width: 4,
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
@@ -378,6 +426,40 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.60,
       damage: { min: 1, max: 5 }
+    }
+  },
+
+  'weapon.metal_rod': {
+    id: 'weapon.metal_rod',
+    name: 'Metal rod',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'metalrod',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.65,
+      damage: { min: 2, max: 7 }
+    }
+  },
+
+  'weapon.wrench': {
+    id: 'weapon.wrench',
+    name: 'Wrench',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'wrench',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    condition: 100,
+    combat: {
+      hitChance: 0.65,
+      damage: { min: 1, max: 6 }
     }
   },
 
@@ -1131,6 +1213,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
+    noDrag: true,
     lifetimeTurns: 48,
     transformInto: 'provision.harvestable_corn'
   },
@@ -1145,6 +1228,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
+    noDrag: true,
     produce: 'food.corn'
   },
   'food.corn': {
@@ -1201,6 +1285,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
+    noDrag: true,
     lifetimeTurns: 48,
     transformInto: 'provision.harvestable_tomato'
   },
@@ -1215,6 +1300,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
+    noDrag: true,
     produce: 'food.tomato'
   },
   'food.carrot': {
@@ -1256,6 +1342,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
+    noDrag: true,
     lifetimeTurns: 48,
     transformInto: 'provision.harvestable_carrot'
   },
@@ -1270,6 +1357,7 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
     noLoot: true,
+    noDrag: true,
     produce: 'food.carrot'
   },
   'food.stew': {
@@ -1512,6 +1600,7 @@ export const ItemDefs = {
       height: 4,
       allowedCategories: [ItemCategory.FOOD]
     },
+    noDrag: true,
     // Specialized slots (handled by specialized UI)
       attachmentSlots: [
       { id: 'pot', name: 'Cooking Pot', allowedCategories: [ItemCategory.COOKING_POT] }
@@ -1577,11 +1666,45 @@ export const ItemDefs = {
     noLoot: true,
     noPickup: true,
     renderFullTile: true,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.DRAGGABLE],
+    dragApPenalty: 2,
     imageId: 'bed',
     width: 4,
     height: 6,
-    traits: [ItemTrait.GROUND_ONLY],
-    categories: [ItemCategory.TOOL]
+    categories: [ItemCategory.TOOL],
+    disassembleData: {
+      toolId: { either: ['weapon.hammer', 'weapon.makeshift_hammer'] },
+      apCost: 10,
+      components: [
+        { id: 'crafting.feather_padding', count: 1 },
+        { id: 'weapon.plank', count: 4 },
+        { id: 'crafting.nail', count: 4 }
+      ]
+    }
+  },
+
+  'placeable.small_sled': {
+    id: 'placeable.small_sled',
+    name: 'Small sled',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'smallsled',
+    width: 3,
+    height: 4,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.DRAGGABLE],
+    categories: [ItemCategory.FURNITURE, ItemCategory.TOOL],
+    noLoot: true,
+    isFurniture: true,
+    dragApPenalty: 1.5,
+    renderFullTile: true,
+    containerGrid: { width: 4, height: 5 },
+    disassembleData: {
+      toolId: { either: ['weapon.hammer', 'weapon.makeshift_hammer'] },
+      apCost: 10,
+      components: [
+        { id: 'weapon.plank', count: 4 },
+        { id: 'crafting.nail', count: 4 }
+      ]
+    }
   }
 };
 

@@ -53,7 +53,8 @@ export const ItemTrait = {
   IGNITABLE: 'ignitable',
   CAN_DIG: 'canDig',
   CHARGE_BASED: 'charge-based',
-  WATER_CONTAINER: 'water_bottle'
+  WATER_CONTAINER: 'water_bottle',
+  DRAGGABLE: 'draggable'
 };
 
 // Item rarity levels for loot generation

@@ -305,10 +305,17 @@ export class TemplateMapGenerator {
 
     if (validSpots.length === 0) return;
 
-    // Pick 1 to 3 random spots
-    const count = 1 + Math.floor(Math.random() * 3);
+    const mapNumber = mapData.config?.mapNumber || 1;
+    // If map level > 2, 50% chance that NO wild crops appear
+    if (mapNumber > 2 && Math.random() > 0.5) {
+      console.log(`[TemplateMapGenerator] Map ${mapNumber} skipped wild crop generation (50% chance)`);
+      return;
+    }
+
+    // Pick exactly 1 random spot (Max 1 per map)
+    const count = 1;
     const selectedSpots = [];
-    for (let i = 0; i < count && validSpots.length > 0; i++) {
+    if (validSpots.length > 0) {
       const index = Math.floor(Math.random() * validSpots.length);
       selectedSpots.push(validSpots.splice(index, 1)[0]);
     }

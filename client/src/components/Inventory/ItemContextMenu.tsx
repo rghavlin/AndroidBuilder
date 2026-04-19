@@ -5,6 +5,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useSleep } from '../../contexts/SleepContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
+import engine from '../../game/GameEngine.js';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -36,7 +37,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, consumeItem, drinkWater, unrollBedroll, rollupBedroll } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, consumeItem, drinkWater, unrollBedroll, rollupBedroll, disassembleItem, startDrag, stopDrag } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -248,6 +249,34 @@ export function ItemContextMenu({
                                 </ContextMenuItem>
                             </>
                         )}
+                        {(() => {
+                            const disassembleData = item?.disassembleData;
+                            if (!disassembleData) return null;
+                            
+                            const container = item?._container;
+                            if (!container) return null;
+                            
+                            const toolId = disassembleData.toolId;
+                            const items = container.getAllItems();
+                            let hasTool = false;
+                            
+                            if (typeof toolId === 'string') {
+                                hasTool = items.some(i => i.defId === toolId);
+                            } else if (toolId && toolId.either) {
+                                hasTool = items.some(i => toolId.either.includes(i.defId));
+                            }
+                            
+                            if (!hasTool) return null;
+
+                            return (
+                                <ContextMenuItem
+                                    onClick={() => disassembleItem(item)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                >
+                                    Disassemble (10 AP)
+                                </ContextMenuItem>
+                            );
+                        })()}
                         {item?.defId === 'bedroll.closed' && (
                             <ContextMenuItem
                                 onClick={() => unrollBedroll(item)}
@@ -296,6 +325,38 @@ export function ItemContextMenu({
                                 Retrieve snare
                             </ContextMenuItem>
                         )}
+                        {(() => {
+                            if (!item || !item.hasTrait(ItemTrait.DRAGGABLE) || item.noDrag) return null;
+                            
+                            // Check if item is on ground
+                            const isDraggingThis = engine.dragging?.item.instanceId === item.instanceId;
+                            
+                            if (isDraggingThis) {
+                                return (
+                                    <ContextMenuItem
+                                        onClick={() => stopDrag()}
+                                        className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    >
+                                        Drop
+                                    </ContextMenuItem>
+                                );
+                            } else {
+                                // Only show Drag if it's on the ground
+                                // ItemContextMenu items usually have 'originContainerId' if provided by UniversalGrid
+                                // but we can check the engine's inventoryManager.groundContainer
+                                const onGround = engine.inventoryManager.groundContainer.getAllItems().some((it: any) => it.instanceId === item.instanceId);
+                                if (!onGround) return null;
+
+                                return (
+                                    <ContextMenuItem
+                                        onClick={() => startDrag(item)}
+                                        className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    >
+                                        Drag ({item.dragApPenalty || 2} AP move penalty)
+                                    </ContextMenuItem>
+                                );
+                            }
+                        })()}
                         {canSplit && (
                             <ContextMenuItem
                                 onClick={() => setIsSplitDialogOpen(true)}
@@ -304,7 +365,7 @@ export function ItemContextMenu({
                                 Split Stack
                             </ContextMenuItem>
                         )}
-                        {!canSplit && !canOpenContainer(item) && !item?.isWaterBottle?.() && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && (
+                        {!canSplit && !canOpenContainer(item) && !item?.isWaterBottle?.() && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && !item?.hasTrait?.(ItemTrait.DRAGGABLE) && (
                             <ContextMenuItem disabled className="text-zinc-500">
                                 No actions available
                             </ContextMenuItem>

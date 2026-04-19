@@ -177,7 +177,12 @@ export class GameMap {
         item.defId === 'placeable.bed' ||
         (item.toJSON && item.toJSON().defId === 'placeable.bed')
       );
+      const containsToyWagon = validItems.some(item =>
+        item.defId === 'toy_wagon' ||
+        (item.toJSON && item.toJSON().defId === 'toy_wagon')
+      );
       const containsSnare = validItems.some(item =>
+        item.id === 'tool.snare_deployed' || 
         item.defId === 'tool.snare_deployed' ||
         (item.toJSON && item.toJSON().defId === 'tool.snare_deployed')
       );
@@ -198,6 +203,7 @@ export class GameMap {
       else if (containsHarvestableTomato) subtype = 'harvestabletomato';
       else if (containsHarvestableCarrot) subtype = 'harvestablecarrot';
       else if (containsBed) subtype = 'bed';
+      else if (containsToyWagon) subtype = 'toy_wagon';
 
       if (!this.entityMap.has(proxyId)) {
         // Create a proxy entity for visual representation

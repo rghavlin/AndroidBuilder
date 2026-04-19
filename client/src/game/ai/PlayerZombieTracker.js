@@ -5,6 +5,7 @@
  */
 
 import { LineOfSight } from '../utils/LineOfSight.js';
+import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 
 export class PlayerZombieTracker {
   constructor() {
@@ -51,32 +52,26 @@ export class PlayerZombieTracker {
   getVisibleZombies(gameMap, player, playerFieldOfView) {
     const visibleZombies = [];
 
-    // Check each tile in player's field of view for zombies
-    playerFieldOfView.forEach(tile => {
-      const mapTile = gameMap.getTile(tile.x, tile.y);
-      if (!mapTile || !mapTile.contents.length) return;
+    // Check all zombies on the map to see if they can spot the player
+    // This fixes the issue where zombies with longer sight range than the player's FOV were ignored
+    const allZombies = gameMap.getEntitiesByType('zombie');
+    
+    allZombies.forEach(zombie => {
+      const distanceToPlayer = zombie.getDistanceTo(player.x, player.y);
 
-      // Find zombies on this tile
-      const zombiesOnTile = mapTile.contents.filter(entity => entity.type === 'zombie');
+      // Fast-fail if player is outside this zombie's maximum sight range
+      if (distanceToPlayer <= zombie.sightRange) {
+        // Verify actual line of sight
+        const zombieCanSeePlayer = zombie.canSeeEntity(gameMap, player);
 
-      zombiesOnTile.forEach(zombie => {
-        // Double-check that the zombie can actually see the player
-        // (player sees zombie AND zombie is within sight range of player)
-        const distanceToPlayer = zombie.getDistanceTo(player.x, player.y);
-
-        if (distanceToPlayer <= zombie.sightRange) {
-          // Verify mutual line of sight
-          const zombieCanSeePlayer = zombie.canSeeEntity(gameMap, player);
-
-          if (zombieCanSeePlayer) {
-            visibleZombies.push({
-              zombie,
-              distance: distanceToPlayer,
-              position: { x: tile.x, y: tile.y }
-            });
-          }
+        if (zombieCanSeePlayer) {
+          visibleZombies.push({
+            zombie,
+            distance: distanceToPlayer,
+            position: { x: zombie.x, y: zombie.y }
+          });
         }
-      });
+      }
     });
 
     return visibleZombies;
@@ -95,6 +90,12 @@ export class PlayerZombieTracker {
           zombie,
           lastPlayerPos: { x: player.x, y: player.y }
         });
+
+        // Trigger alert state
+        if (!zombie.isAlerted) {
+          zombie.isAlerted = true;
+          GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie });
+        }
 
         // Reduced logging frequency - only log newly spotted zombies
         if (Math.random() < 0.1) { // Only log 10% of the time to reduce spam

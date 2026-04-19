@@ -54,7 +54,12 @@ export class GameSaveSystem {
         interactionState: {
           isSleeping: engine.isSleeping,
           sleepProgress: engine.sleepProgress,
-          targetingItemInstanceId: engine.targetingItemInstanceId
+          targetingItemInstanceId: engine.targetingItemInstanceId,
+          dragging: engine.dragging ? {
+            itemInstanceId: engine.dragging.item.instanceId,
+            tileX: engine.dragging.tileX,
+            tileY: engine.dragging.tileY
+          } : null
         }
       };
 

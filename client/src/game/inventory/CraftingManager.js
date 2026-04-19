@@ -184,7 +184,7 @@ export class CraftingManager {
             if (fuelItem) {
                 if (fuelItem.defId === 'crafting.rag') lifetimeTurns = 0.5;
                 else if (fuelItem.defId === 'weapon.stick') lifetimeTurns = 1.0;
-                else if (fuelItem.defId === 'weapon.2x4') lifetimeTurns = 1.0;
+                else if (fuelItem.defId === 'weapon.plank') lifetimeTurns = 1.0;
                 else if (fuelItem.hasCategory(ItemCategory.CLOTHING)) lifetimeTurns = 0.5;
                 else if (fuelItem.hasCategory(ItemCategory.FUEL)) lifetimeTurns = 0.5;
                 console.log(`[CraftingManager] Campfire fuel identified: ${fuelItem.name}, lifetime: ${lifetimeTurns} turns`);
@@ -404,27 +404,27 @@ export class CraftingManager {
             console.log(`[CraftingManager] Applied resultCount ${recipe.resultCount} to ${newItem.name}`);
         }
 
-        // Handle GROUND_ONLY placement (e.g. Campfire)
-        if (newItem.isGroundOnly && newItem.isGroundOnly()) {
+        // Handle GROUND_ONLY/Furniture placement (e.g. Campfire, Sled, Bed)
+        if (newItem.isFurniture || (newItem.isGroundOnly && newItem.isGroundOnly())) {
             const ground = this.inv.groundContainer;
-            console.log(`[CraftingManager] Placing ground-only item ${newItem.name} at (0,0)`);
+            console.log(`[CraftingManager] Placing furniture/ground item ${newItem.name} at (0,0)`);
 
-            // 1. Clear 4x4 area at (0,0) and get displaced items
+            // 1. Clear space at (0,0) and get displaced items
             const displacedItems = this.inv.clearSpaceInContainer(ground, 0, 0, newItem.width, newItem.height);
             console.log(`[CraftingManager] Displaced ${displacedItems.length} items for ${newItem.name}`);
 
             // 2. Place the new item
             if (ground.placeItemAt(newItem, 0, 0)) {
-                // 3. Re-add displaced items to any available spot, preferably below the campfire
+                // 3. Re-add displaced items to any available spot, preferably below the new item
                 displacedItems.forEach(item => {
-                    // Try to place at row 5 (index 4) or below to avoid the 4x4 campfire area
-                    const result = this.inv.addItem(item, 'ground', 0, 4, true);
+                    // Start search below the new furniture item's footprint
+                    const result = this.inv.addItem(item, 'ground', 0, newItem.height, true);
                 });
                 return { success: true, item: newItem, placedInGround: true };
             } else {
                 console.error('[CraftingManager] Failed to place ground-only item even after clearing!');
                 // Try to restore displaced items if placement fails
-                displacedItems.forEach(item => this.inv.addItem(item, null, null, null, true));
+                displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
                 return { success: false, reason: 'Ground is blocked (Internal Error)' };
             }
         }

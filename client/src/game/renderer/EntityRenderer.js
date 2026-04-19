@@ -75,15 +75,22 @@ export const EntityRenderer = {
       EntityRenderer.drawPlaceIcon(ctx, entity, screenX, screenY, tileSize, sprites);
     } else {
       // Standard Sprite Rendering
-      // Standard Sprite Rendering
       // Standardize subtype: use 'basic' if null/undefined to hit base sprite entries
       const subtype = entity.type === EntityType.PLAYER ? null : (entity.subtype || 'basic');
       
+      // Phase 27: Priority for Image Mapping
+      // 1. If it's an Item with an explicit imageId, use it (canonical)
+      // 2. If it's an item subtype with a definition, use that definition's imageId
+      // 3. Fallback to subtype itself
+      let effectiveImageId = subtype;
+      if (entity.type === 'item') {
+        effectiveImageId = entity.imageId || (ItemDefs[subtype]?.imageId) || subtype;
+      }
+
       // PHASE 26 FIX: Normalize sprite keys to match ImageLoader canonical forms
-      // e.g. 'zombie_basic' -> 'zombie'
       let spriteKey = entity.type;
-      if (subtype && subtype !== 'basic') {
-        spriteKey = `${entity.type}_${subtype}`;
+      if (effectiveImageId && effectiveImageId !== 'basic') {
+        spriteKey = `${entity.type}_${effectiveImageId}`;
       }
       
       // Special mappings for zombie subtypes to match ImageLoader's specific naming
@@ -105,9 +112,9 @@ export const EntityRenderer = {
             imageLoader.getItemImage('default');
           }
           
-          // Trigger lazy-loading for missing specialized sprites (e.g., bed, campfire)
-          if (subtype && subtype !== 'ground_pile' && subtype !== 'basic') {
-            imageLoader.getImage(entity.type, subtype);
+          // Trigger lazy-loading for missing specialized sprites (e.g., bed, campfire, toywagon)
+          if (effectiveImageId && effectiveImageId !== 'ground_pile' && effectiveImageId !== 'basic') {
+            imageLoader.getItemImage(effectiveImageId);
           }
         } else {
           sprite = sprites[entity.type];
