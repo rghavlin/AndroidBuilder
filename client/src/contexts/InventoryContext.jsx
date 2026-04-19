@@ -103,6 +103,19 @@ export const InventoryProvider = ({ children }) => {
     return () => manager.off('inventoryChanged', handleManagerUpdate);
   }, [inventoryPulse]); // Still depend on pulse to catch loads/transitions, but syncWithMap is now guarded.
 
+  // Phase 18 Fix: Auto-close all floating containers when player moves
+  useEffect(() => {
+    const handlePlayerMove = () => {
+        if (openContainers.size > 0) {
+            logger.debug('Player moving - auto-closing all floating containers');
+            setOpenContainers(new Set());
+        }
+    };
+
+    GameEvents.on(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
+    return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
+  }, [openContainers.size]);
+
   const getContainer = useCallback((id) => engine.inventoryManager?.getContainer(id), [inventoryPulse, inventoryVersion]);
   const getEquippedBackpackContainer = useCallback(() => engine.inventoryManager?.getBackpackContainer(), [inventoryPulse, inventoryVersion]);
   const canOpenContainer = useCallback((item) => engine.inventoryManager?.canOpenContainer(item) || false, [inventoryPulse, inventoryVersion]);
@@ -181,15 +194,28 @@ export const InventoryProvider = ({ children }) => {
   const closeAssociatedContainers = useCallback((item) => {
     if (!item) return;
     const instanceId = item.instanceId || item.id;
-    const idsToClose = [
-        `${instanceId}-container`,
-        `clothing:${instanceId}`,
-        `weapon:${instanceId}`
-    ];
     
+    // 1. Collect all IDs that SHOULD be closed for this specific item
+    const idsToClose = new Set();
+    
+    // Main container
+    idsToClose.add(`${instanceId}-container`);
+    
+    // Pockets (Robust lookup)
+    if (item.getPocketContainers) {
+        item.getPocketContainers().forEach(pocket => {
+            idsToClose.add(pocket.id);
+        });
+    }
+
+    // Virtual panel IDs
+    idsToClose.add(`clothing:${instanceId}`);
+    idsToClose.add(`weapon:${instanceId}`);
+    
+    // 2. Close them
     idsToClose.forEach(cid => {
         if (openContainers.has(cid)) {
-            console.debug(`[InventoryContext] Auto-closing associated container for equipped item: ${cid}`);
+            console.debug(`[InventoryContext] Auto-closing associated container: ${cid}`);
             closeContainer(cid);
         }
     });
@@ -403,7 +429,9 @@ export const InventoryProvider = ({ children }) => {
     
     // BUG FIX: Handle stacked containers correctly by splitting one off
     let itemToDrinkFrom = item;
-    if (item.stackCount > 1) {
+    const isStacked = item.stackCount > 1;
+
+    if (isStacked) {
       // 1. Decrease original stack
       item.stackCount -= 1;
       
@@ -411,15 +439,34 @@ export const InventoryProvider = ({ children }) => {
       itemToDrinkFrom = Item.fromJSON(item.toJSON());
       itemToDrinkFrom.instanceId = `${item.instanceId}-drunk-${Date.now()}`;
       itemToDrinkFrom.stackCount = 1;
+    }
+
+    // 3. Subtract from the item
+    itemToDrinkFrom.ammoCount -= unitsToDrink;
+
+    // 4. Handle empty state
+    if (itemToDrinkFrom.ammoCount <= 0) {
+      // Bottle is empty! Return an empty bottle item.
+      const emptyId = itemToDrinkFrom.id === 'food.waterbottle' ? 'food.waterbottle_empty' : 
+                      (itemToDrinkFrom.id === 'food.waterjug' ? 'food.waterjug_empty' : null);
       
-      // 3. Subtract from the new one
-      itemToDrinkFrom.ammoCount -= unitsToDrink;
-      
-      // 4. Place it back in inventory (it will land in a new slot since it is now partial)
-      engine.inventoryManager.addItem(itemToDrinkFrom);
+      if (emptyId) {
+        const emptyData = createItemFromDef(emptyId);
+        if (emptyData) {
+          const emptyItem = new Item(emptyData);
+          engine.inventoryManager.addItem(emptyItem);
+        }
+      }
+
+      // If it was a single item (not a stack), we must remove the now-empty original item
+      if (!isStacked) {
+        engine.inventoryManager.removeItemFromSource(item.instanceId, item._container?.id);
+      }
     } else {
-      // Normal single item subtraction
-      itemToDrinkFrom.ammoCount -= unitsToDrink;
+      // Still has water left. If it was a stack, we need to add the now-partial one back to inventory.
+      if (isStacked) {
+        engine.inventoryManager.addItem(itemToDrinkFrom);
+      }
     }
 
     // Handle sickness for dirty water

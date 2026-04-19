@@ -250,14 +250,25 @@ export function ItemContextMenu({
                             </>
                         )}
                         {(() => {
-                            const disassembleData = item?.disassembleData;
-                            if (!disassembleData) return null;
-                            
-                            const container = item?._container;
-                            if (!container) return null;
-                            
-                            const toolId = disassembleData.toolId;
-                            const items = container.getAllItems();
+                             const disassembleData = item?.disassembleData;
+                             if (!disassembleData) return null;
+                             
+                             // Use item's container, or fallback to the ground container if we know it's there
+                             let container = item?._container;
+                             if (!container) {
+                                 // Try to find the container via inventoryManager if possible
+                                 // Note: useGame might not be available here, but we can check item._containerId if it exists
+                                 // or assume if it's furniture it's likely on ground
+                                 if (item.isFurniture) {
+                                     const { inventoryManager } = (window as any).gameEngine || {};
+                                     container = inventoryManager?.getContainer('ground');
+                                 }
+                             }
+                             
+                             if (!container) return null;
+                             
+                             const toolId = disassembleData.toolId;
+                             const items = container.getAllItems();
                             let hasTool = false;
                             
                             if (typeof toolId === 'string') {

@@ -1547,6 +1547,23 @@ export const ItemDefs = {
     categories: [ItemCategory.TOOL, ItemCategory.COOKING_POT]
   },
 
+  'weapon.frying_pan': {
+    id: 'weapon.frying_pan',
+    name: 'Frying pan',
+    rarity: Rarity.COMMON,
+    imageId: 'fryingpan',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL, ItemCategory.COOKING_POT],
+    condition: 100,
+    combat: {
+      hitChance: 0.60,
+      damage: { min: 1, max: 6 }
+    }
+  },
+
   'weapon.shotgun': {
     id: 'weapon.shotgun',
     name: 'Shotgun',
@@ -1671,7 +1688,8 @@ export const ItemDefs = {
     imageId: 'bed',
     width: 4,
     height: 6,
-    categories: [ItemCategory.TOOL],
+    isFurniture: true,
+    categories: [ItemCategory.FURNITURE, ItemCategory.TOOL],
     disassembleData: {
       toolId: { either: ['weapon.hammer', 'weapon.makeshift_hammer'] },
       apCost: 10,

@@ -51,9 +51,16 @@ export class Tile {
    * Check if tile is walkable based on terrain and contents
    */
   isWalkable(entity = null) {
-    // Buildings, walls, fences, and trees are never walkable
+    const isZombie = entity && entity.type === EntityType.ZOMBIE;
+
+    // Buildings, walls, fences, and trees are usually unwalkable.
+    // EXCEPTION: Zombies can walk into wall/building tiles IF they contain a door or window.
+    // This is required for them to actually enter the building after breaking in.
     if (this.terrain === 'wall' || this.terrain === 'fence' || this.terrain === 'building' || this.terrain === 'tree' || this.terrain === 'water' || this.terrain === 'tent_wall') {
-      return false;
+      const hasEntrableStructure = this.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+      if (!(isZombie && hasEntrableStructure)) {
+        return false;
+      }
     }
 
     // Transition tiles are walkable
@@ -63,7 +70,6 @@ export class Tile {
 
     // Check if any entity blocks movement
     // ZOMBIE EXCEPTION: Zombies can move through windows (even though windows block player movement)
-    const isZombie = entity && entity.type === EntityType.ZOMBIE;
     const blocked = this.contents.some(e => {
         if (isZombie && e.type === EntityType.WINDOW) return false;
         return e.blocksMovement;

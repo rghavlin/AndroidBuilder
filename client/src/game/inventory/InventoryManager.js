@@ -424,24 +424,9 @@ export class InventoryManager extends SafeEventEmitter {
     this.equipment[slot] = null;
     item.isEquipped = false;
 
-    // CRITICAL: Reset container ID for backpacks to prevent conflicts
-    // When unequipped, the backpack's container should have a unique ID based on the item's instanceId
-    if (slot === 'backpack' && item.containerGrid) {
-      // Remove the slot-based container registration
-      const slotContainerId = `${slot}-container`;
-      if (this.containers.has(slotContainerId)) {
-        this.containers.delete(slotContainerId);
-        console.debug('[InventoryManager] Removed slot container registration:', slotContainerId);
-      }
-
-      const newContainerId = `${item.instanceId}-container`;
-      console.debug('[InventoryManager] Resetting backpack container ID from', item.containerGrid.id, 'to', newContainerId);
-      item.containerGrid.id = newContainerId;
-      item.containerGrid.type = 'item-container'; // FIX: Prevent cleanup from removing this container
-
-      // Re-register under new ID immediately so it's available if dropped
-      this.containers.set(newContainerId, item.containerGrid);
-    }
+    // Phase 18 Refactor: No more manual ID resetting here. 
+    // Container IDs are now stable and instance-based.
+    this.updateDynamicContainers();
 
     // Reset pocket containers (for clothing) so they aren't cleaned up
     if (item.getPocketContainers) {
@@ -636,40 +621,22 @@ export class InventoryManager extends SafeEventEmitter {
    * Check if a container item is currently accessible for interaction
    * (e.g., opening, depositing items)
    */
-  isContainerAccessible(item) {
+  canOpenContainer(item) {
     if (!item) return false;
 
-    // 1. Specialty containers with OPENABLE_WHEN_NESTED trait can always be accessed
+    // Phase 18 Fix: Items with OPENABLE_WHEN_NESTED (like guns for attachments)
+    // are ALWAYS openable as floating windows, even when equipped.
     const isOpenableWhenNested = (item.isOpenableWhenNested && item.isOpenableWhenNested()) || 
                                  (item.traits && item.traits.includes(ItemTrait.OPENABLE_WHEN_NESTED));
     if (isOpenableWhenNested) {
       return true;
     }
 
-    // 2. Items with attachment slots (weapons) are always accessible for modification
-    const hasAttachments = (item.attachmentSlots && item.attachmentSlots.length > 0);
-    if (hasAttachments) {
-      return true;
+    // Rule: Equipped items are NOT openable as floating windows.
+    // Their storage is already integrated into the main Inventory Panel.
+    if (item.isEquipped) {
+      return false;
     }
-
-    // 3. For everything else (Backpacks, Clothing, Toolboxes), they MUST be either:
-    //    a) Equipped by the player
-    //    b) On the ground
-    const isEquipped = item.isEquipped;
-    const isOnGround = (this.groundContainer?.items.has(item.instanceId)) || (item._container?.id === 'ground');
-    
-    // Prevent access to nested containers in equipped items (e.g. backpack-in-a-backpack)
-    const isNestedInEquipped = item._container?.type === 'equipped-backpack';
-
-    return (isEquipped || isOnGround) && !isNestedInEquipped;
-  }
-
-  /**
-   * Check if a container can be opened
-   * Phase 16 Fix: Harmonize Backpack and Clothing ground logic
-   */
-  canOpenContainer(item) {
-    if (!item) return false;
 
     const isContainer = (item.isContainer && item.isContainer()) || (item.traits && item.traits.includes(ItemTrait.CONTAINER));
     const hasPockets = (item.getPocketContainers && item.getPocketContainers().length > 0) || !!item.pocketLayoutId;
@@ -679,69 +646,69 @@ export class InventoryManager extends SafeEventEmitter {
       return (item.attachmentSlots && item.attachmentSlots.length > 0);
     }
 
+    // Otherwise, check if it's physically accessible (on ground or top-level in inventory)
     return this.isContainerAccessible(item);
+  }
+
+  /**
+   * Check if a container is physically accessible for interactions (moving items in/out)
+   */
+  isContainerAccessible(item) {
+    if (!item) return false;
+
+    // 1. Specialty containers (e.g. ammo boxes) are always accessible
+    const isOpenableWhenNested = (item.isOpenableWhenNested && item.isOpenableWhenNested()) || 
+                                 (item.traits && item.traits.includes(ItemTrait.OPENABLE_WHEN_NESTED));
+    if (isOpenableWhenNested) return true;
+
+    // 2. Items on ground are always accessible (if they are top-level on the ground)
+    const isOnGround = (item._container?.id === 'ground') || 
+                       (item._container?.type === 'ground') ||
+                       (this.groundContainer && this.groundContainer.items.has(item.instanceId));
+    
+    if (isOnGround) {
+      return true;
+    }
+
+    // 3. Equipped items are accessible (for interaction via integrated UI)
+    // ONLY if they are top-level in the equipment slot (not nested in each other)
+    if (item.isEquipped) {
+      return !item._container;
+    }
+
+    return false;
   }
 
   /**
    * Update dynamic containers based on equipped items
    */
   updateDynamicContainers() {
-    // Remove old dynamic containers (except ground and default backpack)
-    const toRemove = [];
-    for (const [id, container] of this.containers.entries()) {
-      if (container.type === 'dynamic-pocket' || container.type === 'equipped-backpack') {
-        toRemove.push(id);
-      }
-    }
-    toRemove.forEach(id => this.containers.delete(id));
-
-    // Add containers from equipped items
-    Object.entries(this.equipment).forEach(([slot, item]) => {
-      if (item && item.isContainer && item.isContainer()) {
-        // Check if item has pocket grids (clothing with pockets)
-        const pocketContainers = item.getPocketContainers?.();
-
-        if (pocketContainers && pocketContainers.length > 0) {
-          // Register each pocket container
-          pocketContainers.forEach((pocketContainer, index) => {
-            this.containers.set(pocketContainer.id, pocketContainer);
-            console.debug('[InventoryManager] Registered pocket container:', pocketContainer.id, 'for', item.name);
-          });
-        } else {
-          // Single container grid (backpack, tactical vest, etc.)
-          const containerGrid = item.getContainerGrid?.();
-
-          if (containerGrid) {
-            // CRITICAL: Set the container ID to slot-based name for equipped items
-            const containerId = `${slot}-container`;
-            containerGrid.id = containerId;
-            containerGrid.type = slot === 'backpack' ? 'equipped-backpack' : 'dynamic-pocket';
-            // Ensure container has a name (fallback to default if item name is missing)
-            containerGrid.name = item.name ? `${item.name} Storage` : 'Backpack Storage';
-            this.containers.set(containerId, containerGrid);
-            console.debug('[InventoryManager] Registered dynamic container:', containerId, 'for item:', item.instanceId);
-          }
+    // Phase 18 Refactor: Container IDs are now stable and instance-based.
+    // We no longer overwrite them with 'backpack-container' etc.
+    // We just ensure all containers of equipped items are correctly registered in the map.
+    Object.values(this.equipment).forEach(item => {
+        if (item) {
+            if (item.containerGrid) {
+                this.containers.set(item.containerGrid.id, item.containerGrid);
+            }
+            if (item.getPocketContainers) {
+                item.getPocketContainers().forEach(pocket => {
+                    this.containers.set(pocket.id, pocket);
+                });
+            }
         }
-      }
     });
+    this.emit('inventoryChanged');
   }
 
   /**
    * Get the main backpack container
    */
   getBackpackContainer() {
-    // Check managed container map first (most authoritative)
-    const managedContainer = this.containers.get('backpack-container');
-    if (managedContainer) {
-      return managedContainer;
+    const backpack = this.equipment.backpack;
+    if (backpack && backpack.isContainer && backpack.isContainer()) {
+      return backpack.getContainerGrid();
     }
-
-    // Fallback: check equipped backpack item directly
-    if (this.equipment.backpack && this.equipment.backpack.isContainer && this.equipment.backpack.isContainer()) {
-      return this.equipment.backpack.getContainerGrid();
-    }
-
-    // Return null if no backpack equipped (Phase 5C requirement)
     return null;
   }
 
@@ -1276,8 +1243,12 @@ export class InventoryManager extends SafeEventEmitter {
     if (this.equipment.hasOwnProperty(slotId)) {
       const item = this.equipment[slotId];
       if (item && item.instanceId === itemId) {
+        // ACTUAL REMOVAL
         this.equipment[slotId] = null;
         item.isEquipped = false;
+
+        // Phase 18 Refactor: No more manual ID resetting or slot-based cleanup.
+        this.updateDynamicContainers();
         return { item, equipment: slotId };
       }
     }
@@ -2226,7 +2197,12 @@ export class InventoryManager extends SafeEventEmitter {
     if (!def || !def.disassembleData) return false;
     
     const data = def.disassembleData;
-    const container = item._container;
+    let container = item._container;
+    
+    if (!container && item.isFurniture) {
+      container = this.getContainer('ground');
+    }
+
     if (!container) return false;
     
     // Check for tool in the SAME container

@@ -61,7 +61,7 @@ export class ImageLoader {
       // Generic loot drops or holes fall through to standard getImage('item') or specific mapping
       if (subtype === 'hole') imageKey = 'hole';
       else imageKey = 'item';
-    } else if (['cornplant', 'tomatoplant', 'carrotplant', 'harvestablecorn', 'harvestabletomato', 'harvestablecarrot', 'bed'].includes(subtype)) {
+    } else if (['cornplant', 'tomatoplant', 'carrotplant', 'harvestablecorn', 'harvestabletomato', 'harvestablecarrot', 'bed', 'toy_wagon', 'smallsled'].includes(subtype)) {
       return this.getItemImage(subtype);
     }
 

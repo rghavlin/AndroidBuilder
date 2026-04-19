@@ -270,12 +270,12 @@ export class Pathfinding {
       if (window) {
         if (options?.isZombie) {
           if (window.isBroken) {
-            // Rule: Moving into a broken window frame costs 2.0 AP for zombies.
-            baseCost = 2.0;
+            // Phase 18 Final Fix: Broken windows are now standard movement cost (1.0)
+            baseCost = 1.0;
           } else {
-            // BUG 4 FIX: Unbroken windows require multiple attacks to break. 
-            // We penalize this route heavily so zombies prefer walking around if possible.
-            baseCost = 15.0; 
+            // Phase 18 Final Fix: Closed windows are now only slightly penalized (2.0)
+            // to ensure zombies commit to breaking in rather than detouring.
+            baseCost = 2.0; 
           }
         } else {
           baseCost += 1;
@@ -286,10 +286,8 @@ export class Pathfinding {
       if (options?.isZombie) {
         const door = targetTile.contents.find(e => e.type === EntityType.DOOR);
         if (door && !door.isOpen) {
-          // BUG 4 FIX: Closed doors require multiple attacks to break.
-          // This high penalty ensures zombies will walk around a building 
-          // if there is an open path, rather than breaking the first door they see.
-          baseCost = 15.0;
+          // Phase 18 Final Fix: Closed doors match closed windows (2.0)
+          baseCost = 2.0;
         }
 
         const hasOtherZombie = targetTile.contents.some(e => e.type === EntityType.ZOMBIE);
