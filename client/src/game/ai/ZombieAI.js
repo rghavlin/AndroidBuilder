@@ -2,6 +2,7 @@ import { EntityType } from '../entities/Entity.js';
 import { MovementHelper } from '../utils/MovementHelper.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
+import { LineOfSight } from '../utils/LineOfSight.js';
 import audioManager from '../utils/AudioManager.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 
@@ -177,7 +178,6 @@ export class ZombieAI {
           break;
         }
 
-        // BUG 6: Verify if still visible after attack (e.g. if player somehow moved or vision changed)
         if (!zombie.canSeeEntity(gameMap, player)) {
           console.log(`[ZombieAI] Zombie ${zombie.id} lost sight of player after attack. Switching to investigation.`);
           this.executeLastSeenBehavior(zombie, gameMap, turnResult, playerCardinalPositions);
@@ -186,56 +186,71 @@ export class ZombieAI {
         continue;
       }
 
-      // 2. Move toward the best available cardinal tile adjacent to the player.
-      // We target a neighbor instead of the player tile to avoid "stepping on" the player.
-      const candidatePositions = this.findBestCardinalPositions(zombie, playerCardinalPositions, gameMap);
-      
-      let moved = false;
-      for (const targetPos of candidatePositions) {
-        const targetX = targetPos.x;
-        const targetY = targetPos.y;
+      // 2. LAST MILE: If close and diagonal to the player, use cardinal positions
+      //    to line up a cardinal attack. Zombies can't attack diagonally.
+      const dx = Math.abs(zombie.x - player.x);
+      const dy = Math.abs(zombie.y - player.y);
+      const isDiagonal = dx > 0 && dy > 0;
+      const manhattanDist = dx + dy;
 
-        const moveResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
+      let moveResult;
+      if (manhattanDist <= 2 && isDiagonal) {
+        // Close and diagonal - need to sidestep to a cardinal position
+        const candidatePositions = this.findBestCardinalPositions(zombie, playerCardinalPositions, gameMap);
+        let moved = false;
+        for (const targetPos of candidatePositions) {
+          moveResult = this.attemptMoveTowards(zombie, gameMap, targetPos.x, targetPos.y);
+          if (moveResult.success) { moved = true; break; }
+        }
+        if (!moved) {
+          console.log(`[ZombieAI] Zombie ${zombie.id} could not sidestep to cardinal position, ending turn`);
+          break;
+        }
+      } else {
+        // 3. DIRECT APPROACH: Walk straight toward the player.
+        //    attemptMoveTowards now uses LOS direct movement, so the zombie will
+        //    break through windows/doors in its path instead of detouring.
+        moveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
 
-        if (moveResult.success) {
-          // BUG 6 FIX: Verify if still visible after the move
-          const stillVisible = zombie.canSeeEntity(gameMap, player);
-          
-          if (stillVisible) {
-            // Update persistent tracking info as we move closer
-            zombie.setTargetSighted(player.x, player.y);
+        if (!moveResult.success) {
+          // Direct approach failed (solid wall, no LOS, etc.) - try cardinal positions as fallback
+          const candidatePositions = this.findBestCardinalPositions(zombie, playerCardinalPositions, gameMap);
+          let moved = false;
+          for (const targetPos of candidatePositions) {
+            moveResult = this.attemptMoveTowards(zombie, gameMap, targetPos.x, targetPos.y);
+            if (moveResult.success) { moved = true; break; }
           }
-          
-          turnResult.actions.push({
-            type: moveResult.type || 'move',
-            from: moveResult.from,
-            to: moveResult.to,
-            apCost: moveResult.apCost,
-            doorPos: moveResult.doorPos,
-            doorBroken: moveResult.doorBroken,
-            windowPos: moveResult.windowPos,
-            windowBroken: moveResult.windowBroken
-          });
-          
-          if (!stillVisible) {
-            console.log(`[ZombieAI] Zombie ${zombie.id} lost sight of player mid-move. Switching to investigation mode.`);
-            // Transition to last-seen behavior to use remaining AP investigating the LKP
-            this.executeLastSeenBehavior(zombie, gameMap, turnResult, playerCardinalPositions);
-            return;
+          if (!moved) {
+            console.log(`[ZombieAI] Zombie ${zombie.id} could not move toward player at all, ending turn`);
+            break;
           }
-
-          console.log(`[ZombieAI] Zombie ${zombie.id} moved toward player neighbor (${targetX}, ${targetY}), remaining AP: ${zombie.currentAP}`);
-          moved = true;
-          break; // Moved successfully, continue the while loop for next action
-        } else {
-          console.log(`[ZombieAI] Zombie ${zombie.id} move to (${targetX}, ${targetY}) failed: ${moveResult.reason}, trying next candidate...`);
         }
       }
 
-      if (!moved) {
-        console.log(`[ZombieAI] Zombie ${zombie.id} could not move to ANY cardinal position around player, ending turn`);
-        break;
+      // Record the action
+      const stillVisible = zombie.canSeeEntity(gameMap, player);
+      if (stillVisible) {
+        zombie.setTargetSighted(player.x, player.y);
       }
+
+      turnResult.actions.push({
+        type: moveResult.type || 'move',
+        from: moveResult.from,
+        to: moveResult.to,
+        apCost: moveResult.apCost,
+        doorPos: moveResult.doorPos,
+        doorBroken: moveResult.doorBroken,
+        windowPos: moveResult.windowPos,
+        windowBroken: moveResult.windowBroken
+      });
+
+      if (!stillVisible) {
+        console.log(`[ZombieAI] Zombie ${zombie.id} lost sight of player mid-move. Switching to investigation.`);
+        this.executeLastSeenBehavior(zombie, gameMap, turnResult, playerCardinalPositions);
+        return;
+      }
+
+      console.log(`[ZombieAI] Zombie ${zombie.id} moved toward player, remaining AP: ${zombie.currentAP}`);
     }
   }
 
@@ -600,19 +615,108 @@ export class ZombieAI {
       return { success: false, reason: 'Insufficient AP' };
     }
 
+    // --- LOS DIRECT MOVEMENT ---
+    // If the zombie can see the target, walk directly toward it using Bresenham's line.
+    // This ensures zombies break through windows instead of detouring around buildings.
+    if (zombie.canSeePosition(gameMap, targetX, targetY)) {
+      const line = LineOfSight.getLinePath(zombie.x, zombie.y, targetX, targetY);
+
+      if (line.length > 1) {
+        const nextStep = line[1];
+        const nextTile = gameMap.getTile(nextStep.x, nextStep.y);
+
+        if (nextTile) {
+          // Check for closed structures (windows/doors) blocking the direct path
+          const structure = nextTile.contents.find(e => {
+            if (e.type === EntityType.DOOR) return !e.isOpen && !e.isDamaged;
+            if (e.type === EntityType.WINDOW) {
+              if (e.isReinforced) return true;
+              return !e.isBroken && !e.isOpen;
+            }
+            return false;
+          });
+
+          if (structure) {
+            // Structure in the way — attack it
+            zombie.currentTarget = { type: 'structure', id: structure.id, x: nextStep.x, y: nextStep.y };
+            const isCardinal = (zombie.x === nextStep.x || zombie.y === nextStep.y) &&
+              Math.abs(zombie.x - nextStep.x) + Math.abs(zombie.y - nextStep.y) === 1;
+
+            if (isCardinal) {
+              // Cardinally adjacent — attack directly
+              console.log(`[ZombieAI] LOS direct: Zombie ${zombie.id} attacking structure at (${nextStep.x}, ${nextStep.y})`);
+              return this.executeStructureAttack(zombie, gameMap, structure, nextStep, fromPos);
+            } else {
+              // Diagonal to structure — move to nearest cardinal neighbor first
+              const neighbors = [
+                { x: nextStep.x + 1, y: nextStep.y },
+                { x: nextStep.x - 1, y: nextStep.y },
+                { x: nextStep.x, y: nextStep.y + 1 },
+                { x: nextStep.x, y: nextStep.y - 1 }
+              ].filter(pos => {
+                const t = gameMap.getTile(pos.x, pos.y);
+                return t && t.isWalkable(zombie) &&
+                  !t.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
+              }).sort((a, b) => {
+                const distA = Math.abs(zombie.x - a.x) + Math.abs(zombie.y - a.y);
+                const distB = Math.abs(zombie.x - b.x) + Math.abs(zombie.y - b.y);
+                return distA - distB;
+              });
+
+              if (neighbors.length > 0) {
+                const nbr = neighbors[0];
+                if (zombie.x === nbr.x && zombie.y === nbr.y) {
+                  // Already at a cardinal neighbor — attack
+                  return this.executeStructureAttack(zombie, gameMap, structure, nextStep, fromPos);
+                }
+                const nbrTile = gameMap.getTile(nbr.x, nbr.y);
+                const apCost = subtypeMult * Pathfinding.getMovementCost(zombie.x, zombie.y, nbr.x, nbr.y, nbrTile, { isZombie: true });
+                if (zombie.currentAP >= apCost && gameMap.moveEntity(zombie.id, nbr.x, nbr.y)) {
+                  zombie.useAP(apCost);
+                  zombie.movementPath.push({ x: nbr.x, y: nbr.y });
+                  console.log(`[ZombieAI] LOS direct: Zombie ${zombie.id} repositioned to (${nbr.x}, ${nbr.y}) to attack structure`);
+                  return { success: true, from: fromPos, to: { x: nbr.x, y: nbr.y }, apCost, type: 'move' };
+                }
+              }
+              // Fall through to A* if repositioning failed
+            }
+          } else {
+            // No structure — try to move to that tile directly
+            if (nextTile.isWalkable(zombie)) {
+              // Check diagonal corner-cutting
+              const isDiag = zombie.x !== nextStep.x && zombie.y !== nextStep.y;
+              if (isDiag && !Pathfinding.canMoveDiagonally(gameMap, zombie.x, zombie.y, nextStep.x, nextStep.y)) {
+                // Can't cut corners — fall through to A*
+                console.log(`[ZombieAI] LOS direct: diagonal blocked by corner at (${nextStep.x}, ${nextStep.y}), falling through to A*`);
+              } else {
+                const apCost = subtypeMult * Pathfinding.getMovementCost(zombie.x, zombie.y, nextStep.x, nextStep.y, nextTile, { isZombie: true });
+                if (zombie.currentAP >= apCost && gameMap.moveEntity(zombie.id, nextStep.x, nextStep.y)) {
+                  zombie.useAP(apCost);
+                  zombie.movementPath.push({ x: nextStep.x, y: nextStep.y });
+                  console.log(`[ZombieAI] LOS direct: Zombie ${zombie.id} moved to (${nextStep.x}, ${nextStep.y})`);
+                  return { success: true, from: fromPos, to: { x: nextStep.x, y: nextStep.y }, apCost, type: 'move' };
+                }
+              }
+            }
+            // Tile not walkable (solid wall) or move failed — fall through to A*
+          }
+        }
+      }
+    }
+
+    // --- A* PATHFINDING FALLBACK ---
+    // Used when the zombie has no LOS to the target or the direct path is blocked by a solid wall.
+
     // --- MYOPIC FILTER: Closed doors and windows are SOLID WALLS ---
     const myopicFilter = (tile) => {
-      // 1. Interactive structures take precedence (allow pathing TO them)
       const door = tile.contents.find(e => e.type === EntityType.DOOR);
       if (door) return door.isOpen;
 
       const window = tile.contents.find(e => e.type === EntityType.WINDOW);
       if (window) return window.isBroken || window.isOpen;
 
-      // 2. Terrain blocks
       if (['wall', 'fence', 'tree', 'water', 'building', 'tent_wall'].includes(tile.terrain)) return false;
-      
-      // 3. Other zombies block pathfinding
+
       const hasOtherZombie = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
       if (hasOtherZombie) return false;
 
@@ -867,16 +971,25 @@ export class ZombieAI {
         maxDistance: 20
       });
 
+      const canSeePos = zombie.canSeePosition(gameMap, pos.x, pos.y);
+
       return {
         ...pos,
         isOccupied,
         hasClearPath: pathAround.length > 0,
         pathLength: pathAround.length > 0 ? pathAround.length : 999, // Store actual walking distance
-        distance
+        distance,
+        canSeePos
       };
     });
 
     scoredPositions.sort((a, b) => {
+      // 0. TOP PRIORITY: Favor spots that maintain direct line of sight!
+      // If a zombie can see a spot, it should prefer it over any detour (e.g. through a door).
+      // This ensures zombies try to break through windows if they see the player through them.
+      if (a.canSeePos && !b.canSeePos) return -1;
+      if (!a.canSeePos && b.canSeePos) return 1;
+
       // 1. Prefer reachable spots (no other zombies blocking the path)
       if (a.hasClearPath && !b.hasClearPath) return -1;
       if (!a.hasClearPath && b.hasClearPath) return 1;

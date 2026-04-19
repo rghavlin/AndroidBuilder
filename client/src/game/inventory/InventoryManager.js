@@ -1285,6 +1285,12 @@ export class InventoryManager extends SafeEventEmitter {
     if (!weapon) return null;
     const detached = weapon.detachItem(slotId);
     if (detached) {
+      // Attempt to add it back to inventory
+      const addResult = this.addItem(detached);
+      if (!addResult.success) {
+        // If inventory is full, drop to ground
+        this.groundContainer.addItem(detached);
+      }
       this.emit('inventoryChanged');
     }
     return detached;
@@ -1334,9 +1340,18 @@ export class InventoryManager extends SafeEventEmitter {
       const ammoItem = Item.fromJSON(ammoData);
       ammoItem.stackCount = ammoCount;
       magazine.ammoCount = 0;
+
+      // Attempt to add it back to inventory
+      const addResult = this.addItem(ammoItem);
+      let container = 'inventory';
+      if (!addResult.success) {
+        // If inventory is full, drop to ground
+        this.groundContainer.addItem(ammoItem);
+        container = 'ground';
+      }
       
       this.emit('inventoryChanged');
-      return { success: true, item: ammoItem };
+      return { success: true, item: ammoItem, container };
     }
   
     /**
@@ -1917,16 +1932,8 @@ export class InventoryManager extends SafeEventEmitter {
 
     // 1. Search all REGISTERED containers first (fastest)
     for (const container of this.containers.values()) {
-      let item = container.items.get(itemId);
-      if (!item) {
-        for (const val of container.items.values()) {
-          if (val.instanceId === itemId || val.id === itemId) {
-            item = val;
-            break;
-          }
-        }
-      }
-      if (item) return { item, container };
+      const found = this._findItemRecursive(container, itemId);
+      if (found) return found;
     }
 
     // 2. Search EQUIPPED items and their attachments
@@ -2022,6 +2029,15 @@ export class InventoryManager extends SafeEventEmitter {
       if (grid) {
         const found = this._findItemRecursive(grid, itemId);
         if (found) return found;
+      }
+
+      // 2b. Recurse into attachments
+      if (item.hasAttachments && item.hasAttachments()) {
+        for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
+          if (attachment && (attachment.instanceId === itemId || attachment.id === itemId)) {
+            return { item: attachment, parent: item, attachmentSlot: attachSlot };
+          }
+        }
       }
       
       // 3. Recurse into pocket containers

@@ -139,76 +139,7 @@ export class GameMap {
 
     if (validItems.length > 0) {
       const proxyId = `ground-items-${x}-${y}`;
-
-      // Check if there is a hole or campfire in the items to use a special icon
-      const containsCampfire = validItems.some(item =>
-        item.defId === 'placeable.campfire' ||
-        (typeof item.toJSON === 'function' && item.defId === 'placeable.campfire')
-      );
-      const containsHole = validItems.some(item =>
-        item.defId === 'provision.hole' ||
-        (item.toJSON && item.toJSON().defId === 'provision.hole')
-      );
-      const containsCornPlant = validItems.some(item =>
-        item.defId === 'provision.corn_plant' ||
-        (item.toJSON && item.toJSON().defId === 'provision.corn_plant')
-      );
-      const containsTomatoPlant = validItems.some(item =>
-        item.defId === 'provision.tomato_plant' ||
-        (item.toJSON && item.toJSON().defId === 'provision.tomato_plant')
-      );
-      const containsCarrotPlant = validItems.some(item =>
-        item.defId === 'provision.carrot_plant' ||
-        (item.toJSON && item.toJSON().defId === 'provision.carrot_plant')
-      );
-      const containsHarvestableCorn = validItems.some(item =>
-        item.defId === 'provision.harvestable_corn' ||
-        (item.toJSON && item.toJSON().defId === 'provision.harvestable_corn')
-      );
-      const containsHarvestableTomato = validItems.some(item =>
-        item.defId === 'provision.harvestable_tomato' ||
-        (item.toJSON && item.toJSON().defId === 'provision.harvestable_tomato')
-      );
-      const containsHarvestableCarrot = validItems.some(item =>
-        item.defId === 'provision.harvestable_carrot' ||
-        (item.toJSON && item.toJSON().defId === 'provision.harvestable_carrot')
-      );
-      const containsBed = validItems.some(item =>
-        item.defId === 'placeable.bed' ||
-        (item.toJSON && item.toJSON().defId === 'placeable.bed')
-      );
-      const containsToyWagon = validItems.some(item =>
-        item.defId === 'toy_wagon' ||
-        (item.toJSON && item.toJSON().defId === 'toy_wagon')
-      );
-      const containsSmallSled = validItems.some(item =>
-        item.defId === 'placeable.small_sled' ||
-        (item.toJSON && item.toJSON().defId === 'placeable.small_sled')
-      );
-      const containsSnare = validItems.some(item =>
-        item.id === 'tool.snare_deployed' || 
-        item.defId === 'tool.snare_deployed' ||
-        (item.toJSON && item.toJSON().defId === 'tool.snare_deployed')
-      );
-      const containsRawMeat = validItems.some(item =>
-        item.defId === 'food.raw_meat' ||
-        (item.toJSON && item.toJSON().defId === 'food.raw_meat')
-      );
-
-      let subtype = 'ground_pile';
-      if (containsCampfire) subtype = 'campfire';
-      else if (containsHole) subtype = 'hole';
-      else if (containsSnare) subtype = 'deployedsnare';
-      else if (containsRawMeat && !containsSnare) subtype = 'rawmeat';
-      else if (containsCornPlant) subtype = 'cornplant';
-      else if (containsTomatoPlant) subtype = 'tomatoplant';
-      else if (containsCarrotPlant) subtype = 'carrotplant';
-      else if (containsHarvestableCorn) subtype = 'harvestablecorn';
-      else if (containsHarvestableTomato) subtype = 'harvestabletomato';
-      else if (containsHarvestableCarrot) subtype = 'harvestablecarrot';
-      else if (containsBed) subtype = 'bed';
-      else if (containsToyWagon) subtype = 'toy_wagon';
-      else if (containsSmallSled) subtype = 'smallsled';
+      const subtype = this._getGroundProxySubtype(validItems);
 
       if (!this.entityMap.has(proxyId)) {
         // Create a proxy entity for visual representation
@@ -235,63 +166,7 @@ export class GameMap {
         // Update existing proxy subtype in case items changed
         const proxy = this.entityMap.get(proxyId);
         if (proxy) {
-          const containsCampfire = validItems.some(item =>
-            item.defId === 'placeable.campfire' ||
-            (item.toJSON && item.toJSON().defId === 'placeable.campfire')
-          );
-          const containsHole = validItems.some(item =>
-            item.defId === 'provision.hole' ||
-            (item.toJSON && item.toJSON().defId === 'provision.hole')
-          );
-          const containsCornPlant = validItems.some(item =>
-            item.defId === 'provision.corn_plant' ||
-            (item.toJSON && item.toJSON().defId === 'provision.corn_plant')
-          );
-          const containsTomatoPlant = validItems.some(item =>
-            item.defId === 'provision.tomato_plant' ||
-            (item.toJSON && item.toJSON().defId === 'provision.tomato_plant')
-          );
-          const containsCarrotPlant = validItems.some(item =>
-            item.defId === 'provision.carrot_plant' ||
-            (item.toJSON && item.toJSON().defId === 'provision.carrot_plant')
-          );
-          const containsHarvestableCorn = validItems.some(item =>
-            item.defId === 'provision.harvestable_corn' ||
-            (item.toJSON && item.toJSON().defId === 'provision.harvestable_corn')
-          );
-          const containsHarvestableTomato = validItems.some(item =>
-            item.defId === 'provision.harvestable_tomato' ||
-            (item.toJSON && item.toJSON().defId === 'provision.harvestable_tomato')
-          );
-          const containsHarvestableCarrot = validItems.some(item =>
-            item.defId === 'provision.harvestable_carrot' ||
-            (item.toJSON && item.toJSON().defId === 'provision.harvestable_carrot')
-          );
-          const containsBed = validItems.some(item =>
-            item.defId === 'placeable.bed' ||
-            (item.toJSON && item.toJSON().defId === 'placeable.bed')
-          );
-          const containsSnare = validItems.some(item =>
-            item.defId === 'tool.snare_deployed' ||
-            (item.toJSON && item.toJSON().defId === 'tool.snare_deployed')
-          );
-          const containsRawMeat = validItems.some(item =>
-            item.defId === 'food.raw_meat' ||
-            (item.toJSON && item.toJSON().defId === 'food.raw_meat')
-          );
-
-          if (containsCampfire) proxy.subtype = 'campfire';
-          else if (containsHole) proxy.subtype = 'hole';
-          else if (containsSnare) proxy.subtype = 'deployedsnare';
-          else if (containsRawMeat && !containsSnare) proxy.subtype = 'rawmeat';
-          else if (containsCornPlant) proxy.subtype = 'cornplant';
-          else if (containsTomatoPlant) proxy.subtype = 'tomatoplant';
-          else if (containsCarrotPlant) proxy.subtype = 'carrotplant';
-          else if (containsHarvestableCorn) proxy.subtype = 'harvestablecorn';
-          else if (containsHarvestableTomato) proxy.subtype = 'harvestabletomato';
-          else if (containsHarvestableCarrot) proxy.subtype = 'harvestablecarrot';
-          else if (containsBed) proxy.subtype = 'bed';
-          else proxy.subtype = 'ground_pile';
+          proxy.subtype = subtype;
         }
       }
     } else {
@@ -302,7 +177,42 @@ export class GameMap {
       }
     }
   }
-  
+
+  /**
+   * Determine the visual subtype (icon) for items on the ground
+   * @private
+   */
+  _getGroundProxySubtype(items) {
+    if (!items || items.length === 0) return 'ground_pile';
+
+    const getDefId = (item) => (item.defId || (item.toJSON && item.toJSON().defId) || (item.id));
+
+    // Priority ordered list of special icons
+    const checks = [
+      { defId: 'placeable.campfire', subtype: 'campfire' },
+      { defId: 'provision.hole', subtype: 'hole' },
+      { defId: 'tool.snare_deployed', subtype: 'deployedsnare' },
+      { defId: 'food.raw_meat', subtype: 'rawmeat' },
+      { defId: 'provision.corn_plant', subtype: 'cornplant' },
+      { defId: 'provision.tomato_plant', subtype: 'tomatoplant' },
+      { defId: 'provision.carrot_plant', subtype: 'carrotplant' },
+      { defId: 'provision.harvestable_corn', subtype: 'harvestablecorn' },
+      { defId: 'provision.harvestable_tomato', subtype: 'harvestabletomato' },
+      { defId: 'provision.harvestable_carrot', subtype: 'harvestablecarrot' },
+      { defId: 'placeable.bed', subtype: 'bed' },
+      { defId: 'toy_wagon', subtype: 'toy_wagon' },
+      { defId: 'placeable.small_sled', subtype: 'smallsled' }
+    ];
+
+    for (const check of checks) {
+      if (items.some(item => getDefId(item) === check.defId)) {
+        return check.subtype;
+      }
+    }
+
+    return 'ground_pile';
+  }
+
   /**
    * Update crop growth metadata for a specific tile
    * Calculates the shortest time remaining until any plant on the tile is ready to harvest
@@ -961,6 +871,8 @@ export class GameMap {
     const { Item } = await import('../inventory/Item.js');
     const { Door } = await import('../entities/Door.js');
     const { Window } = await import('../entities/Window.js');
+    const { PlaceIcon } = await import('../entities/PlaceIcon.js');
+    const { Rabbit } = await import('../entities/Rabbit.js');
 
     // Restore tiles
     for (let y = 0; y < data.height; y++) {
@@ -999,6 +911,12 @@ export class GameMap {
                     break;
                   case 'window':
                     entity = Window.fromJSON(entityData);
+                    break;
+                  case 'place_icon':
+                    entity = PlaceIcon.fromJSON(entityData);
+                    break;
+                  case 'rabbit':
+                    entity = Rabbit.fromJSON(entityData);
                     break;
                   default:
                     console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);

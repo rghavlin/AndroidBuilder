@@ -905,7 +905,6 @@ export const InventoryProvider = ({ children }) => {
     const result = engine.inventoryManager.unloadMagazine(magazine);
     if (result.success) {
       // No AP cost for magazine-only interactions
-      engine.inventoryManager.addItem(result.item);
       addLog(`Unloaded ${result.item.stackCount} rounds of ${result.item.name}.`, 'item');
       playSound('ReloadShot');
       setInventoryVersion(v => v + 1);

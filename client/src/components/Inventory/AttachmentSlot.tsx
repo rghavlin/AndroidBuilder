@@ -15,7 +15,7 @@ const AttachmentSlot = memo(({
     slot,
     className
 }: AttachmentSlotProps) => {
-    const { attachSelectedItemToWeapon, detachItemFromWeapon, selectedItem, inventoryVersion } = useInventory();
+    const { attachSelectedItemToWeapon, detachItemFromWeapon, selectItem, selectedItem, inventoryVersion } = useInventory();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     // Get currently attached item (reactive to inventoryVersion)
@@ -52,8 +52,8 @@ const AttachmentSlot = memo(({
         e.stopPropagation();
 
         if (hasItem) {
-            // Detach existing item
-            detachItemFromWeapon(weapon, slot.id);
+            // Select existing item instead of automatically detaching
+            selectItem(attachedItem, `weapon-mod-${weapon.instanceId}:${slot.id}`, 0, 0, attachedItem.rotation);
         } else if (selectedItem) {
             // Try to attach selected item
             console.log('[AttachmentSlot] Attempting to attach:', selectedItem.item.name, 'to', slot.id);

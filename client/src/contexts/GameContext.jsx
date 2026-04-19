@@ -662,6 +662,9 @@ const GameContextInner = ({ children }) => {
     }
 
     setIsDefeated(false);
+    setIsPlayerTurn(true);
+    setIsAnimatingZombies(false);
+    setIsFlashlightOn(false);
     console.log(`[GameContext] Starting new game initialization (run ${runIdRef.current})...`);
     setInitializationError(null);
     setContextSyncPhase('idle'); // Reset sync phase for new initialization

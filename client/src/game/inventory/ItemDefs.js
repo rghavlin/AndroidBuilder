@@ -682,7 +682,7 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.BATTERY],
-    categories: [ItemCategory.BATTERY],
+    categories: [ItemCategory.BATTERY, ItemCategory.TOOL],
     stackMax: 10,
     capacity: 10,
     ammoCount: 10
