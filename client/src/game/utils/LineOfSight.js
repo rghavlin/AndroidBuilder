@@ -183,6 +183,12 @@ export class LineOfSight {
    * @returns {Array} Array of {x, y} coordinates along the line
    */
   static getLinePath(x0, y0, x1, y1) {
+    // Phase 28 Fix: Ensure all inputs are integers to prevent infinite loops in Bresenham's algorithm
+    x0 = Math.round(x0);
+    y0 = Math.round(y0);
+    x1 = Math.round(x1);
+    y1 = Math.round(y1);
+
     const path = [];
     const dx = Math.abs(x1 - x0);
     const dy = Math.abs(y1 - y0);
@@ -193,7 +199,12 @@ export class LineOfSight {
     let x = x0;
     let y = y0;
 
-    while (true) {
+    // Safety counter to prevent hard hangs in case of logic errors
+    let safety = 0;
+    const maxIterations = (dx + dy + 2) * 2;
+
+    while (safety < maxIterations) {
+      safety++;
       path.push({ x, y });
 
       if (x === x1 && y === y1) break;
@@ -207,6 +218,10 @@ export class LineOfSight {
         err += dx;
         y += sy;
       }
+    }
+    
+    if (safety >= maxIterations) {
+      console.warn(`[LineOfSight] getLinePath safety limit reached! (${x0},${y0}) to (${x1},${y1})`);
     }
 
     return path;

@@ -1,6 +1,7 @@
 import { SafeEventEmitter } from './utils/SafeEventEmitter.js';
 import { InventoryManager } from './inventory/InventoryManager.js';
 import { LineOfSight } from './utils/LineOfSight.js';
+import { ItemDefs } from './inventory/ItemDefs.js';
 
 
 /**
@@ -220,6 +221,89 @@ class GameEngine extends SafeEventEmitter {
 
 
       this.playerFieldOfView = fovData.visibleTiles;
+
+      // Phase 28: Add light from ground sources (Campfires, lit torches)
+      if (isNight) {
+        const finalVisibleTiles = [...fovData.visibleTiles];
+        const visibleKeySet = new Set(finalVisibleTiles.map(t => `${t.x},${t.y}`));
+        
+        // Find lit items on the ground within player's maximum potential vision range
+        // scanRadius = Max potential vision (20) + Max light source range (5)
+        const scanRadius = 25; 
+        const centerX = Math.round(posX);
+        const centerY = Math.round(posY);
+        const roundPosX = Math.round(posX);
+        const roundPosY = Math.round(posY);
+        const minX = Math.max(0, centerX - scanRadius);
+        const maxX = Math.min(this.gameMap.width - 1, centerX + scanRadius);
+        const minY = Math.max(0, centerY - scanRadius);
+        const maxY = Math.min(this.gameMap.height - 1, centerY + scanRadius);
+
+        for (let y = minY; y <= maxY; y++) {
+          for (let x = minX; x <= maxX; x++) {
+            const tile = this.gameMap.getTile(x, y);
+            if (!tile || !tile.inventoryItems || tile.inventoryItems.length === 0) continue;
+
+            const litItem = tile.inventoryItems.find(item => {
+              const def = ItemDefs[item.defId];
+              if (!def || !def.lightRange) return false;
+              if (item.defId === 'placeable.campfire') return (item.lifetimeTurns || 0) > 0;
+              return item.isLit;
+            });
+
+            if (litItem) {
+              const def = ItemDefs[litItem.defId];
+              const itemRange = def.lightRange;
+              const itemFov = LineOfSight.getVisibleTiles(this.gameMap, x, y, { maxRange: itemRange });
+              
+              itemFov.forEach(illuminatedTile => {
+                const key = `${illuminatedTile.x},${illuminatedTile.y}`;
+                if (visibleKeySet.has(key)) return;
+
+                // Only reveal the illuminated tile if the player has LOS to it!
+                // We use a fixed 20-tile range for "seeing a light in the distance"
+                const playerToTileLOS = LineOfSight.hasLineOfSight(this.gameMap, roundPosX, roundPosY, illuminatedTile.x, illuminatedTile.y, { maxRange: 20 });
+                if (playerToTileLOS.hasLineOfSight) {
+                  finalVisibleTiles.push(illuminatedTile);
+                  visibleKeySet.add(key);
+                }
+              });
+            }
+          }
+        }
+        // Phase 28B: Check items in the ground container (items at player's current tile)
+        if (this.inventoryManager && this.inventoryManager.groundContainer) {
+          const groundItems = this.inventoryManager.groundContainer.getAllItems();
+          groundItems.forEach(item => {
+            const def = ItemDefs[item.defId];
+            if (!def || !def.lightRange) return;
+
+            // Check if lit: campfires use lifetimeTurns, others use isLit
+            const isLit = (item.defId === 'placeable.campfire' || item.defId === 'placeable.campfire_stone') 
+              ? (item.lifetimeTurns || 0) > 0 
+              : item.isLit;
+
+            if (isLit) {
+              const itemRange = def.lightRange;
+              // Ground items are at player's feet
+              const itemFov = LineOfSight.getVisibleTiles(this.gameMap, centerX, centerY, { maxRange: itemRange });
+              
+              itemFov.forEach(illuminatedTile => {
+                const key = `${illuminatedTile.x},${illuminatedTile.y}`;
+                if (visibleKeySet.has(key)) return;
+
+                const playerToTileLOS = LineOfSight.hasLineOfSight(this.gameMap, roundPosX, roundPosY, illuminatedTile.x, illuminatedTile.y, { maxRange: 20 });
+                if (playerToTileLOS.hasLineOfSight) {
+                  finalVisibleTiles.push(illuminatedTile);
+                  visibleKeySet.add(key);
+                }
+              });
+            }
+          });
+        }
+        
+        this.playerFieldOfView = finalVisibleTiles;
+      }
 
       // Update explored flags (Silent mutation, will stay in sync with pulse)
       this.playerFieldOfView.forEach(pos => {

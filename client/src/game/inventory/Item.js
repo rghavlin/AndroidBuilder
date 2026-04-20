@@ -44,7 +44,8 @@ export class Item extends SafeEventEmitter {
     description = null,
     transformInto = null,
     produce = null,
-    backgroundColor = null
+    backgroundColor = null,
+    isLit = false
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -125,6 +126,7 @@ export class Item extends SafeEventEmitter {
     this.shelfLife = shelfLife;
     this.lifetimeTurns = lifetimeTurns;
     this.ammoDefId = ammoDefId;
+    this.isLit = isLit;
 
     // Load shelfLife from definition if not provided
     if (this.shelfLife === null && this.defId && ItemDefs[this.defId]?.shelfLife) {

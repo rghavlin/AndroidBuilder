@@ -169,38 +169,10 @@ export const PlayerProvider = ({ children }) => {
     }
 
     try {
-      const player = engine.player;
-      
       // MOVEMENT LOCK: If player is currently animating movement, the animation loop handles FOV updates.
       // We skip the redundant turn-based update here to prevent "flickering" between floor/round positions.
       if (isMovingRef.current && !gameMap._forcedFovUpdate) {
         return engine.playerFieldOfView || [];
-      }
-
-      const flooredPlayer = {
-        x: Math.round(player.x),
-        y: Math.round(player.y),
-        id: player.id,
-        sightRange: player.sightRange
-      };
-      
-      let maxRange = isNight ? (isFlashlightOn ? (flashlightRange) : 1.5) : 15;
-      
-      // Phase NVG: Night Vision range override
-      if (isFlashlightOn && isNightVision) {
-          if (isNight) {
-              maxRange = 15; // Full day range at night
-          } else {
-              maxRange = 0.5; // Blinded during day
-          }
-      }
-
-      // Scope Visibility restriction
-      if (isAimingWithScope) {
-          const canSeeThroughScope = !isNight || (isFlashlightOn && isNightVision);
-          if (canSeeThroughScope) {
-              maxRange = 20;
-          }
       }
 
       // Sync vision parameters to engine for frame-by-frame movement recalculation
@@ -213,24 +185,14 @@ export const PlayerProvider = ({ children }) => {
         maxRange: 15 // Default daylight range
       });
 
-      const fovData = LineOfSight.calculateFieldOfView(gameMap, flooredPlayer, {
-        maxRange,
-        ignoreTerrain: [],
-        ignoreEntities: [player.id]
-      });
+      // Phase 28 Fix: Always use the central engine to calculate FOV.
+      // This ensures that campfire light and other environmental sources are included.
+      engine.recalculateFOV();
+      
+      const visibleTiles = engine.playerFieldOfView || [];
+      setPlayerFieldOfView([...visibleTiles]);
 
-      setPlayerFieldOfView(fovData.visibleTiles);
-
-      // Sync to engine for persistent/background systems
-      engine.playerFieldOfView = fovData.visibleTiles;
-
-      // Mark tiles as explored
-      fovData.visibleTiles.forEach(pos => {
-        const tile = gameMap.getTile(pos.x, pos.y);
-        if (tile) tile.flags.explored = true;
-      });
-
-      return fovData.visibleTiles;
+      return visibleTiles;
     } catch (error) {
       console.error('[PlayerContext] FOV calculation error:', error);
       return [];
@@ -265,31 +227,29 @@ export const PlayerProvider = ({ children }) => {
 
       setMovementProgress(easeProgress);
       camera.centerOn(smoothX, smoothY);
-
+      
       // Real-time FOV/LOS updates during movement (60fps Local State)
       // This ensures vision moves perfectly with the sprite without engine/react pulse lag
-      const smoothPlayer = { x: Math.round(smoothX), y: Math.round(smoothY), id: engine.player.id };
-      let maxRange = isNight ? (isFlashlightOn ? (isNightVision ? 15 : flashlightRange) : 1.5) : (isFlashlightOn && isNightVision ? 0.5 : 15);
+      // Phase 28 Fix: Always use the central engine to calculate FOV during movement.
+      engine.recalculateFOV({ x: smoothX, y: smoothY });
       
-      // Note: Smooth animation doesn't typicaly have isAimingWithScope passed in currently, 
-      // but if we ever add it, it should follow the same rules as updatePlayerFieldOfView.
-      // For now we keep it consistent with the base range calculation.
-
-      const fov = LineOfSight.calculateFieldOfView(gameMap, smoothPlayer, { maxRange, ignoreTerrain: [], ignoreEntities: [engine.player.id] });
-      setPlayerFieldOfView(fov.visibleTiles);
+      const visibleTiles = engine.playerFieldOfView || [];
+      setPlayerFieldOfView([...visibleTiles]);
       
       // BUG 2 FIX: Instead of calling z.setTargetSighted every frame with rounded coordinates,
       // we use the PlayerZombieTracker to handle LKP precisely when LOS is lost.
       // We only update the tracker when the physical tile coordinate changes to avoid redundant checks.
       if (engine.zombieTracker) {
-        if (engine.zombieTracker._lastTrackedX !== smoothPlayer.x || engine.zombieTracker._lastTrackedY !== smoothPlayer.y) {
-          engine.zombieTracker.updateTracking(gameMap, smoothPlayer, fov.visibleTiles);
-          engine.zombieTracker._lastTrackedX = smoothPlayer.x;
-          engine.zombieTracker._lastTrackedY = smoothPlayer.y;
+        const roundX = Math.round(smoothX);
+        const roundY = Math.round(smoothY);
+        if (engine.zombieTracker._lastTrackedX !== roundX || engine.zombieTracker._lastTrackedY !== roundY) {
+          engine.zombieTracker.updateTracking(gameMap, { x: roundX, y: roundY, id: engine.player.id }, visibleTiles);
+          engine.zombieTracker._lastTrackedX = roundX;
+          engine.zombieTracker._lastTrackedY = roundY;
         }
       }
 
-      fov.visibleTiles.forEach(p => {
+      visibleTiles.forEach(p => {
         const t = gameMap.getTile(p.x, p.y);
         if (t) t.flags.explored = true;
       });

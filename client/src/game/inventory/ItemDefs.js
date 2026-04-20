@@ -1579,6 +1579,8 @@ export const ItemDefs = {
     width: 4,
     height: 4,
     traits: [ItemTrait.CONTAINER, ItemTrait.GROUND_ONLY],
+    lightRange: 5,
+    lightType: 'glow',
     containerGrid: {
       width: 4,
       height: 4,
