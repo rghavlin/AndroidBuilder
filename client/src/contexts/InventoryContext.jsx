@@ -444,30 +444,13 @@ export const InventoryProvider = ({ children }) => {
     // 3. Subtract from the item
     itemToDrinkFrom.ammoCount -= unitsToDrink;
 
-    // 4. Handle empty state
-    if (itemToDrinkFrom.ammoCount <= 0) {
-      // Bottle is empty! Return an empty bottle item.
-      const emptyId = itemToDrinkFrom.id === 'food.waterbottle' ? 'food.waterbottle_empty' : 
-                      (itemToDrinkFrom.id === 'food.waterjug' ? 'food.waterjug_empty' : null);
-      
-      if (emptyId) {
-        const emptyData = createItemFromDef(emptyId);
-        if (emptyData) {
-          const emptyItem = new Item(emptyData);
-          engine.inventoryManager.addItem(emptyItem);
-        }
-      }
-
-      // If it was a single item (not a stack), we must remove the now-empty original item
-      if (!isStacked) {
-        engine.inventoryManager.removeItemFromSource(item.instanceId, item._container?.id);
-      }
-    } else {
-      // Still has water left. If it was a stack, we need to add the now-partial one back to inventory.
-      if (isStacked) {
-        engine.inventoryManager.addItem(itemToDrinkFrom);
-      }
+    // 4. Update the item and handle inventory re-entry if it was split from a stack
+    if (isStacked) {
+      // If it was split from a stack, we need to add this new instance back to inventory.
+      // Pass allowStacking=true so it can merge with other identical bottles if now empty/full.
+      engine.inventoryManager.addItem(itemToDrinkFrom, null, null, null, true);
     }
+    // If it wasn't stacked, the original item instance in its container was modified directly.
 
     // Handle sickness for dirty water
     if (itemToDrinkFrom.waterQuality === 'dirty') {

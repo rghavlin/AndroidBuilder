@@ -161,8 +161,31 @@ export class ZombieAI {
       });
     }
 
-    // Use all AP moving toward and attacking the player
-    while (zombie.currentAP > 0) {
+    // --- STABLE TARGET SELECTION ---
+    // Instead of recalculating the "best" target every single AP step,
+    // we find the best available spot once per turn and commit to it.
+    // This prevents the LOS/A* oscillation.
+    let targetPos = null;
+    if (zombie.isAdjacentTo(player.x, player.y)) {
+      targetPos = { x: player.x, y: player.y };
+    } else {
+      const candidates = this.findBestCardinalPositions(zombie, playerCardinalPositions, gameMap);
+      if (candidates.length > 0) {
+        // High priority: Unoccupied spots
+        const unoccupied = candidates.filter(c => !c.isOccupied);
+        targetPos = unoccupied.length > 0 ? unoccupied[0] : candidates[0];
+      } else {
+        targetPos = { x: player.x, y: player.y };
+      }
+    }
+
+    console.log(`[ZombieAI] Zombie ${zombie.id} locked target: (${targetPos.x}, ${targetPos.y})`);
+
+    // Use all AP moving toward and attacking the target
+    let safetyCounter = 0;
+    while (zombie.currentAP > 0 && safetyCounter < 20) {
+      safetyCounter++;
+
       // 1. If adjacent to player → attack
       if (zombie.isAdjacentTo(player.x, player.y)) {
         const attackResult = this.attemptAttack(zombie, player);
@@ -173,66 +196,39 @@ export class ZombieAI {
           damage: attackResult.damage || 0
         });
 
-        if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
-          console.log(`[ZombieAI] Zombie ${zombie.id} insufficient AP to attack, ending pursuit loop`);
-          break;
-        }
+        if (!attackResult.success && attackResult.reason === 'Insufficient AP') break;
 
+        // If we lost sight after attack (unlikely for player), switch to investigation
         if (!zombie.canSeeEntity(gameMap, player)) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} lost sight of player after attack. Switching to investigation.`);
           this.executeLastSeenBehavior(zombie, gameMap, turnResult, playerCardinalPositions);
           return;
         }
         continue;
       }
 
-      // 2. LAST MILE: If close and diagonal to the player, use cardinal positions
-      //    to line up a cardinal attack. Zombies can't attack diagonally.
-      const dx = Math.abs(zombie.x - player.x);
-      const dy = Math.abs(zombie.y - player.y);
-      const isDiagonal = dx > 0 && dy > 0;
-      const manhattanDist = dx + dy;
+      // 2. MOVE TOWARDS LOCKED TARGET
+      // Use the stable targetPos we selected at the start of the turn
+      const moveResult = this.attemptMoveTowards(zombie, gameMap, targetPos.x, targetPos.y);
 
-      let moveResult;
-      if (manhattanDist <= 2 && isDiagonal) {
-        // Close and diagonal - need to sidestep to a cardinal position
-        const candidatePositions = this.findBestCardinalPositions(zombie, playerCardinalPositions, gameMap);
-        let moved = false;
-        for (const targetPos of candidatePositions) {
-          moveResult = this.attemptMoveTowards(zombie, gameMap, targetPos.x, targetPos.y);
-          if (moveResult.success) { moved = true; break; }
-        }
-        if (!moved) {
-          console.log(`[ZombieAI] Zombie ${zombie.id} could not sidestep to cardinal position, ending turn`);
-          break;
-        }
-      } else {
-        // 3. DIRECT APPROACH: Walk straight toward the player.
-        //    attemptMoveTowards now uses LOS direct movement, so the zombie will
-        //    break through windows/doors in its path instead of detouring.
-        moveResult = this.attemptMoveTowards(zombie, gameMap, player.x, player.y);
-
-        if (!moveResult.success) {
-          // Direct approach failed (solid wall, no LOS, etc.) - try cardinal positions as fallback
-          const candidatePositions = this.findBestCardinalPositions(zombie, playerCardinalPositions, gameMap);
-          let moved = false;
-          for (const targetPos of candidatePositions) {
-            moveResult = this.attemptMoveTowards(zombie, gameMap, targetPos.x, targetPos.y);
-            if (moveResult.success) { moved = true; break; }
-          }
-          if (!moved) {
-            console.log(`[ZombieAI] Zombie ${zombie.id} could not move toward player at all, ending turn`);
-            break;
+      if (!moveResult.success) {
+        // If our locked target is now unreachable (e.g. someone moved there), try to pick a new one
+        const newCandidates = this.findBestCardinalPositions(zombie, playerCardinalPositions, gameMap);
+        if (newCandidates.length > 0) {
+          const unoccupied = newCandidates.filter(c => !c.isOccupied);
+          const newTarget = unoccupied.length > 0 ? unoccupied[0] : newCandidates[0];
+          
+          if (newTarget.x !== targetPos.x || newTarget.y !== targetPos.y) {
+            targetPos = newTarget;
+            console.log(`[ZombieAI] Zombie ${zombie.id} switched target to: (${targetPos.x}, ${targetPos.y})`);
+            continue; 
           }
         }
+        
+        console.log(`[ZombieAI] Zombie ${zombie.id} could not move toward target, ending pursuit loop`);
+        break;
       }
 
       // Record the action
-      const stillVisible = zombie.canSeeEntity(gameMap, player);
-      if (stillVisible) {
-        zombie.setTargetSighted(player.x, player.y);
-      }
-
       turnResult.actions.push({
         type: moveResult.type || 'move',
         from: moveResult.from,
@@ -244,13 +240,14 @@ export class ZombieAI {
         windowBroken: moveResult.windowBroken
       });
 
-      if (!stillVisible) {
-        console.log(`[ZombieAI] Zombie ${zombie.id} lost sight of player mid-move. Switching to investigation.`);
+      // Update vision
+      if (zombie.canSeeEntity(gameMap, player)) {
+        zombie.setTargetSighted(player.x, player.y);
+      } else {
+        console.log(`[ZombieAI] Zombie ${zombie.id} lost sight mid-move. Switching to investigation.`);
         this.executeLastSeenBehavior(zombie, gameMap, turnResult, playerCardinalPositions);
         return;
       }
-
-      console.log(`[ZombieAI] Zombie ${zombie.id} moved toward player, remaining AP: ${zombie.currentAP}`);
     }
   }
 
