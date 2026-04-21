@@ -88,12 +88,17 @@ export const GameMapProvider = ({ children }) => {
       const dragging = engine.dragging;
       if (dragging && path.length > 1) {
         const basePenalty = dragging.item.dragApPenalty || 2;
+        let motorizedBonus = 0;
+        if (dragging.item.isMotorized && dragging.item.isMotorized()) {
+          motorizedBonus = 0.5;
+        }
+
         let dragPenaltyTotal = 0;
         
         // Calculate penalty per step based on terrain
         for (let i = 1; i < path.length; i++) {
           const tile = engine.gameMap.getTile(path[i].x, path[i].y);
-          let stepPenalty = basePenalty;
+          let stepPenalty = Math.max(0, basePenalty - motorizedBonus);
           if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
             stepPenalty -= 0.5;
           }
@@ -144,10 +149,15 @@ export const GameMapProvider = ({ children }) => {
       const dragging = engine.dragging;
       if (dragging && path.length > 1) {
         const basePenalty = dragging.item.dragApPenalty || 2;
+        let motorizedBonus = 0;
+        if (dragging.item.isMotorized && dragging.item.isMotorized()) {
+          motorizedBonus = 0.5;
+        }
+
         let dragPenaltyTotal = 0;
         for (let i = 1; i < path.length; i++) {
           const tile = engine.gameMap.getTile(path[i].x, path[i].y);
-          let stepPenalty = basePenalty;
+          let stepPenalty = Math.max(0, basePenalty - motorizedBonus);
           if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
             stepPenalty -= 0.5;
           }

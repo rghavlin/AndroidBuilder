@@ -20,7 +20,10 @@ export default function InventoryPanel() {
   useEffect(() => {
     openContainers.forEach(containerId => {
       // Skip cleanup for virtual containers
-      if (containerId.startsWith('clothing:') || containerId.startsWith('weapon:')) return;
+      if (containerId.startsWith('clothing:') || 
+          containerId.startsWith('mod:') || 
+          containerId.startsWith('item-mod-') || 
+          containerId.startsWith('mod-overlay:')) return;
 
       const container = getContainer(containerId);
       if (!container) {
@@ -87,8 +90,8 @@ export default function InventoryPanel() {
             );
           }
 
-          // Case 2: Weapon Modification (Virtual Container)
-          if (containerId.startsWith('weapon:')) {
+          // Case 2: Item Modification (Virtual Container)
+          if (containerId.startsWith('mod:')) {
             const itemId = containerId.split(':')[1];
             const found = inventoryManager?.findItem(itemId);
             const item = found?.item;
@@ -99,9 +102,11 @@ export default function InventoryPanel() {
               <FloatingContainer
                 key={containerId}
                 id={containerId}
-                title={`Modify ${item.name}`}
+                title={""}
                 isOpen={true}
                 onClose={() => closeContainer(containerId)}
+                minWidth={140}
+                minHeight={100}
               >
                 <WeaponModPanel weapon={item} />
               </FloatingContainer>

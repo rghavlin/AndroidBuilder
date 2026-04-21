@@ -39,6 +39,20 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'crafting.makeshift_machete',
+        name: 'Makeshift Machete',
+        resultItem: 'weapon.makeshift_machete',
+        description: 'A sharp mower blade bound with rags to create a devastating makeshift weapon.',
+        apCost: 6,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.mower_blade', count: 1 },
+            { id: 'crafting.rag', count: 1 },
+            { either: ['crafting.tape', 'crafting.wire'], count: 1, label: 'Tape or Wire' }
+        ]
+    },
+    {
         id: 'crafting.spear',
         name: 'Spear',
         resultItem: 'weapon.spear',

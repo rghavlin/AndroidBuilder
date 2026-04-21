@@ -53,7 +53,7 @@ const AttachmentSlot = memo(({
 
         if (hasItem) {
             // Select existing item instead of automatically detaching
-            selectItem(attachedItem, `weapon-mod-${weapon.instanceId}:${slot.id}`, 0, 0, attachedItem.rotation);
+            selectItem(attachedItem, `item-mod-${weapon.instanceId}:${slot.id}`, 0, 0, attachedItem.rotation);
         } else if (selectedItem) {
             // Try to attach selected item
             console.log('[AttachmentSlot] Attempting to attach:', selectedItem.item.name, 'to', slot.id);

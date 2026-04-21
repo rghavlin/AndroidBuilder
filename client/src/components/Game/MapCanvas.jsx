@@ -302,6 +302,11 @@ export default function MapCanvas({
         ctx.restore();
       }
 
+      // Layer 6: Global Weather (Screen Space)
+      if (engine.weather && engine.weather.type === 'rain') {
+        renderRain(ctx, physicalWidth, physicalHeight, engine.weather.intensity, dpr);
+      }
+
     } catch (error) {
       console.error('[MapCanvas] Critical Rendering Error:', error);
     }
@@ -782,4 +787,69 @@ export default function MapCanvas({
     </div>
   );
 
+}
+
+// --- Weather Rendering System (Screen Space) ---
+
+const rainParticles = [];
+const MAX_RAIN_PARTICLES = 1000;
+let lastRainUpdate = performance.now();
+
+function renderRain(ctx, width, height, intensity, dpr) {
+  const now = performance.now();
+  const dt = (now - lastRainUpdate) / 1000;
+  lastRainUpdate = now;
+
+  // 1. Particle Lifecycle
+  const targetCount = Math.floor(MAX_RAIN_PARTICLES * intensity);
+  
+  // Add new particles if needed
+  if (rainParticles.length < targetCount) {
+    const toAdd = Math.min(20, targetCount - rainParticles.length);
+    for (let i = 0; i < toAdd; i++) {
+      rainParticles.push({
+        x: Math.random() * width,
+        y: Math.random() * -height, // Start above screen
+        speed: (1500 + Math.random() * 1000) * dpr,
+        length: (15 + Math.random() * 15) * dpr,
+        width: (1 + Math.random() * 1) * dpr,
+        opacity: 0.1 + Math.random() * 0.3
+      });
+    }
+  }
+
+  // 2. Update & Render
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // Screen space
+  ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)'; // Slate blue/gray rain
+  ctx.lineCap = 'round';
+
+  for (let i = rainParticles.length - 1; i >= 0; i--) {
+    const p = rainParticles[i];
+    
+    // Move slanted (simulating wind)
+    p.y += p.speed * dt;
+    p.x += (p.speed * 0.15) * dt; // Slant to the right
+
+    // Wrap or Recycle
+    if (p.y > height) {
+      if (rainParticles.length > targetCount) {
+        rainParticles.splice(i, 1);
+        continue;
+      } else {
+        p.y = -p.length;
+        p.x = Math.random() * width;
+      }
+    }
+    if (p.x > width) p.x = 0;
+
+    // Draw raindrop
+    ctx.globalAlpha = p.opacity;
+    ctx.lineWidth = p.width;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + (p.length * 0.15), p.y + p.length);
+    ctx.stroke();
+  }
+  ctx.restore();
 }

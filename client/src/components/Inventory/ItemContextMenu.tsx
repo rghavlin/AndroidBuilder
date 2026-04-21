@@ -167,10 +167,10 @@ export function ItemContextMenu({
                                         return;
                                     }
 
-                                    // 2. Check for Weapons (Virtual Container)
+                                    // 2. Check for Items with Mods (Virtual Container)
                                     // Use property check first for robustness
                                     if (item.attachmentSlots && item.attachmentSlots.length > 0) {
-                                        openContainer(`weapon:${item.instanceId || item.id}`);
+                                        openContainer(`mod:${item.instanceId || item.id}`);
                                         return;
                                     }
 

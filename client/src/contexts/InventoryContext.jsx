@@ -210,7 +210,7 @@ export const InventoryProvider = ({ children }) => {
 
     // Virtual panel IDs
     idsToClose.add(`clothing:${instanceId}`);
-    idsToClose.add(`weapon:${instanceId}`);
+    idsToClose.add(`mod:${instanceId}`);
     
     // 2. Close them
     idsToClose.forEach(cid => {

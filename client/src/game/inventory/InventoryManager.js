@@ -833,8 +833,8 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // 4. Try dynamic lookup for virtual containers (clothing/weapon UI panels or equipment slots)
-    if (containerId && (containerId.startsWith('clothing:') || containerId.startsWith('weapon:') || containerId.startsWith('weapon-mod-') || containerId.startsWith('equipment-'))) {
+    // 4. Try dynamic lookup for virtual containers (clothing/mod UI panels or equipment slots)
+    if (containerId && (containerId.startsWith('clothing:') || containerId.startsWith('mod:') || containerId.startsWith('item-mod-') || containerId.startsWith('equipment-'))) {
       let instanceId;
       let slotId = null;
       
@@ -861,9 +861,9 @@ export class InventoryManager extends SafeEventEmitter {
           };
       }
 
-      if (containerId.startsWith('weapon-mod-')) {
-        // Format: weapon-mod-instanceId:slotId
-        const parts = containerId.replace('weapon-mod-', '').split(':');
+      if (containerId.startsWith('item-mod-')) {
+        // Format: item-mod-instanceId:slotId
+        const parts = containerId.replace('item-mod-', '').split(':');
         instanceId = parts[0];
         slotId = parts[1];
       } else {
@@ -994,7 +994,7 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     const sizeAfter = sourceContainer?.items?.size;
-    if (sourceContainer && sizeBefore === sizeAfter && !sourceContainerId?.startsWith('weapon-mod-')) {
+    if (sourceContainer && sizeBefore === sizeAfter && !sourceContainerId?.startsWith('item-mod-')) {
       console.error('[InventoryManager] CRITICAL: Map size did not decrease after removeItemFromSource!', {
         source: sourceContainerId,
         itemId,
@@ -1254,8 +1254,8 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    if (sourceId && sourceId.startsWith('weapon-mod-')) {
-      const parts = sourceId.replace('weapon-mod-', '').split(':');
+    if (sourceId && sourceId.startsWith('item-mod-')) {
+      const parts = sourceId.replace('item-mod-', '').split(':');
       const weaponInstanceId = parts[0];
       const slotId = parts[1];
 
@@ -1271,9 +1271,9 @@ export class InventoryManager extends SafeEventEmitter {
       }
 
       // If we are attaching an item and it's not found anywhere,
-      // but sourceId starts with weapon-mod-, it might be held in a state 
+      // but sourceId starts with item-mod-, it might be held in a state 
       // that general removal can't see (e.g. only in selectedItem).
-      console.debug('[InventoryManager] Item not found during removal but source is weapon-mod, returning virtual success');
+      console.debug('[InventoryManager] Item not found during removal but source is item-mod, returning virtual success');
       return { item: null, virtualSource: sourceId, weaponInstanceId, slotId };
     }
 
@@ -1714,7 +1714,7 @@ export class InventoryManager extends SafeEventEmitter {
 
     // Virtual source handling
     const isEquipmentSource = fromContainerId.startsWith('equipment-');
-    const isVirtualSource = fromContainerId.startsWith('weapon-mod-');
+    const isVirtualSource = fromContainerId.startsWith('item-mod-');
 
     if ((!fromContainer && !isVirtualSource && !isEquipmentSource) || !toContainer) {
       return { success: false, reason: 'Container not found' };
@@ -2272,6 +2272,17 @@ export class InventoryManager extends SafeEventEmitter {
         }
       }
     });
+
+    // 3. Add any attachments found in the item back to the container
+    if (item.attachments && Object.keys(item.attachments).length > 0) {
+      for (const slotId in item.attachments) {
+        const attachment = item.attachments[slotId];
+        if (attachment) {
+          container.addItem(attachment, null, null, true);
+          console.log(`[InventoryManager] Recovered attachment during disassembly: ${attachment.name}`);
+        }
+      }
+    }
     
     this.emit('update');
     return true;

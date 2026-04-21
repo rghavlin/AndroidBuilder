@@ -73,7 +73,12 @@ export const ItemDefs = {
     isFurniture: true,
     dragApPenalty: 1,
     renderFullTile: true,
+    isWagon: true,
     containerGrid: { width: 4, height: 5 },
+    attachmentSlots: [
+      { id: 'motor', name: 'Electric Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ],
     disassembleData: {
       toolId: 'weapon.wrench',
       apCost: 10,
@@ -83,6 +88,28 @@ export const ItemDefs = {
         { id: 'crafting.metal_plate', count: 1 }
       ]
     }
+  },
+  'electric_motor': {
+    id: 'electric_motor',
+    name: 'Electric motor',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'electricmotor',
+    width: 2,
+    height: 2,
+    traits: [],
+    categories: [ItemCategory.CRAFTING_MATERIAL]
+  },
+  'crafting.mower_blade': {
+    id: 'crafting.mower_blade',
+    name: 'Mower blade',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'mowerblade',
+    width: 3,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.CRAFTING_MATERIAL]
   },
   'crafting.nail': {
     id: 'crafting.nail',
@@ -118,6 +145,19 @@ export const ItemDefs = {
     height: 1,
     traits: [],
     categories: [ItemCategory.CRAFTING_MATERIAL]
+  },
+
+  'crafting.soil': {
+    id: 'crafting.soil',
+    name: 'Soil',
+    noLoot: true,
+    rarity: Rarity.COMMON,
+    imageId: 'soil',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 10
   },
 
   'crafting.wheel': {
@@ -517,6 +557,23 @@ export const ItemDefs = {
       damage: { min: 3, max: 9 }
     }
   },
+  'weapon.makeshift_machete': {
+    id: 'weapon.makeshift_machete',
+    name: 'Makeshift machete',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'makeshiftmachete',
+    width: 3,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.KNIFE],
+    condition: 100,
+    combat: {
+      hitChance: 0.70,
+      damage: { min: 2, max: 7 }
+    }
+  },
   'weapon.spear': {
     id: 'weapon.spear',
     name: 'Spear',
@@ -687,6 +744,20 @@ export const ItemDefs = {
     capacity: 10,
     ammoCount: 10
   },
+  'tool.large_battery': {
+    id: 'tool.large_battery',
+    name: 'Large battery',
+    rarity: Rarity.RARE,
+    imageId: 'largebattery',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.BATTERY],
+    categories: [ItemCategory.LARGE_BATTERY, ItemCategory.TOOL],
+    stackMax: 5,
+    capacity: 100,
+    ammoCount: 100
+  },
+
 
   // Specialty Containers (openable when nested)
   'tool.nightvision': {
@@ -1690,6 +1761,35 @@ export const ItemDefs = {
       components: [
         { id: 'weapon.plank', count: 4 },
         { id: 'crafting.nail', count: 4 }
+      ]
+    }
+  },
+
+  'furniture.electric_mower': {
+    id: 'furniture.electric_mower',
+    name: 'Electric mower',
+    noLoot: true,
+    noPickup: true,
+    rarity: Rarity.RARE,
+    imageId: 'electricmower',
+    width: 3,
+    height: 4,
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.OPENABLE_WHEN_NESTED],
+    isFurniture: true,
+    dragApPenalty: 1,
+    renderFullTile: true,
+    attachmentSlots: [
+      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ],
+    disassembleData: {
+      toolId: 'weapon.wrench',
+      apCost: 15,
+      components: [
+        { id: 'crafting.wheel', count: 4 },
+        { id: 'electric_motor', count: 1 },
+        { id: 'crafting.mower_blade', count: 1 },
+        { id: 'weapon.metal_rod', count: 2 },
+        { id: 'crafting.metal_plate', count: 1 }
       ]
     }
   }

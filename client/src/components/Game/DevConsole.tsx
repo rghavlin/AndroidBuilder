@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost } from "lucide-react";
+import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost, CloudRain, Sun } from "lucide-react";
 import engine from '../../game/GameEngine.js';
 
 interface DevConsoleProps {
@@ -189,6 +189,15 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         engine.notifyUpdate();
     };
 
+    const toggleRain = () => {
+        const isRaining = engine.weather?.type === 'rain';
+        if (isRaining) {
+            engine.setWeather('clear');
+        } else {
+            engine.setWeather('rain', 0.5);
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-background/90 backdrop-blur-md p-4 pointer-events-auto shadow-2xl">
             <Card className="w-full max-w-4xl bg-card border-primary/20 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -298,6 +307,12 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                                 title="Toggle Textures" 
                                 desc={engine.renderDebugColors ? "Currently: OFF (Simple Mode)" : "Currently: ON (Textured)"} 
                                 onClick={toggleTextures} 
+                            />
+                            <WorldToolButton 
+                                icon={<CloudRain className={`h-5 w-5 ${engine.weather?.type === 'rain' ? 'text-blue-400' : 'text-primary'}`} />} 
+                                title="Toggle Rain" 
+                                desc={engine.weather?.type === 'rain' ? "Stop Raining" : "Start Raining (Intensity 50%)"} 
+                                onClick={toggleRain} 
                             />
                         </div>
                     )}

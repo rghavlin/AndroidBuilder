@@ -101,6 +101,13 @@ export const ActionProvider = ({ children }) => {
       return { success: false, reason: 'Grid placement failed' };
     }
 
+    // Phase: Spawn Soil
+    const soilData = createItemFromDef('crafting.soil');
+    if (soilData) {
+      const soilItem = Item.fromJSON(soilData);
+      inventoryManager.groundContainer.addItem(soilItem); // Smart add will find a spot
+    }
+
     player.useAP(5);
     updatePlayerStats({ ap: player.ap });
     

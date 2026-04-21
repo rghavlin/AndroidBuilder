@@ -152,6 +152,7 @@ export class Item extends SafeEventEmitter {
       if (def.disassembleData) this.disassembleData = def.disassembleData;
       if (def.renderFullTile) this.renderFullTile = def.renderFullTile;
       if (def.isFurniture) this.isFurniture = def.isFurniture;
+      if (def.isWagon) this.isWagon = def.isWagon;
       if (def.dragApPenalty) this.dragApPenalty = def.dragApPenalty;
       
       // Auto-inherit categories from definition if not already present
@@ -198,6 +199,29 @@ export class Item extends SafeEventEmitter {
 
     // Compatibility property for legacy logic
     this.stackable = this.isStackable();
+  }
+
+  /**
+   * Check if the item is a motorized wagon with sufficient power
+   */
+  isMotorized() {
+    if (!this.isWagon || !this.attachments) return false;
+    const motor = this.attachments['motor'];
+    const battery = this.attachments['battery'];
+    // Motorized if it has a motor AND a battery with charge
+    return !!(motor && battery && battery.ammoCount > 0);
+  }
+
+  /**
+   * Get the current battery charge percentage (if applicable)
+   */
+  getBatteryCharge() {
+    if (!this.attachments) return 0;
+    const battery = this.attachments['battery'];
+    if (!battery) return 0;
+    // Standard battery max is 10, Large battery max is 100
+    const max = battery.defId === 'tool.large_battery' ? 100 : 10;
+    return (battery.ammoCount / max) * 100;
   }
 
   /**

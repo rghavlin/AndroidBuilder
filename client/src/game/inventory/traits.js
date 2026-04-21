@@ -22,6 +22,7 @@ export const ItemCategory = {
   WEAPON: 'weapon',
   MEDICAL: 'medical',
   BATTERY: 'battery',
+  LARGE_BATTERY: 'large_battery',
   AMMO: 'ammo',
   CLOTHING: 'clothing',
   SUPPRESSOR: 'suppressor',

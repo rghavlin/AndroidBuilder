@@ -201,7 +201,8 @@ export class GameMap {
       { defId: 'provision.harvestable_carrot', subtype: 'harvestablecarrot' },
       { defId: 'placeable.bed', subtype: 'bed' },
       { defId: 'toy_wagon', subtype: 'toy_wagon' },
-      { defId: 'placeable.small_sled', subtype: 'smallsled' }
+      { defId: 'placeable.small_sled', subtype: 'smallsled' },
+      { defId: 'furniture.electric_mower', subtype: 'electricmower' }
     ];
 
     for (const check of checks) {

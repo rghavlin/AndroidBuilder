@@ -219,6 +219,42 @@ export class LootGenerator {
                 }
             }
         }
+
+        // Electric Mower Spawn (Guaranteed 1 per map, strictly on grass)
+        const grassTiles = [];
+        const buildingsForMower = gameMap.buildings || [];
+        
+        for (let y = 0; y < gameMap.height; y++) {
+            for (let x = 0; x < gameMap.width; x++) {
+                const tile = gameMap.getTile(x, y);
+                if (tile && tile.terrain === 'grass') {
+                    // 1. Must NOT be inside a building rectangle
+                    const isInside = buildingsForMower.some(b => 
+                        x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+                    );
+                    if (isInside) continue;
+
+                    // 2. Must NOT be near a door
+                    if (this.isNearDoor(gameMap, x, y)) continue;
+
+                    // 3. Must be empty
+                    const existing = gameMap.getItemsOnTile(x, y);
+                    if (!existing || existing.length === 0) {
+                        grassTiles.push({ x, y });
+                    }
+                }
+            }
+        }
+
+        if (grassTiles.length > 0) {
+            const pos = grassTiles[Math.floor(Math.random() * grassTiles.length)];
+            const mower = createItemFromDef('furniture.electric_mower');
+            if (mower) {
+                this._applySpawnDefaults(mower, false);
+                gameMap.setItemsOnTile(pos.x, pos.y, [mower]);
+                console.log(`[LootGenerator] Furniture: Spawned single Electric Mower at (${pos.x}, ${pos.y})`);
+            }
+        }
     }
 
     /**
@@ -753,6 +789,19 @@ export class LootGenerator {
                 const battery = createItemFromDef('tool.battery');
                 if (battery) {
                     battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
+                    if (!item.attachments) item.attachments = {};
+                    item.attachments[batterySlot.id] = battery;
+                }
+            }
+        }
+
+        // Mower / Large Battery initialization
+        if (item.defId === 'furniture.electric_mower') {
+            const batterySlot = item.attachmentSlots?.find(s => s.id === 'battery');
+            if (batterySlot) {
+                const battery = createItemFromDef('tool.large_battery');
+                if (battery) {
+                    battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 100));
                     if (!item.attachments) item.attachments = {};
                     item.attachments[batterySlot.id] = battery;
                 }

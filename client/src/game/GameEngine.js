@@ -47,6 +47,9 @@ class GameEngine extends SafeEventEmitter {
     this.targetingItemInstanceId = null;
     this.dragging = null; // Phase 25: Drag Mechanic
     if (this.inventoryManager) this.inventoryManager.draggedItem = null;
+    
+    // Weather System
+    this.weather = { type: 'clear', intensity: 0 }; 
   }
 
   /**
@@ -170,6 +173,17 @@ class GameEngine extends SafeEventEmitter {
     if (changed) {
       this.notifyUpdate();
     }
+  }
+
+  /**
+   * Set global weather state
+   * @param {string} type - 'clear', 'rain'
+   * @param {number} intensity - 0.0 to 1.0
+   */
+  setWeather(type, intensity = 0.5) {
+    this.weather = { type, intensity };
+    console.log(`[GameEngine] 🌦️ Weather set to: ${type} (Intensity: ${intensity})`);
+    this.notifyUpdate();
   }
 
    /**
