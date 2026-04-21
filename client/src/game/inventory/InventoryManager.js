@@ -90,6 +90,7 @@ export class InventoryManager extends SafeEventEmitter {
     // Coordinate Ownership Tracking (Phase 12 Persistence Fix)
     this.lastSyncedX = null;
     this.lastSyncedY = null;
+    this.draggedItem = null;
   }
 
   /**

@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import GridSlot from "./GridSlot";
+import FloatingContainerOverlay from "./FloatingContainerOverlay";
 import { useGridSize } from "@/contexts/GridSizeContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
@@ -24,6 +25,7 @@ interface UniversalGridProps {
   enableHorizontalScroll?: boolean;
   className?: string;
   gridType?: 'scalable' | 'fixed';
+  slotClassName?: string;
   onSlotClick?: (x: number, y: number) => void;
   onSlotDrop?: (x: number, y: number, event: React.DragEvent) => void;
   "data-testid"?: string;
@@ -43,6 +45,7 @@ export default function UniversalGrid({
   enableHorizontalScroll = false,
   className,
   gridType = 'scalable',
+  slotClassName,
   onSlotClick,
   onSlotDrop,
   "data-testid": testId,
@@ -492,7 +495,8 @@ export default function UniversalGrid({
           onMouseLeave={() => setHoveredItem(null)}
           data-testid={`${containerId}-slot-${x}-${y}`}
           className={cn(
-            isPreviewCell && (previewOverlay.valid ? 'bg-green-500/20' : 'bg-red-500/20')
+            isPreviewCell && (previewOverlay.valid ? '!bg-green-500/40 !border !border-green-400/80' : '!bg-red-500/40 !border !border-red-400/80'),
+            slotClassName
           )}
         />
       );
@@ -641,6 +645,21 @@ export default function UniversalGrid({
               />
             </div>
           )}
+
+          {/* Phase: Specialized Ground Container Overlay (Wagon/Sled) */}
+          {(() => {
+            const isSpecialGroundContainer = (item.defId === 'toy_wagon' || item.defId === 'placeable.small_sled') && 
+                                           containerId === 'ground';
+            if (!isSpecialGroundContainer) return null;
+            
+            return (
+              <FloatingContainerOverlay 
+                item={item} 
+                slotSize={slotSize} 
+                gapSize={GAP_SIZE} 
+              />
+            );
+          })()}
         </div>
       );
     });
@@ -678,7 +697,10 @@ export default function UniversalGrid({
             height: `${totalGridHeight}px`,
             gap: `${GAP_SIZE}px`,
           }}
-          onMouseMove={handleMouseMove}
+          onMouseMove={(e) => {
+            e.stopPropagation();
+            handleMouseMove(e);
+          }}
           onMouseLeave={() => setPreviewOverlay(null)}
           onContextMenu={handleGridContextMenu}
           data-testid={testId || `grid-${containerId}`}
@@ -714,7 +736,7 @@ export default function UniversalGrid({
         }}
       >
         <div className={cn(
-          "h-full w-full flex items-start justify-center",
+          "h-full w-full flex items-start justify-start",
           gridType === 'scalable' ? 'overflow-auto custom-scrollbar' : 'overflow-visible'
         )}>
           {renderGrid()}

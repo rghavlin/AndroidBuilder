@@ -17,6 +17,7 @@ import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
+    TooltipPortal,
 } from "@/components/ui/tooltip";
 import { SplitDialog } from "./SplitDialog";
 interface ItemContextMenuProps {
@@ -59,10 +60,12 @@ export function ItemContextMenu({
                     {children}
                 </TooltipTrigger>
                 {tooltipContent && (
-                    <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
-                        {tooltipContent}
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
-                    </TooltipContent>
+                    <TooltipPortal>
+                        <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
+                            {tooltipContent}
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
+                        </TooltipContent>
+                    </TooltipPortal>
                 )}
             </Tooltip>
         );
@@ -77,16 +80,26 @@ export function ItemContextMenu({
                     </ContextMenuTrigger>
                 </TooltipTrigger>
                 {tooltipContent && (
-                    <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
-                        {tooltipContent}
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
-                    </TooltipContent>
+                    <TooltipPortal>
+                        <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
+                            {tooltipContent}
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
+                        </TooltipContent>
+                    </TooltipPortal>
                 )}
             </Tooltip>
 
-            {item && (
-                <ContextMenuPortal>
-                    <ContextMenuContent className="w-48 bg-[#1a1a1a] border-[#333] text-white z-[10001]">
+            {item && (() => {
+                // Phase: Specialized Ground Containers (Wagon/Sled) bypass ContextMenu
+                const isSpecialGroundContainer = (item.defId === 'toy_wagon' || item.defId === 'placeable.small_sled') && 
+                                               engine.inventoryManager.groundContainer.items.has(item.instanceId);
+                
+                if (isSpecialGroundContainer) return null;
+
+                return (
+                    <ContextMenuPortal>
+                        <ContextMenuContent className="w-48 bg-[#1a1a1a] border-[#333] text-white z-[10001]">
+                            {/* ... existing content ... */}
                         {item.hasTrait(ItemTrait.CAN_BREAK_DOORS) && (
                             <ContextMenuItem
                                 onClick={() => {
@@ -381,9 +394,10 @@ export function ItemContextMenu({
                                 No actions available
                             </ContextMenuItem>
                         )}
-                    </ContextMenuContent>
-                </ContextMenuPortal>
-            )}
+                        </ContextMenuContent>
+                    </ContextMenuPortal>
+                );
+            })()}
 
             {item && (
                 <SplitDialog

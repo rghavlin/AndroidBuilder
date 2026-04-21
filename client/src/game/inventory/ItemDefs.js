@@ -60,15 +60,15 @@ export const ItemDefs = {
     containerGrid: { width: 6, height: 10 }
   },
 
-  // Toy Wagon: 3x4 Ground Container / Furniture
+  // Toy Wagon: 4x6 Ground Container / Furniture
   'toy_wagon': {
     id: 'toy_wagon',
     name: 'Toy Wagon',
     noLoot: true,
     rarity: Rarity.UNCOMMON,
     imageId: 'toywagon',
-    width: 3,
-    height: 4,
+    width: 4,
+    height: 6,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER],
     isFurniture: true,
     dragApPenalty: 1,
@@ -1675,8 +1675,8 @@ export const ItemDefs = {
     name: 'Small sled',
     rarity: Rarity.UNCOMMON,
     imageId: 'smallsled',
-    width: 3,
-    height: 4,
+    width: 4,
+    height: 6,
     traits: [ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.DRAGGABLE],
     categories: [ItemCategory.FURNITURE, ItemCategory.TOOL],
     noLoot: true,
