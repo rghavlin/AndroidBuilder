@@ -74,7 +74,7 @@ export const ItemDefs = {
     dragApPenalty: 1,
     renderFullTile: true,
     isWagon: true,
-    containerGrid: { width: 4, height: 5 },
+    containerGrid: { width: 4, height: 5, isVehicle: true },
     attachmentSlots: [
       { id: 'motor', name: 'Electric Motor', allowedItems: ['electric_motor'] },
       { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
@@ -88,6 +88,19 @@ export const ItemDefs = {
         { id: 'crafting.metal_plate', count: 1 }
       ]
     }
+  },
+  'furniture.planter_box': {
+    id: 'furniture.planter_box',
+    name: 'Planter box',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'planterbox',
+    width: 3,
+    height: 3,
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER],
+    isFurniture: true,
+    isPlanter: true,
+    containerGrid: { width: 2, height: 2, isPlanter: true },
   },
   'electric_motor': {
     id: 'electric_motor',
@@ -1238,7 +1251,8 @@ export const ItemDefs = {
     categories: [ItemCategory.FOOD],
     stackMax: 100,
     spawnStackMin: 2,
-    spawnStackMax: 3
+    spawnStackMax: 3,
+    plantsAs: 'provision.corn_plant'
   },
   'provision.corn_plant': {
     id: 'provision.corn_plant',
@@ -1267,7 +1281,9 @@ export const ItemDefs = {
     categories: [],
     noLoot: true,
     noDrag: true,
-    produce: 'food.corn'
+    produce: 'food.corn',
+    produceMin: 4,
+    produceMax: 7
   },
   'food.corn': {
     id: 'food.corn',
@@ -1310,7 +1326,8 @@ export const ItemDefs = {
     categories: [ItemCategory.FOOD],
     stackMax: 100,
     spawnStackMin: 2,
-    spawnStackMax: 3
+    spawnStackMax: 3,
+    plantsAs: 'provision.tomato_plant'
   },
   'provision.tomato_plant': {
     id: 'provision.tomato_plant',
@@ -1339,7 +1356,9 @@ export const ItemDefs = {
     categories: [],
     noLoot: true,
     noDrag: true,
-    produce: 'food.tomato'
+    produce: 'food.tomato',
+    produceMin: 4,
+    produceMax: 7
   },
   'food.carrot': {
     id: 'food.carrot',
@@ -1367,7 +1386,8 @@ export const ItemDefs = {
     categories: [ItemCategory.FOOD],
     stackMax: 100,
     spawnStackMin: 2,
-    spawnStackMax: 3
+    spawnStackMax: 3,
+    plantsAs: 'provision.carrot_plant'
   },
   'provision.carrot_plant': {
     id: 'provision.carrot_plant',
@@ -1396,7 +1416,9 @@ export const ItemDefs = {
     categories: [],
     noLoot: true,
     noDrag: true,
-    produce: 'food.carrot'
+    produce: 'food.carrot',
+    produceMin: 4,
+    produceMax: 7
   },
   'food.stew': {
     id: 'food.stew',

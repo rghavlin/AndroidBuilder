@@ -154,6 +154,10 @@ export class Item extends SafeEventEmitter {
       if (def.isFurniture) this.isFurniture = def.isFurniture;
       if (def.isWagon) this.isWagon = def.isWagon;
       if (def.dragApPenalty) this.dragApPenalty = def.dragApPenalty;
+      if (def.isPlanter) this.isPlanter = def.isPlanter;
+      if (def.plantsAs) this.plantsAs = def.plantsAs;
+      if (def.produceMin !== undefined) this.produceMin = def.produceMin;
+      if (def.produceMax !== undefined) this.produceMax = def.produceMax;
       
       // Auto-inherit categories from definition if not already present
       if (def.categories && Array.isArray(def.categories)) {
@@ -461,34 +465,6 @@ export class Item extends SafeEventEmitter {
       }
     }
 
-    // 2. Recurse into attachments
-    if (this.attachments) {
-      Object.values(this.attachments).forEach(attachedItem => {
-        if (attachedItem && attachedItem.processTurn) {
-          attachedItem.processTurn();
-        }
-      });
-    }
-
-    // 3. Recurse into container grid
-    if (this.containerGrid) {
-      this.containerGrid.getAllItems().forEach(nestedItem => {
-        if (nestedItem && nestedItem.processTurn) {
-          nestedItem.processTurn();
-        }
-      });
-    }
-
-    // 4. Recurse into pockets
-    if (this.pocketGrids) {
-      this.pocketGrids.forEach(pocket => {
-        pocket.getAllItems().forEach(pocketItem => {
-          if (pocketItem && pocketItem.processTurn) {
-            pocketItem.processTurn();
-          }
-        });
-      });
-    }
   }
 
   canLoadAmmo(ammoItem) {

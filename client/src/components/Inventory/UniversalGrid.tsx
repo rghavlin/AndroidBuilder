@@ -176,8 +176,7 @@ export default function UniversalGrid({
         return;
       }
 
-      const seedTypes = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
-      if (seedTypes.includes(targetingItem.defId) && containerId === 'ground') {
+      if (targetingItem.plantsAs && containerId === 'ground') {
         // Seeds are planted in 2x2 holes
         const result = plantSeed(x, y);
         if (result.success) {
@@ -190,9 +189,8 @@ export default function UniversalGrid({
       }
     }
 
-    // Harvest logic
-    const harvestableTypes = ['provision.harvestable_corn', 'provision.harvestable_tomato', 'provision.harvestable_carrot'];
-    if (item && harvestableTypes.includes(item.defId)) {
+    // Harvest logic: any item with a 'produce' property is considered harvestable
+    if (item && item.produce) {
        console.debug(`[UniversalGrid] Harvesting ${item.name} at:`, x, y);
        harvestPlant(item);
        return;
@@ -219,8 +217,7 @@ export default function UniversalGrid({
       // Try to place or stack the selected item at the clicked coordinates
       
       // Phase 7: Special behavior for planting seeds (left-click cursor interaction)
-      const seedTypes = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
-      const isSeedSelected = seedTypes.includes(selectedItem.item.defId);
+      const isSeedSelected = !!selectedItem.item.plantsAs;
       const isHoleClicked = item?.defId === 'provision.hole';
       
       if (isSeedSelected && isHoleClicked && containerId === 'ground') {
@@ -288,11 +285,12 @@ export default function UniversalGrid({
       // If placement failed (e.g. occupied by another item), and that item is NOT stackable with ours,
       // then the user likely wants to SWITCH their selection to the clicked item.
       if (item && item.instanceId) {
-        // Phase 7 Fix: Prevent switching selection to ground-only items (holes, beds, etc.)
+        // Phase 7 Fix: Prevent switching selection to non-movable or ground-only items
         const isGroundOnly = item.hasTrait?.('ground_only') || item.traits?.includes('ground_only') || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+        const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
         
-        if (isGroundOnly) {
-           console.debug('[UniversalGrid] Cannot switch selection to ground-only item:', item.name);
+        if (isNoDrag || (isGroundOnly && containerId === 'ground')) {
+           console.debug('[UniversalGrid] Cannot switch selection to non-movable item:', item.name);
            return;
         }
 
@@ -310,9 +308,10 @@ export default function UniversalGrid({
     // Case 2: No item selected, so we select the clicked item
     if (item && item.instanceId) {
       const isGroundOnly = item.hasTrait?.('ground_only') || item.traits?.includes('ground_only') || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+      const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
       
-      if (isGroundOnly) {
-        console.debug('[UniversalGrid] Cannot pick up ground-only item:', item.name);
+      if (isNoDrag || (isGroundOnly && containerId === 'ground')) {
+        console.debug('[UniversalGrid] Cannot pick up non-movable item:', item.name);
         return;
       }
       console.debug('[UniversalGrid] Selecting item:', item.name, 'at grid pos:', item.x, item.y);
@@ -336,6 +335,20 @@ export default function UniversalGrid({
     // Do NOT call event.preventDefault() here.
     // This allows the Radix ContextMenu to trigger for the item.
   }, [selectedItem, rotateSelected]);
+
+  const handleSlotClick = useCallback((x: number, y: number) => {
+    // This handles clicks on EMPTY slots or general slot clicks from nested grids
+    console.debug('[UniversalGrid] handleSlotClick (prop) triggered at:', x, y, 'containerId:', containerId);
+    
+    // If we have a selected item, try to place it
+    if (selectedItem) {
+      placeSelected(containerId, x, y);
+      return;
+    }
+
+    // Otherwise, bubble up to parent if provided
+    onSlotClick?.(x, y);
+  }, [containerId, selectedItem, placeSelected, onSlotClick]);
 
   const handleGridContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     // 1. Priority: Handle active targeting (e.g. Shovel Digging)
@@ -583,23 +596,39 @@ export default function UniversalGrid({
             height: `${gridHeight}px`,
           }}
         >
-          <img
-            src={itemImageSrc}
-            className={cn(
-              "absolute pointer-events-none select-none transition-opacity duration-200 max-w-none",
-              isItemSelected && "opacity-40"
-            )}
-            style={{
-              left: `${adjustedLeft - leftPos}px`,
-              top: `${adjustedTop - topPos}px`,
-              width: `${imageWidth}px`,
-              height: `${imageHeight}px`,
-              objectFit: 'cover',
-              transform: transformStyle,
-              transformOrigin: 'top left',
-            }}
-            alt={item.name}
-          />
+          {itemImageSrc ? (
+            <img
+              src={itemImageSrc}
+              className={cn(
+                "absolute pointer-events-none select-none transition-opacity duration-200 max-w-none",
+                isItemSelected && "opacity-40"
+              )}
+              style={{
+                left: `${adjustedLeft - leftPos}px`,
+                top: `${adjustedTop - topPos}px`,
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
+                objectFit: 'cover',
+                transform: transformStyle,
+                transformOrigin: 'top left',
+              }}
+              alt={item.name}
+            />
+          ) : (
+            <div 
+              className="absolute flex items-center justify-center bg-indigo-500/20 border border-indigo-400/50 rounded-sm"
+              style={{
+                left: `${adjustedLeft - leftPos}px`,
+                top: `${adjustedTop - topPos}px`,
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
+              }}
+            >
+              <span className="text-[8px] font-black text-indigo-200 uppercase text-center leading-tight p-1">
+                {item.name}
+              </span>
+            </div>
+          )}
 
           {item.stackCount > 1 && (
             <div className="absolute inset-0 pointer-events-none z-20">
@@ -614,6 +643,16 @@ export default function UniversalGrid({
               <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-orange-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(251,146,60,0.4)] border-b border-l border-orange-500/30 whitespace-nowrap flex items-center gap-0.5">
                 <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
                 {item.lifetimeTurns.toFixed(1)}
+              </span>
+            </div>
+          )}
+
+          {/* Growth Progress Indicator for Plants */}
+          {item.defId !== 'placeable.campfire' && item.lifetimeTurns !== null && (
+            <div className="absolute inset-0 pointer-events-none z-20">
+              <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-green-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(74,222,128,0.3)] border-b border-l border-green-500/30 whitespace-nowrap flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                {item.lifetimeTurns}T
               </span>
             </div>
           )}
@@ -648,8 +687,8 @@ export default function UniversalGrid({
 
           {/* Phase: Specialized Ground Container Overlay (Wagon/Sled) */}
           {(() => {
-            const isSpecialGroundContainer = (item.defId === 'toy_wagon' || item.defId === 'placeable.small_sled') && 
-                                           containerId === 'ground';
+            const isSpecialGroundContainer = (item.isWagon || item.isPlanter || item.defId === 'toy_wagon' || item.defId === 'placeable.small_sled') && 
+                                           (containerId === 'ground' || (item.isPlanter && (containerId.includes('-container') || containerId.includes('-grid'))));
             if (!isSpecialGroundContainer) return null;
             
             return (
@@ -657,6 +696,9 @@ export default function UniversalGrid({
                 item={item} 
                 slotSize={slotSize} 
                 gapSize={GAP_SIZE} 
+                containerId={containerId}
+                onSlotClick={handleSlotClick}
+                onSlotContextMenu={handleItemContextMenu}
               />
             );
           })()}

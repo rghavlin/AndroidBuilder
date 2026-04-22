@@ -821,10 +821,10 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // 3. Try dynamic lookup for item-level containers (backpacks, etc.)
-    // Pattern: [instanceId]-container
-    if (containerId && containerId.endsWith('-container')) {
-      const instanceId = containerId.replace('-container', '');
+    // 3. Try dynamic lookup for item-level containers (backpacks, planters, etc.)
+    // Pattern: [instanceId]-container or [instanceId]-grid
+    if (containerId && (containerId.endsWith('-container') || containerId.endsWith('-grid'))) {
+      const instanceId = containerId.replace('-container', '').replace('-grid', '');
       const found = this.findItem(instanceId);
       if (found && found.item) {
         const item = found.item;
@@ -2321,10 +2321,15 @@ export class InventoryManager extends SafeEventEmitter {
 
     // Helper to process an item and handle expiration (removal)
     const processItemAndCheckExpiration = (item, container = null) => {
+      if (!item) return false;
       const wasSpoiled = item.isSpoiled;
 
-      // Call item's own turn processing (decrements shelfLife, recurses into attachments/nested)
+      // Call item's own turn processing (decrements shelfLife, etc.)
+      const oldTurns = item.lifetimeTurns;
       item.processTurn();
+      if (item.lifetimeTurns !== oldTurns) {
+        console.log(`[InventoryManager] Item ${item.name} growth progress: ${oldTurns} -> ${item.lifetimeTurns}`);
+      }
 
       // If it just spoiled, we need to refresh UI
       if (!wasSpoiled && item.isSpoiled) {
@@ -2332,7 +2337,6 @@ export class InventoryManager extends SafeEventEmitter {
       }
 
       // Handle Expiration (Vanishing)
-      // Only items that ARE NOT spoilable should vanish when shelfLife reaches 0
       const isShelfLifeExpired = item.shelfLife !== null && item.shelfLife <= 0 && !item.isSpoilable();
       const isLifetimeTurnsExpired = item.lifetimeTurns !== null && item.lifetimeTurns <= 0;
 
@@ -2371,7 +2375,6 @@ export class InventoryManager extends SafeEventEmitter {
         if (container) {
           container.removeItem(item.instanceId);
         } else {
-          // It's in an equipment slot
           for (const slot in this.equipment) {
             if (this.equipment[slot] === item) {
               this.equipment[slot] = null;
@@ -2381,9 +2384,37 @@ export class InventoryManager extends SafeEventEmitter {
           }
         }
         itemsChanged = true;
-        return true; // Item was removed
+        return true; 
       }
-      return false; // Item remains
+
+      // RECURSIVE: Process nested and attached items
+      // Use getContainerGrid() (not item.containerGrid) to force lazy initialization.
+      // Without this, a planter box that has never been "opened" has a null containerGrid
+      // and its plants are never processed during turn ticks.
+      const containerGrid = item.getContainerGrid?.();
+      if (containerGrid) {
+        const nestedItems = containerGrid.getAllItems();
+        if (nestedItems.length > 0) {
+          itemsChanged = true;
+        }
+        nestedItems.forEach(nestedItem => {
+          processItemAndCheckExpiration(nestedItem, containerGrid);
+        });
+      }
+      if (item.attachments) {
+        Object.values(item.attachments).forEach(attachedItem => {
+          if (attachedItem) processItemAndCheckExpiration(attachedItem);
+        });
+      }
+      if (item.pocketGrids) {
+        item.pocketGrids.forEach(pocket => {
+          pocket.getAllItems().forEach(pocketItem => {
+            processItemAndCheckExpiration(pocketItem, pocket);
+          });
+        });
+      }
+
+      return false; 
     };
 
     // 1. Process only ROOT containers (ground, player inventory).

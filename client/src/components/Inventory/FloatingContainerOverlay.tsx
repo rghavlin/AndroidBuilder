@@ -1,5 +1,6 @@
 import { useInventory } from '../../contexts/InventoryContext';
 import { useGame } from '../../contexts/GameContext.jsx';
+import { useAction } from '../../contexts/ActionContext.jsx';
 import UniversalGrid from './UniversalGrid';
 import WeaponModPanel from './WeaponModPanel';
 import { Button } from '../ui/button';
@@ -11,11 +12,24 @@ interface FloatingContainerOverlayProps {
   item: any;
   slotSize: number;
   gapSize: number;
+  containerId?: string;
+  onSlotClick?: (x: number, y: number) => void;
+  onSlotContextMenu?: (item: any, x: number, y: number, event: React.MouseEvent) => void;
 }
 
-export default function FloatingContainerOverlay({ item, slotSize, gapSize }: FloatingContainerOverlayProps) {
-  const { startDrag, stopDrag, openContainer, closeContainer, isContainerOpen } = useInventory();
+export default function FloatingContainerOverlay({ 
+  item, 
+  slotSize, 
+  gapSize, 
+  containerId = 'ground',
+  onSlotClick,
+  onSlotContextMenu
+}: FloatingContainerOverlayProps) {
+  const { selectItem, stopDrag, isContainerOpen, selectedItem } = useInventory();
   const { engine } = useGame();
+  const { harvestPlant } = useAction();
+  
+  const isDraggingSeed = selectedItem?.item.defId?.endsWith('seeds');
   
   const modOverlayId = `mod-overlay:${item.instanceId}`;
   const showMods = isContainerOpen(modOverlayId);
@@ -25,6 +39,36 @@ export default function FloatingContainerOverlay({ item, slotSize, gapSize }: Fl
   
   const isDragging = engine?.dragging?.item.instanceId === item.instanceId;
   const isWagon = item.isWagon;
+  const isPlanter = item.isPlanter;
+
+  const handleSelectPlanter = (e: React.MouseEvent) => {
+    if (!isPlanter || isDragging || isDraggingSeed) return;
+    e.stopPropagation();
+
+    // 1. Try to harvest if clicking on a plant
+    if (containerGrid) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const slotWithGap = slotSize + gapSize;
+      const gridX = Math.floor(x / slotWithGap);
+      const gridY = Math.floor(y / slotWithGap);
+      
+      const itemId = containerGrid.grid[gridY]?.[gridX];
+      if (itemId) {
+        const nestedItem = containerGrid.items.get(itemId);
+        // If it's a harvestable plant, harvest it and return
+        if (nestedItem && nestedItem.produce) {
+          harvestPlant(nestedItem);
+          return;
+        }
+      }
+    }
+
+    // 2. Otherwise select the planter box itself
+    console.debug('[FloatingContainerOverlay] Selecting planter:', item.name, 'from container:', containerId);
+    selectItem(item, containerId, item.x, item.y);
+  };
 
   const handleTogglePull = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -61,11 +105,27 @@ export default function FloatingContainerOverlay({ item, slotSize, gapSize }: Fl
 
   return (
     <div 
-      className="absolute inset-0 z-50 flex flex-col pointer-events-auto bg-black/40 backdrop-blur-[1px] border border-white/30 rounded-sm overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
+      className={cn(
+        "absolute inset-0 z-50 flex flex-col overflow-hidden",
+        isPlanter 
+          ? "pointer-events-none" 
+          : "pointer-events-auto bg-black/40 backdrop-blur-[1px] border border-white/30 rounded-sm"
+      )}
+      onClick={isPlanter ? undefined : (e) => e.stopPropagation()}
     >
+      {/* Selection Handles for Planter Box Frame */}
+      {isPlanter && !isDraggingSeed && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-4 pointer-events-auto cursor-pointer" onClick={handleSelectPlanter} />
+          <div className="absolute bottom-0 left-0 right-0 h-4 pointer-events-auto cursor-pointer" onClick={handleSelectPlanter} />
+          <div className="absolute top-4 bottom-4 left-0 w-4 pointer-events-auto cursor-pointer" onClick={handleSelectPlanter} />
+          <div className="absolute top-4 bottom-4 right-0 w-4 pointer-events-auto cursor-pointer" onClick={handleSelectPlanter} />
+        </div>
+      )}
+
       {/* Control Panel (Top Row) */}
-      <div className="h-8 bg-black/60 border-b border-white/20 flex items-center justify-between p-1 px-1.5 flex-shrink-0">
+      {!isPlanter && (
+        <div className="h-8 bg-black/60 border-b border-white/20 flex items-center justify-between p-1 px-1.5 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -144,6 +204,7 @@ export default function FloatingContainerOverlay({ item, slotSize, gapSize }: Fl
           </div>
         )}
       </div>
+      )}
 
       {/* Grid or Mod Overlay */}
       <div 
@@ -157,15 +218,21 @@ export default function FloatingContainerOverlay({ item, slotSize, gapSize }: Fl
              </div>
           </div>
         ) : (
-          <UniversalGrid
-            containerId={containerGrid.id}
-            container={containerGrid}
-            width={containerGrid.width}
-            height={containerGrid.height}
-            gridType="fixed"
-            slotClassName="bg-white/5 border border-white/10"
-            className="h-full w-full"
-          />
+          <div className={cn(isPlanter ? "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" : "flex-1 min-h-0 w-full flex items-center justify-center")}>
+            <div className={cn(isPlanter && "pointer-events-auto bg-black/40 backdrop-blur-[1px] border border-white/20 rounded-sm p-1 shadow-2xl")}>
+              <UniversalGrid
+                containerId={containerGrid.id}
+                container={containerGrid}
+                width={containerGrid.width}
+                height={containerGrid.height}
+                gridType="fixed"
+                slotClassName={cn(isPlanter ? "bg-white/10 border border-white/30" : "bg-white/5 border border-white/10")}
+                className={isPlanter ? "" : "h-full w-full"}
+                onSlotClick={onSlotClick}
+                onSlotContextMenu={onSlotContextMenu}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>

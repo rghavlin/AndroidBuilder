@@ -156,13 +156,7 @@ export const ActionProvider = ({ children }) => {
       return { success: false, reason: 'No hole' };
     }
 
-    const seedToPlant = {
-      'food.cornseeds': 'provision.corn_plant',
-      'food.tomatoseeds': 'provision.tomato_plant',
-      'food.carrotseeds': 'provision.carrot_plant'
-    };
-
-    const plantDefId = seedToPlant[activeSeed.defId];
+    const plantDefId = activeSeed.plantsAs;
     if (!plantDefId) return { success: false, reason: 'Invalid seed' };
 
     const plantItem = Item.fromJSON(createItemFromDef(plantDefId));
@@ -199,19 +193,34 @@ export const ActionProvider = ({ children }) => {
     const inventoryManager = engine.inventoryManager;
     if (!player || !inventoryManager) return;
 
-    const ground = inventoryManager.groundContainer;
-    ground.removeItem(plantItem.instanceId);
+    const found = inventoryManager.findItem(plantItem.instanceId);
+    if (!found) return;
 
-    const count = 4 + Math.floor(Math.random() * 4);
+    // Remove from whatever container it is in (ground or planter box)
+    found.container.removeItem(plantItem.instanceId);
+
+    const min = plantItem.produceMin || 4;
+    const max = plantItem.produceMax || 7;
+    const count = min + Math.floor(Math.random() * (max - min + 1));
     const produceItem = Item.fromJSON(createItemFromDef(plantItem.produce || 'food.corn'));
     produceItem.stackCount = count;
 
-    const success = ground.addItem(produceItem, plantItem.x, plantItem.y);
+    const ground = inventoryManager.groundContainer;
+    
+    // Always drop produce on the ground, regardless of where plant was
+    const dropX = found.container.id === 'ground' ? plantItem.x : player.x;
+    const dropY = found.container.id === 'ground' ? plantItem.y : player.y;
+    
+    const success = ground.addItem(produceItem, dropX, dropY);
     if (success) {
       addLog(`You harvest ${count} ${produceItem.name.toLowerCase()}${count > 1 ? 's' : ''}.`, "info");
       inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, engine.gameMap);
       inventoryManager.emit('inventoryChanged');
       if (triggerMapUpdate) triggerMapUpdate();
+    } else {
+      // Fallback
+      ground.addItem(produceItem);
+      inventoryManager.emit('inventoryChanged');
     }
   }, [addLog, triggerMapUpdate]);
 

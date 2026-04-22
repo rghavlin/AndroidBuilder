@@ -53,7 +53,9 @@ export function ItemContextMenu({
 
     const canSplit = item?.isStackable?.() && item?.stackCount > 1;
 
-    if (isDisabled) {
+    const shouldDisable = isDisabled || item?.isPlanter;
+
+    if (shouldDisable) {
         return (
             <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>

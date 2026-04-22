@@ -280,6 +280,71 @@ export const InventoryProvider = ({ children }) => {
         return { success: false, reason: 'Not enough AP' };
     }
 
+    // Phase: Intercept Planting in Planter Box
+    if (item.defId && item.defId.endsWith('seeds') && (String(targetId).endsWith('-container') || String(targetId).endsWith('-grid'))) {
+      const targetContainer = engine.inventoryManager.getContainer(targetId);
+      if (targetContainer && targetContainer.ownerId) {
+        const ownerItem = engine.inventoryManager.findItem(targetContainer.ownerId)?.item;
+        if (ownerItem && (ownerItem.isPlanter || ownerItem.defId === 'furniture.planter_box')) {
+            // Determine plant defId from item data
+            const plantDefId = item.plantsAs;
+
+            if (plantDefId) {
+                // Check bounds/collision
+                const plantData = createItemFromDef(plantDefId);
+                if (!plantData) {
+                    console.error('[InventoryContext] Failed to create plant data for:', plantDefId);
+                    return { success: false, reason: 'Invalid plant definition' };
+                }
+
+                const tempPlant = new Item(plantData);
+                
+                // For planter boxes, we always plant at (0,0) as it is a single 2x2 slot
+                const plantX = 0;
+                const plantY = 0;
+                const placementCheck = targetContainer.validatePlacement(tempPlant, plantX, plantY, rotation);
+                
+                if (placementCheck.valid) {
+                    // Add plant to planter box container
+                    const plantSuccess = targetContainer.addItem(tempPlant, plantX, plantY, rotation);
+                    console.log(`[InventoryContext] Planting ${tempPlant.name} success: ${plantSuccess}`);
+
+                    if (plantSuccess) {
+                        // Destroy/Decrement seed ONLY after successful placement
+                        if (item.stackCount > 1) {
+                            item.stackCount -= 1;
+                        } else {
+                            item.stackCount = 0; // Explicitly set to 0 for selection clearing check
+                            engine.inventoryManager.destroyItem(item.instanceId);
+                        }
+                    } else {
+                        // If for some reason addItem failed, don't consume the seed
+                        playSound('Fail');
+                        addLog('Failed to place plant in container', 'error');
+                        return { success: false, reason: 'Placement failed' };
+                    }
+
+                    playSound('Equip');
+                    addLog(`You planted a seed in the ${ownerItem.name}.`, 'item');
+                    
+                    // Only clear selection if we used the last seed
+                    if (item.stackCount <= 0) {
+                        setSelectedItem(null);
+                    }
+                    
+                    setInventoryVersion(v => v + 1);
+                    engine.notifyUpdate();
+                    return { success: true };
+                } else {
+                    playSound('Fail');
+                    addLog('Cannot plant here: ' + placementCheck.reason, 'error');
+                    return { success: false, reason: placementCheck.reason };
+                }
+            }
+        }
+      }
+    }
+
     // Centralize all placement through moveItem to ensure proper removal from source (including equipment)
     const result = engine.inventoryManager.moveItem(item.instanceId, originContainerId, targetId, x, y, rotation);
     
@@ -578,6 +643,21 @@ export const InventoryProvider = ({ children }) => {
     if (!container) return null;
 
     const { item, rotation } = selectedItem;
+
+    // Phase: Specialized 2x2 preview for seeds in planter boxes
+    if (item.defId && item.defId.endsWith('seeds') && container.ownerId) {
+        const ownerItem = engine.inventoryManager.findItem(container.ownerId)?.item;
+        if (ownerItem && (ownerItem.isPlanter || ownerItem.defId === 'furniture.planter_box')) {
+            return {
+                gridX: 0, // Snap to top-left of the 2x2 planter grid
+                gridY: 0,
+                width: 2,
+                height: 2,
+                valid: true
+            };
+        }
+    }
+
     const result = container.validatePlacement(item, x, y, rotation);
     const isRotated = rotation === 90 || rotation === 270;
 

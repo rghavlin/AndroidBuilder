@@ -1,5 +1,6 @@
 
 import { Item } from './Item.js';
+import { ItemTrait } from './traits.js';
 
 /**
  * Container class for grid-based item storage
@@ -16,7 +17,9 @@ export class Container {
     autoSort = false,
     ownerId = null, // ID of the item that owns this container
     allowedCategories = null,
-    ignoreSize = false
+    ignoreSize = false,
+    isVehicle = false,
+    isPlanter = false
   }) {
     this.id = id;
     this.type = type;
@@ -28,6 +31,8 @@ export class Container {
     this.ownerId = ownerId;
     this.allowedCategories = Array.isArray(allowedCategories) ? allowedCategories : null;
     this.ignoreSize = ignoreSize;
+    this.isVehicle = isVehicle;
+    this.isPlanter = isPlanter;
 
     // Grid storage - sparse array of items
     this.items = new Map(); // itemId -> Item
@@ -175,6 +180,12 @@ export class Container {
     const nestingResult = this.validateNesting(item);
     if (!nestingResult.valid) {
       return nestingResult;
+    }
+
+    // Phase 25: Enforce GROUND_ONLY explicitly
+    const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+    if (isGroundOnly && this.type !== 'ground' && !this.isVehicle && !this.isPlanter) {
+      return { valid: false, reason: 'Can only be placed on the ground or in vehicles' };
     }
 
     // Phase 7: Category-based restrictions
@@ -705,6 +716,8 @@ export class Container {
       autoSort: this.autoSort,
       allowedCategories: this.allowedCategories,
       ignoreSize: this.ignoreSize,
+      isVehicle: this.isVehicle,
+      isPlanter: this.isPlanter,
       items: Array.from(this.items.values()).map(item => item.toJSON())
     };
   }
