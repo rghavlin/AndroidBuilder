@@ -1040,6 +1040,73 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, inventoryPulse]);
 
+  const fillFromPuddle = useCallback((bottle, puddle, originContainerId) => {
+    if (!engine.inventoryManager || !engine.player) return;
+
+    // 1. AP Check
+    if (engine.player.ap < 1) {
+      addLog('Not enough AP to fill bottle.', 'error');
+      return;
+    }
+
+    // 2. Handle Stack (Split one bottle)
+    let activeBottle = bottle;
+    if (bottle.stackCount > 1) {
+      // Split 1 bottle from the stack
+      const newItem = bottle.splitStack(1);
+      if (!newItem) {
+        addLog('Failed to separate bottle from stack.', 'error');
+        return;
+      }
+
+      // Try to find a place for the new item (priority: same container -> backpack -> pockets -> ground)
+      const containerId = bottle._container?.id;
+      const addResult = engine.inventoryManager.addItem(newItem, containerId);
+
+      if (addResult.success) {
+        bottle.stackCount -= 1; // Reduce original stack
+        activeBottle = newItem;
+      } else {
+        addLog('No room available for the new bottle.', 'error');
+        return;
+      }
+    } else {
+      // If not a stack, it's just the item itself
+      // We clear the selection because the item is being "used" while selected
+      setSelectedItem(null);
+    }
+
+    // 3. Fill logic
+    const space = activeBottle.capacity - activeBottle.ammoCount;
+    const transfer = Math.min(space, puddle.ammoCount);
+    
+    if (transfer <= 0) {
+      addLog('Bottle is already full or puddle is empty.', 'error');
+      return;
+    }
+
+    activeBottle.ammoCount += transfer;
+    activeBottle.waterQuality = 'dirty';
+    puddle.ammoCount -= transfer;
+
+    addLog(`You fill the ${activeBottle.name} with dirty water.`, 'item');
+    playSound('Click'); 
+
+    // 4. Update puddle size/existence
+    if (puddle.ammoCount <= 0) {
+      engine.inventoryManager.destroyItem(puddle.instanceId);
+      addLog('The puddle has been drained.', 'info');
+    } else {
+      // Reposition to update footprint (size changes based on water level)
+      const ground = engine.inventoryManager.groundContainer;
+      ground.updateItemFootprint(puddle);
+    }
+
+    engine.player.useAP(1);
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+  }, [addLog, playSound, inventoryPulse]);
+
   const stopDrag = useCallback(() => {
     if (engine.dragging) {
       addLog(`You set down the ${engine.dragging.item.name}.`, 'item');
@@ -1099,6 +1166,7 @@ export const InventoryProvider = ({ children }) => {
     deploySnare,
     retrieveSnare,
     fuelCampfire,
+    fillFromPuddle,
     detachItemFromWeapon,
     startDrag,
     stopDrag,

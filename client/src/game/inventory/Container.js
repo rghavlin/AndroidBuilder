@@ -128,14 +128,46 @@ export class Container {
    * Blocked if the item is a container with items inside (unless specialty container)
    */
   validateNesting(item) {
+    // 1. Ground always allowed
     if (this.type === 'ground') return { valid: true };
 
-    // specialty containers with OPENABLE_WHEN_NESTED trait can always be nested
+    // 2. Prevent container from being placed inside itself
+    if (item.isContainer && item.isContainer()) {
+      const itemContainer = item.getContainerGrid?.();
+      if (itemContainer && itemContainer.id === this.id) {
+        return { valid: false, reason: 'Cannot place container into itself' };
+      }
+    }
+
+    // 3. Enforce GROUND_ONLY explicitly
+    const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || 
+                         item.traits?.includes(ItemTrait.GROUND_ONLY) || 
+                         (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+                         
+    if (isGroundOnly && this.type !== 'ground' && !this.isVehicle && !this.isPlanter) {
+      return { valid: false, reason: 'Can only be placed on the ground or in vehicles' };
+    }
+
+    // 4. Category-based restrictions
+    if (this.allowedCategories && this.allowedCategories.length > 0) {
+      const itemCategories = item.categories || [];
+      const isAllowed = this.allowedCategories.some(cat => itemCategories.includes(cat));
+
+      if (!isAllowed) {
+        const allowedList = this.allowedCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' or ');
+        return {
+          valid: false,
+          reason: `Only ${allowedList} allowed in this container`
+        };
+      }
+    }
+
+    // 5. specialty containers with OPENABLE_WHEN_NESTED trait can always be nested (bypass empty check)
     if (item.isOpenableWhenNested && item.isOpenableWhenNested()) {
       return { valid: true };
     }
 
-    // Check if backpack has items - can't place in another container if it does
+    // 6. Check if backpack has items - can't place in another container if it does
     const mainGrid = item.getContainerGrid?.();
     if (mainGrid) {
       const itemCount = mainGrid.getItemCount();
@@ -144,7 +176,7 @@ export class Container {
       }
     }
 
-    // Check if clothing has items in pockets
+    // 7. Check if clothing has items in pockets
     if (item.getPocketContainers) {
       const pockets = item.getPocketContainers();
       const hasItems = pockets.some(p => p.getItemCount() > 0);
@@ -176,30 +208,10 @@ export class Container {
       height = isRotated ? item.width : item.height;
     }
 
-    // Consistently enforce nesting rules
+    // Enforce all nesting and type rules
     const nestingResult = this.validateNesting(item);
     if (!nestingResult.valid) {
       return nestingResult;
-    }
-
-    // Phase 25: Enforce GROUND_ONLY explicitly
-    const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
-    if (isGroundOnly && this.type !== 'ground' && !this.isVehicle && !this.isPlanter) {
-      return { valid: false, reason: 'Can only be placed on the ground or in vehicles' };
-    }
-
-    // Phase 7: Category-based restrictions
-    if (this.allowedCategories && this.allowedCategories.length > 0) {
-      const itemCategories = item.categories || [];
-      const isAllowed = this.allowedCategories.some(cat => itemCategories.includes(cat));
-
-      if (!isAllowed) {
-        const allowedList = this.allowedCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' or ');
-        return {
-          valid: false,
-          reason: `Only ${allowedList} allowed in this container`
-        };
-      }
     }
 
     // Check for collisions (use instanceId for proper identification)
@@ -270,6 +282,31 @@ export class Container {
   }
 
   /**
+   * Update item footprint in the grid when its size changes
+   */
+  updateItemFootprint(item) {
+    const itemId = item.instanceId || item.id;
+    // Clear old footprint
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        if (this.grid[y][x] === itemId) {
+          this.grid[y][x] = null;
+        }
+      }
+    }
+    // Write new footprint at current position
+    const w = item.getActualWidth();
+    const h = item.getActualHeight();
+    for (let dy = 0; dy < h; dy++) {
+      for (let dx = 0; dx < w; dx++) {
+        if (this.isValidPosition(item.x + dx, item.y + dy)) {
+          this.grid[item.y + dy][item.x + dx] = itemId;
+        }
+      }
+    }
+  }
+
+  /**
    * Expand the grid to new dimensions
    */
   expandGrid(newWidth, newHeight) {
@@ -303,27 +340,10 @@ export class Container {
       return false;
     }
 
-    // Phase 7: Category-based restrictions (Safety check)
-    if (this.allowedCategories && this.allowedCategories.length > 0) {
-      const itemCategories = item.categories || [];
-      const isAllowed = this.allowedCategories.some(cat => itemCategories.includes(cat));
-      if (!isAllowed) {
-        return false;
-      }
-    }
-
-    // Consistently enforce nesting rules (even for programmatic placement)
+    // Consistently enforce all nesting and type rules
     const nestingResult = this.validateNesting(item);
     if (!nestingResult.valid) {
       return false;
-    }
-
-    // Prevent container from being placed inside itself
-    if (item.isContainer && item.isContainer()) {
-      const itemContainer = item.getContainerGrid();
-      if (itemContainer && itemContainer.id === this.id) {
-        return false;
-      }
     }
 
     // Validate bounds first

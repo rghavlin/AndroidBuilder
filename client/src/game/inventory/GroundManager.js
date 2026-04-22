@@ -72,14 +72,18 @@ export class GroundManager {
 
     // Sort categories by priority (weapons first, then tools, etc.)
     const categoryPriority = {
-      'weapons': 1,
-      'ammunition': 2,
-      'armor': 3,
-      'tools': 4,
-      'consumables': 5,
-      'materials': 6,
-      'containers': 7,
-      'misc': 8
+      'vehicles': 1,
+      'environment': 2,
+      'farming': 3,
+      'furniture': 4,
+      'weapons': 5,
+      'ammunition': 6,
+      'armor': 7,
+      'tools': 8,
+      'consumables': 9,
+      'materials': 10,
+      'containers': 11,
+      'misc': 12
     };
 
     const sortedCategories = Array.from(itemsByCategory.keys()).sort((a, b) => {
@@ -337,8 +341,9 @@ export class GroundManager {
 
       // Then by category priority
       const categoryPriority = {
-        'weapons': 1, 'ammunition': 2, 'consumables': 3, 'tools': 4,
-        'armor': 5, 'materials': 6, 'containers': 7, 'misc': 8
+        'vehicles': 1, 'farming': 2, 'furniture': 3, 'weapons': 4,
+        'ammunition': 5, 'consumables': 6, 'tools': 7, 'armor': 8,
+        'materials': 9, 'containers': 10, 'misc': 11
       };
 
       return (categoryPriority[a.getCategory()] || 999) - (categoryPriority[b.getCategory()] || 999);

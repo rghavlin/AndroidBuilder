@@ -303,8 +303,15 @@ export default function MapCanvas({
       }
 
       // Layer 6: Global Weather (Screen Space)
-      if (engine.weather && engine.weather.type === 'rain') {
-        renderRain(ctx, physicalWidth, physicalHeight, engine.weather.intensity, dpr);
+      if (engine.weather && engine.weather.type === 'rain' && player) {
+        const currentX = isAnimatingMovement ? playerRenderPosition.x : player.x;
+        const currentY = isAnimatingMovement ? playerRenderPosition.y : player.y;
+        const playerTile = engine.gameMap.getTile(Math.round(currentX), Math.round(currentY));
+        const isInside = playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor' || playerTile.terrain === 'transition');
+
+        if (!isInside) {
+          renderRain(ctx, physicalWidth, physicalHeight, engine.weather.intensity, dpr);
+        }
       }
 
     } catch (error) {

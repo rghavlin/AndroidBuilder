@@ -53,7 +53,7 @@ export default function UniversalGrid({
   const GAP_SIZE = 2;
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromPuddle } = useInventory();
   const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, plantSeed, harvestPlant } = useAction();
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
@@ -261,6 +261,15 @@ export default function UniversalGrid({
             return;
           }
         }
+      }
+
+      // SPECIAL CASE: Filling from a puddle
+      const isBottle = selectedItem.item.isWaterBottle?.() || selectedItem.item.hasTrait?.(ItemTrait.WATER_CONTAINER);
+      const isPuddle = item?.isPuddle;
+      if (isBottle && isPuddle) {
+        console.debug('[UniversalGrid] Filling bottle from puddle:', selectedItem.item.name);
+        fillFromPuddle(selectedItem.item, item, selectedItem.originContainerId);
+        return;
       }
 
       // Quick Deposit: If clicking on a container while carrying an item, try to deposit it
@@ -549,13 +558,19 @@ export default function UniversalGrid({
       // Safety check: is this item actually in THIS grid?
       if (grid[topLeftY]?.[topLeftX] !== itemId) return;
 
-      const imageWidth = (item.width * slotSize) + ((item.width - 1) * GAP_SIZE);
-      const imageHeight = (item.height * slotSize) + ((item.height - 1) * GAP_SIZE);
-      const rotation = item.rotation || 0;
       const itemActualWidth = item.getActualWidth();
       const itemActualHeight = item.getActualHeight();
       const gridWidth = (itemActualWidth * slotSize) + ((itemActualWidth - 1) * GAP_SIZE);
       const gridHeight = (itemActualHeight * slotSize) + ((itemActualHeight - 1) * GAP_SIZE);
+      
+      // For puddles, the "base" image size is the dynamic scaled size.
+      // For other items, it's the static width/height (CSS rotation handles the rest).
+      const baseWidth = item.isPuddle ? itemActualWidth : item.width;
+      const baseHeight = item.isPuddle ? itemActualHeight : item.height;
+      
+      const imageWidth = (baseWidth * slotSize) + ((baseWidth - 1) * GAP_SIZE);
+      const imageHeight = (baseHeight * slotSize) + ((baseHeight - 1) * GAP_SIZE);
+      const rotation = item.rotation || 0;
 
       const leftPos = topLeftX * (slotSize + GAP_SIZE);
       const topPos = topLeftY * (slotSize + GAP_SIZE);
@@ -687,7 +702,7 @@ export default function UniversalGrid({
 
           {/* Phase: Specialized Ground Container Overlay (Wagon/Sled) */}
           {(() => {
-            const isSpecialGroundContainer = (item.isWagon || item.isPlanter || item.defId === 'toy_wagon' || item.defId === 'placeable.small_sled') && 
+            const isSpecialGroundContainer = (item.isWagon || item.isPlanter) && 
                                            (containerId === 'ground' || (item.isPlanter && (containerId.includes('-container') || containerId.includes('-grid'))));
             if (!isSpecialGroundContainer) return null;
             

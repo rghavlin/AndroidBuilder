@@ -2,6 +2,7 @@ import { SafeEventEmitter } from './utils/SafeEventEmitter.js';
 import { InventoryManager } from './inventory/InventoryManager.js';
 import { LineOfSight } from './utils/LineOfSight.js';
 import { ItemDefs } from './inventory/ItemDefs.js';
+import { WeatherManager } from './utils/WeatherManager.js';
 
 
 /**
@@ -50,6 +51,7 @@ class GameEngine extends SafeEventEmitter {
     
     // Weather System
     this.weather = { type: 'clear', intensity: 0 }; 
+    this.weatherManager = new WeatherManager(this);
   }
 
   /**
@@ -103,6 +105,11 @@ class GameEngine extends SafeEventEmitter {
       } else {
         this.dragging = null;
         if (this.inventoryManager) this.inventoryManager.draggedItem = null;
+      }
+
+      // Restore weatherManager state
+      if (gameObjects.interactionState.weatherState) {
+        this.weatherManager.fromJSON(gameObjects.interactionState.weatherState);
       }
     }
 

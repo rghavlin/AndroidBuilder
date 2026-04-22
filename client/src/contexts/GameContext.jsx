@@ -1145,6 +1145,12 @@ const GameContextInner = ({ children }) => {
       console.log(`[GameContext] AP allotment of ${turnAllotment} added. Player AP is now: ${player.ap}`);
 
       const newTurn = turn + 1;
+      
+      // Phase 25: Update procedural weather system
+      if (engine.weatherManager) {
+        engine.weatherManager.update(newTurn);
+      }
+
       const nextHour = (6 + (newTurn - 1)) % 24;
       const nextIsNight = nextHour >= 20 || nextHour < 6;
 

@@ -132,6 +132,17 @@ export class LootGenerator {
         });
         console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles`);
         
+        // Phase 25: Guaranteed Water Puddle (One 50-unit puddle per map)
+        const puddleTiles = outdoorTiles.filter(pos => gameMap.getItemsOnTile(pos.x, pos.y).length === 0);
+        if (puddleTiles.length > 0) {
+            const pos = puddleTiles[Math.floor(Math.random() * puddleTiles.length)];
+            const puddle = createItemFromDef('environment.water_puddle');
+            if (puddle) {
+                gameMap.setItemsOnTile(pos.x, pos.y, [puddle]);
+                console.log(`[LootGenerator] Spawned guaranteed water puddle at (${pos.x}, ${pos.y})`);
+            }
+        }
+        
         // 3. Spawn Furniture (Independent of loot drops)
         this.spawnFurniture(gameMap);
 

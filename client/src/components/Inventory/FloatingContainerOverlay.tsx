@@ -25,7 +25,7 @@ export default function FloatingContainerOverlay({
   onSlotClick,
   onSlotContextMenu
 }: FloatingContainerOverlayProps) {
-  const { selectItem, stopDrag, isContainerOpen, selectedItem } = useInventory();
+  const { selectItem, stopDrag, isContainerOpen, selectedItem, startDrag, openContainer, closeContainer } = useInventory();
   const { engine } = useGame();
   const { harvestPlant } = useAction();
   

@@ -20,7 +20,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             <div className="flex justify-between items-start gap-4">
                 <h4 className="font-bold text-sm text-white leading-tight">
                     {item.name}
-                    {item.waterQuality === 'dirty' && <span className="text-amber-600 ml-1">(Dirty water)</span>}
+                    {item.waterQuality === 'dirty' && item.ammoCount > 0 && <span className="text-amber-600 ml-1">(Dirty water)</span>}
                 </h4>
                 {item.rarity && (
                     <span className={cn(
@@ -106,7 +106,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             )}
 
             {/* Ammo/Capacity/Water */}
-            {(item.ammoCount > 0 || item.capacity > 0) && (
+            {(item.ammoCount > 0 || item.capacity > 0) && !item.isPuddle && (
                 <div className="text-[10px] text-zinc-400 flex justify-between">
                     <span>
                         {item.isWaterBottle?.() ? 'Water' : 

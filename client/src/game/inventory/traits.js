@@ -35,7 +35,8 @@ export const ItemCategory = {
   KNIFE: 'knife',
   TORCH: 'torch',
   GUN: 'gun',
-  VEGETABLE: 'vegetable'
+  VEGETABLE: 'vegetable',
+  ENVIRONMENT: 'environment'
 };
 
 // Trait flags
@@ -82,7 +83,8 @@ export const CategoryDisplayName = {
   [ItemCategory.CLOTHING]: 'armor',
   [ItemCategory.FOOD]: 'consumables',
   [ItemCategory.MEDICAL]: 'consumables',
-  [ItemCategory.GUN]: 'weapons'
+  [ItemCategory.GUN]: 'weapons',
+  [ItemCategory.ENVIRONMENT]: 'environment'
 };
 
 // Map equipment slots to user-friendly category fallbacks

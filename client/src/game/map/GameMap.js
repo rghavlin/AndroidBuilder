@@ -139,7 +139,7 @@ export class GameMap {
 
     if (validItems.length > 0) {
       const proxyId = `ground-items-${x}-${y}`;
-      const subtype = this._getGroundProxySubtype(validItems);
+      const { subtype, renderFullTile } = this._getGroundProxyInfo(validItems);
 
       if (!this.entityMap.has(proxyId)) {
         // Create a proxy entity for visual representation
@@ -147,6 +147,7 @@ export class GameMap {
           id: proxyId,
           type: EntityType.ITEM,
           subtype,
+          renderFullTile,
           x,
           y,
           blocksMovement: false,
@@ -155,6 +156,7 @@ export class GameMap {
             id: proxyId,
             type: EntityType.ITEM,
             subtype,
+            renderFullTile,
             x,
             y,
             blocksMovement: false,
@@ -167,6 +169,7 @@ export class GameMap {
         const proxy = this.entityMap.get(proxyId);
         if (proxy) {
           proxy.subtype = subtype;
+          proxy.renderFullTile = renderFullTile;
         }
       }
     } else {
@@ -182,36 +185,41 @@ export class GameMap {
    * Determine the visual subtype (icon) for items on the ground
    * @private
    */
-  _getGroundProxySubtype(items) {
-    if (!items || items.length === 0) return 'ground_pile';
+  _getGroundProxyInfo(items) {
+    if (!items || items.length === 0) return { subtype: 'ground_pile', renderFullTile: false };
 
     const getDefId = (item) => (item.defId || (item.toJSON && item.toJSON().defId) || (item.id));
 
-    // Priority ordered list of special icons
+    // Priority ordered list of special icons (Legacy overrides)
     const checks = [
       { defId: 'placeable.campfire', subtype: 'campfire' },
       { defId: 'provision.hole', subtype: 'hole' },
       { defId: 'tool.snare_deployed', subtype: 'deployedsnare' },
-      { defId: 'food.raw_meat', subtype: 'rawmeat' },
-      { defId: 'provision.corn_plant', subtype: 'cornplant' },
-      { defId: 'provision.tomato_plant', subtype: 'tomatoplant' },
-      { defId: 'provision.carrot_plant', subtype: 'carrotplant' },
-      { defId: 'provision.harvestable_corn', subtype: 'harvestablecorn' },
-      { defId: 'provision.harvestable_tomato', subtype: 'harvestabletomato' },
-      { defId: 'provision.harvestable_carrot', subtype: 'harvestablecarrot' },
-      { defId: 'placeable.bed', subtype: 'bed' },
-      { defId: 'toy_wagon', subtype: 'toy_wagon' },
-      { defId: 'placeable.small_sled', subtype: 'smallsled' },
-      { defId: 'furniture.electric_mower', subtype: 'electricmower' }
+      { defId: 'placeable.bed', subtype: 'bed' }
     ];
 
     for (const check of checks) {
       if (items.some(item => getDefId(item) === check.defId)) {
-        return check.subtype;
+        return { subtype: check.subtype, renderFullTile: true };
       }
     }
 
-    return 'ground_pile';
+    // PHASE 25: Generic full-tile item icon detection
+    // If any item on this tile is marked as renderFullTile, use its imageId as the subtype
+    const fullTileItem = items.find(item => {
+      const defId = getDefId(item);
+      const def = ItemDefs[defId];
+      return def?.renderFullTile || item.renderFullTile;
+    });
+
+    if (fullTileItem) {
+      const defId = getDefId(fullTileItem);
+      const def = ItemDefs[defId];
+      const subtype = fullTileItem.imageId || def?.imageId || defId;
+      return { subtype, renderFullTile: true };
+    }
+
+    return { subtype: 'ground_pile', renderFullTile: false };
   }
 
   /**

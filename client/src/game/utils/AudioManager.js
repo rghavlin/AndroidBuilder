@@ -10,6 +10,24 @@ class AudioManager {
     this.soundDefaults = new Map(); // Store default volume per sound
     this.masterVolume = 1.0;
     this.isMuted = false;
+
+    // Phase 25: Web Audio API for Gapless Looping
+    this.audioCtx = null;
+    this.audioBuffers = new Map(); // Store decoded AudioBuffer objects
+    this.activeLoops = new Map();  // Store { source, gainNode, baseVolume }
+  }
+
+  /**
+   * Initialize AudioContext on first user interaction if not already done
+   */
+  _ensureAudioContext() {
+    if (!this.audioCtx) {
+      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+    return this.audioCtx;
   }
 
   async loadSound(name, path, defaultVolume = 1.0) {
@@ -69,10 +87,33 @@ class AudioManager {
       });
       
       console.log(`[AudioManager] ✅ Loaded sound pool for "${name}" (size: ${poolSize})`);
+
+      // Phase 25: Also load into Web Audio Buffer for gapless looping if requested
+      this.loadAudioBuffer(name, path);
+
       return loadedInstances[0];
     } catch (err) {
       console.error(`[AudioManager] Critical failure loading sound pool for "${name}":`, err);
       throw err;
+    }
+  }
+
+  /**
+   * Load a sound into a Web Audio Buffer for true gapless looping
+   */
+  async loadAudioBuffer(name, path) {
+    if (this.audioBuffers.has(name)) return;
+    
+    try {
+      console.debug(`[AudioManager] 🎵 Loading Web Audio Buffer for "${name}" from: ${path}`);
+      const response = await fetch(path);
+      const arrayBuffer = await response.arrayBuffer();
+      const ctx = this._ensureAudioContext();
+      const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
+      this.audioBuffers.set(name, decodedBuffer);
+      console.log(`[AudioManager] ✅ Web Audio Buffer ready for "${name}"`);
+    } catch (err) {
+      console.warn(`[AudioManager] ⚠️ Failed to load Web Audio Buffer for "${name}" (gapless loops will fallback):`, err);
     }
   }
 
@@ -127,15 +168,109 @@ class AudioManager {
     }
   }
 
+  /**
+   * Start a true gapless loop using Web Audio API
+   */
+  startLoop(name, options = {}) {
+    if (this.isMuted) return;
+    this._ensureAudioContext();
+
+    if (this.activeLoops.has(name)) return;
+
+    const buffer = this.audioBuffers.get(name);
+    if (!buffer) {
+      console.warn(`[AudioManager] ⚠️ Gapless buffer for "${name}" not found, falling back to HTMLAudio.`);
+      this.playSound(name, { ...options, loop: true });
+      return;
+    }
+
+    const baseVolume = options.volume !== undefined ? options.volume : (this.soundDefaults.get(name) || 1.0);
+    const ctx = this.audioCtx;
+    
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = baseVolume * this.masterVolume;
+
+    source.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    source.start(0);
+    this.activeLoops.set(name, { source, gainNode, baseVolume });
+    console.log(`[AudioManager] 🔄 Started gapless loop: "${name}"`);
+  }
+
+  /**
+   * Stop a specific loop or sound
+   */
   stopSound(name) {
+    // 1. Stop HTMLAudio nodes
     const pool = this.sounds.get(name);
     if (pool) {
       pool.instances.forEach(audio => {
         audio.pause();
         audio.currentTime = 0;
-        audio.loop = false; // Safety: reset loop flag
+        audio.loop = false;
       });
     }
+
+    // 2. Stop Web Audio loops
+    const loop = this.activeLoops.get(name);
+    if (loop) {
+      try {
+        loop.source.stop();
+        loop.source.disconnect();
+        loop.gainNode.disconnect();
+      } catch (e) {
+        // Source might have already stopped
+      }
+      this.activeLoops.delete(name);
+      console.log(`[AudioManager] ⏹️ Stopped gapless loop: "${name}"`);
+    }
+  }
+
+  /**
+   * Dynamically update the volume of all instances of a sound
+   * @param {string} name 
+   * @param {number} volume (0.0 to 1.0)
+   */
+  setSoundVolume(name, volume) {
+    // 1. Update HTMLAudio pool
+    const pool = this.sounds.get(name);
+    if (pool) {
+      this.soundDefaults.set(name, Math.max(0, Math.min(1, volume)));
+      pool.instances.forEach(audio => {
+        audio.volume = volume * this.masterVolume;
+      });
+    }
+
+    // 2. Update Web Audio loop
+    const loop = this.activeLoops.get(name);
+    if (loop) {
+      loop.baseVolume = volume;
+      if (this.audioCtx) {
+        // Use exponential ramp for smoother volume transitions
+        loop.gainNode.gain.setTargetAtTime(volume * this.masterVolume, this.audioCtx.currentTime, 0.1);
+      }
+    }
+  }
+
+  /**
+   * Check if any instance of a sound is currently playing (including loops)
+   * @param {string} name 
+   * @returns {boolean}
+   */
+  isSoundPlaying(name) {
+    // Check HTMLAudio
+    const pool = this.sounds.get(name);
+    const htmlPlaying = pool && pool.instances.some(audio => !audio.paused);
+    
+    // Check Web Audio
+    const webPlaying = this.activeLoops.has(name);
+
+    return htmlPlaying || webPlaying;
   }
 
   /**
@@ -144,7 +279,8 @@ class AudioManager {
    */
   setVolume(volume) {
     this.masterVolume = Math.max(0, Math.min(1, volume));
-    // Update currently playing sounds in all pools
+    
+    // 1. Update currently playing HTMLAudio nodes
     this.sounds.forEach((pool, name) => {
       pool.instances.forEach(audio => {
         if (!audio.paused) {
@@ -152,6 +288,13 @@ class AudioManager {
           audio.volume = base * this.masterVolume;
         }
       });
+    });
+
+    // 2. Update Web Audio loops
+    this.activeLoops.forEach((loop) => {
+      if (this.audioCtx) {
+        loop.gainNode.gain.setTargetAtTime(loop.baseVolume * this.masterVolume, this.audioCtx.currentTime, 0.1);
+      }
     });
   }
 

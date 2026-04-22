@@ -293,5 +293,21 @@ export const CraftingRecipes = [
             { id: 'weapon.plank', count: 4 },
             { id: 'crafting.nail', count: 4 }
         ]
+    },
+    {
+        id: 'crafting.planter_box',
+        name: 'Planter box',
+        resultItem: 'furniture.planter_box',
+        description: 'A wooden box filled with soil for growing plants.',
+        apCost: 12,
+        tab: 'crafting',
+        tools: [
+            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], count: 1, label: 'Hammer' }
+        ],
+        ingredients: [
+            { id: 'weapon.plank', count: 4 },
+            { id: 'crafting.nail', count: 4 },
+            { id: 'crafting.soil', count: 1 }
+        ]
     }
 ];

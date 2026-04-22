@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 import audioManager from '../game/utils/AudioManager.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import engine from '../game/GameEngine.js';
 
 const AudioContext = createContext();
 
@@ -57,7 +58,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Eat', url: 'sounds/eat.ogg', volume: 0.6 },
           { name: 'FillBottle', url: 'sounds/fillbottle.ogg', volume: 0.6 },
           { name: 'SlingShot', url: 'sounds/sling.ogg', volume: 0.6 },
-          { name: 'Fail', url: 'sounds/fail.ogg', volume: 0.22 }
+          { name: 'Fail', url: 'sounds/fail.ogg', volume: 0.22 },
+          { name: 'Rain', url: 'sounds/rain1.ogg', volume: 0.5 }
         ];
         await Promise.all(
           sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))
@@ -201,6 +203,77 @@ export const AudioProvider = ({ children }) => {
       GameEvents.off(GAME_EVENT.NOISE_EMITTED, handleNoiseEmitted);
       GameEvents.off(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
       GameEvents.off(GAME_EVENT.ITEM_UNEQUIPPED, handleItemUnequipped);
+    };
+  }, []);
+  
+  // Phase 25: Rain Audio System (Ambient sound with indoor damping)
+  useEffect(() => {
+    let movementInterval = null;
+
+    const handleUpdate = () => {
+      const weather = engine.weather;
+      const player = engine.player;
+      const gameMap = engine.gameMap;
+
+      if (weather && weather.type === 'rain') {
+        // Start sound if not playing
+        if (!audioManager.isSoundPlaying('Rain')) {
+          console.log('[AudioContext] 🌦️ Starting gapless ambient rain loop');
+          audioManager.startLoop('Rain');
+        }
+
+        // Dynamic volume based on shelter
+        if (player && gameMap) {
+          // Check for current animated position if available, otherwise fallback to logical position
+          // We use the player's logical position at the end of movement, or during movement end turns
+          const tile = gameMap.getTile(Math.round(player.x), Math.round(player.y));
+          const isInside = tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition');
+          
+          // Apply 50% volume reduction if inside a building
+          const baseVolume = 0.5; // Matches preload config
+          const targetVolume = isInside ? baseVolume * 0.5 : baseVolume;
+          
+          audioManager.setSoundVolume('Rain', targetVolume);
+        }
+      } else {
+        // Stop sound if it's no longer raining
+        if (audioManager.isSoundPlaying('Rain')) {
+          console.log('[AudioContext] ☀️ Stopping ambient rain loop');
+          audioManager.stopSound('Rain');
+        }
+      }
+    };
+
+    const startMovementTracking = () => {
+      if (!movementInterval) {
+        movementInterval = setInterval(handleUpdate, 100); // 10Hz updates while moving
+      }
+    };
+
+    const stopMovementTracking = () => {
+      if (movementInterval) {
+        clearInterval(movementInterval);
+        movementInterval = null;
+      }
+      handleUpdate(); // Final check at destination
+    };
+
+    // Listen for engine pulses
+    engine.on('update', handleUpdate);
+    
+    // Listen for movement events to ensure immediate responsiveness
+    GameEvents.on(GAME_EVENT.PLAYER_MOVE, startMovementTracking);
+    GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, stopMovementTracking);
+
+    // Initial check
+    handleUpdate();
+
+    return () => {
+      engine.off('update', handleUpdate);
+      GameEvents.off(GAME_EVENT.PLAYER_MOVE, startMovementTracking);
+      GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, stopMovementTracking);
+      if (movementInterval) clearInterval(movementInterval);
+      audioManager.stopSound('Rain');
     };
   }, []);
 

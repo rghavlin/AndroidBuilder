@@ -97,7 +97,7 @@ export const ItemDefs = {
     imageId: 'planterbox',
     width: 3,
     height: 3,
-    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER],
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     isFurniture: true,
     isPlanter: true,
     containerGrid: { width: 2, height: 2, isPlanter: true },
@@ -1774,9 +1774,10 @@ export const ItemDefs = {
     categories: [ItemCategory.FURNITURE, ItemCategory.TOOL],
     noLoot: true,
     isFurniture: true,
+    isWagon: true,
     dragApPenalty: 1.5,
     renderFullTile: true,
-    containerGrid: { width: 4, height: 5 },
+    containerGrid: { width: 4, height: 5, isVehicle: true },
     disassembleData: {
       toolId: { either: ['weapon.hammer', 'weapon.makeshift_hammer'] },
       apCost: 10,
@@ -1814,6 +1815,25 @@ export const ItemDefs = {
         { id: 'crafting.metal_plate', count: 1 }
       ]
     }
+  },
+  'environment.water_puddle': {
+    id: 'environment.water_puddle',
+    name: 'Water puddle',
+    rarity: Rarity.COMMON,
+    imageId: 'waterpuddle',
+    width: 5,
+    height: 5,
+    isPuddle: true,
+    isPickable: false,
+    noDrag: true,
+    traits: [ItemTrait.CONTAINER],
+    containerGrid: { width: 5, height: 5, isWaterPuddle: true },
+    maxWater: 50,
+    ammoCount: 50, // Using ammoCount for water level
+    capacity: 50,
+    categories: [ItemCategory.ENVIRONMENT],
+    noLoot: true,
+    renderFullTile: true
   }
 };
 

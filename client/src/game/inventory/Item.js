@@ -155,6 +155,7 @@ export class Item extends SafeEventEmitter {
       if (def.isWagon) this.isWagon = def.isWagon;
       if (def.dragApPenalty) this.dragApPenalty = def.dragApPenalty;
       if (def.isPlanter) this.isPlanter = def.isPlanter;
+      if (def.isPuddle) this.isPuddle = def.isPuddle;
       if (def.plantsAs) this.plantsAs = def.plantsAs;
       if (def.produceMin !== undefined) this.produceMin = def.produceMin;
       if (def.produceMax !== undefined) this.produceMax = def.produceMax;
@@ -519,8 +520,8 @@ export class Item extends SafeEventEmitter {
   }
 
   getDisplayAmmoCount() {
-    // 1. If it's a water bottle, hide the number (we use a fill bar instead)
-    if (this.isWaterBottle()) {
+    // 1. If it's a water bottle or puddle, hide the number
+    if (this.isWaterBottle() || this.isPuddle) {
       return null;
     }
 
@@ -591,41 +592,42 @@ export class Item extends SafeEventEmitter {
    * Get primary category for organization/grouping
    */
   getCategory() {
-    // 1. Return first explicit category group if available
-    if (this.categories && this.categories.length > 0) {
-      const primaryCat = this.categories[0];
-      if (CategoryDisplayName[primaryCat]) {
-        return CategoryDisplayName[primaryCat];
-      }
-      return primaryCat;
-    }
+    // 0. High priority categories for ground organization
+    if (this.isVehicle || this.isWagon) return 'vehicles';
+    if (this.isPuddle) return 'environment';
+    if (this.isPlanter || this.plantsAs || this.defId?.endsWith('_plant') || this.defId === 'provision.hole') return 'farming';
+    if (this.isFurniture) return 'furniture';
 
-    // 2. Fallbacks based on traits
-    if (this.isWeapon()) return 'weapons';
-    if (this.isAmmo()) return 'ammunition';
-    if (this.isContainer()) return 'containers';
+    // Standard fallback categories
+    if (this.categories.includes(ItemCategory.GUN) || this.categories.includes(ItemCategory.WEAPON)) return 'weapons';
+    if (this.categories.includes(ItemCategory.AMMO)) return 'ammunition';
+    if (this.categories.includes(ItemCategory.CLOTHING)) return 'armor';
+    if (this.categories.includes(ItemCategory.TOOL)) return 'tools';
+    if (this.categories.includes(ItemCategory.FOOD) || this.categories.includes(ItemCategory.MEDICAL)) return 'consumables';
+    if (this.categories.includes(ItemCategory.CRAFTING_MATERIAL)) return 'materials';
+    if (this.categories.includes(ItemCategory.CONTAINER)) return 'containers';
 
-    // 3. Fallback based on slot
-    if (this.equippableSlot && SlotDisplayName[this.equippableSlot]) {
-      return SlotDisplayName[this.equippableSlot];
-    }
-
-    return 'generic';
-  }
-
-  // Rotation
-  getActualWidth() {
-    return (this.rotation === 90 || this.rotation === 270) ? this.height : this.width;
-  }
-
-  getActualHeight() {
-    return (this.rotation === 90 || this.rotation === 270) ? this.width : this.height;
+    return 'misc';
   }
 
   /**
-   * Reduce condition for degradable items
-   * @param {number} amount - Amount to reduce condition by (defaults to items fragility)
+   * Overridden for environment items that scale based on content
    */
+  getActualWidth() {
+    if (this.isPuddle) {
+      // 1x1 at 10, 2x2 at 20, 3x3 at 30, 4x4 at 40, 5x5 at 50
+      return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
+    }
+    return this.rotation === 90 || this.rotation === 270 ? this.height : this.width;
+  }
+
+  getActualHeight() {
+    if (this.isPuddle) {
+      return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
+    }
+    return this.rotation === 90 || this.rotation === 270 ? this.width : this.height;
+  }
+
   degrade(amount = null) {
     if (!this.isDegradable() || this.condition === null) return;
 

@@ -76,6 +76,8 @@ export const EntityRenderer = {
     } else {
       // Standard Sprite Rendering
       // Standardize subtype: use 'basic' if null/undefined to hit base sprite entries
+      // Standard Sprite Rendering
+      // Standardize subtype: use 'basic' if null/undefined to hit base sprite entries
       const subtype = entity.type === EntityType.PLAYER ? null : (entity.subtype || 'basic');
       
       // Phase 27: Priority for Image Mapping
@@ -119,8 +121,8 @@ export const EntityRenderer = {
         } else {
           sprite = sprites[entity.type];
           if (!sprite && ['player', 'zombie', 'npc', 'rabbit'].includes(entity.type)) {
-             // Reactive lazy-loading for core missing entities
-             imageLoader.getImage(entity.type);
+            // Reactive lazy-loading for core missing entities
+            imageLoader.getImage(entity.type);
           }
         }
       }
@@ -131,11 +133,11 @@ export const EntityRenderer = {
         let drawY = screenY;
         let drawSize = tileSize;
 
-        // PHASE 15 Fix: Scale loot drops to 2/3 size and center them
         // Metadata driven: check if the item is marked as full-tile
+        // We check the entity property (set by GameMap for ground items) or the definition
         const isFullTileItem = entity.renderFullTile || 
-                               ItemDefs[entity.subtype]?.renderFullTile || 
-                               (entity.type === 'item' && Object.values(ItemDefs).some(d => d.imageId === entity.subtype && d.renderFullTile));
+                               ItemDefs[subtype]?.renderFullTile || 
+                               ItemDefs[entity.defId]?.renderFullTile;
         
         if (entity.type === 'item' && !isFullTileItem) {
           drawSize = tileSize * (2 / 3);
