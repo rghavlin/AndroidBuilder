@@ -132,14 +132,20 @@ export class LootGenerator {
         });
         console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles`);
         
-        // Phase 25: Guaranteed Water Puddle (One 50-unit puddle per map)
-        const puddleTiles = outdoorTiles.filter(pos => gameMap.getItemsOnTile(pos.x, pos.y).length === 0);
-        if (puddleTiles.length > 0) {
-            const pos = puddleTiles[Math.floor(Math.random() * puddleTiles.length)];
+        // Phase 25: Designate Low Spots for Water Puddles
+        const lowSpotCount = 3 + Math.floor(Math.random() * 3); // 3 to 5
+        const potentialLowSpots = outdoorTiles.filter(pos => gameMap.getItemsOnTile(pos.x, pos.y).length === 0);
+        const lowSpots = this.getRandomSubarray(potentialLowSpots, lowSpotCount);
+        gameMap.lowSpots = lowSpots;
+        
+        // Spawn one 50-unit puddle in a random low spot initially
+        if (lowSpots.length > 0) {
+            const pos = lowSpots[Math.floor(Math.random() * lowSpots.length)];
             const puddle = createItemFromDef('environment.water_puddle');
             if (puddle) {
+                puddle.ammoCount = 50;
                 gameMap.setItemsOnTile(pos.x, pos.y, [puddle]);
-                console.log(`[LootGenerator] Spawned guaranteed water puddle at (${pos.x}, ${pos.y})`);
+                console.log(`[LootGenerator] Designated ${lowSpotCount} low spots and spawned initial 50-unit puddle at (${pos.x}, ${pos.y})`);
             }
         }
         

@@ -101,8 +101,8 @@ export const ActionProvider = ({ children }) => {
       return { success: false, reason: 'Grid placement failed' };
     }
 
-    // Phase: Spawn Soil
-    const soilData = createItemFromDef('crafting.soil');
+    // Phase: Spawn Loose Soil
+    const soilData = createItemFromDef('crafting.loose_soil');
     if (soilData) {
       const soilItem = Item.fromJSON(soilData);
       inventoryManager.groundContainer.addItem(soilItem); // Smart add will find a spot
@@ -187,6 +187,65 @@ export const ActionProvider = ({ children }) => {
     }
     return { success: false };
   }, [targetingItem, addLog, updatePlayerStats]);
+
+  const fillHole = useCallback((looseSoilItem, holeItem) => {
+    const inventoryManager = engine.inventoryManager;
+    if (!inventoryManager || !looseSoilItem || !holeItem) return { success: false };
+
+    // Explicitly set stackCount to 0 so selection clear won't put it back
+    looseSoilItem.stackCount = 0;
+    inventoryManager.destroyItem(looseSoilItem.instanceId);
+    inventoryManager.destroyItem(holeItem.instanceId);
+    
+    addLog("You fill the hole with loose soil, leveling the ground.", "world");
+    playSound('Click');
+    
+    if (typeof window.inv?.refresh === 'function') window.inv.refresh();
+    else inventoryManager.emit('inventoryChanged');
+    
+    return { success: true };
+  }, [addLog, playSound]);
+
+  const bagLooseSoil = useCallback((bagItem, looseSoilItem) => {
+    const inventoryManager = engine.inventoryManager;
+    if (!inventoryManager || !bagItem || !looseSoilItem) return { success: false };
+
+    const targetContainer = looseSoilItem._container;
+    const soilX = looseSoilItem.x;
+    const soilY = looseSoilItem.y;
+
+    // 1. Replace Loose Soil with Soil
+    const soilData = createItemFromDef('crafting.soil');
+    if (!soilData) return { success: false };
+    
+    const soilItem = Item.fromJSON(soilData);
+    
+    // Explicitly set stackCount to 0 for loose soil
+    looseSoilItem.stackCount = 0;
+    inventoryManager.destroyItem(looseSoilItem.instanceId);
+    
+    if (targetContainer) {
+      targetContainer.addItem(soilItem, soilX, soilY);
+    } else {
+      inventoryManager.groundContainer.addItem(soilItem);
+    }
+
+    // 2. Consume bag
+    if (bagItem.stackCount > 1) {
+      bagItem.stackCount -= 1;
+    } else {
+      bagItem.stackCount = 0; // Explicitly set to 0
+      inventoryManager.destroyItem(bagItem.instanceId);
+    }
+
+    addLog("You scoop the loose soil into a garbage bag.", "world");
+    playSound('Click');
+    
+    if (typeof window.inv?.refresh === 'function') window.inv.refresh();
+    else inventoryManager.emit('inventoryChanged');
+    
+    return { success: true };
+  }, [addLog, playSound]);
 
   const harvestPlant = useCallback((plantItem) => {
     const player = engine.player;
@@ -300,6 +359,8 @@ export const ActionProvider = ({ children }) => {
     startTargetingItem,
     cancelTargetingItem,
     digHole,
+    fillHole,
+    bagLooseSoil,
     plantSeed,
     harvestPlant,
     useBreakingToolOnStructure

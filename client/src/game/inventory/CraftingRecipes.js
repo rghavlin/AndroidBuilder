@@ -96,6 +96,23 @@ export const CraftingRecipes = [
         apCost: 2
     },
     {
+        id: 'crafting.rain_collector',
+        name: 'Rain Collector',
+        resultItem: 'provision.rain_collector',
+        description: 'A large basin for collecting rainwater. Must be placed in the open air.',
+        apCost: 15,
+        tab: 'crafting',
+        tools: [
+            { category: ItemCategory.HAMMER, label: 'Any Hammer' }
+        ],
+        ingredients: [
+            { id: 'weapon.plank', count: 6 },
+            { id: 'crafting.nail', count: 6 },
+            { id: 'crafting.garbage_bag', count: 1 },
+            { id: 'crafting.tape', count: 1 }
+        ]
+    },
+    {
         id: 'crafting.campfire',
         name: 'Campfire',
         resultItem: 'placeable.campfire',

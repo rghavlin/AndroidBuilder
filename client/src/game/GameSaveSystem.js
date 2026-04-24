@@ -31,7 +31,13 @@ export class GameSaveSystem {
           maxHp: gameState.player ? gameState.player.maxHp : 100,
           ap: gameState.player ? gameState.player.ap : 100,
           maxAp: gameState.player ? gameState.player.maxAp : 100,
-          ammo: gameState.playerStats.ammo || 0
+          nutrition: gameState.player ? gameState.player.nutrition : 25,
+          maxNutrition: gameState.player ? gameState.player.maxNutrition : 25,
+          hydration: gameState.player ? gameState.player.hydration : 25,
+          maxHydration: gameState.player ? gameState.player.maxHydration : 25,
+          energy: gameState.player ? gameState.player.energy : 25,
+          maxEnergy: gameState.player ? gameState.player.maxEnergy : 25,
+          ammo: gameState.playerStats?.ammo || 0
         },
 
         // Inventory state (equipment, containers, items)

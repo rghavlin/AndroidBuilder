@@ -1,6 +1,6 @@
 
 import { Item } from './Item.js';
-import { ItemTrait } from './traits.js';
+import { ItemTrait, CategoryPriority } from './traits.js';
 
 /**
  * Container class for grid-based item storage
@@ -683,6 +683,12 @@ export class Container {
       const categoryB = b.getCategory();
 
       if (categoryA !== categoryB) {
+        const priorityA = CategoryPriority[categoryA] || 999;
+        const priorityB = CategoryPriority[categoryB] || 999;
+        
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
         return categoryA.localeCompare(categoryB);
       }
 

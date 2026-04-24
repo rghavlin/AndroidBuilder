@@ -427,12 +427,12 @@ export class Player extends Entity {
     player.maxHp = data.maxHp;
     player.ap = data.ap !== undefined ? data.ap : 20;
     player.maxAp = data.maxAp !== undefined ? data.maxAp : 20;
-    player.nutrition = data.nutrition || 25;
-    player.maxNutrition = data.maxNutrition || 25;
-    player.hydration = data.hydration || 25;
-    player.maxHydration = data.maxHydration || 25;
-    player.energy = data.energy || 25;
-    player.maxEnergy = data.maxEnergy || 25;
+    player.nutrition = data.nutrition !== undefined ? data.nutrition : 25;
+    player.maxNutrition = data.maxNutrition !== undefined ? data.maxNutrition : 25;
+    player.hydration = data.hydration !== undefined ? data.hydration : 25;
+    player.maxHydration = data.maxHydration !== undefined ? data.maxHydration : 25;
+    player.energy = data.energy !== undefined ? data.energy : 25;
+    player.maxEnergy = data.maxEnergy !== undefined ? data.maxEnergy : 25;
     player.condition = data.condition || 'Normal';
     player.sickness = data.sickness || 0;
     player.isBleeding = data.isBleeding || false;

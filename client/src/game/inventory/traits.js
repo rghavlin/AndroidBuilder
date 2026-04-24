@@ -36,7 +36,8 @@ export const ItemCategory = {
   TORCH: 'torch',
   GUN: 'gun',
   VEGETABLE: 'vegetable',
-  ENVIRONMENT: 'environment'
+  ENVIRONMENT: 'environment',
+  HAMMER: 'hammer'
 };
 
 // Trait flags
@@ -56,7 +57,9 @@ export const ItemTrait = {
   CAN_DIG: 'canDig',
   CHARGE_BASED: 'charge-based',
   WATER_CONTAINER: 'water_bottle',
-  DRAGGABLE: 'draggable'
+  DRAGGABLE: 'draggable',
+  MEDICAL: 'medical',
+  NO_DRAG: 'no_drag'
 };
 
 // Item rarity levels for loot generation
@@ -97,3 +100,18 @@ export const SlotDisplayName = {
   [EquipmentSlot.BACKPACK]: 'containers'
 };
 
+// Priority order for sorting categories (lower is higher priority)
+export const CategoryPriority = {
+  'vehicles': 1,
+  'environment': 2,
+  'farming': 3,
+  'furniture': 4,
+  'weapons': 5,
+  'ammunition': 6,
+  'armor': 7,
+  'tools': 8,
+  'consumables': 9,
+  'materials': 10,
+  'containers': 11,
+  'misc': 12
+};

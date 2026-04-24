@@ -1040,7 +1040,7 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, inventoryPulse]);
 
-  const fillFromPuddle = useCallback((bottle, puddle, originContainerId) => {
+  const fillFromSource = useCallback((bottle, source, originContainerId) => {
     if (!engine.inventoryManager || !engine.player) return;
 
     // 1. AP Check
@@ -1077,30 +1077,37 @@ export const InventoryProvider = ({ children }) => {
     }
 
     // 3. Fill logic
+    const isPuddle = source.defId === 'environment.water_puddle';
+    const isRainCollector = source.defId === 'provision.rain_collector';
+    const sourceName = source.name || (isPuddle ? 'puddle' : 'rain collector');
+
     const space = activeBottle.capacity - activeBottle.ammoCount;
-    const transfer = Math.min(space, puddle.ammoCount);
+    const transfer = Math.min(space, source.ammoCount);
     
     if (transfer <= 0) {
-      addLog('Bottle is already full or puddle is empty.', 'error');
+      addLog(`${activeBottle.name} is already full or ${sourceName} is empty.`, 'error');
       return;
     }
 
     activeBottle.ammoCount += transfer;
     activeBottle.waterQuality = 'dirty';
-    puddle.ammoCount -= transfer;
+    source.ammoCount -= transfer;
 
-    addLog(`You fill the ${activeBottle.name} with dirty water.`, 'item');
-    playSound('Click'); 
+    addLog(`You fill the ${activeBottle.name} with dirty water from the ${sourceName}.`, 'item');
+    playSound('FillBottle'); 
 
-    // 4. Update puddle size/existence
-    if (puddle.ammoCount <= 0) {
-      engine.inventoryManager.destroyItem(puddle.instanceId);
-      addLog('The puddle has been drained.', 'info');
-    } else {
-      // Reposition to update footprint (size changes based on water level)
-      const ground = engine.inventoryManager.groundContainer;
-      ground.updateItemFootprint(puddle);
+    // 4. Update source size/existence
+    if (isPuddle) {
+      if (source.ammoCount <= 0) {
+        engine.inventoryManager.destroyItem(source.instanceId);
+        addLog('The puddle has been drained.', 'info');
+      } else {
+        // Reposition to update footprint (size changes based on water level)
+        const ground = engine.inventoryManager.groundContainer;
+        ground.updateItemFootprint(source);
+      }
     }
+    // Rain collector doesn't shrink or delete
 
     engine.player.useAP(1);
     setInventoryVersion(v => v + 1);
@@ -1166,7 +1173,7 @@ export const InventoryProvider = ({ children }) => {
     deploySnare,
     retrieveSnare,
     fuelCampfire,
-    fillFromPuddle,
+    fillFromSource,
     detachItemFromWeapon,
     startDrag,
     stopDrag,

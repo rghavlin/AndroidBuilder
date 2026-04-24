@@ -15,6 +15,7 @@ export class GameMap {
     this.listeners = new Map();
     this.scentSequenceCounter = 0;
     this.buildings = []; // Standardized building metadata
+    this.lowSpots = []; // Phase 25: Designated tiles for water accumulation
 
     // Initialize empty map
     this.initializeMap();
@@ -757,7 +758,8 @@ export class GameMap {
         row.map(tile => tile ? tile.toJSON() : null)
       ),
       scentSequenceCounter: this.scentSequenceCounter,
-      buildings: this.buildings
+      buildings: this.buildings,
+      lowSpots: this.lowSpots
     };
   }
 
@@ -772,6 +774,7 @@ export class GameMap {
   static async fromJSONSelective(data, options = {}) {
     const gameMap = new GameMap(data.width, data.height);
     gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
+    gameMap.lowSpots = data.lowSpots || [];
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
     // Import required classes

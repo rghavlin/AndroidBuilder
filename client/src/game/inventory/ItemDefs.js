@@ -149,6 +149,17 @@ export const ItemDefs = {
     categories: [ItemCategory.CRAFTING_MATERIAL],
     stackMax: 5
   },
+  'crafting.garbage_bag': {
+    id: 'crafting.garbage_bag',
+    name: 'Garbage bag',
+    rarity: Rarity.COMMON,
+    imageId: 'garbagebag',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 10
+  },
   'crafting.metal_plate': {
     id: 'crafting.metal_plate',
     name: 'Metal plate',
@@ -171,6 +182,18 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.CRAFTING_MATERIAL],
     stackMax: 10
+  },
+
+  'crafting.loose_soil': {
+    id: 'crafting.loose_soil',
+    name: 'Loose soil',
+    noLoot: true,
+    rarity: Rarity.COMMON,
+    imageId: 'loosesoil',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.DRAGGABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL]
   },
 
   'crafting.wheel': {
@@ -390,7 +413,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
-    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL, ItemCategory.HAMMER],
     condition: 100,
     combat: {
       hitChance: 0.70,
@@ -526,7 +549,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
-    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL, ItemCategory.HAMMER],
     condition: 100,
     fragility: 4,
     combat: {
@@ -1199,6 +1222,22 @@ export const ItemDefs = {
     }
   },
 
+  'provision.rain_collector': {
+    id: 'provision.rain_collector',
+    name: 'Rain collector',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'raincollector',
+    width: 3,
+    height: 3,
+    capacity: 100,
+    ammoCount: 0,
+    waterQuality: 'dirty',
+    renderFullTile: true,
+    traits: [ItemTrait.WATER_CONTAINER],
+    categories: [ItemCategory.PROVISION]
+  },
+
   'provision.hole': {
     id: 'provision.hole',
     name: 'Hole',
@@ -1235,7 +1274,7 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
     categories: [ItemCategory.FOOD],
     stackMax: 10,
-    shelfLife: 48,
+    shelfLife: 96,
     consumptionEffects: {
       nutrition: 6
     }
@@ -1826,8 +1865,7 @@ export const ItemDefs = {
     isPuddle: true,
     isPickable: false,
     noDrag: true,
-    traits: [ItemTrait.CONTAINER],
-    containerGrid: { width: 5, height: 5, isWaterPuddle: true },
+    traits: [],
     maxWater: 50,
     ammoCount: 50, // Using ammoCount for water level
     capacity: 50,

@@ -63,7 +63,7 @@ export class InventoryManager extends SafeEventEmitter {
       type: 'crafting-workspace',
       name: 'Ingredient Grid',
       width: 5,
-      height: 4
+      height: 6
     }));
 
     // Cooking Workspace
@@ -82,7 +82,7 @@ export class InventoryManager extends SafeEventEmitter {
       type: 'crafting-workspace',
       name: 'Cooking Ingredients',
       width: 5,
-      height: 4
+      height: 6
     }));
 
     this.craftingManager = new CraftingManager(this);

@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useInventory } from "@/contexts/InventoryContext";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { useLog } from "@/contexts/LogContext";
+import { useAudio } from "@/contexts/AudioContext";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import WorkspaceSlot from "@/components/Inventory/WorkspaceSlot";
 import AttachmentSlot from './AttachmentSlot';
@@ -21,6 +23,8 @@ export default function CraftingUI() {
         inventoryVersion
     } = useInventory();
     const { playerStats } = usePlayer();
+    const { addLog } = useLog();
+    const { playSound } = useAudio();
 
     const [activeTab, setActiveTab] = useState<'crafting' | 'cooking'>('crafting');
 
@@ -156,7 +160,8 @@ export default function CraftingUI() {
             if (result.success) {
                 console.log("Crafting successful!");
             } else {
-                alert("Crafting failed: " + result.reason);
+                playSound('Fail');
+                addLog(`Crafting failed: ${result.reason}`, 'error');
             }
         }
     };

@@ -541,8 +541,8 @@ export class TemplateMapGenerator {
     // Add buildings
     this.placeBuildingsOnRoad(layout, width, height, leftSidewalkStartX, rightSidewalkEndX, mapData);
 
-    // Add ponds (50% chance)
-    this.addPonds(layout);
+    // PHASE 25: Removed static water tiles in favor of dynamic Water Puddles
+    // this.addPonds(layout);
 
     return layout;
   }

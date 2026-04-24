@@ -53,8 +53,8 @@ export default function UniversalGrid({
   const GAP_SIZE = 2;
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromPuddle } = useInventory();
-  const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, plantSeed, harvestPlant } = useAction();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource } = useInventory();
+  const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant } = useAction();
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
@@ -234,6 +234,33 @@ export default function UniversalGrid({
         }
       }
 
+      // NEW: Loose soil interaction with Hole
+      const isLooseSoilSelected = selectedItem.item.defId === 'crafting.loose_soil';
+      const isHoleClickedFill = item?.defId === 'provision.hole';
+      if (isLooseSoilSelected && isHoleClickedFill && containerId === 'ground') {
+        console.debug('[UniversalGrid] Filling hole with loose soil at:', x, y);
+        const result = fillHole(selectedItem.item, item);
+        if (result.success) {
+          clearSelected();
+          return;
+        }
+      }
+
+      // NEW: Garbage bag interaction with Loose soil
+      const isGarbageBagSelected = selectedItem.item.defId === 'crafting.garbage_bag';
+      const isLooseSoilClicked = item?.defId === 'crafting.loose_soil';
+      if (isGarbageBagSelected && isLooseSoilClicked && containerId === 'ground') {
+        console.debug('[UniversalGrid] Bagging loose soil at:', x, y);
+        const result = bagLooseSoil(selectedItem.item, item);
+        if (result.success) {
+          // If the bag was destroyed (last one), clear selection
+          if (selectedItem.item.stackCount <= 0) {
+            clearSelected();
+          }
+          return;
+        }
+      }
+
       const result = placeSelected(containerId, x, y);
 
       // If placement/stacking succeeded, we're done
@@ -263,12 +290,12 @@ export default function UniversalGrid({
         }
       }
 
-      // SPECIAL CASE: Filling from a puddle
+      // SPECIAL CASE: Filling from a puddle or rain collector
       const isBottle = selectedItem.item.isWaterBottle?.() || selectedItem.item.hasTrait?.(ItemTrait.WATER_CONTAINER);
-      const isPuddle = item?.isPuddle;
-      if (isBottle && isPuddle) {
-        console.debug('[UniversalGrid] Filling bottle from puddle:', selectedItem.item.name);
-        fillFromPuddle(selectedItem.item, item, selectedItem.originContainerId);
+      const isWaterSource = item?.isPuddle || item?.defId === 'provision.rain_collector';
+      if (isBottle && isWaterSource) {
+        console.debug('[UniversalGrid] Filling bottle from water source:', selectedItem.item.name);
+        fillFromSource(selectedItem.item, item, selectedItem.originContainerId);
         return;
       }
 
@@ -295,10 +322,11 @@ export default function UniversalGrid({
       // then the user likely wants to SWITCH their selection to the clicked item.
       if (item && item.instanceId) {
         // Phase 7 Fix: Prevent switching selection to non-movable or ground-only items
-        const isGroundOnly = item.hasTrait?.('ground_only') || item.traits?.includes('ground_only') || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+        const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
         const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
+        const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
         
-        if (isNoDrag || (isGroundOnly && containerId === 'ground')) {
+        if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable)) {
            console.debug('[UniversalGrid] Cannot switch selection to non-movable item:', item.name);
            return;
         }
@@ -316,10 +344,11 @@ export default function UniversalGrid({
 
     // Case 2: No item selected, so we select the clicked item
     if (item && item.instanceId) {
-      const isGroundOnly = item.hasTrait?.('ground_only') || item.traits?.includes('ground_only') || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+      const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
       const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
+      const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
       
-      if (isNoDrag || (isGroundOnly && containerId === 'ground')) {
+      if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable)) {
         console.debug('[UniversalGrid] Cannot pick up non-movable item:', item.name);
         return;
       }

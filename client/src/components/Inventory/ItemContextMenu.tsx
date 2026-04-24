@@ -53,7 +53,7 @@ export function ItemContextMenu({
 
     const canSplit = item?.isStackable?.() && item?.stackCount > 1;
 
-    const shouldDisable = isDisabled || item?.isPlanter;
+    const shouldDisable = isDisabled || item?.isPlanter || item?.isPuddle;
 
     if (shouldDisable) {
         return (

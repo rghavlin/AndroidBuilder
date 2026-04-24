@@ -229,6 +229,11 @@ export const SleepProvider = ({ children }) => {
         gameMap.processTurn();
         engine.inventoryManager?.processTurn();
 
+        // Phase 25: Ensure weather updates while sleeping
+        if (engine.weatherManager) {
+          engine.weatherManager.update(currentTurn);
+        }
+
         // Battery drain
         if (isFlashlightOnActual) {
           const flashlight = engine.inventoryManager?.equipment['flashlight'];

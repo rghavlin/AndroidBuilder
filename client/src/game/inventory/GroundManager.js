@@ -1,6 +1,7 @@
 
 import { Container } from './Container.js';
 import { Item } from './Item.js';
+import { CategoryPriority } from './traits.js';
 
 /**
  * GroundManager handles intelligent ground item organization and optimization
@@ -70,24 +71,9 @@ export class GroundManager {
     let currentY = 0;
     const categorySpacing = 2; // Space between categories
 
-    // Sort categories by priority (weapons first, then tools, etc.)
-    const categoryPriority = {
-      'vehicles': 1,
-      'environment': 2,
-      'farming': 3,
-      'furniture': 4,
-      'weapons': 5,
-      'ammunition': 6,
-      'armor': 7,
-      'tools': 8,
-      'consumables': 9,
-      'materials': 10,
-      'containers': 11,
-      'misc': 12
-    };
-
+    // Sort categories by priority (vehicles first, then environment, etc.)
     const sortedCategories = Array.from(itemsByCategory.keys()).sort((a, b) => {
-      return (categoryPriority[a] || 999) - (categoryPriority[b] || 999);
+      return (CategoryPriority[a] || 999) - (CategoryPriority[b] || 999);
     });
 
     for (const category of sortedCategories) {

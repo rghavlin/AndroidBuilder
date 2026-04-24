@@ -1,6 +1,8 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useLog } from "@/contexts/LogContext";
+import { useAudio } from "@/contexts/AudioContext";
 import AttachmentSlot from './AttachmentSlot';
 import UniversalGrid from './UniversalGrid';
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,8 @@ export default function CampfireUI({
     className = "",
 }: CampfireUIProps) {
     const { cookInCampfire, inventoryVersion } = useInventory();
+    const { addLog } = useLog();
+    const { playSound } = useAudio();
 
     const potSlot = campfire.attachmentSlots?.find((s: any) => s.id === 'pot');
     const fuelSlot = campfire.attachmentSlots?.find((s: any) => s.id === 'fuel');
@@ -25,7 +29,8 @@ export default function CampfireUI({
     const handleCook = () => {
         const result = cookInCampfire(campfire);
         if (!result.success) {
-            alert(result.reason);
+            playSound('Fail');
+            addLog(`Cooking failed: ${result.reason}`, 'error');
         }
     };
 
