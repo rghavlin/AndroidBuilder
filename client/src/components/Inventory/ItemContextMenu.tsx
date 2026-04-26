@@ -57,7 +57,7 @@ export function ItemContextMenu({
 
     if (shouldDisable) {
         return (
-            <Tooltip delayDuration={300}>
+            <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
                     {children}
                 </TooltipTrigger>
@@ -75,7 +75,7 @@ export function ItemContextMenu({
 
     return (
         <ContextMenu>
-            <Tooltip delayDuration={300}>
+            <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
                     <ContextMenuTrigger asChild>
                         {children}

@@ -167,8 +167,9 @@ export const ItemDefs = {
     imageId: 'metalplate',
     width: 2,
     height: 1,
-    traits: [],
-    categories: [ItemCategory.CRAFTING_MATERIAL]
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL],
+    stackMax: 5
   },
 
   'crafting.soil': {

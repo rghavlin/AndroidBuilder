@@ -32,14 +32,18 @@ interface StatBarProps {
   label: string;
   current: number;
   max: number;
+  suffix?: React.ReactNode;
   className?: string;
 }
 
-const StatBar = ({ label, current, max, className }: StatBarProps) => (
+const StatBar = ({ label, current, max, suffix, className }: StatBarProps) => (
   <div className={cn("flex flex-col gap-0.5", className)}>
     <div className="flex justify-between items-baseline px-0.5">
-      <span className="text-[9px] font-black text-white/40 uppercase tracking-tight">{label}</span>
-      <span className="text-[10px] font-bold text-white/80 tabular-nums">
+      <div className="flex items-baseline gap-1.5 overflow-hidden">
+        <span className="text-[9px] font-black text-white/40 uppercase tracking-tight whitespace-nowrap">{label}</span>
+        {suffix && <div className="flex-1 shrink-0">{suffix}</div>}
+      </div>
+      <span className="text-[10px] font-bold text-white/80 tabular-nums shrink-0">
         {Number.isInteger(current) ? current : current.toFixed(1)}<span className="text-white/20 mx-0.5 text-[8px]">/</span>{max}
       </span>
     </div>
@@ -130,6 +134,21 @@ export default function GameControls({
             label="Health" 
             current={currentStats.hp} 
             max={currentStats.maxHp} 
+            suffix={
+              <div className="flex items-center gap-1.5 overflow-hidden">
+                <span className={cn(
+                  "text-[8px] font-bold px-1 rounded-sm uppercase tracking-tighter whitespace-nowrap",
+                  currentStats.condition === 'Normal' ? "bg-white/5 text-white/40" : "bg-amber-500/20 text-amber-500"
+                )}>
+                  {currentStats.condition}
+                </span>
+                {currentStats.isBleeding && (
+                  <span className="text-[8px] font-black text-red-500 animate-pulse uppercase tracking-tighter whitespace-nowrap shadow-[0_0_8px_rgba(239,68,68,0.4)]">
+                    Bleeding
+                  </span>
+                )}
+              </div>
+            }
             className="flex-1"
           />
           <StatBar 

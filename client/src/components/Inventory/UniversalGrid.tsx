@@ -337,8 +337,10 @@ export default function UniversalGrid({
         return;
       }
 
-      // If placement failed on empty space, just log a warning (or stay selected)
+      // If placement failed on empty space, just log a warning and cancel selection
       console.warn('[UniversalGrid] Placement failed:', result.reason);
+      playSound('Fail');
+      clearSelected();
       return;
     }
 
@@ -380,13 +382,17 @@ export default function UniversalGrid({
     
     // If we have a selected item, try to place it
     if (selectedItem) {
-      placeSelected(containerId, x, y);
+      const result = placeSelected(containerId, x, y);
+      if (!result.success) {
+        playSound('Fail');
+        clearSelected();
+      }
       return;
     }
 
     // Otherwise, bubble up to parent if provided
     onSlotClick?.(x, y);
-  }, [containerId, selectedItem, placeSelected, onSlotClick]);
+  }, [containerId, selectedItem, placeSelected, clearSelected, playSound, onSlotClick]);
 
   const handleGridContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     // 1. Priority: Handle active targeting (e.g. Shovel Digging)
@@ -696,7 +702,7 @@ export default function UniversalGrid({
             <div className="absolute inset-0 pointer-events-none z-20">
               <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-green-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(74,222,128,0.3)] border-b border-l border-green-500/30 whitespace-nowrap flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                {item.lifetimeTurns}T
+                {item.lifetimeTurns}h
               </span>
             </div>
           )}

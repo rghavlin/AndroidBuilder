@@ -59,6 +59,8 @@ export default function EquipmentSlots() {
         const result = equipSelectedItem(slotId);
         if (!result.success) {
           console.warn('[EquipmentSlots] Failed to equip item:', result.reason);
+          playSound('Fail');
+          clearSelected();
         }
         return;
       }
@@ -90,7 +92,10 @@ export default function EquipmentSlots() {
         if (depositResult.success) return;
       }
 
-      // If all else fails, fall through to default behavior (switching selection)
+      // If all else fails, cancel selection and play fail sound
+      playSound('Fail');
+      clearSelected();
+      return;
     }
 
     // Case 2: Standard selection/deselection

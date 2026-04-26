@@ -777,13 +777,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
               // 2. Check items
               const hasHammer = inventory.hasItemByDefId('weapon.hammer') || inventory.hasItemByDefId('weapon.makeshift_hammer');
-              const has2x4 = inventory.hasItemByDefId('weapon.2x4', 1);
+              const hasPlank = inventory.hasItemByDefId('weapon.plank', 1);
               const hasNails = inventory.hasItemByDefId('crafting.nail', 2);
 
-              if (!hasHammer || !has2x4 || !hasNails) {
+              if (!hasHammer || !hasPlank || !hasNails) {
                 let missing = [];
                 if (!hasHammer) missing.push('Hammer');
-                if (!has2x4) missing.push('2x4');
+                if (!hasPlank) missing.push('Plank');
                 if (!hasNails) missing.push('2 Nails');
                 
                 addLog(`Missing items: ${missing.join(', ')}`, 'error');
@@ -801,7 +801,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
               // 3. Perform action
               player.useAP(5);
-              inventory.consumeItemByDefId('weapon.2x4', 1);
+              inventory.consumeItemByDefId('weapon.plank', 1);
               inventory.consumeItemByDefId('crafting.nail', 2);
               
               const wasBroken = doorMenu.door.isDamaged;
@@ -998,13 +998,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
               // Check items
               const hasHammer = inventory.hasItemByDefId('weapon.hammer') || inventory.hasItemByDefId('weapon.makeshift_hammer');
-              const has2x4 = inventory.hasItemByDefId('weapon.2x4', 1);
+              const hasPlank = inventory.hasItemByDefId('weapon.plank', 1);
               const hasNails = inventory.hasItemByDefId('crafting.nail', 2);
 
-              if (!hasHammer || !has2x4 || !hasNails) {
+              if (!hasHammer || !hasPlank || !hasNails) {
                 let missing = [];
                 if (!hasHammer) missing.push("Hammer");
-                if (!has2x4) missing.push("2x4");
+                if (!hasPlank) missing.push("Plank");
                 if (!hasNails) missing.push("2 Nails");
                 
                 addEffect({
@@ -1022,11 +1022,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               // Execute reinforcement
               if (windowMenu.window.reinforce(10)) {
                 player.useAP(5);
-                inventory.consumeItemByDefId('weapon.2x4', 1);
+                inventory.consumeItemByDefId('weapon.plank', 1);
                 inventory.consumeItemByDefId('crafting.nail', 2);
                 
                 playSound('Repair');
-                addLog('You reinforce the window with 2x4s.', 'world');
+                addLog('You reinforce the window with planks.', 'world');
                 addEffect({
                    type: 'damage',
                    x: windowMenu.x,
