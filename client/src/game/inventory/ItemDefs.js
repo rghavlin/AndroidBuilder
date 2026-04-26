@@ -3,7 +3,7 @@
  * Static item templates following trait-based model
  */
 
-import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from './traits.js';
+import { EquipmentSlot, ItemTrait, ItemCategory, Rarity, FireMode } from './traits.js';
 
 export const ItemDefs = {
   // Backpacks (containers, equippable)
@@ -122,7 +122,7 @@ export const ItemDefs = {
         { id: 'crafting.wheel', count: 4 },
         { id: 'weapon.metal_rod', count: 4 },
         { id: 'crafting.metal_plate', count: 2 },
-        { id: 'crafting.plank', count: 6 }
+        { id: 'weapon.plank', count: 6 }
       ]
     }
   },
@@ -207,6 +207,17 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.CRAFTING_MATERIAL],
     stackMax: 5
+  },
+
+  'crafting.solar_panel': {
+    id: 'crafting.solar_panel',
+    name: 'Solar panel',
+    rarity: Rarity.RARE,
+    imageId: 'solarpanel',
+    width: 3,
+    height: 3,
+    categories: [ItemCategory.CRAFTING_MATERIAL, ItemCategory.ELECTRIC],
+    spawnBias: { inside: 0.1, outside: 1.0 }
   },
 
   'crafting.soil': {
@@ -759,6 +770,30 @@ export const ItemDefs = {
     },
     spawnMaxRounds: 4
   },
+  'weapon.battle_rifle': {
+    id: 'weapon.battle_rifle',
+    name: 'Battle rifle',
+    rarity: Rarity.EXTREMELY_RARE,
+    imageId: 'battlerifle',
+    width: 5,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.LONG_GUN,
+    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
+    attachmentSlots: [
+      { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
+      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE, ItemCategory.LASER_SIGHT] },
+      { id: 'ammo', name: 'Magazine', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.556_magazine'] }
+    ],
+    rangedStats: {
+      noiseRadius: 18,
+      damage: { min: 5, max: 18 },
+      accuracyFalloff: 0.05,
+      minAccuracy: 0.05
+    },
+    fireMode: FireMode.SINGLE,
+    availableFireModes: [FireMode.SINGLE, FireMode.BURST]
+  },
 
   'weapon.grenade': {
     id: 'weapon.grenade',
@@ -1023,6 +1058,18 @@ export const ItemDefs = {
     capacity: 5,
     ammoDefId: 'ammo.sniper'
   },
+  'attachment.556_magazine': {
+    id: 'attachment.556_magazine',
+    name: '5.56 Mag',
+    rarity: Rarity.RARE,
+    imageId: '556mag',
+    width: 2,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.AMMO],
+    capacity: 20,
+    ammoDefId: 'ammo.556'
+  },
 
   // Stackable items
   'ammo.9mm': {
@@ -1076,6 +1123,19 @@ export const ItemDefs = {
     stackMax: 50,
     spawnStackMin: 3,
     spawnStackMax: 6
+  },
+  'ammo.556': {
+    id: 'ammo.556',
+    name: '5.56',
+    rarity: Rarity.UNCOMMON,
+    imageId: '556ammo',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
+    stackMax: 50,
+    spawnStackMin: 5,
+    spawnStackMax: 15
   },
 
   'medical.bandage': {
@@ -1553,6 +1613,22 @@ export const ItemDefs = {
       hydration: 5
     }
   },
+  'food.cooked_vegetables': {
+    id: 'food.cooked_vegetables',
+    name: 'Cooked vegetables',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'vegetablesoup',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 1,
+    shelfLife: 72,
+    consumptionEffects: {
+      nutrition: 10
+    }
+  },
 
   'food.raw_meat': {
     id: 'food.raw_meat',
@@ -1685,6 +1761,15 @@ export const ItemDefs = {
     ammoCount: 15,
     spawnAmmoPercent: 1.0,
     noLoot: true
+  },
+  'tool.pliers': {
+    id: 'tool.pliers',
+    name: 'Pliers',
+    rarity: Rarity.COMMON,
+    imageId: 'pliers',
+    width: 1,
+    height: 1,
+    categories: [ItemCategory.TOOL]
   },
   'tool.bowdrill': {
     id: 'tool.bowdrill',
@@ -1961,10 +2046,11 @@ export const ItemDefs = {
     isPuddle: true,
     isPickable: false,
     noDrag: true,
-    traits: [],
+    traits: [ItemTrait.WATER_CONTAINER, ItemTrait.CONSUMABLE],
     maxWater: 50,
     ammoCount: 50, // Using ammoCount for water level
     capacity: 50,
+    waterQuality: 'dirty',
     categories: [ItemCategory.ENVIRONMENT],
     noLoot: true,
     renderFullTile: true
@@ -1972,7 +2058,7 @@ export const ItemDefs = {
   'tool.battery_charger': {
     id: 'tool.battery_charger',
     name: 'Battery charger',
-    rarity: Rarity.UNCOMMON,
+    rarity: Rarity.RARE,
     imageId: 'charger',
     width: 2,
     height: 2,
@@ -1983,6 +2069,22 @@ export const ItemDefs = {
       height: 2, 
       allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
     }
+  },
+  'tool.solar_charger': {
+    id: 'tool.solar_charger',
+    name: 'Solar charger',
+    rarity: Rarity.RARE,
+    imageId: 'solarcharger',
+    width: 3,
+    height: 3,
+    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    containerGrid: { 
+      width: 3, 
+      height: 2, 
+      allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
+    },
+    noLoot: true
   }
 };
 
@@ -2008,5 +2110,15 @@ export function createItemFromDef(defId, overrides = {}) {
  */
 export function getItemName(defId) {
   const def = ItemDefs[defId];
-  return def ? def.name : (defId || "Unknown Item");
+  if (def) return def.name;
+  
+  // If no definition, try to strip prefix (e.g. "crafting.plank" -> "Plank")
+  if (defId && defId.includes('.')) {
+    const parts = defId.split('.');
+    const name = parts[parts.length - 1];
+    // Capitalize first letter
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  
+  return defId || "Unknown Item";
 }

@@ -154,6 +154,7 @@ export class WorldManager {
       const gameMap = await GameMap.fromJSONSelective(mapData.serializedMap, {
         excludeEntityTypes: ['player']
       });
+      gameMap.mapNumber = this.extractMapNumber(mapId);
 
       // CATCH-UP TURN PROCESSING
       if (currentTurn !== null && mapData.lastProcessedTurn !== undefined) {
@@ -215,12 +216,14 @@ export class WorldManager {
 
       // Create GameMap instance and apply template
       const gameMap = new GameMap(mapData.width, mapData.height);
+      const mapNumberForGen = this.extractMapNumber(nextMapId);
+      gameMap.mapNumber = mapNumberForGen;
       await templateMapGenerator.applyToGameMap(gameMap, mapData);
 
       // SPAWN LOOT: New procedural loot generation
       const { LootGenerator } = await import('./map/LootGenerator.js');
       const lootGenerator = new LootGenerator();
-      lootGenerator.spawnLoot(gameMap);
+      lootGenerator.spawnLoot(gameMap, gameMap.mapNumber);
 
       // SPAWN ZOMBIES: Initial map population (if not already handled)
       const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
@@ -460,34 +463,50 @@ export class WorldManager {
 
         // Create GameMap instance and apply template
         const gameMap = new GameMap(generatedMapData.width, generatedMapData.height);
+        gameMap.mapNumber = mapNumber;
         await templateMapGenerator.applyToGameMap(gameMap, generatedMapData);
 
         // SPAWN LOOT: New procedural loot generation
         const { LootGenerator } = await import('./map/LootGenerator.js');
         const lootGenerator = new LootGenerator();
-        lootGenerator.spawnLoot(gameMap);
+        lootGenerator.spawnLoot(gameMap, mapNumber);
 
         // SPAWN ZOMBIES: Procedural zombie generation with scaling difficulty
         
-        // Basic zombie scaling: Map 1 = 15, Map 2 = 20, Map 3 = 21, etc.
-        const basicCount = mapNumber === 1 ? 15 : (20 + (mapNumber - 2));
+        // Basic zombie scaling: 20% increase and steeper scaling past map 3
+        let basicCount;
+        if (mapNumber === 1) basicCount = 18;
+        else if (mapNumber === 2) basicCount = 24;
+        else if (mapNumber === 3) basicCount = 25;
+        else basicCount = 25 + (mapNumber - 3) * 2; // Steeper scaling (+2 per map)
 
-        // Bonus units based on map progression
-        const extraFat = Math.floor(mapNumber / 4);
-        const extraCrawler = Math.floor(mapNumber / 4);
-        const extraAcid = Math.floor(mapNumber / 5);
+        // Bonus units based on map progression (increased frequency)
+        const extraFat = Math.floor(mapNumber / 3);
+        const extraCrawler = Math.floor(mapNumber / 3);
+        const extraAcid = Math.floor(mapNumber / 4);
 
-        // Calculate ranges with bonuses
-        let crawlerRange = { min: 2 + extraCrawler, max: 5 + extraCrawler };
+        // Calculate ranges with bonuses (approx 20% base increase)
+        let crawlerRange = { min: 3 + extraCrawler, max: 6 + extraCrawler };
         
         let acidRange;
         if (mapNumber === 1) acidRange = { min: 0, max: 0 };
-        else if (mapNumber === 2) acidRange = { min: 0 + extraAcid, max: 1 + extraAcid };
-        else acidRange = { min: 1 + extraAcid, max: 2 + extraAcid };
+        else if (mapNumber === 2) acidRange = { min: 1 + extraAcid, max: 2 + extraAcid };
+        else acidRange = { min: 2 + extraAcid, max: 3 + extraAcid };
 
         let fatRange;
         if (mapNumber === 1) fatRange = { min: 0, max: 0 };
-        else fatRange = { min: 1 + extraFat, max: 2 + extraFat };
+        else fatRange = { min: 2 + extraFat, max: 3 + extraFat };
+
+        // Random Specialized Interspersement (Past Map 3)
+        let randomSwatCount = 0;
+        let randomFirefighterCount = 0;
+        let soldierCount = 0;
+
+        if (mapNumber > 3) {
+          if (Math.random() < 0.15) randomSwatCount = Math.floor(Math.random() * 2) + 1;
+          if (Math.random() < 0.15) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
+          if (Math.random() < 0.10) soldierCount = 1;
+        }
 
         ZombieSpawner.spawnZombies(gameMap, spawnPosition, {
           basicCount,
@@ -495,7 +514,10 @@ export class WorldManager {
           runnerCount: Math.floor(Math.random() * 2) + 1, // 1 or 2 runner zombies
           acidRange,
           fatRange,
-          maxTotal: 100
+          randomSwatCount,
+          randomFirefighterCount,
+          soldierCount,
+          maxTotal: 120 // Increased cap to accommodate larger populations
         });
         
         // SPAWN ANIMALS: Procedural rabbit generation

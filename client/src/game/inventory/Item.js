@@ -1,4 +1,5 @@
-import { ItemTrait, ItemCategory, CategoryDisplayName, SlotDisplayName } from './traits.js';
+import { ItemTrait, ItemCategory, CategoryDisplayName, SlotDisplayName, FireMode } from './traits.js';
+import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { Container } from './Container.js';
 import { PocketLayouts } from './PocketLayouts.js';
 import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
@@ -47,7 +48,9 @@ export class Item extends SafeEventEmitter {
     backgroundColor = null,
     isLit = false,
     isOn = false,
-    providesElectricity = false
+    providesElectricity = false,
+    fireMode = FireMode.SINGLE,
+    availableFireModes = []
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -131,6 +134,8 @@ export class Item extends SafeEventEmitter {
     this.isLit = isLit;
     this.isOn = isOn;
     this.providesElectricity = providesElectricity;
+    this.fireMode = fireMode;
+    this.availableFireModes = Array.isArray(availableFireModes) ? availableFireModes : [];
 
     // Load shelfLife from definition if not provided
     if (this.shelfLife === null && this.defId && ItemDefs[this.defId]?.shelfLife) {
@@ -202,6 +207,15 @@ export class Item extends SafeEventEmitter {
       }
       if (def.providesElectricity !== undefined && this.providesElectricity === undefined) {
         this.providesElectricity = def.providesElectricity;
+      }
+      if (def.fireMode !== undefined && this.fireMode === FireMode.SINGLE) {
+        this.fireMode = def.fireMode;
+      }
+      if (def.availableFireModes !== undefined && this.availableFireModes.length === 0) {
+        this.availableFireModes = def.availableFireModes;
+      }
+      if (def.waterQuality !== undefined && (this.waterQuality === 'clean' || this.waterQuality === undefined)) {
+        this.waterQuality = def.waterQuality;
       }
     }
 
@@ -525,26 +539,21 @@ export class Item extends SafeEventEmitter {
   }
 
   processTurn() {
-    // 1. Process own spoilage/lifetime
-    if (this.shelfLife !== null && this.shelfLife !== undefined) {
-      // User requested 1 hour per turn (1 turn = 1 hour)
-      this.shelfLife -= 1;
+    const oldShelfLife = this.shelfLife;
+    const decay = TurnProcessingUtils.processDecay(this);
 
-      // Emit event if it just spoiled
-      if (this.shelfLife === 0 && this.isSpoilable()) {
+    if (decay.modified) {
+      // 1. Process own spoilage/lifetime events
+      if (this.shelfLife === 0 && oldShelfLife > 0 && this.isSpoilable()) {
         console.log(`[Item] ${this.name} (${this.instanceId}) has SPOILED!`);
         this.emitEvent('itemSpoiled', { item: this });
       }
-    }
 
-    // 1b. Process lifetimeTurns (for campfires)
-    if (this.lifetimeTurns !== null && this.lifetimeTurns !== undefined) {
-      this.lifetimeTurns = Math.max(0, this.lifetimeTurns - 1);
-      if (this.lifetimeTurns <= 0) {
-        console.log(`[Item] ${this.name} (${this.instanceId}) has EXPIRED (lifetimeTurns reached 0)`);
+      if (this.lifetimeTurns === 0 && this.defId === 'placeable.campfire') {
+         // Log or emit for campfire expiry
+         console.log(`[Item] ${this.name} (${this.instanceId}) has EXPIRED (lifetimeTurns reached 0)`);
       }
     }
-
   }
 
   canLoadAmmo(ammoItem) {
@@ -661,7 +670,7 @@ export class Item extends SafeEventEmitter {
   }
 
   getMeterPercent() {
-    if (this.isWaterBottle()) return this.getWaterPercent();
+    if (this.isWaterBottle() && !this.isPuddle) return this.getWaterPercent();
     if (this.isFuelContainer() && this.capacity) return (this.ammoCount / this.capacity) * 100;
     return null;
   }
@@ -1225,7 +1234,9 @@ export class Item extends SafeEventEmitter {
       produce: this.produce,
       backgroundColor: this.backgroundColor,
       isOn: this.isOn,
-      providesElectricity: this.providesElectricity
+      providesElectricity: this.providesElectricity,
+      fireMode: this.fireMode,
+      availableFireModes: this.availableFireModes
     };
 
     // Serialize Traits

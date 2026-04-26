@@ -302,6 +302,48 @@ export class CraftingManager {
             return { success: true, item: stewItem, apCost: actualAP };
         }
 
+        // SPECIAL CASE: Cooked Vegetables dynamic scaling
+        if (recipeId === 'cooking.cooked_vegetables') {
+            const allItems = ingredientContainer.getAllItems();
+            const vegItems = allItems.filter(i => i.hasCategory(ItemCategory.VEGETABLE));
+
+            if (vegItems.length === 0) return { success: false, reason: 'No vegetables found' };
+
+            // Max 4 units
+            let unitsUsed = 0;
+            let totalNutrition = 0;
+            const consumedInstances = new Map();
+
+            for (const item of vegItems) {
+                if (unitsUsed >= 4) break;
+                const take = Math.min(item.stackCount, 4 - unitsUsed);
+                const baseNutr = item.consumptionEffects?.nutrition || 5;
+                consumedInstances.set(item.instanceId, take);
+                totalNutrition += (baseNutr + 1) * take;
+                unitsUsed += take;
+            }
+
+            // Perform consumption
+            for (const [id, count] of consumedInstances.entries()) {
+                const item = ingredientContainer.items.get(id);
+                if (item) {
+                    item.stackCount -= count;
+                    if (item.stackCount <= 0) ingredientContainer.removeItem(id);
+                }
+            }
+
+            // Create final item
+            const vegData = createItemFromDef(recipe.resultItem, {
+                consumptionEffects: {
+                    nutrition: totalNutrition
+                },
+                description: `A warm bowl of cooked vegetables. Nutrition: ${totalNutrition}`
+            });
+            const vegItem = new Item(vegData);
+
+            return { success: true, item: vegItem, apCost: actualAP };
+        }
+
         if (recipeId === 'cooking.clean_water' || recipeId === 'cooking.clean_water_jug') {
             const candidates = ingredientContainer.getAllItems();
             
@@ -395,7 +437,7 @@ export class CraftingManager {
 
         // Create result item
         const itemData = createItemFromDef(recipe.resultItem, preservedProperties);
-        if (lifetimeTurns !== null) itemData.lifetimeTurns = lifetimeTurns;
+        if (lifetimeTurns !== null) itemData.lifetimeTurns = Math.ceil(lifetimeTurns);
         const newItem = new Item(itemData);
 
         // Handle result count (for stackable items)
@@ -407,25 +449,31 @@ export class CraftingManager {
         // Handle GROUND_ONLY/Furniture placement (e.g. Campfire, Sled, Bed)
         if (newItem.isFurniture || (newItem.isGroundOnly && newItem.isGroundOnly())) {
             const ground = this.inv.groundContainer;
-            console.log(`[CraftingManager] Placing furniture/ground item ${newItem.name} at (0,0)`);
+            console.log(`[CraftingManager] Placing furniture/ground item ${newItem.name} on infinite ground...`);
 
-            // 1. Clear space at (0,0) and get displaced items
-            const displacedItems = this.inv.clearSpaceInContainer(ground, 0, 0, newItem.width, newItem.height);
-            console.log(`[CraftingManager] Displaced ${displacedItems.length} items for ${newItem.name}`);
-
-            // 2. Place the new item
-            if (ground.placeItemAt(newItem, 0, 0)) {
-                // 3. Re-add displaced items to any available spot, preferably below the new item
-                displacedItems.forEach(item => {
-                    // Start search below the new furniture item's footprint
-                    const result = this.inv.addItem(item, 'ground', 0, newItem.height, true);
-                });
+            // 1. Attempt to add the item to the ground container. 
+            // Since it's auto-expanding and the ground is "infinite", this should always succeed.
+            // We pass (0,0) as preferred coordinates to keep it near the player's logical center.
+            if (ground.addItem(newItem, 0, 0, false)) {
                 return { success: true, item: newItem, placedInGround: true };
             } else {
-                console.error('[CraftingManager] Failed to place ground-only item even after clearing!');
-                // Try to restore displaced items if placement fails
-                displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
-                return { success: false, reason: 'Ground is blocked (Internal Error)' };
+                // FALLBACK: If for some reason addItem fails (should be impossible on auto-expand ground),
+                // we try to force place it by clearing space at (0,0).
+                console.warn('[CraftingManager] addItem failed on ground, attempting force placement at (0,0)');
+                const displacedItems = this.inv.clearSpaceInContainer(ground, 0, 0, newItem.width, newItem.height);
+                
+                if (ground.placeItemAt(newItem, 0, 0)) {
+                    // Re-add displaced items to any available spot
+                    displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
+                    return { success: true, item: newItem, placedInGround: true };
+                } else {
+                    console.error('[CraftingManager] CRITICAL: Failed to place ground-only item even after clearing!');
+                    // Restore displaced items
+                    displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
+                    
+                    // Final safety: Just return the item even if placement failed (it might stay in workspace)
+                    return { success: true, item: newItem, placedInGround: false };
+                }
             }
         }
 

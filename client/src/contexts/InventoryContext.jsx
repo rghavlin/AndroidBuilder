@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useSyncExternalStore } from 'react';
-import { ItemTrait } from '../game/inventory/traits.js';
+import { ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
 import { CraftingRecipes } from '../game/inventory/CraftingRecipes.js';
@@ -648,7 +648,9 @@ export const InventoryProvider = ({ children }) => {
     const def = ItemDefs[item.defId];
     if (!def || !def.disassembleData) return { success: false };
 
-    const apCost = def.disassembleData.apCost || 10;
+    const craftingLevel = engine.player.craftingLvl || 0;
+    const apCost = Math.max(1, (def.disassembleData.apCost || 10) - craftingLevel);
+
     if (engine.player.ap < apCost) {
       addLog("Not enough AP to disassemble this.", 'error');
       playSound('Fail');
@@ -682,7 +684,11 @@ export const InventoryProvider = ({ children }) => {
     if (result.success) {
       if (result.item && !result.placedInGround) {
         // Normal items: add to inventory or drop to ground (Auto-merge crafted items)
-        engine.inventoryManager.addItem(result.item, null, null, null, true);
+        const addResult = engine.inventoryManager.addItem(result.item, null, null, null, true);
+        if (!addResult.success) {
+            addLog(`Crafted ${result.item.name} but could not find space in inventory or on ground!`, 'error');
+            console.error('[InventoryContext] addItem failed for crafted item:', result.item, addResult.reason);
+        }
       }
       
       // DEDUCT AP AND REWARD EXP
@@ -1134,6 +1140,19 @@ export const InventoryProvider = ({ children }) => {
     engine.notifyUpdate();
   }, [addLog, playSound, inventoryPulse]);
 
+  const toggleFireMode = useCallback((item) => {
+    if (!item || !item.availableFireModes || item.availableFireModes.length <= 1) return;
+    
+    const currentIndex = item.availableFireModes.indexOf(item.fireMode);
+    const nextIndex = (currentIndex + 1) % item.availableFireModes.length;
+    item.fireMode = item.availableFireModes[nextIndex];
+    
+    addLog(`${item.name} set to ${item.fireMode} mode.`, 'info');
+    playSound('Click');
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+  }, [addLog, playSound]);
+
   const toggleGenerator = useCallback((generator) => {
     if (!generator) return;
     
@@ -1204,6 +1223,7 @@ export const InventoryProvider = ({ children }) => {
     deploySnare,
     retrieveSnare,
     toggleGenerator,
+    toggleFireMode,
     fuelCampfire,
     fillFromSource,
     detachItemFromWeapon,

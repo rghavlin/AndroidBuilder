@@ -43,6 +43,7 @@ export const AudioProvider = ({ children }) => {
           { name: 'PistolShot', url: 'sounds/pistol.ogg', volume: 0.5 },
           { name: 'ShotgunShot', url: 'sounds/shotgun.ogg', volume: 0.6 },
           { name: 'RifleShot', url: 'sounds/rifle.ogg', volume: 0.5 },
+          { name: 'BurstShot', url: 'sounds/3roundburst.ogg', volume: 0.5 },
           { name: 'ReloadShot', url: 'sounds/reload.ogg', volume: 0.5 },
           { name: 'ZombieSlash', url: 'sounds/slash1.ogg', volume: 0.2 },
           { name: 'DeathBlow', url: 'sounds/deathblow.ogg', volume: 0.6 },
@@ -123,6 +124,7 @@ export const AudioProvider = ({ children }) => {
           'weapon.357Pistol': 'PistolShot',
           'weapon.shotgun': 'ShotgunShot',
           'weapon.hunting_rifle': 'RifleShot',
+          'weapon.battle_rifle': data.isBurst ? 'BurstShot' : 'RifleShot',
           'weapon.sniper_rifle': 'RifleShot',
           'weapon.sling': 'SlingShot'
         };

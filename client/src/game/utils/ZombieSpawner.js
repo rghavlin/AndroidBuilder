@@ -21,6 +21,9 @@ export class ZombieSpawner {
       fatRange = { min: 1, max: 2 },
       firefighterRange = { min: 2, max: 3 },
       swatRange = { min: 2, max: 3 },
+      randomSwatCount = 0,
+      randomFirefighterCount = 0,
+      soldierCount = 0,
       maxTotal = 100
     } = options;
 
@@ -139,6 +142,33 @@ export class ZombieSpawner {
             attempts++;
         }
     }
+
+    // 5.5 Spawn Random Specialized Zombies (past Map 3 interspersement)
+    const randomSpecialized = [
+      { count: randomSwatCount, type: 'swat', label: 'swat' },
+      { count: randomFirefighterCount, type: 'firefighter', label: 'firefighter' },
+      { count: soldierCount, type: 'soldier', label: 'soldier' }
+    ];
+
+    randomSpecialized.forEach(spec => {
+      for (let i = 0; i < spec.count && canSpawnMore(); i++) {
+        let attempts = 0;
+        let spawned = false;
+        while (!spawned && attempts < 50) {
+          const x = Math.floor(Math.random() * mapWidth);
+          const y = Math.floor(Math.random() * mapHeight);
+          const tile = gameMap.getTile(x, y);
+          const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
+          if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
+            if (gameMap.addEntity(new Zombie(`zombie-random-${spec.label}-${Date.now()}-${i}`, x, y, spec.type), x, y)) {
+              spawnedCount++;
+              spawned = true;
+            }
+          }
+          attempts++;
+        }
+      }
+    });
 
     // 6. Spawn Special Zombies in Buildings
     const buildings = gameMap.buildings || gameMap.specialBuildings || [];

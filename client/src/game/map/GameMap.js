@@ -1,6 +1,7 @@
 import { Tile } from './Tile.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
-import { ItemTrait } from '../inventory/traits.js';
+import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from '../inventory/traits.js';
+import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import { EntityType } from '../entities/Entity.js';
 
@@ -17,6 +18,7 @@ export class GameMap {
     this.scentSequenceCounter = 0;
     this.buildings = []; // Standardized building metadata
     this.lowSpots = []; // Phase 25: Designated tiles for water accumulation
+    this.mapNumber = 1;
 
     // Initialize empty map
     this.initializeMap();
@@ -495,17 +497,24 @@ export class GameMap {
    * @param {Player} player - Current player instance for distance checks
    * @param {boolean} isSleeping - Whether the player is currently sleeping
    */
-  processTurn(player = null, isSleeping = false) {
+  processTurn(player = null, isSleeping = false, turn = 1) {
     console.log('[GameMap] Processing turn-based effects...');
     
     // Decay scent trails
     ScentTrail.decayScents(this);
 
+    // Phase 25: Environmental Conditions for Turn Processing
+    const currentHour = (6 + (turn - 1)) % 24;
+    const isDaylight = currentHour >= 6 && currentHour < 20;
+
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
-        const tile = this.tiles[y][x];
-        if (tile.inventoryItems && tile.inventoryItems.length > 0) {
+        const tile = this.getTile(x, y);
+        if (tile && tile.inventoryItems && tile.inventoryItems.length > 0) {
           let itemsModified = false;
+
+          // Determine if this tile is "outdoors"
+          const isOutdoors = ['road', 'sidewalk', 'grass'].includes(tile.terrain);
 
           // --- SNARE CATCHING LOGIC ---
           // Check for deployed snares on grass tiles
@@ -558,7 +567,7 @@ export class GameMap {
           // --- STANDARD EXPIRATION LOGIC ---
           const isTilePowered = tile.inventoryItems.some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn);
           const remainingItems = tile.inventoryItems.filter(itemData => {
-            const turnResult = this._processItemDataTurn(itemData, isTilePowered);
+            const turnResult = this._processItemDataTurn(itemData, isTilePowered, isOutdoors, isDaylight);
             if (turnResult.expired) {
               itemsModified = true;
               console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
@@ -594,7 +603,7 @@ export class GameMap {
    * @param {boolean} isPowered - Whether the item's location has power
    * @returns {Object} - result.expired, result.modified
    */
-  _processItemDataTurn(itemData, isPowered = false) {
+  _processItemDataTurn(itemData, isPowered = false, isOutdoors = false, isDaylight = true) {
     if (!itemData) return { expired: false, modified: false };
 
     let itemExpired = false;
@@ -602,58 +611,31 @@ export class GameMap {
     
     // --- POWER SOURCE LOGIC ---
     if (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) {
-      itemData.ammoCount = Math.max(0, (itemData.ammoCount || 0) - 1);
-      itemModified = true;
-      console.log(`[GameMap] Power source ${itemData.instanceId} at (${itemData.x}, ${itemData.y}) consumed 1 fuel. Remaining: ${itemData.ammoCount}`);
-      
-      if (itemData.ammoCount <= 0) {
-        itemData.isOn = false;
-        console.log(`[GameMap] Power source ${itemData.instanceId} ran out of fuel and turned off.`);
+      if (TurnProcessingUtils.processPowerSource(itemData)) {
+        itemModified = true;
       }
     }
 
     // --- BATTERY CHARGER LOGIC ---
-    if (itemData.defId === 'tool.battery_charger' && isPowered) {
-      if (itemData.containerGrid && itemData.containerGrid.items) {
-        itemData.containerGrid.items.forEach(battery => {
-          const isBattery = battery.traits?.includes(ItemTrait.BATTERY);
-          if (isBattery) {
-            const maxCharge = battery.capacity || 100;
-            if ((battery.ammoCount || 0) < maxCharge) {
-              battery.ammoCount = (battery.ammoCount || 0) + 1;
-              itemModified = true;
-            }
-          }
-        });
+    if (itemData.defId === 'tool.battery_charger') {
+      if (isPowered) {
+        TurnProcessingUtils.chargeBatteries(itemData.containerGrid?.items);
+        itemModified = true;
       }
     }
 
-    // Determine if THIS item provides power to its contents (for nested recursion)
-    const providesInternalPower = isPowered || (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn);
+    // --- SOLAR CHARGER LOGIC ---
+    if (itemData.defId === 'tool.solar_charger') {
+      if (isOutdoors && isDaylight) {
+        TurnProcessingUtils.chargeBatteries(itemData.containerGrid?.items);
+        itemModified = true;
+      }
+    }
 
     // 1. Process own spoilage/lifetime
-    // We check both shelfLife and lifetimeTurns. 
-    // shelfLife usually for food (spoilable), lifetimeTurns for things like campfires (vanishing).
-
-    // Check shelfLife first
-    if (itemData.shelfLife !== undefined && itemData.shelfLife !== null) {
-      itemData.shelfLife -= 1;
-      itemModified = true;
-
-      // If reaches 0, it vanishes or transforms
-      if (itemData.shelfLife <= 0) {
-        itemExpired = true;
-      }
-    }
-
-    // Process lifetimeTurns (e.g. for campfires)
-    if (itemData.lifetimeTurns !== undefined && itemData.lifetimeTurns !== null) {
-      itemData.lifetimeTurns = Math.max(0, itemData.lifetimeTurns - 1);
-      itemModified = true;
-      if (itemData.lifetimeTurns <= 0) {
-        itemExpired = true;
-      }
-    }
+    const decay = TurnProcessingUtils.processDecay(itemData);
+    if (decay.modified) itemModified = true;
+    if (decay.expired) itemExpired = true;
 
     if (itemExpired) {
       if (itemData.transformInto) {
@@ -666,59 +648,68 @@ export class GameMap {
           const y = itemData.y;
           const rotation = itemData.rotation;
 
-          // Replace data contents with new definition
           const newItemData = createItemFromDef(nextDefId);
           Object.keys(itemData).forEach(key => delete itemData[key]);
           Object.assign(itemData, newItemData);
 
-          // Restore identity and position
           itemData.instanceId = instanceId;
           itemData.x = x;
           itemData.y = y;
           itemData.rotation = rotation;
 
-          return { expired: false, modified: true }; // Item transformed, do not remove, but was modified
+          return { expired: false, modified: true };
         }
       }
       return { expired: true, modified: true };
     }
 
-    // 2. Recurse into attachments
-    if (itemData.attachments) {
-      for (const slotId in itemData.attachments) {
-        const nestedResult = this._processItemDataTurn(itemData.attachments[slotId], providesInternalPower);
-        if (nestedResult.modified) itemModified = true;
-        if (nestedResult.expired) {
-          console.log(`[GameMap] Nested attachment ${itemData.attachments[slotId].name} expired inside ${itemData.name}`);
-          delete itemData.attachments[slotId];
-        }
-      }
-    }
+    // Determine if THIS item provides power to its contents (for nested recursion)
+    const providesInternalPower = isPowered || (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn);
 
-    // 3. Recurse into container grid
-    if (itemData.containerGrid && itemData.containerGrid.items) {
-      itemData.containerGrid.items = itemData.containerGrid.items.filter(nestedItem => {
-        const nestedResult = this._processItemDataTurn(nestedItem, providesInternalPower);
-        if (nestedResult.modified) itemModified = true;
-        if (nestedResult.expired) {
-          console.log(`[GameMap] Nested item ${nestedItem.name} expired inside ${itemData.name} container`);
+    // --- RECURSION ---
+    
+    // Attachments
+    if (itemData.attachments) {
+      Object.keys(itemData.attachments).forEach(slotId => {
+        const att = itemData.attachments[slotId];
+        if (att) {
+          const res = this._processItemDataTurn(att, providesInternalPower, isOutdoors, isDaylight);
+          if (res.expired) {
+            itemData.attachments[slotId] = null;
+            itemModified = true;
+          } else if (res.modified) {
+            itemModified = true;
+          }
         }
-        return !nestedResult.expired;
       });
     }
 
-    // 4. Recurse into pockets
+    // Container grid
+    if (itemData.containerGrid && itemData.containerGrid.items) {
+      const remainingNested = itemData.containerGrid.items.filter(nested => {
+        const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
+        if (res.modified) itemModified = true;
+        return !res.expired;
+      });
+      if (remainingNested.length !== itemData.containerGrid.items.length) {
+        itemData.containerGrid.items = remainingNested;
+        itemModified = true;
+      }
+    }
+
+    // Pocket grids
     if (itemData.pocketGrids) {
       itemData.pocketGrids.forEach(pocket => {
         if (pocket.items) {
-          pocket.items = pocket.items.filter(pocketItem => {
-            const nestedResult = this._processItemDataTurn(pocketItem, providesInternalPower);
-            if (nestedResult.modified) itemModified = true;
-            if (nestedResult.expired) {
-              console.log(`[GameMap] Nested item ${pocketItem.name} expired inside ${itemData.name} pocket`);
-            }
-            return !nestedResult.expired;
+          const remainingInPocket = pocket.items.filter(nested => {
+            const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
+            if (res.modified) itemModified = true;
+            return !res.expired;
           });
+          if (remainingInPocket.length !== pocket.items.length) {
+            pocket.items = remainingInPocket;
+            itemModified = true;
+          }
         }
       });
     }
@@ -984,5 +975,14 @@ export class GameMap {
 
     console.log('[GameMap] Restored from JSON with', gameMap.entityMap.size, 'entities');
     return gameMap;
+  }
+
+  /**
+   * Internal helper to charge batteries inside a charger POJO
+   * @deprecated - Logic moved to TurnProcessingUtils.chargeBatteries
+   */
+  _chargeBatteries(chargerData) {
+    if (!chargerData.containerGrid) return;
+    TurnProcessingUtils.chargeBatteries(chargerData.containerGrid.items);
   }
 }

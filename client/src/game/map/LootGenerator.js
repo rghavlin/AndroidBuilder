@@ -2,6 +2,13 @@ import { Item } from '../inventory/Item.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
 import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES } from './LootTables.js';
+import { ZombieTypes } from '../entities/ZombieTypes.js';
+
+const LOOT_CONSTANTS = {
+    GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
+    FUEL_COVER_OFFSET: 3,
+    WATER_BOTTLE_RESTRICTION_MAP: 3,
+};
 
 /**
  * LootGenerator - Handles random item spawning on maps
@@ -26,14 +33,14 @@ export class LootGenerator {
     /**
      * Spawn loot on the provided game map
      */
-    spawnLoot(gameMap) {
+    spawnLoot(gameMap, mapNumber = 1) {
         this.initItemKeys();
         this.backpacksSpawned = 0;
 
         // 1. Identify special buildings and spawn specialized loot
         if (gameMap.specialBuildings) {
             gameMap.specialBuildings.forEach(building => {
-                this.spawnSpecialLoot(gameMap, building);
+                this.spawnSpecialLoot(gameMap, building, mapNumber);
             });
         }
 
@@ -81,7 +88,7 @@ export class LootGenerator {
                 const nonDoorTiles = buildingTiles.filter(pos => !this.isNearDoor(gameMap, pos.x, pos.y));
                 const selectedTiles = this.getRandomSubarray(nonDoorTiles, dropCount);
                 selectedTiles.forEach(pos => {
-                    const items = this.generateRandomItems('inside');
+                    const items = this.generateRandomItems('inside', mapNumber);
                     if (items.length > 0) {
                         gameMap.setItemsOnTile(pos.x, pos.y, items);
                     }
@@ -126,7 +133,7 @@ export class LootGenerator {
         const selectedOutdoor = this.getRandomSubarray(outdoorTiles, outdoorDropCount);
 
         selectedOutdoor.forEach(pos => {
-            const items = this.generateRandomItems('outside');
+            const items = this.generateRandomItems('outside', mapNumber);
             if (items.length > 0) {
                 gameMap.setItemsOnTile(pos.x, pos.y, items);
             }
@@ -157,7 +164,7 @@ export class LootGenerator {
         this.spawnGenerator(gameMap);
 
         // 4. Final Pass: Apply map-wide unique loot rules
-        this.applyMapWideUniqueRules(gameMap);
+        this.applyMapWideUniqueRules(gameMap, mapNumber);
     }
 
     /**
@@ -323,7 +330,7 @@ export class LootGenerator {
                 if (generatorData) {
                     const generator = Item.fromJSON(generatorData);
                     // Generators spawn with a small amount of fuel (0-5)
-                    generator.ammoCount = Math.floor(Math.random() * 6);
+                    generator.ammoCount = Math.floor(Math.random() * LOOT_CONSTANTS.GENERATOR_SPAWN_FUEL_MAX);
                     gameMap.setItemsOnTile(spawnX, spawnY, [generator]);
                     console.log(`[LootGenerator] Spawned Generator behind building at (${spawnX}, ${spawnY})`);
                     return; // Spawn only one
@@ -376,9 +383,13 @@ export class LootGenerator {
     /**
      * Pick a random item key from the catalog using weighted rarity and location filters
      */
-    getWeightedRandomItemKey(location = 'any') {
+    getWeightedRandomItemKey(location = 'any', mapNumber = 1, options = {}) {
         this.initItemKeys();
         const filteredKeys = this.itemKeys.filter(key => {
+            // After map 3, water bottles only spawn in allowed locations
+            if (mapNumber > LOOT_CONSTANTS.WATER_BOTTLE_RESTRICTION_MAP && key === 'food.waterbottle' && !options.allowWaterBottle) {
+                return false;
+            }
             const def = ItemDefs[key];
             if (def.spawnBias && def.spawnBias[location] === 0) return false;
             return true;
@@ -416,7 +427,7 @@ export class LootGenerator {
     /**
      * Generate 1-3 random items with rarity and limits
      */
-    generateRandomItems(location = 'any') {
+    generateRandomItems(location = 'any', mapNumber = 1, options = {}) {
         const count = 1 + Math.floor(Math.random() * 3);
         const items = [];
         let hasFoodInPile = false;
@@ -424,7 +435,7 @@ export class LootGenerator {
 
         for (let i = 0; i < count; i++) {
             // Pick a weighted random item
-            const randomKey = this.getWeightedRandomItemKey(location);
+            const randomKey = this.getWeightedRandomItemKey(location, mapNumber, options);
             const def = ItemDefs[randomKey];
 
             // 1. Map-wide limit: Max 1 backpack per map
@@ -459,13 +470,13 @@ export class LootGenerator {
     /**
      * Spawn specialized loot in a special building
      */
-    spawnSpecialLoot(gameMap, building) {
+    spawnSpecialLoot(gameMap, building, mapNumber = 1) {
         const { type, x, y, width, height } = building;
         
         // Fuel Cover Spawning for Gas Stations
         if (type === 'gas_station') {
             const isLeft = building.isLeft;
-            const coverX = isLeft ? x + width : x - 3;
+            const coverX = isLeft ? x + width : x - LOOT_CONSTANTS.FUEL_COVER_OFFSET;
             const coverY = y;
             
             const coverData = createItemFromDef('furniture.fuel_cover');
@@ -529,7 +540,7 @@ export class LootGenerator {
             
             // Standard indoor loot base for police and fire stations
             if (type === 'police' || type === 'firestation') {
-                items = this.generateRandomItems('inside');
+                items = this.generateRandomItems('inside', mapNumber, { allowWaterBottle: type === 'firestation' });
             }
 
             // Guaranteed drops for some buildings on the first tile
@@ -707,56 +718,56 @@ export class LootGenerator {
      * Rare (10%): Any ammo, knife, lighter, matches
      * Extremely rare (5%): 9mm pistol, 357 pistol, Flashlight
      */
+
+    /**
+     * Helper to handle water bottle restriction for map progression
+     */
+    _getProcessedLootKey(key, mapNumber) {
+        if (mapNumber > LOOT_CONSTANTS.WATER_BOTTLE_RESTRICTION_MAP && key === 'food.waterbottle') {
+            // If water bottle is picked after map 3, swap it for chips or granola bar
+            return Math.random() < 0.5 ? 'food.chips' : 'food.granolabar';
+        }
+        return key;
+    }
+
     /**
      * Generate loot for a zombie when it's killed.
      * @param {string} subtype - The zombie's subtype ('basic', 'crawler', 'firefighter')
      * @returns {Array} - Array of Item instances
      */
-    generateZombieLoot(subtype = 'basic') {
+    generateZombieLoot(subtype = 'basic', mapNumber = 1) {
         this.initItemKeys();
         const itemCount = Math.random() < 0.5 ? 1 : 2;
         const items = [];
         let hasBeltInLoot = false;
 
+        const tableKey = ZombieTypes[subtype]?.lootTable || 'basic';
+
         for (let i = 0; i < itemCount; i++) {
             let selectedKey = null;
 
-            if (subtype === 'firefighter') {
-                const firefighterRoll = Math.random();
-                if (firefighterRoll < 0.3) {
-                    const specializedKeys = ZOMBIE_LOOT.firefighter.specialized;
-                    selectedKey = specializedKeys[Math.floor(Math.random() * specializedKeys.length)];
-                } else if (firefighterRoll < 0.6) {
-                    const medicalKeys = ZOMBIE_LOOT.firefighter.medical;
-                    selectedKey = medicalKeys[Math.floor(Math.random() * medicalKeys.length)];
-                } else if (firefighterRoll < 0.8) {
-                    selectedKey = 'food.waterbottle';
-                } else {
-                    // Fall back to common items for remaining chance
-                    const commonKeys = ZOMBIE_LOOT.firefighter.common;
-                    selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
-                }
-            } else if (subtype === 'swat') {
-                const swatRoll = Math.random();
-                if (swatRoll < 0.4) {
-                    const swatGear = ZOMBIE_LOOT.swat.gear;
-                    selectedKey = swatGear[Math.floor(Math.random() * swatGear.length)];
-                } else if (swatRoll < 0.8) {
-                    const ammoKeys = ZOMBIE_LOOT.swat.ammo;
-                    selectedKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
-                } else {
-                    selectedKey = 'food.waterbottle';
-                }
-            } else if (subtype === 'soldier') {
-                const soldierRoll = Math.random();
-                if (soldierRoll < 0.4) {
-                    const soldierGear = ZOMBIE_LOOT.soldier.gear;
-                    selectedKey = soldierGear[Math.floor(Math.random() * soldierGear.length)];
-                } else if (soldierRoll < 0.8) {
-                    const ammoKeys = ZOMBIE_LOOT.soldier.ammo;
-                    selectedKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
-                } else {
-                    selectedKey = 'food.waterbottle';
+            if (tableKey !== 'basic') {
+                const table = ZOMBIE_LOOT[tableKey];
+                const roll = Math.random();
+
+                if (tableKey === 'firefighter') {
+                    if (roll < 0.3) {
+                        selectedKey = table.specialized[Math.floor(Math.random() * table.specialized.length)];
+                    } else if (roll < 0.6) {
+                        selectedKey = table.medical[Math.floor(Math.random() * table.medical.length)];
+                    } else if (roll < 0.8) {
+                        selectedKey = this._getProcessedLootKey('food.waterbottle', mapNumber);
+                    } else {
+                        selectedKey = table.common[Math.floor(Math.random() * table.common.length)];
+                    }
+                } else if (tableKey === 'swat' || tableKey === 'soldier') {
+                    if (roll < 0.4) {
+                        selectedKey = table.gear[Math.floor(Math.random() * table.gear.length)];
+                    } else if (roll < 0.8) {
+                        selectedKey = table.ammo[Math.floor(Math.random() * table.ammo.length)];
+                    } else {
+                        selectedKey = this._getProcessedLootKey('food.waterbottle', mapNumber);
+                    }
                 }
             } else {
                 const tierRoll = Math.random();
@@ -768,9 +779,10 @@ export class LootGenerator {
                     });
                     selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
                 } else if (tierRoll < 0.85) {
-                    // Uncommon: granola bar, chips, water bottle (small amount), soft drink, energy drink, bandage, antibiotics
+                    // Uncommon: granola bar, chips, water bottle, etc.
                     const uncommonKeys = ZOMBIE_LOOT.uncommon;
-                    selectedKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
+                    const rawKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
+                    selectedKey = this._getProcessedLootKey(rawKey, mapNumber);
                 } else if (tierRoll < 0.95) {
                     // Rare: Any ammo, knife, lighter, matches
                     const rareKeys = this.itemKeys.filter(key => {
@@ -861,7 +873,11 @@ export class LootGenerator {
         // 2. Ammo / Charge / Water Randomization
         if (def.spawnAmmoPercent !== undefined && item.capacity) {
             // Apply randomized fill based on capacity
-            item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
+            if (def.spawnAmmoPercent === 1.0) {
+                item.ammoCount = item.capacity;
+            } else {
+                item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
+            }
         } else if (item.traits && item.traits.includes(ItemTrait.BATTERY)) {
             // Batteries always spawn as a single item with a FULL charge
             item.ammoCount = item.capacity || 10;
@@ -954,7 +970,7 @@ export class LootGenerator {
      * Final pass logic to ensure specific rare items spawn exactly once map-wide.
      * Items are added to existing loot piles to ensure they are found in logical locations.
      */
-    applyMapWideUniqueRules(gameMap) {
+    applyMapWideUniqueRules(gameMap, mapNumber = 1) {
         if (!gameMap) return;
         
         // 1. Collect all tiles that currently have loot
@@ -973,12 +989,29 @@ export class LootGenerator {
             return;
         }
 
-        // 2. Define unique items to spawn exactly once
+        // 2. Define unique items to spawn
         const uniqueSpawns = MAP_WIDE_UNIQUES;
+        let spawnsToProcess = [...uniqueSpawns];
 
-        console.log(`[LootGenerator] Applying map-wide rules for ${uniqueSpawns.length} unique items...`);
+        // NEW RULE: After Map 2, spawn only 1 of either, rather than 1 of each.
+        // After Map 5, reduce the chance of even 1 of them spawning to 75%.
+        if (mapNumber > 2) {
+            // Pick exactly one from the list
+            const picked = spawnsToProcess[Math.floor(Math.random() * spawnsToProcess.length)];
+            spawnsToProcess = [picked];
 
-        uniqueSpawns.forEach(config => {
+            // Map 5+ reduction check
+            if (mapNumber > 5) {
+                if (Math.random() > 0.75) {
+                    spawnsToProcess = [];
+                    console.log(`[LootGenerator] Map ${mapNumber} > 5: Skipped unique item spawn (75% chance)`);
+                }
+            }
+        }
+
+        console.log(`[LootGenerator] Applying map-wide rules for ${spawnsToProcess.length} items (Map ${mapNumber})...`);
+
+        spawnsToProcess.forEach(config => {
             // Pick a random existing loot pile
             const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
             const item = createItemFromDef(config.defId);

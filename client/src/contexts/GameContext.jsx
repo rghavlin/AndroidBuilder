@@ -656,6 +656,9 @@ const GameContextInner = ({ children }) => {
       if (initManagerRef.current.reset) {
         initManagerRef.current.reset();
       }
+      
+      // Phase 25/Power Fix: Reset the global engine state to clear transient states like 'dragging'
+      engine.reset();
 
       setInitializationState('idle');
       wireManagerEvents(initManagerRef.current, runIdRef.current);
@@ -845,12 +848,14 @@ const GameContextInner = ({ children }) => {
       // Process map-level turn effects (e.g. campfire expiration) EARLY 
       // This ensures 0.5 turns vanish as soon as player hits endTurn.
       if (gameMap && gameMap.processTurn) {
-        gameMap.processTurn(player, engine.isSleeping);
+        gameMap.processTurn(player, engine.isSleeping, turn);
       }
 
       // Also process turn effects for items currently in the active ground container
       if (inventoryManager && inventoryManager.processTurn) {
-        inventoryManager.processTurn();
+        const playerTile = gameMap.getTile(player.x, player.y);
+        const isPlayerOutdoors = playerTile ? ['road', 'sidewalk', 'grass'].includes(playerTile.terrain) : false;
+        inventoryManager.processTurn(turn, isPlayerOutdoors);
       }
 
       setIsPlayerTurn(false);

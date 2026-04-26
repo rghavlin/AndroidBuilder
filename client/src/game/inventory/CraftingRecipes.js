@@ -22,8 +22,8 @@ export const CraftingRecipes = [
         ],
         ingredients: [
             { id: 'crafting.wheel', count: 4 },
-            { id: 'crafting.plank', count: 6 },
-            { id: 'crafting.nails', count: 6 },
+            { id: 'weapon.plank', count: 6 },
+            { id: 'crafting.nail', count: 6 },
             { id: 'weapon.metal_rod', count: 2 }
         ]
     },
@@ -245,6 +245,21 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'cooking.cooked_vegetables',
+        name: 'Cooked vegetables',
+        resultItem: 'food.cooked_vegetables',
+        description: 'Pan-seared or boiled vegetables. A simple and nutritious meal.',
+        apCost: 4,
+        tab: 'cooking',
+        requiresCampfire: true,
+        tools: [
+            { category: ItemCategory.COOKING_POT, label: 'Any Cooking Pot' }
+        ],
+        ingredients: [
+            { category: ItemCategory.VEGETABLE, count: 1, label: 'Any Vegetables (Max 4)' }
+        ]
+    },
+    {
         id: 'cooking.cooked_meat',
         name: 'Cooked meat',
         resultItem: 'food.cooked_meat',
@@ -342,6 +357,22 @@ export const CraftingRecipes = [
             { id: 'weapon.plank', count: 4 },
             { id: 'crafting.nail', count: 4 },
             { id: 'crafting.soil', count: 1 }
+        ]
+    },
+    {
+        id: 'crafting.solar_charger',
+        name: 'Solar charger',
+        resultItem: 'tool.solar_charger',
+        description: 'A sustainable battery charging station. Requires daylight and outdoor placement to function.',
+        apCost: 20,
+        tab: 'crafting',
+        tools: [
+            { id: 'tool.pliers', label: 'Pliers' }
+        ],
+        ingredients: [
+            { id: 'crafting.solar_panel', count: 1 },
+            { id: 'tool.battery_charger', count: 1 },
+            { id: 'crafting.wire', count: 2 }
         ]
     }
 ];

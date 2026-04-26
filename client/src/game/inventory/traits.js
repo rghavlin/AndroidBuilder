@@ -3,6 +3,13 @@
  * Item Trait System - Defines item capabilities and properties
  */
 
+export const FireMode = {
+  SINGLE: 'single',
+  BURST: 'burst',
+  AUTO: 'auto'
+};
+
+
 
 // Equipment slot definitions (exactly these)
 export const EquipmentSlot = {

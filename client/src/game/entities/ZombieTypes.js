@@ -17,7 +17,8 @@ export const ZombieTypes = {
     sightRange: 15,
     moveCostMultiplier: 1.0,
     spriteKey: 'zombie',
-    combat: { damage: { min: 1, max: 4 } }
+    combat: { damage: { min: 1, max: 4 } },
+    lootTable: 'basic'
   },
   runner: {
     name: 'Runner',
@@ -27,7 +28,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 0.5,
     canPassWindows: true,
     spriteKey: 'runnerzombie',
-    combat: { damage: { min: 1, max: 4 } }
+    combat: { damage: { min: 1, max: 4 } },
+    lootTable: 'basic'
   },
   crawler: {
     name: 'Crawler',
@@ -37,7 +39,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: false,
     spriteKey: 'crawlerzombie',
-    combat: { damage: { min: 1, max: 4 } }
+    combat: { damage: { min: 1, max: 4 } },
+    lootTable: 'basic'
   },
   fat: {
     name: 'Fat Zombie',
@@ -47,7 +50,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.5,
     canPassWindows: true,
     spriteKey: 'fatzombie',
-    combat: { damage: { min: 3, max: 6 } }
+    combat: { damage: { min: 3, max: 6 } },
+    lootTable: 'basic'
   },
   soldier: {
     name: 'Soldier Zombie',
@@ -57,7 +61,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'soldierzombie',
-    combat: { damage: { min: 1, max: 4 } }
+    combat: { damage: { min: 1, max: 4 } },
+    lootTable: 'soldier'
   },
   firefighter: {
     name: 'Firefighter Zombie',
@@ -67,7 +72,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'firefighterzombie',
-    combat: { damage: { min: 1, max: 4 } }
+    combat: { damage: { min: 1, max: 4 } },
+    lootTable: 'firefighter'
   },
   swat: {
     name: 'SWAT Zombie',
@@ -77,7 +83,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'swatzombie',
-    combat: { damage: { min: 1, max: 4 } }
+    combat: { damage: { min: 1, max: 4 } },
+    lootTable: 'swat'
   },
   acid: {
     name: 'Acid Zombie',
@@ -87,7 +94,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'acidzombie',
-    combat: { damage: { min: 2, max: 5 } }
+    combat: { damage: { min: 2, max: 5 } },
+    lootTable: 'basic'
   }
 };
 

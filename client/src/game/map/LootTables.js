@@ -27,15 +27,16 @@ export const SPECIAL_BUILDING_LOOT = {
     ],
     firestation: {
         medical: ['medical.bandage', 'medical.antibiotics'],
-        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench']
+        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench', 'tool.battery_charger']
     },
     police: {
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.308', 'ammo.shotgun_shells'],
         guns: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun']
     },
     army_tent: {
-        ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells'],
-        mods: ['attachment.suppressor', 'attachment.lasersight', 'attachment.riflescope']
+        ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells', 'ammo.556'],
+        mods: ['attachment.suppressor', 'attachment.lasersight', 'attachment.riflescope'],
+        guns: ['weapon.battle_rifle']
     }
 };
 
@@ -50,8 +51,8 @@ export const ZOMBIE_LOOT = {
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.shotgun_shells', 'ammo.308']
     },
     soldier: {
-        gear: ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.police_shirt', 'clothing.military_shirt'],
-        ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells']
+        gear: ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.military_shirt', 'weapon.battle_rifle'],
+        ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells', 'ammo.556']
     },
     uncommon: [
         'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.energydrink',

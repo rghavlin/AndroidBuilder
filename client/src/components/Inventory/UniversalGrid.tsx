@@ -826,7 +826,11 @@ export default function UniversalGrid({
 
   return (
     <div
-      className={cn("flex flex-col", gridType === 'fixed' ? 'flex-shrink-0' : 'h-full', className)}
+      className={cn(
+        "flex flex-col", 
+        (gridType === 'fixed' && !enableScroll) ? 'flex-shrink-0' : 'flex-1 min-h-0', 
+        className
+      )}
       data-inventory-ui="true"
     >
       {title && (
@@ -837,21 +841,17 @@ export default function UniversalGrid({
 
       <div
         className={cn(
-          gridType === 'fixed' ? 'flex-shrink-0' : 'flex-1 min-h-0'
+          "w-full",
+          (gridType === 'scalable' || enableScroll) ? 'overflow-auto custom-scrollbar' : 'overflow-visible'
         )}
         style={{
-          maxHeight: gridType === 'fixed' ? 'none' : maxHeight,
-          maxWidth: gridType === 'fixed' ? 'none' : maxWidth,
-          width: gridType === 'fixed' ? `${totalGridWidth}px` : undefined,
-          height: gridType === 'fixed' ? `${totalGridHeight}px` : undefined,
+          maxHeight: enableScroll ? maxHeight : 'none',
+          maxWidth: gridType === 'fixed' ? `${totalGridWidth + (enableScroll ? 16 : 0)}px` : maxWidth,
+          width: gridType === 'fixed' ? `${totalGridWidth + (enableScroll ? 16 : 0)}px` : undefined,
+          height: (gridType === 'fixed' && !enableScroll) ? `${totalGridHeight}px` : undefined,
         }}
       >
-        <div className={cn(
-          "h-full w-full flex items-start justify-start",
-          gridType === 'scalable' ? 'overflow-auto custom-scrollbar' : 'overflow-visible'
-        )}>
-          {renderGrid()}
-        </div>
+        {renderGrid()}
       </div>
     </div>
   );

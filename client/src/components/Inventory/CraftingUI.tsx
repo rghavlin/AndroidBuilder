@@ -376,7 +376,7 @@ export default function CraftingUI() {
                                                     onClick={handleCraft}
                                                     disabled={!craftingStatus.canCraft}
                                                     className={cn(
-                                                        "w-28 h-8 text-[10px] font-bold shadow-lg transition-all",
+                                                        "w-24 h-8 text-[10px] font-bold shadow-lg transition-all",
                                                         "bg-primary hover:bg-primary/90"
                                                     )}
                                                 >
@@ -393,7 +393,11 @@ export default function CraftingUI() {
                                         {/* Right Column: Ingredients Grid */}
                                         <div className="flex flex-col items-center gap-1.5">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 font-mono">Ingredients Workspace</span>
-                                            <ContainerGrid containerId={activeTab === 'cooking' ? "cooking-ingredients" : "crafting-ingredients"} />
+                                            <ContainerGrid 
+                                                containerId={activeTab === 'cooking' ? "cooking-ingredients" : "crafting-ingredients"} 
+                                                enableScroll={activeTab === 'crafting'}
+                                                maxHeight="400px"
+                                            />
                                         </div>
                                     </div>
                                 </div>

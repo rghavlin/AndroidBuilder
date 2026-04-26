@@ -226,8 +226,9 @@ export const SleepProvider = ({ children }) => {
         setSleepProgress(prev => prev - 1);
         engine.sleepProgress = Math.max(0, engine.sleepProgress);
 
-        gameMap.processTurn();
-        engine.inventoryManager?.processTurn();
+        const isPlayerOutdoors = !checkIsSheltered(player, gameMap);
+        gameMap.processTurn(player, true, currentTurn);
+        engine.inventoryManager?.processTurn(currentTurn, isPlayerOutdoors);
 
         // Phase 25: Ensure weather updates while sleeping
         if (engine.weatherManager) {

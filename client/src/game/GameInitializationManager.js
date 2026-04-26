@@ -370,8 +370,8 @@ class GameInitializationManager extends EventEmitter {
 
     // Initial map typically has more zombies or specific distribution
     return ZombieSpawner.spawnZombies(gameMap, player, {
-      basicCount: 15,
-      crawlerRange: { min: 2, max: 4 },
+      basicCount: 18,
+      crawlerRange: { min: 3, max: 6 },
       runnerCount: 1, // Only 1 runner on first map
       acidRange: { min: 0, max: 0 },
       fatRange: { min: 0, max: 0 }

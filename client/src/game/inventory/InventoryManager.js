@@ -2,7 +2,8 @@ import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { ItemDefs, createItemFromDef } from './ItemDefs.js';
 import { GroundManager } from './GroundManager.js';
-import { ItemTrait, EquipmentSlot, ItemCategory } from './traits.js';
+import { EquipmentSlot, ItemTrait, ItemCategory, Rarity, FireMode } from './traits.js';
+import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { CraftingManager } from './CraftingManager.js';
 import audioManager from '../utils/AudioManager.js';
@@ -63,7 +64,7 @@ export class InventoryManager extends SafeEventEmitter {
       type: 'crafting-workspace',
       name: 'Ingredient Grid',
       width: 5,
-      height: 6
+      height: 20
     }));
 
     // Cooking Workspace
@@ -1585,7 +1586,7 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     // Try ground as last resort
-    if (this.groundContainer.addItem(item, preferredX, preferredY, allowStacking)) {
+    if (this.groundManager.addItemSmart(item, preferredX, preferredY)) {
       this.emit('inventoryChanged');
       return { success: true, container: 'ground' };
     }
@@ -2311,143 +2312,6 @@ export class InventoryManager extends SafeEventEmitter {
   /**
    * Create InventoryManager from JSON data
    */
-  /**
-   * Process turn-based effects on items in managed containers (e.g. ground pile when player is on tile).
-   * This ensures campfires and other time-sensitive items expire even when "checked out" from the map.
-   */
-  processTurn() {
-    console.debug('[InventoryManager] Processing turn-based effects for all items...');
-    let itemsChanged = false;
-
-    // Helper to process an item and handle expiration (removal)
-    const processItemAndCheckExpiration = (item, container = null) => {
-      if (!item) return false;
-      const wasSpoiled = item.isSpoiled;
-
-      // Call item's own turn processing (decrements shelfLife, etc.)
-      const oldTurns = item.lifetimeTurns;
-      item.processTurn();
-      if (item.lifetimeTurns !== oldTurns) {
-        console.log(`[InventoryManager] Item ${item.name} growth progress: ${oldTurns} -> ${item.lifetimeTurns}`);
-      }
-
-      // If it just spoiled, we need to refresh UI
-      if (!wasSpoiled && item.isSpoiled) {
-        itemsChanged = true;
-      }
-
-      // Handle Expiration (Vanishing)
-      const isShelfLifeExpired = item.shelfLife !== null && item.shelfLife <= 0 && !item.isSpoilable();
-      const isLifetimeTurnsExpired = item.lifetimeTurns !== null && item.lifetimeTurns <= 0;
-
-      if (isShelfLifeExpired || isLifetimeTurnsExpired) {
-        if (item.transformInto) {
-          const newDefId = item.transformInto;
-          const newItemData = createItemFromDef(newDefId);
-          console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) transforming into ${newDefId} at (${item.x}, ${item.y}).`);
-          
-          if (container) {
-            const x = item.x;
-            const y = item.y;
-            const rotation = item.rotation;
-            container.removeItem(item.instanceId);
-            
-            const newItem = Item.fromJSON(newItemData);
-            newItem.rotation = rotation;
-            container.addItem(newItem, x, y);
-          } else {
-            // Transform in equipment slot
-            for (const slot in this.equipment) {
-              if (this.equipment[slot] === item) {
-                const newItem = Item.fromJSON(newItemData);
-                this.equipment[slot] = newItem;
-                newItem.isEquipped = true;
-                item.isEquipped = false;
-                break;
-              }
-            }
-          }
-          itemsChanged = true;
-          return true;
-        }
-
-        console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired and vanished (ShelfLife: ${item.shelfLife}, Lifetime: ${item.lifetimeTurns}).`);
-        if (container) {
-          container.removeItem(item.instanceId);
-        } else {
-          for (const slot in this.equipment) {
-            if (this.equipment[slot] === item) {
-              this.equipment[slot] = null;
-              item.isEquipped = false;
-              break;
-            }
-          }
-        }
-        itemsChanged = true;
-        return true; 
-      }
-
-      // RECURSIVE: Process nested and attached items
-      // Use getContainerGrid() (not item.containerGrid) to force lazy initialization.
-      // Without this, a planter box that has never been "opened" has a null containerGrid
-      // and its plants are never processed during turn ticks.
-      const containerGrid = item.getContainerGrid?.();
-      if (containerGrid) {
-        const nestedItems = containerGrid.getAllItems();
-        if (nestedItems.length > 0) {
-          itemsChanged = true;
-        }
-        nestedItems.forEach(nestedItem => {
-          processItemAndCheckExpiration(nestedItem, containerGrid);
-        });
-      }
-      if (item.attachments) {
-        Object.values(item.attachments).forEach(attachedItem => {
-          if (attachedItem) processItemAndCheckExpiration(attachedItem);
-        });
-      }
-      if (item.pocketGrids) {
-        item.pocketGrids.forEach(pocket => {
-          pocket.getAllItems().forEach(pocketItem => {
-            processItemAndCheckExpiration(pocketItem, pocket);
-          });
-        });
-      }
-
-      return false; 
-    };
-
-    // 1. Process only ROOT containers (ground, player inventory).
-    // Skip any container that has an ownerId, because those items will call processTurn
-    // recursively on their own contents.
-    for (const container of this.containers.values()) {
-      if (container.isVirtual) continue; // Skip virtual UI containers
-      if (container.ownerId) {
-        console.debug(`[InventoryManager] Skipping item-owned container ${container.id} to avoid double-processing`);
-        continue;
-      }
-
-      const items = container.getAllItems();
-      items.forEach(item => {
-        if (processItemAndCheckExpiration(item, container)) {
-          // Item removed, handled in helper
-        }
-      });
-    }
-
-    // 2. Process equipment (only root level items that aren't in containers)
-    Object.values(this.equipment).forEach(item => {
-      if (item) {
-        processItemAndCheckExpiration(item);
-      }
-    });
-
-    if (itemsChanged) {
-      this.updateDynamicContainers(); // Refresh if equipment changed
-      this.emit('inventoryChanged');
-    }
-  }
-
   static fromJSON(data) {
     const manager = new InventoryManager();
 
@@ -2496,18 +2360,21 @@ export class InventoryManager extends SafeEventEmitter {
    * Process per-turn effects for all items managed by the inventory system.
    * This includes equipment, the ground container, and all nested containers.
    */
-  processTurn() {
+  processTurn(turn = 1, isOutdoors = false) {
     console.log('[InventoryManager] Processing turn for all items...');
     
-    // 1. Process equipment slots
+    const currentHour = (6 + (turn - 1)) % 24;
+    const isDaylight = currentHour >= 6 && currentHour < 20;
+
+    // 1. Process equipment slots (this handles backpacks, pockets, and nested items)
     Object.values(this.equipment).forEach(item => {
-      if (item) this._processItemTurnRecursive(item);
+      if (item) this._processItemTurnRecursive(item, isOutdoors, isDaylight, true);
     });
 
     // 2. Process ground container
     // Items on the ground are managed by this container while the player is near
     this.groundContainer.getAllItems().forEach(item => {
-      this._processItemTurnRecursive(item);
+      this._processItemTurnRecursive(item, isOutdoors, isDaylight, false);
     });
     
     this.emit('inventoryChanged');
@@ -2517,34 +2384,62 @@ export class InventoryManager extends SafeEventEmitter {
    * Recursive helper to apply turn effects to an item and its contents
    * @private
    */
-  _processItemTurnRecursive(item) {
+  _processItemTurnRecursive(item, isOutdoors = false, isDaylight = true, isInPlayerInventory = false) {
     if (!item) return;
+
+    // --- EXPIRATION / TRANSFORMATION LOGIC ---
+    // Decelerate shelfLife and lifetimeTurns
+    const oldShelfLife = item.shelfLife;
+    const oldLifetime = item.lifetimeTurns;
+    
+    item.processTurn(); // Standard item-level tick
+
+    if (item.shelfLife !== oldShelfLife || item.lifetimeTurns !== oldLifetime) {
+      // Check for expiration
+      const isExpired = (item.shelfLife !== null && item.shelfLife <= 0 && !item.isSpoilable()) || 
+                       (item.lifetimeTurns !== null && item.lifetimeTurns <= 0);
+      
+      if (isExpired) {
+        if (item.transformInto) {
+          const nextDefId = item.transformInto;
+          const nextDef = ItemDefs[nextDefId];
+          if (nextDef) {
+            console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) transforming into ${nextDefId}`);
+            // Direct def swapping on the instance (safe since we're in processTurn)
+            Object.assign(item, nextDef);
+            item.instanceId = item.instanceId; // preserve identity
+            item.shelfLife = nextDef.shelfLife;
+            item.lifetimeTurns = nextDef.lifetimeTurns;
+          }
+        } else {
+          // No transformation: destroy the item
+          console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired and vanished.`);
+          this.destroyItem(item.instanceId);
+        }
+      }
+    }
 
     // --- POWER SOURCE LOGIC ---
     if (item.hasTrait(ItemTrait.POWER_SOURCE) && item.isOn) {
-      item.ammoCount = Math.max(0, (item.ammoCount || 0) - 1);
-      console.log(`[InventoryManager] Power source ${item.instanceId} consumed 1 fuel. Remaining: ${item.ammoCount}`);
-      
-      if (item.ammoCount <= 0) {
-        item.isOn = false;
-        console.log(`[InventoryManager] Power source ${item.instanceId} ran out of fuel and turned off.`);
-      }
+      TurnProcessingUtils.processPowerSource(item);
     }
 
     // --- BATTERY CHARGER LOGIC ---
     if (item.defId === 'tool.battery_charger') {
       const chargerContainer = item.getContainerGrid?.();
       if (chargerContainer && this.isContainerPowered(chargerContainer.id)) {
-        chargerContainer.getAllItems().forEach(battery => {
-          // Both small and large batteries gain charge
-          if (battery.isBattery?.()) {
-            const maxCharge = battery.capacity || 100;
-            if ((battery.ammoCount || 0) < maxCharge) {
-              battery.ammoCount = (battery.ammoCount || 0) + 1;
-              console.log(`[InventoryManager] Charging battery ${battery.instanceId}: ${battery.ammoCount}/${maxCharge}`);
-            }
-          }
-        });
+        TurnProcessingUtils.chargeBatteries(chargerContainer.getAllItems());
+      }
+    }
+
+    // --- SOLAR CHARGER LOGIC ---
+    if (item.defId === 'tool.solar_charger') {
+      // Must be outdoors, daylight, and NOT in player inventory
+      if (isOutdoors && isDaylight && !isInPlayerInventory) {
+        const chargerContainer = item.getContainerGrid?.();
+        if (chargerContainer) {
+          TurnProcessingUtils.chargeBatteries(chargerContainer.getAllItems());
+        }
       }
     }
 
@@ -2553,23 +2448,32 @@ export class InventoryManager extends SafeEventEmitter {
     // Recurse into attachments
     if (item.attachments) {
       Object.values(item.attachments).forEach(att => {
-        if (att) this._processItemTurnRecursive(att);
+        if (att) this._processItemTurnRecursive(att, isOutdoors, isDaylight, isInPlayerInventory);
       });
     }
 
     // Recurse into primary container grid (if any)
     const grid = item.getContainerGrid?.();
     if (grid) {
-      grid.getAllItems().forEach(nested => this._processItemTurnRecursive(nested));
+      grid.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory));
     }
 
     // Recurse into pockets (if any)
     const pockets = item.getPocketContainers?.();
     if (pockets && Array.isArray(pockets)) {
       pockets.forEach(pocket => {
-        pocket.getAllItems().forEach(nested => this._processItemTurnRecursive(nested));
+        pocket.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory));
       });
     }
+  }
+
+  /**
+   * Helper to charge batteries inside a container
+   * @deprecated - Logic moved to TurnProcessingUtils.chargeBatteries
+   */
+  _chargeBatteries(container) {
+    if (!container) return;
+    TurnProcessingUtils.chargeBatteries(container.getAllItems());
   }
 
   /**

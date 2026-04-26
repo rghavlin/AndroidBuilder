@@ -38,7 +38,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, consumeItem, drinkWater, unrollBedroll, rollupBedroll, disassembleItem, startDrag, stopDrag } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, drinkWater, unrollBedroll, rollupBedroll, disassembleItem, startDrag, stopDrag } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -53,7 +53,7 @@ export function ItemContextMenu({
 
     const canSplit = item?.isStackable?.() && item?.stackCount > 1;
 
-    const shouldDisable = isDisabled || item?.isPlanter || item?.isPuddle;
+    const shouldDisable = isDisabled || item?.isPlanter;
 
     if (shouldDisable) {
         return (
@@ -157,6 +157,14 @@ export function ItemContextMenu({
                                 Harvest
                             </ContextMenuItem>
                         )}
+                        {item.availableFireModes && item.availableFireModes.length > 1 && (
+                            <ContextMenuItem
+                                onClick={() => toggleFireMode(item)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Mode: {item.fireMode === 'single' ? 'Single' : 'Burst'}
+                            </ContextMenuItem>
+                        )}
                         {item?.defId === 'furniture.generator' && (
                             <ContextMenuItem
                                 onClick={() => toggleGenerator(item)}
@@ -255,7 +263,7 @@ export function ItemContextMenu({
                                 })()}
                             </ContextMenuItem>
                         )}
-                        {item?.isWaterBottle?.() && (
+                        {(item?.isWaterBottle?.() || item?.isPuddle) && (
                             <>
                                 <ContextMenuItem
                                     onClick={() => drinkWater(item, 1)}
@@ -301,6 +309,9 @@ export function ItemContextMenu({
                                 hasTool = items.some(i => toolId.either.includes(i.defId));
                             }
                             
+                            const craftingLevel = engine.player?.craftingLvl || 0;
+                            const apCost = Math.max(1, (disassembleData.apCost || 10) - craftingLevel);
+                            
                             if (!hasTool) return null;
 
                             return (
@@ -308,7 +319,7 @@ export function ItemContextMenu({
                                     onClick={() => disassembleItem(item)}
                                     className="hover:bg-accent focus:bg-accent focus:text-white"
                                 >
-                                    Disassemble (10 AP)
+                                    Disassemble ({apCost} AP)
                                 </ContextMenuItem>
                             );
                         })()}

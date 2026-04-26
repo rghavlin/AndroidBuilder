@@ -9,7 +9,7 @@ import { useAudio } from './AudioContext.jsx';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
-import { ItemCategory, ItemTrait } from '../game/inventory/traits.js';
+import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { EntityType } from '../game/entities/Entity.js';
 
@@ -236,7 +236,7 @@ export const CombatProvider = ({ children }) => {
                 if (targetEntity.type === EntityType.ZOMBIE) {
                     if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
                     if (lootGenerator && Math.random() < 0.75) {
-                        const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
+                        const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                         if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
                     }
                 } else if (targetEntity.type === 'rabbit') {
@@ -290,6 +290,14 @@ export const CombatProvider = ({ children }) => {
         let magazine = null;
         let ammoSlot = null;
 
+        const isBurst = weapon.fireMode === FireMode.BURST;
+        const shotCount = isBurst ? 3 : 1;
+        let shotsFired = 0;
+        let totalDamage = 0;
+        let hits = 0;
+        let kills = 0;
+
+        // 1. Initial Resource Check for the whole burst (or at least first shot)
         if (isSling) {
             ammoFound = inventoryRef.current.hasItemByDefId('crafting.stone', 1);
         } else {
@@ -310,156 +318,172 @@ export const CombatProvider = ({ children }) => {
         const tile = gameMap.getTile(targetX, targetY);
         const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT);
         const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
-        if (!targetEntity && !structure) return { success: false, reason: 'No target at location' };
-
-        // 1. Calculate Outcome
-        const rangedLvl = playerStats.rangedLvl || 1;
-        const accuracyBonus = rangedLvl * 0.01;
-        const squaresAway = Math.floor(distance);
-        const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
-        const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
-
-        let baseHitChance = 1.0;
-        if (isSling) baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
-        else if (stats.isShotgun) baseHitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
-        else if (hasScope) baseHitChance = squaresAway <= 15 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
-        else baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
-
-        const hit = Math.random() <= (baseHitChance + accuracyBonus);
         
-        const critChance = 0.05 + (rangedLvl - 1) * 0.05;
-        const isCrit = hit && Math.random() <= critChance;
-
-        // Calculate damage before sounds for "killing blow" check
-        let damage = 0;
-        if (hit) {
-            damage = isCrit 
-                ? Math.floor(stats.damage.max * 1.5)
-                : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
-                
-            if (!isCrit && stats.isShotgun) {
-                let finalDamage = stats.damage.min;
-                if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
-                if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
-                damage = Math.floor(finalDamage);
-            }
+        if (!targetEntity && !structure) {
+            cancelTargeting();
+            return { success: false, reason: 'No target at location' };
         }
 
-        const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
-
-        // 2. Event emission for UI and Audio
+        // 2. Event emission for UI and Audio (Emit once per burst for sound sync)
         const attackData = { 
             weaponId: weapon.defId, 
             weaponType: 'ranged',
-            hit,
-            isCrit,
-            isKillingBlow,
-            damage,
+            isBurst,
             targetX,
             targetY
         };
         GameEvents.emit(GAME_EVENT.PLAYER_ATTACK, attackData);
 
-        if (hit && targetEntity) {
-            GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
-                zombieId: targetEntity.id, 
-                damage, 
-                isKillingBlow
-            });
-        }
-
-        // 3. Apply AP Consumption
+        // 3. Apply AP Consumption (1 AP for the whole burst)
         player.useAP(1);
 
-        // 4. Resource Consumption
-        if (isSling) {
-            inventoryRef.current.consumeItemByDefId('crafting.stone', 1);
-        } else {
-            const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
-            if (isMagazine) magazine.ammoCount--;
-            else {
-                magazine.stackCount--;
-                if (magazine.stackCount <= 0 && ammoSlot) weapon.detachItem(ammoSlot.id);
+        // 4. Burst Loop
+        for (let i = 0; i < shotCount; i++) {
+            // Re-check ammo for each shot in burst
+            if (isSling) {
+                ammoFound = inventoryRef.current.hasItemByDefId('crafting.stone', 1);
+            } else {
+                const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+                ammoFound = magazine && (isMagazine ? (magazine.ammoCount > 0) : (magazine.stackCount > 0));
             }
-        }
 
-        // 5. Emit Noise
-        const barrelSlot = weapon.attachmentSlots?.find(s => s.id === 'barrel');
-        const isSuppressed = barrelSlot && weapon.attachments[barrelSlot.id]?.categories?.includes(ItemCategory.SUPPRESSOR);
-        const noiseRadius = isSuppressed ? 3 : (stats.noiseRadius || 10);
-        if (gameMap.emitNoise) gameMap.emitNoise(player.x, player.y, noiseRadius);
+            if (!ammoFound) break; // End burst if out of ammo
+            shotsFired++;
 
-        // 6. Detailed Logic
-        if (hit) {
-            if (targetEntity) {
-                targetEntity.takeDamage(damage);
-                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
-                if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
-            } else if (structure) {
-                if (structure.type === EntityType.WINDOW) {
-                    structure.break();
-                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
-                    addLog('The window shatters!', 'combat');
-                    gameMap.emitNoise(targetX, targetY, 5);
-                } else {
-                    if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);
-                    else structure.hp = Math.max(0, (structure.hp || 10) - damage);
-                    addLog(`You hit the ${structure.type} with a gunshot!`, 'combat');
-                    gameMap.emitNoise(targetX, targetY, 3);
+            // Resource Consumption
+            if (isSling) {
+                inventoryRef.current.consumeItemByDefId('crafting.stone', 1);
+            } else {
+                const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+                if (isMagazine) magazine.ammoCount--;
+                else {
+                    magazine.stackCount--;
+                    if (magazine.stackCount <= 0 && ammoSlot) weapon.detachItem(ammoSlot.id);
                 }
             }
 
-            addEffect({ 
-                type: 'damage', 
-                x: targetX, 
-                y: targetY, 
-                value: isCrit ? `CRIT! ${damage}` : damage, 
-                color: isCrit ? '#facc15' : '#ef4444', 
-                duration: isCrit ? 1500 : 1200 
-            });
+            // Outcome Calculation
+            const rangedLvl = playerStats.rangedLvl || 1;
+            const accuracyBonus = rangedLvl * 0.01;
+            const squaresAway = Math.floor(distance);
+            const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
+            const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
 
-            if (targetEntity && targetEntity.isDead()) {
-                addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
-                const newLevel = recordKill('ranged');
-                if (newLevel) {
-                    addLog(`LEVEL UP! Ranged skill is now level ${newLevel}!`, 'warning');
+            let baseHitChance = 1.0;
+            if (isSling) baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
+            else if (stats.isShotgun) baseHitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
+            else if (hasScope) baseHitChance = squaresAway <= 15 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
+            else baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
+
+            const hit = Math.random() <= (baseHitChance + accuracyBonus);
+            const critChance = 0.05 + (rangedLvl - 1) * 0.05;
+            const isCrit = hit && Math.random() <= critChance;
+
+            let damage = 0;
+            if (hit) {
+                damage = isCrit 
+                    ? Math.floor(stats.damage.max * 1.5)
+                    : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
+                    
+                if (!isCrit && stats.isShotgun) {
+                    let finalDamage = stats.damage.min;
+                    if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
+                    if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
+                    damage = Math.floor(finalDamage);
                 }
-                
-                if (targetEntity.type === EntityType.ZOMBIE) {
-                    if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
-                    if (lootGenerator && Math.random() < 0.75) {
-                        const loot = lootGenerator.generateZombieLoot(targetEntity.subtype);
-                        if (loot?.length > 0) {
-                            if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
-                                loot.forEach(item => engine.inventoryManager.groundContainer.addItem(item, null, null, true));
+            }
+
+            const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
+
+            if (hit && targetEntity) {
+                GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
+                    zombieId: targetEntity.id, 
+                    damage, 
+                    isKillingBlow
+                });
+            }
+
+            // Emit Noise
+            const barrelSlot = weapon.attachmentSlots?.find(s => s.id === 'barrel');
+            const isSuppressed = barrelSlot && weapon.attachments[barrelSlot.id]?.categories?.includes(ItemCategory.SUPPRESSOR);
+            const noiseRadius = isSuppressed ? 3 : (stats.noiseRadius || 10);
+            if (gameMap.emitNoise) gameMap.emitNoise(player.x, player.y, noiseRadius);
+
+            if (hit) {
+                hits++;
+                totalDamage += damage;
+                if (targetEntity) {
+                    targetEntity.takeDamage(damage);
+                    addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
+                    if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
+                } else if (structure) {
+                    if (structure.type === EntityType.WINDOW) {
+                        structure.break();
+                        GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
+                        addLog('The window shatters!', 'combat');
+                        gameMap.emitNoise(targetX, targetY, 5);
+                    } else {
+                        if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);
+                        else structure.hp = Math.max(0, (structure.hp || 10) - damage);
+                        addLog(`You hit the ${structure.type} with a gunshot!`, 'combat');
+                        gameMap.emitNoise(targetX, targetY, 3);
+                    }
+                }
+
+                addEffect({ 
+                    type: 'damage', 
+                    x: targetX, 
+                    y: targetY, 
+                    value: isCrit ? `CRIT! ${damage}` : damage, 
+                    color: isCrit ? '#facc15' : '#ef4444', 
+                    duration: isCrit ? 1500 : 1200 
+                });
+
+                if (targetEntity && targetEntity.isDead()) {
+                    kills++;
+                    addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
+                    const newLevel = recordKill('ranged');
+                    if (newLevel) {
+                        addLog(`LEVEL UP! Ranged skill is now level ${newLevel}!`, 'warning');
+                    }
+                    
+                    if (targetEntity.type === EntityType.ZOMBIE) {
+                        if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
+                        if (lootGenerator && Math.random() < 0.75) {
+                            const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
+                            if (loot?.length > 0) {
+                                if (targetEntity.x === player.x && targetEntity.y === player.y && window.gameEngine?.inventoryManager) {
+                                    const engine = window.gameEngine;
+                                    loot.forEach(item => engine.inventoryManager.groundContainer.addItem(item, null, null, true));
+                                    engine.inventoryManager.groundManager.updateCategoryAreas();
+                                    engine.inventoryManager.emit('inventoryChanged');
+                                } else {
+                                    gameMap.addItemsToTile(targetEntity.x, targetEntity.y, loot);
+                                }
+                            }
+                        }
+                    } else if (targetEntity.type === EntityType.RABBIT) {
+                        const meat = createItemFromDef('food.raw_meat');
+                        if (meat) {
+                            if (targetEntity.x === player.x && targetEntity.y === player.y && window.gameEngine?.inventoryManager) {
+                                const engine = window.gameEngine;
+                                engine.inventoryManager.groundContainer.addItem(meat, null, null, true);
                                 engine.inventoryManager.groundManager.updateCategoryAreas();
                                 engine.inventoryManager.emit('inventoryChanged');
                             } else {
-                                gameMap.addItemsToTile(targetEntity.x, targetEntity.y, loot);
+                                gameMap.addItemsToTile(targetEntity.x, targetEntity.y, [meat]);
                             }
                         }
                     }
-                } else if (targetEntity.type === EntityType.RABBIT) {
-                    // Rabbits always drop 1 raw meat
-                    const meat = createItemFromDef('food.raw_meat');
-                    if (meat) {
-                        if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
-                            engine.inventoryManager.groundContainer.addItem(meat, null, null, true);
-                            engine.inventoryManager.groundManager.updateCategoryAreas();
-                            engine.inventoryManager.emit('inventoryChanged');
-                        } else {
-                            gameMap.addItemsToTile(targetEntity.x, targetEntity.y, [meat]);
-                        }
-                    }
+                    
+                    gameMap.removeEntity(targetEntity.id);
+                    cancelTargeting();
+                    break; // End burst if target dies
                 }
-                
-                gameMap.removeEntity(targetEntity.id);
-                cancelTargeting();
+            } else {
+                addLog(`Player attacks: miss (${weapon.name})`, 'combat');
+                addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
             }
-            triggerMapUpdate();
-        } else {
-            addLog(`Player attacks: miss (${weapon.name})`, 'combat');
-            addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
         }
 
         if (typeof weapon.degrade === 'function' && weapon.isDegradable()) {
@@ -472,6 +496,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         forceRefresh();
+        triggerMapUpdate();
         return { success: true };
     }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect]);
 
@@ -580,7 +605,7 @@ export const CombatProvider = ({ children }) => {
                     addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed by grenade!`, 'combat');
                     // Loot drop logic for zombies killed by grenade
                     if (entity.type === EntityType.ZOMBIE && lootGenerator && Math.random() < 0.75) {
-                        const loot = lootGenerator.generateZombieLoot(entity.subtype);
+                        const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
                         if (loot?.length > 0) gameMap.addItemsToTile(entity.x, entity.y, loot);
                     } else if (entity.type === EntityType.RABBIT) {
                         const meat = createItemFromDef('food.raw_meat');
