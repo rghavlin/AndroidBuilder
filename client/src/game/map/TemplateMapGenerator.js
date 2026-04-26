@@ -796,7 +796,7 @@ export class TemplateMapGenerator {
     }
 
     // Standardized metadata registration
-    this._registerBuilding(mapData, type, startX, y, width, height);
+    this._registerBuilding(mapData, type, startX, y, width, height, { isLeft, entranceX, entranceY });
 
     // Entrance and Icons
     if (type === 'firestation') {
@@ -930,9 +930,6 @@ export class TemplateMapGenerator {
         }
       }
 
-      // Standardized metadata registration for residential buildings
-      this._registerBuilding(mapData, 'residential', buildingStartX, currentY, buildingWidth, buildingHeight);
-
       // Add entrance - random gap in wall closest to sidewalk
       const entranceY = currentY + 1 + Math.floor(Math.random() * (buildingHeight - 2)); // Avoid corners
       let entranceX;
@@ -957,7 +954,8 @@ export class TemplateMapGenerator {
 
         // 90% chance to add a door at the entrance
         if (Math.random() < 0.9) {
-          if (mapData && mapData.metadata && mapData.metadata.doors) {
+          if (mapData && mapData.metadata) {
+            if (!mapData.metadata.doors) mapData.metadata.doors = [];
             mapData.metadata.doors.push({
               x: entranceX,
               y: entranceY,
@@ -967,7 +965,8 @@ export class TemplateMapGenerator {
           }
         } else {
           // If no door added, record metadata for subdivision logic to know about opening
-          if (mapData && mapData.metadata && mapData.metadata.doors) {
+          if (mapData && mapData.metadata) {
+            if (!mapData.metadata.doors) mapData.metadata.doors = [];
             mapData.metadata.doors.push({
               x: entranceX,
               y: entranceY,
@@ -977,6 +976,9 @@ export class TemplateMapGenerator {
           }
         }
       }
+
+      // Standardized metadata registration for residential buildings
+      this._registerBuilding(mapData, 'residential', buildingStartX, currentY, buildingWidth, buildingHeight, { entranceX, entranceY });
 
       // Add back door (40% chance)
       if (Math.random() < 0.4) {
@@ -1451,7 +1453,7 @@ export class TemplateMapGenerator {
   /**
    * Standardized helper to register building metadata for loot and spawning systems
    */
-  _registerBuilding(mapData, type, x, y, width, height) {
+  _registerBuilding(mapData, type, x, y, width, height, extra = {}) {
     if (!mapData.metadata.buildings) {
       mapData.metadata.buildings = [];
     }
@@ -1461,7 +1463,8 @@ export class TemplateMapGenerator {
       x,
       y,
       width,
-      height
+      height,
+      ...extra
     });
     
     // Provide backward compatibility for specialBuildings key during map transition phase

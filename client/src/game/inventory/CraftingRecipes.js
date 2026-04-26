@@ -11,6 +11,23 @@ import { ItemCategory } from './traits.js';
  */
 export const CraftingRecipes = [
     {
+        id: 'vehicle.wagon',
+        name: 'Wagon',
+        resultItem: 'vehicle.wagon',
+        description: 'A heavy-duty transport wagon with dual axles and motor support.',
+        apCost: 15,
+        tab: 'crafting',
+        tools: [
+            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], label: 'Hammer' }
+        ],
+        ingredients: [
+            { id: 'crafting.wheel', count: 4 },
+            { id: 'crafting.plank', count: 6 },
+            { id: 'crafting.nails', count: 6 },
+            { id: 'weapon.metal_rod', count: 2 }
+        ]
+    },
+    {
         id: 'crafting.makeshift_hammer',
         name: 'Makeshift Hammer',
         resultItem: 'weapon.makeshift_hammer',
@@ -298,7 +315,7 @@ export const CraftingRecipes = [
     {
         id: 'crafting.small_sled',
         name: 'Small Sled',
-        resultItem: 'placeable.small_sled',
+        resultItem: 'vehicle.small_sled',
         description: 'A sturdy wooden sled for hauling large quantities of gear across the ground.',
         resultCount: 1,
         apCost: 15,

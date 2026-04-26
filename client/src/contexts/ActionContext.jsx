@@ -354,6 +354,149 @@ export const ActionProvider = ({ children }) => {
     return { success: true };
   }, [targetingItem, addLog, playSound, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange, digHole, plantSeed]);
 
+  const siphonFuel = useCallback((gridX, gridY, itemOverride = null) => {
+    const player = engine.player;
+    const inventoryManager = engine.inventoryManager;
+    const activeItem = itemOverride || targetingItem;
+    if (!player || !inventoryManager || !activeItem) return { success: false };
+
+    if (player.ap < 5) {
+      addLog("Not enough AP to siphon (requires 5)", "warning");
+      return { success: false, reason: 'Need 5 AP' };
+    }
+
+    // Find the fuel source at the target coordinates (Cover, Generator, etc.)
+    const groundSource = inventoryManager.groundContainer;
+    const fuelSource = groundSource.getAllItems().find(i => 
+      i.hasTrait?.(ItemTrait.FUEL_CONTAINER) && 
+      gridX >= i.x && gridX < i.x + i.width && 
+      gridY >= i.y && gridY < i.y + i.height
+    );
+
+    if (!fuelSource) {
+      addLog("No fuel source here!", "warning");
+      return { success: false, reason: 'No fuel source' };
+    }
+
+    if (fuelSource.ammoCount <= 0) {
+      addLog(`${fuelSource.name} is empty.`, "info");
+      return { success: false, reason: 'Empty' };
+    }
+
+    // Find all fuel cans in inventory or on ground
+    const fuelCans = [];
+    
+    // 1. Check all containers in equipment
+    Object.values(inventoryManager.equipment).forEach(equippedItem => {
+      if (equippedItem) {
+        if (equippedItem.isFuelContainer?.() && equippedItem.ammoCount < equippedItem.capacity) {
+          fuelCans.push(equippedItem);
+        }
+        
+        const grid = equippedItem.getContainerGrid?.();
+        if (grid) {
+          grid.getAllItems().forEach(item => {
+            if (item.isFuelContainer?.() && item.ammoCount < item.capacity) {
+              fuelCans.push(item);
+            }
+          });
+        }
+        
+        const pockets = equippedItem.getPocketContainers?.();
+        if (pockets) {
+          pockets.forEach(pocket => {
+            pocket.getAllItems().forEach(item => {
+              if (item.isFuelContainer?.() && item.ammoCount < item.capacity) {
+                fuelCans.push(item);
+              }
+            });
+          });
+        }
+      }
+    });
+
+    // 2. Check ground items
+    groundSource.getAllItems().forEach(item => {
+      if (item.isFuelContainer?.() && item.ammoCount < item.capacity && item.instanceId !== fuelSource.instanceId) {
+        fuelCans.push(item);
+      }
+    });
+
+    if (fuelCans.length === 0) {
+      addLog("No fuel cans found to fill!", "warning");
+      return { success: false, reason: 'No cans' };
+    }
+
+    // Sort by current fuel (most fuel first)
+    fuelCans.sort((a, b) => b.ammoCount - a.ammoCount);
+
+    let siphonedAmount = 0;
+    
+    for (const can of fuelCans) {
+      const space = can.capacity - can.ammoCount;
+      const amountToTransfer = Math.min(space, fuelSource.ammoCount);
+      
+      can.ammoCount += amountToTransfer;
+      fuelSource.ammoCount -= amountToTransfer;
+      siphonedAmount += amountToTransfer;
+
+      if (fuelSource.ammoCount <= 0) break;
+    }
+
+    if (siphonedAmount > 0) {
+      player.useAP(5);
+      updatePlayerStats({ ap: player.ap });
+      addLog(`You siphon ${siphonedAmount} units of fuel into your cans from the ${fuelSource.name}.`, "info");
+      playSound('FillBottle');
+      
+      if (!itemOverride) {
+        setTargetingItem(null);
+        engine.targetingItemInstanceId = null;
+      }
+      
+      if (typeof window.inv?.refresh === 'function') window.inv.refresh();
+      else inventoryManager.emit('inventoryChanged');
+      
+      return { success: true };
+    }
+
+    return { success: false };
+  }, [targetingItem, addLog, updatePlayerStats, playSound]);
+
+  const transferFuel = useCallback((fuelCan, targetContainer) => {
+    const player = engine.player;
+    if (!player || !fuelCan || !targetContainer) return { success: false };
+
+    // Cost 1 AP for manual transfer
+    if (player.ap < 1) {
+      addLog("Not enough AP to transfer fuel.", "warning");
+      return { success: false, reason: 'Need 1 AP' };
+    }
+
+    if (fuelCan.ammoCount <= 0) {
+      addLog(`${fuelCan.name} is empty.`, "info");
+      return { success: false };
+    }
+
+    const space = targetContainer.capacity - targetContainer.ammoCount;
+    if (space <= 0) {
+      addLog(`${targetContainer.name} is already full.`, "info");
+      return { success: false };
+    }
+
+    const amount = Math.min(fuelCan.ammoCount, space);
+    fuelCan.ammoCount -= amount;
+    targetContainer.ammoCount += amount;
+
+    player.useAP(1);
+    updatePlayerStats({ ap: player.ap });
+    addLog(`Transferred ${amount} units of fuel to ${targetContainer.name}.`, "info");
+    playSound('FillBottle');
+    
+    engine.inventoryManager?.emit('inventoryChanged');
+    return { success: true };
+  }, [addLog, updatePlayerStats, playSound]);
+
   const value = {
     targetingItem,
     startTargetingItem,
@@ -363,7 +506,9 @@ export const ActionProvider = ({ children }) => {
     bagLooseSoil,
     plantSeed,
     harvestPlant,
-    useBreakingToolOnStructure
+    useBreakingToolOnStructure,
+    siphonFuel,
+    transferFuel
   };
 
   return (

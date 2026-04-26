@@ -22,7 +22,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                     {item.name}
                     {item.waterQuality === 'dirty' && item.ammoCount > 0 && <span className="text-amber-600 ml-1">(Dirty water)</span>}
                 </h4>
-                {item.rarity && (
+                {item.rarity && !item.noTooltipRarity && (
                     <span className={cn(
                         "text-[10px] uppercase font-bold px-1 rounded",
                         item.rarity === 'common' && "bg-zinc-500 text-white",
@@ -106,11 +106,12 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             )}
 
             {/* Ammo/Capacity/Water */}
-            {(item.ammoCount > 0 || item.capacity > 0) && !item.isPuddle && (
+            {(item.ammoCount > 0 || item.capacity > 0) && !item.isPuddle && !item.noTooltipUnits && (
                 <div className="text-[10px] text-zinc-400 flex justify-between">
                     <span>
                         {item.isWaterBottle?.() ? 'Water' : 
-                         (item.isChargeBased?.() ? 'Charges' : (item.isAmmo?.() ? 'Count' : 'Ammo'))}
+                         (item.isFuelContainer?.() ? 'Fuel' :
+                         (item.isChargeBased?.() ? 'Charges' : (item.isAmmo?.() ? 'Count' : 'Ammo')))}
                     </span>
                     <span>{item.ammoCount}{item.capacity ? ` / ${item.capacity}` : ''}</span>
                 </div>

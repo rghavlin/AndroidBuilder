@@ -54,7 +54,7 @@ export default function UniversalGrid({
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource } = useInventory();
-  const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant } = useAction();
+  const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel } = useAction();
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
@@ -187,6 +187,7 @@ export default function UniversalGrid({
         }
         return;
       }
+
     }
 
     // Harvest logic: any item with a 'produce' property is considered harvestable
@@ -198,6 +199,24 @@ export default function UniversalGrid({
 
     // Case 1: An item is already selected/carried
     if (selectedItem) {
+      // Siphoning logic with selected hose (Targeting any fuel source: generator or fuel cover)
+      const isHoseSelected = selectedItem.item.hasTrait?.(ItemTrait.CAN_SIPHON);
+      const isFuelSourceClicked = item?.hasTrait?.(ItemTrait.FUEL_CONTAINER);
+      if (isHoseSelected && isFuelSourceClicked && containerId === 'ground') {
+        console.debug('[UniversalGrid] Siphoning fuel source with selected hose at:', x, y);
+        siphonFuel(x, y, selectedItem.item);
+        return;
+      }
+
+      // Fuel transfer logic (Fuel Can -> Generator)
+      const isFuelCanSelected = selectedItem.item.hasTrait?.(ItemTrait.FUEL_CONTAINER);
+      const isGeneratorClicked = item?.defId === 'furniture.generator';
+      if (isFuelCanSelected && isGeneratorClicked) {
+        console.debug('[UniversalGrid] Transferring fuel from can to generator');
+        transferFuel(selectedItem.item, item);
+        return;
+      }
+
       // If clicking the EXACT SAME item we are carrying, just deselect it (toggle)
       if (item && item.instanceId === selectedItem.item.instanceId) {
         console.debug('[UniversalGrid] Toggle-deselecting item:', item.name);
@@ -723,14 +742,14 @@ export default function UniversalGrid({
             </div>
           )}
 
-          {item.isWaterBottle && item.isWaterBottle() && (
+          {item.getMeterPercent?.() !== null && (
             <div className="absolute bottom-0.5 left-0.5 right-0.5 h-1 bg-black/50 overflow-hidden rounded-full z-20 border-[0.5px] border-white/20">
               <div
-                className={cn(
-                  "h-full shadow-[0_0_4px_rgba(96,165,250,0.6)]",
-                  item.waterQuality === 'dirty' ? "bg-[#8B4513]" : "bg-blue-400"
-                )}
-                style={{ width: `${item.getWaterPercent()}%` }}
+                className="h-full shadow-[0_0_4px_rgba(255,255,255,0.2)]"
+                style={{ 
+                  width: `${item.getMeterPercent()}%`,
+                  backgroundColor: item.getMeterColor() || '#60a5fa'
+                }}
               />
             </div>
           )}

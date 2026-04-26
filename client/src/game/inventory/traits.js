@@ -37,7 +37,9 @@ export const ItemCategory = {
   GUN: 'gun',
   VEGETABLE: 'vegetable',
   ENVIRONMENT: 'environment',
-  HAMMER: 'hammer'
+  HAMMER: 'hammer',
+  VEHICLE: 'vehicle',
+  ELECTRIC: 'electric'
 };
 
 // Trait flags
@@ -59,7 +61,11 @@ export const ItemTrait = {
   WATER_CONTAINER: 'water_bottle',
   DRAGGABLE: 'draggable',
   MEDICAL: 'medical',
-  NO_DRAG: 'no_drag'
+  NO_DRAG: 'no_drag',
+  VEHICLE: 'vehicle',
+  FUEL_CONTAINER: 'fuel_container',
+  CAN_SIPHON: 'canSiphon',
+  POWER_SOURCE: 'power_source'
 };
 
 // Item rarity levels for loot generation
@@ -87,7 +93,8 @@ export const CategoryDisplayName = {
   [ItemCategory.FOOD]: 'consumables',
   [ItemCategory.MEDICAL]: 'consumables',
   [ItemCategory.GUN]: 'weapons',
-  [ItemCategory.ENVIRONMENT]: 'environment'
+  [ItemCategory.ENVIRONMENT]: 'environment',
+  [ItemCategory.VEHICLE]: 'vehicles'
 };
 
 // Map equipment slots to user-friendly category fallbacks

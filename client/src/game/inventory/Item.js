@@ -45,7 +45,9 @@ export class Item extends SafeEventEmitter {
     transformInto = null,
     produce = null,
     backgroundColor = null,
-    isLit = false
+    isLit = false,
+    isOn = false,
+    providesElectricity = false
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -127,6 +129,8 @@ export class Item extends SafeEventEmitter {
     this.lifetimeTurns = lifetimeTurns;
     this.ammoDefId = ammoDefId;
     this.isLit = isLit;
+    this.isOn = isOn;
+    this.providesElectricity = providesElectricity;
 
     // Load shelfLife from definition if not provided
     if (this.shelfLife === null && this.defId && ItemDefs[this.defId]?.shelfLife) {
@@ -159,6 +163,8 @@ export class Item extends SafeEventEmitter {
       if (def.plantsAs) this.plantsAs = def.plantsAs;
       if (def.produceMin !== undefined) this.produceMin = def.produceMin;
       if (def.produceMax !== undefined) this.produceMax = def.produceMax;
+      if (def.motorAssistBonus !== undefined) this.motorAssistBonus = def.motorAssistBonus;
+      if (def.terrainModifiers) this.terrainModifiers = def.terrainModifiers;
       
       // Auto-inherit categories from definition if not already present
       if (def.categories && Array.isArray(def.categories)) {
@@ -185,6 +191,18 @@ export class Item extends SafeEventEmitter {
       if (def.noDrag !== undefined && this.noDrag === undefined) {
         this.noDrag = def.noDrag;
       }
+      if (def.noTooltipUnits !== undefined) {
+        this.noTooltipUnits = def.noTooltipUnits;
+      }
+      if (def.noTooltipRarity !== undefined) {
+        this.noTooltipRarity = def.noTooltipRarity;
+      }
+      if (def.isOn !== undefined && this.isOn === undefined) {
+        this.isOn = def.isOn;
+      }
+      if (def.providesElectricity !== undefined && this.providesElectricity === undefined) {
+        this.providesElectricity = def.providesElectricity;
+      }
     }
 
     // Initialize container grid synchronously if data exists
@@ -207,26 +225,83 @@ export class Item extends SafeEventEmitter {
   }
 
   /**
-   * Check if the item is a motorized wagon with sufficient power
+   * Check if the item is a vehicle (Wagon, Sled, etc.)
    */
-  isMotorized() {
-    if (!this.isWagon || !this.attachments) return false;
-    const motor = this.attachments['motor'];
-    const battery = this.attachments['battery'];
-    // Motorized if it has a motor AND a battery with charge
-    return !!(motor && battery && battery.ammoCount > 0);
+  isVehicle() {
+    return this.hasTrait(ItemTrait.VEHICLE);
   }
 
   /**
-   * Get the current battery charge percentage (if applicable)
+   * Calculate total AP bonus from all active motor/battery pairs
+   */
+  getMotorizedBonus() {
+    if (!this.isWagon || !this.attachments) return 0;
+    
+    let totalBonus = 0;
+    const assistValue = this.motorAssistBonus || 0.5;
+
+    // Define potential slot pairs for motorized assistance
+    const slotPairs = [
+      ['motor', 'battery'],
+      ['motor_front', 'battery_front'],
+      ['motor_rear', 'battery_rear']
+    ];
+
+    slotPairs.forEach(([motorSlot, batterySlot]) => {
+      const motor = this.attachments[motorSlot];
+      const battery = this.attachments[batterySlot];
+      if (motor && battery && (battery.ammoCount || 0) > 0) {
+        totalBonus += assistValue;
+      }
+    });
+
+    return totalBonus;
+  }
+
+  /**
+   * Check if the item has any active motorized assist
+   */
+  isMotorized() {
+    return this.getMotorizedBonus() > 0;
+  }
+
+  /**
+   * Get battery status for all available battery slots
+   */
+  getBatteryStatuses() {
+    if (!this.attachments) return [];
+    
+    // Find all slots that are intended for batteries
+    const batterySlots = this.attachmentSlots?.filter(s => s.id.includes('battery')) || [];
+    
+    // Legacy fallback for the generic 'battery' slot if not in definition
+    if (batterySlots.length === 0 && this.attachments['battery']) {
+      batterySlots.push({ id: 'battery', name: 'Power Cell' });
+    }
+
+    return batterySlots.map(slot => {
+      const battery = this.attachments[slot.id];
+      if (!battery) return { slotId: slot.id, name: slot.name, percent: 0, present: false };
+      
+      const max = battery.capacity || (battery.defId === 'tool.large_battery' ? 100 : 10);
+      const percent = (battery.ammoCount / max) * 100;
+      return { 
+        slotId: slot.id, 
+        name: slot.name, 
+        percent, 
+        present: true,
+        ammoCount: battery.ammoCount,
+        max
+      };
+    });
+  }
+
+  /**
+   * Legacy wrapper for single battery UI or simple checks
    */
   getBatteryCharge() {
-    if (!this.attachments) return 0;
-    const battery = this.attachments['battery'];
-    if (!battery) return 0;
-    // Standard battery max is 10, Large battery max is 100
-    const max = battery.defId === 'tool.large_battery' ? 100 : 10;
-    return (battery.ammoCount / max) * 100;
+    const statuses = this.getBatteryStatuses();
+    return statuses.length > 0 ? statuses[0].percent : 0;
   }
 
   /**
@@ -329,8 +404,8 @@ export class Item extends SafeEventEmitter {
 
   isMagazine() {
     // Items with capacity are magazines or weapons with internal mags
-    // BUT we exclude charge-based tools like lighters and matches
-    return this.capacity !== null && this.capacity > 0 && !this.isChargeBased();
+    // BUT we exclude charge-based tools like lighters and matches, and fuel containers (e.g. Generators)
+    return this.capacity !== null && this.capacity > 0 && !this.isChargeBased() && !this.isFuelContainer();
   }
 
   isAmmo() {
@@ -339,6 +414,10 @@ export class Item extends SafeEventEmitter {
 
   isWaterBottle() {
     return this.hasTrait(ItemTrait.WATER_CONTAINER);
+  }
+
+  isFuelContainer() {
+    return this.hasTrait(ItemTrait.FUEL_CONTAINER);
   }
 
   isBattery() {
@@ -520,8 +599,8 @@ export class Item extends SafeEventEmitter {
   }
 
   getDisplayAmmoCount() {
-    // 1. If it's a water bottle or puddle, hide the number
-    if (this.isWaterBottle() || this.isPuddle) {
+    // 1. If it's a water bottle, fuel can, or puddle, hide the number
+    if (this.isWaterBottle() || this.isFuelContainer() || this.isPuddle) {
       return null;
     }
 
@@ -581,6 +660,22 @@ export class Item extends SafeEventEmitter {
     return (this.ammoCount / this.capacity) * 100;
   }
 
+  getMeterPercent() {
+    if (this.isWaterBottle()) return this.getWaterPercent();
+    if (this.isFuelContainer() && this.capacity) return (this.ammoCount / this.capacity) * 100;
+    return null;
+  }
+
+  getMeterColor() {
+    if (this.isWaterBottle()) {
+      return this.waterQuality === 'dirty' ? "#8B4513" : "#60a5fa";
+    }
+    if (this.isFuelContainer()) {
+      return "#b8860b"; // Dark Gold
+    }
+    return null;
+  }
+
   /**
    * Check if item has a specific category
    */
@@ -593,7 +688,7 @@ export class Item extends SafeEventEmitter {
    */
   getCategory() {
     // 0. High priority categories for ground organization
-    if (this.isVehicle || this.isWagon) return 'vehicles';
+    if (this.isVehicle() || this.isWagon) return 'vehicles';
     if (this.isPuddle) return 'environment';
     if (this.isPlanter || this.plantsAs || this.defId?.endsWith('_plant') || this.defId === 'provision.hole') return 'farming';
     if (this.isFurniture) return 'furniture';
@@ -955,7 +1050,8 @@ export class Item extends SafeEventEmitter {
         ...this._containerGridData,
         id: this._containerGridData.id || `${this.instanceId}-container`,
         name: this._containerGridData.name || this.name,
-        ownerId: this.instanceId // Ensure ownerId is set for turn skip logic
+        ownerId: this.instanceId, // Ensure ownerId is set for turn skip logic
+        isVehicle: this._containerGridData.isVehicle || this.isVehicle()
       };
 
       this.containerGrid = Container.fromJSON(containerData);
@@ -1127,7 +1223,9 @@ export class Item extends SafeEventEmitter {
       description: this.description,
       transformInto: this.transformInto,
       produce: this.produce,
-      backgroundColor: this.backgroundColor
+      backgroundColor: this.backgroundColor,
+      isOn: this.isOn,
+      providesElectricity: this.providesElectricity
     };
 
     // Serialize Traits

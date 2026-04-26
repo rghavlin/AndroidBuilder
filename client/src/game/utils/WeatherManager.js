@@ -160,9 +160,11 @@ export class WeatherManager {
         const def = ItemDefs[itemData.defId];
         // Vehicles/Wagons are open-air containers. 
         // We check def.isWagon or container level isVehicle flag.
-        const containerIsExposed = itemData.isVehicle || 
+        const isVehicle = (typeof itemData.isVehicle === 'function') ? itemData.isVehicle() : itemData.isVehicle;
+        const containerIsExposed = isVehicle || 
                                  def?.isWagon || 
-                                 itemData.containerGrid.isVehicle ||
+                                 def?.traits?.includes(ItemTrait.VEHICLE) ||
+                                 itemData.containerGrid?.isVehicle ||
                                  def?.containerGrid?.isVehicle;
         
         // Contents are only exposed if the parent is exposed AND the parent is an open-air container type

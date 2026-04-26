@@ -38,7 +38,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, consumeItem, drinkWater, unrollBedroll, rollupBedroll, disassembleItem, startDrag, stopDrag } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, consumeItem, drinkWater, unrollBedroll, rollupBedroll, disassembleItem, startDrag, stopDrag } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -93,7 +93,7 @@ export function ItemContextMenu({
 
             {item && (() => {
                 // Phase: Specialized Ground Containers (Wagon/Sled) bypass ContextMenu
-                const isSpecialGroundContainer = (item.defId === 'toy_wagon' || item.defId === 'placeable.small_sled') && 
+                const isSpecialGroundContainer = item.isVehicle() && 
                                                engine.inventoryManager.groundContainer.items.has(item.instanceId);
                 
                 if (isSpecialGroundContainer) return null;
@@ -155,6 +155,15 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Harvest
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'furniture.generator' && (
+                            <ContextMenuItem
+                                onClick={() => toggleGenerator(item)}
+                                disabled={!item.isOn && (item.ammoCount || 0) <= 0}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                {item.isOn ? 'Turn off' : 'Turn on'}
                             </ContextMenuItem>
                         )}
                         {canOpenContainer(item) && (

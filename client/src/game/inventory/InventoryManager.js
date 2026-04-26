@@ -2491,4 +2491,127 @@ export class InventoryManager extends SafeEventEmitter {
 
     return manager;
   }
+
+  /**
+   * Process per-turn effects for all items managed by the inventory system.
+   * This includes equipment, the ground container, and all nested containers.
+   */
+  processTurn() {
+    console.log('[InventoryManager] Processing turn for all items...');
+    
+    // 1. Process equipment slots
+    Object.values(this.equipment).forEach(item => {
+      if (item) this._processItemTurnRecursive(item);
+    });
+
+    // 2. Process ground container
+    // Items on the ground are managed by this container while the player is near
+    this.groundContainer.getAllItems().forEach(item => {
+      this._processItemTurnRecursive(item);
+    });
+    
+    this.emit('inventoryChanged');
+  }
+
+  /**
+   * Recursive helper to apply turn effects to an item and its contents
+   * @private
+   */
+  _processItemTurnRecursive(item) {
+    if (!item) return;
+
+    // --- POWER SOURCE LOGIC ---
+    if (item.hasTrait(ItemTrait.POWER_SOURCE) && item.isOn) {
+      item.ammoCount = Math.max(0, (item.ammoCount || 0) - 1);
+      console.log(`[InventoryManager] Power source ${item.instanceId} consumed 1 fuel. Remaining: ${item.ammoCount}`);
+      
+      if (item.ammoCount <= 0) {
+        item.isOn = false;
+        console.log(`[InventoryManager] Power source ${item.instanceId} ran out of fuel and turned off.`);
+      }
+    }
+
+    // --- BATTERY CHARGER LOGIC ---
+    if (item.defId === 'tool.battery_charger') {
+      const chargerContainer = item.getContainerGrid?.();
+      if (chargerContainer && this.isContainerPowered(chargerContainer.id)) {
+        chargerContainer.getAllItems().forEach(battery => {
+          // Both small and large batteries gain charge
+          if (battery.isBattery?.()) {
+            const maxCharge = battery.capacity || 100;
+            if ((battery.ammoCount || 0) < maxCharge) {
+              battery.ammoCount = (battery.ammoCount || 0) + 1;
+              console.log(`[InventoryManager] Charging battery ${battery.instanceId}: ${battery.ammoCount}/${maxCharge}`);
+            }
+          }
+        });
+      }
+    }
+
+    // --- RECURSION ---
+    
+    // Recurse into attachments
+    if (item.attachments) {
+      Object.values(item.attachments).forEach(att => {
+        if (att) this._processItemTurnRecursive(att);
+      });
+    }
+
+    // Recurse into primary container grid (if any)
+    const grid = item.getContainerGrid?.();
+    if (grid) {
+      grid.getAllItems().forEach(nested => this._processItemTurnRecursive(nested));
+    }
+
+    // Recurse into pockets (if any)
+    const pockets = item.getPocketContainers?.();
+    if (pockets && Array.isArray(pockets)) {
+      pockets.forEach(pocket => {
+        pocket.getAllItems().forEach(nested => this._processItemTurnRecursive(nested));
+      });
+    }
+  }
+
+  /**
+   * Check if the current tile (ground container) has an active power source.
+   */
+  isTilePowered() {
+    return this.groundContainer.getAllItems().some(item => 
+      item.hasTrait(ItemTrait.POWER_SOURCE) && item.isOn
+    );
+  }
+
+  /**
+   * Check if a container has power.
+   * A container is powered if it contains an active power source,
+   * or if it is on a tile (ground) that has an active power source.
+   */
+  isContainerPowered(containerId) {
+    const container = this.getContainer(containerId);
+    if (!container) return false;
+
+    // 1. Direct internal power
+    const hasInternalPower = container.getAllItems().some(item => 
+      item.hasTrait(ItemTrait.POWER_SOURCE) && item.isOn
+    );
+    if (hasInternalPower) return true;
+
+    // 2. Shared tile power (for ground or vehicles on ground)
+    if (container.type === 'ground' || container.id === 'ground') {
+      return this.isTilePowered();
+    }
+
+    // Check if the container belongs to an item on the ground (e.g. Vehicle)
+    for (const item of this.groundContainer.getAllItems()) {
+      if (item.getContainerGrid?.()?.id === containerId) {
+        return this.isTilePowered();
+      }
+      const pockets = item.getPocketContainers?.();
+      if (pockets && pockets.some(p => p.id === containerId)) {
+        return this.isTilePowered();
+      }
+    }
+
+    return false;
+  }
 }

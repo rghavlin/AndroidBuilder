@@ -221,7 +221,72 @@ export const InventoryProvider = ({ children }) => {
     });
   }, [openContainers, closeContainer]);
 
+  // Phase 25: Drag Mechanic
+  const startDrag = useCallback((item) => {
+    if (!engine.player || !engine.gameMap || !item) return { success: false };
+
+    // Find the item's current position on the map
+    let itemPos = null;
+    const width = engine.gameMap.width;
+    const height = engine.gameMap.height;
+
+    // Check if it's in the ground container (synced to current tile)
+    const inGround = engine.inventoryManager.groundContainer.items.has(item.instanceId);
+    if (inGround) {
+      itemPos = { 
+        x: engine.inventoryManager.lastSyncedX, 
+        y: engine.inventoryManager.lastSyncedY 
+      };
+    }
+
+    if (!itemPos) {
+      return { success: false, reason: 'Item not found on ground.' };
+    }
+
+    // Check distance (must be adjacent or on tile)
+    const dist = Math.sqrt((itemPos.x - engine.player.x) ** 2 + (itemPos.y - engine.player.y) ** 2);
+    if (dist > 1.5) {
+      return { success: false, reason: 'Item is too far away to drag.' };
+    }
+
+    engine.dragging = {
+      item,
+      tileX: itemPos.x,
+      tileY: itemPos.y
+    };
+    
+    // Phase 25: Signal to inventory manager to carry this item
+    if (engine.inventoryManager) {
+      engine.inventoryManager.draggedItem = item;
+    }
+
+    addLog(`You start dragging the ${item.name}.`, 'item');
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, inventoryPulse]);
+
+  const stopDrag = useCallback(() => {
+    if (engine.dragging) {
+      addLog(`You set down the ${engine.dragging.item.name}.`, 'item');
+      
+      // Phase 25: Stop carrying in inventory manager
+      if (engine.inventoryManager) {
+        engine.inventoryManager.draggedItem = null;
+      }
+
+      engine.dragging = null;
+      setInventoryVersion(v => v + 1);
+      engine.notifyUpdate();
+    }
+  }, [addLog, inventoryPulse]);
+
   const selectItem = useCallback((item, originId, x, y, extraProps = {}) => {
+    // Phase 25: Cancel drag if picking up the item currently being dragged
+    if (engine.dragging && engine.dragging.item.instanceId === item.instanceId) {
+      stopDrag();
+    }
+
     // If fifth argument is a boolean, treat it as isEquipment for backward compatibility with older components
     const props = typeof extraProps === 'boolean' ? { isEquipment: extraProps } : extraProps;
     
@@ -995,51 +1060,6 @@ export const InventoryProvider = ({ children }) => {
     return detached;
   }, [inventoryPulse]);
 
-  // Phase 25: Drag Mechanic
-  const startDrag = useCallback((item) => {
-    if (!engine.player || !engine.gameMap || !item) return { success: false };
-
-    // Find the item's current position on the map
-    let itemPos = null;
-    const width = engine.gameMap.width;
-    const height = engine.gameMap.height;
-
-    // Check if it's in the ground container (synced to current tile)
-    const inGround = engine.inventoryManager.groundContainer.items.has(item.instanceId);
-    if (inGround) {
-      itemPos = { 
-        x: engine.inventoryManager.lastSyncedX, 
-        y: engine.inventoryManager.lastSyncedY 
-      };
-    }
-
-    if (!itemPos) {
-      return { success: false, reason: 'Item not found on ground.' };
-    }
-
-    // Check distance (must be adjacent or on tile)
-    const dist = Math.sqrt((itemPos.x - engine.player.x) ** 2 + (itemPos.y - engine.player.y) ** 2);
-    if (dist > 1.5) {
-      return { success: false, reason: 'Item is too far away to drag.' };
-    }
-
-    engine.dragging = {
-      item,
-      tileX: itemPos.x,
-      tileY: itemPos.y
-    };
-    
-    // Phase 25: Signal to inventory manager to carry this item
-    if (engine.inventoryManager) {
-      engine.inventoryManager.draggedItem = item;
-    }
-
-    addLog(`You start dragging the ${item.name}.`, 'item');
-    setInventoryVersion(v => v + 1);
-    engine.notifyUpdate();
-    return { success: true };
-  }, [addLog, inventoryPulse]);
-
   const fillFromSource = useCallback((bottle, source, originContainerId) => {
     if (!engine.inventoryManager || !engine.player) return;
 
@@ -1114,20 +1134,31 @@ export const InventoryProvider = ({ children }) => {
     engine.notifyUpdate();
   }, [addLog, playSound, inventoryPulse]);
 
-  const stopDrag = useCallback(() => {
-    if (engine.dragging) {
-      addLog(`You set down the ${engine.dragging.item.name}.`, 'item');
-      
-      // Phase 25: Stop carrying in inventory manager
-      if (engine.inventoryManager) {
-        engine.inventoryManager.draggedItem = null;
+  const toggleGenerator = useCallback((generator) => {
+    if (!generator) return;
+    
+    if (!generator.isOn) {
+      // Turning ON
+      if ((generator.ammoCount || 0) <= 0) {
+        addLog('The generator has no fuel!', 'error');
+        playSound('Fail');
+        return;
       }
-
-      engine.dragging = null;
-      setInventoryVersion(v => v + 1);
-      engine.notifyUpdate();
+      
+      generator.isOn = true;
+      generator.ammoCount -= 1; // Instant consumption per request
+      addLog(`You pull the cord and the generator rumbles to life. It consumes 1 unit of fuel.`, 'world');
+      playSound('SwitchOn'); 
+    } else {
+      // Turning OFF
+      generator.isOn = false;
+      addLog('You turn off the generator.', 'info');
+      playSound('SwitchOff');
     }
-  }, [addLog, inventoryPulse]);
+    
+    setInventoryVersion(v => v + 1);
+    engine.notifyUpdate();
+  }, [addLog, playSound]);
 
   const contextValue = useMemo(() => ({
     inventoryVersion,
@@ -1172,6 +1203,7 @@ export const InventoryProvider = ({ children }) => {
     unloadMagazine,
     deploySnare,
     retrieveSnare,
+    toggleGenerator,
     fuelCampfire,
     fillFromSource,
     detachItemFromWeapon,

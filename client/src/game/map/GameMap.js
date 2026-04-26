@@ -1,5 +1,6 @@
 import { Tile } from './Tile.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
+import { ItemTrait } from '../inventory/traits.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import { EntityType } from '../entities/Entity.js';
 
@@ -555,8 +556,9 @@ export class GameMap {
           }
 
           // --- STANDARD EXPIRATION LOGIC ---
+          const isTilePowered = tile.inventoryItems.some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn);
           const remainingItems = tile.inventoryItems.filter(itemData => {
-            const turnResult = this._processItemDataTurn(itemData);
+            const turnResult = this._processItemDataTurn(itemData, isTilePowered);
             if (turnResult.expired) {
               itemsModified = true;
               console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
@@ -589,13 +591,45 @@ export class GameMap {
   /**
    * Recursive helper to process turn effects on item POJOs (Plain Objects)
    * @param {Object} itemData - Item data object
-   * @returns {boolean} - Whether the item itself has expired and should be removed
+   * @param {boolean} isPowered - Whether the item's location has power
+   * @returns {Object} - result.expired, result.modified
    */
-  _processItemDataTurn(itemData) {
+  _processItemDataTurn(itemData, isPowered = false) {
     if (!itemData) return { expired: false, modified: false };
 
     let itemExpired = false;
     let itemModified = false;
+    
+    // --- POWER SOURCE LOGIC ---
+    if (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) {
+      itemData.ammoCount = Math.max(0, (itemData.ammoCount || 0) - 1);
+      itemModified = true;
+      console.log(`[GameMap] Power source ${itemData.instanceId} at (${itemData.x}, ${itemData.y}) consumed 1 fuel. Remaining: ${itemData.ammoCount}`);
+      
+      if (itemData.ammoCount <= 0) {
+        itemData.isOn = false;
+        console.log(`[GameMap] Power source ${itemData.instanceId} ran out of fuel and turned off.`);
+      }
+    }
+
+    // --- BATTERY CHARGER LOGIC ---
+    if (itemData.defId === 'tool.battery_charger' && isPowered) {
+      if (itemData.containerGrid && itemData.containerGrid.items) {
+        itemData.containerGrid.items.forEach(battery => {
+          const isBattery = battery.traits?.includes(ItemTrait.BATTERY);
+          if (isBattery) {
+            const maxCharge = battery.capacity || 100;
+            if ((battery.ammoCount || 0) < maxCharge) {
+              battery.ammoCount = (battery.ammoCount || 0) + 1;
+              itemModified = true;
+            }
+          }
+        });
+      }
+    }
+
+    // Determine if THIS item provides power to its contents (for nested recursion)
+    const providesInternalPower = isPowered || (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn);
 
     // 1. Process own spoilage/lifetime
     // We check both shelfLife and lifetimeTurns. 
@@ -652,7 +686,7 @@ export class GameMap {
     // 2. Recurse into attachments
     if (itemData.attachments) {
       for (const slotId in itemData.attachments) {
-        const nestedResult = this._processItemDataTurn(itemData.attachments[slotId]);
+        const nestedResult = this._processItemDataTurn(itemData.attachments[slotId], providesInternalPower);
         if (nestedResult.modified) itemModified = true;
         if (nestedResult.expired) {
           console.log(`[GameMap] Nested attachment ${itemData.attachments[slotId].name} expired inside ${itemData.name}`);
@@ -664,7 +698,7 @@ export class GameMap {
     // 3. Recurse into container grid
     if (itemData.containerGrid && itemData.containerGrid.items) {
       itemData.containerGrid.items = itemData.containerGrid.items.filter(nestedItem => {
-        const nestedResult = this._processItemDataTurn(nestedItem);
+        const nestedResult = this._processItemDataTurn(nestedItem, providesInternalPower);
         if (nestedResult.modified) itemModified = true;
         if (nestedResult.expired) {
           console.log(`[GameMap] Nested item ${nestedItem.name} expired inside ${itemData.name} container`);
@@ -678,7 +712,7 @@ export class GameMap {
       itemData.pocketGrids.forEach(pocket => {
         if (pocket.items) {
           pocket.items = pocket.items.filter(pocketItem => {
-            const nestedResult = this._processItemDataTurn(pocketItem);
+            const nestedResult = this._processItemDataTurn(pocketItem, providesInternalPower);
             if (nestedResult.modified) itemModified = true;
             if (nestedResult.expired) {
               console.log(`[GameMap] Nested item ${pocketItem.name} expired inside ${itemData.name} pocket`);

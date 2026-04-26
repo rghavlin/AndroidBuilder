@@ -38,7 +38,7 @@ export default function FloatingContainerOverlay({
   const containerGrid = item.getContainerGrid?.();
   
   const isDragging = engine?.dragging?.item.instanceId === item.instanceId;
-  const isWagon = item.isWagon;
+  const isWagon = item.isVehicle ? item.isVehicle() : item.isWagon;
   const isPlanter = item.isPlanter;
 
   const handleSelectPlanter = (e: React.MouseEvent) => {
@@ -95,12 +95,13 @@ export default function FloatingContainerOverlay({
 
   if (!containerGrid) return null;
 
+  const batteryStatuses = item.getBatteryStatuses?.() || [];
   const batteryPercent = item.getBatteryCharge?.() || 0;
   const isMotorized = item.isMotorized?.();
 
   // Calculate current AP penalty for tooltip
   const basePenalty = item.dragApPenalty || 2;
-  const motorBonus = isMotorized ? 0.5 : 0;
+  const motorBonus = item.getMotorizedBonus?.() || (isMotorized ? 0.5 : 0);
   const currentPenalty = Math.max(0, basePenalty - motorBonus);
 
   return (
@@ -154,7 +155,7 @@ export default function FloatingContainerOverlay({
                   {isMotorized && (
                     <div className="text-[8px] text-blue-400 font-bold uppercase mt-1 flex items-center gap-1">
                       <Zap className="h-2 w-2" />
-                      Motorized Assist Active (-0.5 AP)
+                      Motorized Assist Active (-{motorBonus.toFixed(1)} AP)
                     </div>
                   )}
                 </div>
@@ -190,17 +191,36 @@ export default function FloatingContainerOverlay({
         </div>
 
         {isWagon && (
-          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-black/40 rounded border border-white/5">
-            <Zap className={cn(
-              "h-3 w-3",
-              batteryPercent > 20 ? "text-yellow-400" : batteryPercent > 0 ? "text-orange-500 animate-pulse" : "text-gray-500"
-            )} />
-            <span className={cn(
-              "text-[9px] font-mono font-bold leading-none",
-              batteryPercent > 20 ? "text-yellow-100" : batteryPercent > 0 ? "text-orange-200" : "text-gray-400"
-            )}>
-              {Math.floor(batteryPercent)}%
-            </span>
+          <div className="flex items-center gap-1.5 px-0.5">
+            {batteryStatuses.length > 0 ? (
+              batteryStatuses.map((status) => (
+                <div key={status.slotId} className="flex items-center gap-1 px-1 py-0.5 bg-black/40 rounded border border-white/5 min-w-[32px] justify-center">
+                  <Zap className={cn(
+                    "h-2.5 w-2.5",
+                    status.percent > 20 ? "text-yellow-400" : status.percent > 0 ? "text-orange-500 animate-pulse" : "text-gray-500"
+                  )} />
+                  <span className={cn(
+                    "text-[8px] font-mono font-bold leading-none",
+                    status.percent > 20 ? "text-yellow-100" : status.percent > 0 ? "text-orange-200" : "text-gray-400"
+                  )}>
+                    {Math.floor(status.percent)}%
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center gap-1 px-1.5 py-0.5 bg-black/40 rounded border border-white/5">
+                <Zap className={cn(
+                  "h-3 w-3",
+                  batteryPercent > 20 ? "text-yellow-400" : batteryPercent > 0 ? "text-orange-500 animate-pulse" : "text-gray-500"
+                )} />
+                <span className={cn(
+                  "text-[9px] font-mono font-bold leading-none",
+                  batteryPercent > 20 ? "text-yellow-100" : batteryPercent > 0 ? "text-orange-200" : "text-gray-400"
+                )}>
+                  {Math.floor(batteryPercent)}%
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { Item } from '../inventory/Item.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
 import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES } from './LootTables.js';
@@ -151,6 +152,9 @@ export class LootGenerator {
         
         // 3. Spawn Furniture (Independent of loot drops)
         this.spawnFurniture(gameMap);
+        
+        // Spawn Generator (1 per map, behind a building)
+        this.spawnGenerator(gameMap);
 
         // 4. Final Pass: Apply map-wide unique loot rules
         this.applyMapWideUniqueRules(gameMap);
@@ -229,7 +233,7 @@ export class LootGenerator {
             
             if (outdoorTiles.length > 0) {
                 const pos = outdoorTiles[Math.floor(Math.random() * outdoorTiles.length)];
-                const wagon = createItemFromDef('toy_wagon');
+                const wagon = createItemFromDef('vehicle.toy_wagon');
                 if (wagon) {
                     gameMap.setItemsOnTile(pos.x, pos.y, [wagon]);
                     console.log(`[LootGenerator] Furniture: Spawned single Toy Wagon at (${pos.x}, ${pos.y})`);
@@ -272,6 +276,62 @@ export class LootGenerator {
                 console.log(`[LootGenerator] Furniture: Spawned single Electric Mower at (${pos.x}, ${pos.y})`);
             }
         }
+    }
+
+    /**
+     * Spawn a single generator behind a building
+     */
+    spawnGenerator(gameMap) {
+        const buildings = (gameMap.buildings || []).filter(b => b.type === 'residential');
+        if (buildings.length === 0) return;
+
+        // Shuffle buildings to try different ones if the first choice is blocked
+        const shuffledBuildings = [...buildings].sort(() => Math.random() - 0.5);
+        
+        for (const building of shuffledBuildings) {
+            // "Behind" = Y - 3 (top of building)
+            const spawnX = building.x + Math.floor(building.width / 2) - 1;
+            const spawnY = building.y - 3;
+            
+            // Check 3x3 area
+            let isSpaceFree = true;
+            if (spawnY < 0 || spawnX < 0 || spawnX + 3 > gameMap.width) {
+                isSpaceFree = false;
+            } else {
+                for (let dy = 0; dy < 3; dy++) {
+                    for (let dx = 0; dx < 3; dx++) {
+                        const tx = spawnX + dx;
+                        const ty = spawnY + dy;
+                        const tile = gameMap.getTile(tx, ty);
+                        // Must be walkable, outdoor terrain, and empty
+                        if (!tile || !tile.isWalkable() || ['road', 'sidewalk', 'grass'].indexOf(tile.terrain) === -1) {
+                            isSpaceFree = false;
+                            break;
+                        }
+                        const existing = gameMap.getItemsOnTile(tx, ty);
+                        if (existing && existing.length > 0) {
+                            isSpaceFree = false;
+                            break;
+                        }
+                    }
+                    if (!isSpaceFree) break;
+                }
+            }
+
+            if (isSpaceFree) {
+                const generatorData = createItemFromDef('furniture.generator');
+                if (generatorData) {
+                    const generator = Item.fromJSON(generatorData);
+                    // Generators spawn with a small amount of fuel (0-5)
+                    generator.ammoCount = Math.floor(Math.random() * 6);
+                    gameMap.setItemsOnTile(spawnX, spawnY, [generator]);
+                    console.log(`[LootGenerator] Spawned Generator behind building at (${spawnX}, ${spawnY})`);
+                    return; // Spawn only one
+                }
+            }
+        }
+        
+        console.warn('[LootGenerator] Could not find a suitable spot behind any building for the generator.');
     }
 
     /**
@@ -401,6 +461,21 @@ export class LootGenerator {
      */
     spawnSpecialLoot(gameMap, building) {
         const { type, x, y, width, height } = building;
+        
+        // Fuel Cover Spawning for Gas Stations
+        if (type === 'gas_station') {
+            const isLeft = building.isLeft;
+            const coverX = isLeft ? x + width : x - 3;
+            const coverY = y;
+            
+            const coverData = createItemFromDef('furniture.fuel_cover');
+            if (coverData) {
+                const cover = Item.fromJSON(coverData);
+                cover.ammoCount = 5 + Math.floor(Math.random() * 16); // 5-20
+                gameMap.setItemsOnTile(coverX, coverY, [cover]);
+                console.log(`[LootGenerator] Spawned Fuel Cover at (${coverX}, ${coverY}) with ${cover.ammoCount} fuel`);
+            }
+        }
         
         // Find internal floor tiles (excluding doorway tiles)
         const floorTiles = [];
@@ -797,6 +872,11 @@ export class LootGenerator {
             const minCondition = isZombieLoot ? 10 : 15;
             const maxCondition = isZombieLoot ? 70 : 100;
             item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+        }
+
+        // Fuel Can randomization (1-10 units)
+        if (item.defId === 'tool.fuel_can') {
+            item.ammoCount = 1 + Math.floor(Math.random() * 10);
         }
 
         // 4. Special cases (Battery Powered items, Weapons)

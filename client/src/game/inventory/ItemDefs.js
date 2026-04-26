@@ -61,17 +61,20 @@ export const ItemDefs = {
   },
 
   // Toy Wagon: 4x6 Ground Container / Furniture
-  'toy_wagon': {
-    id: 'toy_wagon',
+  'vehicle.toy_wagon': {
+    id: 'vehicle.toy_wagon',
     name: 'Toy Wagon',
     noLoot: true,
     rarity: Rarity.UNCOMMON,
     imageId: 'toywagon',
     width: 4,
     height: 6,
-    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER],
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE],
+    categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
     isFurniture: true,
     dragApPenalty: 1,
+    motorAssistBonus: 0.5,
+    terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
     isWagon: true,
     containerGrid: { width: 4, height: 5, isVehicle: true },
@@ -86,6 +89,40 @@ export const ItemDefs = {
         { id: 'crafting.wheel', count: 4 },
         { id: 'weapon.metal_rod', count: 2 },
         { id: 'crafting.metal_plate', count: 1 }
+      ]
+    }
+  },
+  'vehicle.wagon': {
+    id: 'vehicle.wagon',
+    name: 'Wagon',
+    noLoot: true,
+    rarity: Rarity.EPIC,
+    imageId: 'wagon',
+    width: 5,
+    height: 8,
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE],
+    categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
+    isFurniture: true,
+    dragApPenalty: 2,
+    motorAssistBonus: 0.5,
+    terrainModifiers: { road: -0.5, sidewalk: -0.5 },
+    renderFullTile: true,
+    isWagon: true,
+    containerGrid: { width: 5, height: 7, isVehicle: true },
+    attachmentSlots: [
+      { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ],
+    disassembleData: {
+      toolId: 'weapon.wrench',
+      apCost: 15,
+      components: [
+        { id: 'crafting.wheel', count: 4 },
+        { id: 'weapon.metal_rod', count: 4 },
+        { id: 'crafting.metal_plate', count: 2 },
+        { id: 'crafting.plank', count: 6 }
       ]
     }
   },
@@ -1265,6 +1302,45 @@ export const ItemDefs = {
       nutrition: 20
     }
   },
+  'tool.fuel_can': {
+    id: 'tool.fuel_can',
+    name: 'Fuel can',
+    rarity: Rarity.RARE,
+    imageId: 'fuelcan',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.FUEL_CONTAINER],
+    categories: [ItemCategory.TOOL],
+    capacity: 25,
+    ammoDefId: 'fuel' // Placeholder if fuel becomes a real item
+  },
+  'furniture.fuel_cover': {
+    id: 'furniture.fuel_cover',
+    name: 'Fuel cover',
+    rarity: Rarity.COMMON,
+    imageId: 'fuelcover',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.NO_DRAG, ItemTrait.FUEL_CONTAINER],
+    categories: [ItemCategory.FURNITURE],
+    capacity: 100,
+    isFurniture: true,
+    renderFullTile: true,
+    noTooltipUnits: true,
+    noTooltipRarity: true,
+    noLoot: true
+  },
+  'tool.rubber_hose': {
+    id: 'tool.rubber_hose',
+    name: 'Rubber hose',
+    rarity: Rarity.COMMON,
+    imageId: 'rubberhose',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.CAN_SIPHON],
+    categories: [ItemCategory.TOOL],
+    spawnBias: { outside: 3, inside: 0.1 }
+  },
   'food.apple': {
     id: 'food.apple',
     name: 'Apple',
@@ -1803,19 +1879,20 @@ export const ItemDefs = {
     }
   },
 
-  'placeable.small_sled': {
-    id: 'placeable.small_sled',
+  'vehicle.small_sled': {
+    id: 'vehicle.small_sled',
     name: 'Small sled',
     rarity: Rarity.UNCOMMON,
     imageId: 'smallsled',
     width: 4,
     height: 6,
-    traits: [ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.DRAGGABLE],
-    categories: [ItemCategory.FURNITURE, ItemCategory.TOOL],
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.DRAGGABLE, ItemTrait.VEHICLE],
+    categories: [ItemCategory.FURNITURE, ItemCategory.TOOL, ItemCategory.VEHICLE],
     noLoot: true,
     isFurniture: true,
     isWagon: true,
     dragApPenalty: 1.5,
+    terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
     containerGrid: { width: 4, height: 5, isVehicle: true },
     disassembleData: {
@@ -1856,6 +1933,24 @@ export const ItemDefs = {
       ]
     }
   },
+  'furniture.generator': {
+    id: 'furniture.generator',
+    name: 'Generator',
+    rarity: Rarity.RARE,
+    imageId: 'generator',
+    width: 3,
+    height: 3,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.DRAGGABLE, ItemTrait.FUEL_CONTAINER, ItemTrait.POWER_SOURCE],
+    categories: [ItemCategory.FURNITURE],
+    capacity: 50,
+    ammoCount: 0,
+    isOn: false,
+    providesElectricity: true,
+    dragApPenalty: 1.5,
+    isFurniture: true,
+    renderFullTile: true,
+    noLoot: true
+  },
   'environment.water_puddle': {
     id: 'environment.water_puddle',
     name: 'Water puddle',
@@ -1873,6 +1968,21 @@ export const ItemDefs = {
     categories: [ItemCategory.ENVIRONMENT],
     noLoot: true,
     renderFullTile: true
+  },
+  'tool.battery_charger': {
+    id: 'tool.battery_charger',
+    name: 'Battery charger',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'charger',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    categories: [ItemCategory.TOOL],
+    containerGrid: { 
+      width: 3, 
+      height: 2, 
+      allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
+    }
   }
 };
 
