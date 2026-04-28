@@ -50,7 +50,13 @@ export class Item extends SafeEventEmitter {
     isOn = false,
     providesElectricity = false,
     fireMode = FireMode.SINGLE,
-    availableFireModes = []
+    availableFireModes = [],
+    renderFullTile = null,
+    isFurniture = null,
+    isWagon = null,
+    isPlanter = null,
+    dragApPenalty = undefined,
+    noDrag = undefined
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -88,6 +94,14 @@ export class Item extends SafeEventEmitter {
 
     // Traits
     this.traits = Array.isArray(traits) ? traits : [];
+
+    // Phase 27: Furniture & Dragging Restoration
+    this.renderFullTile = renderFullTile;
+    this.isFurniture = isFurniture;
+    this.isWagon = isWagon;
+    this.isPlanter = isPlanter;
+    this.dragApPenalty = dragApPenalty;
+    this.noDrag = noDrag;
 
     // Stack properties (if stackable)
     this.stackCount = stackCount;
@@ -159,11 +173,12 @@ export class Item extends SafeEventEmitter {
       if (def.produce && !this.produce) this.produce = def.produce;
       if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;
       if (def.disassembleData) this.disassembleData = def.disassembleData;
-      if (def.renderFullTile) this.renderFullTile = def.renderFullTile;
-      if (def.isFurniture) this.isFurniture = def.isFurniture;
-      if (def.isWagon) this.isWagon = def.isWagon;
-      if (def.dragApPenalty) this.dragApPenalty = def.dragApPenalty;
-      if (def.isPlanter) this.isPlanter = def.isPlanter;
+      if (def.renderFullTile && this.renderFullTile === null) this.renderFullTile = def.renderFullTile;
+      if (def.isFurniture && this.isFurniture === null) this.isFurniture = def.isFurniture;
+      if (def.isWagon && this.isWagon === null) this.isWagon = def.isWagon;
+      if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) this.dragApPenalty = def.dragApPenalty;
+      if (def.noDrag !== undefined && this.noDrag === undefined) this.noDrag = def.noDrag;
+      if (def.isPlanter && this.isPlanter === null) this.isPlanter = def.isPlanter;
       if (def.isPuddle) this.isPuddle = def.isPuddle;
       if (def.plantsAs) this.plantsAs = def.plantsAs;
       if (def.produceMin !== undefined) this.produceMin = def.produceMin;
@@ -270,6 +285,29 @@ export class Item extends SafeEventEmitter {
     });
 
     return totalBonus;
+  }
+
+  /**
+   * Consume battery power from all active motor pairs based on distance traveled
+   * @param {number} distance - Distance in tiles
+   */
+  consumeMotorPower(distance) {
+    if (!this.isWagon || !this.attachments) return;
+
+    const slotPairs = [
+      ['motor', 'battery'],
+      ['motor_front', 'battery_front'],
+      ['motor_rear', 'battery_rear']
+    ];
+
+    slotPairs.forEach(([motorSlot, batterySlot]) => {
+      const motor = this.attachments[motorSlot];
+      const battery = this.attachments[batterySlot];
+      if (motor && battery && (battery.ammoCount || 0) > 0) {
+        battery.ammoCount = Math.max(0, battery.ammoCount - distance);
+        // console.log(`[Item] Motorized wagon (${this.name}) consumed ${distance} charges from ${batterySlot}. Remaining: ${battery.ammoCount}`);
+      }
+    });
   }
 
   /**
@@ -722,14 +760,16 @@ export class Item extends SafeEventEmitter {
       // 1x1 at 10, 2x2 at 20, 3x3 at 30, 4x4 at 40, 5x5 at 50
       return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
     }
-    return this.rotation === 90 || this.rotation === 270 ? this.height : this.width;
+    const baseWidth = this.rotation === 90 || this.rotation === 270 ? this.height : this.width;
+    return Math.max(1, Math.min(20, baseWidth || 1));
   }
 
   getActualHeight() {
     if (this.isPuddle) {
       return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
     }
-    return this.rotation === 90 || this.rotation === 270 ? this.width : this.height;
+    const baseHeight = this.rotation === 90 || this.rotation === 270 ? this.width : this.height;
+    return Math.max(1, Math.min(20, baseHeight || 1));
   }
 
   degrade(amount = null) {
@@ -1137,24 +1177,25 @@ export class Item extends SafeEventEmitter {
 
   // Weapon Attachment Methods
   attachItem(slotId, item) {
-    if (!this.attachmentSlots) return false;
+    if (!this.attachmentSlots) return null;
     const slot = this.attachmentSlots.find(s => s.id === slotId);
-    if (!slot) return false;
+    if (!slot) return null;
 
     // Validate category compatibility
     if (slot.allowedCategories && slot.allowedCategories.length > 0) {
       const isCompatible = item.categories.some(c => slot.allowedCategories.includes(c));
-      if (!isCompatible) return false;
+      if (!isCompatible) return null;
     }
 
     // Validate specific item ID compatibility
     if (slot.allowedItems && slot.allowedItems.length > 0) {
-      if (!slot.allowedItems.includes(item.defId)) return false;
+      if (!slot.allowedItems.includes(item.defId)) return null;
     }
 
+    const ejectedItem = this.attachments[slotId] || null;
     this.attachments[slotId] = item;
     item.isEquipped = true; // Mark as equipped when attached to a weapon
-    return true;
+    return ejectedItem || true; // Return ejected item if any, or true for success
   }
 
   findCompatibleAttachmentSlot(item, allowOccupied = false) {
@@ -1207,6 +1248,9 @@ export class Item extends SafeEventEmitter {
       defId: this.defId,
       name: this.name,
       imageId: this.imageId,
+      renderFullTile: this.renderFullTile,
+      isFurniture: this.isFurniture,
+      isWagon: this.isWagon,
       width: this.width,
       height: this.height,
       rotation: this.rotation,

@@ -23,6 +23,7 @@ interface UniversalGridProps {
   minVisibleCols?: number;
   enableScroll?: boolean;
   enableHorizontalScroll?: boolean;
+  scrollbarGutter?: boolean;
   className?: string;
   gridType?: 'scalable' | 'fixed';
   slotClassName?: string;
@@ -41,8 +42,9 @@ export default function UniversalGrid({
   maxWidth = "100%",
   minVisibleRows = 3,
   minVisibleCols = 3,
-  enableScroll = true,
+  enableScroll = false,
   enableHorizontalScroll = false,
+  scrollbarGutter = false,
   className,
   gridType = 'scalable',
   slotClassName,
@@ -846,8 +848,8 @@ export default function UniversalGrid({
         )}
         style={{
           maxHeight: enableScroll ? maxHeight : 'none',
-          maxWidth: gridType === 'fixed' ? `${totalGridWidth + (enableScroll ? 16 : 0)}px` : maxWidth,
-          width: gridType === 'fixed' ? `${totalGridWidth + (enableScroll ? 16 : 0)}px` : undefined,
+          maxWidth: gridType === 'fixed' ? `${totalGridWidth + (scrollbarGutter ? 16 : 0)}px` : maxWidth,
+          width: gridType === 'fixed' ? `${totalGridWidth + (scrollbarGutter ? 16 : 0)}px` : undefined,
           height: (gridType === 'fixed' && !enableScroll) ? `${totalGridHeight}px` : undefined,
         }}
       >

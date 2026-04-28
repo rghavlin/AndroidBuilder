@@ -396,6 +396,7 @@ export default function CraftingUI() {
                                             <ContainerGrid 
                                                 containerId={activeTab === 'cooking' ? "cooking-ingredients" : "crafting-ingredients"} 
                                                 enableScroll={activeTab === 'crafting'}
+                                                scrollbarGutter={activeTab === 'crafting'}
                                                 maxHeight="400px"
                                             />
                                         </div>

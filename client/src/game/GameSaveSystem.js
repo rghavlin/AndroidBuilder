@@ -5,6 +5,9 @@ import engine from './GameEngine.js';
  * Follows UniversalGoals.md requirement that all game state must be JSON serializable
  */
 export class GameSaveSystem {
+  static CURRENT_VERSION = '1.1.0';
+  static MIN_SUPPORTED_VERSION = '1.1.0';
+
   /**
    * Save complete game state to JSON
    * @param {Object} gameState - Complete game state from GameContext
@@ -13,7 +16,7 @@ export class GameSaveSystem {
   static saveGameState(gameState) {
     try {
       const saveData = {
-        version: '1.1.0', // Updated version for WorldManager support
+        version: this.CURRENT_VERSION, 
         timestamp: Date.now(),
 
         // Core game state - only essential data
@@ -52,16 +55,16 @@ export class GameSaveSystem {
 
         // Game metadata
         metadata: {
-          mapTemplate: 'road',
-          gameMode: 'survival'
+          mapTemplate: gameState.metadata?.mapTemplate || 'road',
+          gameMode: gameState.metadata?.gameMode || 'survival'
         },
 
-        // Phase 24 Additions: Engine interaction state
         interactionState: {
+          isPlayerTurn: gameState.isPlayerTurn !== undefined ? gameState.isPlayerTurn : true,
           isSleeping: engine.isSleeping,
           sleepProgress: engine.sleepProgress,
           targetingItemInstanceId: engine.targetingItemInstanceId,
-          dragging: engine.dragging ? {
+          dragging: (engine.dragging && engine.dragging.item) ? {
             itemInstanceId: engine.dragging.item.instanceId,
             tileX: engine.dragging.tileX,
             tileY: engine.dragging.tileY
@@ -92,6 +95,11 @@ export class GameSaveSystem {
       // Validate save data format
       if (!saveData.version || !saveData.gameMap) {
         throw new Error('Invalid save data format');
+      }
+
+      // Phase 27: Version check
+      if (this._compareVersions(saveData.version, this.MIN_SUPPORTED_VERSION) < 0) {
+        throw new Error(`Save version ${saveData.version} is incompatible. Minimum required: ${this.MIN_SUPPORTED_VERSION}`);
       }
 
       // Restore GameMap with all entities (including player)
@@ -292,5 +300,20 @@ export class GameSaveSystem {
   static async restoreCameraFromJSON(cameraData) {
     const { Camera } = await import('./Camera.js');
     return Camera.fromJSON(cameraData);
+  }
+
+  /**
+   * Internal version comparison helper (semver-lite)
+   * @private
+   */
+  static _compareVersions(v1, v2) {
+    if (!v1 || !v2) return 0;
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+      if (parts1[i] > (parts2[i] || 0)) return 1;
+      if (parts1[i] < (parts2[i] || 0)) return -1;
+    }
+    return 0;
   }
 }

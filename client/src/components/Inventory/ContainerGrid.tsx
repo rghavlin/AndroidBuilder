@@ -10,6 +10,7 @@ interface ContainerGridProps {
   maxHeight?: string;
   maxWidth?: string;
   enableHorizontalScroll?: boolean;
+  scrollbarGutter?: boolean;
 }
 
 export default function ContainerGrid({
@@ -19,7 +20,8 @@ export default function ContainerGrid({
   enableScroll = false,
   maxHeight = "200px",
   maxWidth = "100%",
-  enableHorizontalScroll = false
+  enableHorizontalScroll = false,
+  scrollbarGutter = false
 }: ContainerGridProps) {
   const { getContainer, moveItem } = useInventory();
   const container = getContainer(containerId);
@@ -88,6 +90,7 @@ export default function ContainerGrid({
         maxWidth={maxWidth}
         enableScroll={enableScroll}
         enableHorizontalScroll={enableHorizontalScroll}
+        scrollbarGutter={scrollbarGutter}
         onSlotClick={handleSlotClick}
         onSlotDrop={handleSlotDrop}
       />

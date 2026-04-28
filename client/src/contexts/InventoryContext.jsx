@@ -582,6 +582,19 @@ export const InventoryProvider = ({ children }) => {
     }
     // If it wasn't stacked, the original item instance in its container was modified directly.
 
+    // 5. Handle puddle destruction (Phase: Environment Cleanup)
+    const isPuddle = itemToDrinkFrom.isPuddle || itemToDrinkFrom.defId === 'environment.water_puddle';
+    if (isPuddle) {
+      if (itemToDrinkFrom.ammoCount <= 0) {
+        engine.inventoryManager.destroyItem(itemToDrinkFrom.instanceId);
+        addLog('The puddle has been drained.', 'info');
+      } else {
+        // Reposition to update footprint (size changes based on water level)
+        const ground = engine.inventoryManager.groundContainer;
+        ground.updateItemFootprint(itemToDrinkFrom);
+      }
+    }
+
     // Handle sickness for dirty water
     if (itemToDrinkFrom.waterQuality === 'dirty') {
       player.inflictSickness(unitsToDrink);
@@ -1103,7 +1116,7 @@ export const InventoryProvider = ({ children }) => {
     }
 
     // 3. Fill logic
-    const isPuddle = source.defId === 'environment.water_puddle';
+    const isPuddle = source.isPuddle || source.defId === 'environment.water_puddle';
     const isRainCollector = source.defId === 'provision.rain_collector';
     const sourceName = source.name || (isPuddle ? 'puddle' : 'rain collector');
 

@@ -7,8 +7,10 @@ import { useGameMap } from './GameMapContext.jsx';
 import { useAudio } from './AudioContext.jsx';
 import { Zombie } from '../game/entities/Zombie.js';
 import { ZombieAI } from '../game/ai/ZombieAI.js';
+import { RabbitAI } from '../game/ai/RabbitAI.js';
 import { useGame } from './GameContext.jsx';
 import { EntityType } from '../game/entities/Entity.js';
+import { GameMap } from '../game/map/GameMap.js';
 
 const SleepContext = createContext();
 
@@ -45,6 +47,8 @@ export const SleepProvider = ({ children }) => {
   const [isSleepModalOpen, setIsSleepModalOpen] = useState(false);
   const [sleepMultiplier, setSleepMultiplier] = useState(1);
 
+  const isResumingRef = useRef(false);
+
   // Sync with engine when it changes (e.g. after load)
   useEffect(() => {
     const handleSync = () => {
@@ -56,139 +60,39 @@ export const SleepProvider = ({ children }) => {
   }, []);
 
   const lastSeenTaggedTilesRef = useRef(new Set());
+  const turnRef = useRef(turn);
+  const isSleepingRef = useRef(isSleeping);
 
-  // Helper: check if player is sheltered (inside a building)
-  const checkIsSheltered = useCallback((player, gameMap) => {
-    if (!player || !gameMap) return false;
+  // Keep refs in sync with props/state
+  useEffect(() => { turnRef.current = turn; }, [turn]);
+  useEffect(() => { isSleepingRef.current = isSleeping; }, [isSleeping]);
 
-    const startTile = gameMap.getTile(player.x, player.y);
-    // PHASE 15 Fix: Support tent_floor and transition (doorways) as sheltered terrain
-    const isIndoorTerrain = startTile && (startTile.terrain === 'floor' || startTile.terrain === 'tent_floor' || startTile.terrain === 'transition');
-    if (!isIndoorTerrain) return false;
+  const wakePlayer = useCallback((reason = null) => {
+    engine.isSleeping = false;
+    engine.sleepProgress = 0;
+    setIsSleeping(false);
+    setSleepProgress(0);
+    setIsPlayerTurn(true);
+    if (reason) addLog(reason, 'warning');
+  }, [addLog, setIsPlayerTurn]);
 
-    const queue = [{ x: player.x, y: player.y }];
-    const visited = new Set([`${player.x},${player.y}`]);
-    const maxCheckedTiles = 2000; // Expanded for large/sprawling player bases
-
-    let head = 0;
-    while (head < queue.length && queue.length < maxCheckedTiles) {
-      const { x, y } = queue[head++];
-      const neighbors = [{ x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }];
-
-      for (const next of neighbors) {
-        const key = `${next.x},${next.y}`;
-        if (visited.has(key)) continue;
-
-        const tile = gameMap.getTile(next.x, next.y);
-        if (!tile) continue;
-
-        const door = tile.contents.find(e => e.type === EntityType.DOOR);
-        const isClosedDoor = door && !door.isOpen;
-        const window = tile.contents.find(e => e.type === EntityType.WINDOW);
-        const isClosedWindow = window && !window.isOpen && !window.isBroken;
-
-        const blocksBFS = (
-          tile.terrain === 'wall' || 
-          tile.terrain === 'building' || 
-          tile.terrain === 'fence' || 
-          (tile.terrain === 'window' && isClosedWindow) || 
-          isClosedDoor
-        );
-
-        if (blocksBFS) {
-          visited.add(key);
-          continue;
-        }
-
-        // PHASE 15 Fix: Support tent_floor and transition in shelter search
-        const isIndoors = tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition';
-        if (!isIndoors || (tile.terrain === 'window' && !isClosedWindow)) {
-          return false;
-        }
-
-        visited.add(key);
-        queue.push(next);
-      }
-    }
-    return true;
-  }, []);
-
-  const isPlayerInSameBuildingAsDoor = useCallback((playerPos, targetPos, gameMap) => {
-    if (!playerPos || !targetPos || !gameMap) return false;
-
-    const startTile = gameMap.getTile(playerPos.x, playerPos.y);
-    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition' || tile.terrain === 'building');
-    
-    if (!isIndoors(startTile)) return false;
-
-    // Phase 22: Manhattan distance check first - if it's too far, it's irrelevant for sleep noise
-    const manhattanDist = Math.abs(playerPos.x - targetPos.x) + Math.abs(playerPos.y - targetPos.y);
-    if (manhattanDist > 15) return false; 
-
-    const queue = [{ x: playerPos.x, y: playerPos.y, dist: 0, closedDoors: 0 }];
-    const visited = new Set([`${playerPos.x},${playerPos.y}`]);
-    const maxDist = 30; // Search up to 30 tiles for building bounds
-
-    while (queue.length > 0) {
-      const { x, y, dist, closedDoors } = queue.shift();
-
-      if (x === targetPos.x && y === targetPos.y) {
-          // INTERRUPTION RULE: Noise only wakes player if it passes through 0 or 1 closed doors.
-          // 2 or more closed doors (e.g. hallway door + bedroom door) provide complete insulation.
-          return closedDoors <= 1;
-      }
-      
-      if (dist >= maxDist) continue;
-      if (closedDoors > 1) continue; // Optimization: Stop searching paths that are already too insulated
-
-      const neighbors = [
-        { x: x + 1, y: y }, { x: x - 1, y: y },
-        { x: x, y: y + 1 }, { x: x, y: y - 1 }
-      ];
-
-      for (const next of neighbors) {
-        const key = `${next.x},${next.y}`;
-        if (visited.has(key)) continue;
-
-        const tile = gameMap.getTile(next.x, next.y);
-        const entity = gameMap.getEntityAt(next.x, next.y);
-        const isWall = tile && tile.blocksMovement && !entity;
-        
-        // UNIFIED BUILDING SHELL: BFS passes through doors/windows to correctly identify the whole house
-        // but stops at non-indoor terrain (grass/road) or walls.
-        if (isWall || !isIndoors(tile)) {
-          visited.add(key);
-          continue;
-        }
-
-        // Phase 22: Insulation detection - Track how many closed doors we pass through
-        let nextClosedDoors = closedDoors;
-        const door = tile.contents.find(e => e.type === EntityType.DOOR);
-        if (door && !door.isOpen) {
-            nextClosedDoors++;
-        }
-
-        visited.add(key);
-        queue.push({ ...next, dist: dist + 1, closedDoors: nextClosedDoors });
-      }
-    }
-
-    return false;
-  }, []);
-
-  const performSleep = useCallback(async (hours, energyMultiplier = 1) => {
+  const performSleep = useCallback(async (hours, energyMultiplier = 1, isResuming = false) => {
     const gameMap = engine.gameMap;
     const player = engine.player;
-    if (!isInitialized || !player || !gameMap || !isPlayerTurn || isSleeping) return;
+    // Phase 27 Fix: Allow resuming if already sleeping (bypassing isPlayerTurn check)
+    if (!isInitialized || !player || !gameMap || (!isPlayerTurn && !isResuming)) return;
 
     try {
-      engine.isSleeping = true;
-      engine.sleepProgress = hours;
-      setIsSleeping(true);
-      setIsPlayerTurn(false);
-      setSleepProgress(hours);
+      isResumingRef.current = true;
+      if (!isResuming) {
+        engine.isSleeping = true;
+        engine.sleepProgress = hours;
+        setIsSleeping(true);
+        setIsPlayerTurn(false);
+        setSleepProgress(hours);
+      }
 
-      let currentTurn = turn;
+      let currentTurn = turnRef.current;
 
       for (let i = 0; i < hours; i++) {
         const hpBeforeHour = player.hp;
@@ -197,6 +101,14 @@ export const SleepProvider = ({ children }) => {
         player.modifyStat('energy', 2.5 * energyMultiplier);
         player.modifyStat('nutrition', -1);
         player.modifyStat('hydration', -1);
+
+        // Phase 27: Starvation/Dehydration HP penalties (consistent with endTurn)
+        let survivalHpLoss = 0;
+        if (player.nutrition <= 0) survivalHpLoss += 1;
+        if (player.hydration <= 0) survivalHpLoss += 1;
+        if (survivalHpLoss > 0) {
+          player.takeDamage(survivalHpLoss, { id: 'survival', type: 'starvation' });
+        }
 
         // Sickness recovery: sleep reduces remaining sickness turns
         if (player.sickness > 0) {
@@ -219,14 +131,11 @@ export const SleepProvider = ({ children }) => {
 
         currentTurn++;
         setTurn(currentTurn);
-        engine.sleepProgress = prev => {
-          const next = typeof prev === 'function' ? prev(engine.sleepProgress) : engine.sleepProgress - 1;
-          return next;
-        };
-        setSleepProgress(prev => prev - 1);
-        engine.sleepProgress = Math.max(0, engine.sleepProgress);
+        
+        engine.sleepProgress = Math.max(0, engine.sleepProgress - 1);
+        setSleepProgress(engine.sleepProgress);
 
-        const isPlayerOutdoors = !checkIsSheltered(player, gameMap);
+        const isPlayerOutdoors = !GameMap.isSheltered(gameMap, player.x, player.y);
         gameMap.processTurn(player, true, currentTurn);
         engine.inventoryManager?.processTurn(currentTurn, isPlayerOutdoors);
 
@@ -262,7 +171,7 @@ export const SleepProvider = ({ children }) => {
               // WAKE ON NOISE: Banging/Smashing in the building shell
               if ((action.type === 'attackDoor' && action.doorPos) || (action.type === 'attackWindow' && action.windowPos)) {
                  const targetPos = action.doorPos || action.windowPos;
-                 if (isPlayerInSameBuildingAsDoor({ x: player.x, y: player.y }, targetPos, gameMap)) {
+                 if (GameMap.isSameBuildingShell(gameMap, { x: player.x, y: player.y }, targetPos)) {
                     if (action.type === 'attackDoor') {
                       addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
                     } else {
@@ -283,7 +192,6 @@ export const SleepProvider = ({ children }) => {
         });
 
         // Rabbit turns
-        const { RabbitAI } = await import('../game/ai/RabbitAI.js');
         rabbits.forEach(rabbit => RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies));
 
         await animateVisibleNPCs([...zombies, ...rabbits], null);
@@ -298,6 +206,13 @@ export const SleepProvider = ({ children }) => {
           sickness: player.sickness
         });
 
+        // Phase 27: Death Guard - check if player died in their sleep
+        if (player.hp <= 0) {
+          wakePlayer('You collapsed from your injuries.');
+          triggerMapUpdate();
+          return;
+        }
+
         // DIAGNOSTIC LOGGING: Helps track why sleep breaks if it ever happens again
         console.log(`[Sleep] Hour ${i+1}: HP ${hpBeforeHour.toFixed(1)} -> ${player.hp.toFixed(1)}, Noise: ${noiseInterruption}, Hit: ${hitByZombie}`);
 
@@ -306,44 +221,47 @@ export const SleepProvider = ({ children }) => {
         let interruptionReason = noiseInterruption ? "Loud banging woke you up!" : "A zombie attack woke you up!";
 
         if (interruption) {
-          addLog(interruptionReason, 'warning');
-          engine.isSleeping = false;
-          engine.sleepProgress = 0;
-          setIsSleeping(false);
-          setSleepProgress(0);
+          wakePlayer(interruptionReason);
           updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
           updatePlayerCardinalPositions(gameMap);
-          setIsPlayerTurn(true);
+          triggerMapUpdate();
           return;
         }
       }
 
       player.restoreAP(player.maxAp - player.ap);
       updatePlayerStats({ ap: player.ap });
-      engine.isSleeping = false;
-      engine.sleepProgress = 0;
-      setIsSleeping(false);
-      setIsPlayerTurn(true);
-      setSleepProgress(0);
+      wakePlayer();
       
       const hour = (6 + (currentTurn - 1)) % 24;
       const finalIsNight = hour >= 20 || hour < 6;
       updatePlayerFieldOfView(gameMap, finalIsNight, isFlashlightOnActual);
       updatePlayerCardinalPositions(gameMap);
-      await performAutosave();
+      triggerMapUpdate();
 
     } catch (error) {
       console.error('[SleepContext] Error during sleep:', error);
-      setIsSleeping(false);
-      setIsPlayerTurn(true);
-      setSleepProgress(0);
+      wakePlayer();
+    } finally {
+      isResumingRef.current = false;
     }
-  }, [isInitialized, isPlayerTurn, isSleeping, turn, isNight, isFlashlightOnActual, getActiveFlashlightRange, checkIsSheltered, isPlayerInSameBuildingAsDoor, animateVisibleNPCs, addLog, addEffect, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave, setTurn, setIsPlayerTurn]);
+  }, [isInitialized, isPlayerTurn, isNight, isFlashlightOnActual, getActiveFlashlightRange, wakePlayer, animateVisibleNPCs, addLog, addEffect, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave, setTurn, setIsPlayerTurn, triggerMapUpdate]);
 
   const triggerSleep = useCallback((multiplier = 1) => {
     setSleepMultiplier(multiplier);
     setIsSleepModalOpen(true);
   }, []);
+
+  // Phase 27: Auto-resume sleep if loaded while sleeping
+  useEffect(() => {
+    if (isInitialized && engine.isSleeping && engine.sleepProgress > 0 && !isResumingRef.current) {
+      console.log('[SleepContext] Detected sleep state after initialization, resuming loop...');
+      isResumingRef.current = true;
+      performSleep(engine.sleepProgress, 1, true).finally(() => {
+        isResumingRef.current = false;
+      });
+    }
+  }, [isInitialized, performSleep]);
 
   const value = {
     isSleeping,

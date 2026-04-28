@@ -305,11 +305,9 @@ export const PlayerProvider = ({ children }) => {
     // Phase 25: Motorized Wagon Battery Depletion
     if (engine.dragging && engine.dragging.item.isMotorized && engine.dragging.item.isMotorized()) {
       const wagon = engine.dragging.item;
-      const battery = wagon.attachments['battery'];
-      if (battery) {
-        const distance = path.length - 1; // distance in tiles
-        battery.ammoCount = Math.max(0, battery.ammoCount - distance);
-        console.log(`[PlayerContext] Motorized wagon consumed ${distance} battery charges. Remaining: ${battery.ammoCount}`);
+      const distance = path.length - 1; // distance in tiles
+      if (wagon.consumeMotorPower) {
+        wagon.consumeMotorPower(distance);
       }
     }
     

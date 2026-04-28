@@ -588,7 +588,7 @@ export class Container {
         const gridX = item.x + dx;
         const gridY = item.y + dy;
 
-        if (this.grid[gridY] && (this.grid[gridY][gridX] === itemId || this.grid[gridY][gridX] === item.id)) {
+        if (this.grid[gridY] && this.grid[gridY][gridX] === itemId) {
           this.grid[gridY][gridX] = null;
           clearedCount++;
         }

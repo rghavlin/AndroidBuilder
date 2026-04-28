@@ -546,10 +546,11 @@ export class LootGenerator {
             // Guaranteed drops for some buildings on the first tile
             if (index === 0) {
                 if (type === 'grocer' || type === 'gas_station') {
-                    // Guaranteed full water bottle
+                    // Guaranteed partially full water bottle (50-100%)
                     const water = createItemFromDef('food.waterbottle');
                     if (water) {
-                        water.ammoCount = water.capacity;
+                        const minFill = Math.floor(water.capacity * 0.5);
+                        water.ammoCount = minFill + Math.floor(Math.random() * (water.capacity - minFill + 1));
                         items.push(water);
                     }
                 }
@@ -872,12 +873,8 @@ export class LootGenerator {
 
         // 2. Ammo / Charge / Water Randomization
         if (def.spawnAmmoPercent !== undefined && item.capacity) {
-            // Apply randomized fill based on capacity
-            if (def.spawnAmmoPercent === 1.0) {
-                item.ammoCount = item.capacity;
-            } else {
-                item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
-            }
+            // Apply randomized fill based on capacity (0 to capacity * spawnAmmoPercent)
+            item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
         } else if (item.traits && item.traits.includes(ItemTrait.BATTERY)) {
             // Batteries always spawn as a single item with a FULL charge
             item.ammoCount = item.capacity || 10;

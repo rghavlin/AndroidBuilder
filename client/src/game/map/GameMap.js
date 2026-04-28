@@ -99,8 +99,132 @@ export class GameMap {
     if (alertedCount > 0) {
       console.log(`[GameMap] 🧟 ${alertedCount} zombies alerted by noise at (${x}, ${y})`);
     }
+  }
 
-    this.emit('noiseEmitted', { x, y, radius, alertedCount });
+  /**
+   * Static Utility: Check if a position is sheltered (inside a building)
+   * @param {GameMap} gameMap - The map to check
+   * @param {number} x - X coordinate
+   * @param {number} y - Y coordinate
+   * @returns {boolean}
+   */
+  static isSheltered(gameMap, x, y) {
+    if (!gameMap) return false;
+
+    const startTile = gameMap.getTile(x, y);
+    // PHASE 15: Support tent_floor and transition (doorways) as sheltered terrain
+    const isIndoorTerrain = startTile && (startTile.terrain === 'floor' || startTile.terrain === 'tent_floor' || startTile.terrain === 'transition');
+    if (!isIndoorTerrain) return false;
+
+    const queue = [{ x, y }];
+    const visited = new Set([`${x},${y}`]);
+    const maxCheckedTiles = 2000; 
+
+    let head = 0;
+    while (head < queue.length && queue.length < maxCheckedTiles) {
+      const { x: curX, y: curY } = queue[head++];
+      const neighbors = [{ x: curX + 1, y: curY }, { x: curX - 1, y: curY }, { x: curX, y: curY + 1 }, { x: curX, y: curY - 1 }];
+
+      for (const next of neighbors) {
+        const key = `${next.x},${next.y}`;
+        if (visited.has(key)) continue;
+
+        const tile = gameMap.getTile(next.x, next.y);
+        if (!tile) continue;
+
+        const door = tile.contents.find(e => e.type === EntityType.DOOR);
+        const isClosedDoor = door && !door.isOpen;
+        const window = tile.contents.find(e => e.type === EntityType.WINDOW);
+        const isClosedWindow = window && !window.isOpen && !window.isBroken;
+
+        const blocksBFS = (
+          tile.terrain === 'wall' || 
+          tile.terrain === 'building' || 
+          tile.terrain === 'fence' || 
+          (tile.terrain === 'window' && isClosedWindow) || 
+          isClosedDoor
+        );
+
+        if (blocksBFS) {
+          visited.add(key);
+          continue;
+        }
+
+        const isIndoors = tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition';
+        if (!isIndoors || (tile.terrain === 'window' && !isClosedWindow)) {
+          return false;
+        }
+
+        visited.add(key);
+        queue.push(next);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Static Utility: Check if two positions are in the same building shell
+   * Used for noise propagation through indoor spaces.
+   * @param {GameMap} gameMap - The map to check
+   * @param {Object} posA - {x, y} start
+   * @param {Object} posB - {x, y} end
+   * @returns {boolean}
+   */
+  static isSameBuildingShell(gameMap, posA, posB) {
+    if (!posA || !posB || !gameMap) return false;
+
+    const startTile = gameMap.getTile(posA.x, posA.y);
+    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition' || tile.terrain === 'building');
+    
+    if (!isIndoors(startTile)) return false;
+
+    const manhattanDist = Math.abs(posA.x - posB.x) + Math.abs(posA.y - posB.y);
+    if (manhattanDist > 15) return false; 
+
+    const queue = [{ x: posA.x, y: posA.y, dist: 0, closedDoors: 0 }];
+    const visited = new Set([`${posA.x},${posA.y}`]);
+    const maxDist = 30;
+
+    while (queue.length > 0) {
+      const { x, y, dist, closedDoors } = queue.shift();
+
+      if (x === posB.x && y === posB.y) {
+          return closedDoors <= 1;
+      }
+      
+      if (dist >= maxDist) continue;
+      if (closedDoors > 1) continue; 
+
+      const neighbors = [
+        { x: x + 1, y: y }, { x: x - 1, y: y },
+        { x: x, y: y + 1 }, { x: x, y: y - 1 }
+      ];
+
+      for (const next of neighbors) {
+        const key = `${next.x},${next.y}`;
+        if (visited.has(key)) continue;
+
+        const tile = gameMap.getTile(next.x, next.y);
+        const entity = gameMap.getEntityAt(next.x, next.y);
+        const isWall = tile && tile.blocksMovement && !entity;
+        
+        if (isWall || !isIndoors(tile)) {
+          visited.add(key);
+          continue;
+        }
+
+        let nextClosedDoors = closedDoors;
+        const door = tile.contents.find(e => e.type === EntityType.DOOR);
+        if (door && !door.isOpen) {
+            nextClosedDoors++;
+        }
+
+        visited.add(key);
+        queue.push({ ...next, dist: dist + 1, closedDoors: nextClosedDoors });
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -134,9 +258,14 @@ export class GameMap {
     const tile = this.getTile(x, y);
     if (!tile) return;
 
-    // Filter out nulls/undefined and serialize
+    // Filter out nulls/undefined and ensure they are serialized POJOs for consistency
     const validItems = items.filter(Boolean);
-    tile.inventoryItems = validItems.map(item => typeof item.toJSON === 'function' ? item.toJSON() : item);
+    tile.inventoryItems = validItems.map(item => {
+        const json = typeof item.toJSON === 'function' ? item.toJSON() : item;
+        // Ensure id/defId alignment if it's a raw object
+        if (!json.defId && json.id && !json.instanceId) json.defId = json.id;
+        return json;
+    });
     
     // Update crop metadata based on new items
     this.updateCropMetadata(x, y);
@@ -152,20 +281,24 @@ export class GameMap {
           type: EntityType.ITEM,
           subtype,
           renderFullTile,
+          isProxy: true, // PHASE 27 FIX: Explicit marker for restoration
           x,
           y,
           blocksMovement: false,
           blocksSight: false,
-          toJSON: () => ({
-            id: proxyId,
-            type: EntityType.ITEM,
-            subtype,
-            renderFullTile,
-            x,
-            y,
-            blocksMovement: false,
-            blocksSight: false
-          })
+          toJSON: function() {
+            return {
+              id: this.id,
+              type: EntityType.ITEM,
+              subtype: this.subtype,
+              renderFullTile: this.renderFullTile,
+              isProxy: true,
+              x: this.x,
+              y: this.y,
+              blocksMovement: this.blocksMovement,
+              blocksSight: this.blocksSight
+            };
+          }
         };
         this.addEntity(proxy, x, y);
       } else {
@@ -664,7 +797,10 @@ export class GameMap {
     }
 
     // Determine if THIS item provides power to its contents (for nested recursion)
-    const providesInternalPower = isPowered || (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn);
+    // FIX: Also check if any sibling items inside this container provide power
+    const providesInternalPower = isPowered || 
+                                  (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) ||
+                                  (itemData.containerGrid?.items?.some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn));
 
     // --- RECURSION ---
     
@@ -838,10 +974,10 @@ export class GameMap {
               }
 
               let entity;
-              if (entityType === 'item' && entityData.subtype === 'ground_pile') {
+              if (entityType === 'item' && (entityData.subtype === 'ground_pile' || entityData.isProxy)) {
                 entity = {
                   ...entityData,
-                  toJSON: () => ({ ...entityData })
+                  toJSON: function() { return { ...this }; }
                 };
               } else {
                 switch (entityType) {
@@ -922,12 +1058,13 @@ export class GameMap {
           if (tileData.contents) {
             for (const entityData of tileData.contents) {
               let entity;
-              if (entityData.type === 'item' && entityData.subtype === 'ground_pile') {
+              if (entityData.type === 'item' && (entityData.subtype === 'ground_pile' || entityData.isProxy)) {
                 entity = {
                   ...entityData,
-                  type: 'item',
-                  subtype: 'ground_pile',
-                  toJSON: () => ({ ...entityData, type: 'item', subtype: 'ground_pile' })
+                  toJSON: function() { 
+                    const { ...data } = this;
+                    return data;
+                  }
                 };
               } else {
                 switch (entityData.type) {
@@ -970,6 +1107,13 @@ export class GameMap {
 
           gameMap.tiles[y][x] = tile;
         }
+      }
+    }
+
+    // Phase 27 Fix: Restore crop metadata for all tiles
+    for (let y = 0; y < gameMap.height; y++) {
+      for (let x = 0; x < gameMap.width; x++) {
+        gameMap.updateCropMetadata(x, y);
       }
     }
 

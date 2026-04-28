@@ -539,7 +539,7 @@ const GameContextInner = ({ children }) => {
       
       // Phase 23 Fix: Ensure Turn state and derived values are set correctly during autosave load
       setTurn(loadedState.turn);
-      setIsPlayerTurn(true);
+      setIsPlayerTurn(loadedState.interactionState?.isPlayerTurn !== undefined ? loadedState.interactionState.isPlayerTurn : true);
       setIsGameReady(true);
       setIsAutosaving(false);
       setIsDefeated(false);
@@ -592,7 +592,7 @@ const GameContextInner = ({ children }) => {
       engine.sync(loadedState);
       
       setTurn(loadedState.turn);
-      setIsPlayerTurn(true);
+      setIsPlayerTurn(loadedState.interactionState?.isPlayerTurn !== undefined ? loadedState.interactionState.isPlayerTurn : true);
       setIsAutosaving(false);
       setIsGameReady(true);
       setIsDefeated(false);
@@ -698,7 +698,7 @@ const GameContextInner = ({ children }) => {
 
 
   const performAutosave = useCallback((turnOverride = null) => {
-    if (!isInitialized) return false;
+    if (!isInitialized || engine.isSleeping) return false;
 
     try {
       setIsAutosaving(true);
@@ -720,6 +720,7 @@ const GameContextInner = ({ children }) => {
         camera: engine.camera,
         inventoryManager: inventoryManager,
         turn: turnOverride !== null ? turnOverride : turn,
+        isPlayerTurn: isPlayerTurn,
         playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
       };
 

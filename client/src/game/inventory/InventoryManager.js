@@ -688,13 +688,23 @@ export class InventoryManager extends SafeEventEmitter {
     // Phase 18 Refactor: Container IDs are now stable and instance-based.
     // We no longer overwrite them with 'backpack-container' etc.
     // We just ensure all containers of equipped items are correctly registered in the map.
+    const protectedIds = ['ground', 'crafting-tools', 'crafting-ingredients', 'cooking-tools', 'cooking-ingredients'];
+
     Object.values(this.equipment).forEach(item => {
         if (item) {
             if (item.containerGrid) {
+                if (protectedIds.includes(item.containerGrid.id)) {
+                    console.warn(`[InventoryManager] Item ${item.name} attempted to register grid with protected ID: ${item.containerGrid.id}. Forcing regeneration.`);
+                    item.containerGrid.id = `${item.instanceId}-container`;
+                }
                 this.containers.set(item.containerGrid.id, item.containerGrid);
             }
             if (item.getPocketContainers) {
                 item.getPocketContainers().forEach(pocket => {
+                    if (protectedIds.includes(pocket.id)) {
+                        console.warn(`[InventoryManager] Item ${item.name} attempted to register pocket with protected ID: ${pocket.id}. Forcing regeneration.`);
+                        // Pockets usually have stable IDs like [instanceId]-pocket-[index]
+                    }
                     this.containers.set(pocket.id, pocket);
                 });
             }
@@ -845,8 +855,13 @@ export class InventoryManager extends SafeEventEmitter {
               id: containerId,
               isEquipment: true,
               placeItemAt: (item) => {
+                  const oldItem = this.equipment[slotId];
                   this.equipment[slotId] = item;
                   item.isEquipped = true;
+                  if (oldItem && oldItem !== item) {
+                      oldItem.isEquipped = false;
+                      this.addItem(oldItem);
+                  }
                   return true;
               },
               removeItem: (itemId) => {
@@ -888,7 +903,23 @@ export class InventoryManager extends SafeEventEmitter {
           },
           placeItemAt: (item) => {
             if (slotId && weaponOrClothing.attachItem) {
-              return weaponOrClothing.attachItem(slotId, item);
+              let itemToAttach = item;
+              
+              // Handle stack splitting for attachment slots (e.g. batteries)
+              if (item.stackCount > 1) {
+                itemToAttach = item.splitStack(1);
+                // Return remaining stack to inventory
+                this.addItem(item);
+              }
+
+              const result = weaponOrClothing.attachItem(slotId, itemToAttach);
+              if (result) {
+                if (result !== true) {
+                  // result is the ejected item
+                  this.addItem(result);
+                }
+                return true;
+              }
             }
             return false;
           },
@@ -1878,10 +1909,6 @@ export class InventoryManager extends SafeEventEmitter {
                 if (success) {
                   this.emit('inventoryChanged');
 
-                  if (ejected) {
-                    console.log(`[InventoryManager] Successfully swapped battery. Adding ejected ${ejected.name} to inventory.`);
-                    this.addItem(ejected);
-                  }
                 
                 // AUTO-STACK: Check if they are now stackable (e.g. both became empty or full)
                 if (occupant.canStackWith(item)) {
@@ -1894,11 +1921,25 @@ export class InventoryManager extends SafeEventEmitter {
                 }
                 
                 if (item.stackCount <= 0) {
+                  if (ejected) {
+                    console.log(`[InventoryManager] Successfully swapped item. Adding ejected ${ejected.name} to inventory.`);
+                    this.addItem(ejected);
+                  }
                   return { success: true, container: toContainer.id, combined: true, merged: true };
                 }
 
-                // If item remains (it didn't merge), it must go back to its origin or be dropped
-                fromContainer.placeItemAt(item, item.x, item.y);
+                // If item remains, return to source FIRST, then add ejected item
+                const placedBack = fromContainer.placeItemAt(item, item.x, item.y);
+                if (!placedBack) {
+                  console.warn(`[InventoryManager] Failed to return item to source, finding new spot...`);
+                  this.addItem(item);
+                }
+
+                if (ejected) {
+                  console.log(`[InventoryManager] Successfully swapped item. Adding ejected ${ejected.name} to inventory.`);
+                  this.addItem(ejected);
+                }
+                
                 this.emit('inventoryChanged');
                 return { success: true, container: fromContainerId, combined: true };
               }
@@ -2294,7 +2335,9 @@ export class InventoryManager extends SafeEventEmitter {
    */
   toJSON() {
     return {
-      containers: Array.from(this.containers.entries()).map(([id, container]) => [id, container.toJSON()]),
+      containers: Array.from(this.containers.entries())
+        .filter(([id, container]) => container.type !== 'crafting-workspace')
+        .map(([id, container]) => [id, container.toJSON()]),
       equipment: {
         backpack: this.equipment.backpack?.toJSON() || null,
         upper_body: this.equipment.upper_body?.toJSON() || null,
@@ -2315,13 +2358,20 @@ export class InventoryManager extends SafeEventEmitter {
   static fromJSON(data) {
     const manager = new InventoryManager();
 
-    // Clear default containers
-    manager.containers.clear();
+    // Restore containers from save data while preserving default workspaces from constructor
 
     // Restore containers
     if (data.containers) {
       for (const [id, containerData] of data.containers) {
         const container = Container.fromJSON(containerData);
+        
+        // Safety: Do not restore workspace containers from save file 
+        // if they were somehow saved (legacy support or corruption)
+        if (container.type === 'crafting-workspace') {
+            console.warn(`[InventoryManager] Skipping restoration of workspace container: ${id}`);
+            continue;
+        }
+
         manager.containers.set(id, container);
 
         // Update ground container reference
@@ -2490,17 +2540,31 @@ export class InventoryManager extends SafeEventEmitter {
    * A container is powered if it contains an active power source,
    * or if it is on a tile (ground) that has an active power source.
    */
-  isContainerPowered(containerId) {
+  isContainerPowered(containerId, visited = new Set()) {
+    if (!containerId || visited.has(containerId)) return false;
+    visited.add(containerId);
+
     const container = this.getContainer(containerId);
     if (!container) return false;
 
-    // 1. Direct internal power
+    // 1. Direct internal power (generator inside this container)
     const hasInternalPower = container.getAllItems().some(item => 
       item.hasTrait(ItemTrait.POWER_SOURCE) && item.isOn
     );
     if (hasInternalPower) return true;
 
-    // 2. Shared tile power (for ground or vehicles on ground)
+    // 2. Parent container power (FIX: supports chargers inside vehicles/pockets)
+    if (container.ownerId) {
+      const owner = this.findItem(container.ownerId);
+      const ownerItem = owner ? owner.item : null;
+      if (ownerItem && ownerItem._container) {
+        if (this.isContainerPowered(ownerItem._container.id, visited)) {
+          return true;
+        }
+      }
+    }
+
+    // 3. Shared tile power (for ground or vehicles on ground)
     if (container.type === 'ground' || container.id === 'ground') {
       return this.isTilePowered();
     }
