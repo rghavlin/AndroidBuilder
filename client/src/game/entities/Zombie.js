@@ -272,7 +272,8 @@ export class Zombie extends Entity {
       lastScentSequence: this.lastScentSequence,
       interactionMemory: this.interactionMemory,
       lastDirection: this.lastDirection,
-      momentumSteps: this.momentumSteps
+      momentumSteps: this.momentumSteps,
+      currentTarget: this.currentTarget
     };
   }
 
@@ -304,6 +305,7 @@ export class Zombie extends Entity {
     zombie.animationProgress = 0;
     zombie.prevX = data.x;
     zombie.prevY = data.y;
+    zombie.currentTarget = data.currentTarget || null;
     
     return zombie;
   }
