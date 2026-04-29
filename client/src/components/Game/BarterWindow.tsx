@@ -78,8 +78,8 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
         className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
         style={{
           top: '48px',
-          bottom: '72px',
-          height: 'calc(100vh - 120px)'
+          bottom: '88px',
+          height: 'calc(100vh - 136px)'
         }}
         onClick={handleCancel}
       />
@@ -90,8 +90,8 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
           className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-0 overflow-hidden pointer-events-auto animate-in slide-in-from-left duration-300"
           style={{
             top: '48px',
-            bottom: '72px',
-            height: 'calc(100vh - 120px)'
+            bottom: '88px',
+            height: 'calc(100vh - 136px)'
           }}
           data-testid="barter-window"
           data-inventory-ui="true"
@@ -123,7 +123,7 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
                 <ContainerGrid
                   containerId={npcInventoryId}
                   enableScroll
-                  maxHeight="calc(100vh - 350px)"
+                  maxHeight="calc(100vh - 300px)"
                   scrollbarGutter={true}
                   onBeforeDrop={validateMove}
                 />
@@ -137,13 +137,12 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="px-1 mb-1 flex justify-between">
                   <h3 className="text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">You Offer</h3>
-                  <span className="text-[10px] font-black text-white">{youPoints} Pts</span>
                 </div>
                 <div className="flex-1 bg-emerald-500/[0.01] border border-emerald-500/10 rounded-lg overflow-hidden flex flex-col p-1 min-h-0">
                   <ContainerGrid
                     containerId={youOfferContainerId}
                     enableScroll
-                    maxHeight="calc(50vh - 200px)"
+                    maxHeight="calc(50vh - 170px)"
                     scrollbarGutter={true}
                     onBeforeDrop={validateMove}
                   />
@@ -154,13 +153,12 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="px-1 mb-1 flex justify-between">
                   <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">They Offer</h3>
-                  <span className="text-[10px] font-black text-white">{theyPoints} Pts</span>
                 </div>
                 <div className="flex-1 bg-white/[0.01] border border-white/5 rounded-lg overflow-hidden flex flex-col p-1 min-h-0">
                   <ContainerGrid
                     containerId={theyOfferContainerId}
                     enableScroll
-                    maxHeight="calc(50vh - 200px)"
+                    maxHeight="calc(50vh - 170px)"
                     scrollbarGutter={true}
                     onBeforeDrop={validateMove}
                   />
@@ -170,19 +168,19 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
             </div>
           </div>
 
-          {/* Footer Bar - Progress & Actions */}
-          <div className="px-6 py-4 border-t border-white/5 bg-zinc-950 flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
+          {/* Footer Bar - Compact Progress & Actions */}
+          <div className="px-6 py-3 border-t border-white/5 bg-zinc-950/80 flex items-center gap-6">
+            <div className="flex-1 flex flex-col gap-2">
               <div className="flex justify-between items-center px-1">
                 <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Trade Progress</span>
                 <span className={cn(
                   "text-[10px] font-black uppercase tracking-tighter",
                   canTrade ? "text-emerald-400" : "text-amber-500"
                 )}>
-                  {canTrade ? "Accepted" : `${theyPoints - youPoints} Pts Remaining`}
+                  {canTrade ? "Accepted" : "Needs more value"}
                 </span>
               </div>
-              <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+              <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-500",
@@ -193,26 +191,18 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
               </div>
             </div>
 
-            <div className="flex gap-3 justify-end mt-2">
-              <button
-                onClick={handleCancel}
-                className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-white font-black rounded-lg transition-all uppercase tracking-widest text-[10px] border border-white/5"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={!canTrade}
-                onClick={handleTrade}
-                className={cn(
-                  "px-8 py-2.5 font-black rounded-lg transition-all uppercase tracking-widest text-[10px] shadow-lg",
-                  canTrade
-                    ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20"
-                    : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-                )}
-              >
-                Confirm Deal
-              </button>
-            </div>
+            <button
+              disabled={!canTrade}
+              onClick={handleTrade}
+              className={cn(
+                "px-8 py-3 font-black rounded-lg transition-all uppercase tracking-widest text-[10px] shadow-lg flex-shrink-0 min-w-[160px]",
+                canTrade
+                  ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20"
+                  : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+              )}
+            >
+              Confirm Deal
+            </button>
           </div>
         </div>
       </GridSizeProvider>
