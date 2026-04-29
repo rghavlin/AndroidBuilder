@@ -785,7 +785,9 @@ export const InventoryProvider = ({ children }) => {
     try {
       const newItem = item.splitStack(count);
       if (newItem) {
-        const result = engine.inventoryManager.addItem(newItem);
+        const containerId = item._container?.id;
+        const isNpcContainer = containerId === 'barter_they_offer' || (containerId?.endsWith('_inventory') && containerId !== 'player_inventory');
+        const result = engine.inventoryManager.addItem(newItem, containerId, null, null, false, isNpcContainer);
         if (result.success) {
           // Atomically reduce the original stack ONLY if the new one was successfully placed
           item.stackCount -= count;

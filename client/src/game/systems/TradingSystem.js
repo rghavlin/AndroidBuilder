@@ -1,4 +1,4 @@
-import { Rarity } from '../inventory/traits.js';
+import { Rarity, ItemCategory, EquipmentSlot } from '../inventory/traits.js';
 import { Container } from '../inventory/Container.js';
 import engine from '../GameEngine.js';
 
@@ -249,7 +249,53 @@ class TradingSystem {
   }
 
   /**
-   * Determine the point value of an item based on rarity and stack size
+   * Determine the point value of a single item instance
+   */
+  getItemValue(item) {
+    if (!item) return 0;
+
+    // 1. Ammo: 1 point per 1 unit (rounds in stack)
+    if (item.hasCategory(ItemCategory.AMMO)) {
+      return item.stackCount || 1;
+    }
+
+    // 2. Food & Drinks: Value based on nutrition and hydration
+    // Nutrition: 1 pt per point
+    // Hydration: 1 pt per 2 points (round down)
+    const nutrition = item.getNutritionValue?.() || 0;
+    const hydration = item.getHydrationValue?.() || 0;
+    
+    if (nutrition > 0 || hydration > 0) {
+      let totalValue = nutrition + Math.floor(hydration / 2);
+      
+      // Handle liquid containers (water bottles, sodas) that use ammoCount for units
+      if (item.isWaterBottle?.() || item.capacity > 0) {
+        // total hydration = hydration per unit * number of units
+        // But the rule is 1 point per 2 points of TOTAL hydration.
+        const totalHydration = (item.ammoCount || 0) * hydration;
+        const totalNutrition = (item.ammoCount || 0) * nutrition; // Some liquids might have nutrition
+        return totalNutrition + Math.floor(totalHydration / 2);
+      }
+
+      // Standard stackable food (chips, beans)
+      return totalValue * (item.stackCount || 1);
+    }
+
+    // 3. Premium Items: Guns, Tools, and Backpacks (+5 pts)
+    const isGun = item.hasCategory(ItemCategory.GUN) || item.hasCategory(ItemCategory.WEAPON);
+    const isTool = item.hasCategory(ItemCategory.TOOL);
+    const isBackpack = item.hasCategory(ItemCategory.CONTAINER) && item.equippableSlot === EquipmentSlot.BACKPACK;
+
+    let baseValue = this.getRarityValue(item.rarity);
+    if (isGun || isTool || isBackpack) {
+      baseValue += 5;
+    }
+
+    return baseValue * (item.stackCount || 1);
+  }
+
+  /**
+   * Determine the base point value of an item based on rarity
    */
   getRarityValue(rarity) {
     switch (rarity) {
@@ -268,7 +314,7 @@ class TradingSystem {
     if (!container) return 0;
     let total = 0;
     container.getAllItems().forEach(item => {
-      total += this.getRarityValue(item.rarity) * (item.stackCount || 1);
+      total += this.getItemValue(item);
     });
     return total;
   }

@@ -1558,7 +1558,7 @@ export class InventoryManager extends SafeEventEmitter {
    * Add item to the system, automatically finding a suitable container
    * Priority: Preferred -> Stacking -> Backpack -> Pockets -> Ground
    */
-  addItem(item, preferredContainerId = null, preferredX = null, preferredY = null, allowStacking = false) {
+  addItem(item, preferredContainerId = null, preferredX = null, preferredY = null, allowStacking = false, strict = false) {
     if (!item) return { success: false, reason: 'No item provided' };
 
     // 1. Stack Merging Logic (Phase 17 Restoration)
@@ -1575,18 +1575,20 @@ export class InventoryManager extends SafeEventEmitter {
         if (pref) potentialContainers.push(pref);
       }
       
-      // B. Equipped Backpack (high priority for stacking)
-      const backpack = this.getBackpackContainer();
-      if (backpack && backpack.id !== preferredContainerId) potentialContainers.push(backpack);
-      
-      // C. Pockets
-      const pockets = this.getPocketContainers();
-      pockets.forEach(p => {
-        if (p.id !== preferredContainerId) potentialContainers.push(p);
-      });
-      
-      // D. Ground (lowest priority for automatic stacking)
-      if (this.groundContainer.id !== preferredContainerId) potentialContainers.push(this.groundContainer);
+      if (!strict) {
+        // B. Equipped Backpack (high priority for stacking)
+        const backpack = this.getBackpackContainer();
+        if (backpack && backpack.id !== preferredContainerId) potentialContainers.push(backpack);
+        
+        // C. Pockets
+        const pockets = this.getPocketContainers();
+        pockets.forEach(p => {
+          if (p.id !== preferredContainerId) potentialContainers.push(p);
+        });
+        
+        // D. Ground (lowest priority for automatic stacking)
+        if (this.groundContainer.id !== preferredContainerId) potentialContainers.push(this.groundContainer);
+      }
 
       // Search and merge
       for (const container of potentialContainers) {
@@ -1617,6 +1619,11 @@ export class InventoryManager extends SafeEventEmitter {
       if (container && container.addItem(item, preferredX, preferredY, allowStacking)) {
         this.emit('inventoryChanged');
         return { success: true, container: container.id };
+      }
+      
+      // If strict mode is ON and preferred failed, we STOP here.
+      if (strict) {
+        return { success: false, reason: 'No space in preferred container' };
       }
     }
 
