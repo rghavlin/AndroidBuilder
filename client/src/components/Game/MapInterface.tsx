@@ -596,16 +596,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           />
         )}
 
-        {/* Barter Window */}
-        {isBartering && activeTradeNpc && (
-          <BarterWindow 
-            npc={activeTradeNpc}
-            onClose={() => {
-              setIsBartering(false);
-              setActiveTradeNpc(null);
-            }}
-          />
-        )}
 
         {/* Diagnostic log for animation state desync debugging */}
         {process.env.NODE_ENV === 'development' && (
@@ -638,6 +628,17 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         isOpen={isInventoryExtensionOpen}
         onClose={() => setIsInventoryExtensionOpen(false)}
       />
+
+      {/* Barter Window - Now on the same layer as Crafting/Inventory Extension */}
+      {isBartering && activeTradeNpc && (
+        <BarterWindow 
+          npc={activeTradeNpc}
+          onClose={() => {
+            setIsBartering(false);
+            setActiveTradeNpc(null);
+          }}
+        />
+      )}
 
       {/* Log History Window (Direct Implementation to match InventoryExtensionWindow layout) */}
       {isLogHistoryOpen && (

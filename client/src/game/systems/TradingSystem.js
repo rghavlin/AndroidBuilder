@@ -37,14 +37,14 @@ class TradingSystem {
     const youOffer = new Container({
       id: 'barter_you_offer',
       name: 'You offer:',
-      width: 6,
+      width: 5,
       height: 15
     });
 
     const theyOffer = new Container({
       id: 'barter_they_offer',
       name: 'They offer:',
-      width: 6,
+      width: 5,
       height: 15
     });
 

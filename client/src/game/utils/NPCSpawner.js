@@ -1,7 +1,9 @@
 import { NPC } from '../entities/NPC.js';
 import { EntityType } from '../entities/Entity.js';
 import { Item } from '../inventory/Item.js';
-import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { createItemFromDef, ItemDefs } from '../inventory/ItemDefs.js';
+import { ItemCategory } from '../inventory/traits.js';
+import { LootGenerator } from '../map/LootGenerator.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 
 /**
@@ -62,22 +64,79 @@ export class NPCSpawner {
         
         const npc = new NPC(id, name, x, y, isHostile, typeId);
         
-        // Add random starting items
-        const itemPool = typeDef.itemPool;
-        const numItems = typeDef.minItems + Math.floor(Math.random() * (typeDef.maxItems - typeDef.minItems + 1));
-        for (let i = 0; i < numItems; i++) {
-          const defId = itemPool[Math.floor(Math.random() * itemPool.length)];
+        // --- Structured Inventory Generation ---
+        const { pools, minItems, maxItems } = typeDef;
+        const targetCount = minItems + Math.floor(Math.random() * (maxItems - minItems + 1));
+        const addedGuns = new Set();
+        const itemsToAdd = [];
+
+        // Helper to pick unique gun if possible
+        const getUniqueId = (pool, category, addedSet, maxTries = 10) => {
+          let pickedId = pool[Math.floor(Math.random() * pool.length)];
+          if (category) {
+            let tries = 0;
+            while (addedSet.has(pickedId) && tries < maxTries) {
+              pickedId = pool[Math.floor(Math.random() * pool.length)];
+              tries++;
+            }
+            if (ItemDefs[pickedId]?.categories?.includes(category)) {
+              addedSet.add(pickedId);
+            }
+          }
+          return pickedId;
+        };
+
+        // 1. Ensure at least 1 Rare item
+        itemsToAdd.push(getUniqueId(pools.rare, ItemCategory.GUN, addedGuns));
+
+        // 2. Ensure at least 2 Weapons
+        for (let i = 0; i < 2; i++) {
+          itemsToAdd.push(getUniqueId(pools.weapons, ItemCategory.GUN, addedGuns));
+        }
+
+        // 3. Ensure at least 10% Food/Water
+        const foodCount = Math.max(1, Math.ceil(targetCount * 0.1));
+        for (let i = 0; i < foodCount; i++) {
+          itemsToAdd.push(pools.foodWater[Math.floor(Math.random() * pools.foodWater.length)]);
+        }
+
+        // 4. Fill remaining slots with weighted selection
+        while (itemsToAdd.length < targetCount) {
+          const roll = Math.random();
+          let selectedPool;
+
+          if (roll < 0.75) {
+            selectedPool = pools.general;
+          } else if (roll < 0.90) {
+            selectedPool = pools.foodWater;
+          } else if (roll < 0.98) {
+            selectedPool = pools.weapons;
+          } else {
+            selectedPool = pools.rare;
+          }
+
+          // Pick from pool, avoiding duplicate guns
+          const defId = getUniqueId(selectedPool, ItemCategory.GUN, addedGuns);
+          itemsToAdd.push(defId);
+        }
+
+        // Add items to NPC
+        itemsToAdd.forEach(defId => {
           const itemData = createItemFromDef(defId);
           if (itemData) {
-            npc.inventory.addItem(new Item(itemData));
+            const item = new Item(itemData);
+            // Apply standardized spawn defaults (ammo, stacks, condition)
+            LootGenerator.applySpawnDefaults(item, false);
+            // Add with stacking enabled
+            npc.inventory.addItem(item, null, null, true);
           }
-        }
+        });
 
         // Final placement
         if (gameMap.addEntity(npc, x, y)) {
           spawned++;
           validTiles.splice(index, 1); // Remove tile from pool
-          console.log(`[NPCSpawner] Spawned ${isHostile ? 'HOSTILE' : 'NEUTRAL'} NPC '${name}' at (${x}, ${y})`);
+          console.log(`[NPCSpawner] Spawned ${isHostile ? 'HOSTILE' : 'NEUTRAL'} NPC '${name}' at (${x}, ${y}) with ${itemsToAdd.length} items.`);
         }
       }
     }
@@ -101,19 +160,75 @@ export class NPCSpawner {
 
     const npc = new NPC(id, name, x, y, isHostile, typeId);
 
-    // Add random starting items
-    const itemPool = typeDef.itemPool;
-    const numItems = options.numItems !== undefined ? options.numItems : typeDef.minItems + Math.floor(Math.random() * (typeDef.maxItems - typeDef.minItems + 1));
-    for (let i = 0; i < numItems; i++) {
-      const defId = itemPool[Math.floor(Math.random() * itemPool.length)];
-      const itemData = createItemFromDef(defId);
-      if (itemData) {
-        npc.inventory.addItem(new Item(itemData));
+    // --- Structured Inventory Generation ---
+    const { pools, minItems, maxItems } = typeDef;
+    const targetCount = options.numItems !== undefined ? options.numItems : minItems + Math.floor(Math.random() * (maxItems - minItems + 1));
+    const addedGuns = new Set();
+    const itemsToAdd = [];
+
+    // Helper to pick unique gun if possible
+    const getUniqueId = (pool, category, addedSet, maxTries = 10) => {
+      let pickedId = pool[Math.floor(Math.random() * pool.length)];
+      if (category) {
+        let tries = 0;
+        while (addedSet.has(pickedId) && tries < maxTries) {
+          pickedId = pool[Math.floor(Math.random() * pool.length)];
+          tries++;
+        }
+        if (ItemDefs[pickedId]?.categories?.includes(category)) {
+          addedSet.add(pickedId);
+        }
       }
+      return pickedId;
+    };
+
+    // 1. Ensure at least 1 Rare item
+    itemsToAdd.push(getUniqueId(pools.rare, ItemCategory.GUN, addedGuns));
+
+    // 2. Ensure at least 2 Weapons
+    for (let i = 0; i < 2; i++) {
+      itemsToAdd.push(getUniqueId(pools.weapons, ItemCategory.GUN, addedGuns));
     }
 
+    // 3. Ensure at least 10% Food/Water
+    const foodCount = Math.max(1, Math.ceil(targetCount * 0.1));
+    for (let i = 0; i < foodCount; i++) {
+      itemsToAdd.push(pools.foodWater[Math.floor(Math.random() * pools.foodWater.length)]);
+    }
+
+    // 4. Fill remaining slots with weighted selection
+    while (itemsToAdd.length < targetCount) {
+      const roll = Math.random();
+      let selectedPool;
+
+      if (roll < 0.75) {
+        selectedPool = pools.general;
+      } else if (roll < 0.90) {
+        selectedPool = pools.foodWater;
+      } else if (roll < 0.98) {
+        selectedPool = pools.weapons;
+      } else {
+        selectedPool = pools.rare;
+      }
+
+      // Pick from pool, avoiding duplicate guns
+      const defId = getUniqueId(selectedPool, ItemCategory.GUN, addedGuns);
+      itemsToAdd.push(defId);
+    }
+
+    itemsToAdd.forEach(defId => {
+      const itemData = createItemFromDef(defId);
+      if (itemData) {
+        const item = new Item(itemData);
+        // Apply standardized spawn defaults (ammo, stacks, condition)
+        LootGenerator.applySpawnDefaults(item, false);
+        // Add with stacking enabled
+        npc.inventory.addItem(item, null, null, true);
+      }
+    });
+
     if (gameMap.addEntity(npc, x, y)) {
-      console.log(`[NPCSpawner] Manually spawned ${isHostile ? 'HOSTILE' : 'NEUTRAL'} NPC '${name}' at (${x}, ${y})`);
+      console.log(`[NPCSpawner] Manually spawned ${isHostile ? 'HOSTILE' : 'NEUTRAL'} NPC '${name}' at (${x}, ${y}) with ${itemsToAdd.length} items.`);
       return npc;
     }
 

@@ -10,16 +10,51 @@ export const NPCTypes = {
     maxAP: 20,
     hostilityChance: 0.25,
     fleeRecoverChance: 0.30,
-    itemPool: [
-      'food.canned_beans', 
-      'food.energy_bar', 
-      'medical.bandage', 
-      'tool.lighter', 
-      'weapon.knife', 
-      'tool.flashlight'
-    ],
-    minItems: 2,
-    maxItems: 4
+    
+    // Categorized pools for structured generation
+    pools: {
+      weapons: [
+        'weapon.knife',
+        'weapon.woodenbat',
+        'weapon.hammer',
+        'weapon.machete',
+        'weapon.crowbar',
+        'weapon.fire_axe',
+        'weapon.9mmPistol',
+        'weapon.357Pistol'
+      ],
+      foodWater: [
+        'food.beans',
+        'food.granolabar',
+        'food.chips',
+        'food.apple',
+        'food.waterbottle',
+        'food.softdrink',
+        'food.cannedsoup'
+      ],
+      rare: [
+        'weapon.9mmPistol',
+        'weapon.357Pistol',
+        'backpack.standard',
+        'container.medkit',
+        'tool.nightvision',
+        'food.mre'
+      ],
+      general: [
+        'medical.bandage',
+        'medical.antiseptic',
+        'tool.battery',
+        'tool.flashlight',
+        'tool.lighter',
+        'tool.matches',
+        'crafting.nail',
+        'crafting.rope',
+        'crafting.garbage_bag'
+      ]
+    },
+    
+    minItems: 10,
+    maxItems: 20
   }
 };
 

@@ -278,7 +278,7 @@ export class LootGenerator {
             const pos = grassTiles[Math.floor(Math.random() * grassTiles.length)];
             const mower = createItemFromDef('furniture.electric_mower');
             if (mower) {
-                this._applySpawnDefaults(mower, false);
+                LootGenerator.applySpawnDefaults(mower, false);
                 gameMap.setItemsOnTile(pos.x, pos.y, [mower]);
                 console.log(`[LootGenerator] Furniture: Spawned single Electric Mower at (${pos.x}, ${pos.y})`);
             }
@@ -458,7 +458,7 @@ export class LootGenerator {
                 seenKeysInPile.add(randomKey);
 
                 // Apply defaults (stack count, condition, ammo, etc.)
-                this._applySpawnDefaults(selectedItem, false);
+                LootGenerator.applySpawnDefaults(selectedItem, false);
 
                 items.push(selectedItem);
             }
@@ -608,7 +608,7 @@ export class LootGenerator {
                         const gunKey = gunKeys[Math.floor(Math.random() * gunKeys.length)];
                         const gun = createItemFromDef(gunKey);
                         if (gun) {
-                            this._initializeWeaponAmmo(gun);
+                            LootGenerator.initializeWeaponAmmo(gun);
                             items.push(gun);
                         }
                     }
@@ -645,14 +645,14 @@ export class LootGenerator {
                     if (index === buildingState.sniperDropIndex) {
                         const sniper = createItemFromDef('weapon.sniper_rifle');
                         if (sniper) {
-                            this._initializeWeaponAmmo(sniper);
+                            LootGenerator.initializeWeaponAmmo(sniper);
                             items.push(sniper);
                         }
                     }
                     if (index === buildingState.gun9mmDropIndex) {
                         const pistol = createItemFromDef('weapon.9mmPistol');
                         if (pistol) {
-                            this._initializeWeaponAmmo(pistol);
+                            LootGenerator.initializeWeaponAmmo(pistol);
                             items.push(pistol);
                         }
                     }
@@ -808,7 +808,7 @@ export class LootGenerator {
                     if (selectedKey === 'crafting.leather_belt') hasBeltInLoot = true;
                     
                     // Apply defaults (stack count, condition, ammo, etc.)
-                    this._applySpawnDefaults(item, true);
+                    LootGenerator.applySpawnDefaults(item, true);
 
                     items.push(item);
                 }
@@ -842,7 +842,7 @@ export class LootGenerator {
 
             const item = createItemFromDef(pickedKey);
             if (item) {
-                this._applySpawnDefaults(item, false);
+                LootGenerator.applySpawnDefaults(item, false);
                 items.push(item);
             }
         }
@@ -858,7 +858,7 @@ export class LootGenerator {
      * @param {Item} item - The item instance to modify
      * @param {boolean} isZombieLoot - Whether this item is dropped by a zombie (affects condition)
      */
-    _applySpawnDefaults(item, isZombieLoot = false) {
+    static applySpawnDefaults(item, isZombieLoot = false) {
         if (!item || !item.defId) return;
         const def = ItemDefs[item.defId];
         if (!def) return;
@@ -896,8 +896,9 @@ export class LootGenerator {
         if (item.traits && item.traits.includes(ItemTrait.BATTERY_POWERED)) {
             const batterySlot = item.attachmentSlots?.find(s => s.type === 'battery' || s.id === 'battery');
             if (batterySlot) {
-                const battery = createItemFromDef('tool.battery');
-                if (battery) {
+                const batteryData = createItemFromDef('tool.battery');
+                if (batteryData) {
+                    const battery = new Item(batteryData);
                     battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
                     if (!item.attachments) item.attachments = {};
                     item.attachments[batterySlot.id] = battery;
@@ -909,8 +910,9 @@ export class LootGenerator {
         if (item.defId === 'furniture.electric_mower') {
             const batterySlot = item.attachmentSlots?.find(s => s.id === 'battery');
             if (batterySlot) {
-                const battery = createItemFromDef('tool.large_battery');
-                if (battery) {
+                const batteryData = createItemFromDef('tool.large_battery');
+                if (batteryData) {
+                    const battery = new Item(batteryData);
                     battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 100));
                     if (!item.attachments) item.attachments = {};
                     item.attachments[batterySlot.id] = battery;
@@ -920,7 +922,7 @@ export class LootGenerator {
 
         const isWeapon = (item.categories && item.categories.includes(ItemCategory.WEAPON)) || !!item.attachmentSlots;
         if (isWeapon && (item.categories?.includes(ItemCategory.GUN) || item.attachmentSlots)) {
-            this._initializeWeaponAmmo(item);
+            LootGenerator.initializeWeaponAmmo(item);
         }
     }
 
@@ -928,7 +930,7 @@ export class LootGenerator {
      * Centralized weapon initialization logic
      * Handles spawning appropriate magazines or loose ammo with randomized counts
      */
-    _initializeWeaponAmmo(item) {
+    static initializeWeaponAmmo(item) {
         if (!item || !item.defId) return;
 
         // 1. Locate the 'ammo' slot (contains Magazines OR loose ammo)
@@ -941,26 +943,28 @@ export class LootGenerator {
         const ammoDefId = ammoSlot.allowedItems?.[0]; // Default to first allowed item
         if (!ammoDefId) return;
 
-        const ammoData = createItemFromDef(ammoDefId);
-        if (!ammoData) return;
+        const ammoItemData = createItemFromDef(ammoDefId);
+        if (!ammoItemData) return;
+
+        const ammoItem = new Item(ammoItemData);
 
         // 3. Randomize based on weapon type and capacity
-        if (ammoData.capacity !== undefined && ammoData.capacity > 0) {
+        if (ammoItem.capacity !== undefined && ammoItem.capacity > 0) {
             // MAGAZINE-FED (9mm, Sniper)
-            ammoData.ammoCount = 1 + Math.floor(Math.random() * ammoData.capacity);
-            console.log(`[Loot] Initialized ${item.defId} with magazine (${ammoData.ammoCount}/${ammoData.capacity} rounds)`);
+            ammoItem.ammoCount = 1 + Math.floor(Math.random() * ammoItem.capacity);
+            console.log(`[Loot] Initialized ${item.defId} with magazine (${ammoItem.ammoCount}/${ammoItem.capacity} rounds)`);
         } else {
             // INTERNALLY-FED (.357, Shotgun, Hunting Rifle)
             const def = ItemDefs[item.defId];
             const maxRand = def?.spawnMaxRounds || 6;
             
-            ammoData.stackCount = 1 + Math.floor(Math.random() * maxRand);
-            console.log(`[Loot] Initialized ${item.defId} with ${ammoData.stackCount} internally loaded rounds`);
+            ammoItem.stackCount = 1 + Math.floor(Math.random() * maxRand);
+            console.log(`[Loot] Initialized ${item.defId} with ${ammoItem.stackCount} internally loaded rounds`);
         }
 
         // 4. Attach to item
         if (!item.attachments) item.attachments = {};
-        item.attachments[ammoSlot.id] = ammoData;
+        item.attachments[ammoSlot.id] = ammoItem;
     }
 
     /**
@@ -1011,13 +1015,12 @@ export class LootGenerator {
         spawnsToProcess.forEach(config => {
             // Pick a random existing loot pile
             const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
-            const item = createItemFromDef(config.defId);
+            const itemData = createItemFromDef(config.defId);
             
-            if (item) {
-                // Randomize charges (ammoCount)
-                if (item.capacity) {
-                    item.ammoCount = 1 + Math.floor(Math.random() * item.capacity);
-                }
+            if (itemData) {
+                const item = new Item(itemData);
+                // Standard randomization (replaces manual capacity check)
+                LootGenerator.applySpawnDefaults(item, false);
 
                 // Add to the tile
                 const currentItems = gameMap.getItemsOnTile(tilePos.x, tilePos.y);

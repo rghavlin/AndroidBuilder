@@ -72,57 +72,79 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
   };
 
   return (
-    <GridSizeProvider>
-      <div className="absolute inset-2 z-[12000] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-500 overflow-hidden">
-        <div className="bg-[#0f0f0f] border border-white/10 rounded-xl shadow-2xl w-full h-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-          
+    <div className="fixed inset-0 z-50 pointer-events-none">
+      {/* Backdrop covers only map area */}
+      <div
+        className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
+        style={{
+          top: '48px',
+          bottom: '72px',
+          height: 'calc(100vh - 120px)'
+        }}
+        onClick={handleCancel}
+      />
+
+      {/* Barter panel */}
+      <GridSizeProvider>
+        <div
+          className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-0 overflow-hidden pointer-events-auto animate-in slide-in-from-left duration-300"
+          style={{
+            top: '48px',
+            bottom: '72px',
+            height: 'calc(100vh - 120px)'
+          }}
+          data-testid="barter-window"
+          data-inventory-ui="true"
+        >
           {/* Header - Compact */}
-          <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center bg-zinc-950/80">
+          <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-zinc-950/80">
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-black text-white tracking-tighter uppercase italic">
-                Barter <span className="text-[9px] not-italic font-bold text-zinc-500 ml-2">SURVIVOR: {npc.name}</span>
+                Barter <span className="text-[10px] not-italic font-bold text-zinc-500 ml-2">SURVIVOR: {npc.name}</span>
               </h2>
             </div>
-            <button 
+            <button
               onClick={handleCancel}
-              className="w-7 h-7 flex items-center justify-center bg-white/5 hover:bg-red-500/20 border border-white/10 rounded-lg transition-all"
+              className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-red-500/20 border border-white/10 rounded-lg transition-all"
             >
               <X className="w-4 h-4 text-zinc-400" />
             </button>
           </div>
 
           {/* Grid Area - Two Columns */}
-          <div className="flex-1 p-3 flex gap-4 min-h-0 overflow-hidden justify-center">
+          <div className="flex-1 p-2 px-8 flex gap-8 min-h-0 overflow-hidden bg-zinc-900/20">
             
             {/* Left Column: Survivor Stock */}
             <div className="flex-none w-fit flex flex-col min-w-0 h-full">
               <div className="px-1 mb-1">
-                <h3 className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Survivor Stock</h3>
+                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Survivor Stock</h3>
               </div>
-              <div className="flex-1 bg-black/40 border border-white/5 rounded-lg overflow-hidden flex flex-col p-1.5 min-h-0">
-                <ContainerGrid 
-                  containerId={npcInventoryId} 
-                  enableScroll 
-                  maxHeight="320px" 
+              <div className="flex-1 bg-black/40 border border-white/5 rounded-lg overflow-hidden flex flex-col p-1 min-h-0">
+                <ContainerGrid
+                  containerId={npcInventoryId}
+                  enableScroll
+                  maxHeight="calc(100vh - 350px)"
+                  scrollbarGutter={true}
                   onBeforeDrop={validateMove}
                 />
               </div>
             </div>
 
             {/* Right Column: Offer Grids (Stacked) */}
-            <div className="flex-none w-fit flex flex-col gap-3 min-w-0 h-full">
+            <div className="flex-none w-fit flex flex-col gap-4 min-w-0 h-full">
               
               {/* You Offer */}
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="px-1 mb-1 flex justify-between">
-                  <h3 className="text-[8px] font-black text-emerald-500/70 uppercase tracking-widest">You Offer</h3>
-                  <span className="text-[8px] font-black text-white">{youPoints} Pts</span>
+                  <h3 className="text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">You Offer</h3>
+                  <span className="text-[10px] font-black text-white">{youPoints} Pts</span>
                 </div>
-                <div className="flex-1 bg-emerald-500/[0.01] border border-emerald-500/10 rounded-lg overflow-hidden flex flex-col p-1.5 min-h-0">
-                  <ContainerGrid 
-                    containerId={youOfferContainerId} 
-                    enableScroll 
-                    maxHeight="250px"
+                <div className="flex-1 bg-emerald-500/[0.01] border border-emerald-500/10 rounded-lg overflow-hidden flex flex-col p-1 min-h-0">
+                  <ContainerGrid
+                    containerId={youOfferContainerId}
+                    enableScroll
+                    maxHeight="calc(50vh - 200px)"
+                    scrollbarGutter={true}
                     onBeforeDrop={validateMove}
                   />
                 </div>
@@ -131,14 +153,15 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
               {/* They Offer */}
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="px-1 mb-1 flex justify-between">
-                  <h3 className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">They Offer</h3>
-                  <span className="text-[8px] font-black text-white">{theyPoints} Pts</span>
+                  <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">They Offer</h3>
+                  <span className="text-[10px] font-black text-white">{theyPoints} Pts</span>
                 </div>
-                <div className="flex-1 bg-white/[0.01] border border-white/5 rounded-lg overflow-hidden flex flex-col p-1.5 min-h-0">
-                  <ContainerGrid 
-                    containerId={theyOfferContainerId} 
-                    enableScroll 
-                    maxHeight="250px"
+                <div className="flex-1 bg-white/[0.01] border border-white/5 rounded-lg overflow-hidden flex flex-col p-1 min-h-0">
+                  <ContainerGrid
+                    containerId={theyOfferContainerId}
+                    enableScroll
+                    maxHeight="calc(50vh - 200px)"
+                    scrollbarGutter={true}
                     onBeforeDrop={validateMove}
                   />
                 </div>
@@ -147,33 +170,33 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
             </div>
           </div>
 
-          {/* Footer Bar - Very Compact */}
-          <div className="px-4 py-3 border-t border-white/5 bg-zinc-950 flex items-center gap-6">
-            <div className="flex-1 flex flex-col gap-1.5">
+          {/* Footer Bar - Progress & Actions */}
+          <div className="px-6 py-4 border-t border-white/5 bg-zinc-950 flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center px-1">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Trade Progress</span>
+                <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Trade Progress</span>
                 <span className={cn(
-                  "text-[9px] font-black uppercase tracking-tighter",
+                  "text-[10px] font-black uppercase tracking-tighter",
                   canTrade ? "text-emerald-400" : "text-amber-500"
                 )}>
                   {canTrade ? "Accepted" : `${theyPoints - youPoints} Pts Remaining`}
                 </span>
               </div>
-              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                <div 
+              <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div
                   className={cn(
                     "h-full rounded-full transition-all duration-500",
-                    canTrade ? "bg-emerald-500" : "bg-amber-500"
+                    canTrade ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]" : "bg-amber-500"
                   )}
                   style={{ width: `${acceptancePercent}%` }}
                 />
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3 justify-end mt-2">
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-white font-black rounded-lg transition-all uppercase tracking-widest text-[9px] border border-white/5"
+                className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-white font-black rounded-lg transition-all uppercase tracking-widest text-[10px] border border-white/5"
               >
                 Cancel
               </button>
@@ -181,9 +204,9 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
                 disabled={!canTrade}
                 onClick={handleTrade}
                 className={cn(
-                  "px-6 py-2 font-black rounded-lg transition-all uppercase tracking-widest text-[9px] shadow-lg",
-                  canTrade 
-                    ? "bg-emerald-600 hover:bg-emerald-500 text-white" 
+                  "px-8 py-2.5 font-black rounded-lg transition-all uppercase tracking-widest text-[10px] shadow-lg",
+                  canTrade
+                    ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20"
                     : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
                 )}
               >
@@ -191,9 +214,8 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
               </button>
             </div>
           </div>
-
         </div>
-      </div>
-    </GridSizeProvider>
+      </GridSizeProvider>
+    </div>
   );
 }

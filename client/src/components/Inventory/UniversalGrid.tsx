@@ -862,7 +862,9 @@ export default function UniversalGrid({
       <div
         className={cn(
           "w-full",
-          (gridType === 'scalable' || enableScroll) ? 'overflow-auto custom-scrollbar' : 'overflow-visible'
+          (gridType === 'scalable' || enableScroll) ? 
+            cn(enableHorizontalScroll ? 'overflow-auto' : 'overflow-y-auto overflow-x-hidden', 'custom-scrollbar') : 
+            'overflow-visible'
         )}
         style={{
           maxHeight: enableScroll ? maxHeight : 'none',
