@@ -95,6 +95,25 @@ export class InventoryManager extends SafeEventEmitter {
   }
 
   /**
+   * Register a new container dynamically
+   */
+  registerContainer(container) {
+    if (!container || !container.id) return;
+    this.containers.set(container.id, container);
+    this.emit('inventoryChanged');
+  }
+
+  /**
+   * Unregister a container
+   */
+  unregisterContainer(containerId) {
+    if (this.containers.has(containerId)) {
+      this.containers.delete(containerId);
+      this.emit('inventoryChanged');
+    }
+  }
+
+  /**
    * Synchronize ground container items with map tiles
    * @param {number} oldX - Previous player X
    * @param {number} oldY - Previous player Y
@@ -1740,6 +1759,34 @@ export class InventoryManager extends SafeEventEmitter {
    * Move item between containers
    */
   moveItem(itemId, fromContainerId, toContainerId, x = null, y = null, rotation = null) {
+    // Phase 12 Barter Restrictions: Prevent illegal transfers during active trade
+    const isNpcSource = fromContainerId.endsWith('_inventory') && !fromContainerId.startsWith('barter_');
+    const isNpcOfferSource = fromContainerId === 'barter_they_offer';
+    const isBarterSource = isNpcSource || isNpcOfferSource;
+    
+    const isPlayerTarget = toContainerId === 'backpack' || 
+                          toContainerId === 'ground' || 
+                          toContainerId.startsWith('equipment-') || 
+                          toContainerId.startsWith('clothing:') || 
+                          toContainerId.startsWith('mod:') ||
+                          toContainerId.endsWith('-container') ||
+                          toContainerId.endsWith('-grid');
+
+    // If a barter session is active (detected by existence of barter containers)
+    if (this.containers.has('barter_they_offer')) {
+        // Block taking NPC/Offer items directly to personal inventory/ground
+        if (isBarterSource && isPlayerTarget) {
+            console.warn('[InventoryManager] REJECT MOVE: Cannot take trade items directly during barter');
+            return { success: false, reason: 'You must finalize the trade to take these items.' };
+        }
+        
+        // Block putting personal items into NPC stock directly
+        if (!isBarterSource && toContainerId.endsWith('_inventory') && !toContainerId.startsWith('barter_')) {
+            console.warn('[InventoryManager] REJECT MOVE: Cannot give items to NPC directly during barter');
+            return { success: false, reason: 'Survivors only accept items through the barter system.' };
+        }
+    }
+
     // Support dynamic resolving for source containers (like pockets or equipment slots)
     const fromContainer = this.getContainer(fromContainerId);
     const toContainer = this.getContainer(toContainerId);
@@ -2581,5 +2628,30 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     return false;
+  }
+
+  /**
+   * Drops an item at a specific coordinate on the map.
+   * Emits an itemDroppedToGround event.
+   */
+  dropItemAtLocation(item, x, y, gameMap) {
+    if (!gameMap) return false;
+    
+    // Convert Item instance to data if necessary
+    const itemData = typeof item.toJSON === 'function' ? item.toJSON() : item;
+    
+    const existingItems = gameMap.getItemsOnTile(x, y) || [];
+    gameMap.setItemsOnTile(x, y, [...existingItems, itemData]);
+    
+    console.log(`[InventoryManager] 📦 Item ${item.name || itemData.name} dropped at (${x}, ${y})`);
+    
+    this.emit('itemDroppedToGround', { item: itemData, x, y });
+    
+    // If it was dropped on the player's tile, refresh the ground container
+    if (this.lastSyncedX === x && this.lastSyncedY === y) {
+      this.refreshGroundItems(x, y, gameMap);
+    }
+    
+    return true;
   }
 }

@@ -6,6 +6,22 @@ import { EntityType } from '../entities/Entity.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 
+let tempCanvas = null;
+let tempCtx = null;
+
+function getTempCanvas(size) {
+  const roundedSize = Math.ceil(size);
+  if (!tempCanvas) {
+    tempCanvas = document.createElement('canvas');
+    tempCtx = tempCanvas.getContext('2d');
+  }
+  if (tempCanvas.width !== roundedSize) {
+    tempCanvas.width = roundedSize;
+    tempCanvas.height = roundedSize;
+  }
+  return { canvas: tempCanvas, ctx: tempCtx };
+}
+
 export const EntityRenderer = {
   renderEntity: (ctx, entity, tileSize, sprites, visibilitySet, isExplored, engine, currentTime = performance.now(), isGlobalAnimating = false) => {
     // Reset globalAlpha to ensure state from previous entity draws doesn't leak
@@ -34,17 +50,10 @@ export const EntityRenderer = {
         renderX = startNode.x + (endNode.x - startNode.x) * stepProgress;
         renderY = startNode.y + (endNode.y - startNode.y) * stepProgress;
       } else {
-        // Only anchor to path-start if it's reasonably close (prevents stale path ghosting)
-        // PHASE 19 FIX: Increased threshold to 100 and added isGlobalAnimating check to prevent "destination flash" 
-        // during long zombie moves before they officially begin their animation loop.
-        const distToPathStart = Math.abs(entity.x - entity.movementPath[0].x) + Math.abs(entity.y - entity.movementPath[0].y);
-        if (isGlobalAnimating || distToPathStart <= 100.0) {
-          renderX = entity.movementPath[0].x;
-          renderY = entity.movementPath[0].y;
-        } else {
-          renderX = entity.x;
-          renderY = entity.y;
-        }
+        // If we're not actively animating this specific entity, always use its logical position.
+        // Previous attempts to anchor to movementPath[0] during global animations caused persistent ghosting desyncs.
+        renderX = entity.x;
+        renderY = entity.y;
       }
     }
 
@@ -145,7 +154,39 @@ export const EntityRenderer = {
           drawY = screenY + (tileSize - drawSize) / 2;
         }
 
-        ctx.drawImage(sprite, drawX, drawY, drawSize, drawSize);
+        // Apply health tinting for player icon
+        const currentHp = entity.hp ?? entity._hp;
+        const currentMaxHp = entity.maxHp ?? entity._maxHp;
+        if (entity.type === EntityType.PLAYER && currentHp !== undefined && currentMaxHp !== undefined && currentHp < currentMaxHp) {
+            const hpPercent = Math.max(0, currentHp / currentMaxHp);
+            const damagePercent = 1.0 - hpPercent;
+            
+            const { canvas: tCanvas, ctx: tCtx } = getTempCanvas(drawSize);
+            tCtx.clearRect(0, 0, tCanvas.width, tCanvas.height);
+            
+            // Draw original sprite
+            tCtx.drawImage(sprite, 0, 0, drawSize, drawSize);
+            
+            // Apply red color tint from the bottom up (damage percentage)
+            const fillHeight = drawSize * damagePercent;
+            const startY = drawSize - fillHeight;
+            
+            // 'color' blend mode preserves luminosity (black stays black) but changes hue (green becomes red)
+            tCtx.globalCompositeOperation = 'color';
+            tCtx.fillStyle = '#ef4444'; // Solid red tint
+            tCtx.fillRect(0, startY, drawSize, fillHeight);
+            
+            // Mask out any areas that were originally transparent
+            tCtx.globalCompositeOperation = 'destination-in';
+            tCtx.drawImage(sprite, 0, 0, drawSize, drawSize);
+            
+            // Reset composite operation
+            tCtx.globalCompositeOperation = 'source-over';
+            
+            ctx.drawImage(tCanvas, drawX, drawY, drawSize, drawSize);
+        } else {
+            ctx.drawImage(sprite, drawX, drawY, drawSize, drawSize);
+        }
         
         // Square 'Picture Frame' for Player and Zombies
         if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE) {
@@ -160,10 +201,12 @@ export const EntityRenderer = {
       }
     }
 
-    // 3. Health Bars (Show if damaged, excluding structural obstacles)
-    const isWounded = entity.hp !== undefined && entity.maxHp !== undefined && entity.hp < entity.maxHp;
+    // 3. Health Bars (Show if damaged, excluding structural obstacles and player)
+    const eHp = entity.hp ?? entity._hp;
+    const eMaxHp = entity.maxHp ?? entity._maxHp;
+    const isWounded = eHp !== undefined && eMaxHp !== undefined && eHp < eMaxHp;
     const isStructural = entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW;
-    if (isVisible && isWounded && !isStructural) {
+    if (isVisible && isWounded && !isStructural && entity.type !== EntityType.PLAYER) {
       EntityRenderer.renderHealthBar(ctx, entity, screenX, screenY, tileSize);
     }
 

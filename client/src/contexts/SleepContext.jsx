@@ -11,6 +11,7 @@ import { RabbitAI } from '../game/ai/RabbitAI.js';
 import { useGame } from './GameContext.jsx';
 import { EntityType } from '../game/entities/Entity.js';
 import { GameMap } from '../game/map/GameMap.js';
+import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 const SleepContext = createContext();
 
@@ -31,6 +32,7 @@ export const SleepProvider = ({ children }) => {
     setIsPlayerTurn, 
     performAutosave,
     animateVisibleNPCs,
+    clearNPCAnimations,
     isNight,
     isFlashlightOnActual,
     getActiveFlashlightRange
@@ -171,21 +173,33 @@ export const SleepProvider = ({ children }) => {
               // WAKE ON NOISE: Banging/Smashing in the building shell
               if ((action.type === 'attackDoor' && action.doorPos) || (action.type === 'attackWindow' && action.windowPos)) {
                  const targetPos = action.doorPos || action.windowPos;
-                 if (GameMap.isSameBuildingShell(gameMap, { x: player.x, y: player.y }, targetPos)) {
-                    if (action.type === 'attackDoor') {
-                      addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
-                    } else {
-                      addLog('Zombie smashes a window!', 'combat');
-                    }
-                    noiseInterruption = true;
-                 }
+                  if (GameMap.isSameBuildingShell(gameMap, { x: player.x, y: player.y }, targetPos)) {
+                     if (action.type === 'attackDoor') {
+                       addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
+                       GameEvents.emit(action.doorBroken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action);
+                     } else {
+                       addLog('Zombie smashes a window!', 'combat');
+                       GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action);
+                     }
+                     noiseInterruption = true;
+                  }
                  if (addEffect) {
                     addEffect({ type: 'damage', x: targetPos.x, y: targetPos.y, value: 'bang', color: '#ffffff', duration: 800 });
                  }
               } else if (action.type === 'attack' && action.target === 'player') {
-                 // WAKE ON ATTACK: Targeted bites/swipes terminate sleep
-                 addLog(`Zombie attacks while you sleep! ${action.damage} damage`, 'combat');
-                 hitByZombie = true;
+                  // WAKE ON ATTACK: Targeted bites/swipes terminate sleep
+                  if (action.success) {
+                    player.takeDamage(action.damage, zombie);
+                    if (action.bleedingInflicted) player.setBleeding(true);
+                    addLog(`Zombie attacks while you sleep! ${action.damage} damage`, 'combat');
+                  } else {
+                    addLog(`A zombie swipes at you and misses!`, 'combat');
+                  }
+                  
+                  // Trigger combat sounds
+                  GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: action.success, zombieId: zombie.id });
+                  
+                  hitByZombie = true;
               }
             });
           }
@@ -194,7 +208,9 @@ export const SleepProvider = ({ children }) => {
         // Rabbit turns
         rabbits.forEach(rabbit => RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies));
 
-        await animateVisibleNPCs([...zombies, ...rabbits], null);
+        // Phase 28: Skip visual animations during sleep to prevent desyncs and performance lag
+        // We still need to clear the movement paths set by the AI moveTo calls
+        clearNPCAnimations([...zombies, ...rabbits]);
 
         updatePlayerStats({
           hp: player.hp,
@@ -221,9 +237,25 @@ export const SleepProvider = ({ children }) => {
         let interruptionReason = noiseInterruption ? "Loud banging woke you up!" : "A zombie attack woke you up!";
 
         if (interruption) {
+          // Resume audio context on wake to ensure queued sounds (like bangs/smashes) play
+          const audioCtx = engine.audioManager?.audioCtx;
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+
           wakePlayer(interruptionReason);
-          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+          
+          // PHASE 28 FIX: Correct FOV parameters on wake
+          const inv = engine.inventoryManager;
+          const fl = inv?.equipment['flashlight'];
+          const isNVG = fl?.lightType === 'nightvision';
+          const range = fl?.lightRange || 8;
+          
+          updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, range, isNVG);
           updatePlayerCardinalPositions(gameMap);
+          
+          // Force immediate engine pulse to refresh all UI and renderer visibility sets
+          engine.notifyUpdate();
           triggerMapUpdate();
           return;
         }
@@ -235,8 +267,14 @@ export const SleepProvider = ({ children }) => {
       
       const hour = (6 + (currentTurn - 1)) % 24;
       const finalIsNight = hour >= 20 || hour < 6;
-      updatePlayerFieldOfView(gameMap, finalIsNight, isFlashlightOnActual);
-      updatePlayerCardinalPositions(gameMap);
+      
+      // Final FOV sync after full sleep
+      const inv = engine.inventoryManager;
+      const fl = inv?.equipment['flashlight'];
+      const isNVG = fl?.lightType === 'nightvision';
+      const range = fl?.lightRange || 8;
+      updatePlayerFieldOfView(gameMap, finalIsNight, isFlashlightOnActual, false, range, isNVG);
+      engine.notifyUpdate();
       triggerMapUpdate();
 
     } catch (error) {

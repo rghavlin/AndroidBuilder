@@ -203,6 +203,37 @@ class AudioManager {
   }
 
   /**
+   * Play a one-shot sound using Web Audio API (more reliable for background/gesture-less events)
+   */
+  playOneShot(name, options = {}) {
+    if (this.isMuted) return;
+    const ctx = this._ensureAudioContext();
+
+    const buffer = this.audioBuffers.get(name);
+    if (!buffer) {
+      // Fallback to HTMLAudio if buffer not loaded
+      return this.playSound(name, options);
+    }
+
+    const baseVolume = options.volume !== undefined ? options.volume : (this.soundDefaults.get(name) || 1.0);
+    const finalVolume = baseVolume * this.masterVolume;
+    const playbackRate = options.playbackRate || 1.0;
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.playbackRate.value = playbackRate;
+
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = finalVolume;
+
+    source.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    source.start(0);
+    console.log(`[AudioManager] 🎵 One-shot played via WebAudio: "${name}"`);
+  }
+
+  /**
    * Stop a specific loop or sound
    */
   stopSound(name) {

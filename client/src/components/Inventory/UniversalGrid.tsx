@@ -29,6 +29,7 @@ interface UniversalGridProps {
   slotClassName?: string;
   onSlotClick?: (x: number, y: number) => void;
   onSlotDrop?: (x: number, y: number, event: React.DragEvent) => void;
+  onBeforeDrop?: (itemId: string, fromId: string, toId: string) => boolean;
   "data-testid"?: string;
 }
 
@@ -50,6 +51,7 @@ export default function UniversalGrid({
   slotClassName,
   onSlotClick,
   onSlotDrop,
+  onBeforeDrop,
   "data-testid": testId,
 }: UniversalGridProps) {
   const GAP_SIZE = 2;
@@ -237,6 +239,14 @@ export default function UniversalGrid({
 
       // Try to place or stack the selected item at the clicked coordinates
       
+      // Phase 12: Apply placement restrictions if provided
+      if (onBeforeDrop && !onBeforeDrop(selectedItem.item.instanceId, selectedItem.originContainerId, containerId)) {
+        console.warn('[UniversalGrid] Action rejected by onBeforeDrop validator');
+        playSound('Fail');
+        clearSelected();
+        return;
+      }
+
       // Phase 7: Special behavior for planting seeds (left-click cursor interaction)
       const isSeedSelected = !!selectedItem.item.plantsAs;
       const isHoleClicked = item?.defId === 'provision.hole';
@@ -382,7 +392,7 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     // If an item is selected, right-click on it rotates it
@@ -403,6 +413,14 @@ export default function UniversalGrid({
     
     // If we have a selected item, try to place it
     if (selectedItem) {
+      // Phase 12: Apply placement restrictions if provided
+      if (onBeforeDrop && !onBeforeDrop(selectedItem.item.instanceId, selectedItem.originContainerId, containerId)) {
+        console.warn('[UniversalGrid] Placement rejected by onBeforeDrop validator');
+        playSound('Fail');
+        clearSelected();
+        return;
+      }
+
       const result = placeSelected(containerId, x, y);
       if (!result.success) {
         playSound('Fail');
@@ -413,7 +431,7 @@ export default function UniversalGrid({
 
     // Otherwise, bubble up to parent if provided
     onSlotClick?.(x, y);
-  }, [containerId, selectedItem, placeSelected, clearSelected, playSound, onSlotClick]);
+  }, [containerId, selectedItem, placeSelected, clearSelected, playSound, onSlotClick, onBeforeDrop]);
 
   const handleGridContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     // 1. Priority: Handle active targeting (e.g. Shovel Digging)

@@ -109,6 +109,28 @@ export class Zombie extends Entity {
   }
 
   /**
+   * Move to new position (overrides Entity.moveTo to handle animation paths)
+   * @param {number} x - New X coordinate
+   * @param {number} y - New Y coordinate
+   */
+  moveTo(x, y) {
+    // Phase 11: Record movement path for interpolation
+    if (this.x !== x || this.y !== y) {
+      this.movementPath = [{ x: this.x, y: this.y }, { x, y }];
+      this.animationProgress = 0;
+      this.isAnimating = true; // Mark for renderer
+    }
+    
+    this.x = x;
+    this.y = y;
+
+    this.emit('entityMoved', {
+      oldPosition: { x: this.x, y: this.y },
+      newPosition: { x, y }
+    });
+  }
+
+  /**
    * Use AP for an action
    * @param {number} amount - Amount of AP to use
    * @returns {boolean} - Whether the AP was successfully used

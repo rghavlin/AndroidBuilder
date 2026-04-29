@@ -11,6 +11,7 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
+import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
 
 const CombatContext = createContext();
@@ -361,6 +362,9 @@ export const CombatProvider = ({ children }) => {
                     if (magazine.stackCount <= 0 && ammoSlot) weapon.detachItem(ammoSlot.id);
                 }
             }
+
+            // Projectile Path Tracking
+            ProjectileManager.processProjectilePath(gameMap, player.x, player.y, targetX, targetY);
 
             // Outcome Calculation
             const rangedLvl = playerStats.rangedLvl || 1;

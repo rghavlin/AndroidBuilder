@@ -793,7 +793,17 @@ const GameContextInner = ({ children }) => {
 
       // PHASE 11 FIXED: Global timeout safety for animations
       const safetyTimeout = setTimeout(() => {
-        console.warn('[GameContext] ⚠️ Animation timeout reached! Forcing resolution.');
+        console.warn('[GameContext] ⚠️ Animation timeout reached! Forcing resolution and cleanup.');
+        
+        // CRITICAL: Must clear state on timeout to prevent "ghosting"
+        npcs.forEach(n => {
+          n.isAnimating = false;
+          n.animationProgress = 0;
+          if (n.movementPath && n.movementPath.length > 1) {
+            n.movementPath = [{ x: n.x, y: n.y }];
+          }
+        });
+
         setIsAnimatingZombies(false);
         resolve();
       }, duration + 500);
@@ -830,6 +840,18 @@ const GameContextInner = ({ children }) => {
       requestAnimationFrame(animate);
     });
   }, [triggerMapUpdate]);
+
+  const clearNPCAnimations = useCallback((npcs) => {
+    if (!npcs) return;
+    npcs.forEach(n => {
+      n.isAnimating = false;
+      n.animationProgress = 0;
+      if (n.movementPath && n.movementPath.length > 1) {
+        n.movementPath = [{ x: n.x, y: n.y }];
+      }
+    });
+    setIsAnimatingZombies(false);
+  }, []);
 
   const endTurn = useCallback(async () => {
     const gameMap = engine.gameMap;
@@ -1414,6 +1436,7 @@ const GameContextInner = ({ children }) => {
     animateVisibleNPCs,
     isFlashlightOnActual,
     getActiveFlashlightRange,
+    clearNPCAnimations,
 
     // Phase 5A: Expose inventoryManager for InventoryProvider
     inventoryManager,
@@ -1452,6 +1475,7 @@ const GameContextInner = ({ children }) => {
     loadAutosave,
     checkZombieAwareness,
     animateVisibleNPCs,
+    clearNPCAnimations,
     isFlashlightOnActual,
     getActiveFlashlightRange,
     mapTransition,

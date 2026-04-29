@@ -142,7 +142,8 @@ export const GameMapProvider = ({ children }) => {
         lootItems: targetTile.inventoryItems || null,
         specialBuilding: targetTile.contents.find(e => e.type === EntityType.PLACE_ICON)?.subtype || null,
         door: targetTile.contents.find(e => e.type === EntityType.DOOR),
-        window: targetTile.contents.find(e => e.type === EntityType.WINDOW)
+        window: targetTile.contents.find(e => e.type === EntityType.WINDOW),
+        npc: targetTile.contents.find(e => e.type === EntityType.NPC)
       });
     } catch (error) {
       setHoveredTile(null);

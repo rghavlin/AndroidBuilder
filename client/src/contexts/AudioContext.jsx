@@ -80,21 +80,21 @@ export const AudioProvider = ({ children }) => {
     const handleZombieAttackResult = (data) => {
       if (data.success) {
         // At least one hit - play hit sound (growl + slash)
-        audioManager.playSound('Zombie1');
-        audioManager.playSound('ZombieSlash');
+        audioManager.playOneShot('Zombie1');
+        audioManager.playOneShot('ZombieSlash');
       } else {
         // No hits - play only miss sound
-        audioManager.playSound('Miss');
+        audioManager.playOneShot('Miss');
       }
     };
 
-    const handleDoorBang = () => {
-      audioManager.playSound('Bang1');
+    const handleDoorBang = (data) => {
+      audioManager.playOneShot('Bang1');
     };
 
     const handleWindowSmash = (data) => {
-      console.log('[AudioContext] Window smash event received', data);
-      audioManager.playSound('GlassBreak');
+      console.log('[AudioContext] 🔊 WINDOW_SMASH event received:', data);
+      audioManager.playOneShot('GlassBreak');
     };
 
     const handlePlayerMove = (data) => {

@@ -175,7 +175,9 @@ export default function MapCanvas({
       // OPTIMIZATION: Convert visible tiles array to a Set of strings for O(1) high-speed lookups
       // CRITICAL FIX: Use engine.playerFieldOfView as the primary source to avoid 'invisible entities' 
       // when loading a game (avoids waiting for React state to cycle).
-      const fovSource = engine.playerFieldOfView || playerFieldOfView || [];
+      const fovSource = (engine.playerFieldOfView && engine.playerFieldOfView.length > 0) 
+        ? engine.playerFieldOfView 
+        : (playerFieldOfView || []);
       const visibleTileSet = new Set(fovSource.map(v => `${Math.round(v.x)},${Math.round(v.y)}`));
 
       // Layer 1: Tiles & Highlights

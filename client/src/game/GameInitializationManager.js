@@ -6,8 +6,10 @@ import { Player } from './entities/Player.js';
 import { Camera } from './Camera.js';
 import { Zombie } from './entities/Zombie.js';
 import { ZombieSpawner } from './utils/ZombieSpawner.js';
+import { NPCSpawner } from './utils/NPCSpawner.js';
 import { LootGenerator } from './map/LootGenerator.js';
 import engine from './GameEngine.js';
+import tradingSystem from './systems/TradingSystem.js';
 
 const INIT_STATES = {
   IDLE: 'idle',
@@ -260,6 +262,16 @@ class GameInitializationManager extends EventEmitter {
       } catch (error) {
         console.error('[GameInitializationManager] 🚨 Failed to add player to map:', error);
         // Continue anyway, player position is tracked separately
+      }
+
+      // Phase NPC: Spawn initial NPC on Map 1
+      try {
+        // Spawn NPC 2 tiles above player
+        NPCSpawner.spawnNPCAt(gameMap, player.x, player.y - 2, { isHostile: false });
+        // Also keep procedural spawn if desired, but user specifically asked for this one
+        // NPCSpawner.spawnNPCs(gameMap, { count: 1, mapNumber: 1 });
+      } catch (npcError) {
+        console.error('[GameInitializationManager] Failed to spawn initial NPCs:', npcError);
       }
 
       // Save initial map to world

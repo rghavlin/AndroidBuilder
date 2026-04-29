@@ -174,7 +174,7 @@ export class GameMap {
     if (!posA || !posB || !gameMap) return false;
 
     const startTile = gameMap.getTile(posA.x, posA.y);
-    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition' || tile.terrain === 'building');
+    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition' || tile.terrain === 'building' || tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW));
     
     if (!isIndoors(startTile)) return false;
 
@@ -205,10 +205,11 @@ export class GameMap {
         if (visited.has(key)) continue;
 
         const tile = gameMap.getTile(next.x, next.y);
-        const entity = gameMap.getEntityAt(next.x, next.y);
+        const entity = tile?.contents.find(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
         const isWall = tile && tile.blocksMovement && !entity;
+        const isTarget = next.x === posB.x && next.y === posB.y;
         
-        if (isWall || !isIndoors(tile)) {
+        if (isWall || (!isIndoors(tile) && !isTarget)) {
           visited.add(key);
           continue;
         }
@@ -619,6 +620,15 @@ export class GameMap {
 
 
   /**
+   * Get entity by ID
+   * @param {string} entityId 
+   * @returns {Entity|null}
+   */
+  getEntity(entityId) {
+    return this.entityMap.get(entityId);
+  }
+
+  /**
    * Get all entities of a specific type
    */
   getEntitiesByType(type) {
@@ -635,6 +645,13 @@ export class GameMap {
     
     // Decay scent trails
     ScentTrail.decayScents(this);
+
+    // Phase NPC: Process NPC turns (AP reset and state maintenance)
+    for (const entity of this.entityMap.values()) {
+        if (entity.type === EntityType.NPC && typeof entity.startTurn === 'function') {
+            entity.startTurn();
+        }
+    }
 
     // Phase 25: Environmental Conditions for Turn Processing
     const currentHour = (6 + (turn - 1)) % 24;
@@ -1046,6 +1063,7 @@ export class GameMap {
     const { Window } = await import('../entities/Window.js');
     const { PlaceIcon } = await import('../entities/PlaceIcon.js');
     const { Rabbit } = await import('../entities/Rabbit.js');
+    const { NPC } = await import('../entities/NPC.js');
 
     // Restore tiles
     for (let y = 0; y < data.height; y++) {
@@ -1091,6 +1109,9 @@ export class GameMap {
                     break;
                   case 'rabbit':
                     entity = Rabbit.fromJSON(entityData);
+                    break;
+                  case 'npc':
+                    entity = NPC.fromJSON(entityData);
                     break;
                   default:
                     console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);

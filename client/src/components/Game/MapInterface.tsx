@@ -18,12 +18,16 @@ import { cn } from "@/lib/utils";
 import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
+import engine from '../../game/GameEngine.js';
 import { ZombieTooltip } from './ZombieTooltip';
 import { CropTooltip } from './CropTooltip';
 import { LootTooltip } from './LootTooltip';
 import { BuildingTooltip } from './BuildingTooltip';
 import { DoorTooltip } from './DoorTooltip';
 import { WindowTooltip } from './WindowTooltip';
+import { NPCTooltip } from './NPCTooltip';
+import { TradeDialog } from './TradeDialog';
+import BarterWindow from './BarterWindow';
 import { useLog } from '../../contexts/LogContext.jsx';
 import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
@@ -251,6 +255,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
   const [windowMenu, setWindowMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, window: any } | null>(null);
   const [waterMenu, setWaterMenu] = useState<{ x: number, y: number, screenX: number, screenY: number } | null>(null);
+  const [npcMenu, setNpcMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, npc: any } | null>(null);
+  const [activeTradeNpc, setActiveTradeNpc] = useState<any | null>(null);
+  const [isBartering, setIsBartering] = useState(false);
 
   // Log tile interactions for debugging
   useEffect(() => {
@@ -271,6 +278,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       setDoorMenu(null);
       setWindowMenu(null);
       setWaterMenu(null);
+      setNpcMenu(null);
     }
   }, [isAnimatingMovement]);
 
@@ -305,6 +313,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     setDoorMenu(null);
     setWindowMenu(null);
     setWaterMenu(null);
+    setNpcMenu(null);
 
     // If an item is selected for movement, cancel it and don't process map click
     if (selectedItem) {
@@ -462,6 +471,22 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       }
       return;
     }
+
+    const npc = tile.contents.find((e: any) => e.type === EntityType.NPC);
+    if (npc) {
+      const px = Math.floor(player.x);
+      const py = Math.floor(player.y);
+      const dx = x - px;
+      const dy = y - py;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < 2.5) {
+        setNpcMenu({ x, y, screenX, screenY, npc });
+      } else {
+        console.log('[MapInterface] NPC too far for interaction:', distance.toFixed(2));
+      }
+      return;
+    }
   };
 
   // Block all map area clicks when item is selected or targeting
@@ -542,11 +567,58 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           isNightVision={isNightVision}
         />
 
+        {/* NPC Context Menu */}
+        {npcMenu && (
+          <div
+            className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32 animate-in fade-in zoom-in-95 duration-100"
+            style={{ left: npcMenu.screenX, top: npcMenu.screenY }}
+            onMouseLeave={() => setNpcMenu(null)}
+          >
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
+              onClick={() => {
+                setActiveTradeNpc(npcMenu.npc);
+                setNpcMenu(null);
+                playSound('Click');
+              }}
+            >
+              Trade
+            </button>
+          </div>
+        )}
+
+        {/* Trade Dialog */}
+        {activeTradeNpc && !isBartering && (
+          <TradeDialog 
+            npc={activeTradeNpc} 
+            onClose={() => setActiveTradeNpc(null)} 
+            onStartBarter={() => setIsBartering(true)}
+          />
+        )}
+
+        {/* Barter Window */}
+        {isBartering && activeTradeNpc && (
+          <BarterWindow 
+            npc={activeTradeNpc}
+            onClose={() => {
+              setIsBartering(false);
+              setActiveTradeNpc(null);
+            }}
+          />
+        )}
+
+        {/* Diagnostic log for animation state desync debugging */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="hidden">
+            {console.log(`[MapInterface] Frame: AnimZ=${isAnimatingZombies}, Sleeping=${engine.isSleeping}, Flashlight=${isFlashlightOnActual}`)}
+          </div>
+        )}
+
 
         {/* Tile Tooltip Overlay (Phase 6 & Generic Refactor) */}
         {(() => {
           if (!hoveredTile) return null;
-          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window) return null;
+          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window && !hoveredTile.npc) return null;
           
           // Only show if the tile is explored
           const isExplored = gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
@@ -1305,6 +1377,7 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
   const cropInfo = targetTile?.cropInfo;
   const lootItems = targetTile?.inventoryItems || [];
   const specialBuilding = targetTile?.contents.find((e: any) => e.type === 'place_icon')?.subtype || null;
+  const npc = targetTile?.contents.find((e: any) => e.type === EntityType.NPC);
 
   // Logic for Zombie visibility: must be in player's current FOV
   const isZombieVisible = zombie && playerFieldOfView && playerFieldOfView.some(pos => pos.x === hoveredTile.x && pos.y === hoveredTile.y);
@@ -1318,8 +1391,11 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
 
   const door = targetTile?.contents.find((e: any) => e.type === 'door');
   const window = targetTile?.contents.find((e: any) => e.type === 'window');
+
+  // NPC Visibility logic: must be in player's current FOV
+  const isNpcVisible = npc && playerFieldOfView && playerFieldOfView.some(pos => pos.x === hoveredTile.x && pos.y === hoveredTile.y);
   
-  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window) return null;
+  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible) return null;
 
   // Calculate screen position
   const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
@@ -1346,6 +1422,7 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
       {isBuildingVisible && <BuildingTooltip type={specialBuilding} />}
       {door && <DoorTooltip door={door} />}
       {window && <WindowTooltip windowEntity={window} />}
+      {isNpcVisible && <NPCTooltip npc={npc} />}
       
       {/* Downward arrow/pointer */}
       <div className="w-2.5 h-2.5 bg-[#1a1a1a] border-r border-b border-white/20 transform rotate-45 -mt-3.5 shadow-lg" />

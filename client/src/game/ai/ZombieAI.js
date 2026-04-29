@@ -174,7 +174,8 @@ export class ZombieAI {
           type: 'attack',
           target: 'player',
           success: attackResult.success,
-          damage: attackResult.damage || 0
+          damage: attackResult.damage || 0,
+          bleedingInflicted: attackResult.bleedingInflicted || false
         });
 
         if (!attackResult.success && attackResult.reason === 'Insufficient AP') break;
@@ -984,9 +985,9 @@ export class ZombieAI {
       type: structure.type === EntityType.DOOR ? 'attackDoor' : 'attackWindow',
       doorPos: structure.type === EntityType.DOOR ? pos : null,
       windowPos: structure.type === EntityType.WINDOW ? pos : null,
-      apCost: cost,
-      doorBroken: structure.type === EntityType.DOOR ? structure.hp <= 0 : false,
-      windowBroken: structure.type === EntityType.WINDOW ? result.isBroken : false
+      doorBroken: structure.type === EntityType.DOOR && result.isDestroyed,
+      windowBroken: structure.type === EntityType.WINDOW && result.isDestroyed,
+      apCost: cost
     };
   }
 

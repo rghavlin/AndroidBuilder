@@ -19,6 +19,10 @@ class GameEngine extends SafeEventEmitter {
     
     // Bind internal handlers
     this._handlePlayerStateChange = this._handlePlayerStateChange.bind(this);
+    this._handleNpcDeath = this._handleNpcDeath.bind(this);
+    
+    // Global event listeners
+    this.on('npcDied', this._handleNpcDeath);
     
     // Global accessibility for Dev Console and debugging
     if (typeof window !== 'undefined') {
@@ -347,6 +351,29 @@ class GameEngine extends SafeEventEmitter {
    */
   _handlePlayerStateChange() {
     console.log('[GameEngine] 👤 Player state change detected -> triggering global pulse');
+    this.notifyUpdate();
+  }
+
+  /**
+   * Internal handler for NPC death events
+   */
+  _handleNpcDeath(eventData) {
+    console.log(`[GameEngine] 💀 NPC Death detected at (${eventData.x}, ${eventData.y})`);
+    if (!this.gameMap) return;
+
+    const { x, y, items } = eventData;
+    
+    if (items && items.length > 0) {
+      const existingItems = this.gameMap.getItemsOnTile(x, y) || [];
+      this.gameMap.setItemsOnTile(x, y, [...existingItems, ...items]);
+      console.log(`[GameEngine] Dropped ${items.length} items from NPC at (${x}, ${y})`);
+      
+      // If player is on the same tile, sync the ground container
+      if (this.player && this.player.x === x && this.player.y === y && this.inventoryManager) {
+        this.inventoryManager.refreshGroundItems(x, y, this.gameMap);
+      }
+    }
+    
     this.notifyUpdate();
   }
 

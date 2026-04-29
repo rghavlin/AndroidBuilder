@@ -72,6 +72,25 @@ export class Rabbit extends Entity {
   }
 
   /**
+   * Move to new position (overrides Entity.moveTo to handle animation paths)
+   */
+  moveTo(x, y) {
+    if (this.x !== x || this.y !== y) {
+      this.movementPath = [{ x: this.x, y: this.y }, { x, y }];
+      this.animationProgress = 0;
+      this.isAnimating = true;
+    }
+    
+    this.x = x;
+    this.y = y;
+
+    this.emit('entityMoved', {
+      oldPosition: { x: this.x, y: this.y },
+      newPosition: { x, y }
+    });
+  }
+
+  /**
    * Use AP for an action
    * @param {number} amount - Amount of AP to use
    * @returns {boolean} - Whether the AP was successfully used

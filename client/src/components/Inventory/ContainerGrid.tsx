@@ -11,6 +11,7 @@ interface ContainerGridProps {
   maxWidth?: string;
   enableHorizontalScroll?: boolean;
   scrollbarGutter?: boolean;
+  onBeforeDrop?: (itemId: string, fromId: string, toId: string) => boolean;
 }
 
 export default function ContainerGrid({
@@ -21,7 +22,8 @@ export default function ContainerGrid({
   maxHeight = "200px",
   maxWidth = "100%",
   enableHorizontalScroll = false,
-  scrollbarGutter = false
+  scrollbarGutter = false,
+  onBeforeDrop
 }: ContainerGridProps) {
   const { getContainer, moveItem } = useInventory();
   const container = getContainer(containerId);
@@ -37,6 +39,12 @@ export default function ContainerGrid({
 
     if (!itemId || !fromContainerId || !container) {
       console.warn('[ContainerGrid] Invalid drop data - drop rejected', { itemId, fromContainerId, hasContainer: !!container });
+      return;
+    }
+
+    // Apply custom restrictions if provided
+    if (onBeforeDrop && !onBeforeDrop(itemId, fromContainerId, containerId)) {
+      console.warn('[ContainerGrid] Drop rejected by onBeforeDrop validator');
       return;
     }
 
@@ -93,6 +101,7 @@ export default function ContainerGrid({
         scrollbarGutter={scrollbarGutter}
         onSlotClick={handleSlotClick}
         onSlotDrop={handleSlotDrop}
+        onBeforeDrop={onBeforeDrop}
       />
     </div>
   );
