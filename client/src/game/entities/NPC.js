@@ -74,9 +74,10 @@ export class NPC extends Entity {
       engine.registerAction(seq);
       
       return seq.promise.then(() => {
+        this.renderX = to.x;
+        this.renderY = to.y;
         this.x = to.x;
         this.y = to.y;
-        this.isAnimating = false;
         this.movementPath = [];
       });
     }
@@ -97,7 +98,7 @@ export class NPC extends Entity {
       engine.registerAction(seq);
       
       return seq.promise.then(() => {
-        this.isAnimating = false;
+        // Flag remains true to prevent micro-gap ghosting
       });
     }
 
@@ -112,8 +113,10 @@ export class NPC extends Entity {
     this.behaviorState = 'idle';
     
     // Safety sync: Ensure visual position matches logical position at end of turn
-    this.x = this.logicalX;
-    this.y = this.logicalY;
+    this.renderX = this.gridX;
+    this.renderY = this.gridY;
+    this.x = this.gridX;
+    this.y = this.gridY;
     
     this.isAnimating = false;
     this.animationProgress = 0;
@@ -128,9 +131,11 @@ export class NPC extends Entity {
   startTurn() {
     this.ap = this.maxAp;
     this.wasAttackedThisTurn = false;
-    this.logicalX = this.x;
-    this.logicalY = this.y;
-    this.movementPath = [{ x: this.x, y: this.y }];
+    this.gridX = this.renderX;
+    this.gridY = this.renderY;
+    this.logicalX = this.renderX;
+    this.logicalY = this.renderY;
+    this.movementPath = [{ x: this.renderX, y: this.renderY }];
     
     if (this.behaviorState === 'fleeing' && Math.random() < this.fleeRecoverChance) {
         this.behaviorState = 'idle';
@@ -272,8 +277,12 @@ export class NPC extends Entity {
       npc.inventory = Container.fromJSON(data.inventory);
     }
 
-    npc.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
-    npc.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
+    npc.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x);
+    npc.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y);
+    npc.renderX = data.x;
+    npc.renderY = data.y;
+    npc.logicalX = npc.gridX;
+    npc.logicalY = npc.gridY;
     
     return npc;
   }

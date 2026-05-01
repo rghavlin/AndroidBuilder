@@ -128,7 +128,6 @@ export class Zombie extends Entity {
         this.renderY = to.y;
         this.x = to.x; // Updates renderX via setter
         this.y = to.y; // Updates renderY via setter
-        this.isAnimating = false;
         this.movementPath = [];
       });
     }
@@ -152,7 +151,7 @@ export class Zombie extends Entity {
       engine.registerAction(seq);
       
       return seq.promise.then(() => {
-        this.isAnimating = false;
+        // Flag remains true to prevent micro-gap ghosting
       });
     }
 

@@ -109,7 +109,6 @@ export class Rabbit extends Entity {
         this.renderY = to.y;
         this.x = to.x;
         this.y = to.y;
-        this.isAnimating = false;
         this.movementPath = [];
       });
     }
