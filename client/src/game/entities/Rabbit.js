@@ -61,10 +61,12 @@ export class Rabbit extends Entity {
   startTurn() {
     this.currentAP = this.maxAP;
     this.isActive = true;
-    this.logicalX = this.x;
-    this.logicalY = this.y;
+    this.gridX = this.renderX;
+    this.gridY = this.renderY;
+    this.logicalX = this.renderX;
+    this.logicalY = this.renderY;
     // Initialize movementPath with current position for animation tracking
-    this.movementPath = [{ x: this.x, y: this.y }];
+    this.movementPath = [{ x: this.renderX, y: this.renderY }];
   }
 
   /**
@@ -73,8 +75,10 @@ export class Rabbit extends Entity {
   endTurn() {
     this.currentAP = 0;
     this.isActive = false;
-    this.x = this.logicalX;
-    this.y = this.logicalY;
+    this.renderX = this.gridX;
+    this.renderY = this.gridY;
+    this.x = this.gridX;
+    this.y = this.gridY;
   }
 
   /**
@@ -101,6 +105,8 @@ export class Rabbit extends Entity {
       engine.registerAction(seq);
       
       return seq.promise.then(() => {
+        this.renderX = to.x;
+        this.renderY = to.y;
         this.x = to.x;
         this.y = to.y;
         this.isAnimating = false;
@@ -158,8 +164,12 @@ export class Rabbit extends Entity {
     rabbit.movementPath = data.movementPath || [];
     rabbit.isAnimating = data.isAnimating || false;
     rabbit.animationProgress = data.animationProgress || 0;
-    rabbit.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
-    rabbit.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
+    rabbit.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x);
+    rabbit.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y);
+    rabbit.renderX = data.x;
+    rabbit.renderY = data.y;
+    rabbit.logicalX = rabbit.gridX;
+    rabbit.logicalY = rabbit.gridY;
     
     return rabbit;
   }

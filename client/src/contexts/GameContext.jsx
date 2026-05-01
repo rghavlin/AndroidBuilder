@@ -702,17 +702,7 @@ const GameContextInner = ({ children }) => {
       setTurnPhase('SIMULATING');
       engine.turnPhase = 'SIMULATING'; // Phase 28 Fix: Immediate sync to prevent coordinate leakage
       
-      // Phase 28B: Atomic Visual Lock
-      engine.lockAllEntities();
-      
-      let results;
-      try {
-        results = simulateTurn();
-      } finally {
-        // Unlock immediately after logical simulation to allow playback updates
-        engine.unlockAllEntities();
-      }
-      
+      const results = simulateTurn();
       const { actionQueue, demandTriggered, newTurn, nextIsNight } = results;
       
       console.log(`[GameContext] 📺 Starting turn playback phase... [ID:${timestamp}]`, { 

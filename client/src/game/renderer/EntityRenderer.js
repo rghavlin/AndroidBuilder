@@ -34,12 +34,7 @@ export const EntityRenderer = {
     let renderX = entity.x;
     let renderY = entity.y;
 
-    // Phase 28B Fix: Absolute guard against visual coordinate leakage during simulation or explicit lock
-    // This is the last line of defense - if we are simulating or locked, we MUST use visual coords only.
-    if (entity.isVisualLocked || (engine && engine.turnPhase === 'SIMULATING')) {
-        renderX = entity.x;
-        renderY = entity.y;
-    } else if (entity.movementPath && entity.movementPath.length > 1) {
+    if (entity.movementPath && entity.movementPath.length > 1) {
       if (entity.isAnimating) {
         // Linear interpolation across the entire path nodes
         const path = entity.movementPath;

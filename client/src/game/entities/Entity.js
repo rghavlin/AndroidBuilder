@@ -27,39 +27,31 @@ export class Entity extends SafeEventEmitter {
     this.id = id;
     this.type = type;
     
-    // Position for rendering
-    this._x = x;
-    this._y = y;
+    // Phase 28C: Dual-Coordinate System
+    // gridX/gridY: Logical position in the world (used by AI and Pathfinding)
+    this.gridX = x;
+    this.gridY = y;
     
-    // Phase: Turn-Based Serialization
-    // logicalX/Y represent where the entity "is" in the game logic during turn simulation.
-    // x/y represent the "visual" position currently being rendered.
-    this.logicalX = x;
+    // renderX/renderY: Visual position on the screen (used by the Renderer)
+    this.renderX = x;
+    this.renderY = y;
+    
+    // Legacy mapping (pointing to logical state for backward compatibility where needed)
+    this.logicalX = x; 
     this.logicalY = y;
     
     this.subtype = subtype || null;
     this.blocksMovement = false; // Whether other entities can move through this one
-
-    // Phase 28B Fix: Absolute visual lock to prevent ghosting
-    this.isVisualLocked = false; 
   }
 
-  // Getters and Setters for coordinates to enforce phase-based guards
-  get x() { return this._x; }
-  set x(val) {
-    if (this.isVisualLocked || (engine && engine.turnPhase === 'SIMULATING')) {
-      return; // Absolute lock during simulation or explicit lock
-    }
-    this._x = val;
-  }
+  // Getters for coordinates to enforce visual decoupling
+  // MapCanvas and EntityRenderer read entity.x and entity.y
+  // By returning renderX/renderY, we ensure they only see the animated position.
+  get x() { return this.renderX; }
+  set x(val) { this.renderX = val; }
 
-  get y() { return this._y; }
-  set y(val) {
-    if (this.isVisualLocked || (engine && engine.turnPhase === 'SIMULATING')) {
-      return; // Absolute lock during simulation or explicit lock
-    }
-    this._y = val;
-  }
+  get y() { return this.renderY; }
+  set y(val) { this.renderY = val; }
 
   /**
    * Play an action visually. Overridden by subclasses (Zombie, NPC).
@@ -116,25 +108,24 @@ export class Entity extends SafeEventEmitter {
    */
   moveTo(x, y, options = {}) {
     const { snap = true } = options;
-    const oldPosition = { x: this.logicalX, y: this.logicalY };
+    const oldPosition = { x: this.gridX, y: this.gridY };
     
+    // Always update logical position immediately
+    this.gridX = x;
+    this.gridY = y;
     this.logicalX = x;
     this.logicalY = y;
 
-    // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
-    if (this.isVisualLocked || (engine && engine.turnPhase === 'SIMULATING')) {
-      return;
-    }
-
+    // Only update render position if snapping is requested (usually outside of simulation)
     if (snap) {
-      this.x = x;
-      this.y = y;
+      this.renderX = x;
+      this.renderY = y;
     }
 
     this.emit('entityMoved', {
       oldPosition,
-      newPosition: { x: this.logicalX, y: this.logicalY },
-      visualPosition: { x: this.x, y: this.y }
+      newPosition: { x: this.gridX, y: this.gridY },
+      visualPosition: { x: this.renderX, y: this.renderY }
     });
   }
 
@@ -145,8 +136,10 @@ export class Entity extends SafeEventEmitter {
     return {
       id: this.id,
       type: this.type,
-      x: this.x,
-      y: this.y,
+      x: this.renderX,
+      y: this.renderY,
+      gridX: this.gridX,
+      gridY: this.gridY,
       logicalX: this.logicalX,
       logicalY: this.logicalY,
       subtype: this.subtype,
@@ -159,8 +152,12 @@ export class Entity extends SafeEventEmitter {
    */
   static fromJSON(data) {
     const entity = new Entity(data.id, data.type, data.x, data.y, data.subtype);
-    entity.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
-    entity.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
+    entity.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x);
+    entity.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y);
+    entity.renderX = data.x;
+    entity.renderY = data.y;
+    entity.logicalX = entity.gridX;
+    entity.logicalY = entity.gridY;
     entity.blocksMovement = data.blocksMovement;
     return entity;
   }

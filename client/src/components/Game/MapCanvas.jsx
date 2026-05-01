@@ -241,7 +241,7 @@ export default function MapCanvas({
       groundEntities.forEach(entity => {
         const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
         ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
-        EntityRenderer.renderEntity(ctx, { ...entity, x: entity.x, y: entity.y }, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
+        EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
         ctx.restore();
       });
       ctx.restore();
@@ -252,7 +252,7 @@ export default function MapCanvas({
       livingEntities.forEach(entity => {
         const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
         ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
-        EntityRenderer.renderEntity(ctx, { ...entity, x: entity.x, y: entity.y }, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
+        EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
         ctx.restore();
       });
       ctx.restore();

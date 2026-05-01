@@ -97,32 +97,6 @@ class GameEngine extends SafeEventEmitter {
   }
 
   /**
-   * Lock all entities to prevent visual coordinate leakage during turn simulation.
-   */
-  lockAllEntities() {
-    if (!this.gameMap) return;
-    const entities = this.gameMap.getAllEntities();
-    entities.forEach(e => {
-      if (e) e.isVisualLocked = true;
-    });
-    // Also lock player explicitly
-    if (this.player) this.player.isVisualLocked = true;
-  }
-
-  /**
-   * Unlock all entities after turn simulation is complete.
-   */
-  unlockAllEntities() {
-    if (!this.gameMap) return;
-    const entities = this.gameMap.getAllEntities();
-    entities.forEach(e => {
-      if (e) e.isVisualLocked = false;
-    });
-    // Also unlock player explicitly
-    if (this.player) this.player.isVisualLocked = false;
-  }
-
-  /**
    * Register a new visual action with the master ticker.
    * @param {Object} action - An object with update(dt) and isComplete property.
    */

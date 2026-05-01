@@ -600,29 +600,22 @@ export class GameMap {
         oldTile.removeEntity(entityId);
       }
 
-      // THEN update entity position via moveTo (updates logicalX/Y)
+      // THEN update entity position via moveTo (updates gridX/Y)
       console.log(`[GameMap] Updating logical position for entity ${entityId} to (${newX}, ${newY})`);
       
-      // Phase 28 Fix: Strictly forbid visual coordinate updates during simulation
-      // This prevents the 'preview flash' reported by the user.
       const moveOptions = { ...options };
-      if (engine && engine.turnPhase === 'SIMULATING') {
-        moveOptions.snap = false;
-        // console.log(`[GameMap] 🛡️ SIMULATION GUARD ACTIVE for entity ${entityId}. Visual coordinates locked.`);
-      }
       
-      // Safety Override: Never snap during simulation
-      if (engine && engine.turnPhase === 'SIMULATING' && moveOptions.snap !== false) {
-        moveOptions.snap = false;
-      }
-
       if (typeof entity.moveTo === 'function') {
         entity.moveTo(newX, newY, moveOptions);
       } else {
+        entity.gridX = newX;
+        entity.gridY = newY;
         entity.logicalX = newX;
         entity.logicalY = newY;
-        // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
-        if (moveOptions.snap !== false && (!engine || engine.turnPhase !== 'SIMULATING')) {
+        
+        if (moveOptions.snap !== false) {
+          entity.renderX = newX;
+          entity.renderY = newY;
           entity.x = newX;
           entity.y = newY;
         }

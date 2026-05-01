@@ -124,8 +124,10 @@ export class Zombie extends Entity {
       engine.registerAction(seq);
       
       return seq.promise.then(() => {
-        this.x = to.x;
-        this.y = to.y;
+        this.renderX = to.x;
+        this.renderY = to.y;
+        this.x = to.x; // Updates renderX via setter
+        this.y = to.y; // Updates renderY via setter
         this.isAnimating = false;
         this.movementPath = [];
       });
@@ -166,8 +168,10 @@ export class Zombie extends Entity {
     // Removed behaviorState reset to maintain state across turns
     
     // Safety sync: Ensure visual position matches logical position at end of turn
-    this.x = this.logicalX;
-    this.y = this.logicalY;
+    this.renderX = this.gridX;
+    this.renderY = this.gridY;
+    this.x = this.gridX;
+    this.y = this.gridY;
     
     this.isAnimating = false;
     this.animationProgress = 0;
@@ -327,8 +331,10 @@ export class Zombie extends Entity {
       id: this.id,
       type: 'zombie',
       subtype: this.subtype,
-      x: this.x,
-      y: this.y,
+      x: this.renderX,
+      y: this.renderY,
+      gridX: this.gridX,
+      gridY: this.gridY,
       logicalX: this.logicalX,
       logicalY: this.logicalY,
       hp: this.hp,
@@ -379,8 +385,12 @@ export class Zombie extends Entity {
     zombie.animationProgress = 0;
     zombie.prevX = data.x;
     zombie.prevY = data.y;
-    zombie.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
-    zombie.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
+    zombie.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x);
+    zombie.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y);
+    zombie.renderX = data.x;
+    zombie.renderY = data.y;
+    zombie.logicalX = zombie.gridX;
+    zombie.logicalY = zombie.gridY;
     zombie.currentTarget = data.currentTarget || null;
     
     return zombie;
