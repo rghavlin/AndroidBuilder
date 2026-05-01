@@ -21,7 +21,7 @@ export class LineOfSight {
    */
   static hasLineOfSight(gameMap, startX, startY, endX, endY, options = {}) {
     const {
-      maxRange = 10, // Maximum sight range
+      maxRange = 15, // Maximum sight range
       ignoreTerrain = [], // Terrain types that don't block sight
       ignoreEntities = [], // Entity IDs that don't block sight
       debug = false
@@ -118,7 +118,7 @@ export class LineOfSight {
    */
   static getVisibleTiles(gameMap, centerX, centerY, options = {}) {
     const {
-      maxRange = 10,
+      maxRange = 15,
       ignoreTerrain = [],
       ignoreEntities = []
     } = options;
@@ -166,10 +166,10 @@ export class LineOfSight {
 
     return this.hasLineOfSight(
       gameMap,
-      observer.x,
-      observer.y,
-      target.x,
-      target.y,
+      observer.logicalX !== undefined ? observer.logicalX : observer.x,
+      observer.logicalY !== undefined ? observer.logicalY : observer.y,
+      target.logicalX !== undefined ? target.logicalX : target.x,
+      target.logicalY !== undefined ? target.logicalY : target.y,
       { ...options, ignoreEntities }
     );
   }
@@ -259,6 +259,16 @@ export class LineOfSight {
       // Check if entity has explicit blocksSight property
       if (entity.blocksSight !== undefined) {
         return entity.blocksSight;
+      }
+
+      // Doors block sight when closed
+      if (entity.type === 'door' || entity.type === 'EntityType.DOOR') {
+        return !entity.isOpen;
+      }
+
+      // Windows do not block sight (can see through them)
+      if (entity.type === 'window' || entity.type === 'EntityType.WINDOW') {
+        return false;
       }
 
       // Define which entity types block sight by default

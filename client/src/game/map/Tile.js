@@ -50,32 +50,55 @@ export class Tile {
   /**
    * Check if tile is walkable based on terrain and contents
    */
-  isWalkable(entity = null) {
-    const isZombie = entity && entity.type === EntityType.ZOMBIE;
+  isWalkable(entity = null, options = {}) {
+    // 1. Content Check (Dynamic obstacles) - Check entries first
+    let hasEntry = false;
+    for (const item of this.contents) {
+      if (item.type === EntityType.DOOR && item.isOpen) {
+        hasEntry = true;
+        break;
+      }
+      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken)) {
+        hasEntry = true;
+        break;
+      }
+    }
 
-    // Buildings, walls, fences, and trees are usually unwalkable.
-    // EXCEPTION: Zombies can walk into wall/building tiles IF they contain a door or window.
-    // This is required for them to actually enter the building after breaking in.
-    if (this.terrain === 'wall' || this.terrain === 'fence' || this.terrain === 'building' || this.terrain === 'tree' || this.terrain === 'water' || this.terrain === 'tent_wall') {
-      const hasEntrableStructure = this.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-      if (!(isZombie && hasEntrableStructure)) {
+    // 2. Terrain Check (Static obstacles)
+    const unwalkableTerrains = ['wall', 'fence', 'tree', 'water', 'tent_wall', 'deep_water', 'brick', 'metal_wall', 'building'];
+    if (unwalkableTerrains.includes(this.terrain) && !hasEntry) {
+      // PATHFINDING EXCEPTION: Zombies can path "to" buildings to attack them
+      if (options.allowBreaching && (this.terrain === 'building' || this.terrain === 'wall')) {
+        // Fall through to content check
+      } else {
         return false;
       }
     }
 
-    // Transition tiles are walkable
-    if (this.terrain === 'transition') {
-      return true;
+    // 3. Content Check (Full)
+    for (const item of this.contents) {
+      if (item.type === EntityType.DOOR) {
+        if (!item.isOpen && !options.allowBreaching) return false;
+      }
+      if (item.type === EntityType.WINDOW) {
+        if (!item.isOpen && !item.isBroken && !options.allowBreaching) return false;
+      }
+      if (item.blocksMovement) {
+         // EXCEPTION: Open doors and windows don't block movement even if their base property says they do
+         if (item.type === EntityType.DOOR && item.isOpen) continue;
+         if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken)) continue;
+
+         // EXCEPTION: Same-tile safety
+         if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;
+         
+         // NEW: Check if we should ignore zombies (logjam prevention)
+         if (options.ignoreZombies && item.type === EntityType.ZOMBIE) continue;
+         
+         return false;
+      }
     }
 
-    // Check if any entity blocks movement
-    // ZOMBIE EXCEPTION: Zombies can move through windows (even though windows block player movement)
-    const blocked = this.contents.some(e => {
-        if (isZombie && e.type === EntityType.WINDOW) return false;
-        return e.blocksMovement;
-    });
-
-    return !blocked;
+    return true;
   }
 
   /**
@@ -102,9 +125,12 @@ export class Tile {
     }
 
     // Diagnostic validation: Ensure coordinate symmetry
-    if (entity.x !== undefined && entity.y !== undefined) {
-      if (entity.x !== this.x || entity.y !== this.y) {
-        console.error(`[Tile] ⚠️ Property Desync Detected! Adding entity ${entity.id} to tile (${this.x}, ${this.y}) but entity says it is at (${entity.x}, ${entity.y})`);
+    const posX = entity.logicalX !== undefined ? entity.logicalX : entity.x;
+    const posY = entity.logicalY !== undefined ? entity.logicalY : entity.y;
+    
+    if (posX !== undefined && posY !== undefined) {
+      if (posX !== this.x || posY !== this.y) {
+        console.error(`[Tile] ⚠️ Property Desync Detected! Adding entity ${entity.id} to tile (${this.x}, ${this.y}) but entity says it is at (${posX}, ${posY})`);
       }
     }
   }

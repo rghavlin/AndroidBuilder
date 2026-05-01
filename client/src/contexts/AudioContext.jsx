@@ -78,7 +78,21 @@ export const AudioProvider = ({ children }) => {
   // Listen for global game events and play sounds automatically
   useEffect(() => {
     const handleZombieAttackResult = (data) => {
-      if (data.success) {
+      // 1. Handle structure attacks (doors/windows)
+      if (data.targetType === 'door') {
+        if (data.damage > 0) audioManager.playOneShot('Bang1');
+        else audioManager.playOneShot('Miss'); // Still play miss if they somehow miss a door (50% rule)
+        return;
+      }
+      if (data.targetType === 'window') {
+        if (data.damage > 0) audioManager.playOneShot('GlassBreak');
+        else audioManager.playOneShot('Miss');
+        return;
+      }
+
+      // 2. Handle combat attacks (players/npcs)
+      const isHit = data.damage > 0 || (data.success && !data.isMiss);
+      if (isHit) {
         // At least one hit - play hit sound (growl + slash)
         audioManager.playOneShot('Zombie1');
         audioManager.playOneShot('ZombieSlash');
@@ -95,6 +109,15 @@ export const AudioProvider = ({ children }) => {
     const handleWindowSmash = (data) => {
       console.log('[AudioContext] 🔊 WINDOW_SMASH event received:', data);
       audioManager.playOneShot('GlassBreak');
+    };
+
+    const handleStructureInteract = (data) => {
+      const targetType = data.targetType;
+      if (targetType === 'door' || targetType === 'door_locked') {
+        audioManager.playOneShot('Bang1');
+      } else if (targetType === 'window') {
+        audioManager.playOneShot('GlassBreak');
+      }
     };
 
     const handlePlayerMove = (data) => {
@@ -139,6 +162,28 @@ export const AudioProvider = ({ children }) => {
       }
     };
 
+    const handleNpcAttack = (data) => {
+      console.log('[AudioContext] 🔊 NPC_ATTACK event received:', data);
+      if (data.weaponType === 'ranged') {
+        const soundMap = {
+          'weapon.9mmPistol': 'PistolShot',
+          'weapon.357Pistol': 'PistolShot',
+          'weapon.shotgun': 'ShotgunShot',
+          'weapon.hunting_rifle': 'RifleShot',
+          'weapon.battle_rifle': data.isBurst ? 'BurstShot' : 'RifleShot',
+          'weapon.sniper_rifle': 'RifleShot',
+          'weapon.sling': 'SlingShot'
+        };
+        audioManager.playSound(soundMap[data.weaponId] || 'PistolShot');
+      } else {
+        if (!data.hit) {
+          audioManager.playSound('Miss');
+        } else {
+          audioManager.playSound('MeleeHit');
+        }
+      }
+    };
+
     const handleZombieDamage = (data) => {
       if (data.isKillingBlow) {
         audioManager.playSound('DeathBlow');
@@ -154,7 +199,8 @@ export const AudioProvider = ({ children }) => {
     };
 
     const handlePlayerDamage = () => {
-      audioManager.playSound('Miss'); // Using 'Miss' as a generic impact sound for now, or could use a new one
+      // Impact sounds are now handled by the specific ATTACK event listeners
+      // to prevent 'Miss' playing on hits.
     };
 
     const handleNoiseEmitted = (data) => {
@@ -173,12 +219,13 @@ export const AudioProvider = ({ children }) => {
       audioManager.playSound('Equip'); // Using same sound for unequip for now
     };
 
-    GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK_RESULT, handleZombieAttackResult);
+    GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttackResult);
     GameEvents.on(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
     GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
     GameEvents.on(GAME_EVENT.DOOR_BANG, handleDoorBang);
     GameEvents.on(GAME_EVENT.DOOR_BROKEN, handleDoorBang);
     GameEvents.on(GAME_EVENT.WINDOW_SMASH, handleWindowSmash);
+    GameEvents.on(GAME_EVENT.STRUCTURE_INTERACT, handleStructureInteract);
     GameEvents.on(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, handlePlayerMoveEnded);
     GameEvents.on(GAME_EVENT.PLAYER_ATTACK, handlePlayerAttack);
@@ -188,14 +235,16 @@ export const AudioProvider = ({ children }) => {
     GameEvents.on(GAME_EVENT.NOISE_EMITTED, handleNoiseEmitted);
     GameEvents.on(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
     GameEvents.on(GAME_EVENT.ITEM_UNEQUIPPED, handleItemUnequipped);
+    GameEvents.on(GAME_EVENT.NPC_ATTACK, handleNpcAttack);
 
     return () => {
-      GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK_RESULT, handleZombieAttackResult);
+      GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttackResult);
       GameEvents.off(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
       GameEvents.off(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
       GameEvents.off(GAME_EVENT.DOOR_BANG, handleDoorBang);
       GameEvents.off(GAME_EVENT.DOOR_BROKEN, handleDoorBang);
       GameEvents.off(GAME_EVENT.WINDOW_SMASH, handleWindowSmash);
+      GameEvents.off(GAME_EVENT.STRUCTURE_INTERACT, handleStructureInteract);
       GameEvents.off(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
       GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, handlePlayerMoveEnded);
       GameEvents.off(GAME_EVENT.PLAYER_ATTACK, handlePlayerAttack);
@@ -205,6 +254,7 @@ export const AudioProvider = ({ children }) => {
       GameEvents.off(GAME_EVENT.NOISE_EMITTED, handleNoiseEmitted);
       GameEvents.off(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
       GameEvents.off(GAME_EVENT.ITEM_UNEQUIPPED, handleItemUnequipped);
+      GameEvents.off(GAME_EVENT.NPC_ATTACK, handleNpcAttack);
     };
   }, []);
   

@@ -12,21 +12,20 @@ export class RabbitAI {
    * @param {GameMap} gameMap - The game map
    * @param {Entity} player - The player entity
    * @param {Array} zombies - List of all zombies on map
-   * @returns {Object} - Result of the turn
    */
   static executeRabbitTurn(rabbit, gameMap, player, zombies = []) {
     if (!rabbit || !gameMap || !player) return { success: false };
 
-    rabbit.startTurn();
     const turnResult = {
       rabbitId: rabbit.id,
       actions: [],
-      apUsed: 0
+      apUsed: 0,
+      success: true
     };
 
     try {
       // 1. Initial Detection Parameters
-      const distToPlayer = Math.sqrt(Math.pow(rabbit.x - player.x, 2) + Math.pow(rabbit.y - player.y, 2));
+      const distToPlayer = Math.sqrt(Math.pow(rabbit.logicalX - player.logicalX, 2) + Math.pow(rabbit.logicalY - player.logicalY, 2));
       
       // Rabbit Vicinity Awareness (10 tiles) OR Sight (15 tiles)
       const canSeePlayer = (distToPlayer <= 15) ? LineOfSight.canSeeEntity(gameMap, rabbit, player, { maxRange: 15 }).hasLineOfSight : false;
@@ -37,7 +36,7 @@ export class RabbitAI {
       let minDistToZombie = 6; // Range 5
       
       zombies.forEach(zombie => {
-        const dist = Math.abs(rabbit.x - zombie.x) + Math.abs(rabbit.y - zombie.y);
+        const dist = Math.abs(rabbit.logicalX - zombie.x) + Math.abs(rabbit.logicalY - zombie.y);
         if (dist < minDistToZombie) {
           minDistToZombie = dist;
           nearestZombie = zombie;
@@ -49,7 +48,7 @@ export class RabbitAI {
       while (rabbit.currentAP >= 1.0 && safetyCounter < 30) {
         safetyCounter++;
         
-        const currentDistToPlayer = Math.sqrt(Math.pow(rabbit.x - player.x, 2) + Math.pow(rabbit.y - player.y, 2));
+        const currentDistToPlayer = Math.sqrt(Math.pow(rabbit.logicalX - player.logicalX, 2) + Math.pow(rabbit.logicalY - player.logicalY, 2));
         
         // Re-check detection every step if not already fleeing
         if (!hasDetectedPlayer) {
@@ -62,23 +61,23 @@ export class RabbitAI {
         // A. Flee from Player (if detected in vicinity at any point this turn)
         // Once fleeing starts, continue until safe distance (25) or no AP
         if (hasDetectedPlayer && currentDistToPlayer < 25) {
-          const moved = this.attemptFlee(rabbit, gameMap, player.x, player.y, turnResult);
+          const moved = this.attemptFlee(rabbit, gameMap, player.logicalX, player.logicalY, turnResult);
           if (!moved) break; // Trapped
           continue;
         }
         
         // B. Avoid Zombies (within 5 squares)
         if (nearestZombie) {
-          const currentDistToZombie = Math.abs(rabbit.x - nearestZombie.x) + Math.abs(rabbit.y - nearestZombie.y);
+          const currentDistToZombie = Math.abs(rabbit.logicalX - nearestZombie.logicalX) + Math.abs(rabbit.logicalY - nearestZombie.logicalY);
           if (currentDistToZombie <= 5) {
-            const moved = this.attemptFlee(rabbit, gameMap, nearestZombie.x, nearestZombie.y, turnResult);
+            const moved = this.attemptFlee(rabbit, gameMap, nearestZombie.logicalX, nearestZombie.logicalY, turnResult);
             if (!moved) break;
             continue;
           }
         }
         
         // C. Random Wander (Max 2 steps per turn)
-        if (turnResult.actions.filter(a => a.type === 'wander').length < 2) {
+        if (turnResult.actions.filter(a => a.type === 'MOVE').length < 2) {
           const moved = this.executeRandomWander(rabbit, gameMap, turnResult);
           if (!moved) break;
         } else {
@@ -90,7 +89,6 @@ export class RabbitAI {
       console.error('[RabbitAI] Error during rabbit turn:', error);
     }
 
-    rabbit.endTurn();
     turnResult.apUsed = rabbit.maxAP - rabbit.currentAP;
     turnResult.success = true;
     return turnResult;
@@ -100,7 +98,7 @@ export class RabbitAI {
    * Attempt to move one step away from a threat
    */
   static attemptFlee(rabbit, gameMap, threatX, threatY, turnResult) {
-    const neighbors = Pathfinding.getNeighbors(rabbit.x, rabbit.y, true); // Rabbits can move diagonally
+    const neighbors = Pathfinding.getNeighbors(rabbit.logicalX, rabbit.logicalY, true); // Rabbits can move diagonally
     
     // Evaluate neighbors by distance from threat
     const candidates = neighbors
@@ -112,23 +110,26 @@ export class RabbitAI {
       }))
       .sort((a, b) => b.dist - a.dist); // Maximize distance
 
-    if (candidates.length > 0 && candidates[0].dist > Math.sqrt(Math.pow(rabbit.x - threatX, 2) + Math.pow(rabbit.y - threatY, 2))) {
+    if (candidates.length > 0 && candidates[0].dist > Math.sqrt(Math.pow(rabbit.logicalX - threatX, 2) + Math.pow(rabbit.logicalY - threatY, 2))) {
       const best = candidates[0];
       
       // Diagonal cost 1.4, Cardinal 1.0
-      const apCost = (best.x !== rabbit.x && best.y !== rabbit.y) ? 1.4 : 1.0;
+      const apCost = (best.x !== rabbit.logicalX && best.y !== rabbit.logicalY) ? 1.4 : 1.0;
       
       if (rabbit.currentAP >= apCost) {
-        const fromPos = { x: rabbit.x, y: rabbit.y };
-        gameMap.moveEntity(rabbit.id, best.x, best.y);
+        const fromPos = { x: rabbit.logicalX, y: rabbit.logicalY };
+        gameMap.moveEntity(rabbit.id, best.x, best.y, { snap: false });
         rabbit.useAP(apCost);
         rabbit.movementPath.push({ x: best.x, y: best.y });
         
         turnResult.actions.push({
-          type: 'flee',
-          from: fromPos,
-          to: { x: best.x, y: best.y },
-          apCost: apCost
+          type: 'MOVE',
+          entityId: rabbit.id,
+          data: {
+            from: fromPos,
+            to: { x: best.x, y: best.y },
+            apCost: apCost
+          }
         });
         return true;
       }
@@ -141,24 +142,27 @@ export class RabbitAI {
    * Random wiggle
    */
   static executeRandomWander(rabbit, gameMap, turnResult) {
-    const directions = Pathfinding.getNeighbors(rabbit.x, rabbit.y, true);
+    const directions = Pathfinding.getNeighbors(rabbit.logicalX, rabbit.logicalY, true);
     const shuffled = directions.sort(() => Math.random() - 0.5);
     
     for (const dir of shuffled) {
       if (this.canMoveToTile(gameMap, dir.x, dir.y, rabbit)) {
-        const apCost = (dir.x !== rabbit.x && dir.y !== rabbit.y) ? 1.4 : 1.0;
+        const apCost = (dir.x !== rabbit.logicalX && dir.y !== rabbit.logicalY) ? 1.4 : 1.0;
         
         if (rabbit.currentAP >= apCost) {
-          const fromPos = { x: rabbit.x, y: rabbit.y };
-          gameMap.moveEntity(rabbit.id, dir.x, dir.y);
+          const fromPos = { x: rabbit.logicalX, y: rabbit.logicalY };
+          gameMap.moveEntity(rabbit.id, dir.x, dir.y, { snap: false });
           rabbit.useAP(apCost);
           rabbit.movementPath.push({ x: dir.x, y: dir.y });
           
           turnResult.actions.push({
-            type: 'wander',
-            from: fromPos,
-            to: { x: dir.x, y: dir.y },
-            apCost: apCost
+            type: 'MOVE',
+            entityId: rabbit.id,
+            data: {
+              from: fromPos,
+              to: { x: dir.x, y: dir.y },
+              apCost: apCost
+            }
           });
           return true;
         }
@@ -175,8 +179,8 @@ export class RabbitAI {
     if (!tile || !tile.isWalkable()) return false;
     
     // For diagonals, prevent cutting corners
-    if (Math.abs(x - rabbit.x) === 1 && Math.abs(y - rabbit.y) === 1) {
-      if (!Pathfinding.canMoveDiagonally(gameMap, rabbit.x, rabbit.y, x, y)) {
+    if (Math.abs(x - rabbit.logicalX) === 1 && Math.abs(y - rabbit.logicalY) === 1) {
+      if (!Pathfinding.canMoveDiagonally(gameMap, rabbit.logicalX, rabbit.logicalY, x, y)) {
         return false;
       }
     }

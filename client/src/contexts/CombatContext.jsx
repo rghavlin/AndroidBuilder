@@ -150,7 +150,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         const tile = gameMap.getTile(targetX, targetY);
-        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT);
+        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
         const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
 
         if (!targetEntity && !structure) return { success: false, reason: 'No target here' };
@@ -240,6 +240,16 @@ export const CombatProvider = ({ children }) => {
                         const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                         if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
                     }
+                } else if (targetEntity.type === EntityType.NPC) {
+                    // NPCs drop their entire inventory on death
+                    if (typeof targetEntity.die === 'function') {
+                        targetEntity.die(); // Emits npcDied event
+                    }
+                    const items = targetEntity.inventory.getAllItems();
+                    if (items.length > 0) {
+                        gameMap.addItemsToTile(targetX, targetY, items);
+                        targetEntity.inventory.clear();
+                    }
                 } else if (targetEntity.type === 'rabbit') {
                     // Rabbits always drop 1 raw meat
                     const meat = createItemFromDef('food.raw_meat');
@@ -317,7 +327,7 @@ export const CombatProvider = ({ children }) => {
         if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
 
         const tile = gameMap.getTile(targetX, targetY);
-        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT);
+        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
         const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
         
         if (!targetEntity && !structure) {
@@ -466,6 +476,16 @@ export const CombatProvider = ({ children }) => {
                                 }
                             }
                         }
+                    } else if (targetEntity.type === EntityType.NPC) {
+                        // NPCs drop their entire inventory on death
+                        if (typeof targetEntity.die === 'function') {
+                            targetEntity.die(); // Emits npcDied event
+                        }
+                        const items = targetEntity.inventory.getAllItems();
+                        if (items.length > 0) {
+                            gameMap.addItemsToTile(targetEntity.x, targetEntity.y, items);
+                            targetEntity.inventory.clear();
+                        }
                     } else if (targetEntity.type === EntityType.RABBIT) {
                         const meat = createItemFromDef('food.raw_meat');
                         if (meat) {
@@ -571,7 +591,7 @@ export const CombatProvider = ({ children }) => {
         // Damage Entities within 2 tiles
         const allEntities = Array.from(gameMap.entityMap.values());
         allEntities.forEach(entity => {
-            if (entity.type !== EntityType.PLAYER && entity.type !== EntityType.ZOMBIE && entity.type !== EntityType.RABBIT) return;
+            if (entity.type !== EntityType.PLAYER && entity.type !== EntityType.ZOMBIE && entity.type !== EntityType.RABBIT && entity.type !== EntityType.NPC) return;
 
             const dist = Math.sqrt(Math.pow(entity.x - targetX, 2) + Math.pow(entity.y - targetY, 2));
             if (dist > radius + 0.1) return;
@@ -611,6 +631,16 @@ export const CombatProvider = ({ children }) => {
                     if (entity.type === EntityType.ZOMBIE && lootGenerator && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
                         if (loot?.length > 0) gameMap.addItemsToTile(entity.x, entity.y, loot);
+                    } else if (entity.type === EntityType.NPC) {
+                        // NPCs drop their entire inventory on death
+                        if (typeof entity.die === 'function') {
+                            entity.die(); // Emits npcDied event
+                        }
+                        const items = entity.inventory.getAllItems();
+                        if (items.length > 0) {
+                            gameMap.addItemsToTile(entity.x, entity.y, items);
+                            entity.inventory.clear();
+                        }
                     } else if (entity.type === EntityType.RABBIT) {
                         const meat = createItemFromDef('food.raw_meat');
                         if (meat) gameMap.addItemsToTile(entity.x, entity.y, [meat]);

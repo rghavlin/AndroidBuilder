@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import { EntityType } from '../game/entities/Entity.js';
 
 const LogContext = createContext();
 
@@ -66,12 +67,23 @@ export const LogProvider = ({ children }) => {
 
     // Listen for global game events and add to log automatically
     useEffect(() => {
-        const handleZombieAttack = (data) => {
-            if (data.success) {
-                addLog(`Zombie attacks: ${data.damage} damage`, 'combat');
+        const handleCombatAttack = (data) => {
+            console.log('[LogContext] ⚔️ Combat event received:', data);
+            
+            // Normalize data between ZOMBIE_ATTACK and NPC_ATTACK structures
+            const entity = data.zombie || data.entity || data.npc;
+            const isNPC = entity && (entity.type === 'npc' || entity.type === EntityType.NPC);
+            const entityName = isNPC ? (entity.name || 'Survivor') : 'Zombie';
+            
+            const isSuccess = data.success !== undefined ? data.success : data.hit;
+            const damage = data.damage || 0;
+
+            if (isSuccess) {
+                addLog(`${entityName} attacks: ${damage} damage`, 'combat');
             } else {
-                addLog('Zombie attacks but misses!', 'combat');
+                addLog(`${entityName} attacks but misses!`, 'combat');
             }
+            
             if (data.bleedingInflicted) {
                 addLog('You have started to bleed!', 'warning');
             }
@@ -83,6 +95,15 @@ export const LogProvider = ({ children }) => {
                 addLog(data.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
             } else if (data.type === 'attackWindow' || data.windowPos) {
                 addLog('Zombie smashes a window!', 'combat');
+            }
+        };
+
+        const handleStructureInteract = (data) => {
+            const targetType = data.targetType;
+            if (targetType === EntityType.DOOR || targetType === 'door') {
+                addLog('Zombie bangs on the door!', 'world');
+            } else if (targetType === EntityType.WINDOW || targetType === 'window') {
+                addLog('Zombie smashes against the window!', 'world');
             }
         };
 
@@ -108,19 +129,23 @@ export const LogProvider = ({ children }) => {
             // User requested NO message for generic trail blocking, so we suppress it entirely
         };
 
-        GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttack);
+        GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleCombatAttack);
+        GameEvents.on(GAME_EVENT.NPC_ATTACK, handleCombatAttack);
         GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
         GameEvents.on(GAME_EVENT.DOOR_BANG, handleStructureDamage);
         GameEvents.on(GAME_EVENT.DOOR_BROKEN, handleStructureDamage);
         GameEvents.on(GAME_EVENT.WINDOW_SMASH, handleStructureDamage);
+        GameEvents.on(GAME_EVENT.STRUCTURE_INTERACT, handleStructureInteract);
         GameEvents.on(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
 
         return () => {
-            GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttack);
+            GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleCombatAttack);
+            GameEvents.off(GAME_EVENT.NPC_ATTACK, handleCombatAttack);
             GameEvents.off(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
             GameEvents.off(GAME_EVENT.DOOR_BANG, handleStructureDamage);
             GameEvents.off(GAME_EVENT.DOOR_BROKEN, handleStructureDamage);
             GameEvents.off(GAME_EVENT.WINDOW_SMASH, handleStructureDamage);
+            GameEvents.off(GAME_EVENT.STRUCTURE_INTERACT, handleStructureInteract);
             GameEvents.off(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
         };
     }, [addLog]);

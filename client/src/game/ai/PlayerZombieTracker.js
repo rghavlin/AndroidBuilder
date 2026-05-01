@@ -57,7 +57,9 @@ export class PlayerZombieTracker {
     const allZombies = gameMap.getEntitiesByType('zombie');
     
     allZombies.forEach(zombie => {
-      const distanceToPlayer = zombie.getDistanceTo(player.x, player.y);
+      const pX = player.logicalX !== undefined ? player.logicalX : player.x;
+      const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+      const distanceToPlayer = zombie.getDistanceTo(pX, pY);
 
       // Fast-fail if player is outside this zombie's maximum sight range
       if (distanceToPlayer <= zombie.sightRange) {
@@ -83,12 +85,15 @@ export class PlayerZombieTracker {
    * @param {Player} player - The player entity
    */
   processNewlySpottedZombies(currentlyVisibleZombies, player) {
+    const pX = player.logicalX !== undefined ? player.logicalX : player.x;
+    const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+
     currentlyVisibleZombies.forEach(({ zombie }) => {
       if (!this.spottedZombies.has(zombie.id)) {
         // Newly spotted zombie
         this.spottedZombies.set(zombie.id, {
           zombie,
-          lastPlayerPos: { x: player.x, y: player.y }
+          lastPlayerPos: { x: pX, y: pY }
         });
 
         // Trigger alert state
@@ -97,10 +102,7 @@ export class PlayerZombieTracker {
           GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie });
         }
 
-        // Reduced logging frequency - only log newly spotted zombies
-        if (Math.random() < 0.1) { // Only log 10% of the time to reduce spam
-          console.log(`[PlayerZombieTracker] Zombie ${zombie.id} newly spotted by player at (${player.x}, ${player.y})`);
-        }
+        console.log(`[PlayerZombieTracker] Zombie ${zombie.id} newly spotted by player at (${pX}, ${pY})`);
       }
     });
   }
@@ -118,8 +120,9 @@ export class PlayerZombieTracker {
     for (const [zombieId, trackedData] of this.spottedZombies.entries()) {
       if (!currentVisibleIds.has(zombieId)) {
         // Zombie is no longer visible - Trigger 'lastSeen' flag and record LKP
-        // The zombie's own turn logic will now follow the scent trail or this LKP
         const { zombie, lastPlayerPos } = trackedData;
+        
+        // BUG FIX: Capture the player's precise logical position at the moment sight was lost
         zombie.setTargetSighted(lastPlayerPos.x, lastPlayerPos.y);
         
         console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player at (${lastPlayerPos.x}, ${lastPlayerPos.y}), enabled search mode`);
@@ -136,12 +139,15 @@ export class PlayerZombieTracker {
    * @param {Player} player - The player entity
    */
   updateTrackedZombies(currentlyVisibleZombies, player) {
+    const pX = player.logicalX !== undefined ? player.logicalX : player.x;
+    const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+
     currentlyVisibleZombies.forEach(({ zombie }) => {
       if (this.spottedZombies.has(zombie.id)) {
         // Update last known player position
         this.spottedZombies.set(zombie.id, {
           zombie,
-          lastPlayerPos: { x: player.x, y: player.y }
+          lastPlayerPos: { x: pX, y: pY }
         });
       }
     });

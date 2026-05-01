@@ -18,6 +18,7 @@ export const GAME_EVENT = {
   DOOR_BANG: 'door_bang',
   DOOR_BROKEN: 'door_broken',
   WINDOW_SMASH: 'window_smash',
+  STRUCTURE_INTERACT: 'structure_interact',
   
   // Player Actions
   PLAYER_MOVE: 'player_move',
@@ -34,7 +35,11 @@ export const GAME_EVENT = {
   
   // Inventory
   ITEM_EQUIPPED: 'item_equipped',
-  ITEM_UNEQUIPPED: 'item_unequipped'
+  ITEM_UNEQUIPPED: 'item_unequipped',
+
+  // NPC Interaction
+  NPC_ATTACK: 'npc_attack',
+  NPC_DEMAND_TRIGGERED: 'npc_demand_triggered'
 };
 
 /**

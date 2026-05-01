@@ -33,6 +33,7 @@ import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
 import LogHistoryWindow from './LogHistoryWindow';
 import PlayerSkillsWindow from './PlayerSkillsWindow';
+import { NPCDemandDialog } from './NPCDemandDialog';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import { createItemFromDef } from '../../game/inventory/ItemDefs.js';
 import { Item } from '../../game/inventory/Item.js';
@@ -159,7 +160,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     checkZombieAwareness,
     isAnimatingZombies,
     isSkillsOpen,
-    toggleSkills
+    toggleSkills,
+    activeNpcDemand,
+    handleNpcDemandResponse,
+    turnPhase,
+    isAutosaving,
+    isPlayerTurn
   } = useGame();
 
   const {
@@ -309,6 +315,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Handler for map cell clicks
   const onCellClick = (x: number, y: number) => {
+    // Block all map interactions if it's not the player's turn
+    if (!isPlayerTurn || isAutosaving) {
+      console.debug('[MapInterface] Map click blocked - Not player turn or autosaving');
+      return true; // Consume click
+    }
+
     // Clear any map context menus on click
     setDoorMenu(null);
     setWindowMenu(null);
@@ -407,6 +419,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Handler for map cell right clicks
   const onCellRightClick = (x: number, y: number, screenX: number, screenY: number) => {
+    // Block all map interactions if it's not the player's turn
+    if (turnPhase !== 'PLAYER_TURN' || isAutosaving) {
+      console.debug('[MapInterface] Map right-click blocked - Not player turn or autosaving');
+      return; 
+    }
+
     // Phase 1: Right-click to cancel targeting (Grenade throw, Shovel dig, Combat aim)
     if (targetingItem || targetingWeapon) {
       console.log('[MapInterface] Right-click: Canceling active targeting');
@@ -565,6 +583,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           isAnimatingZombies={isAnimatingZombies}
           isInitialized={isInitialized}
           isNightVision={isNightVision}
+          isPlayerTurn={isPlayerTurn}
+          isAutosaving={isAutosaving}
         />
 
         {/* NPC Context Menu */}
@@ -577,6 +597,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             <button
               className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
               onClick={() => {
+                if (!isPlayerTurn) return;
                 setActiveTradeNpc(npcMenu.npc);
                 setNpcMenu(null);
                 playSound('Click');
@@ -680,6 +701,14 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         onClose={toggleSkills} 
       />
 
+      {/* NPC Demand Dialog */}
+      {activeNpcDemand && (
+        <NPCDemandDialog 
+          npc={activeNpcDemand.npc} 
+          onResponse={handleNpcDemandResponse} 
+        />
+      )}
+
       {/* Door Context Menu */}
       {doorMenu && (
         <div
@@ -690,6 +719,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <button
             className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
             onClick={() => {
+              if (!isPlayerTurn) return;
               const gameMap = gameMapRef.current;
               const player = playerRef.current;
               if (!gameMap || !player) return;
@@ -773,6 +803,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             <button
             className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
               onClick={() => {
+                if (!isPlayerTurn) return;
                 const gameMap = gameMapRef.current;
                 const player = playerRef.current;
                 if (!gameMap || !player) return;
@@ -828,6 +859,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 : 'text-white hover:bg-accent focus:bg-accent'
             }`}
             onClick={() => {
+              if (!isPlayerTurn) return;
               if (doorMenu.door.hp >= 40) return;
 
               const player = playerRef.current;
@@ -919,6 +951,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <button
             className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
             onClick={() => {
+              if (!isPlayerTurn) return;
               const gameMap = gameMapRef.current;
               const player = playerRef.current;
               if (!gameMap || !player) return;
@@ -975,6 +1008,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             <button
               className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
               onClick={() => {
+                if (!isPlayerTurn) return;
                 const gameMap = gameMapRef.current;
                 const player = playerRef.current;
                 if (!gameMap || !player) return;
@@ -1049,6 +1083,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 : 'text-white hover:bg-accent focus:bg-accent'
             }`}
             onClick={() => {
+              if (!isPlayerTurn) return;
               if (windowMenu.window.reinforcementHp >= 20) return;
 
               const player = playerRef.current;
@@ -1120,8 +1155,9 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             <button
               className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
               onClick={() => {
-                const gameMap = gameMapRef.current;
-                const player = playerRef.current;
+              if (!isPlayerTurn) return;
+              const gameMap = gameMapRef.current;
+              const player = playerRef.current;
                 if (!gameMap || !player) return;
 
                 const playerTile = gameMap.getTile(player.x, player.y);
@@ -1184,6 +1220,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <button
             className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
             onClick={() => {
+              if (!isPlayerTurn) return;
               const player = playerRef.current;
               const manager = inventoryRef.current;
               if (!player || !manager) return;
@@ -1374,14 +1411,22 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
 
   // Re-fetch data from the map to get fresh stats
   const targetTile = gameMapRef.current.getTile(hoveredTile.x, hoveredTile.y);
-  const zombie = targetTile?.contents.find((e: any) => e.type === 'zombie');
+  
+  // PHASE: Visual Hover Fix
+  // Since entities move logically before they animate visually, we must search for entities
+  // that are VISUALLY at the hovered position, not just those logically in the tile contents.
+  const allEntities = gameMapRef.current.getAllEntities();
+  const zombie = allEntities.find((e: any) => e.type === 'zombie' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  const npc = allEntities.find((e: any) => e.type === EntityType.NPC && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  const door = allEntities.find((e: any) => e.type === 'door' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  const window = allEntities.find((e: any) => e.type === 'window' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  
   const cropInfo = targetTile?.cropInfo;
   const lootItems = targetTile?.inventoryItems || [];
   const specialBuilding = targetTile?.contents.find((e: any) => e.type === 'place_icon')?.subtype || null;
-  const npc = targetTile?.contents.find((e: any) => e.type === EntityType.NPC);
 
-  // Logic for Zombie visibility: must be in player's current FOV
-  const isZombieVisible = zombie && playerFieldOfView && playerFieldOfView.some(pos => pos.x === hoveredTile.x && pos.y === hoveredTile.y);
+  // Logic for Zombie visibility: must be in player's current FOV (using visual position for check)
+  const isZombieVisible = zombie && playerFieldOfView && playerFieldOfView.some(pos => pos.x === Math.round(zombie.x) && pos.y === Math.round(zombie.y));
   
   // Logic for Crop visibility: must be standard crop OR discovered wild crop
   const isCropVisible = cropInfo && (!cropInfo.isWild || cropInfo.discovered);
@@ -1390,11 +1435,8 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
   
   const isBuildingVisible = !!specialBuilding;
 
-  const door = targetTile?.contents.find((e: any) => e.type === 'door');
-  const window = targetTile?.contents.find((e: any) => e.type === 'window');
-
   // NPC Visibility logic: must be in player's current FOV
-  const isNpcVisible = npc && playerFieldOfView && playerFieldOfView.some(pos => pos.x === hoveredTile.x && pos.y === hoveredTile.y);
+  const isNpcVisible = npc && playerFieldOfView && playerFieldOfView.some(pos => pos.x === Math.round(npc.x) && pos.y === Math.round(npc.y));
   
   if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible) return null;
 

@@ -31,6 +31,8 @@ class GameEngine extends SafeEventEmitter {
   }
 
   reset() {
+    this.id = Math.floor(Math.random() * 1000000);
+    console.log(`[GameEngine] 🚀 Initialized with ID: ${this.id}`);
     this.player = null;
     this.gameMap = null;
     this.worldManager = null;
@@ -42,11 +44,13 @@ class GameEngine extends SafeEventEmitter {
     this.initializationState = 'idle';
     this.lastUpdate = Date.now();
     this.updateCount = 0;
+    this.isAutosaving = false;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
     this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8, isNightVision: false };
     this.renderDebugColors = false; 
 
     // Phase 24: Interaction State (Silo Bridge)
+    this.turnPhase = 'PLAYER_TURN'; // 'PLAYER_TURN', 'SIMULATING', 'ANIMATING', 'PAUSED_FOR_EVENT'
     this.isSleeping = false;
     this.sleepProgress = 0;
     this.targetingItemInstanceId = null;
@@ -56,6 +60,76 @@ class GameEngine extends SafeEventEmitter {
     // Weather System
     this.weather = { type: 'clear', intensity: 0 }; 
     this.weatherManager = new WeatherManager(this);
+
+    // Phase 4: Master Heartbeat Infrastructure
+    this.activeActions = new Set();
+    this.lastFrameTime = performance.now();
+    this.startHeartbeat();
+  }
+
+  /**
+   * Start the Master Heartbeat loop using requestAnimationFrame.
+   * This drives all time-dependent visual actions registered with the engine.
+   */
+  startHeartbeat() {
+    const loop = (now) => {
+      const dt = now - this.lastFrameTime;
+      this.lastFrameTime = now;
+
+      // Update all active visual actions with delta time
+      if (this.activeActions.size > 0) {
+        for (const action of this.activeActions) {
+          if (typeof action.update === 'function') {
+            action.update(dt);
+            if (action.isComplete) {
+              this.activeActions.delete(action);
+            }
+          } else {
+            // Safety cleanup for invalid actions
+            this.activeActions.delete(action);
+          }
+        }
+      }
+
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  /**
+   * Lock all entities to prevent visual coordinate leakage during turn simulation.
+   */
+  lockAllEntities() {
+    if (!this.gameMap) return;
+    const entities = this.gameMap.getAllEntities();
+    entities.forEach(e => {
+      if (e) e.isVisualLocked = true;
+    });
+    // Also lock player explicitly
+    if (this.player) this.player.isVisualLocked = true;
+  }
+
+  /**
+   * Unlock all entities after turn simulation is complete.
+   */
+  unlockAllEntities() {
+    if (!this.gameMap) return;
+    const entities = this.gameMap.getAllEntities();
+    entities.forEach(e => {
+      if (e) e.isVisualLocked = false;
+    });
+    // Also unlock player explicitly
+    if (this.player) this.player.isVisualLocked = false;
+  }
+
+  /**
+   * Register a new visual action with the master ticker.
+   * @param {Object} action - An object with update(dt) and isComplete property.
+   */
+  registerAction(action) {
+    if (action && typeof action.update === 'function') {
+      this.activeActions.add(action);
+    }
   }
 
   /**

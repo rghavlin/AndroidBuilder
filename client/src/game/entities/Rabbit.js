@@ -1,4 +1,6 @@
 import { Entity, EntityType } from './Entity.js';
+import { SequencerAction } from '../managers/SequencerAction.js';
+import engine from '../GameEngine.js';
 
 /**
  * Rabbit entity with fleeing AI behavior
@@ -59,6 +61,8 @@ export class Rabbit extends Entity {
   startTurn() {
     this.currentAP = this.maxAP;
     this.isActive = true;
+    this.logicalX = this.x;
+    this.logicalY = this.y;
     // Initialize movementPath with current position for animation tracking
     this.movementPath = [{ x: this.x, y: this.y }];
   }
@@ -69,25 +73,42 @@ export class Rabbit extends Entity {
   endTurn() {
     this.currentAP = 0;
     this.isActive = false;
+    this.x = this.logicalX;
+    this.y = this.logicalY;
   }
 
   /**
-   * Move to new position (overrides Entity.moveTo to handle animation paths)
+   * Play an action visually using the Master Heartbeat Sequencer.
+   * @param {Object} action - The action to perform
+   * @param {Object} callbacks - Optional callbacks (e.g., { onImpact })
    */
-  moveTo(x, y) {
-    if (this.x !== x || this.y !== y) {
-      this.movementPath = [{ x: this.x, y: this.y }, { x, y }];
-      this.animationProgress = 0;
-      this.isAnimating = true;
-    }
-    
-    this.x = x;
-    this.y = y;
+  async playAction(action, callbacks = {}) {
+    const { type, data } = action;
+    const { onImpact } = callbacks;
 
-    this.emit('entityMoved', {
-      oldPosition: { x: this.x, y: this.y },
-      newPosition: { x, y }
-    });
+    if (type === 'MOVE') {
+      const from = data.from || { x: this.x, y: this.y };
+      const to = data.to;
+
+      if (from.x === to.x && from.y === to.y) return Promise.resolve();
+
+      this.movementPath = [from, to];
+      this.isAnimating = true;
+
+      const duration = 100; // Rabbits are fast!
+      const seq = new SequencerAction(this, duration, duration, onImpact);
+      
+      engine.registerAction(seq);
+      
+      return seq.promise.then(() => {
+        this.x = to.x;
+        this.y = to.y;
+        this.isAnimating = false;
+        this.movementPath = [];
+      });
+    }
+
+    return Promise.resolve();
   }
 
   /**
@@ -137,6 +158,9 @@ export class Rabbit extends Entity {
     rabbit.movementPath = data.movementPath || [];
     rabbit.isAnimating = data.isAnimating || false;
     rabbit.animationProgress = data.animationProgress || 0;
+    rabbit.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
+    rabbit.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
+    
     return rabbit;
   }
 }

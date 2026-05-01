@@ -1,9 +1,13 @@
 import { Tile } from './Tile.js';
+import engine from '../GameEngine.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from '../inventory/traits.js';
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import { EntityType } from '../entities/Entity.js';
+import { ZombieAI } from '../ai/ZombieAI.js';
+import { NPCAI } from '../ai/NPCAI.js';
+import { RabbitAI } from '../ai/RabbitAI.js';
 
 /**
  * 20x20 map container with tile management and serialization
@@ -496,8 +500,13 @@ export class GameMap {
       this.entityMap.set(entity.id, entity);
       
       // Force synchronization of coordinates to prevent 'ghosting' desyncs
-      entity.x = x;
-      entity.y = y;
+      // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
+      if (!engine || engine.turnPhase !== 'SIMULATING') {
+        entity.x = x;
+        entity.y = y;
+      } else {
+        console.log(`[GameMap] 🛡️ Simulation lock: Skipping visual snap for ${entity.id} in addEntity`);
+      }
       
       tile.addEntity(entity);
       
@@ -546,18 +555,26 @@ export class GameMap {
   /**
    * Move entity to new position
    */
-  moveEntity(entityId, newX, newY) {
+  moveEntity(entityId, newX, newY, options = {}) {
     const entity = this.entityMap.get(entityId);
     const newTile = this.getTile(newX, newY);
 
-    if (entity && newTile && newTile.isWalkable(entity)) {
+    if (entity && newTile && newTile.isWalkable(entity, options)) {
       // Store old position for event
-      const oldPosition = { x: entity.x, y: entity.y };
+      const oldPosition = { 
+        x: entity.logicalX !== undefined ? entity.logicalX : entity.x, 
+        y: entity.logicalY !== undefined ? entity.logicalY : entity.y 
+      };
 
       console.log(`[GameMap] Moving entity ${entityId} from (${oldPosition.x}, ${oldPosition.y}) to (${newX}, ${newY})`);
 
-      // Skip movement if already at target position
-      if (oldPosition.x === newX && oldPosition.y === newY) {
+      // Skip movement only if logically AND visually at target position, 
+      // UNLESS a snap is explicitly requested and we aren't visually there yet.
+      const isAtLogical = oldPosition.x === newX && oldPosition.y === newY;
+      const isAtVisual = entity.x === newX && entity.y === newY;
+      const snapRequested = options.snap !== false;
+
+      if (isAtLogical && (isAtVisual || !snapRequested)) {
         console.log(`[GameMap] Entity ${entityId} already at target position (${newX}, ${newY}), skipping move`);
         return true;
       }
@@ -566,25 +583,49 @@ export class GameMap {
       newX = Math.floor(newX);
       newY = Math.floor(newY);
 
-      // Remove from old tile FIRST (while entity still has old coordinates)
-      const oldTile = this.getTile(entity.x, entity.y);
-      if (oldTile) {
-        console.log(`[GameMap] Removing entity ${entityId} from old tile (${oldTile.x}, ${oldTile.y})`);
-        const removedEntity = oldTile.removeEntity(entityId);
-        if (!removedEntity) {
-          console.warn(`[GameMap] ⚠️ Entity ${entityId} claimed to be at (${entity.x}, ${entity.y}) but was missing from that tile's contents. Proceeding with synchronization.`);
+      // DEFENSIVE: Scrub entity from any nearby tiles to prevent 'ghosting' desyncs
+      for (let sy = -2; sy <= 2; sy++) {
+        for (let sx = -2; sx <= 2; sx++) {
+          const ghostTile = this.getTile(oldPosition.x + sx, oldPosition.y + sy);
+          if (ghostTile) ghostTile.removeEntity(entityId);
+          
+          const ghostTileNew = this.getTile(newX + sx, newY + sy);
+          if (ghostTileNew) ghostTileNew.removeEntity(entityId);
         }
-      } else {
-        console.warn(`[GameMap] No old tile found at (${entity.x}, ${entity.y}) during move. Force-syncing to new tile.`);
       }
 
-      // THEN update entity position via moveTo to trigger events
-      console.log(`[GameMap] Updating position for entity ${entityId} to (${newX}, ${newY})`);
+      // Explicit remove from old tile (redundant but safe)
+      const oldTile = this.getTile(oldPosition.x, oldPosition.y);
+      if (oldTile) {
+        oldTile.removeEntity(entityId);
+      }
+
+      // THEN update entity position via moveTo (updates logicalX/Y)
+      console.log(`[GameMap] Updating logical position for entity ${entityId} to (${newX}, ${newY})`);
+      
+      // Phase 28 Fix: Strictly forbid visual coordinate updates during simulation
+      // This prevents the 'preview flash' reported by the user.
+      const moveOptions = { ...options };
+      if (engine && engine.turnPhase === 'SIMULATING') {
+        moveOptions.snap = false;
+        // console.log(`[GameMap] 🛡️ SIMULATION GUARD ACTIVE for entity ${entityId}. Visual coordinates locked.`);
+      }
+      
+      // Safety Override: Never snap during simulation
+      if (engine && engine.turnPhase === 'SIMULATING' && moveOptions.snap !== false) {
+        moveOptions.snap = false;
+      }
+
       if (typeof entity.moveTo === 'function') {
-        entity.moveTo(newX, newY);
+        entity.moveTo(newX, newY, moveOptions);
       } else {
-        entity.x = newX;
-        entity.y = newY;
+        entity.logicalX = newX;
+        entity.logicalY = newY;
+        // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
+        if (moveOptions.snap !== false && (!engine || engine.turnPhase !== 'SIMULATING')) {
+          entity.x = newX;
+          entity.y = newY;
+        }
       }
 
       // Finally add to new tile
@@ -640,19 +681,14 @@ export class GameMap {
    * @param {Player} player - Current player instance for distance checks
    * @param {boolean} isSleeping - Whether the player is currently sleeping
    */
-  processTurn(player = null, isSleeping = false, turn = 1) {
+  processTurn(player = null, isSleeping = false, turn = 1, playerCardinalPositions = [], lastSeenTaggedTiles = new Set()) {
     console.log('[GameMap] Processing turn-based effects...');
+    const actionQueue = [];
     
     // Decay scent trails
     ScentTrail.decayScents(this);
 
-    // Phase NPC: Process NPC turns (AP reset and state maintenance)
-    for (const entity of this.entityMap.values()) {
-        if (entity.type === EntityType.NPC && typeof entity.startTurn === 'function') {
-            entity.startTurn();
-        }
-    }
-
+    
     // Phase 25: Environmental Conditions for Turn Processing
     const currentHour = (6 + (turn - 1)) % 24;
     const isDaylight = currentHour >= 6 && currentHour < 20;
@@ -745,6 +781,11 @@ export class GameMap {
         }
       }
     }
+
+    // Decay noise levels
+    if (this.decayNoise) this.decayNoise();
+
+    return actionQueue;
   }
 
   /**

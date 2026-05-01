@@ -26,7 +26,10 @@ export default function MapCanvas({
   isFlashlightOn = false,
   flashlightRange = 8,
   isAnimatingZombies = false,
-  isNightVision = false
+  isNightVision = false,
+  isPlayerTurn = false,
+  isAutosaving = false,
+  isInitialized = false
 }) {
   const canvasRef = useRef(null);
   const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
@@ -35,7 +38,7 @@ export default function MapCanvas({
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
   // Phase 1: Engine data is read DIRECTLY from the engine singleton in the render loop
   // We use hooks only for initialization and non-realtime settings
-  const { isInitialized } = useGame(); 
+  useGame(); 
   const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, playerFieldOfView } = usePlayer();
   const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
@@ -216,7 +219,13 @@ export default function MapCanvas({
         if (entity.type === EntityType.PLAYER) return;
         
         // Use logic-position bounds check
-        if (entity.x < extendedBounds.startX || entity.x > extendedBounds.endX || entity.y < extendedBounds.startY || entity.y > extendedBounds.endY) return;
+        // Robust bounds check: include both current visual position and logical destination during animations
+        const minX = Math.min(entity.x, entity.logicalX ?? entity.x);
+        const maxX = Math.max(entity.x, entity.logicalX ?? entity.x);
+        const minY = Math.min(entity.y, entity.logicalY ?? entity.y);
+        const maxY = Math.max(entity.y, entity.logicalY ?? entity.y);
+
+        if (maxX < extendedBounds.startX || minX > extendedBounds.endX || maxY < extendedBounds.startY || minY > extendedBounds.endY) return;
 
         // Categorize into layers: Persistent structures and ground items go to bottom
         if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW].includes(entity.type)) {
@@ -232,7 +241,7 @@ export default function MapCanvas({
       groundEntities.forEach(entity => {
         const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
         ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
-        EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
+        EntityRenderer.renderEntity(ctx, { ...entity, x: entity.x, y: entity.y }, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
         ctx.restore();
       });
       ctx.restore();
@@ -243,7 +252,7 @@ export default function MapCanvas({
       livingEntities.forEach(entity => {
         const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
         ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
-        EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
+        EntityRenderer.renderEntity(ctx, { ...entity, x: entity.x, y: entity.y }, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
         ctx.restore();
       });
       ctx.restore();
@@ -515,7 +524,7 @@ export default function MapCanvas({
         // Only trigger movement if the click wasn't handled by MapInterface
         if (!handled) {
           // Call GameMapContext handleTileClick with required parameters
-          handleTileClick(worldX, worldY, player, camera, true, isAnimatingMovement, false, startAnimatedMovementAsync, isNight, isFlashlightOn, flashlightRange);
+          handleTileClick(worldX, worldY, player, camera, isPlayerTurn, isAnimatingMovement, isAutosaving, startAnimatedMovementAsync, isNight, isFlashlightOn, flashlightRange, isAnimatingZombies);
         }
       } else {
         console.log('[MapCanvas] Click outside valid map bounds');
@@ -523,7 +532,7 @@ export default function MapCanvas({
     } catch (error) {
       console.error('[MapCanvas] Error handling canvas click:', error);
     }
-  }, [gameMapRef, handleTileClick, calculateTileSize, cameraRef, isDragging, playerRef, isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, onCellClick, selectedItem, hasDragged, isNight, isFlashlightOn, flashlightRange]);
+  }, [gameMapRef, handleTileClick, calculateTileSize, cameraRef, isDragging, playerRef, isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, onCellClick, selectedItem, hasDragged, isNight, isFlashlightOn, flashlightRange, isAnimatingZombies]);
 
   // Handle canvas context menu (right click)
   const handleCanvasContextMenu = useCallback((event) => {

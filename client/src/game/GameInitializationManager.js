@@ -264,16 +264,6 @@ class GameInitializationManager extends EventEmitter {
         // Continue anyway, player position is tracked separately
       }
 
-      // Phase NPC: Spawn initial NPC on Map 1
-      try {
-        // Spawn NPC 2 tiles above player
-        NPCSpawner.spawnNPCAt(gameMap, player.x, player.y - 2, { isHostile: false });
-        // Also keep procedural spawn if desired, but user specifically asked for this one
-        // NPCSpawner.spawnNPCs(gameMap, { count: 1, mapNumber: 1 });
-      } catch (npcError) {
-        console.error('[GameInitializationManager] Failed to spawn initial NPCs:', npcError);
-      }
-
       // Save initial map to world
       const mapId = worldManager.saveCurrentMap(gameMap, 'map_001');
       console.log('[GameInitializationManager] Initial map saved as:', mapId);

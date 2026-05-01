@@ -119,8 +119,17 @@ export const InventoryProvider = ({ children }) => {
   const getContainer = useCallback((id) => engine.inventoryManager?.getContainer(id), [inventoryPulse, inventoryVersion]);
   const getEquippedBackpackContainer = useCallback(() => engine.inventoryManager?.getBackpackContainer(), [inventoryPulse, inventoryVersion]);
   const canOpenContainer = useCallback((item) => engine.inventoryManager?.canOpenContainer(item) || false, [inventoryPulse, inventoryVersion]);
+  
+  const checkPlayerTurn = useCallback((silent = false) => {
+    if (engine.turnPhase !== 'PLAYER_TURN' || engine.isAutosaving) {
+      if (!silent) console.debug('[InventoryContext] Interaction blocked - Not player turn or autosaving');
+      return false;
+    }
+    return true;
+  }, []);
 
   const equipItem = useCallback((item, slot) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager || !engine.player || engine.player.ap < 1) {
       return { success: false, reason: 'Not enough AP' };
     }
@@ -137,6 +146,7 @@ export const InventoryProvider = ({ children }) => {
   }, [inventoryPulse, inventoryVersion, addLog]);
 
   const unequipItem = useCallback((slot) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager || !engine.player || engine.player.ap < 1) {
       return { success: false, reason: 'Not enough AP' };
     }
@@ -331,6 +341,7 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem]);
 
   const placeSelected = useCallback((targetId, x, y) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!selectedItem || !engine.inventoryManager) return { success: false };
     const { item, originContainerId, rotation } = selectedItem;
     
@@ -505,6 +516,7 @@ export const InventoryProvider = ({ children }) => {
   }, []);
 
   const consumeItem = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.player || !engine.inventoryManager) return { success: false };
     
     // 1. Apply Effects
@@ -530,6 +542,7 @@ export const InventoryProvider = ({ children }) => {
   }, [applyConsumptionEffects, playSound]);
 
   const drinkWater = useCallback((item, amount) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.player || !engine.inventoryManager) return { success: false };
     const player = engine.player;
 
@@ -610,6 +623,7 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, playSound]);
 
   const unrollBedroll = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager) return { success: false };
     
     console.log(`[InventoryContext] Unrolling bedroll: ${item.name}`);
@@ -633,6 +647,7 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, playSound]);
 
   const rollupBedroll = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager) return { success: false };
 
     console.log(`[InventoryContext] Rolling up bedroll: ${item.name}`);
@@ -656,6 +671,7 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, playSound]);
 
   const disassembleItem = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager || !engine.player) return { success: false };
     
     const def = ItemDefs[item.defId];
@@ -686,6 +702,7 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, playSound]);
 
   const craftItem = useCallback((recipeId) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager || !engine.player) return { success: false };
     
     const player = engine.player;
@@ -780,6 +797,7 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem, inventoryPulse]);
 
    const splitStack = useCallback((item, count) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!item || !engine.inventoryManager) return { success: false };
     
     try {
@@ -806,6 +824,7 @@ export const InventoryProvider = ({ children }) => {
   }, [inventoryPulse, addLog]);
 
   const deploySnare = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.player || !engine.inventoryManager) return { success: false };
     
     // Check AP (1 AP)
@@ -843,6 +862,7 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, playSound]);
 
   const retrieveSnare = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!engine.player || !engine.inventoryManager) return { success: false };
 
     // Check AP (1 AP)
@@ -880,6 +900,7 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, playSound]);
 
   const depositSelectedInto = useCallback((targetContainerItem) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!selectedItem || !engine.inventoryManager || !targetContainerItem) return { success: false };
     
     const { item, originContainerId } = selectedItem;
@@ -936,6 +957,7 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem, playSound, addLog]);
 
   const attachSelectedInto = useCallback((weapon) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!selectedItem || !engine.inventoryManager || !weapon) return { success: false };
     const item = selectedItem.item;
     const slotId = weapon.attachmentSlots?.find(slot => {
@@ -964,6 +986,7 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem, inventoryPulse]);
 
   const attachSelectedItemToWeapon = useCallback((weapon, slotId) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!selectedItem || !engine.inventoryManager || !weapon || !slotId) return { success: false };
     
     // Phase: AP Check for Loading (Ammo/Magazine into Gun)
@@ -991,6 +1014,7 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem, inventoryPulse]);
 
   const loadAmmoInto = useCallback((magazine) => {
+    if (!checkPlayerTurn()) return { success: false };
     if (!selectedItem || !engine.inventoryManager || !magazine) return { success: false };
     const result = magazine.loadAmmo(selectedItem.item);
     if (result.success) {

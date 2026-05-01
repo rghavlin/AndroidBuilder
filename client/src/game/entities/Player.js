@@ -140,14 +140,17 @@ export class Player extends Entity {
   }
 
   /**
-   * Move to new position (used by GameContext)
+   * Move player to new position
+   * @param {number} x - New X coordinate
+   * @param {number} y - New Y coordinate
+   * @param {Object} options - Movement options (snap: true updates visual x/y immediately)
    */
-  moveTo(x, y) {
-    const oldX = this.x;
-    const oldY = this.y;
+  moveTo(x, y, options = {}) {
+    const oldX = this.logicalX;
+    const oldY = this.logicalY;
 
-    this.x = x;
-    this.y = y;
+    // Use base Entity moveTo which now handles logicalX/Y and snap logic
+    super.moveTo(x, y, options);
 
     this.emitEvent('playerMoved', {
       oldPosition: { x: oldX, y: oldY },
@@ -396,6 +399,8 @@ export class Player extends Entity {
       type: 'player',
       x: this.x,
       y: this.y,
+      logicalX: this.logicalX,
+      logicalY: this.logicalY,
       hp: this.hp,
       maxHp: this.maxHp,
       ap: this.ap,
@@ -442,6 +447,9 @@ export class Player extends Entity {
     player.rangedLvl = data.rangedLvl !== undefined ? data.rangedLvl : 0;
     player.craftingApUsed = data.craftingApUsed || 0;
     player.craftingLvl = data.craftingLvl !== undefined ? data.craftingLvl : 0;
+    
+    player.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
+    player.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
     
     // Reset transient movement state
     player.isMoving = false;

@@ -171,6 +171,10 @@ export class Window extends Entity {
      * Take damage
      */
     takeDamage(amount, silent = false) {
+        if (this.isBroken || this.isOpen) {
+            if (!silent) this.syncVisualState();
+        }
+
         let damageRemaining = amount;
 
         // 1. Damage the glass first if not already broken/open

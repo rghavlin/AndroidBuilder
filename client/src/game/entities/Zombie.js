@@ -1,6 +1,8 @@
 import { Entity, EntityType } from './Entity.js';
 import { ZombieTypes } from './ZombieTypes.js';
 import { LineOfSight } from '../utils/LineOfSight.js';
+import { SequencerAction } from '../managers/SequencerAction.js';
+import engine from '../GameEngine.js';
 
 /**
  * Zombie entity with AI behavior for turn-based zombie survival game
@@ -93,42 +95,86 @@ export class Zombie extends Entity {
   startTurn() {
     this.currentAP = this.maxAP;
     this.isActive = true;
-    this.behaviorState = 'idle';
+    // Removed behaviorState reset to maintain state across turns
     // Initialize movementPath with current position for animation tracking
     this.movementPath = [{ x: this.x, y: this.y }];
   }
 
   /**
-   * End zombie's turn
+   * Play an action visually using the Master Heartbeat Sequencer.
+   * @param {Object} action - The action to perform
+   * @param {Object} callbacks - Optional callbacks (e.g., { onImpact })
+   */
+  async playAction(action, callbacks = {}) {
+    const { type, data } = action;
+    const { onImpact } = callbacks;
+
+    if (type === 'MOVE' || type === 'MOMENTUM_MOVE') {
+      const from = data.from || { x: this.x, y: this.y };
+      const to = data.to;
+
+      if (from.x === to.x && from.y === to.y) return Promise.resolve();
+
+      this.movementPath = [from, to];
+      this.isAnimating = true;
+
+      const duration = 150; // ms per tile
+      const seq = new SequencerAction(this, duration, duration, onImpact);
+      
+      engine.registerAction(seq);
+      
+      return seq.promise.then(() => {
+        this.x = to.x;
+        this.y = to.y;
+        this.isAnimating = false;
+        this.movementPath = [];
+      });
+    }
+
+    if (type === 'ATTACK' || type === 'STRUCTURE_INTERACT') {
+      this.isAnimating = true;
+      
+      // Phase 28 Fix: Visual-Logical Sync
+      // Ensure the zombie is visually at the 'from' position before attacking.
+      // This prevents '3-space' attacks if a MOVE action was skipped or desynced.
+      if (data.from) {
+        this.x = data.from.x;
+        this.y = data.from.y;
+      }
+      
+      const isAttack = type === 'ATTACK';
+      const duration = isAttack ? 200 : 300;
+      const impactPoint = isAttack ? 100 : 150;
+      const seq = new SequencerAction(this, duration, impactPoint, onImpact);
+      
+      engine.registerAction(seq);
+      
+      return seq.promise.then(() => {
+        this.isAnimating = false;
+      });
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * End zombie's turn - Flush logical state to visual state.
    */
   endTurn() {
     this.currentAP = 0;
     this.isActive = false;
-    this.behaviorState = 'idle';
-    // movementPath is preserved until explicitly cleared or start of next turn
-  }
-
-  /**
-   * Move to new position (overrides Entity.moveTo to handle animation paths)
-   * @param {number} x - New X coordinate
-   * @param {number} y - New Y coordinate
-   */
-  moveTo(x, y) {
-    // Phase 11: Record movement path for interpolation
-    if (this.x !== x || this.y !== y) {
-      this.movementPath = [{ x: this.x, y: this.y }, { x, y }];
-      this.animationProgress = 0;
-      this.isAnimating = true; // Mark for renderer
-    }
+    // Removed behaviorState reset to maintain state across turns
     
-    this.x = x;
-    this.y = y;
-
-    this.emit('entityMoved', {
-      oldPosition: { x: this.x, y: this.y },
-      newPosition: { x, y }
-    });
+    // Safety sync: Ensure visual position matches logical position at end of turn
+    this.x = this.logicalX;
+    this.y = this.logicalY;
+    
+    this.isAnimating = false;
+    this.animationProgress = 0;
+    this.movementPath = [];
   }
+
+
 
   /**
    * Use AP for an action
@@ -202,8 +248,8 @@ export class Zombie extends Entity {
   canSeePosition(gameMap, targetX, targetY) {
     const losResult = LineOfSight.hasLineOfSight(
       gameMap,
-      this.x,
-      this.y,
+      this.logicalX,
+      this.logicalY,
       targetX,
       targetY,
       {
@@ -223,17 +269,21 @@ export class Zombie extends Entity {
    * @returns {boolean} - Whether zombie can see the entity
    */
   canSeeEntity(gameMap, entity) {
-    return this.canSeePosition(gameMap, entity.x, entity.y);
+    const targetX = entity.logicalX !== undefined ? entity.logicalX : entity.x;
+    const targetY = entity.logicalY !== undefined ? entity.logicalY : entity.y;
+    return this.canSeePosition(gameMap, targetX, targetY);
   }
 
   /**
-   * Calculate Manhattan distance to a position
+   * Calculate Euclidean distance to a position
    * @param {number} x - Target X coordinate
    * @param {number} y - Target Y coordinate
-   * @returns {number} - Manhattan distance
+   * @returns {number} - Euclidean distance
    */
   getDistanceTo(x, y) {
-    return Math.abs(this.x - x) + Math.abs(this.y - y);
+    const dx = this.logicalX - x;
+    const dy = this.logicalY - y;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
   /**
@@ -244,7 +294,7 @@ export class Zombie extends Entity {
    */
   isAdjacentTo(x, y) {
     const distance = this.getDistanceTo(x, y);
-    return distance === 1 && (this.x === x || this.y === y);
+    return distance === 1 && (this.logicalX === x || this.logicalY === y);
   }
 
   /**
@@ -254,17 +304,17 @@ export class Zombie extends Entity {
    * @returns {Object} - Next move coordinates {x, y} or null if already at target
    */
   getNextMoveTowards(targetX, targetY) {
-    if (this.x === targetX && this.y === targetY) {
+    if (this.logicalX === targetX && this.logicalY === targetY) {
       return null; // Already at target
     }
 
     // Calculate the differences
-    const deltaX = targetX - this.x;
-    const deltaY = targetY - this.y;
+    const deltaX = targetX - this.logicalX;
+    const deltaY = targetY - this.logicalY;
 
     // Move one step closer on both axes for diagonal, or just one for cardinal
-    const nextX = this.x + (deltaX === 0 ? 0 : (deltaX > 0 ? 1 : -1));
-    const nextY = this.y + (deltaY === 0 ? 0 : (deltaY > 0 ? 1 : -1));
+    const nextX = this.logicalX + (deltaX === 0 ? 0 : (deltaX > 0 ? 1 : -1));
+    const nextY = this.logicalY + (deltaY === 0 ? 0 : (deltaY > 0 ? 1 : -1));
 
     return { x: nextX, y: nextY };
   }
@@ -279,6 +329,8 @@ export class Zombie extends Entity {
       subtype: this.subtype,
       x: this.x,
       y: this.y,
+      logicalX: this.logicalX,
+      logicalY: this.logicalY,
       hp: this.hp,
       maxHp: this.maxHp,
       lastSeen: this.lastSeen,
@@ -327,6 +379,8 @@ export class Zombie extends Entity {
     zombie.animationProgress = 0;
     zombie.prevX = data.x;
     zombie.prevY = data.y;
+    zombie.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
+    zombie.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
     zombie.currentTarget = data.currentTarget || null;
     
     return zombie;

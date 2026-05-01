@@ -62,10 +62,10 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Handle tile click for movement
-  const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement, isNight = false, isFlashlightOn = false, flashlightRange = 8) => {
+  const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement, isNight = false, isFlashlightOn = false, flashlightRange = 8, isAnimatingZombies = false) => {
     if (!engine.gameMap || !player) return;
 
-    if (!isPlayerTurn || isAutosaving || isMoving) return;
+    if (!isPlayerTurn || isAutosaving || isMoving || isAnimatingZombies) return;
 
     try {
       const targetTile = engine.gameMap.getTile(x, y);

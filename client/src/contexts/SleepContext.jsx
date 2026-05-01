@@ -205,12 +205,32 @@ export const SleepProvider = ({ children }) => {
           }
         });
 
+        // NPC turns
+        const npcs = gameMap.getEntitiesByType(EntityType.NPC);
+        const { NPCAI } = await import('../game/ai/NPCAI.js');
+        let npcInterruption = false;
+        
+        for (const npc of npcs) {
+          if (npc.hp <= 0) continue;
+          const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, zombies);
+          
+          if (npc.behaviorState === 'demanding' && !npc.hasDemanded) {
+            npcInterruption = true;
+            break;
+          }
+          
+          if (turnResult.success && turnResult.actions.some(a => a.type === 'attack' && a.targetId === player.id)) {
+            npcInterruption = true;
+            break;
+          }
+        }
+
         // Rabbit turns
         rabbits.forEach(rabbit => RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies));
 
         // Phase 28: Skip visual animations during sleep to prevent desyncs and performance lag
         // We still need to clear the movement paths set by the AI moveTo calls
-        clearNPCAnimations([...zombies, ...rabbits]);
+        clearNPCAnimations([...zombies, ...rabbits, ...npcs]);
 
         updatePlayerStats({
           hp: player.hp,
@@ -230,11 +250,11 @@ export const SleepProvider = ({ children }) => {
         }
 
         // DIAGNOSTIC LOGGING: Helps track why sleep breaks if it ever happens again
-        console.log(`[Sleep] Hour ${i+1}: HP ${hpBeforeHour.toFixed(1)} -> ${player.hp.toFixed(1)}, Noise: ${noiseInterruption}, Hit: ${hitByZombie}`);
+        console.log(`[Sleep] Hour ${i+1}: HP ${hpBeforeHour.toFixed(1)} -> ${player.hp.toFixed(1)}, Noise: ${noiseInterruption}, Hit: ${hitByZombie}, NPC: ${npcInterruption}`);
 
         // FINAL INTERRUPTION CHECK: Active threats only
-        let interruption = noiseInterruption || hitByZombie;
-        let interruptionReason = noiseInterruption ? "Loud banging woke you up!" : "A zombie attack woke you up!";
+        let interruption = noiseInterruption || hitByZombie || npcInterruption;
+        let interruptionReason = npcInterruption ? "You were woken up by someone!" : (noiseInterruption ? "Loud banging woke you up!" : "A zombie attack woke you up!");
 
         if (interruption) {
           // Resume audio context on wake to ensure queued sounds (like bangs/smashes) play

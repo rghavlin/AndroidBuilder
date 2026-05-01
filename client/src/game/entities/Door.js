@@ -173,7 +173,10 @@ export class Door extends Entity {
      * @param {number} amount - Amount of damage to take
      */
     takeDamage(amount, silent = false) {
-        if (this.isOpen || this.isDamaged) return { isBroken: true };
+        if (this.isOpen || this.isDamaged) {
+            if (!silent) this.syncVisualState();
+            return { isBroken: true };
+        }
 
         this.hp = Math.max(0, this.hp - amount);
 

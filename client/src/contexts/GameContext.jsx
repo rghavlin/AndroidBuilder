@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { PlayerZombieTracker } from '../game/ai/PlayerZombieTracker.js';
 import { ZombieAI } from '../game/ai/ZombieAI.js';
+import { RabbitAI } from '../game/ai/RabbitAI.js';
+import { NPCAI } from '../game/ai/NPCAI.js';
+import turnManager from '../game/managers/TurnManager.js';
 import { GameSaveSystem } from '../game/GameSaveSystem.js';
 import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
@@ -18,7 +21,7 @@ const logger = Logger.scope('GameContext');
 
 // Test functions are imported via inventory system
 
-import { ItemTrait } from '../game/inventory/traits.js';
+import { ItemTrait, EquipmentSlot } from '../game/inventory/traits.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 const GameContext = createContext();
@@ -58,7 +61,7 @@ export const useGame = () => {
 
 const GameContextInner = ({ children }) => {
   // Use context hooks
-  const { setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, cancelMovement, playerFieldOfView, playerCardinalPositions } = usePlayer();
+  const { isMoving: isAnimatingMovement, setupPlayerEventListeners, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, cancelMovement, playerFieldOfView, playerCardinalPositions } = usePlayer();
   const { triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
   const { setCameraWorldBounds } = useCamera();
   const { addEffect } = useVisualEffects();
@@ -88,9 +91,12 @@ const GameContextInner = ({ children }) => {
 
   // Explicit UI gate to replace problematic contextSyncPhase logic
   const [isGameReady, setIsGameReady] = useState(false);
+  const [isProcessingTurn, setIsProcessingTurn] = useState(false);
+  const isProcessingTurnRef = useRef(false);
 
   // Computed from state machine and explicit gate
-  const isInitialized = initializationState === 'complete' && isGameReady;
+  // Phase 2 Refactor: isGameReady is the definitive signal that UI orchestration can begin.
+  const isInitialized = isGameReady;
 
   useEffect(() => {
     initRef.current = initializationState;
@@ -110,7 +116,8 @@ const GameContextInner = ({ children }) => {
     }
   }, [enginePulse]);
 
-  const initializedRef = useRef(false);  const [turn, setTurn] = useState(1);
+  const initializedRef = useRef(false);
+  const [turn, setTurn] = useState(1);
   const [isFlashlightOn, setIsFlashlightOn] = useState(false);
   const hour = (6 + (turn - 1)) % 24;
   const isNight = hour >= 20 || hour < 6;
@@ -165,8 +172,12 @@ const GameContextInner = ({ children }) => {
         // even if the zombie lost sight of the player during movement.
         // The PlayerZombieTracker now handles LKP setting accurately when LOS is lost.
       } else if (zombie.isAlerted) {
-        // If they lost line of sight, they stay alerted (lastSeen mode)
-        // until they reach the LastSeen position (handled in ZombieAI)
+        // If they just lost line of sight (and weren't already investigating),
+        // set their targetSightedCoords so they can enter 'Investigation' phase.
+        if (!zombie.lastSeen) {
+          zombie.setTargetSighted(checkPlayer.x, checkPlayer.y);
+          console.log(`[GameContext] Zombie ${zombie.id} lost sight of player, entering Investigation at (${checkPlayer.x}, ${checkPlayer.y})`);
+        }
       }
     });
 
@@ -307,15 +318,534 @@ const GameContextInner = ({ children }) => {
     });
   }, [isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
 
-  const [isPlayerTurn, setIsPlayerTurn] = useState(true);
-  const [isAnimatingZombies, setIsAnimatingZombies] = useState(false);
+  const [turnPhase, setTurnPhase] = useState('PLAYER_TURN'); // 'PLAYER_TURN', 'SIMULATING', 'ANIMATING', 'PAUSED_FOR_EVENT'
+  
+  // Sync turnPhase to engine for non-React callers (like InventoryContext)
+  useEffect(() => {
+    engine.turnPhase = turnPhase;
+  }, [turnPhase]);
+
+  const isPlayerTurn = useMemo(() => turnPhase === 'PLAYER_TURN' && !isProcessingTurn, [turnPhase, isProcessingTurn]);
+  const setIsPlayerTurn = useCallback((val) => setTurnPhase(val ? 'PLAYER_TURN' : 'SIMULATING'), []);
+  const isAnimatingZombies = useMemo(() => turnPhase === 'ANIMATING' || turnPhase === 'SIMULATING' || isProcessingTurn, [turnPhase, isProcessingTurn]);
+  const setIsAnimatingZombies = useCallback((val) => {
+    setTurnPhase(prev => {
+      if (val) return 'ANIMATING';
+      // Only transition back to SIMULATING if we were actually ANIMATING
+      // This prevents late callbacks from overwriting a PLAYER_TURN or PAUSED state
+      if (prev === 'ANIMATING') return 'SIMULATING';
+      return prev;
+    });
+  }, []);
+  
+  const [activeNpcDemand, setActiveNpcDemand] = useState(null); // { npc, player }
   const [isAutosaving, setIsAutosaving] = useState(false);
+  
+  useEffect(() => {
+    engine.isAutosaving = isAutosaving;
+  }, [isAutosaving]);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
   const [isDefeated, setIsDefeated] = useState(false);
 
   const toggleSkills = useCallback(() => {
     setIsSkillsOpen(prev => !prev);
   }, []);
+
+  const animateVisibleNPCs = useCallback((npcs, playerFOV = null) => {
+    if (!npcs || npcs.length === 0) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      const animatingNPCs = npcs.filter(n => n.movementPath && n.movementPath.length > 1);
+      
+      if (animatingNPCs.length === 0) {
+        resolve();
+        return;
+      }
+
+      animatingNPCs.forEach(n => {
+        n.isAnimating = true;
+        n.animationProgress = 0;
+      });
+
+      const duration = 350;
+      const startTime = performance.now();
+
+      // PHASE 11 FIXED: Global timeout safety for animations
+      const safetyTimeout = setTimeout(() => {
+        console.warn('[GameContext] ⚠️ Animation timeout reached! Forcing resolution and cleanup.');
+        
+        // CRITICAL: Must clear state on timeout to prevent "ghosting"
+        npcs.forEach(n => {
+          n.isAnimating = false;
+          n.animationProgress = 0;
+          if (n.movementPath && n.movementPath.length > 1) {
+            n.movementPath = [{ x: n.x, y: n.y }];
+          }
+        });
+
+        setIsAnimatingZombies(false);
+        resolve();
+      }, duration + 500);
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(1, elapsed / duration);
+
+        animatingNPCs.forEach(n => {
+          n.animationProgress = progress;
+        });
+
+        // Trigger map re-render
+        if (triggerMapUpdate) triggerMapUpdate();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Animation complete
+          clearTimeout(safetyTimeout);
+          npcs.forEach(n => {
+            n.isAnimating = false;
+            n.animationProgress = 0;
+            if (n.movementPath && n.movementPath.length > 1) {
+              n.movementPath = [{ x: n.x, y: n.y }];
+            }
+          });
+          setTurnPhase('SIMULATING'); // Done animating, but still processing turn
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(animate);
+    });
+  }, [triggerMapUpdate]);
+
+  const clearNPCAnimations = useCallback((npcs) => {
+    if (!npcs) return;
+    npcs.forEach(n => {
+      n.isAnimating = false;
+      n.animationProgress = 0;
+      if (n.movementPath && n.movementPath.length > 1) {
+        n.movementPath = [{ x: n.x, y: n.y }];
+      }
+    });
+    setTurnPhase('SIMULATING');
+  }, []);
+
+  // processEntityActions is deprecated in favor of TurnManager, but we'll remove it in a separate pass if needed.
+
+  /**
+   * Phase 2 Refactor: Simulation Phase
+   * Calculates all mathematical outcomes of the turn instantly.
+   * Produces an actionQueue for visual playback.
+   */
+  const simulateTurn = useCallback(() => {
+    const gameMap = engine.gameMap;
+    const player = engine.player;
+    const actionQueue = []; // Flat sequential queue
+    let demandTriggered = false;
+
+    // Initialize logical positions for all entities at start of turn
+    gameMap.entityMap.forEach(e => {
+      e.logicalX = e.x;
+      e.logicalY = e.y;
+    });
+
+    // 1. Map/Inventory Logic
+    if (gameMap.processTurn) {
+      const npcActions = gameMap.processTurn(
+        player, 
+        engine.isSleeping, 
+        turn, 
+        getPlayerCardinalPositions(), 
+        lastSeenTaggedTilesRef.current
+      );
+      if (npcActions) actionQueue.push(...npcActions);
+    }
+    if (inventoryManager && inventoryManager.processTurn) {
+      const playerTile = gameMap.getTile(player.logicalX, player.logicalY);
+      const isPlayerOutdoors = playerTile ? ['road', 'sidewalk', 'grass'].includes(playerTile.terrain) : false;
+      inventoryManager.processTurn(turn, isPlayerOutdoors);
+    }
+
+
+    lastSeenTaggedTilesRef.current.clear();
+
+    // 2. Player Pre-Turn Math
+    if (player.sickness > 0) {
+      player.sickness -= 1;
+      player.takeDamage(1, { id: 'sickness', type: 'status' });
+      if (player.sickness === 0) player.condition = 'Normal';
+    }
+
+    // 3. Awareness
+    checkZombieAwareness();
+
+    // 4. Zombie Turns (Culled by distance for performance)
+    const zombies = gameMap.getEntitiesByType('zombie');
+    const activeZombies = zombies.filter(z => {
+      const dx = Math.abs(z.x - player.x);
+      const dy = Math.abs(z.y - player.y);
+      return dx < 60 && dy < 60;
+    });
+
+    activeZombies.forEach(zombie => {
+      zombie.startTurn();
+      const turnResult = ZombieAI.executeZombieTurn(
+        zombie, gameMap, player, 
+        getPlayerCardinalPositions(), 
+        lastSeenTaggedTilesRef.current
+      );
+
+      if (turnResult.success) {
+        actionQueue.push(...turnResult.actions);
+      }
+    });
+
+    // 5. Rabbit Turns
+    const rabbits = gameMap.getEntitiesByType('rabbit');
+    rabbits.forEach(rabbit => {
+      rabbit.startTurn();
+      const turnResult = RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
+      if (turnResult.success) {
+        actionQueue.push(...turnResult.actions);
+      }
+    });
+
+    // 6. NPC Turns
+    const npcs = gameMap.getEntitiesByType('npc');
+    for (const npc of npcs) {
+      if (npc.hp <= 0) continue;
+      
+      npc.startTurn();
+      const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, zombies);
+      
+      if (turnResult.success) {
+        actionQueue.push(...turnResult.actions);
+        const hasDemand = turnResult.actions.some(a => a.type === 'DEMAND');
+        if (hasDemand) {
+          console.log(`[GameContext] 🚨 NPC Demand detected for NPC ${npc.id}`);
+          demandTriggered = { npc, player, isNpcTurn: true };
+          break;
+        }
+      }
+    }
+
+    // 7. Survival & AP Regen
+    if (player.nutrition >= 5 && player.hydration >= 5 && player.condition === 'Normal' && !player.isBleeding) {
+      player.heal(1, true);
+    }
+    if (player.condition === 'Diseased') {
+      player.modifyStat('ap', -1);
+      player.takeDamage(1, { id: 'disease', type: 'infection' });
+    }
+    if (player.isBleeding) {
+      player.takeDamage(1, { id: 'bleeding', type: 'status' });
+    }
+
+    player.modifyStat('nutrition', -1);
+    player.modifyStat('hydration', -1);
+    player.modifyStat('energy', -1);
+
+    // Flashlight consumption
+    if (isFlashlightOn) {
+      const flashlight = inventoryManager?.equipment['flashlight'];
+      if (flashlight) {
+        if (!flashlight.consumeCharge(1)) setIsFlashlightOn(false);
+      } else {
+        setIsFlashlightOn(false);
+      }
+    }
+
+    // Survival penalties
+    if (player.nutrition === 0) player.takeDamage(1, { id: 'survival', type: 'starvation' });
+    if (player.hydration === 0) player.takeDamage(1, { id: 'survival', type: 'starvation' });
+
+    // AP Allotment
+    const totalPenalty = Math.floor(Math.max(0, 25 - player.energy) / 5) + Math.floor(Math.max(0, 20 - player.hp) / 5);
+    player.restoreAP(Math.max(0, 20 - totalPenalty));
+
+    // 8. Time/Weather
+    const newTurn = turn + 1;
+    if (engine.weatherManager) engine.weatherManager.update(newTurn);
+    const nextHour = (6 + (newTurn - 1)) % 24;
+    const nextIsNight = nextHour >= 20 || nextHour < 6;
+
+    GameEvents.emit(GAME_EVENT.TURN_ENDED);
+    return { actionQueue, demandTriggered, newTurn, nextIsNight };
+  }, [engine, turn, inventoryManager, checkZombieAwareness, getPlayerCardinalPositions, isFlashlightOn, setIsFlashlightOn]);
+
+  const performAutosave = useCallback((turnOverride = null) => {
+    if (!isInitialized || engine.isSleeping) return false;
+
+    try {
+      setIsAutosaving(true);
+
+      // FIX 4: CRITICAL - Verify player is on map before saving
+      const playersOnMap = engine.gameMap?.getEntitiesByType('player') || [];
+      if (playersOnMap.length === 0) {
+        console.error('[GameContext] Autosave aborted - no player on map!');
+        setIsAutosaving(false);
+        return false;
+      }
+
+      console.log('[GameContext] Performing autosave with valid game state...');
+
+      const currentGameState = {
+        gameMap: engine.gameMap,
+        worldManager: engine.worldManager,
+        player: engine.player,
+        camera: engine.camera,
+        inventoryManager: inventoryManager,
+        turn: turnOverride !== null ? turnOverride : turn,
+        isPlayerTurn: isPlayerTurn,
+        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
+      };
+
+      const success = GameSaveSystem.saveToLocalStorage(currentGameState, 'autosave');
+      if (success) {
+        console.log('[GameContext] Autosave completed successfully');
+      } else {
+        console.warn('[GameContext] Autosave failed');
+      }
+
+      setIsAutosaving(false);
+      return success;
+    } catch (error) {
+      console.error('[GameContext] Autosave error:', error);
+      setIsAutosaving(false);
+      return false;
+    }
+  }, [isInitialized, inventoryManager, turn]);
+
+  /**
+   * Phase 3 Refactor: Playback Phase
+   * Plays out the actionQueue visually to the player.
+   */
+  const playbackTurn = useCallback(async (actionQueue, demandTriggered, newTurn, nextIsNight) => {
+    const gameMap = engine.gameMap;
+    const player = engine.player;
+
+    // 1. Lock UI & Play actions
+    setTurnPhase('ANIMATING');
+    engine.turnPhase = 'ANIMATING'; // Phase 28 Fix: Immediate sync
+    setIsAnimatingZombies(true);
+    
+    try {
+      // Convert old actionQueue if it's still in the old format (defensive)
+      const flatActions = Array.isArray(actionQueue) ? actionQueue : [
+          ...(actionQueue.immediate || []),
+          ...(actionQueue.animations || []),
+          ...(actionQueue.midAnimation || []),
+          ...(actionQueue.delayed || [])
+      ];
+
+      await turnManager.processQueue(flatActions, { gameMap, player });
+
+      // 4. Sync UI & State
+      updatePlayerStats({
+        ap: player.ap,
+        nutrition: player.nutrition,
+        hydration: player.hydration,
+        energy: player.energy,
+        hp: player.hp,
+        isBleeding: player.isBleeding,
+        sickness: player.sickness,
+        condition: player.condition
+      });
+
+      updatePlayerFieldOfView(gameMap, nextIsNight, isFlashlightOnActual);
+      updatePlayerCardinalPositions(gameMap);
+      setTurn(newTurn);
+      triggerMapUpdate();
+      engine.notifyUpdate();
+
+      console.log('[GameContext] 🎬 Playback actions complete, notifying update...');
+      engine.notifyUpdate();
+    } finally {
+      // Ensure visual sync before release
+      gameMap.entityMap.forEach(e => {
+        if (typeof e.endTurn === 'function') e.endTurn();
+      });
+    }
+  }, [engine, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, triggerMapUpdate, performAutosave, isFlashlightOnActual, setTurn]);
+
+  const endTurn = useCallback(async () => {
+    const timestamp = Date.now();
+    console.log(`[GameContext] 🏁 endTurn requested [ID:${timestamp}]`, { 
+        isInitialized, 
+        turnPhase, 
+        isProcessing: isProcessingTurnRef.current,
+        hasPlayer: !!engine.player, 
+        hasMap: !!engine.gameMap,
+        isSleeping: engine.isSleeping
+    });
+
+    if (!isInitialized || !engine.player || !engine.gameMap || turnPhase !== 'PLAYER_TURN' || isAnimatingMovement || isAnimatingZombies || isProcessingTurnRef.current) {
+      console.warn(`[GameContext] 🛑 endTurn BLOCKED [ID:${timestamp}]:`, { 
+        isInitialized, 
+        hasPlayer: !!engine.player, 
+        hasMap: !!engine.gameMap, 
+        turnPhase,
+        isAnimatingMovement,
+        isAnimatingZombies,
+        isProcessing: isProcessingTurnRef.current
+      });
+      return;
+    }
+
+    isProcessingTurnRef.current = true;
+    setIsProcessingTurn(true);
+
+    try {
+      console.log(`[GameContext] ⚙️ Starting turn simulation phase... [ID:${timestamp}]`);
+      console.log(`[GameContext] 🧮 Starting turn simulation phase... [ID:${timestamp}]`);
+      setTurnPhase('SIMULATING');
+      engine.turnPhase = 'SIMULATING'; // Phase 28 Fix: Immediate sync to prevent coordinate leakage
+      
+      // Phase 28B: Atomic Visual Lock
+      engine.lockAllEntities();
+      
+      let results;
+      try {
+        results = simulateTurn();
+      } finally {
+        // Unlock immediately after logical simulation to allow playback updates
+        engine.unlockAllEntities();
+      }
+      
+      const { actionQueue, demandTriggered, newTurn, nextIsNight } = results;
+      
+      console.log(`[GameContext] 📺 Starting turn playback phase... [ID:${timestamp}]`, { 
+          actionCount: Array.isArray(actionQueue) ? actionQueue.length : (actionQueue.immediate?.length || 0) + (actionQueue.midAnimation?.length || 0) + (actionQueue.delayed?.length || 0),
+          demandTriggered 
+      });
+      
+      await playbackTurn(actionQueue, demandTriggered, newTurn, nextIsNight);
+      
+      // Finalize the phase change here at the absolute end
+      if (demandTriggered) {
+        setActiveNpcDemand(demandTriggered);
+        setTurnPhase('PAUSED_FOR_EVENT');
+      } else if (engine.player && engine.player.hp < 1) {
+        setIsDefeated(true);
+        setTurnPhase('ANIMATING'); 
+      } else {
+        setTurnPhase('PLAYER_TURN');
+        console.log(`[GameContext] ✅ Turn completed successfully [ID:${timestamp}] - UI Enabled`);
+        
+        setTimeout(() => {
+          performAutosave(newTurn);
+        }, 100);
+      }
+    } catch (error) {
+      console.error(`[GameContext] ❌ FATAL ERROR during turn cycle [ID:${timestamp}]:`, error);
+      setTurnPhase('PLAYER_TURN'); // Recovery
+    } finally {
+      isProcessingTurnRef.current = false;
+      setIsProcessingTurn(false);
+    }
+  }, [isInitialized, engine, turnPhase, simulateTurn, playbackTurn, isAnimatingMovement, isAnimatingZombies]);
+
+
+
+  const extortPlayer = useCallback((npc) => {
+    const player = engine.player;
+    if (!npc || !player || !inventoryManager) return;
+
+    console.log(`[GameContext] 💸 EXTORTER: NPC ${npc.id} is taking everything from ${player.id}`);
+
+    // 1. Unequip everything except upper/lower body
+    const slotsToStrip = Object.keys(inventoryManager.equipment).filter(slot => 
+      slot !== EquipmentSlot.UPPER_BODY && slot !== EquipmentSlot.LOWER_BODY
+    );
+
+    slotsToStrip.forEach(slot => {
+      const item = inventoryManager.equipment[slot];
+      if (item) {
+        // Unequip directly without AP cost
+        inventoryManager.equipment[slot] = null;
+        item.isEquipped = false;
+        // Move to NPC
+        npc.inventory.addItem(item);
+      }
+    });
+
+    // 2. Check pockets of remaining clothing
+    const upperBody = inventoryManager.equipment[EquipmentSlot.UPPER_BODY];
+    if (upperBody && upperBody.getPocketContainers) {
+      upperBody.getPocketContainers().forEach(pocket => {
+        const items = pocket.getAllItems();
+        items.forEach(it => {
+          pocket.removeItem(it.instanceId);
+          npc.inventory.addItem(it);
+        });
+      });
+    }
+
+    const lowerBody = inventoryManager.equipment[EquipmentSlot.LOWER_BODY];
+    if (lowerBody && lowerBody.getPocketContainers) {
+      lowerBody.getPocketContainers().forEach(pocket => {
+        const items = pocket.getAllItems();
+        items.forEach(it => {
+          pocket.removeItem(it.instanceId);
+          npc.inventory.addItem(it);
+        });
+      });
+    }
+
+    // Update NPC state
+    npc.hasExtorted = true;
+    npc.behaviorState = 'escaping';
+    npc.hasDemanded = true;
+    
+    // Sync UI
+    engine.notifyUpdate();
+    setInventoryVersion(v => v + 1);
+    addLog(`${npc.name} took all your belongings and is making an escape!`, 'hostile');
+  }, [inventoryManager]);
+
+  const handleNpcDemandResponse = useCallback(async (choice) => {
+    if (!activeNpcDemand) return;
+    const { npc } = activeNpcDemand;
+    
+    if (choice === 'surrender') {
+      extortPlayer(npc);
+    } else {
+      // Refuse
+      npc.hasDemanded = true;
+      npc.isHostile = true;
+      npc.behaviorState = 'attacking';
+      addLog(`You refused ${npc.name}'s demands. Prepare for a fight!`, 'hostile');
+    }
+
+    // Follow-up only if it's the NPC's turn phase
+    if (activeNpcDemand.isNpcTurn) {
+      console.log(`[GameContext] ⚔️ NPC ${npc.name} preparing retaliation (Current AP: ${npc.ap})`);
+      
+      // Ensure NPC has fresh AP for the follow-up if they used it all to approach
+      if (npc.ap < 2.0) {
+        console.log(`[GameContext] ⚡ Boosting NPC AP for follow-up attack`);
+        npc.ap = 4.0; 
+      }
+      
+      setTurnPhase('ANIMATING'); // Lock UI
+      const retryResult = NPCAI.executeNPCTurn(npc, engine.gameMap, engine.player, [], true);
+      
+      if (retryResult.success && retryResult.actions.length > 0) {
+         console.log(`[GameContext] 🏃 NPC ${npc.name} performing ${retryResult.actions.length} follow-up actions...`, retryResult.actions);
+         const nextHour = (6 + (turn - 1)) % 24;
+         const nextIsNight = nextHour >= 20 || nextHour < 6;
+
+         await playbackTurn(retryResult.actions, false, turn, nextIsNight);
+      } else {
+        console.log(`[GameContext] ⏹️ NPC ${npc.name} has no follow-up actions (Final AP: ${npc.ap})`);
+      }
+    }
+    
+    setActiveNpcDemand(null);
+    setTurnPhase('PLAYER_TURN'); // Resume game
+    engine.notifyUpdate();
+  }, [activeNpcDemand, extortPlayer, playbackTurn, turn, addLog]);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;
@@ -432,6 +962,35 @@ const GameContextInner = ({ children }) => {
       setIsPlayerTurn(false); // Lock input immediately
     }
   }, [enginePulse, isInitialized, isDefeated]);
+  
+
+  // Proximity check: Trigger NPC demand if player walks adjacent to a hostile NPC
+  useEffect(() => {
+    const handleMoveEnded = () => {
+      const player = engine.player;
+      const gameMap = engine.gameMap;
+      if (!player || !gameMap) return;
+
+      const npcs = gameMap.getEntitiesByType('npc');
+      for (const npc of npcs) {
+        if (npc.isHostile && !npc.hasDemanded) {
+          const dist = Math.abs(npc.x - player.x) + Math.abs(npc.y - player.y);
+          if (dist === 1) {
+            console.log(`[GameContext] 🚨 Proximity demand triggered by ${npc.id}`);
+            npc.behaviorState = 'demanding';
+            setActiveNpcDemand({ npc, player, isNpcTurn: false });
+            setTurnPhase('PAUSED_FOR_EVENT');
+            break;
+          }
+        }
+      }
+    };
+
+    GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, handleMoveEnded);
+    return () => {
+      GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, handleMoveEnded);
+    };
+  }, []);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
@@ -539,7 +1098,7 @@ const GameContextInner = ({ children }) => {
       
       // Phase 23 Fix: Ensure Turn state and derived values are set correctly during autosave load
       setTurn(loadedState.turn);
-      setIsPlayerTurn(loadedState.interactionState?.isPlayerTurn !== undefined ? loadedState.interactionState.isPlayerTurn : true);
+      setTurnPhase(loadedState.isPlayerTurn !== undefined ? (loadedState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING') : 'PLAYER_TURN');
       setIsGameReady(true);
       setIsAutosaving(false);
       setIsDefeated(false);
@@ -592,7 +1151,7 @@ const GameContextInner = ({ children }) => {
       engine.sync(loadedState);
       
       setTurn(loadedState.turn);
-      setIsPlayerTurn(loadedState.interactionState?.isPlayerTurn !== undefined ? loadedState.interactionState.isPlayerTurn : true);
+      setTurnPhase(loadedState.interactionState?.isPlayerTurn !== undefined ? (loadedState.interactionState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING') : 'PLAYER_TURN');
       setIsAutosaving(false);
       setIsGameReady(true);
       setIsDefeated(false);
@@ -684,6 +1243,16 @@ const GameContextInner = ({ children }) => {
     return true;
   }, [wireManagerEvents]);
 
+
+
+  useEffect(() => {
+    const handleDemand = (data) => {
+      setActiveNpcDemand(data);
+    };
+    GameEvents.on(GAME_EVENT.NPC_DEMAND_TRIGGERED, handleDemand);
+    return () => GameEvents.off(GAME_EVENT.NPC_DEMAND_TRIGGERED, handleDemand);
+  }, []);
+
   // Decoupled Console Bridge: Listen for launch commands from the root UI layer
   useEffect(() => {
     const handleLaunch = (e) => {
@@ -697,521 +1266,10 @@ const GameContextInner = ({ children }) => {
 
 
 
-  const performAutosave = useCallback((turnOverride = null) => {
-    if (!isInitialized || engine.isSleeping) return false;
 
-    try {
-      setIsAutosaving(true);
 
-      // FIX 4: CRITICAL - Verify player is on map before saving
-      const playersOnMap = engine.gameMap?.getEntitiesByType('player') || [];
-      if (playersOnMap.length === 0) {
-        console.error('[GameContext] Autosave aborted - no player on map!');
-        setIsAutosaving(false);
-        return false;
-      }
 
-      console.log('[GameContext] Performing autosave with valid game state...');
 
-      const currentGameState = {
-        gameMap: engine.gameMap,
-        worldManager: engine.worldManager,
-        player: engine.player,
-        camera: engine.camera,
-        inventoryManager: inventoryManager,
-        turn: turnOverride !== null ? turnOverride : turn,
-        isPlayerTurn: isPlayerTurn,
-        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
-      };
-
-      const success = GameSaveSystem.saveToLocalStorage(currentGameState, 'autosave');
-      if (success) {
-        console.log('[GameContext] Autosave completed successfully');
-      } else {
-        console.warn('[GameContext] Autosave failed');
-      }
-
-      setIsAutosaving(false);
-      return success;
-    } catch (error) {
-      console.error('[GameContext] Autosave error:', error);
-      setIsAutosaving(false);
-      return false;
-    }
-  }, [isInitialized, inventoryManager, turn]);
-
-  // NPC Animation Orchestration
-  const animateVisibleNPCs = useCallback((npcs, currentFov) => {
-    return new Promise((resolve) => {
-      // 1. Identify NPCs that moved and are visible
-      const currentFovSafe = currentFov || [];
-      const movedNPCs = npcs.filter(n => n.movementPath && n.movementPath.length > 1);
-      
-      const animatingNPCs = movedNPCs.filter(npc => {
-        // Visibility check: Was it visible at start OR is it visible at end?
-        const startPos = npc.movementPath[0];
-        const endPos = npc.movementPath[npc.movementPath.length - 1];
-        
-        const isStartVisible = currentFovSafe.some(pos => pos.x === startPos.x && pos.y === startPos.y);
-        const isEndVisible = currentFovSafe.some(pos => pos.x === endPos.x && pos.y === endPos.y);
-        
-        return isStartVisible || isEndVisible;
-      });
-
-      if (animatingNPCs.length === 0) {
-        if (movedNPCs.length > 0) {
-          console.log(`[GameContext] ${movedNPCs.length} NPCs moved, but none are currently visible in FOV. Resetting paths.`);
-          movedNPCs.forEach(n => {
-            n.isAnimating = false;
-            n.animationProgress = 0;
-            if (n.movementPath && n.movementPath.length > 1) {
-              n.movementPath = [{ x: n.x, y: n.y }];
-            }
-          });
-        }
-        setIsAnimatingZombies(false);
-        resolve();
-        return;
-      }
-
-      console.log(`[GameContext] 🏃 ANIMATING ${animatingNPCs.length} visible NPCs...`);
-
-      // Dynamic duration based on movement distance
-      const maxTilesMoved = animatingNPCs.reduce((max, n) => Math.max(max, (n.movementPath?.length || 1) - 1), 1);
-      const duration = Math.min(1000, 300 + (maxTilesMoved * 70));
-      console.log(`[GameContext] Animating visible NPCs (maxDist=${maxTilesMoved}) duration: ${duration}ms`);
-
-      // 2. Start animation
-      // We still use setIsAnimatingZombies as the global UI gate for "NPCs are moving"
-      setIsAnimatingZombies(true);
-      animatingNPCs.forEach(n => {
-        n.isAnimating = true;
-        n.animationProgress = 0;
-      });
-
-      const startTime = performance.now();
-
-      // PHASE 11 FIXED: Global timeout safety for animations
-      const safetyTimeout = setTimeout(() => {
-        console.warn('[GameContext] ⚠️ Animation timeout reached! Forcing resolution and cleanup.');
-        
-        // CRITICAL: Must clear state on timeout to prevent "ghosting"
-        npcs.forEach(n => {
-          n.isAnimating = false;
-          n.animationProgress = 0;
-          if (n.movementPath && n.movementPath.length > 1) {
-            n.movementPath = [{ x: n.x, y: n.y }];
-          }
-        });
-
-        setIsAnimatingZombies(false);
-        resolve();
-      }, duration + 500);
-
-      const animate = (currentTime) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(1, elapsed / duration);
-
-        animatingNPCs.forEach(n => {
-          n.animationProgress = progress;
-        });
-
-        // Trigger map re-render
-        if (triggerMapUpdate) triggerMapUpdate();
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Animation complete
-          clearTimeout(safetyTimeout);
-          npcs.forEach(n => {
-            n.isAnimating = false;
-            n.animationProgress = 0;
-            // Clear movement path after animation to prevent snap-back on future frames
-            if (n.movementPath && n.movementPath.length > 1) {
-              n.movementPath = [{ x: n.x, y: n.y }];
-            }
-          });
-          setIsAnimatingZombies(false);
-          resolve();
-        }
-      };
-
-      requestAnimationFrame(animate);
-    });
-  }, [triggerMapUpdate]);
-
-  const clearNPCAnimations = useCallback((npcs) => {
-    if (!npcs) return;
-    npcs.forEach(n => {
-      n.isAnimating = false;
-      n.animationProgress = 0;
-      if (n.movementPath && n.movementPath.length > 1) {
-        n.movementPath = [{ x: n.x, y: n.y }];
-      }
-    });
-    setIsAnimatingZombies(false);
-  }, []);
-
-  const endTurn = useCallback(async () => {
-    const gameMap = engine.gameMap;
-    const player = engine.player;
-    if (!isInitialized || !player || !gameMap || !isPlayerTurn) {
-      console.warn('[GameContext] Cannot end turn - missing requirements', {
-        isInitialized,
-        hasPlayer: !!player,
-        hasGameMap: !!gameMap,
-        isPlayerTurn
-      });
-      return;
-    }
-
-    try {
-      console.log('[GameContext] >>> END TURN START');
-      // Process map-level turn effects (e.g. campfire expiration) EARLY 
-      // This ensures 0.5 turns vanish as soon as player hits endTurn.
-      if (gameMap && gameMap.processTurn) {
-        gameMap.processTurn(player, engine.isSleeping, turn);
-      }
-
-      // Also process turn effects for items currently in the active ground container
-      if (inventoryManager && inventoryManager.processTurn) {
-        const playerTile = gameMap.getTile(player.x, player.y);
-        const isPlayerOutdoors = playerTile ? ['road', 'sidewalk', 'grass'].includes(playerTile.terrain) : false;
-        inventoryManager.processTurn(turn, isPlayerOutdoors);
-      }
-
-      setIsPlayerTurn(false);
-      GameEvents.emit(GAME_EVENT.TURN_ENDED);
-      lastSeenTaggedTilesRef.current.clear();
-      logger.debug('Cleared all LastSeen tagged tiles for new zombie turn phase');
-
-      // Process Player Turn-End Status (Sickness, Regen, etc.)
-      if (player.sickness > 0) {
-        player.sickness -= 1;
-        // Take damage from sickness (e.g. 1 hp per turn)
-        player.takeDamage(1, { id: 'sickness', type: 'status' });
-
-        if (player.sickness === 0) {
-          player.condition = 'Normal';
-          console.log('[GameContext] Player recovered from sickness');
-        }
-
-        // Update stats to trigger UI update
-        updatePlayerStats({
-          hp: player.hp,
-          sickness: player.sickness,
-          condition: player.condition
-        });
-      }
-
-      // Check awareness one last time before zombie turn
-      checkZombieAwareness();
-
-      const zombies = gameMap.getEntitiesByType('zombie');
-      console.log(`[GameContext] Processing ${zombies.length} zombie turns`);
-
-      // Phase 11 & Animation Bugfix: Lock animations globally during turn processing
-      setIsAnimatingZombies(true);
-
-      // Give React a chance to render the animation lock before logical map mutations occur.
-      // This prevents the 'flash' of the final destination during AI calculation.
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      const immediateActions = []; // Actions for stationary zombies (attack now)
-      const midAnimationActions = []; // BREACH ACTIONS (attack window/door while moving)
-      const delayedActions = [];   // Actions for moving zombies (attack after move)
-
-      zombies.forEach(zombie => {
-        const turnResult = ZombieAI.executeZombieTurn(
-          zombie,
-          gameMap,
-          player,
-          getPlayerCardinalPositions(),
-          lastSeenTaggedTilesRef.current
-        );
-
-        if (turnResult.success) {
-          const willMoveInTurn = turnResult.actions.some(a => a.type === 'move' || a.type === 'momentum_move');
-          let hasMovedYet = false;
-          
-          turnResult.actions.forEach(action => {
-            // Track if the zombie has started moving during this turn sequence
-            if (action.type === 'move' || action.type === 'momentum_move') {
-              hasMovedYet = true;
-            }
-
-            if (action.type === 'attackDoor' || action.type === 'attackWindow' || action.type === 'attack' || action.type === 'wait') {
-              const actionData = { zombieId: zombie.id, ...action };
-              
-              // New Timing Heuristic:
-              // 1. Structure Breaches by moving zombies -> midAnimation (150ms delay)
-              // 2. Pre-movement actions -> immediate (0ms delay)
-              // 3. Post-movement actions -> delayed (plays after arrival)
-              
-              if (!hasMovedYet) {
-                // If it's a structure attack and the zombie moves later, trigger it mid-way for visual impact
-                if (willMoveInTurn && (action.type === 'attackDoor' || action.type === 'attackWindow')) {
-                  midAnimationActions.push(actionData);
-                } else {
-                  immediateActions.push(actionData);
-                }
-              } else {
-                delayedActions.push(actionData);
-              }
-            }
-          });
-        }
-      });
-  
-      // Helper to process zombie actions (combat, banging, waiting)
-      const processZombieActions = (actions) => {
-        // Group actions by zombie to aggregate sound triggers
-        const zombieActionGroups = new Map();
-        
-        actions.forEach(action => {
-          if (!zombieActionGroups.has(action.zombieId)) {
-            zombieActionGroups.set(action.zombieId, {
-              attacks: [],
-              other: []
-            });
-          }
-          const group = zombieActionGroups.get(action.zombieId);
-          if (action.type === 'attack') {
-            group.attacks.push(action);
-          } else {
-            group.other.push(action);
-          }
-        });
-
-        // 1. Process all aggregated attack results for audio
-        zombieActionGroups.forEach((group, zombieId) => {
-          if (group.attacks.length > 0) {
-            const hasAnyHit = group.attacks.some(a => a.success);
-            GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: hasAnyHit, zombieId });
-          }
-        });
-
-        // 2. Process physical changes and specific event emissions
-        actions.forEach(action => {
-          const zombieEntity = zombies.find(z => z.id === action.zombieId);
-          if (!zombieEntity) return;
-
-          if (action.type === 'attackDoor' && action.doorPos) {
-            // Trigger visual synchronization for animations
-            const doorTile = gameMap.getTile(action.doorPos.x, action.doorPos.y);
-            const doorEntity = doorTile?.contents.find(e => e.type === EntityType.DOOR);
-            if (doorEntity && typeof doorEntity.syncVisualState === 'function') {
-                doorEntity.syncVisualState();
-            }
-
-            GameEvents.emit(action.doorBroken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action);
-            if (addEffect) {
-              addEffect({ type: 'damage', x: action.doorPos.x, y: action.doorPos.y, value: 'bang', color: '#ffffff', duration: 800 });
-              addEffect({ type: 'tile_flash', x: action.doorPos.x, y: action.doorPos.y, color: 'rgba(139, 115, 85, 0.4)', duration: 300 });
-            }
-          } else if (action.type === 'attackWindow' && action.windowPos) {
-            // Trigger visual synchronization for animations
-            const windowTile = gameMap.getTile(action.windowPos.x, action.windowPos.y);
-            const windowEntity = windowTile?.contents.find(e => e.type === EntityType.WINDOW);
-            if (windowEntity && typeof windowEntity.syncVisualState === 'function') {
-                windowEntity.syncVisualState();
-            }
-
-            GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action);
-            if (addEffect) {
-              addEffect({ type: 'damage', x: action.windowPos.x, y: action.windowPos.y, value: 'SMASH', color: '#ffffff', duration: 1000 });
-              addEffect({ type: 'tile_flash', x: action.windowPos.x, y: action.windowPos.y, color: 'rgba(255, 255, 255, 0.6)', duration: 400 });
-            }
-          } else if (action.type === 'attack' && action.target === EntityType.PLAYER) {
-            if (action.success) {
-              player.takeDamage(action.damage, zombieEntity);
-              if (action.bleedingInflicted) player.setBleeding(true);
-            }
-            // ZOMBIE_ATTACK is still emitted for visual components but NO sound is played there anymore.
-            GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK, { ...action, zombie: zombieEntity });
-          } else if (action.type === 'wait') {
-            // Optional: Shuffle sound or growl for waiting zombies
-            GameEvents.emit(GAME_EVENT.ZOMBIE_WAIT, { ...action, zombie: zombieEntity });
-          }
-        });
-      };
-
-      // 1. Process IMMEDIATE actions (Stationary zombies attack now)
-      if (immediateActions.length > 0) {
-        console.log(`[GameContext] Executing ${immediateActions.length} immediate stationary actions`);
-        processZombieActions(immediateActions);
-      }
-
-      // 2. Animate visible NPCs
-      if (typeof animateVisibleNPCs === 'function') {
-        const rabbits = gameMap.getEntitiesByType('rabbit');
-        const { RabbitAI } = await import('../game/ai/RabbitAI.js');
-        rabbits.forEach(rabbit => {
-          RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
-        });
-
-        console.log('[GameContext] Starting NPC animations...');
-        
-        // Non-blocking call to start animations
-        const animationPromise = animateVisibleNPCs([...zombies, ...rabbits], playerFieldOfView);
-
-        // SYNC: Process mid-animation breach actions after a short delay
-        // This allows the zombie to "step forward" into the window before it shatters
-        if (midAnimationActions.length > 0) {
-          setTimeout(() => {
-            console.log(`[GameContext] Executing ${midAnimationActions.length} mid-animation breach actions`);
-            processZombieActions(midAnimationActions);
-          }, 150); // 150ms is roughly 1/4 of a standard tile move duration
-        }
-
-        await animationPromise;
-      }
-
-      // 3. Process DELAYED actions (Moving zombies attack after arrival)
-      if (delayedActions.length > 0) {
-        console.log(`[GameContext] Executing ${delayedActions.length} delayed post-movement actions`);
-        processZombieActions(delayedActions);
-      }
-
-      console.log('[GameContext] Processing survival stats and AP regeneration...');
-      // Regenerate 1 HP at start of new turn phase if survival stats are sufficient (>= 5)
-      // Regen logic: 1 HP per turn if healthy, nutrition/hydration threshold met
-      if (player.nutrition >= 5 && player.hydration >= 5 && player.condition === 'Normal' && !player.isBleeding) {
-        player.heal(1, true); // Silent heal for turn-based regen
-      } else if (player.condition !== 'Normal' || player.isBleeding) {
-        console.log(`[GameContext] Turn HP regeneration cancelled due to condition: ${player.condition}${player.isBleeding ? ', Bleeding' : ''}`);
-      } else {
-        console.log(`[GameContext] HP regeneration skipped (threshold 5): Nutrition=${player.nutrition}, Hydration=${player.hydration}`);
-      }
-
-      // Apply Diseased condition penalties (Diseased condition reduces AP and HP by 1 per turn)
-      if (player.condition === 'Diseased') {
-        console.log('[GameContext] Player is Diseased - reducing AP and HP by 1');
-        player.modifyStat('ap', -1);
-        player.takeDamage(1, { id: 'disease', type: 'infection' });
-        GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { damage: 1, source: { id: 'disease' } });
-      }
-
-      // Apply Bleeding condition penalties
-      if (player.isBleeding) {
-        console.log('[GameContext] Player is Bleeding - reducing HP by 1');
-        player.takeDamage(1, { id: 'bleeding', type: 'status' });
-        GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { damage: 1, source: { id: 'bleeding' } });
-      }
-
-      // Reduce survival stats by 1 on end turn
-      player.modifyStat('nutrition', -1);
-      player.modifyStat('hydration', -1);
-      player.modifyStat('energy', -1);
-
-      // Battery/Torch consumption if flashlight left ON
-      if (isFlashlightOn) {
-        const flashlight = inventoryManager?.equipment['flashlight'];
-        if (flashlight) {
-          const success = flashlight.consumeCharge(1);
-          if (success) {
-            console.log(`[GameContext] ${flashlight.name} consumption (Turn change): 1 charge. Remaining: ${flashlight.getCharges()}`);
-          } else {
-            if (flashlight.hasTrait(ItemTrait.IGNITABLE)) {
-              addLog('The torch has burned out.', 'item');
-            } else {
-              addLog(`${flashlight.name} has run out of power.`, 'item');
-            }
-            setIsFlashlightOn(false);
-            setInventoryVersion(prev => prev + 1);
-          }
-        } else {
-          setIsFlashlightOn(false);
-        }
-      }
-
-      // Apply HP loss if nutrition or hydration is zero
-      let hpLoss = 0;
-      if (player.nutrition === 0) {
-        hpLoss += 1;
-      }
-      if (player.hydration === 0) {
-        hpLoss += 1;
-      }
-      if (hpLoss > 0) {
-        player.takeDamage(hpLoss, { id: 'survival', type: 'starvation' });
-        console.log(`[GameContext] Player lost ${hpLoss} HP due to low nutrition/hydration.`);
-      }
-
-      // Restore AP based on energy and HP levels
-      const energyLost = Math.max(0, 25 - player.energy);
-      let energyPenalty = 0;
-      if (player.energy >= 5) {
-        energyPenalty = Math.floor(energyLost / 5);
-      } else {
-        energyPenalty = 8 - player.energy;
-      }
-
-      const hpLost = Math.max(0, 20 - player.hp);
-      let hpPenalty = 0;
-      if (player.hp >= 5) {
-        hpPenalty = Math.floor(hpLost / 5);
-      } else {
-        hpPenalty = 7 - player.hp;
-      }
-
-      const totalPenalty = energyPenalty + hpPenalty;
-      const turnAllotment = Math.max(0, 20 - totalPenalty);
-
-      // Add the turn's AP allotment to what remains from the last turn (capped at 20)
-      player.restoreAP(turnAllotment);
-
-      updatePlayerStats({
-        ap: player.ap,
-        nutrition: player.nutrition,
-        hydration: player.hydration,
-        energy: player.energy,
-        hp: player.hp, // Ensure HP is updated
-        isBleeding: player.isBleeding
-      });
-      console.log(`[GameContext] AP allotment of ${turnAllotment} added. Player AP is now: ${player.ap}`);
-
-      const newTurn = turn + 1;
-      
-      // Phase 25: Update procedural weather system
-      if (engine.weatherManager) {
-        engine.weatherManager.update(newTurn);
-      }
-
-      const nextHour = (6 + (newTurn - 1)) % 24;
-      const nextIsNight = nextHour >= 20 || nextHour < 6;
-
-      updatePlayerFieldOfView(gameMap, nextIsNight, isFlashlightOn);
-      updatePlayerCardinalPositions(gameMap);
-      triggerMapUpdate();
-
-      setTurn(newTurn);
-      console.log('[GameContext] Turn processing logic complete. New turn:', newTurn);
-
-      // Final synchronization after all turn processing (zombies, survival, AP regen)
-      engine.notifyUpdate();
-
-      // DEFEAT DETECTION: Check at the absolute start of the NEW turn
-      if (player.hp < 1) {
-        console.warn('[GameContext] 💀 Player is dead! Suppressing autosave and triggering defeat dialog.');
-        setIsDefeated(true);
-        setIsPlayerTurn(false); // Explicit lock
-        return; // HALT everything else
-      }
-
-      await performAutosave(newTurn);
-
-    } catch (error) {
-      console.error('[GameContext] ❌ ERROR during endTurn:', error);
-    } finally {
-      // Only unlock turn if the player survived
-      const isDead = engine.player?.hp < 1;
-      setIsPlayerTurn(!isDead);
-      setIsAnimatingZombies(false);
-      console.log(`[GameContext] <<< END TURN FINISHED (Input ${!isDead ? 'Unlocked' : 'LOCKED - Player Dead'})`);
-    }
-  }, [turn, isInitialized, isPlayerTurn, playerFieldOfView, inventoryManager, updatePlayerFieldOfView, updatePlayerCardinalPositions, performAutosave, animateVisibleNPCs, checkZombieAwareness, getPlayerCardinalPositions, updatePlayerStats, isFlashlightOn]);
 
   // Legacy wrapper methods (these should be removed in Phase 2)
   const handleTileClick = useCallback((x, y) => {
@@ -1355,6 +1413,22 @@ const GameContextInner = ({ children }) => {
     }
   }, [isInitialized, turn, inventoryManager]);
 
+  // ==========================================================
+  // TURN SYSTEM ORCHESTRATION & RECOVERY
+  // ==========================================================
+
+  // Turn State Watchdog: If stuck in SIMULATING or ANIMATING for too long, reset to PLAYER_TURN
+  useEffect(() => {
+    if (turnPhase === 'SIMULATING' || turnPhase === 'ANIMATING') {
+      const timeoutId = setTimeout(() => {
+        console.warn(`[GameContext] 🚨 TURN WATCHDOG TRIGGERED: Stuck in ${turnPhase} for 10s. Forcing recovery.`);
+        setTurnPhase('PLAYER_TURN');
+        setIsAnimatingZombies(false);
+      }, 10000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [turnPhase]);
+
   // Wrapper methods for map transitions that include player context functions
   const handleMapTransitionConfirmWrapper = useCallback(async () => {
     console.log('[GameContext] Map transition confirmation wrapper called');
@@ -1408,10 +1482,13 @@ const GameContextInner = ({ children }) => {
     setIsPlayerTurn,
     isAutosaving,
     isAnimatingZombies,
+    setIsAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
     engine,
     enginePulse,
+    turnPhase,
+    setTurnPhase,
 
     // Orchestration functions only
     initializeGame,
@@ -1443,9 +1520,14 @@ const GameContextInner = ({ children }) => {
 
     isDefeated,
     setIsDefeated,
+    isProcessingTurn,
 
     // Internal refs for debugging
-    lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
+    lastSeenTaggedTiles: lastSeenTaggedTilesRef.current,
+    
+    // NPC Demand System
+    activeNpcDemand,
+    handleNpcDemandResponse
   }), [
     isInitialized,
     isGameReady,
@@ -1462,9 +1544,14 @@ const GameContextInner = ({ children }) => {
     setIsPlayerTurn,
     isAutosaving,
     isAnimatingZombies,
+    setIsAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
+    activeNpcDemand,
+    handleNpcDemandResponse,
     enginePulse,
+    turnPhase,
+    setTurnPhase,
     initializeGame,
     endTurn,
     spawnTestEntities,
@@ -1482,7 +1569,8 @@ const GameContextInner = ({ children }) => {
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel,
     isDefeated,
-    setIsDefeated
+    setIsDefeated,
+    isProcessingTurn
   ]);
 
   return (

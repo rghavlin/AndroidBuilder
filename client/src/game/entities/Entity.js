@@ -1,4 +1,5 @@
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
+import engine from '../GameEngine.js';
 
 /**
  * Common entity types for the game
@@ -25,10 +26,62 @@ export class Entity extends SafeEventEmitter {
     super(); // Initialize EventEmitter
     this.id = id;
     this.type = type;
-    this.x = x;
-    this.y = y;
+    
+    // Position for rendering
+    this._x = x;
+    this._y = y;
+    
+    // Phase: Turn-Based Serialization
+    // logicalX/Y represent where the entity "is" in the game logic during turn simulation.
+    // x/y represent the "visual" position currently being rendered.
+    this.logicalX = x;
+    this.logicalY = y;
+    
     this.subtype = subtype || null;
     this.blocksMovement = false; // Whether other entities can move through this one
+
+    // Phase 28B Fix: Absolute visual lock to prevent ghosting
+    this.isVisualLocked = false; 
+  }
+
+  // Getters and Setters for coordinates to enforce phase-based guards
+  get x() { return this._x; }
+  set x(val) {
+    if (this.isVisualLocked || (engine && engine.turnPhase === 'SIMULATING')) {
+      return; // Absolute lock during simulation or explicit lock
+    }
+    this._x = val;
+  }
+
+  get y() { return this._y; }
+  set y(val) {
+    if (this.isVisualLocked || (engine && engine.turnPhase === 'SIMULATING')) {
+      return; // Absolute lock during simulation or explicit lock
+    }
+    this._y = val;
+  }
+
+  /**
+   * Play an action visually. Overridden by subclasses (Zombie, NPC).
+   * @param {Object} action - The action to play
+   * @returns {Promise} Resolves when the visual animation is complete
+   */
+  async playAction(action) {
+    // Default implementation: just snap to final position
+    if (action.type === 'MOVE' && action.data.to) {
+      this.x = action.data.to.x;
+      this.y = action.data.to.y;
+    }
+  }
+
+  /**
+   * Check if this entity is diagonally adjacent to a target position
+   * @param {number} targetX 
+   * @param {number} targetY 
+   * @returns {boolean}
+   */
+  isDiagonalTo(targetX, targetY) {
+    return Math.abs(this.logicalX - targetX) === 1 && Math.abs(this.logicalY - targetY) === 1;
   }
 
   /**
@@ -57,15 +110,31 @@ export class Entity extends SafeEventEmitter {
 
   /**
    * Move to new position (updates coordinates, doesn't handle tile management)
+   * @param {number} x - Target X
+   * @param {number} y - Target Y
+   * @param {Object} options - { snap: boolean }
    */
-  moveTo(x, y) {
-    const oldPosition = { x: this.x, y: this.y };
-    this.x = x;
-    this.y = y;
+  moveTo(x, y, options = {}) {
+    const { snap = true } = options;
+    const oldPosition = { x: this.logicalX, y: this.logicalY };
+    
+    this.logicalX = x;
+    this.logicalY = y;
+
+    // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
+    if (this.isVisualLocked || (engine && engine.turnPhase === 'SIMULATING')) {
+      return;
+    }
+
+    if (snap) {
+      this.x = x;
+      this.y = y;
+    }
 
     this.emit('entityMoved', {
       oldPosition,
-      newPosition: { x, y }
+      newPosition: { x: this.logicalX, y: this.logicalY },
+      visualPosition: { x: this.x, y: this.y }
     });
   }
 
@@ -78,6 +147,8 @@ export class Entity extends SafeEventEmitter {
       type: this.type,
       x: this.x,
       y: this.y,
+      logicalX: this.logicalX,
+      logicalY: this.logicalY,
       subtype: this.subtype,
       blocksMovement: this.blocksMovement
     };
@@ -88,6 +159,8 @@ export class Entity extends SafeEventEmitter {
    */
   static fromJSON(data) {
     const entity = new Entity(data.id, data.type, data.x, data.y, data.subtype);
+    entity.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
+    entity.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
     entity.blocksMovement = data.blocksMovement;
     return entity;
   }

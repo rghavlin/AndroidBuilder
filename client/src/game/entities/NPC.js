@@ -3,6 +3,7 @@ import { Container } from '../inventory/Container.js';
 import { Item } from '../inventory/Item.js';
 import engine from '../GameEngine.js';
 import { getNPCType } from './NPCTypes.js';
+import { SequencerAction } from '../managers/SequencerAction.js';
 
 /**
  * NPC entity with vitals, inventory, and baseline AI state
@@ -36,8 +37,104 @@ export class NPC extends Entity {
     });
 
     this.equippedWeaponId = null; // Instance ID of weapon in inventory
-    this.behaviorState = 'idle'; // 'idle', 'attacking', 'trading', 'fleeing'
+    this.behaviorState = 'idle'; // 'idle', 'attacking', 'trading', 'fleeing', 'escaping', 'demanding'
     this.currentTarget = null; // { x, y, id, type }
+
+    this.hasDemanded = false; // Whether the demand dialog has been shown
+    this.hasExtorted = false; // Whether the player complied with the demand
+    this.wasAttackedThisTurn = false; // Track if hit this turn for counter-attacks
+
+    // Rendering/Animation State (Mirroring Zombie.js for GameContext orchestration)
+    this.movementPath = []; // Array of {x, y} coordinates for the current turn
+    this.isAnimating = false;
+    this.animationProgress = 0; // 0.0 to 1.0
+  }
+
+  /**
+   * Play an action visually using the Master Heartbeat Sequencer.
+   * @param {Object} action - The action to perform
+   * @param {Object} callbacks - Optional callbacks (e.g., { onImpact })
+   */
+  async playAction(action, callbacks = {}) {
+    const { type, data } = action;
+    const { onImpact } = callbacks;
+
+    if (type === 'MOVE') {
+      const from = data.from || { x: this.x, y: this.y };
+      const to = data.to;
+
+      if (from.x === to.x && from.y === to.y) return Promise.resolve();
+
+      this.movementPath = [from, to];
+      this.isAnimating = true;
+
+      const duration = 150;
+      const seq = new SequencerAction(this, duration, duration, onImpact);
+      
+      engine.registerAction(seq);
+      
+      return seq.promise.then(() => {
+        this.x = to.x;
+        this.y = to.y;
+        this.isAnimating = false;
+        this.movementPath = [];
+      });
+    }
+
+    if (type === 'ATTACK') {
+      this.isAnimating = true;
+      
+      // Phase 28 Fix: Visual-Logical Sync
+      if (data.from) {
+        this.x = data.from.x;
+        this.y = data.from.y;
+      }
+      
+      const duration = 200;
+      const impactPoint = 100; // Visual contact at 50%
+      const seq = new SequencerAction(this, duration, impactPoint, onImpact);
+      
+      engine.registerAction(seq);
+      
+      return seq.promise.then(() => {
+        this.isAnimating = false;
+      });
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * End NPC's turn - Flush logical state to visual state.
+   */
+  endTurn() {
+    this.ap = 0;
+    this.behaviorState = 'idle';
+    
+    // Safety sync: Ensure visual position matches logical position at end of turn
+    this.x = this.logicalX;
+    this.y = this.logicalY;
+    
+    this.isAnimating = false;
+    this.animationProgress = 0;
+    this.movementPath = [];
+  }
+
+
+
+  /**
+   * Reset NPC for new turn
+   */
+  startTurn() {
+    this.ap = this.maxAp;
+    this.wasAttackedThisTurn = false;
+    this.logicalX = this.x;
+    this.logicalY = this.y;
+    this.movementPath = [{ x: this.x, y: this.y }];
+    
+    if (this.behaviorState === 'fleeing' && Math.random() < this.fleeRecoverChance) {
+        this.behaviorState = 'idle';
+    }
   }
 
   // --- Getters/Setters for vitals ---
@@ -52,17 +149,30 @@ export class NPC extends Entity {
   }
 
   /**
+   * Use AP for an action
+   */
+  useAP(amount) {
+    if (this.ap >= amount) {
+      this.ap -= amount;
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Take damage from an attack
    */
-  takeDamage(amount) {
+  takeDamage(amount, source = null) {
     const oldHp = this._hp;
     this.hp -= amount;
+    this.wasAttackedThisTurn = true;
 
     this.emitEvent('npcDamageTaken', {
       amount,
       oldHp,
       currentHp: this._hp,
-      maxHp: this.maxHp
+      maxHp: this.maxHp,
+      sourceType: source?.type
     });
 
     return {
@@ -78,15 +188,21 @@ export class NPC extends Entity {
     return this.hp <= 0;
   }
 
+
   /**
-   * Reset stats for the beginning of a turn
+   * Helper to find the best weapon in inventory (prioritizing equipped)
+   * @returns {Item|null}
    */
-  startTurn() {
-    this.ap = this.maxAp;
-    // Basic AI state reset if needed
-    if (this.behaviorState === 'fleeing' && Math.random() < this.fleeRecoverChance) {
-        this.behaviorState = 'idle';
+  getEquippedWeapon() {
+    // If we have an explicit ID, find it
+    if (this.equippedWeaponId) {
+      const item = this.inventory.getItem(this.equippedWeaponId);
+      if (item) return item;
     }
+
+    // Fallback: search for any weapon
+    const items = this.inventory.getAllItems();
+    return items.find(it => it.type === 'weapon' || it.category === 'weapon' || it.category === 'gun') || null;
   }
 
   /**
@@ -130,7 +246,9 @@ export class NPC extends Entity {
       behaviorState: this.behaviorState,
       currentTarget: this.currentTarget,
       typeId: this.typeId,
-      fleeRecoverChance: this.fleeRecoverChance
+      fleeRecoverChance: this.fleeRecoverChance,
+      hasDemanded: this.hasDemanded,
+      hasExtorted: this.hasExtorted
     };
   }
 
@@ -147,11 +265,16 @@ export class NPC extends Entity {
     npc.equippedWeaponId = data.equippedWeaponId;
     npc.behaviorState = data.behaviorState || 'idle';
     npc.currentTarget = data.currentTarget;
+    npc.hasDemanded = data.hasDemanded || false;
+    npc.hasExtorted = data.hasExtorted || false;
 
     if (data.inventory) {
       npc.inventory = Container.fromJSON(data.inventory);
     }
 
+    npc.logicalX = data.logicalX !== undefined ? data.logicalX : data.x;
+    npc.logicalY = data.logicalY !== undefined ? data.logicalY : data.y;
+    
     return npc;
   }
 }

@@ -70,6 +70,7 @@ export default function GameControls({
     isPlayerTurn, 
     isAutosaving,
     isAnimatingZombies,
+    isProcessingTurn,
     isSkillsOpen,
     toggleSkills
   } = useGame();
@@ -77,6 +78,8 @@ export default function GameControls({
   const { isSleeping, triggerSleep } = useSleep();
   // We keep useCombat for possible future combat-related HUD elements, but remove non-existent handleEndTurn
   const combatContext = useCombat();
+
+
 
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);
   const [playerIcon, setPlayerIcon] = useState<string | null>(null);
@@ -102,7 +105,7 @@ export default function GameControls({
   const currentTurn = isInitialized ? turn : demoState.turn;
   const onEndTurnAction = isInitialized ? endTurn : demoEndTurn;
 
-  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isAnimatingZombies || (combatContext?.isProcessing);
+  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isAnimatingZombies || isProcessingTurn || (combatContext?.isProcessing);
   const sleepDisabled = buttonsDisabled || currentStats.energy >= 25;
 
   return (
@@ -209,7 +212,6 @@ export default function GameControls({
 
         <Button
           onClick={toggleSkills}
-          disabled={buttonsDisabled}
           className={cn(
             "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border shadow-lg active:scale-95",
             isSkillsOpen ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] bg-zinc-700" : "border-white/10"
