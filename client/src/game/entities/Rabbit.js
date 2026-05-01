@@ -16,12 +16,12 @@ export class Rabbit extends Entity {
     this.maxHp = 5;
     this.maxAP = 25; // Extremely fast
     this.currentAP = 25;
-    
+
     // Animation state for smooth movement (Phase 11)
     this.movementPath = []; // Array of {x, y} coordinates for the current turn
     this.isAnimating = false;
     this.animationProgress = 0; // 0.0 to 1.0
-    
+
     this.isActive = false; // Whether it's this rabbit's turn
   }
 
@@ -97,13 +97,13 @@ export class Rabbit extends Entity {
       if (from.x === to.x && from.y === to.y) return Promise.resolve();
 
       this.movementPath = [from, to];
-      this.isAnimating = true;
+      //this.isAnimating = true;
 
       const duration = 100; // Rabbits are fast!
       const seq = new SequencerAction(this, duration, duration, onImpact);
-      
+
       engine.registerAction(seq);
-      
+
       return seq.promise.then(() => {
         this.renderX = to.x;
         this.renderY = to.y;
@@ -169,7 +169,7 @@ export class Rabbit extends Entity {
     rabbit.renderY = data.y;
     rabbit.logicalX = rabbit.gridX;
     rabbit.logicalY = rabbit.gridY;
-    
+
     return rabbit;
   }
 }

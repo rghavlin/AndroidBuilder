@@ -10,7 +10,7 @@ import engine from '../GameEngine.js';
 export class Zombie extends Entity {
   constructor(id, x = 0, y = 0, subtype = 'basic') {
     super(id, EntityType.ZOMBIE, x, y, subtype);
-    
+
     // 1. Load data from ZombieTypes config
     const stats = ZombieTypes[subtype] || ZombieTypes.basic;
     this.subtype = subtype;
@@ -20,21 +20,21 @@ export class Zombie extends Entity {
     this.maxAP = stats.maxAP || 12;
     this.currentAP = this.maxAP;
     this.sightRange = stats.sightRange || 15;
-    
+
     // Movement multipliers (used by ZombieAI)
     this.moveCostMultiplier = stats.moveCostMultiplier || 1.0;
     this.canPassWindows = stats.canPassWindows !== undefined ? stats.canPassWindows : true;
 
     // 2. Default entity behaviors
-    this.blocksMovement = true; 
-    this.blocksSight = false; 
+    this.blocksMovement = true;
+    this.blocksSight = false;
 
     // 3. AI State properties
-    this.lastSeen = false; 
-    this.heardNoise = false; 
-    this.targetSightedCoords = { x: 0, y: 0 }; 
-    this.noiseCoords = { x: 0, y: 0 }; 
-    this.interactionMemory = 0; 
+    this.lastSeen = false;
+    this.heardNoise = false;
+    this.targetSightedCoords = { x: 0, y: 0 };
+    this.noiseCoords = { x: 0, y: 0 };
+    this.interactionMemory = 0;
 
     // Current behavior state
     this.behaviorState = 'idle'; // 'idle', 'pursuing', 'investigating', 'wandering'
@@ -43,7 +43,7 @@ export class Zombie extends Entity {
     this.lastScentSequence = 0; // Last scent in the trail this zombie followed
     this.lastDirection = null; // Direction vector {x, y} when player was last seen
     this.momentumSteps = 0; // Remaining steps to move in lastDirection after losing sight
-    
+
     // Myopic Targeting System
     this.currentTarget = null; // { type: 'entity'|'tile', id: string, x: number, y: number }
 
@@ -116,13 +116,13 @@ export class Zombie extends Entity {
       if (from.x === to.x && from.y === to.y) return Promise.resolve();
 
       this.movementPath = [from, to];
-      this.isAnimating = true;
+      //this.isAnimating = true;
 
       const duration = 150; // ms per tile
       const seq = new SequencerAction(this, duration, duration, onImpact);
-      
+
       engine.registerAction(seq);
-      
+
       return seq.promise.then(() => {
         this.renderX = to.x;
         this.renderY = to.y;
@@ -134,7 +134,7 @@ export class Zombie extends Entity {
 
     if (type === 'ATTACK' || type === 'STRUCTURE_INTERACT') {
       this.isAnimating = true;
-      
+
       // Phase 28 Fix: Visual-Logical Sync
       // Ensure the zombie is visually at the 'from' position before attacking.
       // This prevents '3-space' attacks if a MOVE action was skipped or desynced.
@@ -142,14 +142,14 @@ export class Zombie extends Entity {
         this.x = data.from.x;
         this.y = data.from.y;
       }
-      
+
       const isAttack = type === 'ATTACK';
       const duration = isAttack ? 200 : 300;
       const impactPoint = isAttack ? 100 : 150;
       const seq = new SequencerAction(this, duration, impactPoint, onImpact);
-      
+
       engine.registerAction(seq);
-      
+
       return seq.promise.then(() => {
         // Flag remains true to prevent micro-gap ghosting
       });
@@ -165,13 +165,13 @@ export class Zombie extends Entity {
     this.currentAP = 0;
     this.isActive = false;
     // Removed behaviorState reset to maintain state across turns
-    
+
     // Safety sync: Ensure visual position matches logical position at end of turn
     this.renderX = this.gridX;
     this.renderY = this.gridY;
     this.x = this.gridX;
     this.y = this.gridY;
-    
+
     this.isAnimating = false;
     this.animationProgress = 0;
     this.movementPath = [];
@@ -375,7 +375,7 @@ export class Zombie extends Entity {
     zombie.hp = data.hp !== undefined ? data.hp : (data.maxHP || 10);
     zombie.x = data.x;
     zombie.y = data.y;
-    
+
     // Reset ALL transient rendering state on load 
     zombie.isMoving = false;
     zombie.movementStartTime = null;
@@ -391,7 +391,7 @@ export class Zombie extends Entity {
     zombie.logicalX = zombie.gridX;
     zombie.logicalY = zombie.gridY;
     zombie.currentTarget = data.currentTarget || null;
-    
+
     return zombie;
   }
 }
