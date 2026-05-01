@@ -116,7 +116,8 @@ export class Zombie extends Entity {
       if (from.x === to.x && from.y === to.y) return Promise.resolve();
 
       this.movementPath = [from, to];
-      //this.isAnimating = true;
+      this.isAnimating = true;
+      this.animationProgress = 0;
 
       const duration = 150; // ms per tile
       const seq = new SequencerAction(this, duration, duration, onImpact);
