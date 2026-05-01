@@ -197,7 +197,7 @@ export class Pathfinding {
         if (structure) {
           const isClosed = (structure.type === 'door' && !structure.isOpen) || 
                           (structure.type === 'window' && !structure.isOpen && !structure.isBroken);
-          if (isClosed) baseCost = 2.0;
+          if (isClosed) baseCost = 1.0; // Zombies don't 'fear' doors, they go right through them
         }
         const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');
         if (hasOtherZombie) baseCost += 1.0; // Penalty for passing through a comrade

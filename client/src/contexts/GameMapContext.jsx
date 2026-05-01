@@ -74,7 +74,13 @@ export const GameMapProvider = ({ children }) => {
       const entityFilter = (tile) => {
         if (!tile.flags || !tile.flags.explored) return false;
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
-        return !tile.contents.some(entity => entity.blocksMovement && entity.id !== player.id);
+
+        const draggedItemId = engine.dragging?.item?.instanceId;
+        return !tile.contents.some(entity => {
+          if (entity.id === player.id) return false;
+          if (draggedItemId && (entity.id === draggedItemId || entity.instanceId === draggedItemId)) return false;
+          return entity.blocksMovement;
+        });
       };
 
       if (!Pathfinding.isTileWalkable(targetTile, entityFilter)) return;

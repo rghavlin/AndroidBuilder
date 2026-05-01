@@ -11,7 +11,7 @@ export class ScentTrail {
    * @param {number} y - Y coordinate
    * @param {number} intensity - Number of turns the scent lasts
    */
-  static dropScent(gameMap, x, y, intensity = 3) {
+  static dropScent(gameMap, x, y, intensity = 10) {
     const tile = gameMap.getTile(x, y);
     if (tile) {
       gameMap.scentSequenceCounter++;

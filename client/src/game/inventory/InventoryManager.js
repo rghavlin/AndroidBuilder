@@ -185,7 +185,10 @@ export class InventoryManager extends SafeEventEmitter {
                 console.log(`[InventoryManager] 📦 Preserved dragged item ${draggedObj.name} during abort-clear`);
             }
         } else {
-            this.groundContainer.clear();
+            // CRITICAL FIX: If we rejected the save because of a mismatch (e.g. heartbeat during animation),
+            // DO NOT clear the container! Clearing it here causes the "wagon deletion" bug because 
+            // the heartbeat thinks we are at A, but the container has items from B.
+            console.warn(`[InventoryManager] ⚠️ REJECTED SAVE: Preserving container contents during ownership mismatch to prevent data loss.`);
         }
         
         this.groundManager.updateCategoryAreas();

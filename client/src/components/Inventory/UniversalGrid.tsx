@@ -370,6 +370,9 @@ export default function UniversalGrid({
 
       // If placement failed on empty space, just log a warning and cancel selection
       console.warn('[UniversalGrid] Placement failed:', result.reason);
+      if (!result.reason) {
+        console.debug('[UniversalGrid] Placement failed with no reason - likely blocked by checkPlayerTurn');
+      }
       playSound('Fail');
       clearSelected();
       return;

@@ -73,66 +73,105 @@ export class ZombieAI {
           
           const distToPlayer = Math.abs(zombie.logicalX - player.logicalX) + Math.abs(zombie.logicalY - player.logicalY);
 
-          // A) CLOSE RANGE: Swarm/Surround logic (Dist <= 3)
-          if (distToPlayer <= 3 && playerCardinalPositions && playerCardinalPositions.length > 0) {
-              const targetSpots = [...playerCardinalPositions].sort((a, b) => {
+          // A) CLOSE RANGE: Swarm/Surround logic (8-tile awareness)
+          if (distToPlayer <= 4 && playerCardinalPositions && playerCardinalPositions.length > 0) {
+              // Try to find ANY available spot around the player (8 tiles)
+              const adjacentSpots = [];
+              for (let dx = -1; dx <= 1; dx++) {
+                  for (let dy = -1; dy <= 1; dy++) {
+                      if (dx === 0 && dy === 0) continue;
+                      adjacentSpots.push({ x: player.logicalX + dx, y: player.logicalY + dy });
+                  }
+              }
+
+              // Sort by distance to zombie to pick the most efficient flanking spot
+              adjacentSpots.sort((a, b) => {
                   const distA = Math.abs(a.x - zombie.logicalX) + Math.abs(a.y - zombie.logicalY);
                   const distB = Math.abs(b.x - zombie.logicalX) + Math.abs(b.y - zombie.logicalY);
                   return distA - distB;
               });
 
               let swarmMoveFound = false;
-              for (const spot of targetSpots) {
+              for (const spot of adjacentSpots) {
                   const tile = gameMap.getTile(spot.x, spot.y);
-                  const isOccupiedByOther = tile && tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
+                  if (!tile || !tile.isWalkable(zombie, { ignoreZombies: false })) continue;
+                  
+                  // Check if another zombie is already there (logical position)
+                  const isOccupiedByOther = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
                   if (isOccupiedByOther) continue;
 
-                  // Only move if it's an improvement or maintaining adjacency
-                  const candDist = Math.abs(spot.x - player.logicalX) + Math.abs(spot.y - player.logicalY);
-                  if (candDist > distToPlayer && distToPlayer <= 1) continue;
-
                   actionResult = this.attemptMoveTowards(zombie, gameMap, spot.x, spot.y);
-                  if (actionResult.success) {
+                  if (actionResult && actionResult.success) {
                       swarmMoveFound = true;
                       break;
                   }
               }
 
-              if (swarmMoveFound) {
-                  turnResult.actions.push(actionResult);
-                  continue;
+              if (!swarmMoveFound) {
+                  // If all adjacent spots are full, don't WAIT and end turn. 
+                  // Instead, we fall through to Greedy Pursuit to try and at least get closer 
+                  // or stand behind a comrade.
+                  console.log(`[ZombieAI] ${zombie.id} swarm spots full, falling back to pursuit.`);
+              } else {
+                  // Swarm move successful
               }
-
-              // B) WAIT logic: If all spots are blocked, wait and growl
-              console.log(`[ZombieAI] ${zombie.id} is blocked by swarm. Waiting...`);
-              zombie.useAP(1.0);
-              GameEvents.emit(GAME_EVENT.ZOMBIE_WAIT, { zombie });
-              actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 1.0 } };
-          } else {
-              // C) LONG RANGE: Greedy Pursuit
+          } 
+          
+          if (!actionResult || !actionResult.success) {
+              // C) LONG RANGE: Greedy Pursuit with Flanking Fallback
               const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
+              
+              // Sort by distance to player, with a tie-breaker for structures
               neighbors.sort((a, b) => {
                   const distA = Math.abs(a.x - player.logicalX) + Math.abs(a.y - player.logicalY);
                   const distB = Math.abs(b.x - player.logicalX) + Math.abs(b.y - player.logicalY);
-                  return distA - distB;
+                  if (distA !== distB) return distA - distB;
+                  
+                  // Tie-breaker: Prioritize tiles with doors/windows to encourage breaching
+                  const tileA = gameMap.getTile(a.x, a.y);
+                  const tileB = gameMap.getTile(b.x, b.y);
+                  const hasStructA = tileA && tileA.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                  const hasStructB = tileB && tileB.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                  if (hasStructA && !hasStructB) return -1;
+                  if (!hasStructA && hasStructB) return 1;
+                  return 0;
               });
 
               let moveFound = false;
               for (const cand of neighbors) {
                   const candDist = Math.abs(cand.x - player.logicalX) + Math.abs(cand.y - player.logicalY);
                   
-                  // Phase 28 Fix: Only move if it actually gets us closer!
-                  if (candDist >= distToPlayer) continue;
+                  // Allow moving closer OR moving at same distance if the tile is a door/window
+                  const candTile = gameMap.getTile(cand.x, cand.y);
+                  const isStructure = candTile && candTile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                  
+                  if (candDist > distToPlayer) continue;
+                  if (candDist === distToPlayer && !isStructure) {
+                      // Only allow equal-distance moves for flanking other zombies, not for ignoring buildings
+                      const hasComrade = candTile && candTile.contents.some(e => e.type === EntityType.ZOMBIE);
+                      if (!hasComrade) continue;
+                  }
 
                   actionResult = this.attemptMoveTowards(zombie, gameMap, cand.x, cand.y);
-                  if (actionResult.success) {
+                  if (actionResult && actionResult.success) {
                       moveFound = true;
                       break;
                   }
               }
 
+              // D) PATHFINDING FALLBACK: If greedy neighbors failed (logjam), use A* to find a path around
               if (!moveFound) {
-                  actionResult = { success: false, reason: 'Pursuit stuck' };
+                  console.log(`[ZombieAI] ${zombie.id} greedy pursuit blocked, trying A* pathfinding around obstacles.`);
+                  actionResult = this.attemptMoveTowards(zombie, gameMap, player.logicalX, player.logicalY);
+                  if (actionResult && actionResult.success) {
+                      moveFound = true;
+                  }
+              }
+
+              if (!moveFound) {
+                  // If we still can't move, just wait 0.5 AP and continue (don't break turn)
+                  zombie.useAP(0.5);
+                  actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 0.5 } };
               }
           }
       }
@@ -144,6 +183,15 @@ export class ZombieAI {
           console.log(`[ZombieAI] ${zombie.id} Investigating LKP at (${targetX}, ${targetY}). Current: (${zombie.logicalX}, ${zombie.logicalY})`);
 
           if (zombie.logicalX === targetX && zombie.logicalY === targetY) {
+              // Reached LKP/Noise - Check for breadcrumbs before giving up
+              const freshest = ScentTrail.findFreshestScent(gameMap, zombie.logicalX, zombie.logicalY, 3, zombie.lastScentSequence || 0);
+              if (freshest) {
+                  zombie.setTargetSighted(freshest.x, freshest.y);
+                  zombie.lastScentSequence = freshest.sequence;
+                  zombie.behaviorState = 'tracking';
+                  console.log(`[ZombieAI] ${zombie.id} reached LKP, found breadcrumb at (${freshest.x}, ${freshest.y}). Following.`);
+                  continue;
+              }
               zombie.clearLastSeen();
               zombie.clearNoiseHeard();
               zombie.behaviorState = 'wandering';
@@ -156,7 +204,15 @@ export class ZombieAI {
               neighbors.sort((a, b) => {
                   const distA = Math.abs(a.x - targetX) + Math.abs(a.y - targetY);
                   const distB = Math.abs(b.x - targetX) + Math.abs(b.y - targetY);
-                  return distA - distB;
+                  if (distA !== distB) return distA - distB;
+                  
+                  const tileA = gameMap.getTile(a.x, a.y);
+                  const tileB = gameMap.getTile(b.x, b.y);
+                  const hasStructA = tileA && tileA.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                  const hasStructB = tileB && tileB.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                  if (hasStructA && !hasStructB) return -1;
+                  if (!hasStructA && hasStructB) return 1;
+                  return 0;
               });
 
               let moveFound = false;
@@ -169,13 +225,41 @@ export class ZombieAI {
               }
 
               if (!moveFound) {
-                  console.warn(`[ZombieAI] ${zombie.id} Investigation blocked to (${targetX}, ${targetY})`);
-                  zombie.clearLastSeen();
-                  zombie.clearNoiseHeard();
+                  // Fallback: If neighbors blocked, try full A* to the investigation target
+                  actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
+                  if (actionResult && actionResult.success) {
+                      moveFound = true;
+                  }
+              }
+
+              if (!moveFound) {
+                  // Only clear if we literally cannot move at all or the target is invalid
+                  const targetTile = gameMap.getTile(targetX, targetY);
+                  if (!targetTile || !targetTile.isWalkable(zombie, { allowBreaching: true })) {
+                    console.log(`[ZombieAI] ${zombie.id} Investigation target invalid, clearing.`);
+                    zombie.clearLastSeen();
+                    zombie.clearNoiseHeard();
+                  } else {
+                    // Just wait and try again next loop/turn
+                    zombie.useAP(1.0);
+                    actionResult = { success: true, type: 'WAIT' };
+                  }
               }
           }
       }
-      // 4. WANDER (Priority 4: Random movement)
+      // 4. TRACKING (Priority 4: Follow Scent Trail)
+      else if (true) {
+          const freshestScent = ScentTrail.findFreshestScent(gameMap, zombie.logicalX, zombie.logicalY, 5, zombie.lastScentSequence || 0);
+          if (freshestScent) {
+              zombie.behaviorState = 'tracking';
+              zombie.lastScentSequence = freshestScent.sequence;
+              zombie.setTargetSighted(freshestScent.x, freshestScent.y);
+              console.log(`[ZombieAI] ${zombie.id} picking up breadcrumb trail at (${freshestScent.x}, ${freshestScent.y})`);
+              continue; 
+          }
+      }
+
+      // 5. WANDER (Priority 5: Random movement)
       else {
           zombie.behaviorState = 'wandering';
           actionResult = this.executeRandomWanderStep(zombie, gameMap);
@@ -184,7 +268,10 @@ export class ZombieAI {
       // Process action result
       if (actionResult && actionResult.success) {
           turnResult.actions.push(actionResult);
-          if (actionResult.type === 'WAIT') break;
+          // Never break turn on WAIT, allow loop to continue until AP exhausted
+          if (actionResult.type === 'WAIT') {
+              // safety continue
+          }
       } else {
           console.log(`[ZombieAI] ${zombie.id} turn ending: stuck or finished. AP=${zombie.currentAP}`);
           break; 

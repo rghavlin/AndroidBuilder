@@ -269,7 +269,11 @@ export const PlayerProvider = ({ children }) => {
 
         // Final snap
         if (engine.gameMap && engine.player) {
-           engine.gameMap.moveEntity(engine.player.id, final.x, final.y);
+           const options = {};
+           if (engine.dragging && engine.dragging.item) {
+               options.draggedItemId = engine.dragging.item.instanceId;
+           }
+           engine.gameMap.moveEntity(engine.player.id, final.x, final.y, options);
            path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y, 3); });
         }
 

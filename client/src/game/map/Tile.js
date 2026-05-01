@@ -91,6 +91,11 @@ export class Tile {
          // EXCEPTION: Same-tile safety
          if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;
          
+         // NEW: Check if this item is currently being dragged by the player
+         if (options.draggedItemId && (item.instanceId === options.draggedItemId || item.id === options.draggedItemId)) {
+             continue;
+         }
+
          // NEW: Check if we should ignore zombies (logjam prevention)
          if (options.ignoreZombies && item.type === EntityType.ZOMBIE) continue;
          

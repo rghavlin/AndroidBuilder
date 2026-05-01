@@ -122,7 +122,9 @@ export const InventoryProvider = ({ children }) => {
   
   const checkPlayerTurn = useCallback((silent = false) => {
     if (engine.turnPhase !== 'PLAYER_TURN' || engine.isAutosaving) {
-      if (!silent) console.debug('[InventoryContext] Interaction blocked - Not player turn or autosaving');
+      if (!silent) {
+        console.warn(`[InventoryContext] Interaction blocked - Phase: ${engine.turnPhase}, Autosaving: ${engine.isAutosaving}`);
+      }
       return false;
     }
     return true;

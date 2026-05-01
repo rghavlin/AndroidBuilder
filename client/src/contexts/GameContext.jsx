@@ -576,43 +576,55 @@ const GameContextInner = ({ children }) => {
 
   const performAutosave = useCallback((turnOverride = null) => {
     if (!isInitialized || engine.isSleeping) return false;
-
     try {
       setIsAutosaving(true);
-
+      engine.isAutosaving = true; // Phase 28 Fix: Immediate sync to prevent interaction races
+      
       // FIX 4: CRITICAL - Verify player is on map before saving
-      const playersOnMap = engine.gameMap?.getEntitiesByType('player') || [];
-      if (playersOnMap.length === 0) {
-        console.error('[GameContext] Autosave aborted - no player on map!');
+      if (!engine.player || !engine.gameMap || !engine.gameMap.getTile(engine.player.x, engine.player.y)) {
+        console.warn('[GameContext] ABORTING AUTOSAVE: Player not found on map');
         setIsAutosaving(false);
+        engine.isAutosaving = false;
         return false;
       }
 
-      console.log('[GameContext] Performing autosave with valid game state...');
-
+      // 1. Prepare minimal state snapshot
       const currentGameState = {
+        turn: turnOverride || turn,
         gameMap: engine.gameMap,
         worldManager: engine.worldManager,
         player: engine.player,
+        inventoryManager: engine.inventoryManager,
         camera: engine.camera,
-        inventoryManager: inventoryManager,
-        turn: turnOverride !== null ? turnOverride : turn,
-        isPlayerTurn: isPlayerTurn,
-        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
+        playerStats: {
+            hp: engine.player.hp,
+            maxHp: engine.player.maxHp,
+            ap: engine.player.ap,
+            maxAp: engine.player.maxAp,
+            nutrition: engine.player.nutrition,
+            maxNutrition: engine.player.maxNutrition,
+            hydration: engine.player.hydration,
+            maxHydration: engine.player.maxHydration,
+            energy: engine.player.energy,
+            maxEnergy: engine.player.maxEnergy
+        },
+        metadata: engine.gameMap.metadata || {}
       };
 
+      // 2. Perform IO
       const success = GameSaveSystem.saveToLocalStorage(currentGameState, 'autosave');
+      
       if (success) {
-        console.log('[GameContext] Autosave completed successfully');
-      } else {
-        console.warn('[GameContext] Autosave failed');
+        console.log(`[GameContext] 💾 Autosave successful at Turn ${turnOverride || turn}`);
       }
 
       setIsAutosaving(false);
+      engine.isAutosaving = false;
       return success;
     } catch (error) {
       console.error('[GameContext] Autosave error:', error);
       setIsAutosaving(false);
+      engine.isAutosaving = false;
       return false;
     }
   }, [isInitialized, inventoryManager, turn]);
@@ -666,6 +678,9 @@ const GameContextInner = ({ children }) => {
       gameMap.entityMap.forEach(e => {
         if (typeof e.endTurn === 'function') e.endTurn();
       });
+
+      // Safety Reset: Ensure the singleton is NOT left in ANIMATING state if playback finishes/crashes
+      engine.turnPhase = 'PLAYER_TURN';
     }
   }, [engine, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, triggerMapUpdate, performAutosave, isFlashlightOnActual, setTurn]);
 
@@ -730,6 +745,7 @@ const GameContextInner = ({ children }) => {
     } catch (error) {
       console.error(`[GameContext] ❌ FATAL ERROR during turn cycle [ID:${timestamp}]:`, error);
       setTurnPhase('PLAYER_TURN'); // Recovery
+      engine.turnPhase = 'PLAYER_TURN';
     } finally {
       isProcessingTurnRef.current = false;
       setIsProcessingTurn(false);
@@ -798,43 +814,50 @@ const GameContextInner = ({ children }) => {
     if (!activeNpcDemand) return;
     const { npc } = activeNpcDemand;
     
-    if (choice === 'surrender') {
-      extortPlayer(npc);
-    } else {
-      // Refuse
-      npc.hasDemanded = true;
-      npc.isHostile = true;
-      npc.behaviorState = 'attacking';
-      addLog(`You refused ${npc.name}'s demands. Prepare for a fight!`, 'hostile');
-    }
-
-    // Follow-up only if it's the NPC's turn phase
-    if (activeNpcDemand.isNpcTurn) {
-      console.log(`[GameContext] ⚔️ NPC ${npc.name} preparing retaliation (Current AP: ${npc.ap})`);
-      
-      // Ensure NPC has fresh AP for the follow-up if they used it all to approach
-      if (npc.ap < 2.0) {
-        console.log(`[GameContext] ⚡ Boosting NPC AP for follow-up attack`);
-        npc.ap = 4.0; 
-      }
-      
-      setTurnPhase('ANIMATING'); // Lock UI
-      const retryResult = NPCAI.executeNPCTurn(npc, engine.gameMap, engine.player, [], true);
-      
-      if (retryResult.success && retryResult.actions.length > 0) {
-         console.log(`[GameContext] 🏃 NPC ${npc.name} performing ${retryResult.actions.length} follow-up actions...`, retryResult.actions);
-         const nextHour = (6 + (turn - 1)) % 24;
-         const nextIsNight = nextHour >= 20 || nextHour < 6;
-
-         await playbackTurn(retryResult.actions, false, turn, nextIsNight);
+    try {
+      if (choice === 'surrender') {
+        extortPlayer(npc);
       } else {
-        console.log(`[GameContext] ⏹️ NPC ${npc.name} has no follow-up actions (Final AP: ${npc.ap})`);
+        // Refuse
+        npc.hasDemanded = true;
+        npc.isHostile = true;
+        npc.behaviorState = 'attacking';
+        addLog(`You refused ${npc.name}'s demands. Prepare for a fight!`, 'hostile');
       }
+
+      // Follow-up only if it's the NPC's turn phase
+      if (activeNpcDemand.isNpcTurn) {
+        console.log(`[GameContext] ⚔️ NPC ${npc.name} preparing retaliation (Current AP: ${npc.ap})`);
+        
+        // Ensure NPC has fresh AP for the follow-up if they used it all to approach
+        if (npc.ap < 2.0) {
+          console.log(`[GameContext] ⚡ Boosting NPC AP for follow-up attack`);
+          npc.ap = 4.0; 
+        }
+        
+        setTurnPhase('ANIMATING'); // Lock UI
+        engine.turnPhase = 'ANIMATING';
+
+        const retryResult = NPCAI.executeNPCTurn(npc, engine.gameMap, engine.player, [], true);
+        
+        if (retryResult.success && retryResult.actions.length > 0) {
+           console.log(`[GameContext] 🏃 NPC ${npc.name} performing ${retryResult.actions.length} follow-up actions...`, retryResult.actions);
+           const nextHour = (6 + (turn - 1)) % 24;
+           const nextIsNight = nextHour >= 20 || nextHour < 6;
+
+           await playbackTurn(retryResult.actions, false, turn, nextIsNight);
+        } else {
+          console.log(`[GameContext] ⏹️ NPC ${npc.name} has no follow-up actions (Final AP: ${npc.ap})`);
+        }
+      }
+    } catch (err) {
+      console.error('[GameContext] Error during NPC demand response:', err);
+    } finally {
+      setActiveNpcDemand(null);
+      setTurnPhase('PLAYER_TURN'); // Resume game
+      engine.turnPhase = 'PLAYER_TURN';
+      engine.notifyUpdate();
     }
-    
-    setActiveNpcDemand(null);
-    setTurnPhase('PLAYER_TURN'); // Resume game
-    engine.notifyUpdate();
   }, [activeNpcDemand, extortPlayer, playbackTurn, turn, addLog]);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
