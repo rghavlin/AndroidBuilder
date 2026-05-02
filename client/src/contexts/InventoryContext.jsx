@@ -84,11 +84,13 @@ export const InventoryProvider = ({ children }) => {
     const manager = engine.inventoryManager;
     if (!manager) return;
 
-    // Initial sync / Re-sync on engine pulse
+    // Phase 12 & 28 Fix: Ensure ground container is synced on full sync/load
+    // AND Bridge manager events to the engine heartbeat.
+    // CRITICAL: We use logicalX/Y to avoid jumping during animation.
     if (engine.player && engine.gameMap) {
       manager.syncWithMap(
-        engine.player.x, engine.player.y,
-        engine.player.x, engine.player.y,
+        engine.player.logicalX, engine.player.logicalY,
+        engine.player.logicalX, engine.player.logicalY,
         engine.gameMap
       );
     }

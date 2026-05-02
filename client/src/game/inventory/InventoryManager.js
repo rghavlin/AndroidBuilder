@@ -122,14 +122,16 @@ export class InventoryManager extends SafeEventEmitter {
    * @param {GameMap} gameMap - Current game map
    */
   syncWithMap(oldX, oldY, newX, newY, gameMap) {
-    if (!gameMap) return false;
+    // Phase 28 Fix: Sanitize to integers to prevent floating-point tile misses
+    oldX = Math.floor(oldX);
+    oldY = Math.floor(oldY);
+    newX = Math.floor(newX);
+    newY = Math.floor(newY);
 
     // Phase 22 Guard: Prevent identity sync loops. 
     // If we've already synced the container for this specific tile, do NOTHING. 
     // This stops 'save->clear->reload' cycles that trigger infinite change events when player is stationary.
     if (this.lastSyncedX === newX && this.lastSyncedY === newY && this.groundContainer.getItemCount() > 0) {
-        // Special case: if container is empty but map has items, we might need a refresh, 
-        // but for moving/stationary guards this is exactly what we need.
         return false;
     }
 
@@ -141,8 +143,18 @@ export class InventoryManager extends SafeEventEmitter {
     
     // Phase 12 Fix: Robust Ownership Verification
     // Only save items back to the map if we are CERTAIN they belong to that tile.
-    const isOwnerOfOldTile = this.lastSyncedX === oldX && this.lastSyncedY === oldY;
-    const isOwnerOfNewTile = this.lastSyncedX === newX && this.lastSyncedY === newY;
+    let isOwnerOfOldTile = this.lastSyncedX === oldX && this.lastSyncedY === oldY;
+    let isOwnerOfNewTile = this.lastSyncedX === newX && this.lastSyncedY === newY;
+
+    // Phase 28 Fix: Map Transition Hardening
+    // If we have items but no lastSynced (transition), establish ownership of the new tile immediately.
+    if (this.lastSyncedX === null && itemsToSave.length > 0) {
+        console.log(`[InventoryManager] 🏳️ Establishing ownership of carried items at (${newX}, ${newY})`);
+        this.lastSyncedX = newX;
+        this.lastSyncedY = newY;
+        isOwnerOfOldTile = false;
+        isOwnerOfNewTile = true;
+    }
 
     if (itemsToSave.length > 0) {
       if (isOwnerOfOldTile) {
@@ -173,7 +185,13 @@ export class InventoryManager extends SafeEventEmitter {
         console.warn(`[InventoryManager] ⚠️ ABORT SAVE: Items in container already belong to destination (${newX}, ${newY}). Skipping save to ORIGIN (${oldX}, ${oldY}) to prevent teleportation!`);
         // We DON'T clear the container here because we want to KEEP the items for the new tile
       } else {
-        console.warn(`[InventoryManager] ⚠️ ABORT SAVE: Ground items ownership mismatch. Expected (${this.lastSyncedX}, ${this.lastSyncedY}), but sync requested save to (${oldX}, ${oldY}). Clearing container for safety.`);
+        // Phase 28 Fix: Enhanced diagnostic logging for ownership mismatches
+        console.warn(`[InventoryManager] ⚠️ ABORT SAVE: Ground items ownership mismatch!`, {
+            expected: `(${this.lastSyncedX}, ${this.lastSyncedY})`,
+            actualOld: `(${oldX}, ${oldY})`,
+            actualNew: `(${newX}, ${newY})`,
+            itemCount: itemsToSave.length
+        });
         
         // Phase 25: Even in abort, PRESERVE the dragged item
         if (this.draggedItem) {

@@ -262,10 +262,7 @@ export const PlayerProvider = ({ children }) => {
         const final = path[path.length - 1];
         const start = path[0];
 
-        // Phase 12 Fix: Sync ground loot BEFORE physically moving entity in engine.
-        if (engine.inventoryManager) {
-            engine.inventoryManager.syncWithMap(start.x, start.y, final.x, final.y, gameMap);
-        }
+        // Phase 12 Fix: Manual sync removed (now handled by global playerMoved listener)
 
         // Final snap
         if (engine.gameMap && engine.player) {
