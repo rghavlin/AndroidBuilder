@@ -167,7 +167,12 @@ const GameContextInner = ({ children }) => {
           console.log(`[GameContext] Zombie ${zombie.id} spotted player at (${checkPlayer.x}, ${checkPlayer.y})!`);
         }
         
-        // The PlayerZombieTracker now handles LKP setting accurately when LOS is lost.
+        // CRITICAL: Always update LKP when zombie has confirmed LOS.
+        // This ensures the zombie has a valid investigation target if it loses
+        // sight of the player before its turn runs (e.g. player steps in then out).
+        const pX = Math.round(checkPlayer.logicalX !== undefined ? checkPlayer.logicalX : checkPlayer.x);
+        const pY = Math.round(checkPlayer.logicalY !== undefined ? checkPlayer.logicalY : checkPlayer.y);
+        zombie.setTargetSighted(pX, pY);
       }
     });
 

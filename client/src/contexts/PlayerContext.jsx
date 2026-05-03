@@ -281,6 +281,17 @@ export const PlayerProvider = ({ children }) => {
         updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange, isNightVision);
         updatePlayerCardinalPositions(gameMap);
         
+        // CRITICAL: Force a final tracker sync at movement end.
+        // This catches the case where the player returns to their starting tile
+        // (the _lastTrackedX optimization would skip this otherwise), ensuring
+        // any zombies that lost sight during the move get their LKP set.
+        if (engine.zombieTracker) {
+          const finalVisibleTiles = engine.playerFieldOfView || [];
+          engine.zombieTracker.updateTracking(gameMap, { x: final.x, y: final.y, id: engine.player.id }, finalVisibleTiles);
+          engine.zombieTracker._lastTrackedX = final.x;
+          engine.zombieTracker._lastTrackedY = final.y;
+        }
+
         setMovementPath([]);
         setMovementProgress(0);
         GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);

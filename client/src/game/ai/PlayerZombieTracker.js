@@ -34,12 +34,14 @@ export class PlayerZombieTracker {
     // Process newly spotted zombies
     this.processNewlySpottedZombies(currentlyVisibleZombies, player);
 
-    // IMPORTANT: Update tracked zombies BEFORE checking for lost sight
-    // This ensures we have the most recent player position for each zombie
-    this.updateTrackedZombies(currentlyVisibleZombies, player);
-
-    // Process zombies that have left player's sight
+    // CRITICAL ORDER FIX: Process lost-sight BEFORE updating tracked positions.
+    // If we updated positions first, the LKP would be poisoned with the player's
+    // new hidden coordinates instead of the last confirmed visible position.
     this.processZombiesLostFromSight(currentlyVisibleZombies, player, playerMovement);
+
+    // Only AFTER recording LKPs for lost-sight zombies, update positions for
+    // zombies that still have confirmed LOS at the player's new location.
+    this.updateTrackedZombies(currentlyVisibleZombies, player);
   }
 
   /**
@@ -142,14 +144,20 @@ export class PlayerZombieTracker {
     const pX = Math.round(player.logicalX !== undefined ? player.logicalX : player.x);
     const pY = Math.round(player.logicalY !== undefined ? player.logicalY : player.y);
 
+    // Only update lastPlayerPos for zombies that are CONFIRMED still visible at the
+    // player's new position. This set only contains zombies with active LOS.
+    const confirmedVisibleIds = new Set(currentlyVisibleZombies.map(({ zombie }) => zombie.id));
+
     currentlyVisibleZombies.forEach(({ zombie }) => {
-      if (this.spottedZombies.has(zombie.id)) {
-        // Update last known player position
+      if (this.spottedZombies.has(zombie.id) && confirmedVisibleIds.has(zombie.id)) {
+        // Safe to update: zombie has confirmed LOS to the player's new position
         this.spottedZombies.set(zombie.id, {
           zombie,
           lastPlayerPos: { x: pX, y: pY }
         });
       }
+      // If not in confirmedVisibleIds, processZombiesLostFromSight already
+      // handled this zombie and recorded the correct lastPlayerPos.
     });
   }
 

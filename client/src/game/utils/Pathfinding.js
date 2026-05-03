@@ -3,8 +3,53 @@
  * Universal Pathfinding System
  * Pure functional pathfinding utility for all entities
  * Follows UniversalGoals.md: modular, testable, serializable
+ * Optimized with Min-Heap for Phase 32 performance fix.
  */
 import { EntityType } from '../entities/Entity.js';
+
+class MinHeap {
+  constructor(comparator) {
+    this.heap = [];
+    this.comparator = comparator;
+  }
+  push(val) {
+    this.heap.push(val);
+    this.bubbleUp();
+  }
+  pop() {
+    if (this.size() === 0) return null;
+    if (this.size() === 1) return this.heap.pop();
+    const top = this.heap[0];
+    this.heap[0] = this.heap.pop();
+    this.bubbleDown();
+    return top;
+  }
+  size() { return this.heap.length; }
+  bubbleUp() {
+    let index = this.heap.length - 1;
+    while (index > 0) {
+      let parentIndex = Math.floor((index - 1) / 2);
+      if (this.comparator(this.heap[index], this.heap[parentIndex]) < 0) {
+        [this.heap[index], this.heap[parentIndex]] = [this.heap[parentIndex], this.heap[index]];
+        index = parentIndex;
+      } else break;
+    }
+  }
+  bubbleDown() {
+    let index = 0;
+    while (true) {
+      let left = 2 * index + 1;
+      let right = 2 * index + 2;
+      let smallest = index;
+      if (left < this.heap.length && this.comparator(this.heap[left], this.heap[smallest]) < 0) smallest = left;
+      if (right < this.heap.length && this.comparator(this.heap[right], this.heap[smallest]) < 0) smallest = right;
+      if (smallest !== index) {
+        [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
+        index = smallest;
+      } else break;
+    }
+  }
+}
 
 export class Pathfinding {
   /**
@@ -37,30 +82,30 @@ export class Pathfinding {
     if (!this.isTileWalkable(startTile, entityFilter || options.entity, options)) return [];
     if (startX === endX && startY === endY) return [{ x: startX, y: startY }];
 
-    const openSet = [{ 
+    const openSet = new MinHeap((a, b) => {
+      if (a.f !== b.f) return a.f - b.f;
+      return a.h - b.h;
+    });
+    
+    const startNode = { 
       x: startX, 
       y: startY, 
       g: 0, 
       h: this.heuristic(startX, startY, endX, endY, allowDiagonal), 
       f: 0, 
       parent: null 
-    }];
+    };
+    startNode.f = startNode.g + startNode.h;
+    
     const closedSet = new Set();
     const openSetMap = new Map();
 
-    openSet[0].f = openSet[0].g + openSet[0].h;
-    openSetMap.set(`${startX},${startY}`, openSet[0]);
+    openSet.push(startNode);
+    openSetMap.set(`${startX},${startY}`, startNode);
 
-    while (openSet.length > 0) {
-      let currentIndex = 0;
-      for (let i = 1; i < openSet.length; i++) {
-        if (openSet[i].f < openSet[currentIndex].f || 
-            (openSet[i].f === openSet[currentIndex].f && openSet[i].h < openSet[currentIndex].h)) {
-          currentIndex = i;
-        }
-      }
-
-      const current = openSet.splice(currentIndex, 1)[0];
+    while (openSet.size() > 0) {
+      const current = openSet.pop();
+      if (!current) break;
       openSetMap.delete(`${current.x},${current.y}`);
       closedSet.add(`${current.x},${current.y}`);
 
@@ -76,12 +121,13 @@ export class Pathfinding {
         const neighborTile = gameMap.getTile(neighbor.x, neighbor.y);
         if (!neighborTile) continue;
         
+        const isTarget = neighbor.x === endX && neighbor.y === endY;
         const isWalkable = this.isTileWalkable(neighborTile, entityFilter || options.entity, options);
         
         // REVISE: Allow pathfinding through closed doors/windows for zombies
         const hasBreachableStructure = (isZombie || options.entity?.type === 'zombie') && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window');
         
-        if (!isWalkable && !hasBreachableStructure) continue;
+        if (!isWalkable && !hasBreachableStructure && !isTarget) continue;
 
         if (allowDiagonal && this.isDiagonalMove(current.x, current.y, neighbor.x, neighbor.y)) {
           if (!this.canMoveDiagonally(gameMap, current.x, current.y, neighbor.x, neighbor.y, entityFilter || options.entity, options)) continue;

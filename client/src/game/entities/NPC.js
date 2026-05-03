@@ -59,13 +59,34 @@ export class NPC extends Entity {
     const { type, data } = action;
     const { onImpact } = callbacks;
 
+    // Optimization: Skip full animation for off-screen entities to speed up turn playback
+    const camera = engine.camera;
+    const fromPos = data.from || { x: this.x, y: this.y };
+    const toPos = data.to || fromPos;
+    
+    // Check visibility for both start and end points
+    const isFromVisible = camera ? camera.isTileVisible(Math.round(fromPos.x), Math.round(fromPos.y)) : true;
+    const isToVisible = camera ? camera.isTileVisible(Math.round(toPos.x), Math.round(toPos.y)) : true;
+    const isVisible = isFromVisible || isToVisible;
+
     if (type === 'MOVE') {
-      const from = data.from || { x: this.x, y: this.y };
-      const to = data.to;
+      const from = fromPos;
+      const to = toPos;
 
       if (from.x === to.x && from.y === to.y) return Promise.resolve();
 
       this.movementPath = [from, to];
+      
+      if (!isVisible) {
+          // Off-screen move: Snap immediately
+          this.renderX = to.x;
+          this.renderY = to.y;
+          this.x = to.x;
+          this.y = to.y;
+          this.movementPath = [];
+          return Promise.resolve();
+      }
+
       this.isAnimating = true;
 
       const duration = 150;
@@ -83,14 +104,19 @@ export class NPC extends Entity {
     }
 
     if (type === 'ATTACK') {
-      this.isAnimating = true;
-      
       // Phase 28 Fix: Visual-Logical Sync
       if (data.from) {
         this.x = data.from.x;
         this.y = data.from.y;
       }
       
+      if (!isVisible) {
+          // Off-screen attack: Trigger impact and resolve with tiny delay
+          if (onImpact) onImpact();
+          return new Promise(resolve => setTimeout(resolve, 20));
+      }
+
+      this.isAnimating = true;
       const duration = 200;
       const impactPoint = 100; // Visual contact at 50%
       const seq = new SequencerAction(this, duration, impactPoint, onImpact);

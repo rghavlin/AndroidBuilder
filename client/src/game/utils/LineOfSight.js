@@ -55,46 +55,95 @@ export class LineOfSight {
       };
     }
 
-    // Get line path using Bresenham's line algorithm
-    const linePath = this.getLinePath(startX, startY, endX, endY);
+    // PHASE 30 FIX: Robust Bresenham with Corner Blocking
+    // Ensure all inputs are integers for grid-based math
+    const x0 = Math.round(startX);
+    const y0 = Math.round(startY);
+    const x1 = Math.round(endX);
+    const y1 = Math.round(endY);
 
-    if (debug) {
-      logger.debug(`Checking path from (${startX}, ${startY}) to (${endX}, ${endY}):`, linePath);
-    }
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
 
-    // Check each point in the line for obstacles (excluding start and end points)
-    for (let i = 1; i < linePath.length - 1; i++) {
-      const point = linePath[i];
-      const tile = gameMap.getTile(point.x, point.y);
+    let x = x0;
+    let y = y0;
 
+    // Safety counter to prevent hard hangs
+    let safety = 0;
+    const maxIterations = (dx + dy + 2) * 2;
+
+    const path = [{ x: x0, y: y0 }];
+
+    while (safety < maxIterations) {
+      safety++;
+      
+      const e2 = 2 * err;
+      const xChanged = e2 > -dy;
+      const yChanged = e2 < dx;
+
+      // DIAGONAL CORNER CHECK: If both X and Y are about to change, check the corners
+      if (xChanged && yChanged) {
+          const corner1 = gameMap.getTile(x + sx, y);
+          const corner2 = gameMap.getTile(x, y + sy);
+          
+          const isBlocked1 = corner1 && (this.isTerrainBlocking(corner1.terrain, ignoreTerrain) || this.getBlockingEntity(corner1, ignoreEntities));
+          const isBlocked2 = corner2 && (this.isTerrainBlocking(corner2.terrain, ignoreTerrain) || this.getBlockingEntity(corner2, ignoreEntities));
+          
+          // If BOTH cardinal corners block sight, the diagonal path is blocked
+          if (isBlocked1 && isBlocked2) {
+              return {
+                  hasLineOfSight: false,
+                  distance: distance,
+                  blockedBy: { type: 'corner', position: { x, y } },
+                  path: path
+              };
+          }
+      }
+
+      if (xChanged) {
+        err -= dy;
+        x += sx;
+      }
+      if (yChanged) {
+        err += dx;
+        y += sy;
+      }
+
+      path.push({ x, y });
+
+      // If we reached the target, we're done - the target tile itself doesn't block sight to itself
+      if (x === x1 && y === y1) break;
+
+      // Check intermediate tile
+      const tile = gameMap.getTile(x, y);
       if (!tile) {
-        // Out of bounds blocks sight
         return {
           hasLineOfSight: false,
           distance: distance,
-          blockedBy: { type: 'bounds', position: point, message: 'Out of map bounds' },
-          path: linePath.slice(0, i + 1)
+          blockedBy: { type: 'bounds', position: { x, y }, message: 'Out of map bounds' },
+          path: path
         };
       }
 
-      // Check terrain blocking
       if (this.isTerrainBlocking(tile.terrain, ignoreTerrain)) {
         return {
           hasLineOfSight: false,
           distance: distance,
-          blockedBy: { type: 'terrain', terrain: tile.terrain, position: point },
-          path: linePath.slice(0, i + 1)
+          blockedBy: { type: 'terrain', terrain: tile.terrain, position: { x, y } },
+          path: path
         };
       }
 
-      // Check entity blocking
       const blockingEntity = this.getBlockingEntity(tile, ignoreEntities);
       if (blockingEntity) {
         return {
           hasLineOfSight: false,
           distance: distance,
-          blockedBy: { type: 'entity', entity: blockingEntity, position: point },
-          path: linePath.slice(0, i + 1)
+          blockedBy: { type: 'entity', entity: blockingEntity, position: { x, y } },
+          path: path
         };
       }
     }
@@ -104,7 +153,7 @@ export class LineOfSight {
       hasLineOfSight: true,
       distance: distance,
       blockedBy: null,
-      path: linePath
+      path: path
     };
   }
 

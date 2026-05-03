@@ -37,6 +37,9 @@ export class ZombieAI {
     // zombie.logicalY = Math.floor(zombie.y);
 
     const initialCanSee = zombie.canSeeEntity(gameMap, player);
+    // Only lock in LKP if the zombie has actual confirmed LOS right now.
+    // Do NOT overwrite a valid LKP with the player's real position when the zombie
+    // cannot see them — that was the root cause of the "sidestepping" bug.
     if (initialCanSee) {
         zombie.setTargetSighted(player.logicalX, player.logicalY);
     }
@@ -124,66 +127,64 @@ export class ZombieAI {
           } 
           
           if (!actionResult || !actionResult.success) {
-              // C) LONG RANGE: Greedy Pursuit with Flanking Fallback
-              const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
-              
-              // Sort by distance to player, with a tie-breaker for structures
-              neighbors.sort((a, b) => {
-                  const distA = Math.abs(a.x - player.logicalX) + Math.abs(a.y - player.logicalY);
-                  const distB = Math.abs(b.x - player.logicalX) + Math.abs(b.y - player.logicalY);
-                  if (distA !== distB) return distA - distB;
-                  
-                  // Tie-breaker: Prioritize tiles with doors/windows to encourage breaching
-                  const tileA = gameMap.getTile(a.x, a.y);
-                  const tileB = gameMap.getTile(b.x, b.y);
-                  const hasStructA = tileA && tileA.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-                  const hasStructB = tileB && tileB.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-                  if (hasStructA && !hasStructB) return -1;
-                  if (!hasStructA && hasStructB) return 1;
-                  return 0;
-              });
+              // B) PRIMARY: A* Pathfinding toward player
+              // A* finds the real shortest path (through windows/doors), unlike greedy
+              // which just minimizes Manhattan distance and slides along walls.
+              console.log(`[ZombieAI] ${zombie.id} A* pursuit toward player at (${player.logicalX}, ${player.logicalY}).`);
+              actionResult = this.attemptMoveTowards(zombie, gameMap, player.logicalX, player.logicalY);
+              let moveFound = actionResult && actionResult.success;
 
-              let moveFound = false;
-              for (const cand of neighbors) {
-                  const candDist = Math.abs(cand.x - player.logicalX) + Math.abs(cand.y - player.logicalY);
+              // C) GREEDY FALLBACK: If A* failed (logjam, blocked), try greedy neighbors
+              if (!moveFound) {
+                  console.log(`[ZombieAI] ${zombie.id} A* pursuit blocked, trying greedy neighbors.`);
+                  const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
                   
-                  // Allow moving closer OR moving at same distance if the tile is a door/window
-                  const candTile = gameMap.getTile(cand.x, cand.y);
-                  const isStructure = candTile && candTile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-                  
-                  if (candDist > distToPlayer) continue;
-                  if (candDist === distToPlayer && !isStructure) {
-                      // Only allow equal-distance moves for flanking other zombies, not for ignoring buildings
-                      const hasComrade = candTile && candTile.contents.some(e => e.type === EntityType.ZOMBIE);
-                      if (!hasComrade) continue;
-                  }
+                  // Sort by distance to player, with a tie-breaker for structures
+                  neighbors.sort((a, b) => {
+                      const distA = Math.abs(a.x - player.logicalX) + Math.abs(a.y - player.logicalY);
+                      const distB = Math.abs(b.x - player.logicalX) + Math.abs(b.y - player.logicalY);
+                      if (distA !== distB) return distA - distB;
+                      
+                      const tileA = gameMap.getTile(a.x, a.y);
+                      const tileB = gameMap.getTile(b.x, b.y);
+                      const hasStructA = tileA && tileA.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                      const hasStructB = tileB && tileB.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                      if (hasStructA && !hasStructB) return -1;
+                      if (!hasStructA && hasStructB) return 1;
+                      return 0;
+                  });
 
-                  actionResult = this.attemptMoveTowards(zombie, gameMap, cand.x, cand.y);
-                  if (actionResult && actionResult.success) {
-                      moveFound = true;
-                      break;
+                  for (const cand of neighbors) {
+                      const candDist = Math.abs(cand.x - player.logicalX) + Math.abs(cand.y - player.logicalY);
+                      const candTile = gameMap.getTile(cand.x, cand.y);
+                      const isStructure = candTile && candTile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+
+                      if (candDist > distToPlayer) continue;
+                      
+                      if (candDist === distToPlayer && !isStructure) {
+                          const directStepX = zombie.logicalX + Math.sign(player.logicalX - zombie.logicalX);
+                          const directStepY = zombie.logicalY + Math.sign(player.logicalY - zombie.logicalY);
+                          const directTile = gameMap.getTile(directStepX, directStepY);
+                          const isPathBlocked = directTile && directTile.contents.some(e => e.type === EntityType.ZOMBIE);
+                          if (!isPathBlocked) continue;
+                      }
+
+                      actionResult = this.attemptMoveTowards(zombie, gameMap, cand.x, cand.y);
+                      if (actionResult && actionResult.success) {
+                          moveFound = true;
+                          break;
+                      }
                   }
               }
 
-              // D) PATHFINDING FALLBACK: If greedy neighbors failed (logjam), use A* to find a path around
+              // D) BEELINE FALLBACK (The "Anti-Inertia" Clause)
               if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} greedy pursuit blocked, trying A* pathfinding around obstacles.`);
-                  actionResult = this.attemptMoveTowards(zombie, gameMap, player.logicalX, player.logicalY);
-                  if (actionResult && actionResult.success) {
-                      moveFound = true;
-                  }
-              }
-
-              // E) BEELINE FALLBACK (The "Anti-Inertia" Clause)
-              // If standard pathfinding is failing (e.g. door blocking everything), force a step toward the player.
-              if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} A* blocked, triggering Beeline Fallback toward player.`);
+                  console.log(`[ZombieAI] ${zombie.id} greedy blocked, triggering Beeline Fallback toward player.`);
                   actionResult = this.executeBeelineStep(zombie, gameMap, player.logicalX, player.logicalY);
                   if (actionResult && actionResult.success) moveFound = true;
               }
 
               if (!moveFound) {
-                  // If we still can't move, just wait 0.5 AP and continue (don't break turn)
                   console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Waiting 0.5 AP.`);
                   zombie.useAP(0.5);
                   actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 0.5 } };
@@ -197,59 +198,80 @@ export class ZombieAI {
           
           console.log(`[ZombieAI] ${zombie.id} Investigating LKP at (${targetX}, ${targetY}). Current: (${zombie.logicalX}, ${zombie.logicalY})`);
 
-          if (zombie.logicalX === targetX && zombie.logicalY === targetY) {
-              // Reached LKP/Noise - Check for breadcrumbs before giving up
-              const freshest = ScentTrail.findFreshestScent(gameMap, zombie.logicalX, zombie.logicalY, 3, zombie.lastScentSequence || 0);
-              if (freshest) {
-                  zombie.setTargetSighted(freshest.x, freshest.y);
-                  zombie.lastScentSequence = freshest.sequence;
-                  zombie.behaviorState = 'tracking';
-                  console.log(`[ZombieAI] ${zombie.id} reached LKP, found breadcrumb at (${freshest.x}, ${freshest.y}). Following.`);
-                  continue;
-              }
-              zombie.clearLastSeen();
-              zombie.clearNoiseHeard();
-              zombie.behaviorState = 'wandering';
-              continue;
-          } else {
+            if (zombie.logicalX === targetX && zombie.logicalY === targetY) {
+                // Reached LKP/Noise - Check for breadcrumbs before giving up
+                // Radius increased to 6 for better tracking; minSequence reset to 0 to pick up any fresh trail
+                const freshest = ScentTrail.findFreshestScent(gameMap, zombie.logicalX, zombie.logicalY, 6, 0);
+                
+                if (freshest) {
+                    // PHASE 30 FIX: Validate scent with LOS to prevent "leaking" through walls
+                    const distToScent = Math.sqrt(Math.pow(freshest.x - zombie.logicalX, 2) + Math.pow(freshest.y - zombie.logicalY, 2));
+                    const hasLOS = LineOfSight.hasLineOfSight(gameMap, zombie.logicalX, zombie.logicalY, freshest.x, freshest.y).hasLineOfSight;
+                    
+                    if (distToScent <= 1.5 || hasLOS) {
+                        zombie.setTargetSighted(freshest.x, freshest.y);
+                        zombie.lastScentSequence = freshest.sequence;
+                        zombie.behaviorState = 'tracking';
+                        console.log(`[ZombieAI] ${zombie.id} reached LKP, found breadcrumb at (${freshest.x}, ${freshest.y}). Following.`);
+                        continue;
+                    }
+                }
+                zombie.clearLastSeen();
+                zombie.clearNoiseHeard();
+                zombie.behaviorState = 'wandering';
+                continue;
+            } else {
               zombie.behaviorState = 'investigating';
               
-              // GREEDY INVESTIGATION: Try direct neighbors first to avoid tactical flanking
-              const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
-              neighbors.sort((a, b) => {
-                  const distA = Math.abs(a.x - targetX) + Math.abs(a.y - targetY);
-                  const distB = Math.abs(b.x - targetX) + Math.abs(b.y - targetY);
-                  if (distA !== distB) return distA - distB;
-                  
-                  const tileA = gameMap.getTile(a.x, a.y);
-                  const tileB = gameMap.getTile(b.x, b.y);
-                  const hasStructA = tileA && tileA.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-                  const hasStructB = tileB && tileB.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
-                  if (hasStructA && !hasStructB) return -1;
-                  if (!hasStructA && hasStructB) return 1;
-                  return 0;
-              });
+              // PRIMARY: A* Pathfinding toward investigation target
+              // A* finds the real shortest path (through windows/doors)
+              console.log(`[ZombieAI] ${zombie.id} A* investigation toward LKP (${targetX}, ${targetY}).`);
+              actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
+              let moveFound = actionResult && actionResult.success;
 
-              let moveFound = false;
-              for (const cand of neighbors) {
-                  actionResult = this.attemptMoveTowards(zombie, gameMap, cand.x, cand.y);
-                  if (actionResult.success) {
-                      moveFound = true;
-                      break;
-                  }
-              }
-
+              // GREEDY FALLBACK: If A* failed, try greedy neighbors
               if (!moveFound) {
-                  // Fallback: If neighbors blocked, try full A* to the investigation target
-                  actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
-                  if (actionResult && actionResult.success) {
-                      moveFound = true;
+                  console.log(`[ZombieAI] ${zombie.id} A* investigation blocked, trying greedy neighbors.`);
+                  const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
+                  neighbors.sort((a, b) => {
+                      const distA = Math.abs(a.x - targetX) + Math.abs(a.y - targetY);
+                      const distB = Math.abs(b.x - targetX) + Math.abs(b.y - targetY);
+                      if (distA !== distB) return distA - distB;
+                      
+                      const tileA = gameMap.getTile(a.x, a.y);
+                      const tileB = gameMap.getTile(b.x, b.y);
+                      const hasStructA = tileA && tileA.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                      const hasStructB = tileB && tileB.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+                      if (hasStructA && !hasStructB) return -1;
+                      if (!hasStructA && hasStructB) return 1;
+                      return 0;
+                  });
+
+                  for (const cand of neighbors) {
+                      const candDist = Math.abs(cand.x - targetX) + Math.abs(cand.y - targetY);
+                      const distToTarget = Math.abs(zombie.logicalX - targetX) + Math.abs(zombie.logicalY - targetY);
+                      
+                      if (candDist > distToTarget) continue;
+                      
+                      if (candDist === distToTarget) {
+                          const stepX = zombie.logicalX + Math.sign(targetX - zombie.logicalX);
+                          const stepY = zombie.logicalY + Math.sign(targetY - zombie.logicalY);
+                          const directTile = gameMap.getTile(stepX, stepY);
+                          const isPathBlocked = directTile && directTile.contents.some(e => e.type === EntityType.ZOMBIE);
+                          if (!isPathBlocked) continue;
+                      }
+
+                      actionResult = this.attemptMoveTowards(zombie, gameMap, cand.x, cand.y);
+                      if (actionResult && actionResult.success) {
+                          moveFound = true;
+                          break;
+                      }
                   }
               }
 
               // BEELINE FALLBACK for Investigation
               if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} Investigation A* blocked, triggering Beeline Fallback to LKP.`);
+                  console.log(`[ZombieAI] ${zombie.id} Investigation greedy blocked, triggering Beeline Fallback to LKP.`);
                   actionResult = this.executeBeelineStep(zombie, gameMap, targetX, targetY);
                   if (actionResult && actionResult.success) moveFound = true;
               }
@@ -274,12 +296,19 @@ export class ZombieAI {
       // 4. TRACKING (Priority 4: Follow Scent Trail)
       else {
           const freshestScent = ScentTrail.findFreshestScent(gameMap, zombie.logicalX, zombie.logicalY, 5, zombie.lastScentSequence || 0);
+          
           if (freshestScent) {
-              zombie.behaviorState = 'tracking';
-              zombie.lastScentSequence = freshestScent.sequence;
-              zombie.setTargetSighted(freshestScent.x, freshestScent.y);
-              console.log(`[ZombieAI] ${zombie.id} picking up breadcrumb trail at (${freshestScent.x}, ${freshestScent.y})`);
-              continue; 
+              // PHASE 30 FIX: Validate scent with LOS to prevent "leaking" through walls
+              const distToScent = Math.sqrt(Math.pow(freshestScent.x - zombie.logicalX, 2) + Math.pow(freshestScent.y - zombie.logicalY, 2));
+              const hasLOS = LineOfSight.hasLineOfSight(gameMap, zombie.logicalX, zombie.logicalY, freshestScent.x, freshestScent.y).hasLineOfSight;
+              
+              if (distToScent <= 1.5 || hasLOS) {
+                  zombie.behaviorState = 'tracking';
+                  zombie.lastScentSequence = freshestScent.sequence;
+                  zombie.setTargetSighted(freshestScent.x, freshestScent.y);
+                  console.log(`[ZombieAI] ${zombie.id} picking up breadcrumb trail at (${freshestScent.x}, ${freshestScent.y})`);
+                  continue; 
+              }
           }
 
           // 5. WANDER (Priority 5: Random movement)
@@ -289,10 +318,34 @@ export class ZombieAI {
 
       // Process action result
       if (actionResult && actionResult.success) {
-          turnResult.actions.push(actionResult);
-          // Never break turn on WAIT, allow loop to continue until AP exhausted
-          if (actionResult.type === 'WAIT') {
-              // safety continue
+          // AGGREGATION LOGIC: Merge consecutive attacks of the same type on the same target
+          const lastAction = turnResult.actions[turnResult.actions.length - 1];
+          const isMergeable = lastAction && 
+                             (actionResult.type === 'ATTACK' || actionResult.type === 'STRUCTURE_INTERACT') &&
+                             lastAction.type === actionResult.type &&
+                             lastAction.data.targetId === actionResult.data.targetId;
+
+          if (isMergeable) {
+              // Combine damage and AP costs
+              lastAction.data.damage = (lastAction.data.damage || 0) + (actionResult.data.damage || 0);
+              lastAction.data.apCost = (lastAction.data.apCost || 0) + (actionResult.data.apCost || 0);
+              lastAction.data.attackCount = (lastAction.data.attackCount || 1) + 1;
+              
+              // If any hit in the batch succeeded, the whole aggregate is a "hit" for sound/visual purposes
+              if (actionResult.data.success) {
+                  lastAction.data.success = true;
+                  lastAction.data.hitCount = (lastAction.data.hitCount || 0) + 1;
+              }
+              
+              // Forward 'broken' flag for structures
+              if (actionResult.data.broken) {
+                  lastAction.data.broken = true;
+              }
+          } else {
+              // Initialize counts for new actions
+              actionResult.data.attackCount = 1;
+              actionResult.data.hitCount = actionResult.data.success ? 1 : 0;
+              turnResult.actions.push(actionResult);
           }
       } else {
           const reason = actionResult ? actionResult.reason : 'No behavior triggered';
@@ -318,17 +371,23 @@ export class ZombieAI {
       return tile && tile.isWalkable(zombie);
     });
 
-    if (neighbors.length > 0 && Math.random() < 0.4) { // Only move 40% of idle turns
-      const randomPos = neighbors[Math.floor(Math.random() * neighbors.length)];
-      const randomTile = gameMap.getTile(randomPos.x, randomPos.y);
-      const apCost = zombie.getMovementMultiplier() * Pathfinding.getMovementCost(zombie.logicalX, zombie.logicalY, randomPos.x, randomPos.y, randomTile, { isZombie: true });
-      if (zombie.currentAP >= apCost && gameMap.moveEntity(zombie.id, randomPos.x, randomPos.y, { ignoreZombies: false, snap: false })) {
-        zombie.useAP(apCost);
-        return { success: true, type: 'MOVE', entityId: zombie.id, data: { from: fromPos, to: { x: randomPos.x, y: randomPos.y }, apCost } };
+    if (neighbors.length > 0) {
+      if (Math.random() < 0.4) { // Only move 40% of idle turns
+        const randomPos = neighbors[Math.floor(Math.random() * neighbors.length)];
+        const randomTile = gameMap.getTile(randomPos.x, randomPos.y);
+        const apCost = zombie.getMovementMultiplier() * Pathfinding.getMovementCost(zombie.logicalX, zombie.logicalY, randomPos.x, randomPos.y, randomTile, { isZombie: true });
+        if (zombie.currentAP >= apCost && gameMap.moveEntity(zombie.id, randomPos.x, randomPos.y, { ignoreZombies: false, snap: false })) {
+          zombie.useAP(apCost);
+          return { success: true, type: 'MOVE', entityId: zombie.id, data: { from: fromPos, to: { x: randomPos.x, y: randomPos.y }, apCost } };
+        }
       }
+      
+      // If we didn't move (either due to random or blocked), WAIT 0.5 AP to consume budget
+      zombie.useAP(0.5);
+      return { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 0.5 } };
     }
     
-    return { success: false, reason: 'Idle' };
+    return { success: false, reason: 'No neighbors to wander to' };
   }
 
   static attemptMoveTowards(zombie, gameMap, targetX, targetY) {
@@ -382,28 +441,17 @@ export class ZombieAI {
     // A* Pathfinding
     let finalTargetX = targetX;
     let finalTargetY = targetY;
-    const targetTileObj = gameMap.getTile(targetX, targetY);
     
-    // If the specific target tile is unwalkable (like a closed door/wall), 
-    // find the best reachable tile adjacent to it.
-    if (targetTileObj && !targetTileObj.isWalkable(zombie)) {
-        const approach = this.findBestApproachTile(zombie, { logicalX: targetX, logicalY: targetY }, gameMap);
-        if (approach.length > 0) {
-            finalTargetX = approach[0].x;
-            finalTargetY = approach[0].y;
-            // If we are already at the best approach tile, we're done moving
-            if (zombie.logicalX === finalTargetX && zombie.logicalY === finalTargetY) {
-                return { success: false, reason: 'At best approach' };
-            }
-        }
-    }
+    // REDACTION: findBestApproachTile redirection removed. 
+    // Pathfinding.js already allows zombies to path to closed structures via allowBreaching.
+    // Redirecting here causes the "Wrong Side of the Wall" bug.
 
     const path = Pathfinding.findPath(gameMap, zombie.logicalX, zombie.logicalY, finalTargetX, finalTargetY, { 
       allowDiagonal: true, 
       isZombie: true, 
       entity: zombie, 
       maxDistance: 60, 
-      ignoreZombies: false, 
+      ignoreZombies: true, // Planning should ignore zombies to find routes around logjams
       isPathfinding: true 
     });
 
@@ -442,7 +490,7 @@ export class ZombieAI {
   }
 
   static executeStructureAttack(zombie, gameMap, structure, pos, fromPos) {
-    const cost = 1.0;
+    const cost = 1.0; 
     if (zombie.currentAP < cost) return { success: false, reason: 'Insufficient AP' };
     zombie.useAP(cost);
     

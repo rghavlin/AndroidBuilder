@@ -79,9 +79,11 @@ export const LogProvider = ({ children }) => {
             const damage = data.damage || 0;
 
             if (isSuccess) {
-                addLog(`${entityName} attacks: ${damage} damage`, 'combat');
+                const hitTimes = data.hitCount > 1 ? ` ${data.hitCount} times` : '';
+                addLog(`${entityName} hits${hitTimes} (${damage} damage)`, 'combat');
             } else {
-                addLog(`${entityName} attacks but misses!`, 'combat');
+                const attackTimes = data.attackCount > 1 ? `${data.attackCount} times ` : '';
+                addLog(`${entityName} attacks ${attackTimes}but misses all!`, 'combat');
             }
             
             if (data.bleedingInflicted) {

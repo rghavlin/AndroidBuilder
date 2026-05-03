@@ -90,13 +90,34 @@ export class Rabbit extends Entity {
     const { type, data } = action;
     const { onImpact } = callbacks;
 
+    // Optimization: Skip full animation for off-screen entities to speed up turn playback
+    const camera = engine.camera;
+    const fromPos = data.from || { x: this.x, y: this.y };
+    const toPos = data.to || fromPos;
+    
+    // Check visibility for both start and end points
+    const isFromVisible = camera ? camera.isTileVisible(Math.round(fromPos.x), Math.round(fromPos.y)) : true;
+    const isToVisible = camera ? camera.isTileVisible(Math.round(toPos.x), Math.round(toPos.y)) : true;
+    const isVisible = isFromVisible || isToVisible;
+
     if (type === 'MOVE') {
-      const from = data.from || { x: this.x, y: this.y };
-      const to = data.to;
+      const from = fromPos;
+      const to = toPos;
 
       if (from.x === to.x && from.y === to.y) return Promise.resolve();
 
       this.movementPath = [from, to];
+      
+      if (!isVisible) {
+          // Off-screen move: Snap immediately
+          this.renderX = to.x;
+          this.renderY = to.y;
+          this.x = to.x;
+          this.y = to.y;
+          this.movementPath = [];
+          return Promise.resolve();
+      }
+
       //this.isAnimating = true;
 
       const duration = 100; // Rabbits are fast!
