@@ -209,6 +209,10 @@ export class Door extends Entity {
         door.blocksSight = data.blocksSight;
         door.hp = data.hp !== undefined ? data.hp : door.hp;
         door.maxHp = data.maxHp !== undefined ? data.maxHp : door.maxHp;
+        // CRITICAL: Restore visualIsOpen from the saved isOpen state.
+        // Without this, all open doors render as closed after a save/load
+        // because EntityRenderer.drawDoor checks visualIsOpen, not isOpen.
+        door.visualIsOpen = data.isOpen || false;
         return door;
     }
 }

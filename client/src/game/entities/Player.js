@@ -226,7 +226,8 @@ export class Player extends Entity {
 
     if (typeof amount === 'number' && typeof old === 'number') {
       const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
-      const maxVal = this[maxStatName] || 100;
+      // Default to Infinity if no max is defined (e.g. for kills)
+      const maxVal = this[maxStatName] !== undefined ? this[maxStatName] : Infinity;
       this[statName] = Math.min(maxVal, Math.max(0, old + amount));
     } else {
       // Non-numeric modification (append or replace if not numeric)
@@ -279,7 +280,8 @@ export class Player extends Entity {
 
     if (typeof value === 'number') {
       const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
-      const maxVal = this[maxStatName] || 100;
+      // Default to Infinity if no max is defined (e.g. for levels/kills)
+      const maxVal = this[maxStatName] !== undefined ? this[maxStatName] : Infinity;
       this[statName] = Math.min(maxVal, Math.max(0, value));
     } else {
       this[statName] = value;

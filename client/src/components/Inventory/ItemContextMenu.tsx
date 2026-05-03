@@ -113,7 +113,7 @@ export function ItemContextMenu({
                                 Use
                             </ContextMenuItem>
                         )}
-                        {item?.defId === 'weapon.grenade' && (
+                        {(item?.defId === 'weapon.grenade' || item?.defId === 'crafting.stone') && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Throw requested for:', item.name);

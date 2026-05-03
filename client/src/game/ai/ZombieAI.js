@@ -496,11 +496,12 @@ export class ZombieAI {
     
     // Guaranteed 1 damage to structures
     const damage = 1;
-    // Silent update for simulation state only
-    structure.takeDamage(damage, true);
+    // Silent update for simulation state only - returns { isBroken, isReinforced, ... }
+    const damageResult = structure.takeDamage(damage, true);
+    const broken = !!(damageResult && damageResult.isBroken);
     
     if (gameMap.emitNoise) gameMap.emitNoise(pos.x, pos.y, 6);
-    return { success: true, type: 'STRUCTURE_INTERACT', entityId: zombie.id, data: { success: true, from: fromPos, to: pos, targetId: structure.id, targetType: structure.type, damage, isMiss: false, apCost: cost } };
+    return { success: true, type: 'STRUCTURE_INTERACT', entityId: zombie.id, data: { success: true, from: fromPos, to: pos, targetId: structure.id, targetType: structure.type, damage, broken, isMiss: false, apCost: cost } };
   }
 
   /**

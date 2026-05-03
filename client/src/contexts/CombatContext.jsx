@@ -13,6 +13,7 @@ import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
+import engine from '../game/GameEngine.js';
 
 const CombatContext = createContext();
 
@@ -534,15 +535,16 @@ export const CombatProvider = ({ children }) => {
             return { success: false, reason: 'Not enough AP' };
         }
 
-        // 2. Range Check (Max 10 tiles)
+        // 2. Range Check (Matches Sight Range)
         const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
-        if (distance > 10.5) { // Small buffer for diagonal/floating point
-            return { success: false, reason: 'Target out of range (max 10)' };
+        const maxRange = (engine._fovOptions?.maxRange || 15) + 0.5;
+        if (distance > maxRange) {
+            return { success: false, reason: `Target out of range (max ${Math.floor(maxRange)})` };
         }
 
         // 3. Line of Sight Check
         const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, {
-            maxRange: 12
+            maxRange: 20 // Ensure LOS check doesn't throttle the throw range
         });
         if (!losResult.hasLineOfSight) {
             return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
@@ -654,6 +656,156 @@ export const CombatProvider = ({ children }) => {
         forceRefresh();
         return { success: true };
     }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator]);
+    
+    const performStoneThrow = useCallback((item, targetX, targetY) => {
+        const player = playerRef.current;
+        const gameMap = gameMapRef.current;
+        if (!player || !gameMap) return { success: false, reason: 'System error' };
+
+        // 1. Check AP
+        if (player.ap < 1) {
+            return { success: false, reason: 'Not enough AP' };
+        }
+
+        // 2. Range Check (Matches Sight Range)
+        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
+        const maxRange = (engine._fovOptions?.maxRange || 15) + 0.5;
+        if (distance > maxRange) {
+            return { success: false, reason: `Target out of range (max ${Math.floor(maxRange)})` };
+        }
+
+        // 3. Line of Sight Check
+        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, {
+            maxRange: 20
+        });
+        if (!losResult.hasLineOfSight) {
+            return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
+        }
+
+        const tile = gameMap.getTile(targetX, targetY);
+        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
+        const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
+        
+        if (!targetEntity && !structure) {
+            return { success: false, reason: 'No target at location' };
+        }
+
+        // 4. Execution
+        console.log(`[Combat] Throwing stone at (${targetX}, ${targetY})`);
+        player.useAP(1);
+
+        // Consume 1 stone
+        if (item.stackCount > 1) {
+            item.stackCount--;
+        } else {
+            destroyItem(item.instanceId);
+        }
+
+        // 5. Accuracy Calculation (Sling accuracy)
+        // baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1)
+        const rangedLvl = playerStats.rangedLvl || 1;
+        const accuracyBonus = rangedLvl * 0.01;
+        const squaresAway = Math.floor(distance);
+        const baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
+        const hit = Math.random() <= (baseHitChance + accuracyBonus);
+
+        // 6. Projectile Path Tracking
+        ProjectileManager.processProjectilePath(gameMap, player.x, player.y, targetX, targetY);
+
+        if (hit) {
+            const damage = Math.floor(Math.random() * 4) + 1; // 1-4 damage
+            const isKillingBlow = targetEntity && targetEntity.hp <= damage;
+
+            // Emit attack event for audio/visuals (using 'melee' type for hit/miss sounds)
+            GameEvents.emit(GAME_EVENT.PLAYER_ATTACK, {
+                weaponId: 'crafting.stone',
+                weaponType: 'melee',
+                hit: true,
+                isKillingBlow,
+                damage,
+                targetX,
+                targetY
+            });
+
+            if (targetEntity) {
+                if (targetEntity.type === EntityType.ZOMBIE) {
+                    GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
+                        zombieId: targetEntity.id, 
+                        damage, 
+                        isKillingBlow 
+                    });
+                }
+                
+                targetEntity.takeDamage(damage, { id: 'thrown_stone', type: 'weapon' });
+                addLog(`Player throws stone: ${damage} damage`, 'combat');
+
+                // Spawn a recoverable stone on the hit tile
+                const droppedStone = createItemFromDef('crafting.stone');
+                if (droppedStone) {
+                    gameMap.addItemsToTile(targetX, targetY, [droppedStone]);
+                }
+                
+                addEffect({
+                    type: 'damage',
+                    x: targetX,
+                    y: targetY,
+                    value: damage,
+                    color: '#ef4444',
+                    duration: 1200
+                });
+
+                if (targetEntity.isDead()) {
+                    addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
+                    recordKill('ranged');
+                    
+                    if (targetEntity.type === EntityType.ZOMBIE) {
+                        if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
+                        if (lootGenerator && Math.random() < 0.75) {
+                            const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
+                            if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
+                        }
+                    } else if (targetEntity.type === EntityType.NPC) {
+                        if (typeof targetEntity.die === 'function') targetEntity.die();
+                        const items = targetEntity.inventory.getAllItems();
+                        if (items.length > 0) gameMap.addItemsToTile(targetX, targetY, items);
+                    } else if (targetEntity.type === 'rabbit') {
+                        const meat = createItemFromDef('food.raw_meat');
+                        if (meat) gameMap.addItemsToTile(targetX, targetY, [meat]);
+                    }
+                    gameMap.removeEntity(targetEntity.id);
+                }
+            } else if (structure) {
+                if (structure.type === EntityType.WINDOW) {
+                    structure.break();
+                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
+                    addLog('The window shatters!', 'combat');
+                } else {
+                    if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);
+                    GameEvents.emit(GAME_EVENT.STRUCTURE_INTERACT, { x: targetX, y: targetY });
+                    addLog(`The stone hits the ${structure.type}!`, 'combat');
+                }
+            }
+        } else {
+            // Emit attack event for audio (miss sound)
+            GameEvents.emit(GAME_EVENT.PLAYER_ATTACK, {
+                weaponId: 'crafting.stone',
+                weaponType: 'melee',
+                hit: false,
+                targetX,
+                targetY
+            });
+            addLog('The stone misses the target.', 'combat');
+            addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
+        }
+
+        // Noise
+        gameMap.emitNoise(targetX, targetY, 3);
+        gameMap.emitNoise(player.x, player.y, 1);
+
+        triggerMapUpdate();
+        forceRefresh();
+        return { success: true };
+    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator, playerStats, recordKill, triggerAcidEffect]);
 
     return (
         <CombatContext.Provider value={{
@@ -662,7 +814,8 @@ export const CombatProvider = ({ children }) => {
             cancelTargeting,
             performMeleeAttack,
             performRangedAttack,
-            performGrenadeThrow
+            performGrenadeThrow,
+            performStoneThrow
         }}>
             {children}
         </CombatContext.Provider>

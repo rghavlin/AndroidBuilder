@@ -181,7 +181,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Get inventory context for floating containers and selection management
   // MUST BE DECLARED BEFORE isFlashlightOnActual
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, inventoryVersion, forceRefresh } = useInventory();
-  const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow } = useCombat();
+  const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow, performStoneThrow } = useCombat();
   const { addEffect } = useVisualEffects();
   const { worldToScreen, cameraRef } = useCamera();
   const { playSound } = useAudio();
@@ -354,8 +354,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         return true; 
       }
 
-      if (targetingItem.defId === 'weapon.grenade') {
-        const result = (performGrenadeThrow as any)(targetingItem, x, y);
+      if (targetingItem.defId === 'weapon.grenade' || targetingItem.defId === 'crafting.stone') {
+        const result = targetingItem.defId === 'weapon.grenade' 
+          ? (performGrenadeThrow as any)(targetingItem, x, y)
+          : (performStoneThrow as any)(targetingItem, x, y);
+
         if (result.success) {
           cancelTargetingItem();
         } else if (result.reason) {
@@ -366,7 +369,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             color: '#ef4444',
             duration: 1000
           });
-          // Don't cancel targeting on failure (e.g. out of range) unless it's a critical error
         }
         return true;
       }

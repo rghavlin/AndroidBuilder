@@ -150,7 +150,10 @@ class TurnManager {
         if (entity && typeof entity.playAction === 'function') {
           await entity.playAction(action, {
             onImpact: () => {
-              // 2. Synchronized structural damage/noise emission
+              // Sync the structure's visual state at the moment of impact.
+              // NOTE: Structural damage (hp reduction, break/open flags) was already
+              // applied SILENTLY during the simulation phase by ZombieAI/NPCAI.
+              // Here we only need to push those logical changes to the visual layer.
               const tile = gameMap.getTile(data.to.x, data.to.y);
               const structure = tile?.contents.find(e => e.type === 'door' || e.type === 'window');
               if (structure && typeof structure.syncVisualState === 'function') {
@@ -170,15 +173,10 @@ class TurnManager {
             }
           });
         }
-        
-        // Apply damage after animation
-        const sTarget = gameMap.getEntity(data.targetId);
-        if (sTarget && data.success && data.damage > 0) {
-          if (typeof sTarget.takeDamage === 'function') {
-            sTarget.takeDamage(data.damage, false);
-          }
-        }
+        // NOTE: Do NOT call takeDamage here. It was already applied silently during
+        // simulation. Calling it again would double-apply damage and corrupt HP values.
         break;
+
 
       case 'ATTACK':
         const eventType = (entity.type === 'npc' || entity.type === 'EntityType.NPC') ? GAME_EVENT.NPC_ATTACK : GAME_EVENT.ZOMBIE_ATTACK;

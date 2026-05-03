@@ -447,10 +447,19 @@ const GameContextInner = ({ children }) => {
     const actionQueue = []; // Flat sequential queue
     let demandTriggered = false;
 
-    // Initialize logical positions for all entities at start of turn
+    // Initialize logical positions for all entities at start of turn.
+    // CRITICAL: Use gridX/gridY (the authoritative logical position) NOT renderX/renderY.
+    // At high turn counts renderX/Y can drift from true position due to off-screen snaps
+    // and animation edge cases. Copying render coords into logicalX/Y poisons the AI.
     gameMap.entityMap.forEach(e => {
-      e.logicalX = e.x;
-      e.logicalY = e.y;
+      if (e.gridX !== undefined) {
+        e.logicalX = e.gridX;
+        e.logicalY = e.gridY;
+      } else {
+        // Fallback for entities without gridX (e.g. proxy items)
+        e.logicalX = e.x;
+        e.logicalY = e.y;
+      }
     });
 
     // 1. Map/Inventory Logic
