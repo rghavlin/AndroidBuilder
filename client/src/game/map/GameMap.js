@@ -536,7 +536,13 @@ export class GameMap {
   removeEntity(entityId) {
     const entity = this.entityMap.get(entityId);
     if (entity) {
-      const tile = this.getTile(entity.x, entity.y);
+      // PHASE 28 FIX: Always use logical coordinates to find the tile for removal.
+      // Using visual coordinates (entity.x/y) can lead to 'ghost' entities on tiles
+      // if the entity was removed while visually desynced (e.g. after sleep).
+      const tx = entity.logicalX !== undefined ? entity.logicalX : (entity.gridX !== undefined ? entity.gridX : entity.x);
+      const ty = entity.logicalY !== undefined ? entity.logicalY : (entity.gridY !== undefined ? entity.gridY : entity.y);
+      
+      const tile = this.getTile(tx, ty);
       if (tile) {
         tile.removeEntity(entityId);
       }

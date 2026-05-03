@@ -414,6 +414,14 @@ const GameContextInner = ({ children }) => {
     npcs.forEach(n => {
       n.isAnimating = false;
       n.animationProgress = 0;
+      
+      // PHASE 28 FIX: Explicitly snap visual position to logical position.
+      // This prevents 'invisible' or 'ghost' entities after sleep/simulation.
+      if (n.logicalX !== undefined) n.x = n.logicalX;
+      if (n.logicalY !== undefined) n.y = n.logicalY;
+      if (n.logicalX !== undefined) n.renderX = n.logicalX; // Some entities use renderX
+      if (n.logicalY !== undefined) n.renderY = n.logicalY;
+
       if (n.movementPath && n.movementPath.length > 1) {
         n.movementPath = [{ x: n.x, y: n.y }];
       }
