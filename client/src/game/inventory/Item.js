@@ -10,10 +10,10 @@ import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
  */
 export class Item extends SafeEventEmitter {
   constructor({
-    instanceId,
-    defId,
+    instanceId, // Unique runtime ID for this specific item instance (e.g., 'item-12345')
+    defId,      // The template ID from ItemDefs (e.g., 'tool.battery')
     subtype = null,
-    id, // legacy support
+    id,         // Legacy alias for defId (do NOT use for unique instance lookup)
     name = '',
     imageId = null,
     width = 1,
@@ -377,6 +377,13 @@ export class Item extends SafeEventEmitter {
     this.categories = Array.isArray(def.categories) ? [...def.categories] : this.categories;
     this.capacity = def.capacity !== undefined ? def.capacity : this.capacity;
     this.consumptionEffects = def.consumptionEffects ? { ...def.consumptionEffects } : this.consumptionEffects;
+
+    // Transformation / Growth state synchronization
+    this.lifetimeTurns = def.lifetimeTurns !== undefined ? def.lifetimeTurns : null;
+    this.transformInto = def.transformInto !== undefined ? def.transformInto : null;
+    this.produce = def.produce !== undefined ? def.produce : null;
+    this.produceMin = def.produceMin !== undefined ? def.produceMin : undefined;
+    this.produceMax = def.produceMax !== undefined ? def.produceMax : undefined;
 
     // Signal update
     this.emit('updated', this);

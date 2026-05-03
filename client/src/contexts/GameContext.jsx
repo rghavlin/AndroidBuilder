@@ -167,17 +167,7 @@ const GameContextInner = ({ children }) => {
           console.log(`[GameContext] Zombie ${zombie.id} spotted player at (${checkPlayer.x}, ${checkPlayer.y})!`);
         }
         
-        // BUG 1 FIX: We no longer call zombie.setTargetSighted(checkPlayer.x, checkPlayer.y) here.
-        // Doing so overwrites the Last Known Position (LKP) with the player's live position, 
-        // even if the zombie lost sight of the player during movement.
         // The PlayerZombieTracker now handles LKP setting accurately when LOS is lost.
-      } else if (zombie.isAlerted) {
-        // If they just lost line of sight (and weren't already investigating),
-        // set their targetSightedCoords so they can enter 'Investigation' phase.
-        if (!zombie.lastSeen) {
-          zombie.setTargetSighted(checkPlayer.x, checkPlayer.y);
-          console.log(`[GameContext] Zombie ${zombie.id} lost sight of player, entering Investigation at (${checkPlayer.x}, ${checkPlayer.y})`);
-        }
       }
     });
 
@@ -489,15 +479,19 @@ const GameContextInner = ({ children }) => {
     });
 
     activeZombies.forEach(zombie => {
-      zombie.startTurn();
-      const turnResult = ZombieAI.executeZombieTurn(
-        zombie, gameMap, player, 
-        getPlayerCardinalPositions(), 
-        lastSeenTaggedTilesRef.current
-      );
+      try {
+        zombie.startTurn();
+        const turnResult = ZombieAI.executeZombieTurn(
+          zombie, gameMap, player, 
+          getPlayerCardinalPositions(), 
+          lastSeenTaggedTilesRef.current
+        );
 
-      if (turnResult.success) {
-        actionQueue.push(...turnResult.actions);
+        if (turnResult.success) {
+          actionQueue.push(...turnResult.actions);
+        }
+      } catch (err) {
+        console.error(`[GameContext] Error processing zombie ${zombie.id}:`, err);
       }
     });
 

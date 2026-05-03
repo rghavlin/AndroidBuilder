@@ -85,8 +85,8 @@ export class PlayerZombieTracker {
    * @param {Player} player - The player entity
    */
   processNewlySpottedZombies(currentlyVisibleZombies, player) {
-    const pX = player.logicalX !== undefined ? player.logicalX : player.x;
-    const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+    const pX = Math.round(player.logicalX !== undefined ? player.logicalX : player.x);
+    const pY = Math.round(player.logicalY !== undefined ? player.logicalY : player.y);
 
     currentlyVisibleZombies.forEach(({ zombie }) => {
       if (!this.spottedZombies.has(zombie.id)) {
@@ -139,8 +139,8 @@ export class PlayerZombieTracker {
    * @param {Player} player - The player entity
    */
   updateTrackedZombies(currentlyVisibleZombies, player) {
-    const pX = player.logicalX !== undefined ? player.logicalX : player.x;
-    const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+    const pX = Math.round(player.logicalX !== undefined ? player.logicalX : player.x);
+    const pY = Math.round(player.logicalY !== undefined ? player.logicalY : player.y);
 
     currentlyVisibleZombies.forEach(({ zombie }) => {
       if (this.spottedZombies.has(zombie.id)) {

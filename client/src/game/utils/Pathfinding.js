@@ -200,7 +200,7 @@ export class Pathfinding {
           if (isClosed) baseCost = 1.0; // Zombies don't 'fear' doors, they go right through them
         }
         const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');
-        if (hasOtherZombie) baseCost += 1.0; // Penalty for passing through a comrade
+        if (hasOtherZombie) baseCost += 0.2; // Tiny penalty to allow clustering
       }
     }
     return baseCost;
@@ -217,8 +217,15 @@ export class Pathfinding {
   static isTileWalkable(tile, entityOrFilter = null, options = {}) {
     if (entityOrFilter && typeof entityOrFilter === 'function') return entityOrFilter(tile);
     
+    const isZombie = options.isZombie || (entityOrFilter && (entityOrFilter.type === 'zombie' || entityOrFilter.type === EntityType.ZOMBIE));
+    
+    // SAFETY: If we are checking the entity's current position, it MUST be walkable
+    // (Prevents being stuck if a door closes on the zombie's current tile)
+    if (entityOrFilter && tile.x === entityOrFilter.logicalX && tile.y === entityOrFilter.logicalY) {
+        return true;
+    }
+
     // For zombies, we allow them to "path" through closed doors/windows so they can approach to attack them
-    const isZombie = options.isZombie || (entityOrFilter && entityOrFilter.type === 'zombie');
     if (isZombie && options.isPathfinding) {
         options.allowBreaching = true;
     }

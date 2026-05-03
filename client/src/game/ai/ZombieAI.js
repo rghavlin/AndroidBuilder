@@ -30,9 +30,11 @@ export class ZombieAI {
 
     console.log(`[ZombieAI] Starting turn for zombie ${zombie.id} at (${zombie.logicalX}, ${zombie.logicalY}) with ${zombie.currentAP} AP`);
 
-    // Force-sync logical coordinates to prevent drift
-    zombie.logicalX = Math.floor(zombie.x);
-    zombie.logicalY = Math.floor(zombie.y);
+    // PHASE 28 FINAL FIX: DO NOT snap logicalX to visual x. 
+    // During turn simulation, logicalX is the source of truth. 
+    // Visual 'x' stays behind until playback. Snapping here causes amnesia/teleporting.
+    // zombie.logicalX = Math.floor(zombie.x);
+    // zombie.logicalY = Math.floor(zombie.y);
 
     const initialCanSee = zombie.canSeeEntity(gameMap, player);
     if (initialCanSee) {
@@ -45,6 +47,10 @@ export class ZombieAI {
       const canSee = zombie.canSeeEntity(gameMap, player);
       const isAdjacent = zombie.isAdjacentTo(player.logicalX, player.logicalY);
       const isDiagonal = zombie.isDiagonalTo(player.logicalX, player.logicalY);
+
+      if (safetyCounter === 1) {
+        console.log(`[ZombieAI] ${zombie.id} turn start: Pos(${zombie.logicalX}, ${zombie.logicalY}), canSee=${canSee}, lastSeen=${zombie.lastSeen}, LKP=(${zombie.targetSightedCoords?.x}, ${zombie.targetSightedCoords?.y})`);
+      }
 
       console.log(`[ZombieAI] ${zombie.id} step ${safetyCounter}: AP=${zombie.currentAP.toFixed(1)}, canSee=${canSee}, behavior=${zombie.behaviorState}`);
 
@@ -168,8 +174,17 @@ export class ZombieAI {
                   }
               }
 
+              // E) BEELINE FALLBACK (The "Anti-Inertia" Clause)
+              // If standard pathfinding is failing (e.g. door blocking everything), force a step toward the player.
+              if (!moveFound) {
+                  console.log(`[ZombieAI] ${zombie.id} A* blocked, triggering Beeline Fallback toward player.`);
+                  actionResult = this.executeBeelineStep(zombie, gameMap, player.logicalX, player.logicalY);
+                  if (actionResult && actionResult.success) moveFound = true;
+              }
+
               if (!moveFound) {
                   // If we still can't move, just wait 0.5 AP and continue (don't break turn)
+                  console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Waiting 0.5 AP.`);
                   zombie.useAP(0.5);
                   actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 0.5 } };
               }
@@ -232,23 +247,32 @@ export class ZombieAI {
                   }
               }
 
+              // BEELINE FALLBACK for Investigation
               if (!moveFound) {
-                  // Only clear if we literally cannot move at all or the target is invalid
+                  console.log(`[ZombieAI] ${zombie.id} Investigation A* blocked, triggering Beeline Fallback to LKP.`);
+                  actionResult = this.executeBeelineStep(zombie, gameMap, targetX, targetY);
+                  if (actionResult && actionResult.success) moveFound = true;
+              }
+
+              if (!moveFound) {
+                  // LOGJAM FIX: Only clear if the target is PERMANENTLY unwalkable (wall/terrain).
+                  // If it's just occupied by a zombie, keep the LKP and wait.
                   const targetTile = gameMap.getTile(targetX, targetY);
-                  if (!targetTile || !targetTile.isWalkable(zombie, { allowBreaching: true })) {
-                    console.log(`[ZombieAI] ${zombie.id} Investigation target invalid, clearing.`);
+                  if (!targetTile || !targetTile.isWalkable(zombie, { allowBreaching: true, ignoreZombies: true })) {
+                    console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) invalid or permanently blocked, clearing.`);
                     zombie.clearLastSeen();
                     zombie.clearNoiseHeard();
                   } else {
-                    // Just wait and try again next loop/turn
-                    zombie.useAP(1.0);
-                    actionResult = { success: true, type: 'WAIT' };
+                    // LOGJAM: Target is valid but currently occupied by a comrade. 
+                    console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) blocked by entity, waiting.`);
+                    zombie.useAP(0.5);
+                    actionResult = { success: true, type: 'WAIT', data: { apCost: 0.5 } };
                   }
               }
           }
       }
       // 4. TRACKING (Priority 4: Follow Scent Trail)
-      else if (true) {
+      else {
           const freshestScent = ScentTrail.findFreshestScent(gameMap, zombie.logicalX, zombie.logicalY, 5, zombie.lastScentSequence || 0);
           if (freshestScent) {
               zombie.behaviorState = 'tracking';
@@ -257,10 +281,8 @@ export class ZombieAI {
               console.log(`[ZombieAI] ${zombie.id} picking up breadcrumb trail at (${freshestScent.x}, ${freshestScent.y})`);
               continue; 
           }
-      }
 
-      // 5. WANDER (Priority 5: Random movement)
-      else {
+          // 5. WANDER (Priority 5: Random movement)
           zombie.behaviorState = 'wandering';
           actionResult = this.executeRandomWanderStep(zombie, gameMap);
       }
@@ -273,7 +295,8 @@ export class ZombieAI {
               // safety continue
           }
       } else {
-          console.log(`[ZombieAI] ${zombie.id} turn ending: stuck or finished. AP=${zombie.currentAP}`);
+          const reason = actionResult ? actionResult.reason : 'No behavior triggered';
+          console.log(`[ZombieAI] ${zombie.id} turn loop break: ${reason}. AP=${zombie.currentAP.toFixed(1)}`);
           break; 
       }
     }
@@ -432,6 +455,34 @@ export class ZombieAI {
     return { success: true, type: 'STRUCTURE_INTERACT', entityId: zombie.id, data: { success: true, from: fromPos, to: pos, targetId: structure.id, targetType: structure.type, damage, isMiss: false, apCost: cost } };
   }
 
+  /**
+   * Hard Fallback: Move cardinally toward target without complex pathfinding
+   * This ensures the zombie at least moves or attacks structures if blocked.
+   */
+  static executeBeelineStep(zombie, gameMap, targetX, targetY) {
+      const fromPos = { x: zombie.logicalX, y: zombie.logicalY };
+      const dx = targetX - zombie.logicalX;
+      const dy = targetY - zombie.logicalY;
+      
+      // Pick the primary axis
+      const stepX = dx !== 0 ? (dx > 0 ? 1 : -1) : 0;
+      const stepY = dy !== 0 ? (dy > 0 ? 1 : -1) : 0;
+      
+      // Try X axis first
+      if (stepX !== 0) {
+          const res = this.attemptMoveTowards(zombie, gameMap, zombie.logicalX + stepX, zombie.logicalY);
+          if (res && res.success) return res;
+      }
+      
+      // Try Y axis second
+      if (stepY !== 0) {
+          const res = this.attemptMoveTowards(zombie, gameMap, zombie.logicalX, zombie.logicalY + stepY);
+          if (res && res.success) return res;
+      }
+      
+      return { success: false, reason: 'Beeline failed' };
+  }
+
   static attemptAttack(zombie, target) {
     const apCost = 1.0;
     if (zombie.currentAP < apCost) return { success: false, reason: 'Insufficient AP' };
@@ -460,24 +511,27 @@ export class ZombieAI {
     return adjacent.filter(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
       if (!tile) return false;
-      // Use standardized isWalkable check to correctly handle open windows/doors
-      return tile.isWalkable(zombie);
+      // Use standardized isWalkable check with allowBreaching enabled 
+      // so zombies can target tiles with windows/doors they intend to break.
+      return tile.isWalkable(zombie, { allowBreaching: true });
     }).sort((a, b) => {
+      // DUMB ZOMBIE PRIORITY 1: Absolute distance to the zombie (Beeline)
+      // This stops them from "bouncing" toward distant open doors.
+      const distA = Math.abs(zombie.logicalX - a.x) + Math.abs(zombie.logicalY - a.y);
+      const distB = Math.abs(zombie.logicalX - b.x) + Math.abs(zombie.logicalY - b.y);
+      if (distA !== distB) return distA - distB;
+
+      // PRIORITY 2: Cardinal tiles first (better for structure interaction)
+      if (a.cardinal !== b.cardinal) return a.cardinal ? -1 : 1;
+
+      // PRIORITY 3: Prefer tiles that are already open/walkable (Tie-breaker)
       const tileA = gameMap.getTile(a.x, a.y);
       const tileB = gameMap.getTile(b.x, b.y);
       const walkA = tileA && tileA.isWalkable(zombie);
       const walkB = tileB && tileB.isWalkable(zombie);
-
-      // Priority 1: Prefer tiles that are already open/walkable
       if (walkA !== walkB) return walkA ? -1 : 1;
 
-      // Priority 2: Cardinal tiles first
-      if (a.cardinal !== b.cardinal) return a.cardinal ? -1 : 1;
-
-      // Priority 3: Distance to zombie
-      const distA = Math.abs(zombie.logicalX - a.x) + Math.abs(zombie.logicalY - a.y);
-      const distB = Math.abs(zombie.logicalX - b.x) + Math.abs(zombie.logicalY - b.y);
-      return distA - distB;
+      return 0;
     });
   }
 
@@ -485,7 +539,8 @@ export class ZombieAI {
     const candidates = [{ x: zombie.logicalX, y: target.y }, { x: target.x, y: zombie.logicalY }];
     return candidates.find(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
-      return tile && tile.isWalkable(zombie, { ignoreZombies: false });
+      // BUG FIX: Allow breaching building footprints when finding approach tiles
+      return tile && tile.isWalkable(zombie, { ignoreZombies: false, allowBreaching: true });
     });
   }
 

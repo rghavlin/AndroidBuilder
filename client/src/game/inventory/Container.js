@@ -531,16 +531,27 @@ export class Container {
     let item = this.items.get(itemId);
 
     if (!item) {
-      // Emergency fallback: Search values if key lookup fails (handles ID mismatches)
-      console.warn(`[Container] Item ${itemId} not found by key in Map. Searching values...`);
+      // Fallback: Search all items for instanceId match (handles Map key mismatches)
       for (const [key, val] of this.items.entries()) {
-        if (val.instanceId === itemId || val.id === itemId) {
-          console.warn(`[Container] Found item by searching values! Key was actually: ${key}`);
+        if (val.instanceId === itemId) {
+          console.warn(`[Container] Item ${itemId} found by searching values instead of key lookup! Key was: ${key}`);
           item = val;
-          itemId = key; // Use the actual key for deletion
+          itemId = key; 
           break;
         }
       }
+    }
+
+    // Secondary Fallback: Search by defId (legacy support - AVOID FOR NEW CODE)
+    if (!item) {
+        for (const [key, val] of this.items.entries()) {
+            if (val.id === itemId) {
+                console.warn(`[Container] Item matched by defId (legacy fallback): ${itemId}. This may cause incorrect item removal!`);
+                item = val;
+                itemId = key;
+                break;
+            }
+        }
     }
 
     if (!item) {

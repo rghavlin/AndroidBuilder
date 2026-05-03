@@ -65,3 +65,10 @@ export const MAP_WIDE_UNIQUES = [
     { defId: 'tool.lighter' },
     { defId: 'tool.matchbook' }
 ];
+
+export const MAP_WIDE_REQUIREMENTS = {
+    1: [
+        { defId: 'crafting.tape', minCount: 3 },
+        { defId: 'tool.cooking_pot', minCount: 1 }
+    ]
+};

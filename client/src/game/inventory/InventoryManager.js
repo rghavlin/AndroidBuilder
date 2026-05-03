@@ -906,7 +906,8 @@ export class InventoryManager extends SafeEventEmitter {
               },
               removeItem: (itemId) => {
                   const item = this.equipment[slotId];
-                  if (item && item.instanceId === itemId) {
+                  // Strict check: only remove if it's the specific instance requested
+                  if (item && (item.instanceId === itemId || !itemId)) {
                       this.equipment[slotId] = null;
                       item.isEquipped = false;
                       return item;
@@ -937,6 +938,13 @@ export class InventoryManager extends SafeEventEmitter {
           // NEW: Support removal/restoration for weapon attachments
           removeItem: (itemId) => {
             if (slotId && weaponOrClothing.detachItem) {
+              // Note: weapon.detachItem usually doesn't take an itemId because slots are single-occupant.
+              // However, we should verify the item if an itemId was provided.
+              const currentAttached = weaponOrClothing.getAttachment ? weaponOrClothing.getAttachment(slotId) : weaponOrClothing.attachments?.[slotId];
+              if (itemId && currentAttached && currentAttached.instanceId !== itemId) {
+                console.warn('[InventoryManager] Virtual removeItem REJECT: Instance mismatch', { requested: itemId, actual: currentAttached.instanceId });
+                return null;
+              }
               return weaponOrClothing.detachItem(slotId);
             }
             return null;
@@ -1349,9 +1357,10 @@ export class InventoryManager extends SafeEventEmitter {
       return { item: null, virtualSource: sourceId, weaponInstanceId, slotId };
     }
 
-    // 4. Fallback to general removal if specific source fails
-    console.debug('[InventoryManager] removeItemFromSource failed for:', sourceId, 'falling back to general removal for:', itemId);
-    return this.removeItem(itemId);
+    // 4. Fallback: If specific source fails, DO NOT fall back to general removal 
+    // to prevent "collateral damage" (e.g. accidentally removing a similar item from ground).
+    console.debug('[InventoryManager] removeItemFromSource failed to find item in specific source:', sourceId, 'for itemId:', itemId);
+    return null;
   }
 
   detachItemFromWeapon(weapon, slotId) {
@@ -2138,7 +2147,14 @@ export class InventoryManager extends SafeEventEmitter {
 
     // 1. Search direct items in this container
     for (const item of container.items.values()) {
-      if (item.instanceId === itemId || item.id === itemId) {
+      if (item.instanceId === itemId) {
+        return { item, container };
+      }
+      
+      // Fallback for legacy support or explicit defId searches if needed
+      // (But we should avoid this for state-mutating operations)
+      if (item.id === itemId) {
+        console.warn(`[InventoryManager] _findItemRecursive matched by defId (legacy): ${itemId} in container ${container.id}`);
         return { item, container };
       }
       
@@ -2153,6 +2169,9 @@ export class InventoryManager extends SafeEventEmitter {
       if (item.hasAttachments && item.hasAttachments()) {
         for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
           if (attachment && (attachment.instanceId === itemId || attachment.id === itemId)) {
+            if (attachment.id === itemId && attachment.instanceId !== itemId) {
+               console.warn(`[InventoryManager] _findItemRecursive matched attachment by defId (legacy): ${itemId}`);
+            }
             return { item: attachment, parent: item, attachmentSlot: attachSlot };
           }
         }
@@ -2530,11 +2549,8 @@ export class InventoryManager extends SafeEventEmitter {
           const nextDef = ItemDefs[nextDefId];
           if (nextDef) {
             console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) transforming into ${nextDefId}`);
-            // Direct def swapping on the instance (safe since we're in processTurn)
-            Object.assign(item, nextDef);
-            item.instanceId = item.instanceId; // preserve identity
-            item.shelfLife = nextDef.shelfLife;
-            item.lifetimeTurns = nextDef.lifetimeTurns;
+            // Use updateFromDef to ensure defId and all definition-controlled properties (lifetime, transformInto, etc.) are synced
+            item.updateFromDef(nextDefId);
           }
         } else {
           // No transformation: destroy the item

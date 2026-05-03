@@ -1,7 +1,7 @@
 import { Item } from '../inventory/Item.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
-import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES } from './LootTables.js';
+import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
 import { ZombieTypes } from '../entities/ZombieTypes.js';
 
 const LOOT_CONSTANTS = {
@@ -974,13 +974,28 @@ export class LootGenerator {
     applyMapWideUniqueRules(gameMap, mapNumber = 1) {
         if (!gameMap) return;
         
-        // 1. Collect all tiles that currently have loot
+        // 1. Collect all tiles that currently have loot AND count existing items for requirement checks
         const lootTiles = [];
+        const itemCounts = new Map();
+        
+        // Get requirements for this map
+        const requirements = MAP_WIDE_REQUIREMENTS[mapNumber] || [];
+        const requiredDefIds = new Set(requirements.map(r => r.defId));
+
         for (let y = 0; y < gameMap.height; y++) {
             for (let x = 0; x < gameMap.width; x++) {
                 const items = gameMap.getItemsOnTile(x, y);
                 if (items && items.length > 0) {
                     lootTiles.push({ x, y });
+                    
+                    // Count items that are in our requirement list
+                    if (requiredDefIds.size > 0) {
+                        items.forEach(item => {
+                            if (requiredDefIds.has(item.defId)) {
+                                itemCounts.set(item.defId, (itemCounts.get(item.defId) || 0) + 1);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -990,7 +1005,32 @@ export class LootGenerator {
             return;
         }
 
-        // 2. Define unique items to spawn
+        // 2. Process Requirements (At least X of Y)
+        if (requirements.length > 0) {
+            console.log(`[LootGenerator] Processing ${requirements.length} map-wide requirements...`);
+            requirements.forEach(req => {
+                const currentCount = itemCounts.get(req.defId) || 0;
+                if (currentCount < req.minCount) {
+                    const toSpawn = req.minCount - currentCount;
+                    console.log(`[LootGenerator] Requirement for ${req.defId} not met (${currentCount}/${req.minCount}). Spawning ${toSpawn} more.`);
+                    
+                    for (let i = 0; i < toSpawn; i++) {
+                        const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
+                        const itemData = createItemFromDef(req.defId);
+                        if (itemData) {
+                            const item = new Item(itemData);
+                            LootGenerator.applySpawnDefaults(item, false);
+                            const currentItems = gameMap.getItemsOnTile(tilePos.x, tilePos.y);
+                            gameMap.setItemsOnTile(tilePos.x, tilePos.y, [...currentItems, item]);
+                        }
+                    }
+                } else {
+                    console.log(`[LootGenerator] Requirement for ${req.defId} met (${currentCount}/${req.minCount}).`);
+                }
+            });
+        }
+
+        // 3. Define unique items to spawn (Exactly 1 of each or random subset)
         const uniqueSpawns = MAP_WIDE_UNIQUES;
         let spawnsToProcess = [...uniqueSpawns];
 
@@ -1010,7 +1050,7 @@ export class LootGenerator {
             }
         }
 
-        console.log(`[LootGenerator] Applying map-wide rules for ${spawnsToProcess.length} items (Map ${mapNumber})...`);
+        console.log(`[LootGenerator] Applying map-wide uniques for ${spawnsToProcess.length} items (Map ${mapNumber})...`);
 
         spawnsToProcess.forEach(config => {
             // Pick a random existing loot pile

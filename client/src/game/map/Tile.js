@@ -84,9 +84,10 @@ export class Tile {
         if (!item.isOpen && !item.isBroken && !options.allowBreaching) return false;
       }
       if (item.blocksMovement) {
-         // EXCEPTION: Open doors and windows don't block movement even if their base property says they do
-         if (item.type === EntityType.DOOR && item.isOpen) continue;
-         if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken)) continue;
+         // EXCEPTION: Open doors and windows don't block movement even if their base property says they do.
+         // ALSO EXCEPTION: If we are a zombie attempting to breach (allowBreaching), we don't treat closed structures as impassable walls.
+         if (item.type === EntityType.DOOR && (item.isOpen || options.allowBreaching)) continue;
+         if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken || options.allowBreaching)) continue;
 
          // EXCEPTION: Same-tile safety
          if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;
@@ -121,12 +122,10 @@ export class Tile {
     const existingEntity = this.contents.find(e => e.id === entity.id);
     if (!existingEntity) {
       this.contents.push(entity);
-      console.log(`[Tile] Entity ${entity.id} added to tile (${this.x}, ${this.y}). Total entities:`, this.contents.length);
+      // console.log(`[Tile] Entity ${entity.id} added to tile (${this.x}, ${this.y}). Total entities:`, this.contents.length);
       // Note: Entity position should be set by the caller (GameMap.moveEntity)
       // to maintain single source of truth for entity coordinates
       this.emit('entityAdded', { entity: { id: entity.id, type: entity.type } });
-    } else {
-      console.warn(`[Tile] Entity ${entity.id} already exists on tile (${this.x}, ${this.y})`);
     }
 
     // Diagnostic validation: Ensure coordinate symmetry
@@ -147,11 +146,9 @@ export class Tile {
     const index = this.contents.findIndex(e => e.id === entityId);
     if (index !== -1) {
       const entity = this.contents.splice(index, 1)[0];
-      console.log(`[Tile] Entity ${entityId} removed from tile (${this.x}, ${this.y}). Remaining entities:`, this.contents.length);
+      // console.log(`[Tile] Entity ${entityId} removed from tile (${this.x}, ${this.y}). Remaining entities:`, this.contents.length);
       this.emit('entityRemoved', { entity: { id: entity.id, type: entity.type } });
       return entity;
-    } else {
-      console.warn(`[Tile] Attempted to remove entity ${entityId} from tile (${this.x}, ${this.y}) but entity not found`);
     }
     return null;
   }

@@ -203,6 +203,11 @@ export class Zombie extends Entity {
    * @param {number} y - Y coordinate where player was last seen
    */
   setTargetSighted(x, y) {
+    // Coordinate validation: Never target (0,0) unless it's a valid local move
+    if (x === 0 && y === 0 && (Math.abs(this.logicalX) > 2 || Math.abs(this.logicalY) > 2)) {
+        console.warn(`[Zombie] ${this.id} rejected invalid LKP at (0,0) from (${this.logicalX}, ${this.logicalY})`);
+        return;
+    }
     this.lastSeen = true;
     this.targetSightedCoords = { x, y };
     this.emitEvent('zombieTargetSighted', {
