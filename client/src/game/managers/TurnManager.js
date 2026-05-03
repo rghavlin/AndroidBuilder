@@ -131,17 +131,17 @@ class TurnManager {
     switch (type) {
       case 'MOVE':
         if (entity && typeof entity.playAction === 'function') {
-          // Phase 28 Fix: Immediate logical reservation in playback
-          // This prevents two entities from animating toward the same tile.
-          gameMap.moveEntity(entity.id, data.to.x, data.to.y, { snap: false });
-          
+          // Remove gameMap.moveEntity calls! The simulation already put them in the correct tile.
+          // Just play the visual animation.
           await entity.playAction(action);
-          // Sync logical occupancy AFTER animation is complete to prevent "ghost" icons
-          // We use snap: true here to finalize the visual position property
-          gameMap.moveEntity(entity.id, data.to.x, data.to.y, { snap: true });
+          
+          // Force a visual snap to ensure sync (updates renderX/renderY via Entity setters)
+          entity.x = data.to.x;
+          entity.y = data.to.y;
         } else if (entity) {
-          // Fallback for entities without playAction (e.g. static entities)
-          gameMap.moveEntity(entity.id, data.to.x, data.to.y, { snap: true });
+          // Fallback for entities without playAction: snap immediately
+          entity.x = data.to.x;
+          entity.y = data.to.y;
         }
         break;
 
