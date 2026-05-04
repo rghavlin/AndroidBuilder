@@ -365,6 +365,26 @@ export class Container {
     }
 
     if (occupants.length > 0 && !this.ignoreSize) {
+      // Phase Stacking Fallback: If exactly one occupant and it's stackable with the incoming item
+      if (occupants.length === 1) {
+        const targetId = occupants[0].itemId;
+        const target = this.items.get(targetId);
+        if (target && target.canStackWith(item)) {
+          const spaceInStack = target.stackMax - target.stackCount;
+          const amountToTake = Math.min(item.stackCount, spaceInStack);
+          
+          if (amountToTake > 0) {
+            console.debug('[Container] Stacking into occupant during placeItemAt:', target.name);
+            target.stackCount += amountToTake;
+            item.stackCount -= amountToTake;
+            
+            if (item.stackCount <= 0) {
+              return true; // Fully merged
+            }
+          }
+        }
+      }
+
       const occupantNames = occupants.map(o => {
         const occ = this.items.get(o.itemId);
         return occ ? occ.name : 'Unknown';
@@ -410,7 +430,7 @@ export class Container {
   /**
    * Add item to container (auto-position)
    */
-  addItem(item, preferredX = null, preferredY = null, allowStacking = false) {
+  addItem(item, preferredX = null, preferredY = null, allowStacking = true) {
     if (allowStacking) {
         console.debug('[Container] addItem called with allowStacking=true for:', item.name);
     }
@@ -590,32 +610,23 @@ export class Container {
   removeItemFromGrid(item) {
     if (!item) return false;
 
-    const width = typeof item.getActualWidth === 'function' ? item.getActualWidth() : (item.rotation === 90 || item.rotation === 270 ? item.height : item.width);
-    const height = typeof item.getActualHeight === 'function' ? item.getActualHeight() : (item.rotation === 90 || item.rotation === 270 ? item.width : item.height);
-    const itemId = item.instanceId;
+    const itemId = item.instanceId || item.id;
     let clearedCount = 0;
-    const expectedCount = width * height;
 
-    console.debug('[Container] removeItemFromGrid:', item.name, `at (${item.x}, ${item.y})`, `size ${width}x${height}`);
-
-    for (let dy = 0; dy < height; dy++) {
-      for (let dx = 0; dx < width; dx++) {
-        const gridX = item.x + dx;
-        const gridY = item.y + dy;
-
-        if (this.grid[gridY] && this.grid[gridY][gridX] === itemId) {
-          this.grid[gridY][gridX] = null;
+    // Phase 30: Robust grid clearing. Instead of relying on current (potentially mutated) 
+    // item dimensions, we scan the entire grid for this itemId to ensure it's fully purged.
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        if (this.grid[y] && this.grid[y][x] === itemId) {
+          this.grid[y][x] = null;
           clearedCount++;
         }
       }
     }
 
-    if (clearedCount < expectedCount) {
-      console.warn(`[Container] removeItemFromGrid PARTIAL: Cleared ${clearedCount}/${expectedCount} cells for ${item.name}.`);
-      // If partial, do a full scan as fallback
-      this.emergencyGridCleanup(itemId);
+    if (clearedCount > 0) {
+      console.debug(`[Container] removeItemFromGrid: Purged ${clearedCount} cells for ${item.name} (${itemId})`);
     }
-
     return clearedCount > 0;
   }
 

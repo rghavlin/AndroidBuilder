@@ -22,6 +22,7 @@ export class Item extends SafeEventEmitter {
     x = 0,
     y = 0,
     traits = [],
+    stackable = false,
     stackCount = 1,
     stackMax = 1,
     condition = null,
@@ -240,7 +241,11 @@ export class Item extends SafeEventEmitter {
     this._container = null;
 
     // Compatibility property for legacy logic
-    this.stackable = this.hasTrait(ItemTrait.STACKABLE);
+    // Stacking
+    this.stackable = this.hasTrait(ItemTrait.STACKABLE) || stackable;
+    if (stackable && !this.traits.includes(ItemTrait.STACKABLE)) {
+      this.traits.push(ItemTrait.STACKABLE);
+    }
   }
 
 
@@ -1123,6 +1128,10 @@ export class Item extends SafeEventEmitter {
   }
 
   // Weapon Attachment Methods
+  addAttachment(slotId, item) {
+    return this.attachItem(slotId, item);
+  }
+
   attachItem(slotId, item) {
     if (!this.attachmentSlots) return null;
     const slot = this.attachmentSlots.find(s => s.id === slotId);

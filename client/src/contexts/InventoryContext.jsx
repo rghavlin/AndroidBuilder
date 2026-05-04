@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useSyncExternalStore } from 'react';
-import { ItemTrait, FireMode } from '../game/inventory/traits.js';
+import { ItemTrait, FireMode, ItemCategory } from '../game/inventory/traits.js';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
 import { CraftingRecipes } from '../game/inventory/CraftingRecipes.js';
@@ -581,11 +581,20 @@ export const InventoryProvider = ({ children }) => {
     // If it wasn't stacked, the original item instance in its container was modified directly.
 
     // 5. Handle puddle destruction (Phase: Environment Cleanup)
-    const isPuddle = itemToDrinkFrom.hasTrait?.(ItemTrait.WATER_SOURCE);
-    if (isPuddle) {
-      if (itemToDrinkFrom.ammoCount <= 0) {
-        engine.inventoryManager.destroyItem(itemToDrinkFrom.instanceId);
-        addLog('The puddle has been drained.', 'info');
+    // Identify puddles by ID, category, or traits
+    const isPuddle = 
+      itemToDrinkFrom.defId?.includes('puddle') || 
+      itemToDrinkFrom.defId?.startsWith('environment.') ||
+      (itemToDrinkFrom.hasCategory && itemToDrinkFrom.hasCategory(ItemCategory.ENVIRONMENT));
+    
+    if (isPuddle && itemToDrinkFrom.hasTrait?.(ItemTrait.WATER_SOURCE)) {
+      if (itemToDrinkFrom.ammoCount <= 0.01) {
+        addLog(`Drained ${itemToDrinkFrom.name}.`, 'info');
+        if (itemToDrinkFrom._container) {
+          itemToDrinkFrom._container.removeItem(itemToDrinkFrom.instanceId);
+        } else {
+          engine.inventoryManager.destroyItem(itemToDrinkFrom.instanceId);
+        }
       } else {
         // Reposition to update footprint (size changes based on water level)
         const ground = engine.inventoryManager.groundContainer;
@@ -1079,7 +1088,7 @@ export const InventoryProvider = ({ children }) => {
     return detached;
   }, [inventoryPulse]);
 
-  const fillFromSource = useCallback((bottle, source, originContainerId) => {
+  const fillFromSource = useCallback((bottle, source, originContainerId, originX = null, originY = null, rotation = null) => {
     if (!engine.inventoryManager || !engine.player) return;
 
     // 1. AP Check
@@ -1088,43 +1097,70 @@ export const InventoryProvider = ({ children }) => {
       return;
     }
 
-    // 2. Handle Stack (Split one bottle)
+    // 2. Determine the active bottle instance
     let activeBottle = bottle;
+    let wasSplit = false;
+    
+    // If it's a stack, we must create a NEW instance for the filled bottle
+    // so we don't modify the whole stack of empty ones.
     if (bottle.stackCount > 1) {
-      // Split 1 bottle from the stack
-      const newItem = bottle.splitStack(1);
-      if (!newItem) {
-        addLog('Failed to separate bottle from stack.', 'error');
-        return;
-      }
-
-      // Try to find a place for the new item (priority: same container -> backpack -> pockets -> ground)
-      const containerId = bottle._container?.id;
-      const addResult = engine.inventoryManager.addItem(newItem, containerId);
-
-      if (addResult.success) {
-        bottle.stackCount -= 1; // Reduce original stack
-        activeBottle = newItem;
-      } else {
-        addLog('No room available for the new bottle.', 'error');
-        return;
-      }
+      activeBottle = Item.fromJSON(bottle.toJSON());
+      activeBottle.instanceId = `${bottle.instanceId}-filled-${Date.now()}`;
+      activeBottle.stackCount = 1;
+      wasSplit = true;
+      // We don't remove the original stack from its container yet.
+      // We only decrement it if the placement of the new bottle succeeds.
     } else {
-      // If not a stack, it's just the item itself
-      // We clear the selection because the item is being "used" while selected
+      // For a single bottle, we'll use the item itself.
+      // We MUST remove it from its current container temporarily so it doesn't
+      // collide with itself when we call addItem with origin coordinates.
       setSelectedItem(null);
+      const currentContainer = bottle._container;
+      if (currentContainer) {
+        currentContainer.removeItem(bottle.instanceId);
+      }
+    }
+
+    // Apply rotation if provided (from selection state)
+    if (rotation !== null) {
+      activeBottle.rotation = rotation;
     }
 
     // 3. Fill logic
-    const isPuddle = source.hasTrait?.(ItemTrait.WATER_SOURCE) && source.defId?.includes('puddle');
+    const isPuddleSource = 
+      source.defId?.includes('puddle') || 
+      source.defId?.startsWith('environment.') ||
+      (source.hasCategory && source.hasCategory(ItemCategory.ENVIRONMENT));
+    
     const isRainCollector = source.hasTrait?.(ItemTrait.WATER_SOURCE) && source.defId?.includes('collector');
-    const sourceName = source.name || (isPuddle ? 'puddle' : 'rain collector');
+    const sourceName = source.name || (isPuddleSource ? 'puddle' : 'rain collector');
 
     const space = activeBottle.capacity - activeBottle.ammoCount;
     const transfer = Math.min(space, source.ammoCount);
     
     if (transfer <= 0) {
+      // Phase 30 Fix: Even if no transfer occurred (e.g. bottle full), 
+      // still trigger cleanup if the puddle is already empty.
+      if (isPuddleSource && source.ammoCount <= 0.01) {
+        console.log(`[InventoryContext] Puddle cleanup triggered for empty source: ${source.instanceId}`);
+        if (source._container) {
+          source._container.removeItem(source.instanceId);
+        } else {
+          engine.inventoryManager.destroyItem(source.instanceId);
+        }
+        addLog(`The ${sourceName} is empty and has vanished.`, 'info');
+        // Return bottle if not split
+        if (!wasSplit) {
+          engine.inventoryManager.addItem(activeBottle, originContainerId, originX, originY, true);
+        }
+        return;
+      }
+
       addLog(`${activeBottle.name} is already full or ${sourceName} is empty.`, 'error');
+      // If we removed a single bottle, we must put it back!
+      if (!wasSplit) {
+        engine.inventoryManager.addItem(activeBottle, originContainerId, originX, originY, true);
+      }
       return;
     }
 
@@ -1136,13 +1172,14 @@ export const InventoryProvider = ({ children }) => {
     playSound('FillBottle'); 
 
     // 4. Update source size/existence
-    // Identify puddles by traits or defId to ensure cleanup
-    const isActuallyPuddle = source.defId?.includes('puddle') || (source.hasTrait?.(ItemTrait.WATER_SOURCE) && !source.hasTrait?.(ItemTrait.STATIONARY));
-    
-    if (isActuallyPuddle) {
-      if (source.ammoCount <= 0) {
+    if (isPuddleSource && source.hasTrait?.(ItemTrait.WATER_SOURCE)) {
+      if (source.ammoCount <= 0.01) {
         console.log(`[InventoryContext] Puddle drained, destroying: ${source.instanceId}`);
-        engine.inventoryManager.destroyItem(source.instanceId);
+        if (source._container) {
+          source._container.removeItem(source.instanceId);
+        } else {
+          engine.inventoryManager.destroyItem(source.instanceId);
+        }
         addLog('The puddle has been drained.', 'info');
       } else {
         // Reposition to update footprint (size changes based on water level)
@@ -1150,26 +1187,36 @@ export const InventoryProvider = ({ children }) => {
         ground.updateItemFootprint(source);
       }
     }
-    // Rain collector doesn't shrink or delete
 
-    // 5. Smart Stacking: Move the filled bottle to an existing stack if possible
-    // Remove from current location first
-    const currentContainer = activeBottle._container;
-    if (currentContainer) {
-      currentContainer.removeItem(activeBottle.instanceId);
-    }
+    // 5. Stacking / Placement
+    // Priority: If it came from the ground, try to put it in the inventory first.
+    // If it came from the inventory, try to put it back exactly where it was.
+    const preferredContainer = originContainerId === 'ground' ? null : originContainerId;
     
-    // Attempt to add back with allowStacking=true
-    const stackResult = engine.inventoryManager.addItem(activeBottle, null, null, null, true);
+    const stackResult = engine.inventoryManager.addItem(activeBottle, preferredContainer, originX, originY, true);
+    
     if (stackResult.success) {
+      if (wasSplit) {
+        bottle.stackCount -= 1; // Atomic decrement on success
+      }
+      
       if (stackResult.merged) {
-        addLog(`Stacked ${activeBottle.name} with existing supplies.`, 'info');
+        addLog(`Merged ${activeBottle.name} into existing supplies.`, 'info');
       } else {
         addLog(`Stored ${activeBottle.name} in ${stackResult.container}.`, 'info');
       }
     } else {
-      // Emergency fallback to ground if inventory somehow became full during fill (unlikely)
-      engine.inventoryManager.addItem(activeBottle, 'ground', null, null, true);
+      // Emergency: If it failed to find a spot in the preferred container or any other inventory slot
+      if (wasSplit) {
+        // If it was a split, we just cancel the fill because there's no room
+        addLog('No room in inventory to store the filled bottle!', 'error');
+        // We don't decrement the original stack.
+      } else {
+        // If it was a single bottle, we already removed it from its home!
+        // We must drop it to the ground.
+        engine.inventoryManager.addItem(activeBottle, 'ground', null, null, true);
+        addLog('Inventory full! The filled bottle was placed on the ground.', 'warning');
+      }
     }
 
     // 6. AP Consumption

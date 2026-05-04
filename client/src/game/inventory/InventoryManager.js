@@ -131,7 +131,7 @@ export class InventoryManager extends SafeEventEmitter {
     // Phase 22 Guard: Prevent identity sync loops. 
     // If we've already synced the container for this specific tile, do NOTHING. 
     // This stops 'save->clear->reload' cycles that trigger infinite change events when player is stationary.
-    if (this.lastSyncedX === newX && this.lastSyncedY === newY && this.groundContainer.getItemCount() > 0) {
+    if (this.lastSyncedX === newX && this.lastSyncedY === newY) {
         return false;
     }
 
@@ -225,7 +225,7 @@ export class InventoryManager extends SafeEventEmitter {
     if (itemsToLoad && itemsToLoad.length > 0) {
       // If the container is ALREADY holding these items (isOwnerOfNewTile was true),
       // we don't want to load them AGAIN (which would double them up).
-      if (isOwnerOfNewTile && this.groundContainer.getItemCount() > 0) {
+      if (isOwnerOfNewTile) {
         console.log(`[InventoryManager]   -> Tile (${newX}, ${newY}) already synced. Skipping reload.`);
       } else {
         console.log(`[InventoryManager]   -> Loading ${itemsToLoad.length} items from tile (${newX}, ${newY})`);
@@ -732,12 +732,13 @@ export class InventoryManager extends SafeEventEmitter {
 
     Object.values(this.equipment).forEach(item => {
         if (item) {
-            if (item.containerGrid) {
-                if (protectedIds.includes(item.containerGrid.id)) {
-                    console.warn(`[InventoryManager] Item ${item.name} attempted to register grid with protected ID: ${item.containerGrid.id}. Forcing regeneration.`);
-                    item.containerGrid.id = `${item.instanceId}-container`;
+            const grid = item.getContainerGrid();
+            if (grid) {
+                if (protectedIds.includes(grid.id)) {
+                    console.warn(`[InventoryManager] Item ${item.name} attempted to register grid with protected ID: ${grid.id}. Forcing regeneration.`);
+                    grid.id = `${item.instanceId}-container`;
                 }
-                this.containers.set(item.containerGrid.id, item.containerGrid);
+                this.containers.set(grid.id, grid);
             }
             if (item.getPocketContainers) {
                 item.getPocketContainers().forEach(pocket => {
@@ -1600,7 +1601,7 @@ export class InventoryManager extends SafeEventEmitter {
    * Add item to the system, automatically finding a suitable container
    * Priority: Preferred -> Stacking -> Backpack -> Pockets -> Ground
    */
-  addItem(item, preferredContainerId = null, preferredX = null, preferredY = null, allowStacking = false, strict = false) {
+  addItem(item, preferredContainerId = null, preferredX = null, preferredY = null, allowStacking = true, strict = false) {
     if (!item) return { success: false, reason: 'No item provided' };
 
     // 1. Stack Merging Logic (Phase 17 Restoration)

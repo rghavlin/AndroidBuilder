@@ -333,7 +333,7 @@ export default function UniversalGrid({
       const isWaterSource = item?.hasTrait?.(ItemTrait.WATER_SOURCE);
       if (isBottle && isWaterSource) {
         console.debug('[UniversalGrid] Filling bottle from water source:', selectedItem.item.name);
-        fillFromSource(selectedItem.item, item, selectedItem.originContainerId);
+        fillFromSource(selectedItem.item, item, selectedItem.originContainerId, selectedItem.originX, selectedItem.originY, selectedItem.rotation);
         return;
       }
 
