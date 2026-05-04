@@ -145,6 +145,9 @@ export class Item extends SafeEventEmitter {
     this.providesElectricity = providesElectricity;
     this.fireMode = fireMode;
     this.availableFireModes = Array.isArray(availableFireModes) ? availableFireModes : [];
+    
+    // Derived properties
+    this.isRanged = !!(rangedStats || (this.defId && ItemDefs[this.defId]?.rangedStats));
 
     // Load shelfLife from definition if not provided
     if (this.shelfLife === null && this.defId && ItemDefs[this.defId]?.shelfLife) {
@@ -222,6 +225,9 @@ export class Item extends SafeEventEmitter {
       }
       if (def.waterQuality !== undefined && (this.waterQuality === 'clean' || this.waterQuality === undefined)) {
         this.waterQuality = def.waterQuality;
+      }
+      if (def.beltGrid) {
+        this.beltGrid = def.beltGrid;
       }
     }
 
@@ -420,6 +426,14 @@ export class Item extends SafeEventEmitter {
 
   isStackable() {
     return this.hasTrait?.(ItemTrait.STACKABLE) || (this.stackMax && this.stackMax > 1);
+  }
+
+  isAmmo() {
+    return this.hasCategory(ItemCategory.AMMO);
+  }
+
+  isOpenableWhenNested() {
+    return this.hasTrait(ItemTrait.OPENABLE_WHEN_NESTED);
   }
 
 
@@ -733,6 +747,10 @@ export class Item extends SafeEventEmitter {
     }
   }
 
+  isDegradable() {
+    return this.hasTrait(ItemTrait.DEGRADABLE) && this.condition !== null;
+  }
+
   /**
    * Emit item events with standard data
    */
@@ -998,7 +1016,45 @@ export class Item extends SafeEventEmitter {
       return this.initializeContainerGrid();
     }
 
+    // New: If this item has a beltGrid definition, initialize it as a container
+    if (this.beltGrid) {
+      this._containerGridData = {
+        id: `${this.instanceId}-grid`,
+        name: this.name,
+        width: this.beltGrid.width,
+        height: this.beltGrid.height,
+        allowedCategories: this.beltGrid.allowedCategories,
+        allowedItems: this.beltGrid.allowedItems
+      };
+      return this.initializeContainerGrid();
+    }
+
     return null;
+  }
+
+  // Get belt container IDs for equippable belts
+  getBeltContainerIds() {
+    return this.getBeltContainers().map(c => c.id);
+  }
+
+  // Get all containers provided by belt attachments
+  getBeltContainers() {
+    if (!this.attachmentSlots || this.attachmentSlots.length === 0) {
+      return [];
+    }
+
+    const containers = [];
+    // The order should match the attachmentSlots to keep the UI consistent
+    for (const slot of this.attachmentSlots) {
+      const attachedItem = this.attachments[slot.id];
+      if (attachedItem) {
+        const grid = attachedItem.getContainerGrid();
+        if (grid) {
+          containers.push(grid);
+        }
+      }
+    }
+    return containers;
   }
 
   // Get pocket container IDs for clothing with multiple pockets

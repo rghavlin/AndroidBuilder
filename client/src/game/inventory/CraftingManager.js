@@ -14,21 +14,47 @@ export class CraftingManager {
      * Handles the "split-but-don't-decrement" bug in Item.splitStack contract.
      */
     _consumeFromStack(item, container) {
-        if (!item || !container) return item;
-        
-        if (item.stackCount > 1) {
-            const singleItem = item.splitStack(1);
-            // CRITICAL: Must reduce source since splitStack is non-mutating
-            item.stackCount -= 1;
-            
-            // Add back to workspace so it's tracked as a separate instance
-            // FIX: Must set allowStacking=false so it doesn't immediately merge back!
-            // We also pass the item's current position as a hint to keep it nearby.
-            container.addItem(singleItem, item.x, item.y, false);
-            
-            return singleItem;
+        if (!item) return null;
+
+        // If it's already a single item, no split needed
+        if (item.stackCount <= 1) {
+            return item;
         }
-        return item;
+
+        // 1. Split 1 item from the stack
+        const singleItem = item.splitStack(1);
+        if (!singleItem) return null;
+
+        // 2. Reduce source stack count
+        // We do this BEFORE adding to ensure the grid footprint is accurate during compacting
+        item.stackCount -= 1;
+
+        // 3. Attempt to add the single item to the container
+        // FIX: Must set allowStacking=false so it doesn't immediately merge back!
+        // We pass the item's current position as a hint to keep it nearby.
+        let addResult = container.addItem(singleItem, item.x, item.y, false);
+        
+        if (!addResult) {
+            // FALLBACK 1: Try adding without a preferred position (full grid scan)
+            // This handles cases where the radius search around the original item was too small.
+            addResult = container.addItem(singleItem, null, null, false);
+        }
+
+        if (!addResult) {
+            // FALLBACK 2: If placement still failed, the grid might be fragmented. Try compacting.
+            console.log(`[CraftingManager] Workspace ${container.id} fragmented. Compacting to fit ${singleItem.name}...`);
+            container.compact();
+            addResult = container.addItem(singleItem, null, null, false);
+        }
+
+        if (!addResult) {
+            // FAILURE: Workspace is truly full. Must revert the stack decrement!
+            item.stackCount += 1;
+            console.error(`[CraftingManager] STACK SPLIT FAILED: Workspace ${container.id} is full for item ${singleItem.name} (${singleItem.width}x${singleItem.height}).`);
+            return null;
+        }
+
+        return singleItem;
     }
 
     getNearbyCampfire() {
@@ -163,8 +189,9 @@ export class CraftingManager {
      * Perform the craft: consume items and return the new item
      */
     craft(recipeId, craftingLevel = 0, availableAP = null) {
-        const recipe = CraftingRecipes.find(r => r.id === recipeId);
-        if (!recipe) return { success: false, reason: 'Recipe not found' };
+        try {
+            const recipe = CraftingRecipes.find(r => r.id === recipeId);
+            if (!recipe) return { success: false, reason: 'Recipe not found' };
 
         const actualAP = CraftingManager.calculateAPCost(recipe, craftingLevel);
 
@@ -275,6 +302,8 @@ export class CraftingManager {
                     
                     // Use the new helper for robust stacking support
                     const targetItem = this._consumeFromStack(item, ingredientContainer);
+                    if (!targetItem) return { success: false, reason: 'No space in workspace to split stack' };
+                    
                     targetItem.ammoCount -= consume;
                     console.log(`[CraftingManager] Consumed ${consume} units for stew. Remaining in bottle: ${targetItem.ammoCount}`);
 
@@ -396,6 +425,8 @@ export class CraftingManager {
                 if (req.consumeUnits) {
                     // PARTIAL UNIT CONSUMPTION using the helper
                     const targetItem = this._consumeFromStack(item, ingredientContainer);
+                    if (!targetItem) return { success: false, reason: 'No space in workspace to split stack' };
+
                     targetItem.ammoCount = Math.max(0, (targetItem.ammoCount || 0) - req.consumeUnits);
 
                     console.log(`[CraftingManager] Consumed ${req.consumeUnits} units from ${targetItem.name}. Remaining: ${targetItem.ammoCount}`);
@@ -428,6 +459,8 @@ export class CraftingManager {
             if (found && found.capacity !== null && (found.ammoCount !== null && found.ammoCount > 0)) {
                 // Use the helper for tool consumption from stack
                 const singleTool = this._consumeFromStack(found, toolContainer);
+                if (!singleTool) return { success: false, reason: 'No space in workspace to use tool' };
+                
                 singleTool.ammoCount -= 1;
                 console.log(`[CraftingManager] Consumed 1 charge from tool: ${singleTool.name}. Remaining: ${singleTool.ammoCount}`);
             } else if (found) {
@@ -482,5 +515,9 @@ export class CraftingManager {
             item: newItem,
             apCost: actualAP
         };
+    } catch (error) {
+        console.error('[CraftingManager] Unexpected error during craft:', error);
+        return { success: false, reason: 'Internal error: ' + error.message };
+    }
     }
 }

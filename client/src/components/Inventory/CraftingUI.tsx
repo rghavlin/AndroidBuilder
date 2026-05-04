@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useInventory } from "@/contexts/InventoryContext";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { useGame } from "@/contexts/GameContext";
 import { useLog } from "@/contexts/LogContext";
 import { useAudio } from "@/contexts/AudioContext";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
@@ -23,6 +24,7 @@ export default function CraftingUI() {
         inventoryVersion
     } = useInventory();
     const { playerStats } = usePlayer();
+    const { isPlayerTurn, isAutosaving } = useGame();
     const { addLog } = useLog();
     const { playSound } = useAudio();
 
@@ -374,7 +376,7 @@ export default function CraftingUI() {
                                             <div className="flex flex-col items-center">
                                                 <Button
                                                     onClick={handleCraft}
-                                                    disabled={!craftingStatus.canCraft}
+                                                    disabled={!craftingStatus.canCraft || !isPlayerTurn || isAutosaving}
                                                     className={cn(
                                                         "w-24 h-8 text-[10px] font-bold shadow-lg transition-all",
                                                         "bg-primary hover:bg-primary/90"

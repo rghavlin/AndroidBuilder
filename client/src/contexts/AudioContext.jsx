@@ -149,7 +149,8 @@ export const AudioProvider = ({ children }) => {
           'weapon.hunting_rifle': 'RifleShot',
           'weapon.battle_rifle': data.isBurst ? 'BurstShot' : 'RifleShot',
           'weapon.sniper_rifle': 'RifleShot',
-          'weapon.sling': 'SlingShot'
+          'weapon.sling': 'SlingShot',
+          'weapon.deserteagle': 'ShotgunShot'
         };
         audioManager.playSound(soundMap[data.weaponId] || 'PistolShot');
       } else {
@@ -172,7 +173,8 @@ export const AudioProvider = ({ children }) => {
           'weapon.hunting_rifle': 'RifleShot',
           'weapon.battle_rifle': data.isBurst ? 'BurstShot' : 'RifleShot',
           'weapon.sniper_rifle': 'RifleShot',
-          'weapon.sling': 'SlingShot'
+          'weapon.sling': 'SlingShot',
+          'weapon.deserteagle': 'ShotgunShot'
         };
         audioManager.playSound(soundMap[data.weaponId] || 'PistolShot');
       } else {

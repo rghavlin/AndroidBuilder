@@ -101,9 +101,6 @@ export default function ClothingContainerPanel({
 
                 return (
                   <div key={pocketId} className="space-y-1">
-                    <div className="text-xs text-muted-foreground text-center">
-                      Pocket {index + 1}
-                    </div>
                     <UniversalGrid
                       containerId={pocketId}
                       width={pocketContainer.width}

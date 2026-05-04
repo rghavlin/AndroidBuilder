@@ -26,7 +26,8 @@ export class InventoryManager extends SafeEventEmitter {
       melee: null,
       handgun: null,
       long_gun: null,
-      flashlight: null
+      flashlight: null,
+      belt: null
     };
 
     // Ground container (special auto-expanding container)
@@ -726,9 +727,20 @@ export class InventoryManager extends SafeEventEmitter {
    */
   updateDynamicContainers() {
     // Phase 18 Refactor: Container IDs are now stable and instance-based.
-    // We no longer overwrite them with 'backpack-container' etc.
-    // We just ensure all containers of equipped items are correctly registered in the map.
-    const protectedIds = ['ground', 'crafting-tools', 'crafting-ingredients', 'cooking-tools', 'cooking-ingredients'];
+    // We must clear old dynamic containers to prevent memory leaks and desyncs,
+    // but keep the protected core system containers.
+    const protectedIds = [
+      'ground', 
+      'crafting-tools', 'crafting-ingredients', 
+      'cooking-tools', 'cooking-ingredients',
+      'barter_they_offer', 'barter_you_offer'
+    ];
+
+    for (const id of Array.from(this.containers.keys())) {
+        if (!protectedIds.includes(id)) {
+            this.containers.delete(id);
+        }
+    }
 
     Object.values(this.equipment).forEach(item => {
         if (item) {
@@ -747,6 +759,11 @@ export class InventoryManager extends SafeEventEmitter {
                         // Pockets usually have stable IDs like [instanceId]-pocket-[index]
                     }
                     this.containers.set(pocket.id, pocket);
+                });
+            }
+            if (item.getBeltContainers) {
+                item.getBeltContainers().forEach(beltContainer => {
+                    this.containers.set(beltContainer.id, beltContainer);
                 });
             }
         }
@@ -2063,11 +2080,27 @@ export class InventoryManager extends SafeEventEmitter {
       if (item) {
         if (item.instanceId === itemId) return { item, equipment: slot };
         
-        // Search attachments
-        if (item.hasAttachments()) {
+        // Search attachments and recurse into them (e.g. items inside a belt pouch)
+        if (item.hasAttachments && item.hasAttachments()) {
           for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
             if (attachment.instanceId === itemId) {
               return { item: attachment, parent: item, attachmentSlot: attachSlot };
+            }
+            
+            // Recurse into the attachment's own containers (e.g. Belt Pouch grid)
+            const attachmentGrid = attachment.getContainerGrid?.();
+            if (attachmentGrid) {
+              const found = this._findItemRecursive(attachmentGrid, itemId);
+              if (found) return found;
+            }
+            
+            // Also search attachment's pockets if any
+            const attachmentPockets = attachment.getPocketContainers?.();
+            if (attachmentPockets) {
+              for (const pocket of attachmentPockets) {
+                const found = this._findItemRecursive(pocket, itemId);
+                if (found) return found;
+              }
             }
           }
         }
@@ -2434,7 +2467,8 @@ export class InventoryManager extends SafeEventEmitter {
         melee: this.equipment.melee?.toJSON() || null,
         handgun: this.equipment.handgun?.toJSON() || null,
         long_gun: this.equipment.long_gun?.toJSON() || null,
-        flashlight: this.equipment.flashlight?.toJSON() || null
+        flashlight: this.equipment.flashlight?.toJSON() || null,
+        belt: this.equipment.belt?.toJSON() || null
       },
       lastSyncedX: this.lastSyncedX,
       lastSyncedY: this.lastSyncedY
@@ -2510,10 +2544,11 @@ export class InventoryManager extends SafeEventEmitter {
       if (item) this._processItemTurnRecursive(item, isOutdoors, isDaylight, true);
     });
 
-    // 2. Process ground container
-    // Items on the ground are managed by this container while the player is near
-    this.groundContainer.getAllItems().forEach(item => {
-      this._processItemTurnRecursive(item, isOutdoors, isDaylight, false);
+    // 2. Process all managed containers (Ground, Workspaces, etc.)
+    this.containers.forEach(container => {
+      container.getAllItems().forEach(item => {
+        this._processItemTurnRecursive(item, isOutdoors, isDaylight, false);
+      });
     });
     
     this.emit('inventoryChanged');
@@ -2535,7 +2570,7 @@ export class InventoryManager extends SafeEventEmitter {
 
     if (item.shelfLife !== oldShelfLife || item.lifetimeTurns !== oldLifetime) {
       // Check for expiration
-      const isExpired = (item.shelfLife !== null && item.shelfLife <= 0 && !item.isSpoilable()) || 
+      const isExpired = (item.shelfLife !== null && item.shelfLife <= 0) || 
                        (item.lifetimeTurns !== null && item.lifetimeTurns <= 0);
       
       if (isExpired) {

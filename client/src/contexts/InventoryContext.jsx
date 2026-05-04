@@ -115,17 +115,24 @@ export const InventoryProvider = ({ children }) => {
   const canOpenContainer = useCallback((item) => engine.inventoryManager?.canOpenContainer(item) || false, [inventoryPulse]);
   
   const checkPlayerTurn = useCallback((silent = false) => {
-    if (engine.turnPhase !== 'PLAYER_TURN' || engine.isAutosaving) {
+    if (engine.isAutosaving) {
       if (!silent) {
-        console.warn(`[InventoryContext] Interaction blocked - Phase: ${engine.turnPhase}, Autosaving: ${engine.isAutosaving}`);
+        console.warn(`[InventoryContext] Interaction blocked - Autosaving`);
       }
-      return false;
+      return { success: false, reason: 'Game is autosaving' };
     }
-    return true;
+    if (engine.turnPhase !== 'PLAYER_TURN') {
+      if (!silent) {
+        console.warn(`[InventoryContext] Interaction blocked - Phase: ${engine.turnPhase}`);
+      }
+      return { success: false, reason: `Not your turn (${engine.turnPhase})` };
+    }
+    return { success: true };
   }, []);
 
   const equipItem = useCallback((item, slot) => {
-    if (!checkPlayerTurn()) return { success: false };
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
     if (!engine.inventoryManager || !engine.player || engine.player.ap < 1) {
       return { success: false, reason: 'Not enough AP' };
     }
@@ -141,7 +148,8 @@ export const InventoryProvider = ({ children }) => {
   }, [inventoryPulse, addLog]);
 
   const unequipItem = useCallback((slot) => {
-    if (!checkPlayerTurn()) return { success: false };
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
     if (!engine.inventoryManager || !engine.player || engine.player.ap < 1) {
       return { success: false, reason: 'Not enough AP' };
     }
@@ -215,6 +223,12 @@ export const InventoryProvider = ({ children }) => {
     // Virtual panel IDs
     idsToClose.add(`clothing:${instanceId}`);
     idsToClose.add(`mod:${instanceId}`);
+    
+    // Belt grids (for attachments)
+    idsToClose.add(`${instanceId}-grid`);
+    if (item.getBeltContainerIds) {
+        item.getBeltContainerIds().forEach(id => idsToClose.add(id));
+    }
     
     // 2. Close them
     idsToClose.forEach(cid => {
@@ -692,8 +706,9 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, playSound]);
 
   const craftItem = useCallback((recipeId) => {
-    if (!checkPlayerTurn()) return { success: false };
-    if (!engine.inventoryManager || !engine.player) return { success: false };
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
+    if (!engine.inventoryManager || !engine.player) return { success: false, reason: 'System not ready' };
     
     const player = engine.player;
     const craftingLevel = player.craftingLvl || 0;

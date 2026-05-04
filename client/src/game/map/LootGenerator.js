@@ -619,6 +619,14 @@ export class LootGenerator {
                         const backpack = createItemFromDef('backpack.standard');
                         if (backpack) items.push(backpack);
                     }
+
+                    // 20% chance for tactical gear (holsters, ammo pouches) in each drop
+                    if (Math.random() < 0.20) {
+                        const gearKeys = SPECIAL_BUILDING_LOOT.police.gear;
+                        const gearKey = gearKeys[Math.floor(Math.random() * gearKeys.length)];
+                        const gear = createItemFromDef(gearKey);
+                        if (gear) items.push(gear);
+                    }
                     break;
                 case 'army_tent':
                     // ARMY TENT RULES:
@@ -640,6 +648,14 @@ export class LootGenerator {
                         const modKey = modKeys[Math.floor(Math.random() * modKeys.length)];
                         const mod = createItemFromDef(modKey);
                         if (mod) items.push(mod);
+                    }
+
+                    // 15% chance for tactical gear in each drop
+                    if (Math.random() < 0.15) {
+                        const gearKeys = SPECIAL_BUILDING_LOOT.army_tent.gear;
+                        const gearKey = gearKeys[Math.floor(Math.random() * gearKeys.length)];
+                        const gear = createItemFromDef(gearKey);
+                        if (gear) items.push(gear);
                     }
 
                     // Building-wide rolled items

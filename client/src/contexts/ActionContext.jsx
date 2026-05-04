@@ -272,7 +272,20 @@ export const ActionProvider = ({ children }) => {
     
     const success = ground.addItem(produceItem, dropX, dropY);
     if (success) {
-      addLog(`You harvest ${count} ${produceItem.name.toLowerCase()}${count > 1 ? 's' : ''}.`, "info");
+      // Improved pluralization logic
+      const name = produceItem.name.toLowerCase();
+      let pluralName = name;
+      if (count > 1) {
+        if (name === 'corn') {
+          pluralName = 'corn'; // plural of corn is corn
+        } else if (name.endsWith('o')) {
+          pluralName = name + 'es'; // tomato -> tomatoes
+        } else {
+          pluralName = name + 's';
+        }
+      }
+      
+      addLog(`You harvest ${count} ${pluralName}.`, "info");
       inventoryManager.syncWithMap(player.x, player.y, player.x, player.y, engine.gameMap);
       inventoryManager.emit('inventoryChanged');
       if (triggerMapUpdate) triggerMapUpdate();

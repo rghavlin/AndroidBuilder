@@ -11,6 +11,7 @@ export const SPECIAL_BUILDING_LOOT = {
         { key: 'food.granolabar', weight: 25 },
         { key: 'food.chips', weight: 25 },
         { key: 'food.beans', weight: 15 },
+        { key: 'food.cannedcorn', weight: 15 },
         { key: 'food.tomato', weight: 10 },
         { key: 'food.carrot', weight: 10 },
         { key: 'food.corn', weight: 10 },
@@ -27,16 +28,18 @@ export const SPECIAL_BUILDING_LOOT = {
     ],
     firestation: {
         medical: ['medical.bandage', 'medical.antibiotics'],
-        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench', 'tool.battery_charger']
+        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench', 'tool.battery_charger', 'belt.tool_ring']
     },
     police: {
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.308', 'ammo.shotgun_shells'],
-        guns: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun']
+        guns: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'],
+        gear: ['belt.holster', 'belt.ammo_pouch']
     },
     army_tent: {
         ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells', 'ammo.556'],
         mods: ['attachment.suppressor', 'attachment.lasersight', 'attachment.riflescope'],
-        guns: ['weapon.battle_rifle']
+        guns: ['weapon.battle_rifle', 'weapon.deserteagle'],
+        gear: ['belt.holster', 'belt.ammo_pouch', 'belt.pouch']
     }
 };
 
@@ -47,16 +50,16 @@ export const ZOMBIE_LOOT = {
         common: ['clothing.pocket_t', 'clothing.sweatpants', 'clothing.blue_jeans', 'crafting.rag']
     },
     swat: {
-        gear: ['weapon.9mmPistol', 'weapon.357Pistol', 'clothing.police_shirt'],
+        gear: ['weapon.9mmPistol', 'weapon.357Pistol', 'clothing.police_shirt', 'belt.holster', 'belt.ammo_pouch'],
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.shotgun_shells', 'ammo.308']
     },
     soldier: {
-        gear: ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.military_shirt', 'weapon.battle_rifle'],
+        gear: ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.military_shirt', 'weapon.battle_rifle', 'belt.holster', 'belt.ammo_pouch', 'belt.pouch', 'weapon.deserteagle'],
         ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells', 'ammo.556']
     },
     uncommon: [
-        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.energydrink',
-        'medical.bandage', 'medical.antibiotics', 'crafting.leather_belt'
+        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink',
+        'medical.bandage', 'medical.antibiotics', 'crafting.leather_belt', 'belt.pouch', 'belt.tool_ring'
     ],
     exotic: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight']
 };
@@ -70,5 +73,8 @@ export const MAP_WIDE_REQUIREMENTS = {
     1: [
         { defId: 'crafting.tape', minCount: 3 },
         { defId: 'tool.cooking_pot', minCount: 1 }
+    ],
+    2: [
+        { defId: 'crafting.leather_belt', minCount: 1 }
     ]
 };

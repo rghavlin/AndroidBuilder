@@ -18,6 +18,7 @@ const SLOT_INFO: Record<string, { name: string; icon: string; imageId: string }>
   backpack: { name: 'Backpack', icon: '🎒', imageId: 'standardBackpack' },
   upper_body: { name: 'Upper Body', icon: '👕', imageId: 'workshirt' },
   lower_body: { name: 'Lower Body', icon: '👖', imageId: 'sweatpants' },
+  belt: { name: 'Belt', icon: '🪢', imageId: 'leatherbelt' },
   melee: { name: 'Melee', icon: '🔪', imageId: 'knife' },
   handgun: { name: 'Handgun', icon: '🔫', imageId: '9mm pistol' },
   long_gun: { name: 'Long Gun', icon: '🔫', imageId: 'huntingrifle' },

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useInventory } from "@/contexts/InventoryContext";
 import { ItemTrait } from "@/game/inventory/traits";
 import ClothingContainerPanel from "./ClothingContainerPanel";
+import BeltContainerPanel from "./BeltContainerPanel";
 import Logger from "@/game/utils/Logger.js";
 
 const logger = Logger.scope('UnifiedClothingPanel');
@@ -21,11 +22,13 @@ export default function UnifiedClothingPanel() {
 
   // Independent collapse states for each section
   const [upperCollapsed, setUpperCollapsed] = useState(false);
+  const [beltCollapsed, setBeltCollapsed] = useState(false);
   const [lowerCollapsed, setLowerCollapsed] = useState(false);
   const [backpackCollapsed, setBackpackCollapsed] = useState(false);
 
   // Get equipped items from inventory context
   const upperBodyItem = inventoryRef.current?.equipment?.upper_body || null;
+  const beltItem = inventoryRef.current?.equipment?.belt || null;
   const lowerBodyItem = inventoryRef.current?.equipment?.lower_body || null;
   const backpackItem = inventoryRef.current?.equipment?.backpack || null;
 
@@ -102,6 +105,13 @@ export default function UnifiedClothingPanel() {
           emptyMessage="No item equipped"
           isCollapsed={upperCollapsed}
           onToggle={() => setUpperCollapsed(!upperCollapsed)}
+        />
+
+        {/* Belt Section */}
+        <BeltContainerPanel
+          beltItem={beltItem}
+          isCollapsed={beltCollapsed}
+          onToggle={() => setBeltCollapsed(!beltCollapsed)}
         />
 
         {/* Lower Body Section */}

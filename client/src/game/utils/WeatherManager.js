@@ -147,13 +147,23 @@ export class WeatherManager {
 
       // 1. Accumulate if it's a water source (rain collector/puddle) and it's exposed to the sky
       const hasWaterSourceTrait = itemData.traits?.includes(ItemTrait.WATER_SOURCE) || (typeof itemData.hasTrait === 'function' && itemData.hasTrait(ItemTrait.WATER_SOURCE));
+      
       if (hasWaterSourceTrait && isExposed) {
+        // Puddles have a strict cap of 50, rain collectors usually 100
+        const isPuddle = itemData.defId === 'environment.water_puddle' || itemData.id === 'environment.water_puddle';
+        const maxCapacity = isPuddle ? 50 : (itemData.maxWater || 100);
+        
         const currentAmmo = itemData.ammoCount || 0;
-        if (currentAmmo < 100) {
-          itemData.ammoCount = Math.min(100, currentAmmo + amount);
-          itemData.waterQuality = 'dirty';
-          modified = true;
-          console.log(`[WeatherManager] Filled rain collector: ${itemData.instanceId} to ${itemData.ammoCount}`);
+        if (currentAmmo < maxCapacity) {
+          // If it's a puddle, updatePuddles() already handled it for low spots.
+          // We only apply this here for non-puddles or puddles NOT in low spots (if any exist)
+          // To avoid double-filling, we'll skip puddles here if they were already processed.
+          if (!isPuddle) {
+            itemData.ammoCount = Math.min(maxCapacity, currentAmmo + amount);
+            itemData.waterQuality = 'dirty';
+            modified = true;
+            console.log(`[WeatherManager] Filled rain collector: ${itemData.instanceId || itemData.defId} to ${itemData.ammoCount}`);
+          }
         }
       }
 

@@ -256,7 +256,7 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 {(() => {
-                                    if (item?.defId === 'food.softdrink' || item?.defId === 'food.energydrink') return 'Drink';
+                                    if (item?.defId === 'food.softdrink' || item?.defId === 'food.energydrink' || item?.defId === 'food.vitamindrink' || item?.defId === 'food.fruitjuice') return 'Drink';
                                     if (item?.categories?.includes('food')) return 'Eat';
                                     
                                     // Check for medical/healing effects or category

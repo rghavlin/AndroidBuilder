@@ -24,6 +24,7 @@ export default function EquipmentSlots() {
   const equipmentSlots = [
     { id: 'backpack', name: 'Backpack', icon: '🎒' },
     { id: 'upper_body', name: 'Upper Body', icon: '👕' },
+    { id: 'belt', name: 'Belt', icon: '🪢' },
     { id: 'lower_body', name: 'Lower Body', icon: '👖' },
     { id: 'melee', name: 'Melee', icon: '🔪' },
     { id: 'handgun', name: 'Handgun', icon: '🔫' },

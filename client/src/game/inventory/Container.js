@@ -17,6 +17,7 @@ export class Container {
     autoSort = false,
     ownerId = null, // ID of the item that owns this container
     allowedCategories = null,
+    allowedItems = null,
     ignoreSize = false,
     isVehicle = false,
     isPlanter = false
@@ -30,6 +31,7 @@ export class Container {
     this.autoSort = autoSort;
     this.ownerId = ownerId;
     this.allowedCategories = Array.isArray(allowedCategories) ? allowedCategories : null;
+    this.allowedItems = Array.isArray(allowedItems) ? allowedItems : null;
     this.ignoreSize = ignoreSize;
     this.isVehicle = isVehicle;
     this.isPlanter = isPlanter;
@@ -82,7 +84,13 @@ export class Container {
     const width = typeof item.getActualWidth === 'function' ? item.getActualWidth() : (item.rotation === 90 || item.rotation === 270 ? item.height : item.width);
     const height = typeof item.getActualHeight === 'function' ? item.getActualHeight() : (item.rotation === 90 || item.rotation === 270 ? item.width : item.height);
 
-    // If preferred position is specified and valid, try it first
+    // 0. If ignoreSize is enabled (e.g. for specialized tool slots), 
+    // we always allow placement at the origin since the grid rules don't apply.
+    if (this.ignoreSize) {
+      return { x: 0, y: 0 };
+    }
+
+    // 1. Try preferred position if provided
     if (preferredX !== null && preferredY !== null) {
       if (this.isAreaFree(preferredX, preferredY, width, height)) {
         return { x: preferredX, y: preferredY };
@@ -157,6 +165,16 @@ export class Container {
         return {
           valid: false,
           reason: `Only ${allowedList} allowed in this container`
+        };
+      }
+    }
+
+    // 4b. Specific Item-based restrictions
+    if (this.allowedItems && this.allowedItems.length > 0) {
+      if (!this.allowedItems.includes(item.defId)) {
+        return {
+          valid: false,
+          reason: 'This item does not fit in this specialized slot'
         };
       }
     }
@@ -767,6 +785,7 @@ export class Container {
       autoExpand: this.autoExpand,
       autoSort: this.autoSort,
       allowedCategories: this.allowedCategories,
+      allowedItems: this.allowedItems,
       ignoreSize: this.ignoreSize,
       isVehicle: this.isVehicle,
       isPlanter: this.isPlanter,

@@ -19,7 +19,8 @@ export const EquipmentSlot = {
   MELEE: 'melee',
   HANDGUN: 'handgun',
   LONG_GUN: 'long_gun',
-  FLASHLIGHT: 'flashlight'
+  FLASHLIGHT: 'flashlight',
+  BELT: 'belt'
 };
 
 // Item categories for container restrictions
@@ -46,7 +47,11 @@ export const ItemCategory = {
   ENVIRONMENT: 'environment',
   HAMMER: 'hammer',
   VEHICLE: 'vehicle',
-  ELECTRIC: 'electric'
+  ELECTRIC: 'electric',
+  HOLSTER: 'holster',
+  AMMO_POUCH: 'ammo_pouch',
+  TOOL_RING: 'tool_ring',
+  BELT_POUCH: 'belt_pouch'
 };
 
 // Trait flags
@@ -106,7 +111,11 @@ export const CategoryDisplayName = {
   [ItemCategory.MEDICAL]: 'consumables',
   [ItemCategory.GUN]: 'weapons',
   [ItemCategory.ENVIRONMENT]: 'environment',
-  [ItemCategory.VEHICLE]: 'vehicles'
+  [ItemCategory.VEHICLE]: 'vehicles',
+  [ItemCategory.HOLSTER]: 'misc',
+  [ItemCategory.AMMO_POUCH]: 'misc',
+  [ItemCategory.TOOL_RING]: 'misc',
+  [ItemCategory.BELT_POUCH]: 'misc'
 };
 
 // Map equipment slots to user-friendly category fallbacks
@@ -116,7 +125,8 @@ export const SlotDisplayName = {
   [EquipmentSlot.LONG_GUN]: 'weapons',
   [EquipmentSlot.UPPER_BODY]: 'armor',
   [EquipmentSlot.LOWER_BODY]: 'armor',
-  [EquipmentSlot.BACKPACK]: 'containers'
+  [EquipmentSlot.BACKPACK]: 'containers',
+  [EquipmentSlot.BELT]: 'misc'
 };
 
 // Priority order for sorting categories (lower is higher priority)

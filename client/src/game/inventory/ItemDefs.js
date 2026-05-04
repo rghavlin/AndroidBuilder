@@ -789,6 +789,29 @@ export const ItemDefs = {
     availableFireModes: [FireMode.SINGLE, FireMode.BURST]
   },
 
+  'weapon.deserteagle': {
+    id: 'weapon.deserteagle',
+    name: 'Desert Eagle',
+    rarity: Rarity.EXTREMELY_RARE,
+    imageId: 'deserteagle',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.HANDGUN,
+    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
+    attachmentSlots: [
+      { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
+      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.LASER_SIGHT] },
+      { id: 'ammo', name: 'Magazine', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.de_magazine'] }
+    ],
+    rangedStats: {
+      noiseRadius: 20,
+      damage: { min: 7, max: 17 },
+      accuracyFalloff: 0.1,
+      minAccuracy: 0.01
+    }
+  },
+
   'weapon.grenade': {
     id: 'weapon.grenade',
     name: 'Grenade',
@@ -1052,6 +1075,33 @@ export const ItemDefs = {
     capacity: 5,
     ammoDefId: 'ammo.sniper'
   },
+  'attachment.shotgun_magazine': {
+    id: 'attachment.shotgun_magazine',
+    name: 'Shotgun Shells',
+    rarity: Rarity.RARE,
+    imageId: 'shotgun_shells',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.MAGAZINE],
+    categories: [ItemCategory.AMMO],
+    capacity: 5,
+    ammoDefId: 'ammo.shotgun_shells'
+  },
+
+  'attachment.de_magazine': {
+    id: 'attachment.de_magazine',
+    name: 'Desert Eagle Mag',
+    rarity: Rarity.RARE,
+    imageId: 'deMagazine',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.MAGAZINE, ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
+    capacity: 7,
+    ammoCount: 0,
+    ammoDefId: 'ammo.de'
+  },
+
   'attachment.556_magazine': {
     id: 'attachment.556_magazine',
     name: '5.56 Mag',
@@ -1120,7 +1170,7 @@ export const ItemDefs = {
   },
   'ammo.556': {
     id: 'ammo.556',
-    name: '5.56',
+    name: '5.56 Ammo',
     rarity: Rarity.UNCOMMON,
     imageId: '556ammo',
     width: 1,
@@ -1130,6 +1180,20 @@ export const ItemDefs = {
     stackMax: 50,
     spawnStackMin: 5,
     spawnStackMax: 15
+  },
+
+  'ammo.de': {
+    id: 'ammo.de',
+    name: 'Desert Eagle Ammo',
+    rarity: Rarity.EXTREMELY_RARE,
+    imageId: 'deAmmo',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.AMMO],
+    stackMax: 20,
+    spawnStackMin: 2,
+    spawnStackMax: 5
   },
 
   'medical.bandage': {
@@ -1224,6 +1288,21 @@ export const ItemDefs = {
       nutrition: 2
     }
   },
+  'food.fruitjuice': {
+    id: 'food.fruitjuice',
+    name: 'Fruit juice',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'fruitjuice',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      hydration: 10,
+      nutrition: 2
+    }
+  },
   'food.energydrink': {
     id: 'food.energydrink',
     name: 'Energy drink',
@@ -1238,6 +1317,21 @@ export const ItemDefs = {
       hydration: 10,
       energy: 5,
       ap: 2
+    }
+  },
+  'food.vitamindrink': {
+    id: 'food.vitamindrink',
+    name: 'Vitamin drink',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'vitamindrink',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      hydration: 10,
+      nutrition: 3
     }
   },
   'food.waterjug': {
@@ -1283,6 +1377,20 @@ export const ItemDefs = {
     stackMax: 10,
     consumptionEffects: {
       nutrition: 10
+    }
+  },
+  'food.cannedcorn': {
+    id: 'food.cannedcorn',
+    name: 'Canned corn',
+    rarity: Rarity.COMMON,
+    imageId: 'cannedcorn',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 10,
+    consumptionEffects: {
+      nutrition: 8
     }
   },
   'food.granolabar': {
@@ -1886,10 +1994,64 @@ export const ItemDefs = {
     imageId: 'leatherbelt',
     width: 1,
     height: 1,
-    traits: [ItemTrait.STACKABLE],
+    traits: [ItemTrait.STACKABLE, ItemTrait.EQUIPPABLE, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.BELT,
     categories: [ItemCategory.CRAFTING_MATERIAL],
     pileLimitOne: true,
-    stackMax: 20
+    stackMax: 20,
+    attachmentSlots: [
+      { id: 'holster_left', name: 'Left Holster', allowedCategories: [ItemCategory.HOLSTER] },
+      { id: 'holster_right', name: 'Right Holster', allowedCategories: [ItemCategory.HOLSTER] },
+      { id: 'ammo_left', name: 'Left Ammo', allowedCategories: [ItemCategory.AMMO_POUCH] },
+      { id: 'ammo_right', name: 'Right Ammo', allowedCategories: [ItemCategory.AMMO_POUCH] },
+      { id: 'pouch', name: 'Pouch', allowedCategories: [ItemCategory.BELT_POUCH] },
+      { id: 'tool_ring_left', name: 'Left Ring', allowedCategories: [ItemCategory.TOOL_RING] },
+      { id: 'tool_ring_right', name: 'Right Ring', allowedCategories: [ItemCategory.TOOL_RING] }
+    ]
+  },
+  'belt.holster': {
+    id: 'belt.holster',
+    name: 'Holster',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'holster',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE],
+    categories: [ItemCategory.HOLSTER],
+    beltGrid: { width: 2, height: 3, allowedCategories: [ItemCategory.GUN] }
+  },
+  'belt.ammo_pouch': {
+    id: 'belt.ammo_pouch',
+    name: 'Ammo pouch',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'ammopouch',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE],
+    categories: [ItemCategory.AMMO_POUCH],
+    beltGrid: { width: 1, height: 1, allowedCategories: [ItemCategory.AMMO] }
+  },
+  'belt.pouch': {
+    id: 'belt.pouch',
+    name: 'Belt pouch',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'beltpouch',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE],
+    categories: [ItemCategory.BELT_POUCH],
+    beltGrid: { width: 4, height: 2 }
+  },
+  'belt.tool_ring': {
+    id: 'belt.tool_ring',
+    name: 'Tool ring',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'toolring',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE],
+    categories: [ItemCategory.TOOL_RING],
+    beltGrid: { width: 2, height: 3, allowedItems: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'weapon.pliers'] }
   },
   'weapon.sling': {
     id: 'weapon.sling',
