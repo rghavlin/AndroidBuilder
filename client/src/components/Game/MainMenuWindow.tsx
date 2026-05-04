@@ -42,7 +42,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-auto">
             <Card className="w-96 bg-card border border-border relative">
                 <Button
                     className="absolute right-2 top-2 h-6 w-6 p-0 rounded-full"

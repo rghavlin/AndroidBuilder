@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useInventory } from "@/contexts/InventoryContext";
+import { ItemTrait } from "@/game/inventory/traits";
 import ClothingContainerPanel from "./ClothingContainerPanel";
 import Logger from "@/game/utils/Logger.js";
 
@@ -56,25 +57,25 @@ export default function UnifiedClothingPanel() {
   const backpackContainerId = backpackContainer?.id || null;
 
   // Extract pocket container IDs for upper and lower body
-  const upperBodyPocketIds = upperBodyItem?.isContainer?.()
+  const upperBodyPocketIds = upperBodyItem?.hasTrait?.(ItemTrait.CONTAINER)
     ? (upperBodyItem.getPocketContainerIds?.() || [])
     : [];
 
-  const lowerBodyPocketIds = lowerBodyItem?.isContainer?.()
+  const lowerBodyPocketIds = lowerBodyItem?.hasTrait?.(ItemTrait.CONTAINER)
     ? (lowerBodyItem.getPocketContainerIds?.() || [])
     : [];
 
   /*
   logger.debug('===== POCKET DIAGNOSTIC =====');
   logger.debug('Upper body item:', upperBodyItem?.name || 'none');
-  logger.debug('- isContainer():', upperBodyItem?.isContainer?.());
+  logger.debug('- hasTrait(CONTAINER):', upperBodyItem?.hasTrait?.(ItemTrait.CONTAINER));
   logger.debug('- getPocketContainerIds():', upperBodyPocketIds);
   logger.debug('- _pocketGridsData:', upperBodyItem?._pocketGridsData);
   logger.debug('- pocketGrids:', upperBodyItem?.pocketGrids);
   logger.debug('- pocketGrids.length:', upperBodyItem?.pocketGrids?.length);
 
   logger.debug('Lower body item:', lowerBodyItem?.name || 'none');
-  logger.debug('- isContainer():', lowerBodyItem?.isContainer?.());
+  logger.debug('- hasTrait(CONTAINER):', lowerBodyItem?.hasTrait?.(ItemTrait.CONTAINER));
   logger.debug('- getPocketContainerIds():', lowerBodyPocketIds);
   logger.debug('- _pocketGridsData:', lowerBodyItem?._pocketGridsData);
   logger.debug('- pocketGrids:', lowerBodyItem?.pocketGrids);

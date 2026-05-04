@@ -156,24 +156,6 @@ function GameScreenContent() {
             />
           </div>
 
-          {/* Map Transition Dialog */}
-          {mapTransition && (
-            <MapTransitionDialog
-              open={!!mapTransition}
-              onOpenChange={(open) => !open && handleMapTransitionCancel()}
-              onConfirm={handleMapTransitionConfirmWrapper}
-              direction={mapTransition.direction}
-              currentMapId={worldManager?.currentMapId || 'unknown'}
-              nextMapId={mapTransition.nextMapId}
-            />
-          )}
-
-          {/* Sleep Overlay */}
-          <SleepOverlay />
-          {/* Sleep Modal */}
-          <SleepModal />
-          {/* Defeat Dialog */}
-          <DefeatDialog />
         </div>
       )}
     </>

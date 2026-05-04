@@ -11,35 +11,40 @@ import { AudioProvider } from '../../contexts/AudioContext.jsx';
 import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
 import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
 import { CombatProvider } from '../../contexts/CombatContext.jsx';
+import { OverlayProvider } from '../../contexts/OverlayContext';
 import GameScreen from './GameScreen.tsx';
+import OverlayManager from './OverlayManager.tsx';
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function Game() {
   return (
     <TooltipProvider delayDuration={300}>
-      <LogProvider>
-        <AudioProvider>
-          <VisualEffectsProvider>
-            <CameraProvider>
-              <GameMapProvider>
-                <PlayerProvider>
-                  <InventoryProvider>
-                    <CombatProvider>
-                      <GameProvider>
-                        <SleepProvider>
-                          <ActionProvider>
-                            <GameScreen />
-                          </ActionProvider>
-                        </SleepProvider>
-                      </GameProvider>
-                    </CombatProvider>
-                  </InventoryProvider>
-                </PlayerProvider>
-              </GameMapProvider>
-            </CameraProvider>
-          </VisualEffectsProvider>
-        </AudioProvider>
-      </LogProvider>
+      <OverlayProvider>
+        <LogProvider>
+          <AudioProvider>
+            <VisualEffectsProvider>
+              <CameraProvider>
+                <GameMapProvider>
+                  <PlayerProvider>
+                    <InventoryProvider>
+                      <CombatProvider>
+                        <GameProvider>
+                          <SleepProvider>
+                            <ActionProvider>
+                              <GameScreen />
+                              <OverlayManager />
+                            </ActionProvider>
+                          </SleepProvider>
+                        </GameProvider>
+                      </CombatProvider>
+                    </InventoryProvider>
+                  </PlayerProvider>
+                </GameMapProvider>
+              </CameraProvider>
+            </VisualEffectsProvider>
+          </AudioProvider>
+        </LogProvider>
+      </OverlayProvider>
     </TooltipProvider>
   );
 }

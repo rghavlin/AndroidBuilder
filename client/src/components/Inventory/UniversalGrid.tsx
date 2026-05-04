@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import GridSlot from "./GridSlot";
+import { ItemContextMenu } from "./ItemContextMenu";
+import { ItemTooltip } from "./ItemTooltip";
 import FloatingContainerOverlay from "./FloatingContainerOverlay";
 import { useGridSize } from "@/contexts/GridSizeContext";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -9,7 +11,7 @@ import { useGame } from "../../contexts/GameContext.jsx";
 import { useAction } from "../../contexts/ActionContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
 import { useCombat } from "../../contexts/CombatContext.jsx";
-import { ItemTrait } from "../../game/inventory/traits.js";
+import { ItemTrait, ItemCategory } from "../../game/inventory/traits.js";
 
 interface UniversalGridProps {
   containerId: string;
@@ -64,6 +66,7 @@ export default function UniversalGrid({
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
+  const [lastGridPos, setLastGridPos] = useState<{x: number, y: number} | null>(null);
   const gridRef = useState<HTMLDivElement | null>(null);
 
   // Get fresh container data from context on every render, OR use direct container
@@ -96,10 +99,12 @@ export default function UniversalGrid({
 
   // Force preview recalculation when selection rotation changes
   useEffect(() => {
-    if (selectedItem) {
-      console.debug('[UniversalGrid] Selection rotation changed:', selectedItem.rotation, '- preview will update on next mouse move');
+    if (selectedItem && lastGridPos) {
+      console.debug('[UniversalGrid] Selection rotation changed, recalculating preview at:', lastGridPos.x, lastGridPos.y);
+      const preview = getPlacementPreview(containerId, lastGridPos.x, lastGridPos.y);
+      setPreviewOverlay(preview);
     }
-  }, [selectedItem?.rotation]);
+  }, [selectedItem?.rotation, lastGridPos, containerId, getPlacementPreview]);
 
   // Load item images when inventory changes (using inventoryVersion for stable dependency)
   useEffect(() => {
@@ -138,6 +143,8 @@ export default function UniversalGrid({
 
 
   const handleItemClick = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
+    if (event.button !== 0) return;
+    
     console.warn('[UniversalGrid] handleItemClick triggered:', { 
       containerId, 
       itemId: item?.instanceId, 
@@ -300,13 +307,13 @@ export default function UniversalGrid({
       }
 
       // Quick Attachment: If clicking on a weapon while carrying an item, try to attach it
-      const isWeapon = item?.isWeapon?.() || (item?.attachmentSlots && item.attachmentSlots.length > 0);
+      const isWeapon = (item?.hasCategory && item?.hasCategory(ItemCategory.WEAPON)) || (item?.attachmentSlots && item.attachmentSlots.length > 0);
       if (item && isWeapon) {
         // Direct-load guns (.357, Hunting Rifle, Shotgun) bypass the accessibility guard
         // so that ammo can be loaded whether the gun is equipped, in backpack, or on ground.
         const directLoadDefs = ['weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
         const isDirectLoadGun = directLoadDefs.includes(item.defId);
-        const isAmmoSelected = selectedItem?.item?.isAmmo?.() ?? false;
+        const isAmmoSelected = selectedItem?.item?.hasCategory?.(ItemCategory.AMMO) ?? false;
 
         if (isDirectLoadGun && isAmmoSelected) {
           console.debug('[UniversalGrid] Direct-loading ammo into gun:', item.name);
@@ -322,8 +329,8 @@ export default function UniversalGrid({
       }
 
       // SPECIAL CASE: Filling from a puddle or rain collector
-      const isBottle = selectedItem.item.isWaterBottle?.() || selectedItem.item.hasTrait?.(ItemTrait.WATER_CONTAINER);
-      const isWaterSource = item?.isPuddle || item?.defId === 'provision.rain_collector';
+      const isBottle = selectedItem.item.hasTrait?.(ItemTrait.WATER_CONTAINER);
+      const isWaterSource = item?.hasTrait?.(ItemTrait.WATER_SOURCE);
       if (isBottle && isWaterSource) {
         console.debug('[UniversalGrid] Filling bottle from water source:', selectedItem.item.name);
         fillFromSource(selectedItem.item, item, selectedItem.originContainerId);
@@ -331,7 +338,7 @@ export default function UniversalGrid({
       }
 
       // Quick Deposit: If clicking on a container while carrying an item, try to deposit it
-      const isContainer = item?.isContainer?.() || (item?.getPocketContainers && item.getPocketContainers().length > 0);
+      const isContainer = item?.hasTrait?.(ItemTrait.CONTAINER) || (item?.getPocketContainers && item.getPocketContainers().length > 0);
       if (item && isContainer) {
         console.debug('[UniversalGrid] Clicking container with selection - attempting quick deposit into:', item.name);
         const depositResult = depositSelectedInto(item);
@@ -341,7 +348,7 @@ export default function UniversalGrid({
       }
 
       // Ammo Loading: If clicking on a magazine while carrying ammo, try to load it
-      if (item && item.isMagazine && item.isMagazine() && selectedItem.item.isAmmo && selectedItem.item.isAmmo()) {
+      if (item && item.hasTrait && item.hasTrait(ItemTrait.MAGAZINE) && selectedItem.item.hasCategory && selectedItem.item.hasCategory(ItemCategory.AMMO)) {
         console.debug('[UniversalGrid] Clicking magazine with ammo selection - attempting load into:', item.name);
         const loadResult = loadAmmoInto(item);
         if (loadResult.success) {
@@ -401,13 +408,14 @@ export default function UniversalGrid({
     // If an item is selected, right-click on it rotates it
     if (selectedItem && item && item.instanceId === selectedItem.item.instanceId) {
       event.preventDefault();
+      event.stopPropagation(); // Prevent bubble to context menu trigger
       console.debug('[UniversalGrid] Right-click on selected item - rotating');
       rotateSelected();
       return;
     }
 
-    // Do NOT call event.preventDefault() here.
-    // This allows the Radix ContextMenu to trigger for the item.
+    // Do NOT call event.preventDefault() or stopPropagation() here for non-selected items.
+    // This allows the Radix ContextMenu (parent) to trigger for the item.
   }, [selectedItem, rotateSelected]);
 
   const handleSlotClick = useCallback((x: number, y: number) => {
@@ -536,10 +544,12 @@ export default function UniversalGrid({
     const gridY = Math.floor(y / slotWithGap);
 
     if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height) {
+      setLastGridPos({ x: gridX, y: gridY });
       // Recalculate preview with current selection rotation
       const preview = getPlacementPreview(containerId, gridX, gridY);
       setPreviewOverlay(preview);
     } else {
+      setLastGridPos(null);
       setPreviewOverlay(null);
     }
   }, [targetingItem, containerId, slotSize, width, height, grid, items, selectedItem, getPlacementPreview, inventoryVersion]);
@@ -642,8 +652,9 @@ export default function UniversalGrid({
       
       // For puddles, the "base" image size is the dynamic scaled size.
       // For other items, it's the static width/height (CSS rotation handles the rest).
-      const baseWidth = item.isPuddle ? itemActualWidth : item.width;
-      const baseHeight = item.isPuddle ? itemActualHeight : item.height;
+      const isWaterSource = item.hasTrait?.(ItemTrait.WATER_SOURCE);
+      const baseWidth = isWaterSource ? itemActualWidth : item.width;
+      const baseHeight = isWaterSource ? itemActualHeight : item.height;
       
       const imageWidth = (baseWidth * slotSize) + ((baseWidth - 1) * GAP_SIZE);
       const imageHeight = (baseHeight * slotSize) + ((baseHeight - 1) * GAP_SIZE);
@@ -673,128 +684,143 @@ export default function UniversalGrid({
       const isItemSelected = selectedItem && item.instanceId === selectedItem.item.instanceId;
 
       result.push(
-        <div
+        <ItemContextMenu
           key={`overlay-${itemId}`}
-          className={cn(
-            "absolute pointer-events-none select-none z-10 border border-white/20",
-            isItemSelected && "border-white/10"
-          )}
-          onClick={handleGridContainerClick}
-          data-inventory-ui="true"
-          style={{
-            left: `${leftPos}px`,
-            top: `${topPos}px`,
-            width: `${gridWidth}px`,
-            height: `${gridHeight}px`,
-          }}
+          item={item}
+          tooltipContent={<ItemTooltip item={item} />}
+          isDisabled={item?.defId === 'placeable.campfire'}
         >
-          {itemImageSrc ? (
-            <img
-              src={itemImageSrc}
-              className={cn(
-                "absolute pointer-events-none select-none transition-opacity duration-200 max-w-none",
-                isItemSelected && "opacity-40"
+          <div
+            className={cn(
+              "absolute select-none z-10 border border-white/5 transition-colors duration-200",
+              "cursor-grab active:cursor-grabbing",
+              hoveredItem === itemId ? "border-white/40 bg-white/5" : "border-white/10",
+              isItemSelected && "opacity-40"
+            )}
+            onClick={(e) => handleItemClick(item, topLeftX, topLeftY, e)}
+            onContextMenu={(e) => handleItemContextMenu(item, topLeftX, topLeftY, e)}
+            onMouseEnter={() => setHoveredItem(itemId)}
+            onMouseLeave={() => setHoveredItem(null)}
+            data-inventory-ui="true"
+            data-testid={`overlay-${item.defId}`}
+            style={{
+              left: `${leftPos}px`,
+              top: `${topPos}px`,
+              width: `${gridWidth}px`,
+              height: `${gridHeight}px`,
+            }}
+          >
+            {/* The trigger area for the context menu and tooltip is the entire item bounding box */}
+            <div className="w-full h-full relative">
+              {itemImageSrc ? (
+                <img
+                  src={itemImageSrc}
+                  className={cn(
+                    "absolute pointer-events-none select-none max-w-none",
+                    isItemSelected && "opacity-40"
+                  )}
+                  style={{
+                    left: `${adjustedLeft - leftPos}px`,
+                    top: `${adjustedTop - topPos}px`,
+                    width: `${imageWidth}px`,
+                    height: `${imageHeight}px`,
+                    objectFit: 'cover',
+                    transform: transformStyle,
+                    transformOrigin: 'top left',
+                  }}
+                  alt={item.name}
+                />
+              ) : (
+                <div 
+                  className="absolute flex items-center justify-center bg-indigo-500/20 border border-indigo-400/50 rounded-sm"
+                  style={{
+                    left: `${adjustedLeft - leftPos}px`,
+                    top: `${adjustedTop - topPos}px`,
+                    width: `${imageWidth}px`,
+                    height: `${imageHeight}px`,
+                  }}
+                >
+                  <span className="text-[8px] font-black text-indigo-200 uppercase text-center leading-tight p-1">
+                    {item.name}
+                  </span>
+                </div>
               )}
-              style={{
-                left: `${adjustedLeft - leftPos}px`,
-                top: `${adjustedTop - topPos}px`,
-                width: `${imageWidth}px`,
-                height: `${imageHeight}px`,
-                objectFit: 'cover',
-                transform: transformStyle,
-                transformOrigin: 'top left',
-              }}
-              alt={item.name}
-            />
-          ) : (
-            <div 
-              className="absolute flex items-center justify-center bg-indigo-500/20 border border-indigo-400/50 rounded-sm"
-              style={{
-                left: `${adjustedLeft - leftPos}px`,
-                top: `${adjustedTop - topPos}px`,
-                width: `${imageWidth}px`,
-                height: `${imageHeight}px`,
-              }}
-            >
-              <span className="text-[8px] font-black text-indigo-200 uppercase text-center leading-tight p-1">
-                {item.name}
-              </span>
-            </div>
-          )}
 
-          {item.stackCount > 1 && (
-            <div className="absolute inset-0 pointer-events-none z-20">
-              <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-bl-sm shadow-sm border-b border-l border-white/20 whitespace-nowrap">
-                {item.stackCount}
-              </span>
-            </div>
-          )}
+              {item.stackCount > 1 && (
+                <div className="absolute inset-0 pointer-events-none z-20">
+                  <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-bl-sm shadow-sm border-b border-l border-white/20 whitespace-nowrap">
+                    {item.stackCount}
+                  </span>
+                </div>
+              )}
 
-          {item.defId === 'placeable.campfire' && item.lifetimeTurns !== null && (
-            <div className="absolute inset-0 pointer-events-none z-20">
-              <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-orange-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(251,146,60,0.4)] border-b border-l border-orange-500/30 whitespace-nowrap flex items-center gap-0.5">
-                <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
-                {item.lifetimeTurns.toFixed(1)}
-              </span>
-            </div>
-          )}
+              {item.defId === 'placeable.campfire' && item.lifetimeTurns !== null && (
+                <div className="absolute inset-0 pointer-events-none z-20">
+                  <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-orange-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(251,146,60,0.4)] border-b border-l border-orange-500/30 whitespace-nowrap flex items-center gap-0.5">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+                    {item.lifetimeTurns.toFixed(1)}
+                  </span>
+                </div>
+              )}
 
-          {/* Growth Progress Indicator for Plants */}
-          {item.defId !== 'placeable.campfire' && item.lifetimeTurns !== null && (
-            <div className="absolute inset-0 pointer-events-none z-20">
-              <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-green-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(74,222,128,0.3)] border-b border-l border-green-500/30 whitespace-nowrap flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                {item.lifetimeTurns}h
-              </span>
-            </div>
-          )}
+              {/* Growth Progress Indicator for Plants */}
+              {item.defId !== 'placeable.campfire' && item.lifetimeTurns !== null && (
+                <div className="absolute inset-0 pointer-events-none z-20">
+                  <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-green-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(74,222,128,0.3)] border-b border-l border-green-500/30 whitespace-nowrap flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    {item.lifetimeTurns}h
+                  </span>
+                </div>
+              )}
 
-          {typeof item.getDisplayAmmoCount === 'function' && item.getDisplayAmmoCount() !== null && (
-            <div className="absolute inset-0 pointer-events-none z-20">
-              <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20 whitespace-nowrap">
-                {item.getDisplayAmmoCount()}
-              </span>
-            </div>
-          )}
+              {typeof item.getDisplayAmmoCount === 'function' && item.getDisplayAmmoCount() !== null && (
+                <div className="absolute inset-0 pointer-events-none z-20">
+                  <span className="absolute bottom-0 right-0 text-[0.65rem] leading-none font-bold text-white bg-black/85 px-[2px] py-[1px] rounded-tl-sm shadow-sm border-t border-l border-white/20 whitespace-nowrap">
+                    {item.getDisplayAmmoCount()}
+                  </span>
+                </div>
+              )}
 
-          {item.isSpoiled && (
-            <div className="absolute inset-0 pointer-events-none z-30 flex items-center justify-center">
-              <span className="text-[10px] font-black text-red-500 bg-black/80 px-1 py-0.5 rounded border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.5)] rotate-[-15deg] uppercase tracking-tighter">
-                Spoiled
-              </span>
-            </div>
-          )}
+              {item.isSpoiled && (
+                <div className="absolute inset-0 pointer-events-none z-30 flex items-center justify-center">
+                  <span className="text-[10px] font-black text-red-500 bg-black/80 px-1 py-0.5 rounded border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.5)] rotate-[-15deg] uppercase tracking-tighter">
+                    Spoiled
+                  </span>
+                </div>
+              )}
 
-          {item.getMeterPercent?.() !== null && (
-            <div className="absolute bottom-0.5 left-0.5 right-0.5 h-1 bg-black/50 overflow-hidden rounded-full z-20 border-[0.5px] border-white/20">
-              <div
-                className="h-full shadow-[0_0_4px_rgba(255,255,255,0.2)]"
-                style={{ 
-                  width: `${item.getMeterPercent()}%`,
-                  backgroundColor: item.getMeterColor() || '#60a5fa'
-                }}
-              />
-            </div>
-          )}
+              {item.getMeterPercent?.() !== null && (
+                <div className="absolute bottom-0.5 left-0.5 right-0.5 h-1 bg-black/50 overflow-hidden rounded-full z-20 border-[0.5px] border-white/20">
+                  <div
+                    className="h-full shadow-[0_0_4px_rgba(255,255,255,0.2)]"
+                    style={{ 
+                      width: `${item.getMeterPercent()}%`,
+                      backgroundColor: item.getMeterColor() || '#60a5fa'
+                    }}
+                  />
+                </div>
+              )}
 
-          {/* Phase: Specialized Ground Container Overlay (Wagon/Sled) */}
-          {(() => {
-            const isSpecialGroundContainer = (item.isWagon || item.isPlanter) && 
-                                           (containerId === 'ground' || (item.isPlanter && (containerId.includes('-container') || containerId.includes('-grid'))));
-            if (!isSpecialGroundContainer) return null;
-            
-            return (
-              <FloatingContainerOverlay 
-                item={item} 
-                slotSize={slotSize} 
-                gapSize={GAP_SIZE} 
-                containerId={containerId}
-                onSlotClick={handleSlotClick}
-                onSlotContextMenu={handleItemContextMenu}
-              />
-            );
-          })()}
-        </div>
+              {/* Phase: Specialized Ground Container Overlay (Wagon/Sled) */}
+              {(() => {
+                const isSpecialGroundContainer = (item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
+                                               (containerId === 'ground' || (item.hasTrait?.(ItemTrait.PLANTER) && (containerId.includes('-container') || containerId.includes('-grid'))));
+                if (!isSpecialGroundContainer) return null;
+                
+                return (
+                  <FloatingContainerOverlay 
+                    item={item} 
+                    slotSize={slotSize} 
+                    gapSize={GAP_SIZE} 
+                    containerId={containerId}
+                    onSlotClick={handleSlotClick}
+                    onSlotContextMenu={handleItemContextMenu}
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        </ItemContextMenu>
       );
     });
 
@@ -835,7 +861,10 @@ export default function UniversalGrid({
             e.stopPropagation();
             handleMouseMove(e);
           }}
-          onMouseLeave={() => setPreviewOverlay(null)}
+          onMouseLeave={() => {
+            setLastGridPos(null);
+            setPreviewOverlay(null);
+          }}
           onContextMenu={handleGridContextMenu}
           data-testid={testId || `grid-${containerId}`}
           data-inventory-ui="true"

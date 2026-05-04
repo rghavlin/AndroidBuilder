@@ -3,11 +3,12 @@ import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
 import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
 import { ZombieTypes } from '../entities/ZombieTypes.js';
+import { LootProgression } from '../config/ProgressionConfig.js';
 
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
     FUEL_COVER_OFFSET: 3,
-    WATER_BOTTLE_RESTRICTION_MAP: 3,
+    WATER_BOTTLE_RESTRICTION_MAP: LootProgression.WATER_BOTTLE_RESTRICTION_MAP,
 };
 
 /**

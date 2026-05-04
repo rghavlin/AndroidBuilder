@@ -51,9 +51,9 @@ export function ItemContextMenu({
         return <>{children}</>;
     }
 
-    const canSplit = item?.isStackable?.() && item?.stackCount > 1;
+    const canSplit = item?.hasTrait?.(ItemTrait.STACKABLE) && item?.stackCount > 1;
 
-    const shouldDisable = isDisabled || item?.isPlanter;
+    const shouldDisable = isDisabled || item?.hasTrait?.(ItemTrait.PLANTER);
 
     if (shouldDisable) {
         return (
@@ -63,9 +63,14 @@ export function ItemContextMenu({
                 </TooltipTrigger>
                 {tooltipContent && (
                     <TooltipPortal>
-                        <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
+                        <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001] group">
                             {tooltipContent}
-                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
+                            {/* Dynamic Arrow */}
+                            <div className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover 
+                                group-data-[side=top]:-bottom-1 group-data-[side=top]:border-r group-data-[side=top]:border-b
+                                group-data-[side=bottom]:-top-1 group-data-[side=bottom]:border-l group-data-[side=bottom]:border-t
+                                border-popover-foreground/10" 
+                            />
                         </TooltipContent>
                     </TooltipPortal>
                 )}
@@ -83,9 +88,14 @@ export function ItemContextMenu({
                 </TooltipTrigger>
                 {tooltipContent && (
                     <TooltipPortal>
-                        <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001]">
+                        <TooltipContent side="top" sideOffset={8} className="bg-popover text-popover-foreground border shadow-sm z-[10001] group">
                             {tooltipContent}
-                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover border-r border-b border-popover-foreground/10" />
+                            {/* Dynamic Arrow */}
+                            <div className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-popover 
+                                group-data-[side=top]:-bottom-1 group-data-[side=top]:border-r group-data-[side=top]:border-b
+                                group-data-[side=bottom]:-top-1 group-data-[side=bottom]:border-l group-data-[side=bottom]:border-t
+                                border-popover-foreground/10" 
+                            />
                         </TooltipContent>
                     </TooltipPortal>
                 )}
@@ -93,7 +103,7 @@ export function ItemContextMenu({
 
             {item && (() => {
                 // Phase: Specialized Ground Containers (Wagon/Sled) bypass ContextMenu
-                const isSpecialGroundContainer = item.isVehicle() && 
+                const isSpecialGroundContainer = item.hasTrait?.(ItemTrait.VEHICLE) && 
                                                engine.inventoryManager.groundContainer.items.has(item.instanceId);
                 
                 if (isSpecialGroundContainer) return null;
@@ -102,7 +112,7 @@ export function ItemContextMenu({
                     <ContextMenuPortal>
                         <ContextMenuContent className="w-48 bg-[#1a1a1a] border-[#333] text-white z-[10001]">
                             {/* ... existing content ... */}
-                        {item.hasTrait(ItemTrait.CAN_BREAK_DOORS) && (
+                        {item.hasTrait?.(ItemTrait.CAN_BREAK_DOORS) && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Use item requested for:', item.name);
@@ -124,7 +134,7 @@ export function ItemContextMenu({
                                 Throw
                             </ContextMenuItem>
                         )}
-                        {item?.hasTrait(ItemTrait.CAN_DIG) && (
+                        {item?.hasTrait?.(ItemTrait.CAN_DIG) && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Dig requested for:', item.name);
@@ -202,7 +212,7 @@ export function ItemContextMenu({
                                 Open
                             </ContextMenuItem>
                         )}
-                        {item?.isMagazine?.() && !item?.isWaterBottle?.() && item?.ammoCount > 0 && (
+                        {item?.hasTrait?.(ItemTrait.MAGAZINE) && !item?.hasTrait?.(ItemTrait.WATER_CONTAINER) && item?.ammoCount > 0 && (
                             <ContextMenuItem
                                 onClick={() => {
                                     unloadMagazine(item);
@@ -222,9 +232,9 @@ export function ItemContextMenu({
                                 Unload (1ap)
                             </ContextMenuItem>
                         )}
-                        {item?.isChargeBased?.() && (() => {
+                        {item?.hasTrait?.(ItemTrait.BATTERY) && (() => {
                             const torch = inventoryManager?.equipment?.['flashlight'];
-                            const canIgnite = torch && torch.hasTrait(ItemTrait.IGNITABLE) && !torch.isLit;
+                            const canIgnite = torch && torch.hasTrait?.(ItemTrait.IGNITABLE) && !torch.isLit;
                             if (!canIgnite) return null;
 
                             return (
@@ -238,7 +248,7 @@ export function ItemContextMenu({
                                 </ContextMenuItem>
                             );
                         })()}
-                        {item?.hasTrait?.('consumable') && !item?.isWaterBottle?.() && (
+                        {item?.hasTrait?.('consumable') && !item?.hasTrait?.(ItemTrait.WATER_CONTAINER) && (
                             <ContextMenuItem
                                 onClick={() => {
                                     consumeItem(item);
@@ -263,7 +273,7 @@ export function ItemContextMenu({
                                 })()}
                             </ContextMenuItem>
                         )}
-                        {(item?.isWaterBottle?.() || item?.isPuddle) && (
+                        {(item?.hasTrait?.(ItemTrait.WATER_CONTAINER) || item?.hasTrait?.(ItemTrait.WATER_SOURCE)) && (
                             <>
                                 <ContextMenuItem
                                     onClick={() => drinkWater(item, 1)}
@@ -291,7 +301,7 @@ export function ItemContextMenu({
                                  // Try to find the container via inventoryManager if possible
                                  // Note: useGame might not be available here, but we can check item._containerId if it exists
                                  // or assume if it's furniture it's likely on ground
-                                 if (item.isFurniture) {
+                                 if (item.hasTrait?.(ItemTrait.FURNITURE)) {
                                      const { inventoryManager } = (window as any).gameEngine || {};
                                      container = inventoryManager?.getContainer('ground');
                                  }
@@ -372,7 +382,7 @@ export function ItemContextMenu({
                             </ContextMenuItem>
                         )}
                         {(() => {
-                            if (!item || !item.hasTrait(ItemTrait.DRAGGABLE) || item.noDrag) return null;
+                            if (!item || !item.hasTrait?.(ItemTrait.DRAGGABLE) || item.noDrag) return null;
                             
                             // Check if item is on ground
                             const isDraggingThis = engine.dragging?.item.instanceId === item.instanceId;
@@ -411,7 +421,7 @@ export function ItemContextMenu({
                                 Split Stack
                             </ContextMenuItem>
                         )}
-                        {!canSplit && !canOpenContainer(item) && !item?.isWaterBottle?.() && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && !item?.hasTrait?.(ItemTrait.DRAGGABLE) && (
+                        {!canSplit && !canOpenContainer(item) && !item?.hasTrait?.(ItemTrait.WATER_CONTAINER) && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && !item?.hasTrait?.(ItemTrait.DRAGGABLE) && (
                             <ContextMenuItem disabled className="text-zinc-500">
                                 No actions available
                             </ContextMenuItem>

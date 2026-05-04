@@ -1,7 +1,5 @@
 
-```typescript
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGridSize } from "@/contexts/GridSizeContext";
@@ -41,10 +39,10 @@ export default function DragPreviewLayer() {
       itemName: dragState?.item?.name,
       itemInstanceId: dragState?.item?.instanceId,
       imageId: dragState?.item?.imageId,
-      cursorPos: dragState ? `(${ dragState.cursorX }, ${ dragState.cursorY })` : 'N/A',
+      cursorPos: dragState ? `${dragState.cursorX}, ${dragState.cursorY}` : 'N/A',
       rotation: dragState?.rotation,
       originContainerId: dragState?.originContainerId,
-      originPos: dragState ? `(${ dragState.originX }, ${ dragState.originY })` : 'N/A'
+      originPos: dragState ? `${dragState.originX}, ${dragState.originY}` : 'N/A'
     });
     console.log('[DragPreviewLayer] === END DRAG STATE EFFECT ===');
   }, [dragState]);
@@ -176,12 +174,12 @@ export default function DragPreviewLayer() {
 
   const previewContent = (
     <div
-      className="fixed pointer-events-none z-[10000] border-2 border-yellow-400"
+      className="fixed pointer-events-none z-50 border-2 border-yellow-400"
       style={{
-        left: `${ left } px`,
-        top: `${ top } px`,
-        width: `${ pixelWidth } px`,
-        height: `${ pixelHeight } px`,
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${pixelWidth}px`,
+        height: `${pixelHeight}px`,
       }}
     >
       {itemImage ? (
@@ -209,10 +207,5 @@ export default function DragPreviewLayer() {
     </div>
   );
 
-  console.log('[DragPreviewLayer] Creating portal to document.body');
-  console.log('[DragPreviewLayer] === COMPONENT RENDER END (WITH PREVIEW) ===');
-  
-  // Render as portal to document body to escape stacking context
-  return createPortal(previewContent, document.body);
+  return previewContent;
 }
-```

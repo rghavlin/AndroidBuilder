@@ -18,7 +18,7 @@ export function TradeDialog({ npc, onClose, onStartBarter }: TradeDialogProps) {
   const isHostile = npc.isHostile;
 
   return (
-    <div className="fixed inset-0 z-[11000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-auto">
       {/* Click outside to close (neutral only maybe? but keeping simple for now) */}
       <div className="absolute inset-0" onClick={onClose} />
       

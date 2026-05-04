@@ -26,7 +26,7 @@ export default function SleepModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 pointer-events-auto">
       <div className="bg-zinc-900 border border-white/10 p-6 rounded-lg max-w-sm w-full shadow-2xl">
         <h2 className="text-xl font-bold text-white mb-4 uppercase tracking-wider">How long to sleep?</h2>
         <p className="text-zinc-400 text-[10px] mb-4 uppercase">

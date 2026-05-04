@@ -1,4 +1,6 @@
 
+import { ItemTrait } from '../inventory/traits.js';
+
 /**
  * VehicleUtils - Shared logic for vehicle movement and drag mechanics
  */
@@ -20,11 +22,8 @@ export const VehicleUtils = {
     let motorBonusValue = 0;
     
     // Sum up all active motorized assist bonuses (handles multiple axles)
-    if (item.getMotorizedBonus) {
+    if (item.hasTrait?.(ItemTrait.WAGON) && typeof item.getMotorizedBonus === 'function') {
       motorBonusValue = item.getMotorizedBonus();
-    } else if (item.isMotorized && item.isMotorized()) {
-      // Fallback for older items or direct calls
-      motorBonusValue = item.motorAssistBonus || 0.5;
     }
 
     let dragPenaltyTotal = 0;

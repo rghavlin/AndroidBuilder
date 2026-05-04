@@ -8,6 +8,7 @@ import { useGame } from "@/contexts/GameContext.jsx";
 import { usePlayer } from "@/contexts/PlayerContext.jsx";
 import { useSleep } from "@/contexts/SleepContext.jsx";
 import { useAudio } from "@/contexts/AudioContext.jsx";
+import { ItemTrait, ItemCategory } from "@/game/inventory/traits";
 
 export default function EquipmentSlots() {
   const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto, loadAmmoDirectly } = useInventory();
@@ -66,12 +67,12 @@ export default function EquipmentSlots() {
       }
 
       // Slot is occupied, try loading ammo or adding attachment (if weapon)
-      const isWeapon = equippedItem.isWeapon?.() || (equippedItem.attachmentSlots && equippedItem.attachmentSlots.length > 0);
+      const isWeapon = equippedItem.hasCategory?.(ItemCategory.WEAPON) || equippedItem.hasCategory?.(ItemCategory.GUN) || (equippedItem.attachmentSlots && equippedItem.attachmentSlots.length > 0);
       if (isWeapon) {
         // AMMO LOADING: Direct-load guns use loadAmmoDirectly; magazine-based guns use attachSelectedInto
         const directLoadDefs = ['weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
         const isDirectLoadGun = directLoadDefs.includes(equippedItem.defId);
-        const isAmmoSelected = selectedItem.item.isAmmo && selectedItem.item.isAmmo();
+        const isAmmoSelected = selectedItem.item.hasTrait?.(ItemTrait.AMMO);
 
         if (isDirectLoadGun && isAmmoSelected) {
           console.debug('[EquipmentSlots] Direct-loading ammo into equipped gun:', equippedItem.name);
@@ -85,7 +86,7 @@ export default function EquipmentSlots() {
       }
 
       // Try Deposit (if container/clothing)
-      const isContainer = equippedItem.isContainer?.() || (equippedItem.getPocketContainers && equippedItem.getPocketContainers().length > 0);
+      const isContainer = equippedItem.hasTrait?.(ItemTrait.CONTAINER) || (equippedItem.getPocketContainers && equippedItem.getPocketContainers().length > 0);
       if (isContainer) {
         console.debug('[EquipmentSlots] Attempting quick deposit into equipped container:', equippedItem.name);
         const depositResult = depositSelectedInto(equippedItem);

@@ -1,10 +1,12 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { ItemTrait } from '../../game/inventory/traits.js';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
+import { useOverlays } from '../../contexts/OverlayContext';
 import MapCanvas from './MapCanvas.jsx';
 import InventoryExtensionWindow from './InventoryExtensionWindow';
 import FloatingContainer from '../Inventory/FloatingContainer';
@@ -37,6 +39,8 @@ import { NPCDemandDialog } from './NPCDemandDialog';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import { createItemFromDef } from '../../game/inventory/ItemDefs.js';
 import { Item } from '../../game/inventory/Item.js';
+import { ItemContextMenu } from '../Inventory/ItemContextMenu';
+import { ItemTooltip } from '../Inventory/ItemTooltip';
 
 interface MapInterfaceProps {
   gameState: {
@@ -122,29 +126,33 @@ const ActionSlotButton = ({ slot, isFlashlightOnActual }: { slot: string, isFlas
   };
 
   return (
-    <button
-      onClick={handleClick}
-      className={cn(
-        "w-8 h-8 rounded border flex items-center justify-center transition-colors overflow-hidden",
-        // Empty state: Black bg, White outline
-        !item && "bg-black border-white hover:bg-zinc-900 shadow-sm",
-        // Equipped state: Green outline (like end turn button) w/ transparent or slight bg
-        item && !isTargeting && !isFlashlightActive && "border-green-500 bg-green-500/10 hover:bg-green-500/20",
-        // Targeting state: Bright red outline/glow
-        item && isTargeting && "border-red-500 bg-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
-        // Flashlight ON state: Bright yellow/cyan outline/glow
-        isFlashlightActive && "border-cyan-400 bg-cyan-400/20 shadow-[0_0_10px_rgba(34,211,238,0.4)] hover:bg-cyan-400/30"
-      )}
-      title={item ? item.name : `Empty ${slot} slot`}
+    <ItemContextMenu
+      item={item}
+      tooltipContent={item ? <ItemTooltip item={item} /> : <p className="font-medium text-xs">Empty {slot} slot</p>}
     >
-      {item && imageSrc ? (
-        <img
-          src={imageSrc}
-          alt={item.name}
-          className="w-full h-full object-cover p-0.5"
-        />
-      ) : null}
-    </button>
+      <button
+        onClick={handleClick}
+        className={cn(
+          "w-8 h-8 rounded border flex items-center justify-center transition-colors overflow-hidden",
+          // Empty state: Black bg, White outline
+          !item && "bg-black border-white hover:bg-zinc-900 shadow-sm",
+          // Equipped state: Green outline (like end turn button) w/ transparent or slight bg
+          item && !isTargeting && !isFlashlightActive && "border-green-500 bg-green-500/10 hover:bg-green-500/20",
+          // Targeting state: Bright red outline/glow
+          item && isTargeting && "border-red-500 bg-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
+          // Flashlight ON state: Bright yellow/cyan outline/glow
+          isFlashlightActive && "border-cyan-400 bg-cyan-400/20 shadow-[0_0_10px_rgba(34,211,238,0.4)] hover:bg-cyan-400/30"
+        )}
+      >
+        {item && imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={item.name}
+            className="w-full h-full object-cover p-0.5"
+          />
+        ) : null}
+      </button>
+    </ItemContextMenu>
   );
 };
 
@@ -256,14 +264,17 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   }, [isFlashlightOn, isFlashlightOnActual, inventoryVersion, isNight, targetingWeapon, updatePlayerFieldOfView, refreshZombieTracking, getActiveFlashlightRange]);
 
   const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
-  const [isLogHistoryOpen, setIsLogHistoryOpen] = useState(false);
-  const [showMainMenu, setShowMainMenu] = useState(false);
+  const {
+    logHistoryOpen: isLogHistoryOpen, setLogHistoryOpen: setIsLogHistoryOpen,
+    showMainMenu, setShowMainMenu,
+    activeTradeNpc, setActiveTradeNpc,
+    isBartering, setIsBartering
+  } = useOverlays();
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
   const [windowMenu, setWindowMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, window: any } | null>(null);
   const [waterMenu, setWaterMenu] = useState<{ x: number, y: number, screenX: number, screenY: number } | null>(null);
   const [npcMenu, setNpcMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, npc: any } | null>(null);
-  const [activeTradeNpc, setActiveTradeNpc] = useState<any | null>(null);
-  const [isBartering, setIsBartering] = useState(false);
+  const mapAreaRef = useRef<HTMLDivElement>(null);
 
   // Log tile interactions for debugging
   useEffect(() => {
@@ -554,8 +565,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
         <button
           className={cn(
-            "w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors",
-            isInventoryExtensionOpen && "border-primary bg-primary/10"
+            "w-8 h-8 bg-zinc-800 border transition-all flex items-center justify-center hover:bg-zinc-700 shadow-sm active:scale-95",
+            isInventoryExtensionOpen ? "border-white bg-zinc-700 shadow-[0_0_10px_rgba(255,255,255,0.1)]" : "border-white/10"
           )}
           title="Crafting/Cooking"
           data-testid="inventory-extension-button"
@@ -563,13 +574,14 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         >
           <Hammer className={cn(
             "h-5 w-5",
-            isInventoryExtensionOpen ? "text-primary" : "text-foreground"
+            isInventoryExtensionOpen ? "text-white" : "text-white/40"
           )} />
         </button>
       </div>
 
       {/* Map Display Area */}
       <div
+        ref={mapAreaRef}
         className="flex-1 relative overflow-hidden min-h-0"
         style={{ padding: 0, margin: 0 }}
         onClick={handleMapAreaClick}
@@ -610,15 +622,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           </div>
         )}
 
-        {/* Trade Dialog */}
-        {activeTradeNpc && !isBartering && (
-          <TradeDialog 
-            npc={activeTradeNpc} 
-            onClose={() => setActiveTradeNpc(null)} 
-            onStartBarter={() => setIsBartering(true)}
-          />
-        )}
-
 
         {/* Diagnostic log for animation state desync debugging */}
         {process.env.NODE_ENV === 'development' && (
@@ -627,10 +630,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           </div>
         )}
 
-
         {/* Tile Tooltip Overlay (Phase 6 & Generic Refactor) */}
         {(() => {
           if (!hoveredTile) return null;
+          
+          // Re-check visibility from the cached hoveredTile data (updated in MapCanvas)
           if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window && !hoveredTile.npc) return null;
           
           // Only show if the tile is explored
@@ -641,6 +645,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             <TileTooltipOverlay 
               hoveredTile={hoveredTile} 
               playerFieldOfView={playerFieldOfView}
+              containerRef={mapAreaRef}
             />
           );
         })()}
@@ -652,64 +657,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         onClose={() => setIsInventoryExtensionOpen(false)}
       />
 
-      {/* Barter Window - Now on the same layer as Crafting/Inventory Extension */}
-      {isBartering && activeTradeNpc && (
-        <BarterWindow 
-          npc={activeTradeNpc}
-          onClose={() => {
-            setIsBartering(false);
-            setActiveTradeNpc(null);
-          }}
-        />
-      )}
-
-      {/* Log History Window (Direct Implementation to match InventoryExtensionWindow layout) */}
-      {isLogHistoryOpen && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
-          {/* Backdrop covers only map area */}
-          <div
-            className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
-            style={{
-              top: '48px',
-              bottom: '72px',
-              height: 'calc(100vh - 120px)'
-            }}
-            onClick={() => setIsLogHistoryOpen(false)}
-          />
-
-          {/* Log History panel */}
-          <div
-            className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-4 overflow-hidden pointer-events-auto"
-            style={{
-              top: '48px',
-              bottom: '72px',
-              height: 'calc(100vh - 120px)'
-            }}
-            data-testid="log-history-window"
-            data-inventory-ui="true"
-          >
-            <LogHistoryWindow onClose={() => setIsLogHistoryOpen(false)} />
-          </div>
-        </div>
-      )}
-      {/* Main Menu Modal */}
-      {showMainMenu && (
-        <MainMenuWindow onClose={() => setShowMainMenu(false)} />
-      )}
-      
-      {/* Player Skills Window */}
-      <PlayerSkillsWindow 
-        isOpen={isSkillsOpen} 
-        onClose={toggleSkills} 
-      />
-
-      {/* NPC Demand Dialog */}
-      {activeNpcDemand && (
-        <NPCDemandDialog 
-          npc={activeNpcDemand.npc} 
-          onResponse={handleNpcDemandResponse} 
-        />
-      )}
 
       {/* Door Context Menu */}
       {doorMenu && (
@@ -1246,7 +1193,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               let bestPriority = 0; // 0: None, 1: Empty, 2: Partial Dirty
 
               const evaluateItem = (item: any) => {
-                if (!item || (typeof item.isWaterBottle === 'function' ? !item.isWaterBottle() : !item.isWaterBottle)) return;
+                if (!item || !item.hasTrait?.(ItemTrait.WATER_CONTAINER)) return;
 
                 const ammo = item.ammoCount || 0;
                 const capacity = item.capacity || 20;
@@ -1404,12 +1351,37 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   );
 }
 
+// Helper to calculate the same base tile size as MapCanvas
+const calculateBaseTileSize = (width: number, height: number) => {
+  const minDim = Math.min(width, height);
+  if (minDim === 0) return 48;
+  const baseSize = Math.floor(minDim / 14);
+  return Math.max(32, Math.min(80, baseSize));
+};
+
 // Tile Tooltip Overlay Helper (Phase 6 & Generic Refactor)
-const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: any, playerFieldOfView: any[] | null }) => {
+const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: { 
+  hoveredTile: any, 
+  playerFieldOfView: any[] | null,
+  containerRef: React.RefObject<HTMLDivElement>
+}) => {
   const { worldToScreen, cameraRef } = useCamera();
   const { gameMapRef } = useGameMap();
 
   if (!hoveredTile || !cameraRef.current || !gameMapRef.current) return null;
+
+  const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
+  
+  // Use authoritative base tile size from container dimensions if possible
+  let baseTileSize = 48;
+  if (containerRef.current) {
+    const rect = containerRef.current.getBoundingClientRect();
+    baseTileSize = calculateBaseTileSize(rect.width, rect.height);
+  } else {
+    baseTileSize = (cameraRef.current as any).tileSize || 48;
+  }
+  
+  const tileSize = baseTileSize * cameraRef.current.zoomLevel;
 
   // Re-fetch data from the map to get fresh stats
   const targetTile = gameMapRef.current.getTile(hoveredTile.x, hoveredTile.y);
@@ -1442,23 +1414,25 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
   
   if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible) return null;
 
-  // Calculate screen position
-  const screenPos = worldToScreen(hoveredTile.x, hoveredTile.y);
-  
-  // Get tileSize from camera (this is the synchronized base tile size * zoom)
-  const baseTileSize = (cameraRef.current as any).tileSize || 48;
-  const tileSize = baseTileSize * cameraRef.current.zoomLevel;
+  // Calculate absolute screen position by adding container offset
+  let x = screenPos.x * tileSize;
+  let y = screenPos.y * tileSize;
 
-  // Position above the tile
-  const x = screenPos.x * tileSize;
-  const y = screenPos.y * tileSize;
+  if (containerRef.current) {
+    const rect = containerRef.current.getBoundingClientRect();
+    x += rect.left;
+    y += rect.top;
+  }
 
-  return (
+  const tooltipRoot = document.getElementById('tooltip-root');
+  if (!tooltipRoot) return null;
+
+  return createPortal(
     <div
-      className="absolute z-[10001] pointer-events-none transform -translate-x-1/2 -translate-y-full transition-all duration-200 flex flex-col gap-2 items-center"
+      className="absolute z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full transition-all duration-200 flex flex-col gap-2 items-center"
       style={{
         left: `${x + tileSize / 2}px`,
-        top: `${y - 12}px`,
+        top: `${y - 4}px`, // Reduced from 12 to 4 to bring it closer to the sprite
       }}
     >
       {isZombieVisible && <ZombieTooltip zombie={zombie as any} />}
@@ -1471,6 +1445,7 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView }: { hoveredTile: a
       
       {/* Downward arrow/pointer */}
       <div className="w-2.5 h-2.5 bg-[#1a1a1a] border-r border-b border-white/20 transform rotate-45 -mt-3.5 shadow-lg" />
-    </div>
+    </div>,
+    tooltipRoot
   );
 };

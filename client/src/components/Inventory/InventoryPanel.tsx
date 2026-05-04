@@ -6,7 +6,6 @@ import UnifiedClothingPanel from "./UnifiedClothingPanel";
 import GroundItemsGrid from './GroundItemsGrid';
 import FloatingContainer from "./FloatingContainer";
 import ContainerGrid from "./ContainerGrid";
-import DragPreviewLayer from "./DragPreviewLayer";
 import UniversalGrid from "./UniversalGrid";
 import WeaponModPanel from "./WeaponModPanel";
 import CampfireUI from "./CampfireUI";

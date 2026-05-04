@@ -72,7 +72,12 @@ export const ItemTrait = {
   VEHICLE: 'vehicle',
   FUEL_CONTAINER: 'fuel_container',
   CAN_SIPHON: 'canSiphon',
-  POWER_SOURCE: 'power_source'
+  POWER_SOURCE: 'power_source',
+  MAGAZINE: 'magazine',
+  WAGON: 'wagon',
+  PLANTER: 'planter',
+  FURNITURE: 'furniture',
+  WATER_SOURCE: 'water_source'
 };
 
 // Item rarity levels for loot generation

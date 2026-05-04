@@ -56,56 +56,41 @@ const GridSlot = memo(({
     }
   };
 
-  // Tooltip content for items
-  const tooltipContent = item ? (
-    <ItemTooltip item={item} />
-  ) : null;
-
   return (
-    <ItemContextMenu
-        item={item}
-        tooltipContent={tooltipContent}
-        isDisabled={item?.defId === 'placeable.campfire'}
-      >
-        <div
-          className={cn(
-            // Dynamic size
-            "flex-shrink-0 flex items-center justify-center text-sm relative",
-            !isEmpty ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
-            "transition-colors duration-200",
-
-            // Subtle borders like backpack grids
-            "border border-border/20 bg-muted/10",
-
-            // Hover state
-            !isEmpty ? "hover:bg-muted/40" : "hover:bg-muted/50",
-
-            // Conditional states
-            isHighlighted && "bg-accent/20",
-            isValidDrop && "bg-green-500/20",
-            !isEmpty && "bg-muted/30",
-
-            className
-          )}
-          style={{
-            width: `${slotSize}px`,
-            height: `${slotSize}px`,
-          }}
-          draggable={!isEmpty}
-          onClick={onClick}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onDragStart={handleDragStart}
-          onContextMenu={onContextMenu}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          data-testid={testId}
-        >
-          {/* All image rendering handled by UniversalGrid overlays */}
-          {children}
-        </div>
-      </ItemContextMenu>
-    );
+    <div
+      className={cn(
+        // Dynamic size
+        "flex-shrink-0 flex items-center justify-center text-sm relative",
+        !isEmpty ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+        "transition-colors duration-200",
+        // Subtle borders like backpack grids
+        "border border-border/20 bg-muted/10",
+        // Hover state
+        !isEmpty ? "hover:bg-muted/40" : "hover:bg-muted/50",
+        // Conditional states
+        isHighlighted && "bg-accent/20",
+        isValidDrop && "bg-green-500/20",
+        !isEmpty && "bg-muted/30",
+        className
+      )}
+      style={{
+        width: `${slotSize}px`,
+        height: `${slotSize}px`,
+      }}
+      draggable={!isEmpty}
+      onClick={onClick}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      onDragStart={handleDragStart}
+      onContextMenu={onContextMenu}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      data-testid={testId}
+    >
+      {/* All image rendering handled by UniversalGrid overlays */}
+      {children}
+    </div>
+  );
 });
 
 export default GridSlot;

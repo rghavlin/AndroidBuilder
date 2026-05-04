@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
+import { ItemTrait } from '@/game/inventory/traits';
 
 interface ItemTooltipProps {
     item: any;
@@ -106,19 +107,19 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             )}
 
             {/* Ammo/Capacity/Water */}
-            {(item.ammoCount > 0 || item.capacity > 0) && !item.isPuddle && !item.noTooltipUnits && (
+            {(item.ammoCount > 0 || item.capacity > 0) && !item.hasTrait?.(ItemTrait.WATER_SOURCE) && !item.noTooltipUnits && (
                 <div className="text-[10px] text-zinc-400 flex justify-between">
                     <span>
-                        {item.isWaterBottle?.() ? 'Water' : 
-                         (item.isFuelContainer?.() ? 'Fuel' :
-                         (item.isChargeBased?.() ? 'Charges' : (item.isAmmo?.() ? 'Count' : 'Ammo')))}
+                        {item.hasTrait?.(ItemTrait.WATER_CONTAINER) ? 'Water' : 
+                         (item.hasTrait?.(ItemTrait.FUEL_CONTAINER) ? 'Fuel' :
+                         (item.hasTrait?.(ItemTrait.CHARGE_BASED) ? 'Charges' : (item.hasTrait?.(ItemTrait.AMMO) ? 'Count' : 'Ammo')))}
                     </span>
                     <span>{item.ammoCount}{item.capacity ? ` / ${item.capacity}` : ''}</span>
                 </div>
             )}
 
             {/* Consumable Effects */}
-            {item.consumptionEffects && !item.isWaterBottle?.() && (
+            {item.consumptionEffects && !item.hasTrait?.(ItemTrait.WATER_CONTAINER) && (
                 <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     {(Array.isArray(item.consumptionEffects)
                         ? (item.consumptionEffects as any[]).map((e: any) => ({ stat: e.type || e.id, value: e.value }))

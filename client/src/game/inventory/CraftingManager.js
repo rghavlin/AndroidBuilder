@@ -2,7 +2,7 @@
 import { CraftingRecipes } from './CraftingRecipes.js';
 import { Item } from './Item.js';
 import { ItemDefs, createItemFromDef, getItemName } from './ItemDefs.js';
-import { ItemCategory } from './traits.js';
+import { ItemCategory, ItemTrait } from './traits.js';
 
 export class CraftingManager {
     constructor(inventoryManager) {
@@ -202,7 +202,7 @@ export class CraftingManager {
             const vegItems = allItems.filter(i => i.hasCategory(ItemCategory.VEGETABLE));
             const meatItems = allItems.filter(i => i.defId === 'food.raw_meat');
             
-            const waterContainers = allItems.filter(i => i.isWaterBottle() && (i.ammoCount || 0) > 0);
+            const waterContainers = allItems.filter(i => i.hasTrait(ItemTrait.WATER_CONTAINER) && (i.ammoCount || 0) > 0);
             const totalWaterAvailable = waterContainers.reduce((sum, i) => sum + ((i.ammoCount || 0) * i.stackCount), 0);
 
             // 2. Greedily determine what to cook (Max 4 units: Meat = 2, Veg = 1)
@@ -350,7 +350,7 @@ export class CraftingManager {
             // Look for the specific dirty container that triggered the craft
             // We search for a water container with some dirty water in it
             const sourceBottle = candidates.find(i =>
-                i.isWaterBottle() && (i.waterQuality === 'dirty' || !i.waterQuality) && (i.ammoCount || 0) > 0
+                i.hasTrait(ItemTrait.WATER_CONTAINER) && (i.waterQuality === 'dirty' || !i.waterQuality) && (i.ammoCount || 0) > 0
             );
 
             if (sourceBottle) {
@@ -447,7 +447,7 @@ export class CraftingManager {
         }
 
         // Handle GROUND_ONLY/Furniture placement (e.g. Campfire, Sled, Bed)
-        if (newItem.isFurniture || (newItem.isGroundOnly && newItem.isGroundOnly())) {
+        if (newItem.hasTrait(ItemTrait.FURNITURE) || newItem.hasTrait(ItemTrait.GROUND_ONLY)) {
             const ground = this.inv.groundContainer;
             console.log(`[CraftingManager] Placing furniture/ground item ${newItem.name} on infinite ground...`);
 

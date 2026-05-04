@@ -315,7 +315,7 @@ export const CombatProvider = ({ children }) => {
         } else {
             ammoSlot = weapon.attachmentSlots?.find(slot => slot.id === 'ammo' || slot.allowedCategories?.includes(ItemCategory.AMMO));
             magazine = ammoSlot ? weapon.attachments[ammoSlot.id] : null;
-            const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+            const isMagazine = magazine && magazine.hasTrait?.(ItemTrait.MAGAZINE);
             ammoFound = magazine && (isMagazine ? (magazine.ammoCount > 0) : (magazine.stackCount > 0));
         }
 
@@ -355,7 +355,7 @@ export const CombatProvider = ({ children }) => {
             if (isSling) {
                 ammoFound = inventoryRef.current.hasItemByDefId('crafting.stone', 1);
             } else {
-                const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+                const isMagazine = magazine && magazine.hasTrait?.(ItemTrait.MAGAZINE);
                 ammoFound = magazine && (isMagazine ? (magazine.ammoCount > 0) : (magazine.stackCount > 0));
             }
 
@@ -366,7 +366,7 @@ export const CombatProvider = ({ children }) => {
             if (isSling) {
                 inventoryRef.current.consumeItemByDefId('crafting.stone', 1);
             } else {
-                const isMagazine = magazine && (typeof magazine.isMagazine === 'function' ? magazine.isMagazine() : (magazine.capacity > 0));
+                const isMagazine = magazine && magazine.hasTrait?.(ItemTrait.MAGAZINE);
                 if (isMagazine) magazine.ammoCount--;
                 else {
                     magazine.stackCount--;

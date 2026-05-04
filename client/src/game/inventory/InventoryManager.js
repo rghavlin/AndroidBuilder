@@ -758,8 +758,8 @@ export class InventoryManager extends SafeEventEmitter {
    */
   getBackpackContainer() {
     const backpack = this.equipment.backpack;
-    if (backpack && backpack.isContainer && backpack.isContainer()) {
-      return backpack.getContainerGrid();
+    if (backpack && (typeof backpack.isContainer === 'function' ? backpack.isContainer() : backpack.hasTrait?.('container'))) {
+      return backpack.getContainerGrid?.();
     }
     return null;
   }
@@ -771,15 +771,27 @@ export class InventoryManager extends SafeEventEmitter {
     const pockets = [];
 
     // Check upper body equipment for pockets
-    if (this.equipment.upper_body && this.equipment.upper_body.hasTrait && this.equipment.upper_body.hasTrait('container')) {
-      const pocketContainers = this.equipment.upper_body.getPocketContainers();
-      if (pocketContainers) pockets.push(...pocketContainers);
+    if (this.equipment.upper_body) {
+      console.log('[InventoryManager] Checking upper body for pockets:', this.equipment.upper_body.name);
+      if (typeof this.equipment.upper_body.getPocketContainers === 'function') {
+        const pocketContainers = this.equipment.upper_body.getPocketContainers();
+        if (pocketContainers) {
+          console.log(`[InventoryManager] Found ${pocketContainers.length} pockets in ${this.equipment.upper_body.name}`);
+          pockets.push(...pocketContainers);
+        }
+      }
     }
 
     // Check lower body equipment for pockets
-    if (this.equipment.lower_body && this.equipment.lower_body.hasTrait && this.equipment.lower_body.hasTrait('container')) {
-      const pocketContainers = this.equipment.lower_body.getPocketContainers();
-      if (pocketContainers) pockets.push(...pocketContainers);
+    if (this.equipment.lower_body) {
+      console.log('[InventoryManager] Checking lower body for pockets:', this.equipment.lower_body.name);
+      if (typeof this.equipment.lower_body.getPocketContainers === 'function') {
+        const pocketContainers = this.equipment.lower_body.getPocketContainers();
+        if (pocketContainers) {
+          console.log(`[InventoryManager] Found ${pocketContainers.length} pockets in ${this.equipment.lower_body.name}`);
+          pockets.push(...pocketContainers);
+        }
+      }
     }
 
     return pockets;
@@ -1621,17 +1633,19 @@ export class InventoryManager extends SafeEventEmitter {
       }
 
       // Search and merge
+      console.log(`[InventoryManager] Checking ${potentialContainers.length} containers for stacking:`, potentialContainers.map(c => c.id));
       for (const container of potentialContainers) {
         // Find existing items with same defId
         for (const existingItem of container.items.values()) {
-          if (existingItem.canStackWith(item) && existingItem.stackCount < existingItem.stackMax) {
+          const canStack = existingItem.canStackWith(item);
+          if (canStack && existingItem.stackCount < existingItem.stackMax) {
             const spaceInStack = existingItem.stackMax - existingItem.stackCount;
             const amountToTake = Math.min(item.stackCount, spaceInStack);
             
             existingItem.stackCount += amountToTake;
             item.stackCount -= amountToTake;
             
-            console.debug(`[InventoryManager] Merged ${amountToTake} into existing stack in ${container.id}. Item remaining: ${item.stackCount}`);
+            console.log(`[InventoryManager] ✅ SUCCESS: Merged ${amountToTake} into existing stack in ${container.id}. Item remaining: ${item.stackCount}`);
             
             if (item.stackCount <= 0) {
               this.emit('inventoryChanged');
@@ -1640,6 +1654,7 @@ export class InventoryManager extends SafeEventEmitter {
           }
         }
       }
+      console.log(`[InventoryManager] No valid stack found for: ${item.name}`);
     }
 
     // 2. Regular Grid Placement Logic
@@ -1665,8 +1680,11 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     // Try pockets
-    for (const pocket of this.getPocketContainers()) {
+    const pockets = this.getPocketContainers();
+    console.log(`[InventoryManager] Checking ${pockets.length} pockets for placement of ${item.name}`);
+    for (const pocket of pockets) {
       if (pocket.addItem(item, null, null, allowStacking)) {
+        console.log(`[InventoryManager] ✅ SUCCESS: Placed ${item.name} in pocket: ${pocket.id}`);
         this.emit('inventoryChanged');
         return { success: true, container: pocket.id };
       }
@@ -1907,6 +1925,9 @@ export class InventoryManager extends SafeEventEmitter {
       return { success: false, reason: 'Cannot place item into itself' };
     }
 
+    const oldX = itemToMove.x;
+    const oldY = itemToMove.y;
+
     // Perform removal from source (handles containers, equipment, and virtual attachments)
     const removedResult = this.removeItemFromSource(itemId, fromContainerId);
     const item = removedResult?.item;
@@ -1917,8 +1938,8 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     // Ensure container items have their grids initialized
-    if (item.isContainer() && !item.containerGrid) {
-      item.initializeContainerGrid();
+    if (typeof item.getContainerGrid === 'function' && !item.containerGrid) {
+      item.initializeContainerGrid?.();
     }
 
     // Apply rotation if provided
@@ -1957,22 +1978,24 @@ export class InventoryManager extends SafeEventEmitter {
           }
         }
 
-        // We only trigger special logic if there is exactly ONE unique item blocking the entire footprint
-        if (blockingItemIds.size === 1) {
-          const targetId = Array.from(blockingItemIds)[0];
-          const occupant = toContainer.items.get(targetId);
+        // 4. Try stacking/combining with ANY item in the collision footprint
+        if (blockingItemIds.size > 0) {
+          console.log(`[InventoryManager] moveItem: Collision detected with ${blockingItemIds.size} items. Checking for stack/combine targets...`);
+          for (const targetId of blockingItemIds) {
+            const occupant = toContainer.items.get(targetId);
+            if (!occupant) continue;
 
-          if (occupant) {
-            // 1. ATTEMPT STACKING (Standard)
-            const isStackable = typeof item.isStackable === 'function' ? item.isStackable() : item.stackable;
+            // 1. ATTEMPT STACKING
+            const isStackable = typeof occupant.hasTrait === 'function' ? occupant.hasTrait(ItemTrait.STACKABLE) : occupant.stackable;
             if (isStackable && occupant.canStackWith(item)) {
+              console.log(`[InventoryManager] moveItem: Found stack target: ${occupant.name}`);
               const spaceInStack = occupant.stackMax - occupant.stackCount;
               const amountToTake = Math.min(item.stackCount, spaceInStack);
               
               if (amountToTake > 0) {
                 occupant.stackCount += amountToTake;
                 item.stackCount -= amountToTake;
-                console.debug(`[InventoryManager] moveItem: Merged ${amountToTake} into existing stack at (${x},${y})`);
+                console.log(`[InventoryManager] moveItem: ✅ Merged ${amountToTake} into existing stack at (${x},${y})`);
                 
                 if (item.stackCount <= 0) {
                   this.emit('inventoryChanged');
@@ -1981,54 +2004,27 @@ export class InventoryManager extends SafeEventEmitter {
               }
             }
 
-            // 2. ATTEMPT WATER TRANSFER (Bidirectional)
+            // 2. ATTEMPT COMBINING (e.g. Water Transfer)
             if (occupant.canCombineWith && occupant.canCombineWith(item)) {
-              console.debug(`[InventoryManager] moveItem: Attempting water transfer: ${item.name} <-> ${occupant.name}`);
-              
+              console.log(`[InventoryManager] moveItem: Found combine target: ${occupant.name}`);
               const result = occupant.combineWith(item);
               if (result) {
-                const success = typeof result === 'object' ? result.success : result;
-                const ejected = result.ejected;
-
-                if (success) {
+                const combineSuccess = typeof result === 'object' ? result.success : result;
+                if (combineSuccess) {
                   this.emit('inventoryChanged');
-
-                
-                // AUTO-STACK: Check if they are now stackable (e.g. both became empty or full)
-                if (occupant.canStackWith(item)) {
-                  const space = occupant.stackMax - occupant.stackCount;
-                  const toMerge = Math.min(space, item.stackCount);
-                  if (toMerge > 0) {
-                    occupant.stackCount += toMerge;
-                    item.stackCount -= toMerge;
+                  // After combining, they might now be stackable (e.g. both became empty)
+                  if (item.stackCount > 0 && occupant.canStackWith(item)) {
+                    const space = occupant.stackMax - occupant.stackCount;
+                    const toMerge = Math.min(space, item.stackCount);
+                    if (toMerge > 0) {
+                      occupant.stackCount += toMerge;
+                      item.stackCount -= toMerge;
+                    }
                   }
+                  if (item.stackCount <= 0) return { success: true, container: toContainer.id, combined: true };
                 }
-                
-                if (item.stackCount <= 0) {
-                  if (ejected) {
-                    console.log(`[InventoryManager] Successfully swapped item. Adding ejected ${ejected.name} to inventory.`);
-                    this.addItem(ejected);
-                  }
-                  return { success: true, container: toContainer.id, combined: true, merged: true };
-                }
-
-                // If item remains, return to source FIRST, then add ejected item
-                const placedBack = fromContainer.placeItemAt(item, item.x, item.y);
-                if (!placedBack) {
-                  console.warn(`[InventoryManager] Failed to return item to source, finding new spot...`);
-                  this.addItem(item);
-                }
-
-                if (ejected) {
-                  console.log(`[InventoryManager] Successfully swapped item. Adding ejected ${ejected.name} to inventory.`);
-                  this.addItem(ejected);
-                }
-                
-                this.emit('inventoryChanged');
-                return { success: true, container: fromContainerId, combined: true };
               }
             }
-          }
           }
         }
       }
@@ -2038,15 +2034,13 @@ export class InventoryManager extends SafeEventEmitter {
       success = addResult.success;
     }
 
-    if (!success) {
-      // Restore item to original container at its original position
-      console.warn('[InventoryManager] Move failed, restoring item to source:', fromContainerId);
-      if (fromContainer && typeof fromContainer.placeItemAt === 'function') {
-          fromContainer.placeItemAt(item, item.x, item.y);
-      } else {
-          // Emergency: If we can't restore to source, drop it to the ground
-          console.error('[InventoryManager] CRITICAL: Cannot restore item to source, emergency drop to ground!', item.name);
-          this.addItem(item, 'ground');
+    if (!success && fromContainer) {
+      console.warn('[InventoryManager] moveItem: Placement failed, attempting smart return to source:', fromContainerId);
+      // Try to re-add to inventory anywhere (allowing stacking) instead of forcing to old spot
+      const fallbackResult = this.addItem(itemToMove, fromContainerId, null, null, true);
+      if (!fallbackResult.success) {
+        // Absolute last resort: force back to original spot even if it overlaps (shouldn't happen)
+        fromContainer.placeItemAt(itemToMove, oldX, oldY);
       }
       return { success: false, reason: 'Cannot place item' };
     }

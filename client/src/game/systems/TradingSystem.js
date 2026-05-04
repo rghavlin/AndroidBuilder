@@ -1,4 +1,4 @@
-import { Rarity, ItemCategory, EquipmentSlot } from '../inventory/traits.js';
+import { Rarity, ItemCategory, EquipmentSlot, ItemTrait } from '../inventory/traits.js';
 import { Container } from '../inventory/Container.js';
 import engine from '../GameEngine.js';
 
@@ -269,7 +269,7 @@ class TradingSystem {
       let totalValue = nutrition + Math.floor(hydration / 2);
       
       // Handle liquid containers (water bottles, sodas) that use ammoCount for units
-      if (item.isWaterBottle?.() || item.capacity > 0) {
+      if (item.hasTrait(ItemTrait.WATER_CONTAINER) || item.capacity > 0) {
         // total hydration = hydration per unit * number of units
         // But the rule is 1 point per 2 points of TOTAL hydration.
         const totalHydration = (item.ammoCount || 0) * hydration;

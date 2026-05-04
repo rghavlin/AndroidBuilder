@@ -1,4 +1,5 @@
 import Logger from './utils/Logger.js';
+import { getProgressionForMap } from './config/ProgressionConfig.js';
 
 const logger = Logger.scope('WorldManager');
 
@@ -227,10 +228,10 @@ export class WorldManager {
 
       // SPAWN ZOMBIES: Initial map population (if not already handled)
       const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
+      const progression = getProgressionForMap(gameMap.mapNumber || 1);
       ZombieSpawner.spawnZombies(gameMap, null, {
+        ...progression,
         minDistance: 15, // Keep zombies away from start
-        minTotal: 30,
-        maxTotal: 60
       });
 
       // SPECIAL BUILDING SPAWNS: Army Tent Soldier Zombies, etc.
@@ -472,53 +473,30 @@ export class WorldManager {
         const lootGenerator = new LootGenerator();
         lootGenerator.spawnLoot(gameMap, mapNumber);
 
-        // SPAWN ZOMBIES: Procedural zombie generation with scaling difficulty
+        const progression = getProgressionForMap(mapNumber);
+        console.log(`[WorldManager] Applying progression for Map ${mapNumber}:`, progression);
         
-        // Basic zombie scaling: 20% increase and steeper scaling past map 3
-        let basicCount;
-        if (mapNumber === 1) basicCount = 18;
-        else if (mapNumber === 2) basicCount = 24;
-        else if (mapNumber === 3) basicCount = 25;
-        else basicCount = 25 + (mapNumber - 3) * 2; // Steeper scaling (+2 per map)
-
-        // Bonus units based on map progression (increased frequency)
-        const extraFat = Math.floor(mapNumber / 3);
-        const extraCrawler = Math.floor(mapNumber / 3);
-        const extraAcid = Math.floor(mapNumber / 4);
-
-        // Calculate ranges with bonuses (approx 20% base increase)
-        let crawlerRange = { min: 3 + extraCrawler, max: 6 + extraCrawler };
-        
-        let acidRange;
-        if (mapNumber === 1) acidRange = { min: 0, max: 0 };
-        else if (mapNumber === 2) acidRange = { min: 1 + extraAcid, max: 2 + extraAcid };
-        else acidRange = { min: 2 + extraAcid, max: 3 + extraAcid };
-
-        let fatRange;
-        if (mapNumber === 1) fatRange = { min: 0, max: 0 };
-        else fatRange = { min: 2 + extraFat, max: 3 + extraFat };
-
-        // Random Specialized Interspersement (Past Map 3)
         let randomSwatCount = 0;
         let randomFirefighterCount = 0;
         let soldierCount = 0;
 
         if (mapNumber > 3) {
-          if (Math.random() < 0.15) randomSwatCount = Math.floor(Math.random() * 2) + 1;
-          if (Math.random() < 0.15) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
-          if (Math.random() < 0.10) soldierCount = 1;
+          const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
+          if (Math.random() < (swatChance || 0.15)) randomSwatCount = Math.floor(Math.random() * 2) + 1;
+          if (Math.random() < (firefighterChance || 0.15)) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
+          if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
         }
 
         ZombieSpawner.spawnZombies(gameMap, spawnPosition, {
-          basicCount,
-          crawlerRange,
-          runnerCount: Math.floor(Math.random() * 2) + 1, // 1 or 2 runner zombies
-          acidRange,
-          fatRange,
+          basicCount: progression.basicCount,
+          crawlerRange: progression.crawlerRange,
+          runnerCount: progression.runnerCount,
+          acidRange: progression.acidRange,
+          fatRange: progression.fatRange,
           randomSwatCount,
           randomFirefighterCount,
           soldierCount,
-          maxTotal: 120 // Increased cap to accommodate larger populations
+          maxTotal: progression.maxTotal
         });
         
         // SPAWN ANIMALS: Procedural rabbit generation

@@ -1,5 +1,6 @@
 import { createItemFromDef, ItemDefs } from '../inventory/ItemDefs.js';
 import { Item } from '../inventory/Item.js';
+import { ItemTrait } from '../inventory/traits.js';
 
 /**
  * WeatherManager - Handles procedural weather cycles
@@ -82,7 +83,7 @@ export class WeatherManager {
       if (isPlayerTile) {
         // Use items from live ground container
         const items = inv.groundContainer.getAllItems();
-        const existingPuddle = items.find(it => it.defId === 'environment.water_puddle');
+        const existingPuddle = items.find(it => it.hasTrait(ItemTrait.WATER_SOURCE));
 
         if (existingPuddle) {
           if (existingPuddle.ammoCount < 50) {
@@ -106,7 +107,7 @@ export class WeatherManager {
 
       // Standard map tile processing
       const items = [...(map.getItemsOnTile(spot.x, spot.y) || [])];
-      const existingPuddle = items.find(it => it.defId === 'environment.water_puddle');
+      const existingPuddle = items.find(it => it.traits?.includes(ItemTrait.WATER_SOURCE) || (typeof it.hasTrait === 'function' && it.hasTrait(ItemTrait.WATER_SOURCE)));
 
       if (existingPuddle) {
         if (existingPuddle.ammoCount < 50) {
@@ -144,8 +145,9 @@ export class WeatherManager {
       if (!itemData) return false;
       let modified = false;
 
-      // 1. Accumulate if it's a rain collector and it's exposed to the sky
-      if (itemData.defId === 'provision.rain_collector' && isExposed) {
+      // 1. Accumulate if it's a water source (rain collector/puddle) and it's exposed to the sky
+      const hasWaterSourceTrait = itemData.traits?.includes(ItemTrait.WATER_SOURCE) || (typeof itemData.hasTrait === 'function' && itemData.hasTrait(ItemTrait.WATER_SOURCE));
+      if (hasWaterSourceTrait && isExposed) {
         const currentAmmo = itemData.ammoCount || 0;
         if (currentAmmo < 100) {
           itemData.ammoCount = Math.min(100, currentAmmo + amount);
@@ -159,13 +161,8 @@ export class WeatherManager {
       if (itemData.containerGrid && itemData.containerGrid.items) {
         const def = ItemDefs[itemData.defId];
         // Vehicles/Wagons are open-air containers. 
-        // We check def.isWagon or container level isVehicle flag.
-        const isVehicle = (typeof itemData.isVehicle === 'function') ? itemData.isVehicle() : itemData.isVehicle;
-        const containerIsExposed = isVehicle || 
-                                 def?.isWagon || 
-                                 def?.traits?.includes(ItemTrait.VEHICLE) ||
-                                 itemData.containerGrid?.isVehicle ||
-                                 def?.containerGrid?.isVehicle;
+        const isVehicle = (typeof itemData.hasTrait === 'function') ? itemData.hasTrait(ItemTrait.VEHICLE) : (itemData.traits?.includes(ItemTrait.VEHICLE) || def?.traits?.includes(ItemTrait.VEHICLE));
+        const containerIsExposed = isVehicle || itemData.containerGrid?.isVehicle;
         
         // Contents are only exposed if the parent is exposed AND the parent is an open-air container type
         const contentsExposed = isExposed && containerIsExposed;

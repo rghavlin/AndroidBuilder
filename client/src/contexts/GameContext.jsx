@@ -67,7 +67,6 @@ const GameContextInner = ({ children }) => {
   const { addEffect } = useVisualEffects();
   const { addLog, clearLogs } = useLog();
   const { playSound } = useAudio();
-  const [inventoryVersion, setInventoryVersion] = useState(0);
 
 
   // Phase 5A: inventoryManager is now managed by engine.inventoryManager
@@ -128,9 +127,8 @@ const GameContextInner = ({ children }) => {
     if (!isFlashlightOn) return false;
     const fl = inventoryManager?.equipment['flashlight'];
     if (!fl) return false;
-    if (fl.hasTrait(ItemTrait.IGNITABLE) && !fl.isLit) return false;
     return true;
-  }, [isFlashlightOn, inventoryVersion, inventoryManager]);
+  }, [isFlashlightOn, enginePulse, inventoryManager]);
 
   const getActiveFlashlightRange = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
@@ -138,7 +136,7 @@ const GameContextInner = ({ children }) => {
       return flashlight.lightRange || 8;
     }
     return 8;
-  }, [inventoryManager, inventoryVersion]);
+  }, [inventoryManager, enginePulse]);
 
 
   /**
@@ -259,9 +257,7 @@ const GameContextInner = ({ children }) => {
       container.removeItem(source.instanceId);
       addLog('The matchbook is empty and discarded.', 'item');
     }
-
-    setInventoryVersion(prev => prev + 1);
-  }, [inventoryManager, addLog, playSound, setInventoryVersion]);
+  }, [inventoryManager, addLog, playSound]);
 
   const toggleFlashlight = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
@@ -822,7 +818,6 @@ const GameContextInner = ({ children }) => {
     
     // Sync UI
     engine.notifyUpdate();
-    setInventoryVersion(v => v + 1);
     addLog(`${npc.name} took all your belongings and is making an escape!`, 'hostile');
   }, [inventoryManager]);
 
@@ -966,22 +961,6 @@ const GameContextInner = ({ children }) => {
     manager.on('initializationError', handleInitializationError);
   }, [setupPlayerEventListeners]);
 
-  // Phase 5B: Sync local inventory version with manager events
-  useEffect(() => {
-    if (!inventoryManager) return;
-
-    const handleInventoryChanged = () => {
-      logger.debug('🔄 GameContext: Inventory changed, bumping local version');
-      setInventoryVersion(prev => prev + 1);
-    };
-
-    if (typeof inventoryManager.on === 'function') {
-      inventoryManager.on('inventoryChanged', handleInventoryChanged);
-      return () => {
-        inventoryManager.off('inventoryChanged', handleInventoryChanged);
-      };
-    }
-  }, [inventoryManager]);
   
   // REACTIVE DEFEAT DETECTION: Monitor engine stats directly to catch death immediately
   useEffect(() => {

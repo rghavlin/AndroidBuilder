@@ -52,9 +52,6 @@ export class Item extends SafeEventEmitter {
     fireMode = FireMode.SINGLE,
     availableFireModes = [],
     renderFullTile = null,
-    isFurniture = null,
-    isWagon = null,
-    isPlanter = null,
     dragApPenalty = undefined,
     noDrag = undefined
   }) {
@@ -97,9 +94,6 @@ export class Item extends SafeEventEmitter {
 
     // Phase 27: Furniture & Dragging Restoration
     this.renderFullTile = renderFullTile;
-    this.isFurniture = isFurniture;
-    this.isWagon = isWagon;
-    this.isPlanter = isPlanter;
     this.dragApPenalty = dragApPenalty;
     this.noDrag = noDrag;
 
@@ -174,12 +168,8 @@ export class Item extends SafeEventEmitter {
       if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;
       if (def.disassembleData) this.disassembleData = def.disassembleData;
       if (def.renderFullTile && this.renderFullTile === null) this.renderFullTile = def.renderFullTile;
-      if (def.isFurniture && this.isFurniture === null) this.isFurniture = def.isFurniture;
-      if (def.isWagon && this.isWagon === null) this.isWagon = def.isWagon;
       if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) this.dragApPenalty = def.dragApPenalty;
       if (def.noDrag !== undefined && this.noDrag === undefined) this.noDrag = def.noDrag;
-      if (def.isPlanter && this.isPlanter === null) this.isPlanter = def.isPlanter;
-      if (def.isPuddle) this.isPuddle = def.isPuddle;
       if (def.plantsAs) this.plantsAs = def.plantsAs;
       if (def.produceMin !== undefined) this.produceMin = def.produceMin;
       if (def.produceMax !== undefined) this.produceMax = def.produceMax;
@@ -250,21 +240,16 @@ export class Item extends SafeEventEmitter {
     this._container = null;
 
     // Compatibility property for legacy logic
-    this.stackable = this.isStackable();
+    this.stackable = this.hasTrait(ItemTrait.STACKABLE);
   }
 
-  /**
-   * Check if the item is a vehicle (Wagon, Sled, etc.)
-   */
-  isVehicle() {
-    return this.hasTrait(ItemTrait.VEHICLE);
-  }
+
 
   /**
    * Calculate total AP bonus from all active motor/battery pairs
    */
   getMotorizedBonus() {
-    if (!this.isWagon || !this.attachments) return 0;
+    if (!this.hasTrait(ItemTrait.WAGON) || !this.attachments) return 0;
     
     let totalBonus = 0;
     const assistValue = this.motorAssistBonus || 0.5;
@@ -292,7 +277,7 @@ export class Item extends SafeEventEmitter {
    * @param {number} distance - Distance in tiles
    */
   consumeMotorPower(distance) {
-    if (!this.isWagon || !this.attachments) return;
+    if (!this.hasTrait(ItemTrait.WAGON) || !this.attachments) return;
 
     const slotPairs = [
       ['motor', 'battery'],
@@ -313,9 +298,7 @@ export class Item extends SafeEventEmitter {
   /**
    * Check if the item has any active motorized assist
    */
-  isMotorized() {
-    return this.getMotorizedBonus() > 0;
-  }
+
 
   /**
    * Get battery status for all available battery slots
@@ -401,47 +384,14 @@ export class Item extends SafeEventEmitter {
     return this.equippableSlot === slotId;
   }
 
-  // Static helpers for robust type-safe checks
-  static isStackable(item) {
-    if (!item) return false;
-    if (typeof item.isStackable === 'function') return item.isStackable();
-    return !!(item.stackable || (item.traits && item.traits.includes(ItemTrait.STACKABLE)));
-  }
 
-  static isWaterBottle(item) {
-    if (!item) return false;
-    if (typeof item.isWaterBottle === 'function') return item.isWaterBottle();
-    return !!(item.traits && item.traits.includes(ItemTrait.WATER_CONTAINER));
-  }
 
   // Trait checks
   hasTrait(trait) {
     return this.traits.includes(trait);
   }
 
-  isStackable() {
-    return this.hasTrait(ItemTrait.STACKABLE);
-  }
 
-  isDegradable() {
-    return this.hasTrait(ItemTrait.DEGRADABLE);
-  }
-
-  isEquippable() {
-    return this.hasTrait(ItemTrait.EQUIPPABLE);
-  }
-
-  isContainer() {
-    return this.hasTrait(ItemTrait.CONTAINER);
-  }
-
-  isOpenableWhenNested() {
-    return this.hasTrait(ItemTrait.OPENABLE_WHEN_NESTED);
-  }
-
-  isGroundOnly() {
-    return this.hasTrait(ItemTrait.GROUND_ONLY);
-  }
 
   /**
    * Determine if this item is eligible for automatic rotation to fit a grid.
@@ -455,41 +405,27 @@ export class Item extends SafeEventEmitter {
     // 1. Never rotate square items
     if (this.width === this.height) return false;
 
-    // 2. Only rotate if one dimension is 4 or more (particularly wide items)
-    // This naturally excludes 2x1 and 3x2 items per user request
-    const maxDim = Math.max(this.width, this.height);
-    return maxDim >= 4;
+    // 2. Always allow auto-rotation for rectangular items to improve placement success
+    return true;
   }
 
-  isMagazine() {
-    // Items with capacity are magazines or weapons with internal mags
-    // BUT we exclude charge-based tools like lighters and matches, and fuel containers (e.g. Generators)
-    return this.capacity !== null && this.capacity > 0 && !this.isChargeBased() && !this.isFuelContainer();
+  isContainer() {
+    return this.hasTrait?.(ItemTrait.CONTAINER) || !!this._def?.container;
   }
 
-  isAmmo() {
-    return this.hasCategory(ItemCategory.AMMO) && this.isStackable();
+  isStackable() {
+    return this.hasTrait?.(ItemTrait.STACKABLE) || (this.stackMax && this.stackMax > 1);
   }
 
-  isWaterBottle() {
-    return this.hasTrait(ItemTrait.WATER_CONTAINER);
-  }
 
-  isFuelContainer() {
-    return this.hasTrait(ItemTrait.FUEL_CONTAINER);
-  }
 
-  isBattery() {
-    return this.hasTrait(ItemTrait.BATTERY);
-  }
 
-  isChargeBased() {
-    return this.hasTrait(ItemTrait.CHARGE_BASED) || this.isBattery?.();
-  }
 
-  isBatteryPowered() {
-    return this.hasTrait(ItemTrait.BATTERY_POWERED);
-  }
+
+
+
+
+
   
   get lightRange() {
     return this._def?.lightRange || 8;
@@ -505,8 +441,8 @@ export class Item extends SafeEventEmitter {
   }
 
   getCharges() {
-    if (this.isBattery()) return this.ammoCount || 0;
-    if (this.isBatteryPowered()) {
+    if (this.hasTrait(ItemTrait.BATTERY)) return this.ammoCount || 0;
+    if (this.hasTrait(ItemTrait.BATTERY_POWERED)) {
       const battery = this.getBattery();
       return battery ? (battery.ammoCount || 0) : 0;
     }
@@ -524,7 +460,7 @@ export class Item extends SafeEventEmitter {
    */
   consumeCharge(amount = 1) {
     // 1. Battery Powered items (Flashlight, NVG) - consume from attached battery
-    if (this.isBatteryPowered()) {
+    if (this.hasTrait(ItemTrait.BATTERY_POWERED)) {
       const battery = this.getBattery();
       if (battery && (battery.ammoCount || 0) >= amount) {
         battery.ammoCount -= amount;
@@ -534,7 +470,7 @@ export class Item extends SafeEventEmitter {
     }
 
     // 2. Standalone Battery or Charge-based tool (Lighter) - consume from own ammoCount
-    if (this.isBattery() || this.hasTrait(ItemTrait.CHARGE_BASED)) {
+    if (this.hasTrait(ItemTrait.BATTERY) || this.hasTrait(ItemTrait.CHARGE_BASED)) {
       if ((this.ammoCount || 0) >= amount) {
         this.ammoCount -= amount;
         return true;
@@ -555,12 +491,10 @@ export class Item extends SafeEventEmitter {
     return false;
   }
 
-  isSpoilable() {
-    return this.hasTrait(ItemTrait.SPOILABLE);
-  }
+
 
   get isSpoiled() {
-    return this.isSpoilable() && this.shelfLife !== null && this.shelfLife <= 0;
+    return this.hasTrait(ItemTrait.SPOILABLE) && this.shelfLife !== null && this.shelfLife <= 0;
   }
 
   getNutritionValue() {
@@ -589,7 +523,7 @@ export class Item extends SafeEventEmitter {
 
     if (decay.modified) {
       // 1. Process own spoilage/lifetime events
-      if (this.shelfLife === 0 && oldShelfLife > 0 && this.isSpoilable()) {
+      if (this.shelfLife === 0 && oldShelfLife > 0 && this.hasTrait(ItemTrait.SPOILABLE)) {
         console.log(`[Item] ${this.name} (${this.instanceId}) has SPOILED!`);
         this.emitEvent('itemSpoiled', { item: this });
       }
@@ -602,7 +536,7 @@ export class Item extends SafeEventEmitter {
   }
 
   canLoadAmmo(ammoItem) {
-    if (!this.isMagazine() || !ammoItem.isAmmo()) return false;
+    if (!this.hasTrait(ItemTrait.MAGAZINE) || !ammoItem.hasCategory(ItemCategory.AMMO)) return false;
 
     // Enforce compatibility if an ammo type is specified
     if (this.ammoDefId && ammoItem.defId !== this.ammoDefId) {
@@ -633,7 +567,7 @@ export class Item extends SafeEventEmitter {
   }
 
   unloadAmmo() {
-    if (!this.isMagazine() || this.ammoCount <= 0) return { success: false, reason: 'Empty' };
+    if (!this.hasTrait(ItemTrait.MAGAZINE) || this.ammoCount <= 0) return { success: false, reason: 'Empty' };
 
     const amount = this.ammoCount;
     this.ammoCount = 0;
@@ -648,18 +582,16 @@ export class Item extends SafeEventEmitter {
     };
   }
 
-  isWeapon() {
-    return this.hasCategory(ItemCategory.WEAPON) || !!this.attachmentSlots;
-  }
+
 
   getDisplayAmmoCount() {
     // 1. If it's a water bottle, fuel can, or puddle, hide the number
-    if (this.isWaterBottle() || this.isFuelContainer() || this.isPuddle) {
+    if (this.hasTrait(ItemTrait.WATER_CONTAINER) || this.hasTrait(ItemTrait.FUEL_CONTAINER) || this.hasTrait(ItemTrait.WATER_SOURCE)) {
       return null;
     }
 
     // 2. If it's a magazine, return its ammo count
-    if (this.isMagazine()) {
+    if (this.hasTrait(ItemTrait.MAGAZINE)) {
       return this.ammoCount || 0;
     }
 
@@ -673,11 +605,11 @@ export class Item extends SafeEventEmitter {
       if (ammoSlot) {
         const attachedMag = this.attachments[ammoSlot.id];
         // If magazine is equipped, show its count
-        if (attachedMag && attachedMag.isMagazine()) {
+        if (attachedMag && attachedMag.hasTrait(ItemTrait.MAGAZINE)) {
           return attachedMag.ammoCount || 0;
         }
         // If it's not a magazine but is ammo (e.g. .357 rounds in a drum), show the stack count
-        if (attachedMag && attachedMag.isAmmo()) {
+        if (attachedMag && attachedMag.hasCategory(ItemCategory.AMMO)) {
           return attachedMag.stackCount || 0;
         }
         // If no mag/ammo, show 0 per user request
@@ -686,13 +618,13 @@ export class Item extends SafeEventEmitter {
     }
 
     // 4. If it's battery-powered, show battery charges
-    if (this.isBatteryPowered && this.isBatteryPowered()) {
+    if (this.hasTrait(ItemTrait.BATTERY_POWERED)) {
       const battery = this.getBattery();
       return battery ? (battery.ammoCount || 0) : 0;
     }
 
     // 5. If it's a standalone battery, show its charge
-    if (this.isBattery && this.isBattery()) {
+    if (this.hasTrait(ItemTrait.BATTERY)) {
       return this.ammoCount || 0;
     }
 
@@ -702,7 +634,7 @@ export class Item extends SafeEventEmitter {
     }
 
     // 7. If it's a charge-based tool (Lighter/Matches), show its ammoCount
-    if (this.isChargeBased && this.isChargeBased()) {
+    if (this.hasTrait(ItemTrait.CHARGE_BASED)) {
       return this.ammoCount || 0;
     }
 
@@ -710,21 +642,21 @@ export class Item extends SafeEventEmitter {
   }
 
   getWaterPercent() {
-    if (!this.isWaterBottle() || !this.capacity) return 0;
+    if (!this.hasTrait(ItemTrait.WATER_CONTAINER) || !this.capacity) return 0;
     return (this.ammoCount / this.capacity) * 100;
   }
 
   getMeterPercent() {
-    if (this.isWaterBottle() && !this.isPuddle) return this.getWaterPercent();
-    if (this.isFuelContainer() && this.capacity) return (this.ammoCount / this.capacity) * 100;
+    if (this.hasTrait(ItemTrait.WATER_CONTAINER) && !this.hasTrait(ItemTrait.WATER_SOURCE)) return this.getWaterPercent();
+    if (this.hasTrait(ItemTrait.FUEL_CONTAINER) && this.capacity) return (this.ammoCount / this.capacity) * 100;
     return null;
   }
 
   getMeterColor() {
-    if (this.isWaterBottle()) {
+    if (this.hasTrait(ItemTrait.WATER_CONTAINER)) {
       return this.waterQuality === 'dirty' ? "#8B4513" : "#60a5fa";
     }
-    if (this.isFuelContainer()) {
+    if (this.hasTrait(ItemTrait.FUEL_CONTAINER)) {
       return "#b8860b"; // Dark Gold
     }
     return null;
@@ -742,10 +674,10 @@ export class Item extends SafeEventEmitter {
    */
   getCategory() {
     // 0. High priority categories for ground organization
-    if (this.isVehicle() || this.isWagon) return 'vehicles';
-    if (this.isPuddle) return 'environment';
-    if (this.isPlanter || this.plantsAs || this.defId?.endsWith('_plant') || this.defId === 'provision.hole') return 'farming';
-    if (this.isFurniture) return 'furniture';
+    if (this.hasTrait(ItemTrait.VEHICLE) || this.hasTrait(ItemTrait.WAGON)) return 'vehicles';
+    if (this.hasTrait(ItemTrait.WATER_SOURCE)) return 'environment';
+    if (this.hasTrait(ItemTrait.PLANTER) || this.plantsAs || this.defId?.endsWith('_plant') || this.defId === 'provision.hole') return 'farming';
+    if (this.hasTrait(ItemTrait.FURNITURE)) return 'furniture';
 
     // Standard fallback categories
     if (this.categories.includes(ItemCategory.GUN) || this.categories.includes(ItemCategory.WEAPON)) return 'weapons';
@@ -763,7 +695,7 @@ export class Item extends SafeEventEmitter {
    * Overridden for environment items that scale based on content
    */
   getActualWidth() {
-    if (this.isPuddle) {
+    if (this.hasTrait(ItemTrait.WATER_SOURCE)) {
       // 1x1 at 10, 2x2 at 20, 3x3 at 30, 4x4 at 40, 5x5 at 50
       return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
     }
@@ -772,7 +704,7 @@ export class Item extends SafeEventEmitter {
   }
 
   getActualHeight() {
-    if (this.isPuddle) {
+    if (this.hasTrait(ItemTrait.WATER_SOURCE)) {
       return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
     }
     const baseHeight = this.rotation === 90 || this.rotation === 270 ? this.width : this.height;
@@ -780,7 +712,7 @@ export class Item extends SafeEventEmitter {
   }
 
   degrade(amount = null) {
-    if (!this.isDegradable() || this.condition === null) return;
+    if (!this.hasTrait(ItemTrait.DEGRADABLE) || this.condition === null) return;
 
     const finalAmount = amount !== null ? amount : this.fragility;
     this.condition = Math.max(0, this.condition - finalAmount);
@@ -849,7 +781,7 @@ export class Item extends SafeEventEmitter {
     if (!otherItem) return false;
 
     // Stacking is orientation-agnostic; validatePlacement handles the grid overlap.
-    if (!Item.isStackable(this) || !Item.isStackable(otherItem)) {
+    if (!this.hasTrait(ItemTrait.STACKABLE) || !otherItem.hasTrait(ItemTrait.STACKABLE)) {
       return false;
     }
 
@@ -859,36 +791,44 @@ export class Item extends SafeEventEmitter {
     }
 
     // Special rule for Water Bottles: They only stack if they are EMPTY or FULL and levels match
-    if (this.isWaterBottle()) {
+    if (this.hasTrait(ItemTrait.WATER_CONTAINER)) {
       const capacity = this.capacity;
-      const ammo = this.ammoCount || 0;
-      const otherAmmo = otherItem.ammoCount || 0;
+      const ammo = Math.round(this.ammoCount || 0);
+      const otherAmmo = Math.round(otherItem.ammoCount || 0);
 
-      const isFull = ammo === capacity;
-      const isEmpty = ammo === 0;
-      const otherIsFull = otherAmmo === capacity;
-      const otherIsEmpty = otherAmmo === 0;
+      const isFull = ammo >= capacity;
+      const isEmpty = ammo <= 0;
+      const otherIsFull = otherAmmo >= capacity;
+      const otherIsEmpty = otherAmmo <= 0;
 
       // 1. Quality must match (Unless both are empty)
-      if (!isEmpty && !otherIsEmpty && this.waterQuality !== otherItem.waterQuality) {
+      const myQuality = this.waterQuality || 'clean';
+      const otherQuality = otherItem.waterQuality || 'clean';
+
+      console.log(`[Item] Stacking CHECK for ${this.name}: Self=${ammo}/${capacity} (${myQuality}), Other=${otherAmmo}/${capacity} (${otherQuality})`);
+
+      if (!isEmpty && !otherIsEmpty && myQuality !== otherQuality) {
+        console.log(`[Item] Stacking REJECT: Water quality mismatch (${myQuality} vs ${otherQuality})`);
         return false;
       }
 
       // 2. Both must be exactly Full or exactly Empty to stack, and the amounts must be identical
-      // (This prevents a bottle with 19 units from stacking with one with 20 units, or 20 from stacking with 0).
       if (!(isFull || isEmpty) || !(otherIsFull || otherIsEmpty) || ammo !== otherAmmo) {
+        console.log(`[Item] Stacking REJECT: Water level mismatch. Self: ${ammo}/${capacity} (Full:${isFull}, Empty:${isEmpty}), Other: ${otherAmmo}/${capacity} (Full:${otherIsFull}, Empty:${otherIsEmpty})`);
         return false;
       }
+      console.log(`[Item] Stacking ALLOWED for ${this.name}`);
     }
 
     // Special rule for Batteries: They only stack if they are EMPTY or FULL
-    if (this.isBattery()) {
-      const ammo = this.ammoCount || 0;
-      const otherAmmo = otherItem.ammoCount || 0;
+    if (this.hasTrait(ItemTrait.BATTERY)) {
+      const ammo = Math.round(this.ammoCount || 0);
+      const otherAmmo = Math.round(otherItem.ammoCount || 0);
 
       // 2. ONLY FULL batteries are stackable (User Rule)
-      const isFull = ammo === (this.capacity || 10);
-      if (!isFull || ammo !== otherAmmo) {
+      const isFull = ammo >= (this.capacity || 10);
+      const otherIsFull = otherAmmo >= (otherItem.capacity || 10);
+      if (!isFull || !otherIsFull || ammo !== otherAmmo) {
         return false;
       }
     }
@@ -912,7 +852,7 @@ export class Item extends SafeEventEmitter {
     if (this.instanceId === otherItem.instanceId) return false;
 
     // 1. Water Bottle Interaction
-    if (this.isWaterBottle() && Item.isWaterBottle(otherItem)) {
+    if (this.hasTrait(ItemTrait.WATER_CONTAINER) && otherItem.hasTrait(ItemTrait.WATER_CONTAINER)) {
       // STRICT RULE: Only individual, non-stacked bottles can transfer water
       if ((this.stackCount || 1) > 1 || (otherItem.stackCount || 1) > 1) {
         return false;
@@ -937,7 +877,7 @@ export class Item extends SafeEventEmitter {
     }
 
     // 2. Battery Interaction (Replacement)
-    if (this.isBatteryPowered() && otherItem.isBattery()) {
+    if (this.hasTrait(ItemTrait.BATTERY_POWERED) && otherItem.hasTrait(ItemTrait.BATTERY)) {
       return true;
     }
 
@@ -948,7 +888,7 @@ export class Item extends SafeEventEmitter {
     if (!this.canCombineWith(otherItem)) return false;
 
     // 1. Water Bottle Interaction
-    if (this.isWaterBottle() && Item.isWaterBottle(otherItem)) {
+    if (this.hasTrait(ItemTrait.WATER_CONTAINER) && otherItem.hasTrait(ItemTrait.WATER_CONTAINER)) {
       const myCapacity = this.capacity;
       const otherCapacity = otherItem.capacity;
       
@@ -981,7 +921,7 @@ export class Item extends SafeEventEmitter {
     }
 
     // 2. Battery Interaction (Replacement)
-    if (this.isBatteryPowered() && otherItem.isBattery()) {
+    if (this.hasTrait(ItemTrait.BATTERY_POWERED) && otherItem.hasTrait(ItemTrait.BATTERY)) {
       // 2a. Take 1 from source stack if needed
       let batteryToInsert = otherItem;
       if (otherItem.stackCount > 1) {
@@ -1023,7 +963,7 @@ export class Item extends SafeEventEmitter {
   }
 
   splitStack(count) {
-    if (!this.isStackable() || count >= this.stackCount || count <= 0) {
+    if (!this.hasTrait(ItemTrait.STACKABLE) || count >= this.stackCount || count <= 0) {
       return null;
     }
 
@@ -1107,7 +1047,7 @@ export class Item extends SafeEventEmitter {
         id: this._containerGridData.id || `${this.instanceId}-container`,
         name: this._containerGridData.name || this.name,
         ownerId: this.instanceId, // Ensure ownerId is set for turn skip logic
-        isVehicle: this._containerGridData.isVehicle || this.isVehicle()
+        isVehicle: this._containerGridData.isVehicle || this.hasTrait(ItemTrait.VEHICLE)
       };
 
       this.containerGrid = Container.fromJSON(containerData);
@@ -1256,8 +1196,6 @@ export class Item extends SafeEventEmitter {
       name: this.name,
       imageId: this.imageId,
       renderFullTile: this.renderFullTile,
-      isFurniture: this.isFurniture,
-      isWagon: this.isWagon,
       width: this.width,
       height: this.height,
       rotation: this.rotation,
@@ -1324,7 +1262,7 @@ export class Item extends SafeEventEmitter {
     if (!data) return null;
     
     // Phase 12 Fix: Robust type check - if it's already an instantiated Item, return it directly
-    if (data.type === 'item' && typeof data.isStackable === 'function') {
+    if (data.type === 'item' && typeof data.hasTrait === 'function') {
       return data;
     }
 

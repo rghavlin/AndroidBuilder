@@ -7,7 +7,7 @@ export default function SleepOverlay() {
     if (!isSleeping) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center pointer-events-auto">
+        <div className="fixed inset-0 z-40 bg-black flex flex-col items-center justify-center pointer-events-auto">
             <div className="text-white text-4xl font-bold mb-4 animate-pulse">
                 Sleeping...
             </div>

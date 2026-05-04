@@ -1,4 +1,5 @@
 import { EventEmitter } from './utils/EventEmitter.js';
+import { getProgressionForMap } from './config/ProgressionConfig.js';
 import { WorldManager } from './WorldManager.js';
 import { TemplateMapGenerator } from './map/TemplateMapGenerator.js';
 import { GameMap } from './map/GameMap.js';
@@ -371,12 +372,10 @@ class GameInitializationManager extends EventEmitter {
     }
 
     // Initial map typically has more zombies or specific distribution
+    const progression = getProgressionForMap(1); // Explicitly use Map 1
     return ZombieSpawner.spawnZombies(gameMap, player, {
-      basicCount: 18,
-      crawlerRange: { min: 3, max: 6 },
-      runnerCount: 1, // Only 1 runner on first map
-      acidRange: { min: 0, max: 0 },
-      fatRange: { min: 0, max: 0 }
+      ...progression,
+      minDistance: 15 // Ensure distance for Map 1 start
     });
   }
 

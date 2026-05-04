@@ -43,7 +43,7 @@ export default function DefeatDialog() {
     };
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-500 pointer-events-auto">
             <Card className="w-[400px] bg-zinc-950 border-red-900/50 shadow-[0_0_50px_rgba(153,27,27,0.3)]">
                 <CardHeader className="text-center pt-8">
                     <div className="flex justify-center mb-4">

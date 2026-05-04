@@ -132,7 +132,7 @@ export class Container {
     if (this.type === 'ground') return { valid: true };
 
     // 2. Prevent container from being placed inside itself
-    if (item.isContainer && item.isContainer()) {
+    if (item.hasTrait && item.hasTrait(ItemTrait.CONTAINER)) {
       const itemContainer = item.getContainerGrid?.();
       if (itemContainer && itemContainer.id === this.id) {
         return { valid: false, reason: 'Cannot place container into itself' };
@@ -141,8 +141,7 @@ export class Container {
 
     // 3. Enforce GROUND_ONLY explicitly
     const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || 
-                         item.traits?.includes(ItemTrait.GROUND_ONLY) || 
-                         (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
+                         item.traits?.includes(ItemTrait.GROUND_ONLY);
                          
     if (isGroundOnly && this.type !== 'ground' && !this.isVehicle && !this.isPlanter) {
       return { valid: false, reason: 'Can only be placed on the ground or in vehicles' };
@@ -163,7 +162,7 @@ export class Container {
     }
 
     // 5. specialty containers with OPENABLE_WHEN_NESTED trait can always be nested (bypass empty check)
-    if (item.isOpenableWhenNested && item.isOpenableWhenNested()) {
+    if (item.hasTrait && item.hasTrait(ItemTrait.OPENABLE_WHEN_NESTED)) {
       return { valid: true };
     }
 
@@ -366,8 +365,11 @@ export class Container {
     }
 
     if (occupants.length > 0 && !this.ignoreSize) {
-      console.warn('[Container] REJECT: Area not free for item:', item.name, 'at', x, y);
-      console.warn('[Container] Occupied cells:', occupants);
+      const occupantNames = occupants.map(o => {
+        const occ = this.items.get(o.itemId);
+        return occ ? occ.name : 'Unknown';
+      });
+      console.warn('[Container] REJECT: Area not free for item:', item.name, 'at', x, y, 'Occupants:', occupantNames);
       return false;
     }
 
@@ -414,7 +416,7 @@ export class Container {
     }
 
     // Try stacking first if explicitly allowed
-    const isStackable = typeof item.isStackable === 'function' ? item.isStackable() : item.stackable;
+    const isStackable = typeof item.hasTrait === 'function' ? item.hasTrait(ItemTrait.STACKABLE) : item.stackable;
     if (allowStacking && isStackable) {
       const result = this.attemptStacking(item);
       if (result.success && !result.remainingItem) {
@@ -448,14 +450,16 @@ export class Container {
           ? (originalRotation + 90) % 360
           : (originalRotation - 90 + 360) % 360;
 
+        console.log(`[Container] ${this.id}: Item ${item.name} didn't fit at ${originalRotation}deg. Trying auto-rotate to ${altRotation}deg...`);
         item.rotation = altRotation;
         position = this.findAvailablePosition(item, preferredX, preferredY);
 
         if (position) {
-          console.debug('[Container] Auto-rotated item to fit:', altRotation);
+          console.log(`[Container] ${this.id}: ✅ SUCCESS: Item ${item.name} fitted at ${altRotation}deg at (${position.x}, ${position.y})`);
           return this.placeItemAt(item, position.x, position.y);
         }
 
+        console.log(`[Container] ${this.id}: ❌ FAILURE: Item ${item.name} still doesn't fit at ${altRotation}deg.`);
         // Restore original rotation if alt rotation also failed
         item.rotation = originalRotation;
       }
@@ -470,7 +474,7 @@ export class Container {
    * Attempt to stack item with existing items, supporting partial stacking
    */
   attemptStacking(item) {
-    const isStackable = item.isStackable ? item.isStackable() : item.stackable;
+    const isStackable = item.hasTrait ? item.hasTrait(ItemTrait.STACKABLE) : item.stackable;
     if (!isStackable) {
       return { success: false, remainingItem: item };
     }

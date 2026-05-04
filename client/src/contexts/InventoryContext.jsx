@@ -59,10 +59,8 @@ export const useInventory = () => {
 };
 
 export const InventoryProvider = ({ children }) => {
-  const [inventoryVersion, setInventoryVersion] = useState(0);
   const [openContainers, setOpenContainers] = useState(new Set());
   const [selectedItem, setSelectedItem] = useState(null);
-  const [dragVersion, setDragVersion] = useState(0); 
   const [selectedRecipeId, setSelectedRecipeId] = useState(CraftingRecipes[0]?.id || null);
 
   const { addLog } = useLog();
@@ -73,11 +71,6 @@ export const InventoryProvider = ({ children }) => {
     (cb) => engine.subscribe(cb),
     () => engine.getSnapshot()
   );
-  // Phase 12 Fix: Aggressive Legacy Sync
-  useEffect(() => {
-    setInventoryVersion(v => v + 1);
-  }, [inventoryPulse]);
-
   // Phase 12 Fix: Ensure ground container is synced on full sync/load
   // AND Bridge manager events to the engine heartbeat
   useEffect(() => {
@@ -97,8 +90,7 @@ export const InventoryProvider = ({ children }) => {
 
     const handleManagerUpdate = () => {
         logger.debug('🔄 Manager event -> Engine Pulse');
-        // We only increment version here. notified by engine.notifyUpdate later if needed
-        setInventoryVersion(prev => prev + 1);
+        engine.notifyUpdate();
     };
 
     manager.on('inventoryChanged', handleManagerUpdate);
@@ -118,9 +110,9 @@ export const InventoryProvider = ({ children }) => {
     return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
   }, [openContainers.size]);
 
-  const getContainer = useCallback((id) => engine.inventoryManager?.getContainer(id), [inventoryPulse, inventoryVersion]);
-  const getEquippedBackpackContainer = useCallback(() => engine.inventoryManager?.getBackpackContainer(), [inventoryPulse, inventoryVersion]);
-  const canOpenContainer = useCallback((item) => engine.inventoryManager?.canOpenContainer(item) || false, [inventoryPulse, inventoryVersion]);
+  const getContainer = useCallback((id) => engine.inventoryManager?.getContainer(id), [inventoryPulse]);
+  const getEquippedBackpackContainer = useCallback(() => engine.inventoryManager?.getBackpackContainer(), [inventoryPulse]);
+  const canOpenContainer = useCallback((item) => engine.inventoryManager?.canOpenContainer(item) || false, [inventoryPulse]);
   
   const checkPlayerTurn = useCallback((silent = false) => {
     if (engine.turnPhase !== 'PLAYER_TURN' || engine.isAutosaving) {
@@ -143,11 +135,10 @@ export const InventoryProvider = ({ children }) => {
       closeAssociatedContainers(item);
       addLog(`Equipped ${item.name}`, 'item');
       playSound('Equip');
-      setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
     }
     return result;
-  }, [inventoryPulse, inventoryVersion, addLog]);
+  }, [inventoryPulse, addLog]);
 
   const unequipItem = useCallback((slot) => {
     if (!checkPlayerTurn()) return { success: false };
@@ -159,32 +150,31 @@ export const InventoryProvider = ({ children }) => {
       engine.player.useAP(1);
       addLog(`Unequipped item from ${slot}`, 'item');
       playSound('Equip');
-      setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
     }
     return result;
-  }, [inventoryPulse, inventoryVersion, addLog]);
+  }, [inventoryPulse, addLog]);
 
   const destroyItem = useCallback((instanceId) => {
     if (!engine.inventoryManager) return false;
     const result = engine.inventoryManager.destroyItem(instanceId);
-    if (result) setInventoryVersion(v => v + 1);
+    if (result) engine.notifyUpdate();
     return result;
-  }, [inventoryPulse, inventoryVersion]);
+  }, [inventoryPulse]);
 
   const moveItem = useCallback((itemId, from, to, x, y, rotation = null) => {
     if (!engine.inventoryManager) return { success: false };
     const result = engine.inventoryManager.moveItem(itemId, from, to, x, y, rotation);
-    if (result.success) setInventoryVersion(v => v + 1);
+    if (result.success) engine.notifyUpdate();
     return result;
   }, []);
 
   const dropItemToGround = useCallback((item, x, y) => {
     if (!engine.inventoryManager) return false;
     const result = engine.inventoryManager.dropItemToGround(item, x, y);
-    if (result) setInventoryVersion(v => v + 1);
+    if (result) engine.notifyUpdate();
     return result;
-  }, [inventoryPulse, inventoryVersion]);
+  }, [inventoryPulse]);
 
   const openContainer = useCallback((cid) => {
     setOpenContainers(prev => {
@@ -275,7 +265,6 @@ export const InventoryProvider = ({ children }) => {
     }
 
     addLog(`You start dragging the ${item.name}.`, 'item');
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, inventoryPulse]);
@@ -290,7 +279,6 @@ export const InventoryProvider = ({ children }) => {
       }
 
       engine.dragging = null;
-      setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
     }
   }, [addLog, inventoryPulse]);
@@ -314,7 +302,6 @@ export const InventoryProvider = ({ children }) => {
       ...props 
     });
     playSound('Click');
-    setDragVersion(v => v + 1);
     return true;
   }, []);
 
@@ -323,7 +310,6 @@ export const InventoryProvider = ({ children }) => {
       if (!prev || prev.item.width === prev.item.height) return prev;
       return { ...prev, rotation: (prev.rotation === 0 ? 90 : 0) };
     });
-    setDragVersion(v => v + 1);
   }, []);
 
   const clearSelected = useCallback(() => {
@@ -336,12 +322,11 @@ export const InventoryProvider = ({ children }) => {
             if (container) {
                 item.rotation = originalRotation;
                 container.placeItemAt(item, originX, originY);
-                setInventoryVersion(v => v + 1);
+                engine.notifyUpdate();
             }
         }
     }
     setSelectedItem(null);
-    setDragVersion(v => v + 1);
   }, [selectedItem]);
 
   const placeSelected = useCallback((targetId, x, y) => {
@@ -365,7 +350,7 @@ export const InventoryProvider = ({ children }) => {
       const targetContainer = engine.inventoryManager.getContainer(targetId);
       if (targetContainer && targetContainer.ownerId) {
         const ownerItem = engine.inventoryManager.findItem(targetContainer.ownerId)?.item;
-        if (ownerItem && (ownerItem.isPlanter || ownerItem.defId === 'furniture.planter_box')) {
+        if (ownerItem && ownerItem.hasTrait?.(ItemTrait.PLANTER)) {
             // Determine plant defId from item data
             const plantDefId = item.plantsAs;
 
@@ -412,7 +397,6 @@ export const InventoryProvider = ({ children }) => {
                         setSelectedItem(null);
                     }
                     
-                    setInventoryVersion(v => v + 1);
                     engine.notifyUpdate();
                     return { success: true };
                 } else {
@@ -439,7 +423,6 @@ export const InventoryProvider = ({ children }) => {
         if (isGearChange) dropSound = 'Equip'; // Use Equip sound for both equip and unequip for consistency
 
         setSelectedItem(null);
-        setInventoryVersion(v => v + 1);
         if (isEquipping) closeAssociatedContainers(item);
         playSound(dropSound);
         engine.notifyUpdate();
@@ -527,17 +510,15 @@ export const InventoryProvider = ({ children }) => {
     applyConsumptionEffects(engine.player, item);
     
     // 2. Handle Stacking (Phase 12 Stack Fix)
-    if (item.isStackable() && item.stackCount > 1) {
+    if (item.hasTrait(ItemTrait.STACKABLE) && item.stackCount > 1) {
         item.stackCount -= 1;
         console.log(`[InventoryContext] Consumed 1 ${item.name}. Remaining stack: ${item.stackCount}`);
         
         // Notify changes locally and globally
-        setInventoryVersion(v => v + 1);
         engine.notifyUpdate();
     } else {
         // Not a stack, or last item in stack
         engine.inventoryManager.destroyItem(item.instanceId);
-        setInventoryVersion(v => v + 1);
         engine.notifyUpdate();
     }
 
@@ -600,7 +581,7 @@ export const InventoryProvider = ({ children }) => {
     // If it wasn't stacked, the original item instance in its container was modified directly.
 
     // 5. Handle puddle destruction (Phase: Environment Cleanup)
-    const isPuddle = itemToDrinkFrom.isPuddle || itemToDrinkFrom.defId === 'environment.water_puddle';
+    const isPuddle = itemToDrinkFrom.hasTrait?.(ItemTrait.WATER_SOURCE);
     if (isPuddle) {
       if (itemToDrinkFrom.ammoCount <= 0) {
         engine.inventoryManager.destroyItem(itemToDrinkFrom.instanceId);
@@ -621,7 +602,6 @@ export const InventoryProvider = ({ children }) => {
     addLog(`You drink ${unitsToDrink} units of water from ${item.name}.`, 'item');
     playSound('Drink');
 
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, playSound]);
@@ -645,7 +625,6 @@ export const InventoryProvider = ({ children }) => {
     addLog(`You unroll the bedroll onto the ground.`, 'item');
     playSound('Equip');
     
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, playSound]);
@@ -669,7 +648,6 @@ export const InventoryProvider = ({ children }) => {
     addLog(`You roll up the bedroll.`, 'item');
     playSound('Equip');
 
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, playSound]);
@@ -695,7 +673,6 @@ export const InventoryProvider = ({ children }) => {
       engine.player.useAP(apCost);
       addLog(`You disassembled the ${item.name}.`, 'item');
       playSound('Craft'); // Using Craft sound for disassembly success
-      setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
       return { success: true };
     } else {
@@ -732,7 +709,6 @@ export const InventoryProvider = ({ children }) => {
         player.onItemCrafted(apUsed);
       }
       
-      setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
       addLog(`Crafted ${result.item?.name || 'item'}`, 'item');
       playSound('Craft');
@@ -752,7 +728,7 @@ export const InventoryProvider = ({ children }) => {
     // Phase: Specialized 2x2 preview for seeds in planter boxes
     if (item.defId && item.defId.endsWith('seeds') && container.ownerId) {
         const ownerItem = engine.inventoryManager.findItem(container.ownerId)?.item;
-        if (ownerItem && (ownerItem.isPlanter || ownerItem.defId === 'furniture.planter_box')) {
+        if (ownerItem && ownerItem.hasTrait?.(ItemTrait.PLANTER)) {
             return {
                 gridX: 0, // Snap to top-left of the 2x2 planter grid
                 gridY: 0,
@@ -794,7 +770,6 @@ export const InventoryProvider = ({ children }) => {
       closeAssociatedContainers(item);
       setSelectedItem(null);
       playSound('Equip');
-      setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
     }
     return result;
@@ -813,7 +788,6 @@ export const InventoryProvider = ({ children }) => {
         if (result.success) {
           // Atomically reduce the original stack ONLY if the new one was successfully placed
           item.stackCount -= count;
-          setInventoryVersion(v => v + 1);
           engine.notifyUpdate();
           return { success: true };
         } else {
@@ -860,7 +834,6 @@ export const InventoryProvider = ({ children }) => {
     addLog(`You set the rabbit snare on the ground.`, 'item');
     playSound('Equip');
     
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, playSound]);
@@ -898,7 +871,6 @@ export const InventoryProvider = ({ children }) => {
     addLog(`You retrieve the rabbit snare.`, 'item');
     playSound('Equip');
 
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, playSound]);
@@ -930,7 +902,7 @@ export const InventoryProvider = ({ children }) => {
             }
 
             setSelectedItem(null);
-            setInventoryVersion(v => v + 1);
+            engine.notifyUpdate();
             playSound('Click');
             return { success: true };
         }
@@ -947,7 +919,7 @@ export const InventoryProvider = ({ children }) => {
                     }
 
                     setSelectedItem(null);
-                    setInventoryVersion(v => v + 1);
+                    engine.notifyUpdate();
                     playSound('Click');
                     addLog(`Stored ${item.name} in ${targetContainerItem.name}.`, 'item');
                     return { success: true };
@@ -982,7 +954,7 @@ export const InventoryProvider = ({ children }) => {
        if (result.success) {
            if (isLoading && engine.player) engine.player.useAP(1);
            setSelectedItem(null);
-           setInventoryVersion(v => v + 1);
+           engine.notifyUpdate();
            return { success: true };
        }
     }
@@ -1011,7 +983,7 @@ export const InventoryProvider = ({ children }) => {
     if (result.success) {
         if (isLoading && engine.player) engine.player.useAP(1);
         setSelectedItem(null);
-        setInventoryVersion(v => v + 1);
+        engine.notifyUpdate();
         return { success: true };
     }
     return result;
@@ -1027,7 +999,7 @@ export const InventoryProvider = ({ children }) => {
         engine.inventoryManager.destroyItem(selectedItem.item.instanceId);
         setSelectedItem(null);
       }
-      setInventoryVersion(v => v + 1);
+      engine.notifyUpdate();
       playSound('ReloadShot');
       return { success: true };
     }
@@ -1048,7 +1020,7 @@ export const InventoryProvider = ({ children }) => {
       if (result.success) {
         if (engine.player) engine.player.useAP(1);
         setSelectedItem(null);
-        setInventoryVersion(v => v + 1);
+        engine.notifyUpdate();
         return { success: true };
       }
     }
@@ -1070,7 +1042,6 @@ export const InventoryProvider = ({ children }) => {
         engine.player.useAP(1);
         addLog(`Unloaded ${result.item.name} from ${weapon.name}.`, 'item');
         playSound('ReloadShot');
-        setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
     }
     return result;
@@ -1084,7 +1055,6 @@ export const InventoryProvider = ({ children }) => {
       // No AP cost for magazine-only interactions
       addLog(`Unloaded ${result.item.stackCount} rounds of ${result.item.name}.`, 'item');
       playSound('ReloadShot');
-      setInventoryVersion(v => v + 1);
       engine.notifyUpdate();
     }
     return result;
@@ -1095,7 +1065,7 @@ export const InventoryProvider = ({ children }) => {
     const result = engine.inventoryManager.fuelCampfire(fuelItem, campfire);
     if (result.success) {
        if (result.itemDestroyed) setSelectedItem(null);
-       setInventoryVersion(v => v + 1);
+       engine.notifyUpdate();
        playSound('FireIgnite');
        return { success: true };
     }
@@ -1105,7 +1075,7 @@ export const InventoryProvider = ({ children }) => {
   const detachItemFromWeapon = useCallback((weapon, slotId) => {
     if (!engine.inventoryManager) return null;
     const detached = engine.inventoryManager.detachItemFromWeapon(weapon, slotId);
-    if (detached) setInventoryVersion(v => v + 1);
+    if (detached) engine.notifyUpdate();
     return detached;
   }, [inventoryPulse]);
 
@@ -1146,8 +1116,8 @@ export const InventoryProvider = ({ children }) => {
     }
 
     // 3. Fill logic
-    const isPuddle = source.isPuddle || source.defId === 'environment.water_puddle';
-    const isRainCollector = source.defId === 'provision.rain_collector';
+    const isPuddle = source.hasTrait?.(ItemTrait.WATER_SOURCE) && source.defId?.includes('puddle');
+    const isRainCollector = source.hasTrait?.(ItemTrait.WATER_SOURCE) && source.defId?.includes('collector');
     const sourceName = source.name || (isPuddle ? 'puddle' : 'rain collector');
 
     const space = activeBottle.capacity - activeBottle.ammoCount;
@@ -1166,8 +1136,12 @@ export const InventoryProvider = ({ children }) => {
     playSound('FillBottle'); 
 
     // 4. Update source size/existence
-    if (isPuddle) {
+    // Identify puddles by traits or defId to ensure cleanup
+    const isActuallyPuddle = source.defId?.includes('puddle') || (source.hasTrait?.(ItemTrait.WATER_SOURCE) && !source.hasTrait?.(ItemTrait.STATIONARY));
+    
+    if (isActuallyPuddle) {
       if (source.ammoCount <= 0) {
+        console.log(`[InventoryContext] Puddle drained, destroying: ${source.instanceId}`);
         engine.inventoryManager.destroyItem(source.instanceId);
         addLog('The puddle has been drained.', 'info');
       } else {
@@ -1178,8 +1152,28 @@ export const InventoryProvider = ({ children }) => {
     }
     // Rain collector doesn't shrink or delete
 
+    // 5. Smart Stacking: Move the filled bottle to an existing stack if possible
+    // Remove from current location first
+    const currentContainer = activeBottle._container;
+    if (currentContainer) {
+      currentContainer.removeItem(activeBottle.instanceId);
+    }
+    
+    // Attempt to add back with allowStacking=true
+    const stackResult = engine.inventoryManager.addItem(activeBottle, null, null, null, true);
+    if (stackResult.success) {
+      if (stackResult.merged) {
+        addLog(`Stacked ${activeBottle.name} with existing supplies.`, 'info');
+      } else {
+        addLog(`Stored ${activeBottle.name} in ${stackResult.container}.`, 'info');
+      }
+    } else {
+      // Emergency fallback to ground if inventory somehow became full during fill (unlikely)
+      engine.inventoryManager.addItem(activeBottle, 'ground', null, null, true);
+    }
+
+    // 6. AP Consumption
     engine.player.useAP(1);
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
   }, [addLog, playSound, inventoryPulse]);
 
@@ -1192,7 +1186,6 @@ export const InventoryProvider = ({ children }) => {
     
     addLog(`${item.name} set to ${item.fireMode} mode.`, 'info');
     playSound('Click');
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
   }, [addLog, playSound]);
 
@@ -1218,12 +1211,10 @@ export const InventoryProvider = ({ children }) => {
       playSound('SwitchOff');
     }
     
-    setInventoryVersion(v => v + 1);
     engine.notifyUpdate();
   }, [addLog, playSound]);
 
   const contextValue = useMemo(() => ({
-    inventoryVersion,
     inventoryManager: engine.inventoryManager,
     inventoryPulse,
     getContainer,
@@ -1274,8 +1265,9 @@ export const InventoryProvider = ({ children }) => {
     stopDrag,
     // Add legacy fields to prevent crashes
     inventoryRef: { current: engine.inventoryManager },
-    forceRefresh: () => setInventoryVersion(v => v + 1)
-  }), [inventoryVersion, dragVersion, openContainers, selectedItem, selectedRecipeId, inventoryPulse, startDrag, stopDrag]);
+    forceRefresh: () => engine.notifyUpdate(),
+    inventoryVersion: inventoryPulse
+  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

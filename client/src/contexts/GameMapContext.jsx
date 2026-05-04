@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef, useSyncExternalStore } from 'react';
 import { usePlayer } from './PlayerContext';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
 import { useLog } from './LogContext.jsx';
@@ -38,7 +38,11 @@ export const GameMapProvider = ({ children }) => {
   // Map-related state - keep UI-specific states
   const [mapTransition, setMapTransition] = useState(null);
   const [hoveredTile, setHoveredTile] = useState(null);
-  const [mapVersion, setMapVersion] = useState(0);
+
+  const enginePulse = useSyncExternalStore(
+    (cb) => engine.subscribe(cb),
+    () => engine.getSnapshot()
+  );
 
   const { addLog } = useLog();
 
@@ -49,10 +53,9 @@ export const GameMapProvider = ({ children }) => {
   // Sync with engine updates (especially map loads/transitions)
   useEffect(() => {
     const handleSync = () => {
-      console.log('[GameMapContext] 🔄 engine triggered sync, updating map version');
+      console.log('[GameMapContext] 🔄 engine triggered sync, updating map refs');
       gameMapRef.current = engine.gameMap;
       worldManagerRef.current = engine.worldManager;
-      setMapVersion(v => v + 1);
     };
 
     engine.on('sync', handleSync);
@@ -225,7 +228,7 @@ export const GameMapProvider = ({ children }) => {
     gameMapRef,
     worldManager: engine.worldManager,
     worldManagerRef,
-    mapVersion,
+    mapVersion: enginePulse,
     mapTransition,
     hoveredTile,
     setGameMap: () => {}, // Null-op for Phase 3
@@ -236,12 +239,12 @@ export const GameMapProvider = ({ children }) => {
     handleMapTransitionConfirm,
     handleMapTransitionCancel,
     setMapTransition,
-    triggerMapUpdate: () => setMapVersion(v => v + 1),
+    triggerMapUpdate: () => engine.notifyUpdate(),
     refreshZombieTracking: (p, fov) => engine.zombieTracker?.updateTracking(engine.gameMap, p, fov, null),
     zombieTracker: engine.zombieTracker,
     lootGenerator: engine.lootGenerator,
     setLootGenerator: () => {}
-  }), [mapVersion, mapTransition, hoveredTile, handleTileClick, handleTileHover, executeMapTransition, handleMapTransitionConfirm, handleMapTransitionCancel]);
+  }), [enginePulse, mapTransition, hoveredTile, handleTileClick, handleTileHover, executeMapTransition, handleMapTransitionConfirm, handleMapTransitionCancel]);
 
   return (
     <GameMapContext.Provider value={contextValue}>

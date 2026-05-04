@@ -10,7 +10,7 @@ import WorkspaceSlot from "@/components/Inventory/WorkspaceSlot";
 import AttachmentSlot from './AttachmentSlot';
 import { Flame, Clock, Hammer, Soup, Target, Swords, MoveUp, Droplets, Utensils } from 'lucide-react';
 import { getItemName, createItemFromDef } from '@/game/inventory/ItemDefs';
-import { ItemCategory } from '@/game/inventory/traits';
+import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 
 export default function CraftingUI() {
     const {
@@ -101,7 +101,7 @@ export default function CraftingUI() {
         const vegItems = allItems.filter(i => (i.hasCategory && i.hasCategory('vegetable')) || (i.categories && i.categories.includes('vegetable')));
         const meatItems = allItems.filter(i => i.defId === 'food.raw_meat');
         
-        const waterContainers = allItems.filter(i => (i.isWaterBottle && i.isWaterBottle()));
+        const waterContainers = allItems.filter(i => i.hasTrait?.(ItemTrait.WATER_CONTAINER));
         const totalWater = waterContainers.reduce((sum, i) => sum + (i.ammoCount || 0), 0);
         
         // 2. Greedy simulation (matching CraftingManager.js)

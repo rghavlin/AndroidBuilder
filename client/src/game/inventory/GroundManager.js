@@ -19,7 +19,7 @@ export class GroundManager {
   /**
    * Add item to ground with intelligent placement
    */
-  addItemSmart(item, preferredX = null, preferredY = null) {
+  addItemSmart(item, preferredX = null, preferredY = null, allowStacking = false) {
     const category = item.getCategory();
 
     // Try to place near similar items
@@ -28,18 +28,18 @@ export class GroundManager {
       // Try to place within the category area first
       const position = this.findPositionInArea(item, categoryArea);
       if (position) {
-        return this.groundContainer.placeItemAt(item, position.x, position.y);
+        return this.groundContainer.placeItemAt(item, position.x, position.y, allowStacking);
       }
 
       // Try to expand the category area
       const expandedPosition = this.expandCategoryArea(item, category);
       if (expandedPosition) {
-        return this.groundContainer.placeItemAt(item, expandedPosition.x, expandedPosition.y);
+        return this.groundContainer.placeItemAt(item, expandedPosition.x, expandedPosition.y, allowStacking);
       }
     }
 
     // Create new category area or use preferred position
-    const result = this.groundContainer.addItem(item, preferredX, preferredY);
+    const result = this.groundContainer.addItem(item, preferredX, preferredY, allowStacking);
     if (result) {
       this.updateCategoryAreas();
     }

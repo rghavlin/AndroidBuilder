@@ -389,14 +389,14 @@ export const ActionProvider = ({ children }) => {
     // 1. Check all containers in equipment
     Object.values(inventoryManager.equipment).forEach(equippedItem => {
       if (equippedItem) {
-        if (equippedItem.isFuelContainer?.() && equippedItem.ammoCount < equippedItem.capacity) {
+        if (equippedItem.hasTrait?.(ItemTrait.FUEL_CONTAINER) && equippedItem.ammoCount < equippedItem.capacity) {
           fuelCans.push(equippedItem);
         }
         
         const grid = equippedItem.getContainerGrid?.();
         if (grid) {
           grid.getAllItems().forEach(item => {
-            if (item.isFuelContainer?.() && item.ammoCount < item.capacity) {
+            if (item.hasTrait?.(ItemTrait.FUEL_CONTAINER) && item.ammoCount < item.capacity) {
               fuelCans.push(item);
             }
           });
@@ -406,7 +406,7 @@ export const ActionProvider = ({ children }) => {
         if (pockets) {
           pockets.forEach(pocket => {
             pocket.getAllItems().forEach(item => {
-              if (item.isFuelContainer?.() && item.ammoCount < item.capacity) {
+              if (item.hasTrait?.(ItemTrait.FUEL_CONTAINER) && item.ammoCount < item.capacity) {
                 fuelCans.push(item);
               }
             });
@@ -417,7 +417,7 @@ export const ActionProvider = ({ children }) => {
 
     // 2. Check ground items
     groundSource.getAllItems().forEach(item => {
-      if (item.isFuelContainer?.() && item.ammoCount < item.capacity && item.instanceId !== fuelSource.instanceId) {
+      if (item.hasTrait?.(ItemTrait.FUEL_CONTAINER) && item.ammoCount < item.capacity && item.instanceId !== fuelSource.instanceId) {
         fuelCans.push(item);
       }
     });

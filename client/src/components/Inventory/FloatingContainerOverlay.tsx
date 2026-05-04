@@ -7,6 +7,7 @@ import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { Wrench, Zap } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipPortal } from "@/components/ui/tooltip";
+import { ItemTrait } from '../../game/inventory/traits.js';
 
 interface FloatingContainerOverlayProps {
   item: any;
@@ -38,8 +39,8 @@ export default function FloatingContainerOverlay({
   const containerGrid = item.getContainerGrid?.();
   
   const isDragging = engine?.dragging?.item.instanceId === item.instanceId;
-  const isWagon = item.isVehicle ? item.isVehicle() : item.isWagon;
-  const isPlanter = item.isPlanter;
+  const isWagon = item.hasTrait?.(ItemTrait.VEHICLE);
+  const isPlanter = item.hasTrait?.(ItemTrait.PLANTER);
 
   const handleSelectPlanter = (e: React.MouseEvent) => {
     if (!isPlanter || isDragging || isDraggingSeed) return;
@@ -97,11 +98,11 @@ export default function FloatingContainerOverlay({
 
   const batteryStatuses = item.getBatteryStatuses?.() || [];
   const batteryPercent = item.getBatteryCharge?.() || 0;
-  const isMotorized = item.isMotorized?.();
+  const motorBonus = item.getMotorizedBonus?.() || 0;
+  const isMotorized = motorBonus > 0;
 
   // Calculate current AP penalty for tooltip
   const basePenalty = item.dragApPenalty || 2;
-  const motorBonus = item.getMotorizedBonus?.() || (isMotorized ? 0.5 : 0);
   const currentPenalty = Math.max(0, basePenalty - motorBonus);
 
   return (
@@ -163,7 +164,7 @@ export default function FloatingContainerOverlay({
             </TooltipPortal>
           </Tooltip>
 
-          {isWagon && (
+          {isWagon && item.attachmentSlots && item.attachmentSlots.length > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -190,7 +191,7 @@ export default function FloatingContainerOverlay({
           )}
         </div>
 
-        {isWagon && (
+        {isWagon && (item.attachmentSlots?.some((s: any) => s.id.includes('battery')) || item.getBatteryStatuses?.().length > 0 || item.getBatteryCharge?.() > 0) && (
           <div className="flex items-center gap-1.5 px-0.5">
             {batteryStatuses.length > 0 ? (
               batteryStatuses.map((status) => (

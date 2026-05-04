@@ -2,6 +2,7 @@
 import { Item } from '../Item.js';
 import { Container } from '../Container.js';
 import { InventoryManager } from '../InventoryManager.js';
+import { ItemTrait } from '../traits.js';
 
 /**
  * Comprehensive test suite for the inventory system
@@ -46,10 +47,10 @@ export function runContainerTests() {
     const battery = new Item({ traits: ['battery'] });
     const knife = new Item({ defId: 'weapon.knife' });
 
-    if (!lighter.isChargeBased()) throw new Error('Lighter should be charge-based');
-    if (!matchbook.isChargeBased()) throw new Error('Matchbook should be charge-based');
-    if (!battery.isChargeBased()) throw new Error('Battery should be charge-based');
-    if (knife.isChargeBased()) throw new Error('Knife should not be charge-based');
+    if (!lighter.hasTrait(ItemTrait.CHARGE_BASED)) throw new Error('Lighter should be charge-based');
+    if (!matchbook.hasTrait(ItemTrait.CHARGE_BASED)) throw new Error('Matchbook should be charge-based');
+    if (!battery.hasTrait(ItemTrait.BATTERY)) throw new Error('Battery should have battery trait');
+    if (knife.hasTrait(ItemTrait.CHARGE_BASED)) throw new Error('Knife should not be charge-based');
   });
 
   runTest('Item placement', () => {

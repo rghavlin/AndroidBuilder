@@ -10,7 +10,13 @@ export class SafeEventEmitter extends EventEmitter {
       return super.emit(eventType, ...args);
     } catch (error) {
       console.error(`[SafeEventEmitter] Error in ${eventType} handler:`, error);
-      // Don't re-throw to prevent cascading failures
+      
+      // In development, re-throw to catch bugs early
+      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+        throw error;
+      }
+      
+      // Don't re-throw in production to prevent cascading failures
       return false;
     }
   }
