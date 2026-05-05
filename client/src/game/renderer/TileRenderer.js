@@ -37,7 +37,7 @@ export const TileRenderer = {
         // Step B: Draw Texture Layer (On top of base color) - Skipped in Debug Mode
         if (sprites && !engine.renderDebugColors) {
             // Some terrain types are intentionally color-only (no textures)
-            const isColorOnly = ['sidewalk', 'window'].includes(tile.terrain);
+            const isColorOnly = ['window'].includes(tile.terrain);
             
             if (!isColorOnly) {
                 const spriteKey = `tile_${tile.terrain}`;
