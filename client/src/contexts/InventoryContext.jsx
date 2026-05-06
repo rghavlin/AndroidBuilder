@@ -986,7 +986,8 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem, inventoryPulse]);
 
   const attachSelectedItemToWeapon = useCallback((weapon, slotId) => {
-    if (!checkPlayerTurn()) return { success: false };
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
     if (!selectedItem || !engine.inventoryManager || !weapon || !slotId) return { success: false };
     
     // Phase: AP Check for Loading (Ammo/Magazine into Gun)
@@ -1014,7 +1015,8 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem, inventoryPulse]);
 
   const loadAmmoInto = useCallback((magazine) => {
-    if (!checkPlayerTurn()) return { success: false };
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
     if (!selectedItem || !engine.inventoryManager || !magazine) return { success: false };
     const result = magazine.loadAmmo(selectedItem.item);
     if (result.success) {
@@ -1030,6 +1032,8 @@ export const InventoryProvider = ({ children }) => {
     return result;
   }, [selectedItem, playSound, inventoryPulse]);
   const loadAmmoDirectly = useCallback((weapon) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
     if (!selectedItem || !engine.inventoryManager || !weapon) return { success: false };
     const slotId = weapon.attachmentSlots?.find(s => s.id === 'ammo')?.id;
     if (slotId) {
@@ -1052,6 +1056,8 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem, inventoryPulse]);
 
   const unloadWeapon = useCallback((weapon) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
     if (!engine.inventoryManager || !engine.player || !weapon) return { success: false };
     
     // Check AP (1 AP)
@@ -1072,6 +1078,8 @@ export const InventoryProvider = ({ children }) => {
   }, [playSound, addLog]);
 
   const unloadMagazine = useCallback((magazine) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
     if (!engine.inventoryManager || !magazine) return { success: false };
 
     const result = engine.inventoryManager.unloadMagazine(magazine);

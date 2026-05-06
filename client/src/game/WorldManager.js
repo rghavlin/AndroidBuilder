@@ -204,11 +204,11 @@ export class WorldManager {
       const templateMapGenerator = new TemplateMapGenerator();
       let mapData;
 
-      // Map 1 is always 'road', Map 2 is always 'winding_road', 3+ is random
+      // Maps 1: Winding, 2-3: Road, 4: Winding Road, 5+: Random
       let templateToUse = 'road';
-      if (this.mapCounter === 2) {
+      if (this.mapCounter === 1 || this.mapCounter === 4) {
         templateToUse = 'winding_road';
-      } else if (this.mapCounter > 2) {
+      } else if (this.mapCounter > 4) {
         const rand = Math.random();
         if (rand < 0.33) templateToUse = 'road';
         else if (rand < 0.66) templateToUse = 'winding_road';
@@ -291,43 +291,95 @@ export class WorldManager {
 
     const playerX = player.x;
     const playerY = player.y;
-    const centerX = Math.floor(gameMap.width / 2);
     const tile = gameMap.getTile(playerX, playerY);
-
-    // If we have metadata with explicit transition points, use them
-    const points = gameMap.metadata?.spawnZones?.transitionPoints;
     
     // Check for transition tile
     if (tile && tile.terrain === 'transition') {
-      // NORTH transition at top edge
-      if (playerY === 0) {
-        // Only trigger if we are at the designated north point (if defined)
-        if (!points || Math.abs(playerX - points.north.x) < 2) {
-          return {
-            direction: 'north',
-            position: { x: playerX, y: playerY },
-            nextMapId: this.getNextMapId(),
-            // Spawn at the matching South entrance on the next map
-            spawnPosition: { x: points?.south?.x ?? centerX, y: gameMap.height - 2 }
-          };
-        }
+        // NORTH transition at top edge (Entering NEXT map from SOUTH)
+        if (playerY === 0) {
+          const nextMapId = this.getNextMapId();
+          let spawnX = 22; // Default for straight road
+
+          // If next map exists, get its actual exit point
+          if (this.maps.has(nextMapId)) {
+            const nextMapData = this.maps.get(nextMapId);
+            const nextPoints = nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
+            if (nextPoints?.south) spawnX = nextPoints.south.x;
+          } else {
+            // Predict next template and its SOUTH entrance position
+            const nextTemplate = this.determineTemplateForMap(nextMapId);
+            if (nextTemplate === 'winding_road') {
+              spawnX = 22; // South entrance is roadXMin
+            } else if (nextTemplate === 'mirrored_winding_road') {
+              spawnX = 62; // South entrance is roadXMax
+            } else {
+              spawnX = 22; // Standard road
+            }
+          }
+
+        return {
+          direction: 'north',
+          position: { x: playerX, y: playerY },
+          nextMapId: nextMapId,
+          spawnPosition: { x: spawnX, y: gameMap.height - 2 }
+        };
       }
 
-      // SOUTH transition at bottom edge
+      // SOUTH transition at bottom edge (Entering PREVIOUS map from NORTH)
       if (playerY === gameMap.height - 1 && this.canGoSouth()) {
-        if (!points || Math.abs(playerX - points.south.x) < 2) {
-          return {
-            direction: 'south',
-            position: { x: playerX, y: playerY },
-            nextMapId: this.getPreviousMapId(),
-            // Spawn at the matching North entrance on the previous map
-            spawnPosition: { x: points?.north?.x ?? centerX, y: 1 }
-          };
+        const prevMapId = this.getPreviousMapId();
+        let spawnX = 22; // Default for straight road
+
+        if (this.maps.has(prevMapId)) {
+          const prevMapData = this.maps.get(prevMapId);
+          const prevPoints = prevMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
+          if (prevPoints?.north) spawnX = prevPoints.north.x;
+        } else {
+          // Fallback prediction for NORTH exit of the previous map
+          const prevTemplate = this.determineTemplateForMap(prevMapId);
+          if (prevTemplate === 'winding_road') {
+            spawnX = 62; // North exit is roadXMax
+          } else if (prevTemplate === 'mirrored_winding_road') {
+            spawnX = 22; // North exit is roadXMin
+          } else {
+            spawnX = 22; // Standard road
+          }
         }
+
+        return {
+          direction: 'south',
+          position: { x: playerX, y: playerY },
+          nextMapId: prevMapId,
+          spawnPosition: { x: spawnX, y: 1 }
+        };
       }
     }
 
     return null;
+  }
+
+  /**
+   * Determine the template to use for a specific map ID
+   */
+  determineTemplateForMap(mapId) {
+    const mapNumber = this.extractMapNumber(mapId);
+    
+    // Check if already assigned
+    if (this.maps.has(mapId)) {
+        return this.maps.get(mapId).type;
+    }
+
+    // Progression logic (Must match executeTransition)
+    if (mapNumber === 1) return 'winding_road';
+    if (mapNumber <= 3) return 'road';
+    if (mapNumber === 4) return 'winding_road';
+    
+    // For random maps, we need a deterministic choice or a saved one
+    // Using mapNumber as seed for pseudo-randomness
+    const seed = (mapNumber * 12345) % 100;
+    if (seed < 33) return 'road';
+    if (seed < 66) return 'winding_road';
+    return 'mirrored_winding_road';
   }
 
   /**
@@ -486,16 +538,7 @@ export class WorldManager {
         // Generate new map using template system with specific ID
         const templateMapGenerator = new TemplateMapGenerator();
         const mapNumber = this.extractMapNumber(targetMapId);
-        // Map 1 is always 'road', Map 2 is always 'winding_road', 3+ is random
-        let templateToUse = 'road';
-        if (mapNumber === 2) {
-          templateToUse = 'winding_road';
-        } else if (mapNumber > 2) {
-          const rand = Math.random();
-          if (rand < 0.33) templateToUse = 'road';
-          else if (rand < 0.66) templateToUse = 'winding_road';
-          else templateToUse = 'mirrored_winding_road';
-        }
+        const templateToUse = this.determineTemplateForMap(targetMapId);
 
         let generatedMapData = templateMapGenerator.generateFromTemplate(templateToUse, {
           randomWalls: 1,

@@ -299,18 +299,11 @@ export default function UniversalGrid({
         }
       }
 
-      const result = placeSelected(containerId, x, y);
+      // --- SPECIALIZED INTERACTIONS (Try these before standard placement) ---
 
-      // If placement/stacking succeeded, we're done
-      if (result.success) {
-        return;
-      }
-
-      // Quick Attachment: If clicking on a weapon while carrying an item, try to attach it
+      // Specialized Action 1: Weapon Loading / Attachment
       const isWeapon = (item?.hasCategory && item?.hasCategory(ItemCategory.WEAPON)) || (item?.attachmentSlots && item.attachmentSlots.length > 0);
       if (item && isWeapon) {
-        // Direct-load guns (.357, Hunting Rifle, Shotgun) bypass the accessibility guard
-        // so that ammo can be loaded whether the gun is equipped, in backpack, or on ground.
         const directLoadDefs = ['weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
         const isDirectLoadGun = directLoadDefs.includes(item.defId);
         const isAmmoSelected = selectedItem?.item?.hasCategory?.(ItemCategory.AMMO) ?? false;
@@ -322,13 +315,11 @@ export default function UniversalGrid({
         } else {
           console.debug('[UniversalGrid] Clicking weapon with selection - attempting quick attach into:', item.name);
           const attachResult = attachSelectedInto(item);
-          if (attachResult.success) {
-            return;
-          }
+          if (attachResult.success) return;
         }
       }
 
-      // SPECIAL CASE: Filling from a puddle or rain collector
+      // Specialized Action 2: Water Filling (Source -> Bottle)
       const isBottle = selectedItem.item.hasTrait?.(ItemTrait.WATER_CONTAINER);
       const isWaterSource = item?.hasTrait?.(ItemTrait.WATER_SOURCE);
       if (isBottle && isWaterSource) {
@@ -337,24 +328,41 @@ export default function UniversalGrid({
         return;
       }
 
-      // Quick Deposit: If clicking on a container while carrying an item, try to deposit it
+      // Specialized Action 3: Container Deposit
       const isContainer = item?.hasTrait?.(ItemTrait.CONTAINER) || (item?.getPocketContainers && item.getPocketContainers().length > 0);
       if (item && isContainer) {
         console.debug('[UniversalGrid] Clicking container with selection - attempting quick deposit into:', item.name);
         const depositResult = depositSelectedInto(item);
-        if (depositResult.success) {
+        if (depositResult.success) return;
+      }
+
+      // Specialized Action 4: Ammo Loading (Ammo -> Magazine)
+      if (item && item.hasTrait && item.hasTrait(ItemTrait.MAGAZINE) && selectedItem.item.hasCategory && selectedItem.item.hasCategory(ItemCategory.AMMO)) {
+        console.warn('[UniversalGrid] 🎯 Magazine detected! Attempting to load ammo:', {
+          magName: item.name,
+          ammoName: selectedItem.item.name,
+          ammoCount: selectedItem.item.stackCount,
+          coords: { x, y }
+        });
+        const loadResult = loadAmmoInto(item);
+        if (loadResult.success) {
+          console.log('[UniversalGrid] ✅ Ammo successfully loaded into magazine');
           return;
+        } else {
+          console.warn('[UniversalGrid] ❌ Failed to load ammo into magazine:', loadResult.reason);
         }
       }
 
-      // Ammo Loading: If clicking on a magazine while carrying ammo, try to load it
-      if (item && item.hasTrait && item.hasTrait(ItemTrait.MAGAZINE) && selectedItem.item.hasCategory && selectedItem.item.hasCategory(ItemCategory.AMMO)) {
-        console.debug('[UniversalGrid] Clicking magazine with ammo selection - attempting load into:', item.name);
-        const loadResult = loadAmmoInto(item);
-        if (loadResult.success) {
-          return;
-        }
+      // --- FALLBACK: STANDARD PLACEMENT / STACKING ---
+      console.log('[UniversalGrid] Falling back to standard placement at:', { x, y });
+      const result = placeSelected(containerId, x, y);
+
+      // If placement/stacking succeeded, we're done
+      if (result.success) {
+        return;
       }
+
+      // Select Item: If we click an item while holding another and no specialized action occurred
 
       // If placement failed (e.g. occupied by another item), and that item is NOT stackable with ours,
       // then the user likely wants to SWITCH their selection to the clicked item.
@@ -695,7 +703,7 @@ export default function UniversalGrid({
               "absolute select-none z-10 border border-white/5 transition-colors duration-200",
               "cursor-grab active:cursor-grabbing",
               hoveredItem === itemId ? "border-white/40 bg-white/5" : "border-white/10",
-              isItemSelected && "opacity-40"
+              isItemSelected ? "selected-item-overlay" : ""
             )}
             onClick={(e) => handleItemClick(item, topLeftX, topLeftY, e)}
             onContextMenu={(e) => handleItemContextMenu(item, topLeftX, topLeftY, e)}
@@ -716,8 +724,7 @@ export default function UniversalGrid({
                 <img
                   src={itemImageSrc}
                   className={cn(
-                    "absolute pointer-events-none select-none max-w-none",
-                    isItemSelected && "opacity-40"
+                    "absolute pointer-events-none select-none max-w-none"
                   )}
                   style={{
                     left: `${adjustedLeft - leftPos}px`,

@@ -2039,7 +2039,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE],
     categories: [ItemCategory.TOOL_RING],
-    beltGrid: { width: 2, height: 3, allowedItems: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'weapon.pliers'] }
+    beltGrid: { width: 2, height: 3, allowedItems: ['weapon.hammer', 'weapon.makeshift_hammer', 'weapon.crowbar', 'weapon.wrench', 'weapon.pliers'] }
   },
   'weapon.sling': {
     id: 'weapon.sling',

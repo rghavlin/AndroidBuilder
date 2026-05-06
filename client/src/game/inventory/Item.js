@@ -109,8 +109,8 @@ export class Item extends SafeEventEmitter {
       this.fragility = ItemDefs[this.defId].fragility;
     }
 
-    this.capacity = capacity; // Initialize capacity here
-    this.ammoCount = ammoCount;
+    this.capacity = capacity;
+    this.ammoCount = ammoCount ?? 0;
 
     // Equipment properties
     this.equippableSlot = equippableSlot;
@@ -163,6 +163,8 @@ export class Item extends SafeEventEmitter {
     if (this.defId && ItemDefs[this.defId]) {
       const def = ItemDefs[this.defId];
       if (def.attachmentSlots) this.attachmentSlots = def.attachmentSlots;
+      if (def.capacity !== undefined && this.capacity === null) this.capacity = def.capacity;
+      if (def.ammoCount !== undefined && (this.ammoCount === 0 || this.ammoCount === undefined)) this.ammoCount = def.ammoCount;
       if (def.ammoDefId && !this.ammoDefId) this.ammoDefId = def.ammoDefId;
       if (def.rarity && !this.rarity) this.rarity = def.rarity;
       if (def.combat && !this.combat) this.combat = def.combat;

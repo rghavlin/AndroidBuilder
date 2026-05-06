@@ -481,9 +481,23 @@ export class LootGenerator {
         
         // Fuel Cover Spawning for Gas Stations
         if (type === 'gas_station') {
-            const isLeft = building.isLeft;
-            const coverX = isLeft ? x + width : x - LOOT_CONSTANTS.FUEL_COVER_OFFSET;
-            const coverY = y;
+            const frontage = building.frontage;
+            let coverX = x, coverY = y;
+            
+            // Place in a corner of the new 3-tile parking lot area
+            if (frontage === 'east') {
+                coverX = x + width + 2;
+                coverY = y;
+            } else if (frontage === 'west') {
+                coverX = x - 3;
+                coverY = y;
+            } else if (frontage === 'south') {
+                coverX = x;
+                coverY = y + height + 2;
+            } else if (frontage === 'north') {
+                coverX = x;
+                coverY = y - 3;
+            }
             
             const coverData = createItemFromDef('furniture.fuel_cover');
             if (coverData) {
@@ -534,9 +548,11 @@ export class LootGenerator {
             buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
         } else if (type === 'army_tent') {
             buildingState.hasSniper = Math.random() < 0.35;
+            buildingState.hasBattleRifle = Math.random() < 0.50;
             buildingState.has9mm = Math.random() < 0.50;
             buildingState.hasBackpack = Math.random() < 0.35;
             buildingState.sniperDropIndex = buildingState.hasSniper ? Math.floor(Math.random() * dropCount) : -1;
+            buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(Math.random() * dropCount) : -1;
             buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(Math.random() * dropCount) : -1;
             buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
         }
@@ -669,6 +685,13 @@ export class LootGenerator {
                         if (sniper) {
                             LootGenerator.initializeWeaponAmmo(sniper);
                             items.push(sniper);
+                        }
+                    }
+                    if (index === buildingState.battleRifleDropIndex) {
+                        const rifle = createItemFromDef('weapon.battle_rifle');
+                        if (rifle) {
+                            LootGenerator.initializeWeaponAmmo(rifle);
+                            items.push(rifle);
                         }
                     }
                     if (index === buildingState.gun9mmDropIndex) {

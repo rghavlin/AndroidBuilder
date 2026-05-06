@@ -152,7 +152,7 @@ class GameInitializationManager extends EventEmitter {
 
     // Create TemplateMapGenerator and generate initial map
     const templateMapGenerator = new TemplateMapGenerator();
-    const mapData = templateMapGenerator.generateFromTemplate('road', {
+    const mapData = templateMapGenerator.generateFromTemplate('winding_road', {
       randomWalls: 1,
       extraFloors: 2
     });

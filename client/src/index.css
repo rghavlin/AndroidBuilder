@@ -163,4 +163,15 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Safari and Chrome */
   }
+
+  @keyframes item-blink {
+    0% { opacity: 0.4; filter: brightness(0.8); }
+    50% { opacity: 1; filter: brightness(1.8); }
+    100% { opacity: 0.4; filter: brightness(0.8); }
+  }
+
+  .selected-item-overlay {
+    animation: item-blink 1s infinite ease-in-out;
+    z-index: 100 !important;
+  }
 }
