@@ -172,6 +172,32 @@ export class TemplateMapGenerator {
       }
     });
 
+    // Winding Road template - 75x125 map for S-curve suburban layout
+    this.templates.set('winding_road', {
+      name: 'Winding Road',
+      size: { width: 85, height: 125 },
+      layout: [], // Procedurally generated
+      parameters: {
+        randomWalls: { min: 0, max: 2 },
+        extraFloors: { min: 0, max: 3 },
+        roadThickness: 5,
+        sidewalkThickness: 1
+      }
+    });
+
+    // Mirrored Winding Road template
+    this.templates.set('mirrored_winding_road', {
+      name: 'Mirrored Winding Road',
+      size: { width: 85, height: 125 },
+      layout: [], // Procedurally generated
+      parameters: {
+        randomWalls: { min: 0, max: 2 },
+        extraFloors: { min: 0, max: 3 },
+        roadThickness: 5,
+        sidewalkThickness: 1
+      }
+    });
+
     console.log('[TemplateMapGenerator] Loaded', this.templates.size, 'default templates');
   }
 
@@ -209,8 +235,8 @@ export class TemplateMapGenerator {
 
     // Parse template layout or generate procedurally
     let baseLayout;
-    if (stripConfig || tileEquations.length > 0 || templateName === 'road') {
-      // Generate procedurally based on equations, or force procedural for road template
+    if (stripConfig || tileEquations.length > 0 || templateName === 'road' || templateName === 'winding_road' || templateName === 'mirrored_winding_road') {
+      // Generate procedurally based on equations, or force procedural for road templates
       if (templateName === 'road' && !stripConfig) {
         // Force consistent road generation with road, sidewalks, and fences
         const roadThickness = config.roadThickness || 5;
@@ -218,6 +244,14 @@ export class TemplateMapGenerator {
 
         // Generate the road template with multiple strips
         baseLayout = this.generateRoadLayout(template.size, roadThickness, sidewalkThickness, mapData);
+      } else if (templateName === 'winding_road') {
+        const roadThickness = config.roadThickness || 5;
+        const sidewalkThickness = config.sidewalkThickness || 1;
+        baseLayout = this.generateWindingRoadLayout(template.size, roadThickness, sidewalkThickness, mapData);
+      } else if (templateName === 'mirrored_winding_road') {
+        const roadThickness = config.roadThickness || 5;
+        const sidewalkThickness = config.sidewalkThickness || 1;
+        baseLayout = this.generateMirroredWindingRoadLayout(template.size, roadThickness, sidewalkThickness, mapData);
       } else {
         baseLayout = this.generateProceduralLayout(template.size, stripConfig, tileEquations);
       }
@@ -239,22 +273,31 @@ export class TemplateMapGenerator {
     // Convert to tile data
     mapData.tiles = this.layoutToTileData(finalLayout);
 
-    // Add yellow transition tile at the top of the map (centerX,0)
+    // Set transition tiles at road exits
     const centerX = Math.floor(mapData.width / 2);
-    this.setTileData(mapData, centerX, 0, 'transition');
+    let northExitX = centerX;
+    let southExitX = centerX;
+    
+    if (templateName === 'winding_road') {
+        northExitX = mapData.width - 23; // roadXMax
+        southExitX = 22;               // roadXMin
+    } else if (templateName === 'mirrored_winding_road') {
+        northExitX = 22;               // roadXMin (Mirrored exit)
+        southExitX = mapData.width - 23; // roadXMax (Mirrored start)
+    }
 
-    // Add south transition tile at (centerX, height-1) for non-first maps
-    // Note: This will be set during map generation when we know the map ID
-    this.setTileData(mapData, centerX, mapData.height - 1, 'transition');
+    // Add transition tiles (using setTileData to update the tiles array)
+    this.setTileData(mapData, northExitX, 0, 'transition');
+    this.setTileData(mapData, southExitX, mapData.height - 1, 'transition');
 
     // Add spawn zones metadata
     mapData.metadata = {
       ...mapData.metadata,
       spawnZones: {
-        roadStart: [{ x: centerX, y: mapData.height - 2 }], // Bottom of road for player spawn
+        roadStart: [{ x: southExitX, y: mapData.height - 2 }], 
         transitionPoints: {
-          north: { x: centerX, y: 0 }, // Top of map - go to next map
-          south: { x: centerX, y: mapData.height - 1 } // Bottom of map - go to previous map (not for map_001)
+          north: { x: northExitX, y: 0 }, 
+          south: { x: southExitX, y: mapData.height - 1 } 
         }
       }
     };
@@ -651,8 +694,19 @@ export class TemplateMapGenerator {
     const specialBuildingMaxY = height - buildingBuffer - specialBuildingHeight - 10;
     const specialBuildingY = specialBuildingMinY + Math.floor(Math.random() * (specialBuildingMaxY - specialBuildingMinY));
     
+    // Define building object with frontage
+    const bWidth = 14;
+    const frontage = useLeftSide ? 'east' : 'west';
+    const bX = useLeftSide ? (leftSidewalkStartX - grassGapFromSidewalk - bWidth) : (rightSidewalkEndX + grassGapFromSidewalk);
+
     // Place special building
-    this.placeSpecialBuilding(layout, useLeftSide, specialBuildingY, type, leftSidewalkStartX, rightSidewalkEndX, mapData);
+    this.placeSpecialBuilding(layout, {
+        x: bX,
+        y: specialBuildingY,
+        width: bWidth,
+        height: specialBuildingHeight,
+        frontage: frontage
+    }, type, mapData);
 
     // Place Army Tent if triggered
     let armyTentSideLeft = false;
@@ -710,163 +764,96 @@ export class TemplateMapGenerator {
   /**
    * Place a special building with unique rules
    */
-  placeSpecialBuilding(layout, isLeft, y, type, leftSidewalkX, rightSidewalkX, mapData) {
-    const width = type === 'firestation' ? 10 : 9;
-    const height = type === 'firestation' ? 17 : 12;
-    const gapFromSidewalk = type === 'gas_station' ? 3 : 2;
+  placeSpecialBuilding(layout, b, type, mapData) {
+    const { x, y, width, height, frontage } = b;
+    const isHorizontal = (frontage === 'north' || frontage === 'south');
     
-    let startX;
-    if (isLeft) {
-      startX = leftSidewalkX - gapFromSidewalk - width;
-    } else {
-      // FIX: Add 1 to offset right side calculation for correct gap count
-      startX = rightSidewalkX + gapFromSidewalk + 1;
-    }
+    // 1. Build the structure
+    for (let ty = y; ty < y + height; ty++) {
+      for (let tx = x; tx < x + width; tx++) {
+        const isPerimeter = (ty === y || ty === y + height - 1 || tx === x || tx === x + width - 1);
+        const isCorner = (ty === y || ty === y + height - 1) && (tx === x || tx === x + width - 1);
+        
+        // Firestation internal wall - Shifted down slightly to give garage more room
+        const wallOffset = isHorizontal ? Math.floor(width * 0.6) : Math.floor(height * 0.6);
+        const isInternalWall = type === 'firestation' && (isHorizontal ? tx === x + wallOffset : ty === y + wallOffset);
 
-    const entranceY = type === 'firestation' ? y + 14 : y + Math.floor(height / 2);
-    const entranceX = isLeft ? startX + width - 1 : startX;
-
-    // Replace front tiles with road
-    const roadX = isLeft ? leftSidewalkX - 1 : rightSidewalkX + 1;
-    const roadGap = isLeft ? leftSidewalkX - 2 : rightSidewalkX + 2;
-    for (let currentY = y; currentY < y + height; currentY++) {
-        if (layout[currentY]) {
-            layout[currentY][roadX] = 'road';
-            layout[currentY][roadGap] = 'road';
-        }
-    }
-
-    // Build the structure
-    for (let curY = y; curY < y + height; curY++) {
-      for (let curX = startX; curX < startX + width; curX++) {
-        if (layout[curY] && layout[curY][curX]) {
-          const isPerimeter = (curY === y || curY === y + height - 1 || curX === startX || curX === startX + width - 1);
-          const isCorner = (curY === y || curY === y + height - 1) && (curX === startX || curX === startX + width - 1);
-          
-          // Internal separation wall for fire station
-          const isInternalWall = type === 'firestation' && curY === y + 11 && curX > startX && curX < startX + width - 1;
-
-          if (isPerimeter || isInternalWall) {
-            let canHaveWindow = !isCorner && !isInternalWall;
-            
-            // Rule 1: Police stations and fire stations have no windows
-            if (type === 'police' || type === 'firestation') {
-              canHaveWindow = false;
-            }
-            
-            // Rule 2: Grocer and Gas Station only have windows on the street-facing side
-            if (type === 'grocer' || type === 'gas_station') {
-              if (curX !== entranceX) {
-                canHaveWindow = false;
-              }
-            }
-            
-            // Rule 3: No window on door or firestation opening
-            if (curX === entranceX) {
-              if (type === 'firestation') {
-                // Apparatus opening y+4 to y+7 and support door y+14
-                if ((curY >= y + 4 && curY < y + 8) || curY === y + 14) {
-                  canHaveWindow = false;
-                }
-              } else if (curY === entranceY) {
-                // Normal door
-                canHaveWindow = false;
-              }
-            }
-
-            if (canHaveWindow && Math.random() < 0.2) {
-              layout[curY][curX] = 'window';
-              if (mapData && mapData.metadata) {
-                if (!mapData.metadata.windows) mapData.metadata.windows = [];
-                mapData.metadata.windows.push({
-                  x: curX,
-                  y: curY,
-                  isLocked: Math.random() < 0.5,
-                  isOpen: false
-                });
-              }
-            } else {
-              layout[curY][curX] = 'building';
-            }
-          } else {
-            layout[curY][curX] = 'floor';
-          }
+        if (isPerimeter || isInternalWall) {
+          layout[ty][tx] = 'building';
+        } else {
+          layout[ty][tx] = 'floor';
         }
       }
     }
 
-    // Standardized metadata registration
-    this._registerBuilding(mapData, type, startX, y, width, height, { isLeft, entranceX, entranceY });
+    // 2. Entrance Logic
+    let entranceX, entranceY;
+    if (frontage === 'east') { entranceX = x + width - 1; entranceY = y + Math.floor(height / 2); }
+    else if (frontage === 'west') { entranceX = x; entranceY = y + Math.floor(height / 2); }
+    else if (frontage === 'south') { entranceX = x + Math.floor(width / 2); entranceY = y + height - 1; }
+    else { entranceX = x + Math.floor(width / 2); entranceY = y; }
 
-    // Entrance and Icons
     if (type === 'firestation') {
-        // Apparatus opening (8x10 room)
-        for (let fy = y + 4; fy < y + 8; fy++) {
-            layout[fy][entranceX] = 'floor';
-            
-            // Add opening to metadata to prevent subdivision overlap
-            if (mapData && mapData.metadata && mapData.metadata.doors) {
-                mapData.metadata.doors.push({
-                    x: entranceX,
-                    y: fy,
-                    isOpening: true,
-                    isOpen: true
-                });
-            }
+        const wallOffset = isHorizontal ? Math.floor(width * 0.6) : Math.floor(height * 0.6);
+        
+        // Apparatus Opening (4 tiles wide) - Centered in the garage section
+        const appSize = 4;
+        const appOffset = Math.floor(wallOffset / 2) - 2;
+        
+        for (let i = 0; i < appSize; i++) {
+            let ax = entranceX, ay = entranceY;
+            if (isHorizontal) ax = x + appOffset + i; else ay = y + appOffset + i;
+            layout[ay][ax] = 'floor';
+            if (!mapData.metadata.doors) mapData.metadata.doors = [];
+            mapData.metadata.doors.push({ x: ax, y: ay, isOpening: true, isOpen: true });
         }
 
-        // Support room door (8x4 room)
-        const supportDoorY = y + 14;
-        layout[supportDoorY][entranceX] = 'floor';
-        if (!mapData.metadata.doors) mapData.metadata.doors = [];
-        mapData.metadata.doors.push({
-            x: entranceX,
-            y: supportDoorY,
-            isLocked: Math.random() < 0.2,
-            isOpen: false
-        });
+        // Support Room Door
+        let sx = entranceX, sy = entranceY;
+        if (isHorizontal) sx = x + width - 3; else sy = y + height - 3;
+        layout[sy][sx] = 'floor';
+        mapData.metadata.doors.push({ x: sx, y: sy, isLocked: Math.random() < 0.2, isOpen: false });
 
-        // Internal door between rooms
-        const internalDoorX = startX + 5;
-        const internalDoorY = y + 11;
-        layout[internalDoorY][internalDoorX] = 'floor';
-        mapData.metadata.doors.push({
-            x: internalDoorX,
-            y: internalDoorY,
-            isLocked: false,
-            isOpen: false
-        });
+        // Internal Connecting Door - Placed on the internal wall
+        let ix, iy;
+        if (isHorizontal) {
+            ix = x + wallOffset;
+            iy = y + Math.floor(height / 2);
+        } else {
+            ix = x + Math.floor(width / 2);
+            iy = y + wallOffset;
+        }
+        layout[iy][ix] = 'floor';
+        mapData.metadata.doors.push({ x: ix, y: iy, isLocked: false, isOpen: false });
+        
+        entranceX = sx; entranceY = sy; 
     } else {
-        // Normal door
+        // Normal Single Door - Enforce floor tile
         layout[entranceY][entranceX] = 'floor';
         if (!mapData.metadata.doors) mapData.metadata.doors = [];
-        mapData.metadata.doors.push({
-            x: entranceX,
-            y: entranceY,
-            isLocked: Math.random() < 0.1,
-            isOpen: false
-        });
+        mapData.metadata.doors.push({ x: entranceX, y: entranceY, isLocked: Math.random() < 0.1, isOpen: false });
     }
 
-    // Place Icons
+    // 3. Register Building
+    this._registerBuilding(mapData, type, x, y, width, height, { frontage, entranceX, entranceY });
+
+    // 4. Place Icons (Offset from door to stay on building wall)
     if (!mapData.metadata.placeIcons) mapData.metadata.placeIcons = [];
-    
     if (type === 'gas_station') {
-        const fuelPumpX = isLeft ? startX + width + 1 : startX - 2;
-        const fuelPumpY = entranceY;
-        
-        // Main fuel pump landmark (Primary indicator)
-        mapData.metadata.placeIcons.push({
-            subtype: 'fuelpump',
-            x: fuelPumpX,
-            y: fuelPumpY
-        });
-    } else if (type === 'grocer' || type === 'police' || type === 'firestation') {
-        // Sign icon above door (Mapping consistent with ImageLoader assets)
-        mapData.metadata.placeIcons.push({
-            subtype: type === 'grocer' ? 'grocer' : (type === 'police' ? 'police' : 'firestation'),
-            x: entranceX,
-            y: type === 'firestation' ? y + 3 : entranceY - 1
+        let pumpX = entranceX, pumpY = entranceY;
+        if (frontage === 'east') pumpX += 3; else if (frontage === 'west') pumpX -= 3;
+        else if (frontage === 'south') pumpY += 3; else pumpY -= 3;
+        mapData.metadata.placeIcons.push({ subtype: 'fuelpump', x: pumpX, y: pumpY });
+    } else {
+        let signX = entranceX, signY = entranceY;
+        // Shift sign 1 tile away from door along the wall
+        if (frontage === 'east' || frontage === 'west') signY--; 
+        else if (frontage === 'north' || frontage === 'south') signX--;
+
+        mapData.metadata.placeIcons.push({ 
+            subtype: type, 
+            x: signX, 
+            y: (type === 'firestation' && !isHorizontal) ? y + 3 : signY 
         });
     }
   }
@@ -875,153 +862,202 @@ export class TemplateMapGenerator {
    * Place buildings in a specific zone with given constraints
    */
   placeBuildingsInZone(layout, zoneStartX, zoneEndX, zoneStartY, zoneEndY,
-    minWidth, maxWidth, minHeight, maxHeight, minGap, maxGap, mapData) {
+    minWidth, maxWidth, minHeight, maxHeight, minGap, maxGap, mapData, options = {}) {
     const zoneWidth = zoneEndX - zoneStartX + 1;
-    const zoneHeight = zoneEndY - zoneStartY;
+    const zoneHeight = zoneEndY - zoneStartY + 1;
+    const frontage = options.frontage || (zoneStartX < layout[0].length / 2 ? 'east' : 'west');
+    const direction = options.direction || 'vertical';
 
-    if (zoneWidth < minWidth || zoneHeight < minHeight) {
-      return; // Zone too small for buildings
-    }
+    if (direction === 'horizontal') {
+      let currentX = zoneStartX;
+      while (currentX < zoneEndX) {
+        const buildingWidth = Math.min(zoneWidth - (currentX - zoneStartX), minWidth + Math.floor(Math.random() * (maxWidth - minWidth + 1)));
+        const buildingHeight = Math.min(zoneHeight, minHeight + Math.floor(Math.random() * (maxHeight - minHeight + 1)));
 
-    let currentY = zoneStartY;
+        if (currentX + buildingWidth > zoneEndX + 1 || buildingWidth < minWidth || buildingHeight < minHeight) {
+          currentX++;
+          continue;
+        }
 
-    while (currentY < zoneEndY) {
-      // Random building dimensions
-      const buildingWidth = minWidth + Math.floor(Math.random() * (maxWidth - minWidth + 1));
-      const buildingHeight = minHeight + Math.floor(Math.random() * (maxHeight - minHeight + 1));
+        let buildingStartY;
+        if (frontage === 'south') buildingStartY = Math.max(zoneStartY, zoneEndY - buildingHeight + 1);
+        else buildingStartY = zoneStartY;
 
-      // Check if building fits in remaining vertical space
-      if (currentY + buildingHeight > zoneEndY) {
-        break;
-      }
-
-      // Place building at consistent position relative to sidewalk
-      let buildingStartX;
-      if (zoneStartX < 12) {
-        // Left side - place buildings at the right edge of the zone (closest to road)
-        buildingStartX = Math.max(zoneStartX, zoneEndX - buildingWidth + 1);
-      } else {
-        // Right side - place buildings at the left edge of the zone (closest to road)
-        buildingStartX = zoneStartX;
-      }
-
-      // Ensure building fits within zone boundaries
-      if (buildingStartX + buildingWidth > zoneEndX + 1) {
-        buildingStartX = zoneEndX - buildingWidth + 1;
-      }
-      if (buildingStartX < zoneStartX) {
-        buildingStartX = zoneStartX;
-      }
-
-      // Place hollow building with walls and floor interior
-      for (let y = currentY; y < currentY + buildingHeight; y++) {
-        for (let x = buildingStartX; x < buildingStartX + buildingWidth; x++) {
-          if (x >= 0 && x < layout[0].length && y >= 0 && y < layout.length) {
-            // Create walls on the perimeter, floor tiles inside
-            const isPerimeter = (y === currentY || y === currentY + buildingHeight - 1 ||
-              x === buildingStartX || x === buildingStartX + buildingWidth - 1);
-
-            if (isPerimeter) {
-              layout[y][x] = 'building';
-            } else {
-              layout[y][x] = 'floor';
+        // Collision Check (Buffer building-to-building, but allow adjacency to sidewalks)
+        let canPlace = true;
+        for (let y = buildingStartY - 1; y <= buildingStartY + buildingHeight; y++) {
+          for (let x = currentX - 1; x <= currentX + buildingWidth; x++) {
+            if (layout[y] && layout[y][x]) {
+              const tile = layout[y][x];
+              if (tile === 'building' || tile === 'road' || tile === 'fence') {
+                canPlace = false;
+                break;
+              }
             }
           }
-        }
-      }
-
-      // Add entrance - random gap in wall closest to sidewalk
-      const entranceY = currentY + 1 + Math.floor(Math.random() * (buildingHeight - 2)); // Avoid corners
-      let entranceX;
-
-      if (zoneStartX < 12) {
-        // Left side - entrance on right wall (closest to road)
-        entranceX = buildingStartX + buildingWidth - 1;
-      } else {
-        // Right side - entrance on left wall (closest to road)
-        entranceX = buildingStartX;
-      }
-
-      // Create the entrance by replacing wall with floor
-      if (entranceX >= 0 && entranceX < layout[0].length &&
-        entranceY >= 0 && entranceY < layout.length) {
-        layout[entranceY][entranceX] = 'floor';
-
-        // Remove any window metadata at this entrance location
-        if (mapData && mapData.metadata && mapData.metadata.windows) {
-          mapData.metadata.windows = mapData.metadata.windows.filter(w => w.x !== entranceX || w.y !== entranceY);
+          if (!canPlace) break;
         }
 
-        // 90% chance to add a door at the entrance
-        if (Math.random() < 0.9) {
-          if (mapData && mapData.metadata) {
-            if (!mapData.metadata.doors) mapData.metadata.doors = [];
-            mapData.metadata.doors.push({
-              x: entranceX,
-              y: entranceY,
-              isLocked: Math.random() < 0.1, // 10% chance to be locked
-              isOpen: false
-            });
-          }
+        if (canPlace) {
+          this._drawBuilding(layout, currentX, buildingStartY, buildingWidth, buildingHeight, frontage, mapData);
+          currentX += buildingWidth + minGap + Math.floor(Math.random() * (maxGap - minGap + 1));
         } else {
-          // If no door added, record metadata for subdivision logic to know about opening
-          if (mapData && mapData.metadata) {
-            if (!mapData.metadata.doors) mapData.metadata.doors = [];
-            mapData.metadata.doors.push({
-              x: entranceX,
-              y: entranceY,
-              isOpening: true,
-              isOpen: true
-            });
-          }
+          currentX++; 
         }
       }
+    } else {
+      // Vertical placement (Sliding logic with safety buffer)
+      let currentY = zoneStartY;
+      while (currentY < zoneEndY) {
+        const buildingWidth = Math.min(zoneWidth, minWidth + Math.floor(Math.random() * (maxWidth - minWidth + 1)));
+        const buildingHeight = Math.min(zoneHeight + 1, minHeight + Math.floor(Math.random() * (maxHeight - minHeight + 1)));
 
-      // Standardized metadata registration for residential buildings
-      this._registerBuilding(mapData, 'residential', buildingStartX, currentY, buildingWidth, buildingHeight, { entranceX, entranceY });
+        if (currentY + buildingHeight > zoneEndY + 1 || buildingHeight < minHeight) {
+          currentY++;
+          continue;
+        }
 
-      // Add back door (40% chance)
-      if (Math.random() < 0.4) {
-        const backDoorY = currentY + 1 + Math.floor(Math.random() * (buildingHeight - 2));
-        let backDoorX;
-        if (zoneStartX < 12) {
-          // Left side - back door on left wall
-          backDoorX = buildingStartX;
+        let buildingStartX;
+        if (frontage === 'east') buildingStartX = Math.max(zoneStartX, zoneEndX - buildingWidth + 1);
+        else buildingStartX = zoneStartX;
+
+        // Collision Check (Buffer building-to-building, but allow adjacency to sidewalks)
+        let canPlace = true;
+        for (let y = currentY - 1; y <= currentY + buildingHeight; y++) {
+          for (let x = buildingStartX - 1; x <= buildingStartX + buildingWidth; x++) {
+            if (layout[y] && layout[y][x]) {
+              const tile = layout[y][x];
+              // Only block if it hits another building or the road itself
+              if (tile === 'building' || tile === 'road' || tile === 'fence') {
+                canPlace = false;
+                break;
+              }
+            }
+          }
+          if (!canPlace) break;
+        }
+
+        if (canPlace) {
+          this._drawBuilding(layout, buildingStartX, currentY, buildingWidth, buildingHeight, frontage, mapData);
+          currentY += buildingHeight + minGap + Math.floor(Math.random() * (maxGap - minGap + 1));
         } else {
-          // Right side - back door on right wall
-          backDoorX = buildingStartX + buildingWidth - 1;
-        }
-
-        if (backDoorX >= 0 && backDoorX < layout[0].length &&
-            backDoorY >= 0 && backDoorY < layout.length) {
-          layout[backDoorY][backDoorX] = 'floor';
-
-          // Remove any window metadata at this back door location
-          if (mapData && mapData.metadata && mapData.metadata.windows) {
-            mapData.metadata.windows = mapData.metadata.windows.filter(w => w.x !== backDoorX || w.y !== backDoorY);
-          }
-
-          if (mapData && mapData.metadata && mapData.metadata.doors) {
-            mapData.metadata.doors.push({
-              x: backDoorX,
-              y: backDoorY,
-              isLocked: Math.random() < 0.3, // Slightly higher chance for locked back door
-              isOpen: false
-            });
-          }
+          currentY++; 
         }
       }
-
-      // Subdivide into rooms (2-3 rooms)
-      this.subdivideBuilding(layout, buildingStartX, currentY, buildingWidth, buildingHeight, mapData);
-
-      // Place windows (after subdivision to avoid junctions)
-      this.placeWindows(layout, buildingStartX, currentY, buildingWidth, buildingHeight, mapData);
-
-      // Move to next building position with random gap
-      const gap = minGap + Math.floor(Math.random() * (maxGap - minGap + 1));
-      currentY += buildingHeight + gap;
     }
+  }
+
+  /**
+   * Place buildings starting from a specific anchor point (sidewalk corner)
+   * Ensures precise measurement and spacing (2-tile setback, 4-tile gap)
+   */
+  placeBuildingsFromAnchor(layout, anchorX, anchorY, growthDir, frontage, mapData, options = {}) {
+    const {
+      minW = 14, maxW = 22,
+      minH = 14, maxH = 18,
+      gap = 4,
+      setback = 2,
+      maxBuildings = 10
+    } = options;
+
+    let currentX = anchorX;
+    let currentY = anchorY;
+    let placedCount = 0;
+    let attempts = 0;
+    const maxAttempts = 500; // Increased to ensure we can nudge past wide roads/sidewalks
+
+    while (placedCount < maxBuildings && attempts < maxAttempts) {
+      attempts++;
+      const bW = minW + Math.floor(Math.random() * (maxW - minW + 1));
+      const bH = minH + Math.floor(Math.random() * (maxH - minH + 1));
+
+      let bX, bY;
+
+      // Calculate building position based on frontage and growth direction
+      if (frontage === 'north') {
+        bY = anchorY + setback + 1;
+        bX = (growthDir === 'west') ? currentX - bW : currentX;
+      } else if (frontage === 'south') {
+        bY = anchorY - setback - bH;
+        bX = (growthDir === 'west') ? currentX - bW : currentX;
+      } else if (frontage === 'east') {
+        bX = anchorX - setback - bW;
+        bY = (growthDir === 'north') ? currentY - bH : currentY;
+      } else if (frontage === 'west') {
+        bX = anchorX + setback + 1;
+        bY = (growthDir === 'north') ? currentY - bH : currentY;
+      }
+
+      // Bounds check - if we hit the edge, we stop this growth line
+      if (bX < 2 || bX + bW >= layout[0].length - 2 || bY < 2 || bY + bH >= layout.length - 2) {
+          // If we are strictly out of bounds, we nudge and try again, but if we are way off, we'll hit maxAttempts
+          if (growthDir === 'west') currentX--;
+          else if (growthDir === 'east') currentX++;
+          else if (growthDir === 'north') currentY--;
+          else if (growthDir === 'south') currentY++;
+          continue;
+      }
+      
+      // Collision Check
+      let canPlace = true;
+      for (let ty = bY - 1; ty <= bY + bH; ty++) {
+        for (let tx = bX - 1; tx <= bX + bW; tx++) {
+          if (layout[ty] && layout[ty][tx] && layout[ty][tx] !== 'grass') {
+            canPlace = false;
+            break;
+          }
+        }
+        if (!canPlace) break;
+      }
+
+      if (canPlace) {
+        this._drawBuilding(layout, bX, bY, bW, bH, frontage, mapData);
+        placedCount++;
+        attempts = 0; // Reset attempts after successful placement
+
+        // Update growth position for next building (jump by building size + gap)
+        if (growthDir === 'west') currentX -= (bW + gap);
+        else if (growthDir === 'east') currentX += (bW + gap);
+        else if (growthDir === 'north') currentY -= (bH + gap);
+        else if (growthDir === 'south') currentY += (bH + gap);
+      } else {
+        // Nudge forward by 1 tile and try again (allows skipping fences or tight spots)
+        if (growthDir === 'west') currentX--;
+        else if (growthDir === 'east') currentX++;
+        else if (growthDir === 'north') currentY--;
+        else if (growthDir === 'south') currentY++;
+      }
+    }
+
+  }
+
+  /**
+   * Helper to draw the actual building tiles and register metadata
+   */
+  _drawBuilding(layout, x, y, w, h, frontage, mapData) {
+    for (let ty = y; ty < y + h; ty++) {
+      for (let tx = x; tx < x + w; tx++) {
+        const isPerimeter = (ty === y || ty === y + h - 1 || tx === x || tx === x + w - 1);
+        layout[ty][tx] = isPerimeter ? 'building' : 'floor';
+      }
+    }
+
+    // Entrance logic
+    let entranceX, entranceY;
+    if (frontage === 'east') { entranceX = x + w - 1; entranceY = y + 2 + Math.floor(Math.random() * (h - 4)); }
+    else if (frontage === 'west') { entranceX = x; entranceY = y + 2 + Math.floor(Math.random() * (h - 4)); }
+    else if (frontage === 'south') { entranceX = x + 2 + Math.floor(Math.random() * (w - 4)); entranceY = y + h - 1; }
+    else { entranceX = x + 2 + Math.floor(Math.random() * (w - 4)); entranceY = y; }
+
+    layout[entranceY][entranceX] = 'floor';
+    if (mapData && mapData.metadata) {
+      if (!mapData.metadata.doors) mapData.metadata.doors = [];
+      mapData.metadata.doors.push({ x: entranceX, y: entranceY, isLocked: Math.random() < 0.2, isOpen: false });
+    }
+
+    this._registerBuilding(mapData, 'residential', x, y, w, h, { entranceX, entranceY, frontage });
+    this.subdivideBuilding(layout, x, y, w, h, mapData);
+    this.placeWindows(layout, x, y, w, h, mapData);
   }
 
   /**
@@ -1193,7 +1229,7 @@ export class TemplateMapGenerator {
             for (let sx = room.x + minInteriorSize; sx <= room.x + room.w - minInteriorSize - 1; sx++) {
                 // IMPORTANT: Avoid all doors (perimeter and interior) to prevent blocking
                 // Check within +- 1 tile buffer to allow stepping into the building before hitting internal wall
-                const conflictsWithDoor = mapData.metadata.doors.some(d => Math.abs(d.x - sx) <= 1);
+                const conflictsWithDoor = (mapData.metadata.doors || []).some(d => Math.abs(d.x - sx) <= 1);
                 if (!conflictsWithDoor) possibleX.push(sx);
             }
         }
@@ -1203,7 +1239,7 @@ export class TemplateMapGenerator {
             for (let sy = room.y + minInteriorSize; sy <= room.y + room.h - minInteriorSize - 1; sy++) {
                 // IMPORTANT: Avoid all doors (perimeter and interior) to prevent blocking
                 // Check within +- 1 tile buffer
-                const conflictsWithDoor = mapData.metadata.doors.some(d => Math.abs(d.y - sy) <= 1);
+                const conflictsWithDoor = (mapData.metadata.doors || []).some(d => Math.abs(d.y - sy) <= 1);
                 if (!conflictsWithDoor) possibleY.push(sy);
             }
         }
@@ -1228,7 +1264,7 @@ export class TemplateMapGenerator {
             // Add interior door - avoid corners and existing doors
             const potentialDoorYs = [];
             for (let dy = room.y + 1; dy <= room.y + room.h - 2; dy++) {
-                const isAdjacentToDoor = mapData.metadata.doors.some(d => 
+                const isAdjacentToDoor = (mapData.metadata.doors || []).some(d => 
                     Math.abs(d.x - splitX) + Math.abs(d.y - dy) <= 1
                 );
                 if (!isAdjacentToDoor) potentialDoorYs.push(dy);
@@ -1265,7 +1301,7 @@ export class TemplateMapGenerator {
             // Add interior door - avoid corners and existing doors
             const potentialDoorXs = [];
             for (let dx = room.x + 1; dx <= room.x + room.w - 2; dx++) {
-                const isAdjacentToDoor = mapData.metadata.doors.some(d => 
+                const isAdjacentToDoor = (mapData.metadata.doors || []).some(d => 
                     Math.abs(d.x - dx) + Math.abs(d.y - splitY) <= 1
                 );
                 if (!isAdjacentToDoor) potentialDoorXs.push(dx);
@@ -1507,6 +1543,8 @@ export class TemplateMapGenerator {
 
     const templateStartPositions = {
       'road': { x: centerX, y: template ? template.size.height - 2 : 123 },
+      'winding_road': { x: 22, y: template ? template.size.height - 2 : 123 },
+      'mirrored_winding_road': { x: width - 23, y: template ? template.size.height - 2 : 123 },
       'small_building': { x: 5, y: 7 },
       'mall_section': { x: 7, y: 11 },
       'outdoor_area': { x: 10, y: 19 }
@@ -1650,19 +1688,383 @@ export class TemplateMapGenerator {
       }
 
       // Store standardized building metadata on gameMap
-      if (templateMapData.metadata && templateMapData.metadata.buildings) {
-        gameMap.buildings = templateMapData.metadata.buildings;
+      if (templateMapData.metadata) {
+        gameMap.metadata = templateMapData.metadata;
+        if (templateMapData.metadata.buildings) {
+          gameMap.buildings = templateMapData.metadata.buildings;
+        }
+        if (templateMapData.metadata.specialBuildings) {
+          gameMap.specialBuildings = templateMapData.metadata.specialBuildings;
+        }
       }
       
-      // Legacy support for specialBuildings (if needed by other systems during phased migration)
-      if (templateMapData.metadata && templateMapData.metadata.specialBuildings) {
-        gameMap.specialBuildings = templateMapData.metadata.specialBuildings;
-      }
-
       return gameMap;
     } catch (error) {
       console.error('[TemplateMapGenerator] Failed to apply template to GameMap:', error);
       throw error;
     }
+  }
+
+  /**
+   * Generate winding road layout (S-curve) with precise 18/20/2 spacing
+   */
+  generateWindingRoadLayout(size, roadThickness, sidewalkThickness, mapData) {
+    const { width, height } = size;
+    const layout = Array(height).fill().map(() => Array(width).fill('grass'));
+
+    // 1. Boundary fences
+    for (let y = 0; y < height; y++) {
+      layout[y][0] = 'fence';
+      layout[y][width - 1] = 'fence';
+    }
+    for (let x = 0; x < width; x++) {
+      layout[0][x] = 'fence';
+      layout[height - 1][x] = 'fence';
+    }
+
+    // 2. Constants for the modular grid (Math-based for 18/20/2 requirements)
+    const roadXMin = 22; // 18-tile edge on left
+    const roadXMax = width - 23; // 18-tile edge on right
+    const roadY = [100, 52, 4]; // Shifted up to allow more space at the bottom (25 tiles)
+    const centerX = Math.floor(width / 2);
+
+    // 3. Draw the S-curve road (Following the white line: Start at Left)
+    // Start Vertical (Left side)
+    this._drawCleanRoad(layout, {x: roadXMin, y: height-1}, {x: roadXMin, y: roadY[0]}, roadThickness, sidewalkThickness);
+    
+    // Segments
+    // Road 0 (Bottom): Left -> Right
+    this._drawCleanRoad(layout, {x: roadXMin, y: roadY[0]}, {x: roadXMax, y: roadY[0]}, roadThickness, sidewalkThickness);
+    this._drawCleanRoad(layout, {x: roadXMax, y: roadY[0]}, {x: roadXMax, y: roadY[1]}, roadThickness, sidewalkThickness);
+    
+    // Road 1 (Middle): Right -> Left
+    this._drawCleanRoad(layout, {x: roadXMax, y: roadY[1]}, {x: roadXMin, y: roadY[1]}, roadThickness, sidewalkThickness);
+    this._drawCleanRoad(layout, {x: roadXMin, y: roadY[1]}, {x: roadXMin, y: roadY[2]}, roadThickness, sidewalkThickness);
+    
+    // Road 2 (Top): Left -> Right
+    this._drawCleanRoad(layout, {x: roadXMin, y: roadY[2]}, {x: roadXMax, y: roadY[2]}, roadThickness, sidewalkThickness);
+    this._drawCleanRoad(layout, {x: roadXMax, y: roadY[2]}, {x: roadXMax, y: 0}, roadThickness, sidewalkThickness);
+
+    // 4. Blocking Fences (Backyard barriers)
+    const fenceYs = [roadY[0] - 24, roadY[1] - 24]; // y=76 and y=28
+    fenceYs.forEach((fy, idx) => {
+        const xStart = (idx % 2 === 0) ? 0 : roadXMin + 10;
+        const xEnd = (idx % 2 === 0) ? roadXMax - 10 : width - 1;
+        for (let x = xStart; x <= xEnd; x++) {
+            if (layout[fy][x] === 'grass') layout[fy][x] = 'fence';
+        }
+    });
+
+    // MASTER NEIGHBORHOOD ZONING (Anchor-Based Placement)
+    const sHalf = 3; // Sidewalk distance from road center
+    
+    // 1. GENERATE FULL RESIDENTIAL NEIGHBORHOOD
+    // --- Vertical Perimeters ---
+    // Green Zone (Left): Start at bottom, grow North, frontage East
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, height - 5, 'north', 'east', mapData, { maxBuildings: 10 });
+    // Cyan Zone (Right): Start at top, grow South, frontage West
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, 5, 'south', 'west', mapData, { maxBuildings: 10 });
+
+    // --- Horizontal Zones (Matched to S-curve inner corners to fill space) ---
+    // White Zone (Top): Anchor at top-left corner, grow East, frontage North
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, roadY[2] + sHalf, 'east', 'north', mapData, { maxBuildings: 5 });
+    // Tan Zone (Upper-Mid): Anchor at upper-mid left corner, grow East, frontage South
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, roadY[1] - sHalf, 'east', 'south', mapData, { maxBuildings: 5 });
+    // Orange Zone (Upper-Mid): Anchor at upper-mid right corner, grow West, frontage North
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[1] + sHalf, 'west', 'north', mapData, { maxBuildings: 5 });
+    // Blue Zone (Lower-Mid): Anchor at lower-mid right corner, grow West, frontage South
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[0] - sHalf, 'west', 'south', mapData, { maxBuildings: 5 });
+    // Red Zone (Bottom): Anchor at bottom-left corner, grow East, frontage North
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, roadY[0] + sHalf, 'east', 'north', mapData, { maxBuildings: 5 });
+
+
+
+    // 2. CONVERT RESIDENTIAL HOUSES TO SPECIAL BUILDINGS
+    const mapNumber = mapData.config.mapNumber || 1;
+    const buildings = mapData.metadata.buildings;
+    
+    // Identify valid candidates (any house with direct road frontage)
+    let candidateBuildings = buildings.filter(b => {
+        if (b.type !== 'residential') return false;
+        
+        // Vertical Perimeters with roads
+        const isLeftPerim = (b.frontage === 'east' && b.x < 20 && ((b.y > 10 && b.y < 42) || (b.y > 105 && b.y < 120)));
+        const isRightPerim = (b.frontage === 'west' && b.x > 64 && b.y > 60 && b.y < 90);
+        
+        // Horizontal Bays with roads
+        const isTopBay = (b.frontage === 'north' && b.y < 24);
+        const isMidUpper = (b.frontage === 'south' && b.y > 32 && b.y < 46);
+        const isMidLower = (b.frontage === 'north' && b.y > 58 && b.y < 72);
+        const isBottomUpper = (b.frontage === 'south' && b.y > 80 && b.y < 94);
+        const isBottomBay = (b.frontage === 'north' && b.y > 106);
+
+        return isLeftPerim || isRightPerim || isTopBay || isMidUpper || isMidLower || isBottomUpper || isBottomBay;
+    });
+
+    if (candidateBuildings.length >= 2) {
+        const selectedForConversion = this.getRandomSubarray(candidateBuildings, Math.min(candidateBuildings.length, 3));
+        const availableTypes = this.getRandomSubarray(['grocer', 'firestation', 'police', 'gas_station'], 4);
+        
+        selectedForConversion.forEach((b, i) => {
+            const isTentSpawn = (i === 2 && ((mapNumber === 3) || (mapNumber > 3 && Math.random() < 0.35)));
+            const isSpecialSpawn = (i < 2);
+
+            if (isSpecialSpawn || isTentSpawn) {
+                // ... tiles/metadata clearing code ...
+                for (let ty = b.y; ty < b.y + b.height; ty++) {
+                    for (let tx = b.x; tx < b.x + b.width; tx++) {
+                        layout[ty][tx] = 'grass';
+                    }
+                }
+                mapData.metadata.doors = mapData.metadata.doors.filter(d => 
+                    !(d.x >= b.x && d.x < b.x + b.width && d.y >= b.y && d.y < b.y + b.height)
+                );
+                if (mapData.metadata.windows) {
+                    mapData.metadata.windows = mapData.metadata.windows.filter(w => 
+                        !(w.x >= b.x && w.x < b.x + b.width && w.y >= b.y && w.y < b.y + b.height)
+                    );
+                }
+                
+                const realIdx = buildings.indexOf(b);
+                if (realIdx !== -1) buildings.splice(realIdx, 1);
+
+                // 3. Place new building
+                if (isTentSpawn) {
+                    // Tent always anchors to perimeter roads for now
+                    this.placeArmyTent(layout, b.frontage === 'east', b.y, b.frontage === 'east' ? 17 : 67, 65, mapData);
+                } else {
+                    const type = availableTypes[i % availableTypes.length]; 
+                    this.placeSpecialBuilding(layout, b, type, mapData);
+                }
+            }
+        });
+    }
+
+    // 3. FINAL FENCE & EXIT ENFORCEMENT
+    // Ensure road exits at roadXMin (bottom) and roadXMax (top) are clear
+    const roadHalf = Math.floor(roadThickness / 2);
+    const sideHalf = roadHalf + sidewalkThickness;
+
+    for (let x = 0; x < width; x++) {
+        // --- Top Edge Exit (Centered around x=62) ---
+        const distTop = Math.abs(x - roadXMax);
+        if (distTop <= roadHalf) {
+            layout[0][x] = 'road';
+        } else if (distTop <= sideHalf) {
+            layout[0][x] = 'sidewalk';
+        } else {
+            layout[0][x] = 'fence';
+        }
+
+        // --- Bottom Edge Exit (Centered around x=22) ---
+        const distBottom = Math.abs(x - roadXMin);
+        if (distBottom <= roadHalf) {
+            layout[height - 1][x] = 'road';
+        } else if (distBottom <= sideHalf) {
+            layout[height - 1][x] = 'sidewalk';
+        } else {
+            layout[height - 1][x] = 'fence';
+        }
+    }
+
+    return layout;
+  }
+
+  /**
+   * Draw road with clean edges (no blobs)
+   */
+  _drawCleanRoad(layout, p1, p2, thickness, sidewalkThickness) {
+    const half = Math.floor(thickness / 2);
+    const sHalf = half + sidewalkThickness;
+    
+    const x1 = Math.min(p1.x, p2.x);
+    const x2 = Math.max(p1.x, p2.x);
+    const y1 = Math.min(p1.y, p2.y);
+    const y2 = Math.max(p1.y, p2.y);
+
+    // Draw Sidewalk First (under road)
+    for (let y = y1 - sHalf; y <= y2 + sHalf; y++) {
+        for (let x = x1 - sHalf; x <= x2 + sHalf; x++) {
+            if (layout[y] && layout[y][x] === 'grass') layout[y][x] = 'sidewalk';
+        }
+    }
+
+    // Draw Road
+    for (let y = y1 - half; y <= y2 + half; y++) {
+        for (let x = x1 - half; x <= x2 + half; x++) {
+            if (layout[y] && layout[y][x]) layout[y][x] = 'road';
+        }
+    }
+  }
+
+  /**
+   * Helper to get a random subarray of specified length
+   */
+  getRandomSubarray(arr, size) {
+    const shuffled = [...arr].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, size);
+  }
+  /**
+   * Generate mirrored winding road layout (Mirrored S-curve)
+   */
+  generateMirroredWindingRoadLayout(size, roadThickness, sidewalkThickness, mapData) {
+    const { width, height } = size;
+    const layout = Array(height).fill().map(() => Array(width).fill('grass'));
+
+    // 1. Boundary fences
+    for (let y = 0; y < height; y++) {
+      layout[y][0] = 'fence';
+      layout[y][width - 1] = 'fence';
+    }
+    for (let x = 0; x < width; x++) {
+      layout[0][x] = 'fence';
+      layout[height - 1][x] = 'fence';
+    }
+
+    // 2. Constants (Mirrored)
+    const roadXMin = 22; 
+    const roadXMax = width - 23; 
+    const roadY = [100, 52, 4]; 
+
+    // 3. Draw the Mirrored S-curve road (Start at Right)
+    // Start Vertical (Right side)
+    this._drawCleanRoad(layout, {x: roadXMax, y: height-1}, {x: roadXMax, y: roadY[0]}, roadThickness, sidewalkThickness);
+    
+    // Segments
+    // Road 0 (Bottom): Right -> Left
+    this._drawCleanRoad(layout, {x: roadXMax, y: roadY[0]}, {x: roadXMin, y: roadY[0]}, roadThickness, sidewalkThickness);
+    this._drawCleanRoad(layout, {x: roadXMin, y: roadY[0]}, {x: roadXMin, y: roadY[1]}, roadThickness, sidewalkThickness);
+    
+    // Road 1 (Middle): Left -> Right
+    this._drawCleanRoad(layout, {x: roadXMin, y: roadY[1]}, {x: roadXMax, y: roadY[1]}, roadThickness, sidewalkThickness);
+    this._drawCleanRoad(layout, {x: roadXMax, y: roadY[1]}, {x: roadXMax, y: roadY[2]}, roadThickness, sidewalkThickness);
+    
+    // Road 2 (Top): Right -> Left
+    this._drawCleanRoad(layout, {x: roadXMax, y: roadY[2]}, {x: roadXMin, y: roadY[2]}, roadThickness, sidewalkThickness);
+    this._drawCleanRoad(layout, {x: roadXMin, y: roadY[2]}, {x: roadXMin, y: 0}, roadThickness, sidewalkThickness);
+
+    // 4. Blocking Fences (Mirrored logic)
+    const fenceYs = [roadY[0] - 24, roadY[1] - 24]; 
+    fenceYs.forEach((fy, idx) => {
+        const xStart = (idx % 2 === 0) ? roadXMin + 10 : 0;
+        const xEnd = (idx % 2 === 0) ? width - 1 : roadXMax - 10;
+        for (let x = xStart; x <= xEnd; x++) {
+            if (layout[fy][x] === 'grass') layout[fy][x] = 'fence';
+        }
+    });
+
+    // MASTER NEIGHBORHOOD ZONING (Anchor-Based Placement - Mirrored)
+    const sHalf = 3; 
+    
+    // 1. GENERATE FULL RESIDENTIAL NEIGHBORHOOD
+    // --- Vertical Perimeters ---
+    // Right Vertical: Start at bottom, grow North, frontage West
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, height - 5, 'north', 'west', mapData, { maxBuildings: 10 });
+    // Left Vertical: Start at top, grow South, frontage East
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, 5, 'south', 'east', mapData, { maxBuildings: 10 });
+
+    // --- Horizontal Zones (Matched to Mirrored S-curve bends) ---
+    // White Zone (Top): Anchor at top-right corner, grow West, frontage North
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[2] + sHalf, 'west', 'north', mapData, { maxBuildings: 5 });
+    
+    // Tan Zone (Upper-Mid Above): Anchor at upper-mid right corner, grow West, frontage South
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[1] - sHalf, 'west', 'south', mapData, { maxBuildings: 5 });
+    
+    // Orange Zone (Upper-Mid Below): Anchor at upper-mid left corner, grow East, frontage North
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, roadY[1] + sHalf, 'east', 'north', mapData, { maxBuildings: 5 });
+    
+    // Blue Zone (Lower-Mid Above): Anchor at lower-mid left corner, grow East, frontage South
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, roadY[0] - sHalf, 'east', 'south', mapData, { maxBuildings: 5 });
+    
+    // Red Zone (Bottom): Anchor at bottom-right corner, grow West, frontage North
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[0] + sHalf, 'west', 'north', mapData, { maxBuildings: 5 });
+
+
+
+
+    // 2. CONVERT RESIDENTIAL HOUSES TO SPECIAL BUILDINGS
+    const mapNumber = mapData.config.mapNumber || 1;
+    const buildings = mapData.metadata.buildings;
+    
+    let candidateBuildings = buildings.filter(b => {
+        if (b.type !== 'residential') return false;
+        
+        // Vertical Perimeters
+        const isLeftPerim = (b.frontage === 'east' && b.x < 20 && b.y > 60 && b.y < 90);
+        const isRightPerim = (b.frontage === 'west' && b.x > 64 && ((b.y > 10 && b.y < 42) || (b.y > 105 && b.y < 120)));
+        
+        // Horizontal Bays (Mirrored conditions)
+        const isTopBay = (b.frontage === 'north' && b.y < 24);
+        const isMidUpper = (b.frontage === 'south' && b.y > 32 && b.y < 46);
+        const isMidLower = (b.frontage === 'north' && b.y > 58 && b.y < 72);
+        const isBottomUpper = (b.frontage === 'south' && b.y > 80 && b.y < 94);
+        const isBottomBay = (b.frontage === 'north' && b.y > 106);
+
+        return isLeftPerim || isRightPerim || isTopBay || isMidUpper || isMidLower || isBottomUpper || isBottomBay;
+    });
+
+    if (candidateBuildings.length >= 2) {
+        const selectedForConversion = this.getRandomSubarray(candidateBuildings, Math.min(candidateBuildings.length, 3));
+        const availableTypes = this.getRandomSubarray(['grocer', 'firestation', 'police', 'gas_station'], 4);
+        
+        selectedForConversion.forEach((b, i) => {
+            const isTentSpawn = (i === 2 && ((mapNumber === 3) || (mapNumber > 3 && Math.random() < 0.35)));
+            const isSpecialSpawn = (i < 2);
+
+            if (isSpecialSpawn || isTentSpawn) {
+                for (let ty = b.y; ty < b.y + b.height; ty++) {
+                    for (let tx = b.x; tx < b.x + b.width; tx++) {
+                        layout[ty][tx] = 'grass';
+                    }
+                }
+                mapData.metadata.doors = mapData.metadata.doors.filter(d => 
+                    !(d.x >= b.x && d.x < b.x + b.width && d.y >= b.y && d.y < b.y + b.height)
+                );
+                if (mapData.metadata.windows) {
+                    mapData.metadata.windows = mapData.metadata.windows.filter(w => 
+                        !(w.x >= b.x && w.x < b.x + b.width && w.y >= b.y && w.y < b.y + b.height)
+                    );
+                }
+                
+                const realIdx = buildings.indexOf(b);
+                if (realIdx !== -1) buildings.splice(realIdx, 1);
+
+                if (isTentSpawn) {
+                    this.placeArmyTent(layout, b.frontage === 'east', b.y, b.frontage === 'east' ? 17 : 67, 65, mapData);
+                } else {
+                    const type = availableTypes[i % availableTypes.length]; 
+                    this.placeSpecialBuilding(layout, b, type, mapData);
+                }
+            }
+        });
+    }
+
+    // 3. FINAL FENCE & EXIT ENFORCEMENT
+    const roadHalf = Math.floor(roadThickness / 2);
+    const sideHalf = roadHalf + sidewalkThickness;
+
+    for (let x = 0; x < width; x++) {
+        // --- Top Edge Exit (Centered around x=22 in Mirrored) ---
+        const distTop = Math.abs(x - roadXMin);
+        if (distTop <= roadHalf) {
+            layout[0][x] = 'road';
+        } else if (distTop <= sideHalf) {
+            layout[0][x] = 'sidewalk';
+        } else {
+            layout[0][x] = 'fence';
+        }
+
+        // --- Bottom Edge Exit (Centered around x=roadXMax in Mirrored) ---
+        const distBottom = Math.abs(x - roadXMax);
+        if (distBottom <= roadHalf) {
+            layout[height - 1][x] = 'road';
+        } else if (distBottom <= sideHalf) {
+            layout[height - 1][x] = 'sidewalk';
+        } else {
+            layout[height - 1][x] = 'fence';
+        }
+    }
+
+    return layout;
   }
 }

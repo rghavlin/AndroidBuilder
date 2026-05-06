@@ -204,16 +204,22 @@ export class WorldManager {
       const templateMapGenerator = new TemplateMapGenerator();
       let mapData;
 
-      if (mapType === 'road') {
-        mapData = templateMapGenerator.generateFromTemplate('road', {
-          randomWalls: 1,
-          extraFloors: 2,
-          mapNumber: this.mapCounter // Ensure Map 1 gets its tent
-        });
-      } else {
-        // Future: handle other map types like 'forest', 'alley'
-        throw new Error(`Map type ${mapType} not yet implemented`);
+      // Map 1 is always 'road', Map 2 is always 'winding_road', 3+ is random
+      let templateToUse = 'road';
+      if (this.mapCounter === 2) {
+        templateToUse = 'winding_road';
+      } else if (this.mapCounter > 2) {
+        const rand = Math.random();
+        if (rand < 0.33) templateToUse = 'road';
+        else if (rand < 0.66) templateToUse = 'winding_road';
+        else templateToUse = 'mirrored_winding_road';
       }
+
+      mapData = templateMapGenerator.generateFromTemplate(templateToUse, {
+        randomWalls: 1,
+        extraFloors: 2,
+        mapNumber: this.mapCounter
+      });
 
       // Create GameMap instance and apply template
       const gameMap = new GameMap(mapData.width, mapData.height);
@@ -226,12 +232,22 @@ export class WorldManager {
       const lootGenerator = new LootGenerator();
       lootGenerator.spawnLoot(gameMap, gameMap.mapNumber);
 
-      // SPAWN ZOMBIES: Initial map population (if not already handled)
+      // SPAWN ZOMBIES: Initial map population (Scaled by area)
       const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
       const progression = getProgressionForMap(gameMap.mapNumber || 1);
+      
+      const areaMultiplier = (gameMap.width * gameMap.height) / 5625;
+      const scale = (v) => Math.floor(v * areaMultiplier);
+      const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
+
       ZombieSpawner.spawnZombies(gameMap, null, {
-        ...progression,
-        minDistance: 15, // Keep zombies away from start
+        basicCount: scale(progression.basicCount),
+        crawlerRange: scaleRange(progression.crawlerRange),
+        runnerCount: scale(progression.runnerCount),
+        acidRange: scaleRange(progression.acidRange),
+        fatRange: scaleRange(progression.fatRange),
+        maxTotal: scale(progression.maxTotal),
+        minDistance: 15,
       });
 
       // SPECIAL BUILDING SPAWNS: Army Tent Soldier Zombies, etc.
@@ -256,7 +272,7 @@ export class WorldManager {
       return {
         mapId: savedMapId,
         gameMap: gameMap,
-        mapType: mapType
+        mapType: templateToUse
       };
     } catch (error) {
       console.error('[WorldManager] Failed to generate next map:', error);
@@ -278,24 +294,37 @@ export class WorldManager {
     const centerX = Math.floor(gameMap.width / 2);
     const tile = gameMap.getTile(playerX, playerY);
 
-    // Check for transition tile at (centerX,0) - north transition
-    if (playerX === centerX && playerY === 0 && tile && tile.terrain === 'transition') {
-      return {
-        direction: 'north',
-        position: { x: playerX, y: playerY },
-        nextMapId: this.getNextMapId(),
-        spawnPosition: { x: centerX, y: gameMap.height - 2 } // Near bottom of next map
-      };
-    }
+    // If we have metadata with explicit transition points, use them
+    const points = gameMap.metadata?.spawnZones?.transitionPoints;
+    
+    // Check for transition tile
+    if (tile && tile.terrain === 'transition') {
+      // NORTH transition at top edge
+      if (playerY === 0) {
+        // Only trigger if we are at the designated north point (if defined)
+        if (!points || Math.abs(playerX - points.north.x) < 2) {
+          return {
+            direction: 'north',
+            position: { x: playerX, y: playerY },
+            nextMapId: this.getNextMapId(),
+            // Spawn at the matching South entrance on the next map
+            spawnPosition: { x: points?.south?.x ?? centerX, y: gameMap.height - 2 }
+          };
+        }
+      }
 
-    // Check for south transition at (centerX, height-1) - only if not first map
-    if (playerX === centerX && playerY === gameMap.height - 1 && this.canGoSouth() && tile && tile.terrain === 'transition') {
-      return {
-        direction: 'south',
-        position: { x: playerX, y: playerY },
-        nextMapId: this.getPreviousMapId(),
-        spawnPosition: { x: centerX, y: 1 } // Top of previous map
-      };
+      // SOUTH transition at bottom edge
+      if (playerY === gameMap.height - 1 && this.canGoSouth()) {
+        if (!points || Math.abs(playerX - points.south.x) < 2) {
+          return {
+            direction: 'south',
+            position: { x: playerX, y: playerY },
+            nextMapId: this.getPreviousMapId(),
+            // Spawn at the matching North entrance on the previous map
+            spawnPosition: { x: points?.north?.x ?? centerX, y: 1 }
+          };
+        }
+      }
     }
 
     return null;
@@ -457,7 +486,18 @@ export class WorldManager {
         // Generate new map using template system with specific ID
         const templateMapGenerator = new TemplateMapGenerator();
         const mapNumber = this.extractMapNumber(targetMapId);
-        let generatedMapData = templateMapGenerator.generateFromTemplate('road', {
+        // Map 1 is always 'road', Map 2 is always 'winding_road', 3+ is random
+        let templateToUse = 'road';
+        if (mapNumber === 2) {
+          templateToUse = 'winding_road';
+        } else if (mapNumber > 2) {
+          const rand = Math.random();
+          if (rand < 0.33) templateToUse = 'road';
+          else if (rand < 0.66) templateToUse = 'winding_road';
+          else templateToUse = 'mirrored_winding_road';
+        }
+
+        let generatedMapData = templateMapGenerator.generateFromTemplate(templateToUse, {
           randomWalls: 1,
           extraFloors: 2,
           mapNumber: mapNumber
@@ -487,16 +527,20 @@ export class WorldManager {
           if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
         }
 
+        const areaMultiplier = (gameMap.width * gameMap.height) / 5625;
+        const scale = (v) => Math.floor(v * areaMultiplier);
+        const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
+
         ZombieSpawner.spawnZombies(gameMap, spawnPosition, {
-          basicCount: progression.basicCount,
-          crawlerRange: progression.crawlerRange,
-          runnerCount: progression.runnerCount,
-          acidRange: progression.acidRange,
-          fatRange: progression.fatRange,
-          randomSwatCount,
-          randomFirefighterCount,
-          soldierCount,
-          maxTotal: progression.maxTotal
+          basicCount: scale(progression.basicCount),
+          crawlerRange: scaleRange(progression.crawlerRange),
+          runnerCount: scale(progression.runnerCount),
+          acidRange: scaleRange(progression.acidRange),
+          fatRange: scaleRange(progression.fatRange),
+          randomSwatCount: scale(randomSwatCount),
+          randomFirefighterCount: scale(randomFirefighterCount),
+          soldierCount: scale(soldierCount),
+          maxTotal: scale(progression.maxTotal)
         });
         
         // SPAWN ANIMALS: Procedural rabbit generation
@@ -510,13 +554,6 @@ export class WorldManager {
         // SPECIAL SPAWNS: Army Tent Soldier Zombies, etc.
         await this._spawnSpecialBuildingZombies(gameMap);
 
-        // Stamp south transition on new maps (except map_001)
-        if (targetMapId !== 'map_001') {
-          const centerX = Math.floor(gameMap.width / 2);
-          const southY = gameMap.height - 1;
-          console.log(`[WorldManager] Stamping south transition at (${centerX}, ${southY}) on new map ${targetMapId}`);
-          gameMap.setTerrain(centerX, southY, 'transition');
-        }
 
         // Save to world collection with the correct target ID
         this.saveCurrentMap(gameMap, targetMapId, currentTurn);
@@ -524,7 +561,7 @@ export class WorldManager {
         mapData = {
           mapId: targetMapId,
           gameMap: gameMap,
-          mapType: 'road',
+          mapType: templateToUse,
           metadata: generatedMapData.metadata
         };
 
@@ -533,7 +570,7 @@ export class WorldManager {
 
         this.emit('mapGenerated', {
           mapId: targetMapId,
-          mapType: 'road',
+          mapType: templateToUse,
           gameMap: gameMap
         });
 

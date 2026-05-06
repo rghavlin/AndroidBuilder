@@ -1075,18 +1075,6 @@ export const ItemDefs = {
     capacity: 5,
     ammoDefId: 'ammo.sniper'
   },
-  'attachment.shotgun_magazine': {
-    id: 'attachment.shotgun_magazine',
-    name: 'Shotgun Shells',
-    rarity: Rarity.RARE,
-    imageId: 'shotgun_shells',
-    width: 2,
-    height: 1,
-    traits: [ItemTrait.MAGAZINE],
-    categories: [ItemCategory.AMMO],
-    capacity: 5,
-    ammoDefId: 'ammo.shotgun_shells'
-  },
 
   'attachment.de_magazine': {
     id: 'attachment.de_magazine',
@@ -1953,7 +1941,7 @@ export const ItemDefs = {
 
   'ammo.shotgun_shells': {
     id: 'ammo.shotgun_shells',
-    name: 'Shotgun shells',
+    name: 'Shotgun Shells',
     rarity: Rarity.UNCOMMON,
     imageId: 'shotgunshells',
     width: 1,

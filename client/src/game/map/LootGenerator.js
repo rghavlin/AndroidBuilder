@@ -130,7 +130,12 @@ export class LootGenerator {
             }
         }
 
-        const outdoorDropCount = 18 + Math.floor(Math.random() * 7); // Increased density from 15-20 to 18-24 (20% increase)
+        // Calculate area-based multiplier (Baseline: 45x125 = 5625 tiles)
+        const baselineArea = 5625;
+        const currentArea = gameMap.width * gameMap.height;
+        const areaMultiplier = currentArea / baselineArea;
+
+        const outdoorDropCount = Math.floor((18 + Math.floor(Math.random() * 7)) * areaMultiplier);
         const selectedOutdoor = this.getRandomSubarray(outdoorTiles, outdoorDropCount);
 
         selectedOutdoor.forEach(pos => {
@@ -139,10 +144,10 @@ export class LootGenerator {
                 gameMap.setItemsOnTile(pos.x, pos.y, items);
             }
         });
-        console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles`);
+        console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles (Area Multiplier: ${areaMultiplier.toFixed(2)})`);
         
-        // Phase 25: Designate Low Spots for Water Puddles
-        const lowSpotCount = 3 + Math.floor(Math.random() * 3); // 3 to 5
+        // Phase 25: Designate Low Spots for Water Puddles (Scaled)
+        const lowSpotCount = Math.floor((3 + Math.floor(Math.random() * 3)) * areaMultiplier);
         const potentialLowSpots = outdoorTiles.filter(pos => gameMap.getItemsOnTile(pos.x, pos.y).length === 0);
         const lowSpots = this.getRandomSubarray(potentialLowSpots, lowSpotCount);
         gameMap.lowSpots = lowSpots;

@@ -105,7 +105,7 @@ const ITEM_TEMPLATES = {
   // Ammunition (stackable)
   'ammo.9mm': { width: 1, height: 1, stackable: true, stackMax: 50 },
   'ammo.762mm': { width: 1, height: 1, stackable: true, stackMax: 30 },
-  'ammo.shotgun': { width: 1, height: 1, stackable: true, stackMax: 25 },
+  'ammo.shotgun_shells': { width: 1, height: 1, stackable: true, stackMax: 25 },
 
   // Medical (stackable)
   'medical.bandage': { width: 1, height: 1, stackable: true, stackMax: 20 },

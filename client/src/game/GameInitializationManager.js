@@ -152,7 +152,7 @@ class GameInitializationManager extends EventEmitter {
 
     // Create TemplateMapGenerator and generate initial map
     const templateMapGenerator = new TemplateMapGenerator();
-    const mapData = templateMapGenerator.generateFromTemplate('road', {
+    const mapData = templateMapGenerator.generateFromTemplate('winding_road', {
       randomWalls: 1,
       extraFloors: 2
     });
@@ -192,7 +192,7 @@ class GameInitializationManager extends EventEmitter {
       // Determine start position
       let startX = Math.floor(gameMap.width / 2), startY = 123;
       try {
-        const templateStartPos = templateMapGenerator.getStartPosition();
+        const templateStartPos = templateMapGenerator.getStartPosition(mapData.template);
         if (templateStartPos) {
           startX = templateStartPos.x;
           startY = templateStartPos.y;
@@ -342,12 +342,14 @@ class GameInitializationManager extends EventEmitter {
 
       // Clean up south transition tile for first map
       try {
+        const points = gameMap.metadata?.spawnZones?.transitionPoints;
         const centerX = Math.floor(gameMap.width / 2);
+        const southX = points?.south?.x ?? centerX;
         const southY = gameMap.height - 1;
-        const southTile = gameMap.getTile(centerX, southY);
+        const southTile = gameMap.getTile(southX, southY);
         if (southTile && southTile.terrain === 'transition') {
-          gameMap.setTerrain(centerX, southY, 'road');
-          console.log('[GameInitializationManager] Removed south transition tile for first map at', centerX, southY);
+          gameMap.setTerrain(southX, southY, 'road');
+          console.log('[GameInitializationManager] Removed south transition tile for first map at', southX, southY);
         }
       } catch (error) {
         console.warn('[GameInitializationManager] Could not clean up transition tile:', error);
