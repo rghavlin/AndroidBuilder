@@ -1759,13 +1759,8 @@ export class TemplateMapGenerator {
     const sHalf = 3; // Sidewalk distance from road center
     
     // 1. GENERATE FULL RESIDENTIAL NEIGHBORHOOD
-    // --- Vertical Perimeters ---
-    // Green Zone (Left): Start at bottom, grow North, frontage East
-    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, height - 5, 'north', 'east', mapData, { maxBuildings: 10 });
-    // Cyan Zone (Right): Start at top, grow South, frontage West
-    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, 5, 'south', 'west', mapData, { maxBuildings: 10 });
-
     // --- Horizontal Zones (Matched to S-curve inner corners to fill space) ---
+    // We place horizontal zones FIRST to give them priority in their respective rows
     // White Zone (Top): Anchor at top-left corner, grow East, frontage North
     this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, roadY[2] + sHalf, 'east', 'north', mapData, { maxBuildings: 5 });
     // Tan Zone (Upper-Mid): Anchor at upper-mid left corner, grow East, frontage South
@@ -1776,6 +1771,13 @@ export class TemplateMapGenerator {
     this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[0] - sHalf, 'west', 'south', mapData, { maxBuildings: 5 });
     // Red Zone (Bottom): Anchor at bottom-left corner, grow East, frontage North
     this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, roadY[0] + sHalf, 'east', 'north', mapData, { maxBuildings: 5 });
+
+    // --- Vertical Perimeters (Secondary - only fills remaining gaps) ---
+    // Green Zone (Left): Start at absolute bottom corner, grow North, frontage East
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, height - 1, 'north', 'east', mapData, { maxBuildings: 8 });
+    // Cyan Zone (Right): Start at absolute top corner, grow South, frontage West
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, 0, 'south', 'west', mapData, { maxBuildings: 8 });
+
 
 
 
@@ -1957,13 +1959,8 @@ export class TemplateMapGenerator {
     const sHalf = 3; 
     
     // 1. GENERATE FULL RESIDENTIAL NEIGHBORHOOD
-    // --- Vertical Perimeters ---
-    // Right Vertical: Start at bottom, grow North, frontage West
-    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, height - 5, 'north', 'west', mapData, { maxBuildings: 10 });
-    // Left Vertical: Start at top, grow South, frontage East
-    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, 5, 'south', 'east', mapData, { maxBuildings: 10 });
-
-    // --- Horizontal Zones (Matched to Mirrored S-curve bends) ---
+    // --- Horizontal Zones (Matched to Mirrored S-curve inner corners to fill space) ---
+    // We place horizontal zones FIRST to give them priority
     // White Zone (Top): Anchor at top-right corner, grow West, frontage North
     this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[2] + sHalf, 'west', 'north', mapData, { maxBuildings: 5 });
     
@@ -1978,6 +1975,13 @@ export class TemplateMapGenerator {
     
     // Red Zone (Bottom): Anchor at bottom-right corner, grow West, frontage North
     this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, roadY[0] + sHalf, 'west', 'north', mapData, { maxBuildings: 5 });
+
+    // --- Vertical Perimeters (Secondary - only fills gaps) ---
+    // Right Vertical: Start at absolute bottom corner, grow North, frontage West
+    this.placeBuildingsFromAnchor(layout, roadXMax + sHalf, height - 1, 'north', 'west', mapData, { maxBuildings: 8 });
+    // Left Vertical: Start at absolute top corner, grow South, frontage East
+    this.placeBuildingsFromAnchor(layout, roadXMin - sHalf, 0, 'south', 'east', mapData, { maxBuildings: 8 });
+
 
 
 
