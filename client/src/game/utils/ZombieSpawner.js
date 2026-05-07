@@ -30,21 +30,12 @@ export class ZombieSpawner {
     let spawnedCount = 0;
     const mapWidth = gameMap.width;
     const mapHeight = gameMap.height;
-    const mapArea = mapWidth * mapHeight;
-    
-    // Scale density based on a "standard" 45x125 map (5,625 tiles)
-    const standardArea = 45 * 125;
-    const densityFactor = Math.max(1, mapArea / standardArea);
-    
-    const scaledBasicCount = Math.floor(basicCount * densityFactor);
-    const scaledRunnerCount = Math.floor(runnerCount * densityFactor);
-    const scaledMaxTotal = Math.floor(maxTotal * densityFactor);
 
     // Helper to check if we can spawn more
-    const canSpawnMore = () => spawnedCount < scaledMaxTotal;
+    const canSpawnMore = () => spawnedCount < maxTotal;
 
     // 1. Spawn Basic Zombies
-    for (let i = 0; i < scaledBasicCount && canSpawnMore(); i++) {
+    for (let i = 0; i < basicCount && canSpawnMore(); i++) {
       const maxAttempts = 50;
       let attempts = 0;
       let spawned = false;
@@ -74,9 +65,7 @@ export class ZombieSpawner {
     }
 
     // 2. Spawn Crawler Zombies
-    const scaledCrawlerMin = Math.floor(crawlerRange.min * densityFactor);
-    const scaledCrawlerMax = Math.floor(crawlerRange.max * densityFactor);
-    const crawlerCount = Math.floor(Math.random() * (scaledCrawlerMax - scaledCrawlerMin + 1)) + scaledCrawlerMin;
+    const crawlerCount = Math.floor(Math.random() * (crawlerRange.max - crawlerRange.min + 1)) + crawlerRange.min;
     for (let i = 0; i < crawlerCount && canSpawnMore(); i++) {
       let attempts = 0;
       let spawned = false;
@@ -96,7 +85,7 @@ export class ZombieSpawner {
     }
 
     // 3. Spawn Runner Zombies
-    for (let i = 0; i < scaledRunnerCount && canSpawnMore(); i++) {
+    for (let i = 0; i < runnerCount && canSpawnMore(); i++) {
       let attempts = 0;
       let spawned = false;
       while (!spawned && attempts < 50) {
@@ -115,9 +104,7 @@ export class ZombieSpawner {
     }
 
     // 4. Spawn Acid Zombies
-    const scaledAcidMin = Math.floor(acidRange.min * densityFactor);
-    const scaledAcidMax = Math.floor(acidRange.max * densityFactor);
-    const acidCount = Math.floor(Math.random() * (scaledAcidMax - scaledAcidMin + 1)) + scaledAcidMin;
+    const acidCount = Math.floor(Math.random() * (acidRange.max - acidRange.min + 1)) + acidRange.min;
     for (let i = 0; i < acidCount && canSpawnMore(); i++) {
         let attempts = 0;
         let spawned = false;
@@ -137,9 +124,7 @@ export class ZombieSpawner {
     }
 
     // 5. Spawn Fat Zombies
-    const scaledFatMin = Math.floor(fatRange.min * densityFactor);
-    const scaledFatMax = Math.floor(fatRange.max * densityFactor);
-    const fatCount = Math.floor(Math.random() * (scaledFatMax - scaledFatMin + 1)) + scaledFatMin;
+    const fatCount = Math.floor(Math.random() * (fatRange.max - fatRange.min + 1)) + fatRange.min;
     for (let i = 0; i < fatCount && canSpawnMore(); i++) {
         let attempts = 0;
         let spawned = false;

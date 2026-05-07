@@ -99,13 +99,9 @@ export class MirroredWindingRoadGenerator extends BaseMapGenerator {
         if (b.type !== 'residential') return false;
         if (tentPool.includes(b)) return false;
 
-        // 1. Must be in a central-ish zone (away from map start/end)
-        const isCentral = (b.y > 15 && b.y < 110);
-        if (!isCentral) return false;
-
-        // 2. Must have strict road frontage (Max distance 5 tiles)
+        // 1. Must have strict road frontage (Max distance 6 tiles)
         let hasFrontage = false;
-        const dist = 5;
+        const dist = 6; 
         if (b.frontage === 'east') {
             const nearMin = Math.abs((b.x + b.width) - roadXMin) <= dist;
             const nearMax = Math.abs((b.x + b.width) - roadXMax) <= dist;
@@ -155,13 +151,12 @@ export class MirroredWindingRoadGenerator extends BaseMapGenerator {
         // Use thorough cleanup of terrain and metadata
         builder.clearArea(b.x, b.y, b.width, b.height);
 
-        const bIdx = buildings.indexOf(b);
-        if (bIdx !== -1) buildings.splice(bIdx, 1);
-
         // Draw new structure
         if (type === 'army_tent') {
-            const isFacingEast = b.frontage === 'east';
-            const tuckedX = isFacingEast ? 3 : width - 13;
+            // Determine side of map by coordinate, not frontage
+            const isLeftSide = b.x < width / 2;
+            const tuckedX = isLeftSide ? 3 : width - 13;
+            const isFacingEast = isLeftSide; // Tents on left face east, right face west
             const tentW = 10, tentH = 6;
             
             // Clear actual tent area (match drawArmyTent's 1-tile offset)

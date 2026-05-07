@@ -157,6 +157,12 @@ export class MapBuilder {
         else if (frontage === 'south' && y > 0) y -= 1;
         else if (frontage === 'north' && y + height < this.height) y += 1;
         
+        // Clear the newly calculated parking lot area before drawing it
+        if (frontage === 'east') this.clearArea(x + width, y, 4, height);
+        else if (frontage === 'west') this.clearArea(x - 4, y, 4, height);
+        else if (frontage === 'south') this.clearArea(x, y + height, width, 4);
+        else if (frontage === 'north') this.clearArea(x, y - 4, width, 4);
+
         // Fill parking lot area (3 tiles in front of building)
         if (frontage === 'east') this.fill('road', x + width, y, x + width + 3, y + height - 1);
         else if (frontage === 'west') this.fill('road', x - 4, y, x - 1, y + height - 1);

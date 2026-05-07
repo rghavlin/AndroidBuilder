@@ -962,8 +962,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 const player = playerRef.current;
                 if (!gameMap || !player) return;
 
-                // Check AP cost (3 AP)
-                if (player.ap < 3) {
+                // Check AP cost (2 AP)
+                if (player.ap < 2) {
                   addEffect({
                     type: 'damage',
                     x: windowMenu.x,
@@ -992,7 +992,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 // Execute teleport
                 const success = gameMap.moveEntity(player.id, targetX, targetY);
                 if (success) {
-                  player.useAP(3);
+                  player.useAP(2);
                   playSound('OpenWindow');
                   addLog("You climb through the window.", "world");
                   
@@ -1020,7 +1020,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 setWindowMenu(null);
               }}
             >
-              Climb through (3ap)
+              Climb through (2ap)
             </button>
           )}
 

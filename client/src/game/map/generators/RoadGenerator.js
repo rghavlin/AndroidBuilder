@@ -78,12 +78,14 @@ export class RoadGenerator extends BaseMapGenerator {
         // Thorough cleanup
         builder.clearArea(b.x, b.y, b.width, b.height);
 
-        const isFacingEast = b.frontage === 'east';
-        const tuckedX = isFacingEast ? 3 : width - 13;
+        // Determine side of map by coordinate, not frontage
+        const isLeftSide = b.x < width / 2;
+        const tuckedX = isLeftSide ? 3 : width - 13;
+        const isFacingEast = isLeftSide; // Tents on left face east, right face west
         const tentW = 10, tentH = 6;
         
-        // Clear actual tent area
-        builder.clearArea(tuckedX, b.y, tentW, tentH);
+        // Clear actual tent area (match drawArmyTent's 1-tile offset)
+        builder.clearArea(tuckedX + 1, b.y + 1, tentW, tentH);
         builder.drawArmyTent(tuckedX, b.y, isFacingEast);
     }
 

@@ -110,13 +110,9 @@ export class WindingRoadGenerator extends BaseMapGenerator {
         if (b.type !== 'residential') return false;
         if (tentPool.includes(b)) return false;
 
-        // 1. Must be in a central-ish zone (away from map start/end)
-        const isCentral = (b.y > 15 && b.y < 110);
-        if (!isCentral) return false;
-
-        // 2. Must have strict road frontage (Max distance 5 tiles)
+        // 1. Must have strict road frontage (Max distance 6 tiles)
         let hasFrontage = false;
-        const dist = 5;
+        const dist = 6; 
         if (b.frontage === 'east') {
             const nearMin = Math.abs((b.x + b.width) - roadXMin) <= dist;
             const nearMax = Math.abs((b.x + b.width) - roadXMax) <= dist;
@@ -128,7 +124,6 @@ export class WindingRoadGenerator extends BaseMapGenerator {
             hasFrontage = nearMin || nearMax;
         }
         else if (b.frontage === 'south') {
-            // Find which S-bend road segment we are near
             const nearRoad = roadY.some(ry => Math.abs((b.y + b.height) - ry) <= dist);
             hasFrontage = nearRoad;
         }
@@ -169,9 +164,10 @@ export class WindingRoadGenerator extends BaseMapGenerator {
 
         // Draw new structure
         if (type === 'army_tent') {
-            const isFacingEast = b.frontage === 'east';
-            // Tuck back: Left side -> x=3, Right side -> width-13
-            const tuckedX = isFacingEast ? 3 : builder.width - 13;
+            // Determine side of map by coordinate, not frontage (prevents teleporting)
+            const isLeftSide = b.x < builder.width / 2;
+            const tuckedX = isLeftSide ? 3 : builder.width - 13;
+            const isFacingEast = isLeftSide; // Tents on left face east, right face west
             const tentW = 10, tentH = 6;
             
             // Clear the actual tent area thoroughly (match drawArmyTent's 1-tile offset)

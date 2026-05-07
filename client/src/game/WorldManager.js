@@ -236,6 +236,17 @@ export class WorldManager {
       const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
       const progression = getProgressionForMap(gameMap.mapNumber || 1);
       
+      let randomSwatCount = 0;
+      let randomFirefighterCount = 0;
+      let soldierCount = 0;
+
+      if (gameMap.mapNumber > 3) {
+        const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
+        if (Math.random() < (swatChance || 0.15)) randomSwatCount = Math.floor(Math.random() * 2) + 1;
+        if (Math.random() < (firefighterChance || 0.15)) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
+        if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
+      }
+
       const areaMultiplier = (gameMap.width * gameMap.height) / 5625;
       const scale = (v) => Math.floor(v * areaMultiplier);
       const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
@@ -246,6 +257,9 @@ export class WorldManager {
         runnerCount: scale(progression.runnerCount),
         acidRange: scaleRange(progression.acidRange),
         fatRange: scaleRange(progression.fatRange),
+        randomSwatCount: scale(randomSwatCount),
+        randomFirefighterCount: scale(randomFirefighterCount),
+        soldierCount: scale(soldierCount),
         maxTotal: scale(progression.maxTotal),
         minDistance: 15,
       });
@@ -370,7 +384,6 @@ export class WorldManager {
     }
 
     // Progression logic (Must match executeTransition)
-    if (mapNumber === 1) return 'winding_road';
     if (mapNumber <= 3) return 'road';
     if (mapNumber === 4) return 'winding_road';
     

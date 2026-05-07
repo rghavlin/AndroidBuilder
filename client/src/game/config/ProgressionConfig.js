@@ -30,6 +30,14 @@ export const MapProgression = {
     fatRange: { min: 3, max: 4 },
     runnerCount: 2,
     maxTotal: 120
+  },
+  4: {
+    basicCount: 51,
+    crawlerRange: { min: 9, max: 15 },
+    acidRange: { min: 5, max: 7 },
+    fatRange: { min: 7, max: 9 },
+    runnerCount: 2,
+    maxTotal: 226
   }
 };
 
@@ -45,17 +53,17 @@ export function getProgressionForMap(mapNumber) {
   }
 
   // Otherwise, use the formula for scaling past the max defined map
-  const maxDefinedMap = 3;
+  const maxDefinedMap = 4;
   const baseConfig = MapProgression[maxDefinedMap];
   const delta = mapNumber - maxDefinedMap;
 
-  // Scaling rules
-  const extraFat = Math.floor(mapNumber / 3);
-  const extraCrawler = Math.floor(mapNumber / 3);
-  const extraAcid = Math.floor(mapNumber / 4);
+  // Scaling rules (More aggressive now that we don't have double-scaling)
+  const extraFat = Math.floor(mapNumber / 2.5);
+  const extraCrawler = Math.floor(mapNumber / 2.5);
+  const extraAcid = Math.floor(mapNumber / 3);
 
   return {
-    basicCount: 25 + delta * 2,
+    basicCount: baseConfig.basicCount + delta * 5,
     crawlerRange: { 
       min: baseConfig.crawlerRange.min + extraCrawler, 
       max: baseConfig.crawlerRange.max + extraCrawler 
@@ -68,12 +76,12 @@ export function getProgressionForMap(mapNumber) {
       min: baseConfig.fatRange.min + extraFat, 
       max: baseConfig.fatRange.max + extraFat 
     },
-    runnerCount: Math.floor(Math.random() * 2) + 1, // Keep it relatively low for balance
-    maxTotal: 120,
+    runnerCount: Math.floor(Math.random() * 3) + 2,
+    maxTotal: baseConfig.maxTotal + delta * 20,
     randomSpecialized: {
-      swatChance: 0.15,
-      firefighterChance: 0.15,
-      soldierChance: 0.10
+      swatChance: 0.20,
+      firefighterChance: 0.20,
+      soldierChance: 0.15
     }
   };
 }

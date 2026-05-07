@@ -36,9 +36,9 @@ export class Item extends SafeEventEmitter {
     categories = [],
     attachments = null,
     capacity = null,
-    ammoCount = 0,
+    ammoCount = undefined,
     consumptionEffects = null,
-    waterQuality = 'clean',
+    waterQuality = undefined,
     shelfLife = null,
     lifetimeTurns = null,
     ammoDefId = null,
@@ -47,10 +47,10 @@ export class Item extends SafeEventEmitter {
     transformInto = null,
     produce = null,
     backgroundColor = null,
-    isLit = false,
-    isOn = false,
-    providesElectricity = false,
-    fireMode = FireMode.SINGLE,
+    isLit = undefined,
+    isOn = undefined,
+    providesElectricity = undefined,
+    fireMode = undefined,
     availableFireModes = [],
     renderFullTile = null,
     dragApPenalty = undefined,
@@ -110,7 +110,7 @@ export class Item extends SafeEventEmitter {
     }
 
     this.capacity = capacity;
-    this.ammoCount = ammoCount ?? 0;
+    this.ammoCount = ammoCount;
 
     // Equipment properties
     this.equippableSlot = equippableSlot;
@@ -164,7 +164,7 @@ export class Item extends SafeEventEmitter {
       const def = ItemDefs[this.defId];
       if (def.attachmentSlots) this.attachmentSlots = def.attachmentSlots;
       if (def.capacity !== undefined && this.capacity === null) this.capacity = def.capacity;
-      if (def.ammoCount !== undefined && (this.ammoCount === 0 || this.ammoCount === undefined)) this.ammoCount = def.ammoCount;
+      if (def.ammoCount !== undefined && this.ammoCount === undefined) this.ammoCount = def.ammoCount;
       if (def.ammoDefId && !this.ammoDefId) this.ammoDefId = def.ammoDefId;
       if (def.rarity && !this.rarity) this.rarity = def.rarity;
       if (def.combat && !this.combat) this.combat = def.combat;
@@ -225,13 +225,21 @@ export class Item extends SafeEventEmitter {
       if (def.availableFireModes !== undefined && this.availableFireModes.length === 0) {
         this.availableFireModes = def.availableFireModes;
       }
-      if (def.waterQuality !== undefined && (this.waterQuality === 'clean' || this.waterQuality === undefined)) {
+      if (def.waterQuality !== undefined && this.waterQuality === undefined) {
         this.waterQuality = def.waterQuality;
       }
       if (def.beltGrid) {
         this.beltGrid = def.beltGrid;
       }
     }
+
+    // Final fallbacks for mandatory properties if not in def or instance
+    if (this.ammoCount === undefined) this.ammoCount = 0;
+    if (this.waterQuality === undefined) this.waterQuality = 'clean';
+    if (this.isLit === undefined) this.isLit = false;
+    if (this.isOn === undefined) this.isOn = false;
+    if (this.providesElectricity === undefined) this.providesElectricity = false;
+    if (this.fireMode === undefined) this.fireMode = FireMode.SINGLE;
 
     // Initialize container grid synchronously if data exists
     if (this._containerGridData) {

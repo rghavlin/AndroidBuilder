@@ -736,9 +736,12 @@ export class TemplateMapGenerator {
    */
   async applyToGameMap(gameMap, templateMapData) {
     try {
-      // Verify template data exists
       if (!templateMapData || !templateMapData.tiles) {
         throw new Error('Invalid template data: missing tiles array');
+      }
+
+      if (templateMapData.template) {
+        gameMap.template = templateMapData.template;
       }
 
       // Verify size compatibility

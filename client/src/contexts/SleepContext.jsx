@@ -171,33 +171,33 @@ export const SleepProvider = ({ children }) => {
           if (turnResult.success) {
             turnResult.actions.forEach(action => {
               // WAKE ON NOISE: Banging/Smashing in the building shell
-              if ((action.type === 'attackDoor' && action.doorPos) || (action.type === 'attackWindow' && action.windowPos)) {
-                 const targetPos = action.doorPos || action.windowPos;
+              if (action.type === 'STRUCTURE_INTERACT') {
+                  const targetPos = action.data.to;
                   if (GameMap.isSameBuildingShell(gameMap, { x: player.x, y: player.y }, targetPos)) {
-                     if (action.type === 'attackDoor') {
-                       addLog(action.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
-                       GameEvents.emit(action.doorBroken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action);
-                     } else {
-                       addLog('Zombie smashes a window!', 'combat');
-                       GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action);
-                     }
-                     noiseInterruption = true;
+                      if (action.data.targetType === 'door') {
+                        addLog(action.data.broken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
+                        GameEvents.emit(action.data.broken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action.data);
+                      } else {
+                        addLog('Zombie smashes a window!', 'combat');
+                        GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action.data);
+                      }
+                      noiseInterruption = true;
                   }
-                 if (addEffect) {
+                  if (addEffect) {
                     addEffect({ type: 'damage', x: targetPos.x, y: targetPos.y, value: 'bang', color: '#ffffff', duration: 800 });
-                 }
-              } else if (action.type === 'attack' && action.target === 'player') {
+                  }
+              } else if (action.type === 'ATTACK' && action.data.targetType === 'player') {
                   // WAKE ON ATTACK: Targeted bites/swipes terminate sleep
-                  if (action.success) {
-                    player.takeDamage(action.damage, zombie);
-                    if (action.bleedingInflicted) player.setBleeding(true);
-                    addLog(`Zombie attacks while you sleep! ${action.damage} damage`, 'combat');
+                  if (action.data.success) {
+                    player.takeDamage(action.data.damage, zombie);
+                    if (action.data.bleedingInflicted) player.setBleeding(true);
+                    addLog(`Zombie attacks while you sleep! ${action.data.damage} damage`, 'combat');
                   } else {
                     addLog(`A zombie swipes at you and misses!`, 'combat');
                   }
                   
                   // Trigger combat sounds
-                  GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: action.success, zombieId: zombie.id });
+                  GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: action.data.success, zombieId: zombie.id });
                   
                   hitByZombie = true;
               }
@@ -219,7 +219,7 @@ export const SleepProvider = ({ children }) => {
             break;
           }
           
-          if (turnResult.success && turnResult.actions.some(a => a.type === 'attack' && a.targetId === player.id)) {
+          if (turnResult.success && turnResult.actions.some(a => a.type === 'ATTACK' && a.data.targetType === 'player')) {
             npcInterruption = true;
             break;
           }

@@ -1226,8 +1226,12 @@ export class InventoryManager extends SafeEventEmitter {
       weapon.detachItem(slotId);
       
       // Try to put back into the EXACT vacated slot if possible (Magazine Exchange Logic)
+      // FIX: If the incoming item was a stack, DO NOT put the displaced item in its slot,
+      // as the remainder of the stack will need that space.
       let displacedResult = { success: false };
-      if (removed.container && removed.container.placeItemAt) {
+      const isStackSplit = item.stackCount > 1;
+      
+      if (!isStackSplit && removed.container && removed.container.placeItemAt) {
           const placed = removed.container.placeItemAt(existingAttachment, removed.x, removed.y);
           if (placed) {
             displacedResult = { success: true, container: removed.container.id };

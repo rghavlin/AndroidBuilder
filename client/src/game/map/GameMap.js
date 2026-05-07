@@ -23,6 +23,7 @@ export class GameMap {
     this.buildings = []; // Standardized building metadata
     this.lowSpots = []; // Phase 25: Designated tiles for water accumulation
     this.mapNumber = 1;
+    this.template = 'road'; // Template used to generate this map
 
     // Initialize empty map
     this.initializeMap();
@@ -977,7 +978,9 @@ export class GameMap {
       ),
       scentSequenceCounter: this.scentSequenceCounter,
       buildings: this.buildings,
-      lowSpots: this.lowSpots
+      lowSpots: this.lowSpots,
+      mapNumber: this.mapNumber,
+      template: this.template
     };
   }
 
@@ -993,6 +996,8 @@ export class GameMap {
     const gameMap = new GameMap(data.width, data.height);
     gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
     gameMap.lowSpots = data.lowSpots || [];
+    gameMap.mapNumber = data.mapNumber || 1;
+    gameMap.template = data.template || 'road';
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
     // Import required classes
@@ -1086,6 +1091,9 @@ export class GameMap {
     const gameMap = new GameMap(data.width, data.height);
     gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
     gameMap.buildings = data.buildings || [];
+    gameMap.lowSpots = data.lowSpots || [];
+    gameMap.mapNumber = data.mapNumber || 1;
+    gameMap.template = data.template || 'road';
     
     // Legacy support for specialBuildings (ensure it exists if systems still look for it)
     if (data.specialBuildings && gameMap.buildings.length === 0) {

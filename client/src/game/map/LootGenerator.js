@@ -147,7 +147,11 @@ export class LootGenerator {
         console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles (Area Multiplier: ${areaMultiplier.toFixed(2)})`);
         
         // Phase 25: Designate Low Spots for Water Puddles (Scaled)
-        const lowSpotCount = Math.floor((3 + Math.floor(Math.random() * 3)) * areaMultiplier);
+        let lowSpotBase = 3 + Math.floor(Math.random() * 3);
+        if (gameMap.template === 'winding_road' || gameMap.template === 'mirrored_winding_road') {
+            lowSpotBase = 5 + Math.floor(Math.random() * 5); // More for winding maps
+        }
+        const lowSpotCount = Math.floor(lowSpotBase * areaMultiplier);
         const potentialLowSpots = outdoorTiles.filter(pos => gameMap.getItemsOnTile(pos.x, pos.y).length === 0);
         const lowSpots = this.getRandomSubarray(potentialLowSpots, lowSpotCount);
         gameMap.lowSpots = lowSpots;
@@ -920,6 +924,11 @@ export class LootGenerator {
         if (def.spawnAmmoPercent !== undefined && item.capacity) {
             // Apply randomized fill based on capacity (0 to capacity * spawnAmmoPercent)
             item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
+
+            // Specialized Rule: Lighters and matches never spawn empty
+            if ((item.defId === 'tool.lighter' || item.defId === 'tool.matchbook') && item.ammoCount < 1) {
+                item.ammoCount = 1;
+            }
         } else if (item.traits && item.traits.includes(ItemTrait.BATTERY)) {
             // Batteries always spawn as a single item with a FULL charge
             item.ammoCount = item.capacity || 10;
