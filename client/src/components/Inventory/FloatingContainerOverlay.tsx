@@ -26,7 +26,7 @@ export default function FloatingContainerOverlay({
   onSlotClick,
   onSlotContextMenu
 }: FloatingContainerOverlayProps) {
-  const { selectItem, stopDrag, isContainerOpen, selectedItem, startDrag, openContainer, closeContainer } = useInventory();
+  const { selectItem, stopDrag, isContainerOpen, selectedItem, startDrag, openContainer, closeContainer, stopRiding } = useInventory();
   const { engine } = useGame();
   const { harvestPlant } = useAction();
   
@@ -38,9 +38,11 @@ export default function FloatingContainerOverlay({
   // Get the internal container of the wagon/sled
   const containerGrid = item.getContainerGrid?.();
   
-  const isDragging = engine?.dragging?.item.instanceId === item.instanceId;
-  const isWagon = item.hasTrait?.(ItemTrait.VEHICLE);
-  const isPlanter = item.hasTrait?.(ItemTrait.PLANTER);
+   const isDragging = engine?.dragging?.item.instanceId === item.instanceId;
+   const isRidden = engine?.riding?.item.instanceId === item.instanceId;
+   const isWagon = item.hasTrait?.(ItemTrait.VEHICLE);
+   const isPlanter = item.hasTrait?.(ItemTrait.PLANTER);
+   const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
 
   const handleSelectPlanter = (e: React.MouseEvent) => {
     if (!isPlanter || isDragging || isDraggingSeed) return;
@@ -74,14 +76,32 @@ export default function FloatingContainerOverlay({
   const handleTogglePull = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isDragging) {
-      stopDrag();
+      stopDrag(item);
     } else {
-      // Logic to start dragging the wagon/sled
-      // We use the startDrag mechanism from InventoryContext
-      const ground = engine.inventoryManager.getContainer('ground');
-      if (ground) {
-        startDrag(item, 'ground', item.x, item.y);
+      if (isRidden) {
+        // If we are riding this item and want to pull it instead, stop riding first
+        stopRiding(item);
       }
+      if (isScooter) item.scooterMode = 'pull';
+      startDrag(item, 'ground', item.x, item.y);
+    }
+  };
+
+  const handleToggleRide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isRidden) {
+      stopRiding(item);
+    } else {
+      const batteryPercent = item.getBatteryCharge?.() || 0;
+      if (batteryPercent <= 0) return;
+      
+      if (isDragging) {
+        // If we are pulling this item and want to ride it instead, stop pulling first
+        stopDrag(item);
+      }
+
+      item.scooterMode = 'ride';
+      startDrag(item, 'ground', item.x, item.y);
     }
   };
 
@@ -94,7 +114,7 @@ export default function FloatingContainerOverlay({
     }
   };
 
-  if (!containerGrid) return null;
+  if (!containerGrid && !isScooter) return null;
 
   const batteryStatuses = item.getBatteryStatuses?.() || [];
   const batteryPercent = item.getBatteryCharge?.() || 0;
@@ -108,12 +128,11 @@ export default function FloatingContainerOverlay({
   return (
     <div 
       className={cn(
-        "absolute inset-0 z-50 flex flex-col overflow-hidden",
+        "absolute inset-0 z-50 flex flex-col overflow-hidden pointer-events-none",
         isPlanter 
-          ? "pointer-events-none" 
-          : "pointer-events-auto bg-black/40 backdrop-blur-[1px] border border-white/30 rounded-sm"
+          ? "" 
+          : ""
       )}
-      onClick={isPlanter ? undefined : (e) => e.stopPropagation()}
     >
       {/* Selection Handles for Planter Box Frame */}
       {isPlanter && !isDraggingSeed && (
@@ -127,17 +146,21 @@ export default function FloatingContainerOverlay({
 
       {/* Control Panel (Top Row) */}
       {!isPlanter && (
-        <div className="h-8 bg-black/60 border-b border-white/20 flex items-center justify-between p-1 px-1.5 flex-shrink-0">
+        <div className="h-8 bg-black/80 backdrop-blur-sm border-b border-white/30 flex items-center justify-between p-1 px-1.5 flex-shrink-0 pointer-events-auto">
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
                 size="sm" 
                 variant={isDragging ? "destructive" : "secondary"}
-                className="h-6 text-[10px] px-3 py-0 font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                 onClick={handleTogglePull}
               >
-                {isDragging ? "Drop" : "Pull"}
+                {isScooter ? (
+                  isDragging && item.scooterMode === 'pull' ? "Drop" : "Pull"
+                ) : (
+                  isDragging ? "Drop" : "Pull"
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipPortal>
@@ -163,6 +186,38 @@ export default function FloatingContainerOverlay({
               </TooltipContent>
             </TooltipPortal>
           </Tooltip>
+
+          {isScooter && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="sm" 
+                  variant={isRidden ? "destructive" : "secondary"}
+                  className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                  onClick={handleToggleRide}
+                  disabled={batteryPercent <= 0 && !isRidden}
+                >
+                  {isRidden ? "Stop" : "Ride"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" className="bg-black/90 border-white/20 p-2 z-[100]">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11px] font-black uppercase text-white tracking-widest">Ride Mode</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[9px] text-zinc-400 font-bold uppercase">Ride Bonus:</span>
+                      <span className="text-xs font-black text-green-400">-{item.rideApBonus || 0.5} AP</span>
+                    </div>
+                    {batteryPercent <= 0 && (
+                      <div className="text-[8px] text-red-400 font-bold uppercase mt-1">
+                        Requires Charged Battery
+                      </div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          )}
 
           {isWagon && item.attachmentSlots && item.attachmentSlots.length > 0 && (
             <Tooltip>
@@ -232,28 +287,37 @@ export default function FloatingContainerOverlay({
         className="flex-1 min-h-0 relative"
       >
         {showMods ? (
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-10 flex flex-col items-center justify-start p-2 pt-4">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md z-10 flex flex-col items-center justify-start p-2 pt-4 pointer-events-auto border border-white/20 rounded-sm">
              <WeaponModPanel weapon={item} className="w-full" />
              <div className="mt-auto text-[8px] text-white/40 uppercase font-bold tracking-tighter text-center w-full">
                {isMotorized ? "Motorized Assist Active" : "Manual Mode"}
              </div>
           </div>
         ) : (
-          <div className={cn(isPlanter ? "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" : "flex-1 min-h-0 w-full flex items-center justify-center")}>
-            <div className={cn(isPlanter && "pointer-events-auto bg-black/40 backdrop-blur-[1px] border border-white/20 rounded-sm p-1 shadow-2xl")}>
-              <UniversalGrid
-                containerId={containerGrid.id}
-                container={containerGrid}
-                width={containerGrid.width}
-                height={containerGrid.height}
-                gridType="fixed"
-                slotClassName={cn(isPlanter ? "bg-white/10 border border-white/30" : "bg-white/5 border border-white/10")}
-                className={isPlanter ? "" : "h-full w-full"}
-                onSlotClick={onSlotClick}
-                onSlotContextMenu={onSlotContextMenu}
-              />
+          containerGrid && (
+            <div className={cn(
+              isPlanter 
+                ? "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" 
+                : "flex-1 min-h-0 w-full flex items-center justify-center pointer-events-auto"
+            )}>
+              <div className={cn(
+                "pointer-events-auto",
+                isPlanter && "bg-black/40 backdrop-blur-[1px] border border-white/20 rounded-sm p-1 shadow-2xl"
+              )}>
+                <UniversalGrid
+                  containerId={containerGrid.id}
+                  container={containerGrid}
+                  width={containerGrid.width}
+                  height={containerGrid.height}
+                  gridType="fixed"
+                  slotClassName={cn(isPlanter ? "bg-white/10 border border-white/30" : "bg-white/5 border border-white/10")}
+                  className={isPlanter ? "" : "h-full w-full"}
+                  onSlotClick={onSlotClick}
+                  onSlotContextMenu={onSlotContextMenu}
+                />
+              </div>
             </div>
-          </div>
+          )
         )}
       </div>
     </div>

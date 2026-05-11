@@ -159,26 +159,32 @@ export class InventoryManager extends SafeEventEmitter {
 
     if (itemsToSave.length > 0) {
       if (isOwnerOfOldTile) {
-        // Phase 25: Filter out dragged item from map save
-        const saveList = this.draggedItem 
-            ? itemsToSave.filter(it => it.instanceId !== this.draggedItem.instanceId)
-            : itemsToSave;
+        // Phase 25: Filter out carried items (dragged or ridden) from map save
+        const saveList = itemsToSave.filter(it => {
+            const isDragged = this.draggedItem && it.instanceId === this.draggedItem.instanceId;
+            const isRidden = this.ridingItem && it.instanceId === this.ridingItem.instanceId;
+            return !isDragged && !isRidden;
+        });
 
         console.log(`[InventoryManager] ✅ VALID SAVE: Moving ${saveList.length} items back to map tile (${oldX}, ${oldY})`);
         gameMap.setItemsOnTile(oldX, oldY, saveList.map(item => item.toJSON()));
         
-        // Clear container but KEEP the dragged item
+        // Clear container but KEEP the carried items
         this.groundContainer.clear();
-        if (this.draggedItem) {
-            // Find the actual item object to ensure reference integrity
-            const itemToKeep = itemsToSave.find(it => it.instanceId === this.draggedItem.instanceId);
+        
+        const carryItem = (targetItem, typeLabel) => {
+            if (!targetItem) return;
+            const itemToKeep = itemsToSave.find(it => it.instanceId === targetItem.instanceId);
             if (itemToKeep) {
                 this.groundContainer.addItem(itemToKeep);
-                console.log(`[InventoryManager] 📦 Carried dragged item: ${itemToKeep.name} (ID: ${itemToKeep.instanceId}) to (${newX}, ${newY})`);
+                console.log(`[InventoryManager] 📦 Carried ${typeLabel} item: ${itemToKeep.name} (ID: ${itemToKeep.instanceId}) to (${newX}, ${newY})`);
             } else {
-                console.warn(`[InventoryManager] ❌ Could not find dragged item ${this.draggedItem.instanceId} in container to carry!`);
+                console.warn(`[InventoryManager] ❌ Could not find ${typeLabel} item ${targetItem.instanceId} in container to carry!`);
             }
-        }
+        };
+
+        carryItem(this.draggedItem, 'dragged');
+        carryItem(this.ridingItem, 'ridden');
         
         this.groundManager.updateCategoryAreas();
         changed = true;
@@ -194,21 +200,19 @@ export class InventoryManager extends SafeEventEmitter {
             itemCount: itemsToSave.length
         });
         
-        // Phase 25: Even in abort, PRESERVE the dragged item
-        if (this.draggedItem) {
-            const allItems = this.groundContainer.getAllItems();
-            const draggedObj = allItems.find(it => it.instanceId === this.draggedItem.instanceId);
-            this.groundContainer.clear();
-            if (draggedObj) {
-                this.groundContainer.addItem(draggedObj);
-                console.log(`[InventoryManager] 📦 Preserved dragged item ${draggedObj.name} during abort-clear`);
-            }
-        } else {
-            // CRITICAL FIX: If we rejected the save because of a mismatch (e.g. heartbeat during animation),
-            // DO NOT clear the container! Clearing it here causes the "wagon deletion" bug because 
-            // the heartbeat thinks we are at A, but the container has items from B.
-            console.warn(`[InventoryManager] ⚠️ REJECTED SAVE: Preserving container contents during ownership mismatch to prevent data loss.`);
-        }
+        // Phase 25: Even in abort, PRESERVE carried items (dragged or ridden)
+        const allItems = this.groundContainer.getAllItems();
+        const itemsToKeep = allItems.filter(it => 
+            (this.draggedItem && it.instanceId === this.draggedItem.instanceId) ||
+            (this.ridingItem && it.instanceId === this.ridingItem.instanceId)
+        );
+        
+        this.groundContainer.clear();
+        
+        itemsToKeep.forEach(item => {
+            this.groundContainer.addItem(item);
+            console.log(`[InventoryManager] 📦 Preserved carried item ${item.name} during abort-clear`);
+        });
         
         this.groundManager.updateCategoryAreas();
         changed = true;
@@ -231,18 +235,19 @@ export class InventoryManager extends SafeEventEmitter {
       } else {
         console.log(`[InventoryManager]   -> Loading ${itemsToLoad.length} items from tile (${newX}, ${newY})`);
         
-        // Phase 25: Safety clear but PRESERVE the dragged item
-        if (this.draggedItem) {
-            const allItems = this.groundContainer.getAllItems();
-            const draggedObj = allItems.find(it => it.instanceId === this.draggedItem.instanceId);
-            this.groundContainer.clear();
-            if (draggedObj) {
-                this.groundContainer.addItem(draggedObj);
-                console.log(`[InventoryManager] 📦 Preserved dragged item ${draggedObj.name} during tile load`);
-            }
-        } else {
-            this.groundContainer.clear();
-        }
+        // Phase 25: Safety clear but PRESERVE all carried items (dragged or ridden)
+        const allItems = this.groundContainer.getAllItems();
+        const itemsToKeep = allItems.filter(it => 
+            (this.draggedItem && it.instanceId === this.draggedItem.instanceId) ||
+            (this.ridingItem && it.instanceId === this.ridingItem.instanceId)
+        );
+
+        this.groundContainer.clear();
+
+        itemsToKeep.forEach(item => {
+            this.groundContainer.addItem(item);
+            console.log(`[InventoryManager] 📦 Preserved carried item ${item.name} during tile load`);
+        });
 
         itemsToLoad.forEach((itemData, index) => {
           try {

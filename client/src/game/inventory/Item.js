@@ -54,7 +54,9 @@ export class Item extends SafeEventEmitter {
     availableFireModes = [],
     renderFullTile = null,
     dragApPenalty = undefined,
-    noDrag = undefined
+    noDrag = undefined,
+    rideApBonus = undefined,
+    scooterMode = undefined
   }) {
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -181,6 +183,8 @@ export class Item extends SafeEventEmitter {
       if (def.produceMax !== undefined) this.produceMax = def.produceMax;
       if (def.motorAssistBonus !== undefined) this.motorAssistBonus = def.motorAssistBonus;
       if (def.terrainModifiers) this.terrainModifiers = def.terrainModifiers;
+      if (def.rideApBonus !== undefined) this.rideApBonus = def.rideApBonus;
+      if (def.scooterMode !== undefined) this.scooterMode = def.scooterMode;
       
       // Auto-inherit categories from definition if not already present
       if (def.categories && Array.isArray(def.categories)) {
@@ -319,6 +323,38 @@ export class Item extends SafeEventEmitter {
   /**
    * Check if the item has any active motorized assist
    */
+  isMotorized() {
+    return this.getMotorizedBonus() > 0;
+  }
+
+  /**
+   * Check if the scooter is in ride mode AND has battery power
+   */
+  isScooterRideActive() {
+    if (!this.hasTrait(ItemTrait.SCOOTER)) return false;
+    if (!this.scooterMode || this.scooterMode !== 'ride') return false;
+    const battery = this.attachments?.['battery'];
+    return battery && (battery.ammoCount || 0) > 0;
+  }
+
+  /**
+   * Consume scooter power in ride mode
+   */
+  consumeScooterPower(distance) {
+    if (!this.hasTrait(ItemTrait.SCOOTER)) return;
+    const battery = this.attachments?.['battery'];
+    if (battery && (battery.ammoCount || 0) > 0) {
+      battery.ammoCount = Math.max(0, battery.ammoCount - distance);
+    }
+  }
+
+  /**
+   * Get scooter ride AP bonus (discount)
+   */
+  getScooterRideBonus() {
+    if (!this.isScooterRideActive()) return 0;
+    return this.rideApBonus || 0.5;
+  }
 
 
   /**
@@ -1300,7 +1336,9 @@ export class Item extends SafeEventEmitter {
       isOn: this.isOn,
       providesElectricity: this.providesElectricity,
       fireMode: this.fireMode,
-      availableFireModes: this.availableFireModes
+      availableFireModes: this.availableFireModes,
+      scooterMode: this.scooterMode,
+      rideApBonus: this.rideApBonus
     };
 
     // Serialize Traits

@@ -293,6 +293,44 @@ export class LootGenerator {
                 console.log(`[LootGenerator] Furniture: Spawned single Electric Mower at (${pos.x}, ${pos.y})`);
             }
         }
+        
+        // Phase 25: Electric Scooter Spawn (Guaranteed 1 per map, strictly outdoor)
+        this.spawnScooter(gameMap);
+    }
+
+    /**
+     * Spawn a single electric scooter in an outdoor tile
+     */
+    spawnScooter(gameMap) {
+        const outdoorTiles = [];
+        const buildings = gameMap.buildings || [];
+        
+        for (let y = 0; y < gameMap.height; y++) {
+            for (let x = 0; x < gameMap.width; x++) {
+                const tile = gameMap.getTile(x, y);
+                if (tile && ['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
+                    const isInside = buildings.some(b => 
+                        x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+                    );
+                    if (isInside) continue;
+                    if (this.isNearDoor(gameMap, x, y)) continue;
+                    const existing = gameMap.getItemsOnTile(x, y);
+                    if (!existing || existing.length === 0) {
+                        outdoorTiles.push({ x, y });
+                    }
+                }
+            }
+        }
+
+        if (outdoorTiles.length > 0) {
+            const pos = outdoorTiles[Math.floor(Math.random() * outdoorTiles.length)];
+            const scooter = createItemFromDef('vehicle.electric_scooter');
+            if (scooter) {
+                LootGenerator.applySpawnDefaults(scooter, false);
+                gameMap.setItemsOnTile(pos.x, pos.y, [scooter]);
+                console.log(`[LootGenerator] Furniture: Spawned single Electric Scooter at (${pos.x}, ${pos.y})`);
+            }
+        }
     }
 
     /**
@@ -960,8 +998,8 @@ export class LootGenerator {
             }
         }
 
-        // Mower / Large Battery initialization
-        if (item.defId === 'furniture.electric_mower') {
+        // Mower / Scooter / Large Battery initialization
+        if (item.defId === 'furniture.electric_mower' || item.defId === 'vehicle.electric_scooter') {
             const batterySlot = item.attachmentSlots?.find(s => s.id === 'battery');
             if (batterySlot) {
                 const batteryData = createItemFromDef('tool.large_battery');

@@ -55,7 +55,11 @@ class GameEngine extends SafeEventEmitter {
     this.sleepProgress = 0;
     this.targetingItemInstanceId = null;
     this.dragging = null; // Phase 25: Drag Mechanic
-    if (this.inventoryManager) this.inventoryManager.draggedItem = null;
+    this.riding = null;   // Scooter Riding Slot
+    if (this.inventoryManager) {
+      this.inventoryManager.draggedItem = null;
+      this.inventoryManager.ridingItem = null;
+    }
     
     // Weather System
     this.weather = { type: 'clear', intensity: 0 }; 
@@ -157,6 +161,26 @@ class GameEngine extends SafeEventEmitter {
       } else {
         this.dragging = null;
         if (this.inventoryManager) this.inventoryManager.draggedItem = null;
+      }
+
+      // Restore Phase 25: Restore riding state
+      if (gameObjects.interactionState.riding && this.inventoryManager) {
+        const ridingData = gameObjects.interactionState.riding;
+        const item = this.inventoryManager.groundContainer.getAllItems().find(it => it.instanceId === ridingData.itemInstanceId);
+        if (item) {
+          this.riding = {
+            item,
+            tileX: ridingData.tileX,
+            tileY: ridingData.tileY
+          };
+          this.inventoryManager.ridingItem = item;
+        } else {
+          this.riding = null;
+          this.inventoryManager.ridingItem = null;
+        }
+      } else {
+        this.riding = null;
+        if (this.inventoryManager) this.inventoryManager.ridingItem = null;
       }
 
       // Restore weatherManager state

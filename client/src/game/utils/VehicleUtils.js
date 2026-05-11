@@ -9,41 +9,78 @@ export const VehicleUtils = {
    * Calculate the total AP cost for dragging an item across a path.
    * Extracts logic from GameMapContext to centralize motorized bonuses and terrain discounts.
    * 
-   * @param {Item} item - The item being dragged
+   * @param {Item|Array} items - The item(s) being dragged/ridden
    * @param {Array} path - Array of {x, y} coordinates
    * @param {GameMap} gameMap - The map instance for terrain lookup
    * @param {number} baseMovementCost - The player's base walking cost for this path
    * @returns {number} - Final AP cost
    */
-  calculateDragCost(item, path, gameMap, baseMovementCost) {
-    if (!item || !path || path.length <= 1) return baseMovementCost;
+  calculateDragCost(items, path, gameMap, baseMovementCost) {
+    if (!items || !path || path.length <= 1) return baseMovementCost;
 
-    const basePenalty = item.dragApPenalty || 2;
-    let motorBonusValue = 0;
-    
-    // Sum up all active motorized assist bonuses (handles multiple axles)
-    if (item.hasTrait?.(ItemTrait.WAGON) && typeof item.getMotorizedBonus === 'function') {
-      motorBonusValue = item.getMotorizedBonus();
-    }
+    const itemArray = Array.isArray(items) ? items : [items].filter(Boolean);
+    if (itemArray.length === 0) return baseMovementCost;
 
-    let dragPenaltyTotal = 0;
-    
-    // Calculate penalty per step (skipping the starting tile)
+    let totalDragPenalty = 0;
+
+    // Iterate through each step in the path
     for (let i = 1; i < path.length; i++) {
       const tile = gameMap.getTile(path[i].x, path[i].y);
-      let stepPenalty = Math.max(0, basePenalty - motorBonusValue);
-      
-      // Terrain affinity (e.g. Roads/Sidewalks make dragging easier)
-      if (tile && item.terrainModifiers && item.terrainModifiers[tile.terrain] !== undefined) {
-        stepPenalty += item.terrainModifiers[tile.terrain];
-      } else if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
-        // Fallback for items without explicit modifiers but still dragging on pavement
-        stepPenalty -= 0.5;
+      let stepCombinedPenalty = 0;
+      let appliedGeneralRoadDiscount = false;
+
+      // Calculate the raw penalty/bonus for each active item at this step
+      for (const item of itemArray) {
+        const basePenalty = item.dragApPenalty || 2;
+        let motorBonusValue = 0;
+        
+        if (item.hasTrait?.(ItemTrait.WAGON) && typeof item.getMotorizedBonus === 'function') {
+          motorBonusValue = item.getMotorizedBonus();
+        }
+
+        let itemStepPenalty = Math.max(0, basePenalty - motorBonusValue);
+        const originalPenalty = itemStepPenalty;
+        
+        // Scooter ride mode: REDUCES AP cost instead of increasing it
+        if (item.hasTrait?.(ItemTrait.SCOOTER) && typeof item.getScooterRideBonus === 'function') {
+          const rideBonus = item.getScooterRideBonus();
+          if (rideBonus > 0) {
+            itemStepPenalty = -(rideBonus);
+          }
+        }
+        
+        let terrainMod = 0;
+        // Item-specific terrain modifiers (e.g. specialized tires)
+        if (tile && item.terrainModifiers && item.terrainModifiers[tile.terrain] !== undefined) {
+          terrainMod = item.terrainModifiers[tile.terrain];
+        } else if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
+          // General road discount: Apply ONLY ONCE per step for the whole group 
+          // to prevent stacking 'free movement' when using multiple vehicles.
+          if (!appliedGeneralRoadDiscount) {
+            terrainMod = -0.5;
+            appliedGeneralRoadDiscount = true;
+          }
+        }
+        
+        const finalItemStepPenalty = itemStepPenalty + terrainMod;
+        stepCombinedPenalty += finalItemStepPenalty;
+        
+        if (itemArray.length > 1 && i === 1) {
+           console.debug(`[VehicleUtils] Step 1 Analysis for ${item.name}: Base=${originalPenalty}, RideBonus=${itemStepPenalty < 0 ? -itemStepPenalty : 0}, Terrain=${terrainMod} -> Total=${finalItemStepPenalty}`);
+        }
       }
       
-      dragPenaltyTotal += Math.max(0, stepPenalty);
+      totalDragPenalty += stepCombinedPenalty;
     }
 
-    return baseMovementCost + dragPenaltyTotal;
+    const totalCost = baseMovementCost + totalDragPenalty;
+    const finalCost = Math.max(0.5 * (path.length - 1), totalCost);
+    
+    if (itemArray.length > 1) {
+      console.log(`[VehicleUtils] 🧮 Multi-item AP Calc: Base ${baseMovementCost.toFixed(1)} + Combined Penalty ${totalDragPenalty.toFixed(2)} = ${finalCost.toFixed(2)} AP`);
+      console.log(`[VehicleUtils] Items: ${itemArray.map(it => it.name).join(', ')}`);
+    }
+    
+    return finalCost;
   }
 };

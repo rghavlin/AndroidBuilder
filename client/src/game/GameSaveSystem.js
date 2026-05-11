@@ -69,6 +69,11 @@ export class GameSaveSystem {
             tileX: engine.dragging.tileX,
             tileY: engine.dragging.tileY
           } : null,
+          riding: (engine.riding && engine.riding.item) ? {
+            itemInstanceId: engine.riding.item.instanceId,
+            tileX: engine.riding.tileX,
+            tileY: engine.riding.tileY
+          } : null,
           weatherState: engine.weatherManager ? engine.weatherManager.toJSON() : null
         }
       };

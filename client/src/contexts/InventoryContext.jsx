@@ -267,32 +267,62 @@ export const InventoryProvider = ({ children }) => {
       return { success: false, reason: 'Item is too far away to drag.' };
     }
 
-    engine.dragging = {
-      item,
-      tileX: itemPos.x,
-      tileY: itemPos.y
-    };
-    
-    // Phase 25: Signal to inventory manager to carry this item
-    if (engine.inventoryManager) {
-      engine.inventoryManager.draggedItem = item;
+    const mode = (item.hasTrait?.(ItemTrait.SCOOTER) && item.scooterMode === 'ride') ? 'ride' : 'pull';
+    const logAction = mode === 'ride' ? 'riding' : 'dragging';
+
+    if (mode === 'ride') {
+      engine.riding = {
+        item,
+        tileX: itemPos.x,
+        tileY: itemPos.y
+      };
+      if (engine.inventoryManager) engine.inventoryManager.ridingItem = item;
+    } else {
+      engine.dragging = {
+        item,
+        tileX: itemPos.x,
+        tileY: itemPos.y
+      };
+      if (engine.inventoryManager) engine.inventoryManager.draggedItem = item;
     }
 
-    addLog(`You start dragging the ${item.name}.`, 'item');
+    addLog(`You start ${logAction} the ${item.name}.`, 'item');
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, inventoryPulse]);
 
-  const stopDrag = useCallback(() => {
-    if (engine.dragging) {
+  const stopDrag = useCallback((itemToStop = null) => {
+    // If a specific item is passed, only stop dragging IF it matches that item
+    const target = itemToStop || (engine.dragging?.item);
+    if (!target) return;
+
+    if (engine.dragging && engine.dragging.item.instanceId === target.instanceId) {
       addLog(`You set down the ${engine.dragging.item.name}.`, 'item');
       
-      // Phase 25: Stop carrying in inventory manager
-      if (engine.inventoryManager) {
-        engine.inventoryManager.draggedItem = null;
+      // Clear scooter mode if applicable
+      if (engine.dragging.item.hasTrait?.(ItemTrait.SCOOTER)) {
+        engine.dragging.item.scooterMode = null;
       }
 
+      if (engine.inventoryManager) engine.inventoryManager.draggedItem = null;
       engine.dragging = null;
+      engine.notifyUpdate();
+    }
+  }, [addLog, inventoryPulse]);
+
+  const stopRiding = useCallback((itemToStop = null) => {
+    const target = itemToStop || (engine.riding?.item);
+    if (!target) return;
+
+    if (engine.riding && engine.riding.item.instanceId === target.instanceId) {
+      addLog(`You stop riding the ${engine.riding.item.name}.`, 'item');
+      
+      if (engine.riding.item.hasTrait?.(ItemTrait.SCOOTER)) {
+        engine.riding.item.scooterMode = null;
+      }
+
+      if (engine.inventoryManager) engine.inventoryManager.ridingItem = null;
+      engine.riding = null;
       engine.notifyUpdate();
     }
   }, [addLog, inventoryPulse]);
@@ -300,7 +330,10 @@ export const InventoryProvider = ({ children }) => {
   const selectItem = useCallback((item, originId, x, y, extraProps = {}) => {
     // Phase 25: Cancel drag if picking up the item currently being dragged
     if (engine.dragging && engine.dragging.item.instanceId === item.instanceId) {
-      stopDrag();
+      stopDrag(item);
+    }
+    if (engine.riding && engine.riding.item.instanceId === item.instanceId) {
+      stopRiding(item);
     }
 
     // If fifth argument is a boolean, treat it as isEquipment for backward compatibility with older components
@@ -1333,11 +1366,12 @@ export const InventoryProvider = ({ children }) => {
     detachItemFromWeapon,
     startDrag,
     stopDrag,
+    stopRiding,
     // Add legacy fields to prevent crashes
     inventoryRef: { current: engine.inventoryManager },
     forceRefresh: () => engine.notifyUpdate(),
     inventoryVersion: inventoryPulse
-  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag]);
+  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

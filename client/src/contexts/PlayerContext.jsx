@@ -5,6 +5,7 @@ import Logger from '../game/utils/Logger.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { ItemTrait } from '../game/inventory/traits.js';
 
 const logger = Logger.scope('PlayerContext');
 
@@ -270,6 +271,9 @@ export const PlayerProvider = ({ children }) => {
            if (engine.dragging && engine.dragging.item) {
                options.draggedItemId = engine.dragging.item.instanceId;
            }
+           if (engine.riding && engine.riding.item) {
+               options.riddenItemId = engine.riding.item.instanceId;
+           }
            engine.gameMap.moveEntity(engine.player.id, final.x, final.y, options);
            path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y, 3); });
         }
@@ -315,11 +319,25 @@ export const PlayerProvider = ({ children }) => {
     engine.player.useAP(cost);
 
     // Phase 25: Motorized Wagon Battery Depletion
-    if (engine.dragging && engine.dragging.item.isMotorized && engine.dragging.item.isMotorized()) {
-      const wagon = engine.dragging.item;
-      const distance = path.length - 1; // distance in tiles
-      if (wagon.consumeMotorPower) {
-        wagon.consumeMotorPower(distance);
+    const draggedWagon = engine.dragging?.item;
+    if (draggedWagon && draggedWagon.isMotorized && draggedWagon.isMotorized()) {
+      const distance = path.length - 1;
+      if (draggedWagon.consumeMotorPower) {
+        draggedWagon.consumeMotorPower(distance);
+      }
+    }
+
+    // Scooter Ride Mode Battery Depletion
+    const riddenScooter = engine.riding?.item;
+    if (riddenScooter && riddenScooter.hasTrait?.(ItemTrait.SCOOTER)) {
+      try {
+        const distance = path.length - 1;
+        if (riddenScooter.isScooterRideActive?.() && riddenScooter.consumeScooterPower) {
+          console.debug('[PlayerContext] 🛵 Scooter ride mode active, consuming power for distance:', distance);
+          riddenScooter.consumeScooterPower(distance);
+        }
+      } catch (err) {
+        console.error('[PlayerContext] 🛵 Error in scooter battery depletion:', err);
       }
     }
     
@@ -331,6 +349,7 @@ export const PlayerProvider = ({ children }) => {
     setMovementPath(path);
     setMovementProgress(0);
     camera.centerOn(path[0].x, path[0].y);
+    console.log(`[PlayerContext] 🏃 Starting movement: (${path[0].x}, ${path[0].y}) -> (${path[path.length-1].x}, ${path[path.length-1].y}). Path: ${path.length} tiles. Cost: ${cost} AP.`);
     GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
     smoothAnimateMovement(gameMap, camera, path, performance.now(), 1500, isNight, isFlashlightOn, flashlightRange, null, isNightVision);
   }, [smoothAnimateMovement]);

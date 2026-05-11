@@ -79,9 +79,11 @@ export const GameMapProvider = ({ children }) => {
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
 
         const draggedItemId = engine.dragging?.item?.instanceId;
+        const riddenItemId = engine.riding?.item?.instanceId;
         return !tile.contents.some(entity => {
           if (entity.id === player.id) return false;
           if (draggedItemId && (entity.id === draggedItemId || entity.instanceId === draggedItemId)) return false;
+          if (riddenItemId && (entity.id === riddenItemId || entity.instanceId === riddenItemId)) return false;
           return entity.blocksMovement;
         });
       };
@@ -95,8 +97,9 @@ export const GameMapProvider = ({ children }) => {
       let movementCost = Pathfinding.calculateMovementCost(engine.gameMap, path);
       
       // Phase 25: Drag AP Penalty (Consolidated via VehicleUtils)
-      if (engine.dragging && path.length > 1) {
-        movementCost = VehicleUtils.calculateDragCost(engine.dragging.item, path, engine.gameMap, movementCost);
+      const activeItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
+      if (activeItems.length > 0 && path.length > 1) {
+        movementCost = VehicleUtils.calculateDragCost(activeItems, path, engine.gameMap, movementCost);
       }
 
       if (movementCost > player.ap) return;
@@ -138,8 +141,9 @@ export const GameMapProvider = ({ children }) => {
       let apCost = path.length === 0 ? Math.abs(x - player.x) + Math.abs(y - player.y) : Pathfinding.calculateMovementCost(engine.gameMap, path);
       
       // Phase 25: Drag AP Penalty Preview (Consolidated via VehicleUtils)
-      if (engine.dragging && path.length > 1) {
-        apCost = VehicleUtils.calculateDragCost(engine.dragging.item, path, engine.gameMap, apCost);
+      const activeHoverItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
+      if (activeHoverItems.length > 0 && path.length > 1) {
+        apCost = VehicleUtils.calculateDragCost(activeHoverItems, path, engine.gameMap, apCost);
       }
       
       const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);

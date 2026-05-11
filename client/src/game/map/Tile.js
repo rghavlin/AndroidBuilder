@@ -92,8 +92,11 @@ export class Tile {
          // EXCEPTION: Same-tile safety
          if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;
          
-         // NEW: Check if this item is currently being dragged by the player
+         // NEW: Check if this item is currently being dragged or ridden by the player
          if (options.draggedItemId && (item.instanceId === options.draggedItemId || item.id === options.draggedItemId)) {
+             continue;
+         }
+         if (options.riddenItemId && (item.instanceId === options.riddenItemId || item.id === options.riddenItemId)) {
              continue;
          }
 

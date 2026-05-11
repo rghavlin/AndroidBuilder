@@ -71,7 +71,7 @@ export const ItemDefs = {
     height: 6,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
-    dragApPenalty: 1,
+    dragApPenalty: 2,
     motorAssistBonus: 0.5,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
@@ -100,7 +100,7 @@ export const ItemDefs = {
     height: 8,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
-    dragApPenalty: 2,
+    dragApPenalty: 3,
     motorAssistBonus: 0.5,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
@@ -119,6 +119,33 @@ export const ItemDefs = {
         { id: 'weapon.metal_rod', count: 4 },
         { id: 'crafting.metal_plate', count: 2 },
         { id: 'weapon.plank', count: 6 }
+      ]
+    }
+  },
+  'vehicle.electric_scooter': {
+    id: 'vehicle.electric_scooter',
+    name: 'Electric Scooter',
+    noLoot: true,
+    noPickup: true,
+    rarity: Rarity.RARE,
+    imageId: 'electricscooter',
+    width: 4,
+    height: 3,
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
+    categories: [ItemCategory.VEHICLE],
+    dragApPenalty: 1,          // Pull mode: +1 AP per tile
+    rideApBonus: 0.5,          // Ride mode: -0.5 AP per tile
+    renderFullTile: true,
+    attachmentSlots: [
+      { id: 'battery', name: 'Battery', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ],
+    disassembleData: {
+      toolId: 'weapon.wrench',
+      apCost: 10,
+      components: [
+        { id: 'electric_motor', count: 1 },
+        { id: 'weapon.metal_rod', count: 1 },
+        { id: 'crafting.wheel', count: 2 }
       ]
     }
   },

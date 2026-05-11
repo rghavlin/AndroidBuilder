@@ -81,6 +81,7 @@ export const ItemTrait = {
   MAGAZINE: 'magazine',
   WAGON: 'wagon',
   PLANTER: 'planter',
+  SCOOTER: 'scooter',
   FURNITURE: 'furniture',
   WATER_SOURCE: 'water_source'
 };
