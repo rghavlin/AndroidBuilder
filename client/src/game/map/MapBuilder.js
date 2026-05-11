@@ -120,7 +120,22 @@ export class MapBuilder {
       isOpen: false 
     });
 
-    this.registerBuilding(type, x, y, w, h, { entranceX, entranceY, frontage });
+    // Back door logic: Place on the opposite wall of the frontage
+    let backX, backY;
+    if (frontage === 'east') { backX = x; backY = y + 2 + Math.floor(Math.random() * (h - 4)); }
+    else if (frontage === 'west') { backX = x + w - 1; backY = y + 2 + Math.floor(Math.random() * (h - 4)); }
+    else if (frontage === 'south') { backX = x + 2 + Math.floor(Math.random() * (w - 4)); backY = y; }
+    else { backX = x + 2 + Math.floor(Math.random() * (w - 4)); backY = y + h - 1; }
+
+    this.setTerrain(backX, backY, 'floor');
+    this.metadata.doors.push({
+      x: backX,
+      y: backY,
+      isLocked: Math.random() < 0.4, // Back doors are slightly more likely to be locked
+      isOpen: false
+    });
+
+    this.registerBuilding(type, x, y, w, h, { entranceX, entranceY, backX, backY, frontage });
     
     // Subdivide and add windows (if residential)
     if (type === 'residential') {
