@@ -23,6 +23,7 @@ export class Player extends Entity {
     this.sickness = 0; // Turns of sickness left
     this.isBleeding = false; // New bleeding status
     this.isStarving = false; // New starving status
+    this.isDehydrated = false; // New dehydrated status
     this.blocksMovement = true; // Players block other entities
     
     // Skill Progression
@@ -70,6 +71,14 @@ export class Player extends Entity {
   set hydration(v) { 
     if (this._hydration === v) return;
     this._hydration = v; 
+    
+    // Auto-update dehydrated status
+    if (this._hydration <= 0 && !this.isDehydrated) {
+      this.setDehydrated(true);
+    } else if (this._hydration > 0 && this.isDehydrated) {
+      this.setDehydrated(false);
+    }
+
     this.notifyChange(); 
   }
 
@@ -208,6 +217,11 @@ export class Player extends Entity {
 
     if (this.isStarving) {
       console.log(`[Player] ${this.name} is STARVING, healing ignored.`);
+      return;
+    }
+
+    if (this.isDehydrated) {
+      console.log(`[Player] ${this.name} is DEHYDRATED, healing ignored.`);
       return;
     }
 
@@ -379,6 +393,23 @@ export class Player extends Entity {
   }
 
   /**
+   * Set dehydrated status and emit event
+   */
+  setDehydrated(value) {
+    const old = this.isDehydrated;
+    this.isDehydrated = !!value;
+    
+    if (this.isDehydrated !== old) {
+      this.emitEvent('statChanged', {
+        stat: 'isDehydrated',
+        current: this.isDehydrated
+      });
+
+      this.emit('stateChanged', this);
+    }
+  }
+
+  /**
    * Cure sickness and disease
    */
   cure() {
@@ -448,6 +479,7 @@ export class Player extends Entity {
       sickness: this.sickness,
       isBleeding: this.isBleeding,
       isStarving: this.isStarving,
+      isDehydrated: this.isDehydrated,
       meleeKills: this.meleeKills,
       meleeLvl: this.meleeLvl,
       rangedKills: this.rangedKills,
@@ -476,6 +508,7 @@ export class Player extends Entity {
     player.sickness = data.sickness || 0;
     player.isBleeding = data.isBleeding || false;
     player.isStarving = data.isStarving || false;
+    player.isDehydrated = data.isDehydrated || false;
     player.meleeKills = data.meleeKills || 0;
     player.meleeLvl = data.meleeLvl !== undefined ? data.meleeLvl : 0;
     player.rangedKills = data.rangedKills || 0;

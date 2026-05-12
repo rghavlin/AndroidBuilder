@@ -1228,6 +1228,38 @@ export const ItemDefs = {
       { type: 'stop_bleeding', value: true }
     ]
   },
+  'medical.wound_spray': {
+    id: 'medical.wound_spray',
+    name: 'Wound spray',
+    rarity: Rarity.COMMON,
+    imageId: 'woundspray',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
+    categories: [ItemCategory.MEDICAL],
+    consumptionSound: 'Heal',
+    pileLimitOne: true,
+    stackMax: 5,
+    consumptionEffects: [
+      { type: 'heal', value: 8 }
+    ]
+  },
+  'medical.first_aid_kit': {
+    id: 'medical.first_aid_kit',
+    name: 'First Aid Kit',
+    rarity: Rarity.RARE,
+    imageId: 'firstaidkit',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
+    categories: [ItemCategory.MEDICAL],
+    consumptionSound: 'Heal',
+    pileLimitOne: true,
+    stackMax: 5,
+    consumptionEffects: [
+      { type: 'heal', value: 100 }
+    ]
+  },
 
   'medical.antiseptic': {
     id: 'medical.antiseptic',

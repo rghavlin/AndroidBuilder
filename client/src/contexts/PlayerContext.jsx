@@ -22,6 +22,7 @@ export const usePlayer = () => {
           hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
           nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
           energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
+          isStarving: false, isDehydrated: false,
           meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
           craftingApUsed: 0, craftingLvl: 0
         },
@@ -71,6 +72,7 @@ export const PlayerProvider = ({ children }) => {
       hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
       nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
       energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
+      isStarving: false, isDehydrated: false,
       meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
       craftingApUsed: 0, craftingLvl: 0
     };
@@ -89,6 +91,7 @@ export const PlayerProvider = ({ children }) => {
       condition: player.condition,
       isBleeding: player.isBleeding,
       isStarving: player.isStarving,
+      isDehydrated: player.isDehydrated,
       meleeKills: player.meleeKills,
       meleeLvl: player.meleeLvl,
       rangedKills: player.rangedKills,

@@ -504,7 +504,7 @@ export const InventoryProvider = ({ children }) => {
 
       switch (effect.type) {
         case 'heal':
-          player.heal(val);
+          player.heal(val, true);
           break;
         case 'modifyStat':
         case 'nutrition':
@@ -529,7 +529,7 @@ export const InventoryProvider = ({ children }) => {
     // 1. Process Legacy Object-style effects (e.g. { nutrition: 5 })
     if (!Array.isArray(effects)) {
         Object.entries(effects).forEach(([key, value]) => {
-           if (key === 'hp' || key === 'heal') player.heal(value);
+           if (key === 'hp' || key === 'heal') player.heal(value, true);
            else if (key === 'sickness') player.inflictSickness(value);
            else if (key === 'cure' && value === true) player.cure();
            else if (key === 'condition') {

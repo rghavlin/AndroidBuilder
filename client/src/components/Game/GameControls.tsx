@@ -20,6 +20,7 @@ interface GameControlsProps {
     condition: string;
     isBleeding: boolean;
     isStarving: boolean;
+    isDehydrated: boolean;
   };
   gameState: {
     turn: number;
@@ -154,6 +155,11 @@ export default function GameControls({
                 {currentStats.isStarving && (
                   <span className="text-[8px] font-black text-red-400 animate-pulse uppercase tracking-tighter whitespace-nowrap shadow-[0_0_8px_rgba(248,113,113,0.4)]">
                     Starving
+                  </span>
+                )}
+                {currentStats.isDehydrated && (
+                  <span className="text-[8px] font-black text-red-400 animate-pulse uppercase tracking-tighter whitespace-nowrap shadow-[0_0_8px_rgba(248,113,113,0.4)]">
+                    Dehydrated
                   </span>
                 )}
               </div>

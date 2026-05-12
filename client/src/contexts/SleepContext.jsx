@@ -105,11 +105,11 @@ export const SleepProvider = ({ children }) => {
         player.modifyStat('hydration', -1);
 
         // Phase 27: Starvation/Dehydration HP penalties (consistent with endTurn)
-        let survivalHpLoss = 0;
-        if (player.nutrition <= 0) survivalHpLoss += 1;
-        if (player.hydration <= 0) survivalHpLoss += 1;
-        if (survivalHpLoss > 0) {
-          player.takeDamage(survivalHpLoss, { id: 'survival', type: 'starvation' });
+        if (player.nutrition <= 0) {
+          player.takeDamage(1, { id: 'survival', type: 'starvation' });
+        }
+        if (player.hydration <= 0) {
+          player.takeDamage(1, { id: 'survival', type: 'dehydration' });
         }
 
         // Sickness recovery: sleep reduces remaining sickness turns
@@ -238,6 +238,8 @@ export const SleepProvider = ({ children }) => {
           nutrition: player.nutrition,
           hydration: player.hydration,
           isBleeding: player.isBleeding,
+          isStarving: player.isStarving,
+          isDehydrated: player.isDehydrated,
           condition: player.condition,
           sickness: player.sickness
         });

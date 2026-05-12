@@ -570,7 +570,7 @@ const GameContextInner = ({ children }) => {
 
     // Survival penalties
     if (player.nutrition === 0) player.takeDamage(1, { id: 'survival', type: 'starvation' });
-    if (player.hydration === 0) player.takeDamage(1, { id: 'survival', type: 'starvation' });
+    if (player.hydration === 0) player.takeDamage(1, { id: 'survival', type: 'dehydration' });
 
     // AP Allotment
     const totalPenalty = Math.floor(Math.max(0, 25 - player.energy) / 5) + Math.floor(Math.max(0, 20 - player.hp) / 5);

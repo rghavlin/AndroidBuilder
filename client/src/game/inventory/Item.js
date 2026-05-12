@@ -44,6 +44,7 @@ export class Item extends SafeEventEmitter {
     ammoDefId = null,
     rangedStats = null,
     description = null,
+    consumptionSound = null,
     transformInto = null,
     produce = null,
     backgroundColor = null,
@@ -136,6 +137,7 @@ export class Item extends SafeEventEmitter {
     this.attachmentSlots = null;
     this.attachments = attachments || {}; // Store attached Item instances by slotId
     this.consumptionEffects = consumptionEffects;
+    this.consumptionSound = consumptionSound;
 
     // Water properties
     this.waterQuality = waterQuality;
@@ -175,6 +177,7 @@ export class Item extends SafeEventEmitter {
       if (def.produce && !this.produce) this.produce = def.produce;
       if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;
       if (def.disassembleData) this.disassembleData = def.disassembleData;
+      if (def.consumptionSound && !this.consumptionSound) this.consumptionSound = def.consumptionSound;
       if (def.renderFullTile && this.renderFullTile === null) this.renderFullTile = def.renderFullTile;
       if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) this.dragApPenalty = def.dragApPenalty;
       if (def.noDrag !== undefined && this.noDrag === undefined) this.noDrag = def.noDrag;
@@ -417,6 +420,7 @@ export class Item extends SafeEventEmitter {
     this.categories = Array.isArray(def.categories) ? [...def.categories] : this.categories;
     this.capacity = def.capacity !== undefined ? def.capacity : this.capacity;
     this.consumptionEffects = def.consumptionEffects ? { ...def.consumptionEffects } : this.consumptionEffects;
+    this.consumptionSound = def.consumptionSound || this.consumptionSound;
 
     // Transformation / Growth state synchronization
     this.lifetimeTurns = def.lifetimeTurns !== undefined ? def.lifetimeTurns : null;
