@@ -27,7 +27,7 @@ export const SPECIAL_BUILDING_LOOT = {
         { key: 'food.waterbottle', weight: 20 }
     ],
     firestation: {
-        medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit'],
+        medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant'],
         tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench', 'tool.battery_charger', 'belt.tool_ring']
     },
     police: {
@@ -46,7 +46,7 @@ export const SPECIAL_BUILDING_LOOT = {
         materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery']
     },
     laboratory: {
-        medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'container.medkit', 'medical.antiseptic'],
+        medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'container.medkit', 'medical.antiseptic', 'medical.stimulant'],
         tech: ['crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery', 'tool.pliers', 'tool.battery_charger', 'crafting.solar_panel', 'crafting.rag']
     }
 };
@@ -54,7 +54,7 @@ export const SPECIAL_BUILDING_LOOT = {
 export const ZOMBIE_LOOT = {
     firefighter: {
         specialized: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'clothing.paramedic_shirt'],
-        medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit'],
+        medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant'],
         common: ['clothing.pocket_t', 'clothing.sweatpants', 'clothing.blue_jeans', 'crafting.rag']
     },
     swat: {
@@ -67,7 +67,7 @@ export const ZOMBIE_LOOT = {
     },
     uncommon: [
         'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink',
-        'medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'crafting.leather_belt', 'belt.pouch', 'belt.tool_ring'
+        'medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant', 'crafting.leather_belt', 'belt.pouch', 'belt.tool_ring'
     ],
     exotic: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight']
 };

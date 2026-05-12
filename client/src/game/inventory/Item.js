@@ -165,7 +165,8 @@ export class Item extends SafeEventEmitter {
 
     // MIGRATION / INITIALIZATION: Load attributes from definition
     if (this.defId && ItemDefs[this.defId]) {
-      const def = ItemDefs[this.defId];
+      this._def = ItemDefs[this.defId];
+      const def = this._def;
       if (def.attachmentSlots) this.attachmentSlots = def.attachmentSlots;
       if (def.capacity !== undefined && this.capacity === null) this.capacity = def.capacity;
       if (def.ammoCount !== undefined && this.ammoCount === undefined) this.ammoCount = def.ammoCount;

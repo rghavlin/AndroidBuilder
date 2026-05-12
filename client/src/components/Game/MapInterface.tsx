@@ -702,7 +702,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 // Force map re-render
                 triggerMapUpdate();
                 // Update FOV immediately and capture new visible tiles
-                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVision);
                 // Refresh zombie tracking with new FOV
                 refreshZombieTracking(player, newFovTiles);
                 // PASSIVE AWARENESS: Force zombies to check if they spot the player NOW
@@ -869,7 +869,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                  // Refresh FOV/Zombies if state changed from broken
                  const gameMap = gameMapRef.current;
                  if (gameMap) {
-                   const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+                   const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVision);
                    refreshZombieTracking(player, newFovTiles);
                    checkZombieAwareness();
                  }
@@ -943,7 +943,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               }
               
               triggerMapUpdate();
-              const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+              const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVision);
               refreshZombieTracking(player, newFovTiles);
               checkZombieAwareness();
               setWindowMenu(null);

@@ -64,37 +64,49 @@ export class ZombieAI {
       if (canMeleeAttack) {
           console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
           const attackResult = this.attemptAttack(zombie, player);
-          actionResult = {
-            type: 'ATTACK',
-            success: true,
-            entityId: zombie.id,
-            data: { ...attackResult, targetId: player.id, targetType: 'player', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: player.logicalX, y: player.logicalY } }
-          };
+          
+          if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
+              console.log(`[ZombieAI] ${zombie.id} insufficient AP for melee attack. Breaking turn.`);
+              actionResult = { success: false, reason: 'Insufficient AP' };
+          } else {
+              actionResult = {
+                type: 'ATTACK',
+                success: true,
+                entityId: zombie.id,
+                data: { ...attackResult, targetId: player.id, targetType: 'player', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: player.logicalX, y: player.logicalY } }
+              };
+          }
       }
       // 1b. RANGED ATTACK (Spitter Priority: Spit if in range but not adjacent)
       else if (zombie.subtype === 'spitter' && canSee && zombie.getDistanceTo(player.logicalX, player.logicalY) <= 5) {
            const attackResult = this.attemptRangedAttack(zombie, player);
-           actionResult = {
-               type: 'ATTACK',
-               success: true,
-               entityId: zombie.id,
-               metadata: {
-                   isRanged: true,
-                   projectile: {
-                       type: 'projectile',
-                       color: '#a855f7',
-                       targetX: player.logicalX,
-                       targetY: player.logicalY
+           
+           if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
+               console.log(`[ZombieAI] ${zombie.id} insufficient AP for ranged attack. Breaking turn.`);
+               actionResult = { success: false, reason: 'Insufficient AP' };
+           } else {
+               actionResult = {
+                   type: 'ATTACK',
+                   success: true,
+                   entityId: zombie.id,
+                   metadata: {
+                       isRanged: true,
+                       projectile: {
+                           type: 'projectile',
+                           color: '#a855f7',
+                           targetX: player.logicalX,
+                           targetY: player.logicalY
+                       }
+                   },
+                   data: { 
+                       ...attackResult, 
+                       targetId: player.id, 
+                       targetType: 'player', 
+                       from: { x: zombie.logicalX, y: zombie.logicalY }, 
+                       to: { x: player.logicalX, y: player.logicalY } 
                    }
-               },
-               data: { 
-                   ...attackResult, 
-                   targetId: player.id, 
-                   targetType: 'player', 
-                   from: { x: zombie.logicalX, y: zombie.logicalY }, 
-                   to: { x: player.logicalX, y: player.logicalY } 
-               }
-           };
+               };
+           }
        }
        // 2. PURSUIT (Priority 2: Move toward player if visible)
       else if (canSee) {

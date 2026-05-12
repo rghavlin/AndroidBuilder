@@ -130,6 +130,13 @@ const GameContextInner = ({ children }) => {
     return true;
   }, [isFlashlightOn, enginePulse, inventoryManager]);
 
+  const isNightVisionActual = useMemo(() => {
+    if (!isFlashlightOnActual) return false;
+    const fl = inventoryManager?.equipment['flashlight'];
+    if (!fl) return false;
+    return fl.lightType === 'nightvision';
+  }, [isFlashlightOnActual, inventoryManager]);
+
   const getActiveFlashlightRange = useCallback(() => {
     const flashlight = inventoryManager?.equipment['flashlight'];
     if (flashlight) {
@@ -304,7 +311,7 @@ const GameContextInner = ({ children }) => {
         playSound('SwitchOff');
       }
 
-      updatePlayerFieldOfView(engine.gameMap, isNight, newState, false, getActiveFlashlightRange());
+      updatePlayerFieldOfView(engine.gameMap, isNight, newState, false, getActiveFlashlightRange(), isNightVisionActual);
       return newState;
     });
   }, [isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
@@ -677,7 +684,7 @@ const GameContextInner = ({ children }) => {
         condition: player.condition
       });
 
-      updatePlayerFieldOfView(gameMap, nextIsNight, isFlashlightOnActual);
+      updatePlayerFieldOfView(gameMap, nextIsNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVisionActual);
       updatePlayerCardinalPositions(gameMap);
       setTurn(newTurn);
       triggerMapUpdate();
@@ -1072,7 +1079,7 @@ const GameContextInner = ({ children }) => {
 
       // Now safe to do operations that depend on all contexts
       if (typeof updatePlayerFieldOfView === 'function') {
-        updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+        updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVisionActual);
       }
       if (typeof updatePlayerCardinalPositions === 'function') {
         updatePlayerCardinalPositions(engine.gameMap);
@@ -1128,7 +1135,7 @@ const GameContextInner = ({ children }) => {
       const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
       // Note: isFlashlightOn is currently not persisted in save state, defaults to false
 
-      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false);
+      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false, false, 8, false);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
       // Open the UI gate
@@ -1181,7 +1188,7 @@ const GameContextInner = ({ children }) => {
       const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
 
       // Update derived player state
-      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false);
+      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false, false, 8, false);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
       console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
@@ -1327,7 +1334,7 @@ const GameContextInner = ({ children }) => {
     });
 
     console.log(`[GameContext] Spawned ${spawnedCount} test entities for LOS testing`);
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVisionActual);
     return spawnedCount;
   }, [updatePlayerFieldOfView, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
@@ -1462,7 +1469,7 @@ const GameContextInner = ({ children }) => {
 
     if (success) {
       // Update PlayerContext data after successful transition (no timer)
-      updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange());
+      updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange(), isNightVisionActual);
       updatePlayerCardinalPositions(engine.gameMap);
       console.log('[GameContext] Player FOV and cardinal positions updated after map transition');
     }
@@ -1520,6 +1527,7 @@ const GameContextInner = ({ children }) => {
     checkZombieAwareness,
     animateVisibleNPCs,
     isFlashlightOnActual,
+    isNightVisionActual,
     getActiveFlashlightRange,
     clearNPCAnimations,
 
@@ -1572,6 +1580,7 @@ const GameContextInner = ({ children }) => {
     animateVisibleNPCs,
     clearNPCAnimations,
     isFlashlightOnActual,
+    isNightVisionActual,
     getActiveFlashlightRange,
     mapTransition,
     handleMapTransitionConfirmWrapper,

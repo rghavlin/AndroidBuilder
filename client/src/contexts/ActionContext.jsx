@@ -23,7 +23,8 @@ export const useAction = () => {
 export const ActionProvider = ({ children }) => {
   const { 
     isNight, 
-    isFlashlightOnActual, 
+    isFlashlightOnActual,
+    isNightVisionActual,
     getActiveFlashlightRange 
   } = useGame();
 
@@ -360,7 +361,7 @@ export const ActionProvider = ({ children }) => {
 
     setTargetingItem(null);
     updatePlayerStats({ ap: player.ap });
-    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
+    updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVisionActual);
     updatePlayerCardinalPositions(gameMap);
     gameMap.emitEvent?.('mapUpdated');
 

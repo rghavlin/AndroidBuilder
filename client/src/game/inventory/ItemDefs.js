@@ -1289,6 +1289,23 @@ export const ItemDefs = {
       cure: true
     }
   },
+  'medical.stimulant': {
+    id: 'medical.stimulant',
+    name: 'Stimulant',
+    rarity: Rarity.RARE,
+    imageId: 'stimulant',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
+    categories: [ItemCategory.MEDICAL],
+    consumptionSound: 'Heal',
+    stackMax: 10,
+    consumptionEffects: {
+      energy: 5,
+      ap: 3,
+      hydration: -2
+    }
+  },
 
   'food.cannedsoup': {
     id: 'food.cannedsoup',
