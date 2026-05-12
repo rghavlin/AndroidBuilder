@@ -819,6 +819,7 @@ export const ItemDefs = {
   'weapon.deserteagle': {
     id: 'weapon.deserteagle',
     name: 'Desert Eagle',
+    noLoot: true,
     rarity: Rarity.EXTREMELY_RARE,
     imageId: 'deserteagle',
     width: 2,
@@ -1108,7 +1109,7 @@ export const ItemDefs = {
     name: 'Desert Eagle Mag',
     rarity: Rarity.RARE,
     imageId: 'deMagazine',
-    width: 2,
+    width: 1,
     height: 1,
     traits: [ItemTrait.MAGAZINE, ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],

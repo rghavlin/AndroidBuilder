@@ -171,7 +171,7 @@ export class GameSaveSystem {
         inventoryManager: inventoryManager,
         lootGenerator: lootGenerator,
         turn: saveData.turn || 1,
-        playerStats: saveData.playerStats || { hp: 100, maxHp: 100, ap: 100, maxAp: 100, ammo: 0 },
+        playerStats: saveData.playerStats || { hp: 1000, maxHp: 1000, ap: 1000, maxAp: 1000, ammo: 0 },
         lastSeenTaggedTiles: new Set(), // Reset this - will be rebuilt
         metadata: saveData.metadata || {},
         interactionState: saveData.interactionState || null

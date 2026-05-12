@@ -134,7 +134,7 @@ export const ZombieTypes = {
     canPassWindows: true,
     spriteKey: 'zombiemutant',
     combat: { damage: { min: 2, max: 5 } },
-    lootTable: 'basic'
+    lootTable: 'mutant'
   }
 };
 

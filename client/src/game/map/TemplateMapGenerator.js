@@ -4,6 +4,7 @@ import { RoadGenerator } from './generators/RoadGenerator.js';
 import { SplitRoadGenerator } from './generators/SplitRoadGenerator.js';
 import { WindingRoadGenerator } from './generators/WindingRoadGenerator.js';
 import { MirroredWindingRoadGenerator } from './generators/MirroredWindingRoadGenerator.js';
+import { LabMapGenerator } from './generators/LabMapGenerator.js';
 
 /**
  * TemplateMapGenerator - Template-based map generation system
@@ -26,6 +27,7 @@ export class TemplateMapGenerator {
     this.generators.set('split_road', new SplitRoadGenerator());
     this.generators.set('winding_road', new WindingRoadGenerator());
     this.generators.set('mirrored_winding_road', new MirroredWindingRoadGenerator());
+    this.generators.set('lab', new LabMapGenerator());
   }
 
   /**
@@ -226,6 +228,14 @@ export class TemplateMapGenerator {
         roadThickness: 5,
         sidewalkThickness: 1
       }
+    });
+
+    // Lab template
+    this.templates.set('lab', {
+      name: 'Lab',
+      size: { width: 70, height: 84 },
+      layout: [], // Procedurally generated
+      parameters: {}
     });
 
     console.log('[TemplateMapGenerator] Loaded', this.templates.size, 'default templates');

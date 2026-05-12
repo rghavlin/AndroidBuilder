@@ -264,7 +264,7 @@ export class Player extends Entity {
 
     if (this[statName] !== old) {
       const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
-      const maxVal = this[maxStatName] || 100;
+      const maxVal = this[maxStatName] || 1000;
       this.emitEvent('statChanged', {
         stat: statName,
         amount: typeof amount === 'number' ? amount : 0,
@@ -317,7 +317,7 @@ export class Player extends Entity {
 
     if (this[statName] !== old) {
       const maxStatName = `max${statName.charAt(0).toUpperCase() + statName.slice(1)}`;
-      const maxVal = this[maxStatName] || 100;
+      const maxVal = this[maxStatName] || 1000;
       this.emitEvent('statChanged', {
         stat: statName,
         amount: typeof value === 'number' ? value - old : 0,

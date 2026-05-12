@@ -152,7 +152,7 @@ class GameInitializationManager extends EventEmitter {
 
     // Create TemplateMapGenerator and generate initial map
     const templateMapGenerator = new TemplateMapGenerator();
-    const templateToRequest = 'road';
+    const templateToRequest = worldManager.determineTemplateForMap('map_001');
     console.log(`[GameInitializationManager] 🗺️ REQUESTING INITIAL MAP TEMPLATE: "${templateToRequest}" (Timestamp: ${Date.now()})`);
     
     const mapData = templateMapGenerator.generateFromTemplate(templateToRequest, {

@@ -23,9 +23,9 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
     const handleGodMode = () => {
         if (!engine.player) return;
         
-        console.log('[DevConsole] ⚡ ACTIVATING GOD MODE (AP: 100/100)');
-        engine.player.maxAp = 100;
-        engine.player.ap = 100;
+        console.log('[DevConsole] ⚡ ACTIVATING GOD MODE (AP: 1000/1000)');
+        engine.player.maxAp = 1000;
+        engine.player.ap = 1000;
         
         // Also boost HP if needed, but the request was specifically for AP
         engine.notifyUpdate();
@@ -221,7 +221,7 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                             size="sm" 
                             onClick={handleGodMode}
                             className={`ml-4 h-8 px-3 gap-1.5 border-primary/40 hover:bg-primary/20 hover:border-primary transition-all ${isGodModeActive ? 'bg-primary text-primary-foreground scale-110' : ''}`}
-                            title="Set AP to 100/100"
+                            title="Set AP to 1000/1000"
                         >
                             <Zap className={`h-4 w-4 ${isGodModeActive ? 'animate-pulse' : 'text-primary'}`} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">God</span>

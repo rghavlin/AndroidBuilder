@@ -599,6 +599,65 @@ export class LootGenerator {
             buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(Math.random() * dropCount) : -1;
             buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
         }
+        
+        // --- LABORATORY SPECIAL CASE ---
+        if (type === 'lab') {
+            // Laboratory: 2-3 drops per room, plus 1 pair of NVGs building-wide
+            const nvgRoomIndex = Math.floor(Math.random() * 10); // 10 total rooms (5 per wing)
+            const nvgDropIndex = Math.floor(Math.random() * 2); // 1st or 2nd drop in that room
+            
+            const wingWidth = 5;
+            const roomHeight = 12;
+            const leftX = x + 1;
+            const rightX = x + 12;
+            const rooms = [];
+
+            for (let ry = y + 1; ry < y + height - 1; ry += roomHeight) {
+                const segmentH = Math.min(roomHeight - 1, (y + height - 1) - ry);
+                if (segmentH < 3) break;
+                rooms.push({ x: leftX, y: ry, w: wingWidth, h: segmentH });
+                rooms.push({ x: rightX, y: ry, w: wingWidth, h: segmentH });
+            }
+
+            console.log(`[LootGenerator] Lab: Spawning loot for ${rooms.length} rooms`);
+
+            rooms.forEach((room, rIdx) => {
+                const roomFloorTiles = [];
+                for (let ty = room.y; ty < room.y + room.h; ty++) {
+                    for (let tx = room.x; tx < room.x + room.w; tx++) {
+                        if (!this.isNearDoor(gameMap, tx, ty)) roomFloorTiles.push({ x: tx, y: ty });
+                    }
+                }
+                if (roomFloorTiles.length === 0) return;
+
+                const roomDropCount = 2 + Math.floor(Math.random() * 2); // 2-3
+                const roomSelectedTiles = this.getRandomSubarray(roomFloorTiles, roomDropCount);
+
+                roomSelectedTiles.forEach((tilePos, dIdx) => {
+                    const roomItems = [];
+                    if (Math.random() < 0.5) {
+                        const medKey = SPECIAL_BUILDING_LOOT.laboratory.medical[Math.floor(Math.random() * SPECIAL_BUILDING_LOOT.laboratory.medical.length)];
+                        const med = createItemFromDef(medKey);
+                        if (med) roomItems.push(med);
+                    }
+                    if (Math.random() < 0.7) {
+                        const techKey = SPECIAL_BUILDING_LOOT.laboratory.tech[Math.floor(Math.random() * SPECIAL_BUILDING_LOOT.laboratory.tech.length)];
+                        const tech = createItemFromDef(techKey);
+                        if (tech) {
+                            LootGenerator.applySpawnDefaults(tech, false);
+                            roomItems.push(tech);
+                        }
+                    }
+                    if (rIdx === nvgRoomIndex && dIdx === nvgDropIndex) {
+                        const nvg = createItemFromDef('tool.nightvision');
+                        if (nvg) roomItems.push(nvg);
+                    }
+                    if (roomItems.length > 0) gameMap.setItemsOnTile(tilePos.x, tilePos.y, roomItems);
+                });
+            });
+            return; // Exit specialized loot for lab
+        }
+        // --- END LABORATORY SPECIAL CASE ---
 
         selectedTiles.forEach((pos, index) => {
             let items = [];
@@ -780,6 +839,7 @@ export class LootGenerator {
                         if (charger) items.push(charger);
                     }
                     break;
+                    break;
             }
 
             if (items.length > 0) {
@@ -862,6 +922,15 @@ export class LootGenerator {
         let hasBeltInLoot = false;
 
         const tableKey = ZombieTypes[subtype]?.lootTable || 'basic';
+
+        // Specialized Boss Drops
+        if (tableKey === 'mutant') {
+            const deagle = createItemFromDef('weapon.deserteagle');
+            if (deagle) {
+                LootGenerator.applySpawnDefaults(deagle, true);
+                return [deagle];
+            }
+        }
 
         for (let i = 0; i < itemCount; i++) {
             let selectedKey = null;

@@ -13,6 +13,7 @@ export class WorldManager {
     this.currentMapId = null;
     this.mapCounter = 1;
     this.listeners = new Map();
+    this.DEV_FORCE_LAB = false; // Set to true to test Lab map on Map 1
 
     logger.info('Initialized');
   }
@@ -206,22 +207,7 @@ export class WorldManager {
       let mapData;
 
       // Maps 1-3: Road, 4: Winding, 5: Mirrored Winding, 6: Split Road, 7+: Random
-      let templateToUse = 'road';
-      if (mapNumber <= 3) {
-        templateToUse = 'road';
-      } else if (mapNumber === 4) {
-        templateToUse = 'winding_road';
-      } else if (mapNumber === 5) {
-        templateToUse = 'mirrored_winding_road';
-      } else if (mapNumber === 6) {
-        templateToUse = 'split_road';
-      } else if (mapNumber >= 7) {
-        const rand = Math.random();
-        if (rand < 0.25) templateToUse = 'road';
-        else if (rand < 0.50) templateToUse = 'winding_road';
-        else if (rand < 0.75) templateToUse = 'mirrored_winding_road';
-        else templateToUse = 'split_road';
-      }
+      let templateToUse = this.determineTemplateForMap(nextMapId);
 
       mapData = templateMapGenerator.generateFromTemplate(templateToUse, {
         randomWalls: 1,
@@ -330,7 +316,13 @@ export class WorldManager {
             } else {
                 // Predict next template and its SOUTH entrance position
                 const nextTemplate = this.determineTemplateForMap(nextMapId);
-                const nextHeight = (nextTemplate === 'split_road') ? 150 : 125;
+                let nextHeight = 125; // Default road height
+                
+                if (nextTemplate === 'split_road') {
+                    nextHeight = 150;
+                } else if (nextTemplate === 'lab') {
+                    nextHeight = 84;
+                }
                 
                 if (nextTemplate === 'winding_road') {
                     spawnX = 22; // South entrance is roadXMin
@@ -338,6 +330,8 @@ export class WorldManager {
                     spawnX = 62; // South entrance is roadXMax
                 } else if (nextTemplate === 'split_road') {
                     spawnX = 30; // Center of 60-wide map
+                } else if (nextTemplate === 'lab') {
+                    spawnX = 35; // Center of 70-wide map
                 } else {
                     spawnX = 22; // Standard road
                 }
@@ -369,6 +363,8 @@ export class WorldManager {
             spawnX = 22; // North exit is roadXMin
           } else if (prevTemplate === 'split_road') {
             spawnX = 30; // Center of 60-wide map
+          } else if (prevTemplate === 'lab') {
+            spawnX = 35; // Center of 70-wide map
           } else {
             spawnX = 22; // Standard road
           }
@@ -398,10 +394,12 @@ export class WorldManager {
     }
 
     // Progression logic (Must match executeTransition)
+    if (this.DEV_FORCE_LAB && mapNumber === 1) return 'lab';
     if (mapNumber <= 3) return 'road';
     if (mapNumber === 4) return 'winding_road';
     if (mapNumber === 5) return 'mirrored_winding_road';
     if (mapNumber === 6) return 'split_road';
+    if (mapNumber === 10) return 'lab';
     
     // For random maps, we need a deterministic choice or a saved one
     // Using mapNumber as seed for pseudo-randomness
@@ -568,7 +566,7 @@ export class WorldManager {
         // Generate new map using template system with specific ID
         const templateMapGenerator = new TemplateMapGenerator();
         const mapNumber = this.extractMapNumber(targetMapId);
-        const templateToUse = this.determineTemplateForMap(targetMapId);
+        let templateToUse = this.determineTemplateForMap(targetMapId);
 
         let generatedMapData = templateMapGenerator.generateFromTemplate(templateToUse, {
           randomWalls: 1,

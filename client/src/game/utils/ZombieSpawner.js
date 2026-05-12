@@ -269,6 +269,43 @@ export class ZombieSpawner {
             }
         }
       }
+
+      // Laboratory Specialized Spawns
+      if (station.type === 'lab') {
+        // 1. Spawn Exactly 1 Mutant in the Central Hall
+        let mutantSpawned = false;
+        let mAttempts = 0;
+        while (!mutantSpawned && mAttempts < 100 && canSpawnMore()) {
+          const x = station.x + 7 + Math.floor(Math.random() * 4); // 4-tile hall
+          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const tile = gameMap.getTile(x, y);
+          if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+            if (gameMap.addEntity(new Zombie(`zombie-mutant-${Date.now()}-${sIdx}`, x, y, 'mutant'), x, y)) {
+              spawnedCount++;
+              mutantSpawned = true;
+            }
+          }
+          mAttempts++;
+        }
+
+        // 2. Spawn 4-6 Soldier Zombies anywhere in the Lab
+        const sCount = 4 + Math.floor(Math.random() * 3);
+        let spawnedForLab = 0;
+        let sAttempts = 0;
+        while (spawnedForLab < sCount && sAttempts < 150 && canSpawnMore()) {
+          const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const tile = gameMap.getTile(x, y);
+          if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+            if (gameMap.addEntity(new Zombie(`zombie-labsoldier-${Date.now()}-${sIdx}-${spawnedForLab}`, x, y, 'soldier'), x, y)) {
+              spawnedCount++;
+              spawnedForLab++;
+            }
+          }
+          sAttempts++;
+        }
+        console.log(`[ZombieSpawner] Lab: Spawned 1 Mutant and ${spawnedForLab} Soldiers`);
+      }
     });
 
     return spawnedCount;
