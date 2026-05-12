@@ -13,6 +13,7 @@ export const MapProgression = {
     acidRange: { min: 0, max: 0 },
     fatRange: { min: 0, max: 0 },
     runnerCount: 1,
+    spitterCount: 0,
     maxTotal: 120
   },
   2: {
@@ -21,6 +22,7 @@ export const MapProgression = {
     acidRange: { min: 1, max: 2 },
     fatRange: { min: 2, max: 3 },
     runnerCount: 2,
+    spitterCount: 0,
     maxTotal: 120
   },
   3: {
@@ -29,6 +31,7 @@ export const MapProgression = {
     acidRange: { min: 2, max: 3 },
     fatRange: { min: 3, max: 4 },
     runnerCount: 2,
+    spitterCount: 1,
     maxTotal: 120
   },
   4: {
@@ -37,6 +40,7 @@ export const MapProgression = {
     acidRange: { min: 5, max: 7 },
     fatRange: { min: 7, max: 9 },
     runnerCount: 2,
+    spitterCount: 1,
     maxTotal: 226
   }
 };
@@ -78,6 +82,7 @@ export function getProgressionForMap(mapNumber) {
     },
     runnerCount: Math.floor(Math.random() * 3) + 2,
     maxTotal: baseConfig.maxTotal + delta * 20,
+    spitterCount: mapNumber >= 3 ? Math.floor((mapNumber - 1) / 2) : 0,
     randomSpecialized: {
       swatChance: 0.20,
       firefighterChance: 0.20,

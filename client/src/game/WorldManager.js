@@ -195,6 +195,7 @@ export class WorldManager {
   async generateNextMap(mapType = 'road', currentTurn = 1) {
     try {
       const nextMapId = this.generateMapId();
+      const mapNumber = this.extractMapNumber(nextMapId);
 
       // Import required classes
       const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
@@ -204,21 +205,28 @@ export class WorldManager {
       const templateMapGenerator = new TemplateMapGenerator();
       let mapData;
 
-      // Maps 1: Winding, 2-3: Road, 4: Winding Road, 5+: Random
+      // Maps 1-3: Road, 4: Winding, 5: Mirrored Winding, 6: Split Road, 7+: Random
       let templateToUse = 'road';
-      if (this.mapCounter === 1 || this.mapCounter === 4) {
+      if (mapNumber <= 3) {
+        templateToUse = 'road';
+      } else if (mapNumber === 4) {
         templateToUse = 'winding_road';
-      } else if (this.mapCounter > 4) {
+      } else if (mapNumber === 5) {
+        templateToUse = 'mirrored_winding_road';
+      } else if (mapNumber === 6) {
+        templateToUse = 'split_road';
+      } else if (mapNumber >= 7) {
         const rand = Math.random();
-        if (rand < 0.33) templateToUse = 'road';
-        else if (rand < 0.66) templateToUse = 'winding_road';
-        else templateToUse = 'mirrored_winding_road';
+        if (rand < 0.25) templateToUse = 'road';
+        else if (rand < 0.50) templateToUse = 'winding_road';
+        else if (rand < 0.75) templateToUse = 'mirrored_winding_road';
+        else templateToUse = 'split_road';
       }
 
       mapData = templateMapGenerator.generateFromTemplate(templateToUse, {
         randomWalls: 1,
         extraFloors: 2,
-        mapNumber: this.mapCounter
+        mapNumber: mapNumber
       });
 
       // Create GameMap instance and apply template
@@ -311,33 +319,37 @@ export class WorldManager {
     if (tile && tile.terrain === 'transition') {
         // NORTH transition at top edge (Entering NEXT map from SOUTH)
         if (playerY === 0) {
-          const nextMapId = this.getNextMapId();
-          let spawnX = 22; // Default for straight road
+            const nextMapId = this.getNextMapId();
+            let spawnX = 22; // Default for straight road
 
-          // If next map exists, get its actual exit point
-          if (this.maps.has(nextMapId)) {
-            const nextMapData = this.maps.get(nextMapId);
-            const nextPoints = nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
-            if (nextPoints?.south) spawnX = nextPoints.south.x;
-          } else {
-            // Predict next template and its SOUTH entrance position
-            const nextTemplate = this.determineTemplateForMap(nextMapId);
-            if (nextTemplate === 'winding_road') {
-              spawnX = 22; // South entrance is roadXMin
-            } else if (nextTemplate === 'mirrored_winding_road') {
-              spawnX = 62; // South entrance is roadXMax
+            // If next map exists, get its actual exit point
+            if (this.maps.has(nextMapId)) {
+                const nextMapData = this.maps.get(nextMapId);
+                const nextPoints = nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
+                if (nextPoints?.south) spawnX = nextPoints.south.x;
             } else {
-              spawnX = 22; // Standard road
-            }
-          }
+                // Predict next template and its SOUTH entrance position
+                const nextTemplate = this.determineTemplateForMap(nextMapId);
+                const nextHeight = (nextTemplate === 'split_road') ? 150 : 125;
+                
+                if (nextTemplate === 'winding_road') {
+                    spawnX = 22; // South entrance is roadXMin
+                } else if (nextTemplate === 'mirrored_winding_road') {
+                    spawnX = 62; // South entrance is roadXMax
+                } else if (nextTemplate === 'split_road') {
+                    spawnX = 30; // Center of 60-wide map
+                } else {
+                    spawnX = 22; // Standard road
+                }
 
-        return {
-          direction: 'north',
-          position: { x: playerX, y: playerY },
-          nextMapId: nextMapId,
-          spawnPosition: { x: spawnX, y: gameMap.height - 2 }
-        };
-      }
+                return {
+                    direction: 'north',
+                    position: { x: playerX, y: playerY },
+                    nextMapId: nextMapId,
+                    spawnPosition: { x: spawnX, y: nextHeight - 2 }
+                };
+            }
+        }
 
       // SOUTH transition at bottom edge (Entering PREVIOUS map from NORTH)
       if (playerY === gameMap.height - 1 && this.canGoSouth()) {
@@ -355,6 +367,8 @@ export class WorldManager {
             spawnX = 62; // North exit is roadXMax
           } else if (prevTemplate === 'mirrored_winding_road') {
             spawnX = 22; // North exit is roadXMin
+          } else if (prevTemplate === 'split_road') {
+            spawnX = 30; // Center of 60-wide map
           } else {
             spawnX = 22; // Standard road
           }
@@ -386,13 +400,16 @@ export class WorldManager {
     // Progression logic (Must match executeTransition)
     if (mapNumber <= 3) return 'road';
     if (mapNumber === 4) return 'winding_road';
+    if (mapNumber === 5) return 'mirrored_winding_road';
+    if (mapNumber === 6) return 'split_road';
     
     // For random maps, we need a deterministic choice or a saved one
     // Using mapNumber as seed for pseudo-randomness
     const seed = (mapNumber * 12345) % 100;
-    if (seed < 33) return 'road';
-    if (seed < 66) return 'winding_road';
-    return 'mirrored_winding_road';
+    if (seed < 25) return 'road';
+    if (seed < 50) return 'winding_road';
+    if (seed < 75) return 'mirrored_winding_road';
+    return 'split_road';
   }
 
   /**

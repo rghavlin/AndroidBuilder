@@ -59,23 +59,44 @@ export class ZombieAI {
 
       let actionResult = null;
 
-      // 1. COMBAT (Priority 1: Attack player if cardinally adjacent)
-      if (canSee && isAdjacent && !isDiagonal) {
-           const finalDist = Math.abs(zombie.logicalX - player.logicalX) + Math.abs(zombie.logicalY - player.logicalY);
-           if (finalDist <= 1) {
-             console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Distance=${finalDist}, Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
-             const attackResult = this.attemptAttack(zombie, player);
-             actionResult = {
+      // 1. COMBAT (Priority 1: Attack player if in reach)
+      const canMeleeAttack = canSee && (isAdjacent || (isDiagonal && zombie.subtype === 'mutant'));
+      if (canMeleeAttack) {
+          console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
+          const attackResult = this.attemptAttack(zombie, player);
+          actionResult = {
+            type: 'ATTACK',
+            success: true,
+            entityId: zombie.id,
+            data: { ...attackResult, targetId: player.id, targetType: 'player', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: player.logicalX, y: player.logicalY } }
+          };
+      }
+      // 1b. RANGED ATTACK (Spitter Priority: Spit if in range but not adjacent)
+      else if (zombie.subtype === 'spitter' && canSee && zombie.getDistanceTo(player.logicalX, player.logicalY) <= 5) {
+           const attackResult = this.attemptRangedAttack(zombie, player);
+           actionResult = {
                type: 'ATTACK',
                success: true,
                entityId: zombie.id,
-               data: { ...attackResult, targetId: player.id, targetType: 'player', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: player.logicalX, y: player.logicalY } }
-             };
-           } else {
-             console.warn(`[ZombieAI] ⚠️ ${zombie.id} distance check failed for attack! finalDist=${finalDist}. Logic reported adjacent=${isAdjacent}. Skipping attack and seeking move.`);
-           }
-      }
-      // 2. PURSUIT (Priority 2: Move toward player if visible)
+               metadata: {
+                   isRanged: true,
+                   projectile: {
+                       type: 'projectile',
+                       color: '#a855f7',
+                       targetX: player.logicalX,
+                       targetY: player.logicalY
+                   }
+               },
+               data: { 
+                   ...attackResult, 
+                   targetId: player.id, 
+                   targetType: 'player', 
+                   from: { x: zombie.logicalX, y: zombie.logicalY }, 
+                   to: { x: player.logicalX, y: player.logicalY } 
+               }
+           };
+       }
+       // 2. PURSUIT (Priority 2: Move toward player if visible)
       else if (canSee) {
           zombie.behaviorState = 'pursuing';
           zombie.setTargetSighted(player.logicalX, player.logicalY);
@@ -533,7 +554,7 @@ export class ZombieAI {
   }
 
   static attemptAttack(zombie, target) {
-    const apCost = 1.0;
+    const apCost = zombie.attackCost || 1.0;
     if (zombie.currentAP < apCost) return { success: false, reason: 'Insufficient AP' };
     zombie.useAP(apCost);
     // Original rules: 50% hit chance
@@ -544,6 +565,32 @@ export class ZombieAI {
       damage = Math.floor(Math.random() * (typeDef.combat.damage.max - typeDef.combat.damage.min + 1)) + typeDef.combat.damage.min;
     }
     return { success: hit, damage, apUsed: apCost };
+  }
+
+  static attemptRangedAttack(zombie, target) {
+    const apCost = 1.5; // Ranged takes slightly more AP
+    if (zombie.currentAP < apCost) return { success: false, reason: 'Insufficient AP' };
+    zombie.useAP(apCost);
+    
+    // Hit chance same as melee (50%)
+    const hit = Math.random() < 0.5;
+    let damage = 0;
+    let sickInflicted = false;
+    
+    if (hit) {
+      const typeDef = getZombieType(zombie.subtype);
+      const combat = typeDef.combat || {};
+      const min = combat.rangedDamage?.min || 1;
+      const max = combat.rangedDamage?.max || 3;
+      damage = Math.floor(Math.random() * (max - min + 1)) + min;
+      
+      // 20% chance for sick
+      if (Math.random() < (combat.sickChance || 0.2)) {
+          sickInflicted = true;
+      }
+    }
+    
+    return { success: hit, damage, sickInflicted, apUsed: apCost, isRanged: true };
   }
 
   static findBestApproachTile(zombie, player, gameMap) {

@@ -124,8 +124,10 @@ export class ImageLoader {
    * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
    */
   async getPlaceImage(placeName) {
-    // Standardize naming: police_station -> police
-    const canonicalName = placeName === 'police_station' ? 'police' : placeName;
+    // Standardize naming: police_station -> police, hardware_store -> hardware
+    let canonicalName = placeName;
+    if (placeName === 'police_station') canonicalName = 'police';
+    else if (placeName === 'hardware_store') canonicalName = 'hardware';
     const imageKey = `place_${canonicalName}`;
 
     // Return cached image if available

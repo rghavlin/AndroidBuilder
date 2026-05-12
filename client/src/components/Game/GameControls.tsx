@@ -19,6 +19,7 @@ interface GameControlsProps {
     energy: number;
     condition: string;
     isBleeding: boolean;
+    isStarving: boolean;
   };
   gameState: {
     turn: number;
@@ -146,8 +147,13 @@ export default function GameControls({
                   {currentStats.condition}
                 </span>
                 {currentStats.isBleeding && (
-                  <span className="text-[8px] font-black text-red-500 animate-pulse uppercase tracking-tighter whitespace-nowrap shadow-[0_0_8px_rgba(239,68,68,0.4)]">
+                  <span className="text-[8px] font-black text-red-500 animate-pulse uppercase tracking-tighter whitespace-nowrap shadow-[0_0_8px_rgba(239,68,68,0.4)] mr-1">
                     Bleeding
+                  </span>
+                )}
+                {currentStats.isStarving && (
+                  <span className="text-[8px] font-black text-red-400 animate-pulse uppercase tracking-tighter whitespace-nowrap shadow-[0_0_8px_rgba(248,113,113,0.4)]">
+                    Starving
                   </span>
                 )}
               </div>

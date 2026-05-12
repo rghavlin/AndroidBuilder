@@ -1,6 +1,7 @@
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { MapBuilder } from './MapBuilder.js';
 import { RoadGenerator } from './generators/RoadGenerator.js';
+import { SplitRoadGenerator } from './generators/SplitRoadGenerator.js';
 import { WindingRoadGenerator } from './generators/WindingRoadGenerator.js';
 import { MirroredWindingRoadGenerator } from './generators/MirroredWindingRoadGenerator.js';
 
@@ -22,6 +23,7 @@ export class TemplateMapGenerator {
    */
   registerGenerators() {
     this.generators.set('road', new RoadGenerator());
+    this.generators.set('split_road', new SplitRoadGenerator());
     this.generators.set('winding_road', new WindingRoadGenerator());
     this.generators.set('mirrored_winding_road', new MirroredWindingRoadGenerator());
   }
@@ -204,6 +206,19 @@ export class TemplateMapGenerator {
     this.templates.set('mirrored_winding_road', {
       name: 'Mirrored Winding Road',
       size: { width: 85, height: 125 },
+      layout: [], // Procedurally generated
+      parameters: {
+        randomWalls: { min: 0, max: 2 },
+        extraFloors: { min: 0, max: 3 },
+        roadThickness: 5,
+        sidewalkThickness: 1
+      }
+    });
+
+    // Split Road template
+    this.templates.set('split_road', {
+      name: 'Split Road',
+      size: { width: 60, height: 150 },
       layout: [], // Procedurally generated
       parameters: {
         randomWalls: { min: 0, max: 2 },
@@ -680,7 +695,7 @@ export class TemplateMapGenerator {
     });
     
     // Provide backward compatibility for specialBuildings key during map transition phase
-    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent'].includes(type)) {
+    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store'].includes(type)) {
       if (!mapData.metadata.specialBuildings) {
         mapData.metadata.specialBuildings = [];
       }

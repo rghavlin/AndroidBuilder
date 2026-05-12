@@ -563,8 +563,9 @@ export class LootGenerator {
 
         if (floorTiles.length === 0) return;
 
-        // 3 to 6 drops
-        const dropCount = 3 + Math.floor(Math.random() * 4);
+        // 3 to 6 drops (Hardware store gets more: 6 to 10)
+        let dropCount = 3 + Math.floor(Math.random() * 4);
+        if (type === 'hardware_store') dropCount = 6 + Math.floor(Math.random() * 5);
         const selectedTiles = this.getRandomSubarray(floorTiles, dropCount);
 
         console.log(`[LootGenerator] Spawning specialized loot for ${type} in ${dropCount} drops`);
@@ -746,6 +747,37 @@ export class LootGenerator {
                     if (index === buildingState.backpackDropIndex) {
                         const backpack = createItemFromDef('backpack.hiking');
                         if (backpack) items.push(backpack);
+                    }
+                    break;
+                case 'hardware_store':
+                    // Hardware Store: High density mixture of tools and materials
+                    const hardwareLoot = SPECIAL_BUILDING_LOOT.hardware_store;
+                    
+                    // 60% chance for a tool in every drop
+                    if (Math.random() < 0.6) {
+                        const toolKey = hardwareLoot.tools[Math.floor(Math.random() * hardwareLoot.tools.length)];
+                        const tool = createItemFromDef(toolKey);
+                        if (tool) items.push(tool);
+                    }
+                    
+                    // 1 guaranteed material, 50% chance for a second one
+                    const matCount = Math.random() < 0.5 ? 2 : 1;
+                    for (let i = 0; i < matCount; i++) {
+                        const matKey = hardwareLoot.materials[Math.floor(Math.random() * hardwareLoot.materials.length)];
+                        const mat = createItemFromDef(matKey);
+                        if (mat) {
+                            LootGenerator.applySpawnDefaults(mat, false);
+                            items.push(mat);
+                        }
+                    }
+
+                    // Rare Tech Spawns: Exactly one of each per building
+                    if (index === 0) {
+                        const panel = createItemFromDef('crafting.solar_panel');
+                        if (panel) items.push(panel);
+                    } else if (index === 1) {
+                        const charger = createItemFromDef('tool.battery_charger');
+                        if (charger) items.push(charger);
                     }
                     break;
             }

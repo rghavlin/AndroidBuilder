@@ -568,8 +568,11 @@ export const InventoryProvider = ({ children }) => {
         engine.inventoryManager.destroyItem(item.instanceId);
         engine.notifyUpdate();
     }
+    
+    // 3. Play Sound
+    const sound = item.consumptionSound || 'Eat';
+    playSound(sound);
 
-    playSound('Eat');
     return { success: true };
   }, [applyConsumptionEffects, playSound]);
 

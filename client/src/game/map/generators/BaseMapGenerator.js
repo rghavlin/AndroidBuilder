@@ -33,4 +33,36 @@ export class BaseMapGenerator {
     }
     return result;
   }
+
+  /**
+   * Centralized special building type selection logic
+   * @param {number} mapNumber - Current map number
+   * @param {string} templateName - Current template name
+   * @param {number} count - Number of buildings to select
+   * @returns {string[]} - Array of building types
+   */
+  getSpecialBuildingTypes(mapNumber, templateName, count) {
+    const basePool = ['grocer', 'firestation', 'police', 'gas_station', 'hardware_store'];
+    let result = [];
+
+    // Rule: Map 1 always includes grocer
+    if (mapNumber === 1 && count > 0) {
+      result.push('grocer');
+    }
+
+    // Rule: Mirrored Winding Road always includes at least one hardware_store
+    if (templateName === 'mirrored_winding_road' && count > 0 && !result.includes('hardware_store')) {
+      result.push('hardware_store');
+    }
+
+    // Fill remaining slots from the random pool
+    while (result.length < count) {
+      const remainingPool = basePool.filter(type => !result.includes(type));
+      if (remainingPool.length === 0) break;
+      const randomType = remainingPool[Math.floor(Math.random() * remainingPool.length)];
+      result.push(randomType);
+    }
+
+    return result;
+  }
 }

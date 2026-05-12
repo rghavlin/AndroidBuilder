@@ -67,7 +67,7 @@ export const EntityRenderer = {
     const isVisible = visibilitySet.has(`${visualX},${visualY}`);
 
     // Transient entities (zombies, rabbits) are ONLY visible if in active LOS
-    if (!isVisible && !isPersistent) return;
+    if (!isVisible && !isPersistent && !engine.seeThroughWalls) return;
 
     // Persistent entities stay visible if explored, but use consistent fog alpha
     // PHASE 15 Fix: Increase opacity for structural objects in fog to prevent them looking 'open' or hollow

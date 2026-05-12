@@ -189,6 +189,15 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         engine.notifyUpdate();
     };
 
+    const toggleXRay = () => {
+        engine.seeThroughWalls = !engine.seeThroughWalls;
+        // Also reveal map if enabling X-ray for convenience
+        if (engine.seeThroughWalls) {
+            revealMap();
+        }
+        engine.notifyUpdate();
+    };
+
     const toggleRain = () => {
         const isRaining = engine.weather?.type === 'rain';
         if (isRaining) {
@@ -313,6 +322,12 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                                 title="Toggle Rain" 
                                 desc={engine.weather?.type === 'rain' ? "Stop Raining" : "Start Raining (Intensity 50%)"} 
                                 onClick={toggleRain} 
+                            />
+                            <WorldToolButton 
+                                icon={<Ghost className={`h-5 w-5 ${engine.seeThroughWalls ? 'text-purple-500' : 'text-primary'}`} />} 
+                                title="X-Ray Vision" 
+                                desc={engine.seeThroughWalls ? "Currently: ON (Zombies Visible)" : "Currently: OFF (LOS Only)"} 
+                                onClick={toggleXRay} 
                             />
                         </div>
                     )}

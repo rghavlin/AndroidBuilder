@@ -96,6 +96,45 @@ export const ZombieTypes = {
     spriteKey: 'acidzombie',
     combat: { damage: { min: 2, max: 5 } },
     lootTable: 'basic'
+  },
+  spitter: {
+    name: 'Spitter',
+    hp: 10,
+    maxAP: 12,
+    sightRange: 15,
+    moveCostMultiplier: 1.0,
+    canPassWindows: true,
+    spriteKey: 'spitterzombie',
+    combat: { 
+      damage: { min: 1, max: 4 },
+      rangedDamage: { min: 1, max: 3 },
+      rangedRange: 5,
+      sickChance: 0.2
+    },
+    lootTable: 'basic'
+  },
+  bomb_disposal: {
+    name: 'Bomb Disposal Zombie',
+    hp: 200,
+    maxAP: 12,
+    sightRange: 15,
+    moveCostMultiplier: 2.0,
+    canPassWindows: true,
+    spriteKey: 'bombdisposalzombie',
+    combat: { damage: { min: 3, max: 7 } },
+    lootTable: 'swat' // They carry heavy gear
+  },
+  mutant: {
+    name: 'Zombie Mutant',
+    hp: 75,
+    maxAP: 20,
+    sightRange: 15,
+    moveCostMultiplier: 1.0,
+    attackCost: 0.5,
+    canPassWindows: true,
+    spriteKey: 'zombiemutant',
+    combat: { damage: { min: 2, max: 5 } },
+    lootTable: 'basic'
   }
 };
 

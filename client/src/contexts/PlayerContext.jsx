@@ -88,6 +88,7 @@ export const PlayerProvider = ({ children }) => {
       maxEnergy: player.maxEnergy,
       condition: player.condition,
       isBleeding: player.isBleeding,
+      isStarving: player.isStarving,
       meleeKills: player.meleeKills,
       meleeLvl: player.meleeLvl,
       rangedKills: player.rangedKills,

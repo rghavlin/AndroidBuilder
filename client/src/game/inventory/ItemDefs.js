@@ -1220,6 +1220,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
+    consumptionSound: 'Heal',
     pileLimitOne: true,
     stackMax: 10,
     consumptionEffects: [
@@ -1248,6 +1249,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.MEDICAL],
+    consumptionSound: 'Heal',
     pileLimitOne: true,
     stackMax: 10,
     consumptionEffects: {

@@ -152,11 +152,14 @@ class GameInitializationManager extends EventEmitter {
 
     // Create TemplateMapGenerator and generate initial map
     const templateMapGenerator = new TemplateMapGenerator();
-    const mapData = templateMapGenerator.generateFromTemplate('road', {
+    const templateToRequest = 'road';
+    console.log(`[GameInitializationManager] 🗺️ REQUESTING INITIAL MAP TEMPLATE: "${templateToRequest}" (Timestamp: ${Date.now()})`);
+    
+    const mapData = templateMapGenerator.generateFromTemplate(templateToRequest, {
       randomWalls: 1,
       extraFloors: 2
     });
-    console.log('[GameInitializationManager] Template map generated:', mapData.width, 'x', mapData.height);
+    console.log('[GameInitializationManager] Template map generated:', mapData.template, mapData.width, 'x', mapData.height);
 
     // Store preload data for next phase
     this.preloadData = {
@@ -327,6 +330,7 @@ class GameInitializationManager extends EventEmitter {
         await worldManager._spawnSpecialBuildingZombies(gameMap);
         console.log('[GameInitializationManager] Spawned special building zombies');
       }
+
       
       // SPAWN ANIMALS: Initial procedural rabbit generation
       const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
@@ -375,8 +379,20 @@ class GameInitializationManager extends EventEmitter {
 
     // Initial map typically has more zombies or specific distribution
     const progression = getProgressionForMap(1); // Explicitly use Map 1
+
+    // Scale by area relative to standard 45x125 map (5625 tiles)
+    const areaMultiplier = (gameMap.width * gameMap.height) / 5625;
+    const scale = (v) => Math.floor(v * areaMultiplier);
+    const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
+
     return ZombieSpawner.spawnZombies(gameMap, player, {
-      ...progression,
+      basicCount: scale(progression.basicCount),
+      crawlerRange: scaleRange(progression.crawlerRange),
+      runnerCount: scale(progression.runnerCount),
+      acidRange: scaleRange(progression.acidRange),
+      fatRange: scaleRange(progression.fatRange),
+      spitterCount: progression.spitterCount || 0, // Absolute count as per user requirements
+      maxTotal: scale(progression.maxTotal),
       minDistance: 15 // Ensure distance for Map 1 start
     });
   }

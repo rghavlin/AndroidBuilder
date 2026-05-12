@@ -23,6 +23,7 @@ export class Zombie extends Entity {
 
     // Movement multipliers (used by ZombieAI)
     this.moveCostMultiplier = stats.moveCostMultiplier || 1.0;
+    this.attackCost = stats.attackCost !== undefined ? stats.attackCost : 1.0;
     this.canPassWindows = stats.canPassWindows !== undefined ? stats.canPassWindows : true;
 
     // 2. Default entity behaviors

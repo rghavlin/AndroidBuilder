@@ -22,6 +22,7 @@ export class Player extends Entity {
     this._condition = 'Normal';
     this.sickness = 0; // Turns of sickness left
     this.isBleeding = false; // New bleeding status
+    this.isStarving = false; // New starving status
     this.blocksMovement = true; // Players block other entities
     
     // Skill Progression
@@ -54,6 +55,14 @@ export class Player extends Entity {
   set nutrition(v) { 
     if (this._nutrition === v) return;
     this._nutrition = v; 
+    
+    // Auto-update starving status
+    if (this._nutrition <= 0 && !this.isStarving) {
+      this.setStarving(true);
+    } else if (this._nutrition > 0 && this.isStarving) {
+      this.setStarving(false);
+    }
+
     this.notifyChange(); 
   }
 
@@ -191,9 +200,14 @@ export class Player extends Entity {
    * @param {boolean} silent - If true, suppressed global sound events
    */
   heal(amount, silent = false) {
-    // Cannot heal if already dead (hp must be > 0)
+    // Cannot heal if already dead or starving
     if (this.hp <= 0) {
       console.log(`[Player] ${this.name} is dead (HP: ${this.hp}), healing ignored.`);
+      return;
+    }
+
+    if (this.isStarving) {
+      console.log(`[Player] ${this.name} is STARVING, healing ignored.`);
       return;
     }
 
@@ -348,6 +362,23 @@ export class Player extends Entity {
   }
 
   /**
+   * Set starving status and emit event
+   */
+  setStarving(value) {
+    const old = this.isStarving;
+    this.isStarving = !!value;
+    
+    if (this.isStarving !== old) {
+      this.emitEvent('statChanged', {
+        stat: 'isStarving',
+        current: this.isStarving
+      });
+
+      this.emit('stateChanged', this);
+    }
+  }
+
+  /**
    * Cure sickness and disease
    */
   cure() {
@@ -416,6 +447,7 @@ export class Player extends Entity {
       condition: this.condition,
       sickness: this.sickness,
       isBleeding: this.isBleeding,
+      isStarving: this.isStarving,
       meleeKills: this.meleeKills,
       meleeLvl: this.meleeLvl,
       rangedKills: this.rangedKills,
@@ -443,6 +475,7 @@ export class Player extends Entity {
     player.condition = data.condition || 'Normal';
     player.sickness = data.sickness || 0;
     player.isBleeding = data.isBleeding || false;
+    player.isStarving = data.isStarving || false;
     player.meleeKills = data.meleeKills || 0;
     player.meleeLvl = data.meleeLvl !== undefined ? data.meleeLvl : 0;
     player.rangedKills = data.rangedKills || 0;

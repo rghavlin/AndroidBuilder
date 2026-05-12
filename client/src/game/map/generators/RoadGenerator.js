@@ -95,7 +95,7 @@ export class RoadGenerator extends BaseMapGenerator {
         const selectedCount = Math.max(1, Math.floor(area / 5000));
         
         const selected = this.getRandomSubarray(candidateBuildings, selectedCount);
-        const types = this.getRandomSubarray(['grocer', 'firestation', 'police', 'gas_station'], selectedCount);
+        const types = this.getSpecialBuildingTypes(mapNumber, 'road', selectedCount);
 
         selected.forEach((b, i) => {
             const type = types[i];

@@ -194,6 +194,24 @@ class TurnManager {
                 hit: data.success,
                 damage: data.damage
               });
+
+              // Trigger visual projectile if specified
+              if (metadata.projectile) {
+                GameEvents.emit(GAME_EVENT.PROJECTILE_FIRED, {
+                    ...metadata.projectile,
+                    x: entity.logicalX,
+                    y: entity.logicalY,
+                    duration: 400
+                });
+              }
+
+              // Always blink the attacker for visual feedback
+              GameEvents.emit(GAME_EVENT.ENTITY_BLINK, {
+                  entityId: entity.id,
+                  x: entity.logicalX,
+                  y: entity.logicalY,
+                  duration: 500
+              });
             }
           });
         }
@@ -206,6 +224,9 @@ class TurnManager {
           }
           if (data.bleedingInflicted && typeof target.setBleeding === 'function') {
             target.setBleeding(true);
+          }
+          if (data.sickInflicted && typeof target.inflictSickness === 'function') {
+            target.inflictSickness(24);
           }
         }
         break;

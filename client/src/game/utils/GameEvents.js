@@ -39,7 +39,9 @@ export const GAME_EVENT = {
 
   // NPC Interaction
   NPC_ATTACK: 'npc_attack',
-  NPC_DEMAND_TRIGGERED: 'npc_demand_triggered'
+  NPC_DEMAND_TRIGGERED: 'npc_demand_triggered',
+  PROJECTILE_FIRED: 'projectile_fired',
+  ENTITY_BLINK: 'entity_blink'
 };
 
 /**

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 const VisualEffectsContext = createContext();
 
@@ -45,7 +46,6 @@ export const VisualEffectsProvider = ({ children }) => {
         if (effects.length === 0) return;
 
         let animationFrame;
-        let lastTime = performance.now();
 
         const animate = (currentTime) => {
             const now = performance.now();
@@ -74,6 +74,40 @@ export const VisualEffectsProvider = ({ children }) => {
             if (animationFrame) cancelAnimationFrame(animationFrame);
         };
     }, [effects.length]);
+
+    // Listen for global game events that trigger visual effects
+    useEffect(() => {
+        const handleProjectile = (data) => {
+            console.log('[VisualEffects] Projectile event received:', data);
+            addEffect({
+                type: 'projectile',
+                x: data.x,
+                y: data.y,
+                targetX: data.targetX,
+                targetY: data.targetY,
+                color: data.color || '#a855f7',
+                duration: data.duration || 400,
+                startTime: performance.now()
+            });
+        };
+
+        const handleBlink = (data) => {
+            addEffect({
+                type: 'flicker',
+                x: data.x,
+                y: data.y,
+                duration: data.duration || 500,
+                startTime: performance.now()
+            });
+        };
+
+        GameEvents.on(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
+        GameEvents.on(GAME_EVENT.ENTITY_BLINK, handleBlink);
+        return () => {
+            GameEvents.off(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
+            GameEvents.off(GAME_EVENT.ENTITY_BLINK, handleBlink);
+        };
+    }, [addEffect]);
 
     return (
         <VisualEffectsContext.Provider value={{ effects, addEffect, tick }}>

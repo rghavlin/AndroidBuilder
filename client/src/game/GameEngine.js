@@ -48,6 +48,7 @@ class GameEngine extends SafeEventEmitter {
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
     this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8, isNightVision: false };
     this.renderDebugColors = false; 
+    this.seeThroughWalls = false;
 
     // Phase 24: Interaction State (Silo Bridge)
     this.turnPhase = 'PLAYER_TURN'; // 'PLAYER_TURN', 'SIMULATING', 'ANIMATING', 'PAUSED_FOR_EVENT'

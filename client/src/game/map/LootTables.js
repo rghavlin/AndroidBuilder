@@ -40,6 +40,10 @@ export const SPECIAL_BUILDING_LOOT = {
         mods: ['attachment.suppressor', 'attachment.lasersight', 'attachment.riflescope'],
         guns: ['weapon.battle_rifle', 'weapon.deserteagle'],
         gear: ['belt.holster', 'belt.ammo_pouch', 'belt.pouch']
+    },
+    hardware_store: {
+        tools: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.smallflashlight', 'weapon.knife'],
+        materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery']
     }
 };
 

@@ -24,6 +24,7 @@ export class ZombieSpawner {
       randomSwatCount = 0,
       randomFirefighterCount = 0,
       soldierCount = 0,
+      spitterCount = 0,
       maxTotal = 100
     } = options;
 
@@ -170,6 +171,25 @@ export class ZombieSpawner {
       }
     });
 
+    // 5.6 Spawn Spitter Zombies
+    for (let i = 0; i < spitterCount && canSpawnMore(); i++) {
+        let attempts = 0;
+        let spawned = false;
+        while (!spawned && attempts < 50) {
+            const x = Math.floor(Math.random() * mapWidth);
+            const y = Math.floor(Math.random() * mapHeight);
+            const tile = gameMap.getTile(x, y);
+            const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
+            if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
+                if (gameMap.addEntity(new Zombie(`zombie-spitter-${Date.now()}-${i}`, x, y, 'spitter'), x, y)) {
+                    spawnedCount++;
+                    spawned = true;
+                }
+            }
+            attempts++;
+        }
+    }
+
     // 6. Spawn Special Zombies in Buildings
     const buildings = gameMap.buildings || gameMap.specialBuildings || [];
     
@@ -191,6 +211,25 @@ export class ZombieSpawner {
           }
           attempts++;
         }
+
+        // Bomb Disposal Zombie (5% + map# chance)
+        const bdChance = (5 + (gameMap.mapNumber || 1)) / 100;
+        if (Math.random() < bdChance && canSpawnMore()) {
+            let bdAttempts = 0;
+            let bdSpawned = false;
+            while (!bdSpawned && bdAttempts < 50) {
+                const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+                const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+                const tile = gameMap.getTile(x, y);
+                if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+                    if (gameMap.addEntity(new Zombie(`zombie-bombdisposal-${Date.now()}-${sIdx}`, x, y, 'bomb_disposal'), x, y)) {
+                        spawnedCount++;
+                        bdSpawned = true;
+                    }
+                }
+                bdAttempts++;
+            }
+        }
       }
 
       // SWAT in Police Stations
@@ -209,6 +248,25 @@ export class ZombieSpawner {
             }
           }
           attempts++;
+        }
+
+        // Bomb Disposal Zombie (5% + map# chance)
+        const bdChance = (5 + (gameMap.mapNumber || 1)) / 100;
+        if (Math.random() < bdChance && canSpawnMore()) {
+            let bdAttempts = 0;
+            let bdSpawned = false;
+            while (!bdSpawned && bdAttempts < 50) {
+                const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+                const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+                const tile = gameMap.getTile(x, y);
+                if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+                    if (gameMap.addEntity(new Zombie(`zombie-bombdisposal-${Date.now()}-${sIdx}`, x, y, 'bomb_disposal'), x, y)) {
+                        spawnedCount++;
+                        bdSpawned = true;
+                    }
+                }
+                bdAttempts++;
+            }
         }
       }
     });

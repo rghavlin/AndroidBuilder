@@ -288,7 +288,7 @@ export class MapBuilder {
     const buildingData = { type, x, y, width, height, ...extra };
     this.metadata.buildings.push(buildingData);
     
-    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent'].includes(type)) {
+    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store'].includes(type)) {
       this.metadata.specialBuildings.push(buildingData);
     }
   }
