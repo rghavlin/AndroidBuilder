@@ -571,45 +571,39 @@ export class LootGenerator {
         console.log(`[LootGenerator] Spawning specialized loot for ${type} in ${dropCount} drops`);
 
         // Building-wide random rolls (ONE per building)
+        const buildingRules = SPECIAL_BUILDING_LOOT[type]?.rules || {};
         const buildingState = {
-            gunSpawned: false,
-            toolSpawned: false,
-            backpackSpawned: false,
-            hasGun: Math.random() < 0.5,
-            hasTool: Math.random() < 0.5,
-            hasBackpack: Math.random() < 0.25,
+            hasGun: buildingRules.hasGun ? Math.random() < buildingRules.hasGun : false,
+            hasTool: buildingRules.hasTool ? Math.random() < buildingRules.hasTool : false,
+            hasBackpack: buildingRules.hasBackpack ? Math.random() < buildingRules.hasBackpack : false,
+            hasSniper: buildingRules.hasSniper ? Math.random() < buildingRules.hasSniper : false,
+            hasBattleRifle: buildingRules.hasBattleRifle ? Math.random() < buildingRules.hasBattleRifle : false,
+            has9mm: buildingRules.has9mm ? Math.random() < buildingRules.has9mm : false,
             gunDropIndex: -1,
             toolDropIndex: -1,
-            backpackDropIndex: -1
+            backpackDropIndex: -1,
+            sniperDropIndex: -1,
+            battleRifleDropIndex: -1,
+            gun9mmDropIndex: -1
         };
 
-        if (type === 'police') {
-            buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(Math.random() * dropCount) : -1;
-            buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
-        } else if (type === 'firestation') {
-            buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(Math.random() * dropCount) : -1;
-            buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
-        } else if (type === 'army_tent') {
-            buildingState.hasSniper = Math.random() < 0.35;
-            buildingState.hasBattleRifle = Math.random() < 0.50;
-            buildingState.has9mm = Math.random() < 0.50;
-            buildingState.hasBackpack = Math.random() < 0.35;
-            buildingState.sniperDropIndex = buildingState.hasSniper ? Math.floor(Math.random() * dropCount) : -1;
-            buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(Math.random() * dropCount) : -1;
-            buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(Math.random() * dropCount) : -1;
-            buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
-        }
+        if (buildingRules.hasGun) buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasTool) buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasBackpack) buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasSniper) buildingState.sniperDropIndex = buildingState.hasSniper ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasBattleRifle) buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.has9mm) buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(Math.random() * dropCount) : -1;
         
         // --- LABORATORY SPECIAL CASE ---
-        if (type === 'lab') {
-            // Laboratory: 2-3 drops per room, plus 1 pair of NVGs building-wide
-            const nvgRoomIndex = Math.floor(Math.random() * 10); // 10 total rooms (5 per wing)
-            const nvgDropIndex = Math.floor(Math.random() * 2); // 1st or 2nd drop in that room
+        if (type === 'lab' && buildingRules.roomLayout) {
+            const layout = buildingRules.roomLayout;
+            const nvgRoomIndex = Math.floor(Math.random() * layout.roomsCount);
+            const nvgDropIndex = Math.floor(Math.random() * (buildingRules.dropsPerRoom?.min || 2));
             
-            const wingWidth = 5;
-            const roomHeight = 12;
+            const wingWidth = layout.wingWidth;
+            const roomHeight = layout.roomHeight;
             const leftX = x + 1;
-            const rightX = x + 12;
+            const rightX = x + (width - wingWidth - 1); // Dynamic calculation
             const rooms = [];
 
             for (let ry = y + 1; ry < y + height - 1; ry += roomHeight) {
@@ -619,7 +613,7 @@ export class LootGenerator {
                 rooms.push({ x: rightX, y: ry, w: wingWidth, h: segmentH });
             }
 
-            console.log(`[LootGenerator] Lab: Spawning loot for ${rooms.length} rooms`);
+            console.log(`[LootGenerator] Lab: Spawning loot for ${rooms.length} rooms using data-driven rules`);
 
             rooms.forEach((room, rIdx) => {
                 const roomFloorTiles = [];
@@ -630,32 +624,40 @@ export class LootGenerator {
                 }
                 if (roomFloorTiles.length === 0) return;
 
-                const roomDropCount = 2 + Math.floor(Math.random() * 2); // 2-3
+                const minD = buildingRules.dropsPerRoom?.min || 2;
+                const maxD = buildingRules.dropsPerRoom?.max || 3;
+                const roomDropCount = minD + Math.floor(Math.random() * (maxD - minD + 1));
                 const roomSelectedTiles = this.getRandomSubarray(roomFloorTiles, roomDropCount);
 
                 roomSelectedTiles.forEach((tilePos, dIdx) => {
                     const roomItems = [];
+                    // Weighted chances moved to config-driven logic if needed, but currently keeping inline rolls
                     if (Math.random() < 0.5) {
-                        const medKey = SPECIAL_BUILDING_LOOT.laboratory.medical[Math.floor(Math.random() * SPECIAL_BUILDING_LOOT.laboratory.medical.length)];
-                        const med = createItemFromDef(medKey);
+                        const medPool = SPECIAL_BUILDING_LOOT[type].medical;
+                        const med = createItemFromDef(medPool[Math.floor(Math.random() * medPool.length)]);
                         if (med) roomItems.push(med);
                     }
                     if (Math.random() < 0.7) {
-                        const techKey = SPECIAL_BUILDING_LOOT.laboratory.tech[Math.floor(Math.random() * SPECIAL_BUILDING_LOOT.laboratory.tech.length)];
-                        const tech = createItemFromDef(techKey);
+                        const techPool = SPECIAL_BUILDING_LOOT[type].tech;
+                        const tech = createItemFromDef(techPool[Math.floor(Math.random() * techPool.length)]);
                         if (tech) {
                             LootGenerator.applySpawnDefaults(tech, false);
                             roomItems.push(tech);
                         }
                     }
+                    
+                    // Uniques (NVGs etc)
                     if (rIdx === nvgRoomIndex && dIdx === nvgDropIndex) {
-                        const nvg = createItemFromDef('tool.nightvision');
-                        if (nvg) roomItems.push(nvg);
+                        const unique = buildingRules.uniques?.[0]; // Current lab only has 1 unique
+                        if (unique) {
+                            const item = createItemFromDef(unique.defId);
+                            if (item) roomItems.push(item);
+                        }
                     }
                     if (roomItems.length > 0) gameMap.setItemsOnTile(tilePos.x, tilePos.y, roomItems);
                 });
             });
-            return; // Exit specialized loot for lab
+            return;
         }
         // --- END LABORATORY SPECIAL CASE ---
 
@@ -708,9 +710,9 @@ export class LootGenerator {
                         if (tool) items.push(tool);
                     }
 
-                    // 25% chance for ONE backpack in building (Shared with police logic)
-                    if (index === buildingState.backpackDropIndex) {
-                        const backpack = createItemFromDef('backpack.standard');
+                    // Backpack in building
+                    if (index === buildingState.backpackDropIndex && buildingRules.backpackType) {
+                        const backpack = createItemFromDef(buildingRules.backpackType);
                         if (backpack) items.push(backpack);
                     }
                     break;
@@ -737,9 +739,9 @@ export class LootGenerator {
                         }
                     }
 
-                    // 25% chance for ONE backpack in building
-                    if (index === buildingState.backpackDropIndex) {
-                        const backpack = createItemFromDef('backpack.standard');
+                    // Backpack in building
+                    if (index === buildingState.backpackDropIndex && buildingRules.backpackType) {
+                        const backpack = createItemFromDef(buildingRules.backpackType);
                         if (backpack) items.push(backpack);
                     }
 
@@ -803,8 +805,8 @@ export class LootGenerator {
                             items.push(pistol);
                         }
                     }
-                    if (index === buildingState.backpackDropIndex) {
-                        const backpack = createItemFromDef('backpack.hiking');
+                    if (index === buildingState.backpackDropIndex && buildingRules.backpackType) {
+                        const backpack = createItemFromDef(buildingRules.backpackType);
                         if (backpack) items.push(backpack);
                     }
                     break;
@@ -830,17 +832,15 @@ export class LootGenerator {
                         }
                     }
 
-                    // Rare Tech Spawns: Exactly one of each per building
-                    if (index === 0) {
-                        const panel = createItemFromDef('crafting.solar_panel');
-                        if (panel) items.push(panel);
-                    } else if (index === 1) {
-                        const charger = createItemFromDef('tool.battery_charger');
-                        if (charger) items.push(charger);
+                    // Rare Tech Spawns: Mapped from config
+                    const techPool = buildingRules.guaranteedTech || [];
+                    if (techPool[index]) {
+                        const tech = createItemFromDef(techPool[index]);
+                        if (tech) items.push(tech);
                     }
                     break;
-                    break;
             }
+
 
             if (items.length > 0) {
                 gameMap.setItemsOnTile(pos.x, pos.y, items);

@@ -25,143 +25,34 @@ export class ZombieSpawner {
       randomFirefighterCount = 0,
       soldierCount = 0,
       spitterCount = 0,
-      maxTotal = 100
+      maxTotal = 100,
+      minDistance = null
     } = options;
 
     let spawnedCount = 0;
-    const mapWidth = gameMap.width;
-    const mapHeight = gameMap.height;
-
-    // Helper to check if we can spawn more
     const canSpawnMore = () => spawnedCount < maxTotal;
 
-    // 1. Spawn Basic Zombies
-    for (let i = 0; i < basicCount && canSpawnMore(); i++) {
-      const maxAttempts = 50;
-      let attempts = 0;
-      let spawned = false;
-
-      // 75% chance to spawn in the top 50% of the map
-      const spawnInTopHalf = Math.random() < 0.75;
-      const yMin = spawnInTopHalf ? 0 : Math.floor(mapHeight * 0.5);
-      const yRange = spawnInTopHalf ? Math.floor(mapHeight * 0.5) : (mapHeight - yMin);
-
-      while (!spawned && attempts < maxAttempts) {
-        const x = Math.floor(Math.random() * mapWidth);
-        const y = yMin + Math.floor(Math.random() * yRange);
-
-        const tile = gameMap.getTile(x, y);
-        const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
-        const minDistanceFromPlayer = 7;
-
-        if (tile && tile.isWalkable() && distanceFromPlayer >= minDistanceFromPlayer && tile.contents.length === 0) {
-          const zombieId = `zombie-basic-${Date.now()}-${i}`;
-          if (gameMap.addEntity(new Zombie(zombieId, x, y, 'basic'), x, y)) {
-            spawnedCount++;
-            spawned = true;
-          }
-        }
-        attempts++;
-      }
-    }
-
-    // 2. Spawn Crawler Zombies
-    const crawlerCount = Math.floor(Math.random() * (crawlerRange.max - crawlerRange.min + 1)) + crawlerRange.min;
-    for (let i = 0; i < crawlerCount && canSpawnMore(); i++) {
-      let attempts = 0;
-      let spawned = false;
-      while (!spawned && attempts < 50) {
-        const x = Math.floor(Math.random() * mapWidth);
-        const y = Math.floor(Math.random() * mapHeight);
-        const tile = gameMap.getTile(x, y);
-        const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
-        if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
-          if (gameMap.addEntity(new Zombie(`zombie-crawler-${Date.now()}-${i}`, x, y, 'crawler'), x, y)) {
-            spawnedCount++;
-            spawned = true;
-          }
-        }
-        attempts++;
-      }
-    }
-
-    // 3. Spawn Runner Zombies
-    for (let i = 0; i < runnerCount && canSpawnMore(); i++) {
-      let attempts = 0;
-      let spawned = false;
-      while (!spawned && attempts < 50) {
-        const x = Math.floor(Math.random() * mapWidth);
-        const y = Math.floor(Math.random() * mapHeight);
-        const tile = gameMap.getTile(x, y);
-        const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
-        if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
-          if (gameMap.addEntity(new Zombie(`zombie-runner-${Date.now()}-${i}`, x, y, 'runner'), x, y)) {
-            spawnedCount++;
-            spawned = true;
-          }
-        }
-        attempts++;
-      }
-    }
-
-    // 4. Spawn Acid Zombies
-    const acidCount = Math.floor(Math.random() * (acidRange.max - acidRange.min + 1)) + acidRange.min;
-    for (let i = 0; i < acidCount && canSpawnMore(); i++) {
+    const spawnHelper = (subtype, count, minDist, constraints = {}) => {
+      for (let i = 0; i < count && canSpawnMore(); i++) {
         let attempts = 0;
         let spawned = false;
         while (!spawned && attempts < 50) {
-            const x = Math.floor(Math.random() * mapWidth);
-            const y = Math.floor(Math.random() * mapHeight);
-            const tile = gameMap.getTile(x, y);
-            const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
-            if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
-                if (gameMap.addEntity(new Zombie(`zombie-acid-${Date.now()}-${i}`, x, y, 'acid'), x, y)) {
-                    spawnedCount++;
-                    spawned = true;
-                }
-            }
-            attempts++;
-        }
-    }
+          let x, y;
+          if (constraints.yMin !== undefined && constraints.yRange !== undefined) {
+            x = Math.floor(Math.random() * gameMap.width);
+            y = constraints.yMin + Math.floor(Math.random() * constraints.yRange);
+          } else {
+            x = Math.floor(Math.random() * gameMap.width);
+            y = Math.floor(Math.random() * gameMap.height);
+          }
 
-    // 5. Spawn Fat Zombies
-    const fatCount = Math.floor(Math.random() * (fatRange.max - fatRange.min + 1)) + fatRange.min;
-    for (let i = 0; i < fatCount && canSpawnMore(); i++) {
-        let attempts = 0;
-        let spawned = false;
-        while (!spawned && attempts < 50) {
-            const x = Math.floor(Math.random() * mapWidth);
-            const y = Math.floor(Math.random() * mapHeight);
-            const tile = gameMap.getTile(x, y);
-            const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
-            if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
-                if (gameMap.addEntity(new Zombie(`zombie-fat-${Date.now()}-${i}`, x, y, 'fat'), x, y)) {
-                    spawnedCount++;
-                    spawned = true;
-                }
-            }
-            attempts++;
-        }
-    }
-
-    // 5.5 Spawn Random Specialized Zombies (past Map 3 interspersement)
-    const randomSpecialized = [
-      { count: randomSwatCount, type: 'swat', label: 'swat' },
-      { count: randomFirefighterCount, type: 'firefighter', label: 'firefighter' },
-      { count: soldierCount, type: 'soldier', label: 'soldier' }
-    ];
-
-    randomSpecialized.forEach(spec => {
-      for (let i = 0; i < spec.count && canSpawnMore(); i++) {
-        let attempts = 0;
-        let spawned = false;
-        while (!spawned && attempts < 50) {
-          const x = Math.floor(Math.random() * mapWidth);
-          const y = Math.floor(Math.random() * mapHeight);
           const tile = gameMap.getTile(x, y);
-          const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
-          if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
-            if (gameMap.addEntity(new Zombie(`zombie-random-${spec.label}-${Date.now()}-${i}`, x, y, spec.type), x, y)) {
+          const distToPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
+          const actualMinDist = minDistance !== null ? minDistance : minDist;
+
+          if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0) {
+            const zombieId = `zombie-${subtype}-${Date.now()}-${spawnedCount}`;
+            if (gameMap.addEntity(new Zombie(zombieId, x, y, subtype), x, y)) {
               spawnedCount++;
               spawned = true;
             }
@@ -169,26 +60,33 @@ export class ZombieSpawner {
           attempts++;
         }
       }
-    });
+    };
 
-    // 5.6 Spawn Spitter Zombies
-    for (let i = 0; i < spitterCount && canSpawnMore(); i++) {
-        let attempts = 0;
-        let spawned = false;
-        while (!spawned && attempts < 50) {
-            const x = Math.floor(Math.random() * mapWidth);
-            const y = Math.floor(Math.random() * mapHeight);
-            const tile = gameMap.getTile(x, y);
-            const distanceFromPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
-            if (tile && tile.isWalkable() && distanceFromPlayer >= 10 && tile.contents.length === 0) {
-                if (gameMap.addEntity(new Zombie(`zombie-spitter-${Date.now()}-${i}`, x, y, 'spitter'), x, y)) {
-                    spawnedCount++;
-                    spawned = true;
-                }
-            }
-            attempts++;
-        }
-    }
+    // 1. Basic Zombies with top-half bias
+    const spawnInTopHalf = Math.random() < 0.75;
+    const yMin = spawnInTopHalf ? 0 : Math.floor(gameMap.height * 0.5);
+    const yRange = spawnInTopHalf ? Math.floor(gameMap.height * 0.5) : (gameMap.height - yMin);
+    spawnHelper('basic', basicCount, 7, { yMin, yRange });
+
+    // 2. Specialized Ranges
+    const crawlerCount = Math.floor(Math.random() * (crawlerRange.max - crawlerRange.min + 1)) + crawlerRange.min;
+    spawnHelper('crawler', crawlerCount, 10);
+    
+    spawnHelper('runner', runnerCount, 10);
+    
+    const acidCount = Math.floor(Math.random() * (acidRange.max - acidRange.min + 1)) + acidRange.min;
+    spawnHelper('acid', acidCount, 10);
+    
+    const fatCount = Math.floor(Math.random() * (fatRange.max - fatRange.min + 1)) + fatRange.min;
+    spawnHelper('fat', fatCount, 10);
+
+    spawnHelper('spitter', spitterCount, 10);
+
+    // 3. Random Specialized (past Map 3)
+    spawnHelper('swat', randomSwatCount, 10);
+    spawnHelper('firefighter', randomFirefighterCount, 10);
+    spawnHelper('soldier', soldierCount, 10);
+
 
     // 6. Spawn Special Zombies in Buildings
     const buildings = gameMap.buildings || gameMap.specialBuildings || [];
@@ -270,13 +168,60 @@ export class ZombieSpawner {
         }
       }
 
+      // Army Tent Specialized Spawns
+      if (station.type === 'army_tent') {
+        console.log(`[ZombieSpawner] Army Tent: Spawning soldier zombies for tent at (${station.x}, ${station.y})`);
+        
+        // 1-2 Soldiers Inside
+        const insideCount = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < insideCount && canSpawnMore(); i++) {
+          let spawnedIn = false;
+          let inAttempts = 0;
+          while (!spawnedIn && inAttempts < 20) {
+            const rx = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+            const ry = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+            const tile = gameMap.getTile(rx, ry);
+            if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+              if (gameMap.addEntity(new Zombie(`zombie-soldier-in-${Date.now()}-${sIdx}-${i}`, rx, ry, 'soldier'), rx, ry)) {
+                spawnedCount++;
+                spawnedIn = true;
+              }
+            }
+            inAttempts++;
+          }
+        }
+        
+        // 1-2 Soldiers Outside (Radial spawn)
+        const outsideCount = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < outsideCount && canSpawnMore(); i++) {
+          let foundOut = false;
+          for (let attempt = 0; attempt < 25; attempt++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 5 + Math.random() * 4; 
+            const rx = Math.max(0, Math.min(gameMap.width - 1, Math.floor(station.x + station.width / 2 + Math.cos(angle) * dist)));
+            const ry = Math.max(0, Math.min(gameMap.height - 1, Math.floor(station.y + station.height / 2 + Math.sin(angle) * dist)));
+            
+            const tile = gameMap.getTile(rx, ry);
+            if (tile && tile.isWalkable() && tile.contents.length === 0) {
+              if (gameMap.addEntity(new Zombie(`zombie-soldier-out-${Date.now()}-${sIdx}-${i}`, rx, ry, 'soldier'), rx, ry)) {
+                spawnedCount++;
+                foundOut = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
       // Laboratory Specialized Spawns
       if (station.type === 'lab') {
         // 1. Spawn Exactly 1 Mutant in the Central Hall
         let mutantSpawned = false;
         let mAttempts = 0;
         while (!mutantSpawned && mAttempts < 100 && canSpawnMore()) {
-          const x = station.x + 7 + Math.floor(Math.random() * 4); // 4-tile hall
+          const hX = station.hallXStart || (station.x + 7);
+          const hW = station.hallWidth || 4;
+          const x = hX + Math.floor(Math.random() * hW);
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {

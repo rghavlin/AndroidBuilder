@@ -325,11 +325,6 @@ class GameInitializationManager extends EventEmitter {
       const spawnCount = this._spawnInitialZombies(gameMap, player);
       console.log('[GameInitializationManager] Spawned', spawnCount, 'initial zombies');
 
-      // SPECIAL BUILDING SPAWNS: Army Tent Soldier Zombies, etc.
-      if (worldManager) {
-        await worldManager._spawnSpecialBuildingZombies(gameMap);
-        console.log('[GameInitializationManager] Spawned special building zombies');
-      }
 
       
       // SPAWN ANIMALS: Initial procedural rabbit generation

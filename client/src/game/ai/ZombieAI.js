@@ -13,6 +13,7 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
  * Flattened for Phase 18 to prevent mid-turn state loss.
  */
 export class ZombieAI {
+  static DEBUG = false;
   /**
    * Execute zombie behavior loop for a single zombie's turn.
    */
@@ -28,7 +29,7 @@ export class ZombieAI {
     let safetyCounter = 0;
     const maxActions = 20; 
 
-    console.log(`[ZombieAI] Starting turn for zombie ${zombie.id} at (${zombie.logicalX}, ${zombie.logicalY}) with ${zombie.currentAP} AP`);
+    if (ZombieAI.DEBUG) console.log(`[ZombieAI] Starting turn for zombie ${zombie.id} at (${zombie.logicalX}, ${zombie.logicalY}) with ${zombie.currentAP} AP`);
 
     // PHASE 28 FINAL FIX: DO NOT snap logicalX to visual x. 
     // During turn simulation, logicalX is the source of truth. 
@@ -52,21 +53,21 @@ export class ZombieAI {
       const isDiagonal = zombie.isDiagonalTo(player.logicalX, player.logicalY);
 
       if (safetyCounter === 1) {
-        console.log(`[ZombieAI] ${zombie.id} turn start: Pos(${zombie.logicalX}, ${zombie.logicalY}), canSee=${canSee}, lastSeen=${zombie.lastSeen}, LKP=(${zombie.targetSightedCoords?.x}, ${zombie.targetSightedCoords?.y})`);
+        if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} turn start: Pos(${zombie.logicalX}, ${zombie.logicalY}), canSee=${canSee}, lastSeen=${zombie.lastSeen}, LKP=(${zombie.targetSightedCoords?.x}, ${zombie.targetSightedCoords?.y})`);
       }
 
-      console.log(`[ZombieAI] ${zombie.id} step ${safetyCounter}: AP=${zombie.currentAP.toFixed(1)}, canSee=${canSee}, behavior=${zombie.behaviorState}`);
+      if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} step ${safetyCounter}: AP=${zombie.currentAP.toFixed(1)}, canSee=${canSee}, behavior=${zombie.behaviorState}`);
 
       let actionResult = null;
 
       // 1. COMBAT (Priority 1: Attack player if in reach)
       const canMeleeAttack = canSee && (isAdjacent || (isDiagonal && zombie.subtype === 'mutant'));
       if (canMeleeAttack) {
-          console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
+          if (ZombieAI.DEBUG) console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
           const attackResult = this.attemptAttack(zombie, player);
           
           if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
-              console.log(`[ZombieAI] ${zombie.id} insufficient AP for melee attack. Breaking turn.`);
+              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} insufficient AP for melee attack. Breaking turn.`);
               actionResult = { success: false, reason: 'Insufficient AP' };
           } else {
               actionResult = {
@@ -82,7 +83,7 @@ export class ZombieAI {
            const attackResult = this.attemptRangedAttack(zombie, player);
            
            if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
-               console.log(`[ZombieAI] ${zombie.id} insufficient AP for ranged attack. Breaking turn.`);
+               if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} insufficient AP for ranged attack. Breaking turn.`);
                actionResult = { success: false, reason: 'Insufficient AP' };
            } else {
                actionResult = {
@@ -153,7 +154,7 @@ export class ZombieAI {
                   // If all adjacent spots are full, don't WAIT and end turn. 
                   // Instead, we fall through to Greedy Pursuit to try and at least get closer 
                   // or stand behind a comrade.
-                  console.log(`[ZombieAI] ${zombie.id} swarm spots full, falling back to pursuit.`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} swarm spots full, falling back to pursuit.`);
               } else {
                   // Swarm move successful
               }
@@ -163,13 +164,13 @@ export class ZombieAI {
               // B) PRIMARY: A* Pathfinding toward player
               // A* finds the real shortest path (through windows/doors), unlike greedy
               // which just minimizes Manhattan distance and slides along walls.
-              console.log(`[ZombieAI] ${zombie.id} A* pursuit toward player at (${player.logicalX}, ${player.logicalY}).`);
+              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} A* pursuit toward player at (${player.logicalX}, ${player.logicalY}).`);
               actionResult = this.attemptMoveTowards(zombie, gameMap, player.logicalX, player.logicalY);
               let moveFound = actionResult && actionResult.success;
 
               // C) GREEDY FALLBACK: If A* failed (logjam, blocked), try greedy neighbors
               if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} A* pursuit blocked, trying greedy neighbors.`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} A* pursuit blocked, trying greedy neighbors.`);
                   const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
                   
                   // Sort by distance to player, with a tie-breaker for structures
@@ -212,13 +213,13 @@ export class ZombieAI {
 
               // D) BEELINE FALLBACK (The "Anti-Inertia" Clause)
               if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} greedy blocked, triggering Beeline Fallback toward player.`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} greedy blocked, triggering Beeline Fallback toward player.`);
                   actionResult = this.executeBeelineStep(zombie, gameMap, player.logicalX, player.logicalY);
                   if (actionResult && actionResult.success) moveFound = true;
               }
 
               if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Waiting 0.5 AP.`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Waiting 0.5 AP.`);
                   zombie.useAP(0.5);
                   actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 0.5 } };
               }
@@ -229,7 +230,7 @@ export class ZombieAI {
           const targetX = zombie.lastSeen ? zombie.targetSightedCoords.x : zombie.noiseCoords.x;
           const targetY = zombie.lastSeen ? zombie.targetSightedCoords.y : zombie.noiseCoords.y;
           
-          console.log(`[ZombieAI] ${zombie.id} Investigating LKP at (${targetX}, ${targetY}). Current: (${zombie.logicalX}, ${zombie.logicalY})`);
+          if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} Investigating LKP at (${targetX}, ${targetY}). Current: (${zombie.logicalX}, ${zombie.logicalY})`);
 
             if (zombie.logicalX === targetX && zombie.logicalY === targetY) {
                 // Reached LKP/Noise - Check for breadcrumbs before giving up
@@ -245,7 +246,7 @@ export class ZombieAI {
                         zombie.setTargetSighted(freshest.x, freshest.y);
                         zombie.lastScentSequence = freshest.sequence;
                         zombie.behaviorState = 'tracking';
-                        console.log(`[ZombieAI] ${zombie.id} reached LKP, found breadcrumb at (${freshest.x}, ${freshest.y}). Following.`);
+                        if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} reached LKP, found breadcrumb at (${freshest.x}, ${freshest.y}). Following.`);
                         continue;
                     }
                 }
@@ -258,13 +259,13 @@ export class ZombieAI {
               
               // PRIMARY: A* Pathfinding toward investigation target
               // A* finds the real shortest path (through windows/doors)
-              console.log(`[ZombieAI] ${zombie.id} A* investigation toward LKP (${targetX}, ${targetY}).`);
+              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} A* investigation toward LKP (${targetX}, ${targetY}).`);
               actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
               let moveFound = actionResult && actionResult.success;
 
               // GREEDY FALLBACK: If A* failed, try greedy neighbors
               if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} A* investigation blocked, trying greedy neighbors.`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} A* investigation blocked, trying greedy neighbors.`);
                   const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
                   neighbors.sort((a, b) => {
                       const distA = Math.abs(a.x - targetX) + Math.abs(a.y - targetY);
@@ -304,7 +305,7 @@ export class ZombieAI {
 
               // BEELINE FALLBACK for Investigation
               if (!moveFound) {
-                  console.log(`[ZombieAI] ${zombie.id} Investigation greedy blocked, triggering Beeline Fallback to LKP.`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} Investigation greedy blocked, triggering Beeline Fallback to LKP.`);
                   actionResult = this.executeBeelineStep(zombie, gameMap, targetX, targetY);
                   if (actionResult && actionResult.success) moveFound = true;
               }
@@ -314,12 +315,12 @@ export class ZombieAI {
                   // If it's just occupied by a zombie, keep the LKP and wait.
                   const targetTile = gameMap.getTile(targetX, targetY);
                   if (!targetTile || !targetTile.isWalkable(zombie, { allowBreaching: true, ignoreZombies: true })) {
-                    console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) invalid or permanently blocked, clearing.`);
+                    if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) invalid or permanently blocked, clearing.`);
                     zombie.clearLastSeen();
                     zombie.clearNoiseHeard();
                   } else {
                     // LOGJAM: Target is valid but currently occupied by a comrade. 
-                    console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) blocked by entity, waiting.`);
+                    if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) blocked by entity, waiting.`);
                     zombie.useAP(0.5);
                     actionResult = { success: true, type: 'WAIT', data: { apCost: 0.5 } };
                   }
@@ -339,7 +340,7 @@ export class ZombieAI {
                   zombie.behaviorState = 'tracking';
                   zombie.lastScentSequence = freshestScent.sequence;
                   zombie.setTargetSighted(freshestScent.x, freshestScent.y);
-                  console.log(`[ZombieAI] ${zombie.id} picking up breadcrumb trail at (${freshestScent.x}, ${freshestScent.y})`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} picking up breadcrumb trail at (${freshestScent.x}, ${freshestScent.y})`);
                   continue; 
               }
           }
@@ -382,7 +383,7 @@ export class ZombieAI {
           }
       } else {
           const reason = actionResult ? actionResult.reason : 'No behavior triggered';
-          console.log(`[ZombieAI] ${zombie.id} turn loop break: ${reason}. AP=${zombie.currentAP.toFixed(1)}`);
+          if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} turn loop break: ${reason}. AP=${zombie.currentAP.toFixed(1)}`);
           break; 
       }
     }
@@ -391,7 +392,7 @@ export class ZombieAI {
       zombie.isActive = false;
     }
 
-    console.log(`[ZombieAI] Finished turn for zombie ${zombie.id}. Actions: ${turnResult.actions.length}`);
+    if (ZombieAI.DEBUG) console.log(`[ZombieAI] Finished turn for zombie ${zombie.id}. Actions: ${turnResult.actions.length}`);
 
     turnResult.success = true;
     return turnResult;
@@ -569,8 +570,8 @@ export class ZombieAI {
     const apCost = zombie.attackCost || 1.0;
     if (zombie.currentAP < apCost) return { success: false, reason: 'Insufficient AP' };
     zombie.useAP(apCost);
-    // Original rules: 50% hit chance
-    const hit = Math.random() < 0.5;
+    // Use zombie-specific accuracy (defaults to 0.5)
+    const hit = Math.random() < (zombie.accuracy || 0.5);
     let damage = 0;
     if (hit) {
       const typeDef = getZombieType(zombie.subtype);
@@ -584,8 +585,8 @@ export class ZombieAI {
     if (zombie.currentAP < apCost) return { success: false, reason: 'Insufficient AP' };
     zombie.useAP(apCost);
     
-    // Hit chance same as melee (50%)
-    const hit = Math.random() < 0.5;
+    // Use zombie-specific accuracy (defaults to 0.5)
+    const hit = Math.random() < (zombie.accuracy || 0.5);
     let damage = 0;
     let sickInflicted = false;
     

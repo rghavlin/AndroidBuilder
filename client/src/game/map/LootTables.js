@@ -28,26 +28,57 @@ export const SPECIAL_BUILDING_LOOT = {
     ],
     firestation: {
         medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant'],
-        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench', 'tool.battery_charger', 'belt.tool_ring']
+        tools: ['weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar', 'weapon.machete', 'weapon.wrench', 'tool.battery_charger', 'belt.tool_ring'],
+        rules: {
+            hasTool: 0.50,
+            hasBackpack: 0.25,
+            backpackType: 'backpack.standard'
+        }
     },
     police: {
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.308', 'ammo.shotgun_shells'],
         guns: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'],
-        gear: ['belt.holster', 'belt.ammo_pouch']
+        gear: ['belt.holster', 'belt.ammo_pouch'],
+        rules: {
+            hasGun: 0.50,
+            hasBackpack: 0.25,
+            backpackType: 'backpack.standard'
+        }
     },
     army_tent: {
         ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.de', 'ammo.556'],
         mods: ['attachment.suppressor', 'attachment.lasersight', 'attachment.riflescope'],
         guns: ['weapon.battle_rifle'],
-        gear: ['belt.holster', 'belt.ammo_pouch', 'belt.pouch']
+        gear: ['belt.holster', 'belt.ammo_pouch', 'belt.pouch'],
+        rules: {
+            hasSniper: 0.35,
+            hasBattleRifle: 0.50,
+            has9mm: 0.50,
+            hasBackpack: 0.35,
+            backpackType: 'backpack.hiking'
+        }
     },
     hardware_store: {
         tools: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.smallflashlight', 'weapon.knife'],
-        materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery']
+        materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery'],
+        rules: {
+            guaranteedTech: ['crafting.solar_panel', 'tool.battery_charger']
+        }
     },
-    laboratory: {
+    lab: {
         medical: ['medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'container.medkit', 'medical.antiseptic', 'medical.stimulant'],
-        tech: ['crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery', 'tool.pliers', 'tool.battery_charger', 'crafting.solar_panel', 'crafting.rag']
+        tech: ['crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery', 'tool.pliers', 'tool.battery_charger', 'crafting.solar_panel', 'crafting.rag'],
+        rules: {
+            roomLayout: {
+                wingWidth: 5,
+                roomHeight: 12,
+                roomsCount: 10
+            },
+            dropsPerRoom: { min: 2, max: 3 },
+            uniques: [
+                { defId: 'tool.nightvision', count: 1 }
+            ]
+        }
     }
 };
 

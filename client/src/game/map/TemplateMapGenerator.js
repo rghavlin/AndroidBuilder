@@ -705,7 +705,7 @@ export class TemplateMapGenerator {
     });
     
     // Provide backward compatibility for specialBuildings key during map transition phase
-    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store'].includes(type)) {
+    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store', 'lab'].includes(type)) {
       if (!mapData.metadata.specialBuildings) {
         mapData.metadata.specialBuildings = [];
       }

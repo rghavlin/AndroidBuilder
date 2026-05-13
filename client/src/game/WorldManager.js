@@ -49,7 +49,7 @@ export class WorldManager {
    * @param {string} mapId - Map identifier (e.g., 'map_001')
    * @param {number} currentTurn - The current game turn count
    */
-  saveCurrentMap(gameMap, mapId = null, currentTurn = 1) {
+  saveCurrentMap(gameMap, mapId = null, currentTurn = 1, templateType = null) {
     try {
       if (!mapId) {
         mapId = this.generateMapId();
@@ -61,13 +61,14 @@ export class WorldManager {
         serializedMap: serializedMap,
         timestamp: Date.now(),
         lastProcessedTurn: currentTurn, // Track when this map was last active
-        type: 'road', // Default type, can be extended
+        type: templateType || gameMap.template || 'road',
         metadata: {
           width: gameMap.width,
           height: gameMap.height,
           entityCount: gameMap.getAllEntities().length
         }
       };
+
 
       this.maps.set(mapId, mapData);
       this.currentMapId = mapId;
@@ -254,12 +255,13 @@ export class WorldManager {
         randomSwatCount: scale(randomSwatCount),
         randomFirefighterCount: scale(randomFirefighterCount),
         soldierCount: scale(soldierCount),
+        spitterCount: scale(progression.spitterCount || 0),
         maxTotal: scale(progression.maxTotal),
+
         minDistance: 15,
+
       });
 
-      // SPECIAL BUILDING SPAWNS: Army Tent Soldier Zombies, etc.
-      await this._spawnSpecialBuildingZombies(gameMap);
       
       // SPAWN ANIMALS: Procedural rabbit generation
       const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
@@ -268,7 +270,7 @@ export class WorldManager {
       });
 
       // Save to world collection
-      const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn);
+      const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn, templateToUse);
 
       this.emit('mapGenerated', {
         mapId: savedMapId,
@@ -307,16 +309,23 @@ export class WorldManager {
         if (playerY === 0) {
             const nextMapId = this.getNextMapId();
             let spawnX = 22; // Default for straight road
+            let nextHeight = 125; // Default road height
 
-            // If next map exists, get its actual exit point
+            // If next map exists, get its actual exit point and height
             if (this.maps.has(nextMapId)) {
                 const nextMapData = this.maps.get(nextMapId);
                 const nextPoints = nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
                 if (nextPoints?.south) spawnX = nextPoints.south.x;
+                
+                // Use actual height from metadata if available
+                if (nextMapData.metadata?.height) {
+                    nextHeight = nextMapData.metadata.height;
+                } else if (nextMapData.serializedMap?.height) {
+                    nextHeight = nextMapData.serializedMap.height;
+                }
             } else {
                 // Predict next template and its SOUTH entrance position
                 const nextTemplate = this.determineTemplateForMap(nextMapId);
-                let nextHeight = 125; // Default road height
                 
                 if (nextTemplate === 'split_road') {
                     nextHeight = 150;
@@ -335,15 +344,16 @@ export class WorldManager {
                 } else {
                     spawnX = 22; // Standard road
                 }
-
-                return {
-                    direction: 'north',
-                    position: { x: playerX, y: playerY },
-                    nextMapId: nextMapId,
-                    spawnPosition: { x: spawnX, y: nextHeight - 2 }
-                };
             }
+
+            return {
+                direction: 'north',
+                position: { x: playerX, y: playerY },
+                nextMapId: nextMapId,
+                spawnPosition: { x: spawnX, y: nextHeight - 2 }
+            };
         }
+
 
       // SOUTH transition at bottom edge (Entering PREVIOUS map from NORTH)
       if (playerY === gameMap.height - 1 && this.canGoSouth()) {
@@ -611,6 +621,7 @@ export class WorldManager {
           randomSwatCount: scale(randomSwatCount),
           randomFirefighterCount: scale(randomFirefighterCount),
           soldierCount: scale(soldierCount),
+          spitterCount: scale(progression.spitterCount || 0),
           maxTotal: scale(progression.maxTotal)
         });
         
@@ -622,12 +633,10 @@ export class WorldManager {
         // SPAWN NPCs: 1 NPC per map
         NPCSpawner.spawnNPCs(gameMap, { count: 1, mapNumber });
 
-        // SPECIAL SPAWNS: Army Tent Soldier Zombies, etc.
-        await this._spawnSpecialBuildingZombies(gameMap);
 
 
         // Save to world collection with the correct target ID
-        this.saveCurrentMap(gameMap, targetMapId, currentTurn);
+        this.saveCurrentMap(gameMap, targetMapId, currentTurn, templateToUse);
 
         mapData = {
           mapId: targetMapId,
@@ -696,55 +705,4 @@ export class WorldManager {
     return worldManager;
   }
 
-  /**
-   * Spawn specialized zombies for special buildings (e.g. Army Tents)
-   * @param {GameMap} gameMap - The map instance
-   */
-  async _spawnSpecialBuildingZombies(gameMap) {
-    if (!gameMap.specialBuildings) {
-      // Check metadata if class prop is missing
-      if (gameMap.metadata && gameMap.metadata.specialBuildings) {
-        gameMap.specialBuildings = gameMap.metadata.specialBuildings;
-      } else {
-        return;
-      }
-    }
-
-    const { Zombie } = await import('./entities/Zombie.js');
-    
-    gameMap.specialBuildings.forEach(building => {
-      if (building.type === 'army_tent') {
-        console.log(`[WorldManager] Spawning soldier zombies for Army Tent at (${building.x}, ${building.y})`);
-        
-        // 1-2 Inside
-        const insideCount = 1 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < insideCount; i++) {
-          const rx = building.x + 1 + Math.floor(Math.random() * (building.width - 2));
-          const ry = building.y + 1 + Math.floor(Math.random() * (building.height - 2));
-          const z = new Zombie(`soldier-in-${rx}-${ry}-${Math.random()}`, rx, ry, 'soldier');
-          gameMap.addEntity(z, rx, ry);
-        }
-        
-        // 1-2 Outside
-        const outsideCount = 1 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < outsideCount; i++) {
-          let found = false;
-          for (let attempt = 0; attempt < 15; attempt++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 5 + Math.random() * 3; // Increased range for 10x6 tent
-            const rx = Math.max(0, Math.min(gameMap.width - 1, Math.floor(building.x + building.width / 2 + Math.cos(angle) * dist)));
-            const ry = Math.max(0, Math.min(gameMap.height - 1, Math.floor(building.y + building.height / 2 + Math.sin(angle) * dist)));
-            
-            const tile = gameMap.getTile(rx, ry);
-            if (tile && tile.isWalkable()) {
-              const z = new Zombie(`soldier-out-${rx}-${ry}-${Math.random()}`, rx, ry, 'soldier');
-              gameMap.addEntity(z, rx, ry);
-              found = true;
-              break;
-            }
-          }
-        }
-      }
-    });
-  }
 }

@@ -1,15 +1,18 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
 
-/**
- * LabMapGenerator - Procedural generation for the Map 10 Laboratory facility
- * Features a split-road loop, perimeter fencing, and a large central lab building.
- * Refined 70x84 compact layout with 4-wide corridor and 5-wide side rooms.
- */
+const LAYOUT = {
+    ROAD: { LEFT_X: 14, RIGHT_X: 53, TOP_Y: 4, BOTTOM_Y: 75, THICKNESS: 5 },
+    ENTRY: { CENTER_X: 35, WIDTH: 5 },
+    COMPOUND: { LEFT: 22, RIGHT: 49, TOP: 12, BOTTOM: 71 },
+    BUILDING: { X: 27, Y: 17, WIDTH: 18, HEIGHT: 50 },
+    TENTS: { OFFSET_X: 1, OFFSET_Y: 15, SPACING_Y: 24, COUNT: 3 }
+};
+
 export class LabMapGenerator extends BaseMapGenerator {
   generate(config, builder) {
     const context = { 
         mapNumber: config.mapNumber || 1,
-        roadThickness: 5,
+        roadThickness: LAYOUT.ROAD.THICKNESS,
         sidewalkThickness: 1
     };
 
@@ -24,7 +27,7 @@ export class LabMapGenerator extends BaseMapGenerator {
    */
   passTopology(builder, context) {
     const { width, height } = builder;
-    const roadT = context.roadThickness;
+    const roadT = LAYOUT.ROAD.THICKNESS;
 
     builder.fill('grass');
 
@@ -39,8 +42,7 @@ export class LabMapGenerator extends BaseMapGenerator {
     }
 
     // 2. Road Loop (Closed Rectangle)
-    // Vertical: x=14-18, 53-57. Horizontal: y=4-8, 75-79.
-    const lX = 14, rX = 53, tY = 4, bY = 75;
+    const { LEFT_X: lX, RIGHT_X: rX, TOP_Y: tY, BOTTOM_Y: bY } = LAYOUT.ROAD;
 
     // Vertical Legs
     for (let y = tY; y <= bY + roadT - 1; y++) {
@@ -55,9 +57,10 @@ export class LabMapGenerator extends BaseMapGenerator {
     }
 
     // 3. Entry/Exit Strips (North and South)
-    const centerX = 35;
-    const entryX = 33;
-    const entryW = 5;
+    const centerX = LAYOUT.ENTRY.CENTER_X;
+    const entryW = LAYOUT.ENTRY.WIDTH;
+    const entryX = centerX - Math.floor(entryW / 2);
+
     for (let x = entryX; x < entryX + entryW; x++) {
         for (let y = 0; y < tY; y++) builder.setTerrain(x, y, 'road');
         for (let y = bY + roadT; y < height; y++) builder.setTerrain(x, y, 'road');
@@ -90,17 +93,20 @@ export class LabMapGenerator extends BaseMapGenerator {
     }
 
     // 5. Compound Fence (Inner ring)
-    const fL = 22, fR = 49, fT = 12, fB = 71;
+    const { LEFT: fL, RIGHT: fR, TOP: fT, BOTTOM: fB } = LAYOUT.COMPOUND;
     this._drawHollowRect(builder, fL, fR, fT, fB, 'fence');
     
-    // Openings in compound fence (aligned with 4-wide corridor center cols 34-37)
-    for (let x = 34; x <= 37; x++) {
+    // Openings in compound fence (aligned with corridor)
+    // Corridor center is at building center
+    const buildingCenterX = LAYOUT.BUILDING.X + 9; // center of 18-wide building
+    for (let x = buildingCenterX - 2; x <= buildingCenterX + 1; x++) {
         builder.setTerrain(x, fT, 'grass');
         builder.setTerrain(x, fB, 'grass');
     }
 
-    // 6. Lab Building Shell (Width 18, Height 50)
-    this._drawLabBuilding(builder, 27, 17, 18, 50);
+    // 6. Lab Building Shell
+    const { X: bldgX, Y: bldgY, WIDTH: bldgW, HEIGHT: bldgH } = LAYOUT.BUILDING;
+    this._drawLabBuilding(builder, bldgX, bldgY, bldgW, bldgH);
   }
 
   /**
@@ -108,27 +114,28 @@ export class LabMapGenerator extends BaseMapGenerator {
    */
   passZoning(builder, context) {
     const { width, height } = builder;
+    const { OFFSET_X: ox, OFFSET_Y: oy, SPACING_Y: sy, COUNT: count } = LAYOUT.TENTS;
 
-    // 1. Army Tents (3 on each wing, evenly spaced)
-    const tentPositions = [
-        // Left Wing (x=1)
-        { x: 1, y: 15, facing: true },
-        { x: 1, y: 39, facing: true },
-        { x: 1, y: 63, facing: true },
-        // Right Wing (x=58)
-        { x: 58, y: 15, facing: false },
-        { x: 58, y: 39, facing: false },
-        { x: 58, y: 63, facing: false }
-    ];
+    // Army Tents
+    for (let i = 0; i < count; i++) {
+        const yPos = oy + (i * sy);
+        
+        // Left Wing
+        const leftX = ox;
+        builder.clearArea(leftX + 1, yPos + 1, 10, 6);
+        builder.drawArmyTent(leftX, yPos, true);
 
-    tentPositions.forEach(pos => {
-        builder.clearArea(pos.x + 1, pos.y + 1, 10, 6);
-        builder.drawArmyTent(pos.x, pos.y, pos.facing);
-    });
+        // Right Wing
+        const rightX = width - ox - 11; // 11 is tent width? Let's check MapBuilder. 
+        // Original was x=58 for width=70. 70-1-11 = 58. Correct.
+        builder.clearArea(rightX + 1, yPos + 1, 10, 6);
+        builder.drawArmyTent(rightX, yPos, false);
+    }
   }
 
   passSpecialization(builder, context) {
   }
+
 
   /**
    * PASS 4: Details - Metadata and final touches
@@ -240,7 +247,13 @@ export class LabMapGenerator extends BaseMapGenerator {
     });
 
     // Register
-    builder.registerBuilding('lab', x, y, w, h, { frontage: 'south', entranceX: hallXStart + 1, entranceY: y + h - 1 });
+    builder.registerBuilding('lab', x, y, w, h, { 
+        frontage: 'south', 
+        entranceX: hallXStart + 1, 
+        entranceY: y + h - 1,
+        hallXStart: hallXStart,
+        hallWidth: 4
+    });
   }
 
   _drawHollowRect(builder, x1, x2, y1, y2, terrain) {

@@ -357,24 +357,31 @@ export class InventoryManager extends SafeEventEmitter {
     
     const itemsToSave = this.groundContainer.getAllItems();
     if (itemsToSave.length > 0) {
-      // Filter out dragged item
-      const saveList = this.draggedItem 
-          ? itemsToSave.filter(it => it.instanceId !== this.draggedItem.instanceId)
-          : itemsToSave;
+      // Phase 25: Filter out carried items (dragged or ridden)
+      const saveList = itemsToSave.filter(it => {
+          const isDragged = this.draggedItem && it.instanceId === this.draggedItem.instanceId;
+          const isRidden = this.ridingItem && it.instanceId === this.ridingItem.instanceId;
+          return !isDragged && !isRidden;
+      });
           
       gameMap.setItemsOnTile(this.lastSyncedX, this.lastSyncedY, saveList.map(item => item.toJSON()));
       
-      // Clear container but KEEP dragged item
+      // Clear container but KEEP carried items
       this.groundContainer.clear();
-      if (this.draggedItem) {
-        const itemToKeep = itemsToSave.find(it => it.instanceId === this.draggedItem.instanceId);
-        if (itemToKeep) {
-          this.groundContainer.addItem(itemToKeep);
-          console.log(`[InventoryManager] 📦 Holding dragged item ${itemToKeep.name} (ID: ${itemToKeep.instanceId}) for transition`);
-        } else {
-          console.warn(`[InventoryManager] ❌ Could not find dragged item ${this.draggedItem.instanceId} in container to flush-hold!`);
-        }
-      }
+      
+      const carryItem = (targetItem, typeLabel) => {
+          if (!targetItem) return;
+          const itemToKeep = itemsToSave.find(it => it.instanceId === targetItem.instanceId);
+          if (itemToKeep) {
+            this.groundContainer.addItem(itemToKeep);
+            console.log(`[InventoryManager] 📦 Carried ${typeLabel} item ${itemToKeep.name} (ID: ${itemToKeep.instanceId}) during flush`);
+          } else {
+            console.warn(`[InventoryManager] ❌ Could not find ${typeLabel} item ${targetItem.instanceId} in container to flush-hold!`);
+          }
+      };
+
+      carryItem(this.draggedItem, 'dragged');
+      carryItem(this.ridingItem, 'ridden');
     }
     
     // Reset ownership tracking so next sync on new map works correctly

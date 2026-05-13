@@ -20,6 +20,7 @@ export class Zombie extends Entity {
     this.maxAP = stats.maxAP || 12;
     this.currentAP = this.maxAP;
     this.sightRange = stats.sightRange || 15;
+    this.accuracy = stats.accuracy || 0.5;
 
     // Movement multipliers (used by ZombieAI)
     this.moveCostMultiplier = stats.moveCostMultiplier || 1.0;
@@ -374,12 +375,8 @@ export class Zombie extends Entity {
       id: this.id,
       type: 'zombie',
       subtype: this.subtype,
-      x: this.renderX,
-      y: this.renderY,
-      gridX: this.gridX,
-      gridY: this.gridY,
-      logicalX: this.logicalX,
-      logicalY: this.logicalY,
+      x: this.logicalX,
+      y: this.logicalY,
       hp: this.hp,
       maxHp: this.maxHp,
       lastSeen: this.lastSeen,
@@ -409,18 +406,26 @@ export class Zombie extends Entity {
     zombie.heardNoise = !!data.heardNoise;
     zombie.targetSightedCoords = data.targetSightedCoords || { x: 0, y: 0 };
     zombie.noiseCoords = data.noiseCoords || { x: 0, y: 0 };
-    zombie.sightRange = data.sightRange || 18;
+    zombie.sightRange = data.sightRange || 15;
     zombie.behaviorState = data.behaviorState || 'idle';
     zombie.isActive = data.isActive || false;
     zombie.isAlerted = data.isAlerted || false;
     zombie.lastScentSequence = data.lastScentSequence || 0;
     zombie.interactionMemory = data.interactionMemory || 0;
     zombie.lastDirection = data.lastDirection || null;
-    zombie.hp = data.hp !== undefined ? data.hp : (data.maxHP || 10);
+    zombie.momentumSteps = data.momentumSteps || 0;
+    zombie.hp = data.hp !== undefined ? data.hp : (data.maxHp || 10);
+    zombie.maxHp = data.maxHp || 10;
+    
+    // Coordinates: Standardize on logical x/y
+    zombie.logicalX = data.x;
+    zombie.logicalY = data.y;
+    zombie.gridX = data.x;
+    zombie.gridY = data.y;
     zombie.x = data.x;
     zombie.y = data.y;
 
-    // Reset ALL transient rendering state on load 
+    // Reset transient rendering state
     zombie.isMoving = false;
     zombie.movementStartTime = null;
     zombie.movementPath = [];
@@ -428,12 +433,8 @@ export class Zombie extends Entity {
     zombie.animationProgress = 0;
     zombie.prevX = data.x;
     zombie.prevY = data.y;
-    zombie.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x);
-    zombie.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y);
     zombie.renderX = data.x;
     zombie.renderY = data.y;
-    zombie.logicalX = zombie.gridX;
-    zombie.logicalY = zombie.gridY;
     zombie.currentTarget = data.currentTarget || null;
 
     return zombie;
