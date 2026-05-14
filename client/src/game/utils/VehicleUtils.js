@@ -31,7 +31,7 @@ export const VehicleUtils = {
 
       // Calculate the raw penalty/bonus for each active item at this step
       for (const item of itemArray) {
-        const basePenalty = item.dragApPenalty || 2;
+        const basePenalty = item.dragApPenalty ?? 2;
         let motorBonusValue = 0;
         
         if (item.hasTrait?.(ItemTrait.WAGON) && typeof item.getMotorizedBonus === 'function') {

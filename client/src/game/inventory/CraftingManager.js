@@ -126,10 +126,15 @@ export class CraftingManager {
             }
 
             if (found) {
-                // If the tool has a capacity (like a lighter), it must have at least 1 charge
+                // 1. If the tool has a capacity (like a lighter), it must have at least 1 charge
                 if (found.capacity !== null && (found.ammoCount === null || found.ammoCount <= 0)) {
                     missing.push(`${found.name} (Empty)`);
                     found = null; // Mark as not found for this requirement
+                } 
+                // 2. If the tool is degradable (like a hammer), it must have at least 1 condition
+                else if (found.isDegradable() && (found.condition === null || found.condition <= 0)) {
+                    missing.push(`${found.name} (Broken)`);
+                    found = null;
                 }
             }
 
@@ -444,7 +449,7 @@ export class CraftingManager {
             }
         }
 
-        // Tools: Consume a charge from tools that have charges (e.g. Lighter)
+        // Tools: Consume a charge or degrade condition
         for (const toolReq of recipe.tools) {
             const toolContainer = this.inv.getContainer(toolContainerId);
             const currentTools = toolContainer.getAllItems();
@@ -456,15 +461,21 @@ export class CraftingManager {
                 found = currentTools.find(t => t.defId === toolReq.id || (toolReq.category && t.categories.includes(toolReq.category)));
             }
 
-            if (found && found.capacity !== null && (found.ammoCount !== null && found.ammoCount > 0)) {
-                // Use the helper for tool consumption from stack
+            if (found) {
+                // Use the helper for tool consumption from stack (e.g. for matches)
                 const singleTool = this._consumeFromStack(found, toolContainer);
                 if (!singleTool) return { success: false, reason: 'No space in workspace to use tool' };
-                
-                singleTool.ammoCount -= 1;
-                console.log(`[CraftingManager] Consumed 1 charge from tool: ${singleTool.name}. Remaining: ${singleTool.ammoCount}`);
-            } else if (found) {
-                console.warn(`[CraftingManager] Found ${found.name} but cannot consume charge (capacity: ${found.capacity}, ammo: ${found.ammoCount})`);
+
+                if (singleTool.capacity !== null && (singleTool.ammoCount !== null && singleTool.ammoCount > 0)) {
+                    // Charge-based consumption (Lighter, Matches)
+                    singleTool.ammoCount -= 1;
+                    console.log(`[CraftingManager] Consumed 1 charge from tool: ${singleTool.name}. Remaining: ${singleTool.ammoCount}`);
+                } else if (singleTool.isDegradable()) {
+                    // Condition-based degradation (Hammer, Knife)
+                    // Uses default fragility (2) or def-specified fragility, same as combat.
+                    singleTool.degrade();
+                    console.log(`[CraftingManager] Degraded tool: ${singleTool.name}. Remaining: ${singleTool.condition}`);
+                }
             }
         }
 

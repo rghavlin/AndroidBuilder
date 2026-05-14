@@ -127,10 +127,13 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                     ).map(({ stat, value }: { stat: string; value: any }) => (
                         <div key={stat} className="flex justify-between">
                             <span className="text-zinc-500 capitalize">{stat.replace(/_/g, ' ')}</span>
-                            <span className="text-green-400 font-medium">
+                            <span className={cn(
+                                "font-medium",
+                                (typeof value === 'number' && value < 0) || (typeof value === 'object' && value !== null && 'min' in value && value.min < 0) ? "text-orange-500" : "text-green-400"
+                            )}>
                                 {typeof value === 'object' && value !== null && 'min' in value && 'max' in value
-                                    ? `+${value.min}-${value.max}`
-                                    : (typeof value === 'number' ? `+${value}` : String(value))}
+                                    ? (value.min >= 0 ? `+${value.min}-${value.max}` : `${value.min}-${value.max}`)
+                                    : (typeof value === 'number' ? (value >= 0 ? `+${value}` : `${value}`) : String(value))}
                             </span>
                         </div>
                     ))}

@@ -21,6 +21,7 @@ export class GameSaveSystem {
 
         // Core game state - only essential data
         turn: gameState.turn,
+        bookStats: engine.bookStats,
 
         // Map state (includes all tiles and entities) - this contains positions
         gameMap: gameState.gameMap ? gameState.gameMap.toJSON() : null,
@@ -176,6 +177,10 @@ export class GameSaveSystem {
         metadata: saveData.metadata || {},
         interactionState: saveData.interactionState || null
       };
+
+      if (saveData.bookStats) {
+          engine.bookStats = saveData.bookStats;
+      }
 
       console.log('[GameSaveSystem] Game state loaded successfully');
       console.log('[GameSaveSystem] Player restored at position:', player.x, player.y);

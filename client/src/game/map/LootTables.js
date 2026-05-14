@@ -12,9 +12,6 @@ export const SPECIAL_BUILDING_LOOT = {
         { key: 'food.chips', weight: 25 },
         { key: 'food.beans', weight: 15 },
         { key: 'food.cannedcorn', weight: 15 },
-        { key: 'food.tomato', weight: 10 },
-        { key: 'food.carrot', weight: 10 },
-        { key: 'food.corn', weight: 10 },
         { key: 'food.cornseeds', weight: 5 },
         { key: 'food.tomatoseeds', weight: 5 },
         { key: 'food.carrotseeds', weight: 5 },
@@ -59,7 +56,7 @@ export const SPECIAL_BUILDING_LOOT = {
         }
     },
     hardware_store: {
-        tools: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.smallflashlight', 'weapon.knife'],
+        tools: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.smallflashlight', 'weapon.knife', 'tool.crank_charger'],
         materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery'],
         rules: {
             guaranteedTech: ['crafting.solar_panel', 'tool.battery_charger']
@@ -97,7 +94,7 @@ export const ZOMBIE_LOOT = {
         ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells', 'ammo.556']
     },
     uncommon: [
-        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink',
+        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink', 'book.life_in_motion',
         'medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant', 'crafting.leather_belt', 'belt.pouch', 'belt.tool_ring'
     ],
     exotic: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight']

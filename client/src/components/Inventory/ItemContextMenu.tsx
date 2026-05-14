@@ -38,7 +38,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, drinkWater, unrollBedroll, rollupBedroll, disassembleItem, startDrag, stopDrag } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -362,6 +362,42 @@ export function ItemContextMenu({
                                     className="hover:bg-accent focus:bg-accent focus:text-white"
                                 >
                                     Roll up
+                                </ContextMenuItem>
+                            </>
+                        )}
+                        {item?.defId === 'tool.crank_charger' && (
+                            <>
+                                <ContextMenuItem
+                                    onClick={() => crankCharger(item, 1)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!engine.player || engine.player.ap < 1}
+                                >
+                                    Crank 1 (1ap)
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                    onClick={() => crankCharger(item, 'max')}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!engine.player || engine.player.ap < 1}
+                                >
+                                    Crank Max ({engine.player?.ap || 0}ap)
+                                </ContextMenuItem>
+                            </>
+                        )}
+                        {item?.hasTrait?.(ItemTrait.READABLE) && (
+                            <>
+                                <ContextMenuItem
+                                    onClick={() => readBook(item, 1)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!engine.player || engine.player.ap < 1 || (engine.bookStats?.[item.defId]?.pagesLeft || 0) <= 0}
+                                >
+                                    Read 1 (1ap)
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                    onClick={() => readBook(item, 'max')}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!engine.player || engine.player.ap < 1 || (engine.bookStats?.[item.defId]?.pagesLeft || 0) <= 0}
+                                >
+                                    Read Max (all ap)
                                 </ContextMenuItem>
                             </>
                         )}

@@ -133,6 +133,7 @@ export default function FloatingContainerOverlay({
           ? "" 
           : ""
       )}
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Selection Handles for Planter Box Frame */}
       {isPlanter && !isDraggingSeed && (

@@ -66,6 +66,14 @@ class GameEngine extends SafeEventEmitter {
     this.weather = { type: 'clear', intensity: 0 }; 
     this.weatherManager = new WeatherManager(this);
 
+    // Phase: Book Tracking
+    this.bookStats = {
+      'book.life_in_motion': {
+        pagesLeft: 1000,
+        milestonesReached: 0 // Track how many 100-page milestones were processed
+      }
+    };
+
     // Phase 4: Master Heartbeat Infrastructure
     this.activeActions = new Set();
     this.lastFrameTime = performance.now();

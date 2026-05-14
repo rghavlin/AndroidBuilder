@@ -71,7 +71,7 @@ export const ItemDefs = {
     height: 6,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
-    dragApPenalty: 2,
+    dragApPenalty: 1,
     motorAssistBonus: 0.5,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
@@ -1632,6 +1632,7 @@ export const ItemDefs = {
   'food.corn': {
     id: 'food.corn',
     name: 'Corn',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'corn',
     width: 1,
@@ -1647,6 +1648,7 @@ export const ItemDefs = {
   'food.tomato': {
     id: 'food.tomato',
     name: 'Tomato',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'tomato',
     width: 1,
@@ -1707,6 +1709,7 @@ export const ItemDefs = {
   'food.carrot': {
     id: 'food.carrot',
     name: 'Carrot',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'carrot',
     width: 1,
@@ -2271,6 +2274,17 @@ export const ItemDefs = {
     noLoot: true,
     renderFullTile: true
   },
+  'book.life_in_motion': {
+    id: 'book.life_in_motion',
+    name: 'Life in Motion',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'book',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK],
+    description: 'A thick book with 1000 pages of wisdom about movement and stamina.'
+  },
   'tool.battery_charger': {
     id: 'tool.battery_charger',
     name: 'Battery charger',
@@ -2301,6 +2315,21 @@ export const ItemDefs = {
       allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
     },
     noLoot: true
+  },
+  'tool.crank_charger': {
+    id: 'tool.crank_charger',
+    name: 'Hand-cranked battery charger',
+    rarity: Rarity.RARE,
+    imageId: 'crankcharger',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
+    categories: [ItemCategory.TOOL],
+    containerGrid: { 
+      width: 2, 
+      height: 1, 
+      allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
+    }
   }
 };
 

@@ -8,6 +8,7 @@ import { useAudio } from './AudioContext.jsx';
 import Logger from '../game/utils/Logger.js';
 import engine from '../game/GameEngine.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import { TurnProcessingUtils } from '../game/utils/TurnProcessingUtils.js';
 
 const logger = Logger.scope('InventoryContext');
 
@@ -711,6 +712,106 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, playSound]);
 
+  const crankCharger = useCallback((item, amount = 1) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
+    if (!engine.player || !engine.inventoryManager) return { success: false };
+    
+    const player = engine.player;
+    const apAvailable = player.ap || 0;
+    const apNeeded = amount === 'max' ? apAvailable : amount;
+    
+    if (apNeeded <= 0) {
+      addLog("Not enough AP to crank.", 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    const container = item.getContainerGrid?.();
+    if (!container) return { success: false, reason: 'No container found' };
+
+    const batteries = container.getAllItems();
+    if (batteries.length === 0) {
+      addLog("The charger is empty.", 'warning');
+      playSound('EmptyClick');
+      return { success: false, reason: 'Empty' };
+    }
+
+    // Check if any battery needs charging
+    const needsCharging = batteries.some(b => {
+      const max = b.capacity || (b.defId === 'tool.large_battery' ? 100 : 10);
+      return (b.ammoCount || 0) < max;
+    });
+
+    if (!needsCharging) {
+      addLog("All batteries are already full.", 'info');
+      playSound('Click');
+      return { success: false, reason: 'Full' };
+    }
+
+    // Perform charging
+    for (let i = 0; i < apNeeded; i++) {
+       TurnProcessingUtils.chargeBatteries(batteries);
+    }
+    
+    player.useAP(apNeeded);
+    addLog(`You crank the charger ${apNeeded} times.`, 'item');
+    playSound('Click'); 
+    
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
+  const readBook = useCallback((item, amount = 1) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
+    if (!engine.player || !engine.bookStats) return { success: false };
+    
+    const stats = engine.bookStats[item.defId];
+    if (!stats) return { success: false, reason: 'No stats for book' };
+
+    const player = engine.player;
+    const apAvailable = player.ap || 0;
+    const apNeeded = amount === 'max' ? Math.floor(Math.min(apAvailable, stats.pagesLeft)) : amount;
+    
+    if (apNeeded <= 0) {
+      if (stats.pagesLeft <= 0) {
+          addLog("You have already finished this book.", 'info');
+      } else {
+          addLog("Not enough AP to read.", 'error');
+          playSound('Fail');
+      }
+      return { success: false, reason: 'Not enough AP' };
+    }
+
+    if (stats.pagesLeft < apNeeded) {
+        addLog("Not enough pages left in the book.", 'error');
+        return { success: false, reason: 'Not enough pages' };
+    }
+
+    // Process reading
+    stats.pagesLeft -= apNeeded;
+    player.useAP(apNeeded);
+    
+    // Milestone check: Every 100 pages increases maxAp by 1
+    const totalPagesRead = 1000 - stats.pagesLeft;
+    const currentMilestones = Math.floor(totalPagesRead / 100);
+    const newMilestones = currentMilestones - (stats.milestonesReached || 0);
+    
+    if (newMilestones > 0) {
+        player.modifyStat('maxAp', newMilestones);
+        stats.milestonesReached = currentMilestones;
+        addLog(`You feel enlightened. Max AP increased by ${newMilestones}!`, 'success');
+        playSound('LevelUp');
+    }
+
+    addLog(`You read ${apNeeded} pages of "${item.name}".`, 'item');
+    playSound('Click'); 
+    
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
   const disassembleItem = useCallback((item) => {
     if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager || !engine.player) return { success: false };
@@ -1320,6 +1421,28 @@ export const InventoryProvider = ({ children }) => {
     engine.notifyUpdate();
   }, [addLog, playSound]);
 
+  // Phase: Auto-dismount when battery dies during move
+  useEffect(() => {
+    const handleMoveEnded = () => {
+      const riding = engine.riding;
+      if (riding && riding.item) {
+        const item = riding.item;
+        if (item.hasTrait(ItemTrait.SCOOTER)) {
+          // If the battery is empty, isScooterRideActive will return false
+          if (!item.isScooterRideActive()) {
+            stopRiding();
+            addLog(`${item.name} battery is dead. You dismount.`, 'warning');
+          }
+        }
+      }
+    };
+    
+    GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, handleMoveEnded);
+    return () => {
+      GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, handleMoveEnded);
+    };
+  }, [stopRiding, addLog]);
+
   const contextValue = useMemo(() => ({
     inventoryManager: engine.inventoryManager,
     inventoryPulse,
@@ -1345,6 +1468,8 @@ export const InventoryProvider = ({ children }) => {
     drinkWater,
     unrollBedroll,
     rollupBedroll,
+    crankCharger,
+    readBook,
     disassembleItem,
     selectedRecipeId,
     setSelectedRecipeId,
@@ -1374,7 +1499,7 @@ export const InventoryProvider = ({ children }) => {
     inventoryRef: { current: engine.inventoryManager },
     forceRefresh: () => engine.notifyUpdate(),
     inventoryVersion: inventoryPulse
-  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding]);
+  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding, crankCharger, readBook]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

@@ -51,7 +51,8 @@ export const ItemCategory = {
   HOLSTER: 'holster',
   AMMO_POUCH: 'ammo_pouch',
   TOOL_RING: 'tool_ring',
-  BELT_POUCH: 'belt_pouch'
+  BELT_POUCH: 'belt_pouch',
+  BOOK: 'book'
 };
 
 // Trait flags
@@ -83,7 +84,8 @@ export const ItemTrait = {
   PLANTER: 'planter',
   SCOOTER: 'scooter',
   FURNITURE: 'furniture',
-  WATER_SOURCE: 'water_source'
+  WATER_SOURCE: 'water_source',
+  READABLE: 'readable'
 };
 
 // Item rarity levels for loot generation
@@ -116,7 +118,8 @@ export const CategoryDisplayName = {
   [ItemCategory.HOLSTER]: 'misc',
   [ItemCategory.AMMO_POUCH]: 'misc',
   [ItemCategory.TOOL_RING]: 'misc',
-  [ItemCategory.BELT_POUCH]: 'misc'
+  [ItemCategory.BELT_POUCH]: 'misc',
+  [ItemCategory.BOOK]: 'misc'
 };
 
 // Map equipment slots to user-friendly category fallbacks

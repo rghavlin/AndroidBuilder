@@ -2404,24 +2404,33 @@ export class InventoryManager extends SafeEventEmitter {
     
     // Check for tool in the SAME container
     const itemsInContainer = container.getAllItems();
-    let hasTool = false;
+    let toolInstance = null;
     
     const toolId = data.toolId;
     if (typeof toolId === 'string') {
-      hasTool = itemsInContainer.some(i => i.defId === toolId);
+      toolInstance = itemsInContainer.find(i => i.defId === toolId && (!i.isDegradable() || i.condition > 0));
     } else if (toolId && toolId.either) {
-      hasTool = itemsInContainer.some(i => toolId.either.includes(i.defId));
+      toolInstance = itemsInContainer.find(i => toolId.either.includes(i.defId) && (!i.isDegradable() || i.condition > 0));
     }
     
-    if (!hasTool) {
-      console.warn('[InventoryManager] Missing required tool for disassembly:', toolId);
+    if (!toolInstance) {
+      console.warn('[InventoryManager] Missing or broken required tool for disassembly:', toolId);
       return false;
     }
     
     // 1. Remove the item from its container
     container.removeItem(item.instanceId);
+
+    // 2. Degrade the tool
+    if (toolInstance.isDegradable()) {
+      toolInstance.degrade();
+      console.log(`[InventoryManager] Degraded tool ${toolInstance.name} during disassembly. Condition: ${toolInstance.condition}`);
+    } else if (toolInstance.capacity !== null && (toolInstance.ammoCount !== null && toolInstance.ammoCount > 0)) {
+      toolInstance.ammoCount -= 1;
+      console.log(`[InventoryManager] Consumed charge from tool ${toolInstance.name} during disassembly. Ammo: ${toolInstance.ammoCount}`);
+    }
     
-    // 2. Add component parts to the SAME container
+    // 3. Add component parts to the SAME container
     data.components.forEach(comp => {
       const def = ItemDefs[comp.id];
       if (!def) return;

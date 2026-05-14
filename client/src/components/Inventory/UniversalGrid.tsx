@@ -891,6 +891,7 @@ export default function UniversalGrid({
         className
       )}
       data-inventory-ui="true"
+      onClick={handleGridContainerClick}
     >
       {title && (
         <h4 className="text-xs font-medium text-muted-foreground mb-2 text-center flex-shrink-0">
@@ -911,6 +912,7 @@ export default function UniversalGrid({
           width: gridType === 'fixed' ? `${totalGridWidth + (scrollbarGutter ? 16 : 0)}px` : undefined,
           height: (gridType === 'fixed' && !enableScroll) ? `${totalGridHeight}px` : undefined,
         }}
+        onClick={handleGridContainerClick}
       >
         {renderGrid()}
       </div>

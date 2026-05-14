@@ -3,6 +3,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { ItemContextMenu } from "./ItemContextMenu";
+import { ItemTooltip } from "./ItemTooltip";
 import { useInventory } from "@/contexts/InventoryContext";
 
 interface WorkspaceSlotProps {
@@ -62,7 +63,7 @@ const WorkspaceSlot = memo(({
     return (
         <ItemContextMenu
                 item={item}
-                tooltipContent={<p className="font-medium text-xs">{item ? item.name : label}</p>}
+                tooltipContent={item ? <ItemTooltip item={item} /> : <p className="font-medium text-xs">{label}</p>}
             >
                 <div
                     className={cn(

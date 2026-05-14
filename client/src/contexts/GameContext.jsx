@@ -580,8 +580,8 @@ const GameContextInner = ({ children }) => {
     if (player.hydration === 0) player.takeDamage(1, { id: 'survival', type: 'dehydration' });
 
     // AP Allotment
-    const totalPenalty = Math.floor(Math.max(0, 25 - player.energy) / 5) + Math.floor(Math.max(0, 20 - player.hp) / 5);
-    player.restoreAP(Math.max(0, 20 - totalPenalty));
+    const totalPenalty = Math.floor(Math.max(0, player.maxEnergy - player.energy) / 5) + Math.floor(Math.max(0, player.maxHp - player.hp) / 5);
+    player.restoreAP(Math.max(0, player.maxAp - totalPenalty));
 
     // 8. Time/Weather
     const newTurn = turn + 1;

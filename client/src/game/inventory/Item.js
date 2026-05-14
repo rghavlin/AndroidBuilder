@@ -697,6 +697,13 @@ export class Item extends SafeEventEmitter {
     if (this.hasTrait(ItemTrait.BATTERY)) {
       return this.ammoCount || 0;
     }
+    
+    // 6. If it's a book, show global pages left
+    if (this.hasTrait(ItemTrait.READABLE)) {
+      // Use window.gameEngine as the bridge to global state
+      const engine = window.gameEngine;
+      return engine?.bookStats?.[this.defId]?.pagesLeft ?? 1000;
+    }
 
     // 6. If it's an ignitable item (Torch), show its condition as charges
     if (this.hasTrait(ItemTrait.IGNITABLE)) {
