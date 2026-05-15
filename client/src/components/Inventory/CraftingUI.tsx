@@ -19,6 +19,8 @@ export default function CraftingUI() {
         selectedRecipeId,
         setSelectedRecipeId,
         craftItem,
+        autoloadRecipe,
+        unloadCrafting,
         clearCraftingArea,
         inventoryRef,
         inventoryVersion
@@ -29,6 +31,34 @@ export default function CraftingUI() {
     const { playSound } = useAudio();
 
     const [activeTab, setActiveTab] = useState<'crafting' | 'cooking'>('crafting');
+    const [isAutoloaded, setIsAutoloaded] = useState(false);
+
+    // Reset autoload state when recipe or tab changes
+    useEffect(() => {
+        setIsAutoloaded(false);
+    }, [selectedRecipeId, activeTab]);
+
+    const handleAutoloadToggle = () => {
+        if (isAutoloaded) {
+            unloadCrafting();
+            setIsAutoloaded(false);
+        } else {
+            const result = autoloadRecipe(selectedRecipeId);
+            if (result.success) {
+                // Verify if items were actually moved to workspace
+                const inv = inventoryRef.current;
+                const tools = inv?.getContainer('crafting-tools');
+                const ingredients = inv?.getContainer('crafting-ingredients');
+                const hasItems = (tools?.items?.size > 0) || (ingredients?.items?.size > 0);
+
+                if (hasItems) {
+                    setIsAutoloaded(true);
+                } else {
+                    addLog("No tools or ingredients found to autoload.", "info");
+                }
+            }
+        }
+    };
 
     // Cleanup crafting area on unmount (when window closes)
     useEffect(() => {
@@ -180,7 +210,7 @@ export default function CraftingUI() {
                 <button
                     onClick={() => setActiveTab('crafting')}
                     className={cn(
-                        "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors",
+                        "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold uppercase tracking-wider transition-colors",
                         activeTab === 'crafting'
                             ? "bg-primary/10 text-primary border-b-2 border-primary"
                             : "text-muted-foreground hover:bg-card/50 hover:text-foreground"
@@ -192,7 +222,7 @@ export default function CraftingUI() {
                 <button
                     onClick={() => setActiveTab('cooking')}
                     className={cn(
-                        "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors",
+                        "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold uppercase tracking-wider transition-colors",
                         activeTab === 'cooking'
                             ? "bg-primary/10 text-primary border-b-2 border-primary"
                             : "text-muted-foreground hover:bg-card/50 hover:text-foreground"
@@ -239,13 +269,13 @@ export default function CraftingUI() {
                     ) : (
                         <>
                             {/* Top: Header & Stats */}
-                            <div className="p-3 border-b border-border space-y-3 bg-secondary/5">
-                                <div className="flex flex-col gap-2">
+                            <div className="p-2 px-3 border-b border-border space-y-2 bg-secondary/5">
+                                <div className="flex flex-col gap-1">
                                     <h3 className="text-sm font-bold uppercase tracking-tight">{selectedRecipe.name}</h3>
                                     
                                      {/* Stew Stats (Dynamic) */}
                                     {predictedStewStats && (
-                                        <div className="flex flex-col gap-1.5 p-2 bg-black/30 rounded border border-primary/20">
+                                        <div className="flex flex-col gap-1.5 p-1.5 bg-black/30 rounded border border-primary/20">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex items-center gap-1.5">
@@ -266,14 +296,9 @@ export default function CraftingUI() {
                                                 </span>
                                             </div>
 
-                                            {(predictedStewStats.isLimitedByWater || predictedStewStats.isLimitedByCount) && !predictedStewStats.isMaxPotential && (
+                                            {predictedStewStats.isLimitedByCount && !predictedStewStats.isMaxPotential && (
                                                 <div className="text-[8px] font-bold uppercase tracking-tight flex gap-2">
-                                                    {predictedStewStats.isLimitedByWater && (
-                                                        <span className="text-blue-300/60 italic">* Add more water for more hydration</span>
-                                                    )}
-                                                    {predictedStewStats.isLimitedByCount && (
-                                                        <span className="text-orange-300/60 italic">* Max 4 units (Meat=2, Veg=1)</span>
-                                                    )}
+                                                    <span className="text-orange-300/60 italic">* Max 4 units (Meat=2, Veg=1)</span>
                                                 </div>
                                             )}
                                         </div>
@@ -300,7 +325,7 @@ export default function CraftingUI() {
                                     )}
                                 </div>
 
-                                <div className="space-y-1.5 pt-1 border-t border-border/50">
+                                <div className="space-y-1 pt-0.5 border-t border-border/50">
                                     <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                         <div className="flex items-center gap-2">
                                             <span>Requirements</span>
@@ -358,7 +383,7 @@ export default function CraftingUI() {
                             </div>
 
                             {/* Middle: Workspace Containers */}
-                            <div className="flex-1 flex flex-col p-3 min-h-0 bg-secondary/20">
+                            <div className="flex-1 flex flex-col p-2 min-h-0 bg-secondary/20">
                                 <div className="space-y-4">
                                     <div className="flex justify-around items-start">
                                         {/* Left Column: Tool Slot + Action Button */}
@@ -384,6 +409,21 @@ export default function CraftingUI() {
                                                 >
                                                     {activeTab === 'cooking' ? 'COOK' : 'CRAFT'}
                                                 </Button>
+
+                                                {/* Autoload/Unload Button (Crafting only) */}
+                                                {activeTab === 'crafting' && selectedRecipeId && (
+                                                    <Button
+                                                        onClick={handleAutoloadToggle}
+                                                        className={cn(
+                                                            "w-24 h-8 text-[10px] font-bold mt-2 transition-all shadow-md",
+                                                            isAutoloaded 
+                                                                ? "bg-orange-600 hover:bg-orange-700 text-white border-orange-500/50" 
+                                                                : "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50"
+                                                        )}
+                                                    >
+                                                        {isAutoloaded ? 'UNLOAD' : 'AUTOLOAD'}
+                                                    </Button>
+                                                )}
                                                 {!craftingStatus.canCraft && craftingStatus.missing.length > 0 && (
                                                     <div className="mt-2 text-[9px] text-red-300 font-medium animate-in fade-in slide-in-from-top-1 text-center max-w-[100px] leading-tight text-white shadow-[0_0_10px_rgba(239,68,68,0.2)] bg-red-950/40 rounded p-1">
                                                         Missing: {craftingStatus.missing.join(', ')}

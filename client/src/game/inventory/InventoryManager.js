@@ -84,7 +84,7 @@ export class InventoryManager extends SafeEventEmitter {
       type: 'crafting-workspace',
       name: 'Cooking Ingredients',
       width: 5,
-      height: 6
+      height: 3
     }));
 
     this.craftingManager = new CraftingManager(this);
@@ -1669,23 +1669,21 @@ export class InventoryManager extends SafeEventEmitter {
       // Search and merge
       console.log(`[InventoryManager] Checking ${potentialContainers.length} containers for stacking:`, potentialContainers.map(c => c.id));
       for (const container of potentialContainers) {
-        // Find existing items with same defId
-        for (const existingItem of container.items.values()) {
-          const canStack = existingItem.canStackWith(item);
-          if (canStack && existingItem.stackCount < existingItem.stackMax) {
+        const stackTarget = this._findStackRecursive(container, item);
+        if (stackTarget) {
+            const { existingItem, container: targetContainer } = stackTarget;
             const spaceInStack = existingItem.stackMax - existingItem.stackCount;
             const amountToTake = Math.min(item.stackCount, spaceInStack);
             
             existingItem.stackCount += amountToTake;
             item.stackCount -= amountToTake;
             
-            console.log(`[InventoryManager] ✅ SUCCESS: Merged ${amountToTake} into existing stack in ${container.id}. Item remaining: ${item.stackCount}`);
+            console.log(`[InventoryManager] ✅ SUCCESS: Merged ${amountToTake} into existing stack in ${targetContainer.id}. Item remaining: ${item.stackCount}`);
             
             if (item.stackCount <= 0) {
               this.emit('inventoryChanged');
-              return { success: true, container: container.id, merged: true };
+              return { success: true, container: targetContainer.id, merged: true };
             }
-          }
         }
       }
       console.log(`[InventoryManager] No valid stack found for: ${item.name}`);
@@ -2082,6 +2080,95 @@ export class InventoryManager extends SafeEventEmitter {
     return { success: true };
   }
 
+  /**
+   * Find all items matching a requirement across all containers
+   * @param {Object} req - { id, category, either, properties }
+   * @returns {Array} - Array of { item, container }
+   */
+  findMatchingItems(req) {
+    const results = [];
+    const visited = new Set();
+
+    const searchRecursive = (container) => {
+      if (!container || !container.id || visited.has(container.id)) return;
+      visited.add(container.id);
+
+      for (const item of container.items.values()) {
+        // 1. Check if item matches
+        let match = false;
+        if (req.either) {
+          match = req.either.includes(item.defId) || (item.categories && item.categories.some(cat => req.either.includes(cat)));
+        } else if (req.category) {
+          match = item.categories && item.categories.includes(req.category);
+        } else if (req.id) {
+          match = item.defId === req.id;
+        }
+
+        if (match && req.properties) {
+          match = Object.entries(req.properties).every(([prop, val]) => item[prop] === val);
+        }
+
+        if (match) {
+          results.push({ item, container });
+        }
+
+        // 2. Recurse into item's containers
+        const grid = item.getContainerGrid?.();
+        if (grid) searchRecursive(grid);
+        
+        const pockets = item.getPocketContainers?.();
+        if (pockets) pockets.forEach(searchRecursive);
+        
+        if (item.attachments) {
+            for (const att of Object.values(item.attachments)) {
+                if (att) {
+                    const attGrid = att.getContainerGrid?.();
+                    if (attGrid) searchRecursive(attGrid);
+                }
+            }
+        }
+      }
+    };
+
+    // Search root containers
+    for (const container of this.containers.values()) {
+      // Skip workspaces to avoid finding items already in workspace
+      if (container.id.includes('workspace') || container.id.includes('-tools') || container.id.includes('-ingredients')) continue;
+      searchRecursive(container);
+    }
+
+    // Also check equipment directly (for items not in containers but in slots)
+    for (const [slot, item] of Object.entries(this.equipment)) {
+        if (!item) continue;
+        
+        let match = false;
+        if (req.either) {
+          match = req.either.includes(item.defId) || (item.categories && item.categories.some(cat => req.either.includes(cat)));
+        } else if (req.category) {
+          match = item.categories && item.categories.includes(req.category);
+        } else if (req.id) {
+          match = item.defId === req.id;
+        }
+
+        if (match && req.properties) {
+          match = Object.entries(req.properties).every(([prop, val]) => item[prop] === val);
+        }
+
+        if (match) {
+            results.push({ item, equipment: slot });
+        }
+        
+        // Internal grids (if not already found via this.containers)
+        const grid = item.getContainerGrid?.();
+        if (grid) searchRecursive(grid);
+
+        const pockets = item.getPocketContainers?.();
+        if (pockets) pockets.forEach(searchRecursive);
+    }
+
+    return results;
+  }
+
   findItem(itemId) {
     if (!itemId) return null;
 
@@ -2257,6 +2344,33 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
     return count;
+  }
+
+  /**
+   * Internal recursive search for a stack target
+   */
+  _findStackRecursive(container, item) {
+    if (!container || !container.items) return null;
+    for (const existingItem of container.items.values()) {
+      if (existingItem.canStackWith(item) && existingItem.stackCount < existingItem.stackMax) {
+        return { existingItem, container };
+      }
+      
+      const grid = existingItem.getContainerGrid?.();
+      if (grid) {
+        const found = this._findStackRecursive(grid, item);
+        if (found) return found;
+      }
+      
+      const pockets = existingItem.getPocketContainers?.();
+      if (pockets) {
+        for (const p of pockets) {
+          const found = this._findStackRecursive(p, item);
+          if (found) return found;
+        }
+      }
+    }
+    return null;
   }
 
   /**

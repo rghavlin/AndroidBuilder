@@ -531,4 +531,78 @@ export class CraftingManager {
         return { success: false, reason: 'Internal error: ' + error.message };
     }
     }
+
+    /**
+     * Autoload tools and ingredients for a recipe
+     */
+    autoload(recipeId) {
+        const recipe = CraftingRecipes.find(r => r.id === recipeId);
+        if (!recipe) return { success: false, reason: 'Recipe not found' };
+
+        // 1. Unload existing crafting items first
+        this.unload();
+
+        const toolContainer = this.inv.getContainer('crafting-tools');
+        const ingredientContainer = this.inv.getContainer('crafting-ingredients');
+
+        // 2. Find and move tools
+        for (const toolReq of recipe.tools) {
+            const found = this.inv.findMatchingItems(toolReq)[0];
+            if (found) {
+                const { item, container, equipment } = found;
+                const sourceId = container ? container.id : `equipment-${equipment}`;
+                this.inv.moveItem(item.instanceId, sourceId, 'crafting-tools');
+            }
+        }
+
+        // 3. Find and move ingredients
+        for (const ingReq of recipe.ingredients) {
+            let needed = ingReq.count;
+            const candidates = this.inv.findMatchingItems(ingReq).filter(c => !c.equipment);
+            
+            for (const { item, container, equipment } of candidates) {
+                if (needed <= 0) break;
+                
+                const sourceId = container ? container.id : `equipment-${equipment}`;
+                
+                if (item.stackCount <= needed) {
+                    const count = item.stackCount;
+                    this.inv.moveItem(item.instanceId, sourceId, 'crafting-ingredients');
+                    needed -= count;
+                } else {
+                    const split = item.splitStack(needed);
+                    if (split) {
+                        item.stackCount -= needed;
+                        ingredientContainer.addItem(split);
+                        needed = 0;
+                    }
+                }
+            }
+        }
+        
+        this.inv.emit('inventoryChanged');
+        return { success: true };
+    }
+
+    /**
+     * Unload crafting workspace
+     */
+    unload() {
+        const toolContainer = this.inv.getContainer('crafting-tools');
+        const ingredientContainer = this.inv.getContainer('crafting-ingredients');
+        
+        const items = [
+            ...toolContainer.getAllItems(),
+            ...ingredientContainer.getAllItems()
+        ];
+        
+        items.forEach(item => {
+            if (item._container) {
+                item._container.removeItem(item.instanceId);
+            }
+            this.inv.addItem(item, null, null, null, true);
+        });
+        
+        this.inv.emit('inventoryChanged');
+    }
 }

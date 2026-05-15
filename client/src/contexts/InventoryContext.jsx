@@ -877,6 +877,16 @@ export const InventoryProvider = ({ children }) => {
     return result;
   }, [addLog, playSound]);
 
+  const autoloadRecipe = useCallback((recipeId) => {
+    if (!engine.inventoryManager) return { success: false };
+    return engine.inventoryManager.craftingManager.autoload(recipeId);
+  }, []);
+
+  const unloadCrafting = useCallback(() => {
+    if (!engine.inventoryManager) return;
+    return engine.inventoryManager.craftingManager.unload();
+  }, []);
+
   const clearCraftingArea = useCallback(() => engine.inventoryManager?.clearCraftingArea(), []);
 
   const getPlacementPreview = useCallback((containerId, x, y) => {
@@ -1464,6 +1474,8 @@ export const InventoryProvider = ({ children }) => {
     clearSelected,
     placeSelected,
     craftItem,
+    autoloadRecipe,
+    unloadCrafting,
     consumeItem,
     drinkWater,
     unrollBedroll,
