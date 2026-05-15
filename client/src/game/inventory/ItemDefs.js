@@ -204,7 +204,7 @@ export const ItemDefs = {
     width: 2,
     height: 1,
     traits: [ItemTrait.STACKABLE],
-    categories: [ItemCategory.CRAFTING_MATERIAL],
+    categories: [ItemCategory.CRAFTING_MATERIAL, ItemCategory.TOOL],
     stackMax: 5
   },
   'crafting.garbage_bag': {
@@ -1242,7 +1242,8 @@ export const ItemDefs = {
     pileLimitOne: true,
     stackMax: 5,
     consumptionEffects: [
-      { type: 'heal', value: 8 }
+      { type: 'heal', value: 8 },
+      { type: 'stop_bleeding', value: true }
     ]
   },
   'medical.first_aid_kit': {
@@ -1258,7 +1259,7 @@ export const ItemDefs = {
     pileLimitOne: true,
     stackMax: 5,
     consumptionEffects: [
-      { type: 'heal', value: 100 }
+      { type: 'heal', value: 'Max HP' }
     ]
   },
 

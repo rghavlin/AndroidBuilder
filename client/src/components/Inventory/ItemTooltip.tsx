@@ -133,7 +133,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                             )}>
                                 {typeof value === 'object' && value !== null && 'min' in value && 'max' in value
                                     ? (value.min >= 0 ? `+${value.min}-${value.max}` : `${value.min}-${value.max}`)
-                                    : (typeof value === 'number' ? (value >= 0 ? `+${value}` : `${value}`) : String(value))}
+                                    : (value === true ? 'Yes' : (typeof value === 'number' ? (value >= 0 ? `+${value}` : `${value}`) : String(value)))}
                             </span>
                         </div>
                     ))}

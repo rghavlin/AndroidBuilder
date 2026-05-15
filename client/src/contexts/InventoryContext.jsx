@@ -505,7 +505,7 @@ export const InventoryProvider = ({ children }) => {
 
       switch (effect.type) {
         case 'heal':
-          player.heal(val, true);
+          player.heal(val === 'Max HP' ? player.maxHp : val, true);
           break;
         case 'modifyStat':
         case 'nutrition':
