@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { Terminal } from "lucide-react";
+import { Terminal, Settings } from "lucide-react";
+import OptionsWindow from './OptionsWindow';
 
 interface StartMenuProps {
   onStartGame: (mode?: boolean | string) => void;
@@ -13,6 +14,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   // Phase 2: Only use GameContext for game lifecycle methods
   const { loadGame, initializeGame } = useGame();
   const [isLoading, setIsLoading] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
 
   const handleNewGame = () => {
     console.log('[StartMenu] Starting new game...');
@@ -63,6 +65,17 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             {isLoading ? 'Loading...' : 'Load Game'}
           </Button>
 
+          <Button
+            onClick={() => setShowOptions(true)}
+            disabled={isLoading}
+            variant="outline"
+            className="w-full py-3 text-lg flex items-center justify-center gap-2 border-primary/20 hover:border-primary/50 transition-all"
+            data-testid="button-start-options"
+          >
+            <Settings className="h-5 w-5" />
+            Options
+          </Button>
+
           <div className="border-t border-border/50 my-2 pt-4">
             <Button
               onClick={() => {
@@ -80,7 +93,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
         </CardContent>
       </Card>
 
-
+      {showOptions && <OptionsWindow onClose={() => setShowOptions(false)} />}
     </div>
   );
 }

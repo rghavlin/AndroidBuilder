@@ -1221,7 +1221,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
-    consumptionSound: 'Heal',
+    consumptionSound: 'Bandage',
     pileLimitOne: true,
     stackMax: 10,
     consumptionEffects: [
@@ -1238,7 +1238,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
-    consumptionSound: 'Heal',
+    consumptionSound: 'Spray',
     pileLimitOne: true,
     stackMax: 5,
     consumptionEffects: [
@@ -1255,7 +1255,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
-    consumptionSound: 'Heal',
+    consumptionSound: 'Bandage',
     pileLimitOne: true,
     stackMax: 5,
     consumptionEffects: [
@@ -1283,7 +1283,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.MEDICAL],
-    consumptionSound: 'Heal',
+    consumptionSound: 'Pills',
     pileLimitOne: true,
     stackMax: 10,
     consumptionEffects: {
@@ -1299,7 +1299,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.CONSUMABLE, ItemTrait.STACKABLE],
     categories: [ItemCategory.MEDICAL],
-    consumptionSound: 'Heal',
+    consumptionSound: 'Pills',
     stackMax: 10,
     consumptionEffects: {
       energy: 5,

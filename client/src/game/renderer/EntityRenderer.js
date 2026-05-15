@@ -215,7 +215,10 @@ export const EntityRenderer = {
   },
 
   drawDoor: (ctx, entity, x, y, tileSize) => {
-    const doorColor = '#999999'; // Slightly brighter to stand out in fog
+    // Current gray for B&W, otherwise a wooden brown
+    const isBW = imageLoader.tileSet === 'b&w';
+    const doorColor = isBW ? '#999999' : '#5d4037'; 
+    
     ctx.strokeStyle = doorColor;
     ctx.lineWidth = 3;
     const margin = tileSize / 8;
@@ -225,7 +228,7 @@ export const EntityRenderer = {
     } else {
       ctx.fillStyle = doorColor;
       ctx.fillRect(x + margin, y + margin, tileSize - margin * 2, tileSize - margin * 2);
-      ctx.strokeStyle = '#555555';
+      ctx.strokeStyle = isBW ? '#555555' : '#3e2723'; // Darker stroke for definition
       ctx.strokeRect(x + margin, y + margin, tileSize - margin * 2, tileSize - margin * 2);
     }
   },

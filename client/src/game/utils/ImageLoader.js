@@ -3,6 +3,7 @@
  * Falls back to default rendering if images are not found
  */
 import { getZombieType } from '../entities/ZombieTypes.js';
+import { configManager } from './ConfigManager.js';
 
 export class ImageLoader {
   constructor() {
@@ -12,6 +13,9 @@ export class ImageLoader {
     this.permanentFailures = new Set(); // New: Track images that consistently fail to load
     this.maxRetries = 3;
     this.onImageLoaded = null; // Callback for reactive re-rendering (MapCanvas)
+
+    // Load initial tileSet from global config
+    this.tileSet = configManager.get('tileSet') || 'standard';
 
     // Determine the correct base path for images
     this.basePath = this.determineBasePath();
@@ -580,6 +584,12 @@ export class ImageLoader {
    */
   loadTileImage(terrainType) {
     return new Promise((resolve, reject) => {
+      // Logic: If None is chosen, we intentionally fail to load so fallback color is used
+      if (this.tileSet === 'none') {
+        reject(new Error('Tile textures disabled (set to None)'));
+        return;
+      }
+
       const img = new Image();
 
       // Try different file extensions
@@ -587,11 +597,14 @@ export class ImageLoader {
       let extensionIndex = 0;
       let basePathIndex = 0;
 
+      // Determine subfolder based on tileSet
+      const subFolder = this.tileSet === 'standard' ? '' : `${this.tileSet}/`;
+
       // Use same path structure
       const basePaths = [
-        this.basePath.tiles,
-        '/images/tiles/',
-        './images/tiles/'
+        `${this.basePath.tiles}${subFolder}`,
+        `/images/tiles/${subFolder}`,
+        `./images/tiles/${subFolder}`
       ];
 
       const tryNextPath = () => {
@@ -631,6 +644,38 @@ export class ImageLoader {
 
       tryNextPath();
     });
+  }
+
+  /**
+   * Change the current tile set and clear relevant caches
+   */
+  setTileSet(newSet) {
+    if (this.tileSet === newSet) return;
+    
+    console.log(`[ImageLoader] Switching tile set from ${this.tileSet} to ${newSet}`);
+    this.tileSet = newSet;
+    this.clearTileCache();
+  }
+
+  /**
+   * Clear only tile images from the cache to force a reload of the new set
+   */
+  clearTileCache() {
+    // 1. Remove all tile_* entries from images cache
+    Object.keys(this.images).forEach(key => {
+        if (key.startsWith('tile_')) {
+            delete this.images[key];
+        }
+    });
+
+    // 2. Clear permanent failures so new set can try again
+    this.permanentFailures.clear();
+    
+    // 3. Clear loading promises for tiles
+    this.loadingPromises.clear();
+
+    console.log('[ImageLoader] Tile cache cleared');
+    if (this.onImageLoaded) this.onImageLoaded();
   }
 
   /**

@@ -59,6 +59,10 @@ export const AudioProvider = ({ children }) => {
           { name: 'Eat', url: 'sounds/eat.ogg', volume: 0.6 },
           { name: 'FillBottle', url: 'sounds/fillbottle.ogg', volume: 0.6 },
           { name: 'SlingShot', url: 'sounds/sling.ogg', volume: 0.6 },
+          { name: 'Boil', url: 'sounds/boil.ogg', volume: 0.6 },
+          { name: 'Bandage', url: 'sounds/bandage.ogg', volume: 0.6 },
+          { name: 'Spray', url: 'sounds/spray.ogg', volume: 0.6 },
+          { name: 'Pills', url: 'sounds/pills.ogg', volume: 0.6 },
           { name: 'Fail', url: 'sounds/fail.ogg', volume: 0.22 },
           { name: 'Rain', url: 'sounds/rain1.ogg', volume: 0.5 }
         ];

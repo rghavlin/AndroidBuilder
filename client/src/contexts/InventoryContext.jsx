@@ -872,7 +872,12 @@ export const InventoryProvider = ({ children }) => {
       
       engine.notifyUpdate();
       addLog(`Crafted ${result.item?.name || 'item'}`, 'item');
-      playSound('Craft');
+      
+      if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew'].includes(recipeId)) {
+        playSound('Boil');
+      } else {
+        playSound('Craft');
+      }
     }
     return result;
   }, [addLog, playSound]);
