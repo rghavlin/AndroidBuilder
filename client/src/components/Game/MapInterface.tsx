@@ -993,7 +993,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 const success = gameMap.moveEntity(player.id, targetX, targetY);
                 if (success) {
                   player.useAP(2);
-                  playSound('OpenWindow');
+                  playSound('Climb');
                   addLog("You climb through the window.", "world");
                   
                   // 50% bleed chance if broken and NOT open

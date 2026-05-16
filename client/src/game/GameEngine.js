@@ -126,6 +126,9 @@ class GameEngine extends SafeEventEmitter {
   sync(gameObjects) {
     console.log('[GameEngine] 🔄 Synchronizing engine state:', Object.keys(gameObjects));
     
+    // Clear any pending visual actions from the previous state
+    this.activeActions.clear();
+    
     if (gameObjects.player) {
        // Detach from old player if exists
        if (this.player && this.player.off) {

@@ -149,44 +149,42 @@ export default function FloatingContainerOverlay({
       {!isPlanter && (
         <div className="h-8 bg-black/80 backdrop-blur-sm border-b border-white/30 flex items-center justify-between p-1 px-1.5 flex-shrink-0 pointer-events-auto">
         <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                size="sm" 
-                variant={isDragging ? "destructive" : "secondary"}
-                className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
-                onClick={handleTogglePull}
-              >
-                {isScooter ? (
-                  isDragging && item.scooterMode === 'pull' ? "Drop" : "Pull"
-                ) : (
-                  isDragging ? "Drop" : "Pull"
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipPortal>
-              <TooltipContent side="top" className="bg-black/90 border-white/20 p-2 z-[100]">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[11px] font-black uppercase text-white tracking-widest">{item.name}</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[9px] text-zinc-400 font-bold uppercase">Drag Penalty:</span>
-                    <span className={cn(
-                      "text-xs font-black",
-                      currentPenalty === 0 ? "text-green-400" : "text-yellow-400"
-                    )}>
-                      {currentPenalty.toFixed(1)} AP
-                    </span>
-                  </div>
-                  {isMotorized && (
-                    <div className="text-[8px] text-blue-400 font-bold uppercase mt-1 flex items-center gap-1">
-                      <Zap className="h-2 w-2" />
-                      Motorized Assist Active (-{motorBonus.toFixed(1)} AP)
+          {!isScooter && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="sm" 
+                  variant={isDragging ? "destructive" : "secondary"}
+                  className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                  onClick={handleTogglePull}
+                >
+                  {isDragging ? "Drop" : "Pull"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" className="bg-black/90 border-white/20 p-2 z-[100]">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11px] font-black uppercase text-white tracking-widest">{item.name}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[9px] text-zinc-400 font-bold uppercase">Drag Penalty:</span>
+                      <span className={cn(
+                        "text-xs font-black",
+                        currentPenalty === 0 ? "text-green-400" : "text-yellow-400"
+                      )}>
+                        {currentPenalty.toFixed(1)} AP
+                      </span>
                     </div>
-                  )}
-                </div>
-              </TooltipContent>
-            </TooltipPortal>
-          </Tooltip>
+                    {isMotorized && (
+                      <div className="text-[8px] text-blue-400 font-bold uppercase mt-1 flex items-center gap-1">
+                        <Zap className="h-2 w-2" />
+                        Motorized Assist Active (-{motorBonus.toFixed(1)} AP)
+                      </div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          )}
 
           {isScooter && (
             <Tooltip>
@@ -196,7 +194,7 @@ export default function FloatingContainerOverlay({
                   variant={isRidden ? "destructive" : "secondary"}
                   className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                   onClick={handleToggleRide}
-                  disabled={batteryPercent <= 0 && !isRidden}
+                  disabled={(batteryPercent <= 0 && !isRidden) || containerId !== 'ground'}
                 >
                   {isRidden ? "Stop" : "Ride"}
                 </Button>
@@ -212,6 +210,11 @@ export default function FloatingContainerOverlay({
                     {batteryPercent <= 0 && (
                       <div className="text-[8px] text-red-400 font-bold uppercase mt-1">
                         Requires Charged Battery
+                      </div>
+                    )}
+                    {containerId !== 'ground' && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Must be on ground to ride
                       </div>
                     )}
                   </div>

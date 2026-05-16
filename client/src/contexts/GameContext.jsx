@@ -4,6 +4,7 @@ import { ZombieAI } from '../game/ai/ZombieAI.js';
 import { RabbitAI } from '../game/ai/RabbitAI.js';
 import { NPCAI } from '../game/ai/NPCAI.js';
 import turnManager from '../game/managers/TurnManager.js';
+import audioManager from '../game/utils/AudioManager.js';
 import { GameSaveSystem } from '../game/GameSaveSystem.js';
 import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
@@ -1109,6 +1110,8 @@ const GameContextInner = ({ children }) => {
       console.log(`[GameContext] - Map: ${loadedState.gameMap.width}x${loadedState.gameMap.height}`);
 
       // Sync ALL engine state atomically from loaded save
+      turnManager.cancelPlayback();
+      audioManager.stopAllSounds();
       engine.sync(loadedState);
       
       // Phase 23 Fix: Ensure Turn state and derived values are set correctly during autosave load
@@ -1163,6 +1166,8 @@ const GameContextInner = ({ children }) => {
       console.log('[GameContext] Applying loaded state...');
 
       // Atomic engine sync
+      turnManager.cancelPlayback();
+      audioManager.stopAllSounds();
       engine.sync(loadedState);
       
       setTurn(loadedState.turn);
@@ -1232,6 +1237,8 @@ const GameContextInner = ({ children }) => {
       }
       
       // Phase 25/Power Fix: Reset the global engine state to clear transient states like 'dragging'
+      turnManager.cancelPlayback();
+      audioManager.stopAllSounds();
       engine.reset();
 
       setInitializationState('idle');

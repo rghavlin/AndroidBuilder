@@ -97,6 +97,9 @@ export const SleepProvider = ({ children }) => {
       let currentTurn = turnRef.current;
 
       for (let i = 0; i < hours; i++) {
+        // Phase 28 Fix: Allow cancellation if game is reset or player wakes up
+        if (!engine.isSleeping) break;
+
         const hpBeforeHour = player.hp;
         await new Promise(resolve => setTimeout(resolve, 1000));
 

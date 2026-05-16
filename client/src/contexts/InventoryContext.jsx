@@ -269,6 +269,12 @@ export const InventoryProvider = ({ children }) => {
     }
 
     const mode = (item.hasTrait?.(ItemTrait.SCOOTER) && item.scooterMode === 'ride') ? 'ride' : 'pull';
+    
+    // Safety: If attempting to pull, verify the item has the DRAGGABLE trait
+    if (mode === 'pull' && !item.hasTrait?.(ItemTrait.DRAGGABLE)) {
+      return { success: false, reason: 'This item cannot be pulled.' };
+    }
+
     const logAction = mode === 'ride' ? 'riding' : 'dragging';
 
     if (mode === 'ride') {
@@ -875,6 +881,8 @@ export const InventoryProvider = ({ children }) => {
       
       if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew'].includes(recipeId)) {
         playSound('Boil');
+      } else if (recipeId === 'crafting.campfire') {
+        playSound('Ignite');
       } else {
         playSound('Craft');
       }
@@ -1250,7 +1258,7 @@ export const InventoryProvider = ({ children }) => {
     if (result.success) {
        if (result.itemDestroyed) setSelectedItem(null);
        engine.notifyUpdate();
-       playSound('FireIgnite');
+       playSound('Ignite');
        return { success: true };
     }
     return result;

@@ -67,7 +67,6 @@ export default function UniversalGrid({
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
   const [lastGridPos, setLastGridPos] = useState<{x: number, y: number} | null>(null);
-  const gridRef = useState<HTMLDivElement | null>(null);
 
   // Get fresh container data from context on every render, OR use direct container
   const container = directContainer || getContainer(containerId);
@@ -810,8 +809,9 @@ export default function UniversalGrid({
 
               {/* Phase: Specialized Ground Container Overlay (Wagon/Sled) */}
               {(() => {
-                const isSpecialGroundContainer = (item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
-                                               (containerId === 'ground' || (item.hasTrait?.(ItemTrait.PLANTER) && (containerId.includes('-container') || containerId.includes('-grid'))));
+                const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
+                const isSpecialGroundContainer = (isScooter || item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
+                                               (containerId === 'ground' || isScooter || (item.hasTrait?.(ItemTrait.PLANTER) && (containerId.includes('-container') || containerId.includes('-grid'))));
                 if (!isSpecialGroundContainer) return null;
                 
                 return (

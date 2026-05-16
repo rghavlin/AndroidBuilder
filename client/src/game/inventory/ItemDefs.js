@@ -100,7 +100,7 @@ export const ItemDefs = {
     height: 8,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
-    dragApPenalty: 3,
+    dragApPenalty: 2,
     motorAssistBonus: 0.5,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
@@ -126,12 +126,11 @@ export const ItemDefs = {
     id: 'vehicle.electric_scooter',
     name: 'Electric Scooter',
     noLoot: true,
-    noPickup: true,
     rarity: Rarity.RARE,
     imageId: 'electricscooter',
     width: 4,
     height: 3,
-    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
+    traits: [ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
     categories: [ItemCategory.VEHICLE],
     dragApPenalty: 1,          // Pull mode: +1 AP per tile
     rideApBonus: 0.5,          // Ride mode: -0.5 AP per tile
@@ -1350,6 +1349,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.FOOD],
+    consumptionSound: 'Drink',
     stackMax: 10,
     consumptionEffects: {
       hydration: 10,
@@ -1365,6 +1365,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.FOOD],
+    consumptionSound: 'Drink',
     stackMax: 10,
     consumptionEffects: {
       hydration: 10,
@@ -1380,6 +1381,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.FOOD],
+    consumptionSound: 'Drink',
     stackMax: 10,
     consumptionEffects: {
       hydration: 10,
@@ -1396,6 +1398,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.FOOD],
+    consumptionSound: 'Drink',
     stackMax: 10,
     consumptionEffects: {
       hydration: 10,

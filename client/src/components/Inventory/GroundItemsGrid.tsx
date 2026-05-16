@@ -96,7 +96,6 @@ export default function GroundItemsGrid() {
 
       <div className="flex-1 min-h-0">
         <UniversalGrid
-          key={`ground-${inventoryVersion}`}
           containerId={groundContainer.id}
           width={groundContainer.width}
           height={groundContainer.height}

@@ -341,6 +341,35 @@ class AudioManager {
     });
     return this.isMuted;
   }
+
+  /**
+   * Stop all currently playing sounds and loops
+   */
+  stopAllSounds() {
+    console.log(`[AudioManager] ⏹️ Stopping all sounds...`);
+    
+    // 1. Stop all HTMLAudio instances
+    this.sounds.forEach(pool => {
+      pool.instances.forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.loop = false;
+      });
+    });
+
+    // 2. Stop all Web Audio loops
+    this.activeLoops.forEach((loop, name) => {
+      try {
+        loop.source.stop();
+        loop.source.disconnect();
+        loop.gainNode.disconnect();
+      } catch (e) {
+        // Source might have already stopped
+      }
+      console.log(`[AudioManager] ⏹️ Stopped loop: "${name}"`);
+    });
+    this.activeLoops.clear();
+  }
 }
 
 // Create singleton instance with global persistence

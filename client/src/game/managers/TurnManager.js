@@ -9,6 +9,17 @@ class TurnManager {
   constructor() {
     this.isProcessing = false;
     this.actionDelay = 20; // Reduced from 100ms for snappier feel
+    this.shouldCancel = false;
+  }
+
+  /**
+   * Immediately stop any current turn playback.
+   */
+  cancelPlayback() {
+    if (this.isProcessing) {
+      console.log('[TurnManager] 🛑 Cancellation requested - stopping playback loop');
+      this.shouldCancel = true;
+    }
   }
 
   /**
@@ -28,12 +39,14 @@ class TurnManager {
     }
 
     this.isProcessing = true;
+    this.shouldCancel = false;
     const startTime = performance.now();
     console.log(`[TurnManager] 🎬 START TURN PLAYBACK (${actionQueue.length} actions)`);
 
     try {
       let i = 0;
       while (i < actionQueue.length) {
+        if (this.shouldCancel) break;
         const action = actionQueue[i];
         if (!action) { i++; continue; }
 
@@ -59,6 +72,7 @@ class TurnManager {
           // Play all entity sequences in parallel
           await Promise.all(Object.values(entityMoveGroups).map(async (group) => {
             for (const moveAction of group) {
+              if (this.shouldCancel) break;
               try {
                 await this.executeAction(moveAction, context);
               } catch (err) {
@@ -109,6 +123,7 @@ class TurnManager {
    * Execute a single action and wait for its completion.
    */
   async executeAction(action, context) {
+    if (this.shouldCancel) return;
     const { type, entityId, data, metadata = {} } = action;
     const { gameMap, player } = context;
 
