@@ -163,6 +163,9 @@ export class Item extends SafeEventEmitter {
       this.lifetimeTurns = ItemDefs[this.defId].lifetimeTurns;
     }
 
+    this.rideApBonus = rideApBonus;
+    this.scooterMode = scooterMode;
+
     // MIGRATION / INITIALIZATION: Load attributes from definition
     if (this.defId && ItemDefs[this.defId]) {
       this._def = ItemDefs[this.defId];
@@ -702,7 +705,7 @@ export class Item extends SafeEventEmitter {
     if (this.hasTrait(ItemTrait.READABLE)) {
       // Use window.gameEngine as the bridge to global state
       const engine = window.gameEngine;
-      return engine?.bookStats?.[this.defId]?.pagesLeft ?? 1000;
+      return engine?.bookStats?.[this.defId]?.pagesLeft ?? 500;
     }
 
     // 6. If it's an ignitable item (Torch), show its condition as charges

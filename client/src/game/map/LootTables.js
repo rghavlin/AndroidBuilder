@@ -43,12 +43,12 @@ export const SPECIAL_BUILDING_LOOT = {
         }
     },
     army_tent: {
-        ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.de', 'ammo.556'],
+        ammo: ['ammo.9mm', 'ammo.de', 'ammo.556'],
         mods: ['attachment.suppressor', 'attachment.lasersight', 'attachment.riflescope'],
         guns: ['weapon.battle_rifle'],
         gear: ['belt.holster', 'belt.ammo_pouch', 'belt.pouch'],
         rules: {
-            hasSniper: 0.35,
+            hasGrenade: 0.35,
             hasBattleRifle: 0.50,
             has9mm: 0.50,
             hasBackpack: 0.35,
@@ -90,8 +90,8 @@ export const ZOMBIE_LOOT = {
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.shotgun_shells', 'ammo.308']
     },
     soldier: {
-        gear: ['weapon.9mmPistol', 'weapon.sniper_rifle', 'clothing.military_shirt', 'weapon.battle_rifle', 'belt.holster', 'belt.ammo_pouch', 'belt.pouch'],
-        ammo: ['ammo.9mm', 'ammo.sniper', 'ammo.shotgun_shells', 'ammo.556']
+        gear: ['weapon.9mmPistol', 'weapon.grenade', 'clothing.military_shirt', 'weapon.battle_rifle', 'belt.holster', 'belt.ammo_pouch', 'belt.pouch'],
+        ammo: ['ammo.9mm', 'ammo.shotgun_shells', 'ammo.556']
     },
     uncommon: [
         'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink', 'book.life_in_motion',

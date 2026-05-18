@@ -10,6 +10,7 @@ import PlayerSkillsWindow from './PlayerSkillsWindow';
 import MainMenuWindow from './MainMenuWindow';
 import DragPreviewLayer from '../Inventory/DragPreviewLayer';
 import { MapTransitionDialog } from './MapTransitionDialog';
+import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { NPCDemandDialog } from './NPCDemandDialog';
 import SleepOverlay from './SleepOverlay';
 import SleepModal from './SleepModal';
@@ -34,9 +35,10 @@ export default function OverlayManager() {
     activeNpcDemand,
     handleNpcDemandResponse,
     isSkillsOpen,
-    toggleSkills,
-    worldManager
+    toggleSkills
   } = useGame();
+
+  const { worldManager } = useGameMap();
 
   const { dragState } = useInventory();
 

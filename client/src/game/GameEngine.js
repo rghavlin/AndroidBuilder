@@ -69,7 +69,7 @@ class GameEngine extends SafeEventEmitter {
     // Phase: Book Tracking
     this.bookStats = {
       'book.life_in_motion': {
-        pagesLeft: 1000,
+        pagesLeft: 500,
         milestonesReached: 0 // Track how many 100-page milestones were processed
       }
     };

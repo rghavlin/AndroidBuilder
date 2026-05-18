@@ -1035,6 +1035,7 @@ export class InventoryManager extends SafeEventEmitter {
     if (fuelItem.defId === 'crafting.rag') turnExtension = 0.5;
     else if (fuelItem.defId === 'weapon.stick') turnExtension = 1.0;
     else if (fuelItem.defId === 'weapon.plank') turnExtension = 1.0;
+    else if (fuelItem.hasCategory?.(ItemCategory.BOOK)) turnExtension = 1.0;
     else if (fuelItem.hasCategory?.(ItemCategory.CLOTHING)) turnExtension = 0.5;
     else if (fuelItem.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback
 
@@ -1151,6 +1152,7 @@ export class InventoryManager extends SafeEventEmitter {
       if (item.defId === 'crafting.rag') turnExtension = 0.5;
       else if (item.defId === 'weapon.stick') turnExtension = 1.0;
       else if (item.defId === 'weapon.plank') turnExtension = 1.0;
+      else if (item.hasCategory?.(ItemCategory.BOOK)) turnExtension = 1.0;
       else if (item.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback for other fuel items
 
       if (turnExtension > 0) {

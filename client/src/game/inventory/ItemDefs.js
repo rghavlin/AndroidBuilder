@@ -727,6 +727,7 @@ export const ItemDefs = {
   'weapon.sniper_rifle': {
     id: 'weapon.sniper_rifle',
     name: 'Sniper Rifle',
+    noLoot: true,
     rarity: Rarity.EXTREMELY_RARE,
     imageId: 'sniper rifle', // Note: space in filename
     width: 5,
@@ -1093,6 +1094,7 @@ export const ItemDefs = {
   'attachment.sniper_magazine': {
     id: 'attachment.sniper_magazine',
     name: 'Sniper Magazine',
+    noLoot: true,
     rarity: Rarity.RARE,
     imageId: 'sniper_magazine',
     width: 2,
@@ -1147,6 +1149,7 @@ export const ItemDefs = {
   'ammo.sniper': {
     id: 'ammo.sniper',
     name: 'Sniper Ammo',
+    noLoot: true,
     rarity: Rarity.RARE,
     imageId: 'sniperAmmo', // New box icon matching 9mm style
     width: 1,
@@ -2286,8 +2289,8 @@ export const ItemDefs = {
     width: 1,
     height: 1,
     traits: [ItemTrait.READABLE],
-    categories: [ItemCategory.BOOK],
-    description: 'A thick book with 1000 pages of wisdom about movement and stamina.'
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    description: 'A thick book with 500 pages of wisdom about movement and stamina.'
   },
   'tool.battery_charger': {
     id: 'tool.battery_charger',

@@ -7,6 +7,7 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
 import { useOverlays } from '../../contexts/OverlayContext';
+import { useSleep } from '../../contexts/SleepContext.jsx';
 import MapCanvas from './MapCanvas.jsx';
 import InventoryExtensionWindow from './InventoryExtensionWindow';
 import FloatingContainer from '../Inventory/FloatingContainer';
@@ -181,6 +182,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     cancelTargetingItem,
     useBreakingToolOnStructure
   } = useAction();
+
+  const { isSleeping } = useSleep();
 
   // Phase 1: Direct sub-context access 
   const { gameMapRef, worldManagerRef, lastTileClick, hoveredTile, mapTransition, triggerMapUpdate, refreshZombieTracking } = useGameMap();
@@ -600,6 +603,15 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           isPlayerTurn={isPlayerTurn}
           isAutosaving={isAutosaving}
         />
+
+        {/* Turn Processing Indicator */}
+        {isAnimatingZombies && !isSleeping && (
+          <div className="absolute bottom-2 right-6 z-[1000] pointer-events-none select-none">
+            <span className="text-white font-bold italic animate-turn-processing tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] text-sm uppercase">
+              Processing turns...
+            </span>
+          </div>
+        )}
 
         {/* NPC Context Menu */}
         {npcMenu && (

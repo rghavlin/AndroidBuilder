@@ -1,0 +1,33 @@
+Music: https://freesound.org/people/PatrickLieberkind/, https://freesound.org/people/ZHR%C3%98/
+
+
+
+Black and white tiles: Reactorcore
+http://www.reactorcoregames.com
+
+STANDARD TEXTURES: https://little-martian.itch.io/,  https://little-martian.itch.io/retro-textures-pack
+
+All c:\games\audio\se=Sidearm Studios
+
+BANDAGE: C:\Games\audio\Darkworld Audio - Survival Effects [Free .ogg]\Medicine\bandage1
+
+bang1: C:\Games\audio\se\earth3
+boil: C:\Games\audio\Horror SFX Free\Horror SFX Free\Liquids\bubbles
+click: C:\Games\audio\Sounds\click1
+windowbreak: C:\Games\audio\se\Crash
+close door: C:\Games\audio\se\Door1
+meleehit:C:\Games\audio\Shapeforms Audio Free Sound Effects\Shapeforms Audio Free Sound Effects\Hit and Punch Preview\AUDIO\PUNCH_PERCUSSIVE_HEAVY_09
+deathblow: C:\Games\audio\Shapeforms Audio Free Sound Effects\Shapeforms Audio Free Sound Effects\Hack and Slash Melee Combat Preview\gore splat stab poke
+Eat: C:\Games\audio\Sounds\voice2
+Equip: C:\Games\audio\se\equip2
+Explosion: C:\Games\audio\se\explosion1
+Fail:C:\Games\audio\Sounds\drum0
+fillbottle: C:\Games\audio\Horror SFX Free\Horror SFX Free\Liquids\liquid_plash poor
+Footsteps: C:\Games\audio\Horror SFX Free\Horror SFX Free\Character\footsteps_running
+FORCEOPEN: C:\Games\audio\se\open2
+GLASSBREAK: C:\Games\audio\se\crash
+HEAL: 
+IGNITE: C:\Games\audio\Darkworld Audio - Survival Effects [Free .ogg]\Equipment\MatchHandling1 (https://darkworldaudio.itch.io/sound-effects-survival-i)
+LIGHTON/LIGHTOFF: C:\Games\audio\Horror SFX Free\Horror SFX Free\Character\Flashlighton/off
+PILLS: C:\Games\audio\Darkworld Audio - Survival Effects [Free .ogg]\Medicine\Pillsbox1
+

@@ -576,13 +576,13 @@ export class LootGenerator {
             hasGun: buildingRules.hasGun ? Math.random() < buildingRules.hasGun : false,
             hasTool: buildingRules.hasTool ? Math.random() < buildingRules.hasTool : false,
             hasBackpack: buildingRules.hasBackpack ? Math.random() < buildingRules.hasBackpack : false,
-            hasSniper: buildingRules.hasSniper ? Math.random() < buildingRules.hasSniper : false,
+            hasGrenade: buildingRules.hasGrenade ? Math.random() < buildingRules.hasGrenade : false,
             hasBattleRifle: buildingRules.hasBattleRifle ? Math.random() < buildingRules.hasBattleRifle : false,
             has9mm: buildingRules.has9mm ? Math.random() < buildingRules.has9mm : false,
             gunDropIndex: -1,
             toolDropIndex: -1,
             backpackDropIndex: -1,
-            sniperDropIndex: -1,
+            grenadeDropIndex: -1,
             battleRifleDropIndex: -1,
             gun9mmDropIndex: -1
         };
@@ -590,7 +590,7 @@ export class LootGenerator {
         if (buildingRules.hasGun) buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(Math.random() * dropCount) : -1;
         if (buildingRules.hasTool) buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(Math.random() * dropCount) : -1;
         if (buildingRules.hasBackpack) buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.hasSniper) buildingState.sniperDropIndex = buildingState.hasSniper ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasGrenade) buildingState.grenadeDropIndex = buildingState.hasGrenade ? Math.floor(Math.random() * dropCount) : -1;
         if (buildingRules.hasBattleRifle) buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(Math.random() * dropCount) : -1;
         if (buildingRules.has9mm) buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(Math.random() * dropCount) : -1;
         
@@ -784,11 +784,11 @@ export class LootGenerator {
                     }
 
                     // Building-wide rolled items
-                    if (index === buildingState.sniperDropIndex) {
-                        const sniper = createItemFromDef('weapon.sniper_rifle');
-                        if (sniper) {
-                            LootGenerator.initializeWeaponAmmo(sniper);
-                            items.push(sniper);
+                    if (index === buildingState.grenadeDropIndex) {
+                        const grenade = createItemFromDef('weapon.grenade');
+                        if (grenade) {
+                            grenade.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3 grenades
+                            items.push(grenade);
                         }
                     }
                     if (index === buildingState.battleRifleDropIndex) {

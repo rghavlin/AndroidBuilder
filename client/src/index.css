@@ -174,4 +174,21 @@
     animation: item-blink 1s infinite ease-in-out;
     z-index: 100 !important;
   }
+
+  @keyframes turn-processing-blink {
+    0%, 100% { 
+      opacity: 0.3; 
+      transform: translateX(-4px) skewX(-10deg);
+      filter: blur(0.5px);
+    }
+    50% { 
+      opacity: 1; 
+      transform: translateX(4px) skewX(-10deg);
+      filter: blur(0px);
+    }
+  }
+
+  .animate-turn-processing {
+    animation: turn-processing-blink 2.5s ease-in-out infinite;
+  }
 }
