@@ -65,6 +65,7 @@ export class GameSaveSystem {
           isSleeping: engine.isSleeping,
           sleepProgress: engine.sleepProgress,
           targetingItemInstanceId: engine.targetingItemInstanceId,
+          isFlashlightOn: engine.isFlashlightOn,
           dragging: (engine.dragging && engine.dragging.item) ? {
             itemInstanceId: engine.dragging.item.instanceId,
             tileX: engine.dragging.tileX,

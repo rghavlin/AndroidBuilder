@@ -3,6 +3,13 @@ import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { CategoryPriority } from './traits.js';
 
+let engine = null;
+import('../GameEngine.js').then(m => {
+  engine = m.default;
+}).catch(err => {
+  console.warn('[GroundManager] Failed to lazily import GameEngine:', err);
+});
+
 /**
  * GroundManager handles intelligent ground item organization and optimization
  * Implements smart grouping, auto-sort, and efficient pickup operations
@@ -232,7 +239,20 @@ export class GroundManager {
         collected.push(item);
       } else {
         // Return to ground if can't fit in target
-        this.groundContainer.addItem(item);
+        if (!this.groundContainer.addItem(item)) {
+          console.error(`[GroundManager] Failed to return item ${item.name} to ground! Forcefully injecting to map tile.`);
+          const map = engine.gameMap;
+          if (map) {
+            const x = engine.inventoryManager?.lastSyncedX !== null && engine.inventoryManager?.lastSyncedX !== undefined ? engine.inventoryManager.lastSyncedX : (engine.player?.x || 0);
+            const y = engine.inventoryManager?.lastSyncedY !== null && engine.inventoryManager?.lastSyncedY !== undefined ? engine.inventoryManager.lastSyncedY : (engine.player?.y || 0);
+            if (typeof map.addItemsToTile === 'function') {
+              map.addItemsToTile(x, y, [item]);
+            } else {
+              const existing = map.getItemsOnTile(x, y) || [];
+              map.setItemsOnTile(x, y, [...existing, item]);
+            }
+          }
+        }
         failed.push(item);
       }
     }
@@ -343,7 +363,20 @@ export class GroundManager {
         collected.push(item);
       } else {
         // Return to ground if can't fit
-        this.groundContainer.addItem(item);
+        if (!this.groundContainer.addItem(item)) {
+          console.error(`[GroundManager] Failed to return item ${item.name} to ground during quick pickup! Forcefully injecting to map tile.`);
+          const map = engine.gameMap;
+          if (map) {
+            const x = engine.inventoryManager?.lastSyncedX !== null && engine.inventoryManager?.lastSyncedX !== undefined ? engine.inventoryManager.lastSyncedX : (engine.player?.x || 0);
+            const y = engine.inventoryManager?.lastSyncedY !== null && engine.inventoryManager?.lastSyncedY !== undefined ? engine.inventoryManager.lastSyncedY : (engine.player?.y || 0);
+            if (typeof map.addItemsToTile === 'function') {
+              map.addItemsToTile(x, y, [item]);
+            } else {
+              const existing = map.getItemsOnTile(x, y) || [];
+              map.setItemsOnTile(x, y, [...existing, item]);
+            }
+          }
+        }
         break; // Stop trying once container is full
       }
     }

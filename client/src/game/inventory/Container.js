@@ -7,21 +7,22 @@ import { ItemTrait, CategoryPriority } from './traits.js';
  * Manages items in a 2D grid with collision detection
  */
 export class Container {
-  constructor({
-    id,
-    type = 'generic',
-    name = '',
-    width = 6,
-    height = 6,
-    autoExpand = false,
-    autoSort = false,
-    ownerId = null, // ID of the item that owns this container
-    allowedCategories = null,
-    allowedItems = null,
-    ignoreSize = false,
-    isVehicle = false,
-    isPlanter = false
-  }) {
+  constructor(config = {}) {
+    const {
+      id,
+      type = 'generic',
+      name = '',
+      width = 6,
+      height = 6,
+      autoExpand = false,
+      autoSort = false,
+      ownerId = null, // ID of the item that owns this container
+      allowedCategories = null,
+      allowedItems = null,
+      ignoreSize = false,
+      isVehicle = false,
+      isPlanter = false
+    } = config;
     this.id = id;
     this.type = type;
     this.name = name;
@@ -35,6 +36,19 @@ export class Container {
     this.ignoreSize = ignoreSize;
     this.isVehicle = isVehicle;
     this.isPlanter = isPlanter;
+
+    // Automatically copy any other custom properties from config
+    for (const [key, value] of Object.entries(config)) {
+      if (
+        value !== undefined &&
+        !key.startsWith('_') &&
+        key !== 'items' &&
+        key !== 'grid' &&
+        this[key] === undefined
+      ) {
+        this[key] = value;
+      }
+    }
 
     // Grid storage - sparse array of items
     this.items = new Map(); // itemId -> Item
@@ -772,25 +786,38 @@ export class Container {
     return true;
   }
 
+  static SERIALIZABLE_PROPERTIES = [
+    'id', 'type', 'name', 'width', 'height', 'autoExpand', 'autoSort', 'ownerId',
+    'allowedCategories', 'allowedItems', 'ignoreSize', 'isVehicle', 'isPlanter'
+  ];
+
   /**
    * Serialize Container to JSON
    */
   toJSON() {
-    return {
-      id: this.id,
-      type: this.type,
-      name: this.name,
-      width: this.width,
-      height: this.height,
-      autoExpand: this.autoExpand,
-      autoSort: this.autoSort,
-      allowedCategories: this.allowedCategories,
-      allowedItems: this.allowedItems,
-      ignoreSize: this.ignoreSize,
-      isVehicle: this.isVehicle,
-      isPlanter: this.isPlanter,
-      items: Array.from(this.items.values()).map(item => item.toJSON())
-    };
+    const data = {};
+    for (const prop of Container.SERIALIZABLE_PROPERTIES) {
+      if (this[prop] !== undefined) {
+        data[prop] = this[prop];
+      }
+    }
+
+    // Automatically serialize any other custom/extra property added dynamically
+    for (const [key, value] of Object.entries(this)) {
+      if (
+        key.startsWith('_') ||
+        typeof value === 'function' ||
+        Container.SERIALIZABLE_PROPERTIES.includes(key) ||
+        key === 'items' ||
+        key === 'grid'
+      ) {
+        continue;
+      }
+      data[key] = value;
+    }
+
+    data.items = Array.from(this.items.values()).map(item => item.toJSON());
+    return data;
   }
 
   /**

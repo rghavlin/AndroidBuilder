@@ -9,56 +9,57 @@ import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
  * Item Instance - Runtime item with state
  */
 export class Item extends SafeEventEmitter {
-  constructor({
-    instanceId, // Unique runtime ID for this specific item instance (e.g., 'item-12345')
-    defId,      // The template ID from ItemDefs (e.g., 'tool.battery')
-    subtype = null,
-    id,         // Legacy alias for defId (do NOT use for unique instance lookup)
-    name = '',
-    imageId = null,
-    width = 1,
-    height = 1,
-    rotation = 0,
-    x = 0,
-    y = 0,
-    traits = [],
-    stackable = false,
-    stackCount = 1,
-    stackMax = 1,
-    condition = null,
-    equippableSlot = null,
-    isEquipped = false,
-    containerGrid = null,
-    _containerGridData = null,
-    pocketLayoutId = null,
-    pocketGrids = null, // For restoring from save
-    _pocketGridsData = null, // For restoring from save
-    categories = [],
-    attachments = null,
-    capacity = null,
-    ammoCount = undefined,
-    consumptionEffects = null,
-    waterQuality = undefined,
-    shelfLife = null,
-    lifetimeTurns = null,
-    ammoDefId = null,
-    rangedStats = null,
-    description = null,
-    consumptionSound = null,
-    transformInto = null,
-    produce = null,
-    backgroundColor = null,
-    isLit = undefined,
-    isOn = undefined,
-    providesElectricity = undefined,
-    fireMode = undefined,
-    availableFireModes = [],
-    renderFullTile = null,
-    dragApPenalty = undefined,
-    noDrag = undefined,
-    rideApBonus = undefined,
-    scooterMode = undefined
-  }) {
+  constructor(config = {}) {
+    const {
+      instanceId, // Unique runtime ID for this specific item instance (e.g., 'item-12345')
+      defId,      // The template ID from ItemDefs (e.g., 'tool.battery')
+      subtype = null,
+      id,         // Legacy alias for defId (do NOT use for unique instance lookup)
+      name = '',
+      imageId = null,
+      width = 1,
+      height = 1,
+      rotation = 0,
+      x = 0,
+      y = 0,
+      traits = [],
+      stackable = false,
+      stackCount = 1,
+      stackMax = 1,
+      condition = null,
+      equippableSlot = null,
+      isEquipped = false,
+      containerGrid = null,
+      _containerGridData = null,
+      pocketLayoutId = null,
+      pocketGrids = null, // For restoring from save
+      _pocketGridsData = null, // For restoring from save
+      categories = [],
+      attachments = null,
+      capacity = null,
+      ammoCount = undefined,
+      consumptionEffects = null,
+      waterQuality = undefined,
+      shelfLife = null,
+      lifetimeTurns = null,
+      ammoDefId = null,
+      rangedStats = null,
+      description = null,
+      consumptionSound = null,
+      transformInto = null,
+      produce = null,
+      backgroundColor = null,
+      isLit = undefined,
+      isOn = undefined,
+      providesElectricity = undefined,
+      fireMode = undefined,
+      availableFireModes = [],
+      renderFullTile = null,
+      dragApPenalty = undefined,
+      noDrag = undefined,
+      rideApBonus = undefined,
+      scooterMode = undefined
+    } = config;
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
     const uniqueSuffix = Math.random().toString(36).substring(2, 9);
@@ -134,7 +135,7 @@ export class Item extends SafeEventEmitter {
     this.categories = Array.isArray(categories) ? categories : [];
 
     // Weapon Attachment properties
-    this.attachmentSlots = null;
+    this.attachmentSlots = config.attachmentSlots !== undefined ? config.attachmentSlots : null;
     this.attachments = attachments || {}; // Store attached Item instances by slotId
     this.consumptionEffects = consumptionEffects;
     this.consumptionSound = consumptionSound;
@@ -272,6 +273,21 @@ export class Item extends SafeEventEmitter {
     this.stackable = this.hasTrait(ItemTrait.STACKABLE) || stackable;
     if (stackable && !this.traits.includes(ItemTrait.STACKABLE)) {
       this.traits.push(ItemTrait.STACKABLE);
+    }
+
+    // Automatically copy any other custom properties from config
+    for (const [key, value] of Object.entries(config)) {
+      if (
+        value !== undefined &&
+        !key.startsWith('_') &&
+        key !== 'containerGrid' &&
+        key !== 'pocketGrids' &&
+        key !== 'attachments' &&
+        key !== 'id' &&
+        this[key] === undefined
+      ) {
+        this[key] = value;
+      }
     }
   }
 
@@ -475,7 +491,7 @@ export class Item extends SafeEventEmitter {
   }
 
   isContainer() {
-    return this.hasTrait?.(ItemTrait.CONTAINER) || !!this._def?.container;
+    return this.hasTrait?.(ItemTrait.CONTAINER) || !!this._def?.container || !!this._containerGridData || !!this.containerGrid;
   }
 
   isStackable() {
@@ -1313,48 +1329,45 @@ export class Item extends SafeEventEmitter {
     return Object.keys(this.attachments).length > 0;
   }
 
+  static SERIALIZABLE_PROPERTIES = [
+    'instanceId', 'defId', 'name', 'imageId', 'renderFullTile', 'width', 'height',
+    'rotation', 'x', 'y', 'stackCount', 'stackMax', 'condition', 'capacity',
+    'ammoCount', 'equippableSlot', 'isEquipped', 'pocketLayoutId', 'categories',
+    'consumptionEffects', 'waterQuality', 'shelfLife', 'lifetimeTurns', 'rarity',
+    'combat', 'rangedStats', 'description', 'transformInto', 'produce',
+    'backgroundColor', 'isOn', 'providesElectricity', 'fireMode',
+    'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit'
+  ];
+
   // Serialization
   toJSON() {
     const data = {
-      type: 'item',
-      instanceId: this.instanceId,
-      defId: this.defId,
-      name: this.name,
-      imageId: this.imageId,
-      renderFullTile: this.renderFullTile,
-      width: this.width,
-      height: this.height,
-      rotation: this.rotation,
-      x: this.x,
-      y: this.y,
-      // traits: this.traits, // Traits are now conditionally added
-      stackCount: this.stackCount,
-      stackMax: this.stackMax,
-      condition: this.condition,
-      capacity: this.capacity,
-      ammoCount: this.ammoCount,
-      equippableSlot: this.equippableSlot,
-      isEquipped: this.isEquipped,
-      pocketLayoutId: this.pocketLayoutId, // Persist the layout ID
-      categories: this.categories,
-      consumptionEffects: this.consumptionEffects,
-      waterQuality: this.waterQuality,
-      shelfLife: this.shelfLife,
-      lifetimeTurns: this.lifetimeTurns,
-      rarity: this.rarity,
-      combat: this.combat,
-      rangedStats: this.rangedStats,
-      description: this.description,
-      transformInto: this.transformInto,
-      produce: this.produce,
-      backgroundColor: this.backgroundColor,
-      isOn: this.isOn,
-      providesElectricity: this.providesElectricity,
-      fireMode: this.fireMode,
-      availableFireModes: this.availableFireModes,
-      scooterMode: this.scooterMode,
-      rideApBonus: this.rideApBonus
+      type: 'item'
     };
+
+    // Automatically serialize registered properties
+    for (const prop of Item.SERIALIZABLE_PROPERTIES) {
+      if (this[prop] !== undefined) {
+        data[prop] = this[prop];
+      }
+    }
+
+    // Automatically serialize any other custom/extra property added dynamically
+    for (const [key, value] of Object.entries(this)) {
+      if (
+        key.startsWith('_') ||
+        typeof value === 'function' ||
+        Item.SERIALIZABLE_PROPERTIES.includes(key) ||
+        key === 'containerGrid' ||
+        key === 'pocketGrids' ||
+        key === 'attachments' ||
+        key === 'traits' ||
+        key === 'listeners'
+      ) {
+        continue;
+      }
+      data[key] = value;
+    }
 
     // Serialize Traits
     if (this.traits && this.traits.length > 0) {

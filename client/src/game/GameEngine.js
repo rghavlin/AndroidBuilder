@@ -45,6 +45,8 @@ class GameEngine extends SafeEventEmitter {
     this.lastUpdate = Date.now();
     this.updateCount = 0;
     this.isAutosaving = false;
+    this.turn = 1;
+    this.isFlashlightOn = false;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
     this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8, isNightVision: false };
     this.renderDebugColors = false; 
@@ -85,6 +87,10 @@ class GameEngine extends SafeEventEmitter {
    * This drives all time-dependent visual actions registered with the engine.
    */
   startHeartbeat() {
+    if (typeof requestAnimationFrame === 'undefined') {
+      console.log('[GameEngine] requestAnimationFrame is not defined (likely running in a non-browser/Node environment). Skipping heartbeat loop.');
+      return;
+    }
     const loop = (now) => {
       const dt = now - this.lastFrameTime;
       this.lastFrameTime = now;
@@ -148,9 +154,14 @@ class GameEngine extends SafeEventEmitter {
     if (gameObjects.camera) this.camera = gameObjects.camera;
     if (gameObjects.zombieTracker) this.zombieTracker = gameObjects.zombieTracker;
     if (gameObjects.lootGenerator) this.lootGenerator = gameObjects.lootGenerator;
+    if (gameObjects.turn !== undefined) this.turn = gameObjects.turn;
     
     // Restore Phase 24 interaction state if present
     if (gameObjects.interactionState) {
+      this.turnPhase = gameObjects.interactionState.isPlayerTurn !== undefined 
+        ? (gameObjects.interactionState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING')
+        : 'PLAYER_TURN';
+      this.isFlashlightOn = gameObjects.interactionState.isFlashlightOn || false;
       this.isSleeping = gameObjects.interactionState.isSleeping || false;
       this.sleepProgress = gameObjects.interactionState.sleepProgress || 0;
       this.targetingItemInstanceId = gameObjects.interactionState.targetingItemInstanceId || null;

@@ -80,9 +80,11 @@ const GameContextInner = ({ children }) => {
   const lastSeenTaggedTilesRef = useRef(new Set());
 
   // State machine state
-  const [initializationState, setInitializationState] = useState(engine.initializationState);
+  const initializationState = engine.initializationState;
+  const initRef = useRef(initializationState);
+  initRef.current = initializationState;
+  
   const [engineUpdate, setEngineUpdate] = useState(0); // For triggering re-renders on engine changes
-  const initRef = useRef('idle'); // Mirror state in ref to avoid closure issues
   const runIdRef = useRef(0); // Track initialization runs
   const [initializationError, setInitializationError] = useState(null);
 
@@ -98,10 +100,6 @@ const GameContextInner = ({ children }) => {
   // Phase 2 Refactor: isGameReady is the definitive signal that UI orchestration can begin.
   const isInitialized = isGameReady;
 
-  useEffect(() => {
-    initRef.current = initializationState;
-  }, [initializationState]);
-
   // Phase 2: Listen for engine updates to trigger React re-renders
   // Phase 1: Engine heartbeat bridge (Atomic Sync)
   const enginePulse = useSyncExternalStore(
@@ -109,16 +107,22 @@ const GameContextInner = ({ children }) => {
     () => engine.getSnapshot()
   );
 
-  // Sync vital lifecycle flags on every pulse
-  useEffect(() => {
-    if (engine.initializationState) {
-      setInitializationState(engine.initializationState);
-    }
-  }, [enginePulse]);
+  const setInitializationState = useCallback((val) => {
+    engine.initializationState = typeof val === 'function' ? val(engine.initializationState) : val;
+    engine.notifyUpdate();
+  }, []);
 
   const initializedRef = useRef(false);
-  const [turn, setTurn] = useState(1);
-  const [isFlashlightOn, setIsFlashlightOn] = useState(false);
+  const turn = engine.turn;
+  const setTurn = useCallback((val) => {
+    engine.turn = typeof val === 'function' ? val(engine.turn) : val;
+    engine.notifyUpdate();
+  }, []);
+  const isFlashlightOn = engine.isFlashlightOn;
+  const setIsFlashlightOn = useCallback((val) => {
+    engine.isFlashlightOn = typeof val === 'function' ? val(engine.isFlashlightOn) : val;
+    engine.notifyUpdate();
+  }, []);
   const hour = (6 + (turn - 1)) % 24;
   const isNight = hour >= 20 || hour < 6;
 
@@ -317,32 +321,34 @@ const GameContextInner = ({ children }) => {
     });
   }, [isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
 
-  const [turnPhase, setTurnPhase] = useState('PLAYER_TURN'); // 'PLAYER_TURN', 'SIMULATING', 'ANIMATING', 'PAUSED_FOR_EVENT'
-  
-  // Sync turnPhase to engine for non-React callers (like InventoryContext)
-  useEffect(() => {
-    engine.turnPhase = turnPhase;
-  }, [turnPhase]);
+  const turnPhase = engine.turnPhase;
+  const setTurnPhase = useCallback((val) => {
+    engine.turnPhase = typeof val === 'function' ? val(engine.turnPhase) : val;
+    engine.notifyUpdate();
+  }, []);
 
-  const isPlayerTurn = useMemo(() => turnPhase === 'PLAYER_TURN' && !isProcessingTurn, [turnPhase, isProcessingTurn]);
-  const setIsPlayerTurn = useCallback((val) => setTurnPhase(val ? 'PLAYER_TURN' : 'SIMULATING'), []);
-  const isAnimatingZombies = useMemo(() => turnPhase === 'ANIMATING' || turnPhase === 'SIMULATING' || isProcessingTurn, [turnPhase, isProcessingTurn]);
+  const isPlayerTurn = useMemo(() => engine.turnPhase === 'PLAYER_TURN' && !isProcessingTurn, [enginePulse, isProcessingTurn]);
+  const setIsPlayerTurn = useCallback((val) => {
+    engine.turnPhase = val ? 'PLAYER_TURN' : 'SIMULATING';
+    engine.notifyUpdate();
+  }, []);
+  const isAnimatingZombies = useMemo(() => engine.turnPhase === 'ANIMATING' || engine.turnPhase === 'SIMULATING' || isProcessingTurn, [enginePulse, isProcessingTurn]);
   const setIsAnimatingZombies = useCallback((val) => {
-    setTurnPhase(prev => {
-      if (val) return 'ANIMATING';
-      // Only transition back to SIMULATING if we were actually ANIMATING
-      // This prevents late callbacks from overwriting a PLAYER_TURN or PAUSED state
-      if (prev === 'ANIMATING') return 'SIMULATING';
-      return prev;
-    });
+    const prev = engine.turnPhase;
+    if (val) {
+      engine.turnPhase = 'ANIMATING';
+    } else if (prev === 'ANIMATING') {
+      engine.turnPhase = 'SIMULATING';
+    }
+    engine.notifyUpdate();
   }, []);
   
   const [activeNpcDemand, setActiveNpcDemand] = useState(null); // { npc, player }
-  const [isAutosaving, setIsAutosaving] = useState(false);
-  
-  useEffect(() => {
-    engine.isAutosaving = isAutosaving;
-  }, [isAutosaving]);
+  const isAutosaving = engine.isAutosaving;
+  const setIsAutosaving = useCallback((val) => {
+    engine.isAutosaving = typeof val === 'function' ? val(engine.isAutosaving) : val;
+    engine.notifyUpdate();
+  }, []);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
   const [isDefeated, setIsDefeated] = useState(false);
 

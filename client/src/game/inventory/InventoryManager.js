@@ -249,6 +249,7 @@ export class InventoryManager extends SafeEventEmitter {
             console.log(`[InventoryManager] 📦 Preserved carried item ${item.name} during tile load`);
         });
 
+        const failedToLoad = [];
         itemsToLoad.forEach((itemData, index) => {
           try {
             let item;
@@ -272,6 +273,7 @@ export class InventoryManager extends SafeEventEmitter {
                 changed = true;
               } else {
                 console.error(`[InventoryManager]     [${index}] 🚨 CRITICAL: Force add also failed!`);
+                failedToLoad.push(item);
               }
             }
           } catch (err) {
@@ -284,6 +286,16 @@ export class InventoryManager extends SafeEventEmitter {
         console.log(`[InventoryManager]   -> Items "Moved" from map to local container at (${newX}, ${newY}). Clearing map tile source.`);
         gameMap.setItemsOnTile(newX, newY, []);
         this.groundManager.updateCategoryAreas();
+
+        if (failedToLoad.length > 0) {
+          console.warn(`[InventoryManager] 🚨 Writing back ${failedToLoad.length} failed-to-load items to map tile (${newX}, ${newY})`);
+          if (typeof gameMap.addItemsToTile === 'function') {
+            gameMap.addItemsToTile(newX, newY, failedToLoad);
+          } else {
+            const existing = gameMap.getItemsOnTile(newX, newY) || [];
+            gameMap.setItemsOnTile(newX, newY, [...existing, ...failedToLoad]);
+          }
+        }
       }
     } else {
       console.log(`[InventoryManager]   -> No items found on map at (${newX}, ${newY})`);
@@ -2593,27 +2605,52 @@ export class InventoryManager extends SafeEventEmitter {
     return true;
   }
 
+  static SERIALIZABLE_PROPERTIES = [
+    'lastSyncedX', 'lastSyncedY'
+  ];
+
   /**
    * Serialize entire inventory system to JSON
    */
   toJSON() {
-    return {
+    const data = {
       containers: Array.from(this.containers.entries())
         .filter(([id, container]) => container.type !== 'crafting-workspace')
         .map(([id, container]) => [id, container.toJSON()]),
-      equipment: {
-        backpack: this.equipment.backpack?.toJSON() || null,
-        upper_body: this.equipment.upper_body?.toJSON() || null,
-        lower_body: this.equipment.lower_body?.toJSON() || null,
-        melee: this.equipment.melee?.toJSON() || null,
-        handgun: this.equipment.handgun?.toJSON() || null,
-        long_gun: this.equipment.long_gun?.toJSON() || null,
-        flashlight: this.equipment.flashlight?.toJSON() || null,
-        belt: this.equipment.belt?.toJSON() || null
-      },
-      lastSyncedX: this.lastSyncedX,
-      lastSyncedY: this.lastSyncedY
+      equipment: {}
     };
+
+    for (const [slot, item] of Object.entries(this.equipment)) {
+      data.equipment[slot] = item ? item.toJSON() : null;
+    }
+
+    // Automatically serialize registered properties
+    for (const prop of InventoryManager.SERIALIZABLE_PROPERTIES) {
+      if (this[prop] !== undefined) {
+        data[prop] = this[prop];
+      }
+    }
+
+    // Automatically serialize any other custom/extra property added dynamically
+    for (const [key, value] of Object.entries(this)) {
+      if (
+        key.startsWith('_') ||
+        typeof value === 'function' ||
+        InventoryManager.SERIALIZABLE_PROPERTIES.includes(key) ||
+        key === 'containers' ||
+        key === 'equipment' ||
+        key === 'groundContainer' ||
+        key === 'groundManager' ||
+        key === 'craftingManager' ||
+        key === 'draggedItem' ||
+        key === 'listeners'
+      ) {
+        continue;
+      }
+      data[key] = value;
+    }
+
+    return data;
   }
 
   /**
@@ -2660,9 +2697,18 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
     
-    // Restore ownership tracking (Phase 12 Persistence Fix)
-    manager.lastSyncedX = data.lastSyncedX !== undefined ? data.lastSyncedX : null;
-    manager.lastSyncedY = data.lastSyncedY !== undefined ? data.lastSyncedY : null;
+    // Automatically copy any other custom properties from data
+    for (const [key, value] of Object.entries(data)) {
+      if (
+        value !== undefined &&
+        !key.startsWith('_') &&
+        key !== 'containers' &&
+        key !== 'equipment' &&
+        manager[key] === undefined
+      ) {
+        manager[key] = value;
+      }
+    }
 
     // Update dynamic containers based on restored equipment
     manager.updateDynamicContainers();

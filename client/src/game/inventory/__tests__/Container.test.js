@@ -44,6 +44,7 @@ export function runContainerTests() {
   runTest('isChargeBased method', () => {
     // These defs are looked up in ItemDefs.js during construction if available
     const lighter = new Item({ traits: [ItemTrait.CHARGE_BASED], name: 'Lighter' });
+    const matchbook = new Item({ traits: [ItemTrait.CHARGE_BASED], name: 'Matchbook' });
     const battery = new Item({ traits: [ItemTrait.BATTERY], name: 'Battery' });
     const knife = new Item({ name: 'Knife' });
 
