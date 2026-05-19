@@ -383,11 +383,13 @@ export const CombatProvider = ({ children }) => {
             const squaresAway = Math.floor(distance);
             const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
             const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
+            const hasLaserSight = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.LASER_SIGHT);
 
             let baseHitChance = 1.0;
             if (isSling) baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
             else if (stats.isShotgun) baseHitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
             else if (hasScope) baseHitChance = squaresAway <= 15 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
+            else if (hasLaserSight) baseHitChance = squaresAway <= 10 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 10) * stats.accuracyFalloff);
             else baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
 
             const hit = Math.random() <= (baseHitChance + accuracyBonus);

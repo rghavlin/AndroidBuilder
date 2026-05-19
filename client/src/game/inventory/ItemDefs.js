@@ -1143,8 +1143,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 50,
-    spawnStackMin: 3,
-    spawnStackMax: 6
+    spawnStackMin: 1,
+    spawnStackMax: 3
   },
   'ammo.sniper': {
     id: 'ammo.sniper',
@@ -1157,8 +1157,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 20,
-    spawnStackMin: 3,
-    spawnStackMax: 6
+    spawnStackMin: 1,
+    spawnStackMax: 3
   },
   'ammo.357': {
     id: 'ammo.357',
@@ -1170,8 +1170,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 50,
-    spawnStackMin: 3,
-    spawnStackMax: 6
+    spawnStackMin: 1,
+    spawnStackMax: 3
   },
   'ammo.308': {
     id: 'ammo.308',
@@ -1183,8 +1183,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 50,
-    spawnStackMin: 3,
-    spawnStackMax: 6
+    spawnStackMin: 1,
+    spawnStackMax: 3
   },
   'ammo.556': {
     id: 'ammo.556',
@@ -1196,8 +1196,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 50,
-    spawnStackMin: 5,
-    spawnStackMax: 15
+    spawnStackMin: 2,
+    spawnStackMax: 7
   },
 
   'ammo.de': {
@@ -1210,8 +1210,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 20,
-    spawnStackMin: 2,
-    spawnStackMax: 5
+    spawnStackMin: 1,
+    spawnStackMax: 2
   },
 
   'medical.bandage': {
@@ -2038,8 +2038,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE],
     categories: [ItemCategory.AMMO],
     stackMax: 20,
-    spawnStackMin: 3,
-    spawnStackMax: 6
+    spawnStackMin: 1,
+    spawnStackMax: 3
   },
 
   'placeable.campfire': {
@@ -2278,6 +2278,18 @@ export const ItemDefs = {
     capacity: 50,
     waterQuality: 'dirty',
     categories: [ItemCategory.ENVIRONMENT],
+    noLoot: true,
+    renderFullTile: true
+  },
+  'placeable.exit': {
+    id: 'placeable.exit',
+    name: 'Exit',
+    rarity: Rarity.COMMON,
+    imageId: 'exit',
+    width: 3,
+    height: 3,
+    noDrag: true,
+    traits: [ItemTrait.GROUND_ONLY],
     noLoot: true,
     renderFullTile: true
   },

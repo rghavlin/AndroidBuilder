@@ -457,9 +457,6 @@ export class GameMap {
     return items;
   }
 
-  /**
-   * Set terrain type for a tile
-   */
   setTerrain(x, y, terrain) {
     const tile = this.getTile(x, y);
     if (tile) {
@@ -470,6 +467,35 @@ export class GameMap {
       } else {
         tile.waterAmount = 0;
       }
+
+      if (terrain === 'transition') {
+        const hasExit = tile.inventoryItems?.some(i => i.defId === 'placeable.exit');
+        if (!hasExit) {
+          const exitDef = createItemFromDef('placeable.exit');
+          if (exitDef) {
+            import('../inventory/Item.js').then(({ Item }) => {
+              const exitItem = new Item(exitDef);
+              exitItem.x = x;
+              exitItem.y = y;
+              if (!tile.inventoryItems) tile.inventoryItems = [];
+              if (!tile.inventoryItems.some(i => i.defId === 'placeable.exit')) {
+                tile.inventoryItems.push(exitItem);
+                this.setItemsOnTile(x, y, tile.inventoryItems);
+                console.debug(`[GameMap] Created placeable.exit on transition tile at (${x}, ${y})`);
+              }
+            }).catch(err => console.error('[GameMap] Failed to load Item for transition:', err));
+          }
+        }
+      } else {
+        if (tile.inventoryItems) {
+          const originalLength = tile.inventoryItems.length;
+          tile.inventoryItems = tile.inventoryItems.filter(i => i.defId !== 'placeable.exit');
+          if (tile.inventoryItems.length !== originalLength) {
+            this.setItemsOnTile(x, y, tile.inventoryItems);
+          }
+        }
+      }
+
       this.emit('terrainChanged', {
         position: { x, y },
         terrain,
@@ -537,6 +563,11 @@ export class GameMap {
   removeEntity(entityId) {
     const entity = this.entityMap.get(entityId);
     if (entity) {
+      if (entity.type === 'zombie' && entity.hp <= 0) {
+        if (engine.worldManager) {
+          engine.worldManager.recordZombieKill(engine.worldManager.currentMapId);
+        }
+      }
       // PHASE 28 FIX: Always use logical coordinates to find the tile for removal.
       // Using visual coordinates (entity.x/y) can lead to 'ghost' entities on tiles
       // if the entity was removed while visually desynced (e.g. after sleep).
@@ -557,6 +588,26 @@ export class GameMap {
       return entity;
     }
     return null;
+  }
+
+  /**
+   * Calculate exploration percentage based on explored tiles
+   */
+  getExplorationPercentage() {
+    let total = 0;
+    let explored = 0;
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const tile = this.getTile(x, y);
+        if (tile) {
+          total++;
+          if (tile.flags?.explored) {
+            explored++;
+          }
+        }
+      }
+    }
+    return total > 0 ? Math.round((explored / total) * 100) : 0;
   }
 
   /**

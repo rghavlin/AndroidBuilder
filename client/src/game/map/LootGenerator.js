@@ -492,7 +492,15 @@ export class LootGenerator {
 
             // 2. Pile limit: Max 1 food item per loot pile
             const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
-            if (isFood && hasFoodInPile) continue;
+            if (isFood) {
+                // Progressive food scarcity: 50% base rejection on Map 1, +5% per map, max 95% on Map 10
+                let rejectionChance = 0.5 + (mapNumber - 1) * 0.05;
+                rejectionChance = Math.min(0.95, Math.max(0.0, rejectionChance));
+                if (Math.random() < rejectionChance) {
+                    continue; // Reject food spawning for this drop slot
+                }
+                if (hasFoodInPile) continue;
+            }
 
             // 2b. Pile limit: Items that should be restricted to 1 per pile
             if (def.pileLimitOne && seenKeysInPile.has(randomKey)) continue;
@@ -762,7 +770,7 @@ export class LootGenerator {
                         const ammoKey = ammoTypes[Math.floor(Math.random() * ammoTypes.length)];
                         const ammo = createItemFromDef(ammoKey);
                         if (ammo) {
-                            ammo.stackCount = 10 + Math.floor(Math.random() * 11); // 10-20
+                            ammo.stackCount = 5 + Math.floor(Math.random() * 6); // 5-10
                             items.push(ammo);
                         }
                     }
@@ -991,6 +999,18 @@ export class LootGenerator {
             if (selectedKey === 'crafting.leather_belt' && hasBeltInLoot) continue;
 
             if (selectedKey) {
+                const def = ItemDefs[selectedKey];
+                if (def) {
+                    const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
+                    if (isFood) {
+                        let rejectionChance = 0.5 + (mapNumber - 1) * 0.05;
+                        rejectionChance = Math.min(0.95, Math.max(0.0, rejectionChance));
+                        if (Math.random() < rejectionChance) {
+                            continue; // Reject food drop
+                        }
+                    }
+                }
+
                 const item = createItemFromDef(selectedKey);
                 if (item) {
                     if (selectedKey === 'crafting.leather_belt') hasBeltInLoot = true;

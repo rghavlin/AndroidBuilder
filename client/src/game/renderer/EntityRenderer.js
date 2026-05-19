@@ -186,7 +186,20 @@ export const EntityRenderer = {
             
             ctx.drawImage(tCanvas, drawX, drawY, drawSize, drawSize);
         } else {
-            ctx.drawImage(sprite, drawX, drawY, drawSize, drawSize);
+            const isSouthExit = entity.type === 'item' && 
+                                (entity.defId === 'placeable.exit' || entity.subtype === 'exit') && 
+                                engine.gameMap && 
+                                entity.y === engine.gameMap.height - 1;
+            
+            if (isSouthExit) {
+              ctx.save();
+              ctx.translate(drawX + drawSize / 2, drawY + drawSize / 2);
+              ctx.rotate(Math.PI);
+              ctx.drawImage(sprite, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+              ctx.restore();
+            } else {
+              ctx.drawImage(sprite, drawX, drawY, drawSize, drawSize);
+            }
         }
         
         // Square 'Picture Frame' for Player and Zombies

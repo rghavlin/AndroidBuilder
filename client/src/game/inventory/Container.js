@@ -377,6 +377,70 @@ export class Container {
       return false;
     }
 
+    // Special handling for the absolute sorting priority of "Exit" item
+    if (item.defId === 'placeable.exit') {
+      const occupantsToMove = [];
+      const fillWidth = 3;
+      const fillHeight = 3;
+      
+      // Ensure grid is large enough to contain at least 3x3 at the top left
+      while (this.grid.length < fillHeight) {
+        this.grid.push(new Array(this.width).fill(null));
+      }
+      for (let r = 0; r < fillHeight; r++) {
+        while (this.grid[r].length < fillWidth) {
+          this.grid[r].push(null);
+        }
+      }
+      
+      // Find all current items that occupy the 3x3 region at (0, 0)
+      for (let dy = 0; dy < fillHeight; dy++) {
+        for (let dx = 0; dx < fillWidth; dx++) {
+          const cellContent = this.grid[dy]?.[dx];
+          if (cellContent && cellContent !== itemId) {
+            const occ = this.items.get(cellContent);
+            if (occ && !occupantsToMove.includes(occ)) {
+              occupantsToMove.push(occ);
+            }
+          }
+        }
+      }
+      
+      // Temporarily remove occupants from grid so we have free space
+      occupantsToMove.forEach(occ => this.removeItemFromGrid(occ));
+      
+      // Remove exit from old position if already in container
+      if (this.items.has(itemId)) {
+        this.removeItemFromGrid(item);
+      }
+      
+      // Force place exit at (0, 0)
+      item.x = 0;
+      item.y = 0;
+      item._container = this;
+      
+      for (let dy = 0; dy < fillHeight; dy++) {
+        for (let dx = 0; dx < fillWidth; dx++) {
+          this.grid[dy][dx] = itemId;
+        }
+      }
+      this.items.set(itemId, item);
+      
+      console.debug('[Container] Force placed Exit item at (0,0), shifted occupants:', occupantsToMove.map(o => o.name));
+      
+      // Re-place shifted occupants elsewhere
+      occupantsToMove.forEach(occ => {
+        occ.x = undefined;
+        occ.y = undefined;
+        const pos = this.findAvailablePosition(occ);
+        if (pos) {
+          this.placeItemAt(occ, pos.x, pos.y);
+        }
+      });
+      
+      return true;
+    }
+
     // Validate bounds first
     if (!this.ignoreSize && !this.isValidPosition(x, y, width, height)) {
       return false;

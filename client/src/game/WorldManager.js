@@ -15,6 +15,11 @@ export class WorldManager {
     this.listeners = new Map();
     this.DEV_FORCE_LAB = false; // Set to true to test Lab map on Map 1
 
+    this.firstEntryTurn = { map_001: 1 };
+    this.completedMaps = [];
+    this.zombiesKilled = {};
+    this.zombiesSpawned = {};
+
     logger.info('Initialized');
   }
 
@@ -53,6 +58,12 @@ export class WorldManager {
     try {
       if (!mapId) {
         mapId = this.generateMapId();
+      }
+
+      if (this.zombiesSpawned[mapId] === undefined) {
+        const zombies = gameMap.getAllEntities().filter(e => e.type === 'zombie');
+        this.zombiesSpawned[mapId] = zombies.length;
+        this.zombiesKilled[mapId] = 0;
       }
 
       const serializedMap = gameMap.toJSON();
@@ -501,6 +512,31 @@ export class WorldManager {
     });
   }
 
+  recordZombieKill(mapId) {
+    if (!mapId) return;
+    if (this.zombiesKilled[mapId] === undefined) {
+      this.zombiesKilled[mapId] = 0;
+    }
+    this.zombiesKilled[mapId]++;
+    logger.info(`Recorded zombie kill on map ${mapId}. Total: ${this.zombiesKilled[mapId]}/${this.zombiesSpawned[mapId] || 0}`);
+  }
+
+  getZombieKillsPercentage(mapId) {
+    const killed = this.zombiesKilled[mapId] || 0;
+    const spawned = this.zombiesSpawned[mapId] || 0;
+    if (spawned <= 0) return 100;
+    return Math.min(100, Math.round((killed / spawned) * 100));
+  }
+
+  markMapCompleted(mapId) {
+    if (!this.completedMaps) {
+      this.completedMaps = [];
+    }
+    if (!this.completedMaps.includes(mapId)) {
+      this.completedMaps.push(mapId);
+    }
+  }
+
   /**
    * Serialize world state to JSON
    */
@@ -508,7 +544,11 @@ export class WorldManager {
     return {
       maps: Array.from(this.maps.entries()).map(([id, data]) => ({ id, ...data })),
       currentMapId: this.currentMapId,
-      mapCounter: this.mapCounter
+      mapCounter: this.mapCounter,
+      firstEntryTurn: this.firstEntryTurn,
+      completedMaps: this.completedMaps,
+      zombiesKilled: this.zombiesKilled,
+      zombiesSpawned: this.zombiesSpawned
     };
   }
 
@@ -669,6 +709,10 @@ export class WorldManager {
       logger.info(`Map transition completed: ${this.currentMapId} -> ${targetMapId}`);
       logger.info(`Player will spawn at (${spawnPosition.x}, ${spawnPosition.y})`);
 
+      if (this.firstEntryTurn[targetMapId] === undefined) {
+        this.firstEntryTurn[targetMapId] = currentTurn !== null ? currentTurn : 1;
+      }
+
       return {
         success: true,
         gameMap: mapData.gameMap,
@@ -700,6 +744,10 @@ export class WorldManager {
 
     worldManager.currentMapId = data.currentMapId || null;
     worldManager.mapCounter = data.mapCounter || 1;
+    worldManager.firstEntryTurn = data.firstEntryTurn || { map_001: 1 };
+    worldManager.completedMaps = data.completedMaps || [];
+    worldManager.zombiesKilled = data.zombiesKilled || {};
+    worldManager.zombiesSpawned = data.zombiesSpawned || {};
 
     logger.info(`Restored from JSON with ${worldManager.maps.size} maps`);
     return worldManager;

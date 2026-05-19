@@ -91,7 +91,10 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                         <span className="text-zinc-200">
                             {rangedStats.isShotgun 
                                 ? (rangedStats.accuracyMaxRange || 5) 
-                                : (item.attachments && Object.values(item.attachments).some((a: any) => a?.categories?.includes('rifle_scope')) ? 15 : 1)
+                                : (item.attachments && Object.values(item.attachments).some((a: any) => a?.categories?.includes('rifle_scope')) 
+                                    ? 15 
+                                    : (item.attachments && Object.values(item.attachments).some((a: any) => a?.categories?.includes('laser_sight')) ? 10 : 1)
+                                  )
                             } tiles
                         </span>
                     </div>

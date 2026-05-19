@@ -350,7 +350,13 @@ const GameContextInner = ({ children }) => {
     engine.notifyUpdate();
   }, []);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
-  const [isDefeated, setIsDefeated] = useState(false);
+  const [isDefeated, setIsDefeatedState] = useState(false);
+  const isDefeatedRef = useRef(false);
+  const setIsDefeated = useCallback((val) => {
+    const nextVal = typeof val === 'function' ? val(isDefeatedRef.current) : val;
+    isDefeatedRef.current = nextVal;
+    setIsDefeatedState(nextVal);
+  }, []);
 
   const toggleSkills = useCallback(() => {
     setIsSkillsOpen(prev => !prev);
@@ -978,12 +984,12 @@ const GameContextInner = ({ children }) => {
   
   // REACTIVE DEFEAT DETECTION: Monitor engine stats directly to catch death immediately
   useEffect(() => {
-    if (isInitialized && engine.player && engine.player.hp < 1 && !isDefeated) {
+    if (isInitialized && engine.player && engine.player.hp < 1 && !isDefeatedRef.current) {
       console.warn('[GameContext] 💀 REACTIVE DEATH DETECTED - Triggering Defeat Dialog');
       setIsDefeated(true);
       setIsPlayerTurn(false); // Lock input immediately
     }
-  }, [enginePulse, isInitialized, isDefeated]);
+  }, [enginePulse, isInitialized]);
   
 
   // Proximity check: Trigger NPC demand if player walks adjacent to a hostile NPC

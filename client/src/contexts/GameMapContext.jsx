@@ -52,6 +52,7 @@ export const GameMapProvider = ({ children }) => {
 
   // Sync with engine updates (especially map loads/transitions)
   useEffect(() => {
+    window.setMapTransition = setMapTransition;
     const handleSync = () => {
       console.log('[GameMapContext] 🔄 engine triggered sync, updating map refs');
       gameMapRef.current = engine.gameMap;
@@ -61,6 +62,7 @@ export const GameMapProvider = ({ children }) => {
     engine.on('sync', handleSync);
     return () => {
       engine.off('sync', handleSync);
+      window.setMapTransition = null;
     };
   }, []);
 
@@ -107,14 +109,14 @@ export const GameMapProvider = ({ children }) => {
       // Start movement
       await startAnimatedMovement(engine.gameMap, camera, path, movementCost, isNight, isFlashlightOn, flashlightRange);
 
-      // Transition check
-      const finalTile = engine.gameMap.getTile(x, y);
-      if (finalTile && finalTile.terrain === 'transition' && engine.worldManager) {
-        const transitionInfo = engine.worldManager.checkTransitionPoint({ x, y }, engine.gameMap);
-        if (transitionInfo) {
-          setMapTransition(transitionInfo);
-        }
-      }
+      // Transition check disabled for Exit item/manual transitions
+      // const finalTile = engine.gameMap.getTile(x, y);
+      // if (finalTile && finalTile.terrain === 'transition' && engine.worldManager) {
+      //   const transitionInfo = engine.worldManager.checkTransitionPoint({ x, y }, engine.gameMap);
+      //   if (transitionInfo) {
+      //     setMapTransition(transitionInfo);
+      //   }
+      // }
     } catch (error) {
       console.error('[GameMapContext] Error handling tile click:', error);
     }

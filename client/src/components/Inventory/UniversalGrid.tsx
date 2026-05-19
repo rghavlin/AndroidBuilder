@@ -12,6 +12,7 @@ import { useAction } from "../../contexts/ActionContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
 import { useCombat } from "../../contexts/CombatContext.jsx";
 import { ItemTrait, ItemCategory } from "../../game/inventory/traits.js";
+import engine from "../../game/GameEngine.js";
 
 interface UniversalGridProps {
   containerId: string;
@@ -205,6 +206,31 @@ export default function UniversalGrid({
        console.debug(`[UniversalGrid] Harvesting ${item.name} at:`, x, y);
        harvestPlant(item);
        return;
+    }
+
+    // Intercept clicks on the exit item to trigger map transition
+    if (item && item.defId === 'placeable.exit') {
+      const setMapTransition = (window as any).setMapTransition;
+      const gameMap = engine.gameMap;
+      const player = engine.player;
+      const worldManager = engine.worldManager;
+      
+      if (gameMap && player && worldManager) {
+        console.debug('[UniversalGrid] Left-clicked Exit item - triggering map transition dialog');
+        const transitionInfo = worldManager.checkTransitionPoint({ x: player.x, y: player.y }, gameMap);
+        if (transitionInfo) {
+          if (setMapTransition) {
+            setMapTransition(transitionInfo);
+          } else {
+            console.error('[UniversalGrid] window.setMapTransition is not defined');
+          }
+        } else {
+          console.warn('[UniversalGrid] No transition point found at player position:', player.x, player.y);
+        }
+      } else {
+        console.error('[UniversalGrid] Missing engine components for map transition');
+      }
+      return;
     }
 
     // Case 1: An item is already selected/carried

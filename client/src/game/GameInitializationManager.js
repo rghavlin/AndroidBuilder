@@ -325,6 +325,11 @@ class GameInitializationManager extends EventEmitter {
       const spawnCount = this._spawnInitialZombies(gameMap, player);
       console.log('[GameInitializationManager] Spawned', spawnCount, 'initial zombies');
 
+      if (worldManager) {
+        worldManager.zombiesSpawned['map_001'] = spawnCount;
+        worldManager.zombiesKilled['map_001'] = 0;
+      }
+
 
       
       // SPAWN ANIMALS: Initial procedural rabbit generation
