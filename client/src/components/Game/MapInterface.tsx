@@ -439,7 +439,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         data-testid="map-header"
       >
         <button
-          className="w-9 h-9 bg-zinc-900/60 border border-white/10 rounded flex items-center justify-center hover:bg-zinc-800 transition-all shadow-sm active:scale-95 duration-150"
+          className="w-9 h-9 bg-zinc-900/60 border border-white/10 rounded flex items-center justify-center hover:bg-zinc-800 transition-all shadow-sm active:scale-95 duration-150 shrink-0"
           title="Main Menu"
           data-testid="main-menu-button"
           onClick={() => setShowMainMenu(true)}
@@ -448,7 +448,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         </button>
 
         {/* Action Buttons Group (Better spacing between log and slots) */}
-        <div className="flex items-center flex-1 px-2">
+        <div className="flex items-center flex-1 px-2 min-w-0">
           <GameEventLog 
             onClick={() => {
               setIsLogHistoryOpen(prev => !prev);
@@ -456,7 +456,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             }} 
           />
           <div className="flex-1" /> {/* Spacer pushes buttons apart */}
-          <div className="flex gap-2 mr-2">
+          <div className="flex gap-2 mr-2 shrink-0">
             {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
               <ActionSlotButton
                 key={slot}
@@ -469,7 +469,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
         <button
           className={cn(
-            "w-9 h-9 bg-zinc-900 border transition-all flex items-center justify-center hover:bg-zinc-800 shadow-sm active:scale-95 rounded duration-150",
+            "w-9 h-9 bg-zinc-900 border transition-all flex items-center justify-center hover:bg-zinc-800 shadow-sm active:scale-95 rounded duration-150 shrink-0",
             isExtensionOpen ? "border-primary/50 bg-zinc-850 shadow-[0_0_12px_rgba(16,185,129,0.2)]" : "border-white/10"
           )}
           title="Crafting/Cooking"

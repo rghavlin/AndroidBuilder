@@ -61,7 +61,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
       <button
         onClick={handleClick}
         className={cn(
-          "w-8 h-8 rounded flex items-center justify-center transition-colors overflow-hidden",
+          "w-9 h-9 rounded flex items-center justify-center transition-colors overflow-hidden",
           "equipment-slot-metal hover:brightness-110", // Base style for action buttons
           // Targeting state: Bright red outline/glow
           item && isTargeting && "!border-red-500 shadow-[inset_0_0_10px_rgba(239,68,68,0.3),0_0_8px_rgba(239,68,68,0.5)]",
@@ -73,7 +73,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
           <img
             src={imageSrc}
             alt={item.name}
-            className="w-full h-full object-cover p-0.5"
+            className="w-full h-full object-contain p-1 mix-blend-screen"
           />
         ) : null}
       </button>
