@@ -797,6 +797,8 @@ export default function UniversalGrid({
       }
 
       const isItemSelected = selectedItem && item.instanceId === selectedItem.item.instanceId;
+      const isVehiclePulled = engine.dragging?.item?.instanceId === itemId;
+      const isVehicleRidden = engine.riding?.item?.instanceId === itemId;
 
       result.push(
         <ItemContextMenu
@@ -810,7 +812,9 @@ export default function UniversalGrid({
               "absolute select-none z-10 transition-all duration-200 rounded-[3px] sunken-item-slab",
               "cursor-grab active:cursor-grabbing",
               hoveredItem === itemId ? "brightness-125 scale-[1.01]" : "",
-              isItemSelected ? "ring-2 ring-accent border-accent selected-item-overlay" : ""
+              isItemSelected ? "ring-2 ring-accent border-accent selected-item-overlay" : "",
+              !isItemSelected && isVehiclePulled ? "vehicle-pull-border" : "",
+              !isItemSelected && isVehicleRidden ? "vehicle-ride-border" : ""
             )}
             onClick={(e) => handleItemClick(item, topLeftX, topLeftY, e)}
             onContextMenu={(e) => handleItemContextMenu(item, topLeftX, topLeftY, e)}

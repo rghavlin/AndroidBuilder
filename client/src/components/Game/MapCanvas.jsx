@@ -195,17 +195,6 @@ export default function MapCanvas({
           const isVisible = visibleTileSet.has(`${worldX},${worldY}`);
 
           TileRenderer.drawTile(ctx, worldX, worldY, rTileSize, tile, isVisible, isExplored, isNight, engine, imageLoader.images);
-
-          // Highlights
-          if (isExplored && hoveredTile && hoveredTile.x === worldX && hoveredTile.y === worldY && player) {
-            TileRenderer.drawHighlight(ctx, worldX, worldY, rTileSize, hoveredTile.canAfford ? 'rgba(59, 130, 246, 0.3)' : 'rgba(239, 68, 68, 0.3)', 'fill');
-            
-            // AP Text
-            ctx.fillStyle = '#fff';
-            ctx.font = `bold ${Math.floor(rTileSize / 3)}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.fillText(hoveredTile.apCost.toFixed(1), worldX * rTileSize + rTileSize / 2, worldY * rTileSize + rTileSize / 2 + rTileSize / 8);
-          }
         }
       }
       ctx.restore();
@@ -235,10 +224,55 @@ export default function MapCanvas({
         }
       });
 
-      // Pass 2a: Ground & Structural Layer (Items, Icons, Doors, Windows)
+      // Pass 2a-1: Ground Items (Items / Loot drops)
       ctx.save();
       ctx.translate(globalOffsetX, globalOffsetY);
       groundEntities.forEach(entity => {
+        if (entity.type !== EntityType.ITEM) return;
+        const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
+        ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
+        EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
+        ctx.restore();
+      });
+      ctx.restore();
+
+      // Pass 2a-2: Hover Cursor Highlight (above items, below doors/windows/zombies)
+      if (hoveredTile && player) {
+        const tile = gameMap.getTile(hoveredTile.x, hoveredTile.y);
+        if (tile && tile.flags?.explored) {
+          ctx.save();
+          ctx.translate(globalOffsetX, globalOffsetY);
+          
+          // Draw Cursor Highlight!
+          drawImprovedCursor(ctx, hoveredTile.x, hoveredTile.y, rTileSize, hoveredTile.canAfford);
+          
+          // AP Text with thick dark outline for readability
+          const textX = hoveredTile.x * rTileSize + rTileSize / 2;
+          const textY = hoveredTile.y * rTileSize + rTileSize / 2 + rTileSize / 8;
+          const text = hoveredTile.apCost.toFixed(1);
+
+          ctx.font = `bold ${Math.floor(rTileSize / 3)}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.lineJoin = 'round';
+          
+          // Outline
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 4;
+          ctx.strokeText(text, textX, textY);
+          
+          // Fill
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(text, textX, textY);
+          
+          ctx.restore();
+        }
+      }
+
+      // Pass 2a-3: Other Ground & Structural Layer (Doors, Windows, Place Icons)
+      ctx.save();
+      ctx.translate(globalOffsetX, globalOffsetY);
+      groundEntities.forEach(entity => {
+        if (entity.type === EntityType.ITEM) return;
         const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
         ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
         EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
@@ -870,5 +904,63 @@ function renderRain(ctx, width, height, intensity, dpr) {
     ctx.lineTo(p.x + (p.length * 0.15), p.y + p.length);
     ctx.stroke();
   }
+  ctx.restore();
+}
+
+/**
+ * Draw an improved survival-game style cursor highlight with corner brackets
+ */
+function drawImprovedCursor(ctx, x, y, size, canAfford) {
+  const screenX = x * size;
+  const screenY = y * size;
+  const baseColor = canAfford ? '34, 197, 94' : '239, 68, 68'; // green vs red
+
+  ctx.save();
+
+  // 1. Draw subtle tile fill
+  ctx.fillStyle = `rgba(${baseColor}, 0.2)`;
+  ctx.fillRect(screenX, screenY, size, size);
+
+  // 2. Draw thin full border
+  ctx.strokeStyle = `rgba(${baseColor}, 0.3)`;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(screenX, screenY, size, size);
+
+  // 3. Draw thick corner brackets
+  const len = Math.max(6, size / 5);
+  const pad = 1.5; // small padding inside the tile boundary
+  ctx.strokeStyle = `rgba(${baseColor}, 0.95)`;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Top-Left corner
+  ctx.beginPath();
+  ctx.moveTo(screenX + pad + len, screenY + pad);
+  ctx.lineTo(screenX + pad, screenY + pad);
+  ctx.lineTo(screenX + pad, screenY + pad + len);
+  ctx.stroke();
+
+  // Top-Right corner
+  ctx.beginPath();
+  ctx.moveTo(screenX + size - pad - len, screenY + pad);
+  ctx.lineTo(screenX + size - pad, screenY + pad);
+  ctx.lineTo(screenX + size - pad, screenY + pad + len);
+  ctx.stroke();
+
+  // Bottom-Left corner
+  ctx.beginPath();
+  ctx.moveTo(screenX + pad + len, screenY + size - pad);
+  ctx.lineTo(screenX + pad, screenY + size - pad);
+  ctx.lineTo(screenX + pad, screenY + size - pad - len);
+  ctx.stroke();
+
+  // Bottom-Right corner
+  ctx.beginPath();
+  ctx.moveTo(screenX + size - pad - len, screenY + size - pad);
+  ctx.lineTo(screenX + size - pad, screenY + size - pad);
+  ctx.lineTo(screenX + size - pad, screenY + size - pad - len);
+  ctx.stroke();
+
   ctx.restore();
 }

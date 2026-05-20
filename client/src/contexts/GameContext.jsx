@@ -258,11 +258,17 @@ const GameContextInner = ({ children }) => {
     // 2. Consume 1 from the torch instantly (Initial burn)
     torch.consumeCharge(1);
     
-    torch.isLit = true;
-    setIsFlashlightOn(true);
-    
-    playSound('Ignite'); 
-    addLog(`You ignite the torch using ${source.name}. It uses 1 charge immediately.`, 'item');
+    const equippedTorch = inventoryManager.equipment['flashlight'];
+    if (equippedTorch && equippedTorch.instanceId === torch.instanceId) {
+      torch.isLit = true;
+      setIsFlashlightOn(true);
+      playSound('Ignite'); 
+      addLog(`You ignite the torch using ${source.name}. It uses 1 charge immediately.`, 'item');
+    } else {
+      setIsFlashlightOn(false);
+      playSound('Ignite');
+      addLog(`You ignite the torch using ${source.name}, but it burns out immediately and crumbles to ash.`, 'warning');
+    }
     
     // If source empty and is matchbook, discard it
     if ((source.ammoCount || 0) <= 0 && source.defId === 'tool.matchbook') {
@@ -587,7 +593,14 @@ const GameContextInner = ({ children }) => {
     if (isFlashlightOn) {
       const flashlight = inventoryManager?.equipment['flashlight'];
       if (flashlight) {
-        if (!flashlight.consumeCharge(1)) setIsFlashlightOn(false);
+        const success = flashlight.consumeCharge(1);
+        const stillEquipped = inventoryManager?.equipment['flashlight'] === flashlight;
+        if (!success || !stillEquipped) {
+          setIsFlashlightOn(false);
+          if (!stillEquipped) {
+            addLog(`${flashlight.name} has burned out and crumbled to ash.`, 'warning');
+          }
+        }
       } else {
         setIsFlashlightOn(false);
       }

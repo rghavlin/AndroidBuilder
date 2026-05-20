@@ -139,7 +139,11 @@ export const GameMapProvider = ({ children }) => {
         return !tile.contents.some(e => e.blocksMovement && e.id !== player.id);
       };
 
+      const isWalkable = Pathfinding.isTileWalkable(targetTile, entityFilter);
       const path = Pathfinding.findPath(engine.gameMap, player.x, player.y, x, y, { allowDiagonal: true, entityFilter });
+      const hasPath = path.length > 0 || (player.x === x && player.y === y);
+      const isPossible = isWalkable && hasPath;
+
       let apCost = path.length === 0 ? Math.abs(x - player.x) + Math.abs(y - player.y) : Pathfinding.calculateMovementCost(engine.gameMap, path);
       
       // Phase 25: Drag AP Penalty Preview (Consolidated via VehicleUtils)
@@ -151,7 +155,7 @@ export const GameMapProvider = ({ children }) => {
       const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);
       setHoveredTile({ 
         x, y, apCost, 
-        canAfford: player.ap >= apCost, 
+        canAfford: isPossible && player.ap >= apCost, 
         zombie: zombie ? { subtype: zombie.subtype, hp: zombie.hp, maxHp: zombie.maxHp, currentAP: zombie.currentAP, maxAP: zombie.maxAP } : (data?.zombie || null),
         cropInfo: targetTile.cropInfo || data?.cropInfo || null,
         lootItems: targetTile.inventoryItems || null,

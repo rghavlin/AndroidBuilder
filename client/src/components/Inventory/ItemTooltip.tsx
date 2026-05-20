@@ -9,7 +9,8 @@ interface ItemTooltipProps {
 export function ItemTooltip({ item }: ItemTooltipProps) {
     if (!item) return null;
 
-    const isDegradable = item.traits?.includes('degradable');
+    const isTorch = item.defId === 'tool.torch' || item.id === 'tool.torch' || item.categories?.includes('torch');
+    const isDegradable = item.traits?.includes('degradable') && !isTorch;
     const condition = isDegradable && item.condition !== null ? Math.round(item.condition) : null;
 
     // Combat stats

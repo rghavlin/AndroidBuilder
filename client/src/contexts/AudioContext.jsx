@@ -65,7 +65,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Fail', url: 'sounds/fail.ogg', volume: 0.22 },
           { name: 'Rain', url: 'sounds/rain1.ogg', volume: 0.5 },
           { name: 'Climb', url: 'sounds/climb.ogg', volume: 0.6 },
-          { name: 'Sizzle', url: 'sounds/sizzle.ogg', volume: 0.6 }
+          { name: 'Sizzle', url: 'sounds/sizzle.ogg', volume: 0.6 },
+          { name: 'Scooter', url: 'sounds/scooter.ogg', volume: 0.2 }
         ];
         await Promise.all(
           sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))
@@ -127,13 +128,19 @@ export const AudioProvider = ({ children }) => {
 
     const handlePlayerMove = (data) => {
       if (data.start && !isFootstepLoopActive.current) {
-        audioManager.playSound('Footsteps', { loop: true, volume: 1.0 });
+        const isRidingScooter = engine.riding?.item?.isScooterRideActive?.();
+        if (isRidingScooter) {
+          audioManager.playSound('Scooter', { loop: true, volume: 0.2 });
+        } else {
+          audioManager.playSound('Footsteps', { loop: true, volume: 1.0 });
+        }
         isFootstepLoopActive.current = true;
       }
     };
 
     const handlePlayerMoveEnded = () => {
       audioManager.stopSound('Footsteps');
+      audioManager.stopSound('Scooter');
       isFootstepLoopActive.current = false;
     };
 

@@ -30,6 +30,16 @@ export class RoadGenerator extends BaseMapGenerator {
     const p1 = { x: centerX, y: 0 };
     const p2 = { x: centerX, y: height - 1 };
     builder.drawRoad(p1, p2, roadThickness, sidewalkThickness);
+
+    // Place fences at top and bottom borders in the grass area
+    for (let x = 0; x < width; x++) {
+      if (builder.getTerrain(x, 0) === 'grass') {
+        builder.setTerrain(x, 0, 'fence');
+      }
+      if (builder.getTerrain(x, height - 1) === 'grass') {
+        builder.setTerrain(x, height - 1, 'fence');
+      }
+    }
   }
 
   passZoning(builder, config) {

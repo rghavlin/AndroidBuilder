@@ -816,8 +816,11 @@ export class Item extends SafeEventEmitter {
 
     if (this.condition <= 0) {
       console.log(`[Item] ${this.name} (${this.instanceId}) has BROKEN!`);
-      // Notify container to remove this item if it breaks
-      if (this._container) {
+      // Notify container/inventory system to remove/destroy this item if it breaks
+      const invManager = window.gameEngine?.inventoryManager;
+      if (invManager) {
+        invManager.destroyItem(this.instanceId);
+      } else if (this._container) {
         this._container.removeItem(this.instanceId);
       }
       this.emitEvent('itemBroken', { item: this });
