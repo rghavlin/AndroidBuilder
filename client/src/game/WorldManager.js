@@ -611,7 +611,6 @@ export class WorldManager {
         const { GameMap } = await import('./map/GameMap.js');
         const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
         const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
-        const { NPCSpawner } = await import('./utils/NPCSpawner.js');
 
         // Generate new map using template system with specific ID
         const templateMapGenerator = new TemplateMapGenerator();
@@ -670,8 +669,7 @@ export class WorldManager {
           rabbitRange: { min: 1, max: 2 }
         });
         
-        // SPAWN NPCs: 1 NPC per map
-        NPCSpawner.spawnNPCs(gameMap, { count: 1, mapNumber });
+        // SPAWN NPCs: Spawning disabled
 
 
 

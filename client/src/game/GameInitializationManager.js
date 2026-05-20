@@ -7,7 +7,6 @@ import { Player } from './entities/Player.js';
 import { Camera } from './Camera.js';
 import { Zombie } from './entities/Zombie.js';
 import { ZombieSpawner } from './utils/ZombieSpawner.js';
-import { NPCSpawner } from './utils/NPCSpawner.js';
 import { LootGenerator } from './map/LootGenerator.js';
 import engine from './GameEngine.js';
 import tradingSystem from './systems/TradingSystem.js';
