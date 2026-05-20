@@ -9,13 +9,17 @@ import { usePlayer } from "@/contexts/PlayerContext.jsx";
 import { useSleep } from "@/contexts/SleepContext.jsx";
 import { useAudio } from "@/contexts/AudioContext.jsx";
 import { ItemTrait, ItemCategory } from "@/game/inventory/traits";
+import { Item, createItemFromDef } from "@/game/inventory/index";
+import { useLog } from "@/contexts/LogContext.jsx";
+import engine from "@/game/GameEngine";
 
 export default function EquipmentSlots() {
   const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto, loadAmmoDirectly } = useInventory();
-  const { isPlayerTurn, isAutosaving } = useGame();
+  const { isPlayerTurn, isAutosaving, igniteTorch } = useGame();
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
   const { playSound } = useAudio();
   const { isSleeping } = useSleep();
+  const { addLog } = useLog();
   const [showDevConsole, setShowDevConsole] = useState(false);
 
   const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping;
@@ -64,6 +68,67 @@ export default function EquipmentSlots() {
           playSound('Fail');
           clearSelected();
         }
+        return;
+      }
+
+      // Special Interaction: Igniting an ignitable equipped item (like a torch) with selected matches/lighter
+      const isIgniterSelected = selectedItem.item.defId === 'tool.lighter' || selectedItem.item.defId === 'tool.matchbook';
+      const isIgnitableEquipped = equippedItem.hasTrait?.(ItemTrait.IGNITABLE);
+      if (isIgniterSelected && isIgnitableEquipped) {
+        if (!equippedItem.isLit) {
+          igniteTorch(selectedItem.item);
+          clearSelected();
+          return;
+        }
+      }
+
+      // Special Interaction: Cutting equipped clothing into rags using selected knife
+      const isKnifeSelected = selectedItem.item.hasCategory?.(ItemCategory.KNIFE) || selectedItem.item.categories?.includes('knife') || selectedItem.item.categories?.includes(ItemCategory.KNIFE);
+      const isClothingEquipped = equippedItem.hasCategory?.(ItemCategory.CLOTHING) || equippedItem.categories?.includes('clothing') || equippedItem.categories?.includes(ItemCategory.CLOTHING);
+      
+      if (isKnifeSelected && isClothingEquipped) {
+        if (playerStats.ap < 1) {
+          addLog('Not enough AP to cut clothing into rags (1 required)', 'error');
+          playSound('Fail');
+          return;
+        }
+
+        // Check if clothing has items inside pockets/container grid
+        const pockets = equippedItem.getPocketContainers?.() || [];
+        const internalGrid = equippedItem.getContainerGrid?.();
+        let hasItemsInside = false;
+        if (internalGrid && internalGrid.items && internalGrid.items.size > 0) {
+          hasItemsInside = true;
+        }
+        for (const pocket of pockets) {
+          if (pocket.items && pocket.items.size > 0) {
+            hasItemsInside = true;
+          }
+        }
+
+        if (hasItemsInside) {
+          addLog('Empty the pockets of the clothing before cutting it.', 'error');
+          playSound('Fail');
+          return;
+        }
+
+        // Proceed with cutting
+        engine.player.useAP(1);
+        playSound('Click');
+
+        // Create the rag item
+        const ragData = createItemFromDef('crafting.rag');
+        const ragItem = new Item(ragData);
+
+        // Unequip/remove the clothing from slot
+        inventoryRef.current.equipment[slotId] = null;
+        equippedItem.isEquipped = false;
+
+        // Try to add/stack the rag
+        engine.inventoryManager.addItem(ragItem);
+
+        addLog(`You cut ${equippedItem.name} into a rag.`, 'item');
+        clearSelected();
         return;
       }
 

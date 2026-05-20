@@ -237,6 +237,7 @@ export const GameMapProvider = ({ children }) => {
     mapVersion: enginePulse,
     mapTransition,
     hoveredTile,
+    setHoveredTile,
     setGameMap: () => {}, // Null-op for Phase 3
     setWorldManager: () => {},
     handleTileClick,
@@ -250,7 +251,7 @@ export const GameMapProvider = ({ children }) => {
     zombieTracker: engine.zombieTracker,
     lootGenerator: engine.lootGenerator,
     setLootGenerator: () => {}
-  }), [enginePulse, mapTransition, hoveredTile, handleTileClick, handleTileHover, executeMapTransition, handleMapTransitionConfirm, handleMapTransitionCancel]);
+  }), [enginePulse, mapTransition, hoveredTile, setHoveredTile, handleTileClick, handleTileHover, executeMapTransition, handleMapTransitionConfirm, handleMapTransitionCancel]);
 
   return (
     <GameMapContext.Provider value={contextValue}>

@@ -206,14 +206,14 @@ export default function CraftingUI() {
             data-inventory-ui="true"
         >
             {/* Header Tabs */}
-            <div className="flex border-b border-border bg-card/30">
+            <div className="flex border-b border-border bg-card/30 p-1.5 gap-1.5">
                 <button
                     onClick={() => setActiveTab('crafting')}
                     className={cn(
-                        "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold uppercase tracking-wider transition-colors",
+                        "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold uppercase tracking-wider transition-all rounded-md",
                         activeTab === 'crafting'
-                            ? "bg-primary/10 text-primary border-b-2 border-primary"
-                            : "text-muted-foreground hover:bg-card/50 hover:text-foreground"
+                            ? "metal-button-green"
+                            : "metal-button opacity-75 hover:opacity-100"
                     )}
                 >
                     <Hammer className="w-4 h-4" />
@@ -222,10 +222,10 @@ export default function CraftingUI() {
                 <button
                     onClick={() => setActiveTab('cooking')}
                     className={cn(
-                        "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold uppercase tracking-wider transition-colors",
+                        "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold uppercase tracking-wider transition-all rounded-md",
                         activeTab === 'cooking'
-                            ? "bg-primary/10 text-primary border-b-2 border-primary"
-                            : "text-muted-foreground hover:bg-card/50 hover:text-foreground"
+                            ? "metal-button-green"
+                            : "metal-button opacity-75 hover:opacity-100"
                     )}
                 >
                     <Soup className="w-4 h-4" />
@@ -404,21 +404,21 @@ export default function CraftingUI() {
                                                     disabled={!craftingStatus.canCraft || !isPlayerTurn || isAutosaving}
                                                     className={cn(
                                                         "w-24 h-8 text-[10px] font-bold shadow-lg transition-all",
-                                                        "bg-primary hover:bg-primary/90"
+                                                        "metal-button-green uppercase tracking-wide"
                                                     )}
                                                 >
                                                     {activeTab === 'cooking' ? 'COOK' : 'CRAFT'}
                                                 </Button>
-
+ 
                                                 {/* Autoload/Unload Button (Crafting only) */}
                                                 {activeTab === 'crafting' && selectedRecipeId && (
                                                     <Button
                                                         onClick={handleAutoloadToggle}
                                                         className={cn(
-                                                            "w-24 h-8 text-[10px] font-bold mt-2 transition-all shadow-md",
+                                                            "w-24 h-8 text-[10px] font-bold mt-2 transition-all shadow-md uppercase tracking-wide",
                                                             isAutoloaded 
-                                                                ? "bg-orange-600 hover:bg-orange-700 text-white border-orange-500/50" 
-                                                                : "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50"
+                                                                ? "metal-button" 
+                                                                : "metal-button-green"
                                                         )}
                                                     >
                                                         {isAutoloaded ? 'UNLOAD' : 'AUTOLOAD'}

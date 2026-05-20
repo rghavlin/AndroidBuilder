@@ -265,8 +265,13 @@ const GameContextInner = ({ children }) => {
     addLog(`You ignite the torch using ${source.name}. It uses 1 charge immediately.`, 'item');
     
     // If source empty and is matchbook, discard it
-    if ((source.ammoCount || 0) <= 0 && source.defId === 'tool.matchbook' && container) {
-      container.removeItem(source.instanceId);
+    if ((source.ammoCount || 0) <= 0 && source.defId === 'tool.matchbook') {
+      if (container) {
+        container.removeItem(source.instanceId);
+      } else {
+        inventoryManager.destroyItem(source.instanceId);
+      }
+      source.stackCount = 0;
       addLog('The matchbook is empty and discarded.', 'item');
     }
   }, [inventoryManager, addLog, playSound]);

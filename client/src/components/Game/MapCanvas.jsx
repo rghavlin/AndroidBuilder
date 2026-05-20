@@ -40,7 +40,7 @@ export default function MapCanvas({
   // We use hooks only for initialization and non-realtime settings
   useGame(); 
   const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, playerFieldOfView } = usePlayer();
-  const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, mapVersion } = useGameMap();
+  const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, setHoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
   const { effects, addEffect } = useVisualEffects();
   
@@ -791,6 +791,7 @@ export default function MapCanvas({
         onContextMenu={handleCanvasContextMenu}
         onMouseDown={handleMouseDown}
         onMouseMove={handleCanvasHover}
+        onMouseLeave={() => setHoveredTile?.(null)}
         style={{
           imageRendering: 'pixelated', 
           display: 'block',

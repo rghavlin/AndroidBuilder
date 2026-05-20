@@ -52,9 +52,8 @@ export default function CampfireUI({
                 </div>
 
                 <Button
-                    variant="default"
                     size="sm"
-                    className="gap-2 font-bold shadow-sm bg-orange-600 hover:bg-orange-700 text-white border-none"
+                    className="gap-2 font-bold shadow-sm metal-button-green uppercase tracking-wide border-none"
                     onClick={handleCook}
                     disabled={!isBurning}
                 >

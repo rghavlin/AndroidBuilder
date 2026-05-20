@@ -12,6 +12,8 @@ import { useAction } from "../../contexts/ActionContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
 import { useCombat } from "../../contexts/CombatContext.jsx";
 import { ItemTrait, ItemCategory } from "../../game/inventory/traits.js";
+import { Item, createItemFromDef } from "../../game/inventory/index.js";
+import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
 import { GAP_SIZE } from "./constants";
 
@@ -64,6 +66,7 @@ export default function UniversalGrid({
   const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel } = useAction();
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
+  const { addLog } = useLog();
   const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -241,6 +244,84 @@ export default function UniversalGrid({
 
     // Case 1: An item is already selected/carried
     if (selectedItem) {
+      // Special Interaction: Cutting clothing into rags with a selected knife
+      const isKnifeSelected = selectedItem.item.hasCategory?.(ItemCategory.KNIFE) || selectedItem.item.categories?.includes('knife') || selectedItem.item.categories?.includes(ItemCategory.KNIFE);
+      const isClothingClicked = item?.hasCategory?.(ItemCategory.CLOTHING) || item?.categories?.includes('clothing') || item?.categories?.includes(ItemCategory.CLOTHING);
+      
+      if (isKnifeSelected && isClothingClicked) {
+        const player = engine.player;
+        if (!player || player.ap < 1) {
+          addLog('Not enough AP to cut clothing into rags (1 required)', 'error');
+          playSound('Fail');
+          return;
+        }
+
+        // Check if clothing has items inside pockets/container grid
+        const pockets = item.getPocketContainers?.() || [];
+        const internalGrid = item.getContainerGrid?.();
+        let hasItemsInside = false;
+        if (internalGrid && internalGrid.items && internalGrid.items.size > 0) {
+          hasItemsInside = true;
+        }
+        for (const pocket of pockets) {
+          if (pocket.items && pocket.items.size > 0) {
+            hasItemsInside = true;
+          }
+        }
+
+        if (hasItemsInside) {
+          addLog('Empty the pockets of the clothing before cutting it.', 'error');
+          playSound('Fail');
+          return;
+        }
+
+        // Proceed with cutting
+        player.useAP(1);
+        playSound('Click');
+
+        // Create the rag item
+        const ragData = createItemFromDef('crafting.rag');
+        const ragItem = new Item(ragData);
+
+        // Search for any existing stack of rags with space
+        let merged = false;
+        const potentialContainers = [
+          engine.inventoryManager.getBackpackContainer(),
+          ...engine.inventoryManager.getPocketContainers(),
+          engine.inventoryManager.groundContainer
+        ].filter(Boolean);
+
+        for (const c of potentialContainers) {
+          const stackTarget = engine.inventoryManager._findStackRecursive(c, ragItem);
+          if (stackTarget) {
+            const { existingItem, container: targetContainer } = stackTarget;
+            existingItem.stackCount += 1;
+            merged = true;
+            console.log(`[UniversalGrid] Merged rag into existing stack in ${targetContainer.id}`);
+            container.removeItem(item.instanceId);
+            engine.inventoryManager.emit('inventoryChanged');
+            break;
+          }
+        }
+
+        if (!merged) {
+          const clothingX = item.x;
+          const clothingY = item.y;
+          // Remove clothing first to free up the space
+          container.removeItem(item.instanceId);
+          
+          // Add the rag at the exact same coordinates
+          const placed = container.addItem(ragItem, clothingX, clothingY, false);
+          if (!placed) {
+            // Fallback: place anywhere in inventory/ground
+            engine.inventoryManager.addItem(ragItem);
+          }
+        }
+
+        addLog(`You cut ${item.name} into a rag.`, 'item');
+        return;
+      }
+
       // Siphoning logic with selected hose (Targeting any fuel source: generator or fuel cover)
       const isHoseSelected = selectedItem.item.hasTrait?.(ItemTrait.CAN_SIPHON);
       const isFuelSourceClicked = item?.hasTrait?.(ItemTrait.FUEL_CONTAINER);

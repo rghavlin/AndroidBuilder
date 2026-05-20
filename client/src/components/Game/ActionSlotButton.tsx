@@ -5,6 +5,7 @@ import { ItemContextMenu } from '../Inventory/ItemContextMenu';
 import { ItemTooltip } from '../Inventory/ItemTooltip';
 import { useItemImage } from '../../hooks/useItemImage';
 import { cn } from "@/lib/utils";
+import { ItemTrait } from "@/game/inventory/traits";
 
 interface ActionSlotButtonProps {
   slot: string;
@@ -12,9 +13,9 @@ interface ActionSlotButtonProps {
 }
 
 export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButtonProps) => {
-  const { inventoryRef } = useInventory();
+  const { inventoryRef, selectedItem, clearSelected } = useInventory();
   const { targetingWeapon, toggleTargeting } = useCombat();
-  const { toggleFlashlight } = useGame();
+  const { toggleFlashlight, igniteTorch } = useGame();
 
   // Get item from inventory
   const equippedItem = inventoryRef.current?.equipment?.[slot];
@@ -41,8 +42,15 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
 
   const handleClick = () => {
     if (slot === 'flashlight') {
-      console.log(`[ActionSlot] Clicked flashlight: Toggling state`);
-      toggleFlashlight();
+      const isIgniter = selectedItem?.item?.defId === 'tool.lighter' || selectedItem?.item?.defId === 'tool.matchbook';
+      if (isIgniter && item && item.hasTrait?.(ItemTrait.IGNITABLE) && !item.isLit) {
+        console.log(`[ActionSlot] Igniting torch with selected igniter:`, selectedItem.item.name);
+        igniteTorch(selectedItem.item);
+        clearSelected();
+      } else {
+        console.log(`[ActionSlot] Clicked flashlight: Toggling state`);
+        toggleFlashlight();
+      }
     } else if (item && (slot === 'melee' || slot === 'handgun' || slot === 'long_gun')) {
       console.log(`[ActionSlot] Clicked ${slot}: Toggling targeting for ${item.name}`);
       toggleTargeting(item, slot);
@@ -61,7 +69,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
       <button
         onClick={handleClick}
         className={cn(
-          "w-9 h-9 rounded flex items-center justify-center transition-colors overflow-hidden",
+          "w-12 h-12 rounded flex items-center justify-center transition-colors overflow-hidden relative",
           "equipment-slot-metal hover:brightness-110", // Base style for action buttons
           // Targeting state: Bright red outline/glow
           item && isTargeting && "!border-red-500 shadow-[inset_0_0_10px_rgba(239,68,68,0.3),0_0_8px_rgba(239,68,68,0.5)]",
@@ -70,11 +78,16 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
         )}
       >
         {item && imageSrc && imageSrc !== 'failed' ? (
-          <img
-            src={imageSrc}
-            alt={item.name}
-            className="w-full h-full object-contain p-1 mix-blend-screen"
-          />
+          <div className="w-full h-full p-1.5 flex items-center justify-center">
+            <img
+              src={imageSrc}
+              alt={item.name}
+              className="w-full h-full object-contain pointer-events-none mix-blend-screen"
+              style={{
+                transform: (item && typeof item.shouldRotateToFit === 'function' && item.shouldRotateToFit()) ? 'rotate(-45deg)' : 'none'
+              }}
+            />
+          </div>
         ) : null}
       </button>
     </ItemContextMenu>

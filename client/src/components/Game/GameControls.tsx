@@ -111,7 +111,7 @@ export default function GameControls({
   const sleepDisabled = buttonsDisabled || currentStats.energy >= 25;
 
   return (
-    <div className="bg-card border-t border-border px-4 py-1 flex items-center h-[82px] w-full shadow-[0_-8px_25px_rgba(0,0,0,0.8)] z-20" data-testid="game-controls">
+    <div className="unified-footer px-4 py-1 flex items-center h-[82px] w-full shadow-[0_-8px_25px_rgba(0,0,0,0.8)] z-20" data-testid="game-controls">
       
       {/* 1. Primary Action: End Turn */}
       <div className="flex items-center pr-4 border-r border-white/10 h-full">

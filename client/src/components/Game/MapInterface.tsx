@@ -439,12 +439,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         data-testid="map-header"
       >
         <button
-          className="w-9 h-9 bg-zinc-900/60 border border-white/10 rounded flex items-center justify-center hover:bg-zinc-800 transition-all shadow-sm active:scale-95 duration-150 shrink-0"
+          className="w-12 h-12 bg-zinc-900/60 border border-white/10 rounded flex items-center justify-center hover:bg-zinc-800 transition-all shadow-sm active:scale-95 duration-150 shrink-0"
           title="Main Menu"
           data-testid="main-menu-button"
           onClick={() => setShowMainMenu(true)}
         >
-          <Menu className="h-5 w-5 text-foreground/80 hover:text-foreground" />
+          <Menu className="h-6 w-6 text-foreground/80 hover:text-foreground" />
         </button>
 
         {/* Action Buttons Group (Better spacing between log and slots) */}
@@ -469,7 +469,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
         <button
           className={cn(
-            "w-9 h-9 bg-zinc-900 border transition-all flex items-center justify-center hover:bg-zinc-800 shadow-sm active:scale-95 rounded duration-150 shrink-0",
+            "w-12 h-12 bg-zinc-900 border transition-all flex items-center justify-center hover:bg-zinc-800 shadow-sm active:scale-95 rounded duration-150 shrink-0",
             isExtensionOpen ? "border-primary/50 bg-zinc-850 shadow-[0_0_12px_rgba(16,185,129,0.2)]" : "border-white/10"
           )}
           title="Crafting/Cooking"
@@ -477,7 +477,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           onClick={() => setIsExtensionOpen(prev => !prev)}
         >
           <Hammer className={cn(
-            "h-5 w-5",
+            "h-6 w-6",
             isExtensionOpen ? "text-primary" : "text-white/40"
           )} />
         </button>
@@ -547,6 +547,20 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         {(() => {
           if (!hoveredTile) return null;
           
+          // Do not show map tooltips if any overlay window/modal is active
+          if (
+            isExtensionOpen ||
+            isLogHistoryOpen ||
+            showMainMenu ||
+            activeTradeNpc ||
+            isBartering ||
+            activeNpcDemand ||
+            isSkillsOpen ||
+            isSleeping
+          ) {
+            return null;
+          }
+
           // Re-check visibility from the cached hoveredTile data (updated in MapCanvas)
           if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window && !hoveredTile.npc) return null;
           

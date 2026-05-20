@@ -251,8 +251,13 @@
   }
 
   .unified-header {
-    background: linear-gradient(to bottom, #111113 0%, #080809 100%) !important;
-    border-bottom: 1px solid #1f1f23 !important;
+    background: #0F0F12 !important;
+    border-bottom: 1px solid #2A2A2E !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .unified-footer {
+    background: #0F0F12 !important;
+    border-top: 1px solid #2A2A2E !important;
   }
 }

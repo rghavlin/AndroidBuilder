@@ -55,7 +55,6 @@ export const AudioProvider = ({ children }) => {
           { name: 'Craft', url: 'sounds/craft.ogg', volume: 0.6 },
           { name: 'MatchStrike', url: 'sounds/craft.ogg', volume: 0.6 },
           { name: 'Ignite', url: 'sounds/ignite.ogg', volume: 0.6 },
-          { name: 'Heal', url: 'sounds/heal.ogg', volume: 0.6 },
           { name: 'Eat', url: 'sounds/eat.ogg', volume: 0.6 },
           { name: 'FillBottle', url: 'sounds/fillbottle.ogg', volume: 0.6 },
           { name: 'SlingShot', url: 'sounds/sling.ogg', volume: 0.6 },
@@ -65,7 +64,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Pills', url: 'sounds/pills.ogg', volume: 0.6 },
           { name: 'Fail', url: 'sounds/fail.ogg', volume: 0.22 },
           { name: 'Rain', url: 'sounds/rain1.ogg', volume: 0.5 },
-          { name: 'Climb', url: 'sounds/climb.ogg', volume: 0.6 }
+          { name: 'Climb', url: 'sounds/climb.ogg', volume: 0.6 },
+          { name: 'Sizzle', url: 'sounds/sizzle.ogg', volume: 0.6 }
         ];
         await Promise.all(
           sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))
@@ -201,10 +201,6 @@ export const AudioProvider = ({ children }) => {
       }
     };
 
-    const handlePlayerHeal = () => {
-      audioManager.playSound('Heal');
-    };
-
     const handlePlayerDamage = () => {
       // Impact sounds are now handled by the specific ATTACK event listeners
       // to prevent 'Miss' playing on hits.
@@ -237,7 +233,6 @@ export const AudioProvider = ({ children }) => {
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, handlePlayerMoveEnded);
     GameEvents.on(GAME_EVENT.PLAYER_ATTACK, handlePlayerAttack);
     GameEvents.on(GAME_EVENT.ZOMBIE_DAMAGE, handleZombieDamage);
-    GameEvents.on(GAME_EVENT.PLAYER_HEAL, handlePlayerHeal);
     GameEvents.on(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
     GameEvents.on(GAME_EVENT.NOISE_EMITTED, handleNoiseEmitted);
     GameEvents.on(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
@@ -256,7 +251,6 @@ export const AudioProvider = ({ children }) => {
       GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, handlePlayerMoveEnded);
       GameEvents.off(GAME_EVENT.PLAYER_ATTACK, handlePlayerAttack);
       GameEvents.off(GAME_EVENT.ZOMBIE_DAMAGE, handleZombieDamage);
-      GameEvents.off(GAME_EVENT.PLAYER_HEAL, handlePlayerHeal);
       GameEvents.off(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
       GameEvents.off(GAME_EVENT.NOISE_EMITTED, handleNoiseEmitted);
       GameEvents.off(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);

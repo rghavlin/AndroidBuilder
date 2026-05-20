@@ -879,7 +879,9 @@ export const InventoryProvider = ({ children }) => {
       engine.notifyUpdate();
       addLog(`Crafted ${result.item?.name || 'item'}`, 'item');
       
-      if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew'].includes(recipeId)) {
+      if (['cooking.cooked_meat', 'cooking.cooked_vegetables'].includes(recipeId)) {
+        playSound('Sizzle');
+      } else if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew'].includes(recipeId)) {
         playSound('Boil');
       } else if (recipeId === 'crafting.campfire') {
         playSound('Ignite');

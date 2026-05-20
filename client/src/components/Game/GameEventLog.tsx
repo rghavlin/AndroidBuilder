@@ -25,7 +25,7 @@ export default function GameEventLog({ onClick, className }: GameEventLogProps) 
         <div 
             onClick={onClick}
             className={cn(
-                "w-[240px] min-w-[120px] shrink ml-4 mr-2 h-[52px] bg-black/60 border border-white/5 rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/80 transition-colors overflow-hidden group relative flex items-center shadow-inner",
+                "w-[180px] min-w-[120px] shrink ml-4 mr-2 h-[52px] bg-black/60 border border-white/5 rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/80 transition-colors overflow-hidden group relative flex items-center shadow-inner",
                 className
             )}
             title="Click to view full log history"

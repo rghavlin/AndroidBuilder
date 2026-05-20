@@ -84,21 +84,6 @@ export const CraftingRecipes = [
         ]
     },
     {
-        id: 'crafting.rag',
-        name: 'Rag',
-        resultItem: 'crafting.rag',
-        description: 'Tear up old clothing into useful rags.',
-        apCost: 2,
-        tab: 'crafting',
-        tools: [
-            { category: ItemCategory.KNIFE, label: 'Any Knife' }
-        ],
-        ingredients: [
-            { category: ItemCategory.CLOTHING, count: 1, label: 'Any Clothing' }
-        ],
-        resultCount: 1,
-    },
-    {
         id: 'medical.bandages',
         name: 'Bandage',
         tab: 'crafting',
