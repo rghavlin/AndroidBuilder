@@ -68,8 +68,14 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   };
 
   return (
-    <div className="h-screen w-screen bg-background flex items-center justify-center">
-      <Card className="w-96 metal-panel border-border shadow-2xl">
+    <div 
+      className="relative h-screen w-screen bg-cover bg-center bg-no-repeat flex items-center justify-center"
+      style={{ backgroundImage: "url('/images/background/menubackground.png')" }}
+    >
+      {/* Dark overlay with slight blur to make the skeuomorphic menu panel pop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+
+      <Card className="relative z-10 w-96 metal-panel border-border shadow-2xl">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-3xl font-black text-foreground drop-shadow-md tracking-wider uppercase">
             Zombie Road

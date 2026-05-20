@@ -15,6 +15,11 @@ import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
 import engine from '../game/GameEngine.js';
 
+const isWindowTile = (gameMap, x, y) => {
+    const tile = gameMap?.getTile(x, y);
+    return !!(tile && tile.contents.some(e => e.type === EntityType.WINDOW || e.type === 'window'));
+};
+
 const CombatContext = createContext();
 
 export const useCombat = () => {
@@ -237,7 +242,7 @@ export const CombatProvider = ({ children }) => {
                 
                 if (targetEntity.type === EntityType.ZOMBIE) {
                     if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
-                    if (lootGenerator && Math.random() < 0.75) {
+                    if (lootGenerator && !isWindowTile(gameMap, targetX, targetY) && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                         if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
                     }
@@ -466,7 +471,7 @@ export const CombatProvider = ({ children }) => {
                     
                     if (targetEntity.type === EntityType.ZOMBIE) {
                         if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
-                        if (lootGenerator && Math.random() < 0.75) {
+                        if (lootGenerator && !isWindowTile(gameMap, targetEntity.x, targetEntity.y) && Math.random() < 0.75) {
                             const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                             if (loot?.length > 0) {
                                 if (targetEntity.x === player.x && targetEntity.y === player.y && window.gameEngine?.inventoryManager) {
@@ -632,7 +637,7 @@ export const CombatProvider = ({ children }) => {
                 if (entity.isDead()) {
                     addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed by grenade!`, 'combat');
                     // Loot drop logic for zombies killed by grenade
-                    if (entity.type === EntityType.ZOMBIE && lootGenerator && Math.random() < 0.75) {
+                    if (entity.type === EntityType.ZOMBIE && lootGenerator && !isWindowTile(gameMap, entity.x, entity.y) && Math.random() < 0.75) {
                         const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
                         if (loot?.length > 0) gameMap.addItemsToTile(entity.x, entity.y, loot);
                     } else if (entity.type === EntityType.NPC) {
@@ -762,7 +767,7 @@ export const CombatProvider = ({ children }) => {
                     
                     if (targetEntity.type === EntityType.ZOMBIE) {
                         if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
-                        if (lootGenerator && Math.random() < 0.75) {
+                        if (lootGenerator && !isWindowTile(gameMap, targetX, targetY) && Math.random() < 0.75) {
                             const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                             if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
                         }

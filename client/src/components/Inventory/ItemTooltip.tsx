@@ -23,17 +23,6 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                     {item.name}
                     {item.waterQuality === 'dirty' && item.ammoCount > 0 && <span className="text-amber-600 ml-1">(Dirty water)</span>}
                 </h4>
-                {item.rarity && !item.noTooltipRarity && (
-                    <span className={cn(
-                        "text-[10px] uppercase font-bold px-1 rounded",
-                        item.rarity === 'common' && "bg-zinc-500 text-white",
-                        item.rarity === 'uncommon' && "bg-green-600 text-white",
-                        item.rarity === 'rare' && "bg-blue-600 text-white",
-                        item.rarity === 'extremely_rare' && "bg-purple-600 text-white",
-                    )}>
-                        {item.rarity}
-                    </span>
-                )}
             </div>
 
             {/* Condition Bar */}

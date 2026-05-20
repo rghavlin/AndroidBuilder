@@ -17,6 +17,7 @@ export class WorldManager {
 
     this.firstEntryTurn = { map_001: 1 };
     this.completedMaps = [];
+    this.turnsFromEntryToExit = {};
     this.zombiesKilled = {};
     this.zombiesSpawned = {};
 
@@ -528,12 +529,16 @@ export class WorldManager {
     return Math.min(100, Math.round((killed / spawned) * 100));
   }
 
-  markMapCompleted(mapId) {
+  markMapCompleted(mapId, currentTurn = 1) {
     if (!this.completedMaps) {
       this.completedMaps = [];
     }
     if (!this.completedMaps.includes(mapId)) {
       this.completedMaps.push(mapId);
+    }
+    if (this.turnsFromEntryToExit[mapId] === undefined) {
+      const entryTurn = this.firstEntryTurn[mapId] || 1;
+      this.turnsFromEntryToExit[mapId] = Math.max(0, currentTurn - entryTurn);
     }
   }
 
@@ -547,6 +552,7 @@ export class WorldManager {
       mapCounter: this.mapCounter,
       firstEntryTurn: this.firstEntryTurn,
       completedMaps: this.completedMaps,
+      turnsFromEntryToExit: this.turnsFromEntryToExit,
       zombiesKilled: this.zombiesKilled,
       zombiesSpawned: this.zombiesSpawned
     };
@@ -744,6 +750,7 @@ export class WorldManager {
     worldManager.mapCounter = data.mapCounter || 1;
     worldManager.firstEntryTurn = data.firstEntryTurn || { map_001: 1 };
     worldManager.completedMaps = data.completedMaps || [];
+    worldManager.turnsFromEntryToExit = data.turnsFromEntryToExit || {};
     worldManager.zombiesKilled = data.zombiesKilled || {};
     worldManager.zombiesSpawned = data.zombiesSpawned || {};
 

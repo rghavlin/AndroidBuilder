@@ -42,7 +42,7 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
       }
     } else {
       if (engine.worldManager) {
-        engine.worldManager.markMapCompleted(currentMapId);
+        engine.worldManager.markMapCompleted(currentMapId, engine.turn);
       }
       setShowStats(true);
     }
@@ -74,8 +74,13 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
   if (showStats) {
     if (engine.worldManager) {
       totalCompleted = engine.worldManager.completedMaps.length;
-      const entryTurn = engine.worldManager.firstEntryTurn[currentMapId] || 1;
-      turnsElapsed = Math.max(0, engine.turn - entryTurn);
+      const frozenTurns = engine.worldManager.turnsFromEntryToExit?.[currentMapId];
+      if (frozenTurns !== undefined) {
+        turnsElapsed = frozenTurns;
+      } else {
+        const entryTurn = engine.worldManager.firstEntryTurn[currentMapId] || 1;
+        turnsElapsed = Math.max(0, engine.turn - entryTurn);
+      }
       zombiesPercent = engine.worldManager.getZombieKillsPercentage(currentMapId);
     }
     if (engine.gameMap) {
@@ -95,16 +100,15 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
             </DialogHeader>
             <DialogFooter className="mt-6 flex gap-3 sm:justify-center">
               <Button
-                variant="outline"
                 onClick={() => handleClose(false)}
-                className="flex-1 bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl py-5 text-sm font-medium transition-all"
+                className="flex-1 py-5 text-md font-bold metal-button uppercase tracking-wide border-none"
               >
                 No
               </Button>
               <Button 
                 type="button" 
                 onClick={handleYes}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl py-5 text-sm font-semibold shadow-lg shadow-black/30 transition-all"
+                className="flex-1 py-5 text-md font-bold metal-button-green uppercase tracking-wide border-none"
               >
                 Yes
               </Button>
@@ -139,7 +143,7 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
                   <Clock className="w-5 h-5 text-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground font-semibold tracking-wide">Turns Elapsed</p>
+                  <p className="text-xs text-muted-foreground font-semibold tracking-wide">Turns from entry to exit</p>
                   <p className="text-lg font-black text-foreground">{turnsElapsed} {turnsElapsed === 1 ? 'Turn' : 'Turns'}</p>
                 </div>
               </div>
@@ -175,16 +179,15 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
 
             <DialogFooter className="flex gap-3 sm:justify-center mt-6">
               <Button
-                variant="outline"
                 onClick={() => handleClose(false)}
-                className="flex-1 bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl py-5 text-sm font-medium transition-all"
+                className="flex-1 py-5 text-md font-bold metal-button uppercase tracking-wide border-none"
               >
                 Cancel
               </Button>
               <Button 
                 type="button" 
                 onClick={handleProceed}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl py-5 text-sm font-semibold shadow-lg shadow-black/30 transition-all flex items-center justify-center gap-1.5 group"
+                className="flex-1 py-5 text-md font-bold metal-button-green uppercase tracking-wide border-none flex items-center justify-center gap-1.5 group"
               >
                 Continue
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
