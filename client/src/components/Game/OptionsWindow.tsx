@@ -10,9 +10,12 @@ import {
     SelectTrigger, 
     SelectValue 
 } from "@/components/ui/select";
-import { X, Settings, Gamepad2, Monitor, Volume2 } from "lucide-react";
+import { X, Settings, Gamepad2, Monitor, Volume2, Music, Volume1 } from "lucide-react";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { configManager } from '@/game/utils/ConfigManager';
+import audioManager from '@/game/utils/AudioManager';
+import musicManager from '@/game/utils/MusicManager';
+import { Slider } from "@/components/ui/slider";
 
 interface OptionsWindowProps {
     onClose: () => void;
@@ -27,8 +30,36 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
         configManager.set('tileSet', tempTileSet);
     };
 
+    const [masterVol, setMasterVol] = useState(configManager.get('masterVolume') ?? 0.8);
+    const [musicVol, setMusicVol] = useState(configManager.get('musicVolume') ?? 0.5);
+    const [sfxVol, setSfxVol] = useState(configManager.get('sfxVolume') ?? 1.0);
+
+    const handleMasterVolChange = (vals: number[]) => {
+        const val = vals[0];
+        setMasterVol(val);
+        configManager.set('masterVolume', val);
+        audioManager.setVolume(val);
+        musicManager.updateVolume();
+    };
+
+    const handleMusicVolChange = (vals: number[]) => {
+        const val = vals[0];
+        setMusicVol(val);
+        configManager.set('musicVolume', val);
+        musicManager.updateVolume();
+    };
+
+    const handleSfxVolChange = (vals: number[]) => {
+        const val = vals[0];
+        setSfxVol(val);
+        configManager.set('sfxVolume', val);
+        audioManager.setSfxVolume(val);
+        // Play a test sound to give feedback
+        audioManager.playOneShot('Click', { volume: 0.5 });
+    };
+
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/90 backdrop-blur-md pointer-events-auto animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-background/90 backdrop-blur-md pointer-events-auto animate-in fade-in zoom-in duration-200">
             <Card className="w-[500px] bg-card border-2 border-primary/20 shadow-2xl relative overflow-hidden">
                 {/* Decorative Background */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -89,7 +120,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                 <SelectTrigger className="flex-1 bg-muted/40 border-primary/10 hover:border-primary/30 transition-colors">
                                                     <SelectValue placeholder="Select tile set" />
                                                 </SelectTrigger>
-                                                <SelectContent className="z-[70]">
+                                                <SelectContent className="z-[120]">
                                                     <SelectItem value="standard">Standard</SelectItem>
                                                     <SelectItem value="b&w">Black and White</SelectItem>
                                                     <SelectItem value="custom">Custom</SelectItem>
@@ -118,10 +149,61 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                             </TabsContent>
 
                             <TabsContent value="audio" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
-                                <div className="text-center">
-                                    <Volume2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-muted-foreground">Audio Settings</h3>
-                                    <p className="text-sm text-muted-foreground/60">Manage master volume and sound effects.</p>
+                                <div className="space-y-6">
+                                    <div className="flex flex-col gap-4">
+                                        
+                                        <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
+                                            <div className="flex justify-between items-center px-1">
+                                                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                                                    <Volume2 className="w-4 h-4" /> Master Volume
+                                                </div>
+                                                <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded-md">
+                                                    {Math.round(masterVol * 100)}%
+                                                </span>
+                                            </div>
+                                            <Slider 
+                                                value={[masterVol]} 
+                                                max={1.0} 
+                                                step={0.01} 
+                                                onValueChange={handleMasterVolChange} 
+                                            />
+                                        </div>
+
+                                        <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
+                                            <div className="flex justify-between items-center px-1">
+                                                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                                                    <Music className="w-4 h-4" /> Music Volume
+                                                </div>
+                                                <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded-md">
+                                                    {Math.round(musicVol * 100)}%
+                                                </span>
+                                            </div>
+                                            <Slider 
+                                                value={[musicVol]} 
+                                                max={1.0} 
+                                                step={0.01} 
+                                                onValueChange={handleMusicVolChange} 
+                                            />
+                                        </div>
+
+                                        <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
+                                            <div className="flex justify-between items-center px-1">
+                                                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                                                    <Volume1 className="w-4 h-4" /> SFX Volume
+                                                </div>
+                                                <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded-md">
+                                                    {Math.round(sfxVol * 100)}%
+                                                </span>
+                                            </div>
+                                            <Slider 
+                                                value={[sfxVol]} 
+                                                max={1.0} 
+                                                step={0.01} 
+                                                onValueChange={handleSfxVolChange} 
+                                            />
+                                        </div>
+
+                                    </div>
                                 </div>
                             </TabsContent>
                         </div>

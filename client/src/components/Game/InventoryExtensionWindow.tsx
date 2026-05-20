@@ -18,9 +18,8 @@ export default function InventoryExtensionWindow({
       <div
         className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
         style={{
-          top: '48px',
-          bottom: '72px',
-          height: 'calc(100vh - 120px)'
+          top: 'var(--header-height)',
+          bottom: 'var(--controls-height)'
         }}
         onClick={onClose}
       />
@@ -28,11 +27,10 @@ export default function InventoryExtensionWindow({
       {/* Extension panel */}
       <GridSizeProvider>
         <div
-          className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-4 overflow-hidden pointer-events-auto"
+          className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col overflow-hidden pointer-events-auto"
           style={{
-            top: '48px',
-            bottom: '72px',
-            height: 'calc(100vh - 120px)'
+            top: 'var(--header-height)',
+            bottom: 'var(--controls-height)'
           }}
           data-testid="inventory-extension-window"
           data-inventory-ui="true"

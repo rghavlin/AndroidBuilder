@@ -13,6 +13,7 @@ import { useAudio } from "../../contexts/AudioContext.jsx";
 import { useCombat } from "../../contexts/CombatContext.jsx";
 import { ItemTrait, ItemCategory } from "../../game/inventory/traits.js";
 import engine from "../../game/GameEngine.js";
+import { GAP_SIZE } from "./constants";
 
 interface UniversalGridProps {
   containerId: string;
@@ -57,7 +58,6 @@ export default function UniversalGrid({
   onBeforeDrop,
   "data-testid": testId,
 }: UniversalGridProps) {
-  const GAP_SIZE = 2;
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource } = useInventory();
@@ -126,10 +126,16 @@ export default function UniversalGrid({
           const img = await imageLoader.getItemImage(imageId);
           if (img && isMounted) {
             imageMap.set(instanceId, img.src);
-            changed = true;
+          } else if (isMounted) {
+            imageMap.set(instanceId, 'failed');
           }
+          changed = true;
         } catch (error) {
           console.warn('[UniversalGrid] Failed to load image for item:', item.name, error);
+          if (isMounted) {
+            imageMap.set(instanceId, 'failed');
+            changed = true;
+          }
         }
       }
       
@@ -636,10 +642,8 @@ export default function UniversalGrid({
           onMouseEnter={() => item && setHoveredItem(item.instanceId)}
           onMouseLeave={() => setHoveredItem(null)}
           data-testid={`${containerId}-slot-${x}-${y}`}
-          className={cn(
-            isPreviewCell && (previewOverlay.valid ? '!bg-green-500/40 !border !border-green-400/80' : '!bg-red-500/40 !border !border-red-400/80'),
-            slotClassName
-          )}
+          className={slotClassName}
+          isPreviewValid={isPreviewCell ? previewOverlay.valid : null}
         />
       );
     });
@@ -661,14 +665,11 @@ export default function UniversalGrid({
           // If not in state yet, check the raw ImageLoader cache synchronously
           // This prevents the "flash" when opening containers with known items
           const imageId = item.imageId || item.defId;
-          // casting as any because we know 'images' exists on the singleton
-          const cached = (imageLoader as any).images[`item_${imageId}`];
-          if (cached && cached.src) {
-              itemImageSrc = cached.src;
+          const cachedSrc = imageLoader.getCachedItemSrc(imageId);
+          if (cachedSrc) {
+              itemImageSrc = cachedSrc;
           }
       }
-      
-      if (!itemImageSrc) return;
       // END OPTIMIZATION
 
       // Position logic from the original loop
@@ -725,10 +726,10 @@ export default function UniversalGrid({
         >
           <div
             className={cn(
-              "absolute select-none z-10 border border-white/5 transition-colors duration-200",
+              "absolute select-none z-10 transition-all duration-200 rounded-[3px] sunken-item-slab",
               "cursor-grab active:cursor-grabbing",
-              hoveredItem === itemId ? "border-white/40 bg-white/5" : "border-white/10",
-              isItemSelected ? "selected-item-overlay" : ""
+              hoveredItem === itemId ? "brightness-125 scale-[1.01]" : "",
+              isItemSelected ? "ring-2 ring-accent border-accent selected-item-overlay" : ""
             )}
             onClick={(e) => handleItemClick(item, topLeftX, topLeftY, e)}
             onContextMenu={(e) => handleItemContextMenu(item, topLeftX, topLeftY, e)}
@@ -741,11 +742,12 @@ export default function UniversalGrid({
               top: `${topPos}px`,
               width: `${gridWidth}px`,
               height: `${gridHeight}px`,
+              backgroundColor: item.backgroundColor || '#0a0a0a',
             }}
           >
             {/* The trigger area for the context menu and tooltip is the entire item bounding box */}
             <div className="w-full h-full relative">
-              {itemImageSrc ? (
+              {itemImageSrc && itemImageSrc !== 'failed' ? (
                 <img
                   src={itemImageSrc}
                   className={cn(
@@ -777,6 +779,9 @@ export default function UniversalGrid({
                   </span>
                 </div>
               )}
+
+              {/* Recessed shadow overlay */}
+              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_3px_6px_rgba(0,0,0,0.85)] rounded-[3px] z-10" />
 
               {item.stackCount > 1 && (
                 <div className="absolute inset-0 pointer-events-none z-20">

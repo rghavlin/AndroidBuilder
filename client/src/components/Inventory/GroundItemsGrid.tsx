@@ -84,10 +84,8 @@ export default function GroundItemsGrid() {
 
         <div className="flex gap-2">
           <Button 
-            variant="outline" 
-            size="sm"
             onClick={() => handleQuickPickup('weapons')}
-            className="text-xs h-7"
+            className="text-xs h-8 px-4 font-bold uppercase tracking-wider metal-button rounded-sm"
           >
             Quick Pickup
           </Button>

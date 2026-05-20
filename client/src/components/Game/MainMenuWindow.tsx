@@ -44,8 +44,8 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-auto">
-            <Card className="w-96 bg-card border border-border relative">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-auto">
+            <Card className="w-96 metal-panel border-border shadow-2xl relative">
                 <Button
                     className="absolute right-2 top-2 h-6 w-6 p-0 rounded-full"
                     variant="ghost"
@@ -54,8 +54,8 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                 >
                     <X className="h-4 w-4" />
                 </Button>
-                <CardHeader className="text-center pt-8">
-                    <CardTitle className="text-2xl font-bold text-foreground">
+                <CardHeader className="text-center pt-8 pb-2">
+                    <CardTitle className="text-3xl font-black text-foreground drop-shadow-md tracking-wider uppercase">
                         Main Menu
                     </CardTitle>
                 </CardHeader>
@@ -63,7 +63,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     <Button
                         onClick={handleNewGame}
                         disabled={isLoading}
-                        className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+                        className="w-full py-6 text-xl font-bold metal-button-green uppercase tracking-wide"
                         data-testid="button-menu-new-game"
                     >
                         New Game
@@ -72,7 +72,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     <Button
                         onClick={handleLoadGame}
                         disabled={isLoading}
-                        className="w-full py-3 text-lg bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
                         data-testid="button-menu-load-game"
                     >
                         {isLoading ? 'Loading...' : 'Load Game'}
@@ -81,8 +81,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     <Button
                         onClick={() => setShowOptions(true)}
                         disabled={isLoading}
-                        variant="outline"
-                        className="w-full py-3 text-lg flex items-center justify-center gap-2 border-primary/20 hover:border-primary/50 transition-all"
+                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
                         data-testid="button-menu-options"
                     >
                         <Settings className="h-5 w-5" />
@@ -95,8 +94,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                                 console.log('[MainMenuWindow] 🖱️ Requesting Dev Console via global event');
                                 window.dispatchEvent(new CustomEvent('toggle-dev-console', { detail: true }));
                             }}
-                            variant="outline"
-                            className="w-full flex items-center justify-center gap-2 border-primary/30 text-primary/80 hover:text-primary hover:border-primary transition-all"
+                            className="w-full py-4 text-md font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
                             data-testid="button-menu-dev-console"
                         >
                             <Terminal className="h-4 w-4" />

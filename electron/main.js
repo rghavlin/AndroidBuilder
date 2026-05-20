@@ -64,6 +64,9 @@ function createWindow() {
 // Disable geolocation at the engine level to prevent Windows location data warnings
 app.commandLine.appendSwitch('disable-blink-features', 'Geolocation');
 
+// Disable autoplay policy to allow game music to play instantly on startup
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 app.whenReady().then(() => {
   // Explicitly deny geolocation and other unused permissions to prevent Windows location warnings
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {

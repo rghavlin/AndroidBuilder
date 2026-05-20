@@ -18,21 +18,21 @@ export default function GameEventLog({ onClick, className }: GameEventLogProps) 
         }
     }, [logs]);
 
-    // Show only last 3 logs in mini-view
-    const displayLogs = logs.slice(-3);
+    // Show only last 4 logs in mini-view
+    const displayLogs = logs.slice(-4);
 
     return (
         <div 
             onClick={onClick}
             className={cn(
-                "w-[220px] ml-4 mr-2 h-9 bg-black/40 border border-white/10 rounded-md px-3 py-1 cursor-pointer hover:bg-black/60 transition-colors overflow-hidden group relative",
+                "w-[280px] ml-4 mr-2 h-[52px] bg-black/60 border border-white/5 rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/80 transition-colors overflow-hidden group relative flex items-center shadow-inner",
                 className
             )}
             title="Click to view full log history"
         >
             <div 
                 ref={scrollRef}
-                className="h-full overflow-y-auto no-scrollbar pointer-events-none"
+                className="h-full w-full overflow-y-auto no-scrollbar pointer-events-none"
             >
                 {displayLogs.length === 0 ? (
                     <div className="text-[10px] text-zinc-500 italic mt-0.5">

@@ -19,9 +19,8 @@ export default function PlayerSkillsWindow({
       <div
         className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto transition-opacity duration-300"
         style={{
-          top: '48px',
-          bottom: '72px',
-          height: 'calc(100vh - 120px)'
+          top: 'var(--header-height)',
+          bottom: 'var(--controls-height)'
         }}
         onClick={onClose}
       />
@@ -31,9 +30,8 @@ export default function PlayerSkillsWindow({
         <div
           className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-4 overflow-hidden pointer-events-auto shadow-2xl"
           style={{
-            top: '48px',
-            bottom: '72px',
-            height: 'calc(100vh - 120px)'
+            top: 'var(--header-height)',
+            bottom: 'var(--controls-height)'
           }}
           data-testid="player-skills-window"
         >

@@ -202,7 +202,7 @@ export default function CraftingUI() {
 
     return (
         <div 
-            className="flex flex-col h-full bg-background/50 rounded-lg overflow-hidden border border-border"
+            className="flex flex-col h-full metal-panel overflow-hidden"
             data-inventory-ui="true"
         >
             {/* Header Tabs */}
@@ -247,10 +247,10 @@ export default function CraftingUI() {
                                     key={recipe.id}
                                     onClick={() => setSelectedRecipeId(recipe.id)}
                                     className={cn(
-                                        "w-full py-1.5 px-3 text-left border-b border-border transition-all",
+                                        "w-full py-2 px-3 text-left transition-all border-y border-transparent relative",
                                         selectedRecipeId === recipe.id
-                                            ? "bg-primary/20 border-l-4 border-l-primary"
-                                            : "hover:bg-card/50 border-l-4 border-l-transparent"
+                                            ? "glowing-border-active border z-10 rounded-sm"
+                                            : "hover:bg-card/50 border-b-border"
                                     )}
                                 >
                                     <span className="text-[11px] font-bold truncate">{recipe.name}</span>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useOverlays } from '../../contexts/OverlayContext';
+import InventoryExtensionWindow from './InventoryExtensionWindow';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
 import { TradeDialog } from './TradeDialog';
@@ -25,7 +26,8 @@ export default function OverlayManager() {
     activeTradeNpc, setActiveTradeNpc,
     isBartering, setIsBartering,
     logHistoryOpen, setLogHistoryOpen,
-    showMainMenu, setShowMainMenu
+    showMainMenu, setShowMainMenu,
+    isExtensionOpen, setIsExtensionOpen
   } = useOverlays();
 
   const { 
@@ -85,18 +87,16 @@ export default function OverlayManager() {
               <div
                 className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
                 style={{
-                  top: '48px',
-                  bottom: '72px',
-                  height: 'calc(100vh - 120px)'
+                  top: 'var(--header-height)',
+                  bottom: 'var(--controls-height)'
                 }}
                 onClick={() => setLogHistoryOpen(false)}
               />
               <div
                 className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-4 overflow-hidden pointer-events-auto"
                 style={{
-                  top: '48px',
-                  bottom: '72px',
-                  height: 'calc(100vh - 120px)'
+                  top: 'var(--header-height)',
+                  bottom: 'var(--controls-height)'
                 }}
                 data-testid="log-history-window"
                 data-inventory-ui="true"
@@ -136,6 +136,12 @@ export default function OverlayManager() {
           <SleepOverlay />
           <SleepModal />
           <DefeatDialog />
+          {isExtensionOpen && (
+            <InventoryExtensionWindow
+              isOpen={true}
+              onClose={() => setIsExtensionOpen(false)}
+            />
+          )}
         </>,
         modalRoot
       )}

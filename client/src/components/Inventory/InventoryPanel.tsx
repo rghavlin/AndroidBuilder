@@ -35,9 +35,13 @@ export default function InventoryPanel() {
   return (
     <GridSizeProvider>
       <>
-        <div className="w-full h-full flex flex-col bg-card" data-testid="inventory-panel" data-inventory-ui="true">
+        <div className="w-full h-full flex flex-col metal-panel" data-testid="inventory-panel" data-inventory-ui="true">
           {/* Expanded HUD Header (80px) - Cleans up icons and prevents scrollbar overlap */}
-          <div className="h-[80px] border-b border-border flex items-center bg-zinc-950/40 shadow-inner shrink-0" data-equipment-area="true">
+          <div 
+            className="unified-header flex items-center bg-zinc-950/20 shadow-inner shrink-0" 
+            style={{ height: 'var(--header-height)' }}
+            data-equipment-area="true"
+          >
             <EquipmentSlots />
           </div>
 

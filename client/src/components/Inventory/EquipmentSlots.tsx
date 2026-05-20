@@ -130,7 +130,7 @@ export default function EquipmentSlots() {
       </div>
 
       {/* Slots Row - Shifting left by using smaller gap and minimal padding */}
-      <div className="flex gap-1.5 items-start pt-2 pb-4 h-full flex-nowrap overflow-x-auto scrollbar-hide">
+      <div className="flex gap-1.5 items-center h-full flex-nowrap overflow-x-auto scrollbar-hide">
         {equipmentSlots.map((slot) => {
           // Read equipped item from inventory manager (reactive to inventoryVersion)
           const equippedItem = inventoryRef.current?.equipment[slot.id] || null;

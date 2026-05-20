@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGridSize } from "@/contexts/GridSizeContext";
+import { GAP_SIZE } from "./constants";
 
 // Render counter outside component to persist across renders
 let renderCount = 0;
@@ -148,8 +149,6 @@ export default function DragPreviewLayer() {
     hasImage: !!itemImage,
     imageUrl: itemImage
   });
-
-  const GAP_SIZE = 2;
 
   // Calculate dimensions based on rotation
   const isRotated = rotation === 90 || rotation === 270;

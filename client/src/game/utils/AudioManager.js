@@ -9,6 +9,7 @@ class AudioManager {
     this.sounds = new Map(); // Store { instances: Audio[], index: number }
     this.soundDefaults = new Map(); // Store default volume per sound
     this.masterVolume = 1.0;
+    this.sfxVolume = 1.0;
     this.isMuted = false;
 
     // Phase 25: Web Audio API for Gapless Looping
@@ -131,7 +132,7 @@ class AudioManager {
     const baseVolume = this.soundDefaults.get(name) || 1.0;
     const { loop = false, volume = baseVolume, playbackRate = 1.0 } = options;
 
-    const finalVolume = volume * this.masterVolume;
+    const finalVolume = volume * this.masterVolume * this.sfxVolume;
     console.log(`[AudioManager] 🔊 Playing "${name}" | Volume: ${finalVolume.toFixed(2)} | Pool Index: ${index}`);
 
     try {
@@ -147,7 +148,7 @@ class AudioManager {
         audio.load();
       }
 
-      audio.volume = volume * this.masterVolume;
+      audio.volume = volume * this.masterVolume * this.sfxVolume;
       audio.playbackRate = playbackRate;
       audio.loop = loop;
       
@@ -192,7 +193,7 @@ class AudioManager {
     source.loop = true;
 
     const gainNode = ctx.createGain();
-    gainNode.gain.value = baseVolume * this.masterVolume;
+    gainNode.gain.value = baseVolume * this.masterVolume * this.sfxVolume;
 
     source.connect(gainNode);
     gainNode.connect(ctx.destination);
@@ -216,7 +217,7 @@ class AudioManager {
     }
 
     const baseVolume = options.volume !== undefined ? options.volume : (this.soundDefaults.get(name) || 1.0);
-    const finalVolume = baseVolume * this.masterVolume;
+    const finalVolume = baseVolume * this.masterVolume * this.sfxVolume;
     const playbackRate = options.playbackRate || 1.0;
 
     const source = ctx.createBufferSource();
@@ -273,7 +274,7 @@ class AudioManager {
     if (pool) {
       this.soundDefaults.set(name, Math.max(0, Math.min(1, volume)));
       pool.instances.forEach(audio => {
-        audio.volume = volume * this.masterVolume;
+        audio.volume = volume * this.masterVolume * this.sfxVolume;
       });
     }
 
@@ -283,7 +284,7 @@ class AudioManager {
       loop.baseVolume = volume;
       if (this.audioCtx) {
         // Use exponential ramp for smoother volume transitions
-        loop.gainNode.gain.setTargetAtTime(volume * this.masterVolume, this.audioCtx.currentTime, 0.1);
+        loop.gainNode.gain.setTargetAtTime(volume * this.masterVolume * this.sfxVolume, this.audioCtx.currentTime, 0.1);
       }
     }
   }
@@ -316,7 +317,7 @@ class AudioManager {
       pool.instances.forEach(audio => {
         if (!audio.paused) {
           const base = this.soundDefaults.get(name) || 1.0;
-          audio.volume = base * this.masterVolume;
+          audio.volume = base * this.masterVolume * this.sfxVolume;
         }
       });
     });
@@ -324,7 +325,32 @@ class AudioManager {
     // 2. Update Web Audio loops
     this.activeLoops.forEach((loop) => {
       if (this.audioCtx) {
-        loop.gainNode.gain.setTargetAtTime(loop.baseVolume * this.masterVolume, this.audioCtx.currentTime, 0.1);
+        loop.gainNode.gain.setTargetAtTime(loop.baseVolume * this.masterVolume * this.sfxVolume, this.audioCtx.currentTime, 0.1);
+      }
+    });
+  }
+
+  /**
+   * Set SFX volume (0.0 to 1.0) independent of master volume
+   * @param {number} volume 
+   */
+  setSfxVolume(volume) {
+    this.sfxVolume = Math.max(0, Math.min(1, volume));
+    
+    // 1. Update currently playing HTMLAudio nodes
+    this.sounds.forEach((pool, name) => {
+      pool.instances.forEach(audio => {
+        if (!audio.paused) {
+          const base = this.soundDefaults.get(name) || 1.0;
+          audio.volume = base * this.masterVolume * this.sfxVolume;
+        }
+      });
+    });
+
+    // 2. Update Web Audio loops
+    this.activeLoops.forEach((loop) => {
+      if (this.audioCtx) {
+        loop.gainNode.gain.setTargetAtTime(loop.baseVolume * this.masterVolume * this.sfxVolume, this.audioCtx.currentTime, 0.1);
       }
     });
   }

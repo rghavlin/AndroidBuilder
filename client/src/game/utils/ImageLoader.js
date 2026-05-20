@@ -468,6 +468,16 @@ export class ImageLoader {
   }
 
   /**
+   * Get cached image source synchronously if already loaded
+   * @param {string} imageId - ID of the item image
+   * @returns {string|null} - Cached image src or null
+   */
+  getCachedItemSrc(imageId) {
+    const cached = this.images[`item_${imageId}`];
+    return cached && cached.src ? cached.src : null;
+  }
+
+  /**
    * Load item image from file system
    * @param {string} imageId - ID of the item image
    * @returns {Promise<HTMLImageElement>} - Promise that resolves to image element

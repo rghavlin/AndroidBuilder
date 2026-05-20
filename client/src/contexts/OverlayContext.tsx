@@ -9,6 +9,9 @@ interface OverlayContextType {
   setLogHistoryOpen: (open: boolean) => void;
   showMainMenu: boolean;
   setShowMainMenu: (open: boolean) => void;
+  // New flag for Inventory Extension Window
+  isExtensionOpen: boolean;
+  setIsExtensionOpen: (open: boolean) => void;
   // Map transition state is in GameContext, but we can wrap it here if needed
   // For now, we'll keep existing context states and just have OverlayManager listen to them
 }
@@ -20,6 +23,7 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
   const [isBartering, setIsBartering] = useState(false);
   const [logHistoryOpen, setLogHistoryOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
+  const [isExtensionOpen, setIsExtensionOpen] = useState(false);
 
   return (
     <OverlayContext.Provider value={{
@@ -30,7 +34,9 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
       logHistoryOpen,
       setLogHistoryOpen,
       showMainMenu,
-      setShowMainMenu
+      setShowMainMenu,
+      isExtensionOpen,
+      setIsExtensionOpen
     }}>
       {children}
     </OverlayContext.Provider>

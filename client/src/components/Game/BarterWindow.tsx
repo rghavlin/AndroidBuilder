@@ -77,9 +77,8 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
       <div
         className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
         style={{
-          top: '48px',
-          bottom: '88px',
-          height: 'calc(100vh - 136px)'
+          top: 'var(--header-height)',
+          bottom: 'var(--controls-height)'
         }}
         onClick={handleCancel}
       />
@@ -89,9 +88,8 @@ export default function BarterWindow({ npc, onClose }: BarterWindowProps) {
         <div
           className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-0 overflow-hidden pointer-events-auto animate-in slide-in-from-left duration-300"
           style={{
-            top: '48px',
-            bottom: '88px',
-            height: 'calc(100vh - 136px)'
+            top: 'var(--header-height)',
+            bottom: 'var(--controls-height)'
           }}
           data-testid="barter-window"
           data-inventory-ui="true"

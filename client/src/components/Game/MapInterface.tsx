@@ -9,11 +9,11 @@ import { useInventory } from '../../contexts/InventoryContext';
 import { useOverlays } from '../../contexts/OverlayContext';
 import { useSleep } from '../../contexts/SleepContext.jsx';
 import MapCanvas from './MapCanvas.jsx';
-import InventoryExtensionWindow from './InventoryExtensionWindow';
 import FloatingContainer from '../Inventory/FloatingContainer';
 import ContainerGrid from '../Inventory/ContainerGrid';
 import { Menu, Hammer } from "lucide-react";
 import MainMenuWindow from './MainMenuWindow';
+import { ActionSlotButton } from './ActionSlotButton';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { EntityType } from '../../game/entities/Entity.js';
@@ -52,110 +52,7 @@ interface MapInterfaceProps {
   };
 }
 
-// Action Button Component
-const ActionSlotButton = ({ slot, isFlashlightOnActual }: { slot: string, isFlashlightOnActual: boolean }) => {
-  const { inventoryRef, inventoryVersion } = useInventory();
-  const { targetingWeapon, toggleTargeting } = useCombat();
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
 
-  // Get item from inventory
-  const equippedItem = inventoryRef.current?.equipment?.[slot];
-
-  // Unarmed logic for melee slot
-  const isMeleeUnarmed = slot === 'melee' && !equippedItem;
-  const unarmedItem = isMeleeUnarmed ? {
-    instanceId: 'unarmed',
-    name: 'Unarmed',
-    defId: 'unarmed',
-    combat: { hitChance: 0.5, damage: { min: 1, max: 3 } }
-  } : null;
-
-  const item = equippedItem || unarmedItem;
-  const { toggleFlashlight } = useGame();
-  const isTargeting = targetingWeapon?.item.instanceId === item?.instanceId;
-  const isFlashlightActive = slot === 'flashlight' && isFlashlightOnActual;
-
-  // Load image when item changes
-  useEffect(() => {
-    let isMounted = true;
-    const loadItemImage = async () => {
-      if (!item) {
-        if (isMounted) setImageSrc(null);
-        return;
-      }
-
-      // Handle virtual unarmed item
-      if (item.instanceId === 'unarmed') {
-        try {
-          const imgElement = await imageLoader.getItemImage('fist');
-          if (isMounted && imgElement && imgElement.src) {
-            setImageSrc(imgElement.src);
-          }
-        } catch (err) {
-          if (isMounted) setImageSrc(null);
-        }
-        return;
-      }
-
-      try {
-        const imageId = item.imageId || item.image || item.id;
-        const imgElement = await imageLoader.getItemImage(imageId);
-        if (isMounted && imgElement && imgElement.src) {
-          setImageSrc(imgElement.src);
-        }
-      } catch (err) {
-        if (isMounted) setImageSrc(null);
-      }
-    };
-
-    loadItemImage();
-    return () => { isMounted = false; };
-  }, [item, inventoryVersion, isMeleeUnarmed]);
-
-  const handleClick = () => {
-    if (slot === 'flashlight') {
-      console.log(`[ActionSlot] Clicked flashlight: Toggling state`);
-      toggleFlashlight();
-    } else if (item && (slot === 'melee' || slot === 'handgun' || slot === 'long_gun')) {
-      console.log(`[ActionSlot] Clicked ${slot}: Toggling targeting for ${item.name}`);
-      toggleTargeting(item, slot);
-    } else if (item) {
-      console.log(`[ActionSlot] Clicked ${slot}: Equipped with ${item.name}`);
-    } else {
-      console.log(`[ActionSlot] Clicked ${slot}: Nothing equipped`);
-    }
-  };
-
-  return (
-    <ItemContextMenu
-      item={item}
-      tooltipContent={item ? <ItemTooltip item={item} /> : <p className="font-medium text-xs">Empty {slot} slot</p>}
-    >
-      <button
-        onClick={handleClick}
-        className={cn(
-          "w-8 h-8 rounded border flex items-center justify-center transition-colors overflow-hidden",
-          // Empty state: Black bg, White outline
-          !item && "bg-black border-white hover:bg-zinc-900 shadow-sm",
-          // Equipped state: Green outline (like end turn button) w/ transparent or slight bg
-          item && !isTargeting && !isFlashlightActive && "border-green-500 bg-green-500/10 hover:bg-green-500/20",
-          // Targeting state: Bright red outline/glow
-          item && isTargeting && "border-red-500 bg-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
-          // Flashlight ON state: Bright yellow/cyan outline/glow
-          isFlashlightActive && "border-cyan-400 bg-cyan-400/20 shadow-[0_0_10px_rgba(34,211,238,0.4)] hover:bg-cyan-400/30"
-        )}
-      >
-        {item && imageSrc ? (
-          <img
-            src={imageSrc}
-            alt={item.name}
-            className="w-full h-full object-cover p-0.5"
-          />
-        ) : null}
-      </button>
-    </ItemContextMenu>
-  );
-};
 
 export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Phase 4: Only use orchestration functions from GameContext
@@ -266,12 +163,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     }
   }, [isFlashlightOn, isFlashlightOnActual, inventoryVersion, isNight, targetingWeapon, updatePlayerFieldOfView, refreshZombieTracking, getActiveFlashlightRange]);
 
-  const [isInventoryExtensionOpen, setIsInventoryExtensionOpen] = useState(false);
   const {
     logHistoryOpen: isLogHistoryOpen, setLogHistoryOpen: setIsLogHistoryOpen,
     showMainMenu, setShowMainMenu,
     activeTradeNpc, setActiveTradeNpc,
-    isBartering, setIsBartering
+    isBartering, setIsBartering,
+    isExtensionOpen, setIsExtensionOpen
   } = useOverlays();
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
   const [windowMenu, setWindowMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, window: any } | null>(null);
@@ -536,14 +433,18 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   return (
     <div className="flex-1 bg-secondary border-r border-border flex flex-col min-h-0" data-testid="map-interface">
       {/* Header Area */}
-      <div className="bg-card border-b border-border p-2 flex items-center justify-between" data-testid="map-header">
+      <div 
+        className="unified-header px-4 flex items-center justify-between shrink-0" 
+        style={{ height: 'var(--header-height)' }}
+        data-testid="map-header"
+      >
         <button
-          className="w-8 h-8 bg-secondary border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
+          className="w-9 h-9 bg-zinc-900/60 border border-white/10 rounded flex items-center justify-center hover:bg-zinc-800 transition-all shadow-sm active:scale-95 duration-150"
           title="Main Menu"
           data-testid="main-menu-button"
           onClick={() => setShowMainMenu(true)}
         >
-          <Menu className="h-5 w-5 text-foreground" />
+          <Menu className="h-5 w-5 text-foreground/80 hover:text-foreground" />
         </button>
 
         {/* Action Buttons Group (Better spacing between log and slots) */}
@@ -551,7 +452,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <GameEventLog 
             onClick={() => {
               setIsLogHistoryOpen(prev => !prev);
-              setIsInventoryExtensionOpen(false); // Close other extension
+              setIsExtensionOpen(false); // Close other extension
             }} 
           />
           <div className="flex-1" /> {/* Spacer pushes buttons apart */}
@@ -568,16 +469,16 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
         <button
           className={cn(
-            "w-8 h-8 bg-zinc-800 border transition-all flex items-center justify-center hover:bg-zinc-700 shadow-sm active:scale-95",
-            isInventoryExtensionOpen ? "border-white bg-zinc-700 shadow-[0_0_10px_rgba(255,255,255,0.1)]" : "border-white/10"
+            "w-9 h-9 bg-zinc-900 border transition-all flex items-center justify-center hover:bg-zinc-800 shadow-sm active:scale-95 rounded duration-150",
+            isExtensionOpen ? "border-primary/50 bg-zinc-850 shadow-[0_0_12px_rgba(16,185,129,0.2)]" : "border-white/10"
           )}
           title="Crafting/Cooking"
           data-testid="inventory-extension-button"
-          onClick={() => setIsInventoryExtensionOpen(prev => !prev)}
+          onClick={() => setIsExtensionOpen(prev => !prev)}
         >
           <Hammer className={cn(
             "h-5 w-5",
-            isInventoryExtensionOpen ? "text-white" : "text-white/40"
+            isExtensionOpen ? "text-primary" : "text-white/40"
           )} />
         </button>
       </div>
@@ -663,11 +564,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         })()}
       </div>
 
-      {/* Inventory Extension Window */}
-      <InventoryExtensionWindow
-        isOpen={isInventoryExtensionOpen}
-        onClose={() => setIsInventoryExtensionOpen(false)}
-      />
+
 
 
       {/* Door Context Menu */}

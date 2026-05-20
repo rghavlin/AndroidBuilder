@@ -9,6 +9,7 @@ interface GridSlotProps {
   isEmpty?: boolean;
   isHighlighted?: boolean;
   isValidDrop?: boolean;
+  isPreviewValid?: boolean | null;
   className?: string;
   gridType?: 'scalable' | 'fixed';
   onClick?: (event: React.MouseEvent) => void;
@@ -32,6 +33,7 @@ const GridSlot = memo(({
   isEmpty = true,
   isHighlighted = false,
   isValidDrop = false,
+  isPreviewValid = null,
   className,
   gridType = 'scalable',
   onClick,
@@ -63,14 +65,15 @@ const GridSlot = memo(({
         "flex-shrink-0 flex items-center justify-center text-sm relative",
         !isEmpty ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "transition-colors duration-200",
-        // Subtle borders like backpack grids
-        "border border-border/20 bg-muted/10",
+        // Skeuomorphic inset slot design
+        "inset-slot",
         // Hover state
-        !isEmpty ? "hover:bg-muted/40" : "hover:bg-muted/50",
+        !isEmpty ? "hover:brightness-110" : "hover:brightness-125",
         // Conditional states
-        isHighlighted && "bg-accent/20",
-        isValidDrop && "bg-green-500/20",
-        !isEmpty && "bg-muted/30",
+        isHighlighted && "ring-2 ring-accent shadow-[0_0_10px_rgba(250,204,21,0.5)]",
+        isValidDrop && "ring-2 ring-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]",
+        isPreviewValid === true && "!bg-none !bg-green-500/60 hover:!bg-green-500/60 !border !border-green-400/80",
+        isPreviewValid === false && "!bg-none !bg-red-500/60 hover:!bg-red-500/60 !border !border-red-400/80",
         className
       )}
       style={{
