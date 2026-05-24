@@ -2302,7 +2302,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.READABLE],
     categories: [ItemCategory.BOOK, ItemCategory.FUEL],
-    description: 'A thick book with 500 pages of wisdom about movement and stamina.'
+    description: 'Increase MaxAP by 1 for each 100 pages read.'
   },
   'tool.battery_charger': {
     id: 'tool.battery_charger',

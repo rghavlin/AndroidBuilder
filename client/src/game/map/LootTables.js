@@ -12,9 +12,6 @@ export const SPECIAL_BUILDING_LOOT = {
         { key: 'food.chips', weight: 25 },
         { key: 'food.beans', weight: 15 },
         { key: 'food.cannedcorn', weight: 15 },
-        { key: 'food.cornseeds', weight: 5 },
-        { key: 'food.tomatoseeds', weight: 5 },
-        { key: 'food.carrotseeds', weight: 5 },
         { key: 'food.waterbottle', weight: 10 },
         { key: 'backpack.school', weight: 5 }
     ],

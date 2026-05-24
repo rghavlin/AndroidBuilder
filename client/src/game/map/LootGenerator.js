@@ -491,11 +491,12 @@ export class LootGenerator {
             if (isBackpack && this.backpacksSpawned >= 1) continue;
 
             // 2. Pile limit: Max 1 food item per loot pile
-            const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
+            const isSeed = def.id && def.id.endsWith('seeds');
+            const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD)));
             if (isFood) {
-                // Progressive food scarcity: 50% base rejection on Map 1, +5% per map, max 95% on Map 10
-                let rejectionChance = 0.5 + (mapNumber - 1) * 0.05;
-                rejectionChance = Math.min(0.95, Math.max(0.0, rejectionChance));
+                // Progressive food scarcity: 40% base rejection on Map 1, +5% per map, max 85% on Map 10 (Slightly increased food drops)
+                let rejectionChance = 0.4 + (mapNumber - 1) * 0.05;
+                rejectionChance = Math.min(0.85, Math.max(0.0, rejectionChance));
                 if (Math.random() < rejectionChance) {
                     continue; // Reject food spawning for this drop slot
                 }
@@ -1021,10 +1022,12 @@ export class LootGenerator {
             if (selectedKey) {
                 const def = ItemDefs[selectedKey];
                 if (def) {
-                    const isFood = (def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD));
+                    const isSeed = def.id && def.id.endsWith('seeds');
+                    const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD)));
                     if (isFood) {
-                        let rejectionChance = 0.5 + (mapNumber - 1) * 0.05;
-                        rejectionChance = Math.min(0.95, Math.max(0.0, rejectionChance));
+                        // Progressive food scarcity: 40% base rejection on Map 1, +5% per map, max 85% on Map 10 (Slightly increased food drops)
+                        let rejectionChance = 0.4 + (mapNumber - 1) * 0.05;
+                        rejectionChance = Math.min(0.85, Math.max(0.0, rejectionChance));
                         if (Math.random() < rejectionChance) {
                             continue; // Reject food drop
                         }

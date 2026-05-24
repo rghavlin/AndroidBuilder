@@ -79,7 +79,7 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                                 — License: Attribution 4.0
                             </li>
                             <li>
-                                Emotional Sad Guitar Music —{' '}
+                                Emotional Sad Guitar Music by Tunetank —{' '}
                                 <a href="https://pixabay.com/music/acoustic-group-emotional-sad-guitar-music-349888/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
                                     pixabay.com
                                 </a>
@@ -120,7 +120,7 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                             Sound Effects
                         </div>
                         <p className="pl-1 text-[13px] leading-relaxed">
-                            Sidearm Studios, Darkwood Audio, YourPalRob
+                            Sidearm Studios, Darkwood Audio, YourPalRob, Snake
                         </p>
                     </div>
                 </CardContent>

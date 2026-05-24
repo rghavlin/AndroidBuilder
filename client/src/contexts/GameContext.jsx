@@ -334,15 +334,24 @@ const GameContextInner = ({ children }) => {
 
   const turnPhase = engine.turnPhase;
   const setTurnPhase = useCallback((val) => {
-    engine.turnPhase = typeof val === 'function' ? val(engine.turnPhase) : val;
+    const nextPhase = typeof val === 'function' ? val(engine.turnPhase) : val;
+
+    if (nextPhase === 'PLAYER_TURN') {
+      if (engine.player && engine.player.pendingAPRefill !== undefined && engine.player.pendingAPRefill !== null) {
+        engine.player.restoreAP(engine.player.pendingAPRefill);
+        engine.player.pendingAPRefill = null;
+        updatePlayerStats({ ap: engine.player.ap });
+      }
+    }
+
+    engine.turnPhase = nextPhase;
     engine.notifyUpdate();
-  }, []);
+  }, [updatePlayerStats]);
 
   const isPlayerTurn = useMemo(() => engine.turnPhase === 'PLAYER_TURN' && !isProcessingTurn, [enginePulse, isProcessingTurn]);
   const setIsPlayerTurn = useCallback((val) => {
-    engine.turnPhase = val ? 'PLAYER_TURN' : 'SIMULATING';
-    engine.notifyUpdate();
-  }, []);
+    setTurnPhase(val ? 'PLAYER_TURN' : 'SIMULATING');
+  }, [setTurnPhase]);
   const isAnimatingZombies = useMemo(() => engine.turnPhase === 'ANIMATING' || engine.turnPhase === 'SIMULATING' || isProcessingTurn, [enginePulse, isProcessingTurn]);
   const setIsAnimatingZombies = useCallback((val) => {
     const prev = engine.turnPhase;
@@ -612,7 +621,7 @@ const GameContextInner = ({ children }) => {
 
     // AP Allotment
     const totalPenalty = Math.floor(Math.max(0, player.maxEnergy - player.energy) / 5) + Math.floor(Math.max(0, player.maxHp - player.hp) / 5);
-    player.restoreAP(Math.max(0, player.maxAp - totalPenalty));
+    player.pendingAPRefill = Math.max(0, player.maxAp - totalPenalty);
 
     // 8. Time/Weather
     const newTurn = turn + 1;
@@ -732,7 +741,7 @@ const GameContextInner = ({ children }) => {
       // Safety Reset: Ensure the singleton is NOT left in ANIMATING state if playback finishes/crashes
       engine.turnPhase = 'PLAYER_TURN';
     }
-  }, [engine, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, triggerMapUpdate, performAutosave, isFlashlightOnActual, setTurn]);
+  }, [engine, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, triggerMapUpdate, performAutosave, isFlashlightOnActual, setTurn, setTurnPhase]);
 
   const endTurn = useCallback(async () => {
     const timestamp = Date.now();
@@ -800,7 +809,7 @@ const GameContextInner = ({ children }) => {
       isProcessingTurnRef.current = false;
       setIsProcessingTurn(false);
     }
-  }, [isInitialized, engine, turnPhase, simulateTurn, playbackTurn, isAnimatingMovement, isAnimatingZombies]);
+  }, [isInitialized, engine, turnPhase, simulateTurn, playbackTurn, isAnimatingMovement, isAnimatingZombies, setTurnPhase]);
 
 
 
@@ -907,7 +916,7 @@ const GameContextInner = ({ children }) => {
       engine.turnPhase = 'PLAYER_TURN';
       engine.notifyUpdate();
     }
-  }, [activeNpcDemand, extortPlayer, playbackTurn, turn, addLog]);
+  }, [activeNpcDemand, extortPlayer, playbackTurn, turn, addLog, setTurnPhase]);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;

@@ -10,6 +10,7 @@ export class Window extends Entity {
         super(id, EntityType.WINDOW, x, y);
         this.isOpen = isOpen;
         this.isLocked = isLocked;
+        this.isBroken = isBroken;
         this.isReinforced = false;
         this.reinforcementHp = 0;
         this.maxReinforcementHp = 20; // 2x planks max

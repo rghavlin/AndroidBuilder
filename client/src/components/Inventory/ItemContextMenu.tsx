@@ -53,7 +53,8 @@ export function ItemContextMenu({
 
     const canSplit = item?.hasTrait?.(ItemTrait.STACKABLE) && item?.stackCount > 1;
 
-    const shouldDisable = isDisabled || item?.hasTrait?.(ItemTrait.PLANTER);
+    const isSeed = item?.defId?.endsWith('seeds');
+    const shouldDisable = isDisabled || item?.hasTrait?.(ItemTrait.PLANTER) || isSeed;
 
     if (shouldDisable) {
         return (
@@ -145,17 +146,7 @@ export function ItemContextMenu({
                                 Dig
                             </ContextMenuItem>
                         )}
-                        {(item?.defId === 'food.cornseeds' || item?.defId === 'food.tomatoseeds' || item?.defId === 'food.carrotseeds') && (
-                            <ContextMenuItem
-                                onClick={() => {
-                                    console.log('[ItemContextMenu] Plant requested for:', item.name);
-                                    startTargetingItem(item);
-                                }}
-                                className="hover:bg-accent focus:bg-accent focus:text-white"
-                            >
-                                Plant
-                            </ContextMenuItem>
-                        )}
+
                         {(item?.defId === 'provision.harvestable_corn' || item?.defId === 'provision.harvestable_tomato' || item?.defId === 'provision.harvestable_carrot') && (
                             <ContextMenuItem
                                 onClick={() => {

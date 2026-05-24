@@ -2726,15 +2726,17 @@ export class InventoryManager extends SafeEventEmitter {
     const currentHour = (6 + (turn - 1)) % 24;
     const isDaylight = currentHour >= 6 && currentHour < 20;
 
+    const processedItemIds = new Set();
+
     // 1. Process equipment slots (this handles backpacks, pockets, and nested items)
     Object.values(this.equipment).forEach(item => {
-      if (item) this._processItemTurnRecursive(item, isOutdoors, isDaylight, true);
+      if (item) this._processItemTurnRecursive(item, isOutdoors, isDaylight, true, processedItemIds);
     });
 
     // 2. Process all managed containers (Ground, Workspaces, etc.)
     this.containers.forEach(container => {
       container.getAllItems().forEach(item => {
-        this._processItemTurnRecursive(item, isOutdoors, isDaylight, false);
+        this._processItemTurnRecursive(item, isOutdoors, isDaylight, false, processedItemIds);
       });
     });
     
@@ -2745,8 +2747,10 @@ export class InventoryManager extends SafeEventEmitter {
    * Recursive helper to apply turn effects to an item and its contents
    * @private
    */
-  _processItemTurnRecursive(item, isOutdoors = false, isDaylight = true, isInPlayerInventory = false) {
+  _processItemTurnRecursive(item, isOutdoors = false, isDaylight = true, isInPlayerInventory = false, processedItemIds = new Set()) {
     if (!item) return;
+    if (processedItemIds.has(item.instanceId)) return;
+    processedItemIds.add(item.instanceId);
 
     // --- EXPIRATION / TRANSFORMATION LOGIC ---
     // Decelerate shelfLife and lifetimeTurns
@@ -2806,21 +2810,21 @@ export class InventoryManager extends SafeEventEmitter {
     // Recurse into attachments
     if (item.attachments) {
       Object.values(item.attachments).forEach(att => {
-        if (att) this._processItemTurnRecursive(att, isOutdoors, isDaylight, isInPlayerInventory);
+        if (att) this._processItemTurnRecursive(att, isOutdoors, isDaylight, isInPlayerInventory, processedItemIds);
       });
     }
 
     // Recurse into primary container grid (if any)
     const grid = item.getContainerGrid?.();
     if (grid) {
-      grid.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory));
+      grid.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory, processedItemIds));
     }
 
     // Recurse into pockets (if any)
     const pockets = item.getPocketContainers?.();
     if (pockets && Array.isArray(pockets)) {
       pockets.forEach(pocket => {
-        pocket.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory));
+        pocket.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory, processedItemIds));
       });
     }
   }

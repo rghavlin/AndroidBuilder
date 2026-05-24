@@ -22,7 +22,7 @@ interface OptionsWindowProps {
 }
 
 export default function OptionsWindow({ onClose }: OptionsWindowProps) {
-    const [activeTab, setActiveTab] = useState('game');
+    const [activeTab, setActiveTab] = useState('audio');
     const [tempTileSet, setTempTileSet] = useState(imageLoader.tileSet);
 
     const handleApplyTiles = () => {
@@ -86,30 +86,19 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                 </CardHeader>
 
                 <CardContent className="pt-6">
-                    <Tabs defaultValue="game" className="w-full" onValueChange={setActiveTab}>
-                        <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/50 p-1 rounded-xl">
-                            <TabsTrigger value="game" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
-                                <Gamepad2 className="w-4 h-4" />
-                                <span className="font-semibold">Game</span>
+                    <Tabs defaultValue="audio" className="w-full" onValueChange={setActiveTab}>
+                        <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
+                            <TabsTrigger value="audio" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
+                                <Volume2 className="w-4 h-4" />
+                                <span className="font-semibold">Audio</span>
                             </TabsTrigger>
                             <TabsTrigger value="graphics" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
                                 <Monitor className="w-4 h-4" />
                                 <span className="font-semibold">Graphics</span>
                             </TabsTrigger>
-                            <TabsTrigger value="audio" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
-                                <Volume2 className="w-4 h-4" />
-                                <span className="font-semibold">Audio</span>
-                            </TabsTrigger>
                         </TabsList>
 
                         <div className="min-h-[200px] flex items-center justify-center p-8 bg-muted/20 rounded-2xl border border-dashed border-border/50">
-                            <TabsContent value="game" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
-                                <div className="text-center">
-                                    <Gamepad2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-muted-foreground">Gameplay Settings</h3>
-                                    <p className="text-sm text-muted-foreground/60">Configure general gameplay options here.</p>
-                                </div>
-                            </TabsContent>
 
                             <TabsContent value="graphics" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
                                 <div className="space-y-6">

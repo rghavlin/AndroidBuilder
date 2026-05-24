@@ -25,6 +25,7 @@ export class Player extends Entity {
     this.isStarving = false; // New starving status
     this.isDehydrated = false; // New dehydrated status
     this.blocksMovement = true; // Players block other entities
+    this.pendingAPRefill = null; // Transient AP refill value
     
     // Skill Progression
     this._meleeKills = 0;
