@@ -52,7 +52,9 @@ export const SPECIAL_BUILDING_LOOT = {
             hasBattleRifle: 0.50,
             has9mm: 0.50,
             hasBackpack: 0.35,
-            backpackType: 'backpack.hiking'
+            backpackType: 'backpack.hiking',
+            hasDesertEagle: 0.10,
+            hasNightVision: 0.10
         }
     },
     hardware_store: {

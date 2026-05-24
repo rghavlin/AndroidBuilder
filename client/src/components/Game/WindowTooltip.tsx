@@ -16,7 +16,7 @@ interface WindowTooltipProps {
 export function WindowTooltip({ windowEntity }: WindowTooltipProps) {
     if (!windowEntity) return null;
 
-    let status = windowEntity.isBroken ? 'Broken' : (windowEntity.isOpen ? 'Open' : 'Closed');
+    let status = windowEntity.isOpen ? 'Open' : (windowEntity.isBroken ? 'Broken' : 'Closed');
 
     return (
         <div className="p-2.5 min-w-[120px] bg-black border border-white/40 rounded-sm shadow-xl animate-in fade-in zoom-in duration-150 text-center">

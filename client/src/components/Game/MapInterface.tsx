@@ -820,60 +820,120 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           style={{ left: windowMenu.screenX, top: windowMenu.screenY }}
           onMouseLeave={() => setWindowMenu(null)}
         >
-          <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
-            onClick={() => {
-              if (!isPlayerTurn) return;
-              const gameMap = gameMapRef.current;
-              const player = playerRef.current;
-              if (!gameMap || !player) return;
+          {(!windowMenu.window.isBroken || windowMenu.window.isOpen) && (
+            <button
+              disabled={windowMenu.window.isBroken && windowMenu.window.isOpen}
+              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                (windowMenu.window.isBroken && windowMenu.window.isOpen)
+                  ? 'text-zinc-500 cursor-not-allowed'
+                  : 'text-white hover:bg-accent focus:bg-accent'
+              }`}
+              onClick={() => {
+                if (windowMenu.window.isBroken && windowMenu.window.isOpen) return;
+                if (!isPlayerTurn) return;
+                const gameMap = gameMapRef.current;
+                const player = playerRef.current;
+                if (!gameMap || !player) return;
 
-              // Action cost: 1 AP to open/close
-              if (player.ap < 1) {
-                addEffect({
-                  type: 'damage',
-                  x: windowMenu.x,
-                  y: windowMenu.y,
-                  value: 'Insufficient AP',
-                  color: '#ef4444',
-                  duration: 1000
-                });
-                setWindowMenu(null);
-                return;
-              }
-
-              if (windowMenu.window.isOpen) {
-                windowMenu.window.close();
-                addLog('You close the window.', 'world');
-                player.useAP(1);
-                playSound('OpenWindow');
-              } else {
-                if (windowMenu.window.isLocked) {
+                // Action cost: 1 AP to open/close
+                if (player.ap < 1) {
                   addEffect({
                     type: 'damage',
                     x: windowMenu.x,
                     y: windowMenu.y,
-                    value: 'Locked',
-                    color: '#fbbf24',
+                    value: 'Insufficient AP',
+                    color: '#ef4444',
                     duration: 1000
                   });
-                } else {
-                  windowMenu.window.open();
-                  addLog('You open the window.', 'world');
+                  setWindowMenu(null);
+                  return;
+                }
+
+                if (windowMenu.window.isOpen) {
+                  windowMenu.window.close();
+                  addLog('You close the window.', 'world');
                   player.useAP(1);
                   playSound('OpenWindow');
+                } else {
+                  if (windowMenu.window.isLocked) {
+                    addEffect({
+                      type: 'damage',
+                      x: windowMenu.x,
+                      y: windowMenu.y,
+                      value: 'Locked',
+                      color: '#fbbf24',
+                      duration: 1000
+                    });
+                  } else {
+                    windowMenu.window.open();
+                    addLog('You open the window.', 'world');
+                    player.useAP(1);
+                    playSound('OpenWindow');
+                  }
                 }
-              }
-              
-              triggerMapUpdate();
-              const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVision);
-              refreshZombieTracking(player, newFovTiles);
-              checkZombieAwareness();
-              setWindowMenu(null);
-            }}
-          >
-            {windowMenu.window.isOpen ? 'Close Window' : 'Open Window'}
-          </button>
+                
+                triggerMapUpdate();
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVision);
+                refreshZombieTracking(player, newFovTiles);
+                checkZombieAwareness();
+                setWindowMenu(null);
+              }}
+            >
+              {windowMenu.window.isOpen ? 'Close Window' : 'Open Window'}
+            </button>
+          )}
+
+          {windowMenu.window.isBroken && !windowMenu.window.isOpen && (
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+              onClick={() => {
+                if (!isPlayerTurn) return;
+                const gameMap = gameMapRef.current;
+                const player = playerRef.current;
+                if (!gameMap || !player) return;
+
+                // Check AP cost (2 AP)
+                if (player.ap < 2) {
+                  addEffect({
+                    type: 'damage',
+                    x: windowMenu.x,
+                    y: windowMenu.y,
+                    value: 'Insufficient AP',
+                    color: '#ef4444',
+                    duration: 1000
+                  });
+                  setWindowMenu(null);
+                  return;
+                }
+
+                // Consume 2 AP
+                player.useAP(2);
+
+                // 5% chance of bleeding
+                if (Math.random() < 0.05) {
+                  player.setBleeding(true);
+                  addLog("You cut yourself clearing the broken glass!", "error");
+                  playSound('ZombieSlash');
+                } else {
+                  addLog("You clear the broken glass from the window.", "world");
+                }
+
+                // Make the window an OPEN window
+                windowMenu.window.isOpen = true;
+                windowMenu.window.updateBlocking();
+
+                // Trigger updates
+                triggerMapUpdate();
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVision);
+                refreshZombieTracking(player, newFovTiles);
+                checkZombieAwareness();
+
+                setWindowMenu(null);
+              }}
+            >
+              Clear broken glass (2ap)
+            </button>
+          )}
 
           {/* Climb Through Option */}
           {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !windowMenu.window.isReinforced && (

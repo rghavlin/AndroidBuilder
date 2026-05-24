@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
@@ -115,19 +116,26 @@ export default function GameControls({
       
       {/* 1. Primary Action: End Turn */}
       <div className="flex items-center pr-4 border-r border-white/10 h-full">
-        <Button
-          onClick={onEndTurnAction}
-          disabled={buttonsDisabled}
-          className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
-          style={{ width: '56px', height: '56px' }}
-          data-testid="button-end-turn"
-        >
-          {endTurnImage ? (
-            <img src={endTurnImage} alt="End Turn" className="w-full h-full object-contain" />
-          ) : (
-            <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
-          )}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={onEndTurnAction}
+              disabled={buttonsDisabled}
+              className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
+              style={{ width: '56px', height: '56px' }}
+              data-testid="button-end-turn"
+            >
+              {endTurnImage ? (
+                <img src={endTurnImage} alt="End Turn" className="w-full h-full object-contain" />
+              ) : (
+                <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-xs font-semibold">End your turn</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* 2. Central HUD: 2-Row Stats Display - Tightened vertical spacing */}

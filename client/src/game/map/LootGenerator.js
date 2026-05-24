@@ -587,12 +587,16 @@ export class LootGenerator {
             hasGrenade: buildingRules.hasGrenade ? Math.random() < buildingRules.hasGrenade : false,
             hasBattleRifle: buildingRules.hasBattleRifle ? Math.random() < buildingRules.hasBattleRifle : false,
             has9mm: buildingRules.has9mm ? Math.random() < buildingRules.has9mm : false,
+            hasDesertEagle: buildingRules.hasDesertEagle ? Math.random() < buildingRules.hasDesertEagle : false,
+            hasNightVision: buildingRules.hasNightVision ? Math.random() < buildingRules.hasNightVision : false,
             gunDropIndex: -1,
             toolDropIndex: -1,
             backpackDropIndex: -1,
             grenadeDropIndex: -1,
             battleRifleDropIndex: -1,
-            gun9mmDropIndex: -1
+            gun9mmDropIndex: -1,
+            desertEagleDropIndex: -1,
+            nightVisionDropIndex: -1
         };
 
         if (buildingRules.hasGun) buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(Math.random() * dropCount) : -1;
@@ -601,6 +605,8 @@ export class LootGenerator {
         if (buildingRules.hasGrenade) buildingState.grenadeDropIndex = buildingState.hasGrenade ? Math.floor(Math.random() * dropCount) : -1;
         if (buildingRules.hasBattleRifle) buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(Math.random() * dropCount) : -1;
         if (buildingRules.has9mm) buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasDesertEagle) buildingState.desertEagleDropIndex = buildingState.hasDesertEagle ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasNightVision) buildingState.nightVisionDropIndex = buildingState.hasNightVision ? Math.floor(Math.random() * dropCount) : -1;
         
         // --- LABORATORY SPECIAL CASE ---
         if (type === 'lab' && buildingRules.roomLayout) {
@@ -816,6 +822,20 @@ export class LootGenerator {
                     if (index === buildingState.backpackDropIndex && buildingRules.backpackType) {
                         const backpack = createItemFromDef(buildingRules.backpackType);
                         if (backpack) items.push(backpack);
+                    }
+                    if (index === buildingState.desertEagleDropIndex) {
+                        const deagle = createItemFromDef('weapon.deserteagle');
+                        if (deagle) {
+                            LootGenerator.applySpawnDefaults(deagle, false);
+                            items.push(deagle);
+                        }
+                    }
+                    if (index === buildingState.nightVisionDropIndex) {
+                        const nvg = createItemFromDef('tool.nightvision');
+                        if (nvg) {
+                            LootGenerator.applySpawnDefaults(nvg, false);
+                            items.push(nvg);
+                        }
                     }
                     break;
                 case 'hardware_store':

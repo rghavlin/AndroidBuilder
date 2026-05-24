@@ -13,7 +13,7 @@ export class Window extends Entity {
         this.isReinforced = false;
         this.reinforcementHp = 0;
         this.maxReinforcementHp = 20; // 2x planks max
-        this.subtype = isBroken ? 'broken' : (isOpen ? 'open' : 'closed');
+        this.subtype = isBroken ? (isOpen ? 'open' : 'broken') : (isOpen ? 'open' : 'closed');
         this.maxHp = 1; // Windows break in 1 hit (1 AP act)
         this.hp = isBroken ? 0 : this.maxHp;
 
@@ -29,7 +29,7 @@ export class Window extends Entity {
      */
     updateBlocking() {
         this._updateBlockingState();
-        this.subtype = this.isBroken ? 'broken' : (this.isOpen ? 'open' : 'closed');
+        this.subtype = this.isBroken ? (this.isOpen ? 'open' : 'broken') : (this.isOpen ? 'open' : 'closed');
 
         // Emit event to notify map/renderer of state change
         this.emitEvent('windowStateChanged', {
@@ -245,7 +245,7 @@ export class Window extends Entity {
      */
     static fromJSON(data) {
         const windowEntity = new Window(data.id, data.x, data.y, data.isLocked || false, data.isOpen || false, data.isBroken || false);
-        windowEntity.subtype = data.subtype || (data.isBroken ? 'broken' : (data.isOpen ? 'open' : 'closed'));
+        windowEntity.subtype = data.subtype || (data.isBroken ? (data.isOpen ? 'open' : 'broken') : (data.isOpen ? 'open' : 'closed'));
         windowEntity.blocksMovement = data.blocksMovement !== undefined ? data.blocksMovement : true;
         windowEntity.blocksSight = false; // Always false
         windowEntity.isReinforced = data.isReinforced || false;

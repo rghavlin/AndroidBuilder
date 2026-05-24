@@ -87,6 +87,13 @@ export class ZombieSpawner {
     spawnHelper('firefighter', randomFirefighterCount, 10);
     spawnHelper('soldier', soldierCount, 10);
 
+    // 4. Map-progression Mutants (Starting from Map 11)
+    const mapNumber = gameMap.mapNumber || 1;
+    if (mapNumber >= 11) {
+      const mutantCount = Math.min(10, mapNumber - 10);
+      spawnHelper('mutant', mutantCount, 10);
+    }
+
 
     // 6. Spawn Special Zombies in Buildings
     const buildings = gameMap.buildings || gameMap.specialBuildings || [];
@@ -233,7 +240,23 @@ export class ZombieSpawner {
           mAttempts++;
         }
 
-        // 2. Spawn 4-6 Soldier Zombies anywhere in the Lab
+        // 2. Spawn 4 other Mutant Zombies anywhere in the Lab (including the main hall)
+        let otherMutantsSpawned = 0;
+        let omAttempts = 0;
+        while (otherMutantsSpawned < 4 && omAttempts < 150 && canSpawnMore()) {
+          const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
+          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const tile = gameMap.getTile(x, y);
+          if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
+            if (gameMap.addEntity(new Zombie(`zombie-mutant-additional-${Date.now()}-${sIdx}-${otherMutantsSpawned}`, x, y, 'mutant'), x, y)) {
+              spawnedCount++;
+              otherMutantsSpawned++;
+            }
+          }
+          omAttempts++;
+        }
+
+        // 3. Spawn 4-6 Soldier Zombies anywhere in the Lab
         const sCount = 4 + Math.floor(Math.random() * 3);
         let spawnedForLab = 0;
         let sAttempts = 0;
@@ -249,7 +272,28 @@ export class ZombieSpawner {
           }
           sAttempts++;
         }
-        console.log(`[ZombieSpawner] Lab: Spawned 1 Mutant and ${spawnedForLab} Soldiers`);
+
+        // 4. Spawn 2 Soldier Zombies outside the south entrance to the Lab
+        const entX = station.entranceX;
+        const entY = station.entranceY;
+        let spawnedOutside = 0;
+        let outAttempts = 0;
+        while (spawnedOutside < 2 && outAttempts < 50 && canSpawnMore()) {
+          const dx = Math.floor(Math.random() * 4) - 1; // -1, 0, 1, 2
+          const dy = 1 + Math.floor(Math.random() * 3); // 1, 2, 3
+          const targetX = entX + dx;
+          const targetY = entY + dy;
+          const tile = gameMap.getTile(targetX, targetY);
+          if (tile && tile.isWalkable() && tile.contents.length === 0) {
+            if (gameMap.addEntity(new Zombie(`zombie-outsidesoldier-${Date.now()}-${sIdx}-${spawnedOutside}`, targetX, targetY, 'soldier'), targetX, targetY)) {
+              spawnedCount++;
+              spawnedOutside++;
+            }
+          }
+          outAttempts++;
+        }
+
+        console.log(`[ZombieSpawner] Lab: Spawned 1 Main Hall Mutant, ${otherMutantsSpawned} Additional Mutants, ${spawnedForLab} Soldiers inside, and ${spawnedOutside} Soldiers outside`);
       }
     });
 

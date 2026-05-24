@@ -1,6 +1,5 @@
 import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
-import { Button } from "@/components/ui/button";
 
 export default function GroundItemsGrid() {
   const { getContainer, inventoryVersion, moveItem, inventoryRef } = useInventory();
@@ -57,12 +56,6 @@ export default function GroundItemsGrid() {
     }
   };
 
-  const handleQuickPickup = (category: string) => {
-    if (inventoryRef.current) {
-      const result = inventoryRef.current.quickPickupByCategory(category);
-      console.log(`Quick pickup ${category}:`, result);
-    }
-  };
 
   // Show empty state if no ground container
   if (!groundContainer) {
@@ -82,14 +75,6 @@ export default function GroundItemsGrid() {
           GROUND
         </h3>
 
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => handleQuickPickup('weapons')}
-            className="text-xs h-8 px-4 font-bold uppercase tracking-wider metal-button rounded-sm"
-          >
-            Quick Pickup
-          </Button>
-        </div>
       </div>
 
       <div className="flex-1 min-h-0">
