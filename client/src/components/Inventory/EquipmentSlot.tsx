@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
 import { useItemImage } from '../../hooks/useItemImage';
+import { useInventory } from "@/contexts/InventoryContext";
 
 interface EquipmentSlotProps {
   slotId: string;
@@ -32,6 +33,7 @@ const EquipmentSlot = memo(({
   onClick,
   className
 }: EquipmentSlotProps) => {
+  const { selectedItem } = useInventory();
   const slotInfo = SLOT_INFO[slotId] || { name: slotId, icon: '?' };
   const imageId = item ? (item.imageId || item.image || item.id) : slotInfo.imageId;
   const imageSrc = useItemImage(imageId);
@@ -41,6 +43,14 @@ const EquipmentSlot = memo(({
 
   // Check if slot is occupied
   const hasItem = !!item;
+
+  // Shading feedback when hovering with an item selected
+  const showPlacementFeedback = !!selectedItem && !hasItem;
+  const canEquip = showPlacementFeedback && selectedItem.item && (
+    typeof selectedItem.item.canEquipIn === 'function' 
+      ? selectedItem.item.canEquipIn(slotId) 
+      : false
+  );
 
   // Determine text fallback
   const displayIcon = hasItem && item.name ? item.name.substring(0, 2).toUpperCase() : slotInfo.icon;
@@ -59,7 +69,12 @@ const EquipmentSlot = memo(({
               "flex flex-col items-center justify-center cursor-pointer",
               "hover:brightness-110 transition-all",
               "relative overflow-hidden", // Clip image to rounded corners
-              isSelected && "active selected-item-overlay"
+              isSelected && "active selected-item-overlay",
+              showPlacementFeedback && (
+                canEquip
+                  ? "hover:!bg-none hover:!bg-green-500/20 hover:!border-green-500/80 hover:!shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                  : "hover:!bg-none hover:!bg-red-500/20 hover:!border-red-500/80 hover:!shadow-[0_0_10px_rgba(239,68,68,0.4)]"
+              )
             )}
             style={{
               background: (hasItem && item.backgroundColor) ? item.backgroundColor : undefined,
