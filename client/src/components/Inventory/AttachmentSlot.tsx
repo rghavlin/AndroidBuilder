@@ -83,6 +83,7 @@ const AttachmentSlot = memo(({
                                         alt={attachedItem.name}
                                         className={cn(
                                             "w-full h-full object-cover p-1 transition-opacity",
+                                            !attachedItem?.backgroundColor && "mix-blend-screen",
                                             selectedItem?.item?.instanceId === attachedItem.instanceId && "opacity-40 grayscale-[50%]"
                                         )}
                                     />

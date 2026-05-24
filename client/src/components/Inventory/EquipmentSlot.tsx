@@ -55,14 +55,14 @@ const EquipmentSlot = memo(({
           <div
             className={cn(
               "w-full h-full",
-              hasItem ? "sunken-item-slab rounded-full" : "inset-slot rounded-lg",
+              hasItem ? "inset-slot rounded-full" : "inset-slot rounded-lg",
               "flex flex-col items-center justify-center cursor-pointer",
               "hover:brightness-110 transition-all",
               "relative overflow-hidden", // Clip image to rounded corners
               isSelected && "active selected-item-overlay"
             )}
             style={{
-              backgroundColor: (hasItem && item.backgroundColor) ? item.backgroundColor : (hasItem ? '#0a0a0a' : undefined),
+              background: (hasItem && item.backgroundColor) ? item.backgroundColor : undefined,
             }}
             onClick={onClick}
             data-testid={`equipment-slot-${slotId}`}
@@ -77,11 +77,9 @@ const EquipmentSlot = memo(({
                   alt={item?.name || slotInfo.name}
                   className={cn(
                     "w-full h-full object-contain pointer-events-none transition-transform",
+                    !item?.backgroundColor && "mix-blend-screen",
                     !hasItem && "opacity-50"
                   )}
-                  style={{
-                    transform: (hasItem && typeof item.shouldRotateToFit === 'function' && item.shouldRotateToFit()) ? 'rotate(-45deg)' : 'none'
-                  }}
                 />
               </div>
             ) : (

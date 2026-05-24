@@ -836,7 +836,8 @@ export default function UniversalGrid({
                 <img
                   src={itemImageSrc}
                   className={cn(
-                    "absolute pointer-events-none select-none max-w-none"
+                    "absolute pointer-events-none select-none max-w-none",
+                    !item.backgroundColor && "mix-blend-screen"
                   )}
                   style={{
                     left: `${adjustedLeft - leftPos}px`,

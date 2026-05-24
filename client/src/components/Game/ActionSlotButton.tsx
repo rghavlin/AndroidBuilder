@@ -83,9 +83,6 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
               src={imageSrc}
               alt={item.name}
               className="w-full h-full object-contain pointer-events-none mix-blend-screen"
-              style={{
-                transform: (item && typeof item.shouldRotateToFit === 'function' && item.shouldRotateToFit()) ? 'rotate(-45deg)' : 'none'
-              }}
             />
           </div>
         ) : null}

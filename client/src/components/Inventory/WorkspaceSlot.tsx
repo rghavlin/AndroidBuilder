@@ -79,7 +79,7 @@ const WorkspaceSlot = memo(({
                     {item ? (
                         <>
                             {imageSrc ? (
-                                <img src={imageSrc} alt={item.name} className="w-full h-full object-contain p-1" />
+                                <img src={imageSrc} alt={item.name} className={cn("w-full h-full object-contain p-1", !item?.backgroundColor && "mix-blend-screen")} />
                             ) : (
                                 <span className="text-[0.6rem] font-bold text-accent text-center px-1 truncate">{item.name}</span>
                             )}

@@ -66,7 +66,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Rain', url: 'sounds/rain1.ogg', volume: 0.5 },
           { name: 'Climb', url: 'sounds/climb.ogg', volume: 0.6 },
           { name: 'Sizzle', url: 'sounds/sizzle.ogg', volume: 0.6 },
-          { name: 'Scooter', url: 'sounds/scooter.ogg', volume: 0.2 }
+          { name: 'Scooter', url: 'sounds/scooter.ogg', volume: 0.2 },
+          { name: 'Repair', url: 'sounds/craft.ogg', volume: 0.6 }
         ];
         await Promise.all(
           sounds.map(sound => audioManager.loadSound(sound.name, sound.url, sound.volume))

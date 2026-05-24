@@ -800,7 +800,7 @@ export const InventoryProvider = ({ children }) => {
     player.useAP(apNeeded);
     
     // Milestone check: Every 100 pages increases maxAp by 1
-    const totalPagesRead = 1000 - stats.pagesLeft;
+    const totalPagesRead = 500 - stats.pagesLeft;
     const currentMilestones = Math.floor(totalPagesRead / 100);
     const newMilestones = currentMilestones - (stats.milestonesReached || 0);
     

@@ -36,67 +36,106 @@ class AudioManager {
       this.soundDefaults.set(name, Math.max(0, Math.min(1, defaultVolume)));
     }
     
-    if (this.sounds.has(name)) return this.sounds.get(name).instances[0];
-
-    const poolSize = 3; // Create 3 instances for each sound to avoid latency of cloning
-    const instances = [];
-
-    const loadInstance = (idx) => new Promise((resolve, reject) => {
-      console.debug(`[AudioManager] ⏳ Loading sound node ${idx+1}/${poolSize} for "${name}" from: ${path}`);
-      const audio = new Audio();
-      
-      const timeout = setTimeout(() => {
-        cleanup();
-        console.warn(`[AudioManager] ⏰ Node ${idx+1} timeout for "${name}" - attempting playback anyway`);
-        resolve(audio);
-      }, 5000);
-
-      const cleanup = () => {
-        clearTimeout(timeout);
-        audio.oncanplaythrough = null;
-        audio.onloadeddata = null;
-        audio.onerror = null;
-      };
-
-      const onSuccess = () => {
-        cleanup();
-        resolve(audio);
-      };
-
-      audio.oncanplaythrough = onSuccess;
-      audio.onloadeddata = onSuccess;
-      audio.onerror = (e) => {
-        cleanup();
-        console.error(`[AudioManager] ❌ Failed to load sound node ${idx+1}: ${path}`, e);
-        reject(new Error(`Failed to load sound node ${idx+1}: ${path}`));
-      };
-
-      audio.src = path;
-      audio.preload = 'auto';
-      audio.load(); // Force start loading
-    });
-
-    try {
-      // Load all instances in the pool
-      const loadedInstances = await Promise.all(
-        Array.from({ length: poolSize }, (_, i) => loadInstance(i))
-      );
-      
+    if (!this.sounds.has(name)) {
       this.sounds.set(name, {
-        instances: loadedInstances,
+        path: path,
+        instances: null,
         index: 0
       });
-      
-      console.log(`[AudioManager] ✅ Loaded sound pool for "${name}" (size: ${poolSize})`);
-
-      // Phase 25: Also load into Web Audio Buffer for gapless looping if requested
-      this.loadAudioBuffer(name, path);
-
-      return loadedInstances[0];
-    } catch (err) {
-      console.error(`[AudioManager] Critical failure loading sound pool for "${name}":`, err);
-      throw err;
+      console.log(`[AudioManager] 📝 Registered sound metadata for "${name}" (lazy pool)`);
     }
+
+    // Phase 25: Also load into Web Audio Buffer for gapless looping if requested
+    await this.loadAudioBuffer(name, path);
+  }
+
+  /**
+   * Lazy load the HTML5 Audio pool for a registered sound when needed as a fallback.
+   */
+  _ensureHtmlAudioPool(name) {
+    const pool = this.sounds.get(name);
+    if (!pool) return null;
+
+    if (!pool.instances) {
+      console.debug(`[AudioManager] 🔌 Lazy-initializing HTMLAudio pool for "${name}"`);
+      const poolSize = 3;
+      const instances = [];
+      for (let i = 0; i < poolSize; i++) {
+        const audio = new Audio();
+        audio.src = pool.path;
+        audio.preload = 'auto';
+        instances.push(audio);
+      }
+      pool.instances = instances;
+    }
+    return pool;
+  }
+
+  /**
+   * Play a sound using the HTMLAudio element pool fallback.
+   */
+  _playHtmlAudio(name, options = {}) {
+    const pool = this._ensureHtmlAudioPool(name);
+    if (!pool) {
+      console.warn(`[AudioManager] ❌ #${this.id} Sound "${name}" not found in pool.`);
+      return;
+    }
+
+    const { instances, index } = pool;
+    const baseVolume = this.soundDefaults.get(name) || 1.0;
+    const { loop = false, volume = baseVolume, playbackRate = 1.0 } = options;
+
+    const finalVolume = volume * this.masterVolume * this.sfxVolume;
+    console.log(`[AudioManager] 🔊 Playing "${name}" via HTMLAudio | Volume: ${finalVolume.toFixed(2)} | Pool Index: ${index}`);
+
+    try {
+      const audio = instances[index];
+      
+      // Update index for next time
+      pool.index = (index + 1) % instances.length;
+
+      // Ensure the node is in a playable state
+      if (audio.readyState < 2) {
+        console.debug(`[AudioManager] ⏳ Node for "${name}" not ready (readyState: ${audio.readyState}) - forcing load`);
+        audio.load();
+      }
+
+      audio.volume = finalVolume;
+      audio.playbackRate = playbackRate;
+      audio.loop = loop;
+      
+      // If it's already playing, reset it or it might not restart in some browsers
+      if (!audio.paused && !loop) {
+        audio.currentTime = 0;
+      }
+
+      audio.play().catch(e => {
+        if (e.name === 'NotAllowedError') {
+          console.warn('[AudioManager] Playback blocked by browser policy.');
+        } else {
+          console.error(`[AudioManager] Play error for "${name}" (src: ${audio.src}, state: ${audio.readyState}):`, e);
+        }
+      });
+    } catch (err) {
+      console.error(`[AudioManager] Unexpected error for "${name}":`, err);
+    }
+  }
+
+  playSound(name, options = {}) {
+    if (this.isMuted) return;
+
+    // Check if Web Audio buffer exists and use it
+    if (this.audioBuffers.has(name)) {
+      const { loop = false } = options;
+      if (loop) {
+        this.startLoop(name, options);
+      } else {
+        this.playOneShot(name, options);
+      }
+      return;
+    }
+
+    this._playHtmlAudio(name, options);
   }
 
   /**
@@ -115,57 +154,6 @@ class AudioManager {
       console.log(`[AudioManager] ✅ Web Audio Buffer ready for "${name}"`);
     } catch (err) {
       console.warn(`[AudioManager] ⚠️ Failed to load Web Audio Buffer for "${name}" (gapless loops will fallback):`, err);
-    }
-  }
-
-  playSound(name, options = {}) {
-    if (this.isMuted) return;
-
-    const pool = this.sounds.get(name);
-    if (!pool) {
-      const available = Array.from(this.sounds.keys());
-      console.warn(`[AudioManager] ❌ #${this.id} Sound "${name}" not found in pool. Available:`, available);
-      return;
-    }
-
-    const { instances, index } = pool;
-    const baseVolume = this.soundDefaults.get(name) || 1.0;
-    const { loop = false, volume = baseVolume, playbackRate = 1.0 } = options;
-
-    const finalVolume = volume * this.masterVolume * this.sfxVolume;
-    console.log(`[AudioManager] 🔊 Playing "${name}" | Volume: ${finalVolume.toFixed(2)} | Pool Index: ${index}`);
-
-    try {
-      // Pick the next available node in the circular buffer
-      const audio = instances[index];
-      
-      // Update index for next time
-      pool.index = (index + 1) % instances.length;
-
-      // Ensure the node is in a playable state
-      if (audio.readyState < 2) {
-        console.debug(`[AudioManager] ⏳ Node for "${name}" not ready (readyState: ${audio.readyState}) - forcing load`);
-        audio.load();
-      }
-
-      audio.volume = volume * this.masterVolume * this.sfxVolume;
-      audio.playbackRate = playbackRate;
-      audio.loop = loop;
-      
-      // If it's already playing, reset it or it might not restart in some browsers
-      if (!audio.paused && !loop) {
-        audio.currentTime = 0;
-      }
-
-      audio.play().catch(e => {
-        if (e.name === 'NotAllowedError') {
-          console.warn('[AudioManager] Playback blocked by browser policy.');
-        } else {
-          console.error(`[AudioManager] Play error for "${name}" (src: ${audio.src}, state: ${audio.readyState}):`, e);
-        }
-      });
-    } catch (err) {
-      console.error(`[AudioManager] Unexpected error for "${name}":`, err);
     }
   }
 
@@ -240,7 +228,7 @@ class AudioManager {
   stopSound(name) {
     // 1. Stop HTMLAudio nodes
     const pool = this.sounds.get(name);
-    if (pool) {
+    if (pool && pool.instances) {
       pool.instances.forEach(audio => {
         audio.pause();
         audio.currentTime = 0;
@@ -273,9 +261,11 @@ class AudioManager {
     const pool = this.sounds.get(name);
     if (pool) {
       this.soundDefaults.set(name, Math.max(0, Math.min(1, volume)));
-      pool.instances.forEach(audio => {
-        audio.volume = volume * this.masterVolume * this.sfxVolume;
-      });
+      if (pool.instances) {
+        pool.instances.forEach(audio => {
+          audio.volume = volume * this.masterVolume * this.sfxVolume;
+        });
+      }
     }
 
     // 2. Update Web Audio loop
@@ -297,12 +287,12 @@ class AudioManager {
   isSoundPlaying(name) {
     // Check HTMLAudio
     const pool = this.sounds.get(name);
-    const htmlPlaying = pool && pool.instances.some(audio => !audio.paused);
+    const htmlPlaying = pool && pool.instances && pool.instances.some(audio => !audio.paused);
     
     // Check Web Audio
     const webPlaying = this.activeLoops.has(name);
 
-    return htmlPlaying || webPlaying;
+    return !!(htmlPlaying || webPlaying);
   }
 
   /**
@@ -314,12 +304,14 @@ class AudioManager {
     
     // 1. Update currently playing HTMLAudio nodes
     this.sounds.forEach((pool, name) => {
-      pool.instances.forEach(audio => {
-        if (!audio.paused) {
-          const base = this.soundDefaults.get(name) || 1.0;
-          audio.volume = base * this.masterVolume * this.sfxVolume;
-        }
-      });
+      if (pool.instances) {
+        pool.instances.forEach(audio => {
+          if (!audio.paused) {
+            const base = this.soundDefaults.get(name) || 1.0;
+            audio.volume = base * this.masterVolume * this.sfxVolume;
+          }
+        });
+      }
     });
 
     // 2. Update Web Audio loops
@@ -339,12 +331,14 @@ class AudioManager {
     
     // 1. Update currently playing HTMLAudio nodes
     this.sounds.forEach((pool, name) => {
-      pool.instances.forEach(audio => {
-        if (!audio.paused) {
-          const base = this.soundDefaults.get(name) || 1.0;
-          audio.volume = base * this.masterVolume * this.sfxVolume;
-        }
-      });
+      if (pool.instances) {
+        pool.instances.forEach(audio => {
+          if (!audio.paused) {
+            const base = this.soundDefaults.get(name) || 1.0;
+            audio.volume = base * this.masterVolume * this.sfxVolume;
+          }
+        });
+      }
     });
 
     // 2. Update Web Audio loops
@@ -361,9 +355,11 @@ class AudioManager {
   toggleMute() {
     this.isMuted = !this.isMuted;
     this.sounds.forEach(pool => {
-      pool.instances.forEach(audio => {
-        audio.muted = this.isMuted;
-      });
+      if (pool.instances) {
+        pool.instances.forEach(audio => {
+          audio.muted = this.isMuted;
+        });
+      }
     });
     return this.isMuted;
   }
@@ -376,11 +372,13 @@ class AudioManager {
     
     // 1. Stop all HTMLAudio instances
     this.sounds.forEach(pool => {
-      pool.instances.forEach(audio => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.loop = false;
-      });
+      if (pool.instances) {
+        pool.instances.forEach(audio => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.loop = false;
+        });
+      }
     });
 
     // 2. Stop all Web Audio loops
