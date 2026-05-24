@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
 import OptionsWindow from './OptionsWindow';
-import { X, Terminal, Settings } from "lucide-react";
+import { X, Settings } from "lucide-react";
 
 interface MainMenuWindowProps {
     onClose: () => void;
@@ -75,7 +75,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                         className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
                         data-testid="button-menu-load-game"
                     >
-                        {isLoading ? 'Loading...' : 'Load Game'}
+                        {isLoading ? 'Loading...' : 'Continue'}
                     </Button>
 
                     <Button
@@ -88,19 +88,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                         Options
                     </Button>
 
-                    <div className="border-t border-border/50 my-2 pt-4">
-                        <Button
-                            onClick={() => {
-                                console.log('[MainMenuWindow] 🖱️ Requesting Dev Console via global event');
-                                window.dispatchEvent(new CustomEvent('toggle-dev-console', { detail: true }));
-                            }}
-                            className="w-full py-4 text-md font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
-                            data-testid="button-menu-dev-console"
-                        >
-                            <Terminal className="h-4 w-4" />
-                            Dev Console
-                        </Button>
-                    </div>
+
                 </CardContent>
             </Card>
 

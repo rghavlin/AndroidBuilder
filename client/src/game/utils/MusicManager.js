@@ -1,4 +1,5 @@
 import { configManager } from './ConfigManager';
+import audioManager from './AudioManager';
 
 /**
  * MusicManager - Handles background music, playlists, and continuous sequential playback
@@ -87,6 +88,22 @@ class MusicManager {
         this.playCurrentTrack();
     }
 
+    connectToWebAudio() {
+        if (this.webAudioConnected) return;
+
+        try {
+            const audioCtx = audioManager.audioCtx || audioManager._ensureAudioContext();
+            if (audioCtx) {
+                console.log('[MusicManager] 🔌 Connecting HTML5 Audio element to Web Audio Context');
+                const source = audioCtx.createMediaElementSource(this.audioElement);
+                source.connect(audioCtx.destination);
+                this.webAudioConnected = true;
+            }
+        } catch (err) {
+            console.warn('[MusicManager] ⚠️ Failed to connect HTML5 Audio to Web Audio Context:', err);
+        }
+    }
+
     playCurrentTrack() {
         if (!this.currentPlaylist || !this.playlists[this.currentPlaylist]) return;
 
@@ -96,6 +113,9 @@ class MusicManager {
 
         this.audioElement.src = trackUrl;
         this.updateVolume();
+        
+        // Ensure connected to Web Audio graph to prevent auto-ducking
+        this.connectToWebAudio();
         
         this.audioElement.play().then(() => {
             this.isPlaying = true;

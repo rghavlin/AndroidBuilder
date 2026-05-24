@@ -67,7 +67,7 @@ export default function UniversalGrid({
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
   const { addLog } = useLog();
-  const [itemImages, setItemImages] = useState<Map<string, string>>(new Map());
+  const [itemImages, setItemImages] = useState<Map<string, { src: string, imageId: string }>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
   const [lastGridPos, setLastGridPos] = useState<{x: number, y: number} | null>(null);
@@ -115,28 +115,32 @@ export default function UniversalGrid({
     const loadImages = async () => {
       const itemsToProcess = items instanceof Map ? items : new Map(Object.entries(items || {}));
       
-      // Filter out items already in the state map to avoid redundant work
-      const missingItems = Array.from(itemsToProcess.entries()).filter(([instanceId]) => !itemImages.has(instanceId));
+      // Filter out items already in the state map to avoid redundant work, unless their imageId has changed
+      const changedOrMissingItems = Array.from(itemsToProcess.entries()).filter(([instanceId, item]) => {
+        const imageId = item.imageId || item.defId;
+        const entry = itemImages.get(instanceId);
+        return !entry || entry.imageId !== imageId;
+      });
       
-      if (missingItems.length === 0) return;
+      if (changedOrMissingItems.length === 0) return;
 
       const imageMap = new Map(itemImages);
       let changed = false;
 
-      for (const [instanceId, item] of missingItems) {
+      for (const [instanceId, item] of changedOrMissingItems) {
         try {
           const imageId = item.imageId || item.defId;
           const img = await imageLoader.getItemImage(imageId);
           if (img && isMounted) {
-            imageMap.set(instanceId, img.src);
+            imageMap.set(instanceId, { src: img.src, imageId });
           } else if (isMounted) {
-            imageMap.set(instanceId, 'failed');
+            imageMap.set(instanceId, { src: 'failed', imageId });
           }
           changed = true;
         } catch (error) {
           console.warn('[UniversalGrid] Failed to load image for item:', item.name, error);
           if (isMounted) {
-            imageMap.set(instanceId, 'failed');
+            imageMap.set(instanceId, { src: 'failed', imageId });
             changed = true;
           }
         }
@@ -740,13 +744,17 @@ export default function UniversalGrid({
       const itemId = item.instanceId;
       
       // START OPTIMIZATION: Synchronous Cache Check
-      let itemImageSrc = itemImages.get(itemId) || null;
+      let itemImageSrc = null;
+      const currentImageId = item.imageId || item.defId;
+      const entry = itemImages.get(itemId);
+      if (entry && entry.imageId === currentImageId) {
+        itemImageSrc = entry.src;
+      }
       
       if (!itemImageSrc) {
           // If not in state yet, check the raw ImageLoader cache synchronously
           // This prevents the "flash" when opening containers with known items
-          const imageId = item.imageId || item.defId;
-          const cachedSrc = imageLoader.getCachedItemSrc(imageId);
+          const cachedSrc = imageLoader.getCachedItemSrc(currentImageId);
           if (cachedSrc) {
               itemImageSrc = cachedSrc;
           }

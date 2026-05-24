@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { Terminal, Settings } from "lucide-react";
+import { Settings, Sparkles } from "lucide-react";
 import OptionsWindow from './OptionsWindow';
+import CreditsWindow from './CreditsWindow';
 import musicManager from '@/game/utils/MusicManager';
 
 interface StartMenuProps {
@@ -16,6 +17,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const { loadGame, initializeGame } = useGame();
   const [isLoading, setIsLoading] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
 
   useEffect(() => {
     // Attempt to play the menu music on mount.
@@ -97,7 +99,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
             data-testid="button-load-game"
           >
-            {isLoading ? 'Loading...' : 'Load Game'}
+            {isLoading ? 'Loading...' : 'Continue'}
           </Button>
 
           <Button
@@ -110,23 +112,21 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             Options
           </Button>
 
-          <div className="border-t border-border/50 my-2 pt-4">
-            <Button
-              onClick={() => {
-                console.log('[StartMenu] 🖱️ Requesting Dev Console via global event');
-                window.dispatchEvent(new CustomEvent('toggle-dev-console', { detail: true }));
-              }}
-              className="w-full py-4 text-md font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
-              data-testid="button-start-dev-console"
-            >
-              <Terminal className="h-4 w-4" />
-              Dev Console
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowCredits(true)}
+            disabled={isLoading}
+            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
+            data-testid="button-start-credits"
+          >
+            <Sparkles className="h-5 w-5" />
+            Credits
+          </Button>
+
         </CardContent>
       </Card>
 
       {showOptions && <OptionsWindow onClose={() => setShowOptions(false)} />}
+      {showCredits && <CreditsWindow onClose={() => setShowCredits(false)} />}
     </div>
   );
 }

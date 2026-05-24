@@ -164,7 +164,8 @@ export const CombatProvider = ({ children }) => {
         // 1. Calculate Outcome
         const meleeLvl = playerStats.meleeLvl || 1;
         const accuracyBonus = meleeLvl * 0.01;
-        const hit = Math.random() <= (weaponStats.hitChance + accuracyBonus);
+        const isWindowTarget = structure && (structure.type === 'window' || structure.type === EntityType.WINDOW);
+        const hit = isWindowTarget ? true : Math.random() <= (weaponStats.hitChance + accuracyBonus);
         
         const critChance = 0.05 + (meleeLvl - 1) * 0.05;
         const isCrit = hit && Math.random() <= critChance;
@@ -397,7 +398,8 @@ export const CombatProvider = ({ children }) => {
             else if (hasLaserSight) baseHitChance = squaresAway <= 10 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 10) * stats.accuracyFalloff);
             else baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
 
-            const hit = Math.random() <= (baseHitChance + accuracyBonus);
+            const isWindowTarget = structure && (structure.type === 'window' || structure.type === EntityType.WINDOW);
+            const hit = isWindowTarget ? true : Math.random() <= (baseHitChance + accuracyBonus);
             const critChance = 0.05 + (rangedLvl - 1) * 0.05;
             const isCrit = hit && Math.random() <= critChance;
 
@@ -714,7 +716,8 @@ export const CombatProvider = ({ children }) => {
         const accuracyBonus = rangedLvl * 0.01;
         const squaresAway = Math.floor(distance);
         const baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
-        const hit = Math.random() <= (baseHitChance + accuracyBonus);
+        const isWindowTarget = structure && (structure.type === 'window' || structure.type === EntityType.WINDOW);
+        const hit = isWindowTarget ? true : Math.random() <= (baseHitChance + accuracyBonus);
 
         // 6. Projectile Path Tracking
         ProjectileManager.processProjectilePath(gameMap, player.x, player.y, targetX, targetY);

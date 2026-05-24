@@ -86,6 +86,13 @@ export const ActionProvider = ({ children }) => {
     
     if (!player || !gameMap || !targetingItem || !inventoryManager) return { success: false };
 
+    const playerTile = gameMap.getTile(player.x, player.y);
+    if (!playerTile || playerTile.terrain !== 'grass') {
+      addLog("You can only dig in the grass!", "warning");
+      playSound('Fail');
+      return { success: false, reason: 'Must stand on grass' };
+    }
+
     if (player.ap < 5) {
       addLog("Not enough AP to dig (requires 5)", "warning");
       return { success: false, reason: 'Need 5 AP' };
@@ -134,7 +141,7 @@ export const ActionProvider = ({ children }) => {
     else inventoryManager.emit('inventoryChanged');
     
     return { success: true, item: holeItem };
-  }, [targetingItem, addLog, addEffect, updatePlayerStats]);
+  }, [targetingItem, addLog, addEffect, updatePlayerStats, playSound]);
 
   const plantSeed = useCallback((gridX, gridY, seedOverride = null) => {
     const player = engine.player;

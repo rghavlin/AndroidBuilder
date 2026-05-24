@@ -110,9 +110,32 @@ export class RabbitAI {
       }))
       .sort((a, b) => b.dist - a.dist); // Maximize distance
 
-    if (candidates.length > 0 && candidates[0].dist > Math.sqrt(Math.pow(rabbit.logicalX - threatX, 2) + Math.pow(rabbit.logicalY - threatY, 2))) {
-      const best = candidates[0];
-      
+    if (candidates.length === 0) return false;
+
+    const currentDist = Math.sqrt(Math.pow(rabbit.logicalX - threatX, 2) + Math.pow(rabbit.logicalY - threatY, 2));
+    
+    // Separate candidates into those that increase distance and those that don't
+    const dynamicCandidates = candidates.filter(c => c.dist > currentDist);
+    
+    // We also want to filter candidates by visited status to prevent back-and-forth loops in corners
+    const visited = rabbit.movementPath || [];
+    const isVisited = (c) => visited.some(pos => pos.x === c.x && pos.y === c.y);
+    
+    // 1. Try to find a move that increases distance and is unvisited
+    let best = dynamicCandidates.find(c => !isVisited(c));
+    
+    // 2. If none, try to find any move that increases distance (fallback)
+    if (!best) {
+      best = dynamicCandidates[0];
+    }
+    
+    // 3. If we still don't have a move that increases distance (e.g. cornered),
+    // allow moving to an unvisited tile even if it is closer to the threat (dist <= currentDist)
+    if (!best) {
+      best = candidates.find(c => !isVisited(c));
+    }
+
+    if (best) {
       // Diagonal cost 1.4, Cardinal 1.0
       const apCost = (best.x !== rabbit.logicalX && best.y !== rabbit.logicalY) ? 1.4 : 1.0;
       

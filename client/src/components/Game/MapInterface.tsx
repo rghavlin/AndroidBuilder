@@ -360,29 +360,44 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       const py = Math.floor(player.y);
       const dx = x - px;
       const dy = y - py;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const isAdjacent = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0);
 
-      if (distance < 2.5) {
+      if (isAdjacent) {
         setDoorMenu({ x, y, screenX, screenY, door });
       } else {
-        console.log('[MapInterface] Door too far for interaction:', distance.toFixed(2));
+        console.log('[MapInterface] Door not adjacent for interaction');
+        addEffect({
+          type: 'damage',
+          x,
+          y,
+          value: 'Must be adjacent',
+          color: '#fbbf24',
+          duration: 1000
+        });
       }
       return;
     }
 
     const windowEntity = tile.contents.find((e: any) => e.type === EntityType.WINDOW);
     if (windowEntity) {
-      // Use robust floored distance for adjacency
       const px = Math.floor(player.x);
       const py = Math.floor(player.y);
       const dx = x - px;
       const dy = y - py;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const isAdjacent = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0);
 
-      if (distance < 2.5) {
+      if (isAdjacent) {
         setWindowMenu({ x, y, screenX, screenY, window: windowEntity });
       } else {
-        console.log('[MapInterface] Window too far for interaction:', distance.toFixed(2));
+        console.log('[MapInterface] Window not adjacent for interaction');
+        addEffect({
+          type: 'damage',
+          x,
+          y,
+          value: 'Must be adjacent',
+          color: '#fbbf24',
+          duration: 1000
+        });
       }
       return;
     }

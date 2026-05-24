@@ -255,6 +255,69 @@ export class MapBuilder {
         else if (frontage === 'north' || frontage === 'south') signX--;
         this.metadata.placeIcons.push({ subtype: type, x: signX, y: signY });
     }
+
+    // 5. Place windows on the frontage (front wall) of the special building
+    const frontTiles = [];
+    let dx = 0, dy = 0;
+    if (frontage === 'east') {
+      dx = -1;
+      for (let cy = y + 1; cy < y + height - 1; cy++) {
+        frontTiles.push({ x: x + width - 1, y: cy });
+      }
+    } else if (frontage === 'west') {
+      dx = 1;
+      for (let cy = y + 1; cy < y + height - 1; cy++) {
+        frontTiles.push({ x: x, y: cy });
+      }
+    } else if (frontage === 'south') {
+      dy = -1;
+      for (let cx = x + 1; cx < x + width - 1; cx++) {
+        frontTiles.push({ x: cx, y: y + height - 1 });
+      }
+    } else if (frontage === 'north') {
+      dy = 1;
+      for (let cx = x + 1; cx < x + width - 1; cx++) {
+        frontTiles.push({ x: cx, y: y });
+      }
+    }
+
+    let candidates = frontTiles.filter(t => {
+      // Must be building terrain
+      if (this.getTerrain(t.x, t.y) !== 'building') return false;
+      // Must not be a door
+      if (this.metadata.doors.some(d => d.x === t.x && d.y === t.y)) return false;
+      // Must not overlap with place icons (like signs)
+      if (this.metadata.placeIcons.some(pi => pi.x === t.x && pi.y === t.y)) return false;
+      
+      const inwardX = t.x + dx;
+      const inwardY = t.y + dy;
+      if (this.getTerrain(inwardX, inwardY) === 'building') return false;
+
+      return true;
+    });
+
+    if (candidates.length > 0) {
+      let numRequested = Math.floor(Math.random() * 2) + 1; // 1 or 2 windows
+      const selected = [];
+
+      for (let i = 0; i < numRequested; i++) {
+        if (candidates.length === 0) break;
+        const idx = Math.floor(Math.random() * candidates.length);
+        const pick = candidates[idx];
+        selected.push(pick);
+        candidates = candidates.filter(c => Math.abs(c.x - pick.x) + Math.abs(c.y - pick.y) > 1);
+      }
+
+      selected.forEach(t => {
+        this.setTerrain(t.x, t.y, 'window');
+        this.metadata.windows.push({
+          x: t.x,
+          y: t.y,
+          isLocked: Math.random() < 0.7,
+          isOpen: false
+        });
+      });
+    }
   }
 
   /**
