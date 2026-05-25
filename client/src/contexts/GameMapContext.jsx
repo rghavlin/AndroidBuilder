@@ -52,7 +52,6 @@ export const GameMapProvider = ({ children }) => {
 
   // Sync with engine updates (especially map loads/transitions)
   useEffect(() => {
-    window.setMapTransition = setMapTransition;
     const handleSync = () => {
       console.log('[GameMapContext] 🔄 engine triggered sync, updating map refs');
       gameMapRef.current = engine.gameMap;
@@ -62,7 +61,6 @@ export const GameMapProvider = ({ children }) => {
     engine.on('sync', handleSync);
     return () => {
       engine.off('sync', handleSync);
-      window.setMapTransition = null;
     };
   }, []);
 

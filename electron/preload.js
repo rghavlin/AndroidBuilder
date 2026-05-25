@@ -7,8 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   versions: process.versions,
   
-  // Add any specific APIs your game needs here
-  // For example:
-  // saveGameData: (data) => ipcRenderer.invoke('save-game-data', data),
-  // loadGameData: () => ipcRenderer.invoke('load-game-data'),
+  saveGame: (slotName, data) => ipcRenderer.invoke('save-game', slotName, data),
+  loadGame: (slotName) => ipcRenderer.invoke('load-game', slotName),
+  deleteGame: (slotName) => ipcRenderer.invoke('delete-game', slotName),
+  listSaves: () => ipcRenderer.invoke('list-saves')
 });

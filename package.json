@@ -154,7 +154,7 @@
           ]
         }
       ],
-      "icon": "client/public/images/entities/zombie.png",
+      "icon": "client/public/images/entities/zombie256.png",
       "requestedExecutionLevel": "asInvoker"
     }
   }

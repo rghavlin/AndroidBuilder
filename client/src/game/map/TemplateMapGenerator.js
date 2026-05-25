@@ -644,47 +644,24 @@ export class TemplateMapGenerator {
    * Evaluate simple position equations
    */
   evaluatePositionEquation(equation, variables) {
-    // Simple math expression evaluator
-    // Replace variables in equation
-    let expr = equation.replace(/width/g, variables.width)
-      .replace(/height/g, variables.height);
-
-    // Evaluate basic math (security: only allow numbers, +, -, *, /, %, parentheses)
-    if (/^[0-9+\-*/%().\s]+$/.test(expr)) {
-      try {
-        // Use Function constructor for safer evaluation than eval()
-        const calculate = new Function(`return Math.floor(${expr})`);
-        return calculate();
-      } catch (e) {
-        console.warn('[TemplateMapGenerator] Invalid position equation:', equation);
-        return 0;
-      }
+    try {
+      return Math.floor(parseAndEvaluate(equation, variables));
+    } catch (e) {
+      console.warn('[TemplateMapGenerator] Invalid position equation:', equation, e);
+      return 0;
     }
-    return 0;
   }
 
   /**
    * Evaluate tile placement conditions
    */
   evaluateTileCondition(condition, x, y, width, height) {
-    // Replace variables in condition
-    let expr = condition.replace(/x/g, x)
-      .replace(/y/g, y)
-      .replace(/width/g, width)
-      .replace(/height/g, height);
-
-    // Evaluate boolean expression (security: only allow numbers, comparison operators, math)
-    if (/^[0-9+\-*/%().\s<>=!&|]+$/.test(expr)) {
-      try {
-        // Use Function constructor for safer evaluation than eval()
-        const conditionFunction = new Function('x', 'y', 'mapWidth', 'mapHeight', `return ${expr}`);
-        return conditionFunction(x, y, width, height);
-      } catch (e) {
-        console.warn('[TemplateMapGenerator] Invalid tile condition:', condition);
-        return false;
-      }
+    try {
+      return parseAndEvaluate(condition, { x, y, width, height });
+    } catch (e) {
+      console.warn('[TemplateMapGenerator] Invalid tile condition:', condition, e);
+      return false;
     }
-    return false;
   }
 
   /**
@@ -910,4 +887,182 @@ export class TemplateMapGenerator {
       throw error;
     }
   }
+}
+
+function tokenize(str) {
+  const tokens = [];
+  let i = 0;
+  while (i < str.length) {
+    const char = str[i];
+    if (/\s/.test(char)) {
+      i++;
+      continue;
+    }
+    if (str.startsWith('===', i)) { tokens.push('==='); i += 3; }
+    else if (str.startsWith('!==', i)) { tokens.push('!=='); i += 3; }
+    else if (str.startsWith('==', i)) { tokens.push('=='); i += 2; }
+    else if (str.startsWith('!=', i)) { tokens.push('!='); i += 2; }
+    else if (str.startsWith('<=', i)) { tokens.push('<='); i += 2; }
+    else if (str.startsWith('>=', i)) { tokens.push('>='); i += 2; }
+    else if (str.startsWith('&&', i)) { tokens.push('&&'); i += 2; }
+    else if (str.startsWith('||', i)) { tokens.push('||'); i += 2; }
+    else if (char === '<' || char === '>' || char === '+' || char === '-' || char === '*' || char === '/' || char === '%' || char === '(' || char === ')' || char === '!') {
+      tokens.push(char);
+      i++;
+    } else if (/[0-9]/.test(char)) {
+      let num = '';
+      while (i < str.length && /[0-9.]/.test(str[i])) {
+        num += str[i];
+        i++;
+      }
+      tokens.push(parseFloat(num));
+    } else if (/[a-zA-Z_]/.test(char)) {
+      let name = '';
+      while (i < str.length && /[a-zA-Z0-9_]/.test(str[i])) {
+        name += str[i];
+        i++;
+      }
+      tokens.push(name);
+    } else {
+      throw new Error(`Unexpected character: ${char}`);
+    }
+  }
+  return tokens;
+}
+
+function parseAndEvaluate(expr, vars = {}) {
+  const tokens = tokenize(expr);
+  let index = 0;
+
+  function peek() {
+    return tokens[index];
+  }
+
+  function consume(expected) {
+    if (peek() === expected) {
+      index++;
+      return true;
+    }
+    return false;
+  }
+
+  function primary() {
+    const token = peek();
+    if (token === undefined) {
+      throw new Error("Unexpected end of expression");
+    }
+    if (token === '(') {
+      index++;
+      const val = logicalOr();
+      if (!consume(')')) {
+        throw new Error("Expected ')'");
+      }
+      return val;
+    }
+    if (token === '!') {
+      index++;
+      return !primary();
+    }
+    if (typeof token === 'number') {
+      index++;
+      return token;
+    }
+    if (typeof token === 'string' && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(token)) {
+      index++;
+      let varName = token;
+      if (varName === 'mapWidth') varName = 'width';
+      if (varName === 'mapHeight') varName = 'height';
+      if (vars[varName] !== undefined) {
+        return vars[varName];
+      }
+      throw new Error(`Undefined variable: ${token}`);
+    }
+    throw new Error(`Unexpected token: ${token}`);
+  }
+
+  function unary() {
+    if (consume('-')) {
+      return -primary();
+    }
+    if (consume('+')) {
+      return primary();
+    }
+    return primary();
+  }
+
+  function multiplicative() {
+    let val = unary();
+    while (true) {
+      if (consume('*')) {
+        val *= unary();
+      } else if (consume('/')) {
+        val /= unary();
+      } else if (consume('%')) {
+        val %= unary();
+      } else {
+        break;
+      }
+    }
+    return val;
+  }
+
+  function additive() {
+    let val = multiplicative();
+    while (true) {
+      if (consume('+')) {
+        val += multiplicative();
+      } else if (consume('-')) {
+        val -= multiplicative();
+      } else {
+        break;
+      }
+    }
+    return val;
+  }
+
+  function relational() {
+    let val = additive();
+    while (true) {
+      if (consume('<=')) {
+        val = val <= additive();
+      } else if (consume('>=')) {
+        val = val >= additive();
+      } else if (consume('<')) {
+        val = val < additive();
+      } else if (consume('>')) {
+        val = val > additive();
+      } else if (consume('===')) {
+        val = val === additive();
+      } else if (consume('!==')) {
+        val = val !== additive();
+      } else if (consume('==')) {
+        val = val == additive();
+      } else if (consume('!=')) {
+        val = val != additive();
+      } else {
+        break;
+      }
+    }
+    return val;
+  }
+
+  function logicalAnd() {
+    let val = relational();
+    while (consume('&&')) {
+      const next = relational();
+      val = val && next;
+    }
+    return val;
+  }
+
+  function logicalOr() {
+    let val = logicalAnd();
+    while (consume('||')) {
+      const next = logicalAnd();
+      val = val || next;
+    }
+    return val;
+  }
+
+  return logicalOr();
 }

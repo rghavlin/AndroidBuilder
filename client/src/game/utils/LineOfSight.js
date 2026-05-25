@@ -158,7 +158,7 @@ export class LineOfSight {
   }
 
   /**
-   * Get all visible tiles from a position within range
+   * Get all visible tiles from a position within range using Recursive Shadowcasting
    * @param {GameMap} gameMap - The game map instance
    * @param {number} centerX - Center X coordinate
    * @param {number} centerY - Center Y coordinate
@@ -172,33 +172,86 @@ export class LineOfSight {
       ignoreEntities = []
     } = options;
 
-    const visibleTiles = [];
-    const minX = Math.max(0, Math.floor(centerX - maxRange));
-    const maxX = Math.min(gameMap.width - 1, Math.ceil(centerX + maxRange));
-    const minY = Math.max(0, Math.floor(centerY - maxRange));
-    const maxY = Math.min(gameMap.height - 1, Math.ceil(centerY + maxRange));
-
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
-        // Skip the center tile (entity's own position)
-        if (x === centerX && y === centerY) {
-          visibleTiles.push({ x, y, distance: 0 });
-          continue;
-        }
-
-        const losResult = this.hasLineOfSight(gameMap, centerX, centerY, x, y, {
-          maxRange,
-          ignoreTerrain,
-          ignoreEntities
-        });
-
-        if (losResult.hasLineOfSight) {
-          visibleTiles.push({ x, y, distance: losResult.distance });
-        }
-      }
+    if (!gameMap || !gameMap.getTile) {
+      throw new Error('[LineOfSight] Invalid gameMap provided');
     }
 
-    return visibleTiles;
+    const visibleMap = new Map();
+    visibleMap.set(`${centerX},${centerY}`, { x: centerX, y: centerY, distance: 0 });
+
+    const origin = { x: centerX, y: centerY };
+
+    for (let i = 0; i < 4; i++) {
+      const quadrant = new Quadrant(i, origin);
+
+      const isWall = (tile) => {
+        if (!tile) return false;
+        const { x, y } = quadrant.transform(tile);
+        if (x < 0 || x >= gameMap.width || y < 0 || y >= gameMap.height) return true; // Treat out-of-bounds as blocking
+        const mapTile = gameMap.getTile(x, y);
+        if (!mapTile) return true;
+        return this.isTerrainBlocking(mapTile.terrain, ignoreTerrain) || 
+               this.getBlockingEntity(mapTile, ignoreEntities);
+      };
+
+      const isFloor = (tile) => {
+        if (!tile) return false;
+        return !isWall(tile);
+      };
+
+      const reveal = (tile) => {
+        const { x, y } = quadrant.transform(tile);
+        if (x >= 0 && x < gameMap.width && y >= 0 && y < gameMap.height) {
+          const key = `${x},${y}`;
+          if (!visibleMap.has(key)) {
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            visibleMap.set(key, { x, y, distance });
+          }
+        }
+      };
+
+      const isSymmetric = (row, tile) => {
+        const [depth, col] = tile;
+        const colSlope = col / depth;
+        return colSlope >= row.startSlope && colSlope <= row.endSlope;
+      };
+
+      const scan = (row) => {
+        if (row.depth > maxRange) return;
+
+        let prevTile = null;
+        for (const tile of row.tiles()) {
+          const wall = isWall(tile);
+          if (wall || isSymmetric(row, tile)) {
+            reveal(tile);
+          }
+
+          if (prevTile !== null) {
+            const prevWall = isWall(prevTile);
+            if (prevWall && !wall) {
+              row.startSlope = slope(tile);
+            }
+            if (!prevWall && wall) {
+              const nextRow = row.next();
+              nextRow.endSlope = slope(tile);
+              scan(nextRow);
+            }
+          }
+          prevTile = tile;
+        }
+
+        if (prevTile !== null && !isWall(prevTile)) {
+          scan(row.next());
+        }
+      };
+
+      const firstRow = new Row(1, -1, 1);
+      scan(firstRow);
+    }
+
+    return Array.from(visibleMap.values());
   }
 
   /**
@@ -399,4 +452,62 @@ export class LineOfSight {
       range: maxRange
     };
   }
+}
+
+// --- Recursive Shadowcasting Helpers ---
+
+class Quadrant {
+  static NORTH = 0;
+  static EAST = 1;
+  static SOUTH = 2;
+  static WEST = 3;
+
+  constructor(cardinal, origin) {
+    this.cardinal = cardinal;
+    this.ox = origin.x;
+    this.oy = origin.y;
+  }
+
+  transform(tile) {
+    const [row, col] = tile;
+    switch (this.cardinal) {
+      case Quadrant.NORTH:
+        return { x: this.ox + col, y: this.oy - row };
+      case Quadrant.SOUTH:
+        return { x: this.ox + col, y: this.oy + row };
+      case Quadrant.EAST:
+        return { x: this.ox + row, y: this.oy + col };
+      case Quadrant.WEST:
+        return { x: this.ox - row, y: this.oy + col };
+      default:
+        throw new Error(`Invalid cardinal direction: ${this.cardinal}`);
+    }
+  }
+}
+
+class Row {
+  constructor(depth, startSlope, endSlope) {
+    this.depth = depth;
+    this.startSlope = startSlope;
+    this.endSlope = endSlope;
+  }
+
+  tiles() {
+    const minCol = Math.floor(this.depth * this.startSlope + 0.5);
+    const maxCol = Math.ceil(this.depth * this.endSlope - 0.5);
+    const result = [];
+    for (let col = minCol; col <= maxCol; col++) {
+      result.push([this.depth, col]);
+    }
+    return result;
+  }
+
+  next() {
+    return new Row(this.depth + 1, this.startSlope, this.endSlope);
+  }
+}
+
+function slope(tile) {
+  const [rowDepth, col] = tile;
+  return (2 * col - 1) / (2 * rowDepth);
 }

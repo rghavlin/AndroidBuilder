@@ -236,10 +236,12 @@ export const PlayerProvider = ({ children }) => {
       // Real-time FOV/LOS updates during movement (60fps Local State)
       // This ensures vision moves perfectly with the sprite without engine/react pulse lag
       // Phase 28 Fix: Always use the central engine to calculate FOV during movement.
-      engine.recalculateFOV({ x: smoothX, y: smoothY });
-      
+      const didRecalculate = engine.recalculateFOV({ x: smoothX, y: smoothY });
       const visibleTiles = engine.playerFieldOfView || [];
-      setPlayerFieldOfView([...visibleTiles]);
+      
+      if (didRecalculate) {
+        setPlayerFieldOfView([...visibleTiles]);
+      }
       
       // BUG 2 FIX: Instead of calling z.setTargetSighted every frame with rounded coordinates,
       // we use the PlayerZombieTracker to handle LKP precisely when LOS is lost.

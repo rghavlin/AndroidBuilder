@@ -8,6 +8,7 @@ import { useGridSize } from "@/contexts/GridSizeContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGame } from "../../contexts/GameContext.jsx";
+import { useGameMap } from "../../contexts/GameMapContext.jsx";
 import { useAction } from "../../contexts/ActionContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
 import { useCombat } from "../../contexts/CombatContext.jsx";
@@ -67,6 +68,7 @@ export default function UniversalGrid({
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
   const { addLog } = useLog();
+  const { setMapTransition } = useGameMap();
   const [itemImages, setItemImages] = useState<Map<string, { src: string, imageId: string }>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
@@ -223,7 +225,6 @@ export default function UniversalGrid({
 
     // Intercept clicks on the exit item to trigger map transition
     if (item && item.defId === 'placeable.exit') {
-      const setMapTransition = (window as any).setMapTransition;
       const gameMap = engine.gameMap;
       const player = engine.player;
       const worldManager = engine.worldManager;
@@ -235,7 +236,7 @@ export default function UniversalGrid({
           if (setMapTransition) {
             setMapTransition(transitionInfo);
           } else {
-            console.error('[UniversalGrid] window.setMapTransition is not defined');
+            console.error('[UniversalGrid] setMapTransition is not defined');
           }
         } else {
           console.warn('[UniversalGrid] No transition point found at player position:', player.x, player.y);
@@ -526,7 +527,7 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     // If an item is selected, right-click on it rotates it

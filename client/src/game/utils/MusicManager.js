@@ -7,19 +7,17 @@ import audioManager from './AudioManager';
 class MusicManager {
     constructor() {
         this.id = Math.random().toString(36).substr(2, 9);
-        this.audioElement = new Audio();
-        
-        // When a track finishes, automatically play the next one
-        this.audioElement.addEventListener('ended', this.playNextTrack.bind(this));
-        
         this.playlists = {};
         this.currentPlaylist = null;
         this.currentTrackIndex = 0;
         this.isPlaying = false;
 
+        this.currentSourceNode = null;
+        this.gainNode = null;
+        this.loadSessionCount = 0;
+
         console.log('[MusicManager] 🛠️ Initializing MusicManager singleton...');
         this.loadPlaylists();
-        this.updateVolume();
     }
 
     loadPlaylists() {
@@ -64,7 +62,10 @@ class MusicManager {
     updateVolume() {
         const masterVolume = configManager.get('masterVolume') ?? 0.8;
         const musicVolume = configManager.get('musicVolume') ?? 0.5;
-        this.audioElement.volume = masterVolume * musicVolume;
+        const finalVolume = masterVolume * musicVolume;
+        if (this.gainNode && audioManager.audioCtx) {
+            this.gainNode.gain.setValueAtTime(finalVolume, audioManager.audioCtx.currentTime);
+        }
     }
 
     /**
@@ -88,42 +89,80 @@ class MusicManager {
         this.playCurrentTrack();
     }
 
-    connectToWebAudio() {
-        if (this.webAudioConnected) return;
-
-        try {
-            const audioCtx = audioManager.audioCtx || audioManager._ensureAudioContext();
-            if (audioCtx) {
-                console.log('[MusicManager] 🔌 Connecting HTML5 Audio element to Web Audio Context');
-                const source = audioCtx.createMediaElementSource(this.audioElement);
-                source.connect(audioCtx.destination);
-                this.webAudioConnected = true;
+    stopCurrentPlayback() {
+        if (this.currentSourceNode) {
+            try {
+                this.currentSourceNode.onended = null;
+                this.currentSourceNode.stop();
+                this.currentSourceNode.disconnect();
+            } catch (e) {
+                // Source might have already stopped
             }
-        } catch (err) {
-            console.warn('[MusicManager] ⚠️ Failed to connect HTML5 Audio to Web Audio Context:', err);
+            this.currentSourceNode = null;
+        }
+        if (this.gainNode) {
+            try {
+                this.gainNode.disconnect();
+            } catch (e) {}
+            this.gainNode = null;
         }
     }
 
-    playCurrentTrack() {
+    async playCurrentTrack() {
         if (!this.currentPlaylist || !this.playlists[this.currentPlaylist]) return;
 
         const track = this.playlists[this.currentPlaylist][this.currentTrackIndex];
-        
         const trackUrl = typeof track === 'object' && track.url ? track.url : track;
 
-        this.audioElement.src = trackUrl;
-        this.updateVolume();
-        
-        // Ensure connected to Web Audio graph to prevent auto-ducking
-        this.connectToWebAudio();
-        
-        this.audioElement.play().then(() => {
+        // Increment load session to cancel previous pending loads
+        const sessionCount = ++this.loadSessionCount;
+        this.stopCurrentPlayback();
+
+        try {
+            console.log(`[MusicManager] 📥 Fetching music track: ${track.fileName}`);
+            const response = await fetch(trackUrl);
+            const arrayBuffer = await response.arrayBuffer();
+            
+            // Ensure audio context is initialized and resumed
+            const ctx = audioManager.audioCtx || audioManager._ensureAudioContext();
+            if (ctx.state === 'suspended') {
+                await ctx.resume();
+            }
+
+            const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+            // Check if another track load was initiated in the meantime
+            if (sessionCount !== this.loadSessionCount) {
+                return;
+            }
+
+            const source = ctx.createBufferSource();
+            source.buffer = decodedBuffer;
+
+            const gainNode = ctx.createGain();
+            this.gainNode = gainNode;
+            this.updateVolume();
+
+            source.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            this.currentSourceNode = source;
             this.isPlaying = true;
+
+            // When the track finishes, play next
+            source.onended = () => {
+                if (this.currentSourceNode === source) {
+                    this.isPlaying = false;
+                    this.playNextTrack();
+                }
+            };
+
+            source.start(0);
             console.log(`[MusicManager] 🎵 Playing track ${this.currentTrackIndex + 1}: ${track.fileName}`);
-        }).catch(err => {
-            console.warn(`[MusicManager] ⚠️ Autoplay prevented or error playing track:`, err);
+        } catch (err) {
+            console.warn(`[MusicManager] ⚠️ Error loading or playing track:`, err);
             this.isPlaying = false;
-        });
+        }
     }
 
     playNextTrack() {
@@ -141,8 +180,8 @@ class MusicManager {
     }
 
     stop() {
-        this.audioElement.pause();
-        this.audioElement.currentTime = 0;
+        this.loadSessionCount++; // Invalidate pending loads
+        this.stopCurrentPlayback();
         this.isPlaying = false;
         this.currentPlaylist = null;
     }

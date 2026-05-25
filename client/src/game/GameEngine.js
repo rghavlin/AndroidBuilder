@@ -49,6 +49,7 @@ class GameEngine extends SafeEventEmitter {
     this.isFlashlightOn = false;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
     this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8, isNightVision: false };
+    this._lastFovOptionsHash = ''; // Cache hash to throttle redundant FOV updates
     this.renderDebugColors = false; 
     this.seeThroughWalls = false;
 
@@ -216,6 +217,7 @@ class GameEngine extends SafeEventEmitter {
     this.initializationState = 'complete';
     
     // Immediate FOV update on sync
+    this.invalidateFOV();
     this.recalculateFOV();
 
     this.lastUpdate = Date.now();
@@ -244,10 +246,15 @@ class GameEngine extends SafeEventEmitter {
     }
   }
 
+  invalidateFOV() {
+    this._lastFovOptionsHash = '';
+  }
+
   /**
    * Signal a significant change in game state (e.g. turn end)
    */
   notifyUpdate() {
+    this.invalidateFOV(); // Ensure FOV is recalculated on game state updates
     this.recalculateFOV(); // Ensure FOV matches position before pulse
     this.lastUpdate = Date.now();
     this.updateCount++;
@@ -295,9 +302,10 @@ class GameEngine extends SafeEventEmitter {
    /**
     * Atomic FOV calculation
     * @param {Object} customPos - Optional {x, y} to calculate from (for movement sync)
+    * @returns {boolean} True if recalculation occurred, false if skipped
     */
    recalculateFOV(customPos = null) {
-     if (!this.gameMap || !this.player) return;
+     if (!this.gameMap || !this.player) return false;
  
      try {
        const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
@@ -350,9 +358,19 @@ class GameEngine extends SafeEventEmitter {
        const posX = customPos ? customPos.x : this.player.x;
        const posY = customPos ? customPos.y : this.player.y;
 
+       const roundX = Math.round(posX);
+       const roundY = Math.round(posY);
+
+       // Compute FOV state hash to prevent redundant calculation on same tile / options
+       const optionsHash = `${roundX},${roundY},${range},${isNight},${isFlashlightOn},${isNightVision},${isAimingWithScope},${this.weather ? this.weather.type : 'clear'},${this.weather ? this.weather.intensity : 0},${this.turn}`;
+       if (optionsHash === this._lastFovOptionsHash) {
+         return false; // Skip calculation
+       }
+       this._lastFovOptionsHash = optionsHash;
+
        const fovCenter = { 
-         x: Math.round(posX), 
-         y: Math.round(posY), 
+         x: roundX, 
+         y: roundY, 
          id: this.player.id 
        };
  
@@ -374,10 +392,10 @@ class GameEngine extends SafeEventEmitter {
         // Find lit items on the ground within player's maximum potential vision range
         // scanRadius = Max potential vision (20) + Max light source range (5)
         const scanRadius = 25; 
-        const centerX = Math.round(posX);
-        const centerY = Math.round(posY);
-        const roundPosX = Math.round(posX);
-        const roundPosY = Math.round(posY);
+        const centerX = roundX;
+        const centerY = roundY;
+        const roundPosX = roundX;
+        const roundPosY = roundY;
         const minX = Math.max(0, centerX - scanRadius);
         const maxX = Math.min(this.gameMap.width - 1, centerX + scanRadius);
         const minY = Math.max(0, centerY - scanRadius);
@@ -454,8 +472,10 @@ class GameEngine extends SafeEventEmitter {
         const tile = this.gameMap.getTile(pos.x, pos.y);
         if (tile) tile.flags.explored = true;
       });
+      return true;
     } catch (error) {
        console.error('[GameEngine] FOV Error:', error);
+       return false;
     }
   }
 

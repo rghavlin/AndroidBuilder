@@ -1,4 +1,10 @@
 
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.debug = () => {};
+  console.warn = () => {};
+}
+
 import React from 'react';
 import { createRoot } from "react-dom/client";
 import App from "./App";

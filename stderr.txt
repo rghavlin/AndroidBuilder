@@ -1,0 +1,12 @@
+[Protocol] Error reading file: C:/images/background/menubackground.png Error: ENOENT: no such file or directory, open 'C:\images\background\menubackground.png'
+    at Object.openSync (node:fs:573:18)
+    at Object.func [as openSync] (node:electron/js2c/node_init:2:2559)
+    at Object.readFileSync (node:fs:452:35)
+    at t.readFileSync (node:electron/js2c/node_init:2:10175)
+    at file:///C:/Games/AndroidBuilder/dist-electron/win-unpacked/resources/app.asar/electron/main.js:71:25
+    at AsyncFunction.<anonymous> (node:electron/js2c/browser_init:2:52042) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\images\\background\\menubackground.png'
+}

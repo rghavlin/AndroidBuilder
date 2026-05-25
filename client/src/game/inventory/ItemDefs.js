@@ -2197,9 +2197,9 @@ export const ItemDefs = {
 
   'vehicle.small_sled': {
     id: 'vehicle.small_sled',
-    name: 'Small sled',
+    name: 'Sled',
     rarity: Rarity.UNCOMMON,
-    imageId: 'smallsled',
+    imageId: 'sled',
     width: 4,
     height: 6,
     traits: [ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.DRAGGABLE, ItemTrait.VEHICLE, ItemTrait.FURNITURE, ItemTrait.WAGON],

@@ -219,9 +219,10 @@ export class ZombieAI {
               }
 
               if (!moveFound) {
-                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Waiting 0.5 AP.`);
-                  zombie.useAP(0.5);
-                  actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 0.5 } };
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Consuming remaining AP.`);
+                  const apCost = zombie.currentAP;
+                  zombie.useAP(apCost);
+                  actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost } };
               }
           }
       }
@@ -321,8 +322,9 @@ export class ZombieAI {
                   } else {
                     // LOGJAM: Target is valid but currently occupied by a comrade. 
                     if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) blocked by entity, waiting.`);
-                    zombie.useAP(0.5);
-                    actionResult = { success: true, type: 'WAIT', data: { apCost: 0.5 } };
+                    const apCost = zombie.currentAP;
+                    zombie.useAP(apCost);
+                    actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost } };
                   }
               }
           }
@@ -416,9 +418,10 @@ export class ZombieAI {
         }
       }
       
-      // If we didn't move (either due to random or blocked), WAIT 0.5 AP to consume budget
-      zombie.useAP(0.5);
-      return { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: 0.5 } };
+      // If we didn't move (either due to random or blocked), consume ALL remaining AP to end turn
+      const apCost = zombie.currentAP;
+      zombie.useAP(apCost);
+      return { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost } };
     }
     
     return { success: false, reason: 'No neighbors to wander to' };

@@ -1,6 +1,7 @@
-import { app, BrowserWindow, Menu, session } from 'electron';
+import { app, BrowserWindow, Menu, session, net, ipcMain } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -8,6 +9,25 @@ const __dirname = path.dirname(__filename);
 const isDev = process.env.NODE_ENV === 'development';
 
 let mainWindow;
+
+const mimeTypes = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ogg': 'audio/ogg',
+  '.json': 'application/json'
+};
+
+function getMimeType(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return mimeTypes[ext] || 'application/octet-stream';
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -21,11 +41,48 @@ function createWindow() {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, '../client/public/images/entities/zombie.png'),
+    icon: isDev 
+      ? path.join(__dirname, '../client/public/images/entities/zombie.png')
+      : path.join(__dirname, '../dist/images/entities/zombie.png'),
     title: 'Zombie Road',
     show: false,
     titleBarStyle: 'default'
   });
+
+  // Set up protocol to serve images and other resources in production
+  if (!isDev) {
+    mainWindow.webContents.session.protocol.handle('file', (request) => {
+      const pathname = new URL(request.url).pathname;
+      let filePath;
+      
+      if (/^\/[a-zA-Z]:\//.test(pathname)) {
+        const absolutePath = decodeURIComponent(pathname.substring(1));
+        // Check if it's a request for local app assets (images, sounds, assets, default.png, etc.)
+        const driveMatch = pathname.match(/^\/[a-zA-Z]:\/(.*)/);
+        const relativePath = driveMatch ? decodeURIComponent(driveMatch[1]) : '';
+        const distPath = path.join(__dirname, '..', 'dist', relativePath);
+        
+        if (fs.existsSync(distPath) && !fs.statSync(distPath).isDirectory()) {
+          filePath = distPath;
+        } else {
+          filePath = absolutePath;
+        }
+      } else {
+        filePath = path.join(__dirname, '..', 'dist', decodeURIComponent(pathname));
+      }
+
+      try {
+        const data = fs.readFileSync(filePath);
+        const mimeType = getMimeType(filePath);
+        return new Response(data, {
+          headers: { 'Content-Type': mimeType }
+        });
+      } catch (error) {
+        console.error('[Protocol] Error reading file:', filePath, error);
+        return new Response('File Not Found', { status: 404 });
+      }
+    });
+  }
 
   // Load the app
   if (isDev) {
@@ -36,12 +93,6 @@ function createWindow() {
     const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
     console.log('Loading HTML from:', htmlPath);
     mainWindow.loadFile(htmlPath);
-
-    // Set up protocol to serve images and other resources
-    mainWindow.webContents.session.protocol.registerFileProtocol('file', (request, callback) => {
-      const pathname = new URL(request.url).pathname;
-      callback(path.join(__dirname, '..', 'dist', pathname));
-    });
   }
 
   mainWindow.once('ready-to-show', () => {
@@ -66,6 +117,80 @@ app.commandLine.appendSwitch('disable-blink-features', 'Geolocation');
 
 // Disable autoplay policy to allow game music to play instantly on startup
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
+// --- IPC Save Handlers ---
+const saveDir = path.join(app.getPath('userData'), 'saves');
+
+ipcMain.handle('save-game', async (event, slotName, data) => {
+  try {
+    if (!fs.existsSync(saveDir)) {
+      fs.mkdirSync(saveDir, { recursive: true });
+    }
+    const filePath = path.join(saveDir, `${slotName}.json`);
+    const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    fs.writeFileSync(filePath, content, 'utf-8');
+    return { success: true };
+  } catch (error) {
+    console.error('[Save IPC] Failed to write save:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('load-game', async (event, slotName) => {
+  try {
+    const filePath = path.join(saveDir, `${slotName}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return content;
+  } catch (error) {
+    console.error('[Save IPC] Failed to read save:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-game', async (event, slotName) => {
+  try {
+    const filePath = path.join(saveDir, `${slotName}.json`);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('[Save IPC] Failed to delete save:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('list-saves', async () => {
+  try {
+    if (!fs.existsSync(saveDir)) return [];
+    const files = fs.readdirSync(saveDir);
+    const saves = [];
+    for (const file of files) {
+      if (file.endsWith('.json')) {
+        const slotName = path.basename(file, '.json');
+        const filePath = path.join(saveDir, file);
+        const stats = fs.statSync(filePath);
+        try {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const data = JSON.parse(content);
+          saves.push({
+            slotName,
+            timestamp: data.timestamp || stats.mtimeMs,
+            turn: data.turn || 1,
+            version: data.version || '1.0.0'
+          });
+        } catch (err) {
+          console.warn('[Save IPC] Corrupt save file:', file);
+        }
+      }
+    }
+    return saves.sort((a, b) => b.timestamp - a.timestamp);
+  } catch (error) {
+    console.error('[Save IPC] Failed to list saves:', error);
+    return [];
+  }
+});
 
 app.whenReady().then(() => {
   // Explicitly deny geolocation and other unused permissions to prevent Windows location warnings

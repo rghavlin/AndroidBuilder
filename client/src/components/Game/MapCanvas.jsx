@@ -34,6 +34,19 @@ export default function MapCanvas({
   const canvasRef = useRef(null);
   const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
 
+  const renderMapRef = useRef(null);
+  const handleMouseMoveRef = useRef(null);
+  const handleMouseUpRef = useRef(null);
+  const handleWheelRef = useRef(null);
+
+  // Sync refs on every render to ensure they always call the latest closures
+  useEffect(() => {
+    renderMapRef.current = renderMap;
+    handleMouseMoveRef.current = handleMouseMove;
+    handleMouseUpRef.current = handleMouseUp;
+    handleWheelRef.current = handleWheel;
+  });
+
 
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
   // Phase 1: Engine data is read DIRECTLY from the engine singleton in the render loop
@@ -465,13 +478,13 @@ export default function MapCanvas({
           camera.pan(tileDeltaX, tileDeltaY);
         }
         setLastMousePos({ x: event.clientX, y: event.clientY });
-        renderMap();
+        renderMapRef.current?.();
       }
     } else if (!isDragging) { // Only call handleCanvasHover if not currently dragging
       // Handle hover when not dragging - independent of player turn guards
       handleCanvasHover(event);
     }
-  }, [isDragging, lastMousePos, dragStartPos, cameraRef, calculateTileSize, renderMap, handleCanvasHover]);
+  }, [isDragging, lastMousePos, dragStartPos, cameraRef, calculateTileSize, handleCanvasHover]);
 
   // Handle mouse up
   const handleMouseUp = useCallback(() => {
@@ -500,8 +513,8 @@ export default function MapCanvas({
     }
 
     // Re-render the map with new zoom level
-    renderMap();
-  }, [renderMap, cameraRef]); // Include cameraRef in dependencies
+    renderMapRef.current?.();
+  }, [cameraRef]); // Include cameraRef in dependencies
 
   // Handle canvas click events (left click)
   const handleCanvasClick = useCallback((event) => {
@@ -749,21 +762,22 @@ export default function MapCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const handleGlobalMouseMove = (event) => handleMouseMove(event);
-    const handleGlobalMouseUp = () => handleMouseUp();
+    const handleGlobalMouseMove = (event) => handleMouseMoveRef.current?.(event);
+    const handleGlobalMouseUp = () => handleMouseUpRef.current?.();
+    const handleGlobalWheel = (event) => handleWheelRef.current?.(event);
 
     // Add wheel event listener directly to canvas
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    canvas.addEventListener('wheel', handleGlobalWheel, { passive: false });
 
     document.addEventListener('mousemove', handleGlobalMouseMove);
     document.addEventListener('mouseup', handleGlobalMouseUp);
 
     return () => {
-      canvas.removeEventListener('wheel', handleWheel);
+      canvas.removeEventListener('wheel', handleGlobalWheel);
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [handleMouseMove, handleMouseUp, handleWheel]);
+  }, []); // Decoupled from state changes; runs exactly once on mount
 
   // Phase 17 & 18: Autonomous 60fps Rendering Loop
   // This loop runs independently of React state, reading directly from the engine.
@@ -771,25 +785,25 @@ export default function MapCanvas({
   useEffect(() => {
     let rafId;
     const tick = () => {
-      renderMap();
+      renderMapRef.current?.();
       rafId = requestAnimationFrame(tick);
     };
 
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [renderMap]);
+  }, []); // Decoupled from state changes; runs exactly once on mount
 
 
   useEffect(() => {
     const handleResize = () => {
       if (isInitialized && gameMapRef.current && cameraRef.current) {
-        renderMap();
+        renderMapRef.current?.();
       }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [renderMap, isInitialized, gameMapRef, cameraRef]);
+  }, [isInitialized, gameMapRef, cameraRef]);
 
 
 

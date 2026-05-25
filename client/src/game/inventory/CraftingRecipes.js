@@ -314,7 +314,7 @@ export const CraftingRecipes = [
     },
     {
         id: 'crafting.small_sled',
-        name: 'Small Sled',
+        name: 'Sled',
         resultItem: 'vehicle.small_sled',
         description: 'A sturdy wooden sled for hauling large quantities of gear across the ground.',
         resultCount: 1,

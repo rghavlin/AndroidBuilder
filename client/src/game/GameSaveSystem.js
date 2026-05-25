@@ -193,46 +193,75 @@ export class GameSaveSystem {
   }
 
   /**
-   * Save game state to browser localStorage
+   * Save game state to storage
    * @param {Object} gameState - Game state to save
    * @param {string} slotName - Save slot name (default: 'quicksave')
+   * @returns {Promise<boolean>} - True if save succeeded
    */
-  static saveToLocalStorage(gameState, slotName = 'quicksave') {
+  static async saveToStorage(gameState, slotName = 'quicksave') {
     try {
       const saveData = this.saveGameState(gameState);
-      const saveKey = `zombieGame_save_${slotName}`;
 
-      localStorage.setItem(saveKey, JSON.stringify(saveData));
-      console.log(`[GameSaveSystem] Game saved to localStorage slot: ${slotName}`);
+      // Check if running in Electron native filesystem environment
+      if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.saveGame === 'function') {
+        const serializedData = JSON.stringify(saveData);
+        const result = await window.electronAPI.saveGame(slotName, serializedData);
+        if (result && result.success) {
+          console.log(`[GameSaveSystem] Game saved to desktop folder saves/${slotName}.json`);
+          return true;
+        }
+        throw new Error(result ? result.error : 'Unknown desktop save error');
+      }
 
+      // Web Fallback: Use IndexedDB
+      await idbStore.setItem(slotName, saveData);
+      console.log(`[GameSaveSystem] Game saved to IndexedDB slot: ${slotName}`);
       return true;
     } catch (error) {
-      console.error('[GameSaveSystem] Failed to save to localStorage:', error);
+      console.error('[GameSaveSystem] Failed to save game state:', error);
       return false;
     }
   }
 
   /**
-   * Load game state from browser localStorage
+   * Load game state from storage
    * @param {string} slotName - Save slot name (default: 'quicksave')
-   * @returns {Promise<Object|null>} - Loaded game state or null if not found
+   * @returns {Promise<Object|null>} - Loaded game state components or null
    */
-  static async loadFromLocalStorage(slotName = 'quicksave') {
+  static async loadFromStorage(slotName = 'quicksave') {
     try {
-      const saveKey = `zombieGame_save_${slotName}`;
-      const saveDataString = localStorage.getItem(saveKey);
+      let saveData = null;
 
-      if (!saveDataString) {
+      // Check if running in Electron native filesystem environment
+      if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.loadGame === 'function') {
+        const result = await window.electronAPI.loadGame(slotName);
+        if (result) {
+          saveData = typeof result === 'string' ? JSON.parse(result) : result;
+        }
+      } else {
+        // Web Fallback: Use IndexedDB
+        saveData = await idbStore.getItem(slotName);
+      }
+
+      if (!saveData) {
         console.log(`[GameSaveSystem] No save found in slot: ${slotName}`);
         return null;
       }
 
-      const saveData = JSON.parse(saveDataString);
       return await this.loadGameState(saveData);
     } catch (error) {
-      console.error('[GameSaveSystem] Failed to load from localStorage:', error);
+      console.error('[GameSaveSystem] Failed to load game state:', error);
       return null;
     }
+  }
+
+  // Compatibility wrappers for legacy code
+  static async saveToLocalStorage(gameState, slotName = 'quicksave') {
+    return await this.saveToStorage(gameState, slotName);
+  }
+
+  static async loadFromLocalStorage(slotName = 'quicksave') {
+    return await this.loadFromStorage(slotName);
   }
 
   /**
@@ -269,32 +298,27 @@ export class GameSaveSystem {
   }
 
   /**
-   * List available save slots in localStorage
-   * @returns {Array} - Array of save slot names with metadata
+   * List available save slots in the storage
+   * @returns {Promise<Array>} - Array of save slot names with metadata
    */
-  static listSaveSlots() {
-    const saves = [];
-    const prefix = 'zombieGame_save_';
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(prefix)) {
-        const slotName = key.replace(prefix, '');
-        try {
-          const saveData = JSON.parse(localStorage.getItem(key));
-          saves.push({
-            slotName,
-            timestamp: saveData.timestamp,
-            turn: saveData.turn,
-            version: saveData.version
-          });
-        } catch (error) {
-          console.warn(`[GameSaveSystem] Corrupted save in slot: ${slotName}`);
-        }
+  static async listSaveSlots() {
+    // Check if running in Electron native filesystem environment
+    if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.listSaves === 'function') {
+      try {
+        return await window.electronAPI.listSaves();
+      } catch (error) {
+        console.error('[GameSaveSystem] Failed to list saves via Electron IPC:', error);
+        return [];
       }
     }
 
-    return saves.sort((a, b) => b.timestamp - a.timestamp);
+    // Web Fallback: Use IndexedDB
+    try {
+      return await idbStore.getAllSaves();
+    } catch (error) {
+      console.error('[GameSaveSystem] Failed to list saves via IndexedDB:', error);
+      return [];
+    }
   }
 
   // Helper methods for complex object restoration
@@ -328,3 +352,80 @@ export class GameSaveSystem {
     return 0;
   }
 }
+
+// --- Asynchronous IndexedDB Store Fallback ---
+
+class IndexedDBStore {
+  constructor(dbName = 'zombie_road_db', storeName = 'saves') {
+    this.dbName = dbName;
+    this.storeName = storeName;
+    this.db = null;
+  }
+
+  _getDB() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, 1);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName);
+        }
+      };
+      request.onsuccess = (event) => {
+        this.db = event.target.result;
+        resolve(this.db);
+      };
+      request.onerror = (event) => reject(request.error);
+    });
+  }
+
+  async setItem(key, value) {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readwrite');
+      const store = tx.objectStore(this.storeName);
+      const req = store.put(value, key);
+      req.onsuccess = () => resolve(true);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getItem(key) {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readonly');
+      const store = tx.objectStore(this.storeName);
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getAllSaves() {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readonly');
+      const store = tx.objectStore(this.storeName);
+      const req = store.openCursor();
+      const saves = [];
+      req.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          saves.push({
+            slotName: cursor.key,
+            timestamp: cursor.value.timestamp,
+            turn: cursor.value.turn,
+            version: cursor.value.version
+          });
+          cursor.continue();
+        } else {
+          resolve(saves.sort((a, b) => b.timestamp - a.timestamp));
+        }
+      };
+      req.onerror = () => reject(req.error);
+    });
+  }
+}
+
+const idbStore = new IndexedDBStore();

@@ -633,7 +633,7 @@ const GameContextInner = ({ children }) => {
     return { actionQueue, demandTriggered, newTurn, nextIsNight };
   }, [engine, turn, inventoryManager, checkZombieAwareness, getPlayerCardinalPositions, isFlashlightOn, setIsFlashlightOn]);
 
-  const performAutosave = useCallback((turnOverride = null) => {
+  const performAutosave = useCallback(async (turnOverride = null) => {
     if (!isInitialized || engine.isSleeping) return false;
     try {
       setIsAutosaving(true);
@@ -671,7 +671,7 @@ const GameContextInner = ({ children }) => {
       };
 
       // 2. Perform IO
-      const success = GameSaveSystem.saveToLocalStorage(currentGameState, 'autosave');
+      const success = await GameSaveSystem.saveToStorage(currentGameState, 'autosave');
       
       if (success) {
         console.log(`[GameContext] 💾 Autosave successful at Turn ${turnOverride || turn}`);
@@ -1137,7 +1137,7 @@ const GameContextInner = ({ children }) => {
     console.log('[GameContext] 🎮 DIRECT LOAD - Skipping initialization, loading save directly...');
 
     try {
-      const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
+      const loadedState = await GameSaveSystem.loadFromStorage(slotName);
       if (!loadedState) {
         console.warn(`[GameContext] ❌ No save found in slot: ${slotName}`);
         return false; // Let caller decide whether to fallback to new game
@@ -1197,7 +1197,7 @@ const GameContextInner = ({ children }) => {
 
   const loadGame = useCallback(async (slotName = 'quicksave') => {
     try {
-      const loadedState = await GameSaveSystem.loadFromLocalStorage(slotName);
+      const loadedState = await GameSaveSystem.loadFromStorage(slotName);
       if (!loadedState) {
         console.warn(`[GameContext] No save found in slot: ${slotName}`);
         return false;
@@ -1384,7 +1384,7 @@ const GameContextInner = ({ children }) => {
     return spawnedCount;
   }, [updatePlayerFieldOfView, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
-  const saveGame = useCallback((slotName = 'quicksave') => {
+  const saveGame = useCallback(async (slotName = 'quicksave') => {
     if (!isInitialized || contextSyncPhase !== 'ready') {
       console.warn('[GameContext] Cannot save - contexts not synchronized', {
         isInitialized, contextSyncPhase
@@ -1434,7 +1434,7 @@ const GameContextInner = ({ children }) => {
         turn: turn,
         playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
       };
-      const success = GameSaveSystem.saveToLocalStorage(currentGameState, slotName);
+      const success = await GameSaveSystem.saveToStorage(currentGameState, slotName);
       if (success) {
         console.log(`[GameContext] Game saved successfully to slot: ${slotName}`);
       }
