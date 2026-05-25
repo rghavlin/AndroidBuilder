@@ -302,7 +302,24 @@ class GameEngine extends SafeEventEmitter {
      try {
        const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
        
-       let range = isNight ? (isFlashlightOn ? flashlightRange : 1.5) : maxRange;
+        // Calculate base ambient sight range based on hour of the day
+        const hour = (6 + (this.turn - 1)) % 24;
+        let baseRange = maxRange;
+        if (hour === 19) {
+          baseRange = 12;
+        } else if (hour === 20) {
+          baseRange = 8;
+        } else if (hour === 21) {
+          baseRange = 4;
+        } else if (hour === 22 || hour === 23 || hour === 0 || hour === 1 || hour === 2 || hour === 3) {
+          baseRange = 1.5;
+        } else if (hour === 4) {
+          baseRange = 4;
+        } else if (hour === 5) {
+          baseRange = 8;
+        }
+
+        let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
        
        // Phase NVG: Night Vision range override
        if (isFlashlightOn && isNightVision) {
@@ -319,6 +336,13 @@ class GameEngine extends SafeEventEmitter {
          if (canSeeThroughScope) {
            range = 20;
          }
+       }
+
+       // Weather reduction: reduce sight range by 15% when raining, 20% in heavy rain (intensity > 0.7)
+       if (this.weather && this.weather.type === 'rain') {
+         const isHeavyRain = this.weather.intensity > 0.7;
+         const reduction = isHeavyRain ? 0.20 : 0.15;
+         range = range * (1 - reduction);
        }
  
        // Phase 13 & 19 Fix: LOS center MUST be integers for Bresenham's algorithm to function.

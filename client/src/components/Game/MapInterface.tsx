@@ -928,7 +928,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 if (Math.random() < 0.05) {
                   player.setBleeding(true);
                   addLog("You cut yourself clearing the broken glass!", "error");
-                  playSound('ZombieSlash');
                 } else {
                   addLog("You clear the broken glass from the window.", "world");
                 }

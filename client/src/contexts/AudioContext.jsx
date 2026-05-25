@@ -66,7 +66,7 @@ export const AudioProvider = ({ children }) => {
           { name: 'Rain', url: 'sounds/rain1.ogg', volume: 0.5 },
           { name: 'Climb', url: 'sounds/climb.ogg', volume: 0.6 },
           { name: 'Sizzle', url: 'sounds/sizzle.ogg', volume: 0.6 },
-          { name: 'Scooter', url: 'sounds/scooter.ogg', volume: 0.2 },
+          { name: 'Scooter', url: 'sounds/scooter.ogg', volume: 0.1 },
           { name: 'Repair', url: 'sounds/craft.ogg', volume: 0.6 }
         ];
         await Promise.all(
@@ -131,7 +131,7 @@ export const AudioProvider = ({ children }) => {
       if (data.start && !isFootstepLoopActive.current) {
         const isRidingScooter = engine.riding?.item?.isScooterRideActive?.();
         if (isRidingScooter) {
-          audioManager.playSound('Scooter', { loop: true, volume: 0.2 });
+          audioManager.playSound('Scooter', { loop: true, volume: 0.1 });
         } else {
           audioManager.playSound('Footsteps', { loop: true, volume: 1.0 });
         }
