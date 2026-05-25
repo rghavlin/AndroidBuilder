@@ -68,7 +68,7 @@ const EquipmentSlot = memo(({
               hasItem ? "inset-slot rounded-full" : "inset-slot rounded-lg",
               "flex flex-col items-center justify-center cursor-pointer",
               "hover:brightness-110 transition-all",
-              "relative overflow-hidden", // Clip image to rounded corners
+              "relative overflow-hidden isolate", // Clip image to rounded corners
               isSelected && "active selected-item-overlay",
               showPlacementFeedback && (
                 canEquip
@@ -92,6 +92,7 @@ const EquipmentSlot = memo(({
                   alt={item?.name || slotInfo.name}
                   className={cn(
                     "w-full h-full object-contain pointer-events-none transition-transform",
+                    hasItem && "rounded-full",
                     !item?.backgroundColor && "mix-blend-screen",
                     !hasItem && "opacity-50"
                   )}

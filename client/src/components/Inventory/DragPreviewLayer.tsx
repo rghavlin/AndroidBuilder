@@ -183,9 +183,9 @@ export default function DragPreviewLayer() {
     >
       {itemImage ? (
         <img
-          src={itemImage}
-          alt={item.name}
-          className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? 'mix-blend-screen' : ''}`}
+           src={itemImage}
+           alt={item.name}
+           className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? 'mix-blend-screen' : ''}`}
           style={{
             transform: `rotate(${ rotation }deg)`,
           }}
