@@ -404,6 +404,8 @@ export class CraftingManager {
         }
 
         // Consume ingredients
+        const returnedItems = [];
+
         for (const req of recipe.ingredients) {
             let remainingToConsume = req.count;
             const candidates = ingredientContainer.getAllItems();
@@ -439,6 +441,31 @@ export class CraftingManager {
                 } else {
                     // FULL ITEM CONSUMPTION
                     const consumeAmount = Math.min(item.stackCount, remainingToConsume);
+
+                    // Check if the consumed item is a container with contents
+                    if (item.isContainer?.()) {
+                        const grid = item.getContainerGrid?.();
+                        if (grid) {
+                            const nested = grid.getAllItems();
+                            if (nested.length > 0) {
+                                console.log(`[CraftingManager] Ingredient ${item.name} is a container. Returning ${nested.length} nested items.`);
+                                returnedItems.push(...nested);
+                                grid.clear();
+                            }
+                        }
+                    }
+                    if (typeof item.getPocketContainers === 'function') {
+                        const pockets = item.getPocketContainers();
+                        pockets.forEach(pocket => {
+                            const nested = pocket.getAllItems();
+                            if (nested.length > 0) {
+                                console.log(`[CraftingManager] Ingredient ${item.name} has pockets. Returning ${nested.length} pocket items.`);
+                                returnedItems.push(...nested);
+                                pocket.clear();
+                            }
+                        });
+                    }
+
                     item.stackCount -= consumeAmount;
                     remainingToConsume -= consumeAmount;
 
@@ -524,7 +551,8 @@ export class CraftingManager {
         return {
             success: true,
             item: newItem,
-            apCost: actualAP
+            apCost: actualAP,
+            returnedItems
         };
     } catch (error) {
         console.error('[CraftingManager] Unexpected error during craft:', error);

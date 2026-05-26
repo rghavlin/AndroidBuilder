@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { Settings, Sparkles } from "lucide-react";
+import { Settings, Sparkles, HelpCircle } from "lucide-react";
 import OptionsWindow from './OptionsWindow';
 import CreditsWindow from './CreditsWindow';
+import HelpWindow from './HelpWindow';
 import musicManager from '@/game/utils/MusicManager';
 
 interface StartMenuProps {
@@ -18,6 +19,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     // Attempt to play the menu music on mount.
@@ -122,11 +124,22 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             Credits
           </Button>
 
+          <Button
+            onClick={() => setShowHelp(true)}
+            disabled={isLoading}
+            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
+            data-testid="button-start-help"
+          >
+            <HelpCircle className="h-5 w-5" />
+            Help
+          </Button>
+
         </CardContent>
       </Card>
 
       {showOptions && <OptionsWindow onClose={() => setShowOptions(false)} />}
       {showCredits && <CreditsWindow onClose={() => setShowCredits(false)} />}
+      {showHelp && <HelpWindow onClose={() => setShowHelp(false)} />}
     </div>
   );
 }

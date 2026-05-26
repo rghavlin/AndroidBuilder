@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
 import OptionsWindow from './OptionsWindow';
-import { X, Settings } from "lucide-react";
+import HelpWindow from './HelpWindow';
+import { X, Settings, HelpCircle } from "lucide-react";
 
 interface MainMenuWindowProps {
     onClose: () => void;
@@ -14,6 +15,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
     const { initializeGame, loadGameDirect } = useGame();
     const [isLoading, setIsLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     const handleNewGame = async () => {
         setIsLoading(true);
@@ -88,11 +90,21 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                         Options
                     </Button>
 
+                    <Button
+                        onClick={() => setShowHelp(true)}
+                        disabled={isLoading}
+                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
+                        data-testid="button-menu-help"
+                    >
+                        <HelpCircle className="h-5 w-5" />
+                        Help
+                    </Button>
 
                 </CardContent>
             </Card>
 
             {showOptions && <OptionsWindow onClose={() => setShowOptions(false)} />}
+            {showHelp && <HelpWindow onClose={() => setShowHelp(false)} />}
         </div>
     );
 }

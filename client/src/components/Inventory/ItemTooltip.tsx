@@ -60,6 +60,12 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                         <span className="text-zinc-500">Hit Chance</span>
                         <span className="text-zinc-200">{Math.round(combat.hitChance * 100)}%</span>
                     </div>
+                    {combat.range && combat.range > 1.5 && (
+                        <div className="flex justify-between">
+                            <span className="text-zinc-500">Extended range</span>
+                            <span className="text-zinc-200">Yes</span>
+                        </div>
+                    )}
                 </div>
             )}
 

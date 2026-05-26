@@ -908,6 +908,17 @@ export const InventoryProvider = ({ children }) => {
             console.error('[InventoryContext] addItem failed for crafted item:', result.item, addResult.reason);
         }
       }
+
+      if (result.returnedItems && result.returnedItems.length > 0) {
+        result.returnedItems.forEach(retItem => {
+          const addRetResult = engine.inventoryManager.addItem(retItem, null, null, null, true);
+          if (!addRetResult.success) {
+              addLog(`Could not find space for ${retItem.name} in inventory! It was dropped on the ground.`, 'warning');
+          } else {
+              addLog(`Returned ${retItem.name} from consumed container.`, 'item');
+          }
+        });
+      }
       
       // DEDUCT AP AND REWARD EXP
       const apUsed = result.apCost || 0;
