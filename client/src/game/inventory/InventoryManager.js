@@ -2637,7 +2637,6 @@ export class InventoryManager extends SafeEventEmitter {
   toJSON() {
     const data = {
       containers: Array.from(this.containers.entries())
-        .filter(([id, container]) => container.type !== 'crafting-workspace')
         .map(([id, container]) => [id, container.toJSON()]),
       equipment: {}
     };
@@ -2688,11 +2687,17 @@ export class InventoryManager extends SafeEventEmitter {
       for (const [id, containerData] of data.containers) {
         const container = Container.fromJSON(containerData);
         
-        // Safety: Do not restore workspace containers from save file 
-        // if they were somehow saved (legacy support or corruption)
+        // Safety: Do not overwrite workspace containers from save file,
+        // but restore their items into the pre-existing workspace containers.
         if (container.type === 'crafting-workspace') {
-            console.warn(`[InventoryManager] Skipping restoration of workspace container: ${id}`);
-            continue;
+          const existingWorkspace = manager.containers.get(id);
+          if (existingWorkspace) {
+            existingWorkspace.clear();
+            for (const item of container.getAllItems()) {
+              existingWorkspace.placeItemAt(item, item.x, item.y);
+            }
+          }
+          continue;
         }
 
         manager.containers.set(id, container);

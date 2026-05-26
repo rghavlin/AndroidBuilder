@@ -30,13 +30,13 @@ async function testSerialization() {
     console.log("Serializing...");
     const json = manager.toJSON();
 
-    // 4. Verify workspace is NOT in the JSON
+    // 4. Verify workspace IS in the JSON
     const hasWorkspaceInJson = json.containers.some(([id, data]) => id === 'crafting-ingredients');
-    if (hasWorkspaceInJson) {
-        console.error("FAILED: Workspace container was persisted in JSON!");
+    if (!hasWorkspaceInJson) {
+        console.error("FAILED: Workspace container was NOT persisted in JSON!");
         process.exit(1);
     } else {
-        console.log("SUCCESS: Workspace container was excluded from JSON.");
+        console.log("SUCCESS: Workspace container was successfully included in JSON.");
     }
 
     // 5. Verify ground IS in the JSON
@@ -50,17 +50,22 @@ async function testSerialization() {
     console.log("Deserializing...");
     const restoredManager = InventoryManager.fromJSON(json);
 
-    // 7. Verify workspace exists in restored manager (from constructor) but is EMPTY
+    // 7. Verify workspace exists in restored manager and is NOT empty
     const restoredWorkspace = restoredManager.getContainer('crafting-ingredients');
     if (!restoredWorkspace) {
         console.error("FAILED: Workspace container missing in restored manager");
         process.exit(1);
     }
-    if (restoredWorkspace.items.size > 0) {
-        console.error("FAILED: Restored workspace is not empty!");
+    if (restoredWorkspace.items.size !== 1) {
+        console.error(`FAILED: Restored workspace has size ${restoredWorkspace.items.size}, expected 1!`);
         process.exit(1);
     } else {
-        console.log("SUCCESS: Restored workspace is empty.");
+        const restoredItem = Array.from(restoredWorkspace.items.values())[0];
+        if (restoredItem.id !== 'food.corn') {
+            console.error(`FAILED: Restored item ID is ${restoredItem.id}, expected food.corn!`);
+            process.exit(1);
+        }
+        console.log("SUCCESS: Restored workspace is populated with correct items.");
     }
 
     console.log("Test completed successfully.");
