@@ -91,7 +91,7 @@ function createWindow() {
   } else {
     // In production, load from the dist folder
     const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
-    console.log('Loading HTML from:', htmlPath);
+    if (isDev) console.log('Loading HTML from:', htmlPath);
     mainWindow.loadFile(htmlPath);
   }
 
@@ -103,13 +103,15 @@ function createWindow() {
     mainWindow = null;
   });
 
-  // Add a new shortcut for the developer console
-  mainWindow.webContents.on('before-input-event', (event, input) => {
-    if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
-      mainWindow.webContents.openDevTools();
-      event.preventDefault();
-    }
-  });
+  // Add a new shortcut for the developer console (development only)
+  if (isDev) {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
+        mainWindow.webContents.openDevTools();
+        event.preventDefault();
+      }
+    });
+  }
 }
 
 // Disable geolocation at the engine level to prevent Windows location data warnings

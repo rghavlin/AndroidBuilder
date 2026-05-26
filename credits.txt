@@ -31,3 +31,6 @@ IGNITE: C:\Games\audio\Darkworld Audio - Survival Effects [Free .ogg]\Equipment\
 LIGHTON/LIGHTOFF: C:\Games\audio\Horror SFX Free\Horror SFX Free\Character\Flashlighton/off
 PILLS: C:\Games\audio\Darkworld Audio - Survival Effects [Free .ogg]\Medicine\Pillsbox1
 
+LIBRARIES & FRAMEWORKS:
+React: https://react.dev/ - MIT License (Copyright (c) Meta Platforms, Inc. and affiliates)
+Electron: https://www.electronjs.org/ - MIT License (Copyright (c) Electron contributors)

@@ -1,8 +1,8 @@
 {
-  "name": "rest-express",
+  "name": "zombie-road",
   "version": "1.0.0",
   "description": "Turn-based zombie survival game",
-  "author": "Game Developer",
+  "author": "Zombie Road Developers",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -116,7 +116,7 @@
   },
   "main": "electron/main.js",
   "build": {
-    "appId": "com.yourcompany.yourgame",
+    "appId": "com.zombieroad.zombieroad",
     "productName": "Zombie Road",
     "directories": {
       "output": "dist-electron",

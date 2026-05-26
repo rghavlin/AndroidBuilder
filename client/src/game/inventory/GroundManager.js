@@ -1,7 +1,7 @@
 
 import { Container } from './Container.js';
 import { Item } from './Item.js';
-import { CategoryPriority } from './traits.js';
+import { CategoryPriority, ItemTrait } from './traits.js';
 
 let engine = null;
 import('../GameEngine.js').then(m => {
@@ -129,6 +129,126 @@ export class GroundManager {
       currentY += maxHeight + categorySpacing;
     }
 
+    return true;
+  }
+
+  /**
+   * Sort ground items by priority, preserving exit items in place
+   */
+  sortGroundItems() {
+    const allItems = this.groundContainer.getAllItems();
+    if (allItems.length === 0) return true;
+
+    // 1. Identify exit items and keep them
+    const exitItems = allItems.filter(item => item.defId === 'placeable.exit');
+    const otherItems = allItems.filter(item => item.defId !== 'placeable.exit');
+
+    // 2. Remove non-exit items from container
+    for (const item of otherItems) {
+      this.groundContainer.removeItem(item.instanceId);
+    }
+
+    // 3. Combine / stack like items
+    const stackedItems = [];
+    for (const item of otherItems) {
+      const isStackable = item.hasTrait ? item.hasTrait(ItemTrait.STACKABLE) : item.stackable;
+      if (isStackable) {
+        let remaining = item.stackCount;
+        for (const existing of stackedItems) {
+          if (existing.defId === item.defId && existing.canStackWith(item)) {
+            const space = (existing.stackMax || 100) - existing.stackCount;
+            if (space > 0) {
+              const toAdd = Math.min(remaining, space);
+              existing.stackCount += toAdd;
+              remaining -= toAdd;
+              if (remaining <= 0) break;
+            }
+          }
+        }
+        if (remaining > 0) {
+          item.stackCount = remaining;
+          stackedItems.push(item);
+        }
+      } else {
+        stackedItems.push(item);
+      }
+    }
+
+    // 4. Sort the items by priority
+    stackedItems.sort((a, b) => {
+      // Rule 1: Electric scooter ridden by player takes top priority after exit item
+      const isRiddenA = engine?.riding?.item?.instanceId === a.instanceId;
+      const isRiddenB = engine?.riding?.item?.instanceId === b.instanceId;
+      if (isRiddenA && !isRiddenB) return -1;
+      if (!isRiddenA && isRiddenB) return 1;
+
+      // Rule 2: Vehicles/Scooters priority
+      const isVehicleA = a.hasTrait?.(ItemTrait.VEHICLE) || a.hasTrait?.(ItemTrait.WAGON) || a.hasTrait?.(ItemTrait.SCOOTER);
+      const isVehicleB = b.hasTrait?.(ItemTrait.VEHICLE) || b.hasTrait?.(ItemTrait.WAGON) || b.hasTrait?.(ItemTrait.SCOOTER);
+      
+      if (isVehicleA && !isVehicleB) return -1;
+      if (!isVehicleA && isVehicleB) return 1;
+      
+      if (isVehicleA && isVehicleB) {
+        // Whichever vehicle the player is pulling takes first slot
+        const isPulledA = engine?.dragging?.item?.instanceId === a.instanceId;
+        const isPulledB = engine?.dragging?.item?.instanceId === b.instanceId;
+        if (isPulledA && !isPulledB) return -1;
+        if (!isPulledA && isPulledB) return 1;
+        
+        // Sort by size (largest first)
+        const sizeA = a.getActualWidth() * a.getActualHeight();
+        const sizeB = b.getActualWidth() * b.getActualHeight();
+        if (sizeA !== sizeB) return sizeB - sizeA;
+        
+        // Stable fallback
+        return a.name.localeCompare(b.name) || a.instanceId.localeCompare(b.instanceId);
+      }
+
+      // Rule 3: Other items by CategoryPriority
+      const catA = a.getCategory();
+      const catB = b.getCategory();
+      const priorityA = CategoryPriority[catA] || 999;
+      const priorityB = CategoryPriority[catB] || 999;
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // Sort by size (largest first)
+      const sizeA = a.getActualWidth() * a.getActualHeight();
+      const sizeB = b.getActualWidth() * b.getActualHeight();
+      if (sizeA !== sizeB) return sizeB - sizeA;
+      
+      // Stable fallback
+      return a.name.localeCompare(b.name) || a.instanceId.localeCompare(b.instanceId);
+    });
+
+    // 5. Place items back into container grid (respecting remaining space)
+    for (const item of stackedItems) {
+      const width = item.getActualWidth();
+      const height = item.getActualHeight();
+      let placed = false;
+      
+      for (let y = 0; y <= this.groundContainer.height - height; y++) {
+        for (let x = 0; x <= this.groundContainer.width - width; x++) {
+          if (this.groundContainer.isAreaFree(x, y, width, height)) {
+            if (this.groundContainer.placeItemAt(item, x, y)) {
+              placed = true;
+              break;
+            }
+          }
+        }
+        if (placed) break;
+      }
+      
+      if (!placed) {
+        // Fallback: force placement or add anyway
+        this.groundContainer.addItem(item, null, null, false);
+      }
+    }
+
+    this.updateCategoryAreas();
     return true;
   }
 

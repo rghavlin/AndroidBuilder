@@ -1,0 +1,2669 @@
+[LOG] [MusicManager] 📥 playPlaylist requested for folder: 'menu'
+[LOG] [MusicManager] 📥 Fetching music track: 01tunetank-emotional-sad-guitar-music-349888.ogg
+[LOG] [GameContext] ✅ Creating NEW GameInitializationManager...
+[LOG] [AudioContext] 🎵 Preloading sounds into #yu9kdsld9...
+[LOG] [AudioManager] 📝 Registered sound metadata for "Footsteps" (lazy pool)
+[LOG] [GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...
+[LOG] [GameInitializationManager] 🆔 NEW INSTANCE CREATED: GameInitManager_1779744087131_vtxwgy3ht
+[LOG] [GameInitializationManager] 📊 TOTAL INSTANCES NOW ACTIVE: 1
+[LOG] [GameContext] ✅ GameInitializationManager created: GameInitManager_1779744087131_vtxwgy3ht
+[DEBUG] [InventoryContext] Registered inventoryChanged listener on manager
+[LOG] [AudioManager] 📝 Registered sound metadata for "Equip" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Footsteps" from: sounds/Footsteps.ogg
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Equip" from: sounds/equip.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Zombie1" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Zombie1" from: sounds/zombie1.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Click" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Click" from: sounds/click.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "OpenDoor" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "OpenDoor" from: sounds/opendoor.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "CloseDoor" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "CloseDoor" from: sounds/closedoor.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "ForceOpen" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "ForceOpen" from: sounds/forceopen.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "GlassBreak" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "GlassBreak" from: sounds/glassbreak.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Bang1" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Bang1" from: sounds/bang1.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "MeleeHit" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "MeleeHit" from: sounds/meleehit.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Miss" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Miss" from: sounds/miss.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Unlock" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Unlock" from: sounds/unlock.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "PistolShot" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "PistolShot" from: sounds/pistol.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "ShotgunShot" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "ShotgunShot" from: sounds/shotgun.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "RifleShot" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "RifleShot" from: sounds/rifle.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "BurstShot" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "BurstShot" from: sounds/3roundburst.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "ReloadShot" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "ReloadShot" from: sounds/reload.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "ZombieSlash" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "ZombieSlash" from: sounds/slash1.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "DeathBlow" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "DeathBlow" from: sounds/deathblow.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "SwitchOn" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "SwitchOn" from: sounds/lighton.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "SwitchOff" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "SwitchOff" from: sounds/lightoff.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "EmptyClick" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "EmptyClick" from: sounds/click.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "OpenWindow" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "OpenWindow" from: sounds/openwindow.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Drink" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Drink" from: sounds/drink.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Craft" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Craft" from: sounds/craft.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "MatchStrike" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "MatchStrike" from: sounds/craft.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "FillBottle" (lazy pool)
+[LOG] [AudioManager] 📝 Registered sound metadata for "Ignite" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Ignite" from: sounds/ignite.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Eat" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Eat" from: sounds/eat.ogg
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "FillBottle" from: sounds/fillbottle.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "SlingShot" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "SlingShot" from: sounds/sling.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Boil" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Boil" from: sounds/boil.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Bandage" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Bandage" from: sounds/bandage.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Spray" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Spray" from: sounds/spray.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Pills" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Pills" from: sounds/pills.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Fail" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Fail" from: sounds/fail.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Rain" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Rain" from: sounds/rain1.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Climb" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Climb" from: sounds/climb.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Sizzle" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Sizzle" from: sounds/sizzle.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Scooter" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Scooter" from: sounds/scooter.ogg
+[LOG] [AudioManager] 📝 Registered sound metadata for "Repair" (lazy pool)
+[DEBUG] [AudioManager] 🎵 Loading Web Audio Buffer for "Repair" from: sounds/craft.ogg
+[DEBUG] [vite] connected.
+[LOG] [Container Tests] Test function exported to window.runContainerTests()
+[LOG] [Inventory] Container tests loaded and runContainerTests() is now available
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Miss"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "ForceOpen"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Click"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "CloseDoor"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Equip"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Unlock"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Zombie1"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "OpenDoor"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Bang1"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "SwitchOff"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Craft"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "MeleeHit"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "OpenWindow"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "SwitchOn"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "ReloadShot"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "DeathBlow"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "ZombieSlash"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Eat"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "PistolShot"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "SlingShot"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "BurstShot"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "RifleShot"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "ShotgunShot"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "GlassBreak"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Drink"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Ignite"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Spray"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Pills"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Fail"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Bandage"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "EmptyClick"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Climb"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Footsteps"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "FillBottle"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Repair"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "MatchStrike"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Sizzle"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Boil"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Scooter"
+[LOG] [AudioManager] ✅ Web Audio Buffer ready for "Rain"
+[LOG] [AudioContext] Initial sounds preloaded successfully
+[LOG] [MusicManager] 🎵 Playing track 1: 01tunetank-emotional-sad-guitar-music-349888.ogg
+[LOG] [StartMenu] Starting new game...
+[LOG] [MusicManager] 📥 playPlaylist requested for folder: 'standard'
+[LOG] [MusicManager] 📥 Fetching music track: 01__zhr__energetic-background-music.ogg
+[LOG] [GameScreenContent] Starting new game - initializing...
+[LOG] [GameContext] 🎮 initializeGame called with config: false
+[LOG] [GameContext] Current initialization state: idle
+[LOG] [GameEngine] 🔔 Pulse #1 emitted at 4:21:50 PM
+[LOG] [GameEngine] 🔔 Pulse #2 emitted at 4:21:50 PM
+[LOG] [GameEngine] 🔔 Pulse #3 emitted at 4:21:50 PM
+[LOG] [GameContext] Starting new game initialization (run 0)...
+[LOG] [GameEngine] 🔔 Pulse #4 emitted at 4:21:50 PM
+[LOG] [GameInitializationManager] Starting initialization sequence...
+[LOG] [GameInitializationManager] State transition: idle → preloading
+[LOG] [GameEngine] 📈 Property Update Pulse #5 emitted (key: initializationState)
+[LOG] [GameEngine] 🔔 Pulse #6 emitted at 4:21:50 PM
+[LOG] [GameInitializationManager] ✅ Loaded 151 item definitions
+[DEBUG] [GameContext] Initialization state changed to: preloading
+[LOG] [GameScreenContent] Hiding start menu - initialization began
+[LOG] [PlayerContext] 💓 Heartbeat #6 - Stats: AP undefined, HP undefined
+[LOG] [GameInitializationManager] 📋 PRELOADING phase starting...
+[LOG] [GameInitializationManager] InventoryManager created: {"containers":[["ground",{"id":"ground","type":"ground","name":"Ground Items","width":6,"height":50,"autoExpand":true,"autoSort":true,"ownerId":null,"allowedCategories":null,"allowedItems":null,"ignoreSize":false,"isVehicle":false,"isPlanter":false,"items":[]}]],"equipment":{"backpack":null,"upper_body":null,"lower_body":null,"melee":null,"handgun":null,"long_gun":null,"flashlight":null,"belt":null},"lastSyncedX":null,"lastSyncedY":null,"events":{}}
+[LOG] [WorldManager] Initialized
+[LOG] [GameInitializationManager] WorldManager created
+[LOG] [TemplateMapGenerator] Loaded 8 default templates
+[LOG] [GameInitializationManager] 🗺️ REQUESTING INITIAL MAP TEMPLATE: "road" (Timestamp: 1779744110548)
+[LOG] [TemplateMapGenerator] Placed 1 wild crops
+[LOG] [TemplateMapGenerator] Generated 'road' map using Strategy engine
+[LOG] [GameInitializationManager] Template map generated: road 45 x 125
+[LOG] [GameInitializationManager] ✅ PRELOADING complete
+[LOG] [GameInitializationManager] State transition: preloading → core_setup
+[LOG] [GameEngine] 📈 Property Update Pulse #7 emitted (key: initializationState)
+[LOG] [GameEngine] 🔔 Pulse #8 emitted at 4:21:50 PM
+[DEBUG] [GameContext] Initialization state changed to: core_setup
+[LOG] [PlayerContext] 💓 Heartbeat #8 - Stats: AP undefined, HP undefined
+[LOG] [GameInitializationManager] Executing CORE_SETUP phase...
+[LOG] [GameMap] Initialized 45x125 map
+[LOG] [GameInitializationManager] GameMap created: 45 x 125
+[LOG] [GameMap] ✅ Entity added: ground-items-29-87 (item) at (29, 87)
+[LOG] [TemplateMapGenerator] Applied template map data to GameMap (45x125)
+[DEBUG] [Item] Created: Exit pocketLayout: null
+[LOG] [GameMap] ✅ Entity added: ground-items-22-0 (item) at (22, 0)
+[DEBUG] [GameMap] Created placeable.exit on transition tile at (22, 0)
+[DEBUG] [Item] Created: Exit pocketLayout: null
+[LOG] [GameMap] ✅ Entity added: ground-items-22-124 (item) at (22, 124)
+[DEBUG] [GameMap] Created placeable.exit on transition tile at (22, 124)
+[LOG] [GameMap] ✅ Entity added: door-9-97 (door) at (9, 97)
+[LOG] [GameMap] ✅ Entity added: door-16-114 (door) at (16, 114)
+[LOG] [GameMap] ✅ Entity added: door-3-112 (door) at (3, 112)
+[LOG] [GameMap] ✅ Entity added: door-11-110 (door) at (11, 110)
+[LOG] [GameMap] ✅ Entity added: door-16-96 (door) at (16, 96)
+[LOG] [GameMap] ✅ Entity added: door-3-93 (door) at (3, 93)
+[LOG] [GameMap] ✅ Entity added: door-16-75 (door) at (16, 75)
+[LOG] [GameMap] ✅ Entity added: door-4-75 (door) at (4, 75)
+[LOG] [GameMap] ✅ Entity added: door-10-78 (door) at (10, 78)
+[LOG] [GameMap] ✅ Entity added: door-16-43 (door) at (16, 43)
+[LOG] [GameMap] ✅ Entity added: door-4-44 (door) at (4, 44)
+[LOG] [GameMap] ✅ Entity added: door-16-22 (door) at (16, 22)
+[LOG] [GameMap] ✅ Entity added: door-4-20 (door) at (4, 20)
+[LOG] [GameMap] ✅ Entity added: door-12-27 (door) at (12, 27)
+[LOG] [GameMap] ✅ Entity added: door-28-113 (door) at (28, 113)
+[LOG] [GameMap] ✅ Entity added: door-39-111 (door) at (39, 111)
+[LOG] [GameMap] ✅ Entity added: door-33-116 (door) at (33, 116)
+[LOG] [GameMap] ✅ Entity added: door-28-98 (door) at (28, 98)
+[LOG] [GameMap] ✅ Entity added: door-40-97 (door) at (40, 97)
+[LOG] [GameMap] ✅ Entity added: door-35-100 (door) at (35, 100)
+[LOG] [GameMap] ✅ Entity added: door-28-73 (door) at (28, 73)
+[LOG] [GameMap] ✅ Entity added: door-41-77 (door) at (41, 77)
+[LOG] [GameMap] ✅ Entity added: door-33-80 (door) at (33, 80)
+[LOG] [GameMap] ✅ Entity added: door-28-54 (door) at (28, 54)
+[LOG] [GameMap] ✅ Entity added: door-39-53 (door) at (39, 53)
+[LOG] [GameMap] ✅ Entity added: door-30-57 (door) at (30, 57)
+[LOG] [GameMap] ✅ Entity added: door-28-37 (door) at (28, 37)
+[LOG] [GameMap] ✅ Entity added: door-40-44 (door) at (40, 44)
+[LOG] [GameMap] ✅ Entity added: door-30-41 (door) at (30, 41)
+[LOG] [GameMap] ✅ Entity added: door-28-26 (door) at (28, 26)
+[LOG] [GameMap] ✅ Entity added: door-39-22 (door) at (39, 22)
+[LOG] [GameMap] ✅ Entity added: door-37-24 (door) at (37, 24)
+[LOG] [GameMap] ✅ Entity added: door-16-61 (door) at (16, 61)
+[LOG] [TemplateMapGenerator] Added 33 doors with doorway clearance logic
+[LOG] [GameMap] ✅ Entity added: window-10-119 (window) at (10, 119)
+[LOG] [GameMap] ✅ Entity added: window-15-119 (window) at (15, 119)
+[LOG] [GameMap] ✅ Entity added: window-3-118 (window) at (3, 118)
+[LOG] [GameMap] ✅ Entity added: window-16-108 (window) at (16, 108)
+[LOG] [GameMap] ✅ Entity added: window-15-101 (window) at (15, 101)
+[LOG] [GameMap] ✅ Entity added: window-16-93 (window) at (16, 93)
+[LOG] [GameMap] ✅ Entity added: window-12-101 (window) at (12, 101)
+[LOG] [GameMap] ✅ Entity added: window-3-91 (window) at (3, 91)
+[LOG] [GameMap] ✅ Entity added: window-10-72 (window) at (10, 72)
+[LOG] [GameMap] ✅ Entity added: window-13-84 (window) at (13, 84)
+[LOG] [GameMap] ✅ Entity added: window-4-82 (window) at (4, 82)
+[LOG] [GameMap] ✅ Entity added: window-4-79 (window) at (4, 79)
+[LOG] [GameMap] ✅ Entity added: window-15-50 (window) at (15, 50)
+[LOG] [GameMap] ✅ Entity added: window-4-46 (window) at (4, 46)
+[LOG] [GameMap] ✅ Entity added: window-16-49 (window) at (16, 49)
+[LOG] [GameMap] ✅ Entity added: window-13-18 (window) at (13, 18)
+[LOG] [GameMap] ✅ Entity added: window-4-29 (window) at (4, 29)
+[LOG] [GameMap] ✅ Entity added: window-9-18 (window) at (9, 18)
+[LOG] [GameMap] ✅ Entity added: window-16-26 (window) at (16, 26)
+[LOG] [GameMap] ✅ Entity added: window-16-29 (window) at (16, 29)
+[LOG] [GameMap] ✅ Entity added: window-30-108 (window) at (30, 108)
+[LOG] [GameMap] ✅ Entity added: window-33-121 (window) at (33, 121)
+[LOG] [GameMap] ✅ Entity added: window-36-121 (window) at (36, 121)
+[LOG] [GameMap] ✅ Entity added: window-28-118 (window) at (28, 118)
+[LOG] [GameMap] ✅ Entity added: window-39-114 (window) at (39, 114)
+[LOG] [GameMap] ✅ Entity added: window-39-118 (window) at (39, 118)
+[LOG] [GameMap] ✅ Entity added: window-39-91 (window) at (39, 91)
+[LOG] [GameMap] ✅ Entity added: window-28-93 (window) at (28, 93)
+[LOG] [GameMap] ✅ Entity added: window-40-99 (window) at (40, 99)
+[LOG] [GameMap] ✅ Entity added: window-31-71 (window) at (31, 71)
+[LOG] [GameMap] ✅ Entity added: window-35-71 (window) at (35, 71)
+[LOG] [GameMap] ✅ Entity added: window-35-86 (window) at (35, 86)
+[LOG] [GameMap] ✅ Entity added: window-28-81 (window) at (28, 81)
+[LOG] [GameMap] ✅ Entity added: window-41-78 (window) at (41, 78)
+[LOG] [GameMap] ✅ Entity added: window-28-56 (window) at (28, 56)
+[LOG] [GameMap] ✅ Entity added: window-39-52 (window) at (39, 52)
+[LOG] [GameMap] ✅ Entity added: window-35-35 (window) at (35, 35)
+[LOG] [GameMap] ✅ Entity added: window-32-46 (window) at (32, 46)
+[LOG] [GameMap] ✅ Entity added: window-37-46 (window) at (37, 46)
+[LOG] [GameMap] ✅ Entity added: window-28-42 (window) at (28, 42)
+[LOG] [GameMap] ✅ Entity added: window-40-39 (window) at (40, 39)
+[LOG] [GameMap] ✅ Entity added: window-40-43 (window) at (40, 43)
+[LOG] [GameMap] ✅ Entity added: window-34-19 (window) at (34, 19)
+[LOG] [GameMap] ✅ Entity added: window-32-30 (window) at (32, 30)
+[LOG] [GameMap] ✅ Entity added: window-28-28 (window) at (28, 28)
+[LOG] [GameMap] ✅ Entity added: window-39-27 (window) at (39, 27)
+[LOG] [GameMap] ✅ Entity added: window-16-59 (window) at (16, 59)
+[LOG] [TemplateMapGenerator] Added 47 windows to map
+[LOG] [GameMap] ✅ Entity added: icon-grocer-16-60 (place_icon) at (16, 60)
+[LOG] [TemplateMapGenerator] Added 1 icons to map
+[LOG] [GameInitializationManager] Template applied to GameMap
+[LOG] [GameInitializationManager] Final start position: 22 123
+[LOG] [GameInitializationManager] 🎮 PLAYER CREATED by instance GameInitManager_1779744087131_vtxwgy3ht:
+[LOG] [GameInitializationManager] - Player ID: player-1
+[LOG] [GameInitializationManager] - Position: (22, 123)
+[LOG] [GameInitializationManager] - Constructor: Player
+[LOG] [GameInitializationManager] - Instance hash: Player_player-1_1779744110983
+[LOG] [GameInitializationManager] - HP/AP: 20/20 HP, 20/20 AP
+[LOG] [GameInitializationManager] Camera initialized - bounds: 45 x 125
+[LOG] [Camera] Camera initialized with viewport: 20 x 20
+[LOG] [Camera] World bounds set to: 45 x 125
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [GameInitializationManager] - Total entities on map: 85
+[LOG] [GameMap] ✅ Entity added: player-1 (player) at (22, 123)
+[LOG] [GameMap] 🎮 PLAYER ADDED TO MAP - Total players now: 1
+[LOG] [GameInitializationManager] 🗺️ Player added to map: SUCCESS
+[LOG] [GameInitializationManager] - Map dimensions: 45x125
+[LOG] [GameInitializationManager] - Player entities on map: 1
+[LOG] [GameInitializationManager] - Player found on tile (22, 123): ✅ YES
+[LOG] [WorldManager] *** MAP SAVED: map_001 at Turn 1 ***
+[LOG] [WorldManager] *** WORLD COLLECTION NOW HAS 1 MAPS ***
+[LOG] [GameInitializationManager] Initial map saved as: map_001
+[DEBUG] [Item] Created: Pocket T-Shirt pocketLayout: pocket_tee
+[DEBUG] [InventoryManager] Equipped item: Pocket T-Shirt to slot: upper_body
+[LOG] [GameInitializationManager] Equipped starting shirt: Pocket T-Shirt
+[DEBUG] [Item] Created: Sweatpants pocketLayout: sweatpants
+[DEBUG] [InventoryManager] Equipped item: Sweatpants to slot: lower_body
+[LOG] [GameInitializationManager] Equipped starting pants: Sweatpants
+[LOG] [GameInitializationManager] CORE_SETUP phase completed
+[LOG] [GameInitializationManager] State transition: core_setup → world_population
+[LOG] [GameEngine] 📈 Property Update Pulse #9 emitted (key: initializationState)
+[LOG] [GameEngine] 🔔 Pulse #10 emitted at 4:21:51 PM
+[DEBUG] [GameContext] Initialization state changed to: world_population
+[LOG] [PlayerContext] 💓 Heartbeat #10 - Stats: AP undefined, HP undefined
+[LOG] [GameInitializationManager] Executing WORLD_POPULATION phase...
+[LOG] [GameInitializationManager] Spawning initial zombies using ZombieSpawner
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111024-0 (zombie) at (31, 54)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111024-1 (zombie) at (24, 45)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111025-2 (zombie) at (18, 22)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111025-3 (zombie) at (29, 34)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111025-4 (zombie) at (19, 18)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111026-5 (zombie) at (32, 54)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111026-6 (zombie) at (40, 31)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111026-7 (zombie) at (41, 50)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111027-8 (zombie) at (11, 54)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111027-9 (zombie) at (40, 14)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111027-10 (zombie) at (5, 46)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111028-11 (zombie) at (10, 28)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111028-12 (zombie) at (36, 47)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111029-13 (zombie) at (9, 12)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111029-14 (zombie) at (20, 0)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111029-15 (zombie) at (21, 60)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111030-16 (zombie) at (37, 43)
+[LOG] [GameMap] ✅ Entity added: zombie-basic-1779744111030-17 (zombie) at (3, 23)
+[LOG] [GameMap] ✅ Entity added: zombie-crawler-1779744111030-18 (zombie) at (20, 6)
+[LOG] [GameMap] ✅ Entity added: zombie-crawler-1779744111031-19 (zombie) at (29, 107)
+[LOG] [GameMap] ✅ Entity added: zombie-crawler-1779744111031-20 (zombie) at (22, 59)
+[LOG] [GameMap] ✅ Entity added: zombie-crawler-1779744111031-21 (zombie) at (32, 44)
+[LOG] [GameInitializationManager] Spawned 23 initial zombies
+[LOG] [GameMap] ✅ Entity added: zombie-runner-1779744111032-22 (zombie) at (35, 28)
+[LOG] [GameMap] ✅ Entity added: rabbit-1779744111064-0-101 (rabbit) at (12, 34)
+[LOG] [AnimalSpawner] Spawned rabbit at (12, 34)
+[LOG] [GameMap] ✅ Entity added: rabbit-1779744111065-1-10 (rabbit) at (8, 1)
+[LOG] [AnimalSpawner] Spawned rabbit at (8, 1)
+[LOG] [GameInitializationManager] Spawned initial rabbits
+[LOG] [LootGenerator] Initialized with 97 items (rarity-enabled)
+[LOG] [LootGenerator] Spawning specialized loot for grocer in 4 drops
+[LOG] [GameMap] ✅ Entity added: ground-items-12-57 (item) at (12, 57)
+[LOG] [GameMap] ✅ Entity added: ground-items-11-56 (item) at (11, 56)
+[LOG] [GameMap] ✅ Entity added: ground-items-14-112 (item) at (14, 112)
+[LOG] [GameMap] ✅ Entity added: ground-items-10-64 (item) at (10, 64)
+[LOG] [GameMap] ✅ Entity added: ground-items-7-63 (item) at (7, 63)
+[LOG] [LootGenerator] Detected 11 normal buildings for indoor loot
+[LOG] [GameMap] ✅ Entity added: ground-items-5-108 (item) at (5, 108)
+[LOG] [LootGenerator] Building 1: Spawned 2 loot drops on 120 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-12-117 (item) at (12, 117)
+[LOG] [GameMap] ✅ Entity added: ground-items-7-115 (item) at (7, 115)
+[LOG] [LootGenerator] Building 1: Spawned 2 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-11-92 (item) at (11, 92)
+[LOG] [LootGenerator] Building 2: Spawned 1 loot drops on 98 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-14-98 (item) at (14, 98)
+[LOG] [GameMap] ✅ Entity added: ground-items-10-100 (item) at (10, 100)
+[LOG] [LootGenerator] Building 2: Spawned 2 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-10-73 (item) at (10, 73)
+[LOG] [GameMap] ✅ Entity added: ground-items-5-79 (item) at (5, 79)
+[LOG] [LootGenerator] Building 3: Spawned 2 loot drops on 98 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-14-74 (item) at (14, 74)
+[LOG] [GameMap] ✅ Entity added: ground-items-11-81 (item) at (11, 81)
+[LOG] [LootGenerator] Building 3: Spawned 2 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-11-48 (item) at (11, 48)
+[LOG] [LootGenerator] Building 4: Spawned 1 loot drops on 115 eligible tiles (6 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-10-43 (item) at (10, 43)
+[LOG] [GameMap] ✅ Entity added: ground-items-6-46 (item) at (6, 46)
+[LOG] [LootGenerator] Building 4: Spawned 2 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-10-20 (item) at (10, 20)
+[LOG] [LootGenerator] Building 5: Spawned 1 loot drops on 131 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-37-113 (item) at (37, 113)
+[LOG] [GameMap] ✅ Entity added: ground-items-14-30 (item) at (14, 30)
+[LOG] [LootGenerator] Building 5: Spawned 1 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-33-120 (item) at (33, 120)
+[LOG] [LootGenerator] Building 6: Spawned 2 loot drops on 98 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-32-120 (item) at (32, 120)
+[LOG] [LootGenerator] Building 6: Spawned 1 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-33-99 (item) at (33, 99)
+[LOG] [LootGenerator] Building 7: Spawned 1 loot drops on 98 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-30-95 (item) at (30, 95)
+[LOG] [LootGenerator] Building 7: Spawned 1 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-32-77 (item) at (32, 77)
+[LOG] [GameMap] ✅ Entity added: ground-items-33-76 (item) at (33, 76)
+[LOG] [LootGenerator] Building 8: Spawned 2 loot drops on 144 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-40-83 (item) at (40, 83)
+[LOG] [GameMap] ✅ Entity added: ground-items-30-76 (item) at (30, 76)
+[LOG] [GameMap] ✅ Entity added: ground-items-36-85 (item) at (36, 85)
+[LOG] [LootGenerator] Building 8: Spawned 3 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-34-61 (item) at (34, 61)
+[LOG] [LootGenerator] Building 9: Spawned 1 loot drops on 118 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-35-54 (item) at (35, 54)
+[LOG] [GameMap] ✅ Entity added: ground-items-33-55 (item) at (33, 55)
+[LOG] [GameMap] ✅ Entity added: ground-items-32-62 (item) at (32, 62)
+[LOG] [LootGenerator] Building 9: Spawned 3 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-33-38 (item) at (33, 38)
+[LOG] [LootGenerator] Building 10: Spawned 1 loot drops on 87 eligible tiles (13 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-35-40 (item) at (35, 40)
+[LOG] [GameMap] ✅ Entity added: ground-items-32-40 (item) at (32, 40)
+[LOG] [GameMap] ✅ Entity added: ground-items-32-37 (item) at (32, 37)
+[LOG] [LootGenerator] Building 10: Spawned 3 guaranteed planks
+[DEBUG] [Item] Created: .357 Ammo pocketLayout: null
+[LOG] [Loot] Initialized weapon.357Pistol with 5 internally loaded rounds
+[LOG] [GameMap] ✅ Entity added: ground-items-31-27 (item) at (31, 27)
+[LOG] [GameMap] ✅ Entity added: ground-items-29-22 (item) at (29, 22)
+[LOG] [GameMap] ✅ Entity added: ground-items-31-26 (item) at (31, 26)
+[LOG] [LootGenerator] Building 11: Spawned 3 loot drops on 79 eligible tiles (12 door tiles excluded)
+[LOG] [GameMap] ✅ Entity added: ground-items-37-28 (item) at (37, 28)
+[LOG] [LootGenerator] Building 11: Spawned 1 guaranteed planks
+[LOG] [GameMap] ✅ Entity added: ground-items-39-33 (item) at (39, 33)
+[LOG] [GameMap] ✅ Entity added: ground-items-26-38 (item) at (26, 38)
+[LOG] [GameMap] ✅ Entity added: ground-items-43-122 (item) at (43, 122)
+[LOG] [GameMap] ✅ Entity added: ground-items-34-2 (item) at (34, 2)
+[LOG] [GameMap] ✅ Entity added: ground-items-19-114 (item) at (19, 114)
+[LOG] [GameMap] ✅ Entity added: ground-items-2-27 (item) at (2, 27)
+[LOG] [GameMap] ✅ Entity added: ground-items-39-88 (item) at (39, 88)
+[LOG] [GameMap] ✅ Entity added: ground-items-42-22 (item) at (42, 22)
+[LOG] [GameMap] ✅ Entity added: ground-items-43-42 (item) at (43, 42)
+[LOG] [GameMap] ✅ Entity added: ground-items-21-111 (item) at (21, 111)
+[LOG] [GameMap] ✅ Entity added: ground-items-18-45 (item) at (18, 45)
+[LOG] [GameMap] ✅ Entity added: ground-items-20-115 (item) at (20, 115)
+[LOG] [GameMap] ✅ Entity added: ground-items-42-109 (item) at (42, 109)
+[LOG] [GameMap] ✅ Entity added: ground-items-22-40 (item) at (22, 40)
+[LOG] [GameMap] ✅ Entity added: ground-items-11-35 (item) at (11, 35)
+[LOG] [GameMap] ✅ Entity added: ground-items-42-101 (item) at (42, 101)
+[LOG] [GameMap] ✅ Entity added: ground-items-42-55 (item) at (42, 55)
+[LOG] [GameMap] ✅ Entity added: ground-items-27-58 (item) at (27, 58)
+[LOG] [GameMap] ✅ Entity added: ground-items-20-28 (item) at (20, 28)
+[LOG] [LootGenerator] Outdoor: Spawned 20 loot drops on 3082 tiles (Area Multiplier: 1.00)
+[LOG] [GameMap] ✅ Entity added: ground-items-42-38 (item) at (42, 38)
+[LOG] [LootGenerator] Designated 5 low spots and spawned initial 50-unit puddle at (42, 38)
+[LOG] [GameMap] ✅ Entity added: ground-items-5-95 (item) at (5, 95)
+[LOG] [GameMap] ✅ Entity added: ground-items-6-76 (item) at (6, 76)
+[LOG] [GameMap] ✅ Entity added: ground-items-12-41 (item) at (12, 41)
+[LOG] [GameMap] ✅ Entity added: ground-items-9-24 (item) at (9, 24)
+[LOG] [LootGenerator] Furniture: Spawned 4 beds across 11 residential buildings
+[DEBUG] [Item] Created: Large battery pocketLayout: null
+[LOG] [GameMap] ✅ Entity added: ground-items-5-68 (item) at (5, 68)
+[LOG] [LootGenerator] Furniture: Spawned single Electric Mower at (5, 68)
+[DEBUG] [Item] Created: Large battery pocketLayout: null
+[LOG] [GameMap] ✅ Entity added: ground-items-15-13 (item) at (15, 13)
+[LOG] [LootGenerator] Furniture: Spawned single Electric Scooter at (15, 13)
+[DEBUG] [Item] Created: Generator pocketLayout: null
+[LOG] [GameMap] ✅ Entity added: ground-items-33-88 (item) at (33, 88)
+[LOG] [LootGenerator] Spawned Generator behind building at (33, 88)
+[LOG] [LootGenerator] Processing 2 map-wide requirements...
+[LOG] [LootGenerator] Requirement for crafting.tape not met (2/3). Spawning 1 more.
+[DEBUG] [Item] Created: Tape pocketLayout: null
+[LOG] [LootGenerator] Requirement for tool.cooking_pot met (1/1).
+[LOG] [LootGenerator] Applying map-wide uniques for 2 items (Map 1)...
+[DEBUG] [Item] Created: Lighter pocketLayout: null
+[LOG] [LootGenerator]   -> Placed Lighter at (10, 73) with 10 charges.
+[DEBUG] [Item] Created: Matchbook pocketLayout: null
+[LOG] [LootGenerator]   -> Placed Matchbook at (36, 85) with 1 charges.
+[LOG] [GameInitializationManager] Removed south transition tile for first map at 22 124
+[LOG] [GameInitializationManager] WORLD_POPULATION phase completed
+[LOG] [GameInitializationManager] State transition: world_population → complete
+[LOG] [GameEngine] 📈 Property Update Pulse #11 emitted (key: initializationState)
+[LOG] [GameEngine] 🔔 Pulse #12 emitted at 4:21:51 PM
+[DEBUG] [GameContext] Initialization state changed to: complete
+[LOG] [PlayerContext] 💓 Heartbeat #12 - Stats: AP undefined, HP undefined
+[LOG] [GameEngine] 🔄 Synchronizing engine state: ["inventoryManager","worldManager","gameMap","player","camera","templateMapGenerator","lootGenerator"]
+[LOG] [GameEngine] 🔄 Synchronization Pulse #13 emitted
+[DEBUG] [InventoryContext] Registered inventoryChanged listener on manager
+[DEBUG] [InventoryContext] Engine sync event -> re-registering inventoryChanged listener
+[LOG] [GameMapContext] 🔄 engine triggered sync, updating map refs
+[LOG] [GameContext] ✅ Initialization complete, synchronizing sub-contexts...
+[LOG] [Camera] World bounds set to: 45 x 125
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [GameContext] Inventory synchronization listener attached to player
+[LOG] [GameContext] 🤝 Handshake settle starting. Syncing engine...
+[LOG] [InventoryManager] 🔄 syncWithMap START: (22, 123) -> (22, 123)
+[LOG] [InventoryManager]   -> No items found on map at (22, 123)
+[LOG] [InventoryManager] 🔄 syncWithMap END: No changes occurred.
+[DEBUG] [InventoryContext] Engine sync event -> re-registering inventoryChanged listener
+[DEBUG] [InventoryContext] Registered inventoryChanged listener on manager
+[LOG] [GameMapContext] 🔄 engine triggered sync, updating map refs
+[LOG] [GameEngine] 🔔 Pulse #14 emitted at 4:21:51 PM
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [GameContext] 🚀 Game ready - UI gate opened (Atomic Sync)
+[LOG] [GameInitializationManager] Initialization completed successfully
+[LOG] [PlayerContext] 💓 Heartbeat #14 - Stats: AP 20, HP 20
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 14)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 14)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 14)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "" (version: 14)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [GameEngine] 🔔 Pulse #15 emitted at 4:21:51 PM
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] useEffect triggered. itemsKey: ""
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] changedOrMissingItems count: 0
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] useEffect triggered. itemsKey: ""
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] changedOrMissingItems count: 0
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] useEffect triggered. itemsKey: ""
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] changedOrMissingItems count: 0
+[LOG] [UniversalGrid - ground] useEffect triggered. itemsKey: ""
+[LOG] [UniversalGrid - ground] changedOrMissingItems count: 0
+[LOG] [useGridSlotSize] Calculated slot size: {"windowSize":{"width":786,"height":635},"inventoryPanelWidth":393,"backpackAreaWidth":196.5,"availableWidth":148.5,"availableHeight":435,"gapsWidth":10,"gapsHeight":18,"maxSlotSizeByWidth":23,"maxSlotSizeByHeight":41,"calculatedSize":23,"finalSize":32}
+[LOG] [ImageLoader] Loading UI image (using same logic as entity images)
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 15)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 15)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 15)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "" (version: 15)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [PlayerContext] 💓 Heartbeat #15 - Stats: AP 20, HP 20
+[LOG] [MusicManager] 🎵 Playing track 1: 01__zhr__energetic-background-music.ogg
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [useGridSlotSize] Calculated slot size: {"windowSize":{"width":786,"height":635},"inventoryPanelWidth":393,"backpackAreaWidth":196.5,"availableWidth":148.5,"availableHeight":435,"gapsWidth":10,"gapsHeight":18,"maxSlotSizeByWidth":23,"maxSlotSizeByHeight":41,"calculatedSize":23,"finalSize":32}
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/fist.png
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/player.png
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/zombie.png
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/npc.png
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/rabbit.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/standardBackpack.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/pocket-t.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/leatherbelt.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/sweatpants.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/knife.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/9mm%20pistol.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/huntingrifle.png
+[LOG] [ImageLoader] Successfully loaded place image: http://localhost:5000/images/places/grocer.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/flashlight.png
+[LOG] [ImageLoader] Successfully loaded UI image: http://localhost:5000/images/UI/endturn.png
+[LOG] [ImageLoader] Successfully loaded tile image: http://localhost:5000/images/tiles/b&w/building.png
+[LOG] [ImageLoader] Successfully loaded tile image: http://localhost:5000/images/tiles/b&w/grass.png
+[LOG] [ImageLoader] Successfully loaded tile image: http://localhost:5000/images/tiles/b&w/sidewalk.png
+[LOG] [ImageLoader] Successfully loaded tile image: http://localhost:5000/images/tiles/b&w/floor.png
+[LOG] [ImageLoader] Successfully loaded tile image: http://localhost:5000/images/tiles/b&w/road.png
+[LOG] [ImageLoader] Successfully loaded tile image: http://localhost:5000/images/tiles/b&w/fence.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/default.png
+[WARN] [ImageLoader] No asset found for item or fallback (Attempt 1/3)
+[WARN] [ImageLoader] No asset found for place_icon or fallback (Attempt 1/3)
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/crawlerzombie.png
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/firefighterzombie.png
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/swatzombie.png
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/harvestablecarrot.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/waterpuddle.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/bed.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/electricmower.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/electricscooter.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/generator.png
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/exit.png
+[LOG] [ImageLoader] Item image not found: ground_pile, trying default...
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/default.png
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [ImageLoader] Successfully loaded image: http://localhost:5000/images/entities/runnerzombie.png
+[LOG] [useGridSlotSize] Calculated slot size: {"windowSize":{"width":1186,"height":635},"inventoryPanelWidth":593,"backpackAreaWidth":296.5,"availableWidth":248.5,"availableHeight":435,"gapsWidth":10,"gapsHeight":18,"maxSlotSizeByWidth":39,"maxSlotSizeByHeight":41,"calculatedSize":39,"finalSize":39}
+[WARN] [ImageLoader] Failed to load tile image: wall (Attempt 1/3)
+[WARN] [ImageLoader] Failed to load tile image: water (Attempt 1/3)
+[WARN] [ImageLoader] Failed to load tile image: tent_floor (Attempt 1/3)
+[WARN] [ImageLoader] Failed to load tile image: tent_wall (Attempt 1/3)
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [GameEngine] 👤 Player state change detected -> triggering global pulse
+[LOG] [GameEngine] 🔔 Pulse #16 emitted at 4:21:53 PM
+[LOG] [GameEngine] 👤 Player state change detected -> triggering global pulse
+[LOG] [GameEngine] 🔔 Pulse #17 emitted at 4:21:53 PM
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [PlayerContext] 🏃 Starting movement: (22, 123) -> (20, 115). Path: 9 tiles. Cost: 8.3 AP.
+[LOG] [AudioManager] 🔄 Started gapless loop: "Footsteps"
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 17)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 17)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 17)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "" (version: 17)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [PlayerContext] 💓 Heartbeat #17 - Stats: AP 11.7, HP 20
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 123
+[LOG] [Camera] Centered on: 22 123
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.9
+[LOG] [Camera] Centered on: 22 122.9
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.9
+[LOG] [Camera] Centered on: 22 122.9
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.9
+[LOG] [Camera] Centered on: 22 122.9
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.8
+[LOG] [Camera] Centered on: 22 122.8
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.8
+[LOG] [Camera] Centered on: 22 122.8
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.8
+[LOG] [Camera] Centered on: 22 122.8
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.7
+[LOG] [Camera] Centered on: 22 122.7
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.7
+[LOG] [Camera] Centered on: 22 122.7
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.6
+[LOG] [Camera] Centered on: 22 122.6
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 123)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.6
+[LOG] [Camera] Centered on: 22 122.6
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.5
+[LOG] [Camera] Centered on: 22 122.5
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.4
+[LOG] [Camera] Centered on: 22 122.4
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.4
+[LOG] [Camera] Centered on: 22 122.4
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.3
+[LOG] [Camera] Centered on: 22 122.3
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.2
+[LOG] [Camera] Centered on: 22 122.2
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122.1
+[LOG] [Camera] Centered on: 22 122.1
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122
+[LOG] [Camera] Centered on: 22 122
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 122
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.9
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.8
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.7
+[WARN] [ImageLoader] No asset found for item or fallback (Attempt 2/3)
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 122)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.6
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.5
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[WARN] [ImageLoader] No asset found for place_icon or fallback (Attempt 2/3)
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.3
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.2
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [Camera] Position set to: 22 121.1
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 121)","to":"(22, 120)"}
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 120)","to":"(22, 120)"}
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [Camera] Constraint applied: {"from":"(22, 120)","to":"(22, 120)"}
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Constraint applied: {"from":"(22, 120)","to":"(22, 120)"}
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[WARN] [ImageLoader] Failed to load tile image: tent_wall (Attempt 2/3)
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[WARN] [ImageLoader] Failed to load tile image: water (Attempt 2/3)
+[WARN] [ImageLoader] Failed to load tile image: wall (Attempt 2/3)
+[WARN] [ImageLoader] Failed to load tile image: tent_floor (Attempt 2/3)
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [GameMap] Moving entity player-1 from (22, 123) to (20, 115)
+[LOG] [GameMap] Updating logical position for entity player-1 to (20, 115)
+[LOG] [GameContext] Player shifted from (22, 123) to (20, 115) - syncing ground items
+[LOG] [InventoryManager] 🔄 syncWithMap START: (22, 123) -> (20, 115)
+[LOG] [InventoryManager]   -> Tile at (22, 123) is now empty. Clearing map tile...
+[LOG] [InventoryManager]   -> Loading 1 items from tile (20, 115)
+[DEBUG] [Item] Created: Stick pocketLayout: null
+[LOG] [InventoryManager]     [0] Restored item: Stick (weapon.stick-1779744111107-8mxvd)
+[DEBUG] [Container] Found available position: {"x":0,"y":0} for item size: {"width":4,"height":1}
+[DEBUG] [Container] ✅ SUCCESS: Placed item: Stick at (0, 0) size: 4x1 instanceId: weapon.stick-1779744111107-8mxvd
+[DEBUG] [Container] Total items now: 1
+[DEBUG] [Container] Grid occupancy: Row 0: [0:weapon.s 1:weapon.s 2:weapon.s 3:weapon.s . .]
+Row 1: [. . . . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+[LOG] [InventoryManager]     [0] ✅ Successfully added to ground container
+[LOG] [InventoryManager]   -> Items "Moved" from map to local container at (20, 115). Clearing map tile source.
+[LOG] [InventoryManager] 🔄 syncWithMap END: Ground container now has 1 items. Emitting change...
+[DEBUG] [InventoryContext] 🔄 Manager event -> Engine Pulse
+[LOG] [GameMap] Adding entity player-1 to new tile (20, 115)
+[LOG] [GameEngine] 🔔 Pulse #18 emitted at 4:21:55 PM
+[LOG] [GameMap] Entity player-1 movement completed successfully
+[LOG] [AudioManager] ⏹️ Stopped gapless loop: "Footsteps"
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 18)
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 18)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 18)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "weapon.stick-1779744111107-8mxvd:stick" (version: 18)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [UniversalGrid - ground] useEffect triggered. itemsKey: "weapon.stick-1779744111107-8mxvd:stick"
+[LOG] [UniversalGrid - ground] changedOrMissingItems count: 1
+[LOG] [UniversalGrid - ground] Async load needed for item: Stick (stick)
+[LOG] [UniversalGrid - ground] Starting async fetch for 1 items. loadId: 1
+[LOG] [UniversalGrid - ground] Loading image for Stick (stick)...
+[LOG] [PlayerContext] 💓 Heartbeat #18 - Stats: AP 11.7, HP 20
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/stick.png
+[LOG] [UniversalGrid - ground] Successfully loaded image for Stick
+[LOG] [UniversalGrid - ground] fetchImages completed. loadId check: 1 vs current 1
+[LOG] [UniversalGrid - ground] Updating state with async loaded images.
+[WARN] [ImageLoader] No asset found for item or fallback (Attempt 3/3)
+[WARN] [ImageLoader] No asset found for place_icon or fallback (Attempt 3/3)
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[ERROR] [ImageLoader] Permanent failure for tile image: water (Retries exhausted)
+[ERROR] [ImageLoader] Permanent failure for tile image: tent_wall (Retries exhausted)
+[ERROR] [ImageLoader] Permanent failure for tile image: wall (Retries exhausted)
+[ERROR] [ImageLoader] Permanent failure for tile image: tent_floor (Retries exhausted)
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [GameEngine] 👤 Player state change detected -> triggering global pulse
+[LOG] [GameEngine] 🔔 Pulse #19 emitted at 4:21:57 PM
+[LOG] [GameEngine] 👤 Player state change detected -> triggering global pulse
+[LOG] [GameEngine] 🔔 Pulse #20 emitted at 4:21:57 PM
+[LOG] [PlayerContext] 🏃 Starting movement: (20, 115) -> (19, 114). Path: 2 tiles. Cost: 1.4 AP.
+[LOG] [AudioManager] 🔄 Started gapless loop: "Footsteps"
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 20)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 20)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 20)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "weapon.stick-1779744111107-8mxvd:stick" (version: 20)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [PlayerContext] 💓 Heartbeat #20 - Stats: AP 10.3, HP 20
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [GameMap] Moving entity player-1 from (20, 115) to (19, 114)
+[LOG] [GameMap] Updating logical position for entity player-1 to (19, 114)
+[LOG] [GameContext] Player shifted from (20, 115) to (19, 114) - syncing ground items
+[LOG] [InventoryManager] 🔄 syncWithMap START: (20, 115) -> (19, 114)
+[LOG] [InventoryManager] ✅ VALID SAVE: Moving 1 items back to map tile (20, 115)
+[LOG] [GameMap] ✅ Entity added: ground-items-20-115 (item) at (20, 115)
+[LOG] [InventoryManager]   -> Loading 1 items from tile (19, 114)
+[DEBUG] [Item] Created: Wheel pocketLayout: null
+[LOG] [InventoryManager]     [0] Restored item: Wheel (crafting.wheel-1779744111104-094v8)
+[DEBUG] [Container] Found available position: {"x":0,"y":0} for item size: {"width":2,"height":2}
+[DEBUG] [Container] ✅ SUCCESS: Placed item: Wheel at (0, 0) size: 2x2 instanceId: crafting.wheel-1779744111104-094v8
+[DEBUG] [Container] Total items now: 1
+[DEBUG] [Container] Grid occupancy: Row 0: [0:crafting 1:crafting . . . .]
+Row 1: [0:crafting 1:crafting . . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+[LOG] [InventoryManager]     [0] ✅ Successfully added to ground container
+[LOG] [InventoryManager]   -> Items "Moved" from map to local container at (19, 114). Clearing map tile source.
+[LOG] [InventoryManager] 🔄 syncWithMap END: Ground container now has 1 items. Emitting change...
+[DEBUG] [InventoryContext] 🔄 Manager event -> Engine Pulse
+[LOG] [GameEngine] 🔔 Pulse #21 emitted at 4:21:58 PM
+[LOG] [GameMap] Adding entity player-1 to new tile (19, 114)
+[LOG] [GameMap] Entity player-1 movement completed successfully
+[LOG] [AudioManager] ⏹️ Stopped gapless loop: "Footsteps"
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 21)
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 21)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 21)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "crafting.wheel-1779744111104-094v8:wheel" (version: 21)
+[LOG] [UniversalGrid - ground] Loading image for Wheel (wheel)...
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [UniversalGrid - ground] useEffect triggered. itemsKey: "crafting.wheel-1779744111104-094v8:wheel"
+[LOG] [UniversalGrid - ground] changedOrMissingItems count: 1
+[LOG] [UniversalGrid - ground] Async load needed for item: Wheel (wheel)
+[LOG] [UniversalGrid - ground] Starting async fetch for 1 items. loadId: 2
+[LOG] [PlayerContext] 💓 Heartbeat #21 - Stats: AP 10.3, HP 20
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/wheel.png
+[LOG] [UniversalGrid - ground] Successfully loaded image for Wheel
+[LOG] [UniversalGrid - ground] fetchImages completed. loadId check: 2 vs current 2
+[LOG] [UniversalGrid - ground] Updating state with async loaded images.
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [GameEngine] 👤 Player state change detected -> triggering global pulse
+[LOG] [GameEngine] 🔔 Pulse #22 emitted at 4:22:00 PM
+[LOG] [GameEngine] 👤 Player state change detected -> triggering global pulse
+[LOG] [GameEngine] 🔔 Pulse #23 emitted at 4:22:00 PM
+[LOG] [PlayerContext] 🏃 Starting movement: (19, 114) -> (21, 111). Path: 4 tiles. Cost: 3.8 AP.
+[LOG] [AudioManager] 🔄 Started gapless loop: "Footsteps"
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 23)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 23)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 23)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "crafting.wheel-1779744111104-094v8:wheel" (version: 23)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [PlayerContext] 💓 Heartbeat #23 - Stats: AP 6.5, HP 20
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [AudioManager] 🎵 One-shot played via WebAudio: "Zombie1"
+[LOG] [PlayerZombieTracker] Zombie zombie-crawler-1779744111031-19 newly spotted by player at (21, 111)
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [GameMap] Moving entity player-1 from (19, 114) to (21, 111)
+[LOG] [GameMap] Updating logical position for entity player-1 to (21, 111)
+[LOG] [GameContext] Player shifted from (19, 114) to (21, 111) - syncing ground items
+[LOG] [InventoryManager] 🔄 syncWithMap START: (19, 114) -> (21, 111)
+[LOG] [InventoryManager] ✅ VALID SAVE: Moving 1 items back to map tile (19, 114)
+[LOG] [GameMap] ✅ Entity added: ground-items-19-114 (item) at (19, 114)
+[LOG] [InventoryManager]     [0] Restored item: Tool Box (container.toolbox-1779744111106-nrzfm)
+[LOG] [InventoryManager]   -> Loading 3 items from tile (21, 111)
+[DEBUG] [Item] Created: Tool Box pocketLayout: null
+[DEBUG] [Item] Container initialization deferred (will be created on first access) container.toolbox-1779744111106-nrzfm
+[DEBUG] [Container] Found available position: {"x":0,"y":0} for item size: {"width":2,"height":2}
+[DEBUG] [Container] ✅ SUCCESS: Placed item: Tool Box at (0, 0) size: 2x2 instanceId: container.toolbox-1779744111106-nrzfm
+[DEBUG] [Container] Total items now: 1
+[DEBUG] [Container] Grid occupancy: Row 0: [0:containe 1:containe . . . .]
+Row 1: [0:containe 1:containe . . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+[LOG] [InventoryManager]     [0] ✅ Successfully added to ground container
+[DEBUG] [Item] Created: Apple pocketLayout: null
+[LOG] [InventoryManager]     [1] Restored item: Apple (food.apple-1779744111106-izaw9)
+[DEBUG] [Container] Found available position: {"x":2,"y":0} for item size: {"width":1,"height":1}
+[DEBUG] [Container] ✅ SUCCESS: Placed item: Apple at (2, 0) size: 1x1 instanceId: food.apple-1779744111106-izaw9
+[DEBUG] [Container] Total items now: 2
+[DEBUG] [Container] Grid occupancy: Row 0: [0:containe 1:containe 2:food.app . . .]
+Row 1: [0:containe 1:containe . . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+[LOG] [InventoryManager]     [1] ✅ Successfully added to ground container
+[DEBUG] [Item] Created: Stone pocketLayout: null
+[LOG] [InventoryManager]     [2] Restored item: Stone (crafting.stone-1779744111106-1q1iu)
+[DEBUG] [Container] Found available position: {"x":3,"y":0} for item size: {"width":1,"height":1}
+[DEBUG] [Container] ✅ SUCCESS: Placed item: Stone at (3, 0) size: 1x1 instanceId: crafting.stone-1779744111106-1q1iu
+[DEBUG] [Container] Total items now: 3
+[DEBUG] [Container] Grid occupancy: Row 0: [0:containe 1:containe 2:food.app 3:crafting . .]
+Row 1: [0:containe 1:containe . . . .]
+Row 2: [. . . . . .]
+Row 3: [. . . . . .]
+Row 4: [. . . . . .]
+Row 5: [. . . . . .]
+Row 6: [. . . . . .]
+Row 7: [. . . . . .]
+Row 8: [. . . . . .]
+Row 9: [. . . . . .]
+[LOG] [InventoryManager]     [2] ✅ Successfully added to ground container
+[LOG] [InventoryManager]   -> Items "Moved" from map to local container at (21, 111). Clearing map tile source.
+[LOG] [InventoryManager] 🔄 syncWithMap END: Ground container now has 3 items. Emitting change...
+[DEBUG] [InventoryContext] 🔄 Manager event -> Engine Pulse
+[LOG] [GameEngine] 🔔 Pulse #24 emitted at 4:22:01 PM
+[LOG] [GameMap] Adding entity player-1 to new tile (21, 111)
+[LOG] [GameMap] Entity player-1 movement completed successfully
+[LOG] [AudioManager] ⏹️ Stopped gapless loop: "Footsteps"
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 24)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 24)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 24)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "container.toolbox-1779744111106-nrzfm:toolbox,crafting.stone-1779744111106-1q1iu:stone,food.apple-1779744111106-izaw9:apple" (version: 24)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [UniversalGrid - ground] useEffect triggered. itemsKey: "container.toolbox-1779744111106-nrzfm:toolbox,crafting.stone-1779744111106-1q1iu:stone,food.apple-1779744111106-izaw9:apple"
+[LOG] [UniversalGrid - ground] changedOrMissingItems count: 3
+[LOG] [UniversalGrid - ground] Async load needed for item: Tool Box (toolbox)
+[LOG] [PlayerContext] 💓 Heartbeat #24 - Stats: AP 6.5, HP 20
+[LOG] [UniversalGrid - ground] Async load needed for item: Apple (apple)
+[LOG] [UniversalGrid - ground] Async load needed for item: Stone (stone)
+[LOG] [UniversalGrid - ground] Starting async fetch for 3 items. loadId: 3
+[LOG] [UniversalGrid - ground] Loading image for Tool Box (toolbox)...
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/toolbox.png
+[LOG] [UniversalGrid - ground] Successfully loaded image for Tool Box
+[LOG] [UniversalGrid - ground] Loading image for Apple (apple)...
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/apple.png
+[LOG] [UniversalGrid - ground] Successfully loaded image for Apple
+[LOG] [UniversalGrid - ground] Loading image for Stone (stone)...
+[LOG] [ImageLoader] Successfully loaded item image: http://localhost:5000/images/items/stone.png
+[LOG] [UniversalGrid - ground] Successfully loaded image for Stone
+[LOG] [UniversalGrid - ground] fetchImages completed. loadId check: 3 vs current 3
+[LOG] [UniversalGrid - ground] Updating state with async loaded images.
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [Camera] Zoom set to: 0.9090909090909091 viewport now: 19.700000000000003 x 15.766666666666667
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [Camera] Zoom set to: 0.8264462809917354 viewport now: 21.670000000000005 x 17.343333333333337
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [Camera] Zoom set to: 0.7513148009015777 viewport now: 23.837000000000003 x 19.07766666666667
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [DevConsole] ⚡ ACTIVATING GOD MODE (AP: 1000/1000)
+[LOG] [GameEngine] 👤 Player state change detected -> triggering global pulse
+[LOG] [GameEngine] 🔔 Pulse #26 emitted at 4:22:07 PM
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [GameEngine] 🔔 Pulse #25 emitted at 4:22:07 PM
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====
+[LOG] [UniversalGrid - clothing.pocket_t-1779744111007-ute8c-pocket-1] Calculated itemsKey: "" (version: 26)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-1] Calculated itemsKey: "" (version: 26)
+[LOG] [UniversalGrid - clothing.sweatpants-1779744111009-ml12g-pocket-2] Calculated itemsKey: "" (version: 26)
+[LOG] [UniversalGrid - ground] Calculated itemsKey: "container.toolbox-1779744111106-nrzfm:toolbox,crafting.stone-1779744111106-1q1iu:stone,food.apple-1779744111106-izaw9:apple" (version: 26)
+[LOG] [MapInterface] Sync: FOV update. Light: false, Range: 8, TargetScope: false, NVG: false
+[LOG] [PlayerContext] 💓 Heartbeat #26 - Stats: AP 1000, HP 20
+[LOG] [MapCanvas] Preloading 8 item imageIds: ["harvestablecarrot","exit","ground_pile","waterpuddle","bed","electricmower","electricscooter","generator"]
+[LOG] [MapCanvas] Preloading 2 zombie subtypes: ["crawler","runner"]
+[LOG] [MapInterface] Frame: AnimZ=false, Sleeping=false, Flashlight=false
+[LOG] [InventoryPanel] ===== COMPONENT MOUNT/RENDER =====
+[DEBUG] [UnifiedClothingPanel] ===== COMPONENT MOUNT/RENDER =====

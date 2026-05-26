@@ -16,10 +16,8 @@ class TurnManager {
    * Immediately stop any current turn playback.
    */
   cancelPlayback() {
-    if (this.isProcessing) {
-      console.log('[TurnManager] 🛑 Cancellation requested - stopping playback loop');
-      this.shouldCancel = true;
-    }
+    console.log('[TurnManager] 🛑 Cancellation requested - stopping playback loop');
+    this.shouldCancel = true;
   }
 
   /**

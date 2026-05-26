@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useSyncExternalStore } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useSyncExternalStore, useRef } from 'react';
 import { ItemTrait, FireMode, ItemCategory } from '../game/inventory/traits.js';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
@@ -61,6 +61,12 @@ export const useInventory = () => {
 
 export const InventoryProvider = ({ children }) => {
   const [openContainers, setOpenContainers] = useState(new Set());
+  const openContainersRef = useRef(openContainers);
+  
+  useEffect(() => {
+    openContainersRef.current = openContainers;
+  }, [openContainers]);
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedRecipeId, setSelectedRecipeId] = useState(CraftingRecipes[0]?.id || null);
 
@@ -74,13 +80,11 @@ export const InventoryProvider = ({ children }) => {
   );
   // Phase 12 Fix: Ensure ground container is synced on full sync/load
   // AND Bridge manager events to the engine heartbeat
+  // Phase 12 Fix: Ensure ground container is synced on full sync/load
   useEffect(() => {
     const manager = engine.inventoryManager;
     if (!manager) return;
 
-    // Phase 12 & 28 Fix: Ensure ground container is synced on full sync/load
-    // AND Bridge manager events to the engine heartbeat.
-    // CRITICAL: We use logicalX/Y to avoid jumping during animation.
     if (engine.player && engine.gameMap) {
       manager.syncWithMap(
         engine.player.logicalX, engine.player.logicalY,
@@ -88,20 +92,53 @@ export const InventoryProvider = ({ children }) => {
         engine.gameMap
       );
     }
+  }, [inventoryPulse]);
+
+  // Phase 28 Fix: Bridge manager events to the engine heartbeat and prevent re-subscription loops.
+  // We listen to the engine's 'sync' event to ensure that if the inventoryManager instance is replaced
+  // (e.g. during map initialization or save loading), we re-register our listener on the new instance.
+  useEffect(() => {
+    let currentManager = engine.inventoryManager;
 
     const handleManagerUpdate = () => {
         logger.debug('🔄 Manager event -> Engine Pulse');
         engine.notifyUpdate();
     };
 
-    manager.on('inventoryChanged', handleManagerUpdate);
-    return () => manager.off('inventoryChanged', handleManagerUpdate);
-  }, [inventoryPulse]); // Still depend on pulse to catch loads/transitions, but syncWithMap is now guarded.
+    const registerOnManager = (manager) => {
+      if (currentManager) {
+        currentManager.off('inventoryChanged', handleManagerUpdate);
+      }
+      currentManager = manager;
+      if (currentManager) {
+        currentManager.on('inventoryChanged', handleManagerUpdate);
+        logger.debug('Registered inventoryChanged listener on manager');
+      }
+    };
+
+    // Register on the current manager immediately
+    registerOnManager(engine.inventoryManager);
+
+    // Listen to sync event to re-register on new manager
+    const handleSync = (updatedEngine) => {
+      logger.debug('Engine sync event -> re-registering inventoryChanged listener');
+      registerOnManager(updatedEngine.inventoryManager);
+    };
+
+    engine.on('sync', handleSync);
+
+    return () => {
+      engine.off('sync', handleSync);
+      if (currentManager) {
+        currentManager.off('inventoryChanged', handleManagerUpdate);
+      }
+    };
+  }, []);
 
   // Phase 18 Fix: Auto-close all floating containers when player moves
   useEffect(() => {
     const handlePlayerMove = () => {
-        if (openContainers.size > 0) {
+        if (openContainersRef.current.size > 0) {
             logger.debug('Player moving - auto-closing all floating containers');
             setOpenContainers(new Set());
         }
@@ -109,7 +146,7 @@ export const InventoryProvider = ({ children }) => {
 
     GameEvents.on(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
     return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE, handlePlayerMove);
-  }, [openContainers.size]);
+  }, []);
 
   const getContainer = useCallback((id) => engine.inventoryManager?.getContainer(id), [inventoryPulse]);
   const getEquippedBackpackContainer = useCallback(() => engine.inventoryManager?.getBackpackContainer(), [inventoryPulse]);
@@ -283,7 +320,10 @@ export const InventoryProvider = ({ children }) => {
         tileX: itemPos.x,
         tileY: itemPos.y
       };
-      if (engine.inventoryManager) engine.inventoryManager.ridingItem = item;
+      if (engine.inventoryManager) {
+        engine.inventoryManager.ridingItem = item;
+        engine.inventoryManager.sortGroundItems();
+      }
     } else {
       engine.dragging = {
         item,
@@ -384,7 +424,7 @@ export const InventoryProvider = ({ children }) => {
   }, [selectedItem]);
 
   const placeSelected = useCallback((targetId, x, y) => {
-    if (!checkPlayerTurn()) return { success: false };
+    if (!checkPlayerTurn().success) return { success: false };
     if (!selectedItem || !engine.inventoryManager) return { success: false };
     const { item, originContainerId, rotation } = selectedItem;
     
@@ -1306,107 +1346,119 @@ export const InventoryProvider = ({ children }) => {
       }
     }
 
+    // Rollback helper for single bottle if any failure/early return occurs
+    const rollback = () => {
+      if (!wasSplit) {
+        const container = engine.inventoryManager.getContainer(originContainerId);
+        if (container) {
+          container.placeItemAt(activeBottle, originX, originY);
+        } else {
+          engine.inventoryManager.addItem(activeBottle, 'ground', null, null, true);
+        }
+      }
+    };
+
     // Apply rotation if provided (from selection state)
     if (rotation !== null) {
       activeBottle.rotation = rotation;
     }
 
-    // 3. Fill logic
-    const isPuddleSource = 
-      source.defId?.includes('puddle') || 
-      source.defId?.startsWith('environment.') ||
-      (source.hasCategory && source.hasCategory(ItemCategory.ENVIRONMENT));
-    
-    const isRainCollector = source.hasTrait?.(ItemTrait.WATER_SOURCE) && source.defId?.includes('collector');
-    const sourceName = source.name || (isPuddleSource ? 'puddle' : 'rain collector');
+    try {
+      // 3. Fill logic
+      const isPuddleSource = 
+        source.defId?.includes('puddle') || 
+        source.defId?.startsWith('environment.') ||
+        (source.hasCategory && source.hasCategory(ItemCategory.ENVIRONMENT));
+      
+      const isRainCollector = source.hasTrait?.(ItemTrait.WATER_SOURCE) && source.defId?.includes('collector');
+      const sourceName = source.name || (isPuddleSource ? 'puddle' : 'rain collector');
 
-    const space = activeBottle.capacity - activeBottle.ammoCount;
-    const transfer = Math.min(space, source.ammoCount);
-    
-    if (transfer <= 0) {
-      // Phase 30 Fix: Even if no transfer occurred (e.g. bottle full), 
-      // still trigger cleanup if the puddle is already empty.
-      if (isPuddleSource && source.ammoCount <= 0.01) {
-        console.log(`[InventoryContext] Puddle cleanup triggered for empty source: ${source.instanceId}`);
-        if (source._container) {
-          source._container.removeItem(source.instanceId);
-        } else {
-          engine.inventoryManager.destroyItem(source.instanceId);
+      const space = activeBottle.capacity - activeBottle.ammoCount;
+      const transfer = Math.min(space, source.ammoCount);
+      
+      if (transfer <= 0) {
+        // Phase 30 Fix: Even if no transfer occurred (e.g. bottle full), 
+        // still trigger cleanup if the puddle is already empty.
+        if (isPuddleSource && source.ammoCount <= 0.01) {
+          console.log(`[InventoryContext] Puddle cleanup triggered for empty source: ${source.instanceId}`);
+          if (source._container) {
+            source._container.removeItem(source.instanceId);
+          } else {
+            engine.inventoryManager.destroyItem(source.instanceId);
+          }
+          addLog(`The ${sourceName} is empty and has vanished.`, 'info');
+          rollback();
+          return;
         }
-        addLog(`The ${sourceName} is empty and has vanished.`, 'info');
-        // Return bottle if not split
-        if (!wasSplit) {
-          engine.inventoryManager.addItem(activeBottle, originContainerId, originX, originY, true);
-        }
+
+        addLog(`${activeBottle.name} is already full or ${sourceName} is empty.`, 'error');
+        rollback();
         return;
       }
 
-      addLog(`${activeBottle.name} is already full or ${sourceName} is empty.`, 'error');
-      // If we removed a single bottle, we must put it back!
-      if (!wasSplit) {
-        engine.inventoryManager.addItem(activeBottle, originContainerId, originX, originY, true);
-      }
-      return;
-    }
+      activeBottle.ammoCount += transfer;
+      activeBottle.waterQuality = 'dirty';
+      source.ammoCount -= transfer;
 
-    activeBottle.ammoCount += transfer;
-    activeBottle.waterQuality = 'dirty';
-    source.ammoCount -= transfer;
+      addLog(`You fill the ${activeBottle.name} with dirty water from the ${sourceName}.`, 'item');
+      playSound('FillBottle'); 
 
-    addLog(`You fill the ${activeBottle.name} with dirty water from the ${sourceName}.`, 'item');
-    playSound('FillBottle'); 
-
-    // 4. Update source size/existence
-    if (isPuddleSource && source.hasTrait?.(ItemTrait.WATER_SOURCE)) {
-      if (source.ammoCount <= 0.01) {
-        console.log(`[InventoryContext] Puddle drained, destroying: ${source.instanceId}`);
-        if (source._container) {
-          source._container.removeItem(source.instanceId);
+      // 4. Update source size/existence
+      if (isPuddleSource && source.hasTrait?.(ItemTrait.WATER_SOURCE)) {
+        if (source.ammoCount <= 0.01) {
+          console.log(`[InventoryContext] Puddle drained, destroying: ${source.instanceId}`);
+          if (source._container) {
+            source._container.removeItem(source.instanceId);
+          } else {
+            engine.inventoryManager.destroyItem(source.instanceId);
+          }
+          addLog('The puddle has been drained.', 'info');
         } else {
-          engine.inventoryManager.destroyItem(source.instanceId);
+          // Reposition to update footprint (size changes based on water level)
+          const ground = engine.inventoryManager.groundContainer;
+          ground.updateItemFootprint(source);
         }
-        addLog('The puddle has been drained.', 'info');
-      } else {
-        // Reposition to update footprint (size changes based on water level)
-        const ground = engine.inventoryManager.groundContainer;
-        ground.updateItemFootprint(source);
       }
-    }
 
-    // 5. Stacking / Placement
-    // Priority: If it came from the ground, try to put it in the inventory first.
-    // If it came from the inventory, try to put it back exactly where it was.
-    const preferredContainer = originContainerId === 'ground' ? null : originContainerId;
-    
-    const stackResult = engine.inventoryManager.addItem(activeBottle, preferredContainer, originX, originY, true);
-    
-    if (stackResult.success) {
-      if (wasSplit) {
-        bottle.stackCount -= 1; // Atomic decrement on success
-      }
+      // 5. Stacking / Placement
+      // Priority: If it came from the ground, try to put it in the inventory first.
+      // If it came from the inventory, try to put it back exactly where it was.
+      const preferredContainer = originContainerId === 'ground' ? null : originContainerId;
       
-      if (stackResult.merged) {
-        addLog(`Merged ${activeBottle.name} into existing supplies.`, 'info');
+      const stackResult = engine.inventoryManager.addItem(activeBottle, preferredContainer, originX, originY, true);
+      
+      if (stackResult.success) {
+        if (wasSplit) {
+          bottle.stackCount -= 1; // Atomic decrement on success
+        }
+        
+        if (stackResult.merged) {
+          addLog(`Merged ${activeBottle.name} into existing supplies.`, 'info');
+        } else {
+          addLog(`Stored ${activeBottle.name} in ${stackResult.container}.`, 'info');
+        }
       } else {
-        addLog(`Stored ${activeBottle.name} in ${stackResult.container}.`, 'info');
+        // Emergency: If it failed to find a spot in the preferred container or any other inventory slot
+        if (wasSplit) {
+          // If it was a split, we just cancel the fill because there's no room
+          addLog('No room in inventory to store the filled bottle!', 'error');
+          // We don't decrement the original stack.
+        } else {
+          // If it was a single bottle, we already removed it from its home!
+          // We must drop it to the ground.
+          engine.inventoryManager.addItem(activeBottle, 'ground', null, null, true);
+          addLog('Inventory full! The filled bottle was placed on the ground.', 'warning');
+        }
       }
-    } else {
-      // Emergency: If it failed to find a spot in the preferred container or any other inventory slot
-      if (wasSplit) {
-        // If it was a split, we just cancel the fill because there's no room
-        addLog('No room in inventory to store the filled bottle!', 'error');
-        // We don't decrement the original stack.
-      } else {
-        // If it was a single bottle, we already removed it from its home!
-        // We must drop it to the ground.
-        engine.inventoryManager.addItem(activeBottle, 'ground', null, null, true);
-        addLog('Inventory full! The filled bottle was placed on the ground.', 'warning');
-      }
-    }
 
-    // 6. AP Consumption
-    engine.player.useAP(1);
-    engine.notifyUpdate();
+      // 6. AP Consumption
+      engine.player.useAP(1);
+      engine.notifyUpdate();
+    } catch (error) {
+      console.error('[InventoryContext] fillFromSource failed, executing rollback:', error);
+      rollback();
+      throw error;
+    }
   }, [addLog, playSound, inventoryPulse]);
 
   const toggleFireMode = useCallback((item) => {

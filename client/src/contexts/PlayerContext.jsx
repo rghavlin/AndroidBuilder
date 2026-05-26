@@ -59,6 +59,16 @@ export const PlayerProvider = ({ children }) => {
   const initializedRef = useRef(false);
   
   const [isMoving, setIsMoving] = useState(false);
+  const animationCleanupRef = useRef(null);
+
+  // Clean up animation loop on component unmount
+  useEffect(() => {
+    return () => {
+      if (animationCleanupRef.current) {
+        animationCleanupRef.current();
+      }
+    };
+  }, []);
   const isMovingRef = useRef(false);
   const [movementPath, setMovementPath] = useState([]);
   const [movementProgress, setMovementProgress] = useState(0);
@@ -313,14 +323,12 @@ export const PlayerProvider = ({ children }) => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [updatePlayerFieldOfView, updatePlayerCardinalPositions]);
 
-  const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8, isNightVision = false) => {
+  const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8, isNightVision = false, onComplete = null) => {
     if (!engine.player || !gameMap || !camera) return;
     if (isMovingRef.current) {
         console.debug('[PlayerContext] Rejecting movement: already moving');
         return;
     }
-    
-    
     
     engine.player.useAP(cost);
 
@@ -357,15 +365,26 @@ export const PlayerProvider = ({ children }) => {
     camera.centerOn(path[0].x, path[0].y);
     console.log(`[PlayerContext] 🏃 Starting movement: (${path[0].x}, ${path[0].y}) -> (${path[path.length-1].x}, ${path[path.length-1].y}). Path: ${path.length} tiles. Cost: ${cost} AP.`);
     GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
-    smoothAnimateMovement(gameMap, camera, path, performance.now(), 1500, isNight, isFlashlightOn, flashlightRange, null, isNightVision);
+
+    if (animationCleanupRef.current) {
+      animationCleanupRef.current();
+    }
+
+    animationCleanupRef.current = smoothAnimateMovement(
+      gameMap, camera, path, performance.now(), 1500, 
+      isNight, isFlashlightOn, flashlightRange, 
+      () => {
+        animationCleanupRef.current = null;
+        if (onComplete) onComplete();
+      }, 
+      isNightVision
+    );
   }, [smoothAnimateMovement]);
 
   const startAnimatedMovementAsync = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8, isNightVision = false) => {
     return new Promise((resolve) => {
       if (!engine.player) { resolve(); return; }
-      startAnimatedMovement(gameMap, camera, path, cost, isNight, isFlashlightOn, flashlightRange, isNightVision);
-      // approximation for async completion
-      setTimeout(resolve, 1600); 
+      startAnimatedMovement(gameMap, camera, path, cost, isNight, isFlashlightOn, flashlightRange, isNightVision, resolve);
     });
   }, [startAnimatedMovement]);
 

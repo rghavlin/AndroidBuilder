@@ -293,8 +293,7 @@ export function ItemContextMenu({
                                  // Note: useGame might not be available here, but we can check item._containerId if it exists
                                  // or assume if it's furniture it's likely on ground
                                  if (item.hasTrait?.(ItemTrait.FURNITURE)) {
-                                     const { inventoryManager } = (window as any).gameEngine || {};
-                                     container = inventoryManager?.getContainer('ground');
+                                     container = engine.inventoryManager?.getContainer('ground');
                                  }
                              }
                              

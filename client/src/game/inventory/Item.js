@@ -10,7 +10,7 @@ import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
  */
 export class Item extends SafeEventEmitter {
   constructor(config = {}) {
-    const {
+    let {
       instanceId, // Unique runtime ID for this specific item instance (e.g., 'item-12345')
       defId,      // The template ID from ItemDefs (e.g., 'tool.battery')
       subtype = null,

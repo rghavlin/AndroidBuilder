@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import GridSlot from "./GridSlot";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
@@ -70,7 +70,16 @@ export default function UniversalGrid({
   const { addLog } = useLog();
   const { setMapTransition } = useGameMap();
   const [itemImages, setItemImages] = useState<Map<string, { src: string, imageId: string }>>(new Map());
+  const itemImagesRef = useRef<Map<string, { src: string, imageId: string }>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
+  // Sync ref with state
+  useEffect(() => {
+    itemImagesRef.current = itemImages;
+  }, [itemImages]);
+
+  // Request sequence ID to prevent stale updates
+  const activeLoadIdRef = useRef(0);
   const [previewOverlay, setPreviewOverlay] = useState<any>(null);
   const [lastGridPos, setLastGridPos] = useState<{x: number, y: number} | null>(null);
 
@@ -111,50 +120,107 @@ export default function UniversalGrid({
     }
   }, [selectedItem?.rotation, lastGridPos, containerId, getPlacementPreview]);
 
-  // Load item images when inventory changes (using inventoryVersion for stable dependency)
+  // Stable key representing items in the container. Changes ONLY when items are added, removed, or changed.
+  const itemsKey = useMemo(() => {
+    const itemsToProcess = items instanceof Map ? items : new Map(Object.entries(items || {}));
+    const itemsArray = Array.from(itemsToProcess.entries()).map(([instanceId, item]: [string, any]) => {
+      const imageId = item.imageId || item.defId;
+      return `${instanceId}:${imageId}`;
+    });
+    const key = itemsArray.sort().join(',');
+    console.log(`[UniversalGrid - ${containerId}] Calculated itemsKey: "${key}" (version: ${inventoryVersion})`);
+    return key;
+  }, [items, inventoryVersion, containerId]);
+
+  // Load item images when inventory changes (using itemsKey for stable dependency)
   useEffect(() => {
-    let isMounted = true;
-    const loadImages = async () => {
-      const itemsToProcess = items instanceof Map ? items : new Map(Object.entries(items || {}));
-      
-      // Filter out items already in the state map to avoid redundant work, unless their imageId has changed
-      const changedOrMissingItems = Array.from(itemsToProcess.entries()).filter(([instanceId, item]) => {
-        const imageId = item.imageId || item.defId;
-        const entry = itemImages.get(instanceId);
-        return !entry || entry.imageId !== imageId;
-      });
-      
-      if (changedOrMissingItems.length === 0) return;
+    console.log(`[UniversalGrid - ${containerId}] useEffect triggered. itemsKey: "${itemsKey}"`);
+    const itemsToProcess = items instanceof Map ? items : new Map(Object.entries(items || {}));
+    const currentImages = itemImagesRef.current;
+    
+    // Filter out items already in the state map to avoid redundant work, unless their imageId has changed
+    const changedOrMissingItems = Array.from(itemsToProcess.entries()).filter(([instanceId, item]) => {
+      const imageId = item.imageId || item.defId;
+      const entry = currentImages.get(instanceId);
+      return !entry || entry.imageId !== imageId;
+    });
+    
+    console.log(`[UniversalGrid - ${containerId}] changedOrMissingItems count: ${changedOrMissingItems.length}`);
+    if (changedOrMissingItems.length === 0) return;
 
-      const imageMap = new Map(itemImages);
-      let changed = false;
+    const imageMap = new Map(currentImages);
+    let changed = false;
+    const asyncFetchQueue: Array<{ instanceId: string, imageId: string, name: string }> = [];
 
-      for (const [instanceId, item] of changedOrMissingItems) {
-        try {
-          const imageId = item.imageId || item.defId;
-          const img = await imageLoader.getItemImage(imageId);
-          if (img && isMounted) {
-            imageMap.set(instanceId, { src: img.src, imageId });
-          } else if (isMounted) {
-            imageMap.set(instanceId, { src: 'failed', imageId });
-          }
-          changed = true;
-        } catch (error) {
-          console.warn('[UniversalGrid] Failed to load image for item:', item.name, error);
-          if (isMounted) {
-            imageMap.set(instanceId, { src: 'failed', imageId });
-            changed = true;
+    // Synchronously resolve already cached images first to avoid layout shifts or lag
+    for (const [instanceId, item] of changedOrMissingItems) {
+      const imageId = item.imageId || item.defId;
+      const cachedSrc = imageLoader.getCachedItemSrc(imageId);
+      if (cachedSrc) {
+        console.log(`[UniversalGrid - ${containerId}] Synced cache hit for item: ${item.name} (${imageId})`);
+        imageMap.set(instanceId, { src: cachedSrc, imageId });
+        changed = true;
+      } else {
+        console.log(`[UniversalGrid - ${containerId}] Async load needed for item: ${item.name} (${imageId})`);
+        asyncFetchQueue.push({ instanceId, imageId, name: item.name });
+      }
+    }
+
+    // If we only have synchronously resolved images, update state/ref and exit
+    if (changed && asyncFetchQueue.length === 0) {
+      console.log(`[UniversalGrid - ${containerId}] Only cached images resolved. Updating state.`);
+      setItemImages(imageMap);
+      itemImagesRef.current = imageMap;
+      return;
+    }
+
+    // If we have new images to fetch, load them asynchronously in a race-safe manner
+    if (asyncFetchQueue.length > 0) {
+      const loadId = ++activeLoadIdRef.current;
+      console.log(`[UniversalGrid - ${containerId}] Starting async fetch for ${asyncFetchQueue.length} items. loadId: ${loadId}`);
+      
+      const fetchImages = async () => {
+        let asyncChanged = false;
+        const asyncMap = new Map(imageMap);
+
+        for (const { instanceId, imageId, name } of asyncFetchQueue) {
+          try {
+            console.log(`[UniversalGrid - ${containerId}] Loading image for ${name} (${imageId})...`);
+            const img = await imageLoader.getItemImage(imageId);
+            if (img) {
+              console.log(`[UniversalGrid - ${containerId}] Successfully loaded image for ${name}`);
+              asyncMap.set(instanceId, { src: img.src, imageId });
+            } else {
+              console.warn(`[UniversalGrid - ${containerId}] No image returned for ${name}`);
+              asyncMap.set(instanceId, { src: 'failed', imageId });
+            }
+            asyncChanged = true;
+          } catch (error) {
+            console.warn('[UniversalGrid] Failed to load image for item:', name, error);
+            asyncMap.set(instanceId, { src: 'failed', imageId });
+            asyncChanged = true;
           }
         }
-      }
-      
-      if (changed && isMounted) {
+
+        console.log(`[UniversalGrid - ${containerId}] fetchImages completed. loadId check: ${loadId} vs current ${activeLoadIdRef.current}`);
+        if (asyncChanged && loadId === activeLoadIdRef.current) {
+          console.log(`[UniversalGrid - ${containerId}] Updating state with async loaded images.`);
+          setItemImages(asyncMap);
+          itemImagesRef.current = asyncMap;
+        } else {
+          console.log(`[UniversalGrid - ${containerId}] Discarded async result (loadId mismatch or no change).`);
+        }
+      };
+
+      // Update state with any synchronous progress we made so far
+      if (changed) {
         setItemImages(imageMap);
+        itemImagesRef.current = imageMap;
       }
-    };
-    loadImages();
-    return () => { isMounted = false; };
-  }, [items, inventoryVersion, itemImages]);
+
+      fetchImages();
+    }
+  }, [itemsKey]);
 
 
   const handleItemClick = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
@@ -421,8 +487,7 @@ export default function UniversalGrid({
       // Specialized Action 1: Weapon Loading / Attachment
       const isWeapon = (item?.hasCategory && item?.hasCategory(ItemCategory.WEAPON)) || (item?.attachmentSlots && item.attachmentSlots.length > 0);
       if (item && isWeapon) {
-        const directLoadDefs = ['weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'];
-        const isDirectLoadGun = directLoadDefs.includes(item.defId);
+        const isDirectLoadGun = item.defId.startsWith('weapon.');
         const isAmmoSelected = selectedItem?.item?.hasCategory?.(ItemCategory.AMMO) ?? false;
 
         if (isDirectLoadGun && isAmmoSelected) {
@@ -958,7 +1023,7 @@ export default function UniversalGrid({
     });
 
     return result;
-  }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick, inventoryVersion]);
+  }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick, inventoryVersion, hoveredItem]);
 
   if (gridType === 'scalable' && !isCalculated) {
     return (

@@ -7,6 +7,8 @@ import { ItemTrait } from '../inventory/traits.js';
  * Implementation based on a moderate climate (rain every 3-5 days)
  */
 export class WeatherManager {
+  static DEBUG = false;
+
   constructor(engine) {
     this.engine = engine;
     this.isRaining = false;
@@ -29,11 +31,13 @@ export class WeatherManager {
   update(turn) {
     const currentTurn = Number(turn);
     
-    // Phase 25 Safety: Ensure nextEventTurn isn't stuck in the far future (e.g. from old save data)
-    if (!this.isRaining && this.nextEventTurn > currentTurn + this.RAIN_INTERVAL_MAX) {
+    // Phase 25 Safety: Ensure nextEventTurn isn't stuck in the far future, or 0/null (e.g. from old save data)
+    if (!this.isRaining && (this.nextEventTurn <= 0 || !this.nextEventTurn || this.nextEventTurn > currentTurn + this.RAIN_INTERVAL_MAX)) {
       const oldEventTurn = this.nextEventTurn;
       this.nextEventTurn = currentTurn + Math.floor(this.RAIN_INTERVAL_MIN + Math.random() * (this.RAIN_INTERVAL_MAX - this.RAIN_INTERVAL_MIN));
-      console.log(`[WeatherManager] 🛠️ Safety Reset: nextEventTurn was ${oldEventTurn}, reset to ${this.nextEventTurn} (Turn: ${currentTurn})`);
+      if (WeatherManager.DEBUG) {
+        console.log(`[WeatherManager] 🛠️ Safety Reset: nextEventTurn was ${oldEventTurn}, reset to ${this.nextEventTurn} (Turn: ${currentTurn})`);
+      }
     }
 
     if (!this.isRaining) {
@@ -44,7 +48,9 @@ export class WeatherManager {
         this.updatePuddles();
       } else if (currentTurn % 10 === 0) {
           // Log every 10 turns for debugging
-          console.log(`[WeatherManager] Status: Clear | Turn: ${currentTurn} | Next Rain: ${this.nextEventTurn}`);
+          if (WeatherManager.DEBUG) {
+            console.log(`[WeatherManager] Status: Clear | Turn: ${currentTurn} | Next Rain: ${this.nextEventTurn}`);
+          }
       }
     } else {
       // Process ongoing rain
@@ -88,7 +94,9 @@ export class WeatherManager {
         if (existingPuddle) {
           if (existingPuddle.ammoCount < 50) {
             existingPuddle.ammoCount = Math.min(50, (existingPuddle.ammoCount || 0) + amount);
-            console.log(`[WeatherManager] Puddle on player tile (${spot.x}, ${spot.y}) filled to ${existingPuddle.ammoCount}`);
+            if (WeatherManager.DEBUG) {
+              console.log(`[WeatherManager] Puddle on player tile (${spot.x}, ${spot.y}) filled to ${existingPuddle.ammoCount}`);
+            }
             inv.emit('inventoryChanged');
           }
         } else {
@@ -98,7 +106,9 @@ export class WeatherManager {
             const puddle = Item.fromJSON(puddleData);
             puddle.ammoCount = 10;
             inv.groundContainer.addItem(puddle);
-            console.log(`[WeatherManager] New puddle spawned on player tile (${spot.x}, ${spot.y})`);
+            if (WeatherManager.DEBUG) {
+              console.log(`[WeatherManager] New puddle spawned on player tile (${spot.x}, ${spot.y})`);
+            }
             inv.emit('inventoryChanged');
           }
         }
@@ -112,7 +122,9 @@ export class WeatherManager {
       if (existingPuddle) {
         if (existingPuddle.ammoCount < 50) {
           existingPuddle.ammoCount = Math.min(50, existingPuddle.ammoCount + amount);
-          console.log(`[WeatherManager] Puddle at (${spot.x}, ${spot.y}) filled to ${existingPuddle.ammoCount}`);
+          if (WeatherManager.DEBUG) {
+            console.log(`[WeatherManager] Puddle at (${spot.x}, ${spot.y}) filled to ${existingPuddle.ammoCount}`);
+          }
           // Re-set items to trigger updates/events
           map.setItemsOnTile(spot.x, spot.y, items);
         }
@@ -123,7 +135,9 @@ export class WeatherManager {
           puddle.ammoCount = 10;
           items.push(puddle);
           map.setItemsOnTile(spot.x, spot.y, items);
-          console.log(`[WeatherManager] New puddle spawned at (${spot.x}, ${spot.y}) due to rain.`);
+          if (WeatherManager.DEBUG) {
+            console.log(`[WeatherManager] New puddle spawned at (${spot.x}, ${spot.y}) due to rain.`);
+          }
         }
       }
     });
@@ -162,7 +176,9 @@ export class WeatherManager {
             itemData.ammoCount = Math.min(maxCapacity, currentAmmo + amount);
             itemData.waterQuality = 'dirty';
             modified = true;
-            console.log(`[WeatherManager] Filled rain collector: ${itemData.instanceId || itemData.defId} to ${itemData.ammoCount}`);
+            if (WeatherManager.DEBUG) {
+              console.log(`[WeatherManager] Filled rain collector: ${itemData.instanceId || itemData.defId} to ${itemData.ammoCount}`);
+            }
           }
         }
       }
@@ -191,37 +207,51 @@ export class WeatherManager {
       return modified;
     };
 
-    // 1. Process all tiles on the map for ground-placed collectors and wagons
-    for (let y = 0; y < map.height; y++) {
-      for (let x = 0; x < map.width; x++) {
-        const isPlayerTile = (invManager.lastSyncedX === x && invManager.lastSyncedY === y);
-        
-        let items;
-        if (isPlayerTile) {
-          items = invManager.groundContainer.getAllItems();
-        } else {
-          items = map.getItemsOnTile(x, y);
+    // 1. Process all tiles containing ground items + the player's tile
+    const targets = new Map();
+    if (typeof invManager.lastSyncedX === 'number' && typeof invManager.lastSyncedY === 'number') {
+      targets.set(`${invManager.lastSyncedX},${invManager.lastSyncedY}`, {
+        x: invManager.lastSyncedX,
+        y: invManager.lastSyncedY
+      });
+    }
+
+    for (const entity of map.entityMap.values()) {
+      if (entity.isProxy) {
+        const tx = entity.logicalX !== undefined ? entity.logicalX : entity.x;
+        const ty = entity.logicalY !== undefined ? entity.logicalY : entity.y;
+        targets.set(`${tx},${ty}`, { x: tx, y: ty });
+      }
+    }
+
+    for (const { x, y } of targets.values()) {
+      const isPlayerTile = (invManager.lastSyncedX === x && invManager.lastSyncedY === y);
+      
+      let items;
+      if (isPlayerTile) {
+        items = invManager.groundContainer.getAllItems();
+      } else {
+        items = map.getItemsOnTile(x, y);
+      }
+      
+      if (!items || items.length === 0) continue;
+
+      let tileModified = false;
+      const tile = map.getTile(x, y);
+      const isExposed = tile && tile.terrain !== 'floor' && tile.terrain !== 'building';
+
+      items.forEach(itemData => {
+        if (processItemData(itemData, isExposed)) { 
+          tileModified = true;
         }
-        
-        if (!items || items.length === 0) continue;
+      });
 
-        let tileModified = false;
-        const tile = map.getTile(x, y);
-        const isExposed = tile && tile.terrain !== 'floor' && tile.terrain !== 'building';
-
-        items.forEach(itemData => {
-          if (processItemData(itemData, isExposed)) { 
-            tileModified = true;
-          }
-        });
-
-        if (tileModified) {
-          if (isPlayerTile) {
-            // Signal UI refresh for live container
-            invManager.emit('inventoryChanged');
-          } else {
-            map.setItemsOnTile(x, y, items);
-          }
+      if (tileModified) {
+        if (isPlayerTile) {
+          // Signal UI refresh for live container
+          invManager.emit('inventoryChanged');
+        } else {
+          map.setItemsOnTile(x, y, items);
         }
       }
     }
@@ -252,25 +282,33 @@ export class WeatherManager {
    * Start a new rain event
    */
   startRain(turn) {
-    console.log(`[WeatherManager] 🌦️ Rain starting at turn ${turn}`);
+    if (WeatherManager.DEBUG) {
+      console.log(`[WeatherManager] 🌦️ Rain starting at turn ${turn}`);
+    }
     this.isRaining = true;
     this.durationRemaining = Math.floor(this.RAIN_DURATION_MIN + Math.random() * (this.RAIN_DURATION_MAX - this.RAIN_DURATION_MIN + 1));
     this.intensity = 0.2 + Math.random() * 0.6; // Start with moderate intensity [0.2, 0.8]
-    console.log(`[WeatherManager] - Duration: ${this.durationRemaining} turns, Initial Intensity: ${this.intensity.toFixed(2)}`);
+    if (WeatherManager.DEBUG) {
+      console.log(`[WeatherManager] - Duration: ${this.durationRemaining} turns, Initial Intensity: ${this.intensity.toFixed(2)}`);
+    }
   }
 
   /**
    * Stop current rain event and schedule next one
    */
   stopRain(turn) {
-    console.log(`[WeatherManager] ☀️ Rain stopping at turn ${turn}`);
+    if (WeatherManager.DEBUG) {
+      console.log(`[WeatherManager] ☀️ Rain stopping at turn ${turn}`);
+    }
     this.isRaining = false;
     this.intensity = 0;
     
     // Schedule next rain event (3-5 days from now)
     const interval = Math.floor(this.RAIN_INTERVAL_MIN + Math.random() * (this.RAIN_INTERVAL_MAX - this.RAIN_INTERVAL_MIN + 1));
     this.nextEventTurn = turn + interval;
-    console.log(`[WeatherManager] - Next rain event scheduled for turn: ${this.nextEventTurn}`);
+    if (WeatherManager.DEBUG) {
+      console.log(`[WeatherManager] - Next rain event scheduled for turn: ${this.nextEventTurn}`);
+    }
   }
 
   /**
@@ -279,7 +317,9 @@ export class WeatherManager {
   varyIntensity() {
     const change = (Math.random() * 2 - 1) * this.INTENSITY_CHANGE_MAX;
     this.intensity = Math.max(0.1, Math.min(1.0, this.intensity + change));
-    console.log(`[WeatherManager] - Intensity varied to: ${this.intensity.toFixed(2)}`);
+    if (WeatherManager.DEBUG) {
+      console.log(`[WeatherManager] - Intensity varied to: ${this.intensity.toFixed(2)}`);
+    }
   }
 
   /**

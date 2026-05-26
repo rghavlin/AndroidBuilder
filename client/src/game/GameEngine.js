@@ -24,13 +24,18 @@ class GameEngine extends SafeEventEmitter {
     // Global event listeners
     this.on('npcDied', this._handleNpcDeath);
     
-    // Global accessibility for Dev Console and debugging
-    if (typeof window !== 'undefined') {
+    // Global accessibility for Dev Console and debugging (development only)
+    if (typeof window !== 'undefined' && import.meta.env.DEV) {
       window.gameEngine = this;
     }
   }
 
   reset() {
+    if (this._heartbeatId) {
+      cancelAnimationFrame(this._heartbeatId);
+      this._heartbeatId = null;
+    }
+
     this.id = Math.floor(Math.random() * 1000000);
     console.log(`[GameEngine] 🚀 Initialized with ID: ${this.id}`);
     this.player = null;
@@ -92,6 +97,11 @@ class GameEngine extends SafeEventEmitter {
       console.log('[GameEngine] requestAnimationFrame is not defined (likely running in a non-browser/Node environment). Skipping heartbeat loop.');
       return;
     }
+
+    if (this._heartbeatId) {
+      cancelAnimationFrame(this._heartbeatId);
+    }
+
     const loop = (now) => {
       const dt = now - this.lastFrameTime;
       this.lastFrameTime = now;
@@ -111,9 +121,9 @@ class GameEngine extends SafeEventEmitter {
         }
       }
 
-      requestAnimationFrame(loop);
+      this._heartbeatId = requestAnimationFrame(loop);
     };
-    requestAnimationFrame(loop);
+    this._heartbeatId = requestAnimationFrame(loop);
   }
 
   /**

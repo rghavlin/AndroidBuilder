@@ -49,10 +49,10 @@ export default function GroundItemsGrid() {
     }
   };
 
-  const handleOrganize = () => {
+  const handleSort = () => {
     if (inventoryRef.current) {
-      const result = inventoryRef.current.organizeGroundItems();
-      console.log('Ground items organized:', result);
+      const result = inventoryRef.current.sortGroundItems();
+      console.log('Ground items sorted:', result);
     }
   };
 
@@ -74,7 +74,12 @@ export default function GroundItemsGrid() {
         <h3 className="text-sm font-semibold text-muted-foreground">
           GROUND
         </h3>
-
+        <button
+          onClick={handleSort}
+          className="text-xs px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700 transition-colors font-medium cursor-pointer"
+        >
+          Sort
+        </button>
       </div>
 
       <div className="flex-1 min-h-0">

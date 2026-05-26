@@ -12,6 +12,8 @@ import { useGame } from './GameContext.jsx';
 import { EntityType } from '../game/entities/Entity.js';
 import { GameMap } from '../game/map/GameMap.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import { NPCAI } from '../game/ai/NPCAI.js';
+import { ItemTrait } from '../game/inventory/traits.js';
 
 const SleepContext = createContext();
 
@@ -50,6 +52,14 @@ export const SleepProvider = ({ children }) => {
   const [sleepMultiplier, setSleepMultiplier] = useState(1);
 
   const isResumingRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Sync with engine when it changes (e.g. after load)
   useEffect(() => {
@@ -98,10 +108,12 @@ export const SleepProvider = ({ children }) => {
 
       for (let i = 0; i < hours; i++) {
         // Phase 28 Fix: Allow cancellation if game is reset or player wakes up
-        if (!engine.isSleeping) break;
+        if (!engine.isSleeping || !mountedRef.current) break;
 
         const hpBeforeHour = player.hp;
         await new Promise(resolve => setTimeout(resolve, 1000));
+
+        if (!mountedRef.current) break;
 
         player.modifyStat('energy', 2.5 * energyMultiplier);
         player.modifyStat('nutrition', -1);
@@ -156,6 +168,25 @@ export const SleepProvider = ({ children }) => {
             const battery = typeof flashlight.getBattery === 'function' ? flashlight.getBattery() : null;
             if (battery && battery.ammoCount > 0) {
               battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+              if (battery.ammoCount === 0) {
+                // Charges ran out! Turn off the flashlight/torch
+                engine.isFlashlightOn = false;
+                if (flashlight.hasTrait('ignitable') || (typeof flashlight.hasTrait === 'function' && flashlight.hasTrait(ItemTrait.IGNITABLE))) {
+                  flashlight.isLit = false;
+                }
+                addLog(`${flashlight.name} has run out of power/burned out.`, 'warning');
+                // Recalculate FOV immediately so that AI logic for subsequent hours behaves correctly
+                const finalIsNight = (6 + (currentTurn - 1)) % 24 >= 20 || (6 + (currentTurn - 1)) % 24 < 6;
+                const isNVG = flashlight.lightType === 'nightvision';
+                const range = flashlight.lightRange || 8;
+                updatePlayerFieldOfView(gameMap, finalIsNight, false, false, range, isNVG);
+              }
+            } else {
+              // It was already 0 but somehow still on?
+              engine.isFlashlightOn = false;
+              if (flashlight.hasTrait('ignitable') || (typeof flashlight.hasTrait === 'function' && flashlight.hasTrait(ItemTrait.IGNITABLE))) {
+                flashlight.isLit = false;
+              }
             }
           }
         }
@@ -210,7 +241,6 @@ export const SleepProvider = ({ children }) => {
 
         // NPC turns
         const npcs = gameMap.getEntitiesByType(EntityType.NPC);
-        const { NPCAI } = await import('../game/ai/NPCAI.js');
         let npcInterruption = false;
         
         for (const npc of npcs) {

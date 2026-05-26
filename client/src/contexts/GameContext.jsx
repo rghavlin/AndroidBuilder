@@ -75,9 +75,19 @@ const GameContextInner = ({ children }) => {
 
   // Refs for internal use
   const initManagerRef = useRef(null);
+  const autosaveTimeoutRef = useRef(null);
 
   // LastSeen tile tagging system to prevent zombie clustering
   const lastSeenTaggedTilesRef = useRef(new Set());
+
+  // Clean up pending autosaves on unmount
+  useEffect(() => {
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // State machine state
   const initializationState = engine.initializationState;
@@ -187,7 +197,7 @@ const GameContextInner = ({ children }) => {
     });
 
     return alertedNew;
-  }, [engine]);
+  }, []);
 
   const igniteTorch = useCallback((sourceItem = null) => {
     if (!engine.player || !inventoryManager) return;
@@ -631,7 +641,7 @@ const GameContextInner = ({ children }) => {
 
     GameEvents.emit(GAME_EVENT.TURN_ENDED);
     return { actionQueue, demandTriggered, newTurn, nextIsNight };
-  }, [engine, turn, inventoryManager, checkZombieAwareness, getPlayerCardinalPositions, isFlashlightOn, setIsFlashlightOn]);
+  }, [turn, inventoryManager, checkZombieAwareness, getPlayerCardinalPositions, isFlashlightOn, setIsFlashlightOn]);
 
   const performAutosave = useCallback(async (turnOverride = null) => {
     if (!isInitialized || engine.isSleeping) return false;
@@ -741,7 +751,7 @@ const GameContextInner = ({ children }) => {
       // Safety Reset: Ensure the singleton is NOT left in ANIMATING state if playback finishes/crashes
       engine.turnPhase = 'PLAYER_TURN';
     }
-  }, [engine, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, triggerMapUpdate, performAutosave, isFlashlightOnActual, setTurn, setTurnPhase]);
+  }, [updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, triggerMapUpdate, performAutosave, isFlashlightOnActual, setTurn, setTurnPhase]);
 
   const endTurn = useCallback(async () => {
     const timestamp = Date.now();
@@ -772,7 +782,6 @@ const GameContextInner = ({ children }) => {
 
     try {
       console.log(`[GameContext] ⚙️ Starting turn simulation phase... [ID:${timestamp}]`);
-      console.log(`[GameContext] 🧮 Starting turn simulation phase... [ID:${timestamp}]`);
       setTurnPhase('SIMULATING');
       engine.turnPhase = 'SIMULATING'; // Phase 28 Fix: Immediate sync to prevent coordinate leakage
       
@@ -797,7 +806,11 @@ const GameContextInner = ({ children }) => {
         setTurnPhase('PLAYER_TURN');
         console.log(`[GameContext] ✅ Turn completed successfully [ID:${timestamp}] - UI Enabled`);
         
-        setTimeout(() => {
+        if (autosaveTimeoutRef.current) {
+          clearTimeout(autosaveTimeoutRef.current);
+        }
+        autosaveTimeoutRef.current = setTimeout(() => {
+          autosaveTimeoutRef.current = null;
           performAutosave(newTurn);
         }, 100);
       }
@@ -809,7 +822,7 @@ const GameContextInner = ({ children }) => {
       isProcessingTurnRef.current = false;
       setIsProcessingTurn(false);
     }
-  }, [isInitialized, engine, turnPhase, simulateTurn, playbackTurn, isAnimatingMovement, isAnimatingZombies, setTurnPhase]);
+  }, [isInitialized, turnPhase, simulateTurn, playbackTurn, isAnimatingMovement, isAnimatingZombies, setTurnPhase]);
 
 
 
@@ -900,10 +913,11 @@ const GameContextInner = ({ children }) => {
         
         if (retryResult.success && retryResult.actions.length > 0) {
            console.log(`[GameContext] 🏃 NPC ${npc.name} performing ${retryResult.actions.length} follow-up actions...`, retryResult.actions);
-           const nextHour = (6 + (turn - 1)) % 24;
+           const currentEngineTurn = engine.turn;
+           const nextHour = (6 + (currentEngineTurn - 1)) % 24;
            const nextIsNight = nextHour >= 20 || nextHour < 6;
 
-           await playbackTurn(retryResult.actions, false, turn, nextIsNight);
+           await playbackTurn(retryResult.actions, false, currentEngineTurn, nextIsNight);
         } else {
           console.log(`[GameContext] ⏹️ NPC ${npc.name} has no follow-up actions (Final AP: ${npc.ap})`);
         }
@@ -945,7 +959,7 @@ const GameContextInner = ({ children }) => {
     });
 
     console.log('[GameContext] Inventory synchronization listener attached to player');
-  }, [engine]);
+  }, []);
 
   const wireManagerEvents = useCallback((manager, runId) => {
     const handleStateChanged = ({ current }) => {
@@ -1175,9 +1189,16 @@ const GameContextInner = ({ children }) => {
       // Calculate isNight for the loaded turn
       const loadedHour = (6 + (loadedState.turn - 1)) % 24;
       const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
-      // Note: isFlashlightOn is currently not persisted in save state, defaults to false
 
-      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false, false, 8, false);
+      // Restore flashlight state
+      const isFlashlightOnLoaded = loadedState.interactionState?.isFlashlightOn || false;
+      setIsFlashlightOn(isFlashlightOnLoaded);
+
+      const fl = loadedState.inventoryManager?.equipment['flashlight'];
+      const isNVG = fl ? fl.lightType === 'nightvision' : false;
+      const range = fl ? fl.lightRange || 8 : 8;
+
+      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, isFlashlightOnLoaded, false, range, isNVG);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
       // Open the UI gate
@@ -1231,8 +1252,16 @@ const GameContextInner = ({ children }) => {
       const loadedHour = (6 + (loadedState.turn - 1)) % 24;
       const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
 
+      // Restore flashlight state
+      const isFlashlightOnLoaded = loadedState.interactionState?.isFlashlightOn || false;
+      setIsFlashlightOn(isFlashlightOnLoaded);
+
+      const fl = loadedState.inventoryManager?.equipment['flashlight'];
+      const isNVG = fl ? fl.lightType === 'nightvision' : false;
+      const range = fl ? fl.lightRange || 8 : 8;
+
       // Update derived player state
-      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, false, false, 8, false);
+      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, isFlashlightOnLoaded, false, range, isNVG);
       updatePlayerCardinalPositions(loadedState.gameMap);
 
       console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);

@@ -1,5 +1,84 @@
 import engine from './GameEngine.js';
 
+// --- Asynchronous IndexedDB Store Fallback ---
+
+class IndexedDBStore {
+  constructor(dbName = 'zombie_road_db', storeName = 'saves') {
+    this.dbName = dbName;
+    this.storeName = storeName;
+    this.db = null;
+  }
+
+  _getDB() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, 1);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName);
+        }
+      };
+      request.onsuccess = (event) => {
+        this.db = event.target.result;
+        resolve(this.db);
+      };
+      request.onerror = (event) => reject(request.error);
+    });
+  }
+
+  async setItem(key, value) {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readwrite');
+      const store = tx.objectStore(this.storeName);
+      const req = store.put(value, key);
+      req.onsuccess = () => resolve(true);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getItem(key) {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readonly');
+      const store = tx.objectStore(this.storeName);
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getAllSaves() {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readonly');
+      const store = tx.objectStore(this.storeName);
+      const req = store.openCursor();
+      const saves = [];
+      req.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          saves.push({
+            slotName: cursor.key,
+            timestamp: cursor.value.timestamp,
+            turn: cursor.value.turn,
+            version: cursor.value.version
+          });
+          cursor.continue();
+        } else {
+          resolve(saves.sort((a, b) => b.timestamp - a.timestamp));
+        }
+      };
+      req.onerror = () => reject(req.error);
+    });
+  }
+}
+
+const idbStore = new IndexedDBStore();
+
+
+
 /**
  * Game Save System - Handles serialization and deserialization of complete game state
  * Follows UniversalGoals.md requirement that all game state must be JSON serializable
@@ -353,79 +432,3 @@ export class GameSaveSystem {
   }
 }
 
-// --- Asynchronous IndexedDB Store Fallback ---
-
-class IndexedDBStore {
-  constructor(dbName = 'zombie_road_db', storeName = 'saves') {
-    this.dbName = dbName;
-    this.storeName = storeName;
-    this.db = null;
-  }
-
-  _getDB() {
-    if (this.db) return Promise.resolve(this.db);
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1);
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          db.createObjectStore(this.storeName);
-        }
-      };
-      request.onsuccess = (event) => {
-        this.db = event.target.result;
-        resolve(this.db);
-      };
-      request.onerror = (event) => reject(request.error);
-    });
-  }
-
-  async setItem(key, value) {
-    const db = await this._getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readwrite');
-      const store = tx.objectStore(this.storeName);
-      const req = store.put(value, key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async getItem(key) {
-    const db = await this._getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readonly');
-      const store = tx.objectStore(this.storeName);
-      const req = store.get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async getAllSaves() {
-    const db = await this._getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readonly');
-      const store = tx.objectStore(this.storeName);
-      const req = store.openCursor();
-      const saves = [];
-      req.onsuccess = (event) => {
-        const cursor = event.target.result;
-        if (cursor) {
-          saves.push({
-            slotName: cursor.key,
-            timestamp: cursor.value.timestamp,
-            turn: cursor.value.turn,
-            version: cursor.value.version
-          });
-          cursor.continue();
-        } else {
-          resolve(saves.sort((a, b) => b.timestamp - a.timestamp));
-        }
-      };
-      req.onerror = () => reject(req.error);
-    });
-  }
-}
-
-const idbStore = new IndexedDBStore();

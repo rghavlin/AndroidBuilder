@@ -57,7 +57,6 @@ export const CombatProvider = ({ children }) => {
         if (!gameMap || zombie.subtype !== 'acid') return;
 
         const radius = 1.4;
-        const damageMin = isDeath ? 2 : 5; // Wait, request said 2-5 for death, 1-3 for hit
         // Re-read: "When an acid zombie is attacked (and HIT), any entity within 1.4 squares takes 1-3 damage."
         // "When an acid zombie is killed, it explodes doing 2-5 damage"
         const dMin = isDeath ? 2 : 1;
@@ -174,6 +173,7 @@ export const CombatProvider = ({ children }) => {
             ? Math.floor(weaponStats.damage.max * 1.5)
             : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
 
+        // Note: isKillingBlow is safe because Zombie/NPC takeDamage does not use armor or difficulty reductions
         const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
 
         // 2. Event emission for UI and Audio
@@ -286,7 +286,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats, playerStats]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
@@ -417,6 +417,7 @@ export const CombatProvider = ({ children }) => {
                 }
             }
 
+            // Note: isKillingBlow is safe because Zombie/NPC takeDamage does not use armor or difficulty reductions
             const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
 
             if (hit && targetEntity) {
@@ -476,8 +477,7 @@ export const CombatProvider = ({ children }) => {
                         if (lootGenerator && !isWindowTile(gameMap, targetEntity.x, targetEntity.y) && Math.random() < 0.75) {
                             const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                             if (loot?.length > 0) {
-                                if (targetEntity.x === player.x && targetEntity.y === player.y && window.gameEngine?.inventoryManager) {
-                                    const engine = window.gameEngine;
+                                if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
                                     loot.forEach(item => engine.inventoryManager.groundContainer.addItem(item, null, null, true));
                                     engine.inventoryManager.groundManager.updateCategoryAreas();
                                     engine.inventoryManager.emit('inventoryChanged');
@@ -499,8 +499,7 @@ export const CombatProvider = ({ children }) => {
                     } else if (targetEntity.type === EntityType.RABBIT) {
                         const meat = createItemFromDef('food.raw_meat');
                         if (meat) {
-                            if (targetEntity.x === player.x && targetEntity.y === player.y && window.gameEngine?.inventoryManager) {
-                                const engine = window.gameEngine;
+                            if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
                                 engine.inventoryManager.groundContainer.addItem(meat, null, null, true);
                                 engine.inventoryManager.groundManager.updateCategoryAreas();
                                 engine.inventoryManager.emit('inventoryChanged');
@@ -532,7 +531,7 @@ export const CombatProvider = ({ children }) => {
         forceRefresh();
         triggerMapUpdate();
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats]);
 
     const performGrenadeThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;

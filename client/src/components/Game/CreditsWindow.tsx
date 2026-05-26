@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { X, Sparkles, Music, Paintbrush, Volume2 } from "lucide-react";
+import { X, Sparkles, Music, Paintbrush, Volume2, Cpu } from "lucide-react";
 
 interface CreditsWindowProps {
     onClose: () => void;
@@ -122,6 +122,30 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                         <p className="pl-1 text-[13px] leading-relaxed">
                             Sidearm Studios, Darkwood Audio, YourPalRob, Snake
                         </p>
+                    </div>
+
+                    {/* Libraries & Frameworks Section */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider border-b border-border/30 pb-1.5">
+                            <Cpu className="w-4 h-4 text-primary" />
+                            Libraries & Frameworks
+                        </div>
+                        <ul className="space-y-2.5 list-disc list-inside pl-1 text-[13px] leading-relaxed">
+                            <li>
+                                React —{' '}
+                                <a href="https://react.dev/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                                    react.dev
+                                </a>{' '}
+                                — MIT License
+                            </li>
+                            <li>
+                                Electron —{' '}
+                                <a href="https://www.electronjs.org/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                                    electronjs.org
+                                </a>{' '}
+                                — MIT License
+                            </li>
+                        </ul>
                     </div>
                 </CardContent>
             </Card>

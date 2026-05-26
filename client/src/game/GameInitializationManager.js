@@ -30,17 +30,21 @@ class GameInitializationManager extends EventEmitter {
 
     // Add unique instance tracking to detect duplicates
     this.instanceId = `GameInitManager_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`[GameInitializationManager] 🆔 NEW INSTANCE CREATED: ${this.instanceId}`);
+    if (import.meta.env.DEV) {
+      console.log(`[GameInitializationManager] 🆔 NEW INSTANCE CREATED: ${this.instanceId}`);
+    }
 
     // Track all instances globally to detect duplicates
     if (!window.gameInitInstances) {
       window.gameInitInstances = new Set();
     }
     window.gameInitInstances.add(this.instanceId);
-    console.log(`[GameInitializationManager] 📊 TOTAL INSTANCES NOW ACTIVE: ${window.gameInitInstances.size}`);
-    if (window.gameInitInstances.size > 1) {
-      console.error(`[GameInitializationManager] 🚨🚨🚨 MULTIPLE INITIALIZATION MANAGERS DETECTED!`);
-      console.error(`[GameInitializationManager] Active instances:`, Array.from(window.gameInitInstances));
+    if (import.meta.env.DEV) {
+      console.log(`[GameInitializationManager] 📊 TOTAL INSTANCES NOW ACTIVE: ${window.gameInitInstances.size}`);
+      if (window.gameInitInstances.size > 1) {
+        console.error(`[GameInitializationManager] 🚨🚨🚨 MULTIPLE INITIALIZATION MANAGERS DETECTED!`);
+        console.error(`[GameInitializationManager] Active instances:`, Array.from(window.gameInitInstances));
+      }
     }
   }
 
@@ -192,7 +196,7 @@ class GameInitializationManager extends EventEmitter {
       }
 
       // Determine start position
-      let startX = Math.floor(gameMap.width / 2), startY = 123;
+      let startX = Math.floor(gameMap.width / 2), startY = Math.floor(gameMap.height * 0.9);
       try {
         const templateStartPos = templateMapGenerator.getStartPosition(mapData.template);
         if (templateStartPos) {
@@ -200,7 +204,9 @@ class GameInitializationManager extends EventEmitter {
           startY = templateStartPos.y;
         }
       } catch (error) {
-        console.warn('[GameInitializationManager] Could not get template start position, using default');
+        if (import.meta.env.DEV) {
+          console.warn('[GameInitializationManager] Could not get template start position, using default');
+        }
       }
 
       // Validate start position
@@ -211,11 +217,13 @@ class GameInitializationManager extends EventEmitter {
 
       // Create player with detailed tracking
       const player = new Player('player-1', 'Player', startX, startY);
-      console.log(`[GameInitializationManager] 🎮 PLAYER CREATED by instance ${this.instanceId}:`);
-      console.log(`[GameInitializationManager] - Player ID: ${player.id}`);
-      console.log(`[GameInitializationManager] - Position: (${player.x}, ${player.y})`);
-      console.log(`[GameInitializationManager] - Constructor: ${player.constructor.name}`);
-      console.log(`[GameInitializationManager] - Instance hash: ${player.constructor.name}_${player.id}_${Date.now()}`);
+      if (import.meta.env.DEV) {
+        console.log(`[GameInitializationManager] 🎮 PLAYER CREATED by instance ${this.instanceId}:`);
+        console.log(`[GameInitializationManager] - Player ID: ${player.id}`);
+        console.log(`[GameInitializationManager] - Position: (${player.x}, ${player.y})`);
+        console.log(`[GameInitializationManager] - Constructor: ${player.constructor.name}`);
+        console.log(`[GameInitializationManager] - Instance hash: ${player.constructor.name}_${player.id}_${Date.now()}`);
+      }
       console.log(`[GameInitializationManager] - HP/AP: ${player.hp}/${player.maxHp} HP, ${player.ap}/${player.maxAp} AP`);
       
       // Apply Custom Player Stats if provided (Dev Console)

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useRef, useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { ItemContextMenu } from "./ItemContextMenu";
@@ -27,26 +27,43 @@ const WorkspaceSlot = memo(({
     const container = getContainer(containerId);
     const item = container?.getItemAt(slotIndex, 0); // Workspace tool slots are 1x1 in a 2x1 container usually
 
+    // Request sequence ID to prevent stale updates
+    const activeLoadIdRef = useRef(0);
+
+    const itemKey = useMemo(() => {
+        return item ? `${item.instanceId}:${item.imageId || item.id}` : '';
+    }, [item, inventoryVersion]);
+
     useEffect(() => {
-        let isMounted = true;
-        const loadItemImage = async () => {
-            if (!item) {
-                if (isMounted) setImageSrc(null);
-                return;
-            }
+        if (!item) {
+            setImageSrc(null);
+            return;
+        }
+
+        const imageId = item.imageId || item.id;
+        
+        // Try synchronous cache lookup first
+        const cachedSrc = imageLoader.getCachedItemSrc(imageId);
+        if (cachedSrc) {
+            setImageSrc(cachedSrc);
+            return;
+        }
+
+        const loadId = ++activeLoadIdRef.current;
+        const load = async () => {
             try {
-                const imageId = item.imageId || item.id;
                 const imgElement = await imageLoader.getItemImage(imageId);
-                if (isMounted) {
+                if (loadId === activeLoadIdRef.current) {
                     setImageSrc(imgElement?.src || null);
                 }
             } catch (err) {
-                if (isMounted) setImageSrc(null);
+                if (loadId === activeLoadIdRef.current) {
+                    setImageSrc(null);
+                }
             }
         };
-        loadItemImage();
-        return () => { isMounted = false; };
-    }, [item, inventoryVersion]);
+        load();
+    }, [itemKey]);
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();

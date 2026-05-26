@@ -183,10 +183,11 @@ export class InventoryManager extends SafeEventEmitter {
             }
         };
 
-        carryItem(this.draggedItem, 'dragged');
         carryItem(this.ridingItem, 'ridden');
+        carryItem(this.draggedItem, 'dragged');
         
-        this.groundManager.updateCategoryAreas();
+        // Re-sort after movement to enforce priority (ridden scooter -> pulled vehicle)
+        this.groundManager.sortGroundItems();
         changed = true;
       } else if (isOwnerOfNewTile) {
         console.warn(`[InventoryManager] ⚠️ ABORT SAVE: Items in container already belong to destination (${newX}, ${newY}). Skipping save to ORIGIN (${oldX}, ${oldY}) to prevent teleportation!`);
@@ -214,7 +215,8 @@ export class InventoryManager extends SafeEventEmitter {
             console.log(`[InventoryManager] 📦 Preserved carried item ${item.name} during abort-clear`);
         });
         
-        this.groundManager.updateCategoryAreas();
+        // Re-sort after movement to enforce priority (ridden scooter -> pulled vehicle)
+        this.groundManager.sortGroundItems();
         changed = true;
       }
     } else if (oldX !== null && oldY !== null && isOwnerOfOldTile) {
@@ -244,8 +246,15 @@ export class InventoryManager extends SafeEventEmitter {
 
         this.groundContainer.clear();
 
+        // Add ridden item first so priority is correct before tile items are added
+        if (this.ridingItem) {
+            const riddenInKeep = itemsToKeep.find(it => it.instanceId === this.ridingItem.instanceId);
+            if (riddenInKeep) this.groundContainer.addItem(riddenInKeep);
+        }
         itemsToKeep.forEach(item => {
-            this.groundContainer.addItem(item);
+            if (!this.ridingItem || item.instanceId !== this.ridingItem.instanceId) {
+                this.groundContainer.addItem(item);
+            }
             console.log(`[InventoryManager] 📦 Preserved carried item ${item.name} during tile load`);
         });
 
@@ -285,7 +294,8 @@ export class InventoryManager extends SafeEventEmitter {
         // we MUST clear them from the map tile to prevent duplication.
         console.log(`[InventoryManager]   -> Items "Moved" from map to local container at (${newX}, ${newY}). Clearing map tile source.`);
         gameMap.setItemsOnTile(newX, newY, []);
-        this.groundManager.updateCategoryAreas();
+        // Re-sort to enforce priority (ridden scooter -> pulled vehicle) after merging tile items
+        this.groundManager.sortGroundItems();
 
         if (failedToLoad.length > 0) {
           console.warn(`[InventoryManager] 🚨 Writing back ${failedToLoad.length} failed-to-load items to map tile (${newX}, ${newY})`);
@@ -1560,6 +1570,18 @@ export class InventoryManager extends SafeEventEmitter {
    */
   organizeGroundItems() {
     return this.groundManager.organizeByCategory();
+  }
+
+  /**
+   * Sort ground items by priority
+   */
+  sortGroundItems() {
+    if (this.groundManager) {
+      const result = this.groundManager.sortGroundItems();
+      this.emit('inventoryChanged');
+      return result;
+    }
+    return false;
   }
 
   /**
