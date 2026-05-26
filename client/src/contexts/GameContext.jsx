@@ -15,6 +15,7 @@ import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import Logger from '../game/utils/Logger.js';
 import { useAudio } from './AudioContext.jsx';
+import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
 
@@ -68,6 +69,7 @@ const GameContextInner = ({ children }) => {
   const { addEffect } = useVisualEffects();
   const { addLog, clearLogs } = useLog();
   const { playSound } = useAudio();
+  const { resetAll } = useOverlays();
 
 
   // Phase 5A: inventoryManager is now managed by engine.inventoryManager
@@ -1149,6 +1151,7 @@ const GameContextInner = ({ children }) => {
 
   const loadGameDirect = useCallback(async (slotName = 'autosave') => {
     console.log('[GameContext] 🎮 DIRECT LOAD - Skipping initialization, loading save directly...');
+    resetAll();
 
     try {
       const loadedState = await GameSaveSystem.loadFromStorage(slotName);
@@ -1214,9 +1217,10 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] ❌ DIRECT LOAD FAILED:', error);
       return false;
     }
-  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions, resetAll]);
 
   const loadGame = useCallback(async (slotName = 'quicksave') => {
+    resetAll();
     try {
       const loadedState = await GameSaveSystem.loadFromStorage(slotName);
       if (!loadedState) {
@@ -1272,10 +1276,11 @@ const GameContextInner = ({ children }) => {
       console.error('[GameContext] Failed to load game:', error);
       return false;
     }
-  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions, resetAll]);
 
   const initializeGame = useCallback(async (config = null) => {
     console.log('[GameContext] 🎮 initializeGame called with config:', !!config);
+    resetAll();
     setIsGameReady(false); // FORCED IMMEDIATE STATE RESET
     
     if (!initManagerRef.current) {
@@ -1331,7 +1336,7 @@ const GameContextInner = ({ children }) => {
     }
 
     return true;
-  }, [wireManagerEvents]);
+  }, [wireManagerEvents, resetAll]);
 
 
 
