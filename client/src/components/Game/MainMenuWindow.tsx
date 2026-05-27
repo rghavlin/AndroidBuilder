@@ -77,7 +77,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                         className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
                         data-testid="button-menu-load-game"
                     >
-                        {isLoading ? 'Loading...' : 'Continue'}
+                        {isLoading ? 'Loading...' : 'Load Game'}
                     </Button>
 
                     <Button

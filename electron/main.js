@@ -21,6 +21,10 @@ const mimeTypes = {
   '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
   '.ogg': 'audio/ogg',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.webm': 'video/webm',
+  '.mp4': 'video/mp4',
   '.json': 'application/json'
 };
 
@@ -72,11 +76,39 @@ function createWindow() {
       }
 
       try {
-        const data = fs.readFileSync(filePath);
+        if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+          return new Response('File Not Found', { status: 404 });
+        }
+
+        const stat = fs.statSync(filePath);
         const mimeType = getMimeType(filePath);
-        return new Response(data, {
-          headers: { 'Content-Type': mimeType }
-        });
+        const rangeHeader = request.headers.get('range') || request.headers.get('Range');
+
+        if (rangeHeader) {
+          const parts = rangeHeader.replace(/bytes=/, "").split("-");
+          const start = parseInt(parts[0], 10);
+          const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+          const chunksize = (end - start) + 1;
+          
+          return new Response(fs.createReadStream(filePath, { start, end }), {
+            status: 206,
+            headers: {
+              'Content-Range': `bytes ${start}-${end}/${stat.size}`,
+              'Accept-Ranges': 'bytes',
+              'Content-Length': chunksize.toString(),
+              'Content-Type': mimeType
+            }
+          });
+        } else {
+          return new Response(fs.createReadStream(filePath), {
+            status: 200,
+            headers: {
+              'Content-Length': stat.size.toString(),
+              'Content-Type': mimeType,
+              'Accept-Ranges': 'bytes'
+            }
+          });
+        }
       } catch (error) {
         console.error('[Protocol] Error reading file:', filePath, error);
         return new Response('File Not Found', { status: 404 });
