@@ -125,7 +125,7 @@ export default function FloatingContainer({
     <div
       ref={containerRef}
       className={cn(
-        "fixed z-[9999] bg-card border border-border rounded-lg shadow-xl",
+        "fixed z-[9999] bg-card border border-border rounded-lg shadow-xl pointer-events-auto",
         "select-none",
         isDragging && "cursor-grabbing",
         className

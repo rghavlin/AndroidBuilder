@@ -83,10 +83,7 @@ const EquipmentSlot = memo(({
             data-testid={`equipment-slot-${slotId}`}
           >
             {imageSrc && imageSrc !== 'failed' ? (
-              <div className={cn(
-                "w-full h-full p-1.5 flex items-center justify-center transition-opacity duration-300",
-                !hasItem && "opacity-25" // Ghostly silhouette
-              )}>
+              <div className="w-full h-full p-1.5 flex items-center justify-center transition-opacity duration-300">
                 <img
                   src={imageSrc}
                   alt={item?.name || slotInfo.name}
@@ -94,14 +91,17 @@ const EquipmentSlot = memo(({
                     "w-full h-full object-contain pointer-events-none transition-transform",
                     hasItem && "rounded-full",
                     !item?.backgroundColor && "mix-blend-screen",
-                    !hasItem && "opacity-50"
+                    !hasItem && "opacity-[0.45]"
                   )}
+                  style={{
+                    filter: (!hasItem || !item?.backgroundColor) ? "contrast(300%)" : undefined
+                  }}
                 />
               </div>
             ) : (
               <>
-                <span className="text-xl mb-0.5 opacity-40">{displayIcon}</span>
-                <span className="text-[9px] uppercase font-bold tracking-tighter opacity-40">{displayLabel}</span>
+                <span className="text-xl mb-0.5 opacity-65">{displayIcon}</span>
+                <span className="text-[9px] uppercase font-bold tracking-tighter opacity-65">{displayLabel}</span>
               </>
             )}
 

@@ -189,7 +189,7 @@ export default function EquipmentSlots() {
             DEV
           </Button>
         )}
-        <h2 className="text-[8px] font-black text-zinc-500 uppercase tracking-tighter pl-0.5">
+        <h2 className="text-[8px] font-black text-zinc-400 uppercase tracking-wider pl-0.5">
           EQUIPMENT
         </h2>
       </div>

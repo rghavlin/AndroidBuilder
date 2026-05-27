@@ -83,6 +83,9 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
               src={imageSrc}
               alt={item.name}
               className="w-full h-full object-contain pointer-events-none mix-blend-screen"
+              style={{
+                filter: "contrast(300%)"
+              }}
             />
           </div>
         ) : null}

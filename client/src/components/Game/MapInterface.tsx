@@ -455,12 +455,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         data-testid="map-header"
       >
         <button
-          className="w-12 h-12 bg-zinc-900/60 border border-white/10 rounded flex items-center justify-center hover:bg-zinc-800 transition-all shadow-sm active:scale-95 duration-150 shrink-0"
+          className="w-12 h-12 flex items-center justify-center transition-all active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110"
           title="Main Menu"
           data-testid="main-menu-button"
           onClick={() => setShowMainMenu(true)}
         >
-          <Menu className="h-6 w-6 text-foreground/80 hover:text-foreground" />
+          <Menu className="h-6 w-6 text-zinc-300 hover:text-white transition-colors" />
         </button>
 
         {/* Action Buttons Group (Better spacing between log and slots) */}
@@ -485,16 +485,16 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
         <button
           className={cn(
-            "w-12 h-12 bg-zinc-900 border transition-all flex items-center justify-center hover:bg-zinc-800 shadow-sm active:scale-95 rounded duration-150 shrink-0",
-            isExtensionOpen ? "border-primary/50 bg-zinc-850 shadow-[0_0_12px_rgba(16,185,129,0.2)]" : "border-white/10"
+            "w-12 h-12 transition-all flex items-center justify-center active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110",
+            isExtensionOpen ? "!border-primary/50 shadow-[inset_0_0_10px_rgba(16,185,129,0.2),0_0_12px_rgba(16,185,129,0.3)]" : ""
           )}
           title="Crafting/Cooking"
           data-testid="inventory-extension-button"
           onClick={() => setIsExtensionOpen(prev => !prev)}
         >
           <Hammer className={cn(
-            "h-6 w-6",
-            isExtensionOpen ? "text-primary" : "text-white/40"
+            "h-6 w-6 transition-colors",
+            isExtensionOpen ? "text-primary" : "text-zinc-300 hover:text-zinc-100"
           )} />
         </button>
       </div>
