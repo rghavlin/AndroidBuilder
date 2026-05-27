@@ -13,6 +13,7 @@ import FloatingContainer from '../Inventory/FloatingContainer';
 import ContainerGrid from '../Inventory/ContainerGrid';
 import { Menu, Hammer } from "lucide-react";
 import MainMenuWindow from './MainMenuWindow';
+import { getScaleFactor } from '../../hooks/useWindowSize';
 import { ActionSlotButton } from './ActionSlotButton';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
@@ -1372,8 +1373,9 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   // Use authoritative base tile size from container dimensions if possible
   let baseTileSize = 48;
   if (containerRef.current) {
-    const rect = containerRef.current.getBoundingClientRect();
-    baseTileSize = calculateBaseTileSize(rect.width, rect.height);
+    const width = containerRef.current.clientWidth || containerRef.current.getBoundingClientRect().width;
+    const height = containerRef.current.clientHeight || containerRef.current.getBoundingClientRect().height;
+    baseTileSize = calculateBaseTileSize(width, height);
   } else {
     baseTileSize = (cameraRef.current as any).tileSize || 48;
   }
@@ -1417,8 +1419,14 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
 
   if (containerRef.current) {
     const rect = containerRef.current.getBoundingClientRect();
-    x += rect.left;
-    y += rect.top;
+    const root = document.getElementById('root');
+    const rootRect = root ? root.getBoundingClientRect() : { left: 0, top: 0 };
+    const scale = getScaleFactor();
+    // Offset relative to the unscaled root/viewport space
+    const layoutLeft = (rect.left - rootRect.left) / scale;
+    const layoutTop = (rect.top - rootRect.top) / scale;
+    x += layoutLeft;
+    y += layoutTop;
   }
 
   const tooltipRoot = document.getElementById('tooltip-root');

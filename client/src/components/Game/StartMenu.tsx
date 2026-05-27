@@ -8,6 +8,7 @@ import OptionsWindow from './OptionsWindow';
 import CreditsWindow from './CreditsWindow';
 import HelpWindow from './HelpWindow';
 import musicManager from '@/game/utils/MusicManager';
+import { GameSaveSystem } from '@/game/GameSaveSystem';
 
 interface StartMenuProps {
   onStartGame: (mode?: boolean | string) => void;
@@ -20,6 +21,22 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [hasSave, setHasSave] = useState(false);
+
+  const checkSave = async () => {
+    try {
+      const slots = await GameSaveSystem.listSaveSlots();
+      const exists = slots.some(s => s.slotName === 'autosave');
+      setHasSave(exists);
+    } catch (e) {
+      console.warn('[StartMenu] Failed to check save slots:', e);
+      setHasSave(false);
+    }
+  };
+
+  useEffect(() => {
+    checkSave();
+  }, []);
 
   useEffect(() => {
     // Attempt to play the menu music on mount.
@@ -73,7 +90,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
 
   return (
     <div 
-      className="relative h-screen w-screen bg-cover bg-center bg-no-repeat flex items-center justify-center"
+      className="relative h-full w-full bg-cover bg-center bg-no-repeat flex items-center justify-center"
       style={{ backgroundImage: "url('/images/background/menubackground.png')" }}
     >
       {/* Dark overlay with slight blur to make the skeuomorphic menu panel pop */}
@@ -95,9 +112,9 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             New Game
           </Button>
           
-          <Button
+           <Button
             onClick={handleLoadGame}
-            disabled={isLoading}
+            disabled={isLoading || !hasSave}
             className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
             data-testid="button-load-game"
           >
@@ -137,7 +154,10 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
         </CardContent>
       </Card>
 
-      {showOptions && <OptionsWindow onClose={() => setShowOptions(false)} />}
+      {showOptions && <OptionsWindow onClose={() => {
+        setShowOptions(false);
+        checkSave();
+      }} />}
       {showCredits && <CreditsWindow onClose={() => setShowCredits(false)} />}
       {showHelp && <HelpWindow onClose={() => setShowHelp(false)} />}
     </div>

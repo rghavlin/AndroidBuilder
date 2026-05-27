@@ -11,6 +11,7 @@ import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../../game/entities/Entity.js';
 import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 import engine from '../../game/GameEngine.js';
+import { getScaleFactor } from '../../hooks/useWindowSize';
 
 /**
  * MapCanvas - Visual map rendering system for tile-based display
@@ -100,8 +101,8 @@ export default function MapCanvas({
     if (!container) return null;
     
     const rect = container.getBoundingClientRect();
-    const logicalWidth = Math.floor(rect.width) || 800;
-    const logicalHeight = Math.floor(rect.height) || 600;
+    const logicalWidth = container.clientWidth || Math.floor(rect.width) || 800;
+    const logicalHeight = container.clientHeight || Math.floor(rect.height) || 600;
     
     return {
       dpr,
@@ -419,9 +420,9 @@ export default function MapCanvas({
       const globalOffsetX = Math.round((physicalWidth / 2) - (snappedCamX * rTileSize));
       const globalOffsetY = Math.round((physicalHeight / 2) - (snappedCamY * rTileSize));
 
-      // Calculate world coordinates using PHYSICAL PIXEL offsets
-      const hoverX = (event.clientX - rect.left) * dpr;
-      const hoverY = (event.clientY - rect.top) * dpr;
+      // Calculate world coordinates using PHYSICAL PIXEL offsets, adjusted for visual scale transforms
+      const hoverX = (event.clientX - rect.left) * (logicalWidth / rect.width) * dpr;
+      const hoverY = (event.clientY - rect.top) * (logicalHeight / rect.height) * dpr;
 
       const worldX = Math.floor((hoverX - globalOffsetX) / rTileSize);
       const worldY = Math.floor((hoverY - globalOffsetY) / rTileSize);
@@ -461,17 +462,22 @@ export default function MapCanvas({
         setHasDragged(true);
       }
 
+      const scale = getScaleFactor();
+      const layoutDeltaX = deltaX / scale;
+      const layoutDeltaY = deltaY / scale;
+
       // Convert pixel movement to tile movement
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const containerRect = canvas.parentElement.getBoundingClientRect();
-      const baseTileSize = calculateTileSize(containerRect.width, containerRect.height);
+      const container = canvas.parentElement;
+      const containerWidth = container ? container.clientWidth : 800;
+      const containerHeight = container ? container.clientHeight : 600;
+      const baseTileSize = calculateTileSize(containerWidth, containerHeight);
       const tileSize = baseTileSize * camera.zoomLevel;
 
-      const tileDeltaX = Math.round(deltaX / tileSize);
-      const tileDeltaY = Math.round(deltaY / tileSize);
+      const tileDeltaX = Math.round(layoutDeltaX / tileSize);
+      const tileDeltaY = Math.round(layoutDeltaY / tileSize);
 
       if (tileDeltaX !== 0 || tileDeltaY !== 0) {
         if (camera.pan) {
@@ -546,8 +552,8 @@ export default function MapCanvas({
       const zoom = camera.zoomLevel || 1;
       const rTileSize = Math.max(1, Math.round(baseTileSize * zoom * dpr));
       
-      const clickX = (event.clientX - rect.left) * dpr;
-      const clickY = (event.clientY - rect.top) * dpr;
+      const clickX = (event.clientX - rect.left) * (logicalWidth / rect.width) * dpr;
+      const clickY = (event.clientY - rect.top) * (logicalHeight / rect.height) * dpr;
 
       const camX = camera.x || 0;
       const camY = camera.y || 0;
@@ -604,8 +610,8 @@ export default function MapCanvas({
       const zoom = camera.zoomLevel || 1;
       const rTileSize = Math.max(1, Math.round(baseTileSize * zoom * dpr));
       
-      const clickX = (event.clientX - rect.left) * dpr;
-      const clickY = (event.clientY - rect.top) * dpr;
+      const clickX = (event.clientX - rect.left) * (logicalWidth / rect.width) * dpr;
+      const clickY = (event.clientY - rect.top) * (logicalHeight / rect.height) * dpr;
 
       const camX = camera.x || 0;
       const camY = camera.y || 0;

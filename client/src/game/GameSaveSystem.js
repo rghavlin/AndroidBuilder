@@ -12,65 +12,120 @@ class IndexedDBStore {
   _getDB() {
     if (this.db) return Promise.resolve(this.db);
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1);
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          db.createObjectStore(this.storeName);
+      try {
+        if (typeof indexedDB === 'undefined') {
+          reject(new Error('IndexedDB is not supported/accessible in this environment'));
+          return;
         }
-      };
-      request.onsuccess = (event) => {
-        this.db = event.target.result;
-        resolve(this.db);
-      };
-      request.onerror = (event) => reject(request.error);
+        const request = indexedDB.open(this.dbName, 1);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            db.createObjectStore(this.storeName);
+          }
+        };
+        request.onsuccess = (event) => {
+          this.db = event.target.result;
+          resolve(this.db);
+        };
+        request.onerror = (event) => {
+          console.error('[IndexedDBStore] Open request error event:', event);
+          reject(request.error || new Error('IndexedDB open error event'));
+        };
+      } catch (err) {
+        console.error('[IndexedDBStore] open threw synchronous exception:', err);
+        reject(err);
+      }
     });
   }
 
   async setItem(key, value) {
     const db = await this._getDB();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readwrite');
-      const store = tx.objectStore(this.storeName);
-      const req = store.put(value, key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
+      try {
+        const tx = db.transaction(this.storeName, 'readwrite');
+        const store = tx.objectStore(this.storeName);
+        const req = store.put(value, key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => {
+          console.error('[IndexedDBStore] setItem request error:', req.error);
+          reject(req.error || new Error('IndexedDB put error'));
+        };
+      } catch (err) {
+        console.error('[IndexedDBStore] setItem transaction threw exception:', err);
+        reject(err);
+      }
     });
   }
 
   async getItem(key) {
     const db = await this._getDB();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readonly');
-      const store = tx.objectStore(this.storeName);
-      const req = store.get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
+      try {
+        const tx = db.transaction(this.storeName, 'readonly');
+        const store = tx.objectStore(this.storeName);
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => {
+          console.error('[IndexedDBStore] getItem request error:', req.error);
+          reject(req.error || new Error('IndexedDB get error'));
+        };
+      } catch (err) {
+        console.error('[IndexedDBStore] getItem transaction threw exception:', err);
+        reject(err);
+      }
+    });
+  }
+
+  async deleteItem(key) {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db.transaction(this.storeName, 'readwrite');
+        const store = tx.objectStore(this.storeName);
+        const req = store.delete(key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => {
+          console.error('[IndexedDBStore] deleteItem request error:', req.error);
+          reject(req.error || new Error('IndexedDB delete error'));
+        };
+      } catch (err) {
+        console.error('[IndexedDBStore] deleteItem transaction threw exception:', err);
+        reject(err);
+      }
     });
   }
 
   async getAllSaves() {
     const db = await this._getDB();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readonly');
-      const store = tx.objectStore(this.storeName);
-      const req = store.openCursor();
-      const saves = [];
-      req.onsuccess = (event) => {
-        const cursor = event.target.result;
-        if (cursor) {
-          saves.push({
-            slotName: cursor.key,
-            timestamp: cursor.value.timestamp,
-            turn: cursor.value.turn,
-            version: cursor.value.version
-          });
-          cursor.continue();
-        } else {
-          resolve(saves.sort((a, b) => b.timestamp - a.timestamp));
-        }
-      };
-      req.onerror = () => reject(req.error);
+      try {
+        const tx = db.transaction(this.storeName, 'readonly');
+        const store = tx.objectStore(this.storeName);
+        const req = store.openCursor();
+        const saves = [];
+        req.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            saves.push({
+              slotName: cursor.key,
+              timestamp: cursor.value.timestamp,
+              turn: cursor.value.turn,
+              version: cursor.value.version
+            });
+            cursor.continue();
+          } else {
+            resolve(saves.sort((a, b) => b.timestamp - a.timestamp));
+          }
+        };
+        req.onerror = () => {
+          console.error('[IndexedDBStore] getAllSaves cursor error:', req.error);
+          reject(req.error || new Error('IndexedDB cursor error'));
+        };
+      } catch (err) {
+        console.error('[IndexedDBStore] getAllSaves transaction threw exception:', err);
+        reject(err);
+      }
     });
   }
 }
@@ -292,10 +347,25 @@ export class GameSaveSystem {
         throw new Error(result ? result.error : 'Unknown desktop save error');
       }
 
-      // Web Fallback: Use IndexedDB
-      await idbStore.setItem(slotName, saveData);
-      console.log(`[GameSaveSystem] Game saved to IndexedDB slot: ${slotName}`);
-      return true;
+      // Web Fallback: Try IndexedDB, fallback to localStorage
+      try {
+        await idbStore.setItem(slotName, saveData);
+        console.log(`[GameSaveSystem] Game saved to IndexedDB slot: ${slotName}`);
+        return true;
+      } catch (idbError) {
+        console.warn('[GameSaveSystem] IndexedDB save failed, trying localStorage fallback:', idbError);
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            const key = `zombie_road_save_${slotName}`;
+            window.localStorage.setItem(key, JSON.stringify(saveData));
+            console.log(`[GameSaveSystem] Game saved to localStorage key: ${key}`);
+            return true;
+          }
+        } catch (lsError) {
+          console.error('[GameSaveSystem] localStorage save fallback also failed:', lsError);
+        }
+      }
+      return false;
     } catch (error) {
       console.error('[GameSaveSystem] Failed to save game state:', error);
       return false;
@@ -318,8 +388,28 @@ export class GameSaveSystem {
           saveData = typeof result === 'string' ? JSON.parse(result) : result;
         }
       } else {
-        // Web Fallback: Use IndexedDB
-        saveData = await idbStore.getItem(slotName);
+        // Web Fallback: Try IndexedDB
+        try {
+          saveData = await idbStore.getItem(slotName);
+        } catch (idbError) {
+          console.warn('[GameSaveSystem] IndexedDB load failed, trying localStorage fallback:', idbError);
+        }
+
+        // Try localStorage if IndexedDB returned null or failed
+        if (!saveData) {
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              const key = `zombie_road_save_${slotName}`;
+              const localData = window.localStorage.getItem(key);
+              if (localData) {
+                console.log(`[GameSaveSystem] Loaded game from localStorage key: ${key}`);
+                saveData = JSON.parse(localData);
+              }
+            }
+          } catch (lsError) {
+            console.error('[GameSaveSystem] localStorage load fallback also failed:', lsError);
+          }
+        }
       }
 
       if (!saveData) {
@@ -331,6 +421,50 @@ export class GameSaveSystem {
     } catch (error) {
       console.error('[GameSaveSystem] Failed to load game state:', error);
       return null;
+    }
+  }
+
+  /**
+   * Delete a save slot from storage
+   * @param {string} slotName - Save slot name
+   * @returns {Promise<boolean>} - True if deletion succeeded
+   */
+  static async deleteSaveSlot(slotName) {
+    try {
+      if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.deleteSave === 'function') {
+        const result = await window.electronAPI.deleteSave(slotName);
+        return !!(result && result.success);
+      }
+
+      let deletedAny = false;
+
+      // Try IndexedDB
+      try {
+        await idbStore.deleteItem(slotName);
+        console.log(`[GameSaveSystem] Deleted save from IndexedDB slot: ${slotName}`);
+        deletedAny = true;
+      } catch (idbError) {
+        console.warn(`[GameSaveSystem] Failed to delete slot ${slotName} from IndexedDB:`, idbError);
+      }
+
+      // Try localStorage
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const key = `zombie_road_save_${slotName}`;
+          if (window.localStorage.getItem(key) !== null) {
+            window.localStorage.removeItem(key);
+            console.log(`[GameSaveSystem] Deleted save from localStorage key: ${key}`);
+            deletedAny = true;
+          }
+        }
+      } catch (lsError) {
+        console.error(`[GameSaveSystem] Failed to delete slot ${slotName} from localStorage:`, lsError);
+      }
+
+      return deletedAny;
+    } catch (error) {
+      console.error('[GameSaveSystem] Failed to delete save slot:', error);
+      return false;
     }
   }
 
@@ -391,13 +525,46 @@ export class GameSaveSystem {
       }
     }
 
-    // Web Fallback: Use IndexedDB
+    let idbSaves = [];
     try {
-      return await idbStore.getAllSaves();
+      idbSaves = await idbStore.getAllSaves();
     } catch (error) {
-      console.error('[GameSaveSystem] Failed to list saves via IndexedDB:', error);
-      return [];
+      console.warn('[GameSaveSystem] Failed to list saves via IndexedDB:', error);
     }
+
+    // Merge or fallback to localStorage
+    const savesMap = new Map();
+    idbSaves.forEach(s => savesMap.set(s.slotName, s));
+
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith('zombie_road_save_')) {
+            const slotName = key.replace('zombie_road_save_', '');
+            if (!savesMap.has(slotName)) {
+              try {
+                const data = JSON.parse(window.localStorage.getItem(key));
+                if (data) {
+                  savesMap.set(slotName, {
+                    slotName: slotName,
+                    timestamp: data.timestamp || Date.now(),
+                    turn: data.turn || 1,
+                    version: data.version || '1.0.0'
+                  });
+                }
+              } catch (e) {
+                // ignore invalid
+              }
+            }
+          }
+        }
+      }
+    } catch (lsError) {
+      console.error('[GameSaveSystem] Failed to list saves from localStorage:', lsError);
+    }
+
+    return Array.from(savesMap.values()).sort((a, b) => b.timestamp - a.timestamp);
   }
 
   // Helper methods for complex object restoration

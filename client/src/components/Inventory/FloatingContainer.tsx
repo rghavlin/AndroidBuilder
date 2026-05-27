@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { X, Move } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useWindowSize, getScaleFactor } from "@/hooks/useWindowSize";
 
 interface FloatingContainerProps {
   id: string;
@@ -30,9 +31,10 @@ export default function FloatingContainer({
 }: FloatingContainerProps) {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, startX: 0, startY: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const { inventoryRef, moveItem, getContainer } = useInventory();
+  const windowSize = useWindowSize();
   
   // Ensure container is registered when opening
   useEffect(() => {
@@ -80,16 +82,22 @@ export default function FloatingContainer({
     if (e.target === e.currentTarget || (e.target as Element).closest('.drag-handle')) {
       setIsDragging(true);
       setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
+        x: e.clientX,
+        y: e.clientY,
+        startX: position.x,
+        startY: position.y,
       });
     }
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
-      const newX = Math.max(0, Math.min(window.innerWidth - minWidth, e.clientX - dragStart.x));
-      const newY = Math.max(0, Math.min(window.innerHeight - minHeight, e.clientY - dragStart.y));
+      const scale = getScaleFactor();
+      const deltaX = (e.clientX - dragStart.x) / scale;
+      const deltaY = (e.clientY - dragStart.y) / scale;
+
+      const newX = Math.max(0, Math.min(windowSize.width - minWidth, dragStart.startX + deltaX));
+      const newY = Math.max(0, Math.min(windowSize.height - minHeight, dragStart.startY + deltaY));
 
       setPosition({ x: newX, y: newY });
     }
@@ -170,6 +178,6 @@ export default function FloatingContainer({
         )}
       </div>
     </div>,
-    document.body
+    document.getElementById('modal-root') || document.body
   );
 }

@@ -3,7 +3,6 @@ import EquipmentSlot from "./EquipmentSlot";
 import { useInventory } from "@/contexts/InventoryContext";
 import { Button } from "@/components/ui/button";
 import { useState } from 'react';
-import DevConsole from '../Game/DevConsole.jsx';
 import { useGame } from "@/contexts/GameContext.jsx";
 import { usePlayer } from "@/contexts/PlayerContext.jsx";
 import { useSleep } from "@/contexts/SleepContext.jsx";
@@ -20,7 +19,6 @@ export default function EquipmentSlots() {
   const { playSound } = useAudio();
   const { isSleeping } = useSleep();
   const { addLog } = useLog();
-  const [showDevConsole, setShowDevConsole] = useState(false);
 
   const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping;
 
@@ -181,14 +179,16 @@ export default function EquipmentSlots() {
     <div className="flex items-center gap-2 w-full h-full px-1" data-testid="equipment-slots">
       {/* Label and Tucked Dev Button - vertically centered, shifted left */}
       <div className="flex flex-col justify-center min-w-[50px] shrink-0 pl-1">
-        <Button
-          onClick={() => setShowDevConsole(true)}
-          disabled={buttonsDisabled}
-          className="bg-zinc-800/60 hover:bg-zinc-700/80 text-zinc-400 h-3.5 px-1 text-[7px] font-mono border border-white/5 leading-none transition-all mb-1 w-fit shadow-sm"
-          data-testid="button-dev-console"
-        >
-          DEV
-        </Button>
+        {import.meta.env.DEV && (
+          <Button
+            onClick={() => (window as any).toggleDevConsole?.(true)}
+            disabled={buttonsDisabled}
+            className="bg-zinc-800/60 hover:bg-zinc-700/80 text-zinc-400 h-3.5 px-1 text-[7px] font-mono border border-white/5 leading-none transition-all mb-1 w-fit shadow-sm"
+            data-testid="button-dev-console"
+          >
+            DEV
+          </Button>
+        )}
         <h2 className="text-[8px] font-black text-zinc-500 uppercase tracking-tighter pl-0.5">
           EQUIPMENT
         </h2>
@@ -218,14 +218,6 @@ export default function EquipmentSlots() {
           );
         })}
       </div>
-
-      {/* Dev Console Window */}
-      {showDevConsole && (
-        <DevConsole
-          isOpen={showDevConsole}
-          onClose={() => setShowDevConsole(false)}
-        />
-      )}
     </div>
   );
 }

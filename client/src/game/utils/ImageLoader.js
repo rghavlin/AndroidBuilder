@@ -15,7 +15,7 @@ export class ImageLoader {
     this.onImageLoaded = null; // Callback for reactive re-rendering (MapCanvas)
 
     // Load initial tileSet from global config
-    this.tileSet = configManager.get('tileSet') || 'standard';
+    this.tileSet = configManager.get('tileSet') || 'b&w';
 
     // Determine the correct base path for images
     this.basePath = this.determineBasePath();

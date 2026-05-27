@@ -13,6 +13,7 @@ import { useAction } from "../../contexts/ActionContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
 import { useCombat } from "../../contexts/CombatContext.jsx";
 import { ItemTrait, ItemCategory } from "../../game/inventory/traits.js";
+import { getScaleFactor } from "@/hooks/useWindowSize";
 import { Item, createItemFromDef } from "../../game/inventory/index.js";
 import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
@@ -658,8 +659,9 @@ export default function UniversalGrid({
     if (targetingItem) {
       if (targetingItem.hasTrait(ItemTrait.CAN_DIG) && containerId === 'ground') {
         const rect = event.currentTarget.getBoundingClientRect();
-        const screenX = event.clientX - rect.left;
-        const screenY = event.clientY - rect.top;
+        const scale = getScaleFactor();
+        const screenX = (event.clientX - rect.left) / scale;
+        const screenY = (event.clientY - rect.top) / scale;
         const slotWithGap = slotSize + GAP_SIZE;
         const gridX = Math.floor(screenX / slotWithGap);
         const gridY = Math.floor(screenY / slotWithGap);
@@ -693,8 +695,9 @@ export default function UniversalGrid({
       const seedTypes = ['food.cornseeds', 'food.tomatoseeds', 'food.carrotseeds'];
       if (seedTypes.includes(targetingItem.defId) && containerId === 'ground') {
         const rect = event.currentTarget.getBoundingClientRect();
-        const screenX = event.clientX - rect.left;
-        const screenY = event.clientY - rect.top;
+        const scale = getScaleFactor();
+        const screenX = (event.clientX - rect.left) / scale;
+        const screenY = (event.clientY - rect.top) / scale;
         const slotWithGap = slotSize + GAP_SIZE;
         const gridX = Math.floor(screenX / slotWithGap);
         const gridY = Math.floor(screenY / slotWithGap);
@@ -725,8 +728,9 @@ export default function UniversalGrid({
     }
 
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const scale = getScaleFactor();
+    const x = (event.clientX - rect.left) / scale;
+    const y = (event.clientY - rect.top) / scale;
 
     const slotWithGap = slotSize + GAP_SIZE;
 

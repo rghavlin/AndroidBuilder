@@ -123,7 +123,7 @@ function GameScreenContent() {
       {showStartMenu ? (
         <StartMenu onStartGame={handleStartGame} />
       ) : !isGameReady ? (
-        <div className="h-screen w-screen bg-background flex items-center justify-center">
+        <div className="h-full w-full bg-background flex items-center justify-center">
           <div className="text-center p-8">
             <p className="text-foreground text-xl">Loading game...</p>
             {initializationError && (
@@ -132,7 +132,7 @@ function GameScreenContent() {
           </div>
         </div>
       ) : (
-        <div className="game-container h-screen flex flex-col overflow-hidden bg-background" data-testid="game-screen">
+        <div className="game-container h-full w-full flex flex-col overflow-hidden bg-background" data-testid="game-screen">
           {/* Top Section: Map and Inventory Side-by-Side */}
           <div className="flex flex-grow overflow-hidden min-h-0">
             {/* Left Column: Map Interface */}

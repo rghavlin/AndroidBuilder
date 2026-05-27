@@ -2,6 +2,7 @@ import { useInventory } from '../../contexts/InventoryContext';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
 import UniversalGrid from './UniversalGrid';
+import { getScaleFactor } from '@/hooks/useWindowSize';
 import WeaponModPanel from './WeaponModPanel';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
@@ -51,8 +52,9 @@ export default function FloatingContainerOverlay({
     // 1. Try to harvest if clicking on a plant
     if (containerGrid) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const scale = getScaleFactor();
+      const x = (e.clientX - rect.left) / scale;
+      const y = (e.clientY - rect.top) / scale;
       const slotWithGap = slotSize + gapSize;
       const gridX = Math.floor(x / slotWithGap);
       const gridY = Math.floor(y / slotWithGap);

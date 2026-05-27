@@ -1147,7 +1147,77 @@ const GameContextInner = ({ children }) => {
     }
   }, [contextSyncPhase, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
+  const loadGameFromStateData = useCallback(async (saveData) => {
+    console.log('[GameContext] 🎮 STATE DATA LOAD - Skipping storage, loading save data directly...');
+    resetAll();
 
+    try {
+      const loadedState = await GameSaveSystem.loadGameState(saveData);
+      if (!loadedState) {
+        console.warn(`[GameContext] ❌ Failed to deserialize save data`);
+        return false;
+      }
+
+      console.log('[GameContext] ✅ Save data deserialized, applying state directly...');
+      console.log(`[GameContext] - Turn: ${loadedState.turn}`);
+      console.log(`[GameContext] - Player: ${loadedState.player.id} at (${loadedState.player.x}, ${loadedState.player.y})`);
+      console.log(`[GameContext] - Map: ${loadedState.gameMap.width}x${loadedState.gameMap.height}`);
+
+      // Sync ALL engine state atomically from loaded save
+      turnManager.cancelPlayback();
+      audioManager.stopAllSounds();
+      engine.sync(loadedState);
+      
+      setTurn(loadedState.turn);
+      setTurnPhase(loadedState.isPlayerTurn !== undefined ? (loadedState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING') : 'PLAYER_TURN');
+      setIsGameReady(true);
+      setIsAutosaving(false);
+      setIsDefeated(false);
+      lastSeenTaggedTilesRef.current = loadedState.lastSeenTaggedTiles || new Set();
+
+      // Set camera world bounds and recenter on loaded player position
+      if (loadedState.camera && loadedState.player && loadedState.gameMap) {
+        loadedState.camera.setWorldBounds(loadedState.gameMap.width, loadedState.gameMap.height);
+        loadedState.camera.centerOn(loadedState.player.x, loadedState.player.y);
+        console.log(`[GameContext] ✅ Camera configured - bounds: ${loadedState.gameMap.width}x${loadedState.gameMap.height}, centered on (${loadedState.player.x}, ${loadedState.player.y})`);
+      }
+
+      // Set up player event listeners and update derived state
+      setupPlayerEventListeners();
+      attachInventorySyncListener(loadedState.player, loadedState.inventoryManager);
+
+      // Calculate isNight for the loaded turn
+      const loadedHour = (6 + (loadedState.turn - 1)) % 24;
+      const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
+
+      // Restore flashlight state
+      const isFlashlightOnLoaded = loadedState.interactionState?.isFlashlightOn || false;
+      setIsFlashlightOn(isFlashlightOnLoaded);
+
+      const fl = loadedState.inventoryManager?.equipment['flashlight'];
+      const isNVG = fl ? fl.lightType === 'nightvision' : false;
+      const range = fl ? fl.lightRange || 8 : 8;
+
+      updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, isFlashlightOnLoaded, false, range, isNVG);
+      updatePlayerCardinalPositions(loadedState.gameMap);
+
+      // Open the UI gate
+      setInitializationState('complete');
+      setIsGameReady(true);
+      logger.info('🎉 STATE DATA LOAD COMPLETE - Game ready without initialization');
+      console.log(`[GameContext] - Final player position: (${loadedState.player.x}, ${loadedState.player.y})`);
+      console.log(`[GameContext] - Entities on map: ${loadedState.gameMap.getAllEntities().length}`);
+      console.log(`[GameContext] - InventoryManager: ${loadedState.inventoryManager ? 'loaded' : 'missing'}`);
+
+      // Dispatch event so that any open menus (like MainMenuWindow) can close
+      window.dispatchEvent(new CustomEvent('game-loaded'));
+
+      return true;
+    } catch (error) {
+      console.error('[GameContext] ❌ STATE DATA LOAD FAILED:', error);
+      return false;
+    }
+  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions, resetAll]);
 
   const loadGameDirect = useCallback(async (slotName = 'autosave') => {
     console.log('[GameContext] 🎮 DIRECT LOAD - Skipping initialization, loading save directly...');
@@ -1595,6 +1665,7 @@ const GameContextInner = ({ children }) => {
     saveGame,
     loadGame,
     loadGameDirect,
+    loadGameFromStateData,
     loadAutosave,
     performAutosave,
     exportGame,
@@ -1655,6 +1726,7 @@ const GameContextInner = ({ children }) => {
     saveGame,
     loadGame,
     loadGameDirect,
+    loadGameFromStateData,
     loadAutosave,
     checkZombieAwareness,
     animateVisibleNPCs,

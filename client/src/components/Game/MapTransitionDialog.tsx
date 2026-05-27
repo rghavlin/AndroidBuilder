@@ -121,7 +121,9 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
                 <Trophy className="w-6 h-6 text-foreground" />
               </div>
               <DialogTitle className="text-2xl font-black tracking-wider text-foreground">
-                MAP COMPLETED
+                {currentMapId === 'map_004' 
+                  ? "Demo completed. Check Steam for the full release." 
+                  : "MAP COMPLETED"}
               </DialogTitle>
             </DialogHeader>
 
@@ -184,14 +186,16 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
               >
                 Cancel
               </Button>
-              <Button 
-                type="button" 
-                onClick={handleProceed}
-                className="flex-1 py-5 text-md font-bold metal-button-green uppercase tracking-wide border-none flex items-center justify-center gap-1.5 group"
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-              </Button>
+              {currentMapId !== 'map_004' && (
+                <Button 
+                  type="button" 
+                  onClick={handleProceed}
+                  className="flex-1 py-5 text-md font-bold metal-button-green uppercase tracking-wide border-none flex items-center justify-center gap-1.5 group"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              )}
             </DialogFooter>
           </>
         )}

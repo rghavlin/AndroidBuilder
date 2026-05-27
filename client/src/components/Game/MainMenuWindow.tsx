@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
 import OptionsWindow from './OptionsWindow';
 import HelpWindow from './HelpWindow';
 import { X, Settings, HelpCircle } from "lucide-react";
+import { GameSaveSystem } from '@/game/GameSaveSystem';
 
 interface MainMenuWindowProps {
     onClose: () => void;
@@ -16,6 +17,30 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
+    const [hasSave, setHasSave] = useState(false);
+
+    const checkSave = async () => {
+        try {
+            const slots = await GameSaveSystem.listSaveSlots();
+            const exists = slots.some(s => s.slotName === 'autosave');
+            setHasSave(exists);
+        } catch (e) {
+            console.warn('[MainMenuWindow] Failed to check save slots:', e);
+            setHasSave(false);
+        }
+    };
+
+    useEffect(() => {
+        checkSave();
+    }, []);
+
+    useEffect(() => {
+        const handleGameLoaded = () => {
+            onClose();
+        };
+        window.addEventListener('game-loaded', handleGameLoaded);
+        return () => window.removeEventListener('game-loaded', handleGameLoaded);
+    }, [onClose]);
 
     const handleNewGame = async () => {
         setIsLoading(true);
@@ -73,7 +98,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
 
                     <Button
                         onClick={handleLoadGame}
-                        disabled={isLoading}
+                        disabled={isLoading || !hasSave}
                         className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
                         data-testid="button-menu-load-game"
                     >
@@ -103,7 +128,10 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                 </CardContent>
             </Card>
 
-            {showOptions && <OptionsWindow onClose={() => setShowOptions(false)} />}
+            {showOptions && <OptionsWindow onClose={() => {
+                setShowOptions(false);
+                checkSave();
+            }} />}
             {showHelp && <HelpWindow onClose={() => setShowHelp(false)} />}
         </div>
     );

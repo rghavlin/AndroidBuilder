@@ -13,11 +13,15 @@ interface DevConsoleProps {
     isLoading: boolean;
 }
 
-type TabType = 'environment' | 'player' | 'items' | 'world';
+type TabType = 'player' | 'items' | 'world';
 
 export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleProps) {
-    const [activeTab, setActiveTab] = useState<TabType>('environment');
+    const [isUnlocked, setIsUnlocked] = useState(import.meta.env.DEV);
+    const [passwordInput, setPasswordInput] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+    const [activeTab, setActiveTab] = useState<TabType>('player');
     const [isGodModeActive, setIsGodModeActive] = useState(false);
+
     
     // -- GOD MODE --
     const handleGodMode = () => {
@@ -33,24 +37,7 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         setTimeout(() => setIsGodModeActive(false), 2000);
     };
     
-    // -- ENVIRONMENT TAB STATE --
-    const [zombies, setZombies] = useState({
-        basicCount: 15,
-        runnerCount: 5,
-        crawlerMin: 2,
-        crawlerMax: 4,
-        acidMin: 1,
-        acidMax: 3,
-        swatMin: 1,
-        swatMax: 2,
-        firefighterMin: 1,
-        firefighterMax: 2
-    });
 
-    const [startMastery, setStartMastery] = useState({
-        meleeKills: 0,
-        rangedKills: 0
-    });
 
     // -- PLAYER TAB STATE --
     const [playerStats, setPlayerStats] = useState({
@@ -106,6 +93,60 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
     const filteredItems = useMemo(() => {
         return availableItems.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [availableItems, searchQuery]);
+
+    if (!isUnlocked) {
+        return (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-background/90 backdrop-blur-md p-4 pointer-events-auto shadow-2xl">
+                <Card className="w-full max-w-md bg-card border-primary/20 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 pb-4">
+                        <div className="flex items-center gap-2">
+                            <Bug className="h-6 w-6 text-primary animate-pulse" />
+                            <CardTitle className="text-xl font-mono uppercase tracking-tighter text-foreground">Dev Authorization</CardTitle>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+                            <X className="h-5 w-5" />
+                        </Button>
+                    </CardHeader>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (passwordInput === 'roadhome') {
+                            setIsUnlocked(true);
+                        } else {
+                            setErrorMsg('Access Denied: Incorrect Password');
+                        }
+                    }}>
+                        <CardContent className="pt-6 space-y-4">
+                            <div className="space-y-1">
+                                <Label className="text-xs text-muted-foreground uppercase font-mono tracking-wider">Access Token Required</Label>
+                                <Input 
+                                    type="password"
+                                    placeholder="Enter access code..."
+                                    value={passwordInput}
+                                    onChange={(e) => {
+                                        setPasswordInput(e.target.value);
+                                        setErrorMsg('');
+                                    }}
+                                    className="font-mono bg-black text-white border-primary/40 focus:border-primary text-center tracking-widest text-lg"
+                                    autoFocus
+                                />
+                            </div>
+                            {errorMsg && (
+                                <p className="text-xs text-red-500 font-mono text-center">{errorMsg}</p>
+                            )}
+                        </CardContent>
+                        <CardFooter className="border-t border-border/50 pt-4 pb-4">
+                            <Button 
+                                type="submit"
+                                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest"
+                            >
+                                Authenticate
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Card>
+            </div>
+        );
+    }
 
     const spawnItem = async (defId: string) => {
         if (!engine.isReady()) {
@@ -228,7 +269,6 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                         </Button>
                     </div>
                     <div className="flex gap-1 bg-secondary/30 p-1 rounded-md">
-                        <TabButton id="environment" icon={<Globe className="h-4 w-4" />} activeTab={activeTab} onClick={setActiveTab}>Start</TabButton>
                         <TabButton id="player" icon={<User className="h-4 w-4" />} activeTab={activeTab} onClick={setActiveTab}>Stats</TabButton>
                         <TabButton id="items" icon={<Package className="h-4 w-4" />} activeTab={activeTab} onClick={setActiveTab}>Items</TabButton>
                         <TabButton id="world" icon={<Skull className="h-4 w-4" />} activeTab={activeTab} onClick={setActiveTab}>World</TabButton>
@@ -239,17 +279,6 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                 </CardHeader>
 
                 <CardContent className="h-[60vh] overflow-hidden flex flex-col pt-6">
-                    {activeTab === 'environment' && (
-                        <div className="grid grid-cols-2 gap-6 overflow-y-auto custom-scrollbar pr-2">
-                             <EnvironmentTab 
-                                zombies={zombies} 
-                                setZombies={setZombies} 
-                                mastery={startMastery} 
-                                setMastery={setStartMastery} 
-                             />
-                        </div>
-                    )}
-
                     {activeTab === 'player' && (
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                             <PlayerTab stats={playerStats} updateStat={updatePlayerStat} />
@@ -334,19 +363,9 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                 </CardContent>
 
                 <CardFooter className="border-t border-border/50 pt-4 pb-4">
-                    {activeTab === 'environment' ? (
-                        <Button 
-                            onClick={() => onLaunch({ zombieConfig: zombies, playerConfig: startMastery })} 
-                            disabled={isLoading}
-                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest shadow-lg"
-                        >
-                            {isLoading ? 'Booting Environment...' : 'Initialize Custom Game'}
-                        </Button>
-                    ) : (
-                        <div className="w-full text-center text-xs text-muted-foreground italic font-mono uppercase tracking-widest">
-                            Changes applied live to engine singleton
-                        </div>
-                    )}
+                    <div className="w-full text-center text-xs text-muted-foreground italic font-mono uppercase tracking-widest">
+                        Changes applied live to engine singleton
+                    </div>
                 </CardFooter>
             </Card>
         </div>
@@ -383,39 +402,6 @@ function WorldToolButton({ icon, title, desc, onClick }: any) {
     )
 }
 
-function EnvironmentTab({ zombies, setZombies, mastery, setMastery }: any) {
-    const handleZombieChange = (field: string, value: string) => {
-        const val = parseInt(value) || 0;
-        setZombies((prev: any) => ({ ...prev, [field]: val }));
-    };
-
-    return (
-        <>
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 text-primary border-b border-primary/20 pb-1 mb-4">
-                    <Skull className="h-4 w-4" />
-                    <h3 className="font-bold text-sm uppercase tracking-tighter">Zombie Density</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <StatInput label="Basic" value={zombies.basicCount} onChange={v => handleZombieChange('basicCount', v)} />
-                    <StatInput label="Runners" value={zombies.runnerCount} onChange={v => handleZombieChange('runnerCount', v)} />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <StatInput label="Crawler (min)" value={zombies.crawlerMin} onChange={v => handleZombieChange('crawlerMin', v)} />
-                    <StatInput label="Crawler (max)" value={zombies.crawlerMax} onChange={v => handleZombieChange('crawlerMax', v)} />
-                </div>
-            </div>
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 text-primary border-b border-primary/20 pb-1 mb-4">
-                    <User className="h-4 w-4" />
-                    <h3 className="font-bold text-sm uppercase tracking-tighter">Starting Mastery</h3>
-                </div>
-                <StatInput label="Melee Kills" value={mastery.meleeKills} onChange={v => setMastery((p: any) => ({ ...p, meleeKills: parseInt(v) }))} />
-                <StatInput label="Ranged Kills" value={mastery.rangedKills} onChange={v => setMastery((p: any) => ({ ...p, rangedKills: parseInt(v) }))} />
-            </div>
-        </>
-    );
-}
 
 function PlayerTab({ stats, updateStat }: any) {
     return (

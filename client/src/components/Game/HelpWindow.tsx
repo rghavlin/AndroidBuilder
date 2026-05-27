@@ -83,7 +83,7 @@ export default function HelpWindow({ onClose }: HelpWindowProps) {
                         <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden border border-border/50 shadow-inner flex items-center justify-center">
                             <video
                                 key={selectedVideo.id}
-                                src={`/video/help/${selectedVideo.filename}`}
+                                src={`video/help/${selectedVideo.filename}`}
                                 controls
                                 className="w-full h-full object-contain"
                             />
