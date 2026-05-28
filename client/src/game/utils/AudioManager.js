@@ -22,13 +22,21 @@ class AudioManager {
    * Initialize AudioContext on first user interaction if not already done
    */
   _ensureAudioContext() {
-    if (!this.audioCtx) {
-      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+      if (!this.audioCtx) {
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(err => {
+          console.warn('[AudioManager] Failed to resume AudioContext:', err);
+        });
+      }
+      return this.audioCtx;
+    } catch (err) {
+      console.warn('[AudioManager] Failed to create or resume AudioContext:', err);
+      this.audioCtx = null;
+      return null;
     }
-    if (this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
-    }
-    return this.audioCtx;
   }
 
   async loadSound(name, path, defaultVolume = 1.0) {
@@ -124,18 +132,27 @@ class AudioManager {
   playSound(name, options = {}) {
     if (this.isMuted) return;
 
-    // Check if Web Audio buffer exists and use it
-    if (this.audioBuffers.has(name)) {
-      const { loop = false } = options;
-      if (loop) {
-        this.startLoop(name, options);
-      } else {
-        this.playOneShot(name, options);
+    try {
+      // Check if Web Audio buffer exists and use it
+      if (this.audioBuffers.has(name)) {
+        const { loop = false } = options;
+        if (loop) {
+          this.startLoop(name, options);
+        } else {
+          this.playOneShot(name, options);
+        }
+        return;
       }
-      return;
-    }
 
-    this._playHtmlAudio(name, options);
+      this._playHtmlAudio(name, options);
+    } catch (err) {
+      console.warn(`[AudioManager] playSound failed for "${name}", falling back:`, err);
+      try {
+        this._playHtmlAudio(name, options);
+      } catch (innerErr) {
+        console.error('[AudioManager] HTMLAudio fallback also failed:', innerErr);
+      }
+    }
   }
 
   /**
@@ -149,6 +166,9 @@ class AudioManager {
       const response = await fetch(path);
       const arrayBuffer = await response.arrayBuffer();
       const ctx = this._ensureAudioContext();
+      if (!ctx) {
+        throw new Error('AudioContext not available');
+      }
       const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
       this.audioBuffers.set(name, decodedBuffer);
       console.log(`[AudioManager] ✅ Web Audio Buffer ready for "${name}"`);
@@ -162,33 +182,42 @@ class AudioManager {
    */
   startLoop(name, options = {}) {
     if (this.isMuted) return;
-    this._ensureAudioContext();
+    
+    try {
+      const ctx = this._ensureAudioContext();
 
-    if (this.activeLoops.has(name)) return;
+      const buffer = this.audioBuffers.get(name);
+      if (!buffer || !ctx) {
+        console.warn(`[AudioManager] ⚠️ Gapless buffer for "${name}" or AudioContext not found, falling back to HTMLAudio.`);
+        this._playHtmlAudio(name, { ...options, loop: true });
+        return;
+      }
 
-    const buffer = this.audioBuffers.get(name);
-    if (!buffer) {
-      console.warn(`[AudioManager] ⚠️ Gapless buffer for "${name}" not found, falling back to HTMLAudio.`);
-      this.playSound(name, { ...options, loop: true });
-      return;
+      if (this.activeLoops.has(name)) return;
+
+      const baseVolume = options.volume !== undefined ? options.volume : (this.soundDefaults.get(name) || 1.0);
+      
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+
+      const gainNode = ctx.createGain();
+      gainNode.gain.value = baseVolume * this.masterVolume * this.sfxVolume;
+
+      source.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      source.start(0);
+      this.activeLoops.set(name, { source, gainNode, baseVolume });
+      console.log(`[AudioManager] 🔄 Started gapless loop: "${name}"`);
+    } catch (err) {
+      console.warn(`[AudioManager] startLoop failed for "${name}", falling back to HTML5 Audio:`, err);
+      try {
+        this._playHtmlAudio(name, { ...options, loop: true });
+      } catch (innerErr) {
+        console.error('[AudioManager] HTMLAudio loop fallback failed:', innerErr);
+      }
     }
-
-    const baseVolume = options.volume !== undefined ? options.volume : (this.soundDefaults.get(name) || 1.0);
-    const ctx = this.audioCtx;
-    
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.value = baseVolume * this.masterVolume * this.sfxVolume;
-
-    source.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    
-    source.start(0);
-    this.activeLoops.set(name, { source, gainNode, baseVolume });
-    console.log(`[AudioManager] 🔄 Started gapless loop: "${name}"`);
   }
 
   /**
@@ -196,30 +225,41 @@ class AudioManager {
    */
   playOneShot(name, options = {}) {
     if (this.isMuted) return;
-    const ctx = this._ensureAudioContext();
+    
+    try {
+      const ctx = this._ensureAudioContext();
 
-    const buffer = this.audioBuffers.get(name);
-    if (!buffer) {
-      // Fallback to HTMLAudio if buffer not loaded
-      return this.playSound(name, options);
+      const buffer = this.audioBuffers.get(name);
+      if (!buffer || !ctx) {
+        // Fallback to HTMLAudio if buffer not loaded or AudioContext blocked
+        this._playHtmlAudio(name, options);
+        return;
+      }
+
+      const baseVolume = options.volume !== undefined ? options.volume : (this.soundDefaults.get(name) || 1.0);
+      const finalVolume = baseVolume * this.masterVolume * this.sfxVolume;
+      const playbackRate = options.playbackRate || 1.0;
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.playbackRate.value = playbackRate;
+
+      const gainNode = ctx.createGain();
+      gainNode.gain.value = finalVolume;
+
+      source.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      source.start(0);
+      console.log(`[AudioManager] 🎵 One-shot played via WebAudio: "${name}"`);
+    } catch (err) {
+      console.warn(`[AudioManager] playOneShot failed for "${name}", falling back to HTML5 Audio:`, err);
+      try {
+        this._playHtmlAudio(name, options);
+      } catch (innerErr) {
+        console.error('[AudioManager] HTMLAudio fallback failed:', innerErr);
+      }
     }
-
-    const baseVolume = options.volume !== undefined ? options.volume : (this.soundDefaults.get(name) || 1.0);
-    const finalVolume = baseVolume * this.masterVolume * this.sfxVolume;
-    const playbackRate = options.playbackRate || 1.0;
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.playbackRate.value = playbackRate;
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.value = finalVolume;
-
-    source.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    source.start(0);
-    console.log(`[AudioManager] 🎵 One-shot played via WebAudio: "${name}"`);
   }
 
   /**

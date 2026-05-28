@@ -24,7 +24,7 @@ interface OptionsWindowProps {
 }
 
 export default function OptionsWindow({ onClose }: OptionsWindowProps) {
-    const { isGameReady, exportGame, loadGameFromStateData } = useGame();
+    const { isGameReady, exportGame, loadGameFromStateData, getSerializedSaveData } = useGame();
     const [activeTab, setActiveTab] = useState('audio');
     const [tempTileSet, setTempTileSet] = useState(imageLoader.tileSet);
     const [scaleToFit, setScaleToFit] = useState(() => {
@@ -32,6 +32,44 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
         return saved === null ? true : saved === 'true';
     });
     const [savesList, setSavesList] = useState<any[]>([]);
+
+    const [saveTextToCopy, setSaveTextToCopy] = useState<string | null>(null);
+    const [importText, setImportText] = useState('');
+    const [showTextImport, setShowTextImport] = useState(false);
+
+    const handleTextExport = () => {
+        if (!isGameReady || !getSerializedSaveData) return;
+        const textData = getSerializedSaveData();
+        if (textData) {
+            setSaveTextToCopy(textData);
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(textData).catch(err => {
+                    console.warn('[OptionsWindow] Clipboard write failed:', err);
+                });
+            }
+        } else {
+            alert('Failed to generate save text.');
+        }
+    };
+
+    const handleTextImportSubmit = async () => {
+        if (!importText.trim()) return;
+        try {
+            const data = JSON.parse(importText);
+            if (!data.version || !data.gameMap) {
+                alert('Invalid save text format. Ensure it has "version" and "gameMap" fields.');
+                return;
+            }
+            const success = await loadGameFromStateData(data);
+            if (success) {
+                onClose();
+            } else {
+                alert('Failed to load the save data.');
+            }
+        } catch (err: any) {
+            alert('Error parsing save text: ' + err.message);
+        }
+    };
 
     const refreshSaves = async () => {
         try {
@@ -158,7 +196,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
 
                 <CardContent className="pt-6">
                     <Tabs defaultValue="audio" className="w-full" onValueChange={setActiveTab}>
-                        <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/50 p-1 rounded-xl">
+                        <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
                             <TabsTrigger value="audio" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
                                 <Volume2 className="w-4 h-4" />
                                 <span className="font-semibold">Audio</span>
@@ -166,10 +204,6 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                             <TabsTrigger value="graphics" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
                                 <Monitor className="w-4 h-4" />
                                 <span className="font-semibold">Graphics</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="saves" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
-                                <Save className="w-4 h-4" />
-                                <span className="font-semibold">Saves</span>
                             </TabsTrigger>
                         </TabsList>
 
@@ -185,7 +219,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                     <SelectValue placeholder="Select tile set" />
                                                 </SelectTrigger>
                                                 <SelectContent className="z-[120]">
-                                                    <SelectItem value="standard">Standard</SelectItem>
+                                                    <SelectItem value="standard">Color</SelectItem>
                                                     <SelectItem value="b&w">Black and White</SelectItem>
                                                     <SelectItem value="custom">Custom</SelectItem>
                                                     <SelectItem value="none">None (Colors Only)</SelectItem>
@@ -323,6 +357,58 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                     </div>
 
                                     <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Text-based Backup (Backup for itch.io/Electron)</label>
+                                        <div className="flex gap-4">
+                                            <Button
+                                                onClick={handleTextExport}
+                                                disabled={!isGameReady}
+                                                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2 flex items-center justify-center gap-2 border border-white/10"
+                                            >
+                                                <Save className="w-4 h-4" />
+                                                Export to Text
+                                            </Button>
+                                            <Button
+                                                onClick={() => {
+                                                    setShowTextImport(prev => !prev);
+                                                    setImportText('');
+                                                }}
+                                                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2 flex items-center justify-center gap-2 border border-white/10"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                Import from Text
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {showTextImport && (
+                                        <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-xl border border-border/40 animate-in slide-in-from-top-2 duration-200">
+                                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Paste Save Data JSON:</label>
+                                            <textarea
+                                                value={importText}
+                                                onChange={(e) => setImportText(e.target.value)}
+                                                placeholder="Paste your JSON save data here..."
+                                                className="w-full h-24 p-2 bg-black border border-white/10 text-green-400 font-mono text-[10px] rounded focus:border-primary/50 focus:outline-none"
+                                            />
+                                            <div className="flex gap-2 justify-end">
+                                                <Button
+                                                    onClick={() => setShowTextImport(false)}
+                                                    variant="ghost"
+                                                    className="text-xs h-8"
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button
+                                                    onClick={handleTextImportSubmit}
+                                                    disabled={!importText.trim()}
+                                                    className="bg-primary hover:bg-primary/90 text-xs h-8 font-bold"
+                                                >
+                                                    Load Save Data
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col gap-3">
                                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Local Browser Saves</label>
                                         <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                                             {savesList.length === 0 ? (
@@ -360,6 +446,42 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                     </Tabs>
                 </CardContent>
             </Card>
+
+            {saveTextToCopy && (
+                <div className="absolute inset-0 z-50 bg-black/95 flex flex-col p-6 animate-in fade-in duration-200 justify-between">
+                    <div className="flex flex-col gap-3 flex-1 overflow-hidden">
+                        <h3 className="text-lg font-bold text-white uppercase tracking-wider">Exported Save Data</h3>
+                        <p className="text-[10px] text-zinc-400 uppercase">
+                            Copy the text below to backup your progress. 
+                            {navigator.clipboard ? " It has also been copied to your clipboard automatically!" : ""}
+                        </p>
+                        <textarea
+                            readOnly
+                            value={saveTextToCopy}
+                            onClick={(e) => (e.target as any).select()}
+                            className="w-full flex-1 p-3 bg-zinc-950 border border-white/10 text-green-400 font-mono text-[9px] rounded-lg resize-none focus:outline-none overflow-y-auto"
+                        />
+                    </div>
+                    <div className="flex gap-4 mt-4 shrink-0">
+                        <Button
+                            onClick={() => {
+                                navigator.clipboard.writeText(saveTextToCopy);
+                                alert('Copied to clipboard!');
+                            }}
+                            className="flex-1 bg-primary hover:bg-primary/90 font-bold"
+                        >
+                            Copy Again
+                        </Button>
+                        <Button
+                            onClick={() => setSaveTextToCopy(null)}
+                            variant="ghost"
+                            className="flex-1 border border-white/10 hover:bg-zinc-800"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

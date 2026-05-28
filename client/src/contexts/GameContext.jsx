@@ -1578,6 +1578,30 @@ const GameContextInner = ({ children }) => {
     }
   }, [isInitialized, turn, inventoryManager]);
 
+  const getSerializedSaveData = useCallback(() => {
+    if (!isInitialized || contextSyncPhase !== 'ready') {
+      console.warn('[GameContext] Cannot serialize - contexts not synchronized');
+      return null;
+    }
+    try {
+      const currentGameState = {
+        gameMap: engine.gameMap,
+        worldManager: engine.worldManager,
+        player: engine.player,
+        camera: engine.camera,
+        inventoryManager: inventoryManager,
+        turn: turn,
+        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 },
+        lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
+      };
+      const saveData = GameSaveSystem.saveGameState(currentGameState);
+      return JSON.stringify(saveData, null, 2);
+    } catch (error) {
+      console.error('[GameContext] Failed to serialize game state:', error);
+      return null;
+    }
+  }, [isInitialized, turn, inventoryManager]);
+
   // ==========================================================
   // TURN SYSTEM ORCHESTRATION & RECOVERY
   // ==========================================================
@@ -1669,6 +1693,7 @@ const GameContextInner = ({ children }) => {
     loadAutosave,
     performAutosave,
     exportGame,
+    getSerializedSaveData,
 
     // Map transition components
     mapTransition,

@@ -24,8 +24,8 @@ class GameEngine extends SafeEventEmitter {
     // Global event listeners
     this.on('npcDied', this._handleNpcDeath);
     
-    // Global accessibility for Dev Console and debugging (development only)
-    if (typeof window !== 'undefined' && import.meta.env.DEV) {
+    // Global accessibility for Dev Console and debugging
+    if (typeof window !== 'undefined') {
       window.gameEngine = this;
     }
   }

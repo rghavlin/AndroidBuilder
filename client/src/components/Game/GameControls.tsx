@@ -8,6 +8,7 @@ import { useSleep } from '../../contexts/SleepContext.jsx';
 import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
+import { useOverlays } from '../../contexts/OverlayContext';
 
 interface GameControlsProps {
   playerStats: {
@@ -79,13 +80,14 @@ export default function GameControls({
   } = useGame();
   
   const { isSleeping, triggerSleep } = useSleep();
+  const { isExtensionOpen, setIsExtensionOpen } = useOverlays();
   // We keep useCombat for possible future combat-related HUD elements, but remove non-existent handleEndTurn
   const combatContext = useCombat();
 
-
-
   const [endTurnImage, setEndTurnImage] = useState<string | null>(null);
-  const [playerIcon, setPlayerIcon] = useState<string | null>(null);
+  const [sleepImage, setSleepImage] = useState<string | null>(null);
+  const [craftingImage, setCraftingImage] = useState<string | null>(null);
+  const [statsImage, setStatsImage] = useState<string | null>(null);
 
   // Load UI images
   useEffect(() => {
@@ -93,9 +95,15 @@ export default function GameControls({
       try {
         const endTurnImg = await imageLoader.getUIImage('endturn');
         if (endTurnImg) setEndTurnImage(endTurnImg.src);
-        
-        const playerImg = await imageLoader.getImage('player');
-        if (playerImg) setPlayerIcon(playerImg.src);
+
+        const sleepImg = await imageLoader.getUIImage('sleepbutton');
+        if (sleepImg) setSleepImage(sleepImg.src);
+
+        const craftingImg = await imageLoader.getUIImage('craftingbutton');
+        if (craftingImg) setCraftingImage(craftingImg.src);
+
+        const statsImg = await imageLoader.getUIImage('statsbutton');
+        if (statsImg) setStatsImage(statsImg.src);
       } catch (error) {
         console.error('[GameControls] Failed to load UI images:', error);
       }
@@ -114,35 +122,130 @@ export default function GameControls({
   return (
     <div className="unified-footer px-4 py-1 flex items-center h-[82px] w-full shadow-[0_-8px_25px_rgba(0,0,0,0.8)] z-20" data-testid="game-controls">
       
-      {/* 1. Primary Action: End Turn */}
-      <div className="flex items-center pr-4 border-r border-white/10 h-full">
+      {/* 1. Primary Actions Group */}
+      <div className="flex items-center gap-2 pr-4 border-r border-white/10 h-full">
+        {/* End Turn */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              onClick={onEndTurnAction}
-              disabled={buttonsDisabled}
-              className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
-              style={{ width: '56px', height: '56px' }}
-              data-testid="button-end-turn"
-            >
-              {endTurnImage ? (
-                <img src={endTurnImage} alt="End Turn" className="w-full h-full object-contain" />
-              ) : (
-                <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
-              )}
-            </Button>
+            <div>
+              <Button
+                onClick={onEndTurnAction}
+                disabled={buttonsDisabled}
+                className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
+                style={{ width: '56px', height: '56px' }}
+                data-testid="button-end-turn"
+              >
+                {endTurnImage ? (
+                  <img src={endTurnImage} alt="End Turn" className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
+                )}
+              </Button>
+            </div>
           </TooltipTrigger>
           <TooltipContent side="top">
             <p className="text-xs font-semibold">End your turn</p>
           </TooltipContent>
         </Tooltip>
+
+        {/* Sleep */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Button
+                onClick={() => triggerSleep(1)}
+                disabled={sleepDisabled}
+                className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
+                style={{ width: '56px', height: '56px' }}
+                data-testid="button-sleep"
+              >
+                {sleepImage ? (
+                  <img src={sleepImage} alt="Sleep" className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-xs font-black leading-tight text-white uppercase italic">SLEEP</span>
+                )}
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-xs font-semibold">Sleep</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Crafting */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Button
+                onClick={() => setIsExtensionOpen(!isExtensionOpen)}
+                disabled={buttonsDisabled}
+                className={cn(
+                  "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border shadow-lg active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
+                  isExtensionOpen ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] bg-zinc-700" : "border-white/10"
+                )}
+                style={{ width: '56px', height: '56px' }}
+                data-testid="button-crafting"
+              >
+                {craftingImage ? (
+                  <img
+                    src={craftingImage}
+                    alt="Crafting"
+                    className={cn(
+                      "w-full h-full object-contain p-1 invert grayscale",
+                      isExtensionOpen ? "opacity-100" : "opacity-40"
+                    )}
+                  />
+                ) : (
+                  <span className="text-[10px] font-black leading-tight text-white/60">CRAFT</span>
+                )}
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-xs font-semibold">Crafting & Cooking</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Character Stats (Skills) */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Button
+                onClick={toggleSkills}
+                disabled={buttonsDisabled}
+                className={cn(
+                  "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border shadow-lg active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
+                  isSkillsOpen ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] bg-zinc-700" : "border-white/10"
+                )}
+                style={{ width: '56px', height: '56px' }}
+                data-testid="button-stats"
+              >
+                {statsImage ? (
+                  <img
+                    src={statsImage}
+                    alt="Skills"
+                    className={cn(
+                      "w-full h-full object-contain p-1 invert grayscale",
+                      isSkillsOpen ? "opacity-100" : "opacity-40"
+                    )}
+                  />
+                ) : (
+                  <span className="text-[10px] font-black leading-tight text-white/60">CHR</span>
+                )}
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-xs font-semibold">Character Stats & Skills</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
-      {/* 2. Central HUD: 2-Row Stats Display - Tightened vertical spacing */}
-      <div className="flex-1 flex flex-col justify-center px-4 md:px-8 gap-1.5 min-w-0">
+      {/* 2. Central HUD: 2-Row Stats Display - Tightened spacing */}
+      <div className="flex-1 flex flex-col justify-center px-4 md:px-6 gap-1 min-w-0">
         
         {/* Row 1: Combat (HP and AP) */}
-        <div className="flex items-center gap-6 md:gap-12">
+        <div className="flex items-center gap-4 md:gap-8">
           <StatBar 
             label="Health" 
             current={currentStats.hp} 
@@ -183,7 +286,7 @@ export default function GameControls({
         </div>
 
         {/* Row 2: Survival (Nutrition, Hydration, Energy) */}
-        <div className="flex items-center gap-4 md:gap-8 opacity-90">
+        <div className="flex items-center gap-3 md:gap-6 opacity-90">
           <StatBar 
             label="Nutrition" 
             current={currentStats.nutrition} 
@@ -205,14 +308,14 @@ export default function GameControls({
         </div>
       </div>
 
-      {/* 3. Secondary HUD: World Info & Actions */}
+      {/* 3. Secondary HUD: World Info */}
       <div className="flex items-center gap-3 pl-4 border-l border-white/10 h-full shrink-0">
         
         {/* Compact Turn/Time vertical group */}
         <div className="flex flex-col gap-1.5 mr-1 hidden sm:flex">
           <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-white/30 uppercase tracking-tighter tabular-nums">
             <span>Turn</span>
-            <span className="text-white/80">T{currentTurn}</span>
+            <span className="text-white/80">{currentTurn}</span>
           </div>
           <div className="flex items-center justify-between gap-3 text-[10px] font-mono font-bold text-white/30 uppercase tracking-tighter tabular-nums">
             <span>Time</span>
@@ -222,36 +325,6 @@ export default function GameControls({
           </div>
         </div>
 
-        <Button
-          onClick={() => triggerSleep(1)}
-          disabled={sleepDisabled}
-          className="h-10 px-3 bg-zinc-800 hover:bg-zinc-700 text-[9px] font-black text-white/70 rounded border border-white/10 uppercase tracking-widest disabled:opacity-20 transition-all font-mono"
-        >
-          Sleep
-        </Button>
-
-        <Button
-          onClick={toggleSkills}
-          className={cn(
-            "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border shadow-lg active:scale-95",
-            isSkillsOpen ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] bg-zinc-700" : "border-white/10"
-          )}
-          style={{ width: '56px', height: '56px' }}
-          title="Character Stats"
-        >
-          {playerIcon ? (
-            <img
-              src={playerIcon}
-              alt="Skills"
-              className={cn(
-                "w-full h-full object-contain p-1 invert grayscale",
-                isSkillsOpen ? "opacity-100" : "opacity-40"
-              )}
-            />
-          ) : (
-            <span className="text-[10px] font-black leading-tight text-white/60">CHR</span>
-          )}
-        </Button>
       </div>
 
     </div>

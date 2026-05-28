@@ -77,8 +77,28 @@ export default function GroundItemsGrid() {
     ? engine.gameMap.getTile(playerX, playerY)
     : null;
   const terrain = playerTile?.terrain || 'grass';
+
+  // Support fallback colors for when tile textures are disabled ('none')
+  const terrainColors: Record<string, string> = {
+    'grass': '#1a3c1a',
+    'road': '#2d2d2d',
+    'sidewalk': '#555',
+    'wall': '#888',     // High-contrast structural gray
+    'building': '#777', // Concrete/Building gray
+    'fence': '#4a3728', 
+    'tree': '#064e3b',
+    'tent_wall': '#78716c',
+    'tent_floor': '#5b4d3d', 
+    'floor': '#333', 
+    'water': '#1a3c5a',
+    'dirt': '#3d2b1f'
+  };
+  const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(terrain);
+  const tileColor = (isStructural ? terrainColors[terrain] : (playerTile?.color || terrainColors[terrain])) || '#222';
+
+  const isNoneTileSet = imageLoader.tileSet === 'none';
   const subFolder = imageLoader.tileSet === 'standard' ? '' : `${imageLoader.tileSet}/`;
-  const tileImageUrl = `./images/tiles/${subFolder}${terrain}.png`;
+  const tileImageUrl = isNoneTileSet ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
@@ -98,7 +118,7 @@ export default function GroundItemsGrid() {
         <div 
           className="flex-1 min-h-0 rounded border border-zinc-800 overflow-hidden relative"
           style={{
-            backgroundColor: '#0c0c0f',
+            backgroundColor: isNoneTileSet ? tileColor : '#0c0c0f',
           }}
         >
           <UniversalGrid

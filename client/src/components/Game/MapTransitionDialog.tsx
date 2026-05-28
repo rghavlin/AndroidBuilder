@@ -90,15 +90,15 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px] bg-background border border-border text-foreground shadow-2xl backdrop-blur-md rounded-2xl p-6 transition-all duration-300 pointer-events-auto">
+      <DialogContent className="sm:max-w-[480px] max-h-[95vh] sm:max-h-[90vh] bg-background border border-border text-foreground shadow-2xl backdrop-blur-md rounded-2xl p-6 transition-all duration-300 pointer-events-auto flex flex-col overflow-hidden">
         {!showStats ? (
           <>
-            <DialogHeader className="space-y-3">
+            <DialogHeader className="space-y-3 flex-shrink-0">
               <DialogTitle className="text-xl font-bold tracking-tight text-center text-foreground">
                 {message}
               </DialogTitle>
             </DialogHeader>
-            <DialogFooter className="mt-6 flex gap-3 sm:justify-center">
+            <DialogFooter className="mt-6 flex gap-3 sm:justify-center flex-shrink-0">
               <Button
                 onClick={() => handleClose(false)}
                 className="flex-1 py-5 text-md font-bold metal-button uppercase tracking-wide border-none"
@@ -116,7 +116,7 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
           </>
         ) : (
           <>
-            <DialogHeader className="space-y-1 text-center">
+            <DialogHeader className="space-y-1 text-center flex-shrink-0">
               <div className="mx-auto w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center mb-2">
                 <Trophy className="w-6 h-6 text-foreground" />
               </div>
@@ -127,7 +127,7 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
               </DialogTitle>
             </DialogHeader>
 
-            <div className="my-6 space-y-4">
+            <div className="flex-grow overflow-y-auto my-4 pr-1 space-y-4 custom-scrollbar">
               {/* Stat Card 1: Total Maps Completed */}
               <div className="flex items-center gap-4 bg-muted/30 border border-border/50 rounded-xl p-3.5 hover:border-border transition-all duration-200">
                 <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
@@ -179,7 +179,7 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
               </div>
             </div>
 
-            <DialogFooter className="flex gap-3 sm:justify-center mt-6">
+            <DialogFooter className="flex gap-3 sm:justify-center mt-auto pt-2 flex-shrink-0">
               <Button
                 onClick={() => handleClose(false)}
                 className="flex-1 py-5 text-md font-bold metal-button uppercase tracking-wide border-none"
