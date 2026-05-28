@@ -65,7 +65,7 @@ const EquipmentSlot = memo(({
           <div
             className={cn(
               "w-full h-full",
-              hasItem ? "inset-slot rounded-full" : "inset-slot rounded-lg",
+              hasItem ? "inset-slot rounded-full" : "empty-slot rounded-lg text-zinc-500",
               "flex flex-col items-center justify-center cursor-pointer",
               "hover:brightness-110 transition-all",
               "relative overflow-hidden isolate", // Clip image to rounded corners
@@ -90,18 +90,19 @@ const EquipmentSlot = memo(({
                   className={cn(
                     "w-full h-full object-contain pointer-events-none transition-transform",
                     hasItem && "rounded-full",
-                    !item?.backgroundColor && "mix-blend-screen",
-                    !hasItem && "opacity-[0.45]"
+                    hasItem ? (!item?.backgroundColor && "mix-blend-screen") : "mix-blend-multiply opacity-[0.35]"
                   )}
                   style={{
-                    filter: (!hasItem || !item?.backgroundColor) ? "contrast(300%)" : undefined
+                    filter: !hasItem 
+                      ? "invert(1) contrast(300%)" 
+                      : (!item?.backgroundColor ? "contrast(300%)" : undefined)
                   }}
                 />
               </div>
             ) : (
               <>
-                <span className="text-xl mb-0.5 opacity-65">{displayIcon}</span>
-                <span className="text-[9px] uppercase font-bold tracking-tighter opacity-65">{displayLabel}</span>
+                <span className="text-xl mb-0.5 opacity-70">{displayIcon}</span>
+                <span className="text-[9px] uppercase font-bold tracking-tighter opacity-80">{displayLabel}</span>
               </>
             )}
 

@@ -27,12 +27,10 @@ export class ImageLoader {
    * @returns {string} - Base path for images
    */
   determineBasePath() {
-    // Check if running in electron
-    const isElectron = typeof window !== 'undefined' && window.electronAPI;
-    
     // Determine the root public/images/ path
-    // USE ABSOLUTE PATHS FROM DOMAIN ROOT to prevent resolution errors on reload.
-    const rootPath = isElectron ? './images/' : '/images/';
+    // USE RELATIVE PATHS to support sandboxed iframe environments (like itch.io)
+    // and standalone builds (like Electron) without resolution errors on reload.
+    const rootPath = './images/';
     
     return {
       root: rootPath,

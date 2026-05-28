@@ -485,16 +485,21 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
         <button
           className={cn(
-            "w-12 h-12 transition-all flex items-center justify-center active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110",
-            isExtensionOpen ? "!border-primary/50 shadow-[inset_0_0_10px_rgba(16,185,129,0.2),0_0_12px_rgba(16,185,129,0.3)]" : ""
+            "w-12 h-12 transition-all flex items-center justify-center active:scale-95 duration-150 shrink-0 border rounded shadow-lg",
+            "bg-zinc-800 hover:bg-zinc-700",
+            isExtensionOpen 
+              ? "border-primary shadow-[0_0_15px_rgba(16,185,129,0.25)] bg-zinc-700" 
+              : "border-white/10"
           )}
           title="Crafting/Cooking"
           data-testid="inventory-extension-button"
           onClick={() => setIsExtensionOpen(prev => !prev)}
         >
           <Hammer className={cn(
-            "h-6 w-6 transition-colors",
-            isExtensionOpen ? "text-primary" : "text-zinc-300 hover:text-zinc-100"
+            "h-6 w-6 transition-all",
+            isExtensionOpen 
+              ? "text-primary opacity-100" 
+              : "text-zinc-300 opacity-50 hover:opacity-100"
           )} />
         </button>
       </div>

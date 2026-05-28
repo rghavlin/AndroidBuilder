@@ -201,7 +201,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                         <p className="text-[10px] text-muted-foreground/60 italic px-1">
                                             {tempTileSet === 'none' 
                                                 ? "Textures disabled. Rendering with base terrain colors." 
-                                                : `Textures will be loaded from: /images/tiles/${tempTileSet === 'standard' ? '' : tempTileSet + '/'}`}
+                                                : `Textures will be loaded from: ./images/tiles/${tempTileSet === 'standard' ? '' : tempTileSet + '/'}`}
                                         </p>
                                     </div>
 
