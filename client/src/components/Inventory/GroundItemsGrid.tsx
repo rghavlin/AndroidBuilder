@@ -1,8 +1,11 @@
 import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
+import { useGame } from "@/contexts/GameContext.jsx";
+import { imageLoader } from "@/game/utils/ImageLoader";
 
 export default function GroundItemsGrid() {
   const { getContainer, inventoryVersion, moveItem, inventoryRef } = useInventory();
+  const { engine } = useGame();
 
   // Get ground container (triggers re-render when inventoryVersion changes)
   const groundContainer = getContainer('ground');
@@ -68,34 +71,52 @@ export default function GroundItemsGrid() {
     );
   }
 
+  const playerX = engine?.player?.x;
+  const playerY = engine?.player?.y;
+  const playerTile = (playerX !== undefined && playerY !== undefined && engine?.gameMap)
+    ? engine.gameMap.getTile(playerX, playerY)
+    : null;
+  const terrain = playerTile?.terrain || 'grass';
+  const subFolder = imageLoader.tileSet === 'standard' ? '' : `${imageLoader.tileSet}/`;
+  const tileImageUrl = `./images/tiles/${subFolder}${terrain}.png`;
+
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
-      <div className="flex items-center justify-between mb-3 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-muted-foreground">
-          GROUND
-        </h3>
-        <button
-          onClick={handleSort}
-          className="text-xs px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700 transition-colors font-medium cursor-pointer"
-        >
-          Sort
-        </button>
-      </div>
+      <div className="flex flex-col h-full w-fit mx-auto">
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
+          <h3 className="text-sm font-semibold text-muted-foreground">
+            GROUND
+          </h3>
+          <button
+            onClick={handleSort}
+            className="text-xs px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700 transition-colors font-medium cursor-pointer"
+          >
+            Sort
+          </button>
+        </div>
 
-      <div className="flex-1 min-h-0">
-        <UniversalGrid
-          containerId={groundContainer.id}
-          width={groundContainer.width}
-          height={groundContainer.height}
-          gridType="scalable"
-          maxHeight="100%"
-          maxWidth="100%"
-          enableScroll={true}
-          enableHorizontalScroll={true}
-          onSlotClick={handleSlotClick}
-          onSlotDrop={handleSlotDrop}
-          className="h-full"
-        />
+        <div 
+          className="flex-1 min-h-0 rounded border border-zinc-800 overflow-hidden relative"
+          style={{
+            backgroundColor: '#0c0c0f',
+          }}
+        >
+          <UniversalGrid
+            containerId={groundContainer.id}
+            width={groundContainer.width}
+            height={groundContainer.height}
+            gridType="scalable"
+            maxHeight="100%"
+            maxWidth="100%"
+            enableScroll={true}
+            enableHorizontalScroll={true}
+            onSlotClick={handleSlotClick}
+            onSlotDrop={handleSlotDrop}
+            isTransparentGround={true}
+            tileImageUrl={tileImageUrl}
+            className="h-full"
+          />
+        </div>
       </div>
     </div>
   );

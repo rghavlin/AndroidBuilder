@@ -25,6 +25,7 @@ interface GridSlotProps {
   imageHeight?: number;
   isTopLeft?: boolean;
   isHovered?: boolean;
+  isTransparentGround?: boolean;
   "data-testid"?: string;
 }
 
@@ -45,6 +46,7 @@ const GridSlot = memo(({
   onMouseLeave,
   children,
   isTopLeft = false,
+  isTransparentGround = false,
   "data-testid": testId,
 }: GridSlotProps) => {
   const { scalableSlotSize, fixedSlotSize } = useGridSize();
@@ -66,7 +68,7 @@ const GridSlot = memo(({
         !isEmpty ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "transition-colors duration-200",
         // Skeuomorphic inset slot design
-        "inset-slot",
+        isTransparentGround ? "transparent-ground-slot" : "inset-slot",
         // Hover state
         !isEmpty ? "hover:brightness-110" : "hover:brightness-125",
         className,

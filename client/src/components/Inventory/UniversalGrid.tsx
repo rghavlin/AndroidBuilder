@@ -38,7 +38,8 @@ interface UniversalGridProps {
   onSlotClick?: (x: number, y: number) => void;
   onSlotDrop?: (x: number, y: number, event: React.DragEvent) => void;
   onBeforeDrop?: (itemId: string, fromId: string, toId: string) => boolean;
-  "data-testid"?: string;
+  isTransparentGround?: boolean;
+  tileImageUrl?: string;
 }
 
 export default function UniversalGrid({
@@ -61,6 +62,8 @@ export default function UniversalGrid({
   onSlotDrop,
   onBeforeDrop,
   "data-testid": testId,
+  isTransparentGround = false,
+  tileImageUrl,
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
@@ -799,10 +802,11 @@ export default function UniversalGrid({
           data-testid={`${containerId}-slot-${x}-${y}`}
           className={slotClassName}
           isPreviewValid={isPreviewCell ? previewOverlay.valid : null}
+          isTransparentGround={isTransparentGround}
         />
       );
     });
-  }, [totalSlots, width, grid, items, gridType, hoveredItem, previewOverlay, containerId, handleItemClick, handleItemContextMenu, inventoryVersion]);
+  }, [totalSlots, width, grid, items, gridType, hoveredItem, previewOverlay, containerId, handleItemClick, handleItemContextMenu, inventoryVersion, isTransparentGround]);
 
   const overlays = useMemo(() => {
     const result: JSX.Element[] = [];
@@ -1058,6 +1062,11 @@ export default function UniversalGrid({
             width: `${totalGridWidth}px`,
             height: `${totalGridHeight}px`,
             gap: `${GAP_SIZE}px`,
+            ...(isTransparentGround && tileImageUrl ? {
+              backgroundImage: `url(${tileImageUrl})`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '64px',
+            } : {}),
           }}
           onMouseMove={(e) => {
             e.stopPropagation();
@@ -1085,6 +1094,9 @@ export default function UniversalGrid({
         (gridType === 'fixed' && !enableScroll) ? 'flex-shrink-0' : 'flex-1 min-h-0', 
         className
       )}
+      style={{
+        width: `${totalGridWidth + (enableScroll ? 12 : 0)}px`,
+      }}
       data-inventory-ui="true"
       onClick={handleGridContainerClick}
     >
@@ -1103,8 +1115,8 @@ export default function UniversalGrid({
         )}
         style={{
           maxHeight: enableScroll ? maxHeight : 'none',
-          maxWidth: gridType === 'fixed' ? `${totalGridWidth + (scrollbarGutter ? 16 : 0)}px` : maxWidth,
-          width: gridType === 'fixed' ? `${totalGridWidth + (scrollbarGutter ? 16 : 0)}px` : undefined,
+          maxWidth: `${totalGridWidth + (enableScroll ? 12 : 0)}px`,
+          width: `${totalGridWidth + (enableScroll ? 12 : 0)}px`,
           height: (gridType === 'fixed' && !enableScroll) ? `${totalGridHeight}px` : undefined,
         }}
         onClick={handleGridContainerClick}
