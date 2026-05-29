@@ -884,9 +884,9 @@ function renderRain(ctx, width, height, intensity, dpr) {
         x: Math.random() * width,
         y: Math.random() * -height, // Start above screen
         speed: (1500 + Math.random() * 1000) * dpr,
-        length: (15 + Math.random() * 15) * dpr,
-        width: (1 + Math.random() * 1) * dpr,
-        opacity: 0.1 + Math.random() * 0.3
+        length: (18 + Math.random() * 18) * dpr,
+        width: (1.2 + Math.random() * 1) * dpr,
+        opacity: 0.25 + Math.random() * 0.35
       });
     }
   }
@@ -894,7 +894,7 @@ function renderRain(ctx, width, height, intensity, dpr) {
   // 2. Update & Render
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0); // Screen space
-  ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)'; // Slate blue/gray rain
+  ctx.strokeStyle = 'rgba(174, 194, 224, 0.85)'; // Brighter slate blue/gray rain
   ctx.lineCap = 'round';
 
   for (let i = rainParticles.length - 1; i >= 0; i--) {

@@ -738,6 +738,12 @@ const GameContextInner = ({ children }) => {
 
       updatePlayerFieldOfView(gameMap, nextIsNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVisionActual);
       updatePlayerCardinalPositions(gameMap);
+      if (engine.zombieTracker) {
+        const currentFov = engine.playerFieldOfView || [];
+        engine.zombieTracker.updateTracking(gameMap, player, currentFov);
+        engine.zombieTracker._lastTrackedX = player.x;
+        engine.zombieTracker._lastTrackedY = player.y;
+      }
       setTurn(newTurn);
       triggerMapUpdate();
       engine.notifyUpdate();
@@ -1004,6 +1010,14 @@ const GameContextInner = ({ children }) => {
       engine.emit('sync', engine);
       engine.notifyUpdate();
       if (engine.player) engine.camera.centerOn(engine.player.x, engine.player.y);
+      
+      if (engine.zombieTracker && engine.player && engine.gameMap) {
+        const initialFov = updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange(), isNightVisionActual);
+        engine.zombieTracker.updateTracking(engine.gameMap, engine.player, initialFov);
+        engine.zombieTracker._lastTrackedX = engine.player.x;
+        engine.zombieTracker._lastTrackedY = engine.player.y;
+      }
+      
       setIsGameReady(true);
       console.log('[GameContext] 🚀 Game ready - UI gate opened (Atomic Sync)');
 
@@ -1273,7 +1287,14 @@ const GameContextInner = ({ children }) => {
 
       updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, isFlashlightOnLoaded, false, range, isNVG);
       updatePlayerCardinalPositions(loadedState.gameMap);
-
+      
+      if (engine.zombieTracker && loadedState.player && loadedState.gameMap) {
+        const initialFov = engine.playerFieldOfView || [];
+        engine.zombieTracker.updateTracking(loadedState.gameMap, loadedState.player, initialFov);
+        engine.zombieTracker._lastTrackedX = loadedState.player.x;
+        engine.zombieTracker._lastTrackedY = loadedState.player.y;
+      }
+ 
       // Open the UI gate
       setInitializationState('complete'); // FIX: Ensure isInitialized becomes true
       setIsGameReady(true);
@@ -1337,7 +1358,14 @@ const GameContextInner = ({ children }) => {
       // Update derived player state
       updatePlayerFieldOfView(loadedState.gameMap, loadedIsNight, isFlashlightOnLoaded, false, range, isNVG);
       updatePlayerCardinalPositions(loadedState.gameMap);
-
+      
+      if (engine.zombieTracker && loadedState.player && loadedState.gameMap) {
+        const initialFov = engine.playerFieldOfView || [];
+        engine.zombieTracker.updateTracking(loadedState.gameMap, loadedState.player, initialFov);
+        engine.zombieTracker._lastTrackedX = loadedState.player.x;
+        engine.zombieTracker._lastTrackedY = loadedState.player.y;
+      }
+ 
       console.log(`[GameContext] Game loaded successfully from slot: ${slotName}`);
       console.log(`[GameContext] Player position after load: (${loadedState.player.x}, ${loadedState.player.y})`);
 

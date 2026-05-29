@@ -202,7 +202,7 @@ export const GameMapProvider = ({ children }) => {
 
         // 4. Update Engine
         engine.gameMap = newMap;
-        engine.zombieTracker?.updateVisibility?.(newMap, playerEntity, []); // Initial blackout
+        engine.zombieTracker?.clearAllTracking();
 
         // 5. Centering and Syncing
         if (cameraOperations?.setWorldBounds) cameraOperations.setWorldBounds(newMap.width, newMap.height);

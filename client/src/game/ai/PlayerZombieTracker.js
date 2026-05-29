@@ -127,6 +127,9 @@ export class PlayerZombieTracker {
         // BUG FIX: Capture the player's precise logical position at the moment sight was lost
         zombie.setTargetSighted(lastPlayerPos.x, lastPlayerPos.y);
         
+        // Reset alerted state so they growl/alert again when they spot the player next time
+        zombie.isAlerted = false;
+        
         console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player at (${lastPlayerPos.x}, ${lastPlayerPos.y}), enabled search mode`);
 
         // Remove from tracking since no longer visible

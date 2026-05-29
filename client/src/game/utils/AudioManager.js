@@ -16,6 +16,28 @@ class AudioManager {
     this.audioCtx = null;
     this.audioBuffers = new Map(); // Store decoded AudioBuffer objects
     this.activeLoops = new Map();  // Store { source, gainNode, baseVolume }
+
+    // Automatically resume AudioContext on user interaction
+    if (typeof window !== 'undefined') {
+      const resumeCtx = () => {
+        const ctx = this._ensureAudioContext();
+        if (ctx && ctx.state === 'running') {
+          cleanupListeners();
+        }
+      };
+
+      const cleanupListeners = () => {
+        window.removeEventListener('click', resumeCtx);
+        window.removeEventListener('mousedown', resumeCtx);
+        window.removeEventListener('keydown', resumeCtx);
+        window.removeEventListener('touchstart', resumeCtx);
+      };
+
+      window.addEventListener('click', resumeCtx);
+      window.addEventListener('mousedown', resumeCtx);
+      window.addEventListener('keydown', resumeCtx);
+      window.addEventListener('touchstart', resumeCtx);
+    }
   }
 
   /**
@@ -187,8 +209,8 @@ class AudioManager {
       const ctx = this._ensureAudioContext();
 
       const buffer = this.audioBuffers.get(name);
-      if (!buffer || !ctx) {
-        console.warn(`[AudioManager] ⚠️ Gapless buffer for "${name}" or AudioContext not found, falling back to HTMLAudio.`);
+      if (!buffer || !ctx || ctx.state === 'suspended') {
+        console.warn(`[AudioManager] ⚠️ Gapless buffer for "${name}" or AudioContext not found/suspended, falling back to HTMLAudio.`);
         this._playHtmlAudio(name, { ...options, loop: true });
         return;
       }
@@ -230,8 +252,8 @@ class AudioManager {
       const ctx = this._ensureAudioContext();
 
       const buffer = this.audioBuffers.get(name);
-      if (!buffer || !ctx) {
-        // Fallback to HTMLAudio if buffer not loaded or AudioContext blocked
+      if (!buffer || !ctx || ctx.state === 'suspended') {
+        // Fallback to HTMLAudio if buffer not loaded, AudioContext blocked, or suspended
         this._playHtmlAudio(name, options);
         return;
       }

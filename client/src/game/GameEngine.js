@@ -43,7 +43,9 @@ class GameEngine extends SafeEventEmitter {
     this.worldManager = null;
     this.inventoryManager = new InventoryManager();
     this.camera = null;
-    this.zombieTracker = null;
+    if (this.zombieTracker) {
+      this.zombieTracker.clearAllTracking();
+    }
     this.lootGenerator = null;
     this.isInitialized = false;
     this.initializationState = 'idle';
@@ -163,7 +165,11 @@ class GameEngine extends SafeEventEmitter {
     if (gameObjects.worldManager) this.worldManager = gameObjects.worldManager;
     if (gameObjects.inventoryManager) this.inventoryManager = gameObjects.inventoryManager;
     if (gameObjects.camera) this.camera = gameObjects.camera;
-    if (gameObjects.zombieTracker) this.zombieTracker = gameObjects.zombieTracker;
+    if (gameObjects.zombieTracker) {
+      this.zombieTracker = gameObjects.zombieTracker;
+    } else if (this.zombieTracker) {
+      this.zombieTracker.clearAllTracking();
+    }
     if (gameObjects.lootGenerator) this.lootGenerator = gameObjects.lootGenerator;
     if (gameObjects.turn !== undefined) this.turn = gameObjects.turn;
     
