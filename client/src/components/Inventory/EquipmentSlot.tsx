@@ -72,8 +72,8 @@ const EquipmentSlot = memo(({
               isSelected && "active selected-item-overlay",
               showPlacementFeedback && (
                 canEquip
-                  ? "hover:!bg-none hover:!bg-green-500/20 hover:!border-green-500/80 hover:!shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-                  : "hover:!bg-none hover:!bg-red-500/20 hover:!border-red-500/80 hover:!shadow-[0_0_10px_rgba(239,68,68,0.4)]"
+                  ? "hover:!bg-[radial-gradient(circle_at_center,_#bbf7d0_0%,_#22c55e_100%)] hover:!border-green-600 hover:!shadow-[0_0_10px_rgba(34,197,94,0.4)] hover:!text-white"
+                  : "hover:!bg-[radial-gradient(circle_at_center,_#fecaca_0%,_#ef4444_100%)] hover:!border-red-600 hover:!shadow-[0_0_10px_rgba(239,68,68,0.4)] hover:!text-white"
               )
             )}
             style={{
