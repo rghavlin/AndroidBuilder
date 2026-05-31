@@ -84,7 +84,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
               alt={item.name}
               className="w-full h-full object-contain pointer-events-none mix-blend-screen"
               style={{
-                filter: "contrast(300%)"
+                filter: "brightness(2) contrast(300%)"
               }}
             />
           </div>

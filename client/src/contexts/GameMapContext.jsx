@@ -168,7 +168,7 @@ export const GameMapProvider = ({ children }) => {
   }, []);
 
   // Map Transition execution logic
-  const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn) => {
+  const executeMapTransition = useCallback(async (transitionInfo, playerEntity, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn, selectedPrizeId) => {
     if (!engine.worldManager || !playerEntity) return false;
 
     try {
@@ -187,8 +187,41 @@ export const GameMapProvider = ({ children }) => {
 
         const newMap = result.gameMap;
 
+        // Spawn the selected prize if any
+        if (selectedPrizeId) {
+            try {
+                const { createItemFromDef } = await import('../game/inventory/ItemDefs.js');
+                let itemData = createItemFromDef(selectedPrizeId);
+                if (itemData) {
+                    if (selectedPrizeId === 'food.waterbottle') {
+                        itemData.ammoCount = itemData.capacity || 5;
+                    } else if (selectedPrizeId.startsWith('ammo.')) {
+                        itemData.stackCount = 10;
+                    } else {
+                        // If it is a weapon (gun), set it up with ammo/magazine same as a weapon in a loot drop
+                        const { Item } = await import('../game/inventory/Item.js');
+                        const { ItemCategory } = await import('../game/inventory/traits.js');
+                        
+                        const isWeapon = (itemData.categories && itemData.categories.includes(ItemCategory.WEAPON)) || !!itemData.attachmentSlots;
+                        if (isWeapon && (itemData.categories?.includes(ItemCategory.GUN) || itemData.attachmentSlots)) {
+                            const itemObj = new Item(itemData);
+                            const { LootGenerator } = await import('../game/map/LootGenerator.js');
+                            LootGenerator.initializeWeaponAmmo(itemObj);
+                            itemData = itemObj.toJSON();
+                        }
+                    }
+                    const existingItems = newMap.getItemsOnTile(result.spawnPosition.x, result.spawnPosition.y) || [];
+                    newMap.setItemsOnTile(result.spawnPosition.x, result.spawnPosition.y, [...existingItems, itemData]);
+                    console.log(`[GameMapContext] Spawned prize ${selectedPrizeId} at spawn position (${result.spawnPosition.x}, ${result.spawnPosition.y})`);
+                }
+            } catch (err) {
+                console.error('[GameMapContext] Failed to spawn map transition prize:', err);
+            }
+        }
+
         // 3. Update player reference and position
         engine.gameMap.removeEntity(playerEntity.id);
+        newMap.addEntity(playerEntity, result.spawnPosition.x, result.spawnPosition.y);
         
         // Phase 28 Fix: Explicitly update ALL coordinate systems to prevent 'snapback' or pathfinding failure
         playerEntity.x = result.spawnPosition.x;
@@ -197,8 +230,6 @@ export const GameMapProvider = ({ children }) => {
         playerEntity.logicalY = result.spawnPosition.y;
         playerEntity.gridX = result.spawnPosition.x;
         playerEntity.gridY = result.spawnPosition.y;
-        
-        newMap.addEntity(playerEntity, playerEntity.x, playerEntity.y);
 
         // 4. Update Engine
         engine.gameMap = newMap;
@@ -222,9 +253,9 @@ export const GameMapProvider = ({ children }) => {
     }
   }, []);
 
-  const handleMapTransitionConfirm = useCallback(async (player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn) => {
+  const handleMapTransitionConfirm = useCallback(async (player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn, selectedPrizeId) => {
     if (!player) return false;
-    const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn);
+    const success = await executeMapTransition(mapTransition, player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn, selectedPrizeId);
     if (success) setMapTransition(null);
     return success;
   }, [mapTransition, executeMapTransition]);

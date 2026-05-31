@@ -723,30 +723,6 @@ export const ItemDefs = {
     }
   },
 
-
-  'weapon.sniper_rifle': {
-    id: 'weapon.sniper_rifle',
-    name: 'Sniper Rifle',
-    noLoot: true,
-    rarity: Rarity.EXTREMELY_RARE,
-    imageId: 'sniper rifle', // Note: space in filename
-    width: 5,
-    height: 2,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
-    equippableSlot: EquipmentSlot.LONG_GUN,
-    categories: [ItemCategory.WEAPON, ItemCategory.GUN],
-    attachmentSlots: [
-      { id: 'barrel', name: 'Barrel', allowedCategories: [ItemCategory.SUPPRESSOR] },
-      { id: 'sight', name: 'Optic', allowedCategories: [ItemCategory.RIFLE_SCOPE] },
-      { id: 'ammo', name: 'Magazine', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['attachment.sniper_magazine'] }
-    ],
-    rangedStats: {
-      noiseRadius: 22,
-      damage: { min: 4, max: 20 },
-      accuracyFalloff: 0.05,
-      minAccuracy: 0.01
-    }
-  },
   'weapon.357Pistol': {
     id: 'weapon.357Pistol',
     name: '.357 Pistol',
@@ -1091,19 +1067,6 @@ export const ItemDefs = {
     capacity: 20,
     ammoDefId: 'ammo.9mm'
   },
-  'attachment.sniper_magazine': {
-    id: 'attachment.sniper_magazine',
-    name: 'Sniper Magazine',
-    noLoot: true,
-    rarity: Rarity.RARE,
-    imageId: 'sniper_magazine',
-    width: 2,
-    height: 1,
-    traits: [ItemTrait.MAGAZINE],
-    categories: [ItemCategory.AMMO],
-    capacity: 5,
-    ammoDefId: 'ammo.sniper'
-  },
 
   'attachment.de_magazine': {
     id: 'attachment.de_magazine',
@@ -1146,20 +1109,7 @@ export const ItemDefs = {
     spawnStackMin: 1,
     spawnStackMax: 3
   },
-  'ammo.sniper': {
-    id: 'ammo.sniper',
-    name: 'Sniper Ammo',
-    noLoot: true,
-    rarity: Rarity.RARE,
-    imageId: 'sniperAmmo', // New box icon matching 9mm style
-    width: 1,
-    height: 1,
-    traits: [ItemTrait.STACKABLE],
-    categories: [ItemCategory.AMMO],
-    stackMax: 20,
-    spawnStackMin: 1,
-    spawnStackMax: 3
-  },
+
   'ammo.357': {
     id: 'ammo.357',
     name: '.357 Ammo',

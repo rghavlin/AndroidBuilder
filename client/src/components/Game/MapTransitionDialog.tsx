@@ -10,15 +10,122 @@ import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Trophy, Compass, Clock, Skull, ArrowRight } from 'lucide-react';
 import engine from '../../game/GameEngine.js';
+import { useItemImage } from '../../hooks/useItemImage';
+import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 
 interface MapTransitionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (selectedPrizeId?: string) => Promise<boolean> | void;
   direction: 'north' | 'south';
   currentMapId: string;
   nextMapId: string;
 }
+
+const FOOD_POOL = [
+  'food.cannedsoup',
+  'food.waterbottle',
+  'food.softdrink',
+  'food.fruitjuice',
+  'food.energydrink',
+  'food.vitamindrink',
+  'food.chips',
+  'food.beans',
+  'food.cannedcorn',
+  'food.granolabar',
+  'food.mre',
+  'food.honey'
+];
+
+const MELEE_POOL = [
+  'weapon.knife',
+  'weapon.machete',
+  'weapon.fire_axe',
+  'weapon.hammer',
+  'weapon.crowbar',
+  'weapon.wrench',
+  'weapon.shovel',
+  'weapon.woodenbat',
+  'weapon.spikedbat'
+];
+
+const RARE_POOL = [
+  'weapon.9mmPistol',
+  'weapon.357Pistol',
+  'weapon.hunting_rifle',
+  'weapon.grenade',
+  'backpack.standard',
+  'tool.large_battery',
+  'tool.fuel_can',
+  'bedroll.closed',
+  'tool.battery_charger',
+  'tool.solar_charger',
+  'tool.crank_charger',
+  'attachment.suppressor',
+  'attachment.lasersight',
+  'attachment.riflescope',
+  'medical.first_aid_kit',
+  'medical.stimulant',
+  'food.mre',
+  'food.stew',
+  'weapon.shotgun',
+  'ammo.9mm',
+  'ammo.357',
+  'ammo.308',
+  'ammo.556',
+  'ammo.de',
+  'ammo.shotgun_shells'
+];
+
+interface PrizeButtonProps {
+  itemId: string;
+  isSelected: boolean;
+  onClick: () => void;
+}
+
+const PrizeButton: React.FC<PrizeButtonProps> = ({ itemId, isSelected, onClick }) => {
+  const itemDef = ItemDefs[itemId];
+  const name = itemDef
+    ? (itemId === 'food.waterbottle'
+        ? 'Full Water Bottle'
+        : (itemId.startsWith('ammo.') ? `${itemDef.name} x10` : itemDef.name))
+    : 'Unknown';
+  const imageId = itemDef ? (itemDef.imageId || itemDef.image || itemDef.id) : null;
+  const imageSrc = useItemImage(imageId);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 flex-1 min-w-[80px] text-center gap-1.5 cursor-pointer relative overflow-hidden group ${
+        isSelected
+          ? 'bg-emerald-950/30 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+          : 'bg-muted/20 border-border/50 hover:border-border hover:bg-muted/40'
+      }`}
+    >
+      <div className="w-12 h-12 flex items-center justify-center relative bg-black/40 rounded-lg border border-border/30 p-1 group-hover:scale-105 transition-transform duration-200">
+        {imageSrc && imageSrc !== 'failed' ? (
+          <img
+            src={imageSrc}
+            alt={name}
+            className="w-full h-full object-contain pointer-events-none mix-blend-screen"
+            style={{
+              filter: "brightness(2) contrast(300%)"
+            }}
+          />
+        ) : (
+          <div className="w-4 h-4 rounded-full bg-muted-foreground/30 animate-pulse" />
+        )}
+      </div>
+      <span className="text-[10px] font-bold leading-tight text-foreground/90 max-w-[90px] truncate select-none">
+        {name}
+      </span>
+      {isSelected && (
+        <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,1)]" />
+      )}
+    </button>
+  );
+};
 
 export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
   open,
@@ -29,6 +136,8 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
   nextMapId,
 }) => {
   const [showStats, setShowStats] = useState(false);
+  const [prizes, setPrizes] = useState<string[]>([]);
+  const [selectedPrizeIdx, setSelectedPrizeIdx] = useState<number>(0);
 
   const message = direction === 'north' 
     ? "Move on down the road?" 
@@ -43,16 +152,52 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
     } else {
       if (engine.worldManager) {
         engine.worldManager.markMapCompleted(currentMapId, engine.turn);
+
+        // Generate prizes if player qualified and has not claimed yet
+        const killsPct = engine.worldManager.getZombieKillsPercentage(currentMapId);
+        const alreadyClaimed = engine.worldManager.isPrizeClaimed(currentMapId);
+        if (killsPct >= 70 && !alreadyClaimed) {
+          const generatedPrizes: string[] = [];
+
+          // 1st prize (Food)
+          const foodItem = FOOD_POOL[Math.floor(Math.random() * FOOD_POOL.length)];
+          generatedPrizes.push(foodItem);
+
+          // 2nd prize (Melee) if killsPct >= 80%
+          if (killsPct >= 80) {
+            const meleeItem = MELEE_POOL[Math.floor(Math.random() * MELEE_POOL.length)];
+            generatedPrizes.push(meleeItem);
+          }
+
+          // 3rd prize (Rare) if killsPct >= 90%
+          if (killsPct >= 90) {
+            const rareItem = RARE_POOL[Math.floor(Math.random() * RARE_POOL.length)];
+            generatedPrizes.push(rareItem);
+          }
+
+          setPrizes(generatedPrizes);
+          setSelectedPrizeIdx(0);
+        } else {
+          setPrizes([]);
+        }
       }
       setShowStats(true);
     }
   };
 
   const handleProceed = async () => {
-    const success = await onConfirm();
+    const selectedPrizeId = prizes.length > 0 ? prizes[selectedPrizeIdx] : undefined;
+
+    if (selectedPrizeId && engine.worldManager) {
+      engine.worldManager.claimPrize(currentMapId);
+    }
+
+    const success = await onConfirm(selectedPrizeId);
     if (success !== false) {
       onOpenChange(false);
       setShowStats(false);
+      setPrizes([]);
+      setSelectedPrizeIdx(0);
     } else {
       console.error('[MapTransitionDialog] Transition failed, keeping dialog open');
     }
@@ -62,6 +207,8 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
     onOpenChange(newOpen);
     if (!newOpen) {
       setShowStats(false);
+      setPrizes([]);
+      setSelectedPrizeIdx(0);
     }
   };
 
@@ -177,6 +324,25 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
                 </div>
                 <Progress value={zombiesPercent} className="h-1.5 bg-muted" />
               </div>
+
+              {/* Survivor Gift Section */}
+              {prizes.length > 0 && (
+                <div className="bg-emerald-950/10 border border-emerald-500/25 rounded-xl p-4 space-y-3 shadow-[inset_0_0_12px_rgba(16,185,129,0.03)]">
+                  <p className="text-xs text-emerald-400 font-medium italic text-center leading-relaxed">
+                    Some survivors came out of hiding to offer you a gift for killing the zombies.
+                  </p>
+                  <div className="flex gap-2.5 justify-center">
+                    {prizes.map((prizeId, idx) => (
+                      <PrizeButton
+                        key={prizeId + '-' + idx}
+                        itemId={prizeId}
+                        isSelected={selectedPrizeIdx === idx}
+                        onClick={() => setSelectedPrizeIdx(idx)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="flex gap-3 sm:justify-center mt-auto pt-2 flex-shrink-0">

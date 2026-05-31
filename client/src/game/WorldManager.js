@@ -20,6 +20,7 @@ export class WorldManager {
     this.turnsFromEntryToExit = {};
     this.zombiesKilled = {};
     this.zombiesSpawned = {};
+    this.claimedPrizes = [];
 
     logger.info('Initialized');
   }
@@ -554,7 +555,8 @@ export class WorldManager {
       completedMaps: this.completedMaps,
       turnsFromEntryToExit: this.turnsFromEntryToExit,
       zombiesKilled: this.zombiesKilled,
-      zombiesSpawned: this.zombiesSpawned
+      zombiesSpawned: this.zombiesSpawned,
+      claimedPrizes: this.claimedPrizes
     };
   }
 
@@ -733,6 +735,19 @@ export class WorldManager {
     }
   }
 
+  claimPrize(mapId) {
+    if (!this.claimedPrizes) {
+      this.claimedPrizes = [];
+    }
+    if (!this.claimedPrizes.includes(mapId)) {
+      this.claimedPrizes.push(mapId);
+    }
+  }
+
+  isPrizeClaimed(mapId) {
+    return this.claimedPrizes && this.claimedPrizes.includes(mapId);
+  }
+
   /**
    * Restore world state from JSON
    */
@@ -753,6 +768,7 @@ export class WorldManager {
     worldManager.turnsFromEntryToExit = data.turnsFromEntryToExit || {};
     worldManager.zombiesKilled = data.zombiesKilled || {};
     worldManager.zombiesSpawned = data.zombiesSpawned || {};
+    worldManager.claimedPrizes = data.claimedPrizes || [];
 
     logger.info(`Restored from JSON with ${worldManager.maps.size} maps`);
     return worldManager;

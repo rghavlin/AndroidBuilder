@@ -222,6 +222,19 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         if (!engine.gameMap) return;
         const zombies = engine.gameMap.getEntitiesByType('zombie');
         zombies.forEach(z => engine.gameMap.removeEntity(z.id));
+
+        // Ensure that counts as 100% of all zombies being killed for the exit window and prize
+        if (engine.worldManager && engine.worldManager.currentMapId) {
+            const mapId = engine.worldManager.currentMapId;
+            const spawned = engine.worldManager.zombiesSpawned[mapId] || 0;
+            if (spawned === 0) {
+                engine.worldManager.zombiesSpawned[mapId] = zombies.length;
+                engine.worldManager.zombiesKilled[mapId] = zombies.length;
+            } else {
+                engine.worldManager.zombiesKilled[mapId] = spawned;
+            }
+        }
+
         engine.notifyUpdate();
     };
 

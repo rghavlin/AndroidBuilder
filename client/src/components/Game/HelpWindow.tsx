@@ -47,7 +47,7 @@ export default function HelpWindow({ onClose }: HelpWindowProps) {
                             <HelpCircle className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-2xl font-bold tracking-tight">Game Help & Tutorials</CardTitle>
+                            <CardTitle className="text-2xl font-bold tracking-tight">Tutorials</CardTitle>
                         </div>
                     </div>
                 </CardHeader>
@@ -55,7 +55,6 @@ export default function HelpWindow({ onClose }: HelpWindowProps) {
                 <CardContent className="p-6 flex gap-6 min-h-[480px]">
                     {/* Left Column: List Menu */}
                     <div className="w-[280px] flex-shrink-0 flex flex-col gap-2 border-r border-border/50 pr-6">
-                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tutorials</h3>
                         {videos.map((vid) => (
                             <Button
                                 key={vid.id}

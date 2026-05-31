@@ -1647,8 +1647,8 @@ const GameContextInner = ({ children }) => {
   }, [turnPhase]);
 
   // Wrapper methods for map transitions that include player context functions
-  const handleMapTransitionConfirmWrapper = useCallback(async () => {
-    console.log('[GameContext] Map transition confirmation wrapper called');
+  const handleMapTransitionConfirmWrapper = useCallback(async (selectedPrizeId) => {
+    console.log('[GameContext] Map transition confirmation wrapper called', selectedPrizeId);
     console.log('[GameContext] - Player:', engine.player ? `${engine.player.id} at (${engine.player.x}, ${engine.player.y})` : 'null');
 
     if (!engine.player) {
@@ -1667,7 +1667,7 @@ const GameContextInner = ({ children }) => {
     };
 
     // Call GameMapContext handleMapTransitionConfirm with required parameters including camera operations
-    const success = await mapTransitionConfirm(engine.player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn);
+    const success = await mapTransitionConfirm(engine.player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn, selectedPrizeId);
 
     if (success) {
       // Update PlayerContext data after successful transition (no timer)
@@ -1677,7 +1677,7 @@ const GameContextInner = ({ children }) => {
     }
 
     return success;
-  }, [mapTransitionConfirm, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, setCameraWorldBounds, inventoryManager, isNight, isFlashlightOn, getActiveFlashlightRange]);
+  }, [mapTransitionConfirm, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, setCameraWorldBounds, inventoryManager, isNight, isFlashlightOn, getActiveFlashlightRange, isNightVisionActual]);
 
   const contextValue = useMemo(() => ({
     // Game lifecycle state only

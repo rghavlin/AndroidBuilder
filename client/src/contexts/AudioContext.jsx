@@ -161,7 +161,6 @@ export const AudioProvider = ({ children }) => {
           'weapon.shotgun': 'ShotgunShot',
           'weapon.hunting_rifle': 'RifleShot',
           'weapon.battle_rifle': data.isBurst ? 'BurstShot' : 'RifleShot',
-          'weapon.sniper_rifle': 'RifleShot',
           'weapon.sling': 'SlingShot',
           'weapon.deserteagle': 'ShotgunShot'
         };
@@ -185,7 +184,6 @@ export const AudioProvider = ({ children }) => {
           'weapon.shotgun': 'ShotgunShot',
           'weapon.hunting_rifle': 'RifleShot',
           'weapon.battle_rifle': data.isBurst ? 'BurstShot' : 'RifleShot',
-          'weapon.sniper_rifle': 'RifleShot',
           'weapon.sling': 'SlingShot',
           'weapon.deserteagle': 'ShotgunShot'
         };
