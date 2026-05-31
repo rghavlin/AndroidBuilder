@@ -526,7 +526,7 @@ export class CraftingManager {
             // Since it's auto-expanding and the ground is "infinite", this should always succeed.
             // We pass (0,0) as preferred coordinates to keep it near the player's logical center.
             if (ground.addItem(newItem, 0, 0, false)) {
-                return { success: true, item: newItem, placedInGround: true };
+                return { success: true, item: newItem, placedInGround: true, apCost: actualAP, returnedItems };
             } else {
                 // FALLBACK: If for some reason addItem fails (should be impossible on auto-expand ground),
                 // we try to force place it by clearing space at (0,0).
@@ -536,14 +536,14 @@ export class CraftingManager {
                 if (ground.placeItemAt(newItem, 0, 0)) {
                     // Re-add displaced items to any available spot
                     displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
-                    return { success: true, item: newItem, placedInGround: true };
+                    return { success: true, item: newItem, placedInGround: true, apCost: actualAP, returnedItems };
                 } else {
                     console.error('[CraftingManager] CRITICAL: Failed to place ground-only item even after clearing!');
                     // Restore displaced items
                     displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
                     
                     // Final safety: Just return the item even if placement failed (it might stay in workspace)
-                    return { success: true, item: newItem, placedInGround: false };
+                    return { success: true, item: newItem, placedInGround: false, apCost: actualAP, returnedItems };
                 }
             }
         }
