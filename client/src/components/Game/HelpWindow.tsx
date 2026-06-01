@@ -20,7 +20,8 @@ export default function HelpWindow({ onClose }: HelpWindowProps) {
         { id: 'guns', title: 'Guns', filename: 'guns.webm' },
         { id: 'crafting', title: 'Crafting & Disassembly', filename: 'craftinganddisassembly.webm' },
         { id: 'cooking', title: 'Cooking and water', filename: 'cookingandwater.webm' },
-        { id: 'farming', title: 'Farming', filename: 'farming.webm' }
+        { id: 'farming', title: 'Farming', filename: 'farming.webm' },
+        { id: 'ragsbatteriesfuel', title: 'Rags, batteries, fuel...', filename: 'ragsbatteriesfuel.webm' }
     ];
 
     const [selectedVideo, setSelectedVideo] = useState<VideoItem>(videos[0]);

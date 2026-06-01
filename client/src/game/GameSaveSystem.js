@@ -1,5 +1,55 @@
 import engine from './GameEngine.js';
 
+// Compression helper using browser native CompressionStream / DecompressionStream
+async function compressString(str) {
+  if (typeof CompressionStream === 'undefined') {
+    return str; // No compression if not supported
+  }
+  try {
+    const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
+    const response = new Response(stream);
+    const blob = await response.blob();
+    const buffer = await blob.arrayBuffer();
+    
+    // Convert ArrayBuffer to base64
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return '_gz_:' + btoa(binary);
+  } catch (error) {
+    console.error('[GameSaveSystem] Compression failed, falling back to raw JSON:', error);
+    return str;
+  }
+}
+
+async function decompressString(str) {
+  if (typeof str !== 'string' || !str.startsWith('_gz_:')) {
+    return str; // Not compressed or not a string
+  }
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('DecompressionStream not supported in this environment');
+  }
+  try {
+    const base64Str = str.slice(5);
+    const binary = atob(base64Str);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    
+    const stream = new Blob([bytes.buffer]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const response = new Response(stream);
+    return await response.text();
+  } catch (error) {
+    console.error('[GameSaveSystem] Decompression failed:', error);
+    throw error;
+  }
+}
+
 // --- Asynchronous IndexedDB Store Fallback ---
 
 class IndexedDBStore {
@@ -357,8 +407,10 @@ export class GameSaveSystem {
         try {
           if (typeof window !== 'undefined' && window.localStorage) {
             const key = `zombie_road_save_${slotName}`;
-            window.localStorage.setItem(key, JSON.stringify(saveData));
-            console.log(`[GameSaveSystem] Game saved to localStorage key: ${key}`);
+            const serializedData = JSON.stringify(saveData);
+            const compressedData = await compressString(serializedData);
+            window.localStorage.setItem(key, compressedData);
+            console.log(`[GameSaveSystem] Game saved to localStorage key: ${key} (compressed size: ${compressedData.length} chars, uncompressed: ${serializedData.length} chars)`);
             return true;
           }
         } catch (lsError) {
@@ -403,7 +455,8 @@ export class GameSaveSystem {
               const localData = window.localStorage.getItem(key);
               if (localData) {
                 console.log(`[GameSaveSystem] Loaded game from localStorage key: ${key}`);
-                saveData = JSON.parse(localData);
+                const decompressed = await decompressString(localData);
+                saveData = JSON.parse(decompressed);
               }
             }
           } catch (lsError) {
@@ -544,14 +597,18 @@ export class GameSaveSystem {
             const slotName = key.replace('zombie_road_save_', '');
             if (!savesMap.has(slotName)) {
               try {
-                const data = JSON.parse(window.localStorage.getItem(key));
-                if (data) {
-                  savesMap.set(slotName, {
-                    slotName: slotName,
-                    timestamp: data.timestamp || Date.now(),
-                    turn: data.turn || 1,
-                    version: data.version || '1.0.0'
-                  });
+                const rawValue = window.localStorage.getItem(key);
+                if (rawValue) {
+                  const decompressed = await decompressString(rawValue);
+                  const data = JSON.parse(decompressed);
+                  if (data) {
+                    savesMap.set(slotName, {
+                      slotName: slotName,
+                      timestamp: data.timestamp || Date.now(),
+                      turn: data.turn || 1,
+                      version: data.version || '1.0.0'
+                    });
+                  }
                 }
               } catch (e) {
                 // ignore invalid

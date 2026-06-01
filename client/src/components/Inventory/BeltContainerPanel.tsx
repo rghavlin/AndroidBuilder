@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { useInventory } from "@/contexts/InventoryContext";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UniversalGrid from "./UniversalGrid";
+import { useGridSize } from "@/contexts/GridSizeContext";
 
 interface BeltContainerPanelProps {
   beltItem: any;
@@ -19,6 +19,7 @@ export default function BeltContainerPanel({
   className = "",
 }: BeltContainerPanelProps) {
   const { getContainer } = useInventory();
+  const { fixedSlotSize } = useGridSize();
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
 
   const isCollapsed = controlledIsCollapsed !== undefined ? controlledIsCollapsed : internalIsCollapsed;
@@ -49,8 +50,10 @@ export default function BeltContainerPanel({
       </div>
     );
 
+    const slotWidth = container.width * fixedSlotSize + (container.width - 1) * 2;
+
     return (
-      <div className="flex flex-col items-center gap-1">
+      <div className="flex flex-col items-center gap-1 flex-shrink-0" style={{ width: `${slotWidth}px` }}>
         {!labelBottom && labelEl}
         <UniversalGrid
           containerId={container.id}
@@ -64,6 +67,8 @@ export default function BeltContainerPanel({
       </div>
     );
   };
+
+  const ringWidth = (toolRingLeft || toolRingRight)?.width || 2;
 
   return (
     <div className={cn("border-b border-border", className)}>
@@ -91,13 +96,14 @@ export default function BeltContainerPanel({
             <>
               {/* Top Row: Holsters and Ammo */}
               {(holsterLeft || holsterRight || ammoLeft || ammoRight) && (
-                <div className="flex items-start justify-center gap-8 w-full">
-                  <div className="w-[80px]">
-                      {renderSlot(holsterLeft, "Holster", "Guns")}
-                  </div>
+                <div className="flex items-start justify-center gap-6 w-full">
+                  {renderSlot(holsterLeft, "Holster", "Guns")}
                   
                   {(ammoLeft || ammoRight) && (
-                    <div className="flex flex-col gap-1 min-w-[40px]">
+                    <div 
+                      className="flex flex-col gap-1 flex-shrink-0"
+                      style={{ width: `${Math.max(ammoLeft?.width || 0, ammoRight?.width || 0) * fixedSlotSize + (Math.max(ammoLeft?.width || 0, ammoRight?.width || 0) - 1) * 2}px` }}
+                    >
                         <div className="flex flex-col items-center">
                             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">Ammo</span>
                         </div>
@@ -124,9 +130,7 @@ export default function BeltContainerPanel({
                     </div>
                   )}
 
-                  <div className="w-[80px]">
-                      {renderSlot(holsterRight, "Holster", "Guns")}
-                  </div>
+                  {renderSlot(holsterRight, "Holster", "Guns")}
                 </div>
               )}
 
@@ -139,13 +143,20 @@ export default function BeltContainerPanel({
 
               {/* Bottom Row: Tool Rings */}
               {(toolRingLeft || toolRingRight) && (
-                <div className="flex justify-between w-full px-4">
-                  <div className="w-[80px]">
-                      {renderSlot(toolRingLeft, "Tool ring", "Heavy Tools", true)}
-                  </div>
-                  <div className="w-[80px]">
-                      {renderSlot(toolRingRight, "Tool ring", "Heavy Tools", true)}
-                  </div>
+                <div 
+                  className="flex justify-center w-full"
+                  style={{ gap: `${fixedSlotSize + 48}px` }}
+                >
+                  {toolRingLeft ? (
+                    renderSlot(toolRingLeft, "Tool ring", "Heavy Tools", true)
+                  ) : (
+                    <div className="flex-shrink-0" style={{ width: `${ringWidth * fixedSlotSize + (ringWidth - 1) * 2}px` }} />
+                  )}
+                  {toolRingRight ? (
+                    renderSlot(toolRingRight, "Tool ring", "Heavy Tools", true)
+                  ) : (
+                    <div className="flex-shrink-0" style={{ width: `${ringWidth * fixedSlotSize + (ringWidth - 1) * 2}px` }} />
+                  )}
                 </div>
               )}
             </>
