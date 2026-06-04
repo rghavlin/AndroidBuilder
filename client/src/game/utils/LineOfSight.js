@@ -20,8 +20,11 @@ export class LineOfSight {
    * @returns {Object} Line of sight result with blocking information
    */
   static hasLineOfSight(gameMap, startX, startY, endX, endY, options = {}) {
+    let maxRange = options.maxRange;
+    if (typeof maxRange !== 'number' || isNaN(maxRange) || maxRange <= 0) {
+      maxRange = 15;
+    }
     const {
-      maxRange = 15, // Maximum sight range
       ignoreTerrain = [], // Terrain types that don't block sight
       ignoreEntities = [], // Entity IDs that don't block sight
       debug = false
@@ -89,9 +92,13 @@ export class LineOfSight {
           const corner1 = gameMap.getTile(x + sx, y);
           const corner2 = gameMap.getTile(x, y + sy);
           
-          const isBlocked1 = corner1 && (this.isTerrainBlocking(corner1.terrain, ignoreTerrain) || this.getBlockingEntity(corner1, ignoreEntities));
-          const isBlocked2 = corner2 && (this.isTerrainBlocking(corner2.terrain, ignoreTerrain) || this.getBlockingEntity(corner2, ignoreEntities));
+          let isBlocked1 = !corner1 || this.isTerrainBlocking(corner1.terrain, ignoreTerrain) || this.getBlockingEntity(corner1, ignoreEntities);
+          let isBlocked2 = !corner2 || this.isTerrainBlocking(corner2.terrain, ignoreTerrain) || this.getBlockingEntity(corner2, ignoreEntities);
           
+          // Diagonal corner crosses edge walls. If both cardinal paths are blocked by edge walls, the corner is blocked
+          if (!isBlocked1 && (this.isEdgeSightBlocked(gameMap, x, y, x + sx, y, ignoreEntities) || this.isEdgeSightBlocked(gameMap, x + sx, y, x + sx, y + sy, ignoreEntities))) isBlocked1 = true;
+          if (!isBlocked2 && (this.isEdgeSightBlocked(gameMap, x, y, x, y + sy, ignoreEntities) || this.isEdgeSightBlocked(gameMap, x, y + sy, x + sx, y + sy, ignoreEntities))) isBlocked2 = true;
+
           // If BOTH cardinal corners block sight, the diagonal path is blocked
           if (isBlocked1 && isBlocked2) {
               return {
@@ -103,6 +110,9 @@ export class LineOfSight {
           }
       }
 
+      const prevX = x;
+      const prevY = y;
+
       if (xChanged) {
         err -= dy;
         x += sx;
@@ -110,6 +120,17 @@ export class LineOfSight {
       if (yChanged) {
         err += dx;
         y += sy;
+      }
+
+      // Edge wall check along the path
+      if (xChanged && !yChanged) {
+          if (this.isEdgeSightBlocked(gameMap, prevX, prevY, x, y, ignoreEntities)) {
+              return { hasLineOfSight: false, distance, blockedBy: { type: 'edge', position: { x, y } }, path };
+          }
+      } else if (yChanged && !xChanged) {
+          if (this.isEdgeSightBlocked(gameMap, prevX, prevY, x, y, ignoreEntities)) {
+              return { hasLineOfSight: false, distance, blockedBy: { type: 'edge', position: { x, y } }, path };
+          }
       }
 
       path.push({ x, y });
@@ -166,8 +187,11 @@ export class LineOfSight {
    * @returns {Array} Array of visible tile positions
    */
   static getVisibleTiles(gameMap, centerX, centerY, options = {}) {
+    let maxRange = options.maxRange;
+    if (typeof maxRange !== 'number' || isNaN(maxRange) || maxRange <= 0) {
+      maxRange = 15;
+    }
     const {
-      maxRange = 15,
       ignoreTerrain = [],
       ignoreEntities = []
     } = options;
@@ -190,8 +214,37 @@ export class LineOfSight {
         if (x < 0 || x >= gameMap.width || y < 0 || y >= gameMap.height) return true; // Treat out-of-bounds as blocking
         const mapTile = gameMap.getTile(x, y);
         if (!mapTile) return true;
-        return this.isTerrainBlocking(mapTile.terrain, ignoreTerrain) || 
-               this.getBlockingEntity(mapTile, ignoreEntities);
+        
+        const blockingEntity = this.getBlockingEntity(mapTile, ignoreEntities);
+        if (blockingEntity && (blockingEntity.type === 'door' || blockingEntity.type === 'EntityType.DOOR')) {
+          return this.isTerrainBlocking(mapTile.terrain, ignoreTerrain);
+        }
+        
+        return this.isTerrainBlocking(mapTile.terrain, ignoreTerrain) || blockingEntity;
+      };
+
+      const isEnteringWallBlocked = (tile) => {
+        if (!tile) return false;
+        const { x, y } = quadrant.transform(tile);
+        if (x < 0 || x >= gameMap.width || y < 0 || y >= gameMap.height) return false;
+        const mapTile = gameMap.getTile(x, y);
+        if (!mapTile) return false;
+        
+        // Solid wall or blocking terrain blocks sight (we want to reveal solid walls)
+        if (this.isTerrainBlocking(mapTile.terrain, ignoreTerrain)) {
+          return false;
+        }
+
+        // Blocking entity: if it is a solid obstacle (not a door/window), we want to reveal it.
+        // If it is a door, it is edge-aligned, so we let it fall through to edge checks.
+        const blockingEntity = this.getBlockingEntity(mapTile, ignoreEntities);
+        if (blockingEntity && blockingEntity.type !== 'door' && blockingEntity.type !== 'EntityType.DOOR') {
+          return false;
+        }
+
+        // Use the robust hasLineOfSight directly to verify if the tile's entry path is clear
+        const res = this.hasLineOfSight(gameMap, centerX, centerY, x, y, { ignoreEntities, ignoreTerrain, maxRange });
+        return !res.hasLineOfSight;
       };
 
       const isFloor = (tile) => {
@@ -224,16 +277,23 @@ export class LineOfSight {
         let prevTile = null;
         for (const tile of row.tiles()) {
           const wall = isWall(tile);
-          if (wall || isSymmetric(row, tile)) {
+          const enteringBlocked = isEnteringWallBlocked(tile);
+          const blocking = wall || enteringBlocked;
+          const sym = isSymmetric(row, tile);
+
+          if (!enteringBlocked && (wall || sym)) {
             reveal(tile);
           }
 
           if (prevTile !== null) {
             const prevWall = isWall(prevTile);
-            if (prevWall && !wall) {
+            const prevEnteringBlocked = isEnteringWallBlocked(prevTile);
+            const prevBlocking = prevWall || prevEnteringBlocked;
+
+            if (prevBlocking && !blocking) {
               row.startSlope = slope(tile);
             }
-            if (!prevWall && wall) {
+            if (!prevBlocking && blocking) {
               const nextRow = row.next();
               nextRow.endSlope = slope(tile);
               scan(nextRow);
@@ -242,7 +302,8 @@ export class LineOfSight {
           prevTile = tile;
         }
 
-        if (prevTile !== null && !isWall(prevTile)) {
+        const lastBlocking = prevTile !== null && (isWall(prevTile) || isEnteringWallBlocked(prevTile));
+        if (prevTile !== null && !lastBlocking) {
           scan(row.next());
         }
       };
@@ -346,6 +407,39 @@ export class LineOfSight {
   }
 
   /**
+   * Check if an edge wall blocks sight between two adjacent tiles
+   */
+  static isEdgeSightBlocked(gameMap, x1, y1, x2, y2, ignoreEntities = []) {
+    const t1 = gameMap.getTile(x1, y1);
+    const t2 = gameMap.getTile(x2, y2);
+    if (!t1 || !t2) return true;
+
+    let dir1to2 = null;
+    let dir2to1 = null;
+    if (x2 > x1) { dir1to2 = 'e'; dir2to1 = 'w'; }
+    else if (x2 < x1) { dir1to2 = 'w'; dir2to1 = 'e'; }
+    else if (y2 > y1) { dir1to2 = 's'; dir2to1 = 'n'; }
+    else if (y2 < y1) { dir1to2 = 'n'; dir2to1 = 's'; }
+    if (!dir1to2) return false;
+
+    const hasWall = (t1.edgeWalls && t1.edgeWalls[dir1to2]) || (t2.edgeWalls && t2.edgeWalls[dir2to1]);
+    if (!hasWall) return false;
+
+    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'EntityType.DOOR' || e.type === 'EntityType.WINDOW') && e.edge === dir1to2);
+    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'EntityType.DOOR' || e.type === 'EntityType.WINDOW') && e.edge === dir2to1);
+    const allBreachable = [...breachable1, ...breachable2];
+
+    if (allBreachable.length === 0) return true; // Solid wall blocks sight
+
+    for (const e of allBreachable) {
+        if (ignoreEntities.includes(e.id)) continue;
+        if ((e.type === 'door' || e.type === 'EntityType.DOOR') && !e.isOpen && !e.isBroken) return true; // Closed door blocks sight
+    }
+
+    return false;
+  }
+
+  /**
    * Get blocking entity from tile
    * @param {Tile} tile - Tile to check
    * @param {Array} ignoreEntities - Entity IDs to ignore
@@ -355,6 +449,11 @@ export class LineOfSight {
     return tile.contents.find(entity => {
       // Skip ignored entities
       if (ignoreEntities.includes(entity.id)) {
+        return false;
+      }
+
+      // Doors: if they are edge-aligned, they only block sight when crossing their edge, NOT the entire tile
+      if ((entity.type === 'door' || entity.type === 'EntityType.DOOR') && entity.edge !== undefined) {
         return false;
       }
 

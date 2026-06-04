@@ -92,20 +92,26 @@ export const LogProvider = ({ children }) => {
         };
 
         const handleStructureDamage = (data) => {
-            // Check both the emitted event type (if any) and the action type
+            // If the source is player, don't write a duplicate log since CombatContext handles player logs
+            if (data.source === 'player') return;
+
+            const actorName = data.source === 'npc' ? 'Survivor' : 'Zombie';
+
             if (data.type === 'attackDoor' || data.doorPos) {
-                addLog(data.doorBroken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
+                addLog(data.doorBroken || data.broken ? `${actorName} breaks door!` : `${actorName} bangs door!`, 'combat');
             } else if (data.type === 'attackWindow' || data.windowPos) {
-                addLog('Zombie smashes a window!', 'combat');
+                addLog(`${actorName} smashes a window!`, 'combat');
             }
         };
 
         const handleStructureInteract = (data) => {
+            if (data.source === 'player') return;
+            const actorName = data.entity?.type === 'npc' ? 'Survivor' : 'Zombie';
             const targetType = data.targetType;
             if (targetType === EntityType.DOOR || targetType === 'door') {
-                addLog('Zombie bangs on the door!', 'world');
+                addLog(`${actorName} bangs on the door!`, 'world');
             } else if (targetType === EntityType.WINDOW || targetType === 'window') {
-                addLog('Zombie smashes against the window!', 'world');
+                addLog(`${actorName} smashes against the window!`, 'world');
             }
         };
 

@@ -82,6 +82,7 @@ export const GameMapProvider = ({ children }) => {
         const riddenItemId = engine.riding?.item?.instanceId;
         return !tile.contents.some(entity => {
           if (entity.id === player.id) return false;
+          if (entity.type === 'window' || entity.type === 'door' || entity.type === 'EntityType.WINDOW' || entity.type === 'EntityType.DOOR') return false;
           if (draggedItemId && (entity.id === draggedItemId || entity.instanceId === draggedItemId)) return false;
           if (riddenItemId && (entity.id === riddenItemId || entity.instanceId === riddenItemId)) return false;
           return entity.blocksMovement;
@@ -134,7 +135,7 @@ export const GameMapProvider = ({ children }) => {
       const entityFilter = (tile) => {
         if (!tile.flags || !tile.flags.explored) return false;
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
-        return !tile.contents.some(e => e.blocksMovement && e.id !== player.id);
+        return !tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door' && e.type !== 'EntityType.WINDOW' && e.type !== 'EntityType.DOOR');
       };
 
       const isWalkable = Pathfinding.isTileWalkable(targetTile, entityFilter);
@@ -150,6 +151,56 @@ export const GameMapProvider = ({ children }) => {
         apCost = VehicleUtils.calculateDragCost(activeHoverItems, path, engine.gameMap, apCost);
       }
       
+      let door = targetTile.contents.find(e => e.type === EntityType.DOOR);
+      if (!door) {
+        const north = engine.gameMap.getTile(x, y - 1);
+        const nd = north?.contents.find(e => e.type === EntityType.DOOR && e.edge === 's');
+        if (nd) door = nd;
+        
+        if (!door) {
+          const south = engine.gameMap.getTile(x, y + 1);
+          const sd = south?.contents.find(e => e.type === EntityType.DOOR && e.edge === 'n');
+          if (sd) door = sd;
+        }
+        
+        if (!door) {
+          const west = engine.gameMap.getTile(x - 1, y);
+          const wd = west?.contents.find(e => e.type === EntityType.DOOR && e.edge === 'e');
+          if (wd) door = wd;
+        }
+        
+        if (!door) {
+          const east = engine.gameMap.getTile(x + 1, y);
+          const ed = east?.contents.find(e => e.type === EntityType.DOOR && e.edge === 'w');
+          if (ed) door = ed;
+        }
+      }
+
+      let windowEntity = targetTile.contents.find(e => e.type === EntityType.WINDOW);
+      if (!windowEntity) {
+        const north = engine.gameMap.getTile(x, y - 1);
+        const nw = north?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 's');
+        if (nw) windowEntity = nw;
+        
+        if (!windowEntity) {
+          const south = engine.gameMap.getTile(x, y + 1);
+          const sw = south?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 'n');
+          if (sw) windowEntity = sw;
+        }
+        
+        if (!windowEntity) {
+          const west = engine.gameMap.getTile(x - 1, y);
+          const ww = west?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 'e');
+          if (ww) windowEntity = ww;
+        }
+        
+        if (!windowEntity) {
+          const east = engine.gameMap.getTile(x + 1, y);
+          const ew = east?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 'w');
+          if (ew) windowEntity = ew;
+        }
+      }
+
       const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);
       setHoveredTile({ 
         x, y, apCost, 
@@ -158,8 +209,8 @@ export const GameMapProvider = ({ children }) => {
         cropInfo: targetTile.cropInfo || data?.cropInfo || null,
         lootItems: targetTile.inventoryItems || null,
         specialBuilding: targetTile.contents.find(e => e.type === EntityType.PLACE_ICON)?.subtype || null,
-        door: targetTile.contents.find(e => e.type === EntityType.DOOR),
-        window: targetTile.contents.find(e => e.type === EntityType.WINDOW),
+        door: door,
+        window: windowEntity,
         npc: targetTile.contents.find(e => e.type === EntityType.NPC)
       });
     } catch (error) {

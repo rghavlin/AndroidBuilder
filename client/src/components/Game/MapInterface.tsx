@@ -355,16 +355,44 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     const tile = gameMap.getTile(x, y);
     if (!tile) return;
 
-    const door = tile.contents.find((e: any) => e.type === EntityType.DOOR);
+    let door = tile.contents.find((e: any) => e.type === EntityType.DOOR);
+    let doorX = x;
+    let doorY = y;
+
+    if (!door) {
+      // Check neighbors for edge doors facing (x, y)
+      const north = gameMap.getTile(x, y - 1);
+      const nd = north?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 's');
+      if (nd) { door = nd; doorX = x; doorY = y - 1; }
+
+      if (!door) {
+        const south = gameMap.getTile(x, y + 1);
+        const sd = south?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 'n');
+        if (sd) { door = sd; doorX = x; doorY = y + 1; }
+      }
+
+      if (!door) {
+        const west = gameMap.getTile(x - 1, y);
+        const wd = west?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 'e');
+        if (wd) { door = wd; doorX = x - 1; doorY = y; }
+      }
+
+      if (!door) {
+        const east = gameMap.getTile(x + 1, y);
+        const ed = east?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 'w');
+        if (ed) { door = ed; doorX = x + 1; doorY = y; }
+      }
+    }
+
     if (door) {
       const px = Math.floor(player.x);
       const py = Math.floor(player.y);
-      const dx = x - px;
-      const dy = y - py;
-      const isAdjacent = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0);
+      const dx = doorX - px;
+      const dy = doorY - py;
+      const isAdjacentOrOn = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0) || (dx === 0 && dy === 0);
 
-      if (isAdjacent) {
-        setDoorMenu({ x, y, screenX, screenY, door });
+      if (isAdjacentOrOn) {
+        setDoorMenu({ x: doorX, y: doorY, screenX, screenY, door });
       } else {
         console.log('[MapInterface] Door not adjacent for interaction');
         addEffect({
@@ -379,16 +407,44 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       return;
     }
 
-    const windowEntity = tile.contents.find((e: any) => e.type === EntityType.WINDOW);
+    let windowEntity = tile.contents.find((e: any) => e.type === EntityType.WINDOW);
+    let windowX = x;
+    let windowY = y;
+
+    if (!windowEntity) {
+      // Check neighbors for edge windows facing (x, y)
+      const north = gameMap.getTile(x, y - 1);
+      const nw = north?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 's');
+      if (nw) { windowEntity = nw; windowX = x; windowY = y - 1; }
+
+      if (!windowEntity) {
+        const south = gameMap.getTile(x, y + 1);
+        const sw = south?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 'n');
+        if (sw) { windowEntity = sw; windowX = x; windowY = y + 1; }
+      }
+
+      if (!windowEntity) {
+        const west = gameMap.getTile(x - 1, y);
+        const ww = west?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 'e');
+        if (ww) { windowEntity = ww; windowX = x - 1; windowY = y; }
+      }
+
+      if (!windowEntity) {
+        const east = gameMap.getTile(x + 1, y);
+        const ew = east?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 'w');
+        if (ew) { windowEntity = ew; windowX = x + 1; windowY = y; }
+      }
+    }
+
     if (windowEntity) {
       const px = Math.floor(player.x);
       const py = Math.floor(player.y);
-      const dx = x - px;
-      const dy = y - py;
-      const isAdjacent = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0);
+      const dx = windowX - px;
+      const dy = windowY - py;
+      const isAdjacentOrOn = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0) || (dx === 0 && dy === 0);
 
-      if (isAdjacent) {
-        setWindowMenu({ x, y, screenX, screenY, window: windowEntity });
+      if (isAdjacentOrOn) {
+        setWindowMenu({ x: windowX, y: windowY, screenX, screenY, window: windowEntity });
       } else {
         console.log('[MapInterface] Window not adjacent for interaction');
         addEffect({
@@ -935,77 +991,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             </button>
           )}
 
-          {/* Climb Through Option */}
-          {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !windowMenu.window.isReinforced && (
-            <button
-              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
-              onClick={() => {
-                if (!isPlayerTurn) return;
-                const gameMap = gameMapRef.current;
-                const player = playerRef.current;
-                if (!gameMap || !player) return;
 
-                // Check AP cost (2 AP)
-                if (player.ap < 2) {
-                  addEffect({
-                    type: 'damage',
-                    x: windowMenu.x,
-                    y: windowMenu.y,
-                    value: 'Insufficient AP',
-                    color: '#ef4444',
-                    duration: 1000
-                  });
-                  setWindowMenu(null);
-                  return;
-                }
-
-                // Calculate target position (opposite side)
-                const dx = windowMenu.x - player.x;
-                const dy = windowMenu.y - player.y;
-                const targetX = windowMenu.x + dx;
-                const targetY = windowMenu.y + dy;
-
-                const targetTile = gameMap.getTile(targetX, targetY);
-                if (!targetTile || !targetTile.isWalkable(player)) {
-                   addLog("The other side is blocked.", "error");
-                   setWindowMenu(null);
-                   return;
-                }
-
-                // Execute teleport
-                const success = gameMap.moveEntity(player.id, targetX, targetY);
-                if (success) {
-                  player.useAP(2);
-                  playSound('Climb');
-                  addLog("You climb through the window.", "world");
-                  
-                  // 50% bleed chance if broken and NOT open
-                  if (windowMenu.window.isBroken && !windowMenu.window.isOpen) {
-                    if (Math.random() < 0.5) {
-                      player.setBleeding(true);
-                      addLog("You cut yourself on the broken glass!", "error");
-                      playSound('ZombieSlash');
-                    }
-                  }
-
-                  // Update derived state
-                  triggerMapUpdate();
-                  const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange());
-                  refreshZombieTracking(player, newFovTiles);
-                  checkZombieAwareness();
-                  
-                  if (gameMap.emitNoise) {
-                    gameMap.emitNoise(targetX, targetY, 4);
-                  }
-                } else {
-                  addLog("Could not move to the other side.", "error");
-                }
-                setWindowMenu(null);
-              }}
-            >
-              Climb through (2ap)
-            </button>
-          )}
 
           {/* Reinforce Window Option */}
           <button
@@ -1376,8 +1362,30 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   const allEntities = gameMapRef.current.getAllEntities();
   const zombie = allEntities.find((e: any) => e.type === 'zombie' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   const npc = allEntities.find((e: any) => e.type === EntityType.NPC && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
-  const door = allEntities.find((e: any) => e.type === 'door' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
-  const window = allEntities.find((e: any) => e.type === 'window' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  // Find door/window on the hovered tile or its edge neighbors
+  let door = allEntities.find((e: any) => e.type === 'door' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  if (!door) {
+    const hx = hoveredTile.x;
+    const hy = hoveredTile.y;
+    door = allEntities.find((e: any) => e.type === 'door' && (
+      (Math.round(e.x) === hx && Math.round(e.y) === hy - 1 && e.edge === 's') ||
+      (Math.round(e.x) === hx && Math.round(e.y) === hy + 1 && e.edge === 'n') ||
+      (Math.round(e.x) === hx - 1 && Math.round(e.y) === hy && e.edge === 'e') ||
+      (Math.round(e.x) === hx + 1 && Math.round(e.y) === hy && e.edge === 'w')
+    ));
+  }
+
+  let window = allEntities.find((e: any) => e.type === 'window' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  if (!window) {
+    const hx = hoveredTile.x;
+    const hy = hoveredTile.y;
+    window = allEntities.find((e: any) => e.type === 'window' && (
+      (Math.round(e.x) === hx && Math.round(e.y) === hy - 1 && e.edge === 's') ||
+      (Math.round(e.x) === hx && Math.round(e.y) === hy + 1 && e.edge === 'n') ||
+      (Math.round(e.x) === hx - 1 && Math.round(e.y) === hy && e.edge === 'e') ||
+      (Math.round(e.x) === hx + 1 && Math.round(e.y) === hy && e.edge === 'w')
+    ));
+  }
   
   const cropInfo = targetTile?.cropInfo;
   const lootItems = targetTile?.inventoryItems || [];

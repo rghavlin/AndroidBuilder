@@ -393,12 +393,24 @@ export class TemplateMapGenerator {
    */
   layoutToTileData(layout) {
     return layout.map((row, y) =>
-      row.map((terrain, x) => ({
-        x,
-        y,
-        terrain,
-        contents: []
-      }))
+      row.map((cell, x) => {
+        if (cell && typeof cell === 'object') {
+          return {
+            x,
+            y,
+            terrain: cell.terrain,
+            edgeWalls: cell.edgeWalls ? { ...cell.edgeWalls } : { n: false, e: false, s: false, w: false },
+            contents: []
+          };
+        }
+        return {
+          x,
+          y,
+          terrain: cell,
+          edgeWalls: { n: false, e: false, s: false, w: false },
+          contents: []
+        };
+      })
     );
   }
 
@@ -471,9 +483,16 @@ export class TemplateMapGenerator {
       const x = Math.floor(Math.random() * width);
       const y = Math.floor(Math.random() * height);
 
+      const cell = layout[y][x];
+      const isWall = typeof cell === 'object' ? cell.terrain === 'wall' : cell === 'wall';
+
       // Don't overwrite existing walls or place on edges
-      if (layout[y][x] !== 'wall' && x > 0 && x < width - 1 && y > 0 && y < height - 1) {
-        layout[y][x] = 'wall';
+      if (!isWall && x > 0 && x < width - 1 && y > 0 && y < height - 1) {
+        if (typeof cell === 'object') {
+          cell.terrain = 'wall';
+        } else {
+          layout[y][x] = 'wall';
+        }
         added++;
       }
     }
@@ -491,9 +510,16 @@ export class TemplateMapGenerator {
       const x = Math.floor(Math.random() * width);
       const y = Math.floor(Math.random() * height);
 
+      const cell = layout[y][x];
+      const isGrass = typeof cell === 'object' ? cell.terrain === 'grass' : cell === 'grass';
+
       // Only place on grass, not walls or existing floors
-      if (layout[y][x] === 'grass') {
-        layout[y][x] = 'floor';
+      if (isGrass) {
+        if (typeof cell === 'object') {
+          cell.terrain = 'floor';
+        } else {
+          layout[y][x] = 'floor';
+        }
         added++;
       }
     }
@@ -766,6 +792,18 @@ export class TemplateMapGenerator {
             gameMap.setTerrain(x, y, tileData.terrain);
           }
 
+          if (tileData.edgeWalls) {
+            const tile = gameMap.getTile(x, y);
+            if (tile) {
+              tile.edgeWalls = {
+                n: !!tileData.edgeWalls.n,
+                e: !!tileData.edgeWalls.e,
+                s: !!tileData.edgeWalls.s,
+                w: !!tileData.edgeWalls.w
+              };
+            }
+          }
+
           // Transfer inventory items (Wild Crops, etc.)
           if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
             gameMap.setItemsOnTile(x, y, tileData.inventoryItems);
@@ -775,47 +813,61 @@ export class TemplateMapGenerator {
 
       console.log(`[TemplateMapGenerator] Applied template map data to GameMap (${gameMap.width}x${gameMap.height})`);
 
+      // PHASE 0: CONVERT FULL-TILE WALLS TO EDGE WALLS
+      // This allows interior walls to be infinitely thin edge walls, making the space walkable
+      const hasDoorOrWindow = (tx, ty) => {
+        if (!templateMapData.metadata) return false;
+        if (templateMapData.metadata.doors?.some(d => d.x === tx && d.y === ty)) return true;
+        if (templateMapData.metadata.windows?.some(w => w.x === tx && w.y === ty)) return true;
+        return false;
+      };
+
+      for (let y = 0; y < templateMapData.height; y++) {
+        for (let x = 0; x < templateMapData.width; x++) {
+          const tile = gameMap.getTile(x, y);
+          const origTerrain = templateMapData.tiles[y] && templateMapData.tiles[y][x] ? templateMapData.tiles[y][x].terrain : null;
+          
+          if (tile && (origTerrain === 'building' || origTerrain === 'wall')) {
+             // Check if this tile is on the outer perimeter of a building
+             const isOuterWall = templateMapData.metadata?.buildings?.some(b => {
+               const isWithinX = x >= b.x && x < b.x + b.width;
+               const isWithinY = y >= b.y && y < b.y + b.height;
+               if (isWithinX && isWithinY) {
+                 return x === b.x || x === b.x + b.width - 1 || y === b.y || y === b.y + b.height - 1;
+               }
+               return false;
+             }) || false;
+
+             if (isOuterWall) {
+               // Keep outer walls as solid building/wall tiles so they block movement/sight and reveal/render correctly
+               continue;
+             }
+
+             // Change terrain to floor so the tile is walkable
+             gameMap.setTerrain(x, y, 'floor');
+             
+             // Check original neighbors to determine which edge walls to create
+             const nTile = y > 0 ? templateMapData.tiles[y-1][x]?.terrain : null;
+             const sTile = y < templateMapData.height - 1 ? templateMapData.tiles[y+1][x]?.terrain : null;
+             const wTile = x > 0 ? templateMapData.tiles[y][x-1]?.terrain : null;
+             const eTile = x < templateMapData.width - 1 ? templateMapData.tiles[y][x+1]?.terrain : null;
+             
+             const isWallOrOpening = (t, tx, ty) => t === 'building' || t === 'wall' || hasDoorOrWindow(tx, ty);
+             
+             // If a neighboring tile was NOT a wall or door, we need an edge wall separating them
+             if (!isWallOrOpening(nTile, x, y - 1)) tile.edgeWalls.n = true;
+             if (!isWallOrOpening(sTile, x, y + 1)) tile.edgeWalls.s = true;
+             if (!isWallOrOpening(wTile, x - 1, y)) tile.edgeWalls.w = true;
+             if (!isWallOrOpening(eTile, x + 1, y)) tile.edgeWalls.e = true;
+          }
+        }
+      }
+
       // Instantiate door entities from metadata
       if (templateMapData.metadata && templateMapData.metadata.doors) {
         const { Door } = await import('../entities/Door.js');
         templateMapData.metadata.doors.forEach(doorData => {
           const { x, y } = doorData;
-          
-          // PHASE 1: DOORWAY CLEARANCE ("PUNCH THROUGH") 
-          const tileLeft = x > 0 ? templateMapData.tiles[y][x - 1]?.terrain : null;
-          const tileRight = x < templateMapData.width - 1 ? templateMapData.tiles[y][x + 1]?.terrain : null;
-          const tileUp = y > 0 ? templateMapData.tiles[y - 1][x]?.terrain : null;
-          const tileDown = y < templateMapData.height - 1 ? templateMapData.tiles[y + 1][x]?.terrain : null;
-          const wallTypes = ['building', 'wall', 'window', 'fence'];
-
-          const hasWallLeft = wallTypes.includes(tileLeft);
-          const hasWallRight = wallTypes.includes(tileRight);
-          const hasWallUp = wallTypes.includes(tileUp);
-          const hasWallDown = wallTypes.includes(tileDown);
-
-          // If the door is in a horizontal-aligned wall structure (or corner)
-          if (hasWallLeft || hasWallRight) {
-            // Door is in a horizontal wall segment: ensure North and South tiles are floor
-            // FIX: Only clear if the tile is NOT part of a vertical wall structure (Corner Protection)
-            if (y > 0 && !hasWallUp && (templateMapData.tiles[y-1][x]?.terrain === 'building' || templateMapData.tiles[y-1][x]?.terrain === 'wall')) {
-                gameMap.setTerrain(x, y - 1, 'floor');
-            }
-            if (y < templateMapData.height - 1 && !hasWallDown && (templateMapData.tiles[y+1][x]?.terrain === 'building' || templateMapData.tiles[y+1][x]?.terrain === 'wall')) {
-                gameMap.setTerrain(x, y + 1, 'floor');
-            }
-          }
-          
-          // If the door is in a vertical-aligned wall structure (or corner)
-          if (hasWallUp || hasWallDown) {
-            // Door is in a vertical wall segment: ensure East and West tiles are floor
-            // FIX: Only clear if the tile is NOT part of a horizontal wall structure (Corner Protection)
-            if (x > 0 && !hasWallLeft && (templateMapData.tiles[y][x-1]?.terrain === 'building' || templateMapData.tiles[y][x-1]?.terrain === 'wall')) {
-                gameMap.setTerrain(x - 1, y, 'floor');
-            }
-            if (x < templateMapData.width - 1 && !hasWallRight && (templateMapData.tiles[y][x+1]?.terrain === 'building' || templateMapData.tiles[y][x+1]?.terrain === 'wall')) {
-                gameMap.setTerrain(x + 1, y, 'floor');
-            }
-          }
           
           // Phase 2: Create Door entity
           if (!doorData.isOpening) {
@@ -824,15 +876,23 @@ export class TemplateMapGenerator {
               doorData.x,
               doorData.y,
               doorData.isLocked,
-              doorData.isOpen
+              doorData.isOpen,
+              false,
+              doorData.edge
             );
             gameMap.addEntity(door, doorData.x, doorData.y);
+          } else {
+            // It's an open doorway (no physical door), so clear the edge wall!
+            const tile = gameMap.getTile(doorData.x, doorData.y);
+            if (tile && tile.edgeWalls && doorData.edge) {
+              tile.edgeWalls[doorData.edge] = false;
+            }
           }
           
           // Ensure the door site itself is definitely walkable (floor)
           gameMap.setTerrain(doorData.x, doorData.y, 'floor');
         });
-        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors with doorway clearance logic`);
+        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors`);
       }
 
       // Instantiate window entities from metadata
@@ -845,9 +905,13 @@ export class TemplateMapGenerator {
             windowData.y,
             windowData.isLocked,
             windowData.isOpen,
-            windowData.isBroken
+            windowData.isBroken,
+            windowData.edge
           );
           gameMap.addEntity(window, windowData.x, windowData.y);
+          
+          // Ensure the window site itself is definitely walkable (floor)
+          gameMap.setTerrain(windowData.x, windowData.y, 'floor');
         });
         console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.windows.length} windows to map`);
       }

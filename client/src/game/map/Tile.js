@@ -15,6 +15,10 @@ export class Tile {
     this.scent = 0; // Current scent intensity (turns remaining)
     this.scentSequence = 0; // Global sequence number for trail following
     this.waterAmount = terrain === 'water' ? 100 : 0; // Units of water in this tile
+    
+    // Thin-walled structures (Option A edge-based collision)
+    // Indicates if an unwalkable wall exists on the border of this tile
+    this.edgeWalls = { n: false, e: false, s: false, w: false };
   }
 
   /**
@@ -77,17 +81,10 @@ export class Tile {
 
     // 3. Content Check (Full)
     for (const item of this.contents) {
-      if (item.type === EntityType.DOOR) {
-        if (!item.isOpen && !options.allowBreaching) return false;
-      }
-      if (item.type === EntityType.WINDOW) {
-        if (!item.isOpen && !item.isBroken && !options.allowBreaching) return false;
-      }
+      // Edge-based walls: doors and windows align to tile boundaries (edges) and should not block the entire tile.
+      // Blocking is fully handled by Pathfinding.isEdgeBlocked.
+      if ((item.type === EntityType.DOOR || item.type === EntityType.WINDOW) && item.edge !== undefined) continue;
       if (item.blocksMovement) {
-         // EXCEPTION: Open doors and windows don't block movement even if their base property says they do.
-         // ALSO EXCEPTION: If we are a zombie attempting to breach (allowBreaching), we don't treat closed structures as impassable walls.
-         if (item.type === EntityType.DOOR && (item.isOpen || options.allowBreaching)) continue;
-         if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken || options.allowBreaching)) continue;
 
          // EXCEPTION: Same-tile safety
          if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;
@@ -221,7 +218,8 @@ export class Tile {
       flags: this.flags,
       scent: this.scent,
       scentSequence: this.scentSequence,
-      waterAmount: this.waterAmount
+      waterAmount: this.waterAmount,
+      edgeWalls: this.edgeWalls
     };
   }
 
@@ -235,6 +233,7 @@ export class Tile {
     tile.scent = data.scent || 0;
     tile.scentSequence = data.scentSequence || 0;
     tile.waterAmount = data.waterAmount || (data.terrain === 'water' ? 100 : 0);
+    tile.edgeWalls = data.edgeWalls || { n: false, e: false, s: false, w: false };
     // Note: contents are restored by GameMap.fromJSON
     return tile;
   }

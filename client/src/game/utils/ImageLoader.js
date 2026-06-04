@@ -542,6 +542,45 @@ export class ImageLoader {
    * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
    */
   async getTileImage(terrainType) {
+    if (this.tileSet === 'spritesheet') {
+      const imageKey = 'tile_spritesheet';
+      if (this.images[imageKey]) {
+        return this.images[imageKey];
+      }
+      if (this.permanentFailures.has(imageKey)) {
+        return null;
+      }
+      if (this.loadingPromises.has(imageKey)) {
+        return this.loadingPromises.get(imageKey);
+      }
+
+      const loadPromise = (async () => {
+        try {
+          const image = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = './images/tiles/tileset2.png';
+            img.onload = () => {
+              console.log('[ImageLoader] Successfully loaded master sprite sheet tileset2.png');
+              if (this.onImageLoaded) this.onImageLoaded();
+              resolve(img);
+            };
+            img.onerror = () => reject(new Error('Failed to load tileset2.png'));
+          });
+          this.images[imageKey] = image;
+          this.failedImagesCount.delete(imageKey);
+          return image;
+        } catch (error) {
+          this.permanentFailures.add(imageKey);
+          console.error('[ImageLoader] Permanent failure loading tileset2.png', error);
+          return null;
+        } finally {
+          this.loadingPromises.delete(imageKey);
+        }
+      })();
+      this.loadingPromises.set(imageKey, loadPromise);
+      return loadPromise;
+    }
+
     const imageKey = `tile_${terrainType}`;
 
     // Return cached image if available

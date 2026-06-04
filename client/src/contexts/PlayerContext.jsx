@@ -156,7 +156,7 @@ export const PlayerProvider = ({ children }) => {
       { x: player.x, y: player.y - 1, direction: 'up' }
     ].map(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
-      const isPassable = tile && !tile.contents.some(e => e.blocksMovement) &&
+      const isPassable = tile && !tile.contents.some(e => e.blocksMovement && e.type !== 'window' && e.type !== 'door' && e.type !== 'EntityType.WINDOW' && e.type !== 'EntityType.DOOR') &&
         !['wall', 'building', 'fence', 'tree'].includes(tile.terrain);
       const hasZombie = tile && tile.contents.some(e => e.type === 'zombie');
       const zombieId = hasZombie ? tile.contents.find(e => e.type === 'zombie')?.id : null;
@@ -281,18 +281,18 @@ export const PlayerProvider = ({ children }) => {
 
         // Phase 12 Fix: Manual sync removed (now handled by global playerMoved listener)
 
-        // Final snap
-        if (engine.gameMap && engine.player) {
-           const options = {};
-           if (engine.dragging && engine.dragging.item) {
-               options.draggedItemId = engine.dragging.item.instanceId;
-           }
-           if (engine.riding && engine.riding.item) {
-               options.riddenItemId = engine.riding.item.instanceId;
-           }
-           engine.gameMap.moveEntity(engine.player.id, final.x, final.y, options);
-           path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y, 3); });
-        }
+         // Final snap
+         if (engine.gameMap && engine.player) {
+            const options = { skipEdgeCheck: true };
+            if (engine.dragging && engine.dragging.item) {
+                options.draggedItemId = engine.dragging.item.instanceId;
+            }
+            if (engine.riding && engine.riding.item) {
+                options.riddenItemId = engine.riding.item.instanceId;
+            }
+            engine.gameMap.moveEntity(engine.player.id, final.x, final.y, options);
+            path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y, 3); });
+         }
 
         // Release lock before final snap so updatePlayerFieldOfView isn't blocked
         setIsMoving(false);

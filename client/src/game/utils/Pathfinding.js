@@ -124,6 +124,11 @@ export class Pathfinding {
         const isTarget = neighbor.x === endX && neighbor.y === endY;
         const isWalkable = this.isTileWalkable(neighborTile, entityFilter || options.entity, options);
         
+        // Check edge blocking
+        if (this.isEdgeBlocked(gameMap, current.x, current.y, neighbor.x, neighbor.y, entityFilter || options.entity, options)) {
+            continue;
+        }
+
         // REVISE: Allow pathfinding through closed doors/windows for zombies
         const hasBreachableStructure = (isZombie || options.entity?.type === 'zombie') && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window');
         
@@ -177,9 +182,16 @@ export class Pathfinding {
 
   static isPathWalkable(gameMap, path, entity = null) {
     if (!path || path.length === 0) return false;
-    for (const point of path) {
+    for (let i = 0; i < path.length; i++) {
+      const point = path[i];
       const tile = gameMap.getTile(point.x, point.y);
       if (!tile || !this.isTileWalkable(tile, entity, { ignoreZombies: true })) return false;
+      
+      // Check edge collision
+      if (i > 0) {
+        const prev = path[i - 1];
+        if (this.isEdgeBlocked(gameMap, prev.x, prev.y, point.x, point.y, entity, { ignoreZombies: true })) return false;
+      }
     }
     return true;
   }
@@ -203,6 +215,8 @@ export class Pathfinding {
       for (const neighbor of neighbors) {
         const neighborTile = gameMap.getTile(neighbor.x, neighbor.y);
         if (!neighborTile || !this.isTileWalkable(neighborTile, options.entityFilter || options.entity, options)) continue;
+
+        if (this.isEdgeBlocked(gameMap, current.x, current.y, neighbor.x, neighbor.y, options.entityFilter || options.entity, options)) continue;
 
         const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, isPathfinding: true });
         const totalCost = current.cost + moveCost;
@@ -243,7 +257,10 @@ export class Pathfinding {
         if (structure) {
           const isClosed = (structure.type === 'door' && !structure.isOpen) || 
                           (structure.type === 'window' && !structure.isOpen && !structure.isBroken);
-          if (isClosed) baseCost = 1.0; // Zombies don't 'fear' doors, they go right through them
+          if (isClosed) {
+            const hp = (structure.hp !== undefined ? structure.hp : 0) + (structure.reinforcementHp || 0);
+            baseCost += hp > 0 ? hp : (structure.maxHp || 1);
+          }
         }
         const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');
         if (hasOtherZombie) baseCost += 0.2; // Tiny penalty to allow clustering
@@ -284,6 +301,12 @@ export class Pathfinding {
   }
 
   static canMoveDiagonally(gameMap, x1, y1, x2, y2, entityOrFilter = null, options = {}) {
+    // Check edge boundaries first (you can't squeeze through diagonal walls)
+    if (this.isEdgeBlocked(gameMap, x1, y1, x1, y2, entityOrFilter, options) || 
+        this.isEdgeBlocked(gameMap, x1, y1, x2, y1, entityOrFilter, options) ||
+        this.isEdgeBlocked(gameMap, x1, y2, x2, y2, entityOrFilter, options) ||
+        this.isEdgeBlocked(gameMap, x2, y1, x2, y2, entityOrFilter, options)) return false;
+
     const tile1 = gameMap.getTile(x1, y2);
     const tile2 = gameMap.getTile(x2, y1);
     const tile1Walkable = tile1 && this.isTileWalkable(tile1, entityOrFilter, options);
@@ -302,6 +325,83 @@ export class Pathfinding {
     }
 
     return false;
+  }
+
+  static isEdgeBlocked(gameMap, x1, y1, x2, y2, entity = null, options = {}) {
+    // Diagonal moves are not checked by this directly, but caller enforces diagonal logic
+    if (Math.abs(x1 - x2) > 0 && Math.abs(y1 - y2) > 0) return false; 
+
+    const tile1 = gameMap.getTile(x1, y1);
+    const tile2 = gameMap.getTile(x2, y2);
+    if (!tile1 || !tile2) return true;
+
+    let dir1to2 = null;
+    let dir2to1 = null;
+    if (x2 > x1) { dir1to2 = 'e'; dir2to1 = 'w'; }
+    else if (x2 < x1) { dir1to2 = 'w'; dir2to1 = 'e'; }
+    else if (y2 > y1) { dir1to2 = 's'; dir2to1 = 'n'; }
+    else if (y2 < y1) { dir1to2 = 'n'; dir2to1 = 's'; }
+
+    if (!dir1to2) return false;
+
+    const wallBlocks = (tile1.edgeWalls && tile1.edgeWalls[dir1to2]) || (tile2.edgeWalls && tile2.edgeWalls[dir2to1]);
+    
+    if (wallBlocks) {
+      const isZombie = options.isZombie || (entity && entity.type === 'zombie');
+      const breachable1 = tile1.contents.filter(e => (e.type === 'door' || e.type === 'window') && e.edge === dir1to2);
+      const breachable2 = tile2.contents.filter(e => (e.type === 'door' || e.type === 'window') && e.edge === dir2to1);
+      
+      const allBreachable = [...breachable1, ...breachable2];
+      
+      // If there is no door/window, the edge is solid
+      if (allBreachable.length === 0) return true;
+
+      // If there is a door/window, check if it allows passage
+      for (const e of allBreachable) {
+         if (e.isOpen || e.isBroken || (isZombie && options.isPathfinding) || options.allowBreaching) {
+             return false; // Can pass through
+         }
+      }
+      return true; // Blocked by closed structure
+    }
+
+    return false;
+  }
+
+  static getBlockingStructure(gameMap, x1, y1, x2, y2) {
+    const tile1 = gameMap.getTile(x1, y1);
+    const tile2 = gameMap.getTile(x2, y2);
+    if (!tile1 || !tile2) return null;
+
+    // Check full-tile structures on target tile
+    const fullTileStructure = tile2.contents.find(e => 
+      ((e.type === EntityType.DOOR && !e.isOpen) || 
+       (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) && 
+      !e.edge
+    );
+    if (fullTileStructure) return fullTileStructure;
+
+    // Check edge structures between tile1 and tile2
+    let dir1to2 = null;
+    let dir2to1 = null;
+    if (x2 > x1) { dir1to2 = 'e'; dir2to1 = 'w'; }
+    else if (x2 < x1) { dir1to2 = 'w'; dir2to1 = 'e'; }
+    else if (y2 > y1) { dir1to2 = 's'; dir2to1 = 'n'; }
+    else if (y2 < y1) { dir1to2 = 'n'; dir2to1 = 's'; }
+
+    if (dir1to2) {
+      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === dir1to2);
+      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === dir2to1);
+      
+      const allBreachable = [...breachable1, ...breachable2];
+      for (const e of allBreachable) {
+        if ((e.type === EntityType.DOOR && !e.isOpen) || 
+            (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) {
+          return e;
+        }
+      }
+    }
+    return null;
   }
 
   static reconstructPath(node) {

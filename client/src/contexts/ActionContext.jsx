@@ -321,14 +321,51 @@ export const ActionProvider = ({ children }) => {
       return { success: false, reason: 'Tool is broken' };
     }
 
-    const dx = Math.abs(player.x - x);
-    const dy = Math.abs(player.y - y);
-    if ((dx + dy) !== 1) return { success: false, reason: 'Too far' };
+    // Find structure (door/window) either on tile (x, y) or on its edges sharing with (x, y)
+    let structure = null;
+    let sx = x;
+    let sy = y;
 
     const tile = gameMap.getTile(x, y);
-    const structure = tile?.contents.find(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+    if (tile) {
+      structure = tile.contents.find(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+    }
+    
+    // If not found directly, check neighbors for edge-aligned structures facing (x, y)
+    if (!structure) {
+      const north = gameMap.getTile(x, y - 1);
+      const nd = north?.contents.find(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === 's');
+      if (nd) { structure = nd; sx = x; sy = y - 1; }
 
-    if (!structure || !structure.isLocked || structure.isOpen || structure.isBroken) {
+      if (!structure) {
+        const south = gameMap.getTile(x, y + 1);
+        const sd = south?.contents.find(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === 'n');
+        if (sd) { structure = sd; sx = x; sy = y + 1; }
+      }
+
+      if (!structure) {
+        const west = gameMap.getTile(x - 1, y);
+        const wd = west?.contents.find(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === 'e');
+        if (wd) { structure = wd; sx = x - 1; sy = y; }
+      }
+
+      if (!structure) {
+        const east = gameMap.getTile(x + 1, y);
+        const ed = east?.contents.find(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === 'w');
+        if (ed) { structure = ed; sx = x + 1; sy = y; }
+      }
+    }
+
+    if (!structure) {
+      return { success: false, reason: 'Cannot use here' };
+    }
+
+    const dx = Math.abs(player.x - sx);
+    const dy = Math.abs(player.y - sy);
+    const isAdjacentOrOn = (dx === 0 && dy === 0) || ((dx + dy) === 1);
+    if (!isAdjacentOrOn) return { success: false, reason: 'Too far' };
+
+    if (!structure.isLocked || structure.isOpen || structure.isBroken) {
       return { success: false, reason: 'Cannot use here' };
     }
 
@@ -355,7 +392,7 @@ export const ActionProvider = ({ children }) => {
     
     playSound('ForceOpen');
     addLog(`You pry the ${structure.type} open with your ${targetingItem.name}.`, 'world');
-    gameMap.emitNoise(x, y, 3);
+    gameMap.emitNoise(sx, sy, 3);
     player.useAP(2);
 
     if (targetingItem.hasTrait('degradable')) {

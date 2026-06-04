@@ -3,6 +3,18 @@
  */
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 
+// Grid coordinates on the 16x16 sprite sheet (2048x2048 total size, 128x128 per tile)
+const SPRITE_ATLAS_MAP = {
+  'sidewalk':    { col: 6, row: 0 }, // Need to remap later if necessary
+  'wall':        { col: 0, row: 0 }, // Red brick walls
+  'building':    { col: 0, row: 0 }, 
+  'floor':       { col: 8, row: 15 }, // Wood floor (Bottom Center)
+  'tent_floor':  { col: 8, row: 15 },
+  'tent_wall':   { col: 0, row: 0 },
+  'dirt':        { col: 3, row: 7 }, 
+  'sand':        { col: 3, row: 7 }
+};
+
 export const TileRenderer = {
   /**
    * Draw a single map tile (Terrain, Fog, FOV)
@@ -40,13 +52,124 @@ export const TileRenderer = {
             const isColorOnly = ['window'].includes(tile.terrain);
             
             if (!isColorOnly) {
-                const spriteKey = `tile_${tile.terrain}`;
-                const sprite = sprites[spriteKey];
-                if (sprite) {
-                    ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
+                if (imageLoader.tileSet === 'spritesheet') {
+                    const sheet = sprites['tile_spritesheet'];
+                    if (sheet) {
+                        let mapping;
+                        
+                        if (tile.terrain === 'grass') {
+                            // Bottom Left Grass (Row 14 & 15, Col 0-3)
+                            const grassVariants = [
+                                { col: 0, row: 15 }, { col: 1, row: 15 }, { col: 2, row: 15 }, { col: 3, row: 15 },
+                                { col: 0, row: 14 }, { col: 1, row: 14 }, { col: 2, row: 14 }, { col: 3, row: 14 }
+                            ];
+                            const index = Math.abs(x * 31 + y * 17) % grassVariants.length;
+                            mapping = grassVariants[index];
+                        } else if (tile.terrain === 'road') {
+                            // Randomize road slabs to create natural road wear/cracks
+                            const roadHash = Math.abs(x * 13 + y * 7) % 10;
+                            if (roadHash < 3) {
+                                mapping = { col: 5, row: 7 }; // Cracked pavement
+                            } else if (roadHash < 6) {
+                                mapping = { col: 6, row: 1 }; // Worn concrete slab with crack
+                            } else {
+                                mapping = { col: 7, row: 0 }; // Concrete slab with crack
+                            }
+                        } else {
+                            mapping = SPRITE_ATLAS_MAP[tile.terrain];
+                        }
+
+                        if (mapping) {
+                            const cellSize = 128; // 2048 / 16 = 128
+                            const inset = 3;      // Crop 3px to strip the baked-in black grid lines
+                            const sx = mapping.col * cellSize + inset;
+                            const sy = mapping.row * cellSize + inset;
+                            const sDim = cellSize - (inset * 2);
+
+                            ctx.drawImage(
+                                sheet,
+                                sx, sy, sDim, sDim, // source bounds (cropped)
+                                screenX, screenY, tileSize, tileSize // destination on canvas
+                            );
+                        }
+                    } else {
+                        // Reactive lazy-loading for missing master sprite sheet
+                        imageLoader.getTileImage(tile.terrain);
+                    }
                 } else {
-                    // Reactive lazy-loading for missing tiles
-                    imageLoader.getTileImage(tile.terrain);
+                    const spriteKey = `tile_${tile.terrain}`;
+                    const sprite = sprites[spriteKey];
+                    if (sprite) {
+                        ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
+                    } else {
+                        // Reactive lazy-loading for missing tiles
+                        imageLoader.getTileImage(tile.terrain);
+                    }
+                }
+            }
+        }
+
+        // Draw Edge Walls
+        const hasDoorOrWindowOnEdge = (t, edge) => {
+            if (!t || !t.contents) return false;
+            return t.contents.some(e => (e.type === 'door' || e.type === 'window') && e.edge === edge);
+        };
+
+        const hasEdgeWall = (t, edge) => {
+            return t && t.edgeWalls && t.edgeWalls[edge] && !hasDoorOrWindowOnEdge(t, edge);
+        };
+
+        const hasN = hasEdgeWall(tile, 'n') || (engine && engine.gameMap && hasEdgeWall(engine.gameMap.getTile(x, y - 1), 's'));
+        const hasE = hasEdgeWall(tile, 'e') || (engine && engine.gameMap && hasEdgeWall(engine.gameMap.getTile(x + 1, y), 'w'));
+        const hasS = hasEdgeWall(tile, 's') || (engine && engine.gameMap && hasEdgeWall(engine.gameMap.getTile(x, y + 1), 'n'));
+        const hasW = hasEdgeWall(tile, 'w') || (engine && engine.gameMap && hasEdgeWall(engine.gameMap.getTile(x - 1, y), 'e'));
+
+        if (hasN || hasE || hasS || hasW) {
+            const sheet = (imageLoader.tileSet === 'spritesheet') ? sprites?.['tile_spritesheet'] : null;
+            if (sheet) {
+                const bitmask = (hasN ? 1 : 0) +
+                                (hasE ? 2 : 0) +
+                                (hasS ? 4 : 0) +
+                                (hasW ? 8 : 0);
+                const wallCol = bitmask; 
+                const wallRow = 0; 
+                const cellSize = 128;
+                const sx = wallCol * cellSize;
+                const sy = wallRow * cellSize;
+
+                ctx.drawImage(
+                    sheet,
+                    sx, sy, cellSize, cellSize,
+                    screenX, screenY, tileSize, tileSize
+                );
+            } else {
+                ctx.strokeStyle = imageLoader.tileSet === 'b&w' ? '#555555' : '#8a2525';
+                ctx.lineWidth = Math.max(8, Math.floor(tileSize * 0.16));
+                ctx.lineCap = 'square';
+                
+                if (hasN) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY);
+                    ctx.lineTo(screenX + tileSize, screenY);
+                    ctx.stroke();
+                }
+                if (hasS) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY + tileSize);
+                    ctx.lineTo(screenX + tileSize, screenY + tileSize);
+                    ctx.stroke();
+                }
+                if (hasW) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY);
+                    ctx.lineTo(screenX, screenY + tileSize);
+                    ctx.stroke();
+                }
+                if (hasE) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + tileSize, screenY);
+                    ctx.lineTo(screenX + tileSize, screenY + tileSize);
+                    ctx.stroke();
                 }
             }
         }

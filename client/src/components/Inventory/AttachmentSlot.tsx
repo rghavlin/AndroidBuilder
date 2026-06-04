@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useGridSize } from "@/contexts/GridSizeContext";
 
 interface AttachmentSlotProps {
     weapon: any;
@@ -17,6 +18,15 @@ const AttachmentSlot = memo(({
 }: AttachmentSlotProps) => {
     const { attachSelectedItemToWeapon, detachItemFromWeapon, selectItem, selectedItem, inventoryVersion } = useInventory();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+    // Get current grid slot size dynamically from provider
+    let slotSize = 48;
+    try {
+        const gridSize = useGridSize();
+        slotSize = gridSize.scalableSlotSize;
+    } catch (e) {
+        // Fallback
+    }
 
     // Get currently attached item (reactive to inventoryVersion)
     const attachedItem = weapon.getAttachment?.(slot.id);
@@ -66,13 +76,17 @@ const AttachmentSlot = memo(({
                 <TooltipTrigger asChild>
                     <div
                         className={cn(
-                            "w-12 h-12 bg-secondary border-2 border-border rounded-md",
+                            "bg-secondary border-2 border-border rounded-md",
                             "flex flex-col items-center justify-center cursor-pointer",
                             "hover:border-accent transition-colors",
                             "relative overflow-hidden",
                             hasItem && "border-accent bg-accent/10",
                             className
                         )}
+                        style={{
+                            width: `${slotSize}px`,
+                            height: `${slotSize}px`
+                        }}
                         onClick={handleClick}
                     >
                         {hasItem ? (

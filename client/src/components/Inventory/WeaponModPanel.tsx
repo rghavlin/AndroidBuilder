@@ -19,19 +19,23 @@ export default function WeaponModPanel({
         );
     }
 
+    const visibleSlots = weapon.attachmentSlots.filter((slot: any) => !slot.hidden);
+
     return (
-        <div className={cn("p-1", className)}>
-            <div className="grid grid-cols-2 gap-1 justify-center">
-                {weapon.attachmentSlots.filter((slot: any) => !slot.hidden).map((slot: any) => (
-                    <div key={slot.id} className="flex flex-col items-center gap-1 min-w-[40px]">
-                        <span className="text-[10px] font-semibold text-muted-foreground px-1.5 py-0.5 bg-muted/50 rounded truncate w-full text-center uppercase tracking-tighter">
+        <div className={cn("p-0.5 w-full", className)}>
+            <div className={cn(
+                "grid gap-0.5 justify-center",
+                visibleSlots.length > 1 ? "grid-cols-2" : "grid-cols-1"
+            )}>
+                {visibleSlots.map((slot: any) => (
+                    <div key={slot.id} className="flex flex-col items-center gap-0.5 min-w-[40px]">
+                        <span className="text-[9px] font-semibold text-muted-foreground px-1 py-0 bg-muted/50 rounded truncate w-full text-center uppercase tracking-tighter">
                             {slot.name}
                         </span>
                         <AttachmentSlot weapon={weapon} slot={slot} />
                     </div>
                 ))}
             </div>
-
         </div>
     );
 }

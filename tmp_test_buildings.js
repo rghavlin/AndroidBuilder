@@ -6,24 +6,39 @@ class MockGameMap {
         this.width = w;
         this.height = h;
         this.entities = [];
-        this.tiles = Array(h).fill().map(() => Array(w).fill({ terrain: 'grass' }));
+        this.tiles = Array(h).fill().map((_, y) => Array(w).fill().map((_, x) => ({
+            x,
+            y,
+            terrain: 'grass',
+            edgeWalls: { n: false, e: false, s: false, w: false }
+        })));
     }
     initializeMap() {
-        this.tiles = Array(this.height).fill().map(() => Array(this.width).fill({ terrain: 'grass' }));
+        this.tiles = Array(this.height).fill().map((_, y) => Array(this.width).fill().map((_, x) => ({
+            x,
+            y,
+            terrain: 'grass',
+            edgeWalls: { n: false, e: false, s: false, w: false }
+        })));
     }
     setTerrain(x, y, terrain) {
         if (this.tiles[y] && this.tiles[y][x]) {
-            this.tiles[y][x] = { ...this.tiles[y][x], terrain };
+            this.tiles[y][x].terrain = terrain;
+        }
+    }
+    setItemsOnTile(x, y, items) {
+        if (this.tiles[y] && this.tiles[y][x]) {
+            this.tiles[y][x].inventoryItems = items;
         }
     }
     addEntity(e, x, y) { 
         this.entities.push({ entity: e, x, y }); 
     }
     getTile(x, y) {
-        return {
-            terrain: this.tiles[y]?.[x]?.terrain || 'grass',
-            isWalkable: () => true
-        };
+        if (this.tiles[y] && this.tiles[y][x]) {
+            return this.tiles[y][x];
+        }
+        return null;
     }
 }
 
@@ -68,6 +83,18 @@ async function testGeneration() {
     const mockMap = new MockGameMap(35, 125);
     await generator.applyToGameMap(mockMap, mapData);
     console.log(`Entities added to GameMap: ${mockMap.entities.length}`);
+
+    // Verify that edge walls are transferred to the gameMap tiles
+    let edgeWallsCount = 0;
+    for (let y = 0; y < mockMap.height; y++) {
+        for (let x = 0; x < mockMap.width; x++) {
+            const tile = mockMap.tiles[y][x];
+            if (tile.edgeWalls && (tile.edgeWalls.n || tile.edgeWalls.e || tile.edgeWalls.s || tile.edgeWalls.w)) {
+                edgeWallsCount++;
+            }
+        }
+    }
+    console.log(`Tiles with edgeWalls on mock GameMap: ${edgeWallsCount}`);
     
     // Check if special buildings were stored on gameMap
     if (mockMap.specialBuildings && mockMap.specialBuildings.length === 1) {

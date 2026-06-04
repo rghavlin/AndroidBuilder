@@ -8,6 +8,7 @@ import { EntityType } from '../entities/Entity.js';
 import { ZombieAI } from '../ai/ZombieAI.js';
 import { NPCAI } from '../ai/NPCAI.js';
 import { RabbitAI } from '../ai/RabbitAI.js';
+import { Pathfinding } from '../utils/Pathfinding.js';
 
 /**
  * 20x20 map container with tile management and serialization
@@ -617,7 +618,32 @@ export class GameMap {
     const entity = this.entityMap.get(entityId);
     const newTile = this.getTile(newX, newY);
 
-    if (entity && newTile && newTile.isWalkable(entity, options)) {
+    if (entity && newTile) {
+      // Check base tile walkability
+      if (!newTile.isWalkable(entity, options)) {
+        console.warn(`[GameMap] moveEntity target tile (${newX}, ${newY}) is not walkable`);
+        return false;
+      }
+
+      // Check edge wall collision if moving to an adjacent tile
+      const oldX = entity.logicalX !== undefined ? entity.logicalX : entity.x;
+      const oldY = entity.logicalY !== undefined ? entity.logicalY : entity.y;
+      const dx = Math.abs(newX - oldX);
+      const dy = Math.abs(newY - oldY);
+
+      if (!options.skipEdgeCheck && dx <= 1 && dy <= 1 && (dx > 0 || dy > 0)) {
+        if (dx === 0 || dy === 0) {
+          if (Pathfinding.isEdgeBlocked(this, oldX, oldY, newX, newY, entity, options)) {
+            console.warn(`[GameMap] moveEntity blocked by edge wall between (${oldX}, ${oldY}) and (${newX}, ${newY})`);
+            return false;
+          }
+        } else {
+          if (!Pathfinding.canMoveDiagonally(this, oldX, oldY, newX, newY, entity, options)) {
+            console.warn(`[GameMap] moveEntity diagonal move blocked by edge walls between (${oldX}, ${oldY}) and (${newX}, ${newY})`);
+            return false;
+          }
+        }
+      }
       // Store old position for event
       const oldPosition = { 
         x: entity.logicalX !== undefined ? entity.logicalX : entity.x, 

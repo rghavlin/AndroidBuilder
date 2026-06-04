@@ -28,7 +28,22 @@ export const EntityRenderer = {
     // Reset globalAlpha to ensure state from previous entity draws doesn't leak
     ctx.globalAlpha = 1.0;
 
-    if (!isExplored) return;
+    let explored = isExplored;
+    if (!explored && entity.edge && ['door', 'window'].includes(entity.type) && engine && engine.gameMap) {
+      let adjX = Math.round(entity.x);
+      let adjY = Math.round(entity.y);
+      if (entity.edge === 'e') adjX += 1;
+      else if (entity.edge === 'w') adjX -= 1;
+      else if (entity.edge === 's') adjY += 1;
+      else if (entity.edge === 'n') adjY -= 1;
+      
+      const adjTile = engine.gameMap.getTile(adjX, adjY);
+      if (adjTile && adjTile.flags?.explored) {
+        explored = true;
+      }
+    }
+
+    if (!explored) return;
 
     // 1. Movement Interpolation (Phase 11 Fix: Prevent Teleportation Flash)
     let renderX = entity.x;
@@ -64,7 +79,20 @@ export const EntityRenderer = {
     // PERFORM VISUAL LOS CHECK BASED ON RENDER COORDS
     const visualX = Math.round(renderX);
     const visualY = Math.round(renderY);
-    const isVisible = visibilitySet.has(`${visualX},${visualY}`);
+    let isVisible = visibilitySet.has(`${visualX},${visualY}`);
+
+    // If it is an edge-aligned entity (door/window), check if the visible side neighbor is visible
+    if (!isVisible && entity.edge && ['door', 'window'].includes(entity.type)) {
+      let adjX = visualX;
+      let adjY = visualY;
+      if (entity.edge === 'e') adjX += 1;
+      else if (entity.edge === 'w') adjX -= 1;
+      else if (entity.edge === 's') adjY += 1;
+      else if (entity.edge === 'n') adjY -= 1;
+      if (visibilitySet.has(`${adjX},${adjY}`)) {
+        isVisible = true;
+      }
+    }
 
     // Transient entities (zombies, rabbits) are ONLY visible if in active LOS
     if (!isVisible && !isPersistent && !engine.seeThroughWalls) return;
@@ -149,8 +177,18 @@ export const EntityRenderer = {
                                ItemDefs[subtype]?.renderFullTile || 
                                ItemDefs[entity.defId]?.renderFullTile;
         
+        const isExit = subtype === 'exit' || entity.defId === 'placeable.exit' || entity.subtype === 'exit';
+
         if (entity.type === 'item' && !isFullTileItem) {
           drawSize = tileSize * (2 / 3);
+          drawX = screenX + (tileSize - drawSize) / 2;
+          drawY = screenY + (tileSize - drawSize) / 2;
+        } else if (entity.type === 'item' && isFullTileItem && !isExit) {
+          drawSize = tileSize * 0.8;
+          drawX = screenX + (tileSize - drawSize) / 2;
+          drawY = screenY + (tileSize - drawSize) / 2;
+        } else if (['player', 'zombie', 'npc', 'rabbit'].includes(entity.type)) {
+          drawSize = tileSize * 0.8;
           drawX = screenX + (tileSize - drawSize) / 2;
           drawY = screenY + (tileSize - drawSize) / 2;
         }
@@ -202,12 +240,20 @@ export const EntityRenderer = {
             }
         }
         
-        // Square 'Picture Frame' for Player and Zombies
+        // Square 'Picture Frame' for Player and Zombies (distinct silver game piece outline)
         if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE) {
           ctx.save();
-          ctx.strokeStyle = '#333'; // Very thin dark frame
-          ctx.lineWidth = 1;
-          ctx.strokeRect(screenX, screenY, tileSize, tileSize);
+          
+          // Draw outer high-contrast border
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+          ctx.lineWidth = 4.5;
+          ctx.strokeRect(drawX, drawY, drawSize, drawSize);
+
+          // Draw inner silver metallic outline
+          ctx.strokeStyle = '#e2e8f0'; // Metallic silver/slate-200
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(drawX, drawY, drawSize, drawSize);
+          
           ctx.restore();
         }
       } else {
@@ -228,20 +274,80 @@ export const EntityRenderer = {
   },
 
   drawDoor: (ctx, entity, x, y, tileSize) => {
-    // Current gray for B&W, otherwise a wooden brown
     const isBW = imageLoader.tileSet === 'b&w';
-    const doorColor = isBW ? '#999999' : '#5d4037'; 
+    const doorColor = isBW ? '#999999' : '#5d4037';
+    const strokeColor = isBW ? '#555555' : '#3e2723';
     
-    ctx.strokeStyle = doorColor;
     ctx.lineWidth = 3;
     const margin = tileSize / 8;
 
-    if (entity.visualIsOpen === true) {
-      ctx.strokeRect(x + margin, y + margin, tileSize - margin * 2, tileSize - margin * 2);
+    if (entity.edge && ['n', 's', 'e', 'w'].includes(entity.edge)) {
+      const length = tileSize - margin * 2;
+      const thickness = Math.max(8, Math.floor(tileSize * 0.18));
+      
+      // Determine closed vs open geometry based on edge
+      let rx, ry, rw, rh;
+      const isOpen = entity.visualIsOpen === true;
+
+      if (entity.edge === 'n') {
+        if (isOpen) {
+          rx = x + margin - thickness / 2;
+          ry = y;
+          rw = thickness;
+          rh = length;
+        } else {
+          rx = x + margin;
+          ry = y - thickness / 2;
+          rw = length;
+          rh = thickness;
+        }
+      } else if (entity.edge === 's') {
+        if (isOpen) {
+          rx = x + margin - thickness / 2;
+          ry = y + tileSize - length;
+          rw = thickness;
+          rh = length;
+        } else {
+          rx = x + margin;
+          ry = y + tileSize - thickness / 2;
+          rw = length;
+          rh = thickness;
+        }
+      } else if (entity.edge === 'w') {
+        if (isOpen) {
+          rx = x;
+          ry = y + margin - thickness / 2;
+          rw = length;
+          rh = thickness;
+        } else {
+          rx = x - thickness / 2;
+          ry = y + margin;
+          rw = thickness;
+          rh = length;
+        }
+      } else if (entity.edge === 'e') {
+        if (isOpen) {
+          rx = x + tileSize - length;
+          ry = y + margin - thickness / 2;
+          rw = length;
+          rh = thickness;
+        } else {
+          rx = x + tileSize - thickness / 2;
+          ry = y + margin;
+          rw = thickness;
+          rh = length;
+        }
+      }
+
+      ctx.fillStyle = doorColor;
+      ctx.fillRect(rx, ry, rw, rh);
+      ctx.strokeStyle = strokeColor;
+      ctx.strokeRect(rx, ry, rw, rh);
     } else {
+      // Fallback: original centered drawing
       ctx.fillStyle = doorColor;
       ctx.fillRect(x + margin, y + margin, tileSize - margin * 2, tileSize - margin * 2);
-      ctx.strokeStyle = isBW ? '#555555' : '#3e2723'; // Darker stroke for definition
+      ctx.strokeStyle = strokeColor;
       ctx.strokeRect(x + margin, y + margin, tileSize - margin * 2, tileSize - margin * 2);
     }
   },
@@ -254,37 +360,179 @@ export const EntityRenderer = {
     const margin = tileSize / 8;
     const w = tileSize - margin * 2;
 
-    if (entity.subtype === 'broken') {
-      ctx.beginPath();
-      ctx.moveTo(x + margin, y + margin);
-      ctx.lineTo(x + margin + w * 0.5, y + margin + w * 0.1);
-      ctx.lineTo(x + margin + w, y + margin);
-      ctx.lineTo(x + margin + w * 0.9, y + margin + w * 0.6);
-      ctx.lineTo(x + margin + w, y + margin + w);
-      ctx.lineTo(x + margin, y + margin + w);
-      ctx.closePath();
-      ctx.stroke();
-    } else if (entity.isOpen) {
-      ctx.strokeRect(x + margin, y + margin, w, w);
-    } else {
-      ctx.fillStyle = glassFill;
-      ctx.fillRect(x + margin, y + margin, w, w);
-      ctx.strokeRect(x + margin, y + margin, w, w);
-      // Sash
-      ctx.beginPath();
-      ctx.moveTo(x + margin, y + margin + w / 2);
-      ctx.lineTo(x + margin + w, y + margin + w / 2);
-      ctx.stroke();
-    }
+    if (entity.edge && ['n', 's', 'e', 'w'].includes(entity.edge)) {
+      const length = tileSize - margin * 2;
+      const thickness = Math.max(6, Math.floor(tileSize * 0.12));
+      let rx, ry, rw, rh;
 
-    if (entity.isReinforced && entity.reinforcementHp > 0) {
-      ctx.strokeStyle = '#555555';
-      ctx.lineWidth = Math.max(3, tileSize / 8);
-      ctx.beginPath();
-      ctx.moveTo(x + margin, y + margin);
-      ctx.lineTo(x + margin + w, y + margin + w);
-      ctx.stroke();
-      ctx.stroke();
+      if (entity.edge === 'n') {
+        rx = x + margin;
+        ry = y - thickness / 2;
+        rw = length;
+        rh = thickness;
+      } else if (entity.edge === 's') {
+        rx = x + margin;
+        ry = y + tileSize - thickness / 2;
+        rw = length;
+        rh = thickness;
+      } else if (entity.edge === 'w') {
+        rx = x - thickness / 2;
+        ry = y + margin;
+        rw = thickness;
+        rh = length;
+      } else if (entity.edge === 'e') {
+        rx = x + tileSize - thickness / 2;
+        ry = y + margin;
+        rw = thickness;
+        rh = length;
+      }
+
+      const isBroken = entity.subtype === 'broken';
+      const isOpen = entity.isOpen;
+
+      // Draw glass first if not broken and not open
+      if (!isBroken && !isOpen) {
+        ctx.fillStyle = glassFill;
+        ctx.fillRect(rx, ry, rw, rh);
+      }
+
+      // Draw window frame outline
+      ctx.strokeStyle = winFrameColor;
+      ctx.strokeRect(rx, ry, rw, rh);
+
+      // Draw internal details (sash / broken glass)
+      if (isBroken) {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+        ctx.lineWidth = Math.max(1, tileSize / 20);
+
+        if (entity.edge === 'n' || entity.edge === 's') {
+          // Glass shards in corners
+          ctx.beginPath();
+          ctx.moveTo(rx, ry);
+          ctx.lineTo(rx + rw * 0.2, ry);
+          ctx.lineTo(rx, ry + rh * 0.8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(rx + rw, ry + rh);
+          ctx.lineTo(rx + rw * 0.8, ry + rh);
+          ctx.lineTo(rx + rw, ry + rh * 0.2);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          
+          // Jagged crack line horizontally
+          ctx.beginPath();
+          ctx.moveTo(rx, ry + rh / 2);
+          ctx.lineTo(rx + rw * 0.25, ry + rh * 0.15);
+          ctx.lineTo(rx + rw * 0.5, ry + rh * 0.85);
+          ctx.lineTo(rx + rw * 0.75, ry + rh * 0.15);
+          ctx.lineTo(rx + rw, ry + rh / 2);
+          ctx.stroke();
+        } else {
+          // Glass shards in corners
+          ctx.beginPath();
+          ctx.moveTo(rx, ry);
+          ctx.lineTo(rx + rw * 0.8, ry);
+          ctx.lineTo(rx, ry + rh * 0.2);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(rx + rw, ry + rh);
+          ctx.lineTo(rx, ry + rh);
+          ctx.lineTo(rx + rw, ry + rh * 0.8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Jagged crack line vertically
+          ctx.beginPath();
+          ctx.moveTo(rx + rw / 2, ry);
+          ctx.lineTo(rx + rw * 0.15, ry + rh * 0.25);
+          ctx.lineTo(rx + rw * 0.85, ry + rh * 0.5);
+          ctx.lineTo(rx + rw * 0.15, ry + rh * 0.75);
+          ctx.lineTo(rx + rw / 2, ry + rh);
+          ctx.stroke();
+        }
+      } else if (!isOpen) {
+        // Draw sash across the middle
+        ctx.strokeStyle = winFrameColor;
+        ctx.beginPath();
+        if (entity.edge === 'n' || entity.edge === 's') {
+          ctx.moveTo(rx + rw / 2, ry);
+          ctx.lineTo(rx + rw / 2, ry + rh);
+        } else {
+          ctx.moveTo(rx, ry + rh / 2);
+          ctx.lineTo(rx + rw, ry + rh / 2);
+        }
+        ctx.stroke();
+      }
+
+      // Draw reinforcements if present
+      if (entity.isReinforced && entity.reinforcementHp > 0) {
+        ctx.strokeStyle = '#8b5a2b'; // Wood brown
+        ctx.lineWidth = Math.max(3, tileSize / 10);
+        ctx.beginPath();
+        if (entity.edge === 'n' || entity.edge === 's') {
+          // Horizontal/slanted planks crossing
+          ctx.moveTo(rx, ry - 2);
+          ctx.lineTo(rx + rw, ry + rh + 2);
+          ctx.moveTo(rx, ry + rh + 2);
+          ctx.lineTo(rx + rw, ry - 2);
+        } else {
+          // Vertical/slanted planks crossing
+          ctx.moveTo(rx - 2, ry);
+          ctx.lineTo(rx + rw + 2, ry + rh);
+          ctx.moveTo(rx + rw + 2, ry);
+          ctx.lineTo(rx - 2, ry + rh);
+        }
+        ctx.stroke();
+      }
+
+    } else {
+      // Fallback to old centered drawing
+      if (entity.subtype === 'broken') {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+        ctx.lineWidth = Math.max(1, tileSize / 20);
+        ctx.beginPath();
+        ctx.moveTo(x + margin, y + margin);
+        ctx.lineTo(x + margin + w * 0.5, y + margin + w * 0.1);
+        ctx.lineTo(x + margin + w, y + margin);
+        ctx.lineTo(x + margin + w * 0.9, y + margin + w * 0.6);
+        ctx.lineTo(x + margin + w, y + margin + w);
+        ctx.lineTo(x + margin, y + margin + w);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else if (entity.isOpen) {
+        ctx.strokeRect(x + margin, y + margin, w, w);
+      } else {
+        ctx.fillStyle = glassFill;
+        ctx.fillRect(x + margin, y + margin, w, w);
+        ctx.strokeRect(x + margin, y + margin, w, w);
+        // Sash
+        ctx.beginPath();
+        ctx.moveTo(x + margin, y + margin + w / 2);
+        ctx.lineTo(x + margin + w, y + margin + w / 2);
+        ctx.stroke();
+      }
+
+      if (entity.isReinforced && entity.reinforcementHp > 0) {
+        ctx.strokeStyle = '#555555';
+        ctx.lineWidth = Math.max(3, tileSize / 8);
+        ctx.beginPath();
+        ctx.moveTo(x + margin, y + margin);
+        ctx.lineTo(x + margin + w, y + margin + w);
+        ctx.moveTo(x + margin + w, y + margin);
+        ctx.lineTo(x + margin, y + margin + w);
+        ctx.stroke();
+      }
     }
   },
 
@@ -303,16 +551,22 @@ export const EntityRenderer = {
   },
 
   /**
-   * Simple square fallback for missing sprites
-   */
   renderDefaultSquare: (ctx, entity, x, y, tileSize) => {
+    let drawX = x;
+    let drawY = y;
+    let drawSize = tileSize;
+    if (['player', 'zombie', 'npc', 'rabbit'].includes(entity.type)) {
+      drawSize = tileSize * 0.8;
+      drawX = x + (tileSize - drawSize) / 2;
+      drawY = y + (tileSize - drawSize) / 2;
+    }
     ctx.fillStyle = entity.type === EntityType.PLAYER ? '#44f' : 
                    entity.type === EntityType.ZOMBIE ? '#f44' : '#888';
     
-    ctx.fillRect(x, y, tileSize, tileSize);
+    ctx.fillRect(drawX, drawY, drawSize, drawSize);
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, tileSize, tileSize);
+    ctx.strokeRect(drawX, drawY, drawSize, drawSize);
   },
 
   /**

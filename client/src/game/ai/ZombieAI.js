@@ -61,21 +61,44 @@ export class ZombieAI {
       let actionResult = null;
 
       // 1. COMBAT (Priority 1: Attack player if in reach)
-      const canMeleeAttack = canSee && (isAdjacent || (isDiagonal && zombie.subtype === 'mutant'));
+      let canMeleeAttack = canSee && (isAdjacent || (isDiagonal && zombie.subtype === 'mutant'));
+      let blockingStructure = null;
+
       if (canMeleeAttack) {
-          if (ZombieAI.DEBUG) console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
-          const attackResult = this.attemptAttack(zombie, player);
-          
-          if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
-              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} insufficient AP for melee attack. Breaking turn.`);
-              actionResult = { success: false, reason: 'Insufficient AP' };
+          if (isAdjacent) {
+              blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombie.logicalX, zombie.logicalY, player.logicalX, player.logicalY);
+              if (Pathfinding.isEdgeBlocked(gameMap, zombie.logicalX, zombie.logicalY, player.logicalX, player.logicalY, zombie)) {
+                  if (!blockingStructure) {
+                      canMeleeAttack = false; // Solid wall blocks attack!
+                  }
+              }
           } else {
-              actionResult = {
-                type: 'ATTACK',
-                success: true,
-                entityId: zombie.id,
-                data: { ...attackResult, targetId: player.id, targetType: 'player', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: player.logicalX, y: player.logicalY } }
-              };
+              // Diagonal: check corner blocking
+              if (!Pathfinding.canMoveDiagonally(gameMap, zombie.logicalX, zombie.logicalY, player.logicalX, player.logicalY, zombie)) {
+                  canMeleeAttack = false; // Corner/wall blocks diagonal attack!
+              }
+          }
+      }
+
+      if (canMeleeAttack) {
+          if (blockingStructure) {
+              const fromPos = { x: zombie.logicalX, y: zombie.logicalY };
+              actionResult = this.executeStructureAttack(zombie, gameMap, blockingStructure, { x: player.logicalX, y: player.logicalY }, fromPos);
+          } else {
+              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
+              const attackResult = this.attemptAttack(zombie, player);
+              
+              if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} insufficient AP for melee attack. Breaking turn.`);
+                  actionResult = { success: false, reason: 'Insufficient AP' };
+              } else {
+                  actionResult = {
+                    type: 'ATTACK',
+                    success: true,
+                    entityId: zombie.id,
+                    data: { ...attackResult, targetId: player.id, targetType: 'player', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: player.logicalX, y: player.logicalY } }
+                  };
+              }
           }
       }
       // 1b. RANGED ATTACK (Spitter Priority: Spit if in range but not adjacent)
@@ -117,18 +140,49 @@ export class ZombieAI {
           const distToPlayer = Math.abs(zombie.logicalX - player.logicalX) + Math.abs(zombie.logicalY - player.logicalY);
 
           // A) CLOSE RANGE: Swarm/Surround logic (8-tile awareness)
-          if (distToPlayer <= 4 && playerCardinalPositions && playerCardinalPositions.length > 0) {
+          if (distToPlayer <= 4) {
               // Try to find ANY available spot around the player (8 tiles)
               const adjacentSpots = [];
               for (let dx = -1; dx <= 1; dx++) {
                   for (let dy = -1; dy <= 1; dy++) {
                       if (dx === 0 && dy === 0) continue;
-                      adjacentSpots.push({ x: player.logicalX + dx, y: player.logicalY + dy });
+                      
+                      const sx = player.logicalX + dx;
+                      const sy = player.logicalY + dy;
+                      
+                      // Filter out spots that are completely blocked by a solid wall from reaching the player
+                      if (Math.abs(dx) + Math.abs(dy) === 1) {
+                          // Cardinal
+                          const isBlocked = Pathfinding.isEdgeBlocked(gameMap, sx, sy, player.logicalX, player.logicalY, zombie);
+                          const hasStructure = Pathfinding.getBlockingStructure(gameMap, sx, sy, player.logicalX, player.logicalY) !== null;
+                          if (isBlocked && !hasStructure) {
+                              continue; // Separated by solid wall!
+                          }
+                      } else {
+                          // Diagonal
+                          if (!Pathfinding.canMoveDiagonally(gameMap, sx, sy, player.logicalX, player.logicalY, zombie)) {
+                              continue; // Separated by corner/walls!
+                          }
+                      }
+                      
+                      adjacentSpots.push({ x: sx, y: sy });
                   }
               }
 
-              // Sort by distance to zombie to pick the most efficient flanking spot
+              // Sort by attack suitability and then distance to zombie to pick the most efficient flanking spot
               adjacentSpots.sort((a, b) => {
+                  const isCardinalA = (a.x === player.logicalX || a.y === player.logicalY);
+                  const isCardinalB = (b.x === player.logicalX || b.y === player.logicalY);
+                  
+                  // For mutants, all 8 spots are valid attack positions, so they are all high priority.
+                  // For others, only cardinal spots are valid attack positions.
+                  const canAttackFromA = zombie.subtype === 'mutant' || isCardinalA;
+                  const canAttackFromB = zombie.subtype === 'mutant' || isCardinalB;
+                  
+                  if (canAttackFromA !== canAttackFromB) {
+                      return canAttackFromA ? -1 : 1; // Prioritize spots the zombie can attack from
+                  }
+
                   const distA = Math.abs(a.x - zombie.logicalX) + Math.abs(a.y - zombie.logicalY);
                   const distB = Math.abs(b.x - zombie.logicalX) + Math.abs(b.y - zombie.logicalY);
                   return distA - distB;
@@ -404,7 +458,15 @@ export class ZombieAI {
     const fromPos = { x: zombie.logicalX, y: zombie.logicalY };
     const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true).filter(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
-      return tile && tile.isWalkable(zombie);
+      if (!tile || !tile.isWalkable(zombie)) return false;
+      const dx = Math.abs(zombie.logicalX - pos.x);
+      const dy = Math.abs(zombie.logicalY - pos.y);
+      if (dx === 0 || dy === 0) {
+        if (Pathfinding.isEdgeBlocked(gameMap, zombie.logicalX, zombie.logicalY, pos.x, pos.y, zombie)) return false;
+      } else {
+        if (!Pathfinding.canMoveDiagonally(gameMap, zombie.logicalX, zombie.logicalY, pos.x, pos.y, zombie)) return false;
+      }
+      return true;
     });
 
     if (neighbors.length > 0) {
@@ -430,6 +492,7 @@ export class ZombieAI {
   static attemptMoveTowards(zombie, gameMap, targetX, targetY) {
     if (zombie.logicalX === targetX && zombie.logicalY === targetY) return { success: false, reason: 'At target' };
     const fromPos = { x: zombie.logicalX, y: zombie.logicalY };
+    const targetTile = gameMap.getTile(targetX, targetY);
     const subtypeMult = zombie.getMovementMultiplier();
 
     // Direct Step Optimization (1 tile away)
@@ -457,14 +520,11 @@ export class ZombieAI {
         }
 
         // STRUCTURE BREACH: If target is a closed door/window and we are cardinal, attack it
-        const targetTile = gameMap.getTile(targetX, targetY);
-        if (targetTile) {
-            const structure = targetTile.contents.find(e => (e.type === EntityType.DOOR && !e.isOpen) || (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen))));
+        const isCardinal = (dx + dy === 1);
+        if (isCardinal) {
+            const structure = Pathfinding.getBlockingStructure(gameMap, zombie.logicalX, zombie.logicalY, targetX, targetY);
             if (structure) {
-                const isCardinal = (dx + dy === 1);
-                if (isCardinal) {
-                    return this.executeStructureAttack(zombie, gameMap, structure, { x: targetX, y: targetY }, fromPos);
-                }
+                return this.executeStructureAttack(zombie, gameMap, structure, { x: targetX, y: targetY }, fromPos);
             }
         }
 
@@ -496,12 +556,31 @@ export class ZombieAI {
       const nextStep = path[1];
       const nextTile = gameMap.getTile(nextStep.x, nextStep.y);
       if (nextTile) {
-        // Handle structures (doors/windows)
-        const structure = nextTile.contents.find(e => (e.type === EntityType.DOOR && !e.isOpen) || (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen))));
-        if (structure) {
-          const isCardinal = Math.abs(zombie.logicalX - nextStep.x) + Math.abs(zombie.logicalY - nextStep.y) === 1;
+        const isCardinal = Math.abs(zombie.logicalX - nextStep.x) + Math.abs(zombie.logicalY - nextStep.y) === 1;
+        
+        let blockingStructure = null;
+        if (isCardinal) {
+            blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombie.logicalX, zombie.logicalY, nextStep.x, nextStep.y);
+        } else {
+            const fullTileStructure = nextTile.contents.find(e => ((e.type === EntityType.DOOR && !e.isOpen) || (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) && !e.edge);
+            if (fullTileStructure) {
+                blockingStructure = fullTileStructure;
+            } else {
+                const x1 = zombie.logicalX, y1 = zombie.logicalY;
+                const x2 = nextStep.x, y2 = nextStep.y;
+                const edgeStructures = [
+                    Pathfinding.getBlockingStructure(gameMap, x1, y1, x1, y2),
+                    Pathfinding.getBlockingStructure(gameMap, x1, y1, x2, y1),
+                    Pathfinding.getBlockingStructure(gameMap, x1, y2, x2, y2),
+                    Pathfinding.getBlockingStructure(gameMap, x2, y1, x2, y2)
+                ];
+                blockingStructure = edgeStructures.find(s => s !== null);
+            }
+        }
+
+        if (blockingStructure) {
           if (isCardinal) {
-            return this.executeStructureAttack(zombie, gameMap, structure, nextStep, fromPos);
+            return this.executeStructureAttack(zombie, gameMap, blockingStructure, nextStep, fromPos);
           } else {
             // Diagonal structure: step cardinally first
             const cardinalPos = this.findOpenCardinalFromDiagonal(zombie, nextStep, gameMap);

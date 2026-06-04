@@ -293,11 +293,13 @@ export default function FloatingContainerOverlay({
         className="flex-1 min-h-0 relative"
       >
         {showMods ? (
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md z-10 flex flex-col items-center justify-start p-2 pt-4 pointer-events-auto border border-white/20 rounded-sm">
+          <div className="absolute inset-0 bg-black/95 backdrop-blur-md z-10 flex flex-col items-center justify-start p-1 pt-2 pointer-events-auto border border-white/20 rounded-sm">
              <WeaponModPanel weapon={item} className="w-full" />
-             <div className="mt-auto text-[8px] text-white/40 uppercase font-bold tracking-tighter text-center w-full">
-               {isMotorized ? "Motorized Assist Active" : "Manual Mode"}
-             </div>
+             {isMotorized && (
+               <div className="mt-auto text-[8px] text-white/40 uppercase font-bold tracking-tighter text-center w-full">
+                 Motorized Assist Active
+               </div>
+             )}
           </div>
         ) : (
           containerGrid && (
@@ -319,7 +321,6 @@ export default function FloatingContainerOverlay({
                   slotClassName={cn(isPlanter ? "bg-white/10 border border-white/30" : "!bg-none !bg-black/20 !shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] !border-white/10 hover:!bg-black/40")}
                   className={isPlanter ? "" : "h-full w-full"}
                   onSlotClick={onSlotClick}
-                  onSlotContextMenu={onSlotContextMenu}
                 />
               </div>
             </div>

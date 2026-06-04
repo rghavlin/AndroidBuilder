@@ -33,7 +33,7 @@ export const ProjectileManager = {
                 // Break the window
                 if (typeof window.break === 'function') {
                     window.break();
-                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: point.x, y: point.y } });
+                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: point.x, y: point.y }, source: 'player' });
                     console.log(`[ProjectileManager] Projectile broke window at (${point.x}, ${point.y})`);
                     
                     // Emit noise to alert zombies

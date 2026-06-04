@@ -6,11 +6,12 @@ import { Entity, EntityType } from './Entity.js';
  * Can be opened, closed, locked, or broken.
  */
 export class Window extends Entity {
-    constructor(id, x, y, isLocked = false, isOpen = false, isBroken = false) {
+    constructor(id, x, y, isLocked = false, isOpen = false, isBroken = false, edge = undefined) {
         super(id, EntityType.WINDOW, x, y);
         this.isOpen = isOpen;
         this.isLocked = isLocked;
         this.isBroken = isBroken;
+        this.edge = edge;
         this.isReinforced = false;
         this.reinforcementHp = 0;
         this.maxReinforcementHp = 20; // 2x planks max
@@ -87,8 +88,8 @@ export class Window extends Entity {
     close(gameMap = null) {
         if (this.isBroken || !this.isOpen) return false;
 
-        // Check for occupants if map is provided
-        if (gameMap) {
+        // Check for occupants if map is provided and it is a full-tile window
+        if (gameMap && !this.edge) {
             const tile = gameMap.getTile(this.x, this.y);
             if (tile && tile.contents.some(e => e.id !== this.id && (e.type === EntityType.PLAYER || e.type === EntityType.ZOMBIE))) {
                 this.emitEvent('windowInteractionFailed', { reason: 'occupied' });
@@ -237,7 +238,8 @@ export class Window extends Entity {
             subtype: this.subtype,
             blocksSight: this.blocksSight,
             hp: this.hp,
-            maxHp: this.maxHp
+            maxHp: this.maxHp,
+            edge: this.edge
         };
     }
 
@@ -245,7 +247,7 @@ export class Window extends Entity {
      * Create from JSON
      */
     static fromJSON(data) {
-        const windowEntity = new Window(data.id, data.x, data.y, data.isLocked || false, data.isOpen || false, data.isBroken || false);
+        const windowEntity = new Window(data.id, data.x, data.y, data.isLocked || false, data.isOpen || false, data.isBroken || false, data.edge);
         windowEntity.subtype = data.subtype || (data.isBroken ? (data.isOpen ? 'open' : 'broken') : (data.isOpen ? 'open' : 'closed'));
         windowEntity.blocksMovement = data.blocksMovement !== undefined ? data.blocksMovement : true;
         windowEntity.blocksSight = false; // Always false

@@ -97,8 +97,9 @@ export default function GroundItemsGrid() {
   const tileColor = (isStructural ? terrainColors[terrain] : (playerTile?.color || terrainColors[terrain])) || '#222';
 
   const isNoneTileSet = imageLoader.tileSet === 'none';
+  const isSpriteSheet = imageLoader.tileSet === 'spritesheet';
   const subFolder = imageLoader.tileSet === 'standard' ? '' : `${imageLoader.tileSet}/`;
-  const tileImageUrl = isNoneTileSet ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
+  const tileImageUrl = (isNoneTileSet || isSpriteSheet) ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">

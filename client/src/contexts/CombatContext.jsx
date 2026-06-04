@@ -209,7 +209,7 @@ export const CombatProvider = ({ children }) => {
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
-                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
+                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY }, source: 'player' });
                     addLog(`You smash the window with your ${weapon.name}!`, 'combat');
                     if (weapon.instanceId === 'unarmed') {
                         if (typeof player?.setBleeding === 'function') player.setBleeding(true);
@@ -444,7 +444,7 @@ export const CombatProvider = ({ children }) => {
                 } else if (structure) {
                     if (structure.type === EntityType.WINDOW) {
                         structure.break();
-                        GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
+                        GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY }, source: 'player' });
                         addLog('The window shatters!', 'combat');
                         gameMap.emitNoise(targetX, targetY, 5);
                     } else {
@@ -786,7 +786,7 @@ export const CombatProvider = ({ children }) => {
             } else if (structure) {
                 if (structure.type === EntityType.WINDOW) {
                     structure.break();
-                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY } });
+                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY }, source: 'player' });
                     addLog('The window shatters!', 'combat');
                 } else {
                     if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);

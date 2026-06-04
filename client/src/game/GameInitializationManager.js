@@ -20,6 +20,8 @@ const INIT_STATES = {
   ERROR: 'error'
 };
 
+const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV;
+
 class GameInitializationManager extends EventEmitter {
   constructor() {
     super();
@@ -30,7 +32,7 @@ class GameInitializationManager extends EventEmitter {
 
     // Add unique instance tracking to detect duplicates
     this.instanceId = `GameInitManager_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    if (import.meta.env.DEV) {
+    if (isDev) {
       console.log(`[GameInitializationManager] 🆔 NEW INSTANCE CREATED: ${this.instanceId}`);
     }
 
@@ -39,7 +41,7 @@ class GameInitializationManager extends EventEmitter {
       window.gameInitInstances = new Set();
     }
     window.gameInitInstances.add(this.instanceId);
-    if (import.meta.env.DEV) {
+    if (isDev) {
       console.log(`[GameInitializationManager] 📊 TOTAL INSTANCES NOW ACTIVE: ${window.gameInitInstances.size}`);
       if (window.gameInitInstances.size > 1) {
         console.error(`[GameInitializationManager] 🚨🚨🚨 MULTIPLE INITIALIZATION MANAGERS DETECTED!`);
@@ -204,7 +206,7 @@ class GameInitializationManager extends EventEmitter {
           startY = templateStartPos.y;
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
           console.warn('[GameInitializationManager] Could not get template start position, using default');
         }
       }
@@ -217,7 +219,7 @@ class GameInitializationManager extends EventEmitter {
 
       // Create player with detailed tracking
       const player = new Player('player-1', 'Player', startX, startY);
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.log(`[GameInitializationManager] 🎮 PLAYER CREATED by instance ${this.instanceId}:`);
         console.log(`[GameInitializationManager] - Player ID: ${player.id}`);
         console.log(`[GameInitializationManager] - Position: (${player.x}, ${player.y})`);

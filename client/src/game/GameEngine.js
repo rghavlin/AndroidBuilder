@@ -368,6 +368,10 @@ class GameEngine extends SafeEventEmitter {
          const reduction = isHeavyRain ? 0.20 : 0.15;
          range = range * (1 - reduction);
        }
+
+       if (typeof range !== 'number' || isNaN(range) || range <= 0) {
+         range = 15;
+       }
  
        // Phase 13 & 19 Fix: LOS center MUST be integers for Bresenham's algorithm to function.
        // We allow passing a custom position (like playerRenderPosition) for smooth vision updates.
@@ -376,6 +380,8 @@ class GameEngine extends SafeEventEmitter {
 
        const roundX = Math.round(posX);
        const roundY = Math.round(posY);
+
+       console.log(`[recalculateFOV] Calculating FOV from (${posX}, ${posY}) -> round (${roundX}, ${roundY}) with range: ${range}`);
 
        // Compute FOV state hash to prevent redundant calculation on same tile / options
        const optionsHash = `${roundX},${roundY},${range},${isNight},${isFlashlightOn},${isNightVision},${isAimingWithScope},${this.weather ? this.weather.type : 'clear'},${this.weather ? this.weather.intensity : 0},${this.turn}`;

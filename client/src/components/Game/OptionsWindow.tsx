@@ -221,6 +221,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                 <SelectContent className="z-[120]">
                                                     <SelectItem value="standard">Color</SelectItem>
                                                     <SelectItem value="b&w">Black and White</SelectItem>
+                                                    <SelectItem value="spritesheet">Sprite Sheet</SelectItem>
                                                     <SelectItem value="custom">Custom</SelectItem>
                                                     <SelectItem value="none">None (Colors Only)</SelectItem>
                                                 </SelectContent>
@@ -235,6 +236,8 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                         <p className="text-[10px] text-muted-foreground/60 italic px-1">
                                             {tempTileSet === 'none' 
                                                 ? "Textures disabled. Rendering with base terrain colors." 
+                                                : tempTileSet === 'spritesheet'
+                                                ? "Textures will be loaded from the master sprite sheet: ./images/tiles/tileset2.png"
                                                 : `Textures will be loaded from: ./images/tiles/${tempTileSet === 'standard' ? '' : tempTileSet + '/'}`}
                                         </p>
                                     </div>

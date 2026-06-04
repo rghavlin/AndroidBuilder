@@ -5,11 +5,12 @@ import { Entity, EntityType } from './Entity.js';
  * Can be opened, closed, and locked
  */
 export class Door extends Entity {
-    constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false) {
+    constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false, edge = undefined) {
         super(id, EntityType.DOOR, x, y);
         this.isOpen = isOpen;
         this.isLocked = isLocked;
         this.isDamaged = isDamaged;
+        this.edge = edge;
         this.visualIsOpen = isOpen; // Mirror state for animation-safe rendering
         this.maxHp = 20;
         this.hp = isDamaged ? 0 : this.maxHp;
@@ -78,9 +79,9 @@ export class Door extends Entity {
      */
     close(gameMap = null) {
         if (!this.isOpen || this.isDamaged) return false;
-
-        // Check for occupants if map is provided
-        if (gameMap) {
+ 
+        // Check for occupants if map is provided and it is a full-tile door
+        if (gameMap && !this.edge) {
             const tile = gameMap.getTile(this.x, this.y);
             if (tile) {
                 // Block closing if a player or zombie is in the doorway
@@ -164,7 +165,8 @@ export class Door extends Entity {
             isDamaged: this.isDamaged,
             blocksSight: this.blocksSight,
             hp: this.hp,
-            maxHp: this.maxHp
+            maxHp: this.maxHp,
+            edge: this.edge
         };
     }
 
@@ -204,7 +206,7 @@ export class Door extends Entity {
      */
 
     static fromJSON(data) {
-        const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged);
+        const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged, data.edge);
         door.blocksMovement = data.blocksMovement;
         door.blocksSight = data.blocksSight;
         door.hp = data.hp !== undefined ? data.hp : door.hp;
