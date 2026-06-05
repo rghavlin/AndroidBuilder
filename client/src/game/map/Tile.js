@@ -57,12 +57,19 @@ export class Tile {
   isWalkable(entity = null, options = {}) {
     // 1. Content Check (Dynamic obstacles) - Check entries first
     let hasEntry = false;
+    
+    // Determine if the entity is the player
+    const isZombie = options.isZombie || (entity && (entity.type === 'zombie' || entity.type === EntityType.ZOMBIE));
+    const isNPC = entity && (entity.type === 'npc' || entity.type === EntityType.NPC);
+    const isPlayer = !isZombie && !isNPC;
+
     for (const item of this.contents) {
       if (item.type === EntityType.DOOR && item.isOpen) {
         hasEntry = true;
         break;
       }
-      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken)) {
+      // ONLY allow window entries for non-player entities (zombies/NPCs)
+      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !isPlayer) {
         hasEntry = true;
         break;
       }

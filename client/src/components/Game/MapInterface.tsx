@@ -92,7 +92,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, inventoryVersion, forceRefresh } = useInventory();
   const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow, performStoneThrow } = useCombat();
   const { addEffect } = useVisualEffects();
-  const { worldToScreen, cameraRef } = useCamera();
+  const { worldToScreen, cameraRef, centerOn } = useCamera();
   const { playSound } = useAudio();
   const { addLog } = useLog();
 
@@ -988,6 +988,106 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               }}
             >
               Clear broken glass (2ap)
+            </button>
+          )}
+
+          {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !(windowMenu.window.isReinforced && windowMenu.window.reinforcementHp > 0) && (
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+              onClick={() => {
+                if (!isPlayerTurn) return;
+                const gameMap = gameMapRef.current;
+                const player = playerRef.current;
+                if (!gameMap || !player) return;
+
+                // 1. Check AP cost (2 AP)
+                if (player.ap < 2) {
+                  addEffect({
+                    type: 'damage',
+                    x: windowMenu.x,
+                    y: windowMenu.y,
+                    value: 'Insufficient AP',
+                    color: '#ef4444',
+                    duration: 1000
+                  });
+                  setWindowMenu(null);
+                  return;
+                }
+
+                // 2. Calculate opposite side coordinates
+                const px = Math.floor(player.x);
+                const py = Math.floor(player.y);
+                let destX = px;
+                let destY = py;
+
+                if (windowMenu.window.edge === 'n') {
+                  destX = windowMenu.x;
+                  destY = py === windowMenu.y ? windowMenu.y - 1 : windowMenu.y;
+                } else if (windowMenu.window.edge === 's') {
+                  destX = windowMenu.x;
+                  destY = py === windowMenu.y ? windowMenu.y + 1 : windowMenu.y;
+                } else if (windowMenu.window.edge === 'w') {
+                  destX = px === windowMenu.x ? windowMenu.x - 1 : windowMenu.x;
+                  destY = windowMenu.y;
+                } else if (windowMenu.window.edge === 'e') {
+                  destX = px === windowMenu.x ? windowMenu.x + 1 : windowMenu.x;
+                  destY = windowMenu.y;
+                } else {
+                  // Fallback for non-edge aligned windows
+                  const dx = windowMenu.x - px;
+                  const dy = windowMenu.y - py;
+                  destX = windowMenu.x + dx;
+                  destY = windowMenu.y + dy;
+                }
+
+                // 3. Verify destination walkability
+                const destTile = gameMap.getTile(destX, destY);
+                if (!destTile || !destTile.isWalkable(player)) {
+                  addEffect({
+                    type: 'damage',
+                    x: windowMenu.x,
+                    y: windowMenu.y,
+                    value: 'Blocked',
+                    color: '#ef4444',
+                    duration: 1000
+                  });
+                  setWindowMenu(null);
+                  return;
+                }
+
+                // 4. Consume AP
+                player.useAP(2);
+
+                // 5. Apply Bleeding if broken glass has not been cleared
+                const hasUnclearedGlass = windowMenu.window.isBroken && !windowMenu.window.isOpen;
+                if (hasUnclearedGlass) {
+                  player.setBleeding(true);
+                  addLog("You climb through the broken window. The glass cuts you, causing you to bleed!", "error");
+                } else {
+                  addLog("You climb through the window.", "world");
+                }
+
+                // 6. Play sound
+                playSound('Climb');
+
+                // 7. Teleport the player
+                gameMap.moveEntity(player.id, destX, destY, { skipEdgeCheck: true });
+
+                // 8. Update camera
+                if (centerOn) {
+                  centerOn(destX, destY);
+                }
+
+                // 9. Update game state and FOV
+                triggerMapUpdate();
+                const newFovTiles = updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVision);
+                refreshZombieTracking(player, newFovTiles);
+                checkZombieAwareness();
+
+                setWindowMenu(null);
+              }}
+            >
+              Climb through (2ap)
             </button>
           )}
 

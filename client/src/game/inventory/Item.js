@@ -245,6 +245,15 @@ export class Item extends SafeEventEmitter {
       }
     }
 
+    // Automatically set default background colors for food and medical items
+    if (!this.backgroundColor) {
+      if (this.hasCategory(ItemCategory.FOOD)) {
+        this.backgroundColor = '#006B18';
+      } else if (this.hasCategory(ItemCategory.MEDICAL)) {
+        this.backgroundColor = '#8a0303';
+      }
+    }
+
     // Final fallbacks for mandatory properties if not in def or instance
     if (this.ammoCount === undefined) this.ammoCount = 0;
     if (this.waterQuality === undefined) this.waterQuality = 'clean';

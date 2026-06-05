@@ -278,8 +278,10 @@ export class MapBuilder {
         this.metadata.placeIcons.push({ subtype: 'fuelpump', x: pumpX, y: pumpY });
     } else {
         let signX = entranceX, signY = entranceY;
-        if (frontage === 'east' || frontage === 'west') signY--; 
-        else if (frontage === 'north' || frontage === 'south') signX--;
+        if (frontage === 'east') signX += 3;
+        else if (frontage === 'west') signX -= 3;
+        else if (frontage === 'south') signY += 3;
+        else signY -= 3; // frontage === 'north'
         this.metadata.placeIcons.push({ subtype: type, x: signX, y: signY });
     }
 

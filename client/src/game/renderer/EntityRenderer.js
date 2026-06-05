@@ -122,9 +122,34 @@ export const EntityRenderer = {
       // 1. If it's an Item with an explicit imageId, use it (canonical)
       // 2. If it's an item subtype with a definition, use that definition's imageId
       // 3. Fallback to subtype itself
+      // 4. Special: Ground pile displays the image of the largest item in the pile
       let effectiveImageId = subtype;
       if (entity.type === 'item') {
-        effectiveImageId = entity.imageId || (ItemDefs[subtype]?.imageId) || subtype;
+        if (subtype === 'ground_pile' && engine && engine.gameMap) {
+          const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
+          if (tileItems && tileItems.length > 0) {
+            let largestItem = null;
+            let maxArea = -1;
+            for (const item of tileItems) {
+              const defId = item.defId || item.id;
+              const def = ItemDefs[defId];
+              const w = item.width || def?.width || 1;
+              const h = item.height || def?.height || 1;
+              const area = w * h;
+              if (area > maxArea) {
+                maxArea = area;
+                largestItem = item;
+              }
+            }
+            if (largestItem) {
+              const defId = largestItem.defId || largestItem.id;
+              const def = ItemDefs[defId];
+              effectiveImageId = largestItem.imageId || def?.imageId || defId;
+            }
+          }
+        } else {
+          effectiveImageId = entity.imageId || (ItemDefs[subtype]?.imageId) || subtype;
+        }
       }
 
       // PHASE 26 FIX: Normalize sprite keys to match ImageLoader canonical forms
@@ -191,6 +216,77 @@ export const EntityRenderer = {
           drawSize = tileSize * 0.8;
           drawX = screenX + (tileSize - drawSize) / 2;
           drawY = screenY + (tileSize - drawSize) / 2;
+        }
+
+        // Draw background token circle for items
+        if (entity.type === 'item' && !isFullTileItem && !isExit) {
+          let itemBgColor = '#0a0a0a';
+          let matchingDef = null;
+          let isFood = false;
+          let isMedical = false;
+          
+          if (subtype === 'ground_pile' && engine && engine.gameMap) {
+            const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
+            if (tileItems && tileItems.length > 0) {
+              let largestItem = null;
+              let maxArea = -1;
+              for (const item of tileItems) {
+                const defId = item.defId || item.id;
+                const def = ItemDefs[defId];
+                const w = item.width || def?.width || 1;
+                const h = item.height || def?.height || 1;
+                const area = w * h;
+                if (area > maxArea) {
+                  maxArea = area;
+                  largestItem = item;
+                }
+              }
+              if (largestItem) {
+                const defId = largestItem.defId || largestItem.id;
+                matchingDef = ItemDefs[defId];
+                const cats = largestItem.categories || matchingDef?.categories || [];
+                isFood = cats.includes('food');
+                isMedical = cats.includes('medical');
+              }
+            }
+          } else {
+            const defId = entity.defId || subtype;
+            matchingDef = ItemDefs[defId];
+            const cats = matchingDef?.categories || [];
+            isFood = cats.includes('food');
+            isMedical = cats.includes('medical');
+          }
+
+          if (matchingDef && matchingDef.backgroundColor) {
+            itemBgColor = matchingDef.backgroundColor;
+          } else if (isFood) {
+            itemBgColor = '#006B18';
+          } else if (isMedical) {
+            itemBgColor = '#8a0303';
+          } else {
+            itemBgColor = '#0a0a0a';
+          }
+
+          ctx.save();
+          ctx.beginPath();
+          const centerX = drawX + drawSize / 2;
+          const centerY = drawY + drawSize / 2;
+          const radius = drawSize / 2;
+          
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          ctx.fillStyle = itemBgColor;
+          ctx.fill();
+          
+          // Draw outer dark border for high contrast
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+          ctx.lineWidth = Math.max(1.5, drawSize * 0.08);
+          ctx.stroke();
+
+          // Draw inner silver border
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = Math.max(0.8, drawSize * 0.04);
+          ctx.stroke();
+          ctx.restore();
         }
 
         // Apply health tinting for player icon
@@ -396,67 +492,40 @@ export const EntityRenderer = {
         ctx.fillRect(rx, ry, rw, rh);
       }
 
-      // Draw window frame outline
+      // Draw window frame outline (always draw the frame outline, even if broken)
       ctx.strokeStyle = winFrameColor;
       ctx.strokeRect(rx, ry, rw, rh);
 
       // Draw internal details (sash / broken glass)
       if (isBroken) {
-        ctx.strokeStyle = '#38bdf8';
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
-        ctx.lineWidth = Math.max(1, tileSize / 20);
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = Math.max(1.5, tileSize / 12);
 
         if (entity.edge === 'n' || entity.edge === 's') {
-          // Glass shards in corners
+          // Sharp high-frequency jagged crack line horizontally
           ctx.beginPath();
-          ctx.moveTo(rx, ry);
-          ctx.lineTo(rx + rw * 0.2, ry);
-          ctx.lineTo(rx, ry + rh * 0.8);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(rx + rw, ry + rh);
-          ctx.lineTo(rx + rw * 0.8, ry + rh);
-          ctx.lineTo(rx + rw, ry + rh * 0.2);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-          
-          // Jagged crack line horizontally
-          ctx.beginPath();
-          ctx.moveTo(rx, ry + rh / 2);
-          ctx.lineTo(rx + rw * 0.25, ry + rh * 0.15);
-          ctx.lineTo(rx + rw * 0.5, ry + rh * 0.85);
-          ctx.lineTo(rx + rw * 0.75, ry + rh * 0.15);
-          ctx.lineTo(rx + rw, ry + rh / 2);
+          ctx.moveTo(rx, ry + rh * 0.5);
+          ctx.lineTo(rx + rw * 0.12, ry + rh * 0.1);
+          ctx.lineTo(rx + rw * 0.25, ry + rh * 0.9);
+          ctx.lineTo(rx + rw * 0.38, ry + rh * 0.15);
+          ctx.lineTo(rx + rw * 0.50, ry + rh * 0.85);
+          ctx.lineTo(rx + rw * 0.62, ry + rh * 0.1);
+          ctx.lineTo(rx + rw * 0.75, ry + rh * 0.9);
+          ctx.lineTo(rx + rw * 0.88, ry + rh * 0.2);
+          ctx.lineTo(rx + rw, ry + rh * 0.5);
           ctx.stroke();
         } else {
-          // Glass shards in corners
+          // Sharp high-frequency jagged crack line vertically
           ctx.beginPath();
-          ctx.moveTo(rx, ry);
-          ctx.lineTo(rx + rw * 0.8, ry);
-          ctx.lineTo(rx, ry + rh * 0.2);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(rx + rw, ry + rh);
-          ctx.lineTo(rx, ry + rh);
-          ctx.lineTo(rx + rw, ry + rh * 0.8);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          // Jagged crack line vertically
-          ctx.beginPath();
-          ctx.moveTo(rx + rw / 2, ry);
-          ctx.lineTo(rx + rw * 0.15, ry + rh * 0.25);
-          ctx.lineTo(rx + rw * 0.85, ry + rh * 0.5);
-          ctx.lineTo(rx + rw * 0.15, ry + rh * 0.75);
-          ctx.lineTo(rx + rw / 2, ry + rh);
+          ctx.moveTo(rx + rw * 0.5, ry);
+          ctx.lineTo(rx + rw * 0.1, ry + rh * 0.12);
+          ctx.lineTo(rx + rw * 0.9, ry + rh * 0.25);
+          ctx.lineTo(rx + rw * 0.15, ry + rh * 0.38);
+          ctx.lineTo(rx + rw * 0.85, ry + rh * 0.50);
+          ctx.lineTo(rx + rw * 0.1, ry + rh * 0.62);
+          ctx.lineTo(rx + rw * 0.9, ry + rh * 0.75);
+          ctx.lineTo(rx + rw * 0.2, ry + rh * 0.88);
+          ctx.lineTo(rx + rw * 0.5, ry + rh);
           ctx.stroke();
         }
       } else if (!isOpen) {
@@ -497,18 +566,26 @@ export const EntityRenderer = {
     } else {
       // Fallback to old centered drawing
       if (entity.subtype === 'broken') {
-        ctx.strokeStyle = '#38bdf8';
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
-        ctx.lineWidth = Math.max(1, tileSize / 20);
+        ctx.strokeStyle = winFrameColor;
+        ctx.strokeRect(x + margin, y + margin, w, w);
+
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = Math.max(1.5, tileSize / 12);
+        
+        const rx = x + margin;
+        const ry = y + margin;
+        
+        // Sharp high-frequency jagged crack line horizontally
         ctx.beginPath();
-        ctx.moveTo(x + margin, y + margin);
-        ctx.lineTo(x + margin + w * 0.5, y + margin + w * 0.1);
-        ctx.lineTo(x + margin + w, y + margin);
-        ctx.lineTo(x + margin + w * 0.9, y + margin + w * 0.6);
-        ctx.lineTo(x + margin + w, y + margin + w);
-        ctx.lineTo(x + margin, y + margin + w);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(rx, ry + w * 0.5);
+        ctx.lineTo(rx + w * 0.12, ry + w * 0.15);
+        ctx.lineTo(rx + w * 0.25, ry + w * 0.85);
+        ctx.lineTo(rx + w * 0.38, ry + w * 0.20);
+        ctx.lineTo(rx + w * 0.50, ry + w * 0.80);
+        ctx.lineTo(rx + w * 0.62, ry + w * 0.15);
+        ctx.lineTo(rx + w * 0.75, ry + w * 0.85);
+        ctx.lineTo(rx + w * 0.88, ry + w * 0.25);
+        ctx.lineTo(rx + w, ry + w * 0.5);
         ctx.stroke();
       } else if (entity.isOpen) {
         ctx.strokeRect(x + margin, y + margin, w, w);
@@ -551,6 +628,8 @@ export const EntityRenderer = {
   },
 
   /**
+   * Render default square when sprite is missing
+   */
   renderDefaultSquare: (ctx, entity, x, y, tileSize) => {
     let drawX = x;
     let drawY = y;

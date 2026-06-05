@@ -192,23 +192,10 @@ export class MirroredWindingRoadGenerator extends BaseMapGenerator {
                 );
 
                 if (b) {
-                    // Clear old footprint
-                    for (let ty = b.y; ty < b.y + b.height; ty++) {
-                      for (let tx = b.x; tx < b.x + b.width; tx++) {
-                        builder.setTerrain(tx, ty, 'grass');
-                      }
-                    }
-                    // Remove doors/windows/metadata
-                    builder.metadata.doors = builder.metadata.doors.filter(d => 
-                        !(d.x >= b.x && d.x < b.x + b.width && d.y >= b.y && d.y < b.y + b.height)
-                    );
-                    builder.metadata.windows = builder.metadata.windows.filter(w => 
-                        !(w.x >= b.x && w.x < b.x + b.width && w.y >= b.y && w.y < b.y + b.height)
-                    );
-                    const idx = builder.metadata.buildings.indexOf(b);
-                    if (idx !== -1) builder.metadata.buildings.splice(idx, 1);
+                    builder.clearArea(b.x, b.y, b.width, b.height);
                 } else {
                     builder.setTerrain(x, fy, 'grass');
+                    builder.layout[fy][x].edgeWalls = { n: false, e: false, s: false, w: false };
                 }
             }
 

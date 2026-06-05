@@ -347,7 +347,10 @@ export class Pathfinding {
     const wallBlocks = (tile1.edgeWalls && tile1.edgeWalls[dir1to2]) || (tile2.edgeWalls && tile2.edgeWalls[dir2to1]);
     
     if (wallBlocks) {
-      const isZombie = options.isZombie || (entity && entity.type === 'zombie');
+      const isZombie = options.isZombie || (entity && typeof entity !== 'function' && entity.type === 'zombie');
+      const isNPC = entity && typeof entity !== 'function' && entity.type === 'npc';
+      const isPlayer = !isZombie && !isNPC;
+
       const breachable1 = tile1.contents.filter(e => (e.type === 'door' || e.type === 'window') && e.edge === dir1to2);
       const breachable2 = tile2.contents.filter(e => (e.type === 'door' || e.type === 'window') && e.edge === dir2to1);
       
@@ -358,6 +361,10 @@ export class Pathfinding {
 
       // If there is a door/window, check if it allows passage
       for (const e of allBreachable) {
+         if (e.type === 'window' && isPlayer) {
+             // Windows are ALWAYS blocked for players (unwalkable)
+             continue;
+         }
          if (e.isOpen || e.isBroken || (isZombie && options.isPathfinding) || options.allowBreaching) {
              return false; // Can pass through
          }

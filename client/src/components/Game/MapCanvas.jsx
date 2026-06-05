@@ -709,14 +709,48 @@ export default function MapCanvas({
         // Preload ALL item subtypes found on the map (including ground_pile/loot drops)
         const itemEntities = currentMap.getEntitiesByType(EntityType.ITEM);
         // Map to their effective imageIds from definitions if available
-        const itemImageIds = [...new Set(itemEntities.map(i => {
+        const itemImageIds = [];
+        for (const i of itemEntities) {
           const subtype = i.subtype || 'basic';
-          return i.imageId || (ItemDefs[subtype]?.imageId) || subtype;
-        }).filter(id => id && id !== 'basic'))];
+          if (subtype === 'ground_pile') {
+            const tileItems = currentMap.getItemsOnTile(Math.round(i.x), Math.round(i.y));
+            if (tileItems && tileItems.length > 0) {
+              let largestItem = null;
+              let maxArea = -1;
+              for (const item of tileItems) {
+                const defId = item.defId || item.id;
+                const def = ItemDefs[defId];
+                const w = item.width || def?.width || 1;
+                const h = item.height || def?.height || 1;
+                const area = w * h;
+                if (area > maxArea) {
+                  maxArea = area;
+                  largestItem = item;
+                }
+              }
+              if (largestItem) {
+                const defId = largestItem.defId || largestItem.id;
+                const def = ItemDefs[defId];
+                const id = largestItem.imageId || def?.imageId || defId;
+                if (id && id !== 'basic') {
+                  itemImageIds.push(id);
+                }
+              }
+            } else {
+              itemImageIds.push('default');
+            }
+          } else {
+            const id = i.imageId || (ItemDefs[subtype]?.imageId) || subtype;
+            if (id && id !== 'basic') {
+              itemImageIds.push(id);
+            }
+          }
+        }
 
-        if (itemImageIds.length > 0) {
-          console.log(`[MapCanvas] Preloading ${itemImageIds.length} item imageIds:`, itemImageIds);
-          await Promise.all(itemImageIds.map(id => imageLoader.getItemImage(id)));
+        const uniqueImageIds = [...new Set(itemImageIds)];
+        if (uniqueImageIds.length > 0) {
+          console.log(`[MapCanvas] Preloading ${uniqueImageIds.length} item imageIds:`, uniqueImageIds);
+          await Promise.all(uniqueImageIds.map(id => imageLoader.getItemImage(id)));
         }
 
         // Preload ALL zombie subtypes found on the map
