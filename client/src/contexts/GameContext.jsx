@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { PlayerZombieTracker } from '../game/ai/PlayerZombieTracker.js';
-import { ZombieAI } from '../game/ai/ZombieAI.js';
-import { RabbitAI } from '../game/ai/RabbitAI.js';
-import { NPCAI } from '../game/ai/NPCAI.js';
+import { SimulationManager } from '../game/managers/SimulationManager.js';
 import turnManager from '../game/managers/TurnManager.js';
 import audioManager from '../game/utils/AudioManager.js';
 import { GameSaveSystem } from '../game/GameSaveSystem.js';
@@ -540,57 +538,14 @@ const GameContextInner = ({ children }) => {
     // 3. Awareness
     checkZombieAwareness();
 
-    // 4. Zombie Turns (Culled by distance for performance)
-    const zombies = gameMap.getEntitiesByType('zombie');
-    const activeZombies = zombies.filter(z => {
-      const dx = Math.abs(z.x - player.x);
-      const dy = Math.abs(z.y - player.y);
-      return dx < 60 && dy < 60;
-    });
-
-    activeZombies.forEach(zombie => {
-      try {
-        zombie.startTurn();
-        const turnResult = ZombieAI.executeZombieTurn(
-          zombie, gameMap, player, 
-          getPlayerCardinalPositions(), 
-          lastSeenTaggedTilesRef.current
-        );
-
-        if (turnResult.success) {
-          actionQueue.push(...turnResult.actions);
-        }
-      } catch (err) {
-        console.error(`[GameContext] Error processing zombie ${zombie.id}:`, err);
-      }
-    });
-
-    // 5. Rabbit Turns
-    const rabbits = gameMap.getEntitiesByType('rabbit');
-    rabbits.forEach(rabbit => {
-      rabbit.startTurn();
-      const turnResult = RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
-      if (turnResult.success) {
-        actionQueue.push(...turnResult.actions);
-      }
-    });
-
-    // 6. NPC Turns
-    const npcs = gameMap.getEntitiesByType('npc');
-    for (const npc of npcs) {
-      if (npc.hp <= 0) continue;
-      
-      npc.startTurn();
-      const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, zombies);
-      
-      if (turnResult.success) {
-        actionQueue.push(...turnResult.actions);
-        const hasDemand = turnResult.actions.some(a => a.type === 'DEMAND');
-        if (hasDemand) {
-          console.log(`[GameContext] 🚨 NPC Demand detected for NPC ${npc.id}`);
-          demandTriggered = { npc, player, isNpcTurn: true };
-          break;
-        }
+    // 4. Entity Turn processing is handled automatically inside gameMap.processTurn via SimulationManager.
+    // We scan the resulting actionQueue for any NPC DEMAND actions to trigger dialog events.
+    const demandAction = actionQueue.find(a => a.type === 'DEMAND');
+    if (demandAction) {
+      const npc = gameMap.getEntity(demandAction.entityId);
+      if (npc) {
+        console.log(`[GameContext] 🚨 NPC Demand detected for NPC ${npc.id}`);
+        demandTriggered = { npc, player, isNpcTurn: true };
       }
     }
 
@@ -917,7 +872,7 @@ const GameContextInner = ({ children }) => {
         setTurnPhase('ANIMATING'); // Lock UI
         engine.turnPhase = 'ANIMATING';
 
-        const retryResult = NPCAI.executeNPCTurn(npc, engine.gameMap, engine.player, [], true);
+        const retryResult = SimulationManager.executeNPCTurn(npc, engine.gameMap, engine.player, [], true);
         
         if (retryResult.success && retryResult.actions.length > 0) {
            console.log(`[GameContext] 🏃 NPC ${npc.name} performing ${retryResult.actions.length} follow-up actions...`, retryResult.actions);

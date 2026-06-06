@@ -6,14 +6,12 @@ import { usePlayer } from './PlayerContext.jsx';
 import { useGameMap } from './GameMapContext.jsx';
 import { useAudio } from './AudioContext.jsx';
 import { Zombie } from '../game/entities/Zombie.js';
-import { ZombieAI } from '../game/ai/ZombieAI.js';
-import { RabbitAI } from '../game/ai/RabbitAI.js';
 import { useGame } from './GameContext.jsx';
 import { EntityType } from '../game/entities/Entity.js';
 import { GameMap } from '../game/map/GameMap.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
-import { NPCAI } from '../game/ai/NPCAI.js';
 import { ItemTrait } from '../game/inventory/traits.js';
+import { SimulationManager } from '../game/managers/SimulationManager.js';
 
 const SleepContext = createContext();
 
@@ -153,7 +151,16 @@ export const SleepProvider = ({ children }) => {
         setSleepProgress(engine.sleepProgress);
 
         const isPlayerOutdoors = !GameMap.isSheltered(gameMap, player.x, player.y);
-        gameMap.processTurn(player, true, currentTurn);
+        const cardinalPos = getPlayerCardinalPositions();
+        const hourlyActions = gameMap.processTurn(
+          player, 
+          true, 
+          currentTurn, 
+          cardinalPos, 
+          lastSeenTaggedTilesRef.current
+        );
+        lastSeenTaggedTilesRef.current.clear();
+        
         engine.inventoryManager?.processTurn(currentTurn, isPlayerOutdoors);
 
         // Phase 25: Ensure weather updates while sleeping
@@ -191,78 +198,55 @@ export const SleepProvider = ({ children }) => {
           }
         }
 
-        // NPC turns
-        const zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
-        const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT);
-        const cardinalPos = getPlayerCardinalPositions();
-        lastSeenTaggedTilesRef.current.clear();
-        
+        // Process hourly actions to detect sleep-interrupting events
         let noiseInterruption = false;
         let hitByZombie = false;
+        let npcInterruption = false;
 
-        zombies.forEach(zombie => {
-          const turnResult = ZombieAI.executeZombieTurn(zombie, gameMap, player, cardinalPos, lastSeenTaggedTilesRef.current);
-          if (turnResult.success) {
-            turnResult.actions.forEach(action => {
-              // WAKE ON NOISE: Banging/Smashing in the building shell
-              if (action.type === 'STRUCTURE_INTERACT') {
-                  const targetPos = action.data.to;
-                  if (GameMap.isSameBuildingShell(gameMap, { x: player.x, y: player.y }, targetPos)) {
-                      if (action.data.targetType === 'door') {
-                        addLog(action.data.broken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
-                        GameEvents.emit(action.data.broken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action.data);
-                      } else {
-                        addLog('Zombie smashes a window!', 'combat');
-                        GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action.data);
-                      }
-                      noiseInterruption = true;
-                  }
-                  if (addEffect) {
-                    addEffect({ type: 'damage', x: targetPos.x, y: targetPos.y, value: 'bang', color: '#ffffff', duration: 800 });
-                  }
-              } else if (action.type === 'ATTACK' && action.data.targetType === 'player') {
-                  // WAKE ON ATTACK: Targeted bites/swipes terminate sleep
-                  if (action.data.success) {
-                    player.takeDamage(action.data.damage, zombie);
-                    if (action.data.bleedingInflicted) player.setBleeding(true);
-                    addLog(`Zombie attacks while you sleep! ${action.data.damage} damage`, 'combat');
-                  } else {
-                    addLog(`A zombie swipes at you and misses!`, 'combat');
-                  }
-                  
-                  // Trigger combat sounds
-                  GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: action.data.success, zombieId: zombie.id });
-                  
-                  hitByZombie = true;
+        hourlyActions.forEach(action => {
+          const entity = gameMap.getEntity(action.entityId);
+
+          if (action.type === 'STRUCTURE_INTERACT') {
+            const targetPos = action.data.to;
+            if (GameMap.isSameBuildingShell(gameMap, { x: player.x, y: player.y }, targetPos)) {
+              if (action.data.targetType === 'door') {
+                addLog(action.data.broken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
+                GameEvents.emit(action.data.broken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action.data);
+              } else {
+                addLog('Zombie smashes a window!', 'combat');
+                GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action.data);
               }
-            });
+              noiseInterruption = true;
+            }
+            if (addEffect) {
+              addEffect({ type: 'damage', x: targetPos.x, y: targetPos.y, value: 'bang', color: '#ffffff', duration: 800 });
+            }
+          } else if (action.type === 'ATTACK' && action.data.targetType === 'player') {
+            if (entity && (entity.type === 'zombie' || entity.type === EntityType.ZOMBIE)) {
+              if (action.data.success) {
+                player.takeDamage(action.data.damage, entity);
+                if (action.data.bleedingInflicted) player.setBleeding(true);
+                addLog(`Zombie attacks while you sleep! ${action.data.damage} damage`, 'combat');
+              } else {
+                addLog(`A zombie swipes at you and misses!`, 'combat');
+              }
+              GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: action.data.success, zombieId: entity.id });
+              hitByZombie = true;
+            } else if (entity && (entity.type === 'npc' || entity.type === EntityType.NPC)) {
+              npcInterruption = true;
+            }
+          } else if (action.type === 'DEMAND') {
+            if (entity && (entity.type === 'npc' || entity.type === EntityType.NPC) && !entity.hasDemanded) {
+              npcInterruption = true;
+            }
           }
         });
 
-        // NPC turns
-        const npcs = gameMap.getEntitiesByType(EntityType.NPC);
-        let npcInterruption = false;
-        
-        for (const npc of npcs) {
-          if (npc.hp <= 0) continue;
-          const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, zombies);
-          
-          if (npc.behaviorState === 'demanding' && !npc.hasDemanded) {
-            npcInterruption = true;
-            break;
-          }
-          
-          if (turnResult.success && turnResult.actions.some(a => a.type === 'ATTACK' && a.data.targetType === 'player')) {
-            npcInterruption = true;
-            break;
-          }
-        }
-
-        // Rabbit turns
-        rabbits.forEach(rabbit => RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies));
-
         // Phase 28: Skip visual animations during sleep to prevent desyncs and performance lag
         // We still need to clear the movement paths set by the AI moveTo calls
+        const zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie');
+        const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT || 'rabbit');
+        const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc');
         clearNPCAnimations([...zombies, ...rabbits, ...npcs]);
 
         updatePlayerStats({

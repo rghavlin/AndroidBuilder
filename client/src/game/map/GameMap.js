@@ -1,19 +1,23 @@
 import { Tile } from './Tile.js';
-import engine from '../GameEngine.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from '../inventory/traits.js';
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import { EntityType } from '../entities/Entity.js';
-import { ZombieAI } from '../ai/ZombieAI.js';
-import { NPCAI } from '../ai/NPCAI.js';
-import { RabbitAI } from '../ai/RabbitAI.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
+import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 
 /**
  * 20x20 map container with tile management and serialization
  */
 export class GameMap {
+  static turnProcessor = null;
+  static isSimulating = false;
+
+  static registerTurnProcessor(processor) {
+    GameMap.turnProcessor = processor;
+  }
+
   constructor(width = 20, height = 20) {
     this.width = width;
     this.height = height;
@@ -529,7 +533,7 @@ export class GameMap {
       
       // Force synchronization of coordinates to prevent 'ghosting' desyncs
       // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
-      if (!engine || engine.turnPhase !== 'SIMULATING') {
+      if (!GameMap.isSimulating) {
         entity.x = x;
         entity.y = y;
       } else {
@@ -565,10 +569,15 @@ export class GameMap {
     const entity = this.entityMap.get(entityId);
     if (entity) {
       if (entity.type === 'zombie' && entity.hp <= 0) {
-        if (engine.worldManager) {
-          engine.worldManager.recordZombieKill(engine.worldManager.currentMapId);
-        }
+        GameEvents.emit(GAME_EVENT.ZOMBIE_DIED, { entity });
       }
+
+      // Emit global event for decoupled systems
+      GameEvents.emit(GAME_EVENT.ENTITY_REMOVED, {
+        entity: { id: entity.id, type: entity.type },
+        position: { x: entity.x, y: entity.y }
+      });
+
       // PHASE 28 FIX: Always use logical coordinates to find the tile for removal.
       // Using visual coordinates (entity.x/y) can lead to 'ghost' entities on tiles
       // if the entity was removed while visually desynced (e.g. after sleep).
@@ -861,6 +870,28 @@ export class GameMap {
 
     // Decay noise levels
     if (this.decayNoise) this.decayNoise();
+
+    // Emit TURN_PROCESSING event for decoupled systems
+    this.emit('TURN_PROCESSING', {
+      player,
+      isSleeping,
+      turn,
+      playerCardinalPositions,
+      lastSeenTaggedTiles,
+      actionQueue
+    });
+
+    // Call back to registered turn/AI processor
+    if (GameMap.turnProcessor && typeof GameMap.turnProcessor.processTurn === 'function') {
+      GameMap.turnProcessor.processTurn(this, {
+        player,
+        isSleeping,
+        turn,
+        playerCardinalPositions,
+        lastSeenTaggedTiles,
+        actionQueue
+      });
+    }
 
     return actionQueue;
   }

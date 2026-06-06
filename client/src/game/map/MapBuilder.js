@@ -1,3 +1,5 @@
+import { isSpecialBuilding } from './BuildingTypes.js';
+
 /**
  * MapBuilder - Utility for geometric drawing and building placement
  * Decouples map geometry from high-level generation logic
@@ -379,7 +381,7 @@ export class MapBuilder {
     const buildingData = { type, x, y, width, height, ...extra };
     this.metadata.buildings.push(buildingData);
     
-    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store', 'lab'].includes(type)) {
+    if (isSpecialBuilding(type)) {
       this.metadata.specialBuildings.push(buildingData);
     }
   }

@@ -168,7 +168,7 @@ export class LootGenerator {
         }
         
         // 3. Spawn Furniture (Independent of loot drops)
-        this.spawnFurniture(gameMap);
+        this.spawnFurniture(gameMap, outdoorTiles);
         
         // Spawn Generator (1 per map, behind a building)
         this.spawnGenerator(gameMap);
@@ -180,7 +180,7 @@ export class LootGenerator {
     /**
      * Spawn specialized furniture (Beds) in residential buildings
      */
-    spawnFurniture(gameMap) {
+    spawnFurniture(gameMap, outdoorLootTiles = []) {
         const buildings = (gameMap.buildings || []).filter(b => b.type === 'residential');
         let bedsSpawned = 0;
 
@@ -220,36 +220,21 @@ export class LootGenerator {
 
         console.log(`[LootGenerator] Furniture: Spawned ${bedsSpawned} beds across ${buildings.length} residential buildings`);
         
+        const allBuildings = gameMap.buildings || [];
+        const isInsideAnyBuilding = (x, y) => allBuildings.some(b => 
+            x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+        );
+
         // Phase 25: Toy Wagon Spawn (35% chance per map, strictly outdoor)
         if (Math.random() < 0.35) {
-            const outdoorTiles = [];
-            const buildings = gameMap.buildings || [];
+            const wagonTiles = outdoorLootTiles.filter(pos => {
+                if (isInsideAnyBuilding(pos.x, pos.y)) return false;
+                const existing = gameMap.getItemsOnTile(pos.x, pos.y);
+                return !existing || existing.length === 0;
+            });
             
-            for (let y = 0; y < gameMap.height; y++) {
-                for (let x = 0; x < gameMap.width; x++) {
-                    const tile = gameMap.getTile(x, y);
-                    // 1. Terrain must be outdoor
-                    if (tile && ['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
-                        // 2. Must NOT be inside a building rectangle
-                        const isInside = buildings.some(b => 
-                            x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
-                        );
-                        if (isInside) continue;
-
-                        // 3. Must NOT be near a door
-                        if (this.isNearDoor(gameMap, x, y)) continue;
-
-                        // 4. Must be empty
-                        const existing = gameMap.getItemsOnTile(x, y);
-                        if (!existing || existing.length === 0) {
-                            outdoorTiles.push({ x, y });
-                        }
-                    }
-                }
-            }
-            
-            if (outdoorTiles.length > 0) {
-                const pos = outdoorTiles[Math.floor(Math.random() * outdoorTiles.length)];
+            if (wagonTiles.length > 0) {
+                const pos = wagonTiles[Math.floor(Math.random() * wagonTiles.length)];
                 const wagon = createItemFromDef('vehicle.toy_wagon');
                 if (wagon) {
                     gameMap.setItemsOnTile(pos.x, pos.y, [wagon]);
@@ -259,33 +244,16 @@ export class LootGenerator {
         }
 
         // Electric Mower Spawn (Guaranteed 1 per map, strictly on grass)
-        const grassTiles = [];
-        const buildingsForMower = gameMap.buildings || [];
-        
-        for (let y = 0; y < gameMap.height; y++) {
-            for (let x = 0; x < gameMap.width; x++) {
-                const tile = gameMap.getTile(x, y);
-                if (tile && tile.terrain === 'grass') {
-                    // 1. Must NOT be inside a building rectangle
-                    const isInside = buildingsForMower.some(b => 
-                        x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
-                    );
-                    if (isInside) continue;
+        const mowerTiles = outdoorLootTiles.filter(pos => {
+            const tile = gameMap.getTile(pos.x, pos.y);
+            if (!tile || tile.terrain !== 'grass') return false;
+            if (isInsideAnyBuilding(pos.x, pos.y)) return false;
+            const existing = gameMap.getItemsOnTile(pos.x, pos.y);
+            return !existing || existing.length === 0;
+        });
 
-                    // 2. Must NOT be near a door
-                    if (this.isNearDoor(gameMap, x, y)) continue;
-
-                    // 3. Must be empty
-                    const existing = gameMap.getItemsOnTile(x, y);
-                    if (!existing || existing.length === 0) {
-                        grassTiles.push({ x, y });
-                    }
-                }
-            }
-        }
-
-        if (grassTiles.length > 0) {
-            const pos = grassTiles[Math.floor(Math.random() * grassTiles.length)];
+        if (mowerTiles.length > 0) {
+            const pos = mowerTiles[Math.floor(Math.random() * mowerTiles.length)];
             const mower = createItemFromDef('furniture.electric_mower');
             if (mower) {
                 LootGenerator.applySpawnDefaults(mower, false);
@@ -295,35 +263,25 @@ export class LootGenerator {
         }
         
         // Phase 25: Electric Scooter Spawn (Guaranteed 1 per map, strictly outdoor)
-        this.spawnScooter(gameMap);
+        this.spawnScooter(gameMap, outdoorLootTiles);
     }
 
     /**
      * Spawn a single electric scooter in an outdoor tile
      */
-    spawnScooter(gameMap) {
-        const outdoorTiles = [];
-        const buildings = gameMap.buildings || [];
-        
-        for (let y = 0; y < gameMap.height; y++) {
-            for (let x = 0; x < gameMap.width; x++) {
-                const tile = gameMap.getTile(x, y);
-                if (tile && ['road', 'sidewalk', 'grass'].includes(tile.terrain)) {
-                    const isInside = buildings.some(b => 
-                        x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
-                    );
-                    if (isInside) continue;
-                    if (this.isNearDoor(gameMap, x, y)) continue;
-                    const existing = gameMap.getItemsOnTile(x, y);
-                    if (!existing || existing.length === 0) {
-                        outdoorTiles.push({ x, y });
-                    }
-                }
-            }
-        }
+    spawnScooter(gameMap, outdoorLootTiles = []) {
+        const allBuildings = gameMap.buildings || [];
+        const isInsideAnyBuilding = (x, y) => allBuildings.some(b => 
+            x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+        );
+        const scooterTiles = outdoorLootTiles.filter(pos => {
+            if (isInsideAnyBuilding(pos.x, pos.y)) return false;
+            const existing = gameMap.getItemsOnTile(pos.x, pos.y);
+            return !existing || existing.length === 0;
+        });
 
-        if (outdoorTiles.length > 0) {
-            const pos = outdoorTiles[Math.floor(Math.random() * outdoorTiles.length)];
+        if (scooterTiles.length > 0) {
+            const pos = scooterTiles[Math.floor(Math.random() * scooterTiles.length)];
             const scooter = createItemFromDef('vehicle.electric_scooter');
             if (scooter) {
                 LootGenerator.applySpawnDefaults(scooter, false);
@@ -886,7 +844,7 @@ export class LootGenerator {
      */
     hasDoorOnTile(gameMap, x, y) {
         const tile = gameMap.getTile(x, y);
-        return !!(tile && tile.contents.some(e => e.type === 'door'));
+        return !!(tile && tile.contents && tile.contents.some(e => e.type === 'door'));
     }
 
     /**

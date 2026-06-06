@@ -41,7 +41,11 @@ export const GAME_EVENT = {
   NPC_ATTACK: 'npc_attack',
   NPC_DEMAND_TRIGGERED: 'npc_demand_triggered',
   PROJECTILE_FIRED: 'projectile_fired',
-  ENTITY_BLINK: 'entity_blink'
+  ENTITY_BLINK: 'entity_blink',
+  
+  // Entity Lifecycle
+  ENTITY_REMOVED: 'entity_removed',
+  ZOMBIE_DIED: 'zombie_died'
 };
 
 /**

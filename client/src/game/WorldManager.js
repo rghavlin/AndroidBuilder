@@ -1,5 +1,6 @@
 import Logger from './utils/Logger.js';
 import { getProgressionForMap } from './config/ProgressionConfig.js';
+import GameEvents, { GAME_EVENT } from './utils/GameEvents.js';
 
 const logger = Logger.scope('WorldManager');
 
@@ -21,6 +22,11 @@ export class WorldManager {
     this.zombiesKilled = {};
     this.zombiesSpawned = {};
     this.claimedPrizes = [];
+
+    // Subscriptions
+    GameEvents.on(GAME_EVENT.ZOMBIE_DIED, () => {
+      this.recordZombieKill(this.currentMapId);
+    });
 
     logger.info('Initialized');
   }

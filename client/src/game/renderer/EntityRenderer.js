@@ -2,7 +2,6 @@
  * EntityRenderer - Pure functions for drawing world entities (Players, NPCs, Items)
  */
 import { imageLoader } from '../../game/utils/ImageLoader.js';
-import engine from '../../game/GameEngine.js';
 import { EntityType } from '../entities/Entity.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';

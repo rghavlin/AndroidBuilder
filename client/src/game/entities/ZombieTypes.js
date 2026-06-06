@@ -113,11 +113,13 @@ export const ZombieTypes = {
     accuracy: 0.5,
     moveCostMultiplier: 1.0,
     canPassWindows: true,
+    isRanged: true,
+    rangedRange: 5,
+    rangedApCost: 1.5,
     spriteKey: 'spitterzombie',
     combat: { 
       damage: { min: 1, max: 4 },
       rangedDamage: { min: 1, max: 3 },
-      rangedRange: 5,
       sickChance: 0.2
     },
     lootTable: 'basic'

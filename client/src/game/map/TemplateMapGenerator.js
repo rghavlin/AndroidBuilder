@@ -5,6 +5,7 @@ import { SplitRoadGenerator } from './generators/SplitRoadGenerator.js';
 import { WindingRoadGenerator } from './generators/WindingRoadGenerator.js';
 import { MirroredWindingRoadGenerator } from './generators/MirroredWindingRoadGenerator.js';
 import { LabMapGenerator } from './generators/LabMapGenerator.js';
+import { isSpecialBuilding } from './BuildingTypes.js';
 
 /**
  * TemplateMapGenerator - Template-based map generation system
@@ -708,7 +709,7 @@ export class TemplateMapGenerator {
     });
     
     // Provide backward compatibility for specialBuildings key during map transition phase
-    if (['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store', 'lab'].includes(type)) {
+    if (isSpecialBuilding(type)) {
       if (!mapData.metadata.specialBuildings) {
         mapData.metadata.specialBuildings = [];
       }
