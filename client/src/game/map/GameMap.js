@@ -11,12 +11,7 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
  * 20x20 map container with tile management and serialization
  */
 export class GameMap {
-  static turnProcessor = null;
   static isSimulating = false;
-
-  static registerTurnProcessor(processor) {
-    GameMap.turnProcessor = processor;
-  }
 
   constructor(width = 20, height = 20) {
     this.width = width;
@@ -97,7 +92,9 @@ export class GameMap {
     let alertedCount = 0;
 
     this.getEntitiesByType(EntityType.ZOMBIE).forEach(zombie => {
-      const dist = Math.sqrt(Math.pow(zombie.x - x, 2) + Math.pow(zombie.y - y, 2));
+      const zx = zombie.logicalX !== undefined ? zombie.logicalX : zombie.x;
+      const zy = zombie.logicalY !== undefined ? zombie.logicalY : zombie.y;
+      const dist = Math.sqrt(Math.pow(zx - x, 2) + Math.pow(zy - y, 2));
       if (dist <= radius) {
         if (typeof zombie.setNoiseHeard === 'function') {
           zombie.setNoiseHeard(x, y);
@@ -676,18 +673,7 @@ export class GameMap {
       newX = Math.floor(newX);
       newY = Math.floor(newY);
 
-      // DEFENSIVE: Scrub entity from any nearby tiles to prevent 'ghosting' desyncs
-      for (let sy = -2; sy <= 2; sy++) {
-        for (let sx = -2; sx <= 2; sx++) {
-          const ghostTile = this.getTile(oldPosition.x + sx, oldPosition.y + sy);
-          if (ghostTile) ghostTile.removeEntity(entityId);
-          
-          const ghostTileNew = this.getTile(newX + sx, newY + sy);
-          if (ghostTileNew) ghostTileNew.removeEntity(entityId);
-        }
-      }
-
-      // Explicit remove from old tile (redundant but safe)
+      // Explicit remove from old tile
       const oldTile = this.getTile(oldPosition.x, oldPosition.y);
       if (oldTile) {
         oldTile.removeEntity(entityId);
@@ -881,17 +867,7 @@ export class GameMap {
       actionQueue
     });
 
-    // Call back to registered turn/AI processor
-    if (GameMap.turnProcessor && typeof GameMap.turnProcessor.processTurn === 'function') {
-      GameMap.turnProcessor.processTurn(this, {
-        player,
-        isSleeping,
-        turn,
-        playerCardinalPositions,
-        lastSeenTaggedTiles,
-        actionQueue
-      });
-    }
+
 
     return actionQueue;
   }

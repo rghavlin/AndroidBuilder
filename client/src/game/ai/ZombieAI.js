@@ -47,7 +47,7 @@ export class ZombieAI {
 
     const typeDef = getZombieType(zombie.subtype);
 
-    while (zombie.currentAP > 0.05 && turnResult.actions.length < maxActions && safetyCounter < 100) {
+    while (zombie.currentAP > 0.05 && !turnResult.blocked && turnResult.actions.length < maxActions && safetyCounter < 100) {
       safetyCounter++;
       
       const canSee = zombie.canSeeEntity(gameMap, player);
@@ -222,10 +222,9 @@ export class ZombieAI {
               let moveFound = fallbackResult.success;
 
               if (!moveFound) {
-                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Consuming remaining AP.`);
-                  const apCost = zombie.currentAP;
-                  zombie.useAP(apCost);
-                  actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost } };
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Ending turn.`);
+                  turnResult.blocked = true;
+                  actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: zombie.currentAP } };
               }
           }
       }
@@ -276,9 +275,8 @@ export class ZombieAI {
                   } else {
                     // LOGJAM: Target is valid but currently occupied by a comrade. 
                     if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} Investigation target (${targetX}, ${targetY}) blocked by entity, waiting.`);
-                    const apCost = zombie.currentAP;
-                    zombie.useAP(apCost);
-                    actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost } };
+                    turnResult.blocked = true;
+                    actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: zombie.currentAP } };
                   }
               }
           }
@@ -308,6 +306,9 @@ export class ZombieAI {
 
       // Process action result
       if (actionResult && actionResult.success) {
+          if (actionResult.blocked) {
+              turnResult.blocked = true;
+          }
           // AGGREGATION LOGIC: Merge consecutive attacks of the same type on the same target
           const lastAction = turnResult.actions[turnResult.actions.length - 1];
           const isMergeable = lastAction && 
@@ -380,10 +381,8 @@ export class ZombieAI {
         }
       }
       
-      // If we didn't move (either due to random or blocked), consume ALL remaining AP to end turn
-      const apCost = zombie.currentAP;
-      zombie.useAP(apCost);
-      return { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost } };
+      // If we didn't move (either due to random or blocked), end turn via blocked flag
+      return { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: zombie.currentAP }, blocked: true };
     }
     
     return { success: false, reason: 'No neighbors to wander to' };

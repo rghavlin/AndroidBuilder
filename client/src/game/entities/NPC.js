@@ -157,11 +157,7 @@ export class NPC extends Entity {
   startTurn() {
     this.ap = this.maxAp;
     this.wasAttackedThisTurn = false;
-    this.gridX = this.renderX;
-    this.gridY = this.renderY;
-    this.logicalX = this.renderX;
-    this.logicalY = this.renderY;
-    this.movementPath = [{ x: this.renderX, y: this.renderY }];
+    this.movementPath = [{ x: this.logicalX, y: this.logicalY }];
     
     if (this.behaviorState === 'fleeing' && Math.random() < this.fleeRecoverChance) {
         this.behaviorState = 'idle';

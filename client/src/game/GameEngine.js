@@ -3,6 +3,7 @@ import { InventoryManager } from './inventory/InventoryManager.js';
 import { LineOfSight } from './utils/LineOfSight.js';
 import { ItemDefs } from './inventory/ItemDefs.js';
 import { WeatherManager } from './utils/WeatherManager.js';
+import { getSightRangeForHour } from './config/VisionConfig.js';
 
 
 /**
@@ -328,20 +329,7 @@ class GameEngine extends SafeEventEmitter {
        
         // Calculate base ambient sight range based on hour of the day
         const hour = (6 + (this.turn - 1)) % 24;
-        let baseRange = maxRange;
-        if (hour === 19) {
-          baseRange = 12;
-        } else if (hour === 20) {
-          baseRange = 8;
-        } else if (hour === 21) {
-          baseRange = 4;
-        } else if (hour === 22 || hour === 23 || hour === 0 || hour === 1 || hour === 2 || hour === 3) {
-          baseRange = 1.5;
-        } else if (hour === 4) {
-          baseRange = 4;
-        } else if (hour === 5) {
-          baseRange = 8;
-        }
+        const baseRange = getSightRangeForHour(hour, maxRange);
 
         let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
        

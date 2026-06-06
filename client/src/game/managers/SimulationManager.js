@@ -16,16 +16,16 @@ export class SimulationManager {
    * @param {Set} context.lastSeenTaggedTiles - Sighted tile set
    * @param {Array} context.actionQueue - Queue to push actions into
    */
-  static processTurn(gameMap, context) {
+  static runTurn(gameMap, context) {
     const {
       player,
       isSleeping,
       playerCardinalPositions = [],
-      lastSeenTaggedTiles = new Set(),
-      actionQueue = []
+      lastSeenTaggedTiles = new Set()
     } = context;
 
-    if (!player) return;
+    const actionQueue = [];
+    if (!player) return actionQueue;
 
     GameMap.isSimulating = true;
 
@@ -97,6 +97,8 @@ export class SimulationManager {
     } finally {
       GameMap.isSimulating = false;
     }
+
+    return actionQueue;
   }
 
   /**
@@ -107,5 +109,3 @@ export class SimulationManager {
   }
 }
 
-// Automatically register as the turn processor for GameMap to decouple imports
-GameMap.registerTurnProcessor(SimulationManager);

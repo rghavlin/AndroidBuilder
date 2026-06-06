@@ -152,13 +152,21 @@ export const SleepProvider = ({ children }) => {
 
         const isPlayerOutdoors = !GameMap.isSheltered(gameMap, player.x, player.y);
         const cardinalPos = getPlayerCardinalPositions();
-        const hourlyActions = gameMap.processTurn(
+        const mapActions = gameMap.processTurn(
           player, 
           true, 
           currentTurn, 
           cardinalPos, 
           lastSeenTaggedTilesRef.current
         );
+        const simActions = SimulationManager.runTurn(gameMap, {
+          player,
+          isSleeping: true,
+          turn: currentTurn,
+          playerCardinalPositions: cardinalPos,
+          lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
+        });
+        const hourlyActions = [...mapActions, ...simActions];
         lastSeenTaggedTilesRef.current.clear();
         
         engine.inventoryManager?.processTurn(currentTurn, isPlayerOutdoors);

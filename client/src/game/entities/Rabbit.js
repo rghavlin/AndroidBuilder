@@ -61,12 +61,8 @@ export class Rabbit extends Entity {
   startTurn() {
     this.currentAP = this.maxAP;
     this.isActive = true;
-    this.gridX = this.renderX;
-    this.gridY = this.renderY;
-    this.logicalX = this.renderX;
-    this.logicalY = this.renderY;
     // Initialize movementPath with current position for animation tracking
-    this.movementPath = [{ x: this.renderX, y: this.renderY }];
+    this.movementPath = [{ x: this.logicalX, y: this.logicalY }];
   }
 
   /**

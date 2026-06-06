@@ -510,15 +510,26 @@ const GameContextInner = ({ children }) => {
 
     // 1. Map/Inventory Logic
     if (gameMap.processTurn) {
-      const npcActions = gameMap.processTurn(
+      const mapActions = gameMap.processTurn(
         player, 
         engine.isSleeping, 
         turn, 
         getPlayerCardinalPositions(), 
         lastSeenTaggedTilesRef.current
       );
-      if (npcActions) actionQueue.push(...npcActions);
+      if (mapActions) actionQueue.push(...mapActions);
     }
+
+    // Call AI simulation directly
+    const simActions = SimulationManager.runTurn(gameMap, {
+      player,
+      isSleeping: engine.isSleeping,
+      turn,
+      playerCardinalPositions: getPlayerCardinalPositions(),
+      lastSeenTaggedTiles: lastSeenTaggedTilesRef.current
+    });
+    if (simActions) actionQueue.push(...simActions);
+
     if (inventoryManager && inventoryManager.processTurn) {
       const playerTile = gameMap.getTile(player.logicalX, player.logicalY);
       const isPlayerOutdoors = playerTile ? ['road', 'sidewalk', 'grass'].includes(playerTile.terrain) : false;
@@ -538,7 +549,7 @@ const GameContextInner = ({ children }) => {
     // 3. Awareness
     checkZombieAwareness();
 
-    // 4. Entity Turn processing is handled automatically inside gameMap.processTurn via SimulationManager.
+    // 4. Entity Turn processing is handled by SimulationManager.runTurn above.
     // We scan the resulting actionQueue for any NPC DEMAND actions to trigger dialog events.
     const demandAction = actionQueue.find(a => a.type === 'DEMAND');
     if (demandAction) {

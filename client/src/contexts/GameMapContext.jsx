@@ -272,7 +272,6 @@ export const GameMapProvider = ({ children }) => {
 
         // 3. Update player reference and position
         engine.gameMap.removeEntity(playerEntity.id);
-        newMap.addEntity(playerEntity, result.spawnPosition.x, result.spawnPosition.y);
         
         // Phase 28 Fix: Explicitly update ALL coordinate systems to prevent 'snapback' or pathfinding failure
         playerEntity.x = result.spawnPosition.x;
@@ -281,6 +280,8 @@ export const GameMapProvider = ({ children }) => {
         playerEntity.logicalY = result.spawnPosition.y;
         playerEntity.gridX = result.spawnPosition.x;
         playerEntity.gridY = result.spawnPosition.y;
+
+        newMap.addEntity(playerEntity, result.spawnPosition.x, result.spawnPosition.y);
 
         // 4. Update Engine
         engine.gameMap = newMap;
