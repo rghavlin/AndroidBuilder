@@ -58,7 +58,8 @@ export class Item extends SafeEventEmitter {
       dragApPenalty = undefined,
       noDrag = undefined,
       rideApBonus = undefined,
-      scooterMode = undefined
+      scooterMode = undefined,
+      isLocked = undefined
     } = config;
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -101,6 +102,7 @@ export class Item extends SafeEventEmitter {
     this.renderFullTile = renderFullTile;
     this.dragApPenalty = dragApPenalty;
     this.noDrag = noDrag;
+    this.isLocked = isLocked;
 
     // Stack properties (if stackable)
     this.stackCount = stackCount;
@@ -182,6 +184,7 @@ export class Item extends SafeEventEmitter {
       if (def.produce && !this.produce) this.produce = def.produce;
       if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;
       if (def.disassembleData) this.disassembleData = def.disassembleData;
+      if (def.containerGrid && !this._containerGridData) this._containerGridData = def.containerGrid;
       if (def.consumptionSound && !this.consumptionSound) this.consumptionSound = def.consumptionSound;
       if (def.renderFullTile && this.renderFullTile === null) this.renderFullTile = def.renderFullTile;
       if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) this.dragApPenalty = def.dragApPenalty;
@@ -218,6 +221,9 @@ export class Item extends SafeEventEmitter {
       }
       if (def.noDrag !== undefined && this.noDrag === undefined) {
         this.noDrag = def.noDrag;
+      }
+      if (def.isLocked !== undefined && this.isLocked === undefined) {
+        this.isLocked = def.isLocked;
       }
       if (def.noTooltipUnits !== undefined) {
         this.noTooltipUnits = def.noTooltipUnits;
@@ -1348,7 +1354,7 @@ export class Item extends SafeEventEmitter {
     'consumptionEffects', 'waterQuality', 'shelfLife', 'lifetimeTurns', 'rarity',
     'combat', 'rangedStats', 'description', 'transformInto', 'produce',
     'backgroundColor', 'isOn', 'providesElectricity', 'fireMode',
-    'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit'
+    'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked'
   ];
 
   // Serialization

@@ -225,6 +225,10 @@ export class LootGenerator {
         // Spawn Generator (1 per map, behind a building)
         this.spawnGenerator(gameMap);
 
+        // Spawn Safes (1 on Map 1, 2 on Map 2+)
+        const safeCount = mapNumber === 1 ? 1 : 2;
+        this.spawnSafes(gameMap, safeCount);
+
         // 4. Final Pass: Apply map-wide unique loot rules
         this.applyMapWideUniqueRules(gameMap, mapNumber);
     }
@@ -397,6 +401,257 @@ export class LootGenerator {
         }
         
         console.warn('[LootGenerator] Could not find a suitable spot behind any building for the generator.');
+    }
+
+    /**
+     * Populate safe container with random loot
+     */
+    populateSafe(safeItem) {
+        const grid = safeItem.getContainerGrid();
+        if (!grid) return;
+
+        const SAFE_GUNS = [
+            { gun: 'weapon.9mmPistol', ammo: 'ammo.9mm' },
+            { gun: 'weapon.357Pistol', ammo: 'ammo.357' },
+            { gun: 'weapon.hunting_rifle', ammo: 'ammo.308' },
+            { gun: 'weapon.battle_rifle', ammo: 'ammo.556' },
+            { gun: 'weapon.shotgun', ammo: 'ammo.shotgun_shells' }
+        ];
+
+        const options = [];
+
+        // Option: A gun (max one)
+        const hasGun = Math.random() < 0.7; // 70% chance to contain a gun
+        let spawnedGunInfo = null;
+        if (hasGun) {
+            const gunInfo = SAFE_GUNS[Math.floor(Math.random() * SAFE_GUNS.length)];
+            spawnedGunInfo = gunInfo;
+            options.push(() => {
+                const gun = createItemFromDef(gunInfo.gun);
+                if (gun) {
+                    const item = Item.fromJSON(gun);
+                    LootGenerator.applySpawnDefaults(item, false);
+                    return item;
+                }
+                return null;
+            });
+        }
+
+        // Option: Ammo for the gun in the safe (15-20 rounds)
+        if (hasGun) {
+            options.push(() => {
+                if (!spawnedGunInfo) return null;
+                const ammo = createItemFromDef(spawnedGunInfo.ammo);
+                if (ammo) {
+                    const count = 15 + Math.floor(Math.random() * 6); // 15-20
+                    const item = Item.fromJSON(ammo);
+                    item.stackCount = count;
+                    return item;
+                }
+                return null;
+            });
+        }
+
+        // Option: MREs (1-2)
+        if (Math.random() < 0.8) {
+            options.push(() => {
+                const mre = createItemFromDef('food.mre');
+                if (mre) {
+                    const item = Item.fromJSON(mre);
+                    item.stackCount = Math.random() < 0.5 ? 1 : 2;
+                    return item;
+                }
+                return null;
+            });
+        }
+
+        // Option: Full water bottles (1-2)
+        if (Math.random() < 0.8) {
+            options.push(() => {
+                const bottle = createItemFromDef('food.waterbottle');
+                if (bottle) {
+                    const item = Item.fromJSON(bottle);
+                    item.ammoCount = 20; // Full
+                    item.waterQuality = 'clean';
+                    return item;
+                }
+                return null;
+            });
+        }
+
+        // Option: Any ammo (15-20 rounds)
+        if (Math.random() < 0.8) {
+            options.push(() => {
+                const randGun = SAFE_GUNS[Math.floor(Math.random() * SAFE_GUNS.length)];
+                const ammo = createItemFromDef(randGun.ammo);
+                if (ammo) {
+                    const count = 15 + Math.floor(Math.random() * 6); // 15-20
+                    const item = Item.fromJSON(ammo);
+                    item.stackCount = count;
+                    return item;
+                }
+                return null;
+            });
+        }
+
+        // Option: flashlight (with full battery)
+        if (Math.random() < 0.6) {
+            options.push(() => {
+                const flData = createItemFromDef('tool.smallflashlight');
+                if (flData) {
+                    flData.attachments = {
+                        battery: createItemFromDef('tool.battery')
+                    };
+                    const item = Item.fromJSON(flData);
+                    return item;
+                }
+                return null;
+            });
+        }
+
+        // Option: batteries (2-4)
+        if (Math.random() < 0.7) {
+            options.push(() => {
+                const bat = createItemFromDef('tool.battery');
+                if (bat) {
+                    const count = 2 + Math.floor(Math.random() * 3); // 2-4
+                    const item = Item.fromJSON(bat);
+                    item.stackCount = count;
+                    return item;
+                }
+                return null;
+            });
+        }
+
+        // Option: hand cranked battery charger
+        if (Math.random() < 0.5) {
+            options.push(() => {
+                const charger = createItemFromDef('tool.crank_charger');
+                return charger ? Item.fromJSON(charger) : null;
+            });
+        }
+
+        // Option: first aid kit
+        if (Math.random() < 0.6) {
+            options.push(() => {
+                const kit = createItemFromDef('medical.first_aid_kit');
+                return kit ? Item.fromJSON(kit) : null;
+            });
+        }
+
+        // Shuffle the option generators
+        const shuffled = options.sort(() => Math.random() - 0.5);
+
+        // Try to generate and add each item
+        let gunAdded = false;
+        for (const gen of shuffled) {
+            const item = gen();
+            if (!item) continue;
+
+            // If it's a gun and we already added a gun, skip it!
+            if (item.hasCategory?.(ItemCategory.GUN) || item.categories?.includes(ItemCategory.GUN)) {
+                if (gunAdded) continue;
+                gunAdded = true;
+            }
+
+            // Attempt to add to grid
+            const added = grid.addItem(item);
+            if (!added) {
+                // Try rotating to fit
+                item.rotation = item.rotation === 0 ? 90 : 0;
+                const addedRotated = grid.addItem(item);
+                if (!addedRotated) {
+                    console.log(`[LootGenerator] Safe: Item ${item.name} did not fit. Skipping.`);
+                } else {
+                    console.log(`[LootGenerator] Safe: Added rotated ${item.name}`);
+                }
+            } else {
+                console.log(`[LootGenerator] Safe: Added ${item.name}`);
+            }
+        }
+    }
+
+    /**
+     * Spawn safes inside random buildings
+     */
+    spawnSafes(gameMap, count) {
+        const buildings = gameMap.buildings || [];
+        if (buildings.length === 0) {
+            console.warn('[LootGenerator] No buildings found to spawn safes');
+            return;
+        }
+
+        // Shuffle buildings to distribute safes randomly
+        const shuffledBuildings = [...buildings].sort(() => Math.random() - 0.5);
+        let safesSpawned = 0;
+
+        for (const building of shuffledBuildings) {
+            if (safesSpawned >= count) break;
+
+            // Try to find a suitable 3x3 location inside this building
+            let foundLocation = null;
+
+            // Scan the floor tiles of the building
+            const candidates = [];
+            for (let y = building.y + 1; y <= building.y + building.height - 4; y++) {
+                for (let x = building.x + 1; x <= building.x + building.width - 4; x++) {
+                    candidates.push({ x, y });
+                }
+            }
+
+            // Shuffle candidates
+            const shuffledCandidates = candidates.sort(() => Math.random() - 0.5);
+
+            for (const pos of shuffledCandidates) {
+                // Check if 3x3 footprint is entirely on floor, not near door, and has no other items
+                let isFree = true;
+                for (let dy = 0; dy < 3; dy++) {
+                    for (let dx = 0; dx < 3; dx++) {
+                        const tx = pos.x + dx;
+                        const ty = pos.y + dy;
+                        const tile = gameMap.getTile(tx, ty);
+                        if (!tile || tile.terrain !== 'floor') {
+                            isFree = false;
+                            break;
+                        }
+                        if (this.isNearDoor(gameMap, tx, ty)) {
+                            isFree = false;
+                            break;
+                        }
+                        const existing = gameMap.getItemsOnTile(tx, ty);
+                        if (existing && existing.length > 0) {
+                            isFree = false;
+                            break;
+                        }
+                    }
+                    if (!isFree) break;
+                }
+
+                if (isFree) {
+                    foundLocation = pos;
+                    break;
+                }
+            }
+
+            if (foundLocation) {
+                // Spawn safe here!
+                const safeData = createItemFromDef('furniture.safe');
+                if (safeData) {
+                    const safe = Item.fromJSON(safeData);
+                    // Populate safe with loot
+                    this.populateSafe(safe);
+                    
+                    // Place the safe on the tile
+                    gameMap.setItemsOnTile(foundLocation.x, foundLocation.y, [safe]);
+                    console.log(`[LootGenerator] Spawned Safe at (${foundLocation.x}, ${foundLocation.y}) inside building at (${building.x}, ${building.y})`);
+                    safesSpawned++;
+                }
+            }
+        }
+
+        if (safesSpawned < count) {
+            console.warn(`[LootGenerator] Spawned only ${safesSpawned}/${count} safes on map.`);
+        }
     }
 
     /**

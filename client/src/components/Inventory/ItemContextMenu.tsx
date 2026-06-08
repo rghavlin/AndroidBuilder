@@ -38,7 +38,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -113,7 +113,7 @@ export function ItemContextMenu({
                     <ContextMenuPortal>
                         <ContextMenuContent className="w-48 bg-[#1a1a1a] border-[#333] text-white z-[10001]">
                             {/* ... existing content ... */}
-                        {item.hasTrait?.(ItemTrait.CAN_BREAK_DOORS) && (
+                        {(item.hasTrait?.(ItemTrait.CAN_BREAK_DOORS) || item.hasTrait?.(ItemTrait.CAN_PICK_LOCKS)) && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Use item requested for:', item.name);
@@ -173,6 +173,17 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 {item.isOn ? 'Turn off' : 'Turn on'}
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'furniture.safe' && item.isLocked && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    pickSafeLock(item);
+                                }}
+                                disabled={!inventoryManager?.hasItemByDefId('tool.lockpick')}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Pick lock (consume lockpick)
                             </ContextMenuItem>
                         )}
                         {canOpenContainer(item) && (

@@ -369,45 +369,78 @@ export const ActionProvider = ({ children }) => {
       return { success: false, reason: 'Cannot use here' };
     }
 
-    if (player.ap < 2) {
-      addLog("Need 2 AP to pry open", "warning");
-      return { success: false, reason: 'Need 2 AP' };
+    const isLockpick = targetingItem.hasTrait?.(ItemTrait.CAN_PICK_LOCKS);
+    const apCost = isLockpick ? 1 : 2;
+
+    if (player.ap < apCost) {
+      addLog(`Need ${apCost} AP to ${isLockpick ? 'unlock' : 'pry open'}`, "warning");
+      return { success: false, reason: `Need ${apCost} AP` };
     }
 
-    structure.isLocked = false;
-    structure.isOpen = true;
-    structure.hp = 0; // Forced to 0 HP - requires repair to close
-    if (structure.type === EntityType.WINDOW) {
-      structure.isBroken = true;
-    } else {
-      structure.isDamaged = true;
-    }
-    
-    // Force renderer to see the change
-    if (typeof structure.syncVisualState === 'function') {
-      structure.syncVisualState();
-    } else if (typeof structure.updateBlocking === 'function') {
-      structure.updateBlocking();
-    }
-    
-    playSound('ForceOpen');
-    addLog(`You pry the ${structure.type} open with your ${targetingItem.name}.`, 'world');
-    gameMap.emitNoise(sx, sy, 3);
-    player.useAP(2);
+    if (isLockpick) {
+      structure.isLocked = false;
+      
+      // Force renderer to see the change
+      if (typeof structure.syncVisualState === 'function') {
+        structure.syncVisualState();
+      } else if (typeof structure.updateBlocking === 'function') {
+        structure.updateBlocking();
+      }
 
-    if (targetingItem.hasTrait('degradable')) {
-      targetingItem.degrade(2);
-      if (targetingItem.condition <= 0) {
+      playSound('Unlock');
+      addLog(`You unlock the ${structure.type} with your ${targetingItem.name}.`, 'world');
+      player.useAP(1);
+
+      // Consume lockpick
+      if (targetingItem.stackCount > 1) {
+        targetingItem.stackCount -= 1;
+      } else {
+        targetingItem.stackCount = 0;
+        const container = targetingItem._container;
+        if (container) {
+          container.removeItem(targetingItem.instanceId);
+        }
         inventoryManager.destroyItem(targetingItem.instanceId);
-        setTargetingItem(null);
+      }
+    } else {
+      structure.isLocked = false;
+      structure.isOpen = true;
+      structure.hp = 0; // Forced to 0 HP - requires repair to close
+      if (structure.type === EntityType.WINDOW) {
+        structure.isBroken = true;
+      } else {
+        structure.isDamaged = true;
+      }
+      
+      // Force renderer to see the change
+      if (typeof structure.syncVisualState === 'function') {
+        structure.syncVisualState();
+      } else if (typeof structure.updateBlocking === 'function') {
+        structure.updateBlocking();
+      }
+      
+      playSound('ForceOpen');
+      addLog(`You pry the ${structure.type} open with your ${targetingItem.name}.`, 'world');
+      gameMap.emitNoise(sx, sy, 3);
+      player.useAP(2);
+
+      if (targetingItem.hasTrait('degradable')) {
+        targetingItem.degrade(2);
+        if (targetingItem.condition <= 0) {
+          inventoryManager.destroyItem(targetingItem.instanceId);
+        }
       }
     }
 
     setTargetingItem(null);
+    engine.targetingItemInstanceId = null;
     updatePlayerStats({ ap: player.ap });
     updatePlayerFieldOfView(gameMap, isNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVisionActual);
     updatePlayerCardinalPositions(gameMap);
     gameMap.emitEvent?.('mapUpdated');
+
+    if (typeof window.inv?.refresh === 'function') window.inv.refresh();
+    else inventoryManager?.emit('inventoryChanged');
 
     return { success: true };
   }, [targetingItem, addLog, playSound, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, isNight, isFlashlightOnActual, getActiveFlashlightRange, digHole, plantSeed]);

@@ -351,8 +351,8 @@ export class Pathfinding {
       const isNPC = entity && typeof entity !== 'function' && entity.type === 'npc';
       const isPlayer = !isZombie && !isNPC;
 
-      const breachable1 = tile1.contents.filter(e => (e.type === 'door' || e.type === 'window') && e.edge === dir1to2);
-      const breachable2 = tile2.contents.filter(e => (e.type === 'door' || e.type === 'window') && e.edge === dir2to1);
+      const breachable1 = tile1.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir1to2));
+      const breachable2 = tile2.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir2to1));
       
       const allBreachable = [...breachable1, ...breachable2];
       
@@ -397,8 +397,8 @@ export class Pathfinding {
     else if (y2 < y1) { dir1to2 = 'n'; dir2to1 = 's'; }
 
     if (dir1to2) {
-      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === dir1to2);
-      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && e.edge === dir2to1);
+      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir1to2));
+      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir2to1));
       
       const allBreachable = [...breachable1, ...breachable2];
       for (const e of allBreachable) {

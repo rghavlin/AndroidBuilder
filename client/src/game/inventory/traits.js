@@ -67,6 +67,7 @@ export const ItemTrait = {
   CONSUMABLE: 'consumable',
   GROUND_ONLY: 'groundOnly',
   CAN_BREAK_DOORS: 'canBreakDoors',
+  CAN_PICK_LOCKS: 'canPickLocks',
   SPOILABLE: 'spoilable',
   IGNITABLE: 'ignitable',
   CAN_DIG: 'canDig',

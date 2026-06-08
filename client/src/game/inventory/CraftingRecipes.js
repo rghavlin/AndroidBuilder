@@ -359,5 +359,18 @@ export const CraftingRecipes = [
             { id: 'tool.battery_charger', count: 1 },
             { id: 'crafting.wire', count: 2 }
         ]
+    },
+    {
+        id: 'crafting.lockpick',
+        name: 'Lockpick',
+        resultItem: 'tool.lockpick',
+        description: 'A simple lockpick crafted from a wire and a nail.',
+        apCost: 2,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.nail', count: 1 },
+            { id: 'crafting.wire', count: 1 }
+        ]
     }
 ];

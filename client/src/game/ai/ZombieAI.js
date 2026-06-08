@@ -47,6 +47,11 @@ export class ZombieAI {
 
     const typeDef = getZombieType(zombie.subtype);
 
+    // Lock in a swarm target for the whole turn to prevent oscillation.
+    // Without this, the sort re-evaluates from the zombie's new position each AP tick,
+    // causing the "nearest" swarm spot to flip and the zombie to bounce back and forth.
+    let lockedSwarmTarget = null;
+
     while (zombie.currentAP > 0.05 && !turnResult.blocked && turnResult.actions.length < maxActions && safetyCounter < 100) {
       safetyCounter++;
       
@@ -143,66 +148,92 @@ export class ZombieAI {
 
           // A) CLOSE RANGE: Swarm/Surround logic (8-tile awareness)
           if (distToPlayer <= 4) {
-              // Try to find ANY available spot around the player (8 tiles)
-              const adjacentSpots = [];
-              for (let dx = -1; dx <= 1; dx++) {
-                  for (let dy = -1; dy <= 1; dy++) {
-                      if (dx === 0 && dy === 0) continue;
-                      
-                      const sx = player.logicalX + dx;
-                      const sy = player.logicalY + dy;
-                      
-                      // Filter out spots that are completely blocked by a solid wall from reaching the player
-                      if (Math.abs(dx) + Math.abs(dy) === 1) {
-                          // Cardinal
-                          const isBlocked = Pathfinding.isEdgeBlocked(gameMap, sx, sy, player.logicalX, player.logicalY, zombie);
-                          const hasStructure = Pathfinding.getBlockingStructure(gameMap, sx, sy, player.logicalX, player.logicalY) !== null;
-                          if (isBlocked && !hasStructure) {
-                              continue; // Separated by solid wall!
+              // Pick (or reuse) a locked swarm target for this turn to prevent oscillation.
+              // Re-sorting from the zombie's updated position each tick causes the "nearest"
+              // spot to flip back and forth, making the zombie bounce in place.
+              if (!lockedSwarmTarget) {
+                  // Try to find ANY available spot around the player (8 tiles)
+                  const adjacentSpots = [];
+                  for (let dx = -1; dx <= 1; dx++) {
+                      for (let dy = -1; dy <= 1; dy++) {
+                          if (dx === 0 && dy === 0) continue;
+                          
+                          const sx = player.logicalX + dx;
+                          const sy = player.logicalY + dy;
+                          
+                          // Filter out spots that are completely blocked by a solid wall from reaching the player
+                          if (Math.abs(dx) + Math.abs(dy) === 1) {
+                              // Cardinal
+                              const isBlocked = Pathfinding.isEdgeBlocked(gameMap, sx, sy, player.logicalX, player.logicalY, zombie);
+                              const hasStructure = Pathfinding.getBlockingStructure(gameMap, sx, sy, player.logicalX, player.logicalY) !== null;
+                              if (isBlocked && !hasStructure) {
+                                  continue; // Separated by solid wall!
+                              }
+                          } else {
+                              // Diagonal
+                              if (!Pathfinding.canMoveDiagonally(gameMap, sx, sy, player.logicalX, player.logicalY, zombie)) {
+                                  continue; // Separated by corner/walls!
+                              }
                           }
-                      } else {
-                          // Diagonal
-                          if (!Pathfinding.canMoveDiagonally(gameMap, sx, sy, player.logicalX, player.logicalY, zombie)) {
-                              continue; // Separated by corner/walls!
-                          }
+                          
+                          adjacentSpots.push({ x: sx, y: sy });
                       }
+                  }
+
+                  // Sort by attack suitability and then distance to zombie to pick the most efficient flanking spot.
+                  // Use the zombie's INITIAL position for sorting (captured before any moves this turn)
+                  // to prevent oscillation from the sort target shifting after each step.
+                  adjacentSpots.sort((a, b) => {
+                      const isCardinalA = (a.x === player.logicalX || a.y === player.logicalY);
+                      const isCardinalB = (b.x === player.logicalX || b.y === player.logicalY);
                       
-                      adjacentSpots.push({ x: sx, y: sy });
+                      // For mutants, all 8 spots are valid attack positions, so they are all high priority.
+                      // For others, only cardinal spots are valid attack positions.
+                      const canAttackFromA = zombie.subtype === 'mutant' || isCardinalA;
+                      const canAttackFromB = zombie.subtype === 'mutant' || isCardinalB;
+                      
+                      if (canAttackFromA !== canAttackFromB) {
+                          return canAttackFromA ? -1 : 1; // Prioritize spots the zombie can attack from
+                      }
+
+                      const distA = Math.abs(a.x - zombie.logicalX) + Math.abs(a.y - zombie.logicalY);
+                      const distB = Math.abs(b.x - zombie.logicalX) + Math.abs(b.y - zombie.logicalY);
+                      return distA - distB;
+                  });
+
+                  // Find the best reachable spot and lock it in for the whole turn
+                  for (const spot of adjacentSpots) {
+                      const tile = gameMap.getTile(spot.x, spot.y);
+                      if (!tile || !tile.isWalkable(zombie, { ignoreZombies: false })) continue;
+                      const isOccupiedByOther = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
+                      if (isOccupiedByOther) continue;
+                      lockedSwarmTarget = spot;
+                      break;
                   }
               }
 
-              // Sort by attack suitability and then distance to zombie to pick the most efficient flanking spot
-              adjacentSpots.sort((a, b) => {
-                  const isCardinalA = (a.x === player.logicalX || a.y === player.logicalY);
-                  const isCardinalB = (b.x === player.logicalX || b.y === player.logicalY);
-                  
-                  // For mutants, all 8 spots are valid attack positions, so they are all high priority.
-                  // For others, only cardinal spots are valid attack positions.
-                  const canAttackFromA = zombie.subtype === 'mutant' || isCardinalA;
-                  const canAttackFromB = zombie.subtype === 'mutant' || isCardinalB;
-                  
-                  if (canAttackFromA !== canAttackFromB) {
-                      return canAttackFromA ? -1 : 1; // Prioritize spots the zombie can attack from
-                  }
-
-                  const distA = Math.abs(a.x - zombie.logicalX) + Math.abs(a.y - zombie.logicalY);
-                  const distB = Math.abs(b.x - zombie.logicalX) + Math.abs(b.y - zombie.logicalY);
-                  return distA - distB;
-              });
-
               let swarmMoveFound = false;
-              for (const spot of adjacentSpots) {
-                  const tile = gameMap.getTile(spot.x, spot.y);
-                  if (!tile || !tile.isWalkable(zombie, { ignoreZombies: false })) continue;
-                  
-                  // Check if another zombie is already there (logical position)
-                  const isOccupiedByOther = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
-                  if (isOccupiedByOther) continue;
+              if (lockedSwarmTarget) {
+                  // Re-validate that the locked spot is still available each tick
+                  const lockedTile = gameMap.getTile(lockedSwarmTarget.x, lockedSwarmTarget.y);
+                  const isStillAvailable = lockedTile &&
+                      lockedTile.isWalkable(zombie, { ignoreZombies: false }) &&
+                      !lockedTile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
 
-                  actionResult = this.attemptMoveTowards(zombie, gameMap, spot.x, spot.y);
-                  if (actionResult && actionResult.success) {
-                      swarmMoveFound = true;
-                      break;
+                  if (!isStillAvailable) {
+                      // Target was taken; clear lock so we re-evaluate next tick
+                      lockedSwarmTarget = null;
+                  } else if (zombie.logicalX === lockedSwarmTarget.x && zombie.logicalY === lockedSwarmTarget.y) {
+                      // Already at the target; clear lock so we can attack or re-evaluate
+                      lockedSwarmTarget = null;
+                  } else {
+                      actionResult = this.attemptMoveTowards(zombie, gameMap, lockedSwarmTarget.x, lockedSwarmTarget.y);
+                      if (actionResult && actionResult.success) {
+                          swarmMoveFound = true;
+                      } else {
+                          // Can't move toward locked target; clear it and fall through
+                          lockedSwarmTarget = null;
+                      }
                   }
               }
 

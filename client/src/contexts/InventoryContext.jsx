@@ -808,6 +808,33 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, playSound]);
 
+  const pickSafeLock = useCallback((item) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
+    if (!engine.player || !engine.inventoryManager) return { success: false };
+
+    const hasLockpick = engine.inventoryManager.hasItemByDefId('tool.lockpick');
+    if (!hasLockpick) {
+      addLog("You need a lockpick in your inventory or on the ground to pick this lock.", 'error');
+      playSound('Fail');
+      return { success: false, reason: 'No lockpick' };
+    }
+
+    const consumed = engine.inventoryManager.consumeItemByDefId('tool.lockpick');
+    if (!consumed) {
+      addLog("Failed to consume lockpick.", 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Consumption failed' };
+    }
+
+    item.isLocked = false;
+    playSound('Unlock');
+    addLog(`You successfully pick the lock on the safe.`, 'item');
+
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
+
   const readBook = useCallback((item, amount = 1) => {
     const turnCheck = checkPlayerTurn();
     if (!turnCheck.success) return turnCheck;
@@ -1559,6 +1586,7 @@ export const InventoryProvider = ({ children }) => {
     unrollBedroll,
     rollupBedroll,
     crankCharger,
+    pickSafeLock,
     readBook,
     disassembleItem,
     selectedRecipeId,
@@ -1589,7 +1617,7 @@ export const InventoryProvider = ({ children }) => {
     inventoryRef: { current: engine.inventoryManager },
     forceRefresh: () => engine.notifyUpdate(),
     inventoryVersion: inventoryPulse
-  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding, crankCharger, readBook]);
+  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding, crankCharger, readBook, pickSafeLock]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

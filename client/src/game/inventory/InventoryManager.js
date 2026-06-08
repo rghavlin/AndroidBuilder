@@ -701,6 +701,10 @@ export class InventoryManager extends SafeEventEmitter {
   canOpenContainer(item) {
     if (!item) return false;
 
+    if (item.isLocked) {
+      return false;
+    }
+
     // Phase 18 Fix: Items with OPENABLE_WHEN_NESTED (like guns for attachments)
     // are ALWAYS openable as floating windows, even when equipped.
     const isOpenableWhenNested = (item.isOpenableWhenNested && item.isOpenableWhenNested()) || 
@@ -2293,6 +2297,22 @@ export class InventoryManager extends SafeEventEmitter {
             foundCount += this._countItemRecursive(pocket, defId);
           });
         }
+
+        if (item.attachments) {
+          for (const att of Object.values(item.attachments)) {
+            if (att) {
+              if (att.defId === defId) foundCount += (att.stackCount || 1);
+              const attGrid = att.getContainerGrid?.();
+              if (attGrid) foundCount += this._countItemRecursive(attGrid, defId);
+              const attPockets = att.getPocketContainers?.();
+              if (attPockets) {
+                attPockets.forEach(pocket => {
+                  foundCount += this._countItemRecursive(pocket, defId);
+                });
+              }
+            }
+          }
+        }
       }
     }
 
@@ -2378,6 +2398,22 @@ export class InventoryManager extends SafeEventEmitter {
           count += this._countItemRecursive(p, defId);
         });
       }
+
+      if (item.attachments) {
+        for (const att of Object.values(item.attachments)) {
+          if (att) {
+            if (att.defId === defId) count += (att.stackCount || 1);
+            const attGrid = att.getContainerGrid?.();
+            if (attGrid) count += this._countItemRecursive(attGrid, defId);
+            const attPockets = att.getPocketContainers?.();
+            if (attPockets) {
+              attPockets.forEach(p => {
+                count += this._countItemRecursive(p, defId);
+              });
+            }
+          }
+        }
+      }
     }
     return count;
   }
@@ -2453,6 +2489,37 @@ export class InventoryManager extends SafeEventEmitter {
             }
         }
         if (remaining <= 0) break;
+
+        if (item.attachments) {
+            for (const attSlot of Object.keys(item.attachments)) {
+                const att = item.attachments[attSlot];
+                if (att) {
+                    if (att.defId === defId) {
+                        const consume = Math.min(att.stackCount || 1, remaining);
+                        if (att.stackCount) att.stackCount -= consume;
+                        remaining -= consume;
+                        if (att.stackCount <= 0 || !att.stackCount) {
+                            delete item.attachments[attSlot];
+                        }
+                    }
+                    if (remaining <= 0) break;
+
+                    const attGrid = att.getContainerGrid?.();
+                    if (attGrid) remaining = this._consumeItemRecursive(attGrid, defId, remaining);
+                    if (remaining <= 0) break;
+
+                    const attPockets = att.getPocketContainers?.();
+                    if (attPockets) {
+                        for (const pocket of attPockets) {
+                            remaining = this._consumeItemRecursive(pocket, defId, remaining);
+                            if (remaining <= 0) break;
+                        }
+                    }
+                    if (remaining <= 0) break;
+                }
+            }
+        }
+        if (remaining <= 0) break;
     }
 
     if (remaining > 0) {
@@ -2501,8 +2568,223 @@ export class InventoryManager extends SafeEventEmitter {
                 if (remaining <= 0) return 0;
             }
         }
+
+        if (item.attachments) {
+            for (const attSlot of Object.keys(item.attachments)) {
+                const att = item.attachments[attSlot];
+                if (att) {
+                    if (att.defId === defId) {
+                        const stackMode = att.stackCount !== undefined && att.stackCount !== null;
+                        const available = stackMode ? att.stackCount : 1;
+                        const consume = Math.min(available, remaining);
+                        
+                        if (stackMode) {
+                            att.stackCount -= consume;
+                            if (att.stackCount <= 0) {
+                                delete item.attachments[attSlot];
+                            }
+                        } else {
+                            delete item.attachments[attSlot];
+                        }
+                        
+                        remaining -= consume;
+                        if (remaining <= 0) return 0;
+                    }
+                    
+                    const attGrid = att.getContainerGrid?.();
+                    if (attGrid) remaining = this._consumeItemRecursive(attGrid, defId, remaining);
+                    if (remaining <= 0) return 0;
+
+                    const attPockets = att.getPocketContainers?.();
+                    if (attPockets) {
+                        for (const pocket of attPockets) {
+                            remaining = this._consumeItemRecursive(pocket, defId, remaining);
+                            if (remaining <= 0) return 0;
+                        }
+                    }
+                }
+            }
+        }
     }
     return remaining;
+  }
+
+  /**
+   * Check if player has the specified item in their inventory (excluding ground)
+   */
+  hasItemInPlayerInventory(defId) {
+    const visited = new Set();
+    let found = false;
+
+    const searchRecursive = (container) => {
+      if (!container || !container.id || visited.has(container.id)) return;
+      if (container.id === 'ground' || container.type === 'ground') return;
+      visited.add(container.id);
+
+      for (const item of container.items.values()) {
+        if (item.defId === defId) {
+          found = true;
+          return;
+        }
+        const grid = item.getContainerGrid?.();
+        if (grid) searchRecursive(grid);
+        if (found) return;
+        
+        const pockets = item.getPocketContainers?.();
+        if (pockets) {
+          for (const pocket of pockets) {
+            searchRecursive(pocket);
+            if (found) return;
+          }
+        }
+        
+        if (item.attachments) {
+          for (const att of Object.values(item.attachments)) {
+            if (att) {
+              if (att.defId === defId) {
+                found = true;
+                return;
+              }
+              const attGrid = att.getContainerGrid?.();
+              if (attGrid) searchRecursive(attGrid);
+              if (found) return;
+            }
+          }
+        }
+      }
+    };
+
+    // 1. Search player's equipped slots directly
+    for (const [slot, item] of Object.entries(this.equipment)) {
+      if (!item) continue;
+      if (item.defId === defId) {
+        return true;
+      }
+      const grid = item.getContainerGrid?.();
+      if (grid) searchRecursive(grid);
+      if (found) return true;
+      
+      const pockets = item.getPocketContainers?.();
+      if (pockets) {
+        for (const pocket of pockets) {
+          searchRecursive(pocket);
+          if (found) return true;
+        }
+      }
+      
+      if (item.attachments) {
+        for (const att of Object.values(item.attachments)) {
+          if (att) {
+            if (att.defId === defId) return true;
+            const attGrid = att.getContainerGrid?.();
+            if (attGrid) searchRecursive(attGrid);
+            if (found) return true;
+          }
+        }
+      }
+    }
+
+    // 2. Search other containers except 'ground', 'workspace', and craft tools/ingredients
+    for (const container of this.containers.values()) {
+      if (container.id === 'ground' || container.type === 'ground') continue;
+      if (container.id.includes('workspace') || container.id.includes('-tools') || container.id.includes('-ingredients')) continue;
+      searchRecursive(container);
+      if (found) return true;
+    }
+
+    return found;
+  }
+
+  /**
+   * Consume count units of defId from player inventory (excluding ground)
+   */
+  consumeItemFromPlayerInventory(defId, count = 1) {
+    let remaining = count;
+    const candidates = [];
+    const visited = new Set();
+
+    const collectRecursive = (container) => {
+      if (!container || !container.id || visited.has(container.id)) return;
+      if (container.id === 'ground' || container.type === 'ground') return;
+      visited.add(container.id);
+
+      for (const item of container.items.values()) {
+        if (item.defId === defId) {
+          candidates.push(item);
+        }
+        const grid = item.getContainerGrid?.();
+        if (grid) collectRecursive(grid);
+        
+        const pockets = item.getPocketContainers?.();
+        if (pockets) {
+          for (const pocket of pockets) {
+            collectRecursive(pocket);
+          }
+        }
+        
+        if (item.attachments) {
+          for (const att of Object.values(item.attachments)) {
+            if (att) {
+              if (att.defId === defId) {
+                candidates.push(att);
+              }
+              const attGrid = att.getContainerGrid?.();
+              if (attGrid) collectRecursive(attGrid);
+            }
+          }
+        }
+      }
+    };
+
+    // 1. Collect from equipment slots
+    for (const [slot, item] of Object.entries(this.equipment)) {
+      if (!item) continue;
+      if (item.defId === defId) {
+        candidates.push(item);
+      }
+      const grid = item.getContainerGrid?.();
+      if (grid) collectRecursive(grid);
+      
+      const pockets = item.getPocketContainers?.();
+      if (pockets) {
+        for (const pocket of pockets) {
+          collectRecursive(pocket);
+        }
+      }
+      
+      if (item.attachments) {
+        for (const att of Object.values(item.attachments)) {
+          if (att) {
+            if (att.defId === defId) candidates.push(att);
+            const attGrid = att.getContainerGrid?.();
+            if (attGrid) collectRecursive(attGrid);
+          }
+        }
+      }
+    }
+
+    // 2. Collect from other registered containers
+    for (const container of this.containers.values()) {
+      if (container.id === 'ground' || container.type === 'ground') continue;
+      if (container.id.includes('workspace') || container.id.includes('-tools') || container.id.includes('-ingredients')) continue;
+      collectRecursive(container);
+    }
+
+    // 3. Consume from the candidates list
+    for (const item of candidates) {
+      if (remaining <= 0) break;
+      const consume = Math.min(item.stackCount || 1, remaining);
+      if (item.stackCount) {
+        item.stackCount -= consume;
+      }
+      remaining -= consume;
+      if (!item.stackCount || item.stackCount <= 0) {
+        this.destroyItem(item.instanceId);
+      }
+    }
+
+    this.emit('inventoryChanged');
+    return remaining <= 0;
   }
 
   /**

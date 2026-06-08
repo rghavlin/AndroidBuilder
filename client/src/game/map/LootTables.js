@@ -94,7 +94,8 @@ export const ZOMBIE_LOOT = {
     },
     uncommon: [
         'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink', 'book.life_in_motion',
-        'medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant', 'crafting.leather_belt', 'belt.pouch', 'belt.tool_ring'
+        'medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant', 'crafting.leather_belt', 'belt.pouch', 'belt.tool_ring',
+        'tool.lockpick'
     ],
     exotic: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight']
 };

@@ -907,6 +907,17 @@ export const ItemDefs = {
       { id: 'battery', name: 'Battery', type: 'battery', allowedCategories: [ItemCategory.BATTERY] }
     ]
   },
+  'tool.lockpick': {
+    id: 'tool.lockpick',
+    name: 'Lockpick',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'lockpick',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CAN_PICK_LOCKS],
+    categories: [ItemCategory.TOOL],
+    stackMax: 10
+  },
   'tool.snare_undeployed': {
     id: 'tool.snare_undeployed',
     name: 'Rabbit snare',
@@ -2215,6 +2226,23 @@ export const ItemDefs = {
     dragApPenalty: 1.5,
     renderFullTile: true,
     noLoot: true
+  },
+  'furniture.safe': {
+    id: 'furniture.safe',
+    name: 'Safe',
+    rarity: Rarity.RARE,
+    imageId: 'safe',
+    width: 3,
+    height: 3,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.NO_DRAG, ItemTrait.CONTAINER, ItemTrait.FURNITURE],
+    categories: [ItemCategory.FURNITURE],
+    renderFullTile: true,
+    noLoot: true,
+    isLocked: true,
+    containerGrid: {
+      width: 5,
+      height: 4
+    }
   },
   'environment.water_puddle': {
     id: 'environment.water_puddle',
