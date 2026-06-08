@@ -80,7 +80,9 @@ export class Tile {
     const unwalkableTerrains = ['wall', 'fence', 'tree', 'water', 'tent_wall', 'deep_water', 'brick', 'metal_wall', 'building'];
     if (unwalkableTerrains.includes(this.terrain) && !hasEntry) {
       // PATHFINDING EXCEPTION: Zombies can path "to" buildings to attack them
-      if (options.allowBreaching && (this.terrain === 'building' || this.terrain === 'wall')) {
+      // ONLY if the tile actually contains a door or window to breach.
+      const hasBreachable = this.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+      if (options.allowBreaching && (this.terrain === 'building' || this.terrain === 'wall') && hasBreachable) {
         // Fall through to content check
       } else {
         return false;

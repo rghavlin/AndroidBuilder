@@ -83,6 +83,17 @@ export const SleepProvider = ({ children }) => {
     setIsSleeping(false);
     setSleepProgress(0);
     setIsPlayerTurn(true);
+
+    // Force sync visual states on wake-up to catch up any silent simulation changes
+    const gameMap = engine.gameMap;
+    if (gameMap && gameMap.entityMap) {
+      gameMap.entityMap.forEach(e => {
+        if (typeof e.syncVisualState === 'function') {
+          e.syncVisualState();
+        }
+      });
+    }
+
     if (reason) addLog(reason, 'warning');
   }, [addLog, setIsPlayerTurn]);
 

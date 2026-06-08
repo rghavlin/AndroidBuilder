@@ -1,0 +1,230 @@
+﻿[AudioManager] New instance created: ugxvhvkbt
+[GameEngine] ≡ƒÜÇ Initialized with ID: 80771
+[GameEngine] requestAnimationFrame is not defined (likely running in a non-browser/Node environment). Skipping heartbeat loop.
+[GameEvents] ≡ƒÜî Global Event Bus initialized: aj032b1ys
+--- Starting House Zombie Oscillation Test ---
+[TemplateMapGenerator] Loaded 9 default templates
+[TemplateMapGenerator] Placed 1 wild crops
+[TemplateMapGenerator] Placed outdoor decorations
+[TemplateMapGenerator] Placed indoor decorations
+[TemplateMapGenerator] Generated 'starting_road' map using Strategy engine
+[GameMap] Initialized 45x117 map
+[GameMap] Γ£à Entity added: door-16-90 (door) at (16, 90)
+[GameMap] Γ£à Entity added: door-5-95 (door) at (5, 95)
+[GameMap] Γ£à Entity added: door-9-88 (door) at (9, 88)
+[GameMap] Γ£à Entity added: door-9-93 (door) at (9, 93)
+[GameMap] Γ£à Entity added: door-6-89 (door) at (6, 89)
+[GameMap] Γ£à Entity added: door-15-89 (door) at (15, 89)
+[GameMap] Γ£à Entity added: door-6-91 (door) at (6, 91)
+[GameMap] Γ£à Entity added: door-14-91 (door) at (14, 91)
+[GameMap] Γ£à Entity added: door-16-58 (door) at (16, 58)
+[GameMap] Γ£à Entity added: door-5-57 (door) at (5, 57)
+[GameMap] Γ£à Entity added: door-12-61 (door) at (12, 61)
+[GameMap] Γ£à Entity added: door-14-61 (door) at (14, 61)
+[GameMap] Γ£à Entity added: door-11-53 (door) at (11, 53)
+[GameMap] Γ£à Entity added: door-8-55 (door) at (8, 55)
+[GameMap] Γ£à Entity added: door-13-55 (door) at (13, 55)
+[GameMap] Γ£à Entity added: door-16-38 (door) at (16, 38)
+[GameMap] Γ£à Entity added: door-3-39 (door) at (3, 39)
+[GameMap] Γ£à Entity added: door-12-44 (door) at (12, 44)
+[GameMap] Γ£à Entity added: door-14-45 (door) at (14, 45)
+[GameMap] Γ£à Entity added: door-10-39 (door) at (10, 39)
+[GameMap] Γ£à Entity added: door-5-40 (door) at (5, 40)
+[GameMap] Γ£à Entity added: door-11-40 (door) at (11, 40)
+[GameMap] Γ£à Entity added: door-16-25 (door) at (16, 25)
+[GameMap] Γ£à Entity added: door-4-20 (door) at (4, 20)
+[GameMap] Γ£à Entity added: door-9-19 (door) at (9, 19)
+[GameMap] Γ£à Entity added: door-9-26 (door) at (9, 26)
+[GameMap] Γ£à Entity added: door-5-24 (door) at (5, 24)
+[GameMap] Γ£à Entity added: door-14-24 (door) at (14, 24)
+[GameMap] Γ£à Entity added: door-5-26 (door) at (5, 26)
+[GameMap] Γ£à Entity added: door-14-26 (door) at (14, 26)
+[GameMap] Γ£à Entity added: door-28-94 (door) at (28, 94)
+[GameMap] Γ£à Entity added: door-39-95 (door) at (39, 95)
+[GameMap] Γ£à Entity added: door-34-90 (door) at (34, 90)
+[GameMap] Γ£à Entity added: door-32-94 (door) at (32, 94)
+[GameMap] Γ£à Entity added: door-29-92 (door) at (29, 92)
+[GameMap] Γ£à Entity added: door-37-92 (door) at (37, 92)
+[GameMap] Γ£à Entity added: door-30-94 (door) at (30, 94)
+[GameMap] Γ£à Entity added: door-37-94 (door) at (37, 94)
+[GameMap] Γ£à Entity added: door-28-75 (door) at (28, 75)
+[GameMap] Γ£à Entity added: door-41-75 (door) at (41, 75)
+[GameMap] Γ£à Entity added: door-31-78 (door) at (31, 78)
+[GameMap] Γ£à Entity added: door-33-79 (door) at (33, 79)
+[GameMap] Γ£à Entity added: door-35-72 (door) at (35, 72)
+[GameMap] Γ£à Entity added: door-34-73 (door) at (34, 73)
+[GameMap] Γ£à Entity added: door-39-73 (door) at (39, 73)
+[GameMap] Γ£à Entity added: door-28-57 (door) at (28, 57)
+[GameMap] Γ£à Entity added: door-41-56 (door) at (41, 56)
+[GameMap] Γ£à Entity added: door-32-53 (door) at (32, 53)
+[GameMap] Γ£à Entity added: door-32-61 (door) at (32, 61)
+[GameMap] Γ£à Entity added: door-30-57 (door) at (30, 57)
+[GameMap] Γ£à Entity added: door-40-57 (door) at (40, 57)
+[GameMap] Γ£à Entity added: door-30-59 (door) at (30, 59)
+[GameMap] Γ£à Entity added: door-40-59 (door) at (40, 59)
+[GameMap] Γ£à Entity added: door-28-43 (door) at (28, 43)
+[GameMap] Γ£à Entity added: door-39-39 (door) at (39, 39)
+[GameMap] Γ£à Entity added: door-34-36 (door) at (34, 36)
+[GameMap] Γ£à Entity added: door-29-41 (door) at (29, 41)
+[GameMap] Γ£à Entity added: door-37-41 (door) at (37, 41)
+[GameMap] Γ£à Entity added: door-30-43 (door) at (30, 43)
+[GameMap] Γ£à Entity added: door-37-43 (door) at (37, 43)
+[GameMap] Γ£à Entity added: door-28-25 (door) at (28, 25)
+[GameMap] Γ£à Entity added: door-40-24 (door) at (40, 24)
+[GameMap] Γ£à Entity added: door-35-21 (door) at (35, 21)
+[GameMap] Γ£à Entity added: door-35-26 (door) at (35, 26)
+[GameMap] Γ£à Entity added: door-15-102 (door) at (15, 102)
+[GameMap] Γ£à Entity added: door-18-112 (door) at (18, 112)
+[GameMap] Γ£à Entity added: door-20-107 (door) at (20, 107)
+[GameMap] Γ£à Entity added: door-22-107 (door) at (22, 107)
+[GameMap] Γ£à Entity added: door-16-74 (door) at (16, 74)
+Front door found at (15, 102), edge: n
+[GameMap] Γ£à Entity added: player (player) at (15, 101)
+[GameMap] ≡ƒÄ« PLAYER ADDED TO MAP - Total players now: 1
+[GameMap] Γ£à Entity added: zombie-1 (zombie) at (14, 103)
+Player at (15, 101)
+Zombie at (14, 103)
+
+Tile Grid details:
+y=100: [x=12:gras:none] [x=13:gras:none] [x=14:gras:none] [x=15:gras:none] [x=16:gras:none] [x=17:gras:none] [x=18:gras:none] 
+y=101: [x=12:gras:none] [x=13:gras:none] [x=14:gras:none] [x=15:gras:none:player] [x=16:gras:none] [x=17:gras:none] [x=18:gras:none] 
+y=102: [x=12:floo:nw] [x=13:floo:n] [x=14:floo:n] [x=15:floo:n:door] [x=16:floo:n] [x=17:floo:n] [x=18:floo:n] 
+y=103: [x=12:floo:w] [x=13:floo:none] [x=14:floo:none:zombie] [x=15:floo:none] [x=16:floo:none] [x=17:floo:none] [x=18:floo:none] 
+y=104: [x=12:floo:w] [x=13:floo:none] [x=14:floo:none] [x=15:floo:none] [x=16:floo:none] [x=17:floo:none] [x=18:floo:none] 
+y=105: [x=12:floo:w] [x=13:floo:none] [x=14:floo:none] [x=15:floo:none] [x=16:floo:none] [x=17:floo:none] [x=18:floo:none] 
+y=106: [x=12:floo:w] [x=13:floo:none] [x=14:floo:none] [x=15:floo:none] [x=16:floo:none] [x=17:floo:none] [x=18:floo:none] 
+
+Adjacent Spots around Player (Sorted):
+Spot (14, 101): walkable=true
+Spot (15, 102): walkable=true
+Spot (15, 100): walkable=true
+Spot (16, 101): walkable=true
+Spot (14, 102): walkable=true
+Spot (14, 100): walkable=true
+Spot (16, 102): walkable=true
+Spot (16, 100): walkable=true
+
+--- Executing Turn 1 ---
+[ZombieAI] Starting turn for zombie zombie-1 at (14, 103) with 10 AP
+[ZombieAI] zombie-1 turn start: Pos(14, 103), canSee=true, lastSeen=true, LKP=(15, 101)
+[ZombieAI] zombie-1 step 1: AP=10.0, canSee=true, behavior=idle
+[GameMap] Moving entity zombie-1 from (14, 103) to (15, 102)
+[GameMap] Updating logical position for entity zombie-1 to (15, 102)
+[GameMap] Adding entity zombie-1 to new tile (15, 102)
+[GameMap] Entity zombie-1 movement completed successfully
+[ZombieAI] zombie-1 step 2: AP=8.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 3: AP=7.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 4: AP=6.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 5: AP=5.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 6: AP=4.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 7: AP=3.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 8: AP=2.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 9: AP=1.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 10: AP=0.6, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 insufficient AP for melee attack. Breaking turn.
+[ZombieAI] zombie-1 turn loop break: Insufficient AP. AP=0.6
+[ZombieAI] Finished turn for zombie zombie-1. Actions: 2
+Turn 1 actions: [
+  {
+    "success": true,
+    "type": "MOVE",
+    "entityId": "zombie-1",
+    "data": {
+      "from": {
+        "x": 14,
+        "y": 103
+      },
+      "to": {
+        "x": 15,
+        "y": 102
+      },
+      "apCost": 1.4,
+      "attackCount": 1,
+      "hitCount": 0
+    }
+  },
+  {
+    "type": "ATTACK",
+    "success": true,
+    "entityId": "zombie-1",
+    "data": {
+      "success": true,
+      "damage": 11,
+      "apUsed": 1,
+      "targetId": "player",
+      "targetType": "player",
+      "from": {
+        "x": 15,
+        "y": 102
+      },
+      "to": {
+        "x": 15,
+        "y": 101
+      },
+      "attackCount": 8,
+      "hitCount": 6,
+      "apCost": 0
+    }
+  }
+]
+Zombie now at (15, 102)
+
+--- Executing Turn 2 ---
+[ZombieAI] Starting turn for zombie zombie-1 at (15, 102) with 10 AP
+[ZombieAI] zombie-1 turn start: Pos(15, 102), canSee=true, lastSeen=true, LKP=(15, 101)
+[ZombieAI] zombie-1 step 1: AP=10.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 2: AP=9.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 3: AP=8.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 4: AP=7.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 5: AP=6.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 6: AP=5.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 7: AP=4.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 8: AP=3.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 9: AP=2.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] zombie-1 step 10: AP=1.0, canSee=true, behavior=pursuing
+[ZombieAI] ΓÜö∩╕Å zombie-1 is attacking player. Pos=(15, 102), Player=(15, 101)
+[ZombieAI] Finished turn for zombie zombie-1. Actions: 1
+Turn 2 actions: [
+  {
+    "type": "ATTACK",
+    "success": true,
+    "entityId": "zombie-1",
+    "data": {
+      "success": true,
+      "damage": 15,
+      "apUsed": 1,
+      "targetId": "player",
+      "targetType": "player",
+      "from": {
+        "x": 15,
+        "y": 102
+      },
+      "to": {
+        "x": 15,
+        "y": 101
+      },
+      "attackCount": 10,
+      "hitCount": 6,
+      "apCost": 0
+    }
+  }
+]
+Zombie now at (15, 102)

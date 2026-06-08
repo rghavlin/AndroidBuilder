@@ -180,12 +180,35 @@ export class ZombieAI {
                       }
                   }
 
-                  // Sort by attack suitability and then distance to zombie to pick the most efficient flanking spot.
-                  // Use the zombie's INITIAL position for sorting (captured before any moves this turn)
-                  // to prevent oscillation from the sort target shifting after each step.
-                  adjacentSpots.sort((a, b) => {
-                      const isCardinalA = (a.x === player.logicalX || a.y === player.logicalY);
-                      const isCardinalB = (b.x === player.logicalX || b.y === player.logicalY);
+                  // Filter out spots that are not walkable or occupied by other zombies first.
+                  // Then find actual paths to those spots to sort by real reachability and path cost.
+                  const spotsWithPaths = [];
+                  for (const spot of adjacentSpots) {
+                      const tile = gameMap.getTile(spot.x, spot.y);
+                      if (!tile || !tile.isWalkable(zombie, { ignoreZombies: false })) continue;
+                      const isOccupiedByOther = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
+                      if (isOccupiedByOther) continue;
+
+                      // Find A* path from the zombie's current position to this spot.
+                      const path = Pathfinding.findPath(gameMap, zombie.logicalX, zombie.logicalY, spot.x, spot.y, {
+                          allowDiagonal: true,
+                          isZombie: true,
+                          entity: zombie,
+                          maxDistance: 60,
+                          ignoreZombies: true,
+                          isPathfinding: true
+                      });
+
+                      if (path && path.length > 0) {
+                          const pathCost = Pathfinding.calculateMovementCost(gameMap, path, zombie);
+                          spotsWithPaths.push({ spot, pathCost });
+                      }
+                  }
+
+                  // Sort by attack suitability and then actual path cost/reachability.
+                  spotsWithPaths.sort((a, b) => {
+                      const isCardinalA = (a.spot.x === player.logicalX || a.spot.y === player.logicalY);
+                      const isCardinalB = (b.spot.x === player.logicalX || b.spot.y === player.logicalY);
                       
                       // For mutants, all 8 spots are valid attack positions, so they are all high priority.
                       // For others, only cardinal spots are valid attack positions.
@@ -196,19 +219,11 @@ export class ZombieAI {
                           return canAttackFromA ? -1 : 1; // Prioritize spots the zombie can attack from
                       }
 
-                      const distA = Math.abs(a.x - zombie.logicalX) + Math.abs(a.y - zombie.logicalY);
-                      const distB = Math.abs(b.x - zombie.logicalX) + Math.abs(b.y - zombie.logicalY);
-                      return distA - distB;
+                      return a.pathCost - b.pathCost; // Prioritize shorter/cheaper paths
                   });
 
-                  // Find the best reachable spot and lock it in for the whole turn
-                  for (const spot of adjacentSpots) {
-                      const tile = gameMap.getTile(spot.x, spot.y);
-                      if (!tile || !tile.isWalkable(zombie, { ignoreZombies: false })) continue;
-                      const isOccupiedByOther = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
-                      if (isOccupiedByOther) continue;
-                      lockedSwarmTarget = spot;
-                      break;
+                  if (spotsWithPaths.length > 0) {
+                      lockedSwarmTarget = spotsWithPaths[0].spot;
                   }
               }
 

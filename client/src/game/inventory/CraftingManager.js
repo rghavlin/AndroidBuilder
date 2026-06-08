@@ -328,14 +328,12 @@ export class CraftingManager {
                 consumptionEffects: {
                     nutrition: totalNutrition,
                     hydration: unitsUsed * 2
-                },
-                description: `A rich, hot stew containing ${meatToCook > 0 ? `${meatToCook} meat` : ''}${meatToCook > 0 && vegToCook > 0 ? ' and ' : ''}${vegToCook > 0 ? `${vegToCook} vegetables` : ''}. Nutrition: ${totalNutrition}, Hydration: ${unitsUsed * 2}`
+                }
             });
             const stewItem = new Item(stewData);
 
             return { success: true, item: stewItem, apCost: actualAP };
         }
-
         // SPECIAL CASE: Cooked Vegetables dynamic scaling
         if (recipeId === 'cooking.cooked_vegetables') {
             const allItems = ingredientContainer.getAllItems();

@@ -301,30 +301,22 @@ export class Pathfinding {
   }
 
   static canMoveDiagonally(gameMap, x1, y1, x2, y2, entityOrFilter = null, options = {}) {
+    // Diagonal moves cannot breach/bypass closed structures or cut corner walls
+    const diagOptions = { ...options, allowBreaching: false, isPathfinding: false };
+
     // Check edge boundaries first (you can't squeeze through diagonal walls)
-    if (this.isEdgeBlocked(gameMap, x1, y1, x1, y2, entityOrFilter, options) || 
-        this.isEdgeBlocked(gameMap, x1, y1, x2, y1, entityOrFilter, options) ||
-        this.isEdgeBlocked(gameMap, x1, y2, x2, y2, entityOrFilter, options) ||
-        this.isEdgeBlocked(gameMap, x2, y1, x2, y2, entityOrFilter, options)) return false;
+    if (this.isEdgeBlocked(gameMap, x1, y1, x1, y2, entityOrFilter, diagOptions) || 
+        this.isEdgeBlocked(gameMap, x1, y1, x2, y1, entityOrFilter, diagOptions) ||
+        this.isEdgeBlocked(gameMap, x1, y2, x2, y2, entityOrFilter, diagOptions) ||
+        this.isEdgeBlocked(gameMap, x2, y1, x2, y2, entityOrFilter, diagOptions)) return false;
 
     const tile1 = gameMap.getTile(x1, y2);
     const tile2 = gameMap.getTile(x2, y1);
-    const tile1Walkable = tile1 && this.isTileWalkable(tile1, entityOrFilter, options);
-    const tile2Walkable = tile2 && this.isTileWalkable(tile2, entityOrFilter, options);
+    const tile1Walkable = tile1 && this.isTileWalkable(tile1, entityOrFilter, diagOptions);
+    const tile2Walkable = tile2 && this.isTileWalkable(tile2, entityOrFilter, diagOptions);
     
-    // If BOTH corners are walkable, it's clear.
-    if (tile1Walkable && tile2Walkable) return true;
-
-    // RELAXED: If one corner is a BREACHABLE structure, allow the diagonal move.
-    // This allows zombies to "turn the corner" of a building window/door.
-    const isZombie = (entityOrFilter && entityOrFilter.type === 'zombie');
-    if (isZombie) {
-        const t1Breachable = tile1 && tile1.contents.some(e => e.type === 'door' || e.type === 'window');
-        const t2Breachable = tile2 && tile2.contents.some(e => e.type === 'door' || e.type === 'window');
-        if ((tile1Walkable && t2Breachable) || (tile2Walkable && t1Breachable)) return true;
-    }
-
-    return false;
+    // BOTH corners must be walkable for a clean diagonal pass
+    return !!(tile1Walkable && tile2Walkable);
   }
 
   static isEdgeBlocked(gameMap, x1, y1, x2, y2, entity = null, options = {}) {

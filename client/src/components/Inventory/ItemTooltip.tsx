@@ -166,7 +166,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                 </div>
             )}
             {/* Description */}
-            {item.description && (
+            {item.description && item.defId !== 'food.stew' && (
                 <div className="border-t border-zinc-800 pt-1.5 mt-1.5 text-[10px] text-zinc-400 italic">
                     {item.description}
                 </div>

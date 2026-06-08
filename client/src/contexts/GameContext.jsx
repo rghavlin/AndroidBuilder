@@ -723,6 +723,7 @@ const GameContextInner = ({ children }) => {
       // Ensure visual sync before release
       gameMap.entityMap.forEach(e => {
         if (typeof e.endTurn === 'function') e.endTurn();
+        if (typeof e.syncVisualState === 'function') e.syncVisualState();
       });
 
       // Safety Reset: Ensure the singleton is NOT left in ANIMATING state if playback finishes/crashes
