@@ -5,6 +5,7 @@ import { SplitRoadGenerator } from './generators/SplitRoadGenerator.js';
 import { WindingRoadGenerator } from './generators/WindingRoadGenerator.js';
 import { MirroredWindingRoadGenerator } from './generators/MirroredWindingRoadGenerator.js';
 import { LabMapGenerator } from './generators/LabMapGenerator.js';
+import { StartingRoadGenerator } from './generators/StartingRoadGenerator.js';
 import { isSpecialBuilding } from './BuildingTypes.js';
 
 /**
@@ -29,6 +30,7 @@ export class TemplateMapGenerator {
     this.generators.set('winding_road', new WindingRoadGenerator());
     this.generators.set('mirrored_winding_road', new MirroredWindingRoadGenerator());
     this.generators.set('lab', new LabMapGenerator());
+    this.generators.set('starting_road', new StartingRoadGenerator());
   }
 
   /**
@@ -239,6 +241,17 @@ export class TemplateMapGenerator {
       parameters: {}
     });
 
+    // Starting Road template - 45x125 map with player starting yard/house at bottom
+    this.templates.set('starting_road', {
+      name: 'Starting Road',
+      size: { width: 45, height: 117 },
+      layout: [], // Procedurally generated
+      parameters: {
+        randomWalls: { min: 0, max: 2 },
+        extraFloors: { min: 0, max: 3 }
+      }
+    });
+
     console.log('[TemplateMapGenerator] Loaded', this.templates.size, 'default templates');
   }
 
@@ -291,7 +304,9 @@ export class TemplateMapGenerator {
     }
 
     this.setTileData(mapData, northExitX, 0, 'transition');
-    this.setTileData(mapData, southExitX, mapData.height - 1, 'transition');
+    if (templateName !== 'starting_road') {
+      this.setTileData(mapData, southExitX, mapData.height - 1, 'transition');
+    }
 
     // Add spawn zones metadata
     mapData.metadata.spawnZones = {

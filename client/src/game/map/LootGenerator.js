@@ -34,7 +34,7 @@ export class LootGenerator {
     /**
      * Spawn loot on the provided game map
      */
-    spawnLoot(gameMap, mapNumber = 1) {
+    spawnLoot(gameMap, mapNumber = 1, config = {}) {
         this.initItemKeys();
         this.backpacksSpawned = 0;
 
@@ -111,6 +111,58 @@ export class LootGenerator {
                     }
                 });
                 console.log(`[LootGenerator] Building ${index + 1}: Spawned ${plankCount} guaranteed planks`);
+            }
+        });
+
+        // Spawn starting home loot (Map 1 only)
+        const startingHomes = (gameMap.buildings || []).filter(b => b.type === 'starting_home');
+        console.log(`[LootGenerator] Detected ${startingHomes.length} starting homes for special loot`);
+        startingHomes.forEach((building, index) => {
+            const buildingTiles = [];
+            for (let curY = building.y + 1; curY < building.y + building.height - 1; curY++) {
+                for (let curX = building.x + 1; curX < building.x + building.width - 1; curX++) {
+                    const tile = gameMap.getTile(curX, curY);
+                    if (tile && tile.terrain === 'floor') {
+                        buildingTiles.push({ x: curX, y: curY });
+                    }
+                }
+            }
+            if (buildingTiles.length === 0) return;
+
+            const nonDoorTiles = buildingTiles.filter(pos => !this.isNearDoor(gameMap, pos.x, pos.y));
+            if (nonDoorTiles.length === 0) return;
+
+            // Generate exactly six piles
+            const pileCount = 6;
+            const selectedTiles = this.getRandomSubarray(nonDoorTiles, pileCount);
+
+            selectedTiles.forEach(pos => {
+                let items = [];
+                let attempts = 0;
+                while (items.length === 0 && attempts < 10) {
+                    items = this.generateRandomItems('inside', mapNumber);
+                    attempts++;
+                }
+                if (items.length > 0) {
+                    const current = gameMap.getItemsOnTile(pos.x, pos.y) || [];
+                    gameMap.setItemsOnTile(pos.x, pos.y, [...current, ...items]);
+                }
+            });
+
+            // Guaranteed starting home planks: 1-3 planks
+            const plankCount = 1 + Math.floor(Math.random() * 3);
+            const plankTiles = this.getRandomSubarray(nonDoorTiles, plankCount);
+            plankTiles.forEach(pos => {
+                const plank = createItemFromDef('weapon.plank');
+                if (plank) {
+                    const current = gameMap.getItemsOnTile(pos.x, pos.y) || [];
+                    gameMap.setItemsOnTile(pos.x, pos.y, [...current, plank]);
+                }
+            });
+            console.log(`[LootGenerator] Starting home: Spawned 6 piles and ${plankCount} planks`);
+
+            if (config && config.easyStart === true) {
+                this.applyEasyStartLoot(gameMap, buildingTiles, selectedTiles);
             }
         });
 
@@ -1262,6 +1314,142 @@ export class LootGenerator {
                 
                 console.log(`[LootGenerator]   -> Placed ${item.name} at (${tilePos.x}, ${tilePos.y}) with ${item.ammoCount || 'fixed'} charges.`);
             }
+        });
+    }
+
+    /**
+     * Apply Easy Start rules to the starting home building:
+     * Guarantees 2 full water bottles, 2 canned beans, 2 canned corn, 1 book bag,
+     * 1 work shirt, 1 blue jeans, 1 cooking pot, 1 lighter (5-10 charges), 
+     * and 1 of [Machete, Fire axe, Hammer, Crowbar] at 100% condition.
+     */
+    applyEasyStartLoot(gameMap, buildingTiles, selectedTiles) {
+        console.log('[LootGenerator] Running second pass starting home loot for Easy Start...');
+        let waterBottleCount = 0;
+        let beansCount = 0;
+        let cornCount = 0;
+        let bookBagCount = 0;
+        let hasMeleeWeapon = false;
+        let workShirtCount = 0;
+        let blueJeansCount = 0;
+        let lighterCount = 0;
+        let potCount = 0;
+
+        const meleeIDs = ['weapon.machete', 'weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar'];
+
+        // First pass: Count existing items on the starting home tiles
+        buildingTiles.forEach(pos => {
+            const items = gameMap.getItemsOnTile(pos.x, pos.y) || [];
+            items.forEach(item => {
+                if (item.defId === 'food.waterbottle') {
+                    // Make it full
+                    item.ammoCount = item.capacity || 20;
+                    waterBottleCount++;
+                } else if (item.defId === 'food.beans') {
+                    beansCount++;
+                } else if (item.defId === 'food.cannedcorn') {
+                    cornCount++;
+                } else if (item.defId === 'backpack.school') {
+                    bookBagCount++;
+                } else if (meleeIDs.includes(item.defId)) {
+                    // Set condition to 100%
+                    item.condition = 100;
+                    hasMeleeWeapon = true;
+                } else if (item.defId === 'clothing.workshirt') {
+                    workShirtCount++;
+                } else if (item.defId === 'clothing.blue_jeans') {
+                    blueJeansCount++;
+                } else if (item.defId === 'tool.lighter') {
+                    // Ensure charges are between 5 and 10
+                    if (item.ammoCount === undefined || item.ammoCount < 5 || item.ammoCount > 10) {
+                        item.ammoCount = 5 + Math.floor(Math.random() * 6); // 5-10
+                    }
+                    lighterCount++;
+                } else if (item.defId === 'tool.cooking_pot') {
+                    potCount++;
+                }
+            });
+        });
+
+        // Second pass: Spawn missing items
+        const itemsToAdd = [];
+
+        // 2 full water bottles
+        if (waterBottleCount < 2) {
+            const needed = 2 - waterBottleCount;
+            for (let i = 0; i < needed; i++) {
+                const water = createItemFromDef('food.waterbottle', { ammoCount: 20 });
+                if (water) itemsToAdd.push(water);
+            }
+        }
+
+        // 2 canned beans
+        if (beansCount < 2) {
+            const needed = 2 - beansCount;
+            for (let i = 0; i < needed; i++) {
+                const beans = createItemFromDef('food.beans');
+                if (beans) itemsToAdd.push(beans);
+            }
+        }
+
+        // 2 canned corn
+        if (cornCount < 2) {
+            const needed = 2 - cornCount;
+            for (let i = 0; i < needed; i++) {
+                const corn = createItemFromDef('food.cannedcorn');
+                if (corn) itemsToAdd.push(corn);
+            }
+        }
+
+        // 1 book bag
+        if (bookBagCount < 1) {
+            const bag = createItemFromDef('backpack.school');
+            if (bag) itemsToAdd.push(bag);
+        }
+
+        // 1 melee weapon at 100% condition (Machete, Fire axe, Hammer, Crowbar)
+        if (!hasMeleeWeapon) {
+            const randomMeleeId = meleeIDs[Math.floor(Math.random() * meleeIDs.length)];
+            const weapon = createItemFromDef(randomMeleeId, { condition: 100 });
+            if (weapon) itemsToAdd.push(weapon);
+        }
+
+        // 1 work shirt
+        if (workShirtCount < 1) {
+            const shirt = createItemFromDef('clothing.workshirt');
+            if (shirt) itemsToAdd.push(shirt);
+        }
+
+        // 1 blue jeans
+        if (blueJeansCount < 1) {
+            const jeans = createItemFromDef('clothing.blue_jeans');
+            if (jeans) itemsToAdd.push(jeans);
+        }
+
+        // 1 lighter with 5-10 charges
+        if (lighterCount < 1) {
+            const charges = 5 + Math.floor(Math.random() * 6);
+            const lighter = createItemFromDef('tool.lighter', { ammoCount: charges });
+            if (lighter) itemsToAdd.push(lighter);
+        }
+
+        // 1 cooking pot
+        if (potCount < 1) {
+            const pot = createItemFromDef('tool.cooking_pot');
+            if (pot) itemsToAdd.push(pot);
+        }
+
+        console.log(`[LootGenerator] Easy Start: Adding ${itemsToAdd.length} missing items to the starting home.`);
+
+        // Pick fallback tiles if selectedTiles is not set or empty
+        const tilesToUse = selectedTiles && selectedTiles.length > 0 ? selectedTiles : buildingTiles;
+
+        // Distribute items to the selected loot tiles randomly
+        itemsToAdd.forEach(item => {
+            const randomTile = tilesToUse[Math.floor(Math.random() * tilesToUse.length)];
+            const currentItems = gameMap.getItemsOnTile(randomTile.x, randomTile.y) || [];
+            gameMap.setItemsOnTile(randomTile.x, randomTile.y, [...currentItems, item]);
+            console.log(`[LootGenerator]   -> Placed guaranteed ${item.name} at (${randomTile.x}, ${randomTile.y})`);
         });
     }
 }

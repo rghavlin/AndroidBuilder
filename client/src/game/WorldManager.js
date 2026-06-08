@@ -424,6 +424,7 @@ export class WorldManager {
 
     // Progression logic (Must match executeTransition)
     if (this.DEV_FORCE_LAB && mapNumber === 1) return 'lab';
+    if (mapNumber === 1) return 'starting_road';
     if (mapNumber <= 3) return 'road';
     if (mapNumber === 4) return 'winding_road';
     if (mapNumber === 5) return 'mirrored_winding_road';

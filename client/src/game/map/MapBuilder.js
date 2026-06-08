@@ -164,8 +164,8 @@ export class MapBuilder {
 
     this.registerBuilding(type, x, y, w, h, { entranceX, entranceY, backX, backY, frontage });
     
-    // Subdivide and add windows (if residential)
-    if (type === 'residential') {
+    // Subdivide and add windows (if residential or starting_home)
+    if (type === 'residential' || type === 'starting_home') {
       this.subdivideBuilding(x, y, w, h);
       this.placeWindows(x, y, w, h);
     }

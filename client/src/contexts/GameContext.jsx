@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { PlayerZombieTracker } from '../game/ai/PlayerZombieTracker.js';
+import StartModeDialog from '../components/Game/StartModeDialog.tsx';
 import { SimulationManager } from '../game/managers/SimulationManager.js';
 import turnManager from '../game/managers/TurnManager.js';
 import audioManager from '../game/utils/AudioManager.js';
@@ -76,6 +77,8 @@ const GameContextInner = ({ children }) => {
   // Refs for internal use
   const initManagerRef = useRef(null);
   const autosaveTimeoutRef = useRef(null);
+  const [showDifficultySelect, setShowDifficultySelect] = useState(false);
+  const difficultyResolveRef = useRef(null);
 
   // LastSeen tile tagging system to prevent zombie clustering
   const lastSeenTaggedTilesRef = useRef(new Set());
@@ -1392,7 +1395,20 @@ const GameContextInner = ({ children }) => {
     setTurn(1); // Reset turn counter to 1 for new game (06:00 start)
     clearLogs(); // Clear log from previous game
 
-    const success = await initManagerRef.current.startInitialization(null, config);
+    // Easy Start difficulty selection interception
+    let chosenEasyStart = config && config.easyStart !== undefined ? config.easyStart : null;
+    
+    if (chosenEasyStart === null) {
+      setShowDifficultySelect(true);
+      chosenEasyStart = await new Promise((resolve) => {
+        difficultyResolveRef.current = resolve;
+      });
+      setShowDifficultySelect(false);
+    }
+
+    const finalConfig = { ...config, easyStart: chosenEasyStart };
+
+    const success = await initManagerRef.current.startInitialization(null, finalConfig);
     if (!success) {
       const error = initManagerRef.current.getError();
       setInitializationError(error || 'Unknown initialization error');
@@ -1764,6 +1780,15 @@ const GameContextInner = ({ children }) => {
   return (
     <GameContext.Provider value={contextValue}>
       {children}
+      {showDifficultySelect && (
+        <StartModeDialog
+          onSelect={(choice) => {
+            if (difficultyResolveRef.current) {
+              difficultyResolveRef.current(choice);
+            }
+          }}
+        />
+      )}
     </GameContext.Provider>
   );
 };
