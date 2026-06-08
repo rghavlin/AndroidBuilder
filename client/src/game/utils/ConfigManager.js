@@ -27,7 +27,7 @@ class ConfigManager {
      */
     getDefaults() {
         return {
-            tileSet: 'spritesheet',
+            tileSet: 'b&w',
             masterVolume: 0.8,
             musicVolume: 0.5,
             sfxVolume: 1.0,

@@ -15,6 +15,7 @@ export class Tile {
     this.scent = 0; // Current scent intensity (turns remaining)
     this.scentSequence = 0; // Global sequence number for trail following
     this.waterAmount = terrain === 'water' ? 100 : 0; // Units of water in this tile
+    this.decoration = null; // Visual decoration (e.g. 'outdoordecor1')
     
     // Thin-walled structures (Option A edge-based collision)
     // Indicates if an unwalkable wall exists on the border of this tile
@@ -226,7 +227,8 @@ export class Tile {
       scent: this.scent,
       scentSequence: this.scentSequence,
       waterAmount: this.waterAmount,
-      edgeWalls: this.edgeWalls
+      edgeWalls: this.edgeWalls,
+      decoration: this.decoration
     };
   }
 
@@ -241,6 +243,7 @@ export class Tile {
     tile.scentSequence = data.scentSequence || 0;
     tile.waterAmount = data.waterAmount || (data.terrain === 'water' ? 100 : 0);
     tile.edgeWalls = data.edgeWalls || { n: false, e: false, s: false, w: false };
+    tile.decoration = data.decoration || null;
     // Note: contents are restored by GameMap.fromJSON
     return tile;
   }

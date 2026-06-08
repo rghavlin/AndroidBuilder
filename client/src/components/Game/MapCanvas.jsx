@@ -766,6 +766,14 @@ export default function MapCanvas({
       const terrainToPreload = ['grass', 'road', 'building', 'water', 'floor', 'wall', 'fence', 'tent_wall', 'tent_floor'];
       await Promise.all(terrainToPreload.map(t => imageLoader.getTileImage(t)));
 
+      // Preload outdoor decorations
+      const decorationsToPreload = ['outdoordecor1', 'outdoordecor2', 'outdoordecor3', 'outdoordecor4', 'outdoordecor5'];
+      await Promise.all(decorationsToPreload.map(d => imageLoader.getDecorationImage(d, 'outdoor')));
+
+      // Preload indoor decorations
+      const indoorDecorationsToPreload = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'];
+      await Promise.all(indoorDecorationsToPreload.map(d => imageLoader.getDecorationImage(d, 'indoor')));
+
       setImagesLoaded(true);
     };
 

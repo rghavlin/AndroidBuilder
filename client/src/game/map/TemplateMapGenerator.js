@@ -304,6 +304,8 @@ export class TemplateMapGenerator {
     };
 
     this.placeWildCrops(mapData);
+    this.placeOutdoorDecorations(mapData);
+    this.placeIndoorDecorations(mapData);
 
     console.log(`[TemplateMapGenerator] Generated '${templateName}' map using ${generator ? 'Strategy' : 'Legacy'} engine`);
     return mapData;
@@ -390,6 +392,50 @@ export class TemplateMapGenerator {
   }
 
   /**
+   * Place outdoor decorations on grass tiles
+   */
+  placeOutdoorDecorations(mapData) {
+    const { width, height, tiles } = mapData;
+    const decorTypes = ['outdoordecor1', 'outdoordecor2', 'outdoordecor3', 'outdoordecor4', 'outdoordecor5'];
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const tile = tiles[y] && tiles[y][x];
+        if (tile && tile.terrain === 'grass') {
+          const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
+          if (!hasCropsOrItems && Math.random() < 0.08) {
+            const decor = decorTypes[Math.floor(Math.random() * decorTypes.length)];
+            tile.decoration = decor;
+          }
+        }
+      }
+    }
+    console.log(`[TemplateMapGenerator] Placed outdoor decorations`);
+  }
+
+  /**
+   * Place indoor decorations on indoor floor tiles
+   */
+  placeIndoorDecorations(mapData) {
+    const { width, height, tiles } = mapData;
+    const decorTypes = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'];
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const tile = tiles[y] && tiles[y][x];
+        if (tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor')) {
+          const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
+          if (!hasCropsOrItems && Math.random() < 0.08) {
+            const decor = decorTypes[Math.floor(Math.random() * decorTypes.length)];
+            tile.decoration = decor;
+          }
+        }
+      }
+    }
+    console.log(`[TemplateMapGenerator] Placed indoor decorations`);
+  }
+
+  /**
    * Convert layout to tile data format
    */
   layoutToTileData(layout) {
@@ -401,7 +447,8 @@ export class TemplateMapGenerator {
             y,
             terrain: cell.terrain,
             edgeWalls: cell.edgeWalls ? { ...cell.edgeWalls } : { n: false, e: false, s: false, w: false },
-            contents: []
+            contents: [],
+            decoration: cell.decoration || null
           };
         }
         return {
@@ -409,7 +456,8 @@ export class TemplateMapGenerator {
           y,
           terrain: cell,
           edgeWalls: { n: false, e: false, s: false, w: false },
-          contents: []
+          contents: [],
+          decoration: null
         };
       })
     );
@@ -426,7 +474,7 @@ export class TemplateMapGenerator {
       }
       // Ensure the tile data object exists for the coordinate
       if (!mapData.tiles[y][x]) {
-        mapData.tiles[y][x] = { x, y, terrain: 'grass', contents: [] }; // Default to grass if not initialized
+        mapData.tiles[y][x] = { x, y, terrain: 'grass', contents: [], decoration: null }; // Default to grass if not initialized
       }
       mapData.tiles[y][x].terrain = terrain;
     }
@@ -808,6 +856,14 @@ export class TemplateMapGenerator {
           // Transfer inventory items (Wild Crops, etc.)
           if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
             gameMap.setItemsOnTile(x, y, tileData.inventoryItems);
+          }
+
+          // Transfer decoration data
+          if (tileData.decoration) {
+            const tile = gameMap.getTile(x, y);
+            if (tile) {
+              tile.decoration = tileData.decoration;
+            }
           }
         }
       }

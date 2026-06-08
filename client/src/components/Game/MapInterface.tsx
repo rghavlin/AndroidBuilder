@@ -30,6 +30,7 @@ import { BuildingTooltip } from './BuildingTooltip';
 import { DoorTooltip } from './DoorTooltip';
 import { WindowTooltip } from './WindowTooltip';
 import { NPCTooltip } from './NPCTooltip';
+import { RabbitTooltip } from './RabbitTooltip';
 import { TradeDialog } from './TradeDialog';
 import BarterWindow from './BarterWindow';
 import { useLog } from '../../contexts/LogContext.jsx';
@@ -619,7 +620,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           }
 
           // Re-check visibility from the cached hoveredTile data (updated in MapCanvas)
-          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window && !hoveredTile.npc) return null;
+          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window && !hoveredTile.npc && !hoveredTile.rabbit) return null;
           
           // Only show if the tile is explored
           const isExplored = gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
@@ -1462,6 +1463,7 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   const allEntities = gameMapRef.current.getAllEntities();
   const zombie = allEntities.find((e: any) => e.type === 'zombie' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   const npc = allEntities.find((e: any) => e.type === EntityType.NPC && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  const rabbit = allEntities.find((e: any) => e.type === 'rabbit' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   // Find door/window on the hovered tile or its edge neighbors
   let door = allEntities.find((e: any) => e.type === 'door' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   if (!door) {
@@ -1504,7 +1506,10 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   // NPC Visibility logic: must be in player's current FOV
   const isNpcVisible = npc && playerFieldOfView && playerFieldOfView.some(pos => pos.x === Math.round(npc.x) && pos.y === Math.round(npc.y));
   
-  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible) return null;
+  // Rabbit Visibility logic: must be in player's current FOV
+  const isRabbitVisible = rabbit && playerFieldOfView && playerFieldOfView.some(pos => pos.x === Math.round(rabbit.x) && pos.y === Math.round(rabbit.y));
+  
+  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible && !isRabbitVisible) return null;
 
   // Calculate absolute screen position by adding container offset
   let x = screenPos.x * tileSize;
@@ -1540,6 +1545,7 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
       {door && <DoorTooltip door={door} />}
       {window && <WindowTooltip windowEntity={window} />}
       {isNpcVisible && <NPCTooltip npc={npc} />}
+      {isRabbitVisible && <RabbitTooltip rabbit={rabbit as any} />}
       
       {/* Downward arrow/pointer */}
       <div className="w-2.5 h-2.5 bg-[#1a1a1a] border-r border-b border-white/20 transform rotate-45 -mt-3.5 shadow-lg" />

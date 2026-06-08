@@ -221,7 +221,6 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                 <SelectContent className="z-[120]">
                                                     <SelectItem value="standard">Color</SelectItem>
                                                     <SelectItem value="b&w">Black and White</SelectItem>
-                                                    <SelectItem value="spritesheet">Sprite Sheet</SelectItem>
                                                     <SelectItem value="custom">Custom</SelectItem>
                                                     <SelectItem value="none">None (Colors Only)</SelectItem>
                                                 </SelectContent>

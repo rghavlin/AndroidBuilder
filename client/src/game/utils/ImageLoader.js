@@ -38,7 +38,8 @@ export class ImageLoader {
       tiles: `${rootPath}tiles/`,
       items: `${rootPath}items/`,
       places: `${rootPath}places/`,
-      UI: `${rootPath}UI/`
+      UI: `${rootPath}UI/`,
+      decorations: `${rootPath}tiles/decorations/`
     };
   }
 
@@ -723,6 +724,115 @@ export class ImageLoader {
 
     console.log('[ImageLoader] Tile cache cleared');
     if (this.onImageLoaded) this.onImageLoaded();
+  }
+
+  /**
+   * Get decoration image (from tiles/decorations folder)
+   * @param {string} decorationName - Name of the decoration (outdoordecor1, etc)
+   * @param {string} type - Subfolder type ('outdoor')
+   * @returns {Promise<HTMLImageElement|null>} - Image element or null if not found
+   */
+  async getDecorationImage(decorationName, type = 'outdoor') {
+    const imageKey = `decor_${type}_${decorationName}`;
+
+    // Return cached image if available
+    if (this.images[imageKey]) {
+      return this.images[imageKey];
+    }
+
+    // Return null immediately if known to fail
+    if (this.permanentFailures.has(imageKey)) {
+      return null;
+    }
+
+    // Return existing loading promise if already loading
+    if (this.loadingPromises.has(imageKey)) {
+      return this.loadingPromises.get(imageKey);
+    }
+
+    const loadPromise = (async () => {
+      try {
+        const image = await this.loadDecorationImage(decorationName, type);
+        this.images[imageKey] = image;
+        this.failedImagesCount.delete(imageKey);
+        return image;
+      } catch (error) {
+        const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
+        this.failedImagesCount.set(imageKey, fails);
+        
+        if (fails >= this.maxRetries) {
+          this.permanentFailures.add(imageKey);
+          console.error(`[ImageLoader] Permanent failure for decoration image: ${decorationName} (${type})`);
+        } else {
+          console.warn(`[ImageLoader] Failed to load decoration image: ${decorationName} (Attempt ${fails}/${this.maxRetries})`);
+        }
+        return null;
+      } finally {
+        this.loadingPromises.delete(imageKey);
+      }
+    })();
+
+    this.loadingPromises.set(imageKey, loadPromise);
+    return loadPromise;
+  }
+
+  /**
+   * Load decoration image from file system
+   */
+  loadDecorationImage(decorationName, type) {
+    return new Promise((resolve, reject) => {
+      if (this.tileSet === 'none') {
+        reject(new Error('Textures disabled (set to None)'));
+        return;
+      }
+
+      const img = new Image();
+      const extensions = ['png', 'jpg', 'jpeg', 'webp'];
+      let extensionIndex = 0;
+      let basePathIndex = 0;
+
+      const basePaths = [
+        `${this.basePath.decorations}${type}/`,
+        `/images/tiles/decorations/${type}/`,
+        `./images/tiles/decorations/${type}/`
+      ];
+
+      const tryNextPath = () => {
+        if (basePathIndex >= basePaths.length) {
+          reject(new Error(`No decoration image found for: ${decorationName}`));
+          return;
+        }
+
+        const currentBasePath = basePaths[basePathIndex];
+        extensionIndex = 0;
+        tryNextExtension(currentBasePath);
+      };
+
+      const tryNextExtension = (currentBasePath) => {
+        if (extensionIndex >= extensions.length) {
+          basePathIndex++;
+          tryNextPath();
+          return;
+        }
+
+        const extension = extensions[extensionIndex];
+        const fullPath = `${currentBasePath}${decorationName}.${extension}`;
+
+        img.src = fullPath;
+        extensionIndex++;
+      };
+
+      img.onload = () => {
+        if (this.onImageLoaded) this.onImageLoaded();
+        resolve(img);
+      };
+
+      img.onerror = () => {
+        tryNextExtension(basePaths[basePathIndex]);
+      };
+
+      tryNextPath();
+    });
   }
 
   /**

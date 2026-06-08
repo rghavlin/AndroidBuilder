@@ -195,11 +195,48 @@ export const EntityRenderer = {
         let drawY = screenY;
         let drawSize = tileSize;
 
+        // Check if the item on the tile is a crop (growing or harvestable, wild or player-planted)
+        const tileItems = (engine && engine.gameMap) ? engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y)) : [];
+        const isCrop = tileItems.some(item => {
+          const defId = item.defId || item.id;
+          return (defId && (defId.endsWith('_plant') || defId.startsWith('provision.harvestable_'))) || item.isWild || item.isHarvestable;
+        });
+
+        // Check if the item on the tile is a piece of furniture or a vehicle
+        const hasFurnitureOrVehicle = tileItems.some(item => {
+          const defId = item.defId || item.id;
+          if (!defId) return false;
+          if (defId.startsWith('furniture.') || defId.startsWith('vehicle.')) return true;
+          
+          const traits = item.traits || [];
+          const categories = item.categories || [];
+          if (traits.includes('furniture') || traits.includes('vehicle') ||
+              categories.includes('furniture') || categories.includes('vehicle')) {
+            return true;
+          }
+          
+          const def = ItemDefs[defId];
+          if (def) {
+            const defTraits = def.traits || [];
+            const defCategories = def.categories || [];
+            if (defTraits.includes('furniture') || defTraits.includes('vehicle') ||
+                defCategories.includes('furniture') || defCategories.includes('vehicle')) {
+              return true;
+            }
+          }
+          return false;
+        });
+
         // Metadata driven: check if the item is marked as full-tile
         // We check the entity property (set by GameMap for ground items) or the definition
-        const isFullTileItem = entity.renderFullTile || 
+        let isFullTileItem = entity.renderFullTile || 
                                ItemDefs[subtype]?.renderFullTile || 
                                ItemDefs[entity.defId]?.renderFullTile;
+
+        // Override: render crops, furniture, and vehicles in a circular token frame (not full tile)
+        if (isCrop || hasFurnitureOrVehicle) {
+          isFullTileItem = false;
+        }
         
         const isExit = subtype === 'exit' || entity.defId === 'placeable.exit' || entity.subtype === 'exit';
 
@@ -256,7 +293,11 @@ export const EntityRenderer = {
             isMedical = cats.includes('medical');
           }
 
-          if (matchingDef && matchingDef.backgroundColor) {
+          if (isCrop) {
+            itemBgColor = '#006B18';
+          } else if (hasFurnitureOrVehicle) {
+            itemBgColor = '#36454F'; // Charcoal background
+          } else if (matchingDef && matchingDef.backgroundColor) {
             itemBgColor = matchingDef.backgroundColor;
           } else if (isFood) {
             itemBgColor = '#006B18';
@@ -266,25 +307,49 @@ export const EntityRenderer = {
             itemBgColor = '#0a0a0a';
           }
 
-          ctx.save();
-          ctx.beginPath();
           const centerX = drawX + drawSize / 2;
           const centerY = drawY + drawSize / 2;
           const radius = drawSize / 2;
-          
+
+          // 1. Draw background circle
+          ctx.save();
+          ctx.beginPath();
           ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.fillStyle = itemBgColor;
           ctx.fill();
+          ctx.restore();
+
+          // 2. Draw sprite (clipped and scaled down so it fits perfectly inside the circle)
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          ctx.clip();
+
+          // Scale down slightly (0.72) to prevent corner overflow (e.g. wagon wheels/handle)
+          const scale = 0.72;
+          const sSize = drawSize * scale;
+          const sX = drawX + (drawSize - sSize) / 2;
+          const sY = drawY + (drawSize - sSize) / 2;
+          ctx.drawImage(sprite, sX, sY, sSize, sSize);
+          ctx.restore();
+          
+          // 3. Draw outer and inner borders on top of the clipped sprite
+          ctx.save();
           
           // Draw outer dark border for high contrast
           ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
           ctx.lineWidth = Math.max(1.5, drawSize * 0.08);
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.stroke();
 
           // Draw inner silver border
           ctx.strokeStyle = '#e2e8f0';
           ctx.lineWidth = Math.max(0.8, drawSize * 0.04);
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.stroke();
+          
           ctx.restore();
         }
 
@@ -324,19 +389,21 @@ export const EntityRenderer = {
                                 engine.gameMap && 
                                 entity.y === engine.gameMap.height - 1;
             
+            const isTokenItem = entity.type === 'item' && !isFullTileItem && !isExit;
+
             if (isSouthExit) {
               ctx.save();
               ctx.translate(drawX + drawSize / 2, drawY + drawSize / 2);
               ctx.rotate(Math.PI);
               ctx.drawImage(sprite, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
               ctx.restore();
-            } else {
+            } else if (!isTokenItem) {
               ctx.drawImage(sprite, drawX, drawY, drawSize, drawSize);
             }
         }
         
-        // Square 'Picture Frame' for Player and Zombies (distinct silver game piece outline)
-        if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE) {
+        // Square 'Picture Frame' for Player, Zombies and Rabbits (distinct silver game piece outline)
+        if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE || entity.type === EntityType.RABBIT) {
           ctx.save();
           
           // Draw outer high-contrast border

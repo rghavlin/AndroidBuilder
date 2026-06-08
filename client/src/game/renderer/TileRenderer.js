@@ -109,6 +109,20 @@ export const TileRenderer = {
             }
         }
 
+        // Step B.5: Draw Decoration Layer (on top of terrain, below walls/fog)
+        if (tile.decoration && imageLoader.tileSet !== 'none' && !engine.renderDebugColors) {
+            const isIndoor = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration);
+            const decorType = isIndoor ? 'indoor' : 'outdoor';
+            const decorKey = `decor_${decorType}_${tile.decoration}`;
+            const decorSprite = sprites[decorKey];
+            if (decorSprite) {
+                ctx.drawImage(decorSprite, screenX, screenY, tileSize, tileSize);
+            } else {
+                // Reactive lazy-loading for missing decorations
+                imageLoader.getDecorationImage(tile.decoration, decorType);
+            }
+        }
+
         // Draw Edge Walls
         const hasDoorOrWindowOnEdge = (t, edge) => {
             if (!t || !t.contents) return false;
