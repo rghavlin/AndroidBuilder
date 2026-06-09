@@ -268,6 +268,33 @@ class TurnManager {
           if (data.sickInflicted && typeof target.inflictSickness === 'function') {
             target.inflictSickness(24);
           }
+
+          // Check if target died from the damage
+          if (typeof target.isDead === 'function' && target.isDead()) {
+            console.log(`[TurnManager] Entity ${target.id} (${target.type}) died from attack.`);
+            if (target.type === 'npc' || target.type === EntityType.NPC) {
+              if (typeof target.die === 'function') {
+                target.die(); // Emits npcDied event
+              }
+              const items = target.inventory ? target.inventory.getAllItems() : [];
+              if (items.length > 0) {
+                gameMap.addItemsToTile(target.logicalX, target.logicalY, items);
+                target.inventory.clear();
+              }
+            }
+            
+            // Remove the dead entity from the map
+            gameMap.removeEntity(target.id);
+            
+            // Clear targeting references from all zombies to avoid ghost chasing
+            const allZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie');
+            allZombies.forEach(z => {
+              if (z.currentTarget && z.currentTarget.id === target.id) {
+                z.currentTarget = null;
+                z.behaviorState = 'idle';
+              }
+            });
+          }
         }
         break;
 
@@ -280,6 +307,15 @@ class TurnManager {
           await entity.playAction(action);
         }
         gameMap.removeEntity(entityId);
+        
+        // Clear targeting references from all zombies to avoid ghost chasing
+        const remainingZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie');
+        remainingZombies.forEach(z => {
+          if (z.currentTarget && z.currentTarget.id === entityId) {
+            z.currentTarget = null;
+            z.behaviorState = 'idle';
+          }
+        });
         break;
 
       case 'DEMAND':

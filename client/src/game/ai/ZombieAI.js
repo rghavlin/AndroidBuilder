@@ -37,12 +37,46 @@ export class ZombieAI {
     // zombie.logicalX = Math.floor(zombie.x);
     // zombie.logicalY = Math.floor(zombie.y);
 
-    const initialCanSee = zombie.canSeeEntity(gameMap, player);
-    // Only lock in LKP if the zombie has actual confirmed LOS right now.
-    // Do NOT overwrite a valid LKP with the player's real position when the zombie
-    // cannot see them — that was the root cause of the "sidestepping" bug.
-    if (initialCanSee) {
-        zombie.setTargetSighted(player.logicalX, player.logicalY);
+    // 1. Gather all potential targets (player + active NPCs)
+    const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc') || [];
+    const activeNPCs = npcs.filter(n => n && n.hp > 0 && !n.hasExited);
+    const potentialTargets = [player, ...activeNPCs];
+
+    // Find closest visible target
+    let target = null;
+    let minDist = Infinity;
+    potentialTargets.forEach(t => {
+      if (zombie.canSeeEntity(gameMap, t)) {
+        const dist = zombie.getDistanceTo(t.logicalX, t.logicalY);
+        if (dist < minDist) {
+          minDist = dist;
+          target = t;
+        }
+      }
+    });
+
+    if (target) {
+      zombie.currentTarget = { id: target.id, type: target.id === 'player' ? 'player' : 'npc' };
+      zombie.setTargetSighted(target.logicalX, target.logicalY);
+    } else {
+      let targetValid = false;
+      if (zombie.currentTarget) {
+        if (zombie.currentTarget.type === 'player') {
+          targetValid = true;
+          target = player;
+        } else {
+          const np = activeNPCs.find(n => n.id === zombie.currentTarget.id);
+          if (np) {
+            targetValid = true;
+            target = np;
+          }
+        }
+      }
+      if (!targetValid) {
+        zombie.clearLastSeen();
+        zombie.currentTarget = null;
+        target = null;
+      }
     }
 
     const typeDef = getZombieType(zombie.subtype);
@@ -55,9 +89,47 @@ export class ZombieAI {
     while (zombie.currentAP > 0.05 && !turnResult.blocked && turnResult.actions.length < maxActions && safetyCounter < 100) {
       safetyCounter++;
       
-      const canSee = zombie.canSeeEntity(gameMap, player);
-      const isAdjacent = zombie.isAdjacentTo(player.logicalX, player.logicalY);
-      const isDiagonal = zombie.isDiagonalTo(player.logicalX, player.logicalY);
+      // Re-evaluate target dynamically in case a target gets closer or enters sight
+      let loopTarget = null;
+      let loopMinDist = Infinity;
+      potentialTargets.forEach(t => {
+        if (zombie.canSeeEntity(gameMap, t)) {
+          const dist = zombie.getDistanceTo(t.logicalX, t.logicalY);
+          if (dist < loopMinDist) {
+            loopMinDist = dist;
+            loopTarget = t;
+          }
+        }
+      });
+
+      if (loopTarget) {
+        target = loopTarget;
+        zombie.currentTarget = { id: target.id, type: target.id === 'player' ? 'player' : 'npc' };
+        zombie.setTargetSighted(target.logicalX, target.logicalY);
+      } else {
+        let targetValid = false;
+        if (zombie.currentTarget) {
+          if (zombie.currentTarget.type === 'player') {
+            targetValid = true;
+            target = player;
+          } else {
+            const np = activeNPCs.find(n => n.id === zombie.currentTarget.id);
+            if (np) {
+              targetValid = true;
+              target = np;
+            }
+          }
+        }
+        if (!targetValid) {
+          zombie.clearLastSeen();
+          zombie.currentTarget = null;
+          target = null;
+        }
+      }
+
+      const canSee = target && zombie.canSeeEntity(gameMap, target);
+      const isAdjacent = target && zombie.isAdjacentTo(target.logicalX, target.logicalY);
+      const isDiagonal = target && zombie.isDiagonalTo(target.logicalX, target.logicalY);
 
       if (safetyCounter === 1) {
         if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} turn start: Pos(${zombie.logicalX}, ${zombie.logicalY}), canSee=${canSee}, lastSeen=${zombie.lastSeen}, LKP=(${zombie.targetSightedCoords?.x}, ${zombie.targetSightedCoords?.y})`);
@@ -67,21 +139,21 @@ export class ZombieAI {
 
       let actionResult = null;
 
-      // 1. COMBAT (Priority 1: Attack player if in reach)
+      // 1. COMBAT (Priority 1: Attack target if in reach)
       let canMeleeAttack = canSee && (isAdjacent || (isDiagonal && zombie.subtype === 'mutant'));
       let blockingStructure = null;
 
       if (canMeleeAttack) {
           if (isAdjacent) {
-              blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombie.logicalX, zombie.logicalY, player.logicalX, player.logicalY);
-              if (Pathfinding.isEdgeBlocked(gameMap, zombie.logicalX, zombie.logicalY, player.logicalX, player.logicalY, zombie)) {
+              blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombie.logicalX, zombie.logicalY, target.logicalX, target.logicalY);
+              if (Pathfinding.isEdgeBlocked(gameMap, zombie.logicalX, zombie.logicalY, target.logicalX, target.logicalY, zombie)) {
                   if (!blockingStructure) {
                       canMeleeAttack = false; // Solid wall blocks attack!
                   }
               }
           } else {
               // Diagonal: check corner blocking
-              if (!Pathfinding.canMoveDiagonally(gameMap, zombie.logicalX, zombie.logicalY, player.logicalX, player.logicalY, zombie)) {
+              if (!Pathfinding.canMoveDiagonally(gameMap, zombie.logicalX, zombie.logicalY, target.logicalX, target.logicalY, zombie)) {
                   canMeleeAttack = false; // Corner/wall blocks diagonal attack!
               }
           }
@@ -90,10 +162,10 @@ export class ZombieAI {
       if (canMeleeAttack) {
           if (blockingStructure) {
               const fromPos = { x: zombie.logicalX, y: zombie.logicalY };
-              actionResult = this.executeStructureAttack(zombie, gameMap, blockingStructure, { x: player.logicalX, y: player.logicalY }, fromPos);
+              actionResult = this.executeStructureAttack(zombie, gameMap, blockingStructure, { x: target.logicalX, y: target.logicalY }, fromPos);
           } else {
-              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking player. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Player=(${player.logicalX}, ${player.logicalY})`);
-              const attackResult = this.attemptAttack(zombie, player);
+              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ⚔️ ${zombie.id} is attacking target. Pos=(${zombie.logicalX}, ${zombie.logicalY}), Target=(${target.logicalX}, ${target.logicalY})`);
+              const attackResult = this.attemptAttack(zombie, target);
               
               if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
                   if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} insufficient AP for melee attack. Breaking turn.`);
@@ -103,14 +175,14 @@ export class ZombieAI {
                     type: 'ATTACK',
                     success: true,
                     entityId: zombie.id,
-                    data: { ...attackResult, targetId: player.id, targetType: 'player', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: player.logicalX, y: player.logicalY } }
+                    data: { ...attackResult, targetId: target.id, targetType: target.id === 'player' ? 'player' : 'npc', from: { x: zombie.logicalX, y: zombie.logicalY }, to: { x: target.logicalX, y: target.logicalY } }
                   };
               }
           }
       }
       // 1b. RANGED ATTACK (Ranged Priority: Spit/shoot if in range but not adjacent)
-      else if (typeDef.isRanged && canSee && zombie.getDistanceTo(player.logicalX, player.logicalY) <= (typeDef.rangedRange || 5)) {
-           const attackResult = this.attemptRangedAttack(zombie, player);
+      else if (typeDef.isRanged && canSee && zombie.getDistanceTo(target.logicalX, target.logicalY) <= (typeDef.rangedRange || 5)) {
+           const attackResult = this.attemptRangedAttack(zombie, target);
            
            if (!attackResult.success && attackResult.reason === 'Insufficient AP') {
                if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} insufficient AP for ranged attack. Breaking turn.`);
@@ -125,53 +197,50 @@ export class ZombieAI {
                        projectile: {
                            type: 'projectile',
                            color: '#a855f7',
-                           targetX: player.logicalX,
-                           targetY: player.logicalY
+                           targetX: target.logicalX,
+                           targetY: target.logicalY
                        }
                    },
                    data: { 
                        ...attackResult, 
-                       targetId: player.id, 
-                       targetType: 'player', 
+                       targetId: target.id, 
+                       targetType: target.id === 'player' ? 'player' : 'npc', 
                        from: { x: zombie.logicalX, y: zombie.logicalY }, 
-                       to: { x: player.logicalX, y: player.logicalY } 
+                       to: { x: target.logicalX, y: target.logicalY } 
                    }
                };
            }
        }
-       // 2. PURSUIT (Priority 2: Move toward player if visible)
+       // 2. PURSUIT (Priority 2: Move toward target if visible)
       else if (canSee) {
           zombie.behaviorState = 'pursuing';
-          zombie.setTargetSighted(player.logicalX, player.logicalY);
+          zombie.setTargetSighted(target.logicalX, target.logicalY);
           
-          const distToPlayer = Math.abs(zombie.logicalX - player.logicalX) + Math.abs(zombie.logicalY - player.logicalY);
+          const distToTarget = Math.abs(zombie.logicalX - target.logicalX) + Math.abs(zombie.logicalY - target.logicalY);
 
           // A) CLOSE RANGE: Swarm/Surround logic (8-tile awareness)
-          if (distToPlayer <= 4) {
-              // Pick (or reuse) a locked swarm target for this turn to prevent oscillation.
-              // Re-sorting from the zombie's updated position each tick causes the "nearest"
-              // spot to flip back and forth, making the zombie bounce in place.
+          if (distToTarget <= 4) {
               if (!lockedSwarmTarget) {
-                  // Try to find ANY available spot around the player (8 tiles)
+                  // Try to find ANY available spot around the target (8 tiles)
                   const adjacentSpots = [];
                   for (let dx = -1; dx <= 1; dx++) {
                       for (let dy = -1; dy <= 1; dy++) {
                           if (dx === 0 && dy === 0) continue;
                           
-                          const sx = player.logicalX + dx;
-                          const sy = player.logicalY + dy;
+                          const sx = target.logicalX + dx;
+                          const sy = target.logicalY + dy;
                           
-                          // Filter out spots that are completely blocked by a solid wall from reaching the player
+                          // Filter out spots that are completely blocked by a solid wall from reaching the target
                           if (Math.abs(dx) + Math.abs(dy) === 1) {
                               // Cardinal
-                              const isBlocked = Pathfinding.isEdgeBlocked(gameMap, sx, sy, player.logicalX, player.logicalY, zombie);
-                              const hasStructure = Pathfinding.getBlockingStructure(gameMap, sx, sy, player.logicalX, player.logicalY) !== null;
+                              const isBlocked = Pathfinding.isEdgeBlocked(gameMap, sx, sy, target.logicalX, target.logicalY, zombie);
+                              const hasStructure = Pathfinding.getBlockingStructure(gameMap, sx, sy, target.logicalX, target.logicalY) !== null;
                               if (isBlocked && !hasStructure) {
                                   continue; // Separated by solid wall!
                               }
                           } else {
                               // Diagonal
-                              if (!Pathfinding.canMoveDiagonally(gameMap, sx, sy, player.logicalX, player.logicalY, zombie)) {
+                              if (!Pathfinding.canMoveDiagonally(gameMap, sx, sy, target.logicalX, target.logicalY, zombie)) {
                                   continue; // Separated by corner/walls!
                               }
                           }
@@ -207,8 +276,8 @@ export class ZombieAI {
 
                   // Sort by attack suitability and then actual path cost/reachability.
                   spotsWithPaths.sort((a, b) => {
-                      const isCardinalA = (a.spot.x === player.logicalX || a.spot.y === player.logicalY);
-                      const isCardinalB = (b.spot.x === player.logicalX || b.spot.y === player.logicalY);
+                      const isCardinalA = (a.spot.x === target.logicalX || a.spot.y === target.logicalY);
+                      const isCardinalB = (b.spot.x === target.logicalX || b.spot.y === target.logicalY);
                       
                       // For mutants, all 8 spots are valid attack positions, so they are all high priority.
                       // For others, only cardinal spots are valid attack positions.
@@ -263,12 +332,12 @@ export class ZombieAI {
           } 
           
           if (!actionResult || !actionResult.success) {
-              const fallbackResult = this._attemptMoveWithFallbacks(zombie, gameMap, player.logicalX, player.logicalY, 'pursuit');
+              const fallbackResult = this._attemptMoveWithFallbacks(zombie, gameMap, target.logicalX, target.logicalY, 'pursuit');
               actionResult = fallbackResult.actionResult;
               let moveFound = fallbackResult.success;
 
               if (!moveFound) {
-                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from player. Ending turn.`);
+                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from target. Ending turn.`);
                   turnResult.blocked = true;
                   actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: zombie.currentAP } };
               }

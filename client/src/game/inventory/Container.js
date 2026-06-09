@@ -758,6 +758,13 @@ export class Container {
   }
 
   /**
+   * Get item by unique instanceId
+   */
+  getItem(id) {
+    return this.items.get(id);
+  }
+
+  /**
    * Get all items in container
    */
   getAllItems() {

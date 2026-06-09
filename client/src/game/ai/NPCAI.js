@@ -5,6 +5,7 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 import engine from '../GameEngine.js';
+import { ScentTrail } from '../utils/ScentTrail.js';
 
 /**
  * NPCAI - Handles decision making for NPCs (Travelers heading south)
@@ -26,6 +27,11 @@ export class NPCAI {
     };
 
     try {
+      // Clean up simulated HP from all zombies at the start of the turn
+      zombies.forEach(z => {
+        if (z) delete z.simulatedHp;
+      });
+
       if (this.DEBUG) {
         console.log(`[NPCAI] --- Starting turn for NPC ${npc.name} (${npc.id}) --- AP: ${npc.ap}`);
       }
@@ -39,13 +45,29 @@ export class NPCAI {
 
         // Priority 1: Flee from zombies (Avoidance)
         if (threats.length > 0) {
-          if (this.DEBUG) console.log(`[NPCAI] Zombie threats detected: ${threats.length}. Initiating flee behavior.`);
-          if (this.processZombieAvoidance(npc, gameMap, threats, turnResult)) {
+          const typeDef = getNPCType(npc.typeId);
+          const dangerRadius = typeDef.ai?.dangerRadius || 5;
+          const surroundThreshold = typeDef.ai?.surroundThreshold || 3;
+          
+          const realThreatsInDangerZone = threats.filter(t => {
+            if (t.type === 'memory') return false;
+            return npc.getDistanceTo(t.logicalX, t.logicalY) <= dangerRadius;
+          });
+
+          const isSurrounded = realThreatsInDangerZone.length >= surroundThreshold;
+
+          if (isSurrounded) {
+            if (this.DEBUG) {
+              console.log(`[NPCAI] NPC ${npc.name} is surrounded by ${realThreatsInDangerZone.length} zombies (threshold: ${surroundThreshold}). Skipping flee behavior to stand ground.`);
+            }
+          }
+
+          if (!isSurrounded && this.processZombieAvoidance(npc, gameMap, threats, turnResult)) {
             continue;
           }
           
-          // Priority 2: Last-Resort Combat (if fleeing failed / cornered)
-          if (this.DEBUG) console.log(`[NPCAI] Fleeing failed or cornered. Initiating Last-Resort Combat.`);
+          // Priority 2: Last-Resort Combat (if fleeing failed / cornered / surrounded)
+          if (this.DEBUG) console.log(`[NPCAI] Fleeing failed, cornered, or surrounded. Initiating Last-Resort Combat.`);
           if (this.processLastResortCombat(npc, gameMap, threats, turnResult)) {
             continue;
           }
@@ -103,14 +125,24 @@ export class NPCAI {
     const typeDef = getNPCType(npc.typeId);
     const dangerRadius = typeDef.ai?.dangerRadius || 8;
     
-    // Clean up old memory (older than 3 turns)
-    npc.recentThreats = (npc.recentThreats || []).filter(t => (currentTurn - t.turn) < 3);
+    // Clean up old memory (older than 3 turns or simulated dead)
+    npc.recentThreats = (npc.recentThreats || []).filter(t => {
+      if ((currentTurn - t.turn) >= 3) return false;
+      const deadZombie = zombies.find(z => z && z.logicalX === t.x && z.logicalY === t.y);
+      if (deadZombie) {
+        const simHp = deadZombie.simulatedHp !== undefined ? deadZombie.simulatedHp : deadZombie.hp;
+        if (simHp <= 0) return false;
+      }
+      return true;
+    });
 
     const threats = [];
     
     // 1. Process visible zombies and register all in threat memory (up to full sight range)
     zombies.forEach(zombie => {
-      if (!zombie || zombie.hp <= 0) return;
+      if (!zombie) return;
+      const simHp = zombie.simulatedHp !== undefined ? zombie.simulatedHp : zombie.hp;
+      if (simHp <= 0) return;
 
       const dist = npc.getDistanceTo(zombie.logicalX, zombie.logicalY);
       if (dist <= npc.sightRange && npc.canSeeEntity(gameMap, zombie)) {
@@ -240,12 +272,21 @@ export class NPCAI {
       const { neighbor, tile } = cand;
 
       // Check edge blocking for solid walls (not breachable)
-      const isEdgeBlocked = Pathfinding.isEdgeBlocked(gameMap, npc.logicalX, npc.logicalY, neighbor.x, neighbor.y, npc, { isPathfinding: true });
+      const isEdgeBlocked = Pathfinding.isEdgeBlocked(gameMap, npc.logicalX, npc.logicalY, neighbor.x, neighbor.y, npc, { isPathfinding: true, allowBreaching: true });
       if (isEdgeBlocked) continue;
 
       // Check if tile has blocking entities (except breachable doors/windows)
       const hasBlockingEntity = tile.contents.some(e => e.blocksMovement && e.type !== 'door' && e.type !== 'window');
       if (hasBlockingEntity) continue;
+
+      // Check if tile has already been visited this turn to prevent oscillation
+      const alreadyVisited = npc.movementPath && npc.movementPath.some(pos => pos.x === neighbor.x && pos.y === neighbor.y);
+      if (alreadyVisited) {
+        if (this.DEBUG) {
+          console.log(`[NPCAI] Flee candidate (${neighbor.x}, ${neighbor.y}) rejected: already visited this turn.`);
+        }
+        continue;
+      }
 
       // Check walkability (in terrain/static obstacles, allowing breachable structures)
       const isBaseWalkable = tile.isWalkable(npc, { allowBreaching: true });
@@ -379,12 +420,15 @@ export class NPCAI {
    */
   static processLastResortCombat(npc, gameMap, threats, turnResult) {
     const realZombies = threats.filter(z => z.type === 'zombie');
+    
+    // 1. Melee attack if cardinally adjacent
     const adjacentZombie = realZombies.find(z => npc.isAdjacentTo(z.logicalX, z.logicalY));
     if (adjacentZombie) {
       if (this.DEBUG) console.log(`[NPCAI] Engaging adjacent zombie ${adjacentZombie.name} in melee combat.`);
       return this.performAttack(npc, adjacentZombie, turnResult, false);
     }
 
+    // 2. Ranged attack if ranged weapon is held
     const weapon = npc.getEquippedWeapon();
     const isRanged = weapon && (ItemDefs[weapon.defId]?.rangedStats || weapon.rangedStats);
     if (isRanged) {
@@ -392,6 +436,25 @@ export class NPCAI {
       if (shootZombie) {
         if (this.DEBUG) console.log(`[NPCAI] Shooting at zombie ${shootZombie.name} at distance ${npc.getDistanceTo(shootZombie.logicalX, shootZombie.logicalY).toFixed(1)}.`);
         return this.performAttack(npc, shootZombie, turnResult, true);
+      }
+    }
+
+    // 3. Melee approach step: if not adjacent but we have a melee weapon (or unarmed) and AP, step towards the closest threat
+    if (realZombies.length > 0 && npc.ap >= 1.0) {
+      const closestZombie = realZombies[0]; // Sorted closest first
+      const path = Pathfinding.findPath(gameMap, npc.logicalX, npc.logicalY, closestZombie.logicalX, closestZombie.logicalY, { 
+        entity: npc,
+        allowDiagonal: false 
+      });
+      if (path && path.length > 2) { // Need at least start, nextStep, and target
+        const nextStep = path[1];
+        if (this.DEBUG) {
+          console.log(`[NPCAI] Cornered. Stepping towards closest threat at (${closestZombie.logicalX}, ${closestZombie.logicalY}) to engage. Next step: (${nextStep.x}, ${nextStep.y})`);
+        }
+        const success = this.performStepTowards(npc, gameMap, nextStep, turnResult);
+        if (success) {
+          return true;
+        }
       }
     }
 
@@ -530,7 +593,7 @@ export class NPCAI {
           pathValid = false;
         } else {
           // If the edge is blocked (by wall, not door/window)
-          const edgeBlocked = Pathfinding.isEdgeBlocked(gameMap, npc.logicalX, npc.logicalY, nextStep.x, nextStep.y, npc, { isPathfinding: true });
+          const edgeBlocked = Pathfinding.isEdgeBlocked(gameMap, npc.logicalX, npc.logicalY, nextStep.x, nextStep.y, npc, { isPathfinding: true, allowBreaching: true });
           const hasBlockingEntity = nextTile.contents.some(e => e.blocksMovement && e.type !== 'door' && e.type !== 'window');
           if (edgeBlocked || hasBlockingEntity) {
             pathValid = false;
@@ -635,6 +698,7 @@ export class NPCAI {
       const fromPos = { x: npc.logicalX, y: npc.logicalY };
       if (gameMap.moveEntity(npc.id, nextStep.x, nextStep.y, { snap: false })) {
         npc.useAP(moveCost);
+        ScentTrail.dropScent(gameMap, nextStep.x, nextStep.y, 3);
         
         if (!npc.movementPath || npc.movementPath.length === 0) {
           npc.movementPath = [{ x: fromPos.x, y: fromPos.y }];
@@ -662,17 +726,36 @@ export class NPCAI {
 
     npc.useAP(apCost);
 
-    const baseAccuracy = isRanged ? 0.5 : 0.6;
-    const hit = Math.random() < baseAccuracy;
+    const typeDef = getNPCType(npc.typeId);
+    const combatSkill = typeDef.ai?.combatSkill || 0.5;
+
+    let hitChance = isRanged ? 0.70 : 0.75;
+    const weapon = npc.getEquippedWeapon();
+    const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
+
+    if (isRanged) {
+      const dist = npc.getDistanceTo(target.logicalX || target.x, target.logicalY || target.y);
+      const stats = weaponDef?.rangedStats || {};
+      const falloff = stats.accuracyFalloff || 0.1;
+      const baseChance = Math.max(stats.minAccuracy || 0.1, 1.0 - (dist - 1) * falloff);
+      hitChance = baseChance * (combatSkill * 2.0);
+    } else {
+      const baseChance = weaponDef?.combat?.hitChance || 0.75;
+      hitChance = baseChance * (combatSkill * 2.0);
+    }
+
+    hitChance = Math.max(0.2, Math.min(0.95, hitChance));
+    const hit = Math.random() < hitChance;
     let damage = 0;
 
     if (hit) {
-      const weapon = npc.getEquippedWeapon();
-      const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
       const damageRange = isRanged 
         ? (weaponDef?.rangedStats?.damage || weapon?.rangedStats?.damage || { min: 2, max: 5 }) 
-        : (weaponDef?.damage || weapon?.damage || { min: 1, max: 3 });
+        : (weaponDef?.combat?.damage || weaponDef?.damage || weapon?.damage || { min: 1, max: 3 });
       damage = Math.floor(Math.random() * (damageRange.max - damageRange.min + 1)) + damageRange.min;
+      
+      // Update simulated HP
+      target.simulatedHp = (target.simulatedHp !== undefined ? target.simulatedHp : target.hp) - damage;
     }
 
     // Invalidate path on attack

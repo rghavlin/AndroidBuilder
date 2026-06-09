@@ -30,14 +30,28 @@ export class SimulationManager {
     GameMap.isSimulating = true;
 
     try {
+      const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc');
+
       // 1. Zombie Turns
       const zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie');
       const activeZombies = isSleeping
         ? zombies
         : zombies.filter(z => {
-            const dx = Math.abs(z.x - player.x);
-            const dy = Math.abs(z.y - player.y);
-            return dx < 60 && dy < 60;
+            const zX = z.logicalX !== undefined ? z.logicalX : z.x;
+            const zY = z.logicalY !== undefined ? z.logicalY : z.y;
+            const pX = player.logicalX !== undefined ? player.logicalX : player.x;
+            const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+            
+            const dx = Math.abs(zX - pX);
+            const dy = Math.abs(zY - pY);
+            if (dx < 60 && dy < 60) return true;
+
+            return npcs.some(npc => {
+              if (!npc || npc.hp <= 0 || npc.hasExited) return false;
+              const nX = npc.logicalX !== undefined ? npc.logicalX : npc.x;
+              const nY = npc.logicalY !== undefined ? npc.logicalY : npc.y;
+              return Math.abs(zX - nX) < 30 && Math.abs(zY - nY) < 30;
+            });
           });
 
       activeZombies.forEach(zombie => {
@@ -74,7 +88,6 @@ export class SimulationManager {
       });
 
       // 3. NPC Turns
-      const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc');
       for (const npc of npcs) {
         if (npc.hp <= 0) continue;
 

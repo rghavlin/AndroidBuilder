@@ -6,6 +6,9 @@ import { Door } from '../client/src/game/entities/Door.js';
 import { Window } from '../client/src/game/entities/Window.js';
 import engine from '../client/src/game/GameEngine.js';
 import { Pathfinding } from '../client/src/game/utils/Pathfinding.js';
+import { ZombieAI } from '../client/src/game/ai/ZombieAI.js';
+import { Item } from '../client/src/game/inventory/Item.js';
+import { createItemFromDef } from '../client/src/game/inventory/ItemDefs.js';
 
 console.log('--- STARTING NPC AI VERIFICATION TESTS ---');
 
@@ -400,6 +403,189 @@ runTest('Memory Threat Damping (Less Sensitive Out of Sight)', () => {
   }
   
   console.log('   - Memory threat damping verified: distance 5 ignored, distance 4 triggered.');
+});
+
+// Case 11: Priority Target Switching (Decoy)
+runTest('Zombie Priority Target Switching (Decoy)', () => {
+  const gameMap = new GameMap(15, 15);
+  
+  // Player at (1, 1) far away
+  const player = { id: 'player', type: 'player', logicalX: 1, logicalY: 1, x: 1, y: 1 };
+  
+  // NPC at (5, 5)
+  const npc = new NPC('npc-target', 'Survivor target', 5, 5);
+  gameMap.addEntity(npc, 5, 5);
+  
+  // Zombie at (5, 7)
+  const zombie = new Zombie('zombie-chaser', 5, 7, 'basic');
+  gameMap.addEntity(zombie, 5, 7);
+  
+  // Run zombie turn
+  zombie.startTurn();
+  const turnResult = ZombieAI.executeZombieTurn(zombie, gameMap, player, [], new Set());
+  
+  // Zombie should move North towards the NPC at (5, 5)
+  const moveAction = turnResult.actions.find(a => a.type === 'MOVE');
+  if (!moveAction) {
+    throw new Error('Zombie failed to move');
+  }
+  if (moveAction.data.to.y >= 7) {
+    throw new Error(`Zombie did not move towards NPC. Moved to (${moveAction.data.to.x}, ${moveAction.data.to.y})`);
+  }
+  
+  // Verify targeting state on the zombie entity.
+  if (!zombie.currentTarget || zombie.currentTarget.id !== 'npc-target') {
+    throw new Error(`Zombie currentTarget is not NPC, got ${JSON.stringify(zombie.currentTarget)}`);
+  }
+  console.log('   - Zombie successfully targeted NPC instead of far player: currentTarget =', JSON.stringify(zombie.currentTarget));
+});
+
+// Case 12: NPC Stand-Your-Ground
+runTest('NPC Stand-Your-Ground (Surrounded)', () => {
+  const gameMap = new GameMap(10, 10);
+  const player = { logicalX: 1, logicalY: 1, x: 1, y: 1 };
+  
+  // NPC at (5, 5)
+  const npc = new NPC('npc-surrounded', 'Bob surrounded', 5, 5);
+  gameMap.addEntity(npc, 5, 5);
+  
+  // Equipped weapon for NPC
+  const weaponData = createItemFromDef('weapon.woodenbat');
+  if (weaponData) {
+    const bat = Item.fromJSON(weaponData);
+    npc.inventory.addItem(bat);
+    npc.equippedWeaponId = bat.instanceId;
+  }
+  
+  // Place 3 zombies surrounding the NPC
+  const z1 = new Zombie('z1', 4, 5, 'basic');
+  const z2 = new Zombie('z2', 6, 5, 'basic');
+  const z3 = new Zombie('z3', 5, 6, 'basic');
+  
+  gameMap.addEntity(z1, 4, 5);
+  gameMap.addEntity(z2, 6, 5);
+  gameMap.addEntity(z3, 5, 6);
+  
+  npc.startTurn();
+  npc.ap = 2;
+  
+  const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, [z1, z2, z3]);
+  
+  // Verify NPC did not move
+  const moveActions = turnResult.actions.filter(a => a.type === 'MOVE');
+  if (moveActions.length > 0) {
+    throw new Error(`NPC moved/fled despite being surrounded by 3 zombies! Actions: ${JSON.stringify(turnResult.actions)}`);
+  }
+  
+  // Verify NPC attacked
+  const attackActions = turnResult.actions.filter(a => a.type === 'ATTACK');
+  if (attackActions.length === 0) {
+    throw new Error('NPC failed to attack any zombie while surrounded');
+  }
+  
+  console.log(`   - NPC stood ground and attacked zombie: ${JSON.stringify(attackActions[0])}`);
+});
+
+// Case 13: Two-Zombie Chase Scenario
+runTest('NPC Fleeing and Combat under Two-Zombie Threat', () => {
+  const gameMap = new GameMap(15, 15);
+  const player = { logicalX: 1, logicalY: 1, x: 1, y: 1 };
+  
+  // NPC at (5, 5)
+  const npc = new NPC('npc-two-zombies', 'Bob chased', 5, 5);
+  gameMap.addEntity(npc, 5, 5);
+  
+  // Place two zombies cardinally adjacent (left and above)
+  const z1 = new Zombie('z1', 4, 5, 'basic');
+  const z2 = new Zombie('z2', 5, 4, 'basic');
+  gameMap.addEntity(z1, 4, 5);
+  gameMap.addEntity(z2, 5, 4);
+  
+  npc.startTurn();
+  npc.ap = 20; // Give full AP
+  
+  console.log('--- Executing turn for Case 13 ---');
+  const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, [z1, z2]);
+  console.log('Case 13 turn actions:', JSON.stringify(turnResult.actions, null, 2));
+  console.log('Case 13 remaining AP:', npc.ap);
+});
+
+// Case 14: Cornered after one flee step
+runTest('NPC Fleeing and Cornered under Two-Zombie Threat', () => {
+  const gameMap = new GameMap(15, 15);
+  const player = { logicalX: 1, logicalY: 1, x: 1, y: 1 };
+  
+  // NPC at (5, 5)
+  const npc = new NPC('npc-cornered', 'Bob cornered', 5, 5);
+  gameMap.addEntity(npc, 5, 5);
+  
+  // Place two zombies cardinally adjacent (left and above)
+  const z1 = new Zombie('z1', 4, 5, 'basic');
+  const z2 = new Zombie('z2', 5, 4, 'basic');
+  gameMap.addEntity(z1, 4, 5);
+  gameMap.addEntity(z2, 5, 4);
+  
+  // Set walls around (6, 5) to block further fleeing.
+  // (6, 5) is 1 step to the right of (5, 5).
+  // Block (7, 5), (6, 4), and (6, 6)
+  gameMap.setTerrain(7, 5, 'wall');
+  gameMap.setTerrain(6, 4, 'wall');
+  gameMap.setTerrain(6, 6, 'wall');
+  
+  npc.startTurn();
+  npc.ap = 20; // Give full AP
+  
+  console.log('--- Executing turn for Case 14 ---');
+  const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, [z1, z2]);
+  console.log('Case 14 turn actions:', JSON.stringify(turnResult.actions, null, 2));
+  console.log('Case 14 remaining AP:', npc.ap);
+});
+
+// Case 15: Cornered Multi-Attack & Simulated HP
+runTest('NPC Cornered Multi-Attack with Simulated HP Tracking', () => {
+  const gameMap = new GameMap(10, 10);
+  const player = { logicalX: 1, logicalY: 1, x: 1, y: 1 };
+  
+  // NPC at (5, 5)
+  const npc = new NPC('npc-fighter', 'Bob fighter', 5, 5);
+  gameMap.addEntity(npc, 5, 5);
+  
+  // Place 1 zombie at (4, 5) with 5 HP
+  const z1 = new Zombie('z1', 4, 5, 'basic');
+  z1.hp = 5;
+  gameMap.addEntity(z1, 4, 5);
+  
+  // Block all escape directions: (5, 4), (5, 6), (6, 5)
+  gameMap.setTerrain(5, 4, 'wall');
+  gameMap.setTerrain(5, 6, 'wall');
+  gameMap.setTerrain(6, 5, 'wall');
+  
+  npc.startTurn();
+  npc.ap = 20; // Give full AP
+  
+  console.log('--- Executing turn for Case 15 ---');
+  const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, [z1]);
+  console.log('Case 15 turn actions:', JSON.stringify(turnResult.actions, null, 2));
+  console.log('Case 15 remaining AP:', npc.ap);
+  console.log('Case 15 Zombie Simulated HP:', z1.simulatedHp);
+  
+  // Verify that the zombie's simulated HP is <= 0
+  const finalSimHp = z1.simulatedHp !== undefined ? z1.simulatedHp : z1.hp;
+  if (finalSimHp > 0) {
+    throw new Error(`Expected zombie to be dead in simulation, but simulatedHp is ${finalSimHp}`);
+  }
+  
+  // Verify NPC stopped attacking after the zombie "died" (they should have AP remaining)
+  const attackActions = turnResult.actions.filter(a => a.type === 'ATTACK');
+  if (attackActions.length === 0) {
+    throw new Error('NPC did not attack the adjacent zombie');
+  }
+  
+  if (npc.ap === 0) {
+    throw new Error('NPC wasted all AP overkilling the zombie!');
+  }
+  
+  console.log(`   - Verified: NPC attacked ${attackActions.length} times, killed zombie in simulation, and saved ${npc.ap} AP.`);
 });
 
 console.log('\n=== NPC AI TEST RESULTS SUMMARY ===');

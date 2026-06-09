@@ -16,7 +16,8 @@ export const NPCTypes = {
     ai: {
       dangerRadius: 5,          // How close a zombie can be before NPC flees
       fleePreference: 0.85,     // 85% chance to try fleeing even when they could fight
-      combatSkill: 0.5          // Base accuracy (melee and ranged)
+      combatSkill: 0.5,         // Base accuracy (melee and ranged)
+      surroundThreshold: 3      // Standing ground when surrounded by 3+ zombies
     },
     
     // Categorized pools for structured generation

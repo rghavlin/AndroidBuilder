@@ -3,11 +3,6 @@ import { Item } from '../inventory/Item.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 
-const SURVIVOR_NAMES = [
-  'Bob', 'Alice', 'Charlie', 'Dana', 'Eli', 'Fiona', 'George', 'Hannah', 'Ian', 'Julia',
-  'Kevin', 'Luna', 'Marcus', 'Nora', 'Oscar', 'Penelope', 'Quinn', 'Rupert', 'Stella', 'Thomas',
-  'Victor', 'Wendy', 'Xavier', 'Yvonne', 'Zachary'
-];
 
 /**
  * NPCSpawner - Handles placement of NPCs on maps.
@@ -33,7 +28,7 @@ export class NPCSpawner {
     }
     
     for (let i = 0; i < count; i++) {
-      const spawnPos = this.findNorthSpawnPosition(gameMap);
+      const spawnPos = this.findMiddleIndoorSpawnPosition(gameMap);
       if (!spawnPos) continue;
       
       const npc = this.spawnNPCAt(gameMap, spawnPos.x, spawnPos.y, {
@@ -43,6 +38,84 @@ export class NPCSpawner {
     }
     
     return spawned.length;
+  }
+
+  /**
+   * Find a suitable spawn position inside a building close to the middle of the map (y-wise),
+   * ensuring there are no zombies nearby (within 6 tiles).
+   */
+  static findMiddleIndoorSpawnPosition(gameMap) {
+    const minY = Math.floor(gameMap.height * 0.35);
+    const maxY = Math.floor(gameMap.height * 0.65);
+    const candidates = [];
+
+    // First pass: Find walkable floor tiles in the middle vertical region
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = 0; x < gameMap.width; x++) {
+        const tile = gameMap.getTile(x, y);
+        if (tile && tile.terrain === 'floor' && tile.isWalkable() && tile.contents.length === 0) {
+          // Check if there are any zombies nearby (within Manhattan distance of 6 tiles)
+          let zombieNearby = false;
+          const checkRadius = 6;
+          
+          for (let dy = -checkRadius; dy <= checkRadius; dy++) {
+            for (let dx = -checkRadius; dx <= checkRadius; dx++) {
+              const tx = x + dx;
+              const ty = y + dy;
+              if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
+              const neighborTile = gameMap.getTile(tx, ty);
+              if (neighborTile && neighborTile.contents.some(e => e.type === 'zombie' || e.type === 'EntityType.ZOMBIE')) {
+                zombieNearby = true;
+                break;
+              }
+            }
+            if (zombieNearby) break;
+          }
+
+          if (!zombieNearby) {
+            candidates.push({ x, y });
+          }
+        }
+      }
+    }
+
+    // If we found candidates, pick the one closest to the middle of the map
+    if (candidates.length > 0) {
+      const midY = Math.floor(gameMap.height / 2);
+      const midX = Math.floor(gameMap.width / 2);
+      
+      candidates.sort((a, b) => {
+        const distA = Math.abs(a.x - midX) + Math.abs(a.y - midY);
+        const distB = Math.abs(b.x - midX) + Math.abs(b.y - midY);
+        return distA - distB;
+      });
+      
+      return candidates[0]; // Return the one closest to absolute center
+    }
+
+    // Fallback: If no safe indoor tiles found, relax criteria and try any floor tile in the middle region
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = 0; x < gameMap.width; x++) {
+        const tile = gameMap.getTile(x, y);
+        if (tile && tile.terrain === 'floor' && tile.isWalkable() && tile.contents.length === 0) {
+          candidates.push({ x, y });
+        }
+      }
+    }
+
+    if (candidates.length > 0) {
+      const midY = Math.floor(gameMap.height / 2);
+      const midX = Math.floor(gameMap.width / 2);
+      candidates.sort((a, b) => {
+        const distA = Math.abs(a.x - midX) + Math.abs(a.y - midY);
+        const distB = Math.abs(b.x - midX) + Math.abs(b.y - midY);
+        return distA - distB;
+      });
+      return candidates[0];
+    }
+
+    // Secondary fallback: Use standard findNorthSpawnPosition
+    return this.findNorthSpawnPosition(gameMap);
   }
 
   /**
@@ -104,7 +177,7 @@ export class NPCSpawner {
     const typeDef = getNPCType(typeId);
     
     const id = `npc_${Math.random().toString(36).substr(2, 9)}`;
-    const name = options.name || SURVIVOR_NAMES[Math.floor(Math.random() * SURVIVOR_NAMES.length)];
+    const name = options.name || typeDef.name || 'Survivor';
     
     const isHostile = options.isHostile !== undefined 
       ? options.isHostile 

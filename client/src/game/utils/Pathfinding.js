@@ -71,6 +71,8 @@ export class Pathfinding {
       isZombie = false,
       debug = false
     } = options;
+    
+    options.isPathfinding = true;
 
     if (!gameMap || !gameMap.getTile) {
       throw new Error('[Pathfinding] Invalid gameMap provided');
@@ -320,6 +322,7 @@ export class Pathfinding {
     if (entityOrFilter && typeof entityOrFilter === 'function') return entityOrFilter(tile);
     
     const isZombie = options.isZombie || (entityOrFilter && (entityOrFilter.type === 'zombie' || entityOrFilter.type === EntityType.ZOMBIE));
+    const isNPC = entityOrFilter && (entityOrFilter.type === 'npc' || entityOrFilter.type === EntityType.NPC);
     
     // SAFETY: If we are checking the entity's current position, it MUST be walkable
     // (Prevents being stuck if a door closes on the zombie's current tile)
@@ -327,8 +330,8 @@ export class Pathfinding {
         return true;
     }
 
-    // For zombies, we allow them to "path" through closed doors/windows so they can approach to attack them
-    if (isZombie && options.isPathfinding) {
+    // For zombies and NPCs, we allow them to "path" through closed doors/windows so they can approach to attack/open them
+    if ((isZombie || isNPC) && options.isPathfinding) {
         options.allowBreaching = true;
     }
     
@@ -390,13 +393,12 @@ export class Pathfinding {
       // If there is no door/window, the edge is solid
       if (allBreachable.length === 0) return true;
 
-      // If there is a door/window, check if it allows passage
       for (const e of allBreachable) {
          if (e.type === 'window' && isPlayer) {
              // Windows are ALWAYS blocked for players (unwalkable)
              continue;
          }
-         if (e.isOpen || e.isBroken || (isZombie && options.isPathfinding) || options.allowBreaching) {
+         if (e.isOpen || e.isBroken || ((isZombie || isNPC) && options.isPathfinding) || options.allowBreaching) {
              return false; // Can pass through
          }
       }
