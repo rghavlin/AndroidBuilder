@@ -6,6 +6,7 @@
  * Optimized with Min-Heap for Phase 32 performance fix.
  */
 import { EntityType } from '../entities/Entity.js';
+import { getNPCType } from '../entities/NPCTypes.js';
 
 class MinHeap {
   constructor(comparator) {
@@ -129,8 +130,9 @@ export class Pathfinding {
             continue;
         }
 
-        // REVISE: Allow pathfinding through closed doors/windows for zombies
-        const hasBreachableStructure = (isZombie || options.entity?.type === 'zombie') && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window');
+        // REVISE: Allow pathfinding through closed doors/windows for zombies and NPCs
+        const isNPC = options.isNPC || options.entity?.type === 'npc' || (entityFilter && entityFilter.type === 'npc');
+        const hasBreachableStructure = (isZombie || options.entity?.type === 'zombie' || isNPC) && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window');
         
         if (!isWalkable && !hasBreachableStructure && !isTarget) continue;
 
@@ -141,7 +143,7 @@ export class Pathfinding {
         const distanceFromStart = Math.abs(neighbor.x - startX) + Math.abs(neighbor.y - startY);
         if (distanceFromStart > maxDistance) continue;
 
-        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, isPathfinding: true });
+        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, gameMap, isPathfinding: true });
         const existingNode = openSetMap.get(neighborKey);
 
         if (!existingNode) {
@@ -218,7 +220,7 @@ export class Pathfinding {
 
         if (this.isEdgeBlocked(gameMap, current.x, current.y, neighbor.x, neighbor.y, options.entityFilter || options.entity, options)) continue;
 
-        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, isPathfinding: true });
+        const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, gameMap, isPathfinding: true });
         const totalCost = current.cost + moveCost;
 
         if (totalCost <= maxCost && !visited.has(`${neighbor.x},${neighbor.y}`)) {
@@ -264,6 +266,43 @@ export class Pathfinding {
         }
         const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');
         if (hasOtherZombie) baseCost += 0.2; // Tiny penalty to allow clustering
+      }
+
+      const isNPC = options?.isNPC || options?.entity?.type === 'npc';
+      if (isNPC) {
+        const npc = options.entity;
+        const door = targetTile.contents.find(e => e.type === EntityType.DOOR);
+        if (door && !door.isOpen) {
+          baseCost += door.isLocked ? 2 : 1; // 1 AP to open unlocked door, 2 AP to pry locked door
+        }
+        const window = targetTile.contents.find(e => e.type === EntityType.WINDOW);
+        if (window && !window.isOpen && !window.isBroken) {
+          baseCost += window.isLocked ? 2 : 1; // Unlocked: +1 AP to open, Locked: +2 AP to break
+        }
+
+        // Add path cost penalty for tiles close to known threats in memory
+        if (options.isPathfinding && npc && npc.recentThreats && npc.recentThreats.length > 0) {
+          const typeDef = getNPCType(npc.typeId);
+          const dangerRadius = typeDef?.ai?.dangerRadius || 8;
+          const memoryDangerRadius = Math.max(3, dangerRadius - 1);
+          let minDistance = Infinity;
+          let activeRadius = dangerRadius;
+          for (const threat of npc.recentThreats) {
+            const dx = x2 - threat.x;
+            const dy = y2 - threat.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const isVisible = options.gameMap && typeof npc.canSeePosition === 'function' && npc.canSeePosition(options.gameMap, threat.x, threat.y);
+            const radius = isVisible ? dangerRadius : memoryDangerRadius;
+            if (dist <= radius && dist < minDistance) {
+              minDistance = dist;
+              activeRadius = radius;
+            }
+          }
+          if (minDistance <= activeRadius) {
+            // Significant penalty: closer to threat means higher cost
+            baseCost += (activeRadius + 1 - minDistance) * 5.0;
+          }
+        }
       }
     }
     return baseCost;

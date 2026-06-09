@@ -4,6 +4,7 @@ import { Item } from '../inventory/Item.js';
 import engine from '../GameEngine.js';
 import { getNPCType } from './NPCTypes.js';
 import { SequencerAction } from '../managers/SequencerAction.js';
+import { LineOfSight } from '../utils/LineOfSight.js';
 
 /**
  * NPC entity with vitals, inventory, and baseline AI state
@@ -42,6 +43,18 @@ export class NPC extends Entity {
 
     this.hasDemanded = false; // Whether the demand dialog has been shown
     this.hasExtorted = false; // Whether the player complied with the demand
+
+    // Perception & Memory
+    this.sightRange = typeDef.sightRange || 18;
+    this.heardNoise = false;
+    this.noiseCoords = { x: 0, y: 0 };
+    this.noiseBlacklist = []; // List of { x, y, turnCount } recently identified/ignored noise locations
+    this.recentThreats = []; // List of { x, y, turn } representing memory of threat locations
+
+    // Goal System & Caching
+    this.goalTarget = null; // { x, y } — south exit tile coords
+    this.hasExited = false; // True when NPC reaches south exit and is removed
+    this.currentPath = null; // Cached path array [{x, y}, ...] to goalTarget
     this.wasAttackedThisTurn = false; // Track if hit this turn for counter-attacks
 
     // Rendering/Animation State (Mirroring Zombie.js for GameContext orchestration)
@@ -88,6 +101,7 @@ export class NPC extends Entity {
       }
 
       this.isAnimating = true;
+      this.animationProgress = 0;
 
       const duration = 150;
       const seq = new SequencerAction(this, duration, duration, onImpact);
@@ -117,6 +131,8 @@ export class NPC extends Entity {
       }
 
       this.isAnimating = true;
+      this.animationProgress = 0;
+
       const duration = 200;
       const impactPoint = 100; // Visual contact at 50%
       const seq = new SequencerAction(this, duration, impactPoint, onImpact);
@@ -136,7 +152,6 @@ export class NPC extends Entity {
    */
   endTurn() {
     this.ap = 0;
-    this.behaviorState = 'idle';
     
     // Safety sync: Ensure visual position matches logical position at end of turn
     this.renderX = this.gridX;
@@ -162,6 +177,72 @@ export class NPC extends Entity {
     if (this.behaviorState === 'fleeing' && Math.random() < this.fleeRecoverChance) {
         this.behaviorState = 'idle';
     }
+  }
+
+  /**
+   * Set noise heard coordinates
+   */
+  setNoiseHeard(x, y) {
+    this.heardNoise = true;
+    this.noiseCoords = { x, y };
+    this.emitEvent('npcNoiseHeard', {
+      npcId: this.id,
+      noiseCoords: { x, y }
+    });
+  }
+
+  /**
+   * Clear the heard noise flag
+   */
+  clearNoiseHeard() {
+    this.heardNoise = false;
+    this.noiseCoords = { x: 0, y: 0 };
+  }
+
+  /**
+   * Check if NPC can see a target position using LineOfSight
+   */
+  canSeePosition(gameMap, targetX, targetY) {
+    const losResult = LineOfSight.hasLineOfSight(
+      gameMap,
+      this.logicalX,
+      this.logicalY,
+      targetX,
+      targetY,
+      {
+        maxRange: this.sightRange,
+        ignoreTerrain: [], // NPC respects standard terrain blocking
+        ignoreEntities: [] // NPC respects entity blocking (walls, closed doors)
+      }
+    );
+    return losResult.hasLineOfSight;
+  }
+
+  /**
+   * Check if NPC can see a specific entity
+   */
+  canSeeEntity(gameMap, entity) {
+    const targetX = entity.logicalX !== undefined ? entity.logicalX : entity.x;
+    const targetY = entity.logicalY !== undefined ? entity.logicalY : entity.y;
+    return this.canSeePosition(gameMap, targetX, targetY);
+  }
+
+  /**
+   * Calculate Euclidean distance to a position
+   */
+  getDistanceTo(x, y) {
+    const dx = this.logicalX - x;
+    const dy = this.logicalY - y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  /**
+   * Check if NPC is adjacent to a position (cardinal directions only)
+   */
+  isAdjacentTo(x, y) {
+    const dx = Math.abs(this.logicalX - x);
+    const dy = Math.abs(this.logicalY - y);
+    return (dx + dy) === 1;
   }
 
   // --- Getters/Setters for vitals ---
@@ -275,7 +356,15 @@ export class NPC extends Entity {
       typeId: this.typeId,
       fleeRecoverChance: this.fleeRecoverChance,
       hasDemanded: this.hasDemanded,
-      hasExtorted: this.hasExtorted
+      hasExtorted: this.hasExtorted,
+      sightRange: this.sightRange,
+      heardNoise: this.heardNoise,
+      noiseCoords: this.noiseCoords,
+      noiseBlacklist: this.noiseBlacklist,
+      recentThreats: this.recentThreats,
+      goalTarget: this.goalTarget,
+      hasExited: this.hasExited,
+      currentPath: this.currentPath
     };
   }
 
@@ -294,6 +383,15 @@ export class NPC extends Entity {
     npc.currentTarget = data.currentTarget;
     npc.hasDemanded = data.hasDemanded || false;
     npc.hasExtorted = data.hasExtorted || false;
+    
+    npc.sightRange = data.sightRange !== undefined ? data.sightRange : (getNPCType(npc.typeId).sightRange || 18);
+    npc.heardNoise = data.heardNoise || false;
+    npc.noiseCoords = data.noiseCoords || { x: 0, y: 0 };
+    npc.noiseBlacklist = data.noiseBlacklist || [];
+    npc.recentThreats = data.recentThreats || [];
+    npc.goalTarget = data.goalTarget || null;
+    npc.hasExited = data.hasExited || false;
+    npc.currentPath = data.currentPath || null;
 
     if (data.inventory) {
       npc.inventory = Container.fromJSON(data.inventory);

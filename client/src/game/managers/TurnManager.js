@@ -1,5 +1,6 @@
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import audioManager from '../utils/AudioManager.js';
+import { EntityType } from '../entities/Entity.js';
 
 /**
  * TurnManager - Orchestrates the sequential playback of game actions.
@@ -195,6 +196,27 @@ class TurnManager {
         // simulation. Calling it again would double-apply damage and corrupt HP values.
         break;
 
+      case 'ESCAPE':
+        // NPC reached the south exit — remove from map and clean up references
+        if (entity) {
+          entity.hasExited = true;
+        }
+        
+        // 1. Remove from map
+        gameMap.removeEntity(entityId);
+        
+        // 2. Clear targeting references from all zombies to avoid ghost chasing
+        const allZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
+        allZombies.forEach(z => {
+          if (z.currentTarget && z.currentTarget.id === entityId) {
+            z.currentTarget = null;
+            z.behaviorState = 'idle';
+          }
+        });
+
+        // 3. Emit escape event for UI log
+        GameEvents.emit(GAME_EVENT.NPC_ESCAPED, { npc: entity });
+        break;
 
       case 'ATTACK':
         const eventType = (entity.type === 'npc' || entity.type === 'EntityType.NPC') ? GAME_EVENT.NPC_ATTACK : GAME_EVENT.ZOMBIE_ATTACK;

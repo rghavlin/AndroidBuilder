@@ -10,6 +10,14 @@ export const NPCTypes = {
     maxAP: 20,
     hostilityChance: 0.25,
     fleeRecoverChance: 0.30,
+    sightRange: 18,
+    
+    // AI Behavior Tuning
+    ai: {
+      dangerRadius: 5,          // How close a zombie can be before NPC flees
+      fleePreference: 0.85,     // 85% chance to try fleeing even when they could fight
+      combatSkill: 0.5          // Base accuracy (melee and ranged)
+    },
     
     // Categorized pools for structured generation
     pools: {

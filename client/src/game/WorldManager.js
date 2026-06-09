@@ -288,6 +288,13 @@ export class WorldManager {
         rabbitRange: { min: 1, max: 2 }
       });
 
+      // SPAWN NPCs: Goal-directed travelers
+      const { NPCSpawner } = await import('./utils/NPCSpawner.js');
+      NPCSpawner.spawnNPCs(gameMap, {
+        count: 1, // Start with 1 NPC per map
+        mapNumber: gameMap.mapNumber
+      });
+
       // Save to world collection
       const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn, templateToUse);
 
@@ -684,9 +691,12 @@ export class WorldManager {
           rabbitRange: { min: 1, max: 2 }
         });
         
-        // SPAWN NPCs: Spawning disabled
-
-
+        // SPAWN NPCs: Goal-directed travelers
+        const { NPCSpawner } = await import('./utils/NPCSpawner.js');
+        NPCSpawner.spawnNPCs(gameMap, {
+          count: 1, // Start with 1 NPC per map
+          mapNumber: mapNumber
+        });
 
         // Save to world collection with the correct target ID
         this.saveCurrentMap(gameMap, targetMapId, currentTurn, templateToUse);

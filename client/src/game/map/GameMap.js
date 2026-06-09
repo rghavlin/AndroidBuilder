@@ -106,6 +106,24 @@ export class GameMap {
     if (alertedCount > 0) {
       console.log(`[GameMap] 🧟 ${alertedCount} zombies alerted by noise at (${x}, ${y})`);
     }
+
+    // Alert NPCs of noise within radius
+    let npcsAlerted = 0;
+    this.getEntitiesByType(EntityType.NPC).forEach(npc => {
+      const nx = npc.logicalX !== undefined ? npc.logicalX : npc.x;
+      const ny = npc.logicalY !== undefined ? npc.logicalY : npc.y;
+      const dist = Math.sqrt(Math.pow(nx - x, 2) + Math.pow(ny - y, 2));
+      if (dist <= radius) {
+        if (typeof npc.setNoiseHeard === 'function') {
+          npc.setNoiseHeard(x, y);
+          npcsAlerted++;
+        }
+      }
+    });
+
+    if (npcsAlerted > 0) {
+      console.log(`[GameMap] 👤 ${npcsAlerted} NPCs alerted by noise at (${x}, ${y})`);
+    }
   }
 
   /**
