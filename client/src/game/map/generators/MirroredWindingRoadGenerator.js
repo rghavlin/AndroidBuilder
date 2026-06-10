@@ -99,29 +99,7 @@ export class MirroredWindingRoadGenerator extends BaseMapGenerator {
         if (b.type !== 'residential') return false;
         if (tentPool.includes(b)) return false;
 
-        // 1. Must have strict road frontage (Max distance 6 tiles)
-        let hasFrontage = false;
-        const dist = 6; 
-        if (b.frontage === 'east') {
-            const nearMin = Math.abs((b.x + b.width) - roadXMin) <= dist;
-            const nearMax = Math.abs((b.x + b.width) - roadXMax) <= dist;
-            hasFrontage = nearMin || nearMax;
-        }
-        else if (b.frontage === 'west') {
-            const nearMin = Math.abs(b.x - roadXMin) <= dist;
-            const nearMax = Math.abs(b.x - roadXMax) <= dist;
-            hasFrontage = nearMin || nearMax;
-        }
-        else if (b.frontage === 'south') {
-            const nearRoad = roadY.some(ry => Math.abs((b.y + b.height) - ry) <= dist);
-            hasFrontage = nearRoad;
-        }
-        else if (b.frontage === 'north') {
-            const nearRoad = roadY.some(ry => Math.abs(b.y - ry) <= dist);
-            hasFrontage = nearRoad;
-        }
-
-        return hasFrontage;
+        return this.hasRoadFrontage(builder, b, 6);
     });
 
     // 2. SELECTION
