@@ -173,9 +173,16 @@ export class Pathfinding {
   static calculateMovementCost(gameMap, path, entity = null) {
     if (!path || path.length <= 1) return 0;
     let baseCost = 0;
+    const options = {
+      entity,
+      isZombie: entity?.type === 'zombie',
+      isNPC: entity?.type === 'npc',
+      gameMap,
+      isPathfinding: true
+    };
     for (let i = 1; i < path.length; i++) {
         const nextTile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
-        const cost = this.getMovementCost(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y, nextTile, entity);
+        const cost = this.getMovementCost(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y, nextTile, options);
         baseCost += cost;
     }
     const numTiles = path.length - 1;
@@ -256,13 +263,15 @@ export class Pathfinding {
       }
 
       if (options?.isZombie || options?.entity?.type === 'zombie') {
-        const structure = targetTile.contents.find(e => e.type === 'door' || e.type === 'window');
-        if (structure) {
-          const isClosed = (structure.type === 'door' && !structure.isOpen) || 
-                          (structure.type === 'window' && !structure.isOpen && !structure.isBroken);
-          if (isClosed) {
-            const hp = (structure.hp !== undefined ? structure.hp : 0) + (structure.reinforcementHp || 0);
-            baseCost += hp > 0 ? hp : (structure.maxHp || 1);
+        if (options.isPathfinding && options.gameMap) {
+          const structure = this.getBlockingStructure(options.gameMap, x1, y1, x2, y2);
+          if (structure) {
+            const isClosed = (structure.type === 'door' && !structure.isOpen) || 
+                            (structure.type === 'window' && !structure.isOpen && !structure.isBroken);
+            if (isClosed) {
+              const hp = (structure.hp !== undefined ? structure.hp : 0) + (structure.reinforcementHp || 0);
+              baseCost += hp > 0 ? hp : (structure.maxHp || 1);
+            }
           }
         }
         const hasOtherZombie = targetTile.contents.some(e => e.type === 'zombie');
@@ -271,18 +280,21 @@ export class Pathfinding {
 
       const isNPC = options?.isNPC || options?.entity?.type === 'npc';
       if (isNPC) {
-        const npc = options.entity;
-        const door = targetTile.contents.find(e => e.type === EntityType.DOOR);
-        if (door && !door.isOpen) {
-          baseCost += door.isLocked ? 2 : 1; // 1 AP to open unlocked door, 2 AP to pry locked door
+        if (options.isPathfinding && options.gameMap) {
+          const structure = this.getBlockingStructure(options.gameMap, x1, y1, x2, y2);
+          if (structure) {
+            if (structure.type === EntityType.DOOR && !structure.isOpen) {
+              baseCost += structure.isLocked ? 2 : 1;
+            } else if (structure.type === EntityType.WINDOW && !structure.isOpen && !structure.isBroken) {
+              baseCost += structure.isLocked ? 2 : 1;
+            }
+          }
         }
-        const window = targetTile.contents.find(e => e.type === EntityType.WINDOW);
-        if (window && !window.isOpen && !window.isBroken) {
-          baseCost += window.isLocked ? 2 : 1; // Unlocked: +1 AP to open, Locked: +2 AP to break
-        }
+      }
 
-        // Add path cost penalty for tiles close to known threats in memory
-        if (options.isPathfinding && npc && npc.recentThreats && npc.recentThreats.length > 0) {
+      const npc = options.entity;
+      // Add path cost penalty for tiles close to known threats in memory
+      if (options.isPathfinding && npc && npc.recentThreats && npc.recentThreats.length > 0) {
           const typeDef = getNPCType(npc.typeId);
           const dangerRadius = typeDef?.ai?.dangerRadius || 8;
           const memoryDangerRadius = Math.max(3, dangerRadius - 1);
@@ -303,7 +315,6 @@ export class Pathfinding {
             // Significant penalty: closer to threat means higher cost
             baseCost += (activeRadius + 1 - minDistance) * 5.0;
           }
-        }
       }
     }
     return baseCost;
