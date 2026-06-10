@@ -432,6 +432,26 @@ export const EntityRenderer = {
       EntityRenderer.renderHealthBar(ctx, entity, screenX, screenY, tileSize);
     }
 
+    // Pulse highlight for stunned entities (Sky blue)
+    if (entity.stunnedTurns > 0) {
+      let drawSize = tileSize;
+      let drawX = screenX;
+      let drawY = screenY;
+      if (['player', 'zombie', 'npc', 'rabbit'].includes(entity.type)) {
+        drawSize = tileSize * 0.8;
+        drawX = screenX + (tileSize - drawSize) / 2;
+        drawY = screenY + (tileSize - drawSize) / 2;
+      }
+      ctx.save();
+      const pulse = Math.sin(currentTime / 150);
+      const alpha = 0.6 + 0.4 * pulse;
+      const lineWidth = 3.5 + 1.5 * pulse;
+      ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+      ctx.lineWidth = lineWidth;
+      ctx.strokeRect(drawX, drawY, drawSize, drawSize);
+      ctx.restore();
+    }
+
     ctx.globalAlpha = 1.0;
   },
 

@@ -52,6 +52,7 @@ export class Zombie extends Entity {
     this.movementPath = []; // Array of {x, y} coordinates for the current turn
     this.isAnimating = false;
     this.animationProgress = 0; // 0.0 to 1.0
+    this.stunnedTurns = 0;
   }
 
   /**
@@ -95,7 +96,7 @@ export class Zombie extends Entity {
    * Reset zombie for new turn
    */
   startTurn() {
-    this.currentAP = this.maxAP;
+    this.currentAP = this.stunnedTurns > 0 ? 0 : this.maxAP;
     this.isActive = true;
     // Removed behaviorState reset to maintain state across turns
     // Initialize movementPath with current position for animation tracking
@@ -189,6 +190,9 @@ export class Zombie extends Entity {
    * End zombie's turn - Flush logical state to visual state.
    */
   endTurn() {
+    if (this.stunnedTurns > 0) {
+      this.stunnedTurns--;
+    }
     this.currentAP = 0;
     this.isActive = false;
     // Removed behaviorState reset to maintain state across turns
@@ -393,7 +397,8 @@ export class Zombie extends Entity {
       interactionMemory: this.interactionMemory,
       lastDirection: this.lastDirection,
       momentumSteps: this.momentumSteps,
-      currentTarget: this.currentTarget
+      currentTarget: this.currentTarget,
+      stunnedTurns: this.stunnedTurns
     };
   }
 
@@ -436,6 +441,7 @@ export class Zombie extends Entity {
     zombie.renderX = data.x;
     zombie.renderY = data.y;
     zombie.currentTarget = data.currentTarget || null;
+    zombie.stunnedTurns = data.stunnedTurns || 0;
 
     return zombie;
   }

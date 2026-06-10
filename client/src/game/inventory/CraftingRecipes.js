@@ -17,6 +17,7 @@ export const CraftingRecipes = [
         description: 'A heavy-duty transport wagon with dual axles and motor support.',
         apCost: 15,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_4',
         tools: [
             { either: ['weapon.hammer', 'weapon.makeshift_hammer'], label: 'Hammer' }
         ],
@@ -34,6 +35,7 @@ export const CraftingRecipes = [
         description: 'An extra-large transport wagon with triple axles, massive capacity, and multi-motor support.',
         apCost: 20,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_6',
         tools: [
             { either: ['weapon.hammer', 'weapon.makeshift_hammer'], label: 'Hammer' }
         ],
@@ -42,6 +44,24 @@ export const CraftingRecipes = [
             { id: 'weapon.plank', count: 8 },
             { id: 'crafting.nail', count: 8 },
             { id: 'weapon.metal_rod', count: 3 }
+        ]
+    },
+    {
+        id: 'weapon.stun_rod',
+        name: 'Stun rod',
+        resultItem: 'weapon.stun_rod',
+        description: 'A defensive stun rod that can be powered with a large battery to shock and stun enemies.',
+        apCost: 10,
+        tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_7',
+        tools: [
+            { id: 'tool.pliers', label: 'Pliers' }
+        ],
+        ingredients: [
+            { id: 'weapon.metal_rod', count: 1 },
+            { id: 'food.waterjug', count: 1 },
+            { id: 'crafting.tape', count: 1 },
+            { id: 'crafting.wire', count: 2 }
         ]
     },
     {
@@ -121,6 +141,7 @@ export const CraftingRecipes = [
         description: 'A large basin for collecting rainwater. Must be placed in the open air.',
         apCost: 15,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_3',
         tools: [
             { category: ItemCategory.HAMMER, label: 'Any Hammer' }
         ],
@@ -337,6 +358,7 @@ export const CraftingRecipes = [
         resultCount: 1,
         apCost: 15,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_1',
         tools: [
             { either: ['weapon.hammer', 'weapon.makeshift_hammer'], count: 1, label: 'Hammer' }
         ],
@@ -352,6 +374,7 @@ export const CraftingRecipes = [
         description: 'A wooden box filled with soil for growing plants.',
         apCost: 12,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_2',
         tools: [
             { either: ['weapon.hammer', 'weapon.makeshift_hammer'], count: 1, label: 'Hammer' }
         ],
@@ -368,6 +391,7 @@ export const CraftingRecipes = [
         description: 'A sustainable battery charging station. Requires daylight and outdoor placement to function.',
         apCost: 20,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_5',
         tools: [
             { id: 'tool.pliers', label: 'Pliers' }
         ],

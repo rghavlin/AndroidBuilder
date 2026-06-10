@@ -739,8 +739,8 @@ export class Item extends SafeEventEmitter {
     
     // 6. If it's a book, show global pages left
     if (this.hasTrait(ItemTrait.READABLE)) {
-      // Use window.gameEngine as the bridge to global state
-      const engine = window.gameEngine;
+      // Use globalThis.gameEngine as the bridge to global state
+      const engine = globalThis.gameEngine;
       return engine?.bookStats?.[this.defId]?.pagesLeft ?? 500;
     }
 

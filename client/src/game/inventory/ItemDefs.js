@@ -626,6 +626,27 @@ export const ItemDefs = {
     }
   },
 
+  'weapon.stun_rod': {
+    id: 'weapon.stun_rod',
+    name: 'Stun rod',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'stunrod',
+    width: 4,
+    height: 2,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.70,
+      damage: { min: 2, max: 7 }
+    },
+    attachmentSlots: [
+      { id: 'battery', name: 'Battery', type: 'battery', allowedCategories: [ItemCategory.LARGE_BATTERY] }
+    ]
+  },
+
   'weapon.wrench': {
     id: 'weapon.wrench',
     name: 'Wrench',
@@ -2319,6 +2340,90 @@ export const ItemDefs = {
     traits: [ItemTrait.READABLE],
     categories: [ItemCategory.BOOK, ItemCategory.FUEL],
     description: 'Increase MaxAP by 1 for each 100 pages read.'
+  },
+  'book.nomad_survivor_1': {
+    id: 'book.nomad_survivor_1',
+    name: 'Nomad Survivor Vol 1',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 15,
+    description: 'Learn how to build a Sled'
+  },
+  'book.nomad_survivor_2': {
+    id: 'book.nomad_survivor_2',
+    name: 'Nomad Survivor Vol 2',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 15,
+    description: 'Learn how to build a Planter box'
+  },
+  'book.nomad_survivor_3': {
+    id: 'book.nomad_survivor_3',
+    name: 'Nomad Survivor Vol 3',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 15,
+    description: 'Learn how to build a Rain Collector'
+  },
+  'book.nomad_survivor_4': {
+    id: 'book.nomad_survivor_4',
+    name: 'Nomad Survivor Vol 4',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 30,
+    description: 'Learn how to build a Wagon'
+  },
+  'book.nomad_survivor_5': {
+    id: 'book.nomad_survivor_5',
+    name: 'Nomad Survivor Vol 5',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 40,
+    description: 'Learn how to build a Solar charger'
+  },
+  'book.nomad_survivor_6': {
+    id: 'book.nomad_survivor_6',
+    name: 'Nomad Survivor Vol 6',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 50,
+    description: 'Learn how to build a Cargo Wagon'
+  },
+  'book.nomad_survivor_7': {
+    id: 'book.nomad_survivor_7',
+    name: 'Nomad Survivor Vol 7',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 25,
+    description: 'Learn how to build a Stun rod'
   },
   'tool.battery_charger': {
     id: 'tool.battery_charger',

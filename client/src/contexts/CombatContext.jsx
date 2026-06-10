@@ -160,6 +160,20 @@ export const CombatProvider = ({ children }) => {
 
         if (!targetEntity && !structure) return { success: false, reason: 'No target here' };
 
+        // Stun Rod battery charge check and consumption
+        let isStunRodActive = false;
+        if (weapon && weapon.defId === 'weapon.stun_rod') {
+            const battery = typeof weapon.getBattery === 'function' ? weapon.getBattery() : null;
+            if (battery && battery.ammoCount > 0) {
+                isStunRodActive = true;
+                battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+                // Trigger inventory changed event so the UI updates
+                if (inventoryRef.current) {
+                    inventoryRef.current.emit('inventoryChanged');
+                }
+            }
+        }
+
         // 1. Calculate Outcome
         const meleeLvl = playerStats.meleeLvl || 1;
         const accuracyBonus = meleeLvl * 0.01;
@@ -169,9 +183,22 @@ export const CombatProvider = ({ children }) => {
         const critChance = 0.05 + (meleeLvl - 1) * 0.05;
         const isCrit = hit && Math.random() <= critChance;
         
-        const damage = isCrit 
+        let baseDamage = isCrit 
             ? Math.floor(weaponStats.damage.max * 1.5)
             : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
+
+        let damage = baseDamage;
+        let extraDamageApplied = 0;
+        let stunApplied = false;
+        let stunDuration = 0;
+
+        if (hit && isStunRodActive && targetEntity) {
+            extraDamageApplied = Math.floor(Math.random() * 5) + 1;
+            damage += extraDamageApplied;
+            stunDuration = Math.floor(Math.random() * 3) + 1;
+            targetEntity.stunnedTurns = stunDuration;
+            stunApplied = true;
+        }
 
         // Note: isKillingBlow is safe because Zombie/NPC takeDamage does not use armor or difficulty reductions
         const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
@@ -204,7 +231,11 @@ export const CombatProvider = ({ children }) => {
         if (hit) {
             if (targetEntity) {
                 targetEntity.takeDamage(damage);
-                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
+                let logMsg = `${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`;
+                if (stunApplied) {
+                    logMsg += ` (Charged Strike! +${extraDamageApplied} damage, Stunned for ${stunDuration} turns!)`;
+                }
+                addLog(logMsg, 'combat');
                 if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
             } else if (structure) {
                 if (structure.type === 'window') {

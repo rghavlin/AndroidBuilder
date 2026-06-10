@@ -61,6 +61,7 @@ export class NPC extends Entity {
     this.movementPath = []; // Array of {x, y} coordinates for the current turn
     this.isAnimating = false;
     this.animationProgress = 0; // 0.0 to 1.0
+    this.stunnedTurns = 0;
   }
 
   /**
@@ -151,6 +152,9 @@ export class NPC extends Entity {
    * End NPC's turn - Flush logical state to visual state.
    */
   endTurn() {
+    if (this.stunnedTurns > 0) {
+      this.stunnedTurns--;
+    }
     this.ap = 0;
     
     // Safety sync: Ensure visual position matches logical position at end of turn
@@ -170,7 +174,7 @@ export class NPC extends Entity {
    * Reset NPC for new turn
    */
   startTurn() {
-    this.ap = this.maxAp;
+    this.ap = this.stunnedTurns > 0 ? 0 : this.maxAp;
     this.wasAttackedThisTurn = false;
     this.movementPath = [{ x: this.logicalX, y: this.logicalY }];
     
@@ -364,7 +368,8 @@ export class NPC extends Entity {
       recentThreats: this.recentThreats,
       goalTarget: this.goalTarget,
       hasExited: this.hasExited,
-      currentPath: this.currentPath
+      currentPath: this.currentPath,
+      stunnedTurns: this.stunnedTurns
     };
   }
 
@@ -403,6 +408,7 @@ export class NPC extends Entity {
     npc.renderY = data.y;
     npc.logicalX = npc.gridX;
     npc.logicalY = npc.gridY;
+    npc.stunnedTurns = data.stunnedTurns || 0;
     
     return npc;
   }

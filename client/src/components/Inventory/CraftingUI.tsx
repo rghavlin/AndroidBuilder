@@ -12,6 +12,7 @@ import AttachmentSlot from './AttachmentSlot';
 import { Flame, Clock, Hammer, Soup, Target, Swords, MoveUp, Droplets, Utensils } from 'lucide-react';
 import { getItemName, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
+import engine from '../../game/GameEngine.js';
 
 export default function CraftingUI() {
     const {
@@ -75,9 +76,16 @@ export default function CraftingUI() {
 
     const filteredRecipes = useMemo(() => {
         return craftingRecipes
-            .filter(r => r.tab === activeTab)
+            .filter(r => {
+                if (r.tab !== activeTab) return false;
+                if (r.requiredBook) {
+                    const stats = engine.bookStats?.[r.requiredBook];
+                    return stats && stats.pagesLeft === 0;
+                }
+                return true;
+            })
             .sort((a, b) => a.name.localeCompare(b.name));
-    }, [craftingRecipes, activeTab]);
+    }, [craftingRecipes, activeTab, inventoryVersion]);
 
     const selectedRecipe = useMemo(() =>
         craftingRecipes.find(r => r.id === selectedRecipeId),

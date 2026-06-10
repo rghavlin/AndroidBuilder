@@ -9,6 +9,7 @@ interface ZombieTooltipProps {
         maxHp: number;
         currentAP: number;
         maxAP: number;
+        stunnedTurns?: number;
     };
 }
 
@@ -19,7 +20,8 @@ interface ZombieTooltipProps {
 export function ZombieTooltip({ zombie }: ZombieTooltipProps) {
     if (!zombie) return null;
 
-    const name = ZombieTypes[zombie.subtype]?.name || 'Zombie';
+    const baseName = ZombieTypes[zombie.subtype]?.name || 'Zombie';
+    const name = zombie.stunnedTurns && zombie.stunnedTurns > 0 ? `${baseName} (Stunned!)` : baseName;
     const hpPercent = Math.max(0, Math.min(100, (zombie.hp / zombie.maxHp) * 100));
     
     // Color coded by health

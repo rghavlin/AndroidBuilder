@@ -83,6 +83,13 @@ export class CraftingManager {
         const recipe = CraftingRecipes.find(r => r.id === recipeId);
         if (!recipe) return { canCraft: false, missing: [] };
 
+        if (recipe.requiredBook) {
+            const stats = globalThis.gameEngine?.bookStats?.[recipe.requiredBook];
+            if (!stats || stats.pagesLeft > 0) {
+                return { canCraft: false, missing: ['Recipe Locked'] };
+            }
+        }
+
         const actualAP = CraftingManager.calculateAPCost(recipe, craftingLevel);
 
         const prefix = recipe.tab === 'cooking' ? 'cooking' : 'crafting';
@@ -200,6 +207,13 @@ export class CraftingManager {
         try {
             const recipe = CraftingRecipes.find(r => r.id === recipeId);
             if (!recipe) return { success: false, reason: 'Recipe not found' };
+
+            if (recipe.requiredBook) {
+                const stats = globalThis.gameEngine?.bookStats?.[recipe.requiredBook];
+                if (!stats || stats.pagesLeft > 0) {
+                    return { success: false, reason: 'Recipe locked' };
+                }
+            }
 
         const actualAP = CraftingManager.calculateAPCost(recipe, craftingLevel);
 

@@ -846,6 +846,15 @@ export const InventoryProvider = ({ children }) => {
     if (!turnCheck.success) return turnCheck;
     if (!engine.player || !engine.bookStats) return { success: false };
     
+    // Lazy initialize book stats if missing in engine.bookStats
+    if (!engine.bookStats[item.defId]) {
+      const def = ItemDefs[item.defId];
+      engine.bookStats[item.defId] = {
+        pagesLeft: def && def.totalPages !== undefined ? def.totalPages : 500,
+        milestonesReached: 0
+      };
+    }
+
     const stats = engine.bookStats[item.defId];
     if (!stats) return { success: false, reason: 'No stats for book' };
 
@@ -868,20 +877,31 @@ export const InventoryProvider = ({ children }) => {
         return { success: false, reason: 'Not enough pages' };
     }
 
+    const wasFinished = stats.pagesLeft === 0;
+
     // Process reading
     stats.pagesLeft -= apNeeded;
     player.useAP(apNeeded);
     
-    // Milestone check: Every 100 pages increases maxAp by 1
-    const totalPagesRead = 500 - stats.pagesLeft;
-    const currentMilestones = Math.floor(totalPagesRead / 100);
-    const newMilestones = currentMilestones - (stats.milestonesReached || 0);
-    
-    if (newMilestones > 0) {
-        player.modifyStat('maxAp', newMilestones);
-        stats.milestonesReached = currentMilestones;
-        addLog(`You feel enlightened. Max AP increased by ${newMilestones}!`, 'success');
-        playSound('LevelUp');
+    if (item.defId === 'book.life_in_motion') {
+      // Milestone check: Every 100 pages increases maxAp by 1
+      const totalPagesRead = 500 - stats.pagesLeft;
+      const currentMilestones = Math.floor(totalPagesRead / 100);
+      const newMilestones = currentMilestones - (stats.milestonesReached || 0);
+      
+      if (newMilestones > 0) {
+          player.modifyStat('maxAp', newMilestones);
+          stats.milestonesReached = currentMilestones;
+          addLog(`You feel enlightened. Max AP increased by ${newMilestones}!`, 'success');
+          playSound('LevelUp');
+      }
+    } else if (item.defId.startsWith('book.nomad_survivor_')) {
+      if (!wasFinished && stats.pagesLeft === 0) {
+          const recipe = CraftingRecipes.find(r => r.requiredBook === item.defId);
+          const recipeName = recipe ? recipe.name : 'new item';
+          addLog(`You finished reading "${item.name}". You learned how to craft a ${recipeName}!`, 'success');
+          playSound('LevelUp');
+      }
     }
 
     addLog(`You read ${apNeeded} pages of "${item.name}".`, 'item');

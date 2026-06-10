@@ -29,6 +29,9 @@ class GameEngine extends SafeEventEmitter {
     if (typeof window !== 'undefined') {
       window.gameEngine = this;
     }
+    if (typeof globalThis !== 'undefined') {
+      globalThis.gameEngine = this;
+    }
   }
 
   reset() {
@@ -82,7 +85,14 @@ class GameEngine extends SafeEventEmitter {
       'book.life_in_motion': {
         pagesLeft: 500,
         milestonesReached: 0 // Track how many 100-page milestones were processed
-      }
+      },
+      'book.nomad_survivor_1': { pagesLeft: 15, milestonesReached: 0 },
+      'book.nomad_survivor_2': { pagesLeft: 15, milestonesReached: 0 },
+      'book.nomad_survivor_3': { pagesLeft: 15, milestonesReached: 0 },
+      'book.nomad_survivor_4': { pagesLeft: 30, milestonesReached: 0 },
+      'book.nomad_survivor_5': { pagesLeft: 40, milestonesReached: 0 },
+      'book.nomad_survivor_6': { pagesLeft: 50, milestonesReached: 0 },
+      'book.nomad_survivor_7': { pagesLeft: 25, milestonesReached: 0 }
     };
 
     // Phase 4: Master Heartbeat Infrastructure
