@@ -2365,6 +2365,22 @@ export const ItemDefs = {
       height: 1, 
       allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
     }
+  },
+  'tool.battery_powered_hotplate': {
+    id: 'tool.battery_powered_hotplate',
+    name: 'Battery-powered hotplate',
+    rarity: Rarity.RARE,
+    imageId: 'batterypoweredhotplate',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.BATTERY_POWERED],
+    categories: [ItemCategory.TOOL],
+    isOn: false,
+    lightRange: 2,
+    lightType: 'glow',
+    attachmentSlots: [
+      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ]
   }
 };
 

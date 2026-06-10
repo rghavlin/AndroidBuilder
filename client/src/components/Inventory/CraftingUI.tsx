@@ -198,7 +198,8 @@ export default function CraftingUI() {
         }
     };
 
-    const isBurning = nearbyCampfire && (nearbyCampfire.lifetimeTurns ?? 0) > 0;
+    const isHotplate = nearbyCampfire?.defId === 'tool.battery_powered_hotplate';
+    const isBurning = isHotplate ? nearbyCampfire.isOn : (nearbyCampfire && (nearbyCampfire.lifetimeTurns ?? 0) > 0);
 
     return (
         <div 
@@ -453,17 +454,25 @@ export default function CraftingUI() {
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-1.5">
                                                 <Flame className={cn("w-3.5 h-3.5", isBurning ? "text-primary animate-pulse" : "text-muted-foreground")} />
-                                                <span className="text-[10px] font-bold uppercase tracking-tight">Campfire Status</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-tight">
+                                                    {isHotplate ? "Hotplate Status" : "Campfire Status"}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
                                                 <Clock className="w-2.5 h-2.5" />
-                                                <span>Fuel: <span className={cn("font-bold", isBurning ? "text-primary" : "text-red-400")}>
-                                                    {nearbyCampfire.lifetimeTurns ?? 0} turns left
-                                                </span></span>
+                                                {isHotplate ? (
+                                                    <span>Battery: <span className={cn("font-bold", isBurning ? "text-primary" : "text-red-400")}>
+                                                        {nearbyCampfire.getBattery() ? `${Math.floor(nearbyCampfire.getBattery().ammoCount)} charges` : "No battery"}
+                                                    </span></span>
+                                                ) : (
+                                                    <span>Fuel: <span className={cn("font-bold", isBurning ? "text-primary" : "text-red-400")}>
+                                                        {nearbyCampfire.lifetimeTurns ?? 0} turns left
+                                                    </span></span>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20 text-[9px] font-bold text-primary uppercase">
-                                            {isBurning ? "Burning" : "Extinguished"}
+                                            {isHotplate ? (isBurning ? "Powered On" : "Powered Off") : (isBurning ? "Burning" : "Extinguished")}
                                         </div>
                                     </div>
 

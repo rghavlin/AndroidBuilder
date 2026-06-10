@@ -59,7 +59,10 @@ export class CraftingManager {
 
     getNearbyCampfire() {
         if (!this.inv.groundContainer) return null;
-        return this.inv.groundContainer.getAllItems().find(item => item.defId === 'placeable.campfire');
+        return this.inv.groundContainer.getAllItems().find(item => 
+            item.defId === 'placeable.campfire' || 
+            (item.defId === 'tool.battery_powered_hotplate' && item.isOn)
+        );
     }
 
     /**

@@ -639,6 +639,9 @@ export class Item extends SafeEventEmitter {
          console.log(`[Item] ${this.name} (${this.instanceId}) has EXPIRED (lifetimeTurns reached 0)`);
       }
     }
+
+    // Battery-powered hotplate drainage logic
+    TurnProcessingUtils.processHotplateDrain(this);
   }
 
   canLoadAmmo(ammoItem) {

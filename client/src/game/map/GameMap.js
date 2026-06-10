@@ -925,6 +925,11 @@ export class GameMap {
       }
     }
 
+    // --- HOTPLATE DRAINAGE LOGIC ---
+    if (TurnProcessingUtils.processHotplateDrain(itemData)) {
+      itemModified = true;
+    }
+
     // 1. Process own spoilage/lifetime
     const decay = TurnProcessingUtils.processDecay(itemData);
     if (decay.modified) itemModified = true;

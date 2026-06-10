@@ -29,9 +29,11 @@ export default function WeaponModPanel({
             )}>
                 {visibleSlots.map((slot: any) => (
                     <div key={slot.id} className="flex flex-col items-center gap-0.5 min-w-[40px]">
-                        <span className="text-[9px] font-semibold text-muted-foreground px-1 py-0 bg-muted/50 rounded truncate w-full text-center uppercase tracking-tighter">
-                            {slot.name}
-                        </span>
+                        {weapon.defId !== 'tool.battery_powered_hotplate' && (
+                            <span className="text-[9px] font-semibold text-muted-foreground px-1 py-0 bg-muted/50 rounded truncate w-full text-center uppercase tracking-tighter">
+                                {slot.name}
+                            </span>
+                        )}
                         <AttachmentSlot weapon={weapon} slot={slot} />
                     </div>
                 ))}

@@ -420,6 +420,7 @@ class GameEngine extends SafeEventEmitter {
               const def = ItemDefs[item.defId];
               if (!def || !def.lightRange) return false;
               if (item.defId === 'placeable.campfire') return (item.lifetimeTurns || 0) > 0;
+              if (item.defId === 'tool.battery_powered_hotplate') return item.isOn;
               return item.isLit;
             });
 
@@ -453,7 +454,7 @@ class GameEngine extends SafeEventEmitter {
             // Check if lit: campfires use lifetimeTurns, others use isLit
             const isLit = (item.defId === 'placeable.campfire' || item.defId === 'placeable.campfire_stone') 
               ? (item.lifetimeTurns || 0) > 0 
-              : item.isLit;
+              : ((item.defId === 'tool.battery_powered_hotplate') ? item.isOn : item.isLit);
 
             if (isLit) {
               const itemRange = def.lightRange;

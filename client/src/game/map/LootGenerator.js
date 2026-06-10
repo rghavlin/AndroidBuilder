@@ -1407,8 +1407,8 @@ export class LootGenerator {
             }
         }
 
-        // Mower / Scooter / Large Battery initialization
-        if (item.defId === 'furniture.electric_mower' || item.defId === 'vehicle.electric_scooter') {
+        // Mower / Scooter / Hotplate / Large Battery initialization
+        if (item.defId === 'furniture.electric_mower' || item.defId === 'vehicle.electric_scooter' || item.defId === 'tool.battery_powered_hotplate') {
             const batterySlot = item.attachmentSlots?.find(s => s.id === 'battery');
             if (batterySlot) {
                 const batteryData = createItemFromDef('tool.large_battery');
@@ -1536,17 +1536,17 @@ export class LootGenerator {
         let spawnsToProcess = [...uniqueSpawns];
 
         // NEW RULE: After Map 2, spawn only 1 of either, rather than 1 of each.
-        // After Map 5, reduce the chance of even 1 of them spawning to 75%.
+        // For Map 5+, reduce the chance of even 1 of them spawning to 50%.
         if (mapNumber > 2) {
             // Pick exactly one from the list
             const picked = spawnsToProcess[Math.floor(Math.random() * spawnsToProcess.length)];
             spawnsToProcess = [picked];
 
             // Map 5+ reduction check
-            if (mapNumber > 5) {
-                if (Math.random() > 0.75) {
+            if (mapNumber >= 5) {
+                if (Math.random() > 0.50) {
                     spawnsToProcess = [];
-                    console.log(`[LootGenerator] Map ${mapNumber} > 5: Skipped unique item spawn (75% chance)`);
+                    console.log(`[LootGenerator] Map ${mapNumber} >= 5: Skipped unique item spawn (50% chance)`);
                 }
             }
         }

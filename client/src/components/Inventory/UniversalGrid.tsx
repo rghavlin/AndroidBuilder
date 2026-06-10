@@ -1006,10 +1006,11 @@ export default function UniversalGrid({
                 </div>
               )}
 
-              {/* Phase: Specialized Ground Container Overlay (Wagon/Sled) */}
+              {/* Phase: Specialized Ground Container Overlay (Wagon/Sled/Hotplate) */}
               {(() => {
                 const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
-                const isSpecialGroundContainer = (isScooter || item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
+                const isHotplate = item.defId === 'tool.battery_powered_hotplate';
+                const isSpecialGroundContainer = (isScooter || isHotplate || item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
                                                (containerId === 'ground' || isScooter || (item.hasTrait?.(ItemTrait.PLANTER) && (containerId.includes('-container') || containerId.includes('-grid'))));
                 if (!isSpecialGroundContainer) return null;
                 

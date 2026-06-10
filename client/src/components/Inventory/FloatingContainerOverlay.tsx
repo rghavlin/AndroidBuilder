@@ -1,12 +1,13 @@
 import { useInventory } from '../../contexts/InventoryContext';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
+import { useAudio } from '../../contexts/AudioContext.jsx';
 import UniversalGrid from './UniversalGrid';
 import { getScaleFactor } from '@/hooks/useWindowSize';
 import WeaponModPanel from './WeaponModPanel';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
-import { Wrench, Zap } from 'lucide-react';
+import { Wrench, Zap, Power, Battery } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipPortal } from "@/components/ui/tooltip";
 import { ItemTrait } from '../../game/inventory/traits.js';
 
@@ -30,6 +31,7 @@ export default function FloatingContainerOverlay({
   const { selectItem, stopDrag, isContainerOpen, selectedItem, startDrag, openContainer, closeContainer, stopRiding } = useInventory();
   const { engine } = useGame();
   const { harvestPlant } = useAction();
+  const { playSound } = useAudio();
   
   const isDraggingSeed = selectedItem?.item.defId?.endsWith('seeds');
   
@@ -44,6 +46,7 @@ export default function FloatingContainerOverlay({
    const isWagon = item.hasTrait?.(ItemTrait.VEHICLE);
    const isPlanter = item.hasTrait?.(ItemTrait.PLANTER);
    const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
+   const isHotplate = item.defId === 'tool.battery_powered_hotplate';
 
   const handleSelectPlanter = (e: React.MouseEvent) => {
     if (!isPlanter || isDragging || isDraggingSeed) return;
@@ -116,7 +119,7 @@ export default function FloatingContainerOverlay({
     }
   };
 
-  if (!containerGrid && !isScooter) return null;
+  if (!containerGrid && !isScooter && !isHotplate) return null;
 
   const batteryStatuses = item.getBatteryStatuses?.() || [];
   const batteryPercent = item.getBatteryCharge?.() || 0;
@@ -149,9 +152,12 @@ export default function FloatingContainerOverlay({
 
       {/* Control Panel (Top Row) */}
       {!isPlanter && (
-        <div className="h-8 bg-black/80 backdrop-blur-sm border-b border-white/30 flex items-center justify-between p-1 px-1.5 flex-shrink-0 pointer-events-auto">
-        <div className="flex items-center gap-2">
-          {!isScooter && (
+        <div className={cn(
+          "bg-black/80 backdrop-blur-sm border-b border-white/30 flex items-center justify-between flex-shrink-0 pointer-events-auto",
+          isHotplate ? "h-[20px] p-0.5 px-1.5" : "h-8 p-1 px-1.5"
+        )}>
+        <div className={cn("flex items-center", isHotplate ? "gap-1" : "gap-2")}>
+          {!isScooter && !isHotplate && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
@@ -225,6 +231,57 @@ export default function FloatingContainerOverlay({
             </Tooltip>
           )}
 
+          {isHotplate && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="icon" 
+                  variant="ghost"
+                  className={cn(
+                    "h-4 w-4 p-0 transition-all text-white rounded-[3px]",
+                    item.isOn 
+                      ? "bg-red-600/90 border border-red-500 text-white hover:bg-red-700 shadow-[0_0_8px_rgba(239,68,68,0.5)]" 
+                      : "bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const battery = item.getBattery?.();
+                    if (item.isOn) {
+                      item.isOn = false;
+                      playSound('SwitchOff');
+                      engine.notifyUpdate();
+                    } else if (battery && battery.ammoCount > 0) {
+                      battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+                      item.isOn = true;
+                      playSound('SwitchOn');
+                      engine.notifyUpdate();
+                    }
+                  }}
+                  disabled={(!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount <= 0)) || containerId !== 'ground'}
+                >
+                  <Power className="h-2.5 w-2.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" className="bg-black/90 border-white/20 p-2 z-[100]">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11px] font-black uppercase text-white tracking-widest">Power Control</span>
+                    {containerId !== 'ground' && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Must be on ground to operate
+                      </div>
+                    )}
+                    {!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount <= 0) && (
+                      <div className="text-[8px] text-red-400 font-bold uppercase mt-1">
+                        Requires Charged Battery
+                      </div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          )}
+
           {isWagon && item.attachmentSlots && item.attachmentSlots.length > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -232,8 +289,8 @@ export default function FloatingContainerOverlay({
                   size="icon"
                   variant="ghost"
                   className={cn(
-                    "h-6 w-6 p-0 border border-white/10 transition-all text-white",
-                    "hover:bg-white/10 hover:border-white/50 hover:text-white",
+                    "h-6 w-6 p-0 border border-white/10 hover:bg-white/10 hover:border-white/50 hover:text-white rounded-[3px]",
+                    "transition-all text-white",
                     showMods && "bg-accent/80 hover:bg-accent/90 border-accent shadow-[0_0_10px_rgba(245,158,11,0.4)]"
                   )}
                   onClick={handleToggleMods}
@@ -244,7 +301,7 @@ export default function FloatingContainerOverlay({
               <TooltipPortal>
                 <TooltipContent side="top" className="bg-black/90 border-white/20 px-2 py-1 z-[100]">
                   <span className="text-[9px] font-bold uppercase text-white tracking-widest">
-                    {showMods ? "View Inventory" : "System Modifications"}
+                    {showMods ? "View Inventory" : "Battery Compartment"}
                   </span>
                 </TooltipContent>
               </TooltipPortal>
@@ -252,38 +309,67 @@ export default function FloatingContainerOverlay({
           )}
         </div>
 
-        {isWagon && (item.attachmentSlots?.some((s: any) => s.id.includes('battery')) || item.getBatteryStatuses?.().length > 0 || item.getBatteryCharge?.() > 0) && (
-          <div className="flex items-center gap-1.5 px-0.5">
-            {batteryStatuses.length > 0 ? (
-              batteryStatuses.map((status) => (
-                <div key={status.slotId} className="flex items-center gap-1 px-1 py-0.5 bg-black/40 rounded border border-white/5 min-w-[32px] justify-center">
-                  <Zap className={cn(
-                    "h-2.5 w-2.5",
-                    status.percent > 20 ? "text-yellow-400" : status.percent > 0 ? "text-orange-500 animate-pulse" : "text-gray-500"
+        {isHotplate ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className={cn(
+                  "h-4 w-4 p-0 bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 hover:text-white rounded-[3px]",
+                  "transition-all text-white",
+                  showMods && "bg-accent/80 hover:bg-accent/90 border-accent shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+                )}
+                onClick={handleToggleMods}
+              >
+                <Wrench className="h-2.5 w-2.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipPortal>
+              <TooltipContent side="top" className="bg-black/90 border-white/20 px-2 py-1 z-[100]">
+                <span className="text-[9px] font-bold uppercase text-white tracking-widest">
+                  {showMods ? "View Inventory" : "Battery Compartment"}
+                </span>
+              </TooltipContent>
+            </TooltipPortal>
+          </Tooltip>
+        ) : (
+          isWagon && (item.attachmentSlots?.some((s: any) => s.id.includes('battery')) || item.getBatteryStatuses?.().length > 0 || item.getBatteryCharge?.() > 0) && (
+            <div className="flex items-center gap-1.5 px-0.5">
+              {batteryStatuses.length > 0 ? (
+                batteryStatuses.map((status: any) => (
+                  <div 
+                    key={status.slotId} 
+                    className="flex items-center justify-center bg-black/40 rounded border border-white/5 gap-1 px-1 py-0.5 min-w-[32px] justify-center"
+                  >
+                    <Battery className={cn(
+                      "h-3 w-3",
+                      status.percent > 20 ? "text-yellow-400" : status.percent > 0 ? "text-orange-500 animate-pulse" : "text-gray-500"
+                    )} />
+                    <span className={cn(
+                      "font-mono font-bold leading-none text-[8px]",
+                      status.percent > 20 ? "text-yellow-100" : status.percent > 0 ? "text-orange-200" : "text-gray-400"
+                    )}>
+                      {Math.floor(status.percent)}%
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center bg-black/40 rounded border border-white/5 gap-1 px-1.5 py-0.5">
+                  <Battery className={cn(
+                    "h-3 w-3",
+                    batteryPercent > 20 ? "text-yellow-400" : batteryPercent > 0 ? "text-orange-500 animate-pulse" : "text-gray-500"
                   )} />
                   <span className={cn(
-                    "text-[8px] font-mono font-bold leading-none",
-                    status.percent > 20 ? "text-yellow-100" : status.percent > 0 ? "text-orange-200" : "text-gray-400"
+                    "font-mono font-bold leading-none text-[9px]",
+                    batteryPercent > 20 ? "text-yellow-100" : batteryPercent > 0 ? "text-orange-200" : "text-gray-400"
                   )}>
-                    {Math.floor(status.percent)}%
+                    {Math.floor(batteryPercent)}%
                   </span>
                 </div>
-              ))
-            ) : (
-              <div className="flex items-center gap-1 px-1.5 py-0.5 bg-black/40 rounded border border-white/5">
-                <Zap className={cn(
-                  "h-3 w-3",
-                  batteryPercent > 20 ? "text-yellow-400" : batteryPercent > 0 ? "text-orange-500 animate-pulse" : "text-gray-500"
-                )} />
-                <span className={cn(
-                  "text-[9px] font-mono font-bold leading-none",
-                  batteryPercent > 20 ? "text-yellow-100" : batteryPercent > 0 ? "text-orange-200" : "text-gray-400"
-                )}>
-                  {Math.floor(batteryPercent)}%
-                </span>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )
         )}
       </div>
       )}
