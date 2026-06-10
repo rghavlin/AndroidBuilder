@@ -1943,6 +1943,10 @@ export class InventoryManager extends SafeEventEmitter {
       return { success: false, reason: 'Item not found' };
     }
 
+    if (itemToMove.defId === 'tool.battery_powered_hotplate' && itemToMove.isOn && toContainerId !== 'ground') {
+      return { success: false, reason: 'Turn off the hotplate before picking it up.' };
+    }
+
     // Phase 21: Enforce Nesting/Accessibility Rules
     // Check if TARGET container is accessible
     if (toContainer && toContainer.ownerId) {

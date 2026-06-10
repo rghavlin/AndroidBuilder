@@ -375,6 +375,12 @@ export const InventoryProvider = ({ children }) => {
   }, [addLog, inventoryPulse]);
 
   const selectItem = useCallback((item, originId, x, y, extraProps = {}) => {
+    if (item && item.defId === 'tool.battery_powered_hotplate' && item.isOn) {
+      addLog('Turn off the hotplate before picking it up.', 'error');
+      playSound('Fail');
+      return false;
+    }
+
     // Phase 25: Cancel drag if picking up the item currently being dragged
     if (engine.dragging && engine.dragging.item.instanceId === item.instanceId) {
       stopDrag(item);
@@ -397,7 +403,7 @@ export const InventoryProvider = ({ children }) => {
     });
     playSound('Click');
     return true;
-  }, []);
+  }, [addLog, playSound]);
 
   const rotateSelected = useCallback(() => {
     setSelectedItem(prev => {
