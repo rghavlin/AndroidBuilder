@@ -122,6 +122,41 @@ export const ItemDefs = {
       ]
     }
   },
+  'vehicle.cargo_wagon': {
+    id: 'vehicle.cargo_wagon',
+    name: 'Cargo Wagon',
+    noLoot: true,
+    noPickup: true,
+    rarity: Rarity.EPIC,
+    imageId: 'cargowagon',
+    width: 6,
+    height: 10,
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
+    categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
+    dragApPenalty: 3,
+    motorAssistBonus: 0.5,
+    terrainModifiers: { road: -0.5, sidewalk: -0.5 },
+    renderFullTile: true,
+    containerGrid: { width: 6, height: 9, isVehicle: true },
+    attachmentSlots: [
+      { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'motor_middle', name: 'Middle Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery_middle', name: 'Middle Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ],
+    disassembleData: {
+      toolId: 'weapon.wrench',
+      apCost: 20,
+      components: [
+        { id: 'crafting.wheel', count: 6 },
+        { id: 'weapon.metal_rod', count: 3 },
+        { id: 'weapon.plank', count: 8 },
+        { id: 'crafting.nail', count: 8 }
+      ]
+    }
+  },
   'vehicle.electric_scooter': {
     id: 'vehicle.electric_scooter',
     name: 'Electric Scooter',

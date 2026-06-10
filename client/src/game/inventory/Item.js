@@ -321,6 +321,7 @@ export class Item extends SafeEventEmitter {
     const slotPairs = [
       ['motor', 'battery'],
       ['motor_front', 'battery_front'],
+      ['motor_middle', 'battery_middle'],
       ['motor_rear', 'battery_rear']
     ];
 
@@ -345,6 +346,7 @@ export class Item extends SafeEventEmitter {
     const slotPairs = [
       ['motor', 'battery'],
       ['motor_front', 'battery_front'],
+      ['motor_middle', 'battery_middle'],
       ['motor_rear', 'battery_rear']
     ];
 

@@ -28,6 +28,23 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'vehicle.cargo_wagon',
+        name: 'Cargo Wagon',
+        resultItem: 'vehicle.cargo_wagon',
+        description: 'An extra-large transport wagon with triple axles, massive capacity, and multi-motor support.',
+        apCost: 20,
+        tab: 'crafting',
+        tools: [
+            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], label: 'Hammer' }
+        ],
+        ingredients: [
+            { id: 'crafting.wheel', count: 6 },
+            { id: 'weapon.plank', count: 8 },
+            { id: 'crafting.nail', count: 8 },
+            { id: 'weapon.metal_rod', count: 3 }
+        ]
+    },
+    {
         id: 'crafting.makeshift_hammer',
         name: 'Makeshift Hammer',
         resultItem: 'weapon.makeshift_hammer',
