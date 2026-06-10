@@ -162,77 +162,98 @@ export class LabMapGenerator extends BaseMapGenerator {
    * Helper: Draw the complex Lab building interior
    */
   _drawLabBuilding(builder, x, y, w, h) {
-    // Shell
+    // Shell - set entire building footprint to floor
     for (let ty = y; ty < y + h; ty++) {
         for (let tx = x; tx < x + w; tx++) {
-            const isPerim = (ty === y || ty === y + h - 1 || tx === x || tx === x + w - 1);
-            builder.setTerrain(tx, ty, isPerim ? 'building' : 'floor');
+            builder.setTerrain(tx, ty, 'floor');
         }
     }
 
-    // Central Corridor (4 wide)
-    // Wall: x+6. Hall: x+7 to x+10. Wall: x+11.
-    // Rooms Left: x+1 to x+5 (5 wide). Rooms Right: x+12 to x+16 (5 wide).
-    const hallXStart = x + 7;
-    for (let ty = y + 1; ty < y + h - 1; ty++) {
-        builder.setTerrain(hallXStart - 1, ty, 'building'); // Col 6 (Left wall)
-        for (let hx = hallXStart; hx < hallXStart + 4; hx++) builder.setTerrain(hx, ty, 'floor'); // Col 7-10 (Hall)
-        builder.setTerrain(hallXStart + 4, ty, 'building'); // Col 11 (Right wall)
+    // Outer walls as single edge walls
+    for (let tx = x; tx < x + w; tx++) {
+        builder.setEdgeWall(tx, y, 'n', true);
+        builder.setEdgeWall(tx, y + h - 1, 's', true);
+    }
+    for (let ty = y; ty < y + h; ty++) {
+        builder.setEdgeWall(x, ty, 'w', true);
+        builder.setEdgeWall(x + w - 1, ty, 'e', true);
     }
 
-    // Room Subdivisions: Left Wing (x+1 to x+5)
-    const wingL = x + 1, wingR = x + 5;
+    // Corridor calculations
+    const hallXStart = x + 7;
+
+    // Room Subdivisions: Left Wing (x to x+6)
     const roomH = 12;
     let lastWallY = y;
+    const leftDoorYs = [];
     for (let ry = y + roomH; ry < y + h - 8; ry += roomH) {
-        for (let tx = wingL; tx <= wingR; tx++) builder.setTerrain(tx, ry, 'building');
+        // Draw single edge wall for partition (South edge)
+        // Span full length from outer wall (x) to corridor wall (x + 6)
+        for (let tx = x; tx <= x + 6; tx++) {
+            builder.setEdgeWall(tx, ry, 's', true);
+        }
+        
+        // Calculate door Y for this left wing room
         const doorY = lastWallY + 1 + Math.floor((ry - (lastWallY + 1)) / 2);
         if (doorY > y && doorY < y + h - 1) {
-            builder.setTerrain(hallXStart - 1, doorY, 'floor');
-            builder.metadata.doors.push({ x: hallXStart - 1, y: doorY, isLocked: false, isOpen: false });
+            leftDoorYs.push(doorY);
         }
         lastWallY = ry;
     }
     // Door for the final left room (only if there's space)
     const finalDoorLY = lastWallY + 1 + Math.floor((y + h - 1 - (lastWallY + 1)) / 2);
     if (finalDoorLY > lastWallY && finalDoorLY < y + h - 1) {
-        builder.setTerrain(hallXStart - 1, finalDoorLY, 'floor');
-        builder.metadata.doors.push({ x: hallXStart - 1, y: finalDoorLY, isLocked: false, isOpen: false });
+        leftDoorYs.push(finalDoorLY);
     }
 
-    // Room Subdivisions: Right Wing (x+12 to x+16)
-    const rWingL = x + 12, rWingR = x + 16;
+    // Room Subdivisions: Right Wing (x+11 to x+w-1)
     lastWallY = y;
+    const rightDoorYs = [];
     for (let ry = y + roomH; ry < y + h - 8; ry += roomH) {
-        for (let tx = rWingL; tx <= rWingR; tx++) builder.setTerrain(tx, ry, 'building');
+        // Draw single edge wall for partition (South edge)
+        // Span full length from corridor wall (x + 11) to outer wall (x + w - 1)
+        for (let tx = x + 11; tx <= x + w - 1; tx++) {
+            builder.setEdgeWall(tx, ry, 's', true);
+        }
+        
+        // Calculate door Y for this right wing room
         const doorY = lastWallY + 1 + Math.floor((ry - (lastWallY + 1)) / 2);
         if (doorY > y && doorY < y + h - 1) {
-            builder.setTerrain(hallXStart + 4, doorY, 'floor');
-            builder.metadata.doors.push({ x: hallXStart + 4, y: doorY, isLocked: false, isOpen: false });
+            rightDoorYs.push(doorY);
         }
         lastWallY = ry;
     }
     // Door for the final right room (only if there's space)
     const finalDoorRY = lastWallY + 1 + Math.floor((y + h - 1 - (lastWallY + 1)) / 2);
     if (finalDoorRY > lastWallY && finalDoorRY < y + h - 1) {
-        builder.setTerrain(hallXStart + 4, finalDoorRY, 'floor');
-        builder.metadata.doors.push({ x: hallXStart + 4, y: finalDoorRY, isLocked: false, isOpen: false });
+        rightDoorYs.push(finalDoorRY);
     }
 
-    // Main Entrance Doors (Top and Bottom, 2 centered)
+    // Left Corridor Wall (Col 6: hallXStart - 1) as single edge wall on East ('e') side
+    // Run full length from y to y + h - 1
+    for (let ty = y; ty < y + h; ty++) {
+        builder.setEdgeWall(hallXStart - 1, ty, 'e', true);
+        if (leftDoorYs.includes(ty)) {
+            builder.metadata.doors.push({ x: hallXStart - 1, y: ty, isLocked: false, isOpen: false, edge: 'e' });
+        }
+    }
+
+    // Right Corridor Wall (Col 11: hallXStart + 4) as single edge wall on West ('w') side
+    // Run full length from y to y + h - 1
+    for (let ty = y; ty < y + h; ty++) {
+        builder.setEdgeWall(hallXStart + 4, ty, 'w', true);
+        if (rightDoorYs.includes(ty)) {
+            builder.metadata.doors.push({ x: hallXStart + 4, y: ty, isLocked: false, isOpen: false, edge: 'w' });
+        }
+    }
+
+    // Main Entrance Doors (Top and Bottom, 2 centered) - set as edge doors
     const doorCols = [hallXStart + 1, hallXStart + 2];
     const wallCols = [hallXStart, hallXStart + 3];
 
     doorCols.forEach(hx => {
-        builder.setTerrain(hx, y, 'floor');
-        builder.setTerrain(hx, y + h - 1, 'floor');
-        builder.metadata.doors.push({ x: hx, y: y, isLocked: false, isOpen: false });
-        builder.metadata.doors.push({ x: hx, y: y + h - 1, isLocked: false, isOpen: false });
-    });
-
-    wallCols.forEach(hx => {
-        builder.setTerrain(hx, y, 'building');
-        builder.setTerrain(hx, y + h - 1, 'building');
+        builder.metadata.doors.push({ x: hx, y: y, isLocked: false, isOpen: false, edge: 'n' });
+        builder.metadata.doors.push({ x: hx, y: y + h - 1, isLocked: false, isOpen: false, edge: 's' });
     });
 
     // Windows
@@ -241,9 +262,6 @@ export class LabMapGenerator extends BaseMapGenerator {
     // Ensure no windows at the 2-tile entry walls (Top and Bottom)
     wallCols.forEach(hx => {
         builder.metadata.windows = builder.metadata.windows.filter(w => !(w.x === hx && (w.y === y || w.y === y + h - 1)));
-        // Re-enforce building terrain just in case
-        builder.setTerrain(hx, y, 'building');
-        builder.setTerrain(hx, y + h - 1, 'building');
     });
 
     // Register
