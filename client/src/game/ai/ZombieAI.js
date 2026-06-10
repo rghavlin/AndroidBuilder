@@ -13,7 +13,7 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
  * Flattened for Phase 18 to prevent mid-turn state loss.
  */
 export class ZombieAI {
-  static DEBUG = false;
+  static DEBUG = true;
   /**
    * Execute zombie behavior loop for a single zombie's turn.
    */
@@ -30,6 +30,8 @@ export class ZombieAI {
     const maxActions = 20; 
 
     if (ZombieAI.DEBUG) console.log(`[ZombieAI] Starting turn for zombie ${zombie.id} at (${zombie.logicalX}, ${zombie.logicalY}) with ${zombie.currentAP} AP`);
+    // DIAGNOSTIC: Raw state before any logic
+    if (ZombieAI.DEBUG) console.log(`[ZombieAI] RAW STATE: lastSeen=${zombie.lastSeen}, currentTarget=${JSON.stringify(zombie.currentTarget)}, LKP=(${zombie.targetSightedCoords?.x}, ${zombie.targetSightedCoords?.y}), player.id=${player?.id}, player.logicalX=${player?.logicalX}, player.logicalY=${player?.logicalY}`);
 
     // PHASE 28 FINAL FIX: DO NOT snap logicalX to visual x. 
     // During turn simulation, logicalX is the source of truth. 
@@ -56,12 +58,16 @@ export class ZombieAI {
     });
 
     if (target) {
-      zombie.currentTarget = { id: target.id, type: target.id === 'player' ? 'player' : 'npc' };
-      zombie.setTargetSighted(target.logicalX, target.logicalY);
+      zombie.currentTarget = { id: target.id, type: target.id === player.id ? 'player' : 'npc' };
+      // Only update LKP when the zombie directly spots the PLAYER.
+      // NPC targets must NOT overwrite the player's last-known-position.
+      if (target.id === player.id) {
+        zombie.setTargetSighted(target.logicalX, target.logicalY);
+      }
     } else {
       let targetValid = false;
       if (zombie.currentTarget) {
-        if (zombie.currentTarget.type === 'player') {
+        if (zombie.currentTarget.id === player.id) {
           targetValid = true;
           target = player;
         } else {
@@ -73,7 +79,6 @@ export class ZombieAI {
         }
       }
       if (!targetValid) {
-        zombie.clearLastSeen();
         zombie.currentTarget = null;
         target = null;
       }
@@ -104,12 +109,16 @@ export class ZombieAI {
 
       if (loopTarget) {
         target = loopTarget;
-        zombie.currentTarget = { id: target.id, type: target.id === 'player' ? 'player' : 'npc' };
-        zombie.setTargetSighted(target.logicalX, target.logicalY);
+        zombie.currentTarget = { id: target.id, type: target.id === player.id ? 'player' : 'npc' };
+        // Only update LKP when the zombie directly spots the PLAYER.
+        // NPC targets must NOT overwrite the player's last-known-position.
+        if (target.id === player.id) {
+          zombie.setTargetSighted(target.logicalX, target.logicalY);
+        }
       } else {
         let targetValid = false;
         if (zombie.currentTarget) {
-          if (zombie.currentTarget.type === 'player') {
+          if (zombie.currentTarget.id === player.id) {
             targetValid = true;
             target = player;
           } else {
@@ -121,7 +130,6 @@ export class ZombieAI {
           }
         }
         if (!targetValid) {
-          zombie.clearLastSeen();
           zombie.currentTarget = null;
           target = null;
         }
@@ -204,7 +212,7 @@ export class ZombieAI {
                    data: { 
                        ...attackResult, 
                        targetId: target.id, 
-                       targetType: target.id === 'player' ? 'player' : 'npc', 
+                       targetType: target.id === player.id ? 'player' : 'npc', 
                        from: { x: zombie.logicalX, y: zombie.logicalY }, 
                        to: { x: target.logicalX, y: target.logicalY } 
                    }
@@ -214,7 +222,10 @@ export class ZombieAI {
        // 2. PURSUIT (Priority 2: Move toward target if visible)
       else if (canSee) {
           zombie.behaviorState = 'pursuing';
-          zombie.setTargetSighted(target.logicalX, target.logicalY);
+          // Only update player LKP when chasing the player directly.
+          if (target.id === player.id) {
+            zombie.setTargetSighted(target.logicalX, target.logicalY);
+          }
           
           const distToTarget = Math.abs(zombie.logicalX - target.logicalX) + Math.abs(zombie.logicalY - target.logicalY);
 

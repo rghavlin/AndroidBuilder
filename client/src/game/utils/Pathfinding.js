@@ -64,15 +64,14 @@ export class Pathfinding {
    * @returns {Array} Array of {x, y} coordinates representing the path
    */
   static findPath(gameMap, startX, startY, endX, endY, options = {}) {
+    const pathOptions = { ...options, isPathfinding: true };
     const {
       allowDiagonal = true,
       maxDistance = 1000,
       entityFilter = null,
       isZombie = false,
       debug = false
-    } = options;
-    
-    options.isPathfinding = true;
+    } = pathOptions;
 
     if (!gameMap || !gameMap.getTile) {
       throw new Error('[Pathfinding] Invalid gameMap provided');
@@ -82,7 +81,7 @@ export class Pathfinding {
     const endTile = gameMap.getTile(endX, endY);
 
     // Only return early if startTile is unwalkable (zombie is in a wall)
-    if (!this.isTileWalkable(startTile, entityFilter || options.entity, options)) return [];
+    if (!this.isTileWalkable(startTile, entityFilter || pathOptions.entity, pathOptions)) return [];
     if (startX === endX && startY === endY) return [{ x: startX, y: startY }];
 
     const openSet = new MinHeap((a, b) => {
@@ -125,27 +124,27 @@ export class Pathfinding {
         if (!neighborTile) continue;
         
         const isTarget = neighbor.x === endX && neighbor.y === endY;
-        const isWalkable = this.isTileWalkable(neighborTile, entityFilter || options.entity, options);
+        const isWalkable = this.isTileWalkable(neighborTile, entityFilter || pathOptions.entity, pathOptions);
         
         // Check edge blocking
-        if (this.isEdgeBlocked(gameMap, current.x, current.y, neighbor.x, neighbor.y, entityFilter || options.entity, options)) {
+        if (this.isEdgeBlocked(gameMap, current.x, current.y, neighbor.x, neighbor.y, entityFilter || pathOptions.entity, pathOptions)) {
             continue;
         }
 
         // REVISE: Allow pathfinding through closed doors/windows for zombies and NPCs
-        const isNPC = options.isNPC || options.entity?.type === 'npc' || (entityFilter && entityFilter.type === 'npc');
-        const hasBreachableStructure = (isZombie || options.entity?.type === 'zombie' || isNPC) && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window');
+        const isNPC = pathOptions.isNPC || pathOptions.entity?.type === 'npc' || (entityFilter && entityFilter.type === 'npc');
+        const hasBreachableStructure = (isZombie || pathOptions.entity?.type === 'zombie' || isNPC) && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window');
         
         if (!isWalkable && !hasBreachableStructure && !isTarget) continue;
 
         if (allowDiagonal && this.isDiagonalMove(current.x, current.y, neighbor.x, neighbor.y)) {
-          if (!this.canMoveDiagonally(gameMap, current.x, current.y, neighbor.x, neighbor.y, entityFilter || options.entity, options)) continue;
+          if (!this.canMoveDiagonally(gameMap, current.x, current.y, neighbor.x, neighbor.y, entityFilter || pathOptions.entity, pathOptions)) continue;
         }
 
         const distanceFromStart = Math.abs(neighbor.x - startX) + Math.abs(neighbor.y - startY);
         if (distanceFromStart > maxDistance) continue;
 
-        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, gameMap, isPathfinding: true });
+        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...pathOptions, gameMap, isPathfinding: true });
         const existingNode = openSetMap.get(neighborKey);
 
         if (!existingNode) {
@@ -322,7 +321,7 @@ export class Pathfinding {
     if (entityOrFilter && typeof entityOrFilter === 'function') return entityOrFilter(tile);
     
     const isZombie = options.isZombie || (entityOrFilter && (entityOrFilter.type === 'zombie' || entityOrFilter.type === EntityType.ZOMBIE));
-    const isNPC = entityOrFilter && (entityOrFilter.type === 'npc' || entityOrFilter.type === EntityType.NPC);
+    const isNPC = options.isNPC || (entityOrFilter && (entityOrFilter.type === 'npc' || entityOrFilter.type === EntityType.NPC));
     
     // SAFETY: If we are checking the entity's current position, it MUST be walkable
     // (Prevents being stuck if a door closes on the zombie's current tile)
