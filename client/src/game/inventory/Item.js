@@ -760,7 +760,11 @@ export class Item extends SafeEventEmitter {
   }
 
   getMeterPercent() {
-    if (this.hasTrait(ItemTrait.WATER_CONTAINER) && !this.hasTrait(ItemTrait.WATER_SOURCE)) return this.getWaterPercent();
+    if (this.hasTrait(ItemTrait.WATER_CONTAINER)) {
+      if (!this.hasTrait(ItemTrait.WATER_SOURCE) || this.defId === 'provision.rain_collector') {
+        return this.getWaterPercent();
+      }
+    }
     if (this.hasTrait(ItemTrait.FUEL_CONTAINER) && this.capacity) return (this.ammoCount / this.capacity) * 100;
     return null;
   }
@@ -808,7 +812,7 @@ export class Item extends SafeEventEmitter {
    * Overridden for environment items that scale based on content
    */
   getActualWidth() {
-    if (this.hasTrait(ItemTrait.WATER_SOURCE)) {
+    if (this.hasTrait(ItemTrait.WATER_SOURCE) && this.defId === 'environment.water_puddle') {
       // 1x1 at 10, 2x2 at 20, 3x3 at 30, 4x4 at 40, 5x5 at 50
       return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
     }
@@ -817,7 +821,7 @@ export class Item extends SafeEventEmitter {
   }
 
   getActualHeight() {
-    if (this.hasTrait(ItemTrait.WATER_SOURCE)) {
+    if (this.hasTrait(ItemTrait.WATER_SOURCE) && this.defId === 'environment.water_puddle') {
       return Math.max(1, Math.min(5, Math.ceil(this.ammoCount / 10)));
     }
     const baseHeight = this.rotation === 90 || this.rotation === 270 ? this.width : this.height;
