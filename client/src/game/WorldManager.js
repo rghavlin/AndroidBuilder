@@ -1,6 +1,7 @@
 import Logger from './utils/Logger.js';
 import { getProgressionForMap } from './config/ProgressionConfig.js';
 import GameEvents, { GAME_EVENT } from './utils/GameEvents.js';
+import { compressString, decompressString } from './GameSaveSystem.js';
 
 const logger = Logger.scope('WorldManager');
 
@@ -15,6 +16,7 @@ export class WorldManager {
     this.mapCounter = 1;
     this.listeners = new Map();
     this.DEV_FORCE_LAB = false; // Set to true to test Lab map on Map 1
+    this.saveSlot = null; // Active save slot reference
 
     this.firstEntryTurn = { map_001: 1 };
     this.completedMaps = [];
@@ -24,11 +26,19 @@ export class WorldManager {
     this.claimedPrizes = [];
 
     // Subscriptions
-    GameEvents.on(GAME_EVENT.ZOMBIE_DIED, () => {
+    this._onZombieDied = () => {
       this.recordZombieKill(this.currentMapId);
-    });
+    };
+    GameEvents.on(GAME_EVENT.ZOMBIE_DIED, this._onZombieDied);
 
     logger.info('Initialized');
+  }
+
+  cleanup() {
+    console.log('[WorldManager] 🧼 Cleaning up event listeners and caches');
+    GameEvents.off(GAME_EVENT.ZOMBIE_DIED, this._onZombieDied);
+    this.maps.clear();
+    this.listeners.clear();
   }
 
   /**
@@ -75,22 +85,48 @@ export class WorldManager {
       }
 
       const serializedMap = gameMap.toJSON();
+      const isCurrentMap = (mapId === this.currentMapId || this.currentMapId === null);
+
       const mapData = {
         id: mapId,
-        serializedMap: serializedMap,
+        serializedMap: isCurrentMap ? serializedMap : null,
+        compressedMap: null,
         timestamp: Date.now(),
         lastProcessedTurn: currentTurn, // Track when this map was last active
         type: templateType || gameMap.template || 'road',
         metadata: {
           width: gameMap.width,
           height: gameMap.height,
-          entityCount: gameMap.getAllEntities().length
+          entityCount: gameMap.getAllEntities().length,
+          transitionPoints: gameMap.metadata?.spawnZones?.transitionPoints || null
         }
       };
 
-
       this.maps.set(mapId, mapData);
-      this.currentMapId = mapId;
+
+      if (isCurrentMap) {
+        this.currentMapId = mapId;
+      }
+
+      // Purge inactive maps' serialized data to keep only the active map in memory
+      for (const [id, mData] of this.maps.entries()) {
+        if (id !== this.currentMapId && mData.compressedMap) {
+          mData.serializedMap = null;
+        }
+      }
+
+      // Asynchronously compress the map
+      const serializedStr = JSON.stringify(serializedMap);
+      compressString(serializedStr).then(compressed => {
+        mapData.compressedMap = compressed;
+        // Purge raw JSON from memory if it is not the active map
+        if (mapData.id !== this.currentMapId) {
+          mapData.serializedMap = null;
+        }
+      }).catch(err => {
+        console.error(`[WorldManager] Async compression failed for map ${mapId}:`, err);
+        mapData.serializedMap = serializedMap; // Fallback
+      });
 
       logger.info(`*** MAP SAVED: ${mapId} at Turn ${currentTurn} ***`);
       logger.info(`*** WORLD COLLECTION NOW HAS ${this.maps.size} MAPS ***`);
@@ -122,9 +158,36 @@ export class WorldManager {
       const mapData = this.maps.get(mapId);
       logger.info(`Loading map ${mapId} from world collection (full restoration)`);
 
+      // Decompress if serializedMap is null in memory
+      let serializedMap = mapData.serializedMap;
+      if (!serializedMap) {
+        if (mapData.compressedMap) {
+          const decompressed = await decompressString(mapData.compressedMap);
+          serializedMap = JSON.parse(decompressed);
+          mapData.serializedMap = serializedMap; // cache in memory while active
+        } else if (this.saveSlot) {
+          // Asynchronously load chunk from storage!
+          const { GameSaveSystem } = await import('./GameSaveSystem.js');
+          const chunk = await GameSaveSystem.loadChunkFromStorage(this.saveSlot, mapId);
+          if (chunk) {
+            mapData.compressedMap = chunk.compressedMap;
+            serializedMap = chunk.serializedMap;
+            if (!serializedMap && chunk.compressedMap) {
+              const decompressed = await decompressString(chunk.compressedMap);
+              serializedMap = JSON.parse(decompressed);
+            }
+            mapData.serializedMap = serializedMap;
+          }
+        }
+      }
+
+      if (!serializedMap) {
+        throw new Error(`Map data for ${mapId} is empty and could not be loaded/decompressed`);
+      }
+
       // Import GameMap class and restore from JSON with all entities
       const { GameMap } = await import('./map/GameMap.js');
-      const gameMap = await GameMap.fromJSON(mapData.serializedMap);
+      const gameMap = await GameMap.fromJSON(serializedMap);
 
       // CATCH-UP TURN PROCESSING
       if (currentTurn !== null && mapData.lastProcessedTurn !== undefined) {
@@ -171,9 +234,35 @@ export class WorldManager {
       const mapData = this.maps.get(mapId);
       logger.info(`Loading map ${mapId} for transition (excluding players)`);
 
+      // Decompress if serializedMap is null in memory
+      let serializedMap = mapData.serializedMap;
+      if (!serializedMap) {
+        if (mapData.compressedMap) {
+          const decompressed = await decompressString(mapData.compressedMap);
+          serializedMap = JSON.parse(decompressed);
+          mapData.serializedMap = serializedMap; // cache in memory while active
+        } else if (this.saveSlot) {
+          const { GameSaveSystem } = await import('./GameSaveSystem.js');
+          const chunk = await GameSaveSystem.loadChunkFromStorage(this.saveSlot, mapId);
+          if (chunk) {
+            mapData.compressedMap = chunk.compressedMap;
+            serializedMap = chunk.serializedMap;
+            if (!serializedMap && chunk.compressedMap) {
+              const decompressed = await decompressString(chunk.compressedMap);
+              serializedMap = JSON.parse(decompressed);
+            }
+            mapData.serializedMap = serializedMap;
+          }
+        }
+      }
+
+      if (!serializedMap) {
+        throw new Error(`Map data for ${mapId} is empty and could not be loaded/decompressed`);
+      }
+
       // Import GameMap class and restore selectively (exclude players)
       const { GameMap } = await import('./map/GameMap.js');
-      const gameMap = await GameMap.fromJSONSelective(mapData.serializedMap, {
+      const gameMap = await GameMap.fromJSONSelective(serializedMap, {
         excludeEntityTypes: ['player']
       });
       gameMap.mapNumber = this.extractMapNumber(mapId);
@@ -340,15 +429,15 @@ export class WorldManager {
             // If next map exists, get its actual exit point and height
             if (this.maps.has(nextMapId)) {
                 const nextMapData = this.maps.get(nextMapId);
-                const nextPoints = nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
+                const nextPoints = nextMapData.metadata?.transitionPoints || nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
                 if (nextPoints?.south) spawnX = nextPoints.south.x;
                 
                 // Use actual height from metadata if available
-                if (nextMapData.metadata?.height) {
-                    nextHeight = nextMapData.metadata.height;
-                } else if (nextMapData.serializedMap?.height) {
-                    nextHeight = nextMapData.serializedMap.height;
-                }
+                 if (nextMapData.metadata?.height) {
+                     nextHeight = nextMapData.metadata.height;
+                 } else if (nextMapData.serializedMap?.height) {
+                     nextHeight = nextMapData.serializedMap.height;
+                 }
             } else {
                 // Predict next template and its SOUTH entrance position
                 const nextTemplate = this.determineTemplateForMap(nextMapId);
@@ -388,7 +477,7 @@ export class WorldManager {
 
         if (this.maps.has(prevMapId)) {
           const prevMapData = this.maps.get(prevMapId);
-          const prevPoints = prevMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
+          const prevPoints = prevMapData.metadata?.transitionPoints || prevMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
           if (prevPoints?.north) spawnX = prevPoints.north.x;
         } else {
           // Fallback prediction for NORTH exit of the previous map
@@ -562,7 +651,13 @@ export class WorldManager {
    */
   toJSON() {
     return {
-      maps: Array.from(this.maps.entries()).map(([id, data]) => ({ id, ...data })),
+      maps: Array.from(this.maps.entries()).map(([id, data]) => ({
+        id,
+        timestamp: data.timestamp,
+        lastProcessedTurn: data.lastProcessedTurn,
+        type: data.type,
+        metadata: data.metadata
+      })),
       currentMapId: this.currentMapId,
       mapCounter: this.mapCounter,
       firstEntryTurn: this.firstEntryTurn,
@@ -587,8 +682,32 @@ export class WorldManager {
       }
 
       const mapData = this.maps.get(mapId);
+      let serializedMap = mapData.serializedMap;
+      if (!serializedMap) {
+        if (mapData.compressedMap) {
+          const decompressed = await decompressString(mapData.compressedMap);
+          serializedMap = JSON.parse(decompressed);
+        } else if (this.saveSlot) {
+          const { GameSaveSystem } = await import('./GameSaveSystem.js');
+          const chunk = await GameSaveSystem.loadChunkFromStorage(this.saveSlot, mapId);
+          if (chunk) {
+            mapData.compressedMap = chunk.compressedMap;
+            serializedMap = chunk.serializedMap;
+            if (!serializedMap && chunk.compressedMap) {
+              const decompressed = await decompressString(chunk.compressedMap);
+              serializedMap = JSON.parse(decompressed);
+            }
+          }
+        }
+      }
+
+      if (!serializedMap) {
+        console.warn(`[WorldManager] Cannot stamp transition - map ${mapId} data not loaded/decompressed`);
+        return false;
+      }
+
       const { GameMap } = await import('./map/GameMap.js');
-      const gameMap = await GameMap.fromJSON(mapData.serializedMap);
+      const gameMap = await GameMap.fromJSON(serializedMap);
 
       const centerX = Math.floor(gameMap.width / 2);
       if (direction === 'south' && mapId !== 'map_001') {
@@ -774,7 +893,12 @@ export class WorldManager {
     if (data.maps) {
       data.maps.forEach(mapData => {
         const { id, ...mapInfo } = mapData;
-        worldManager.maps.set(id, mapInfo);
+        worldManager.maps.set(id, {
+          id,
+          serializedMap: null,
+          compressedMap: null,
+          ...mapInfo
+        });
       });
     }
 

@@ -188,6 +188,19 @@ ipcMain.handle('delete-game', async (event, slotName) => {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
+    // Also delete any associated chunk files
+    if (fs.existsSync(saveDir)) {
+      const files = fs.readdirSync(saveDir);
+      for (const file of files) {
+        if (file.startsWith(`${slotName}_chunk_`) && file.endsWith('.json')) {
+          try {
+            fs.unlinkSync(path.join(saveDir, file));
+          } catch (err) {
+            console.warn(`[Save IPC] Failed to delete chunk file ${file}:`, err);
+          }
+        }
+      }
+    }
     return { success: true };
   } catch (error) {
     console.error('[Save IPC] Failed to delete save:', error);

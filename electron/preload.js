@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveGame: (slotName, data) => ipcRenderer.invoke('save-game', slotName, data),
   loadGame: (slotName) => ipcRenderer.invoke('load-game', slotName),
   deleteGame: (slotName) => ipcRenderer.invoke('delete-game', slotName),
+  deleteSave: (slotName) => ipcRenderer.invoke('delete-game', slotName),
   listSaves: () => ipcRenderer.invoke('list-saves')
 });

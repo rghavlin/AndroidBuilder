@@ -1,7 +1,7 @@
 import engine from './GameEngine.js';
 
 // Compression helper using browser native CompressionStream / DecompressionStream
-async function compressString(str) {
+export async function compressString(str) {
   if (typeof CompressionStream === 'undefined') {
     return str; // No compression if not supported
   }
@@ -25,7 +25,7 @@ async function compressString(str) {
   }
 }
 
-async function decompressString(str) {
+export async function decompressString(str) {
   if (typeof str !== 'string' || !str.startsWith('_gz_:')) {
     return str; // Not compressed or not a string
   }
@@ -141,6 +141,36 @@ class IndexedDBStore {
         };
       } catch (err) {
         console.error('[IndexedDBStore] deleteItem transaction threw exception:', err);
+        reject(err);
+      }
+    });
+  }
+
+  async deleteChunks(slotName) {
+    const db = await this._getDB();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db.transaction(this.storeName, 'readwrite');
+        const store = tx.objectStore(this.storeName);
+        const req = store.openCursor();
+        req.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            const key = cursor.key;
+            if (typeof key === 'string' && key.startsWith(`${slotName}_chunk_`)) {
+              store.delete(key);
+            }
+            cursor.continue();
+          } else {
+            resolve(true);
+          }
+        };
+        req.onerror = () => {
+          console.error('[IndexedDBStore] deleteChunks cursor error:', req.error);
+          reject(req.error || new Error('IndexedDB cursor error'));
+        };
+      } catch (err) {
+        console.error('[IndexedDBStore] deleteChunks transaction threw exception:', err);
         reject(err);
       }
     });
@@ -386,6 +416,39 @@ export class GameSaveSystem {
     try {
       const saveData = this.saveGameState(gameState);
 
+      // Save all inactive map chunks to storage!
+      if (gameState.worldManager && gameState.worldManager.maps) {
+        for (const [mapId, mapData] of gameState.worldManager.maps.entries()) {
+          if (mapId !== gameState.worldManager.currentMapId) {
+            // Build the chunk data
+            const chunkData = {
+              id: mapId,
+              serializedMap: mapData.serializedMap,
+              compressedMap: mapData.compressedMap,
+              timestamp: mapData.timestamp,
+              lastProcessedTurn: mapData.lastProcessedTurn,
+              type: mapData.type,
+              metadata: mapData.metadata
+            };
+            const serializedChunk = JSON.stringify(chunkData);
+            
+            // Save using Electron / IDB / localStorage
+            if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.saveGame === 'function') {
+              await window.electronAPI.saveGame(`${slotName}_chunk_${mapId}`, serializedChunk);
+            } else {
+              try {
+                await idbStore.setItem(`${slotName}_chunk_${mapId}`, chunkData);
+              } catch (idbError) {
+                if (typeof window !== 'undefined' && window.localStorage) {
+                  const compressed = await compressString(serializedChunk);
+                  window.localStorage.setItem(`zombie_road_save_${slotName}_chunk_${mapId}`, compressed);
+                }
+              }
+            }
+          }
+        }
+      }
+
       // Check if running in Electron native filesystem environment
       if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.saveGame === 'function') {
         const serializedData = JSON.stringify(saveData);
@@ -470,9 +533,47 @@ export class GameSaveSystem {
         return null;
       }
 
-      return await this.loadGameState(saveData);
+      const components = await this.loadGameState(saveData);
+      if (components && components.worldManager) {
+        components.worldManager.saveSlot = slotName;
+      }
+      return components;
     } catch (error) {
       console.error('[GameSaveSystem] Failed to load game state:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Load an individual map chunk from storage
+   */
+  static async loadChunkFromStorage(slotName, mapId) {
+    const chunkSlotName = `${slotName}_chunk_${mapId}`;
+    try {
+      let chunkData = null;
+      if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.loadGame === 'function') {
+        const result = await window.electronAPI.loadGame(chunkSlotName);
+        if (result) {
+          chunkData = typeof result === 'string' ? JSON.parse(result) : result;
+        }
+      } else {
+        try {
+          chunkData = await idbStore.getItem(chunkSlotName);
+        } catch (e) {}
+        if (!chunkData) {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            const key = `zombie_road_save_${chunkSlotName}`;
+            const localData = window.localStorage.getItem(key);
+            if (localData) {
+              const decompressed = await decompressString(localData);
+              chunkData = JSON.parse(decompressed);
+            }
+          }
+        }
+      }
+      return chunkData;
+    } catch (error) {
+      console.error(`[GameSaveSystem] Failed to load chunk ${mapId}:`, error);
       return null;
     }
   }
@@ -494,7 +595,8 @@ export class GameSaveSystem {
       // Try IndexedDB
       try {
         await idbStore.deleteItem(slotName);
-        console.log(`[GameSaveSystem] Deleted save from IndexedDB slot: ${slotName}`);
+        await idbStore.deleteChunks(slotName);
+        console.log(`[GameSaveSystem] Deleted save and chunks from IndexedDB slot: ${slotName}`);
         deletedAny = true;
       } catch (idbError) {
         console.warn(`[GameSaveSystem] Failed to delete slot ${slotName} from IndexedDB:`, idbError);
@@ -509,6 +611,15 @@ export class GameSaveSystem {
             console.log(`[GameSaveSystem] Deleted save from localStorage key: ${key}`);
             deletedAny = true;
           }
+          // Remove chunks from localStorage
+          const keysToRemove = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (k && k.startsWith(`zombie_road_save_${slotName}_chunk_`)) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => window.localStorage.removeItem(k));
         }
       } catch (lsError) {
         console.error(`[GameSaveSystem] Failed to delete slot ${slotName} from localStorage:`, lsError);

@@ -93,6 +93,11 @@ export class InventoryManager extends SafeEventEmitter {
     this.lastSyncedX = null;
     this.lastSyncedY = null;
     this.draggedItem = null;
+
+    this._updateCount = 0;
+    this.on('inventoryChanged', () => {
+      this._updateCount++;
+    });
   }
 
   /**

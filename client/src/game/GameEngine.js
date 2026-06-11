@@ -16,14 +16,13 @@ import { getSightRangeForHour } from './config/VisionConfig.js';
 class GameEngine extends SafeEventEmitter {
   constructor() {
     super();
-    this.reset();
     
     // Bind internal handlers
     this._handlePlayerStateChange = this._handlePlayerStateChange.bind(this);
     this._handleNpcDeath = this._handleNpcDeath.bind(this);
-    
-    // Global event listeners
-    this.on('npcDied', this._handleNpcDeath);
+    this._handleInventoryChange = this._handleInventoryChange.bind(this);
+
+    this.reset();
     
     // Global accessibility for Dev Console and debugging
     if (typeof window !== 'undefined') {
@@ -35,6 +34,21 @@ class GameEngine extends SafeEventEmitter {
   }
 
   reset() {
+    // Unsubscribe from old player
+    if (this.player && this.player.off) {
+      this.player.off('stateChanged', this._handlePlayerStateChange);
+    }
+    
+    // Unsubscribe from old inventoryManager
+    if (this.inventoryManager && this._handleInventoryChange) {
+      this.inventoryManager.off('inventoryChanged', this._handleInventoryChange);
+    }
+
+    // Cleanup old worldManager
+    if (this.worldManager && typeof this.worldManager.cleanup === 'function') {
+      this.worldManager.cleanup();
+    }
+
     if (this._heartbeatId) {
       cancelAnimationFrame(this._heartbeatId);
       this._heartbeatId = null;
@@ -46,6 +60,7 @@ class GameEngine extends SafeEventEmitter {
     this.gameMap = null;
     this.worldManager = null;
     this.inventoryManager = new InventoryManager();
+    this.inventoryManager.on('inventoryChanged', this._handleInventoryChange);
     this.camera = null;
     if (this.zombieTracker) {
       this.zombieTracker.clearAllTracking();
@@ -95,10 +110,18 @@ class GameEngine extends SafeEventEmitter {
       'book.nomad_survivor_7': { pagesLeft: 25, milestonesReached: 0 }
     };
 
+    // Global event cleanups
+    this.removeAllListeners();
+    this.on('npcDied', this._handleNpcDeath);
+
     // Phase 4: Master Heartbeat Infrastructure
     this.activeActions = new Set();
     this.lastFrameTime = performance.now();
     this.startHeartbeat();
+
+    // UI dirty-flag tracking
+    this._uiDirty = true;
+    this._uiSnapshot = null;
   }
 
   /**
@@ -173,8 +196,19 @@ class GameEngine extends SafeEventEmitter {
        }
     }
     if (gameObjects.gameMap) this.gameMap = gameObjects.gameMap;
-    if (gameObjects.worldManager) this.worldManager = gameObjects.worldManager;
-    if (gameObjects.inventoryManager) this.inventoryManager = gameObjects.inventoryManager;
+    if (gameObjects.worldManager) {
+      if (this.worldManager && typeof this.worldManager.cleanup === 'function') {
+        this.worldManager.cleanup();
+      }
+      this.worldManager = gameObjects.worldManager;
+    }
+    if (gameObjects.inventoryManager) {
+      if (this.inventoryManager && this._handleInventoryChange) {
+        this.inventoryManager.off('inventoryChanged', this._handleInventoryChange);
+      }
+      this.inventoryManager = gameObjects.inventoryManager;
+      this.inventoryManager.on('inventoryChanged', this._handleInventoryChange);
+    }
     if (gameObjects.camera) this.camera = gameObjects.camera;
     if (gameObjects.zombieTracker) {
       this.zombieTracker = gameObjects.zombieTracker;
@@ -251,6 +285,7 @@ class GameEngine extends SafeEventEmitter {
     this.updateCount++;
     console.log(`[GameEngine] 🔄 Synchronization Pulse #${this.updateCount} emitted`);
     
+    this._uiDirty = true;
     this.emit('sync', this);
     this.emit('update', this);
   }
@@ -262,6 +297,7 @@ class GameEngine extends SafeEventEmitter {
     if (this[key] === value) return;
     
     this[key] = value;
+    this._uiDirty = true;
     this.lastUpdate = Date.now();
     this.updateCount++;
     console.log(`[GameEngine] 📈 Property Update Pulse #${this.updateCount} emitted (key: ${key})`);
@@ -285,6 +321,7 @@ class GameEngine extends SafeEventEmitter {
     this.recalculateFOV(); // Ensure FOV matches position before pulse
     this.lastUpdate = Date.now();
     this.updateCount++;
+    this._uiDirty = true;
     console.log(`[GameEngine] 🔔 Pulse #${this.updateCount} emitted at ${new Date(this.lastUpdate).toLocaleTimeString()}`);
     this.emit('update', this);
   }
@@ -294,6 +331,7 @@ class GameEngine extends SafeEventEmitter {
    * Also emits 'sync' to force sub-context Ref updates
    */
   notifySync() {
+    this._uiDirty = true;
     this.emit('sync', this);
     this.notifyUpdate();
   }
@@ -387,6 +425,7 @@ class GameEngine extends SafeEventEmitter {
          return false; // Skip calculation
        }
        this._lastFovOptionsHash = optionsHash;
+       this._uiDirty = true;
 
        const fovCenter = { 
          x: roundX, 
@@ -548,8 +587,41 @@ class GameEngine extends SafeEventEmitter {
   /**
    * External store snapshot for React (Atomic Bridge)
    */
+  _handleInventoryChange() {
+    console.log('[GameEngine] 📦 Inventory change detected -> triggering global pulse');
+    this._uiDirty = true;
+    this.notifyUpdate();
+  }
+
   getSnapshot() {
-    return this.updateCount;
+    if (!this._uiSnapshot || this._uiDirty) {
+      this._uiSnapshot = {
+        id: this.id,
+        turn: this.turn,
+        turnPhase: this.turnPhase,
+        isFlashlightOn: this.isFlashlightOn,
+        isSleeping: this.isSleeping,
+        initializationState: this.initializationState,
+        playerStats: this.player ? {
+          hp: this.player.hp,
+          maxHp: this.player.maxHp,
+          ap: this.player.ap,
+          maxAp: this.player.maxAp,
+          isBleeding: this.player.isBleeding,
+          condition: this.player.condition,
+          sickness: this.player.sickness,
+          energy: this.player.energy,
+          nutrition: this.player.nutrition,
+          hydration: this.player.hydration,
+          x: this.player.x,
+          y: this.player.y
+        } : null,
+        inventoryUpdate: this.inventoryManager ? (this.inventoryManager._updateCount || 0) : 0,
+        weather: { ...this.weather }
+      };
+      this._uiDirty = false;
+    }
+    return this._uiSnapshot;
   }
 }
 
