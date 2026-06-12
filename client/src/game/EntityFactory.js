@@ -1,4 +1,4 @@
-import { Entity } from './entities/Entity.js';
+import { Entity, COMPONENT_CLASSES } from './entities/Entity.js';
 import { Position } from './components/Position.js';
 import { Health } from './components/Health.js';
 import { Renderable } from './components/Renderable.js';
@@ -7,10 +7,12 @@ import { InventoryContainer } from './components/InventoryContainer.js';
 import { AIBehavior } from './components/AIBehavior.js';
 import { LightEmitter } from './components/LightEmitter.js';
 import { Vision } from './components/Vision.js';
+import { Inventory } from './components/Inventory.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
 import { Container } from './inventory/Container.js';
+import { BlueprintRegistry } from './BlueprintRegistry.js';
 
 export const EntityFactory = {
   createPlayer(x, y) {
@@ -25,6 +27,7 @@ export const EntityFactory = {
     entity.addComponent(new Renderable({ spriteId: 'player', color: '#ffffff', zIndex: 2 }));
     entity.addComponent(new Movable({ apCost: 1, baseSpeed: 1 }));
     entity.addComponent(new InventoryContainer({ slots: [], maxWeight: 50, currentWeight: 0 }));
+    entity.addComponent(new Inventory({ items: [], maxWeight: 50, maxSlots: 20 }));
     entity.addComponent(new Vision({ range: 15 }));
 
     // Backing stats matching legacy Player constructor
@@ -146,6 +149,46 @@ export const EntityFactory = {
     entity.addComponent(new Renderable({ spriteId: 'flashlight', color: '#ffffff', zIndex: 0 }));
     entity.addComponent(new LightEmitter({ radius: 5, intensity: 1.0, color: '#ffffff', isOn: false }));
     entity.addComponent('ItemData', { defId: 'flashlight', weight: 1 });
+    return entity;
+  },
+
+  assembleFromBlueprint(blueprintId) {
+    const blueprint = BlueprintRegistry.get(blueprintId);
+    if (!blueprint) {
+      throw new Error(`Blueprint ${blueprintId} not found in BlueprintRegistry`);
+    }
+
+    const type = blueprint.type || (blueprint.components && blueprint.components.Item ? 'item' : 'npc');
+    const entity = new Entity(null, type);
+    entity.defId = blueprintId;
+    entity.name = blueprint.name || blueprint.id;
+    if (blueprint.subtype) {
+      entity.subtype = blueprint.subtype;
+    }
+
+    if (blueprint.components) {
+      for (const [componentName, componentData] of Object.entries(blueprint.components)) {
+        const ComponentClass = COMPONENT_CLASSES[componentName];
+        if (ComponentClass) {
+          let finalData = { ...componentData };
+          if (componentName === 'Renderable') {
+            if (componentData.sprite && !componentData.spriteId) {
+              finalData.spriteId = componentData.sprite;
+            }
+          }
+          entity.addComponent(new ComponentClass(finalData));
+        } else {
+          entity.addComponent(componentName, componentData);
+        }
+      }
+    }
+
+    if (entity.hasComponent('Health')) {
+      const hpComp = entity.getComponent('Health');
+      entity._hp = hpComp.current;
+      entity.maxHp = hpComp.max;
+    }
+
     return entity;
   }
 };

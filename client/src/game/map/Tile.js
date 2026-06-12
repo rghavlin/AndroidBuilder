@@ -137,6 +137,12 @@ export class Tile {
     const existingEntity = this.contents.find(e => e.id === entity.id);
     if (!existingEntity) {
       this.contents.push(entity);
+      if (entity.type === 'item') {
+        if (!this.inventoryItems) this.inventoryItems = [];
+        if (!this.inventoryItems.some(i => i.id === entity.id || i.instanceId === entity.id)) {
+          this.inventoryItems.push(entity);
+        }
+      }
       // console.log(`[Tile] Entity ${entity.id} added to tile (${this.x}, ${this.y}). Total entities:`, this.contents.length);
       // Note: Entity position should be set by the caller (GameMap.moveEntity)
       // to maintain single source of truth for entity coordinates
@@ -161,6 +167,12 @@ export class Tile {
     const index = this.contents.findIndex(e => e.id === entityId);
     if (index !== -1) {
       const entity = this.contents.splice(index, 1)[0];
+      if (entity.type === 'item' && this.inventoryItems) {
+        const itemIdx = this.inventoryItems.findIndex(i => i.id === entityId || i.instanceId === entityId);
+        if (itemIdx !== -1) {
+          this.inventoryItems.splice(itemIdx, 1);
+        }
+      }
       // console.log(`[Tile] Entity ${entityId} removed from tile (${this.x}, ${this.y}). Remaining entities:`, this.contents.length);
       this.emit('entityRemoved', { entity: { id: entity.id, type: entity.type } });
       return entity;

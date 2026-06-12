@@ -16,8 +16,14 @@ import { DamageIntent } from '../components/DamageIntent.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
 import { NoiseEvent } from '../components/NoiseEvent.js';
 import { Vision } from '../components/Vision.js';
+import { Inventory } from '../components/Inventory.js';
+import { Item } from '../components/Item.js';
+import { MeleeWeapon } from '../components/MeleeWeapon.js';
+import { Consumable } from '../components/Consumable.js';
+import { PickupIntent } from '../components/PickupIntent.js';
+import { DropIntent } from '../components/DropIntent.js';
 
-const COMPONENT_CLASSES = {
+export const COMPONENT_CLASSES = {
   Position,
   Health,
   Renderable,
@@ -29,7 +35,13 @@ const COMPONENT_CLASSES = {
   DamageIntent,
   DestroyIntent,
   NoiseEvent,
-  Vision
+  Vision,
+  Inventory,
+  Item,
+  MeleeWeapon,
+  Consumable,
+  PickupIntent,
+  DropIntent
 };
 
 export const EntityType = {
@@ -97,7 +109,7 @@ export class Entity extends SafeEventEmitter {
     this.maxHydration = 25;
     this._energy = 25;
     this.maxEnergy = 25;
-    this._condition = 'Normal';
+    this._condition = type === 'item' ? null : 'Normal';
     this.sickness = 0;
     this.isBleeding = false;
     this.isStarving = false;
@@ -683,7 +695,7 @@ export class Entity extends SafeEventEmitter {
   }
 
   toJSON() {
-    return {
+    const data = {
       id: this.id,
       type: this.type,
       x: this.renderX,
@@ -740,6 +752,42 @@ export class Entity extends SafeEventEmitter {
       inventory: this.inventory ? this.inventory.toJSON() : null,
       components: Object.fromEntries(this.components)
     };
+
+    if (this.type === 'item') {
+      const itemFields = [
+        'instanceId', 'defId', 'width', 'height', 'rotation', 'traits', 'categories',
+        'stackCount', 'stackMax', 'condition', 'capacity', 'ammoCount', 'isLit', 'isOn',
+        'lifetimeTurns', 'imageId', 'subtype', 'equippableSlot', 'isEquipped', 'pocketLayoutId',
+        'description', 'combat', 'rangedStats', 'rarity', 'backgroundColor', 'scooterMode',
+        'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
+        'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
+        'availableFireModes'
+      ];
+      for (const field of itemFields) {
+        if (this[field] !== undefined) {
+          data[field] = this[field];
+        }
+      }
+      if (this.attachments) {
+        const serializedAttachments = {};
+        for (const [slotId, att] of Object.entries(this.attachments)) {
+          if (att) {
+            serializedAttachments[slotId] = typeof att.toJSON === 'function' ? att.toJSON() : att;
+          }
+        }
+        data.attachments = serializedAttachments;
+      }
+      if (this.containerGrid) {
+        data.containerGrid = typeof this.containerGrid.toJSON === 'function' ? this.containerGrid.toJSON() : this.containerGrid;
+      }
+      if (this.pocketGrids) {
+        data.pocketGrids = Array.isArray(this.pocketGrids)
+          ? this.pocketGrids.map(pg => typeof pg.toJSON === 'function' ? pg.toJSON() : pg)
+          : this.pocketGrids;
+      }
+    }
+
+    return data;
   }
 
   static fromJSON(data) {
@@ -811,6 +859,37 @@ export class Entity extends SafeEventEmitter {
       import('../inventory/Container.js').then(({ Container }) => {
         entity.inventory = Container.fromJSON(data.inventory);
       });
+    }
+
+    if (data.type === 'item') {
+      const itemFields = [
+        'instanceId', 'defId', 'width', 'height', 'rotation', 'traits', 'categories',
+        'stackCount', 'stackMax', 'condition', 'capacity', 'ammoCount', 'isLit', 'isOn',
+        'lifetimeTurns', 'imageId', 'subtype', 'equippableSlot', 'isEquipped', 'pocketLayoutId',
+        'description', 'combat', 'rangedStats', 'rarity', 'backgroundColor', 'scooterMode',
+        'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
+        'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
+        'availableFireModes'
+      ];
+      for (const field of itemFields) {
+        if (data[field] !== undefined) {
+          entity[field] = data[field];
+        }
+      }
+      if (data.attachments) {
+        entity.attachments = {};
+        for (const [slotId, attData] of Object.entries(data.attachments)) {
+          if (attData) {
+            entity.attachments[slotId] = attData.components ? Entity.fromJSON(attData) : attData;
+          }
+        }
+      }
+      if (data.containerGrid) {
+        entity.containerGrid = data.containerGrid;
+      }
+      if (data.pocketGrids) {
+        entity.pocketGrids = data.pocketGrids;
+      }
     }
 
     if (data.components) {

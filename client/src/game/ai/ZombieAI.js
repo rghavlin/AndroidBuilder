@@ -62,7 +62,7 @@ export class ZombieAI {
       // Only update LKP when the zombie directly spots the PLAYER.
       // NPC targets must NOT overwrite the player's last-known-position.
       if (target.id === player.id) {
-        zombie.setTargetSighted(target.logicalX, target.logicalY);
+        zombie.setTargetSighted(target.logicalX, target.logicalY, true);
       }
     } else {
       let targetValid = false;
@@ -86,10 +86,7 @@ export class ZombieAI {
 
     const typeDef = getZombieType(zombie.subtype);
 
-    // Lock in a swarm target for the whole turn to prevent oscillation.
-    // Without this, the sort re-evaluates from the zombie's new position each AP tick,
-    // causing the "nearest" swarm spot to flip and the zombie to bounce back and forth.
-    let lockedSwarmTarget = null;
+    // Swarm logic removed. Beeline and greedy fallback used instead.
 
     while (zombie.currentAP > 0.05 && !turnResult.blocked && turnResult.actions.length < maxActions && safetyCounter < 100) {
       safetyCounter++;
@@ -226,128 +223,18 @@ export class ZombieAI {
           if (target.id === player.id) {
             zombie.setTargetSighted(target.logicalX, target.logicalY);
           }
-          
-          const distToTarget = Math.abs(zombie.logicalX - target.logicalX) + Math.abs(zombie.logicalY - target.logicalY);
 
-          // A) CLOSE RANGE: Swarm/Surround logic (8-tile awareness)
-          if (distToTarget <= 4) {
-              if (!lockedSwarmTarget) {
-                  // Try to find ANY available spot around the target (8 tiles)
-                  const adjacentSpots = [];
-                  for (let dx = -1; dx <= 1; dx++) {
-                      for (let dy = -1; dy <= 1; dy++) {
-                          if (dx === 0 && dy === 0) continue;
-                          
-                          const sx = target.logicalX + dx;
-                          const sy = target.logicalY + dy;
-                          
-                          // Filter out spots that are completely blocked by a solid wall from reaching the target
-                          if (Math.abs(dx) + Math.abs(dy) === 1) {
-                              // Cardinal
-                              const isBlocked = Pathfinding.isEdgeBlocked(gameMap, sx, sy, target.logicalX, target.logicalY, zombie);
-                              const hasStructure = Pathfinding.getBlockingStructure(gameMap, sx, sy, target.logicalX, target.logicalY) !== null;
-                              if (isBlocked && !hasStructure) {
-                                  continue; // Separated by solid wall!
-                              }
-                          } else {
-                              // Diagonal
-                              if (!Pathfinding.canMoveDiagonally(gameMap, sx, sy, target.logicalX, target.logicalY, zombie)) {
-                                  continue; // Separated by corner/walls!
-                              }
-                          }
-                          
-                          adjacentSpots.push({ x: sx, y: sy });
-                      }
-                  }
-
-                  // Filter out spots that are not walkable or occupied by other zombies first.
-                  // Then find actual paths to those spots to sort by real reachability and path cost.
-                  const spotsWithPaths = [];
-                  for (const spot of adjacentSpots) {
-                      const tile = gameMap.getTile(spot.x, spot.y);
-                      if (!tile || !tile.isWalkable(zombie, { ignoreZombies: false })) continue;
-                      const isOccupiedByOther = tile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
-                      if (isOccupiedByOther) continue;
-
-                      // Find A* path from the zombie's current position to this spot.
-                      const path = Pathfinding.findPath(gameMap, zombie.logicalX, zombie.logicalY, spot.x, spot.y, {
-                          allowDiagonal: true,
-                          isZombie: true,
-                          entity: zombie,
-                          maxDistance: 60,
-                          ignoreZombies: true,
-                          isPathfinding: true
-                      });
-
-                      if (path && path.length > 0) {
-                          const pathCost = Pathfinding.calculateMovementCost(gameMap, path, zombie);
-                          spotsWithPaths.push({ spot, pathCost });
-                      }
-                  }
-
-                  // Sort by attack suitability and then actual path cost/reachability.
-                  spotsWithPaths.sort((a, b) => {
-                      const isCardinalA = (a.spot.x === target.logicalX || a.spot.y === target.logicalY);
-                      const isCardinalB = (b.spot.x === target.logicalX || b.spot.y === target.logicalY);
-                      
-                      // For mutants, all 8 spots are valid attack positions, so they are all high priority.
-                      // For others, only cardinal spots are valid attack positions.
-                      const canAttackFromA = zombie.subtype === 'mutant' || isCardinalA;
-                      const canAttackFromB = zombie.subtype === 'mutant' || isCardinalB;
-                      
-                      if (canAttackFromA !== canAttackFromB) {
-                          return canAttackFromA ? -1 : 1; // Prioritize spots the zombie can attack from
-                      }
-
-                      return a.pathCost - b.pathCost; // Prioritize shorter/cheaper paths
-                  });
-
-                  if (spotsWithPaths.length > 0) {
-                      lockedSwarmTarget = spotsWithPaths[0].spot;
-                  }
-              }
-
-              let swarmMoveFound = false;
-              if (lockedSwarmTarget) {
-                  // Re-validate that the locked spot is still available each tick
-                  const lockedTile = gameMap.getTile(lockedSwarmTarget.x, lockedSwarmTarget.y);
-                  const isStillAvailable = lockedTile &&
-                      lockedTile.isWalkable(zombie, { ignoreZombies: false }) &&
-                      !lockedTile.contents.some(e => e.type === EntityType.ZOMBIE && e.id !== zombie.id);
-
-                  if (!isStillAvailable) {
-                      // Target was taken; clear lock so we re-evaluate next tick
-                      lockedSwarmTarget = null;
-                  } else if (zombie.logicalX === lockedSwarmTarget.x && zombie.logicalY === lockedSwarmTarget.y) {
-                      // Already at the target; clear lock so we can attack or re-evaluate
-                      lockedSwarmTarget = null;
-                  } else {
-                      actionResult = this.attemptMoveTowards(zombie, gameMap, lockedSwarmTarget.x, lockedSwarmTarget.y);
-                      if (actionResult && actionResult.success) {
-                          swarmMoveFound = true;
-                      } else {
-                          // Can't move toward locked target; clear it and fall through
-                          lockedSwarmTarget = null;
-                      }
-                  }
-              }
-
-              if (!swarmMoveFound) {
-                  // If all adjacent spots are full, don't WAIT and end turn. 
-                  // Instead, we fall through to Greedy Pursuit to try and at least get closer 
-                  // or stand behind a comrade.
-                  if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} swarm spots full, falling back to pursuit.`);
-              } else {
-                  // Swarm move successful
-              }
-          } 
-          
-          if (!actionResult || !actionResult.success) {
+          // HOLD POSITION: If zombie is already adjacent or diagonal to target,
+          // never move away — lock in place and wait for a future attack opportunity.
+          if (isAdjacent || isDiagonal) {
+              if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} already adjacent to target but cannot melee — holding position.`);
+              turnResult.blocked = true;
+              actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: zombie.currentAP } };
+          } else {
+              // Not adjacent yet — beeline directly at the target
               const fallbackResult = this._attemptMoveWithFallbacks(zombie, gameMap, target.logicalX, target.logicalY, 'pursuit');
               actionResult = fallbackResult.actionResult;
-              let moveFound = fallbackResult.success;
-
-              if (!moveFound) {
+              if (!fallbackResult.success) {
                   if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} COMPLETELY BLOCKED from target. Ending turn.`);
                   turnResult.blocked = true;
                   actionResult = { success: true, type: 'WAIT', entityId: zombie.id, data: { apCost: zombie.currentAP } };
@@ -524,39 +411,25 @@ export class ZombieAI {
     const dx = Math.abs(zombie.logicalX - targetX);
     const dy = Math.abs(zombie.logicalY - targetY);
     if ((dx <= 1 && dy <= 1)) {
-        // SAFETY: Check diagonal corners even for direct steps
-        if (dx === 1 && dy === 1) {
-            if (!Pathfinding.canMoveDiagonally(gameMap, zombie.logicalX, zombie.logicalY, targetX, targetY, zombie)) {
-                // If diagonal is blocked by a wall corner, try the two cardinal neighbors to "flank" it
-                const cardinal1 = { x: zombie.logicalX, y: targetY };
-                const cardinal2 = { x: targetX, y: zombie.logicalY };
-                for (const cand of [cardinal1, cardinal2]) {
-                    const cTile = gameMap.getTile(cand.x, cand.y);
-                    if (cTile && cTile.isWalkable(zombie, { ignoreZombies: false })) {
-                        const cCost = subtypeMult * Pathfinding.getMovementCost(zombie.logicalX, zombie.logicalY, cand.x, cand.y, cTile, { isZombie: true });
-                        if (zombie.currentAP >= cCost && gameMap.moveEntity(zombie.id, cand.x, cand.y, { ignoreZombies: false, snap: false })) {
-                            zombie.useAP(cCost);
-                            return { success: true, type: 'MOVE', entityId: zombie.id, data: { from: fromPos, to: cand, apCost: cCost } };
-                        }
-                    }
+        // If diagonal is blocked by a wall corner, bypass direct step optimization
+        // to let A* Pathfinding find a valid route around or through structures.
+        const isBlockedDiagonal = dx === 1 && dy === 1 && !Pathfinding.canMoveDiagonally(gameMap, zombie.logicalX, zombie.logicalY, targetX, targetY, zombie);
+        
+        if (!isBlockedDiagonal) {
+            // STRUCTURE BREACH: If target is a closed door/window and we are cardinal, attack it
+            const isCardinal = (dx + dy === 1);
+            if (isCardinal) {
+                const structure = Pathfinding.getBlockingStructure(gameMap, zombie.logicalX, zombie.logicalY, targetX, targetY);
+                if (structure) {
+                    return this.executeStructureAttack(zombie, gameMap, structure, { x: targetX, y: targetY }, fromPos);
                 }
-                return { success: false, reason: 'Corner blocked' };
             }
-        }
 
-        // STRUCTURE BREACH: If target is a closed door/window and we are cardinal, attack it
-        const isCardinal = (dx + dy === 1);
-        if (isCardinal) {
-            const structure = Pathfinding.getBlockingStructure(gameMap, zombie.logicalX, zombie.logicalY, targetX, targetY);
-            if (structure) {
-                return this.executeStructureAttack(zombie, gameMap, structure, { x: targetX, y: targetY }, fromPos);
+            const apCost = subtypeMult * Pathfinding.getMovementCost(zombie.logicalX, zombie.logicalY, targetX, targetY, targetTile, { isZombie: true });
+            if (zombie.currentAP >= apCost && gameMap.moveEntity(zombie.id, targetX, targetY, { ignoreZombies: false, snap: false })) {
+                zombie.useAP(apCost);
+                return { success: true, type: 'MOVE', entityId: zombie.id, data: { from: fromPos, to: { x: targetX, y: targetY }, apCost } };
             }
-        }
-
-        const apCost = subtypeMult * Pathfinding.getMovementCost(zombie.logicalX, zombie.logicalY, targetX, targetY, targetTile, { isZombie: true });
-        if (zombie.currentAP >= apCost && gameMap.moveEntity(zombie.id, targetX, targetY, { ignoreZombies: false, snap: false })) {
-            zombie.useAP(apCost);
-            return { success: true, type: 'MOVE', entityId: zombie.id, data: { from: fromPos, to: { x: targetX, y: targetY }, apCost } };
         }
     }
 
@@ -579,6 +452,14 @@ export class ZombieAI {
 
     if (path.length > 1) {
       const nextStep = path[1];
+      
+      const currentDist = Math.abs(zombie.logicalX - finalTargetX) + Math.abs(zombie.logicalY - finalTargetY);
+      const nextDist = Math.abs(nextStep.x - finalTargetX) + Math.abs(nextStep.y - finalTargetY);
+      if (nextDist >= currentDist) {
+          if (ZombieAI.DEBUG) console.log(`[ZombieAI] ${zombie.id} A* step increases or keeps distance (${currentDist} -> ${nextDist}). Skipping A* step.`);
+          return { success: false, reason: 'A* step increases distance' };
+      }
+
       const nextTile = gameMap.getTile(nextStep.x, nextStep.y);
       if (nextTile) {
         const isCardinal = Math.abs(zombie.logicalX - nextStep.x) + Math.abs(zombie.logicalY - nextStep.y) === 1;
@@ -760,17 +641,28 @@ export class ZombieAI {
     const isPursuit = modeName === 'pursuit';
     const targetLabel = isPursuit ? 'player' : 'LKP';
 
-    // A) PRIMARY: BEELINE (Mindless Direct Approach)
+    // A) PRIMARY: LIMITED A* PATHFINDING (For close-range navigation and smart breaching/attacks)
     if (ZombieAI.DEBUG) {
-      console.log(`[ZombieAI] ${zombie.id} Beeline ${modeName} toward ${targetLabel} at (${targetX}, ${targetY}).`);
+      console.log(`[ZombieAI] ${zombie.id} Trying limited A* Pathfinding first.`);
     }
-    let actionResult = this.executeBeelineStep(zombie, gameMap, targetX, targetY);
+    let actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
     let moveFound = actionResult && actionResult.success;
 
-    // B) SECONDARY: GREEDY FALLBACK
+    // B) SECONDARY: BEELINE (Mindless Direct Approach)
     if (!moveFound) {
       if (ZombieAI.DEBUG) {
-        console.log(`[ZombieAI] ${zombie.id} Beeline blocked, trying greedy neighbors.`);
+        console.log(`[ZombieAI] A* blocked/too far, trying Beeline toward ${targetLabel} at (${targetX}, ${targetY}).`);
+      }
+      actionResult = this.executeBeelineStep(zombie, gameMap, targetX, targetY);
+      if (actionResult && actionResult.success) {
+        moveFound = true;
+      }
+    }
+
+    // C) TERTIARY: GREEDY FALLBACK
+    if (!moveFound) {
+      if (ZombieAI.DEBUG) {
+        console.log(`[ZombieAI] Beeline blocked, trying greedy neighbors.`);
       }
       const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
       
@@ -811,17 +703,6 @@ export class ZombieAI {
           moveFound = true;
           break;
         }
-      }
-    }
-
-    // C) TERTIARY: LIMITED A* PATHFINDING (For small logjams around cars/debris)
-    if (!moveFound) {
-      if (ZombieAI.DEBUG) {
-        console.log(`[ZombieAI] ${zombie.id} Greedy blocked, trying limited A* Pathfinding.`);
-      }
-      actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
-      if (actionResult && actionResult.success) {
-        moveFound = true;
       }
     }
 

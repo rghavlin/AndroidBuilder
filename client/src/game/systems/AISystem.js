@@ -212,25 +212,46 @@ export class AISystem {
             }
           } else {
             // Move toward player exact coords
-            let intent = getBeelineIntent(entity, zombiePos, playerPos.x, playerPos.y, gameMap, moveCost);
-            if (!intent) {
-              // Beeline blocked, fallback to pathfinding
-              const path = Pathfinding.findPath(gameMap, zombiePos.x, zombiePos.y, playerPos.x, playerPos.y, { entity, isZombie: true });
-              if (path && path.length > 1) {
-                const nextStep = path[1];
-                const blocking = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y);
-                if (blocking) {
-                  intent = new DamageIntent({
-                    amount: 1,
-                    targetId: blocking.id,
-                    isStructure: true,
-                    targetX: nextStep.x,
-                    targetY: nextStep.y
-                  });
-                } else {
-                  intent = new MoveIntent({ dx: nextStep.x - zombiePos.x, dy: nextStep.y - zombiePos.y });
+            let intent = null;
+
+            // Try limited A* Pathfinding first for close-range smart breaching/navigation
+            const path = Pathfinding.findPath(gameMap, zombiePos.x, zombiePos.y, playerPos.x, playerPos.y, {
+              allowDiagonal: true,
+              isZombie: true,
+              entity,
+              maxDistance: 6, // Limit A* search to close range (dumb at distance)
+              ignoreZombies: false, // Don't ignore zombies so they path around each other (swarm behavior)
+              isPathfinding: true
+            });
+
+            if (path && path.length > 1) {
+              const nextStep = path[1];
+              const isPlayerTile = nextStep.x === playerPos.x && nextStep.y === playerPos.y;
+
+              if (!isPlayerTile) {
+                const isDiagonal = Math.abs(nextStep.x - zombiePos.x) === 1 && Math.abs(nextStep.y - zombiePos.y) === 1;
+                const isBlockedDiagonal = isDiagonal && !Pathfinding.canMoveDiagonally(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y, entity);
+
+                if (!isBlockedDiagonal) {
+                  const blocking = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y);
+                  if (blocking) {
+                    intent = new DamageIntent({
+                      amount: 1,
+                      targetId: blocking.id,
+                      isStructure: true,
+                      targetX: nextStep.x,
+                      targetY: nextStep.y
+                    });
+                  } else {
+                    intent = new MoveIntent({ dx: nextStep.x - zombiePos.x, dy: nextStep.y - zombiePos.y });
+                  }
                 }
               }
+            }
+
+            // Fallback to Beeline if A* didn't yield an intent
+            if (!intent) {
+              intent = getBeelineIntent(entity, zombiePos, playerPos.x, playerPos.y, gameMap, moveCost);
             }
 
             if (intent) {
@@ -274,6 +295,37 @@ export class AISystem {
             }
             executeWander();
           } else {
+            // Check if we are adjacent to the target
+            const absDx = Math.abs(targetX - zombiePos.x);
+            const absDy = Math.abs(targetY - zombiePos.y);
+            const isAdjacentToLkp = (absDx + absDy === 1) || (absDx === 1 && absDy === 1);
+            
+            if (isAdjacentToLkp) {
+              const canAttack = (absDx + absDy === 1) || (absDx === 1 && absDy === 1 && entity.subtype === 'mutant');
+              const blocking = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, targetX, targetY);
+              
+              if (blocking) {
+                if (canAttack) {
+                  if (currentAP >= 1.0) {
+                    enqueueIntent('DamageIntent', new DamageIntent({
+                      amount: 1,
+                      targetId: blocking.id,
+                      isStructure: true,
+                      targetX: targetX,
+                      targetY: targetY
+                    }));
+                  }
+                  continue;
+                }
+                // Basic diagonal zombie next to a blocked tile should not hold position;
+                // it needs to pathfind to a cardinal neighbor to attack.
+              } else {
+                // If we are adjacent to the LKP and there is no structure block, we are close enough.
+                // Do not wander away; hold position and wait.
+                continue;
+              }
+            }
+
             // Path caching optimization
             let needRecalculate = false;
             
@@ -326,7 +378,8 @@ export class AISystem {
                 }
               }
             } else {
-              // Path is completely blocked, clear memory and wander
+              // Path blocked or no path, we're likely stuck or reached as close as possible
+              // If we are already adjacent, we wouldn't reach here due to the check above.
               aiBehavior.lastSeenPlayerCoords = null;
               aiBehavior.heardNoiseCoords = null;
               entity.clearLastSeen();

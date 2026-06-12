@@ -2,6 +2,7 @@ import { MovementSystem } from '../systems/MovementSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { DestructionSystem } from '../systems/DestructionSystem.js';
 import { AudioSystem } from '../systems/AudioSystem.js';
+import { InventorySystem } from '../systems/InventorySystem.js';
 
 export class IntentQueue {
   constructor() {
@@ -97,6 +98,18 @@ export class IntentQueue {
 
       case 'NoiseEvent':
         AudioSystem.resolve(intent.component, entityList, engine.gameMap, this, actionQueue, engine, intent);
+        break;
+
+      case 'PickupIntent':
+        if (entity) {
+          InventorySystem.resolvePickup(entity, intent.component, engine.gameMap, actionQueue, engine);
+        }
+        break;
+
+      case 'DropIntent':
+        if (entity) {
+          InventorySystem.resolveDrop(entity, intent.component, engine.gameMap, actionQueue, engine);
+        }
         break;
 
       default:

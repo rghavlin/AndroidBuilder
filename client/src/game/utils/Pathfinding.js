@@ -290,10 +290,40 @@ export class Pathfinding {
     if (targetTile && targetTile.contents && Array.isArray(targetTile.contents)) {
       const window = targetTile.contents.find(e => e.type === EntityType.WINDOW);
       if (window) {
-        if (options?.isZombie) {
-          baseCost = window.isBroken ? 1.0 : 2.0;
-        } else {
-          baseCost += 1;
+        let isCrossing = true;
+        if (window.edge !== undefined) {
+          isCrossing = false;
+          let dir1to2 = null;
+          if (x2 > x1) dir1to2 = 'e';
+          else if (x2 < x1) dir1to2 = 'w';
+          else if (y2 > y1) dir1to2 = 's';
+          else if (y2 < y1) dir1to2 = 'n';
+
+          if (dir1to2) {
+            const mapInstance = options.gameMap;
+            if (mapInstance) {
+              const startTile = mapInstance.getTile(x1, y1);
+              const opposite = { 'n': 's', 's': 'n', 'e': 'w', 'w': 'e' };
+              const startWindow = startTile?.contents.find(e => e.type === EntityType.WINDOW && e.edge === dir1to2);
+              const targetWindow = targetTile.contents.find(e => e.type === EntityType.WINDOW && e.edge === opposite[dir1to2]);
+              if (startWindow || targetWindow) {
+                isCrossing = true;
+              }
+            } else {
+              const opposite = { 'n': 's', 's': 'n', 'e': 'w', 'w': 'e' };
+              if (window.edge === opposite[dir1to2]) {
+                isCrossing = true;
+              }
+            }
+          }
+        }
+
+        if (isCrossing) {
+          if (options?.isZombie) {
+            baseCost = window.isBroken ? 1.0 : 2.0;
+          } else {
+            baseCost += 1;
+          }
         }
       }
 

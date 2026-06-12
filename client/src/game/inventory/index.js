@@ -8,6 +8,9 @@ export { Container } from './Container.js';
 export { InventoryManager } from './InventoryManager.js';
 export { GroundManager } from './GroundManager.js';
 export { ItemDefs, createItemFromDef } from './ItemDefs.js';
+import { createItemFromDef } from './ItemDefs.js';
+import { Item } from './Item.js';
+import { Container } from './Container.js';
 export * from './traits.js';
 
 // Make classes available globally in development for tests and demos

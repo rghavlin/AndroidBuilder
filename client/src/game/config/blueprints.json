@@ -1,0 +1,41 @@
+[
+  {
+    "id": "fireaxe",
+    "type": "item",
+    "components": {
+      "Item": {
+        "name": "Fire Axe",
+        "weight": 3,
+        "description": "A heavy fire axe."
+      },
+      "MeleeWeapon": {
+        "damage": 15
+      },
+      "Renderable": {
+        "spriteId": "fireaxe",
+        "color": "#ffffff",
+        "backgroundColor": "#000000"
+      }
+    }
+  },
+  {
+    "id": "canned_peaches",
+    "type": "item",
+    "components": {
+      "Item": {
+        "name": "Canned Peaches",
+        "weight": 1,
+        "description": "Sweet, preserved peach slices."
+      },
+      "Consumable": {
+        "nutrition": 15,
+        "hydration": 5
+      },
+      "Renderable": {
+        "spriteId": "canned_peaches",
+        "color": "#ffffff",
+        "backgroundColor": "#000000"
+      }
+    }
+  }
+]

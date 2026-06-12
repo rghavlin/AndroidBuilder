@@ -221,6 +221,9 @@ export default function MapCanvas({
       allEntities.forEach(entity => {
         if (entity.type === EntityType.PLAYER) return;
         
+        // Pure ECS: Skip rendering detached item entities (e.g. items in inventory) that do not have a Position component
+        if (entity.type === EntityType.ITEM && entity.hasComponent && !entity.hasComponent('Position')) return;
+
         // Use logic-position bounds check
         // Robust bounds check: include both current visual position and logical destination during animations
         const minX = Math.min(entity.x, entity.logicalX ?? entity.x);

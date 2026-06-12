@@ -3,9 +3,13 @@ import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from '../inventory/traits.js';
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
-import { EntityType } from '../entities/Entity.js';
+import { Entity, EntityType } from '../entities/Entity.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
+import { Item as ECSItem } from '../components/Item.js';
+import { Renderable } from '../components/Renderable.js';
+import { MeleeWeapon } from '../components/MeleeWeapon.js';
+import { Position } from '../components/Position.js';
 
 /**
  * 20x20 map container with tile management and serialization
@@ -257,11 +261,12 @@ export class GameMap {
    * Get items on a tile without removing them (non-destructive)
    * @param {number} x - Tile X
    * @param {number} y - Tile Y
-   * @returns {Array} - Array of item data
+   * @returns {Array} - Array of item entities
    */
   getItemsOnTile(x, y) {
     const tile = this.getTile(x, y);
-    return tile ? (tile.inventoryItems || []) : [];
+    if (!tile) return [];
+    return tile.contents.filter(e => e.type === 'item' && e.hasComponent && e.hasComponent('Item'));
   }
 
   /**
@@ -275,73 +280,61 @@ export class GameMap {
   }
 
   /**
-   * Set inventory items on a specific tile and spawn a proxy entity
+   * Set inventory items on a specific tile by converting them to ECS entities
    * @param {number} x - Tile X
    * @param {number} y - Tile Y
-   * @param {Array} items - Array of Item instances
+   * @param {Array} items - Array of Item instances or entity data
    */
   setItemsOnTile(x, y, items) {
     const tile = this.getTile(x, y);
     if (!tile) return;
 
-    // Filter out nulls/undefined and ensure they are serialized POJOs for consistency
-    const validItems = items.filter(Boolean);
-    tile.inventoryItems = validItems.map(item => {
-        const json = typeof item.toJSON === 'function' ? item.toJSON() : item;
-        // Ensure id/defId alignment if it's a raw object
-        if (!json.defId && json.id && !json.instanceId) json.defId = json.id;
-        return json;
+    // Remove any existing item entities on this tile
+    const existingItems = tile.contents.filter(e => e.type === 'item' && e.hasComponent && e.hasComponent('Item'));
+    existingItems.forEach(item => {
+      this.removeEntity(item.id);
     });
-    
+
+    // Convert and add new items
+    const validItems = items.filter(Boolean);
+    validItems.forEach(itemData => {
+      let entity;
+      // Check if it is already an ECS Entity instance
+      if (itemData.components && typeof itemData.hasComponent === 'function') {
+        entity = itemData;
+      } else if (itemData.components) {
+        // Serialized ECS Entity
+        entity = Entity.fromJSON(itemData);
+      } else {
+        // Serialized legacy item or legacy Item instance
+        entity = this.convertLegacyItemToECS(itemData);
+      }
+
+      if (entity) {
+        // Ensure it has Position component and matching coordinate fields
+        let pos = entity.getComponent('Position');
+        if (!pos) {
+          pos = new Position({ x, y, level: 0 });
+          entity.addComponent(pos);
+        } else {
+          pos.x = x;
+          pos.y = y;
+        }
+        entity.logicalX = x;
+        entity.logicalY = y;
+        entity.gridX = x;
+        entity.gridY = y;
+        entity.renderX = x;
+        entity.renderY = y;
+        entity.x = x;
+        entity.y = y;
+
+        this.addEntity(entity, x, y);
+      }
+    });
+
     // Update crop metadata based on new items
     this.updateCropMetadata(x, y);
-
-    if (validItems.length > 0) {
-      const proxyId = `ground-items-${x}-${y}`;
-      const { subtype, renderFullTile } = this._getGroundProxyInfo(validItems);
-
-      if (!this.entityMap.has(proxyId)) {
-        // Create a proxy entity for visual representation
-        const proxy = {
-          id: proxyId,
-          type: EntityType.ITEM,
-          subtype,
-          renderFullTile,
-          isProxy: true, // PHASE 27 FIX: Explicit marker for restoration
-          x,
-          y,
-          blocksMovement: false,
-          blocksSight: false,
-          toJSON: function() {
-            return {
-              id: this.id,
-              type: EntityType.ITEM,
-              subtype: this.subtype,
-              renderFullTile: this.renderFullTile,
-              isProxy: true,
-              x: this.x,
-              y: this.y,
-              blocksMovement: this.blocksMovement,
-              blocksSight: this.blocksSight
-            };
-          }
-        };
-        this.addEntity(proxy, x, y);
-      } else {
-        // Update existing proxy subtype in case items changed
-        const proxy = this.entityMap.get(proxyId);
-        if (proxy) {
-          proxy.subtype = subtype;
-          proxy.renderFullTile = renderFullTile;
-        }
-      }
-    } else {
-      // Clear proxy if no items left
-      const proxyId = `ground-items-${x}-${y}`;
-      if (this.entityMap.has(proxyId)) {
-        this.removeEntity(proxyId);
-      }
-    }
   }
 
   /**
@@ -451,28 +444,27 @@ export class GameMap {
     const tile = this.getTile(x, y);
     if (!tile) return;
 
-    const existingItems = tile.inventoryItems || [];
+    const existingItems = this.getItemsOnTile(x, y);
     this.setItemsOnTile(x, y, [...existingItems, ...items]);
   }
 
   /**
-   * Get items from a specific tile and remove proxy entity
+   * Get items from a specific tile and remove them from tile contents (keeping them in entityMap)
    * @param {number} x - Tile X
    * @param {number} y - Tile Y
-   * @returns {Array} - Array of serialized item data
+   * @returns {Array} - Array of item entities
    */
   getItemsFromTile(x, y) {
     const tile = this.getTile(x, y);
     if (!tile) return [];
 
-    const items = [...tile.inventoryItems];
-    tile.inventoryItems = [];
-
-    // Remove proxy entity
-    const proxyId = `ground-items-${x}-${y}`;
-    if (this.entityMap.has(proxyId)) {
-      this.removeEntity(proxyId);
-    }
+    const items = tile.contents.filter(e => e.type === 'item' && e.hasComponent && e.hasComponent('Item'));
+    items.forEach(item => {
+      tile.removeEntity(item.id);
+      if (item.hasComponent('Position')) {
+        item.removeComponent('Position');
+      }
+    });
 
     return items;
   }
@@ -903,6 +895,21 @@ export class GameMap {
 
     let itemExpired = false;
     let itemModified = false;
+
+    // Helper to get items array from a container grid/pocket
+    const getGridItems = (grid) => {
+      if (!grid || !grid.items) return [];
+      if (grid.items instanceof Map) {
+        return Array.from(grid.items.values());
+      }
+      if (Array.isArray(grid.items)) {
+        return grid.items;
+      }
+      if (typeof grid.items === 'object' && grid.items !== null) {
+        return Object.values(grid.items);
+      }
+      return [];
+    };
     
     // --- POWER SOURCE LOGIC ---
     if (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) {
@@ -914,7 +921,7 @@ export class GameMap {
     // --- BATTERY CHARGER LOGIC ---
     if (itemData.defId === 'tool.battery_charger') {
       if (isPowered) {
-        TurnProcessingUtils.chargeBatteries(itemData.containerGrid?.items);
+        TurnProcessingUtils.chargeBatteries(getGridItems(itemData.containerGrid));
         itemModified = true;
       }
     }
@@ -922,7 +929,7 @@ export class GameMap {
     // --- SOLAR CHARGER LOGIC ---
     if (itemData.defId === 'tool.solar_charger') {
       if (isOutdoors && isDaylight) {
-        TurnProcessingUtils.chargeBatteries(itemData.containerGrid?.items);
+        TurnProcessingUtils.chargeBatteries(getGridItems(itemData.containerGrid));
         itemModified = true;
       }
     }
@@ -967,7 +974,7 @@ export class GameMap {
     // FIX: Also check if any sibling items inside this container provide power
     const providesInternalPower = isPowered || 
                                   (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) ||
-                                  (itemData.containerGrid?.items?.some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn));
+                                  (getGridItems(itemData.containerGrid).some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn));
 
     // --- RECURSION ---
     
@@ -989,29 +996,81 @@ export class GameMap {
 
     // Container grid
     if (itemData.containerGrid && itemData.containerGrid.items) {
-      const remainingNested = itemData.containerGrid.items.filter(nested => {
-        const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
-        if (res.modified) itemModified = true;
-        return !res.expired;
-      });
-      if (remainingNested.length !== itemData.containerGrid.items.length) {
-        itemData.containerGrid.items = remainingNested;
-        itemModified = true;
+      if (itemData.containerGrid.items instanceof Map) {
+        // Container instance
+        const nestedItems = Array.from(itemData.containerGrid.items.values());
+        for (const nested of nestedItems) {
+          const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
+          if (res.modified) itemModified = true;
+          if (res.expired) {
+            itemData.containerGrid.removeItem(nested.instanceId || nested.id);
+            itemModified = true;
+          }
+        }
+      } else {
+        // Plain object array/Map POJO
+        const itemsArray = Array.isArray(itemData.containerGrid.items) 
+          ? itemData.containerGrid.items 
+          : Object.values(itemData.containerGrid.items);
+        const remainingNested = itemsArray.filter(nested => {
+          const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
+          if (res.modified) itemModified = true;
+          return !res.expired;
+        });
+        if (remainingNested.length !== itemsArray.length) {
+          if (Array.isArray(itemData.containerGrid.items)) {
+            itemData.containerGrid.items = remainingNested;
+          } else {
+            const newItemsObj = {};
+            remainingNested.forEach(nested => {
+              const id = nested.instanceId || nested.id;
+              newItemsObj[id] = nested;
+            });
+            itemData.containerGrid.items = newItemsObj;
+          }
+          itemModified = true;
+        }
       }
     }
 
     // Pocket grids
     if (itemData.pocketGrids) {
       itemData.pocketGrids.forEach(pocket => {
-        if (pocket.items) {
-          const remainingInPocket = pocket.items.filter(nested => {
-            const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
-            if (res.modified) itemModified = true;
-            return !res.expired;
-          });
-          if (remainingInPocket.length !== pocket.items.length) {
-            pocket.items = remainingInPocket;
-            itemModified = true;
+        if (pocket && pocket.items) {
+          if (pocket.items instanceof Map) {
+            // Container instance
+            const nestedItems = Array.from(pocket.items.values());
+            for (const nested of nestedItems) {
+              const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
+              if (res.modified) itemModified = true;
+              if (res.expired) {
+                pocket.removeItem(nested.instanceId || nested.id);
+                itemModified = true;
+              }
+            }
+          } else {
+            // Plain object
+            const itemsArray = Array.isArray(pocket.items) 
+              ? pocket.items 
+              : Object.values(pocket.items);
+            const remainingInPocket = itemsArray.filter(nested => {
+              const res = this._processItemDataTurn(nested, providesInternalPower, isOutdoors, isDaylight);
+              if (res.modified) itemModified = true;
+              return !res.expired;
+            });
+            if (remainingInPocket.length !== itemsArray.length) {
+              if (Array.isArray(pocket.items)) {
+                pocket.items = remainingInPocket;
+              } else {
+                const newItemsObj = {};
+                remainingInPocket.forEach(nested => {
+                  const id = nested.instanceId || nested.id;
+                  newItemsObj[id] = nested;
+                });
+                pocket.items = newItemsObj;
+              }
+              itemModified = true;
+            }
           }
         }
       });
@@ -1079,12 +1138,33 @@ export class GameMap {
    * Serialize GameMap to JSON
    */
   toJSON() {
+    // Collect all entities in tile contents so we can identify detached ones
+    const entitiesOnTiles = new Set();
+    this.tiles.forEach(row => {
+      row.forEach(tile => {
+        if (tile && tile.contents) {
+          tile.contents.forEach(entity => {
+            entitiesOnTiles.add(entity.id);
+          });
+        }
+      });
+    });
+
+    // Detached entities (items in inventories) are those in entityMap but not on any tile
+    const detachedEntities = [];
+    for (const [id, entity] of this.entityMap.entries()) {
+      if (!entitiesOnTiles.has(id) && entity.type === 'item') {
+        detachedEntities.push(typeof entity.toJSON === 'function' ? entity.toJSON() : entity);
+      }
+    }
+
     return {
       width: this.width,
       height: this.height,
       tiles: this.tiles.map(row =>
         row.map(tile => tile ? tile.toJSON() : null)
       ),
+      detachedEntities,
       scentSequenceCounter: this.scentSequenceCounter,
       buildings: this.buildings,
       lowSpots: this.lowSpots,
@@ -1118,6 +1198,21 @@ export class GameMap {
 
     console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
 
+    // Restore detached entities first (items in inventories)
+    if (data.detachedEntities) {
+      for (const entityData of data.detachedEntities) {
+        let entity;
+        if (entityData.components) {
+          entity = Entity.fromJSON(entityData);
+        } else {
+          entity = gameMap.convertLegacyItemToECS(entityData);
+        }
+        if (entity) {
+          gameMap.entityMap.set(entity.id, entity);
+        }
+      }
+    }
+
     // Restore tiles
     for (let y = 0; y < data.height; y++) {
       for (let x = 0; x < data.width; x++) {
@@ -1128,7 +1223,6 @@ export class GameMap {
           // Restore entities on this tile with filtering
           if (tileData.contents) {
             for (const entityData of tileData.contents) {
-              // Apply entity type filtering
               const entityType = entityData.type;
 
               // Skip if entity type is excluded
@@ -1145,10 +1239,8 @@ export class GameMap {
 
               let entity;
               if (entityType === 'item' && (entityData.subtype === 'ground_pile' || entityData.isProxy)) {
-                entity = {
-                  ...entityData,
-                  toJSON: function() { return { ...this }; }
-                };
+                // Skip legacy ground proxies as items are now first-class ECS entities
+                continue;
               } else {
                 switch (entityType) {
                   case 'player':
@@ -1160,7 +1252,11 @@ export class GameMap {
                     entity = TestEntity.fromJSON(entityData);
                     break;
                   case 'item':
-                    entity = Item.fromJSON(entityData);
+                    if (entityData.components) {
+                      entity = Entity.fromJSON(entityData);
+                    } else {
+                      entity = gameMap.convertLegacyItemToECS(entityData);
+                    }
                     break;
                   case 'door':
                     entity = Door.fromJSON(entityData);
@@ -1175,9 +1271,52 @@ export class GameMap {
               }
 
               if (entity) {
+                // Ensure coordinate fields and position component sync up
+                let pos = entity.getComponent('Position');
+                if (!pos) {
+                  pos = new Position({ x, y, level: 0 });
+                  entity.addComponent(pos);
+                }
+                entity.logicalX = x;
+                entity.logicalY = y;
+                entity.gridX = x;
+                entity.gridY = y;
+                entity.renderX = x;
+                entity.renderY = y;
+                entity.x = x;
+                entity.y = y;
+
                 tile.addEntity(entity);
                 gameMap.entityMap.set(entity.id, entity);
                 console.log(`[GameMap] Restored entity: ${entity.id} (${entity.type}) at (${x}, ${y})`);
+              }
+            }
+          }
+
+          // Aggressive legacy migration of tile inventoryItems
+          if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
+            const rawLegacyItems = [...tileData.inventoryItems];
+            tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
+            for (const itemData of rawLegacyItems) {
+              const entity = gameMap.convertLegacyItemToECS(itemData);
+              if (entity) {
+                let pos = entity.getComponent('Position');
+                if (!pos) {
+                  pos = new Position({ x, y, level: 0 });
+                  entity.addComponent(pos);
+                }
+                entity.logicalX = x;
+                entity.logicalY = y;
+                entity.gridX = x;
+                entity.gridY = y;
+                entity.renderX = x;
+                entity.renderY = y;
+                entity.x = x;
+                entity.y = y;
+
+                tile.addEntity(entity);
+                gameMap.entityMap.set(entity.id, entity);
+                console.log(`[GameMap] Migrated legacy inventory item ${itemData.name || itemData.id} to ECS entity at (${x}, ${y})`);
               }
             }
           }
@@ -1191,9 +1330,6 @@ export class GameMap {
     return gameMap;
   }
 
-  /**
-   * Create GameMap from JSON data (full restoration for save/load)
-   */
   static async fromJSON(data) {
     const gameMap = new GameMap(data.width, data.height);
     gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
@@ -1202,7 +1338,6 @@ export class GameMap {
     gameMap.mapNumber = data.mapNumber || 1;
     gameMap.template = data.template || 'road';
     
-    // Legacy support for specialBuildings (ensure it exists if systems still look for it)
     if (data.specialBuildings && gameMap.buildings.length === 0) {
       gameMap.buildings = data.specialBuildings;
     }
@@ -1218,6 +1353,21 @@ export class GameMap {
     const { PlaceIcon } = await import('../entities/PlaceIcon.js');
     const { Rabbit } = await import('../entities/Rabbit.js');
 
+    // Restore detached entities first (items in inventories)
+    if (data.detachedEntities) {
+      for (const entityData of data.detachedEntities) {
+        let entity;
+        if (entityData.components) {
+          entity = Entity.fromJSON(entityData);
+        } else {
+          entity = gameMap.convertLegacyItemToECS(entityData);
+        }
+        if (entity) {
+          gameMap.entityMap.set(entity.id, entity);
+        }
+      }
+    }
+
     // Restore tiles
     for (let y = 0; y < data.height; y++) {
       for (let x = 0; x < data.width; x++) {
@@ -1230,13 +1380,8 @@ export class GameMap {
             for (const entityData of tileData.contents) {
               let entity;
               if (entityData.type === 'item' && (entityData.subtype === 'ground_pile' || entityData.isProxy)) {
-                entity = {
-                  ...entityData,
-                  toJSON: function() { 
-                    const { ...data } = this;
-                    return data;
-                  }
-                };
+                // Skip legacy ground proxies as items are now first-class ECS entities
+                continue;
               } else {
                 switch (entityData.type) {
                   case 'player':
@@ -1248,7 +1393,11 @@ export class GameMap {
                     entity = TestEntity.fromJSON(entityData);
                     break;
                   case 'item':
-                    entity = Item.fromJSON(entityData);
+                    if (entityData.components) {
+                      entity = Entity.fromJSON(entityData);
+                    } else {
+                      entity = gameMap.convertLegacyItemToECS(entityData);
+                    }
                     break;
                   case 'door':
                     entity = Door.fromJSON(entityData);
@@ -1269,8 +1418,51 @@ export class GameMap {
               }
 
               if (entity) {
+                // Ensure coordinate fields and position component sync up
+                let pos = entity.getComponent('Position');
+                if (!pos) {
+                  pos = new Position({ x, y, level: 0 });
+                  entity.addComponent(pos);
+                }
+                entity.logicalX = x;
+                entity.logicalY = y;
+                entity.gridX = x;
+                entity.gridY = y;
+                entity.renderX = x;
+                entity.renderY = y;
+                entity.x = x;
+                entity.y = y;
+
                 tile.addEntity(entity);
                 gameMap.entityMap.set(entity.id, entity);
+              }
+            }
+          }
+
+          // Aggressive legacy migration of tile inventoryItems
+          if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
+            const rawLegacyItems = [...tileData.inventoryItems];
+            tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
+            for (const itemData of rawLegacyItems) {
+              const entity = gameMap.convertLegacyItemToECS(itemData);
+              if (entity) {
+                let pos = entity.getComponent('Position');
+                if (!pos) {
+                  pos = new Position({ x, y, level: 0 });
+                  entity.addComponent(pos);
+                }
+                entity.logicalX = x;
+                entity.logicalY = y;
+                entity.gridX = x;
+                entity.gridY = y;
+                entity.renderX = x;
+                entity.renderY = y;
+                entity.x = x;
+                entity.y = y;
+
+                tile.addEntity(entity);
+                gameMap.entityMap.set(entity.id, entity);
+                console.log(`[GameMap] Migrated legacy inventory item ${itemData.name || itemData.id} to ECS entity at (${x}, ${y})`);
               }
             }
           }
@@ -1280,7 +1472,7 @@ export class GameMap {
       }
     }
 
-    // Phase 27 Fix: Restore crop metadata for all tiles
+    // Restore crop metadata for all tiles
     for (let y = 0; y < gameMap.height; y++) {
       for (let x = 0; x < gameMap.width; x++) {
         gameMap.updateCropMetadata(x, y);
@@ -1291,12 +1483,76 @@ export class GameMap {
     return gameMap;
   }
 
-  /**
-   * Internal helper to charge batteries inside a charger POJO
-   * @deprecated - Logic moved to TurnProcessingUtils.chargeBatteries
-   */
+  convertLegacyItemToECS(itemData) {
+    if (!itemData) return null;
+
+    // Create new ECS Entity
+    const entity = new Entity(null, 'item');
+
+    // Get item template fields
+    const defId = itemData.defId || itemData.id;
+    const name = itemData.name || (defId ? defId.split('.').pop() : 'Item');
+    const description = itemData.description || '';
+
+    // Determine weight
+    let weight = itemData.weight;
+    if (weight === undefined && defId && ItemDefs[defId]) {
+      weight = ItemDefs[defId].weight;
+    }
+    if (weight === undefined) weight = 1;
+
+    // Attach Item component
+    entity.addComponent(new ECSItem({ name, weight, description }));
+
+    // Determine renderable/sprite properties
+    const spriteId = itemData.imageId || (defId ? defId.split('.').pop() : 'default');
+    const color = itemData.backgroundColor || '#ffffff';
+    
+    // Attach Renderable component
+    entity.addComponent(new Renderable({
+      spriteId,
+      color,
+      backgroundColor: '#000000',
+      zIndex: 0,
+      isVisible: true
+    }));
+
+    // If it's a melee weapon, attach MeleeWeapon component
+    if (defId && defId.startsWith('weapon.')) {
+      let damage = 5;
+      if (ItemDefs[defId]?.combat?.damage?.max) {
+        damage = ItemDefs[defId].combat.damage.max;
+      }
+      entity.addComponent(new MeleeWeapon({ damage }));
+    }
+
+    // Set other properties for backwards compatibility with UI/renderer
+    entity.defId = defId;
+    entity.imageId = spriteId;
+    entity.name = name;
+    entity.subtype = defId ? defId.split('.').pop() : 'default';
+    entity.condition = itemData.condition !== undefined ? itemData.condition : null;
+
+    // Copy all other fields from itemData to entity for backwards compatibility
+    for (const [key, value] of Object.entries(itemData)) {
+      if (key !== 'components' && key !== 'id' && entity[key] === undefined) {
+        entity[key] = value;
+      }
+    }
+
+    // Generate/ensure instanceId matches entity id
+    entity.instanceId = entity.id;
+
+    return entity;
+  }
+
   _chargeBatteries(chargerData) {
     if (!chargerData.containerGrid) return;
-    TurnProcessingUtils.chargeBatteries(chargerData.containerGrid.items);
+    const items = chargerData.containerGrid.items instanceof Map 
+      ? Array.from(chargerData.containerGrid.items.values()) 
+      : (Array.isArray(chargerData.containerGrid.items) 
+          ? chargerData.containerGrid.items 
+          : Object.values(chargerData.containerGrid.items || {}));
+    TurnProcessingUtils.chargeBatteries(items);
   }
 }

@@ -174,9 +174,11 @@ export class Item extends SafeEventEmitter {
       this._def = ItemDefs[this.defId];
       const def = this._def;
       if (def.attachmentSlots) this.attachmentSlots = def.attachmentSlots;
+      if (def.condition !== undefined && (this.condition === null || this.condition === undefined)) this.condition = def.condition;
       if (def.capacity !== undefined && this.capacity === null) this.capacity = def.capacity;
       if (def.ammoCount !== undefined && this.ammoCount === undefined) this.ammoCount = def.ammoCount;
       if (def.ammoDefId && !this.ammoDefId) this.ammoDefId = def.ammoDefId;
+      if (def.equippableSlot && !this.equippableSlot) this.equippableSlot = def.equippableSlot;
       if (def.rarity && !this.rarity) this.rarity = def.rarity;
       if (def.combat && !this.combat) this.combat = def.combat;
       if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
@@ -299,6 +301,7 @@ export class Item extends SafeEventEmitter {
         key !== 'pocketGrids' &&
         key !== 'attachments' &&
         key !== 'id' &&
+        key !== 'components' &&
         this[key] === undefined
       ) {
         this[key] = value;
@@ -1389,7 +1392,8 @@ export class Item extends SafeEventEmitter {
         key === 'pocketGrids' ||
         key === 'attachments' ||
         key === 'traits' ||
-        key === 'listeners'
+        key === 'listeners' ||
+        key === 'components'
       ) {
         continue;
       }
@@ -1432,6 +1436,38 @@ export class Item extends SafeEventEmitter {
     // Phase 12 Fix: Robust type check - if it's already an instantiated Item, return it directly
     if (data.type === 'item' && typeof data.hasTrait === 'function') {
       return data;
+    }
+
+    // Convert from ECS Entity if needed
+    if (data.components && typeof data.hasComponent === 'function') {
+      const plainData = data.toJSON ? data.toJSON() : { ...data };
+      if (data.hasComponent('Item')) {
+        const itemComp = data.getComponent('Item');
+        plainData.name = itemComp.name || plainData.name;
+        plainData.weight = itemComp.weight !== undefined ? itemComp.weight : plainData.weight;
+        plainData.description = itemComp.description || plainData.description;
+      }
+      if (data.hasComponent('Renderable')) {
+        const renderComp = data.getComponent('Renderable');
+        plainData.imageId = renderComp.spriteId || plainData.imageId;
+        if (renderComp.backgroundColor && renderComp.backgroundColor !== '#000000') {
+          plainData.backgroundColor = renderComp.backgroundColor;
+        } else if (plainData.backgroundColor === '#000000') {
+          plainData.backgroundColor = undefined;
+        }
+      }
+      if (data.hasComponent('MeleeWeapon')) {
+        const weaponComp = data.getComponent('MeleeWeapon');
+        plainData.combat = plainData.combat || {};
+        plainData.combat.damage = plainData.combat.damage || {};
+        plainData.combat.damage.max = weaponComp.damage;
+      }
+      if (data.hasComponent('Consumable')) {
+        const consumableComp = data.getComponent('Consumable');
+        plainData.nutrition = consumableComp.nutrition !== undefined ? consumableComp.nutrition : plainData.nutrition;
+        plainData.hydration = consumableComp.hydration !== undefined ? consumableComp.hydration : plainData.hydration;
+      }
+      data = plainData;
     }
 
     const item = new Item({
