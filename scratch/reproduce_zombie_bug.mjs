@@ -1,5 +1,5 @@
 import { GameMap } from '../client/src/game/map/GameMap.js';
-import { Zombie } from '../client/src/game/entities/Zombie.js';
+import { EntityFactory } from '../client/src/game/EntityFactory.js';
 import { Door } from '../client/src/game/entities/Door.js';
 import { ZombieAI } from '../client/src/game/ai/ZombieAI.js';
 import { Pathfinding } from '../client/src/game/utils/Pathfinding.js';
@@ -14,11 +14,11 @@ async function testZombieBug() {
     }
 
     // Player at (22, 20)
-    const player = { id: 'player', type: 'player', logicalX: 22, logicalY: 20, x: 22, y: 20 };
+    const player = EntityFactory.createPlayer(22, 20);
     gameMap.addEntity(player, 22, 20);
 
     // Zombie at (19, 20)
-    const zombie = new Zombie('zombie-1', 19, 20, 'basic');
+    const zombie = EntityFactory.createZombie(19, 20, 'basic', 'zombie-1');
     zombie.currentAP = 10;
     gameMap.addEntity(zombie, 19, 20);
 
@@ -30,10 +30,11 @@ async function testZombieBug() {
 
     // Closed door at (20, 20) on the East edge
     const door = new Door('door-20-20', 20, 20, false, false, false, 'e');
+    door.hp = 5;
     gameMap.addEntity(door, 20, 20);
 
     // Setup zombie's target memory since player just closed the door
-    zombie.currentTarget = { id: 'player', type: 'player' };
+    zombie.currentTarget = { id: player.id, type: 'player' };
     zombie.setTargetSighted(22, 20); // last seen player at (22, 20)
 
     console.log(`Zombie Pos: (${zombie.logicalX}, ${zombie.logicalY}), targetSightedCoords: (${zombie.targetSightedCoords.x}, ${zombie.targetSightedCoords.y}), lastSeen: ${zombie.lastSeen}`);

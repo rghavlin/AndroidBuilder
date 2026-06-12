@@ -13,6 +13,9 @@ import { AIBehavior } from '../components/AIBehavior.js';
 import { LightEmitter } from '../components/LightEmitter.js';
 import { MoveIntent } from '../components/MoveIntent.js';
 import { DamageIntent } from '../components/DamageIntent.js';
+import { DestroyIntent } from '../components/DestroyIntent.js';
+import { NoiseEvent } from '../components/NoiseEvent.js';
+import { Vision } from '../components/Vision.js';
 
 const COMPONENT_CLASSES = {
   Position,
@@ -23,7 +26,10 @@ const COMPONENT_CLASSES = {
   AIBehavior,
   LightEmitter,
   MoveIntent,
-  DamageIntent
+  DamageIntent,
+  DestroyIntent,
+  NoiseEvent,
+  Vision
 };
 
 export const EntityType = {
@@ -200,6 +206,11 @@ export class Entity extends SafeEventEmitter {
     this.notifyChange();
   }
 
+  getMovementMultiplier() {
+    const movable = this.getComponent('Movable');
+    return movable ? movable.apCost : 1.0;
+  }
+
   get ap() { return this._ap; }
   set ap(val) { this._ap = val; this.notifyChange(); }
 
@@ -367,6 +378,26 @@ export class Entity extends SafeEventEmitter {
     this.notifyChange();
   }
 
+  setBleeding(val) {
+    this.isBleeding = !!val;
+    if (this.isBleeding) {
+      this.condition = 'Bleeding';
+    } else if (this.condition === 'Bleeding') {
+      this.condition = 'Normal';
+    }
+    this.notifyChange();
+  }
+
+  inflictSickness(amount) {
+    this.sickness = Math.max(0, this.sickness + amount);
+    if (this.sickness > 0) {
+      this.condition = 'Diseased';
+    } else if (this.condition === 'Diseased') {
+      this.condition = 'Normal';
+    }
+    this.notifyChange();
+  }
+
   onItemCrafted(apUsed = 1) {
     this.craftingApUsed += apUsed;
     const nextTarget = 10 * Math.pow(2, this.craftingLvl);
@@ -447,6 +478,9 @@ export class Entity extends SafeEventEmitter {
     if (options.snap !== false) {
       this.renderX = x;
       this.renderY = y;
+    }
+    if (this.hasComponent('Vision')) {
+      this.getComponent('Vision')._visionDirty = true;
     }
     if (this.type === 'player') {
       this.emitEvent('playerMoved', { oldPosition: { x: oldX, y: oldY }, newPosition: { x, y } });
@@ -563,6 +597,11 @@ export class Entity extends SafeEventEmitter {
   setNoiseHeard(x, y) {
     this.heardNoise = true;
     this.noiseCoords = { x, y };
+    const aiComp = this.getComponent('AIBehavior');
+    if (aiComp) {
+      aiComp.heardNoiseCoords = { x, y };
+      aiComp.alertnessState = 'INVESTIGATING';
+    }
     if (this.type === 'npc') {
       this.emitEvent('npcNoiseHeard', { npcId: this.id, noiseCoords: { x, y } });
     }
@@ -571,6 +610,10 @@ export class Entity extends SafeEventEmitter {
   clearNoiseHeard() {
     this.heardNoise = false;
     this.noiseCoords = { x: 0, y: 0 };
+    const aiComp = this.getComponent('AIBehavior');
+    if (aiComp) {
+      aiComp.heardNoiseCoords = null;
+    }
   }
 
   setTargetSighted(x, y) {
@@ -580,6 +623,11 @@ export class Entity extends SafeEventEmitter {
     }
     this.lastSeen = true;
     this.targetSightedCoords = { x, y };
+    const aiComp = this.getComponent('AIBehavior');
+    if (aiComp) {
+      aiComp.lastSeenPlayerCoords = { x, y };
+      aiComp.alertnessState = 'HUNTING';
+    }
     this.emitEvent('zombieTargetSighted', {
       zombieId: this.id,
       targetCoords: { x, y }
@@ -590,6 +638,10 @@ export class Entity extends SafeEventEmitter {
     this.lastSeen = false;
     this.targetSightedCoords = { x: 0, y: 0 };
     this.lastScentSequence = 0;
+    const aiComp = this.getComponent('AIBehavior');
+    if (aiComp) {
+      aiComp.lastSeenPlayerCoords = null;
+    }
   }
 
   canSeePosition(gameMap, targetX, targetY) {

@@ -1,4 +1,5 @@
 import { Entity, EntityType } from './Entity.js';
+import engine from '../GameEngine.js';
 
 /**
  * Window entity for buildings
@@ -26,11 +27,23 @@ export class Window extends Entity {
         this.updateBlocking();
     }
 
+    dirtyVision() {
+        const map = this.gameMap || (engine && engine.gameMap);
+        if (map && map.entityMap) {
+            for (const entity of map.entityMap.values()) {
+                if (entity.hasComponent && typeof entity.hasComponent === 'function' && entity.hasComponent('Vision')) {
+                    entity.getComponent('Vision')._visionDirty = true;
+                }
+            }
+        }
+    }
+
     /**
      * Update movement/subtype status based on state
      */
     updateBlocking() {
         this._updateBlockingState();
+        this.dirtyVision();
         this.subtype = this.isBroken ? (this.isOpen ? 'open' : 'broken') : (this.isOpen ? 'open' : 'closed');
 
         // Emit event to notify map/renderer of state change
@@ -156,6 +169,7 @@ export class Window extends Entity {
             this.isBroken = true;
             this.hp = 0;
             this.isLocked = false;
+            this.dirtyVision();
             // A broken window is effectively "open" for movement
             if (silent) {
                 this._updateBlockingState();
@@ -195,6 +209,7 @@ export class Window extends Entity {
             this.reinforcementHp = Math.max(0, this.reinforcementHp - damageRemaining);
             if (this.reinforcementHp <= 0) {
                 this.isReinforced = false;
+                this.dirtyVision();
                 if (!silent) {
                     this.emitEvent('windowReinforcementDestroyed');
                 }

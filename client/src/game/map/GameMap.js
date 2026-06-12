@@ -545,6 +545,7 @@ export class GameMap {
       }
 
       this.entityMap.set(entity.id, entity);
+      entity.gameMap = this;
       
       // Force synchronization of coordinates to prevent 'ghosting' desyncs
       // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
@@ -604,6 +605,7 @@ export class GameMap {
         tile.removeEntity(entityId);
       }
       this.entityMap.delete(entityId);
+      entity.gameMap = null;
 
       this.emit('entityRemoved', {
         entity: { id: entity.id, type: entity.type },

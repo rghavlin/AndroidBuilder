@@ -1,4 +1,5 @@
 import { Entity, EntityType } from './Entity.js';
+import engine from '../GameEngine.js';
 
 /**
  * Door entity for buildings
@@ -30,11 +31,23 @@ export class Door extends Entity {
     }
 
 
+    dirtyVision() {
+        const map = this.gameMap || (engine && engine.gameMap);
+        if (map && map.entityMap) {
+            for (const entity of map.entityMap.values()) {
+                if (entity.hasComponent && typeof entity.hasComponent === 'function' && entity.hasComponent('Vision')) {
+                    entity.getComponent('Vision')._visionDirty = true;
+                }
+            }
+        }
+    }
+
     /**
      * Update movement and sight blocking status based on open/closed state
      */
     updateBlocking() {
         this._updateBlockingState();
+        this.dirtyVision();
 
         // Emit event to notify map/renderer of state change
         this.emitEvent('doorStateChanged', {
@@ -185,6 +198,7 @@ export class Door extends Entity {
         if (this.hp <= 0) {
             this.isDamaged = true;
             this.isOpen = true;
+            this.dirtyVision();
             if (silent) {
                 this._updateBlockingState();
                 // We do NOT update visualIsOpen here to allow for animation delay

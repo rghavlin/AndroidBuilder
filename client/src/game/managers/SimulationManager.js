@@ -7,6 +7,7 @@ import engine from '../GameEngine.js';
 import { NPCAI } from '../ai/NPCAI.js';
 import { RabbitAI } from '../ai/RabbitAI.js';
 import { EntityType } from '../entities/Entity.js';
+import { IntentQueue } from './IntentQueue.js';
 
 export class SimulationManager {
   /**
@@ -21,6 +22,11 @@ export class SimulationManager {
     if (!player) return actionQueue;
 
     GameMap.isSimulating = true;
+
+    // Strict UI Decoupling: Ensure UI dirty flag is false during simulation
+    if (engine) {
+      engine._uiDirty = false;
+    }
 
     try {
       const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc') || [];
@@ -55,31 +61,36 @@ export class SimulationManager {
       // Construct entity list for ECS systems
       const ecsEntities = [player, ...activeZombies, ...npcs];
 
-      // Sequential system execution in a loop to handle multi-step turns
-      let safetyCounter = 0;
-      const maxTicks = 20;
-      let intentsProcessed = true;
+      // Instantiate the centralized Intent Queue
+      const intentQueue = new IntentQueue();
 
-      while (intentsProcessed && safetyCounter < maxTicks) {
-        intentsProcessed = false;
+      // Sequential system execution in a loop to handle multi-step turns (AI AP consumption)
+      let aiCycleCounter = 0;
+      const maxAICycles = 50; // Allow entities to take up to 50 steps if they have AP (safely breaks early if AP spent)
+      let newIntentsGenerated = true;
 
-        AISystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+      while (newIntentsGenerated && aiCycleCounter < maxAICycles) {
+        newIntentsGenerated = false;
 
-        const hasIntents = ecsEntities.some(e => e.hasComponent('MoveIntent') || e.hasComponent('DamageIntent'));
-        if (!hasIntents) {
+        // Run VisionSystem to update entity visibility arrays before AI makes decisions
+        VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+
+        // Run the AISystem to evaluate behaviors and queue MoveIntent / DamageIntent directly
+        const initialIntentCount = AISystem.process(ecsEntities, engine.worldManager, engine, actionQueue, intentQueue);
+
+        // If no intents were generated, we are done with AI decision cycles
+        if (initialIntentCount === 0) {
           break;
         }
 
-        MovementSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
-        CombatSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+        // Run the IntentQueue to absolute completion (resolving all starting and cascading intents)
+        intentQueue.resolve(ecsEntities, engine.worldManager, engine, actionQueue);
 
-        intentsProcessed = true;
-        safetyCounter++;
+        newIntentsGenerated = true;
+        aiCycleCounter++;
       }
 
-      VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
-
-      // 2. Rabbit Turns
+      // 2. Legacy Processing (Rabbit Turns) - Runs ONLY after IntentQueue has completely resolved
       const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT || 'rabbit') || [];
       rabbits.forEach(rabbit => {
         try {
@@ -93,7 +104,7 @@ export class SimulationManager {
         }
       });
 
-      // 3. NPC Turns
+      // 3. Legacy Processing (NPC Turns) - Runs ONLY after IntentQueue has completely resolved
       for (const npc of npcs) {
         if (npc.hp <= 0) continue;
 
@@ -114,10 +125,18 @@ export class SimulationManager {
         }
       }
 
+      // 4. Vision System Update
+      VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+
     } catch (err) {
       console.error(`[SimulationManager] Error running systems turn processing:`, err);
     } finally {
       GameMap.isSimulating = false;
+      
+      // Strict UI Decoupling: simulation is absolute, flip _uiDirty to true
+      if (engine) {
+        engine._uiDirty = true;
+      }
     }
 
     return actionQueue;

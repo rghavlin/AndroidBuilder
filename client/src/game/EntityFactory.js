@@ -6,6 +6,7 @@ import { Movable } from './components/Movable.js';
 import { InventoryContainer } from './components/InventoryContainer.js';
 import { AIBehavior } from './components/AIBehavior.js';
 import { LightEmitter } from './components/LightEmitter.js';
+import { Vision } from './components/Vision.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
@@ -24,6 +25,7 @@ export const EntityFactory = {
     entity.addComponent(new Renderable({ spriteId: 'player', color: '#ffffff', zIndex: 2 }));
     entity.addComponent(new Movable({ apCost: 1, baseSpeed: 1 }));
     entity.addComponent(new InventoryContainer({ slots: [], maxWeight: 50, currentWeight: 0 }));
+    entity.addComponent(new Vision({ range: 15 }));
 
     // Backing stats matching legacy Player constructor
     entity._hp = 20;
@@ -82,6 +84,7 @@ export const EntityFactory = {
     entity.addComponent(new Movable({ apCost: typeDef.moveCostMultiplier, baseSpeed: 1 }));
     entity.addComponent(new Renderable({ spriteId: typeDef.spriteKey, color: color, zIndex: 1 }));
     entity.addComponent(new AIBehavior({ state: 'idle' }));
+    entity.addComponent(new Vision({ range: typeDef.sightRange || 15 }));
 
     // Backing stats matching legacy Zombie constructor
     entity._hp = typeDef.hp;
@@ -110,6 +113,7 @@ export const EntityFactory = {
     entity.addComponent(new Movable({ apCost: 1, baseSpeed: 1 }));
     entity.addComponent(new Renderable({ spriteId: 'npc', color: '#ffb37e', zIndex: 1 }));
     entity.addComponent(new AIBehavior({ state: 'idle' }));
+    entity.addComponent(new Vision({ range: typeDef.sightRange || 18 }));
 
     // Backing stats matching legacy NPC constructor
     entity._hp = typeDef.hp;

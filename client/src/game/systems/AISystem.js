@@ -91,28 +91,27 @@ function getBeelineIntent(entity, zombiePos, targetX, targetY, gameMap, moveCost
 }
 
 export class AISystem {
-  static process(entities, worldManager, engine) {
+  static process(entities, worldManager, engine, actionQueue = [], intentQueue = null) {
+    let intentsGenerated = 0;
     const entityList = Array.isArray(entities)
       ? entities
       : (entities instanceof Map ? Array.from(entities.values()) : Object.values(entities));
 
     // Find player entity
     const player = entityList.find(e => e.hasComponent('InventoryContainer') && e.hasComponent('Position'));
-    if (!player) return;
+    if (!player) return intentsGenerated;
 
     const playerPos = player.getComponent('Position');
     const gameMap = engine ? engine.gameMap : null;
-    if (!gameMap) return;
-
-    const npcs = entityList.filter(e => e.type === 'npc' && e.hp > 0 && !e.hasExited);
+    if (!gameMap) return intentsGenerated;
 
     for (const entity of entityList) {
       if (entity.type === 'zombie' && entity.hasComponent('AIBehavior') && entity.hasComponent('Position')) {
         if (entity.hasComponent('MoveIntent') || entity.hasComponent('DamageIntent')) {
           continue;
         }
-        const zombiePos = entity.getComponent('Position');
         
+        const zombiePos = entity.getComponent('Position');
         const currentAP = entity.currentAP !== undefined ? entity.currentAP : (entity.ap !== undefined ? entity.ap : 0);
         const movable = entity.getComponent('Movable');
         const moveCost = movable ? movable.apCost : 1.0;
@@ -121,9 +120,23 @@ export class AISystem {
           continue;
         }
 
+        const aiBehavior = entity.getComponent('AIBehavior');
+        const vision = entity.getComponent('Vision');
+
+        // Helper to enqueue intents
+        const enqueueIntent = (intentType, intent) => {
+          if (intentQueue) {
+            intentQueue.enqueue(entity.id, intentType, intent);
+          } else {
+            entity.addComponent(intent);
+          }
+          intentsGenerated++;
+        };
+
         // Helper: execute random walk
         const executeWander = () => {
           entity.behaviorState = 'wandering';
+          aiBehavior.alertnessState = 'IDLE';
           if (currentAP >= moveCost) {
             const x = zombiePos.x;
             const y = zombiePos.y;
@@ -139,63 +152,33 @@ export class AISystem {
             });
             if (walkable.length > 0) {
               const chosen = walkable[Math.floor(Math.random() * walkable.length)];
-              entity.addComponent(new MoveIntent({ dx: chosen.x - x, dy: chosen.y - y }));
+              enqueueIntent('MoveIntent', new MoveIntent({ dx: chosen.x - x, dy: chosen.y - y }));
             }
           }
         };
 
-        // 1. Gather all potential targets (player + active NPCs)
-        const potentialTargets = [player, ...npcs];
-
-        // Find closest visible target
-        let target = null;
-        let minDist = Infinity;
-        potentialTargets.forEach(t => {
-          if (entity.canSeeEntity(gameMap, t)) {
-            const dist = entity.getDistanceTo(t.logicalX, t.logicalY);
-            if (dist < minDist) {
-              minDist = dist;
-              target = t;
-            }
-          }
-        });
-
-        // Target Sighting & Memory Synchronization
-        if (target) {
-          entity.currentTarget = { id: target.id, type: target.id === player.id ? 'player' : 'npc' };
-          if (target.id === player.id) {
-            entity.setTargetSighted(target.logicalX, target.logicalY);
-          }
-          entity.behaviorState = 'pursuing';
+        // Check player visibility using Vision component (fallback to canSeeEntity)
+        let playerInLoS = false;
+        if (vision) {
+          playerInLoS = vision.visibleEntities.includes(player.id);
         } else {
-          // Verify if memory target is still valid
-          let targetValid = false;
-          if (entity.currentTarget) {
-            if (entity.currentTarget.id === player.id) {
-              target = player;
-              targetValid = true;
-            } else {
-              const np = npcs.find(n => n.id === entity.currentTarget.id);
-              if (np) {
-                target = np;
-                targetValid = true;
-              }
-            }
-          }
-          if (!targetValid) {
-            entity.currentTarget = null;
-            target = null;
-          }
+          playerInLoS = entity.canSeeEntity(gameMap, player);
         }
-
-        const canSee = target && entity.canSeeEntity(gameMap, target);
 
         // --- Decision Tree ---
 
-        // Priority 1: Pursue Visible Target
-        if (canSee) {
-          const dx = target.logicalX - zombiePos.x;
-          const dy = target.logicalY - zombiePos.y;
+        // Priority 1: Hunting (Player is visible in current LoS)
+        if (playerInLoS) {
+          aiBehavior.alertnessState = 'HUNTING';
+          aiBehavior.lastSeenPlayerCoords = { x: playerPos.x, y: playerPos.y };
+          entity.setTargetSighted(playerPos.x, playerPos.y);
+          entity.behaviorState = 'pursuing';
+
+          // Clear cached path since we are actively chasing
+          aiBehavior.currentPath = [];
+
+          const dx = playerPos.x - zombiePos.x;
+          const dy = playerPos.y - zombiePos.y;
           const absDx = Math.abs(dx);
           const absDy = Math.abs(dy);
           const isAdjacent = (absDx + absDy === 1);
@@ -205,80 +188,150 @@ export class AISystem {
           if (canMeleeAttack) {
             let blockingStructure = null;
             if (isAdjacent) {
-              blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, target.logicalX, target.logicalY);
+              blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, playerPos.x, playerPos.y);
             } else {
-              if (!Pathfinding.canMoveDiagonally(gameMap, zombiePos.x, zombiePos.y, target.logicalX, target.logicalY, entity)) {
-                // Corner blocked
-              } else {
-                blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, target.logicalX, target.logicalY);
+              if (Pathfinding.canMoveDiagonally(gameMap, zombiePos.x, zombiePos.y, playerPos.x, playerPos.y, entity)) {
+                blockingStructure = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, playerPos.x, playerPos.y);
               }
             }
 
             if (blockingStructure) {
               if (currentAP >= 1.0) {
-                entity.addComponent(new DamageIntent({
+                enqueueIntent('DamageIntent', new DamageIntent({
                   amount: 1,
                   targetId: blockingStructure.id,
                   isStructure: true,
-                  targetX: target.logicalX,
-                  targetY: target.logicalY
+                  targetX: playerPos.x,
+                  targetY: playerPos.y
                 }));
               }
             } else {
               if (currentAP >= 2.0) {
-                entity.addComponent(new DamageIntent({ amount: 2, targetId: target.id }));
+                enqueueIntent('DamageIntent', new DamageIntent({ amount: 2, targetId: player.id }));
               }
             }
           } else {
-            // Move toward target using Beeline
-            const intent = getBeelineIntent(entity, zombiePos, target.logicalX, target.logicalY, gameMap, moveCost);
+            // Move toward player exact coords
+            let intent = getBeelineIntent(entity, zombiePos, playerPos.x, playerPos.y, gameMap, moveCost);
+            if (!intent) {
+              // Beeline blocked, fallback to pathfinding
+              const path = Pathfinding.findPath(gameMap, zombiePos.x, zombiePos.y, playerPos.x, playerPos.y, { entity, isZombie: true });
+              if (path && path.length > 1) {
+                const nextStep = path[1];
+                const blocking = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y);
+                if (blocking) {
+                  intent = new DamageIntent({
+                    amount: 1,
+                    targetId: blocking.id,
+                    isStructure: true,
+                    targetX: nextStep.x,
+                    targetY: nextStep.y
+                  });
+                } else {
+                  intent = new MoveIntent({ dx: nextStep.x - zombiePos.x, dy: nextStep.y - zombiePos.y });
+                }
+              }
+            }
+
             if (intent) {
               const isMove = intent instanceof MoveIntent;
               const isDamage = intent instanceof DamageIntent;
               if (isMove && currentAP >= moveCost) {
-                entity.addComponent(intent);
+                enqueueIntent('MoveIntent', intent);
               } else if (isDamage && currentAP >= 1.0) {
-                entity.addComponent(intent);
+                enqueueIntent('DamageIntent', intent);
               }
             }
           }
         }
-        // Priority 2: Investigate Last Sighted Position or Heard Noise
-        else if (entity.lastSeen || entity.heardNoise) {
-          const targetX = entity.lastSeen ? entity.targetSightedCoords.x : entity.noiseCoords.x;
-          const targetY = entity.lastSeen ? entity.targetSightedCoords.y : entity.noiseCoords.y;
+        // Priority 2: Investigating Last Sighted Position or Heard Noise
+        else if (aiBehavior.lastSeenPlayerCoords || aiBehavior.heardNoiseCoords) {
+          aiBehavior.alertnessState = 'INVESTIGATING';
+          entity.behaviorState = 'investigating';
+
+          const targetX = aiBehavior.lastSeenPlayerCoords ? aiBehavior.lastSeenPlayerCoords.x : aiBehavior.heardNoiseCoords.x;
+          const targetY = aiBehavior.lastSeenPlayerCoords ? aiBehavior.lastSeenPlayerCoords.y : aiBehavior.heardNoiseCoords.y;
 
           if (zombiePos.x === targetX && zombiePos.y === targetY) {
-            // Reached destination - check for breadcrumbs
-            const freshest = ScentTrail.findFreshestScent(gameMap, zombiePos.x, zombiePos.y, 6, 0);
-            if (freshest) {
-              const distToScent = Math.sqrt(Math.pow(freshest.x - zombiePos.x, 2) + Math.pow(freshest.y - zombiePos.y, 2));
-              const hasLOS = LineOfSight.hasLineOfSight(gameMap, zombiePos.x, zombiePos.y, freshest.x, freshest.y).hasLineOfSight;
-              if (distToScent <= 1.5 || hasLOS) {
-                entity.setTargetSighted(freshest.x, freshest.y);
-                entity.lastScentSequence = freshest.sequence;
-                entity.behaviorState = 'tracking';
-                continue; // Re-evaluate or wait
-              }
-            }
+            // Reached target: Clear memory
+            aiBehavior.lastSeenPlayerCoords = null;
+            aiBehavior.heardNoiseCoords = null;
             entity.clearLastSeen();
             entity.clearNoiseHeard();
+            aiBehavior.currentPath = [];
+
+            // Follow scent trail if available, else wander
+            const freshestScent = ScentTrail.findFreshestScent(gameMap, zombiePos.x, zombiePos.y, 6, 0);
+            if (freshestScent) {
+              const distToScent = Math.sqrt(Math.pow(freshestScent.x - zombiePos.x, 2) + Math.pow(freshestScent.y - zombiePos.y, 2));
+              const hasLOS = LineOfSight.hasLineOfSight(gameMap, zombiePos.x, zombiePos.y, freshestScent.x, freshestScent.y).hasLineOfSight;
+              if (distToScent <= 1.5 || hasLOS) {
+                entity.setTargetSighted(freshestScent.x, freshestScent.y);
+                entity.lastScentSequence = freshestScent.sequence;
+                entity.behaviorState = 'tracking';
+                continue;
+              }
+            }
             executeWander();
           } else {
-            entity.behaviorState = 'investigating';
-            const intent = getBeelineIntent(entity, zombiePos, targetX, targetY, gameMap, moveCost);
-            if (intent) {
-              const isMove = intent instanceof MoveIntent;
-              const isDamage = intent instanceof DamageIntent;
-              if (isMove && currentAP >= moveCost) {
-                entity.addComponent(intent);
-              } else if (isDamage && currentAP >= 1.0) {
-                entity.addComponent(intent);
+            // Path caching optimization
+            let needRecalculate = false;
+            
+            if (!aiBehavior.currentPath || aiBehavior.currentPath.length <= 1) {
+              needRecalculate = true;
+            } else {
+              // Check if cached target matches memory coords target
+              const cachedTarget = aiBehavior.currentPath[aiBehavior.currentPath.length - 1];
+              if (cachedTarget.x !== targetX || cachedTarget.y !== targetY) {
+                needRecalculate = true;
+              } else {
+                // Check if next step is blocked
+                const nextStep = aiBehavior.currentPath[1];
+                const tile = gameMap.getTile(nextStep.x, nextStep.y);
+                if (!tile) {
+                  needRecalculate = true;
+                } else {
+                  const isWalkable = Pathfinding.isTileWalkable(tile, entity, { isZombie: true });
+                  const isEdgeBlocked = Pathfinding.isEdgeBlocked(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y, entity, { isZombie: true });
+                  if (!isWalkable || isEdgeBlocked) {
+                    needRecalculate = true;
+                  }
+                }
+              }
+            }
+
+            if (needRecalculate) {
+              aiBehavior.currentPath = Pathfinding.findPath(gameMap, zombiePos.x, zombiePos.y, targetX, targetY, { entity, isZombie: true });
+            }
+
+            if (aiBehavior.currentPath && aiBehavior.currentPath.length > 1) {
+              const nextStep = aiBehavior.currentPath[1];
+              const blocking = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y);
+
+              if (blocking) {
+                if (currentAP >= 1.0) {
+                  enqueueIntent('DamageIntent', new DamageIntent({
+                    amount: 1,
+                    targetId: blocking.id,
+                    isStructure: true,
+                    targetX: nextStep.x,
+                    targetY: nextStep.y
+                  }));
+                }
+              } else {
+                if (currentAP >= moveCost) {
+                  enqueueIntent('MoveIntent', new MoveIntent({ dx: nextStep.x - zombiePos.x, dy: nextStep.y - zombiePos.y }));
+                  // Shift the position off the cached path since we successfully enqueued a move
+                  aiBehavior.currentPath.shift();
+                }
               }
             } else {
-              // Path blocked (beeline failed to find any step) - clear target memory
+              // Path is completely blocked, clear memory and wander
+              aiBehavior.lastSeenPlayerCoords = null;
+              aiBehavior.heardNoiseCoords = null;
               entity.clearLastSeen();
               entity.clearNoiseHeard();
+              aiBehavior.currentPath = [];
               executeWander();
             }
           }
@@ -293,14 +346,18 @@ export class AISystem {
               entity.behaviorState = 'tracking';
               entity.lastScentSequence = freshestScent.sequence;
               entity.setTargetSighted(freshestScent.x, freshestScent.y);
+              aiBehavior.alertnessState = 'INVESTIGATING';
               continue;
             }
           }
 
           // Priority 4: Random Wander
+          aiBehavior.alertnessState = 'IDLE';
           executeWander();
         }
       }
     }
+
+    return intentsGenerated;
   }
 }

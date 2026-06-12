@@ -77,6 +77,41 @@ export class Pathfinding {
       throw new Error('[Pathfinding] Invalid gameMap provided');
     }
 
+    // Ensure target coordinates are within loaded map boundaries (Requirement 4)
+    const originalEndTile = gameMap.getTile(endX, endY);
+    if (endX < 0 || endX >= gameMap.width || endY < 0 || endY >= gameMap.height || !originalEndTile) {
+      let clampedX = Math.max(0, Math.min(gameMap.width - 1, endX));
+      let clampedY = Math.max(0, Math.min(gameMap.height - 1, endY));
+
+      let found = false;
+      const entity = options.entity || options.entityFilter;
+
+      // Spiral outward from clamped coordinates to find the nearest walkable tile on the border
+      const maxRadius = 5;
+      for (let r = 0; r <= maxRadius && !found; r++) {
+        for (let dx = -r; dx <= r && !found; dx++) {
+          for (let dy = -r; dy <= r && !found; dy++) {
+            if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+            const tx = clampedX + dx;
+            const ty = clampedY + dy;
+            if (tx >= 0 && tx < gameMap.width && ty >= 0 && ty < gameMap.height) {
+              const tile = gameMap.getTile(tx, ty);
+              if (tile && this.isTileWalkable(tile, entity, pathOptions)) {
+                endX = tx;
+                endY = ty;
+                found = true;
+              }
+            }
+          }
+        }
+      }
+
+      // If no walkable border tile is found, safely halt (return empty path)
+      if (!found) {
+        return [];
+      }
+    }
+
     const startTile = gameMap.getTile(startX, startY);
     const endTile = gameMap.getTile(endX, endY);
 
