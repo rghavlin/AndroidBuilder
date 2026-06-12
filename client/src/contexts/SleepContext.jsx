@@ -5,7 +5,6 @@ import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { usePlayer } from './PlayerContext.jsx';
 import { useGameMap } from './GameMapContext.jsx';
 import { useAudio } from './AudioContext.jsx';
-import { Zombie } from '../game/entities/Zombie.js';
 import { useGame } from './GameContext.jsx';
 import { EntityType } from '../game/entities/Entity.js';
 import { GameMap } from '../game/map/GameMap.js';

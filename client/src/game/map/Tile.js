@@ -94,6 +94,11 @@ export class Tile {
       // Edge-based walls: doors and windows align to tile boundaries (edges) and should not block the entire tile.
       // Blocking is fully handled by Pathfinding.isEdgeBlocked.
       if ((item.type === EntityType.DOOR || item.type === EntityType.WINDOW) && item.edge !== undefined) continue;
+      
+      // Bypass for open/broken structures
+      if (item.type === EntityType.DOOR && item.isOpen) continue;
+      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !isPlayer) continue;
+
       if (item.blocksMovement) {
 
          // EXCEPTION: Same-tile safety

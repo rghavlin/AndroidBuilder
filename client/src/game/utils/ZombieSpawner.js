@@ -1,4 +1,4 @@
-import { Zombie } from '../entities/Zombie.js';
+import { EntityFactory } from '../EntityFactory.js';
 
 /**
  * ZombieSpawner - Utility class to handle zombie population on maps
@@ -52,7 +52,7 @@ export class ZombieSpawner {
 
           if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0) {
             const zombieId = `zombie-${subtype}-${Date.now()}-${spawnedCount}`;
-            if (gameMap.addEntity(new Zombie(zombieId, x, y, subtype), x, y)) {
+            if (gameMap.addEntity(EntityFactory.createZombie(x, y, subtype, zombieId), x, y)) {
               spawnedCount++;
               spawned = true;
             }
@@ -109,7 +109,8 @@ export class ZombieSpawner {
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-            if (gameMap.addEntity(new Zombie(`zombie-firefighter-${Date.now()}-${sIdx}-${spawnedForStation}`, x, y, 'firefighter'), x, y)) {
+            const zombieId = `zombie-firefighter-${Date.now()}-${sIdx}-${spawnedForStation}`;
+            if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'firefighter', zombieId), x, y)) {
               spawnedCount++;
               spawnedForStation++;
             }
@@ -127,7 +128,8 @@ export class ZombieSpawner {
                 const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
                 const tile = gameMap.getTile(x, y);
                 if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-                    if (gameMap.addEntity(new Zombie(`zombie-bombdisposal-${Date.now()}-${sIdx}`, x, y, 'bomb_disposal'), x, y)) {
+                    const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
+                    if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'bomb_disposal', zombieId), x, y)) {
                         spawnedCount++;
                         bdSpawned = true;
                     }
@@ -147,7 +149,8 @@ export class ZombieSpawner {
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-            if (gameMap.addEntity(new Zombie(`zombie-swat-${Date.now()}-${sIdx}-${spawnedForStation}`, x, y, 'swat'), x, y)) {
+            const zombieId = `zombie-swat-${Date.now()}-${sIdx}-${spawnedForStation}`;
+            if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'swat', zombieId), x, y)) {
               spawnedCount++;
               spawnedForStation++;
             }
@@ -165,7 +168,8 @@ export class ZombieSpawner {
                 const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
                 const tile = gameMap.getTile(x, y);
                 if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-                    if (gameMap.addEntity(new Zombie(`zombie-bombdisposal-${Date.now()}-${sIdx}`, x, y, 'bomb_disposal'), x, y)) {
+                    const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
+                    if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'bomb_disposal', zombieId), x, y)) {
                         spawnedCount++;
                         bdSpawned = true;
                     }
@@ -189,7 +193,8 @@ export class ZombieSpawner {
             const ry = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
             const tile = gameMap.getTile(rx, ry);
             if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-              if (gameMap.addEntity(new Zombie(`zombie-soldier-in-${Date.now()}-${sIdx}-${i}`, rx, ry, 'soldier'), rx, ry)) {
+              const zombieId = `zombie-soldier-in-${Date.now()}-${sIdx}-${i}`;
+              if (gameMap.addEntity(EntityFactory.createZombie(rx, ry, 'soldier', zombieId), rx, ry)) {
                 spawnedCount++;
                 spawnedIn = true;
               }
@@ -210,7 +215,8 @@ export class ZombieSpawner {
             
             const tile = gameMap.getTile(rx, ry);
             if (tile && tile.isWalkable() && tile.contents.length === 0) {
-              if (gameMap.addEntity(new Zombie(`zombie-soldier-out-${Date.now()}-${sIdx}-${i}`, rx, ry, 'soldier'), rx, ry)) {
+              const zombieId = `zombie-soldier-out-${Date.now()}-${sIdx}-${i}`;
+              if (gameMap.addEntity(EntityFactory.createZombie(rx, ry, 'soldier', zombieId), rx, ry)) {
                 spawnedCount++;
                 foundOut = true;
                 break;
@@ -232,7 +238,8 @@ export class ZombieSpawner {
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-            if (gameMap.addEntity(new Zombie(`zombie-mutant-${Date.now()}-${sIdx}`, x, y, 'mutant'), x, y)) {
+            const zombieId = `zombie-mutant-${Date.now()}-${sIdx}`;
+            if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'mutant', zombieId), x, y)) {
               spawnedCount++;
               mutantSpawned = true;
             }
@@ -248,7 +255,8 @@ export class ZombieSpawner {
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-            if (gameMap.addEntity(new Zombie(`zombie-mutant-additional-${Date.now()}-${sIdx}-${otherMutantsSpawned}`, x, y, 'mutant'), x, y)) {
+            const zombieId = `zombie-mutant-additional-${Date.now()}-${sIdx}-${otherMutantsSpawned}`;
+            if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'mutant', zombieId), x, y)) {
               spawnedCount++;
               otherMutantsSpawned++;
             }
@@ -265,7 +273,8 @@ export class ZombieSpawner {
           const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-            if (gameMap.addEntity(new Zombie(`zombie-labsoldier-${Date.now()}-${sIdx}-${spawnedForLab}`, x, y, 'soldier'), x, y)) {
+            const zombieId = `zombie-labsoldier-${Date.now()}-${sIdx}-${spawnedForLab}`;
+            if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'soldier', zombieId), x, y)) {
               spawnedCount++;
               spawnedForLab++;
             }
@@ -285,7 +294,8 @@ export class ZombieSpawner {
           const targetY = entY + dy;
           const tile = gameMap.getTile(targetX, targetY);
           if (tile && tile.isWalkable() && tile.contents.length === 0) {
-            if (gameMap.addEntity(new Zombie(`zombie-outsidesoldier-${Date.now()}-${sIdx}-${spawnedOutside}`, targetX, targetY, 'soldier'), targetX, targetY)) {
+            const zombieId = `zombie-outsidesoldier-${Date.now()}-${sIdx}-${spawnedOutside}`;
+            if (gameMap.addEntity(EntityFactory.createZombie(targetX, targetY, 'soldier', zombieId), targetX, targetY)) {
               spawnedCount++;
               spawnedOutside++;
             }

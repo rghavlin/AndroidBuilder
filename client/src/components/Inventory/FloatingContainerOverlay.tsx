@@ -250,14 +250,14 @@ export default function FloatingContainerOverlay({
                       item.isOn = false;
                       playSound('SwitchOff');
                       engine.notifyUpdate();
-                    } else if (battery && battery.ammoCount > 0) {
-                      battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+                    } else if (battery && battery.ammoCount >= 10) {
+                      battery.ammoCount = Math.max(0, battery.ammoCount - 10);
                       item.isOn = true;
                       playSound('SwitchOn');
                       engine.notifyUpdate();
                     }
                   }}
-                  disabled={(!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount <= 0)) || containerId !== 'ground'}
+                  disabled={(!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount < 10)) || containerId !== 'ground'}
                 >
                   <Power className="h-2.5 w-2.5" />
                 </Button>
@@ -271,9 +271,9 @@ export default function FloatingContainerOverlay({
                         Must be on ground to operate
                       </div>
                     )}
-                    {!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount <= 0) && (
+                    {!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount < 10) && (
                       <div className="text-[8px] text-red-400 font-bold uppercase mt-1">
-                        Requires Charged Battery
+                        {"Requires Charged Battery (>= 10 charges)"}
                       </div>
                     )}
                   </div>

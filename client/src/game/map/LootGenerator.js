@@ -1414,7 +1414,11 @@ export class LootGenerator {
                 const batteryData = createItemFromDef('tool.large_battery');
                 if (batteryData) {
                     const battery = new Item(batteryData);
-                    battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 100));
+                    if (item.defId === 'tool.battery_powered_hotplate') {
+                        battery.ammoCount = 10 + Math.floor(Math.random() * 21); // 10 to 30 charges
+                    } else {
+                        battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 100));
+                    }
                     if (!item.attachments) item.attachments = {};
                     item.attachments[batterySlot.id] = battery;
                 }

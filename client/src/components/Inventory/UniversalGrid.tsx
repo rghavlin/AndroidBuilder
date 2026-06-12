@@ -1111,7 +1111,7 @@ export default function UniversalGrid({
         className={cn(
           "w-full",
           (gridType === 'scalable' || enableScroll) ? 
-            cn(enableHorizontalScroll ? 'overflow-auto' : 'overflow-y-auto overflow-x-hidden', 'custom-scrollbar') : 
+            cn(enableHorizontalScroll ? 'overflow-auto' : 'overflow-y-auto overflow-x-hidden', 'custom-scrollbar', 'flex-1 min-h-0') : 
             'overflow-visible'
         )}
         style={{

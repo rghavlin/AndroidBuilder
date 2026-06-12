@@ -70,6 +70,16 @@ export const EntityRenderer = {
         renderX = entity.x;
         renderY = entity.y;
       }
+    } else if (entity.isAnimating && entity.activeAction && entity.activeAction.type === 'ATTACK') {
+      const from = entity.activeAction.data.from || { x: entity.x, y: entity.y };
+      const to = entity.activeAction.data.to;
+      if (to) {
+        const progress = entity.animationProgress || 0;
+        // Bump animation: slides toward target, peak at 0.5, returns to start at 1.0
+        const factor = Math.sin(progress * Math.PI) * 0.35;
+        renderX = from.x + (to.x - from.x) * factor;
+        renderY = from.y + (to.y - from.y) * factor;
+      }
     }
 
     // 2. Visibility Filtering (Fog of War vs Line of Sight)

@@ -1108,8 +1108,7 @@ export class GameMap {
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
     // Import required classes
-    const { Player } = await import('../entities/Player.js');
-    const { Zombie } = await import('../entities/Zombie.js');
+    const { Entity } = await import('../entities/Entity.js');
     const { TestEntity } = await import('../entities/TestEntity.js');
     const { Item } = await import('../inventory/Item.js');
     const { Door } = await import('../entities/Door.js');
@@ -1151,10 +1150,9 @@ export class GameMap {
               } else {
                 switch (entityType) {
                   case 'player':
-                    entity = Player.fromJSON(entityData);
-                    break;
                   case 'zombie':
-                    entity = Zombie.fromJSON(entityData);
+                  case 'npc':
+                    entity = Entity.fromJSON(entityData);
                     break;
                   case 'test':
                     entity = TestEntity.fromJSON(entityData);
@@ -1210,15 +1208,13 @@ export class GameMap {
 
     // Import required classes
     const { Tile } = await import('./Tile.js');
-    const { Player } = await import('../entities/Player.js');
-    const { Zombie } = await import('../entities/Zombie.js');
+    const { Entity } = await import('../entities/Entity.js');
     const { TestEntity } = await import('../entities/TestEntity.js');
     const { Item } = await import('../inventory/Item.js');
     const { Door } = await import('../entities/Door.js');
     const { Window } = await import('../entities/Window.js');
     const { PlaceIcon } = await import('../entities/PlaceIcon.js');
     const { Rabbit } = await import('../entities/Rabbit.js');
-    const { NPC } = await import('../entities/NPC.js');
 
     // Restore tiles
     for (let y = 0; y < data.height; y++) {
@@ -1242,10 +1238,9 @@ export class GameMap {
               } else {
                 switch (entityData.type) {
                   case 'player':
-                    entity = Player.fromJSON(entityData);
-                    break;
                   case 'zombie':
-                    entity = Zombie.fromJSON(entityData);
+                  case 'npc':
+                    entity = Entity.fromJSON(entityData);
                     break;
                   case 'test':
                     entity = TestEntity.fromJSON(entityData);
@@ -1264,9 +1259,6 @@ export class GameMap {
                     break;
                   case 'rabbit':
                     entity = Rabbit.fromJSON(entityData);
-                    break;
-                  case 'npc':
-                    entity = NPC.fromJSON(entityData);
                     break;
                   default:
                     console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);

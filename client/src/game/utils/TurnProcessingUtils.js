@@ -54,9 +54,9 @@ export const TurnProcessingUtils = {
     processHotplateDrain(itemData) {
         if (itemData.defId === 'tool.battery_powered_hotplate' && itemData.isOn) {
             const battery = itemData.attachments?.['battery'];
-            if (battery && (battery.ammoCount || 0) > 0) {
-                battery.ammoCount = Math.max(0, battery.ammoCount - 1);
-                if (battery.ammoCount === 0) {
+            if (battery && (battery.ammoCount || 0) >= 10) {
+                battery.ammoCount = Math.max(0, battery.ammoCount - 10);
+                if (battery.ammoCount < 10) {
                     itemData.isOn = false;
                     console.log(`[TurnProcessing] ${itemData.name || 'Hotplate'} ran out of power and turned OFF.`);
                 }

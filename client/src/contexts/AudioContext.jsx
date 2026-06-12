@@ -120,10 +120,9 @@ export const AudioProvider = ({ children }) => {
 
     const handleStructureInteract = (data) => {
       const targetType = data.targetType;
-      if (targetType === 'door' || targetType === 'door_locked') {
+      if (data.broken) return; // Handled by separate smash/break events to avoid duplicate sounds
+      if (targetType === 'door' || targetType === 'door_locked' || targetType === 'window') {
         audioManager.playOneShot('Bang1');
-      } else if (targetType === 'window') {
-        audioManager.playOneShot('GlassBreak');
       }
     };
 

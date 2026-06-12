@@ -212,8 +212,8 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
 
     const spawnZombie = async (type = 'basic') => {
         if (!engine.isReady()) return;
-        const { Zombie } = await import('../../game/entities/Zombie.js');
-        const z = new Zombie(`spawned-${Date.now()}`, engine.player.x, engine.player.y - 2, type);
+        const { EntityFactory } = await import('../../game/EntityFactory.js');
+        const z = EntityFactory.createZombie(engine.player.x, engine.player.y - 2, type, `spawned-${Date.now()}`);
         engine.gameMap.addEntity(z, z.x, z.y);
         engine.notifyUpdate();
     };

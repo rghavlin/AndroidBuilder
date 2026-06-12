@@ -269,8 +269,7 @@ export class Pathfinding {
             const isClosed = (structure.type === 'door' && !structure.isOpen) || 
                             (structure.type === 'window' && !structure.isOpen && !structure.isBroken);
             if (isClosed) {
-              const hp = (structure.hp !== undefined ? structure.hp : 0) + (structure.reinforcementHp || 0);
-              baseCost += hp > 0 ? hp : (structure.maxHp || 1);
+              baseCost += 1.0; // Minimal penalty so they prefer an open path if it's identical distance, but won't path around the building
             }
           }
         }
@@ -408,7 +407,7 @@ export class Pathfinding {
              // Windows are ALWAYS blocked for players (unwalkable)
              continue;
          }
-         if (e.isOpen || e.isBroken || ((isZombie || isNPC) && options.isPathfinding) || options.allowBreaching) {
+         if (e.isOpen || e.isBroken || e.isDamaged || ((isZombie || isNPC) && options.isPathfinding) || options.allowBreaching) {
              return false; // Can pass through
          }
       }
@@ -425,8 +424,8 @@ export class Pathfinding {
 
     // Check full-tile structures on target tile
     const fullTileStructure = tile2.contents.find(e => 
-      ((e.type === EntityType.DOOR && !e.isOpen) || 
-       (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) && 
+      (((e.type === EntityType.DOOR || e.type === 'door') && !e.isOpen && !e.isDamaged && !e.isBroken) || 
+       ((e.type === EntityType.WINDOW || e.type === 'window') && (e.isReinforced || (!e.isBroken && !e.isOpen)))) && 
       !e.edge
     );
     if (fullTileStructure) return fullTileStructure;
@@ -445,8 +444,8 @@ export class Pathfinding {
       
       const allBreachable = [...breachable1, ...breachable2];
       for (const e of allBreachable) {
-        if ((e.type === EntityType.DOOR && !e.isOpen) || 
-            (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) {
+        if (((e.type === EntityType.DOOR || e.type === 'door') && !e.isOpen && !e.isDamaged && !e.isBroken) || 
+            ((e.type === EntityType.WINDOW || e.type === 'window') && (e.isReinforced || (!e.isBroken && !e.isOpen)))) {
           return e;
         }
       }

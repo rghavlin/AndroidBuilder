@@ -168,8 +168,14 @@ class TurnManager {
               // NOTE: Structural damage (hp reduction, break/open flags) was already
               // applied SILENTLY during the simulation phase by ZombieAI/NPCAI.
               // Here we only need to push those logical changes to the visual layer.
-              const tile = gameMap.getTile(data.to.x, data.to.y);
-              const structure = tile?.contents.find(e => e.type === 'door' || e.type === 'window');
+              const tileTo = gameMap.getTile(data.to.x, data.to.y);
+              const tileFrom = gameMap.getTile(data.from.x, data.from.y);
+              let structure = tileTo?.contents.find(e => e.id === data.targetId) || 
+                              tileFrom?.contents.find(e => e.id === data.targetId);
+              if (!structure) {
+                structure = tileTo?.contents.find(e => e.type === 'door' || e.type === 'window') ||
+                            tileFrom?.contents.find(e => e.type === 'door' || e.type === 'window');
+              }
               if (structure && typeof structure.syncVisualState === 'function') {
                 structure.syncVisualState();
               }

@@ -28,8 +28,15 @@ export class PlayerZombieTracker {
       return;
     }
 
+    const pX = player.logicalX !== undefined ? player.logicalX : player.x;
+    const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+    console.log(`[PlayerZombieTracker] updateTracking called. Player pos: (${pX}, ${pY}). stack: ${new Error().stack.split('\n')[2]}`);
+
     // Get all zombies currently visible to the player
     const currentlyVisibleZombies = this.getVisibleZombies(gameMap, player, playerFieldOfView);
+    if (currentlyVisibleZombies.length > 0) {
+      console.log(`[PlayerZombieTracker] currentlyVisibleZombies:`, currentlyVisibleZombies.map(z => `${z.zombie.id} at (${z.zombie.logicalX}, ${z.zombie.logicalY})`));
+    }
 
     // Process newly spotted zombies
     this.processNewlySpottedZombies(currentlyVisibleZombies, player);

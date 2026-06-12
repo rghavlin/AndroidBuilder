@@ -1,4 +1,4 @@
-import { NPC } from '../entities/NPC.js';
+import { EntityFactory } from '../EntityFactory.js';
 import { Item } from '../inventory/Item.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { getNPCType } from '../entities/NPCTypes.js';
@@ -183,7 +183,7 @@ export class NPCSpawner {
       ? options.isHostile 
       : (Math.random() < (typeDef.hostilityChance || 0));
       
-    const npc = new NPC(id, name, x, y, isHostile, typeId);
+    const npc = EntityFactory.createNPC(x, y, isHostile, typeId, name, id);
     npc.goalTarget = options.goalTarget || null;
     
     // Generate items

@@ -3,9 +3,8 @@ import { getProgressionForMap } from './config/ProgressionConfig.js';
 import { WorldManager } from './WorldManager.js';
 import { TemplateMapGenerator } from './map/TemplateMapGenerator.js';
 import { GameMap } from './map/GameMap.js';
-import { Player } from './entities/Player.js';
+import { EntityFactory } from './EntityFactory.js';
 import { Camera } from './Camera.js';
-import { Zombie } from './entities/Zombie.js';
 import { ZombieSpawner } from './utils/ZombieSpawner.js';
 import { LootGenerator } from './map/LootGenerator.js';
 import engine from './GameEngine.js';
@@ -218,7 +217,8 @@ class GameInitializationManager extends EventEmitter {
       console.log('[GameInitializationManager] Final start position:', startX, startY);
 
       // Create player with detailed tracking
-      const player = new Player('player-1', 'Player', startX, startY);
+      const player = EntityFactory.createPlayer(startX, startY);
+      player.id = 'player-1';
       if (isDev) {
         console.log(`[GameInitializationManager] 🎮 PLAYER CREATED by instance ${this.instanceId}:`);
         console.log(`[GameInitializationManager] - Player ID: ${player.id}`);

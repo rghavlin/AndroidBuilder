@@ -23,6 +23,9 @@ class GameEngine extends SafeEventEmitter {
     this._handleInventoryChange = this._handleInventoryChange.bind(this);
 
     this.reset();
+
+    // Register global event listeners that persist across game resets
+    this.on('npcDied', this._handleNpcDeath);
     
     // Global accessibility for Dev Console and debugging
     if (typeof window !== 'undefined') {
@@ -110,9 +113,7 @@ class GameEngine extends SafeEventEmitter {
       'book.nomad_survivor_7': { pagesLeft: 25, milestonesReached: 0 }
     };
 
-    // Global event cleanups
-    this.removeAllListeners();
-    this.on('npcDied', this._handleNpcDeath);
+    // Global event cleanups (Removed this.removeAllListeners() to preserve React Provider context listeners on reset)
 
     // Phase 4: Master Heartbeat Infrastructure
     this.activeActions = new Set();

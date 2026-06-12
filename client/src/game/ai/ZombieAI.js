@@ -572,7 +572,7 @@ export class ZombieAI {
       allowDiagonal: true, 
       isZombie: true, 
       entity: zombie, 
-      maxDistance: 60, 
+      maxDistance: 6, // Reduced from 60 to prevent pathing around entire buildings
       ignoreZombies: true, // Planning should ignore zombies to find routes around logjams
       isPathfinding: true 
     });
@@ -760,17 +760,17 @@ export class ZombieAI {
     const isPursuit = modeName === 'pursuit';
     const targetLabel = isPursuit ? 'player' : 'LKP';
 
-    // A) PRIMARY: A* Pathfinding toward target
+    // A) PRIMARY: BEELINE (Mindless Direct Approach)
     if (ZombieAI.DEBUG) {
-      console.log(`[ZombieAI] ${zombie.id} A* ${modeName} toward ${targetLabel} at (${targetX}, ${targetY}).`);
+      console.log(`[ZombieAI] ${zombie.id} Beeline ${modeName} toward ${targetLabel} at (${targetX}, ${targetY}).`);
     }
-    let actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
+    let actionResult = this.executeBeelineStep(zombie, gameMap, targetX, targetY);
     let moveFound = actionResult && actionResult.success;
 
-    // B) GREEDY FALLBACK: If A* failed (logjam, blocked), try greedy neighbors
+    // B) SECONDARY: GREEDY FALLBACK
     if (!moveFound) {
       if (ZombieAI.DEBUG) {
-        console.log(`[ZombieAI] ${zombie.id} A* ${modeName} blocked, trying greedy neighbors.`);
+        console.log(`[ZombieAI] ${zombie.id} Beeline blocked, trying greedy neighbors.`);
       }
       const neighbors = this.getNeighbors(zombie.logicalX, zombie.logicalY, true);
       
@@ -814,12 +814,12 @@ export class ZombieAI {
       }
     }
 
-    // C) BEELINE FALLBACK (The "Anti-Inertia" Clause)
+    // C) TERTIARY: LIMITED A* PATHFINDING (For small logjams around cars/debris)
     if (!moveFound) {
       if (ZombieAI.DEBUG) {
-        console.log(`[ZombieAI] ${zombie.id} ${modeName} greedy blocked, triggering Beeline Fallback toward ${targetLabel}.`);
+        console.log(`[ZombieAI] ${zombie.id} Greedy blocked, trying limited A* Pathfinding.`);
       }
-      actionResult = this.executeBeelineStep(zombie, gameMap, targetX, targetY);
+      actionResult = this.attemptMoveTowards(zombie, gameMap, targetX, targetY);
       if (actionResult && actionResult.success) {
         moveFound = true;
       }

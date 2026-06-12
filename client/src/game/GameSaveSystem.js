@@ -742,8 +742,8 @@ export class GameSaveSystem {
   }
 
   static async restorePlayerFromJSON(playerData) {
-    const { Player } = await import('./entities/Player.js');
-    return Player.fromJSON(playerData);
+    const { Entity } = await import('./entities/Entity.js');
+    return Entity.fromJSON(playerData);
   }
 
   static async restoreCameraFromJSON(cameraData) {

@@ -1,39 +1,32 @@
-import { ZombieAI } from '../ai/ZombieAI.js';
+import { AISystem } from '../systems/AISystem.js';
+import { MovementSystem } from '../systems/MovementSystem.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
+import { VisionSystem } from '../systems/VisionSystem.js';
+import { GameMap } from '../map/GameMap.js';
+import engine from '../GameEngine.js';
 import { NPCAI } from '../ai/NPCAI.js';
 import { RabbitAI } from '../ai/RabbitAI.js';
 import { EntityType } from '../entities/Entity.js';
-import { GameMap } from '../map/GameMap.js';
 
 export class SimulationManager {
   /**
-   * Run the AI turns for all entities on the map.
+   * Run the turn processing for all systems sequentially.
    * @param {GameMap} gameMap - The current map instance
    * @param {Object} context - The simulation context
    * @param {Player} context.player - Current player
-   * @param {boolean} context.isSleeping - Whether the player is sleeping
-   * @param {number} context.turn - The current turn number
-   * @param {Array} context.playerCardinalPositions - Player cardinal positions
-   * @param {Set} context.lastSeenTaggedTiles - Sighted tile set
-   * @param {Array} context.actionQueue - Queue to push actions into
    */
   static runTurn(gameMap, context) {
-    const {
-      player,
-      isSleeping,
-      playerCardinalPositions = [],
-      lastSeenTaggedTiles = new Set()
-    } = context;
-
+    const { player, isSleeping } = context;
     const actionQueue = [];
     if (!player) return actionQueue;
 
     GameMap.isSimulating = true;
 
     try {
-      const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc');
+      const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc') || [];
+      const zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie') || [];
 
-      // 1. Zombie Turns
-      const zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie');
+      // Performance filter: only process active zombies within sight/range
       const activeZombies = isSleeping
         ? zombies
         : zombies.filter(z => {
@@ -54,30 +47,43 @@ export class SimulationManager {
             });
           });
 
-      activeZombies.forEach(zombie => {
-        try {
-          zombie.startTurn();
-          const turnResult = ZombieAI.executeZombieTurn(
-            zombie,
-            gameMap,
-            player,
-            playerCardinalPositions,
-            lastSeenTaggedTiles
-          );
-
-          if (turnResult.success && turnResult.actions) {
-            actionQueue.push(...turnResult.actions);
-          }
-        } catch (err) {
-          console.error(`[SimulationManager] Error processing zombie ${zombie.id}:`, err);
-        }
+      // 1. Replenish AP for active zombies
+      activeZombies.forEach(z => {
+        if (typeof z.startTurn === 'function') z.startTurn();
       });
 
+      // Construct entity list for ECS systems
+      const ecsEntities = [player, ...activeZombies, ...npcs];
+
+      // Sequential system execution in a loop to handle multi-step turns
+      let safetyCounter = 0;
+      const maxTicks = 20;
+      let intentsProcessed = true;
+
+      while (intentsProcessed && safetyCounter < maxTicks) {
+        intentsProcessed = false;
+
+        AISystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+
+        const hasIntents = ecsEntities.some(e => e.hasComponent('MoveIntent') || e.hasComponent('DamageIntent'));
+        if (!hasIntents) {
+          break;
+        }
+
+        MovementSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+        CombatSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+
+        intentsProcessed = true;
+        safetyCounter++;
+      }
+
+      VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+
       // 2. Rabbit Turns
-      const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT || 'rabbit');
+      const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT || 'rabbit') || [];
       rabbits.forEach(rabbit => {
         try {
-          rabbit.startTurn();
+          if (typeof rabbit.startTurn === 'function') rabbit.startTurn();
           const turnResult = RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
           if (turnResult.success && turnResult.actions) {
             actionQueue.push(...turnResult.actions);
@@ -92,7 +98,7 @@ export class SimulationManager {
         if (npc.hp <= 0) continue;
 
         try {
-          npc.startTurn();
+          if (typeof npc.startTurn === 'function') npc.startTurn();
           const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, zombies);
 
           if (turnResult.success && turnResult.actions) {
@@ -107,6 +113,9 @@ export class SimulationManager {
           console.error(`[SimulationManager] Error processing NPC ${npc.id}:`, err);
         }
       }
+
+    } catch (err) {
+      console.error(`[SimulationManager] Error running systems turn processing:`, err);
     } finally {
       GameMap.isSimulating = false;
     }
@@ -121,4 +130,3 @@ export class SimulationManager {
     return NPCAI.executeNPCTurn(npc, gameMap, player, zombies, skipAPReset);
   }
 }
-
