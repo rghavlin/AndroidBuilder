@@ -109,7 +109,11 @@ export class SimulationManager {
               actionQueue.push({
                 type: 'DEATH',
                 entityId: entity.id,
-                data: {}
+                data: {
+                  x: ex,
+                  y: ey,
+                  entityType: entity.type
+                }
               });
 
               diedAny = true;

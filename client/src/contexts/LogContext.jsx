@@ -139,6 +139,14 @@ export const LogProvider = ({ children }) => {
             // User requested NO message for generic trail blocking, so we suppress it entirely
         };
 
+        const handleTurretFired = (data) => {
+            console.log('[LogContext] 🤖 Turret fired event received:', data);
+            const status = data.hit
+                ? `${data.isCrit ? 'CRITICAL HIT! ' : ''}hits Zombie for ${data.damage} damage${data.isDead ? ' - KILLED!' : ''}`
+                : 'misses Zombie!';
+            addLog(`Auto turret fires and ${status}`, 'combat');
+        };
+
         GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleCombatAttack);
         GameEvents.on(GAME_EVENT.NPC_ATTACK, handleCombatAttack);
         GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
@@ -147,6 +155,7 @@ export const LogProvider = ({ children }) => {
         GameEvents.on(GAME_EVENT.WINDOW_SMASH, handleStructureDamage);
         GameEvents.on(GAME_EVENT.STRUCTURE_INTERACT, handleStructureInteract);
         GameEvents.on(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
+        GameEvents.on(GAME_EVENT.TURRET_FIRED, handleTurretFired);
 
         return () => {
             GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleCombatAttack);
@@ -157,6 +166,7 @@ export const LogProvider = ({ children }) => {
             GameEvents.off(GAME_EVENT.WINDOW_SMASH, handleStructureDamage);
             GameEvents.off(GAME_EVENT.STRUCTURE_INTERACT, handleStructureInteract);
             GameEvents.off(GAME_EVENT.PLAYER_DAMAGE, handlePlayerDamage);
+            GameEvents.off(GAME_EVENT.TURRET_FIRED, handleTurretFired);
         };
     }, [addLog]);
 

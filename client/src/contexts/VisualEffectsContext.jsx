@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import engine from '../game/GameEngine.js';
 
 const VisualEffectsContext = createContext();
 
@@ -113,13 +114,44 @@ export const VisualEffectsProvider = ({ children }) => {
             });
         };
 
+        const handleZombieKilled = (data) => {
+            console.log('[VisualEffects] Zombie killed event received:', data);
+            addEffect({
+                type: 'tile_flash',
+                x: data.x,
+                y: data.y,
+                color: 'rgba(139, 0, 0, 0.7)',
+                duration: 800,
+                startTime: performance.now()
+            });
+        };
+
+        const handleZombieDiedRealTime = (data) => {
+            const isSimulating = engine?.gameMap?.constructor?.isSimulating || false;
+            if (!isSimulating && data.entity) {
+                console.log('[VisualEffects] Zombie died in real-time:', data.entity.id);
+                addEffect({
+                    type: 'tile_flash',
+                    x: data.entity.logicalX ?? data.entity.x,
+                    y: data.entity.logicalY ?? data.entity.y,
+                    color: 'rgba(139, 0, 0, 0.7)',
+                    duration: 800,
+                    startTime: performance.now()
+                });
+            }
+        };
+
         GameEvents.on(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
         GameEvents.on(GAME_EVENT.ENTITY_BLINK, handleBlink);
         GameEvents.on(GAME_EVENT.TURRET_FIRED, handleTurretFired);
+        GameEvents.on(GAME_EVENT.ZOMBIE_KILLED, handleZombieKilled);
+        GameEvents.on(GAME_EVENT.ZOMBIE_DIED, handleZombieDiedRealTime);
         return () => {
             GameEvents.off(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
             GameEvents.off(GAME_EVENT.ENTITY_BLINK, handleBlink);
             GameEvents.off(GAME_EVENT.TURRET_FIRED, handleTurretFired);
+            GameEvents.off(GAME_EVENT.ZOMBIE_KILLED, handleZombieKilled);
+            GameEvents.off(GAME_EVENT.ZOMBIE_DIED, handleZombieDiedRealTime);
         };
     }, [addEffect]);
 

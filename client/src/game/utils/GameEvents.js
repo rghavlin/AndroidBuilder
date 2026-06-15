@@ -47,6 +47,7 @@ export const GAME_EVENT = {
   // Entity Lifecycle
   ENTITY_REMOVED: 'entity_removed',
   ZOMBIE_DIED: 'zombie_died',
+  ZOMBIE_KILLED: 'zombie_killed',
 
   // Automated Defenses
   TURRET_FIRED: 'turret_fired'

@@ -71,19 +71,13 @@ export class TurretAI {
         return dA - dB;
       });
 
-    const zombieSimulatedHps = new Map();
-    for (const z of inRange) {
-      zombieSimulatedHps.set(z.id, z.hp);
-    }
-
     for (const zombie of inRange) {
       if (ap <= 0) break;
       if ((mag.ammoCount || 0) <= 0) break;
-      let currentHp = zombieSimulatedHps.get(zombie.id);
-      if (currentHp <= 0) continue;
+      if (zombie.hp <= 0) continue;
 
       // Fire until zombie dead, out of AP, or out of ammo
-      while (ap >= TURRET_AP_PER_SHOT && (mag.ammoCount || 0) > 0 && currentHp > 0) {
+      while (ap >= TURRET_AP_PER_SHOT && (mag.ammoCount || 0) > 0 && zombie.hp > 0) {
         ap -= TURRET_AP_PER_SHOT;
         mag.ammoCount = Math.max(0, mag.ammoCount - 1);
 
@@ -98,8 +92,7 @@ export class TurretAI {
           damage = isCrit
             ? Math.floor(BATTLE_RIFLE_STATS.damage.max * 1.5)
             : Math.floor(Math.random() * (BATTLE_RIFLE_STATS.damage.max - BATTLE_RIFLE_STATS.damage.min + 1)) + BATTLE_RIFLE_STATS.damage.min;
-          currentHp = Math.max(0, currentHp - damage);
-          zombieSimulatedHps.set(zombie.id, currentHp);
+          zombie.takeDamage(damage);
         }
 
         // Noise
@@ -114,11 +107,11 @@ export class TurretAI {
             targetX:     zombie.logicalX,
             targetY:     zombie.logicalY,
             hit, isCrit, damage,
-            isDead:      currentHp <= 0
+            isDead:      zombie.hp <= 0
           }
         });
 
-        if (currentHp <= 0) break;
+        if (zombie.hp <= 0) break;
       }
     }
 

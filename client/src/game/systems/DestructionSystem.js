@@ -65,7 +65,11 @@ export class DestructionSystem {
       actionQueue.push({
         type: 'DEATH',
         entityId: targetId,
-        data: {}
+        data: {
+          x,
+          y,
+          entityType: target?.type
+        }
       });
     }
 

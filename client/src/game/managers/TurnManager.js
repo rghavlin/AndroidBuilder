@@ -40,6 +40,7 @@ class TurnManager {
 
     this.isProcessing = true;
     this.shouldCancel = false;
+    this.flashedEntityIds = new Set();
     const startTime = performance.now();
     console.log(`[TurnManager] 🎬 START TURN PLAYBACK (${actionQueue.length} actions)`);
 
@@ -130,7 +131,7 @@ class TurnManager {
     // Find the entity responsible
     const entity = gameMap.getEntity(entityId) || (entityId === 'player' ? player : null);
     
-    if (!entity && type !== 'GLOBAL' && type !== 'TURRET_SHOT') {
+    if (!entity && type !== 'GLOBAL' && type !== 'TURRET_SHOT' && type !== 'DEATH') {
       console.warn(`[TurnManager] Entity not found for action: ${entityId}`, action);
       return;
     }
@@ -296,6 +297,13 @@ class TurnManager {
               }
             }
             
+            if (target.type === 'zombie' || target.type === EntityType.ZOMBIE) {
+              if (!this.flashedEntityIds.has(target.id)) {
+                GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: target.logicalX ?? target.x, y: target.logicalY ?? target.y });
+                this.flashedEntityIds.add(target.id);
+              }
+            }
+
             // Remove the dead entity from the map
             gameMap.removeEntity(target.id);
             
@@ -319,6 +327,18 @@ class TurnManager {
         if (entity && typeof entity.playAction === 'function') {
           await entity.playAction(action);
         }
+
+        const entityType = entity?.type || data?.entityType;
+        const deathX = entity ? (entity.logicalX ?? entity.x) : data?.x;
+        const deathY = entity ? (entity.logicalY ?? entity.y) : data?.y;
+        
+        if ((entityType === 'zombie' || entityType === EntityType.ZOMBIE) && deathX !== undefined && deathY !== undefined) {
+          if (!this.flashedEntityIds.has(entityId)) {
+            GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: deathX, y: deathY });
+            this.flashedEntityIds.add(entityId);
+          }
+        }
+
         gameMap.removeEntity(entityId);
         
         // Clear targeting references from all zombies to avoid ghost chasing
@@ -348,21 +368,11 @@ class TurnManager {
           damage: data.damage
         });
 
-        // Apply damage during visual playback for perfect synchronization
-        const targetZombie = gameMap.getEntity(data.targetId);
-        if (targetZombie && data.hit && data.damage > 0) {
-          targetZombie.takeDamage(data.damage);
-          if (targetZombie.hp <= 0 || data.isDead) {
-            // Drop loot
-            const ex = targetZombie.logicalX;
-            const ey = targetZombie.logicalY;
-            if (engine.lootGenerator && Math.random() < 0.75) {
-              const subtype = targetZombie.subtype || 'walker';
-              const loot = engine.lootGenerator.generateZombieLoot(subtype, gameMap.mapNumber);
-              if (loot?.length > 0) gameMap.addItemsToTile(ex, ey, loot);
-            }
-            if (typeof targetZombie.die === 'function') targetZombie.die();
-            gameMap.removeEntity(targetZombie.id);
+        // Trigger the crimson flash immediately if this shot was a killing blow
+        if (data.isDead && data.targetId && data.targetX !== undefined && data.targetY !== undefined) {
+          if (!this.flashedEntityIds.has(data.targetId)) {
+            GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: data.targetX, y: data.targetY });
+            this.flashedEntityIds.add(data.targetId);
           }
         }
 
