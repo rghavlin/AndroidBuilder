@@ -275,6 +275,16 @@ export const ItemDefs = {
     spawnBias: { inside: 0.1, outside: 1.0 }
   },
 
+  'crafting.motion_sensor': {
+    id: 'crafting.motion_sensor',
+    name: 'Motion sensor',
+    rarity: Rarity.RARE,
+    imageId: 'motionsensor',
+    width: 1,
+    height: 1,
+    categories: [ItemCategory.CRAFTING_MATERIAL, ItemCategory.ELECTRIC]
+  },
+
   'crafting.soil': {
     id: 'crafting.soil',
     name: 'Soil',
@@ -2514,6 +2524,39 @@ export const ItemDefs = {
     lightType: 'glow',
     attachmentSlots: [
       { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ]
+  },
+  'placeable.auto_turret': {
+    id: 'placeable.auto_turret',
+    name: 'Auto turret',
+    noLoot: true,
+    rarity: Rarity.EXTREMELY_RARE,
+    imageId: 'turret',
+    width: 4,
+    height: 4,
+    traits: [ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED, ItemTrait.GROUND_ONLY],
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    isOn: false,
+    attachmentSlots: [
+      {
+        id: 'battery',
+        name: 'Power Cell',
+        allowedCategories: [ItemCategory.LARGE_BATTERY],
+        allowedItems: ['tool.large_battery']
+      },
+      {
+        id: 'ammo',
+        name: 'Magazine (.556)',
+        hidden: false,
+        allowedCategories: [ItemCategory.AMMO],
+        allowedItems: ['attachment.556_magazine']
+      },
+      {
+        id: 'barrel',
+        name: 'Barrel Attachment',
+        hidden: false,
+        allowedCategories: [ItemCategory.SUPPRESSOR]
+      }
     ]
   }
 };

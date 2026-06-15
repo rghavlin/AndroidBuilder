@@ -1,6 +1,7 @@
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import audioManager from '../utils/AudioManager.js';
 import { EntityType } from '../entities/Entity.js';
+import engine from '../GameEngine.js';
 
 /**
  * TurnManager - Orchestrates the sequential playback of game actions.
@@ -129,7 +130,7 @@ class TurnManager {
     // Find the entity responsible
     const entity = gameMap.getEntity(entityId) || (entityId === 'player' ? player : null);
     
-    if (!entity && type !== 'GLOBAL') {
+    if (!entity && type !== 'GLOBAL' && type !== 'TURRET_SHOT') {
       console.warn(`[TurnManager] Entity not found for action: ${entityId}`, action);
       return;
     }
@@ -168,8 +169,14 @@ class TurnManager {
               // NOTE: Structural damage (hp reduction, break/open flags) was already
               // applied SILENTLY during the simulation phase by ZombieAI/NPCAI.
               // Here we only need to push those logical changes to the visual layer.
-              const tileTo = gameMap.getTile(data.to.x, data.to.y);
-              const tileFrom = gameMap.getTile(data.from.x, data.from.y);
+              const toX = data.to?.x ?? data.x;
+              const toY = data.to?.y ?? data.y;
+              const fromX = data.from?.x ?? entity?.logicalX ?? entity?.x;
+              const fromY = data.from?.y ?? entity?.logicalY ?? entity?.y;
+
+              const tileTo = (toX !== undefined && toY !== undefined) ? gameMap.getTile(toX, toY) : null;
+              const tileFrom = (fromX !== undefined && fromY !== undefined) ? gameMap.getTile(fromX, fromY) : null;
+
               let structure = tileTo?.contents.find(e => e.id === data.targetId) || 
                               tileFrom?.contents.find(e => e.id === data.targetId);
               if (!structure) {
@@ -332,6 +339,37 @@ class TurnManager {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
         break;
+
+      case 'TURRET_SHOT': {
+        // Emit turret fire event for log / audio / visual effects
+        GameEvents.emit(GAME_EVENT.TURRET_FIRED, {
+          ...data,
+          hit:    data.hit,
+          damage: data.damage
+        });
+
+        // Apply damage during visual playback for perfect synchronization
+        const targetZombie = gameMap.getEntity(data.targetId);
+        if (targetZombie && data.hit && data.damage > 0) {
+          targetZombie.takeDamage(data.damage);
+          if (targetZombie.hp <= 0 || data.isDead) {
+            // Drop loot
+            const ex = targetZombie.logicalX;
+            const ey = targetZombie.logicalY;
+            if (engine.lootGenerator && Math.random() < 0.75) {
+              const subtype = targetZombie.subtype || 'walker';
+              const loot = engine.lootGenerator.generateZombieLoot(subtype, gameMap.mapNumber);
+              if (loot?.length > 0) gameMap.addItemsToTile(ex, ey, loot);
+            }
+            if (typeof targetZombie.die === 'function') targetZombie.die();
+            gameMap.removeEntity(targetZombie.id);
+          }
+        }
+
+        // Add a small delay so consecutive turret shots are visually and audibly distinct
+        await new Promise(resolve => setTimeout(resolve, 200));
+        break;
+      }
 
       default:
         console.warn(`[TurnManager] Unknown action type: ${type}`);

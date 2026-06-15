@@ -231,6 +231,11 @@ export const AudioProvider = ({ children }) => {
       audioManager.playSound('Equip'); // Using same sound for unequip for now
     };
 
+    const handleTurretFired = (data) => {
+      console.log('[AudioContext] 🔊 TURRET_FIRED event received:', data);
+      audioManager.playSound('RifleShot');
+    };
+
     GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttackResult);
     GameEvents.on(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
     GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
@@ -247,6 +252,7 @@ export const AudioProvider = ({ children }) => {
     GameEvents.on(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
     GameEvents.on(GAME_EVENT.ITEM_UNEQUIPPED, handleItemUnequipped);
     GameEvents.on(GAME_EVENT.NPC_ATTACK, handleNpcAttack);
+    GameEvents.on(GAME_EVENT.TURRET_FIRED, handleTurretFired);
 
     return () => {
       GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttackResult);
@@ -265,6 +271,7 @@ export const AudioProvider = ({ children }) => {
       GameEvents.off(GAME_EVENT.ITEM_EQUIPPED, handleItemEquipped);
       GameEvents.off(GAME_EVENT.ITEM_UNEQUIPPED, handleItemUnequipped);
       GameEvents.off(GAME_EVENT.NPC_ATTACK, handleNpcAttack);
+      GameEvents.off(GAME_EVENT.TURRET_FIRED, handleTurretFired);
     };
   }, []);
   

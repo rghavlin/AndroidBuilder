@@ -376,6 +376,9 @@ export class NPCAI {
   static interactWithStructure(npc, gameMap, structure, tx, ty, cost, turnResult) {
     npc.useAP(cost);
 
+    const fromPos = { x: npc.logicalX, y: npc.logicalY };
+    const toPos = { x: tx, y: ty };
+
     if (structure.type === 'door') {
       if (structure.isLocked) {
         structure.takeDamage(20); // Smash/pry locked door open
@@ -383,14 +386,14 @@ export class NPCAI {
         turnResult.actions.push({
           type: 'STRUCTURE_INTERACT',
           entityId: npc.id,
-          data: { x: tx, y: ty, interaction: 'pry_door', apCost: cost, success: true, targetId: structure.id, targetType: 'door', broken: true }
+          data: { x: tx, y: ty, from: fromPos, to: toPos, interaction: 'pry_door', apCost: cost, success: true, targetId: structure.id, targetType: 'door', broken: true }
         });
       } else {
         structure.open(); // Slide unlocked door open
         turnResult.actions.push({
           type: 'STRUCTURE_INTERACT',
           entityId: npc.id,
-          data: { x: tx, y: ty, interaction: 'open_door', apCost: cost, success: true, targetId: structure.id, targetType: 'door' }
+          data: { x: tx, y: ty, from: fromPos, to: toPos, interaction: 'open_door', apCost: cost, success: true, targetId: structure.id, targetType: 'door' }
         });
       }
     } else if (structure.type === 'window') {
@@ -400,14 +403,14 @@ export class NPCAI {
         turnResult.actions.push({
           type: 'STRUCTURE_INTERACT',
           entityId: npc.id,
-          data: { x: tx, y: ty, interaction: 'break_window', apCost: cost, success: true, targetId: structure.id, targetType: 'window', broken: true }
+          data: { x: tx, y: ty, from: fromPos, to: toPos, interaction: 'break_window', apCost: cost, success: true, targetId: structure.id, targetType: 'window', broken: true }
         });
       } else {
         structure.open(); // Slide unlocked window open
         turnResult.actions.push({
           type: 'STRUCTURE_INTERACT',
           entityId: npc.id,
-          data: { x: tx, y: ty, interaction: 'open_window', apCost: cost, success: true, targetId: structure.id, targetType: 'window' }
+          data: { x: tx, y: ty, from: fromPos, to: toPos, interaction: 'open_window', apCost: cost, success: true, targetId: structure.id, targetType: 'window' }
         });
       }
     }

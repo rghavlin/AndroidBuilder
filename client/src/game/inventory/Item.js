@@ -645,6 +645,9 @@ export class Item extends SafeEventEmitter {
 
     // Battery-powered hotplate drainage logic
     TurnProcessingUtils.processHotplateDrain(this);
+
+    // Auto turret drainage logic
+    TurnProcessingUtils.processAutoTurretDrain(this);
   }
 
   canLoadAmmo(ammoItem) {

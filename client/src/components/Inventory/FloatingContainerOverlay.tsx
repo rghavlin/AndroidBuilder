@@ -47,6 +47,7 @@ export default function FloatingContainerOverlay({
    const isPlanter = item.hasTrait?.(ItemTrait.PLANTER);
    const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
    const isHotplate = item.defId === 'tool.battery_powered_hotplate';
+   const isAutoTurret = item.defId === 'placeable.auto_turret';
 
   const handleSelectPlanter = (e: React.MouseEvent) => {
     if (!isPlanter || isDragging || isDraggingSeed) return;
@@ -119,7 +120,7 @@ export default function FloatingContainerOverlay({
     }
   };
 
-  if (!containerGrid && !isScooter && !isHotplate) return null;
+  if (!containerGrid && !isScooter && !isHotplate && !isAutoTurret) return null;
 
   const batteryStatuses = item.getBatteryStatuses?.() || [];
   const batteryPercent = item.getBatteryCharge?.() || 0;
@@ -154,10 +155,10 @@ export default function FloatingContainerOverlay({
       {!isPlanter && (
         <div className={cn(
           "bg-black/80 backdrop-blur-sm border-b border-white/30 flex items-center justify-between flex-shrink-0 pointer-events-auto",
-          isHotplate ? "h-[20px] p-0.5 px-1.5" : "h-8 p-1 px-1.5"
+          (isHotplate || isAutoTurret) ? "h-[20px] p-0.5 px-1.5" : "h-8 p-1 px-1.5"
         )}>
-        <div className={cn("flex items-center", isHotplate ? "gap-1" : "gap-2")}>
-          {!isScooter && !isHotplate && (
+        <div className={cn("flex items-center", (isHotplate || isAutoTurret) ? "gap-1" : "gap-2")}>
+          {!isScooter && !isHotplate && !isAutoTurret && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
@@ -231,7 +232,7 @@ export default function FloatingContainerOverlay({
             </Tooltip>
           )}
 
-          {isHotplate && (
+          {(isHotplate || isAutoTurret) && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
@@ -246,18 +247,19 @@ export default function FloatingContainerOverlay({
                   onClick={(e) => {
                     e.stopPropagation();
                     const battery = item.getBattery?.();
+                    const chargeCost = isAutoTurret ? 1 : 10;
                     if (item.isOn) {
                       item.isOn = false;
                       playSound('SwitchOff');
                       engine.notifyUpdate();
-                    } else if (battery && battery.ammoCount >= 10) {
-                      battery.ammoCount = Math.max(0, battery.ammoCount - 10);
+                    } else if (battery && battery.ammoCount >= chargeCost) {
+                      battery.ammoCount = Math.max(0, battery.ammoCount - chargeCost);
                       item.isOn = true;
                       playSound('SwitchOn');
                       engine.notifyUpdate();
                     }
                   }}
-                  disabled={(!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount < 10)) || containerId !== 'ground'}
+                  disabled={(!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount < (isAutoTurret ? 1 : 10))) || (isHotplate && containerId !== 'ground')}
                 >
                   <Power className="h-2.5 w-2.5" />
                 </Button>
@@ -266,14 +268,14 @@ export default function FloatingContainerOverlay({
                 <TooltipContent side="top" className="bg-black/90 border-white/20 p-2 z-[100]">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[11px] font-black uppercase text-white tracking-widest">Power Control</span>
-                    {containerId !== 'ground' && (
+                    {isHotplate && containerId !== 'ground' && (
                       <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
                         Must be on ground to operate
                       </div>
                     )}
-                    {!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount < 10) && (
+                    {!item.isOn && (!item.getBattery?.() || item.getBattery?.()?.ammoCount < (isAutoTurret ? 1 : 10)) && (
                       <div className="text-[8px] text-red-400 font-bold uppercase mt-1">
-                        {"Requires Charged Battery (>= 10 charges)"}
+                        {`Requires Charged Battery (>= ${isAutoTurret ? 1 : 10} charges)`}
                       </div>
                     )}
                   </div>
@@ -309,7 +311,7 @@ export default function FloatingContainerOverlay({
           )}
         </div>
 
-        {isHotplate ? (
+        {(isHotplate || isAutoTurret) ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -328,7 +330,7 @@ export default function FloatingContainerOverlay({
             <TooltipPortal>
               <TooltipContent side="top" className="bg-black/90 border-white/20 px-2 py-1 z-[100]">
                 <span className="text-[9px] font-bold uppercase text-white tracking-widest">
-                  {showMods ? "View Inventory" : "Battery Compartment"}
+                  {showMods ? "View Inventory" : isAutoTurret ? "Attachments" : "Battery Compartment"}
                 </span>
               </TooltipContent>
             </TooltipPortal>

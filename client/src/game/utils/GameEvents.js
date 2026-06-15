@@ -46,7 +46,10 @@ export const GAME_EVENT = {
   
   // Entity Lifecycle
   ENTITY_REMOVED: 'entity_removed',
-  ZOMBIE_DIED: 'zombie_died'
+  ZOMBIE_DIED: 'zombie_died',
+
+  // Automated Defenses
+  TURRET_FIRED: 'turret_fired'
 };
 
 /**

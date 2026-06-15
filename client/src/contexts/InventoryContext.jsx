@@ -380,6 +380,11 @@ export const InventoryProvider = ({ children }) => {
       playSound('Fail');
       return false;
     }
+    if (item && item.defId === 'placeable.auto_turret' && item.isOn) {
+      addLog('Turn off the auto turret before picking it up.', 'error');
+      playSound('Fail');
+      return false;
+    }
 
     // Phase 25: Cancel drag if picking up the item currently being dragged
     if (engine.dragging && engine.dragging.item.instanceId === item.instanceId) {

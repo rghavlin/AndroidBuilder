@@ -32,7 +32,7 @@ export const SPECIAL_BUILDING_LOOT = {
     police: {
         ammo: ['ammo.9mm', 'ammo.357', 'ammo.308', 'ammo.shotgun_shells'],
         guns: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.hunting_rifle', 'weapon.shotgun'],
-        gear: ['belt.holster', 'belt.ammo_pouch'],
+        gear: ['belt.holster', 'belt.ammo_pouch', 'crafting.motion_sensor'],
         rules: {
             hasGun: 0.50,
             hasBackpack: 0.25,
@@ -56,7 +56,7 @@ export const SPECIAL_BUILDING_LOOT = {
     },
     hardware_store: {
         tools: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.smallflashlight', 'weapon.knife', 'tool.crank_charger'],
-        materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery'],
+        materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery', 'crafting.motion_sensor'],
         rules: {
             guaranteedTech: ['crafting.solar_panel', 'tool.battery_charger']
         }

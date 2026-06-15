@@ -1952,6 +1952,10 @@ export class InventoryManager extends SafeEventEmitter {
       return { success: false, reason: 'Turn off the hotplate before picking it up.' };
     }
 
+    if (itemToMove.defId === 'placeable.auto_turret' && itemToMove.isOn && toContainerId !== 'ground' && !toContainerId.endsWith('-container') && !toContainerId.endsWith('-grid')) {
+      return { success: false, reason: 'Turn off the auto turret before picking it up.' };
+    }
+
     // Phase 21: Enforce Nesting/Accessibility Rules
     // Check if TARGET container is accessible
     if (toContainer && toContainer.ownerId) {

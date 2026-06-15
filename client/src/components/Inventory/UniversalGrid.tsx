@@ -557,8 +557,9 @@ export default function UniversalGrid({
         const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
         const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
         const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
+        const isAutoTurret = item.defId === 'placeable.auto_turret';
         
-        if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable)) {
+        if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
            console.debug('[UniversalGrid] Cannot switch selection to non-movable item:', item.name);
            return;
         }
@@ -584,8 +585,9 @@ export default function UniversalGrid({
       const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
       const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
       const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
+      const isAutoTurret = item.defId === 'placeable.auto_turret';
       
-      if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable)) {
+      if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
         console.debug('[UniversalGrid] Cannot pick up non-movable item:', item.name);
         return;
       }
@@ -1006,12 +1008,13 @@ export default function UniversalGrid({
                 </div>
               )}
 
-              {/* Phase: Specialized Ground Container Overlay (Wagon/Sled/Hotplate) */}
+              {/* Phase: Specialized Ground Container Overlay (Wagon/Sled/Hotplate/Turret) */}
               {(() => {
                 const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
                 const isHotplate = item.defId === 'tool.battery_powered_hotplate';
-                const isSpecialGroundContainer = (isScooter || isHotplate || item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
-                                               (containerId === 'ground' || isScooter || (item.hasTrait?.(ItemTrait.PLANTER) && (containerId.includes('-container') || containerId.includes('-grid'))));
+                const isAutoTurret = item.defId === 'placeable.auto_turret';
+                const isSpecialGroundContainer = (isScooter || isHotplate || isAutoTurret || item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
+                                               (containerId === 'ground' || isScooter || (isAutoTurret && (containerId === 'ground' || container?.isVehicle)) || (item.hasTrait?.(ItemTrait.PLANTER) && (containerId.includes('-container') || containerId.includes('-grid'))));
                 if (!isSpecialGroundContainer) return null;
                 
                 return (

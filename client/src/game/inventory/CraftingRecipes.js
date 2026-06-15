@@ -426,5 +426,25 @@ export const CraftingRecipes = [
             { id: 'crafting.rag', count: 1 },
             { id: 'food.whiskey', count: 1 }
         ]
+    },
+    {
+        id: 'crafting.auto_turret',
+        name: 'Auto Turret',
+        resultItem: 'placeable.auto_turret',
+        description: 'A fully automated defensive turret that detects and eliminates zombies within range. Requires a large battery for power and a .556 magazine for ammunition.',
+        apCost: 20,
+        tab: 'crafting',
+        tools: [
+            { id: 'tool.pliers', label: 'Pliers' }
+        ],
+        ingredients: [
+            { id: 'weapon.battle_rifle',         count: 1 },
+            { id: 'weapon.metal_rod',            count: 1 },
+            { id: 'crafting.metal_plate',        count: 1 },
+            { id: 'crafting.motion_sensor',      count: 1 },
+            { id: 'attachment.lasersight',       count: 1 },
+            { id: 'electric_motor',             count: 1 },
+            { id: 'crafting.wire',              count: 2 }
+        ]
     }
 ];

@@ -101,11 +101,25 @@ export const VisualEffectsProvider = ({ children }) => {
             });
         };
 
+        const handleTurretFired = (data) => {
+            console.log('[VisualEffects] Turret fired event received:', data);
+            addEffect({
+                type: 'tile_flash',
+                x: data.turretX,
+                y: data.turretY,
+                color: 'rgba(255, 255, 255, 0.8)',
+                duration: 300,
+                startTime: performance.now()
+            });
+        };
+
         GameEvents.on(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
         GameEvents.on(GAME_EVENT.ENTITY_BLINK, handleBlink);
+        GameEvents.on(GAME_EVENT.TURRET_FIRED, handleTurretFired);
         return () => {
             GameEvents.off(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
             GameEvents.off(GAME_EVENT.ENTITY_BLINK, handleBlink);
+            GameEvents.off(GAME_EVENT.TURRET_FIRED, handleTurretFired);
         };
     }, [addEffect]);
 

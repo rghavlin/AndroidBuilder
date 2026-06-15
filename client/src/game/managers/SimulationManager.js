@@ -9,6 +9,7 @@ import { RabbitAI } from '../ai/RabbitAI.js';
 import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { TurretAI } from '../ai/TurretAI.js';
 
 export class SimulationManager {
   /**
@@ -34,13 +35,14 @@ export class SimulationManager {
     }
 
     try {
-      const npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc') || [];
-      const zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie') || [];
+      let npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc') || [];
+      let zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie') || [];
 
       // Performance filter: only process active zombies within sight/range
-      const activeZombies = isSleeping
+      let activeZombies = isSleeping
         ? zombies
         : zombies.filter(z => {
+            if (z.hp <= 0) return false;
             const zX = z.logicalX !== undefined ? z.logicalX : z.x;
             const zY = z.logicalY !== undefined ? z.logicalY : z.y;
             const pX = player.logicalX !== undefined ? player.logicalX : player.x;
@@ -58,16 +60,8 @@ export class SimulationManager {
             });
           });
 
-      // 1. Replenish AP for active zombies
-      activeZombies.forEach(z => {
-        if (typeof z.startTurn === 'function') z.startTurn();
-      });
-
       // Construct entity list for ECS systems
-      const ecsEntities = [player, ...activeZombies, ...npcs];
-
-      // Instantiate the centralized Intent Queue
-      const intentQueue = new IntentQueue();
+      let ecsEntities = [player, ...activeZombies, ...npcs];
 
       const checkAndProcessDeaths = () => {
         const allEntities = Array.from(gameMap.entityMap.values());
@@ -124,21 +118,10 @@ export class SimulationManager {
         }
 
         if (diedAny) {
-          const aliveZombies = activeZombies.filter(z => z.hp > 0);
-          activeZombies.length = 0;
-          activeZombies.push(...aliveZombies);
-
-          const aliveNpcs = npcs.filter(n => n.hp > 0);
-          npcs.length = 0;
-          npcs.push(...aliveNpcs);
-
-          const aliveAllZombies = zombies.filter(z => z.hp > 0);
-          zombies.length = 0;
-          zombies.push(...aliveAllZombies);
-
-          const aliveEcs = ecsEntities.filter(e => e.id === player.id || e.hp > 0);
-          ecsEntities.length = 0;
-          ecsEntities.push(...aliveEcs);
+          activeZombies = activeZombies.filter(z => z.hp > 0);
+          npcs = npcs.filter(n => n.hp > 0);
+          zombies = zombies.filter(z => z.hp > 0);
+          ecsEntities = ecsEntities.filter(e => e.id === player.id || e.hp > 0);
 
           const remainingZombies = gameMap.getEntitiesByType('zombie');
           remainingZombies.forEach(z => {
@@ -150,8 +133,56 @@ export class SimulationManager {
         }
       };
 
+      // --- 1. Turret Turns ---
+      // Runs first, immediately after the player's turn (before zombies, rabbits, NPCs)
+      const playerX = player ? player.logicalX : null;
+      const playerY = player ? player.logicalY : null;
+      const groundItems = (engine && engine.inventoryManager && engine.inventoryManager.groundContainer)
+        ? engine.inventoryManager.groundContainer.getAllItems()
+        : [];
+
+      for (let y = 0; y < gameMap.height; y++) {
+        for (let x = 0; x < gameMap.width; x++) {
+          const tile = gameMap.getTile(x, y);
+          if (tile) {
+            const isPlayerTile = (playerX !== null && playerY !== null && x === playerX && y === playerY);
+            const items = isPlayerTile ? groundItems : (tile.inventoryItems || []);
+            
+            if (items && items.length > 0) {
+              for (const item of items) {
+                 if (item.defId === 'placeable.auto_turret' && item.isOn) {
+                    const result = TurretAI.executeTurretTurn(item, x, y, gameMap, zombies);
+                    if (result.actions?.length) actionQueue.push(...result.actions);
+                 } else if (item.containerGrid) {
+                    // Check inside vehicle's container grid for turrets
+                    const nestedItems = item.containerGrid.items instanceof Map 
+                       ? Array.from(item.containerGrid.items.values()) 
+                       : (Array.isArray(item.containerGrid.items) ? item.containerGrid.items : Object.values(item.containerGrid.items || {}));
+                    
+                    for (const nestedItem of nestedItems) {
+                       if (nestedItem.defId === 'placeable.auto_turret' && nestedItem.isOn) {
+                          const result = TurretAI.executeTurretTurn(nestedItem, x, y, gameMap, zombies);
+                          if (result.actions?.length) actionQueue.push(...result.actions);
+                       }
+                    }
+                 }
+              }
+            }
+          }
+        }
+      }
+      checkAndProcessDeaths();
+
+      // --- 2. Replenish AP for active zombies ---
+      activeZombies.forEach(z => {
+        if (typeof z.startTurn === 'function') z.startTurn();
+      });
+
       // Check for deaths after startTurn fire damage
       checkAndProcessDeaths();
+
+      // Instantiate the centralized Intent Queue
+      const intentQueue = new IntentQueue();
 
       // Sequential system execution in a loop to handle multi-step turns (AI AP consumption)
       let aiCycleCounter = 0;
@@ -230,7 +261,7 @@ export class SimulationManager {
       }
       checkAndProcessDeaths();
 
-      // 4. Vision System Update
+      // 5. Vision System Update
       VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
 
     } catch (err) {

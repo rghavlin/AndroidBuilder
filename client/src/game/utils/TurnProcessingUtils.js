@@ -69,6 +69,28 @@ export const TurnProcessingUtils = {
     },
 
     /**
+     * Common logic for battery-powered auto turret drainage
+     * @param {Object} itemData - The turret item data to process
+     * @returns {boolean} - Whether the item was modified
+     */
+    processAutoTurretDrain(itemData) {
+        if (itemData.defId === 'placeable.auto_turret' && itemData.isOn) {
+            const battery = itemData.attachments?.['battery'];
+            if (battery && (battery.ammoCount || 0) >= 1) {
+                battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+                if (battery.ammoCount <= 0) {
+                    itemData.isOn = false;
+                    console.log(`[TurnProcessing] ${itemData.name || 'Auto turret'} ran out of power and turned OFF.`);
+                }
+            } else {
+                itemData.isOn = false;
+            }
+            return true;
+        }
+        return false;
+    },
+
+    /**
      * Common logic for item decay (spoilage and lifetime).
      * @param {Object} item - The item/data to process
      * @returns {Object} - { expired: boolean, modified: boolean }
