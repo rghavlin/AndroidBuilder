@@ -76,12 +76,13 @@ export default function GroundItemsGrid() {
   const playerTile = (playerX !== undefined && playerY !== undefined && engine?.gameMap)
     ? engine.gameMap.getTile(playerX, playerY)
     : null;
-  const terrain = playerTile?.terrain || 'grass';
+  const terrain = playerTile?.terrain === 'transition' ? 'road' : (playerTile?.terrain || 'grass');
 
   // Support fallback colors for when tile textures are disabled ('none')
   const terrainColors: Record<string, string> = {
     'grass': '#1a3c1a',
     'road': '#2d2d2d',
+    'transition': '#2d2d2d',
     'sidewalk': '#555',
     'wall': '#888',     // High-contrast structural gray
     'building': '#777', // Concrete/Building gray

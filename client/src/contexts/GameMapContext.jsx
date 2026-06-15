@@ -226,6 +226,10 @@ export const GameMapProvider = ({ children }) => {
 
     try {
         console.log('[GameMapContext] ========== EXECUTING MAP TRANSITION (Phase 3) ==========');
+        if (typeof cancelMovement === 'function') {
+            console.log('[GameMapContext] Cancelling ongoing player movement prior to map transition');
+            cancelMovement();
+        }
         
         // 1. Save old map
         if (inventoryManager) {

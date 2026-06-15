@@ -20,6 +20,7 @@ export class Tile {
     // Thin-walled structures (Option A edge-based collision)
     // Indicates if an unwalkable wall exists on the border of this tile
     this.edgeWalls = { n: false, e: false, s: false, w: false };
+    this.fireTurns = 0;
   }
 
   /**
@@ -247,7 +248,8 @@ export class Tile {
       scentSequence: this.scentSequence,
       waterAmount: this.waterAmount,
       edgeWalls: this.edgeWalls,
-      decoration: this.decoration
+      decoration: this.decoration,
+      fireTurns: this.fireTurns
     };
   }
 
@@ -263,6 +265,7 @@ export class Tile {
     tile.waterAmount = data.waterAmount || (data.terrain === 'water' ? 100 : 0);
     tile.edgeWalls = data.edgeWalls || { n: false, e: false, s: false, w: false };
     tile.decoration = data.decoration || null;
+    tile.fireTurns = data.fireTurns || 0;
     // Note: contents are restored by GameMap.fromJSON
     return tile;
   }

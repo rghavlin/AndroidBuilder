@@ -4,6 +4,8 @@ interface RabbitTooltipProps {
     rabbit: {
         hp: number;
         maxHp: number;
+        stunnedTurns?: number;
+        fireTurns?: number;
     };
 }
 
@@ -14,11 +16,20 @@ interface RabbitTooltipProps {
 export function RabbitTooltip({ rabbit }: RabbitTooltipProps) {
     if (!rabbit) return null;
 
+    const conditions: string[] = [];
+    if (rabbit.stunnedTurns && rabbit.stunnedTurns > 0) {
+        conditions.push('Stunned!');
+    }
+    if (rabbit.fireTurns && rabbit.fireTurns > 0) {
+        conditions.push('On Fire!');
+    }
+    const displayName = conditions.length > 0 ? `Rabbit (${conditions.join(' ')})` : 'Rabbit';
+
     return (
         <div className="p-3 min-w-[150px] bg-black/80 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="mb-2">
                 <h4 className="font-bold text-sm text-white letter-spacing-tight uppercase tracking-wider">
-                    Rabbit
+                    {displayName}
                 </h4>
             </div>
 

@@ -757,7 +757,7 @@ export class LootGenerator {
 
             // 2. Pile limit: Max 1 food item per loot pile
             const isSeed = def.id && def.id.endsWith('seeds');
-            const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD)));
+            const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD))) && def.id !== 'food.whiskey';
             if (isFood) {
                 // Progressive food scarcity: 40% base rejection on Map 1, +5% per map, max 85% on Map 10 (Slightly increased food drops)
                 let rejectionChance = 0.4 + (mapNumber - 1) * 0.05;
@@ -1288,7 +1288,7 @@ export class LootGenerator {
                 const def = ItemDefs[selectedKey];
                 if (def) {
                     const isSeed = def.id && def.id.endsWith('seeds');
-                    const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD)));
+                    const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD))) && def.id !== 'food.whiskey';
                     if (isFood) {
                         // Progressive food scarcity: 40% base rejection on Map 1, +5% per map, max 85% on Map 10 (Slightly increased food drops)
                         let rejectionChance = 0.4 + (mapNumber - 1) * 0.05;

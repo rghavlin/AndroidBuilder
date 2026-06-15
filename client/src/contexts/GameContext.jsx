@@ -548,6 +548,9 @@ const GameContextInner = ({ children }) => {
       player.takeDamage(1, { id: 'sickness', type: 'status' });
       if (player.sickness === 0) player.condition = 'Normal';
     }
+    if (player.drunkenness > 0) {
+      player.drunkenness = Math.max(0, player.drunkenness - 1);
+    }
 
     // 3. Awareness
     checkZombieAwareness();
@@ -602,7 +605,7 @@ const GameContextInner = ({ children }) => {
 
     // AP Allotment
     const totalPenalty = Math.floor(Math.max(0, player.maxEnergy - player.energy) / 5) + Math.floor(Math.max(0, player.maxHp - player.hp) / 5);
-    player.pendingAPRefill = Math.max(0, player.maxAp - totalPenalty);
+    player.pendingAPRefill = Math.max(0, player.maxAp - totalPenalty - (player.drunkenness || 0));
 
     // 8. Time/Weather
     const newTurn = turn + 1;
@@ -702,7 +705,8 @@ const GameContextInner = ({ children }) => {
         hp: player.hp,
         isBleeding: player.isBleeding,
         sickness: player.sickness,
-        condition: player.condition
+        condition: player.condition,
+        drunkenness: player.drunkenness
       });
 
       updatePlayerFieldOfView(gameMap, nextIsNight, isFlashlightOnActual, false, getActiveFlashlightRange(), isNightVisionActual);

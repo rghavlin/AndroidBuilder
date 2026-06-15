@@ -91,7 +91,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Get inventory context for floating containers and selection management
   // MUST BE DECLARED BEFORE isFlashlightOnActual
   const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, inventoryVersion, forceRefresh } = useInventory();
-  const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow, performStoneThrow } = useCombat();
+  const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow, performStoneThrow, performMolotovThrow } = useCombat();
   const { addEffect } = useVisualEffects();
   const { worldToScreen, cameraRef, centerOn } = useCamera();
   const { playSound } = useAudio();
@@ -267,9 +267,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         return true; 
       }
 
-      if (targetingItem.defId === 'weapon.grenade' || targetingItem.defId === 'crafting.stone') {
+      if (targetingItem.defId === 'weapon.grenade' || targetingItem.defId === 'weapon.molotov' || targetingItem.defId === 'crafting.stone') {
         const result = targetingItem.defId === 'weapon.grenade' 
           ? (performGrenadeThrow as any)(targetingItem, x, y)
+          : targetingItem.defId === 'weapon.molotov'
+          ? (performMolotovThrow as any)(targetingItem, x, y)
           : (performStoneThrow as any)(targetingItem, x, y);
 
         if (result.success) {

@@ -124,7 +124,7 @@ export function ItemContextMenu({
                                 Use
                             </ContextMenuItem>
                         )}
-                        {(item?.defId === 'weapon.grenade' || item?.defId === 'crafting.stone') && (
+                        {(item?.defId === 'weapon.grenade' || item?.defId === 'weapon.molotov' || item?.defId === 'crafting.stone') && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Throw requested for:', item.name);
@@ -258,6 +258,7 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 {(() => {
+                                    if (item?.defId === 'food.whiskey') return 'Drink';
                                     if (item?.defId === 'food.softdrink' || item?.defId === 'food.energydrink' || item?.defId === 'food.vitamindrink' || item?.defId === 'food.fruitjuice') return 'Drink';
                                     if (item?.categories?.includes('food')) return 'Eat';
                                     

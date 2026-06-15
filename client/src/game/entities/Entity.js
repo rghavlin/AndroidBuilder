@@ -103,6 +103,7 @@ export class Entity extends SafeEventEmitter {
     this.hasExited = false;
     this.currentPath = null;
     this.stunnedTurns = 0;
+    this.fireTurns = 0;
     this._nutrition = 25;
     this.maxNutrition = 25;
     this._hydration = 25;
@@ -112,6 +113,7 @@ export class Entity extends SafeEventEmitter {
     this._condition = type === 'item' ? null : 'Normal';
     this.sickness = 0;
     this.isBleeding = false;
+    this.drunkenness = 0;
     this.isStarving = false;
     this.isDehydrated = false;
     this.pendingAPRefill = null;
@@ -257,7 +259,12 @@ export class Entity extends SafeEventEmitter {
   get energy() { return this._energy; }
   set energy(v) { this._energy = v; this.notifyChange(); }
 
-  get condition() { return this._condition; }
+  get condition() {
+    if (this.isBleeding) return 'Bleeding';
+    if (this.sickness > 0) return 'Diseased';
+    if (this.drunkenness > 0) return 'Drunk';
+    return this._condition || 'Normal';
+  }
   set condition(v) { this._condition = v; this.notifyChange(); }
 
   get meleeKills() { return this._meleeKills; }
@@ -450,6 +457,12 @@ export class Entity extends SafeEventEmitter {
     if (this.behaviorState === 'fleeing' && this.fleeRecoverChance !== undefined && Math.random() < this.fleeRecoverChance) {
       this.behaviorState = 'idle';
     }
+
+    if (this.fireTurns > 0 && (this.type === 'player' || this.type === 'zombie' || this.type === 'npc' || this.type === 'rabbit')) {
+      this.fireTurns--;
+      const fireDamage = Math.floor(Math.random() * 4) + 2; // 2-5 damage
+      this.takeDamage(fireDamage, { id: 'fire', type: 'hazard' });
+    }
   }
 
   endTurn() {
@@ -498,6 +511,16 @@ export class Entity extends SafeEventEmitter {
       this.emitEvent('playerMoved', { oldPosition: { x: oldX, y: oldY }, newPosition: { x, y } });
     } else {
       this.emit('entityMoved', { oldPosition: { x: oldX, y: oldY }, newPosition: { x, y } });
+    }
+
+    const gameMap = engine ? engine.gameMap : null;
+    if (gameMap && (this.type === 'player' || this.type === 'zombie' || this.type === 'npc' || this.type === 'rabbit')) {
+      const tile = gameMap.getTile(x, y);
+      if (tile && tile.fireTurns > 0) {
+        this.fireTurns = 2;
+        const fireDamage = Math.floor(Math.random() * 4) + 2; // 2-5 damage
+        this.takeDamage(fireDamage, { id: 'fire_tile', type: 'hazard' });
+      }
     }
   }
 
@@ -723,6 +746,7 @@ export class Entity extends SafeEventEmitter {
       hasExited: this.hasExited,
       currentPath: this.currentPath,
       stunnedTurns: this.stunnedTurns,
+      fireTurns: this.fireTurns,
       lastSeen: this.lastSeen,
       targetSightedCoords: this.targetSightedCoords,
       lastScentSequence: this.lastScentSequence,
@@ -741,6 +765,7 @@ export class Entity extends SafeEventEmitter {
       condition: this.condition,
       sickness: this.sickness,
       isBleeding: this.isBleeding,
+      drunkenness: this.drunkenness || 0,
       isStarving: this.isStarving,
       isDehydrated: this.isDehydrated,
       meleeKills: this.meleeKills,
@@ -832,6 +857,7 @@ export class Entity extends SafeEventEmitter {
     if (data.hasExited !== undefined) entity.hasExited = data.hasExited;
     if (data.currentPath !== undefined) entity.currentPath = data.currentPath;
     if (data.stunnedTurns !== undefined) entity.stunnedTurns = data.stunnedTurns;
+    if (data.fireTurns !== undefined) entity.fireTurns = data.fireTurns;
     if (data.lastSeen !== undefined) entity.lastSeen = data.lastSeen;
     if (data.targetSightedCoords !== undefined) entity.targetSightedCoords = data.targetSightedCoords;
     if (data.lastScentSequence !== undefined) entity.lastScentSequence = data.lastScentSequence;
@@ -846,6 +872,7 @@ export class Entity extends SafeEventEmitter {
     if (data.condition !== undefined) entity._condition = data.condition;
     if (data.sickness !== undefined) entity.sickness = data.sickness;
     if (data.isBleeding !== undefined) entity.isBleeding = data.isBleeding;
+    if (data.drunkenness !== undefined) entity.drunkenness = data.drunkenness;
     if (data.isStarving !== undefined) entity.isStarving = data.isStarving;
     if (data.isDehydrated !== undefined) entity.isDehydrated = data.isDehydrated;
     if (data.meleeKills !== undefined) entity._meleeKills = data.meleeKills;

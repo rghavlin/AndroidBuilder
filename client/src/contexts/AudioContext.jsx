@@ -37,6 +37,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'ForceOpen', url: 'sounds/forceopen.ogg', volume: 0.7 },
           { name: 'GlassBreak', url: 'sounds/glassbreak.ogg', volume: 0.6 },
           { name: 'Bang1', url: 'sounds/bang1.ogg', volume: 0.6 },
+          { name: 'Explosion1', url: 'sounds/Explosion1.ogg', volume: 0.8 },
+          { name: 'Molotov', url: 'sounds/molotov.ogg', volume: 0.8 },
           { name: 'MeleeHit', url: 'sounds/meleehit.ogg', volume: 0.5 },
           { name: 'Miss', url: 'sounds/miss.ogg', volume: 0.4 },
           { name: 'Unlock', url: 'sounds/unlock.ogg', volume: 0.5 },
@@ -213,7 +215,9 @@ export const AudioProvider = ({ children }) => {
 
     const handleNoiseEmitted = (data) => {
       if (data.type === 'explosion') {
-        audioManager.playSound('Bang1', { volume: 1.0 }); // Using Bang1 as explosion for now
+        audioManager.playSound('Explosion1', { volume: 1.0 });
+      } else if (data.type === 'molotov') {
+        audioManager.playSound('Molotov', { volume: 1.0 });
       }
     };
 
@@ -285,7 +289,7 @@ export const AudioProvider = ({ children }) => {
           // Check for current animated position if available, otherwise fallback to logical position
           // We use the player's logical position at the end of movement, or during movement end turns
           const tile = gameMap.getTile(Math.round(player.x), Math.round(player.y));
-          const isInside = tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition');
+          const isInside = tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor');
           
           // Apply 50% volume reduction if inside a building
           const baseVolume = 0.5; // Matches preload config

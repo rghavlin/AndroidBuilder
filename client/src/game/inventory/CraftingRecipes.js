@@ -413,5 +413,18 @@ export const CraftingRecipes = [
             { id: 'crafting.nail', count: 1 },
             { id: 'crafting.wire', count: 1 }
         ]
+    },
+    {
+        id: 'crafting.molotov',
+        name: 'Molotov cocktail',
+        resultItem: 'weapon.molotov',
+        description: 'A makeshift incendiary grenade. Sets the ground and enemies on fire. (Requires matches or a lighter to throw)',
+        apCost: 5,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.rag', count: 1 },
+            { id: 'food.whiskey', count: 1 }
+        ]
     }
 ];

@@ -93,7 +93,7 @@ export const ZOMBIE_LOOT = {
         ammo: ['ammo.9mm', 'ammo.shotgun_shells', 'ammo.556']
     },
     uncommon: [
-        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink', 'book.life_in_motion',
+        'food.granolabar', 'food.chips', 'food.waterbottle', 'food.softdrink', 'food.fruitjuice', 'food.energydrink', 'food.vitamindrink', 'food.whiskey', 'book.life_in_motion',
         'medical.bandage', 'medical.antibiotics', 'medical.wound_spray', 'medical.first_aid_kit', 'medical.stimulant', 'crafting.leather_belt', 'belt.pouch', 'belt.tool_ring',
         'tool.lockpick'
     ],

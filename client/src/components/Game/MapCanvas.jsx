@@ -369,7 +369,7 @@ export default function MapCanvas({
         const currentX = isAnimatingMovement ? playerRenderPosition.x : player.x;
         const currentY = isAnimatingMovement ? playerRenderPosition.y : player.y;
         const playerTile = engine.gameMap.getTile(Math.round(currentX), Math.round(currentY));
-        const isInside = playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor' || playerTile.terrain === 'transition');
+        const isInside = playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor');
 
         if (!isInside) {
           renderRain(ctx, physicalWidth, physicalHeight, engine.weather.intensity, dpr);

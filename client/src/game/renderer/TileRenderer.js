@@ -29,6 +29,7 @@ export const TileRenderer = {
         const terrainColors = {
             'grass': '#1a3c1a',
             'road': '#2d2d2d',
+            'transition': '#2d2d2d',
             'sidewalk': '#555',
             'wall': '#888',     // High-contrast structural gray
             'building': '#777', // Concrete/Building gray
@@ -65,7 +66,7 @@ export const TileRenderer = {
                             ];
                             const index = Math.abs(x * 31 + y * 17) % grassVariants.length;
                             mapping = grassVariants[index];
-                        } else if (tile.terrain === 'road') {
+                        } else if (tile.terrain === 'road' || tile.terrain === 'transition') {
                             // Randomize road slabs to create natural road wear/cracks
                             const roadHash = Math.abs(x * 13 + y * 7) % 10;
                             if (roadHash < 3) {
@@ -97,13 +98,14 @@ export const TileRenderer = {
                         imageLoader.getTileImage(tile.terrain);
                     }
                 } else {
-                    const spriteKey = `tile_${tile.terrain}`;
+                    const terrainKey = tile.terrain === 'transition' ? 'road' : tile.terrain;
+                    const spriteKey = `tile_${terrainKey}`;
                     const sprite = sprites[spriteKey];
                     if (sprite) {
                         ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
                     } else {
                         // Reactive lazy-loading for missing tiles
-                        imageLoader.getTileImage(tile.terrain);
+                        imageLoader.getTileImage(terrainKey);
                     }
                 }
             }
@@ -188,6 +190,13 @@ export const TileRenderer = {
             }
         }
         
+        // Fire Overlay
+        if (tile.fireTurns > 0) {
+            const pulse = 0.35 + Math.sin(Date.now() / 180) * 0.15;
+            ctx.fillStyle = `rgba(249, 115, 22, ${pulse})`;
+            ctx.fillRect(screenX, screenY, tileSize, tileSize);
+        }
+
         // Step C: Add subtle grid line for clarity (only in debug or highly zoomed)
         ctx.strokeStyle = engine.renderDebugColors ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)';
         ctx.lineWidth = 0.5;

@@ -82,6 +82,7 @@ export const PlayerProvider = ({ children }) => {
       hp: 20, maxHp: 20, ap: 12, maxAp: 12, ammo: 0, 
       nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
       energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
+      drunkenness: 0,
       isStarving: false, isDehydrated: false,
       meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
       craftingApUsed: 0, craftingLvl: 0
@@ -100,6 +101,7 @@ export const PlayerProvider = ({ children }) => {
       maxEnergy: player.maxEnergy,
       condition: player.condition,
       isBleeding: player.isBleeding,
+      drunkenness: player.drunkenness || 0,
       isStarving: player.isStarving,
       isDehydrated: player.isDehydrated,
       meleeKills: player.meleeKills,
@@ -403,6 +405,18 @@ export const PlayerProvider = ({ children }) => {
     };
   }, [isMoving, movementPath, movementProgress, enginePulse]);
 
+  const cancelMovement = useCallback(() => {
+    if (animationCleanupRef.current) {
+      animationCleanupRef.current();
+      animationCleanupRef.current = null;
+    }
+    setIsMoving(false);
+    isMovingRef.current = false;
+    setMovementPath([]);
+    setMovementProgress(0);
+    GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);
+  }, []);
+
   const contextValue = useMemo(() => ({
     player: engine.player,
     playerRef, // Static bridge ref
@@ -432,8 +446,8 @@ export const PlayerProvider = ({ children }) => {
       engine.notifyUpdate();
     },
     setupPlayerEventListeners: () => {},
-    cancelMovement: () => {}
-   }), [enginePulse, playerStats, isMoving, movementPath, movementProgress, playerFieldOfView, playerCardinalPositions]);
+    cancelMovement
+   }), [enginePulse, playerStats, isMoving, movementPath, movementProgress, playerFieldOfView, playerCardinalPositions, cancelMovement]);
 
   return (
     <PlayerContext.Provider value={contextValue}>

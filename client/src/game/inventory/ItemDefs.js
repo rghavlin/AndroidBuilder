@@ -884,6 +884,18 @@ export const ItemDefs = {
     stackMax: 10
   },
 
+  'weapon.molotov': {
+    id: 'weapon.molotov',
+    name: 'Molotov Cocktail',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'molotovcocktail',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.WEAPON],
+    stackMax: 5
+  },
+
   'tool.smallflashlight': {
     id: 'tool.smallflashlight',
     name: 'Flashlight',
@@ -1327,6 +1339,23 @@ export const ItemDefs = {
       energy: 5,
       ap: 3,
       hydration: -2
+    }
+  },
+
+  'food.whiskey': {
+    id: 'food.whiskey',
+    name: 'Whiskey',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'whiskey',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    categories: [ItemCategory.FOOD],
+    consumptionSound: 'Drink',
+    stackMax: 10,
+    consumptionEffects: {
+      hydration: -5,
+      drunkenness: 5
     }
   },
 

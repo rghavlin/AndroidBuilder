@@ -10,6 +10,7 @@ interface ZombieTooltipProps {
         currentAP: number;
         maxAP: number;
         stunnedTurns?: number;
+        fireTurns?: number;
     };
 }
 
@@ -21,7 +22,15 @@ export function ZombieTooltip({ zombie }: ZombieTooltipProps) {
     if (!zombie) return null;
 
     const baseName = ZombieTypes[zombie.subtype]?.name || 'Zombie';
-    const name = zombie.stunnedTurns && zombie.stunnedTurns > 0 ? `${baseName} (Stunned!)` : baseName;
+    
+    const conditions: string[] = [];
+    if (zombie.stunnedTurns && zombie.stunnedTurns > 0) {
+        conditions.push('Stunned!');
+    }
+    if (zombie.fireTurns && zombie.fireTurns > 0) {
+        conditions.push('On Fire!');
+    }
+    const name = conditions.length > 0 ? `${baseName} (${conditions.join(' ')})` : baseName;
     const hpPercent = Math.max(0, Math.min(100, (zombie.hp / zombie.maxHp) * 100));
     
     // Color coded by health

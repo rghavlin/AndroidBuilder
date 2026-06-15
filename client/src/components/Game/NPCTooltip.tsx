@@ -6,6 +6,7 @@ interface NPCTooltipProps {
         hp: number;
         maxHp: number;
         stunnedTurns?: number;
+        fireTurns?: number;
     };
 }
 
@@ -15,7 +16,15 @@ interface NPCTooltipProps {
 export function NPCTooltip({ npc }: NPCTooltipProps) {
     if (!npc) return null;
 
-    const displayName = npc.stunnedTurns && npc.stunnedTurns > 0 ? `${npc.name} (Stunned!)` : npc.name;
+    const baseName = npc.name;
+    const conditions: string[] = [];
+    if (npc.stunnedTurns && npc.stunnedTurns > 0) {
+        conditions.push('Stunned!');
+    }
+    if (npc.fireTurns && npc.fireTurns > 0) {
+        conditions.push('On Fire!');
+    }
+    const displayName = conditions.length > 0 ? `${baseName} (${conditions.join(' ')})` : baseName;
 
     return (
         <div className="p-3 min-w-[120px] bg-black/85 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl animate-in fade-in zoom-in duration-150">

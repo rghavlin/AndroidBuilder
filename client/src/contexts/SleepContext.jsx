@@ -144,6 +144,10 @@ export const SleepProvider = ({ children }) => {
           }
         }
 
+        if (player.drunkenness > 0) {
+          player.drunkenness = Math.max(0, player.drunkenness - 1);
+        }
+
         // Suspended HP loss for sickness during sleep; heal only if healthy/normal
         if (player.nutrition > 0 && player.hydration > 0 && player.condition === 'Normal' && !player.isBleeding) {
           player.heal(0.5, true);
@@ -276,7 +280,8 @@ export const SleepProvider = ({ children }) => {
           isStarving: player.isStarving,
           isDehydrated: player.isDehydrated,
           condition: player.condition,
-          sickness: player.sickness
+          sickness: player.sickness,
+          drunkenness: player.drunkenness
         });
 
         // Phase 27: Death Guard - check if player died in their sleep

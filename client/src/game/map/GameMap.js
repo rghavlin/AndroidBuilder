@@ -28,6 +28,7 @@ export class GameMap {
     this.lowSpots = []; // Phase 25: Designated tiles for water accumulation
     this.mapNumber = 1;
     this.template = 'road'; // Template used to generate this map
+    this.activeFires = new Set();
 
     // Initialize empty map
     this.initializeMap();
@@ -142,7 +143,7 @@ export class GameMap {
 
     const startTile = gameMap.getTile(x, y);
     // PHASE 15: Support tent_floor and transition (doorways) as sheltered terrain
-    const isIndoorTerrain = startTile && (startTile.terrain === 'floor' || startTile.terrain === 'tent_floor' || startTile.terrain === 'transition');
+    const isIndoorTerrain = startTile && (startTile.terrain === 'floor' || startTile.terrain === 'tent_floor');
     if (!isIndoorTerrain) return false;
 
     const queue = [{ x, y }];
@@ -179,7 +180,7 @@ export class GameMap {
           continue;
         }
 
-        const isIndoors = tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition';
+        const isIndoors = tile.terrain === 'floor' || tile.terrain === 'tent_floor';
         if (!isIndoors || (tile.terrain === 'window' && !isClosedWindow)) {
           return false;
         }
@@ -203,7 +204,7 @@ export class GameMap {
     if (!posA || !posB || !gameMap) return false;
 
     const startTile = gameMap.getTile(posA.x, posA.y);
-    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'transition' || tile.terrain === 'building' || tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW));
+    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'building' || tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW));
     
     if (!isIndoors(startTile)) return false;
 
@@ -289,14 +290,20 @@ export class GameMap {
     const tile = this.getTile(x, y);
     if (!tile) return;
 
+    // Create a copy of the input items list to prevent reference issues if items === tile.inventoryItems
+    const itemsToSet = [...(items || [])];
+
     // Remove any existing item entities on this tile
     const existingItems = tile.contents.filter(e => e.type === 'item' && e.hasComponent && e.hasComponent('Item'));
     existingItems.forEach(item => {
       this.removeEntity(item.id);
     });
 
+    // Clear the tile's inventory items list before rebuilding it
+    tile.inventoryItems = [];
+
     // Convert and add new items
-    const validItems = items.filter(Boolean);
+    const validItems = itemsToSet.filter(Boolean);
     validItems.forEach(itemData => {
       let entity;
       // Check if it is already an ECS Entity instance
@@ -1135,6 +1142,24 @@ export class GameMap {
   }
 
   /**
+   * Process and decrement fire turns for all active fire tiles
+   */
+  processTileFires() {
+    for (const fireKey of Array.from(this.activeFires)) {
+      const [x, y] = fireKey.split(',').map(Number);
+      const tile = this.getTile(x, y);
+      if (tile && tile.fireTurns > 0) {
+        tile.fireTurns--;
+        if (tile.fireTurns <= 0) {
+          this.activeFires.delete(fireKey);
+        }
+      } else {
+        this.activeFires.delete(fireKey);
+      }
+    }
+  }
+
+  /**
    * Serialize GameMap to JSON
    */
   toJSON() {
@@ -1165,6 +1190,7 @@ export class GameMap {
         row.map(tile => tile ? tile.toJSON() : null)
       ),
       detachedEntities,
+      activeFires: Array.from(this.activeFires),
       scentSequenceCounter: this.scentSequenceCounter,
       buildings: this.buildings,
       lowSpots: this.lowSpots,
@@ -1187,6 +1213,7 @@ export class GameMap {
     gameMap.lowSpots = data.lowSpots || [];
     gameMap.mapNumber = data.mapNumber || 1;
     gameMap.template = data.template || 'road';
+    gameMap.activeFires = new Set(data.activeFires || []);
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
     // Import required classes
@@ -1298,6 +1325,15 @@ export class GameMap {
             const rawLegacyItems = [...tileData.inventoryItems];
             tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
             for (const itemData of rawLegacyItems) {
+              // Skip if this item was already restored as an ECS entity from tile contents
+              const entityId = itemData.id || itemData.instanceId;
+              if (entityId && gameMap.entityMap.has(entityId)) {
+                const existingEntity = gameMap.entityMap.get(entityId);
+                if (!tile.inventoryItems.includes(existingEntity)) {
+                  tile.inventoryItems.push(existingEntity);
+                }
+                continue;
+              }
               const entity = gameMap.convertLegacyItemToECS(itemData);
               if (entity) {
                 let pos = entity.getComponent('Position');
@@ -1337,6 +1373,7 @@ export class GameMap {
     gameMap.lowSpots = data.lowSpots || [];
     gameMap.mapNumber = data.mapNumber || 1;
     gameMap.template = data.template || 'road';
+    gameMap.activeFires = new Set(data.activeFires || []);
     
     if (data.specialBuildings && gameMap.buildings.length === 0) {
       gameMap.buildings = data.specialBuildings;
@@ -1444,6 +1481,15 @@ export class GameMap {
             const rawLegacyItems = [...tileData.inventoryItems];
             tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
             for (const itemData of rawLegacyItems) {
+              // Skip if this item was already restored as an ECS entity from tile contents
+              const entityId = itemData.id || itemData.instanceId;
+              if (entityId && gameMap.entityMap.has(entityId)) {
+                const existingEntity = gameMap.entityMap.get(entityId);
+                if (!tile.inventoryItems.includes(existingEntity)) {
+                  tile.inventoryItems.push(existingEntity);
+                }
+                continue;
+              }
               const entity = gameMap.convertLegacyItemToECS(itemData);
               if (entity) {
                 let pos = entity.getComponent('Position');

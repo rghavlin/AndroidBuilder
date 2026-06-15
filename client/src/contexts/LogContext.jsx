@@ -122,6 +122,8 @@ export const LogProvider = ({ children }) => {
                 addLog('You are bleeding!', 'warning');
             } else if (data.source?.id === 'glass') {
                 addLog('You cut yourself on the broken glass!', 'warning');
+            } else if (data.source?.id === 'fire' || data.source?.id === 'fire_tile') {
+                addLog('You are on fire!', 'warning');
             }
         };
 

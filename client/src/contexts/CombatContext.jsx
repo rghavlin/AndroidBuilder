@@ -176,7 +176,7 @@ export const CombatProvider = ({ children }) => {
 
         // 1. Calculate Outcome
         const meleeLvl = playerStats.meleeLvl || 1;
-        const accuracyBonus = meleeLvl * 0.01;
+        const accuracyBonus = (meleeLvl - (player.drunkenness || 0)) * 0.01;
         const isWindowTarget = structure && (structure.type === 'window' || structure.type === EntityType.WINDOW);
         const hit = isWindowTarget ? true : Math.random() <= (weaponStats.hitChance + accuracyBonus);
         
@@ -188,6 +188,9 @@ export const CombatProvider = ({ children }) => {
             : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
 
         let damage = baseDamage;
+        if (hit && player.drunkenness > 0) {
+            damage += player.drunkenness;
+        }
         let extraDamageApplied = 0;
         let stunApplied = false;
         let stunDuration = 0;
@@ -416,7 +419,7 @@ export const CombatProvider = ({ children }) => {
 
             // Outcome Calculation
             const rangedLvl = playerStats.rangedLvl || 1;
-            const accuracyBonus = rangedLvl * 0.01;
+            const accuracyBonus = (rangedLvl - (player.drunkenness || 0)) * 0.01;
             const squaresAway = Math.floor(distance);
             const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
             const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
@@ -691,6 +694,99 @@ export const CombatProvider = ({ children }) => {
             }
         });
 
+        // --- Structural & Item Destruction ---
+
+        // 1. Destroy Doors within blast radius
+        const allDoors = Array.from(gameMap.entityMap.values()).filter(e => e.type === EntityType.DOOR);
+        allDoors.forEach(door => {
+            const dist = Math.sqrt(Math.pow(door.x - targetX, 2) + Math.pow(door.y - targetY, 2));
+            if (dist <= radius + 0.1 && !door.isDamaged) {
+                door.takeDamage(999);
+                GameEvents.emit(GAME_EVENT.DOOR_BROKEN, { x: door.x, y: door.y });
+                addLog('Explosion blasts open a door!', 'combat');
+            }
+        });
+
+        // 2. Shatter Windows within blast radius
+        const allWindows = Array.from(gameMap.entityMap.values()).filter(e => e.type === EntityType.WINDOW);
+        allWindows.forEach(win => {
+            const dist = Math.sqrt(Math.pow(win.x - targetX, 2) + Math.pow(win.y - targetY, 2));
+            if (dist <= radius + 0.1 && !win.isBroken) {
+                win.break();
+                GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: win.x, y: win.y }, source: 'grenade' });
+                addLog('Explosion shatters a window!', 'combat');
+            }
+        });
+
+        // 3. Breach Wall / Building tiles / Edge Walls within 1.45 tiles (catches all diagonals)
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const tx = targetX + dx;
+                const ty = targetY + dy;
+                if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 1.45) continue; // Catches diagonals (sqrt(2) ≈ 1.414)
+                
+                const tile = gameMap.getTile(tx, ty);
+                if (!tile) continue;
+
+                let destroyedWall = false;
+
+                // A. Check if it's a solid wall/building tile
+                if (tile.terrain === 'wall' || tile.terrain === 'building') {
+                    gameMap.setTerrain(tx, ty, 'floor');
+                    destroyedWall = true;
+                }
+
+                // B. Check if it has any edge walls
+                if (tile.edgeWalls) {
+                    if (tile.edgeWalls.n || tile.edgeWalls.e || tile.edgeWalls.s || tile.edgeWalls.w) {
+                        tile.edgeWalls = { n: false, e: false, s: false, w: false };
+                        destroyedWall = true;
+                    }
+                }
+
+                // C. Clear the inward-facing edge wall on each cardinal neighbor
+                const neighborDirs = [
+                    { nx: tx,     ny: ty - 1, edge: 's' }, // tile to the north has a south edge wall toward us
+                    { nx: tx,     ny: ty + 1, edge: 'n' }, // tile to the south has a north edge wall toward us
+                    { nx: tx - 1, ny: ty,     edge: 'e' }, // tile to the west has an east edge wall toward us
+                    { nx: tx + 1, ny: ty,     edge: 'w' }, // tile to the east has a west edge wall toward us
+                ];
+                neighborDirs.forEach(({ nx, ny, edge }) => {
+                    const neighborTile = gameMap.getTile(nx, ny);
+                    if (neighborTile && neighborTile.edgeWalls && neighborTile.edgeWalls[edge]) {
+                        neighborTile.edgeWalls[edge] = false;
+                        destroyedWall = true;
+                    }
+                });
+
+                if (destroyedWall) {
+                    addLog('Explosion blasts through a wall!', 'combat');
+                }
+            }
+        }
+
+        // 4. Destroy items on the ground within blast radius
+        let itemsDestroyed = false;
+        for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+                const tx = targetX + dx;
+                const ty = targetY + dy;
+                if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > radius + 0.1) continue;
+                const tile = gameMap.getTile(tx, ty);
+                if (tile && tile.inventoryItems && tile.inventoryItems.length > 0) {
+                    gameMap.setItemsOnTile(tx, ty, []);
+                    itemsDestroyed = true;
+                }
+            }
+        }
+        if (itemsDestroyed) {
+            addLog('Explosion destroys items on the ground!', 'combat');
+        }
+
         triggerMapUpdate();
         forceRefresh();
         return { success: true };
@@ -743,7 +839,7 @@ export const CombatProvider = ({ children }) => {
         // 5. Accuracy Calculation (Sling accuracy)
         // baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1)
         const rangedLvl = playerStats.rangedLvl || 1;
-        const accuracyBonus = rangedLvl * 0.01;
+        const accuracyBonus = (rangedLvl - (player.drunkenness || 0)) * 0.01;
         const squaresAway = Math.floor(distance);
         const baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
         const isWindowTarget = structure && (structure.type === 'window' || structure.type === EntityType.WINDOW);
@@ -847,6 +943,178 @@ export const CombatProvider = ({ children }) => {
         return { success: true };
     }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator, playerStats, recordKill, triggerAcidEffect]);
 
+    const performMolotovThrow = useCallback((item, targetX, targetY) => {
+        const player = playerRef.current;
+        const gameMap = gameMapRef.current;
+        if (!player || !gameMap) return { success: false, reason: 'System error' };
+
+        // 1. Check AP
+        if (player.ap < 1) {
+            return { success: false, reason: 'Not enough AP' };
+        }
+
+        // 2. Lighter / Matches Check & Charge consumption
+        const inventoryManager = inventoryRef.current;
+        if (!inventoryManager) return { success: false, reason: 'System error' };
+
+        const availableIgniters = [];
+
+        // Check containers
+        for (const container of inventoryManager.containers.values()) {
+            for (const it of container.items.values()) {
+                if (it.defId === 'tool.lighter' || it.defId === 'tool.matchbook') {
+                    if ((it.ammoCount || 0) > 0) {
+                        availableIgniters.push({ item: it, container });
+                    }
+                }
+            }
+        }
+
+        // Check equipment
+        for (const slot in inventoryManager.equipment) {
+            const it = inventoryManager.equipment[slot];
+            if (it && (it.defId === 'tool.lighter' || it.defId === 'tool.matchbook')) {
+                if ((it.ammoCount || 0) > 0) {
+                    availableIgniters.push({ item: it, container: null });
+                }
+            }
+        }
+
+        if (availableIgniters.length === 0) {
+            return { success: false, reason: 'Requires matches or lighter' };
+        }
+
+        // 3. Range Check (Matches Sight Range)
+        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
+        const maxRange = (engine._fovOptions?.maxRange || 15) + 0.5;
+        if (distance > maxRange) {
+            return { success: false, reason: `Target out of range (max ${Math.floor(maxRange)})` };
+        }
+
+        // 4. Line of Sight Check
+        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, {
+            maxRange: 20
+        });
+        if (!losResult.hasLineOfSight) {
+            return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
+        }
+
+        // 5. AP and Igniter consumption execution
+        player.useAP(1);
+
+        availableIgniters.sort((a, b) => (a.item.ammoCount || 0) - (b.item.ammoCount || 0));
+        const selectedIgniter = availableIgniters[0].item;
+        const igniterContainer = availableIgniters[0].container;
+
+        selectedIgniter.consumeCharge(1);
+        if ((selectedIgniter.ammoCount || 0) <= 0 && selectedIgniter.defId === 'tool.matchbook') {
+            if (igniterContainer) {
+                igniterContainer.removeItem(selectedIgniter.instanceId);
+            } else {
+                destroyItem(selectedIgniter.instanceId);
+            }
+            selectedIgniter.stackCount = 0;
+            addLog('The matchbook is empty and discarded.', 'warning');
+        }
+
+        // Consume 1 Molotov
+        if (item.stackCount > 1) {
+            item.stackCount--;
+        } else {
+            destroyItem(item.instanceId);
+        }
+
+        // 6. AoE Fire and Damage Logic
+        const radius = 1.45;
+        const FLASH_COLOR = 'rgba(249, 115, 22, 0.6)'; // Orange fire flash
+
+        addLog(`Molotov cocktail thrown at (${targetX}, ${targetY})!`, 'combat');
+        
+        // Emit noise event for Audio
+        GameEvents.emit(GAME_EVENT.NOISE_EMITTED, { x: targetX, y: targetY, radius: 10, type: 'molotov' });
+
+        // Set tiles on fire and display flash
+        for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) {
+                const tx = targetX + dx;
+                const ty = targetY + dy;
+                if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
+
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= radius) {
+                    // Flash tile
+                    addEffect({
+                        type: 'tile_flash',
+                        x: tx,
+                        y: ty,
+                        color: FLASH_COLOR,
+                        duration: 800
+                    });
+
+                    // Set tile fire duration to 2 turns
+                    const tile = gameMap.getTile(tx, ty);
+                    if (tile) {
+                        tile.fireTurns = 2;
+                        gameMap.activeFires.add(`${tx},${ty}`);
+                    }
+                }
+            }
+        }
+
+        // Damage & Ignite Entities within blast radius
+        const allEntities = Array.from(gameMap.entityMap.values());
+        allEntities.forEach(entity => {
+            if (entity.type !== EntityType.PLAYER && entity.type !== EntityType.ZOMBIE && entity.type !== EntityType.RABBIT && entity.type !== EntityType.NPC) return;
+
+            const dist = Math.sqrt(Math.pow(entity.x - targetX, 2) + Math.pow(entity.y - targetY, 2));
+            if (dist > radius) return;
+
+            const damage = Math.floor(Math.random() * 6) + 2; // 2-7 damage
+            
+            if (typeof entity.takeDamage === 'function') {
+                entity.fireTurns = 2; // Ignite entity for 2 turns
+                entity.takeDamage(damage, { id: 'molotov', type: 'weapon' });
+
+                addEffect({
+                    type: 'damage',
+                    x: entity.x,
+                    y: entity.y,
+                    value: damage,
+                    color: '#f97316', // Orange
+                    duration: 1500
+                });
+
+                addLog(`Molotov blast deals ${damage} damage to ${entity.type} and sets them on fire!`, 'combat');
+
+                if (entity.isDead()) {
+                    addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed by Molotov!`, 'combat');
+                    // Loot drop logic
+                    if (entity.type === EntityType.ZOMBIE && lootGenerator && !isWindowTile(gameMap, entity.x, entity.y) && Math.random() < 0.75) {
+                        const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
+                        if (loot?.length > 0) gameMap.addItemsToTile(entity.x, entity.y, loot);
+                    } else if (entity.type === EntityType.NPC) {
+                        if (typeof entity.die === 'function') {
+                            entity.die();
+                        }
+                        const items = entity.inventory.getAllItems();
+                        if (items.length > 0) {
+                            gameMap.addItemsToTile(entity.x, entity.y, items);
+                            entity.inventory.clear();
+                        }
+                    } else if (entity.type === EntityType.RABBIT) {
+                        const meat = createItemFromDef('food.raw_meat');
+                        if (meat) gameMap.addItemsToTile(entity.x, entity.y, [meat]);
+                    }
+                    gameMap.removeEntity(entity.id);
+                }
+            }
+        });
+
+        forceRefresh();
+        triggerMapUpdate();
+        return { success: true };
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, addLog]);
+
     return (
         <CombatContext.Provider value={{
             targetingWeapon,
@@ -855,7 +1123,8 @@ export const CombatProvider = ({ children }) => {
             performMeleeAttack,
             performRangedAttack,
             performGrenadeThrow,
-            performStoneThrow
+            performStoneThrow,
+            performMolotovThrow
         }}>
             {children}
         </CombatContext.Provider>

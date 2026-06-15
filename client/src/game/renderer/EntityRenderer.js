@@ -428,6 +428,16 @@ export const EntityRenderer = {
           
           ctx.restore();
         }
+
+        // Orange pulsing frame for any entity on fire
+        if (entity.fireTurns > 0) {
+          ctx.save();
+          const pulse = 0.5 + Math.sin(currentTime / 150) * 0.4;
+          ctx.strokeStyle = `rgba(249, 115, 22, ${pulse})`;
+          ctx.lineWidth = 4.0;
+          ctx.strokeRect(drawX - 2, drawY - 2, drawSize + 4, drawSize + 4);
+          ctx.restore();
+        }
       } else {
         EntityRenderer.renderDefaultSquare(ctx, entity, screenX, screenY, tileSize);
       }
