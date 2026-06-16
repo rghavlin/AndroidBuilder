@@ -25,8 +25,16 @@ export class GameMap {
     this.height = height;
     this.tiles = [];
     this.entityMap = new Map(); // Track all entities by ID
+    // Secondary index: entity.type -> Set<entity>, so getEntitiesByType is O(matches)
+    // instead of scanning every entity. Maintained in addEntity/removeEntity and
+    // rebuilt on deserialize. Safe because entity.type is set once at creation.
+    this.entitiesByType = new Map();
     this.listeners = new Map();
     this.scentSequenceCounter = 0;
+    // Sparse index of tiles that currently hold scent ("x,y" keys). Lets scent
+    // decay cost scale with the number of active scent tiles instead of the whole
+    // map area (critical for large maps). Rebuilt from tiles on deserialize.
+    this.activeScents = new Set();
     this.buildings = []; // Standardized building metadata
     this.lowSpots = []; // Phase 25: Designated tiles for water accumulation
     this.mapNumber = 1;
@@ -544,8 +552,9 @@ export class GameMap {
       }
 
       this.entityMap.set(entity.id, entity);
+      this._indexEntityByType(entity);
       entity.gameMap = this;
-      
+
       // Force synchronization of coordinates to prevent 'ghosting' desyncs
       // Phase 28 Fix: Absolute guard against visual coordinate leakage during simulation
       if (!GameMap.isSimulating) {
@@ -604,6 +613,7 @@ export class GameMap {
         tile.removeEntity(entityId);
       }
       this.entityMap.delete(entityId);
+      this._unindexEntityByType(entity);
       entity.gameMap = null;
 
       this.emit('entityRemoved', {
@@ -761,10 +771,41 @@ export class GameMap {
   }
 
   /**
-   * Get all entities of a specific type
+   * Get all entities of a specific type. O(matching entities) via the type index.
+   * Returns a fresh array, so callers may freely filter/sort/mutate the result.
    */
   getEntitiesByType(type) {
-    return Array.from(this.entityMap.values()).filter(entity => entity.type === type);
+    const set = this.entitiesByType.get(type);
+    return set ? Array.from(set) : [];
+  }
+
+  /** Add an entity to the by-type index. */
+  _indexEntityByType(entity) {
+    if (!entity || entity.type === undefined) return;
+    let set = this.entitiesByType.get(entity.type);
+    if (!set) {
+      set = new Set();
+      this.entitiesByType.set(entity.type, set);
+    }
+    set.add(entity);
+  }
+
+  /** Remove an entity from the by-type index. */
+  _unindexEntityByType(entity) {
+    if (!entity || entity.type === undefined) return;
+    const set = this.entitiesByType.get(entity.type);
+    if (set) set.delete(entity);
+  }
+
+  /**
+   * Rebuild the by-type index from entityMap. Called after deserialization, where
+   * entities are inserted directly into entityMap (bypassing addEntity).
+   */
+  rebuildEntityTypeIndex() {
+    this.entitiesByType = new Map();
+    for (const entity of this.entityMap.values()) {
+      this._indexEntityByType(entity);
+    }
   }
 
   /**
@@ -1376,6 +1417,8 @@ export class GameMap {
     }
 
     console.log(`[GameMap] Selective restoration completed with ${gameMap.entityMap.size} entities`);
+    gameMap.rebuildEntityTypeIndex();
+    ScentTrail.rebuildIndex(gameMap);
     return gameMap;
   }
 
@@ -1539,6 +1582,8 @@ export class GameMap {
     }
 
     console.log('[GameMap] Restored from JSON with', gameMap.entityMap.size, 'entities');
+    gameMap.rebuildEntityTypeIndex();
+    ScentTrail.rebuildIndex(gameMap);
     return gameMap;
   }
 

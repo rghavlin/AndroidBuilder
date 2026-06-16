@@ -81,32 +81,41 @@ export class SimulationManager {
       // Runs first, immediately after the player's turn (before zombies, rabbits, NPCs)
       const playerX = player ? player.logicalX : null;
       const playerY = player ? player.logicalY : null;
-      // Collect all items in the game map (which include placed items and containers on the ground)
-      const mapItems = gameMap.getEntitiesByType('item');
-      
-      for (const item of mapItems) {
-        if (!item) continue;
-        
-        // Items in groundContainer might not have explicit logicalX/Y, they inherit from player/tile
-        const itemX = item.logicalX !== undefined ? item.logicalX : playerX;
-        const itemY = item.logicalY !== undefined ? item.logicalY : playerY;
-
+      // Fire one item if it is an active turret, OR recurse into its container
+      // (vehicles/wagons can carry a turret in their grid). Shared by the on-map
+      // scan and the ground-container scan so both behave identically.
+      const fireTurretFromItem = (item, atX, atY) => {
+        if (!item) return;
         if (item.defId === 'placeable.auto_turret' && item.isOn) {
-          const result = TurretAI.executeTurretTurn(item, itemX, itemY, gameMap, zombies);
+          const result = TurretAI.executeTurretTurn(item, atX, atY, gameMap, zombies);
           if (result.actions?.length) actionQueue.push(...result.actions);
-        } else if (item.containerGrid) {
-          // Check inside vehicles or containers for active turrets
-          const nestedItems = item.containerGrid.items instanceof Map 
-              ? Array.from(item.containerGrid.items.values()) 
-              : (Array.isArray(item.containerGrid.items) ? item.containerGrid.items : Object.values(item.containerGrid.items || {}));
-          
+          return;
+        }
+        if (item.containerGrid) {
+          const nestedItems = item.containerGrid.items instanceof Map
+            ? Array.from(item.containerGrid.items.values())
+            : (Array.isArray(item.containerGrid.items) ? item.containerGrid.items : Object.values(item.containerGrid.items || {}));
           for (const nestedItem of nestedItems) {
-              if (nestedItem.defId === 'placeable.auto_turret' && nestedItem.isOn) {
-                const result = TurretAI.executeTurretTurn(nestedItem, itemX, itemY, gameMap, zombies);
-                if (result.actions?.length) actionQueue.push(...result.actions);
-              }
+            fireTurretFromItem(nestedItem, atX, atY);
           }
         }
+      };
+
+      // On-map items (placed turrets, vehicles on the ground away from the player).
+      for (const item of gameMap.getEntitiesByType('item')) {
+        if (!item) continue;
+        const itemX = item.logicalX !== undefined ? item.logicalX : playerX;
+        const itemY = item.logicalY !== undefined ? item.logicalY : playerY;
+        fireTurretFromItem(item, itemX, itemY);
+      }
+
+      // Player's ground container. When the player stands ON a turret's tile (or a
+      // wagon carrying one), that tile's items are loaded into the ground container
+      // and detached from the map's entityMap, so the on-map scan above would miss
+      // them. Fire those from the player's tile, recursing into wagons/containers.
+      const groundItems = engine?.inventoryManager?.groundContainer?.getAllItems?.() || [];
+      for (const item of groundItems) {
+        fireTurretFromItem(item, playerX, playerY);
       }
 
       // --- 2. Replenish AP for active zombies ---

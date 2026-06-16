@@ -37,7 +37,11 @@ function tryFollowScent(entity, zombiePos, gameMap, aiBehavior) {
  * melee option for mutant zombies, and a diagonal that is blocked by walls
  * yields no blocking structure (the caller decides what to do in that case).
  *
- * @returns {{ isAdjacent:boolean, isDiagonal:boolean, canMeleeAttack:boolean, blockingStructure:Object|null }}
+ * `canReachTile` indicates whether the zombie could actually step onto the target
+ * tile in one move (open and not separated by a solid edge wall) — used to tell a
+ * genuinely-adjacent target from one that is walled off.
+ *
+ * @returns {{ isAdjacent:boolean, isDiagonal:boolean, canMeleeAttack:boolean, blockingStructure:Object|null, canReachTile:boolean }}
  */
 function getMeleeReach(entity, gameMap, fromX, fromY, targetX, targetY) {
   const absDx = Math.abs(targetX - fromX);
@@ -47,14 +51,19 @@ function getMeleeReach(entity, gameMap, fromX, fromY, targetX, targetY) {
   const canMeleeAttack = isAdjacent || (isDiagonal && entity.subtype === 'mutant');
 
   let blockingStructure = null;
+  let canReachTile = false;
   if (canMeleeAttack) {
+    const targetTile = gameMap.getTile(targetX, targetY);
+    const tileOpen = !!targetTile && targetTile.isWalkable(entity, { ignoreZombies: true });
     if (isAdjacent) {
       blockingStructure = Pathfinding.getBlockingStructure(gameMap, fromX, fromY, targetX, targetY);
+      canReachTile = tileOpen && !Pathfinding.isEdgeBlocked(gameMap, fromX, fromY, targetX, targetY, entity, { isZombie: true });
     } else if (Pathfinding.canMoveDiagonally(gameMap, fromX, fromY, targetX, targetY, entity)) {
       blockingStructure = Pathfinding.getBlockingStructure(gameMap, fromX, fromY, targetX, targetY);
+      canReachTile = tileOpen;
     }
   }
-  return { isAdjacent, isDiagonal, canMeleeAttack, blockingStructure };
+  return { isAdjacent, isDiagonal, canMeleeAttack, blockingStructure, canReachTile };
 }
 
 function getBeelineIntent(entity, zombiePos, targetX, targetY, gameMap, moveCost) {
@@ -299,23 +308,38 @@ function investigate(ctx) {
     return;
   }
 
-  // In melee range of the target tile: breach a blocking structure, else hold.
+  // Adjacent to the target tile (melee range).
   const reach = getMeleeReach(entity, gameMap, zombiePos.x, zombiePos.y, targetX, targetY);
-  if (reach.canMeleeAttack) {
-    if (reach.blockingStructure) {
-      if (currentAP >= 1.0) {
-        ctx.enqueue('DamageIntent', new DamageIntent({
-          amount: 1,
-          targetId: reach.blockingStructure.id,
-          isStructure: true,
-          targetX: targetX,
-          targetY: targetY
-        }));
-      }
+  if (reach.canMeleeAttack && reach.blockingStructure) {
+    // Breach the structure (e.g. a door) between us and the last-known-position.
+    if (currentAP >= 1.0) {
+      ctx.enqueue('DamageIntent', new DamageIntent({
+        amount: 1,
+        targetId: reach.blockingStructure.id,
+        isStructure: true,
+        targetX: targetX,
+        targetY: targetY
+      }));
     }
-    // Adjacent with no structure to breach: hold position and wait.
     return;
   }
+  if (reach.canMeleeAttack && !reach.canReachTile) {
+    // Adjacent to the target but walled off with nothing to breach (e.g. a thin
+    // wall between us and the last-known-position). We can never reach it, so
+    // abandon this target instead of freezing; resume scent-following / wander.
+    aiBehavior.lastSeenPlayerCoords = null;
+    aiBehavior.heardNoiseCoords = null;
+    entity.clearLastSeen();
+    entity.clearNoiseHeard();
+    aiBehavior.currentPath = [];
+    if (tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) return;
+    wander(ctx);
+    return;
+  }
+  // If adjacent and reachable we deliberately do NOT hold: the player is not
+  // visible (or we'd be hunting), so they are not on the LKP. Fall through to
+  // pathfinding and step onto the tile; reaching it next turn clears the memory
+  // and resumes the search, rather than freezing here indefinitely.
 
   // Path caching optimization: reuse the cached path unless it is stale/blocked.
   let needRecalculate = false;
