@@ -198,7 +198,7 @@ async function runTests() {
   {
     console.log('--- Test 2: Explosion Cascade & AI Alerting ---');
     const map = new MockGameMap();
-    const engine = { gameMap: map, _uiDirty: false };
+    const engine = { gameMap: map, _uiDirty: false, turnPhase: 'SIMULATING' };
     const queue = new IntentQueue();
     const actionQueue = [];
 

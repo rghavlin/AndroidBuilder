@@ -8,6 +8,9 @@ import { AIBehavior } from './components/AIBehavior.js';
 import { LightEmitter } from './components/LightEmitter.js';
 import { Vision } from './components/Vision.js';
 import { Inventory } from './components/Inventory.js';
+import { ActionPoints } from './components/ActionPoints.js';
+import { SurvivalStats } from './components/SurvivalStats.js';
+import { PlayerSkills } from './components/PlayerSkills.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
@@ -29,33 +32,28 @@ export const EntityFactory = {
     entity.addComponent(new InventoryContainer({ slots: [], maxWeight: 50, currentWeight: 0 }));
     entity.addComponent(new Inventory({ items: [], maxWeight: 50, maxSlots: 20 }));
     entity.addComponent(new Vision({ range: 15 }));
-
-    // Backing stats matching legacy Player constructor
-    entity._hp = 20;
-    entity.maxHp = 20;
-    entity._ap = 20;
-    entity.maxAp = 20;
-    entity.currentAP = 20;
-    entity.maxAP = 20;
-    entity._nutrition = 25;
-    entity.maxNutrition = 25;
-    entity._hydration = 25;
-    entity.maxHydration = 25;
-    entity._energy = 25;
-    entity.maxEnergy = 25;
-    entity._condition = 'Normal';
-    entity.sickness = 0;
-    entity.isBleeding = false;
-    entity.isStarving = false;
-    entity.isDehydrated = false;
-    entity.pendingAPRefill = null;
-    
-    entity._meleeKills = 0;
-    entity.meleeLvl = 0;
-    entity._rangedKills = 0;
-    entity.rangedLvl = 0;
-    entity._craftingApUsed = 0;
-    entity.craftingLvl = 0;
+    entity.addComponent(new ActionPoints({ current: 20, max: 20 }));
+    entity.addComponent(new SurvivalStats({
+      nutrition: 25,
+      maxNutrition: 25,
+      hydration: 25,
+      maxHydration: 25,
+      energy: 25,
+      maxEnergy: 25,
+      condition: 'Normal',
+      sickness: 0,
+      isBleeding: false,
+      isStarving: false,
+      isDehydrated: false
+    }));
+    entity.addComponent(new PlayerSkills({
+      meleeKills: 0,
+      meleeLvl: 0,
+      rangedKills: 0,
+      rangedLvl: 0,
+      craftingApUsed: 0,
+      craftingLvl: 0
+    }));
 
     return entity;
   },
@@ -88,14 +86,9 @@ export const EntityFactory = {
     entity.addComponent(new Renderable({ spriteId: typeDef.spriteKey, color: color, zIndex: 1 }));
     entity.addComponent(new AIBehavior({ state: 'idle' }));
     entity.addComponent(new Vision({ range: typeDef.sightRange || 15 }));
+    entity.addComponent(new ActionPoints({ current: typeDef.maxAP, max: typeDef.maxAP }));
 
     // Backing stats matching legacy Zombie constructor
-    entity._hp = typeDef.hp;
-    entity.maxHp = typeDef.hp;
-    entity._ap = typeDef.maxAP;
-    entity.maxAp = typeDef.maxAP;
-    entity.currentAP = typeDef.maxAP;
-    entity.maxAP = typeDef.maxAP;
     entity.sightRange = typeDef.sightRange || 15;
 
     return entity;
@@ -117,14 +110,9 @@ export const EntityFactory = {
     entity.addComponent(new Renderable({ spriteId: 'npc', color: '#ffb37e', zIndex: 1 }));
     entity.addComponent(new AIBehavior({ state: 'idle' }));
     entity.addComponent(new Vision({ range: typeDef.sightRange || 18 }));
+    entity.addComponent(new ActionPoints({ current: typeDef.maxAP, max: typeDef.maxAP }));
 
     // Backing stats matching legacy NPC constructor
-    entity._hp = typeDef.hp;
-    entity.maxHp = typeDef.hp;
-    entity._ap = typeDef.maxAP;
-    entity.maxAp = typeDef.maxAP;
-    entity.currentAP = typeDef.maxAP;
-    entity.maxAP = typeDef.maxAP;
     entity.fleeRecoverChance = typeDef.fleeRecoverChance;
     entity.sightRange = typeDef.sightRange || 18;
 
@@ -181,12 +169,6 @@ export const EntityFactory = {
           entity.addComponent(componentName, componentData);
         }
       }
-    }
-
-    if (entity.hasComponent('Health')) {
-      const hpComp = entity.getComponent('Health');
-      entity._hp = hpComp.current;
-      entity.maxHp = hpComp.max;
     }
 
     return entity;

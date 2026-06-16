@@ -58,12 +58,12 @@ async function testZombieDance() {
     for (const intentWrapper of intentQueue.queue) {
       console.log(`  Processing ${intentWrapper.type}...`);
       if (intentWrapper.type === 'DamageIntent') {
-        zombie.addComponent('DamageIntent', intentWrapper.intent);
-        CombatSystem.resolve(zombie, intentWrapper.intent, entities, gameMap, intentQueue, actionQueue, engine);
+        zombie.addComponent('DamageIntent', intentWrapper.component);
+        CombatSystem.resolve(zombie, intentWrapper.component, entities, gameMap, intentQueue, actionQueue, engine);
         console.log(`  Combat executed. New AP: ${zombie.currentAP}`);
       } else if (intentWrapper.type === 'MoveIntent') {
-        zombie.addComponent('MoveIntent', intentWrapper.intent);
-        MovementSystem.resolve(zombie, intentWrapper.intent, gameMap, actionQueue);
+        zombie.addComponent('MoveIntent', intentWrapper.component);
+        MovementSystem.resolve(zombie, intentWrapper.component, gameMap, actionQueue);
         const pos = zombie.getComponent('Position');
         console.log(`  Movement executed. New Pos: (${pos.x}, ${pos.y}). New AP: ${zombie.currentAP}`);
       }

@@ -2537,6 +2537,16 @@ export const ItemDefs = {
     traits: [ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED, ItemTrait.GROUND_ONLY],
     categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
     isOn: false,
+    turretStats: {
+      maxRange: 15,
+      apPerShot: 1,
+      maxAp: 10,
+      rangedLvl: 5,
+      damage: { min: 5, max: 18 },
+      accuracyFalloff: 0.05,
+      minAccuracy: 0.05,
+      noiseRadius: 18
+    },
     attachmentSlots: [
       {
         id: 'battery',

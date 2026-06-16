@@ -29,12 +29,8 @@ export class Window extends Entity {
 
     dirtyVision() {
         const map = this.gameMap || (engine && engine.gameMap);
-        if (map && map.entityMap) {
-            for (const entity of map.entityMap.values()) {
-                if (entity.hasComponent && typeof entity.hasComponent === 'function' && entity.hasComponent('Vision')) {
-                    entity.getComponent('Vision')._visionDirty = true;
-                }
-            }
+        if (map) {
+            map._visionDirty = true;
         }
     }
 

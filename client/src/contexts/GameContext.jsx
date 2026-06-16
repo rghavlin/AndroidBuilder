@@ -694,7 +694,7 @@ const GameContextInner = ({ children }) => {
           ...(actionQueue.delayed || [])
       ];
 
-      await turnManager.processQueue(flatActions, { gameMap, player });
+      await turnManager.processQueue(flatActions, { gameMap, player, addEffect, addLog });
 
       // 4. Sync UI & State
       updatePlayerStats({

@@ -32,13 +32,7 @@ export class DestructionSystem {
     // Remove from game map
     if (gameMap) {
       gameMap.removeEntity(targetId);
-      if (gameMap.entityMap) {
-        for (const entity of gameMap.entityMap.values()) {
-          if (entity.hasComponent && typeof entity.hasComponent === 'function' && entity.hasComponent('Vision')) {
-            entity.getComponent('Vision')._visionDirty = true;
-          }
-        }
-      }
+      gameMap._visionDirty = true;
     }
 
     // Clear targeting references from zombies

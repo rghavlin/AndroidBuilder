@@ -8,12 +8,16 @@ export class VisionSystem {
 
     // 1. Process standard Vision component LoS updates if map is available
     if (gameMap) {
+      const globalVisionDirty = !!gameMap._visionDirty;
+      if (globalVisionDirty) {
+        gameMap._visionDirty = false;
+      }
       for (const entity of entityList) {
         if (entity.hasComponent('Vision') && entity.hasComponent('Position')) {
           const vision = entity.getComponent('Vision');
           const position = entity.getComponent('Position');
           
-          if (vision._visionDirty) {
+          if (globalVisionDirty || vision._visionDirty) {
             const { visibleTiles, visibleEntities } = this.calculateVisibility(
               gameMap,
               position.x,

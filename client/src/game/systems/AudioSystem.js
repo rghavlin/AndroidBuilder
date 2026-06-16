@@ -34,11 +34,15 @@ export class AudioSystem {
             alertedCount++;
 
             // If entity has AP, enqueue a MoveIntent to investigate the sound in this same tick
+            // CRITICAL turn-based fix: AI entities should ONLY move logically during the simulation phase.
+            // Moving during the player's turn causes visual desyncs (since playback isn't running)
+            // and allows players to step onto the same tile.
+            const isSimulating = engine && engine.turnPhase === 'SIMULATING';
             const currentAP = entity.currentAP !== undefined ? entity.currentAP : (entity.ap !== undefined ? entity.ap : 0);
             const movable = entity.getComponent('Movable');
             const moveCost = movable ? movable.apCost : 1.0;
 
-            if (currentAP >= moveCost) {
+            if (isSimulating && currentAP >= moveCost) {
               const step = this.calculateStepTowards(entity, pos, x, y, gameMap);
               if (step) {
                 intentQueue.enqueue(entity.id, 'MoveIntent', new MoveIntent({

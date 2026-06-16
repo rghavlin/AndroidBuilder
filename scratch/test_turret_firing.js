@@ -87,6 +87,16 @@ async function runTest() {
   console.log("Turret magazine ammo:", turret.attachments?.['ammo']?.ammoCount);
   console.log("Zombie HP before movement:", zombie.hp);
 
+  console.log("\n--- Processing Turn (Player on same tile) ---");
+  const sameTileActions = SimulationManager.runTurn(map, { player, isSleeping: false });
+  console.log("Actions generated:", sameTileActions.map(a => a.type));
+  console.log("Zombie HP after same tile turn:", zombie.hp);
+
+  // Restore zombie HP and magazine ammo for the next part of the test
+  zombie.hp = 10;
+  zombie.getComponent('Health').current = 10;
+  turret.attachments['ammo'].ammoCount = 30;
+
   // Player moves away to (6, 6)
   console.log("\nPlayer moving from (5,5) to (6,6)...");
   player.x = 6;

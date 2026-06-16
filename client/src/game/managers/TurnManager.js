@@ -168,7 +168,7 @@ class TurnManager {
             onImpact: () => {
               // Sync the structure's visual state at the moment of impact.
               // NOTE: Structural damage (hp reduction, break/open flags) was already
-              // applied SILENTLY during the simulation phase by ZombieAI/NPCAI.
+              // applied SILENTLY during the simulation phase by AISystem/NPCAI.
               // Here we only need to push those logical changes to the visual layer.
               const toX = data.to?.x ?? data.x;
               const toY = data.to?.y ?? data.y;
@@ -210,7 +210,7 @@ class TurnManager {
         // simulation. Calling it again would double-apply damage and corrupt HP values.
         break;
 
-      case 'ESCAPE':
+      case 'ESCAPE': {
         // NPC reached the south exit — remove from map and clean up references
         if (entity) {
           entity.hasExited = true;
@@ -231,9 +231,10 @@ class TurnManager {
         // 3. Emit escape event for UI log
         GameEvents.emit(GAME_EVENT.NPC_ESCAPED, { npc: entity });
         break;
+      }
 
-      case 'ATTACK':
-        const eventType = (entity.type === 'npc' || entity.type === 'EntityType.NPC') ? GAME_EVENT.NPC_ATTACK : GAME_EVENT.ZOMBIE_ATTACK;
+      case 'ATTACK': {
+        const eventType = (entity.type === 'npc' || entity.type === EntityType.NPC) ? GAME_EVENT.NPC_ATTACK : GAME_EVENT.ZOMBIE_ATTACK;
         
         // 1. Play visual animation with synchronized feedback trigger
         if (entity && typeof entity.playAction === 'function') {
@@ -308,7 +309,7 @@ class TurnManager {
             gameMap.removeEntity(target.id);
             
             // Clear targeting references from all zombies to avoid ghost chasing
-            const allZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie');
+            const allZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
             allZombies.forEach(z => {
               if (z.currentTarget && z.currentTarget.id === target.id) {
                 z.currentTarget = null;
@@ -318,12 +319,13 @@ class TurnManager {
           }
         }
         break;
+      }
 
       case 'SOUND':
         // Pure sound action
         break;
 
-      case 'DEATH':
+      case 'DEATH': {
         if (entity && typeof entity.playAction === 'function') {
           await entity.playAction(action);
         }
@@ -342,7 +344,7 @@ class TurnManager {
         gameMap.removeEntity(entityId);
         
         // Clear targeting references from all zombies to avoid ghost chasing
-        const remainingZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie');
+        const remainingZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
         remainingZombies.forEach(z => {
           if (z.currentTarget && z.currentTarget.id === entityId) {
             z.currentTarget = null;
@@ -350,6 +352,7 @@ class TurnManager {
           }
         });
         break;
+      }
 
       case 'DEMAND':
         // NPC is making a demand - typically triggers a UI popup later, 
@@ -380,6 +383,40 @@ class TurnManager {
         await new Promise(resolve => setTimeout(resolve, 200));
         break;
       }
+
+      case 'TILE_FLASH':
+        if (context.addEffect) {
+          context.addEffect({
+            type: 'tile_flash',
+            x: data.x,
+            y: data.y,
+            color: data.color,
+            duration: data.duration || 600
+          });
+        }
+        break;
+
+      case 'DAMAGE_EFFECT':
+        if (context.addEffect) {
+          context.addEffect({
+            type: 'damage',
+            x: data.x,
+            y: data.y,
+            value: data.damage,
+            color: data.color || '#ef4444',
+            duration: 1500
+          });
+        }
+        if (context.addLog && data.log) {
+          context.addLog(data.log, 'combat');
+        }
+        break;
+
+      case 'EXPLOSION_LOG':
+        if (context.addLog && data.log) {
+          context.addLog(data.log, 'combat');
+        }
+        break;
 
       default:
         console.warn(`[TurnManager] Unknown action type: ${type}`);

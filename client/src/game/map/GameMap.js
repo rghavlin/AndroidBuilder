@@ -467,10 +467,7 @@ export class GameMap {
 
     const items = tile.contents.filter(e => e.type === 'item' && e.hasComponent && e.hasComponent('Item'));
     items.forEach(item => {
-      tile.removeEntity(item.id);
-      if (item.hasComponent('Position')) {
-        item.removeComponent('Position');
-      }
+      this.removeEntity(item.id);
     });
 
     return items;
@@ -784,92 +781,100 @@ export class GameMap {
     const currentHour = (6 + (turn - 1)) % 24;
     const isDaylight = currentHour >= 6 && currentHour < 20;
 
-    for (let y = 0; y < this.height; y++) {
-      for (let x = 0; x < this.width; x++) {
-        const tile = this.getTile(x, y);
-        if (tile && tile.inventoryItems && tile.inventoryItems.length > 0) {
-          let itemsModified = false;
+    // Retrieve all items on the map
+    const allItems = this.getEntitiesByType('item');
+    
+    // Group items by tile coordinate to process tile-wide effects (like power or snares)
+    const itemsByTile = new Map();
+    for (const item of allItems) {
+      const x = item.logicalX !== undefined ? item.logicalX : item.x;
+      const y = item.logicalY !== undefined ? item.logicalY : item.y;
+      if (x === undefined || y === undefined) continue;
+      
+      const key = `${x},${y}`;
+      if (!itemsByTile.has(key)) {
+        itemsByTile.set(key, { x, y, items: [] });
+      }
+      itemsByTile.get(key).items.push(item);
+    }
 
-          // Determine if this tile is "outdoors"
-          const isOutdoors = ['road', 'sidewalk', 'grass'].includes(tile.terrain);
+    for (const { x, y, items } of itemsByTile.values()) {
+      const tile = this.getTile(x, y);
+      if (!tile) continue;
 
-          // --- SNARE CATCHING LOGIC ---
-          // Check for deployed snares on grass tiles
-          const deployedSnareIndex = tile.inventoryItems.findIndex(item => item.defId === 'tool.snare_deployed');
-          if (deployedSnareIndex !== -1 && tile.terrain === 'grass') {
-            const deployedSnare = tile.inventoryItems[deployedSnareIndex];
-            let catchChance = 0;
+      let itemsModified = false;
 
-            if (isSleeping) {
-              catchChance = 0.20;
-            } else if (player) {
-              const dx = x - player.x;
-              const dy = y - player.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
+      // Determine if this tile is "outdoors"
+      const isOutdoors = ['road', 'sidewalk', 'grass'].includes(tile.terrain);
 
-              if (dist >= 15 && dist <= 30) {
-                catchChance = 0.10;
-              } else if (dist > 30) {
-                catchChance = 0.15;
-              }
-            }
+      // --- SNARE CATCHING LOGIC ---
+      const deployedSnareIndex = items.findIndex(item => item.defId === 'tool.snare_deployed');
+      if (deployedSnareIndex !== -1 && tile.terrain === 'grass') {
+        const deployedSnare = items[deployedSnareIndex];
+        let catchChance = 0;
 
-            if (Math.random() < catchChance) {
-              console.log(`[GameMap] 🐰 Rabbit CAUGHT in snare at (${x}, ${y})!`);
-              
-              // Remove deployed snare
-              tile.inventoryItems.splice(deployedSnareIndex, 1);
-              
-              // Calculate new condition
-              const currentCondition = deployedSnare.condition !== undefined ? deployedSnare.condition : 100;
-              const newCondition = currentCondition - 25;
-              
-              // If snare still has life, return it to undeployed state
-              if (newCondition > 0) {
-                const undeployedSnare = createItemFromDef('tool.snare_undeployed');
-                undeployedSnare.condition = newCondition;
-                tile.inventoryItems.push(undeployedSnare);
-              } else {
-                console.log('[GameMap] Snare destroyed by rabbit catch (0 condition)');
-              }
+        if (isSleeping) {
+          catchChance = 0.20;
+        } else if (player) {
+          const dx = x - player.x;
+          const dy = y - player.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
 
-              // Always spawn raw meat
-              const rawMeat = createItemFromDef('food.raw_meat');
-              tile.inventoryItems.push(rawMeat);
-
-              itemsModified = true;
-            }
-          }
-
-          // --- STANDARD EXPIRATION LOGIC ---
-          const isTilePowered = tile.inventoryItems.some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn);
-          const remainingItems = tile.inventoryItems.filter(itemData => {
-            const turnResult = this._processItemDataTurn(itemData, isTilePowered, isOutdoors, isDaylight);
-            if (turnResult.expired) {
-              itemsModified = true;
-              console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
-              return false;
-            }
-
-            if (turnResult.modified) {
-              itemsModified = true;
-            }
-
-            // Even if the root item didn't expire, some of its contents might have
-            if (itemData.attachments || itemData.containerGrid || itemData.pocketGrids) {
-              itemsModified = true;
-            }
-
-            return true;
-          });
-
-          if (itemsModified) {
-            this.setItemsOnTile(x, y, remainingItems);
-          } else {
-            // Even if items weren't added/removed, lifetimes changed, so update metadata
-            this.updateCropMetadata(x, y);
+          if (dist >= 15 && dist <= 30) {
+            catchChance = 0.10;
+          } else if (dist > 30) {
+            catchChance = 0.15;
           }
         }
+
+        if (Math.random() < catchChance) {
+          console.log(`[GameMap] 🐰 Rabbit CAUGHT in snare at (${x}, ${y})!`);
+          
+          items.splice(deployedSnareIndex, 1);
+          
+          const currentCondition = deployedSnare.condition !== undefined ? deployedSnare.condition : 100;
+          const newCondition = currentCondition - 25;
+          
+          if (newCondition > 0) {
+            const undeployedSnare = createItemFromDef('tool.snare_undeployed');
+            undeployedSnare.condition = newCondition;
+            items.push(undeployedSnare);
+          } else {
+            console.log('[GameMap] Snare destroyed by rabbit catch (0 condition)');
+          }
+
+          const rawMeat = createItemFromDef('food.raw_meat');
+          items.push(rawMeat);
+
+          itemsModified = true;
+        }
+      }
+
+      // --- STANDARD EXPIRATION LOGIC ---
+      const isTilePowered = items.some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn);
+      const remainingItems = items.filter(itemData => {
+        const turnResult = this._processItemDataTurn(itemData, isTilePowered, isOutdoors, isDaylight);
+        if (turnResult.expired) {
+          itemsModified = true;
+          console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) expired at (${x}, ${y})`);
+          return false;
+        }
+
+        if (turnResult.modified) {
+          itemsModified = true;
+        }
+
+        if (itemData.attachments || itemData.containerGrid || itemData.pocketGrids) {
+          itemsModified = true;
+        }
+
+        return true;
+      });
+
+      if (itemsModified) {
+        this.setItemsOnTile(x, y, remainingItems);
+      } else {
+        this.updateCropMetadata(x, y);
       }
     }
 

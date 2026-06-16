@@ -35,8 +35,8 @@ export class SimulationManager {
     }
 
     try {
-      let npcs = gameMap.getEntitiesByType(EntityType.NPC || 'npc') || [];
-      let zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE || 'zombie') || [];
+      let npcs = gameMap.getEntitiesByType(EntityType.NPC) || [];
+      let zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE) || [];
 
       // Performance filter: only process active zombies within sight/range
       let activeZombies = isSleeping
@@ -141,37 +141,37 @@ export class SimulationManager {
       // Runs first, immediately after the player's turn (before zombies, rabbits, NPCs)
       const playerX = player ? player.logicalX : null;
       const playerY = player ? player.logicalY : null;
+      // Collect all items in the game map (which include placed items and containers on the ground)
+      const mapItems = gameMap.getEntitiesByType('item');
+      // If the player is on a tile, we also want to consider items in their ground container
       const groundItems = (engine && engine.inventoryManager && engine.inventoryManager.groundContainer)
         ? engine.inventoryManager.groundContainer.getAllItems()
         : [];
+      
+      // Merge map items and ground container items, avoiding duplicates if any
+      const allItems = new Set([...mapItems, ...groundItems]);
 
-      for (let y = 0; y < gameMap.height; y++) {
-        for (let x = 0; x < gameMap.width; x++) {
-          const tile = gameMap.getTile(x, y);
-          if (tile) {
-            const isPlayerTile = (playerX !== null && playerY !== null && x === playerX && y === playerY);
-            const items = isPlayerTile ? groundItems : (tile.inventoryItems || []);
-            
-            if (items && items.length > 0) {
-              for (const item of items) {
-                 if (item.defId === 'placeable.auto_turret' && item.isOn) {
-                    const result = TurretAI.executeTurretTurn(item, x, y, gameMap, zombies);
-                    if (result.actions?.length) actionQueue.push(...result.actions);
-                 } else if (item.containerGrid) {
-                    // Check inside vehicle's container grid for turrets
-                    const nestedItems = item.containerGrid.items instanceof Map 
-                       ? Array.from(item.containerGrid.items.values()) 
-                       : (Array.isArray(item.containerGrid.items) ? item.containerGrid.items : Object.values(item.containerGrid.items || {}));
-                    
-                    for (const nestedItem of nestedItems) {
-                       if (nestedItem.defId === 'placeable.auto_turret' && nestedItem.isOn) {
-                          const result = TurretAI.executeTurretTurn(nestedItem, x, y, gameMap, zombies);
-                          if (result.actions?.length) actionQueue.push(...result.actions);
-                       }
-                    }
-                 }
+      for (const item of allItems) {
+        if (!item) continue;
+        
+        // Items in groundContainer might not have explicit logicalX/Y, they inherit from player/tile
+        const itemX = item.logicalX !== undefined ? item.logicalX : playerX;
+        const itemY = item.logicalY !== undefined ? item.logicalY : playerY;
+
+        if (item.defId === 'placeable.auto_turret' && item.isOn) {
+          const result = TurretAI.executeTurretTurn(item, itemX, itemY, gameMap, zombies);
+          if (result.actions?.length) actionQueue.push(...result.actions);
+        } else if (item.containerGrid) {
+          // Check inside vehicles or containers for active turrets
+          const nestedItems = item.containerGrid.items instanceof Map 
+              ? Array.from(item.containerGrid.items.values()) 
+              : (Array.isArray(item.containerGrid.items) ? item.containerGrid.items : Object.values(item.containerGrid.items || {}));
+          
+          for (const nestedItem of nestedItems) {
+              if (nestedItem.defId === 'placeable.auto_turret' && nestedItem.isOn) {
+                const result = TurretAI.executeTurretTurn(nestedItem, itemX, itemY, gameMap, zombies);
+                if (result.actions?.length) actionQueue.push(...result.actions);
               }
-            }
           }
         }
       }
@@ -218,7 +218,7 @@ export class SimulationManager {
       }
 
       // 2. Legacy Processing (Rabbit Turns) - Runs ONLY after IntentQueue has completely resolved
-      const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT || 'rabbit') || [];
+      const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT) || [];
       const rabbitsToProcess = [...rabbits];
       rabbitsToProcess.forEach(rabbit => {
         if (rabbit.hp <= 0) return;

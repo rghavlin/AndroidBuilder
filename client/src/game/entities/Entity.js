@@ -22,8 +22,15 @@ import { MeleeWeapon } from '../components/MeleeWeapon.js';
 import { Consumable } from '../components/Consumable.js';
 import { PickupIntent } from '../components/PickupIntent.js';
 import { DropIntent } from '../components/DropIntent.js';
+import { ActionPoints } from '../components/ActionPoints.js';
+import { SurvivalStats } from '../components/SurvivalStats.js';
+import { PlayerSkills } from '../components/PlayerSkills.js';
+import { Container } from '../inventory/Container.js';
 
+// COMPONENT_CLASSES: Registry of components that can be attached to entities.
+// Divided into Permanent Data Components and Intent/Action Tags.
 export const COMPONENT_CLASSES = {
+  // --- Permanent Data Components ---
   Position,
   Health,
   Renderable,
@@ -31,15 +38,20 @@ export const COMPONENT_CLASSES = {
   InventoryContainer,
   AIBehavior,
   LightEmitter,
-  MoveIntent,
-  DamageIntent,
-  DestroyIntent,
-  NoiseEvent,
   Vision,
   Inventory,
   Item,
   MeleeWeapon,
   Consumable,
+  ActionPoints,
+  SurvivalStats,
+  PlayerSkills,
+
+  // --- Intent / Action Tags (Temporary States) ---
+  MoveIntent,
+  DamageIntent,
+  DestroyIntent,
+  NoiseEvent,
   PickupIntent,
   DropIntent
 };
@@ -80,12 +92,6 @@ export class Entity extends SafeEventEmitter {
     this.blocksMovement = false;
 
     // Backing stats/properties for facade backward compatibility
-    this._hp = 20;
-    this.maxHp = 20;
-    this._ap = 20;
-    this.maxAp = 20;
-    this.currentAP = 20;
-    this.maxAP = 20;
     this.name = 'Entity';
     this.isHostile = false;
     this.typeId = 'survivor';
@@ -104,25 +110,8 @@ export class Entity extends SafeEventEmitter {
     this.currentPath = null;
     this.stunnedTurns = 0;
     this.fireTurns = 0;
-    this._nutrition = 25;
-    this.maxNutrition = 25;
-    this._hydration = 25;
-    this.maxHydration = 25;
-    this._energy = 25;
-    this.maxEnergy = 25;
     this._condition = type === 'item' ? null : 'Normal';
-    this.sickness = 0;
-    this.isBleeding = false;
-    this.drunkenness = 0;
-    this.isStarving = false;
-    this.isDehydrated = false;
     this.pendingAPRefill = null;
-    this._meleeKills = 0;
-    this.meleeLvl = 0;
-    this._rangedKills = 0;
-    this.rangedLvl = 0;
-    this._craftingApUsed = 0;
-    this.craftingLvl = 0;
     this.movementPath = [];
     this.isAnimating = false;
     this.animationProgress = 0;
@@ -193,30 +182,30 @@ export class Entity extends SafeEventEmitter {
   // Getters/setters mapping to components if they exist
   get hp() {
     const health = this.getComponent('Health');
-    return health ? health.current : this._hp;
+    return health ? health.current : 0;
   }
   set hp(val) {
-    const health = this.getComponent('Health');
-    if (health) {
-      health.current = Math.max(0, Math.min(health.max, val));
-      health.isDead = health.current <= 0;
-    } else {
-      this._hp = val;
+    let health = this.getComponent('Health');
+    if (!health) {
+      health = new Health();
+      this.addComponent(health);
     }
+    health.current = Math.max(0, Math.min(health.max, val));
+    health.isDead = health.current <= 0;
     this.notifyChange();
   }
 
   get maxHp() {
     const health = this.getComponent('Health');
-    return health ? health.max : this._maxHp || 20;
+    return health ? health.max : 0;
   }
   set maxHp(val) {
-    const health = this.getComponent('Health');
-    if (health) {
-      health.max = val;
-    } else {
-      this._maxHp = val;
+    let health = this.getComponent('Health');
+    if (!health) {
+      health = new Health();
+      this.addComponent(health);
     }
+    health.max = val;
     this.notifyChange();
   }
 
@@ -225,56 +214,315 @@ export class Entity extends SafeEventEmitter {
     return movable ? movable.apCost : 1.0;
   }
 
-  get ap() { return this._ap; }
-  set ap(val) { this._ap = val; this.notifyChange(); }
+  get ap() {
+    const apComp = this.getComponent('ActionPoints');
+    return apComp ? apComp.current : 0;
+  }
+  set ap(val) {
+    let apComp = this.getComponent('ActionPoints');
+    if (!apComp) {
+      apComp = new ActionPoints();
+      this.addComponent(apComp);
+    }
+    apComp.current = val;
+    this.notifyChange();
+  }
 
-  get currentAP() { return this._ap; }
-  set currentAP(val) { this._ap = val; this.notifyChange(); }
+  get currentAP() {
+    return this.ap;
+  }
+  set currentAP(val) {
+    this.ap = val;
+  }
 
-  get maxAP() { return this.maxAp; }
-  set maxAP(val) { this.maxAp = val; this.notifyChange(); }
+  get maxAp() {
+    const apComp = this.getComponent('ActionPoints');
+    return apComp ? apComp.max : 0;
+  }
+  set maxAp(val) {
+    let apComp = this.getComponent('ActionPoints');
+    if (!apComp) {
+      apComp = new ActionPoints();
+      this.addComponent(apComp);
+    }
+    apComp.max = val;
+    this.notifyChange();
+  }
 
-  get nutrition() { return this._nutrition; }
+  get maxAP() {
+    return this.maxAp;
+  }
+  set maxAP(val) {
+    this.maxAp = val;
+  }
+
+  get nutrition() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.nutrition : 0;
+  }
   set nutrition(v) {
-    this._nutrition = v;
-    if (this._nutrition <= 0 && !this.isStarving) {
-      this.isStarving = true;
-    } else if (this._nutrition > 0 && this.isStarving) {
-      this.isStarving = false;
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.nutrition = v;
+    if (stats.nutrition <= 0 && !stats.isStarving) {
+      stats.isStarving = true;
+    } else if (stats.nutrition > 0 && stats.isStarving) {
+      stats.isStarving = false;
     }
     this.notifyChange();
   }
 
-  get hydration() { return this._hydration; }
+  get maxNutrition() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.maxNutrition : 0;
+  }
+  set maxNutrition(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.maxNutrition = v;
+    this.notifyChange();
+  }
+
+  get hydration() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.hydration : 0;
+  }
   set hydration(v) {
-    this._hydration = v;
-    if (this._hydration <= 0 && !this.isDehydrated) {
-      this.isDehydrated = true;
-    } else if (this._hydration > 0 && this.isDehydrated) {
-      this.isDehydrated = false;
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.hydration = v;
+    if (stats.hydration <= 0 && !stats.isDehydrated) {
+      stats.isDehydrated = true;
+    } else if (stats.hydration > 0 && stats.isDehydrated) {
+      stats.isDehydrated = false;
     }
     this.notifyChange();
   }
 
-  get energy() { return this._energy; }
-  set energy(v) { this._energy = v; this.notifyChange(); }
+  get maxHydration() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.maxHydration : 0;
+  }
+  set maxHydration(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.maxHydration = v;
+    this.notifyChange();
+  }
+
+  get energy() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.energy : 0;
+  }
+  set energy(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.energy = v;
+    this.notifyChange();
+  }
+
+  get maxEnergy() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.maxEnergy : 0;
+  }
+  set maxEnergy(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.maxEnergy = v;
+    this.notifyChange();
+  }
 
   get condition() {
-    if (this.isBleeding) return 'Bleeding';
-    if (this.sickness > 0) return 'Diseased';
-    if (this.drunkenness > 0) return 'Drunk';
-    return this._condition || 'Normal';
+    const stats = this.getComponent('SurvivalStats');
+    if (stats) {
+      if (stats.isBleeding) return 'Bleeding';
+      if (stats.sickness > 0) return 'Diseased';
+      if (stats.drunkenness > 0) return 'Drunk';
+      return stats.condition || 'Normal';
+    }
+    return this._condition || (this.type === 'item' ? null : 'Normal');
   }
-  set condition(v) { this._condition = v; this.notifyChange(); }
+  set condition(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (stats) {
+      stats.condition = v;
+    } else {
+      this._condition = v;
+    }
+    this.notifyChange();
+  }
 
-  get meleeKills() { return this._meleeKills; }
-  set meleeKills(v) { this._meleeKills = v; this.notifyChange(); }
+  get sickness() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.sickness : 0;
+  }
+  set sickness(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.sickness = v;
+    this.notifyChange();
+  }
 
-  get rangedKills() { return this._rangedKills; }
-  set rangedKills(v) { this._rangedKills = v; this.notifyChange(); }
+  get isBleeding() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.isBleeding : false;
+  }
+  set isBleeding(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.isBleeding = v;
+    this.notifyChange();
+  }
 
-  get craftingApUsed() { return this._craftingApUsed; }
-  set craftingApUsed(v) { this._craftingApUsed = v; this.notifyChange(); }
+  get drunkenness() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.drunkenness : 0;
+  }
+  set drunkenness(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.drunkenness = v;
+    this.notifyChange();
+  }
+
+  get isStarving() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.isStarving : false;
+  }
+  set isStarving(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.isStarving = v;
+    this.notifyChange();
+  }
+
+  get isDehydrated() {
+    const stats = this.getComponent('SurvivalStats');
+    return stats ? stats.isDehydrated : false;
+  }
+  set isDehydrated(v) {
+    let stats = this.getComponent('SurvivalStats');
+    if (!stats) {
+      stats = new SurvivalStats();
+      this.addComponent(stats);
+    }
+    stats.isDehydrated = v;
+    this.notifyChange();
+  }
+
+  get meleeKills() {
+    const skills = this.getComponent('PlayerSkills');
+    return skills ? skills.meleeKills : 0;
+  }
+  set meleeKills(v) {
+    let skills = this.getComponent('PlayerSkills');
+    if (!skills) {
+      skills = new PlayerSkills();
+      this.addComponent(skills);
+    }
+    skills.meleeKills = v;
+    this.notifyChange();
+  }
+
+  get meleeLvl() {
+    const skills = this.getComponent('PlayerSkills');
+    return skills ? skills.meleeLvl : 0;
+  }
+  set meleeLvl(v) {
+    let skills = this.getComponent('PlayerSkills');
+    if (!skills) {
+      skills = new PlayerSkills();
+      this.addComponent(skills);
+    }
+    skills.meleeLvl = v;
+    this.notifyChange();
+  }
+
+  get rangedKills() {
+    const skills = this.getComponent('PlayerSkills');
+    return skills ? skills.rangedKills : 0;
+  }
+  set rangedKills(v) {
+    let skills = this.getComponent('PlayerSkills');
+    if (!skills) {
+      skills = new PlayerSkills();
+      this.addComponent(skills);
+    }
+    skills.rangedKills = v;
+    this.notifyChange();
+  }
+
+  get rangedLvl() {
+    const skills = this.getComponent('PlayerSkills');
+    return skills ? skills.rangedLvl : 0;
+  }
+  set rangedLvl(v) {
+    let skills = this.getComponent('PlayerSkills');
+    if (!skills) {
+      skills = new PlayerSkills();
+      this.addComponent(skills);
+    }
+    skills.rangedLvl = v;
+    this.notifyChange();
+  }
+
+  get craftingApUsed() {
+    const skills = this.getComponent('PlayerSkills');
+    return skills ? skills.craftingApUsed : 0;
+  }
+  set craftingApUsed(v) {
+    let skills = this.getComponent('PlayerSkills');
+    if (!skills) {
+      skills = new PlayerSkills();
+      this.addComponent(skills);
+    }
+    skills.craftingApUsed = v;
+    this.notifyChange();
+  }
+
+  get craftingLvl() {
+    const skills = this.getComponent('PlayerSkills');
+    return skills ? skills.craftingLvl : 0;
+  }
+  set craftingLvl(v) {
+    let skills = this.getComponent('PlayerSkills');
+    if (!skills) {
+      skills = new PlayerSkills();
+      this.addComponent(skills);
+    }
+    skills.craftingLvl = v;
+    this.notifyChange();
+  }
 
   // ECS operations
   addComponent(nameOrComponent, componentData = null) {
@@ -335,11 +583,10 @@ export class Entity extends SafeEventEmitter {
   }
 
   useAP(amount) {
-    const currentVal = this.ap !== undefined ? this.ap : this.currentAP;
+    const currentVal = this.ap;
     if (currentVal >= amount) {
       const nextVal = Math.round((currentVal - amount) * 10) / 10;
-      if (this.ap !== undefined) this.ap = nextVal;
-      if (this.currentAP !== undefined) this.currentAP = nextVal;
+      this.ap = nextVal;
       this.emitEvent('apUsed', { used: amount, remaining: nextVal });
       this.notifyChange();
       return true;
@@ -348,12 +595,11 @@ export class Entity extends SafeEventEmitter {
   }
 
   restoreAP(amount) {
-    const currentVal = this.ap !== undefined ? this.ap : this.currentAP;
-    const maxVal = this.maxAp !== undefined ? this.maxAp : this.maxAP;
+    const currentVal = this.ap;
+    const maxVal = this.maxAp;
     const oldVal = currentVal;
     const nextVal = Math.round(Math.min(currentVal + amount, maxVal) * 10) / 10;
-    if (this.ap !== undefined) this.ap = nextVal;
-    if (this.currentAP !== undefined) this.currentAP = nextVal;
+    this.ap = nextVal;
     const restored = nextVal - oldVal;
     if (restored > 0) {
       this.emitEvent('apRestored', { amount: restored, current: nextVal, maxAp: maxVal });
@@ -448,9 +694,7 @@ export class Entity extends SafeEventEmitter {
   }
 
   startTurn() {
-    const maxVal = this.maxAp !== undefined ? this.maxAp : this.maxAP;
-    if (this.ap !== undefined) this.ap = this.stunnedTurns > 0 ? 0 : maxVal;
-    if (this.currentAP !== undefined) this.currentAP = this.stunnedTurns > 0 ? 0 : maxVal;
+    this.ap = this.stunnedTurns > 0 ? 0 : this.maxAp;
     this.isActive = true;
     this.wasAttackedThisTurn = false;
     this.movementPath = [{ x: this.logicalX, y: this.logicalY }];
@@ -467,8 +711,7 @@ export class Entity extends SafeEventEmitter {
 
   endTurn() {
     if (this.stunnedTurns > 0) this.stunnedTurns--;
-    if (this.ap !== undefined) this.ap = 0;
-    if (this.currentAP !== undefined) this.currentAP = 0;
+    this.ap = 0;
     this.isActive = false;
     this.renderX = this.gridX;
     this.renderY = this.gridY;
@@ -830,16 +1073,10 @@ export class Entity extends SafeEventEmitter {
     entity.blocksMovement = data.blocksMovement || false;
 
     // Restore stats/properties
-    if (data.hp !== undefined) entity._hp = data.hp;
+    if (data.hp !== undefined) entity.hp = data.hp;
     if (data.maxHp !== undefined) entity.maxHp = data.maxHp;
-    if (data.ap !== undefined) {
-      entity._ap = data.ap;
-      entity.currentAP = data.ap;
-    }
-    if (data.maxAp !== undefined) {
-      entity.maxAp = data.maxAp;
-      entity.maxAP = data.maxAp;
-    }
+    if (data.ap !== undefined) entity.ap = data.ap;
+    if (data.maxAp !== undefined) entity.maxAp = data.maxAp;
     if (data.name !== undefined) entity.name = data.name;
     if (data.isHostile !== undefined) entity.isHostile = data.isHostile;
     if (data.typeId !== undefined) entity.typeId = data.typeId;
@@ -863,29 +1100,27 @@ export class Entity extends SafeEventEmitter {
     if (data.lastScentSequence !== undefined) entity.lastScentSequence = data.lastScentSequence;
     if (data.isAlerted !== undefined) entity.isAlerted = data.isAlerted;
     if (data.isActive !== undefined) entity.isActive = data.isActive;
-    if (data.nutrition !== undefined) entity._nutrition = data.nutrition;
+    if (data.nutrition !== undefined) entity.nutrition = data.nutrition;
     if (data.maxNutrition !== undefined) entity.maxNutrition = data.maxNutrition;
-    if (data.hydration !== undefined) entity._hydration = data.hydration;
+    if (data.hydration !== undefined) entity.hydration = data.hydration;
     if (data.maxHydration !== undefined) entity.maxHydration = data.maxHydration;
-    if (data.energy !== undefined) entity._energy = data.energy;
+    if (data.energy !== undefined) entity.energy = data.energy;
     if (data.maxEnergy !== undefined) entity.maxEnergy = data.maxEnergy;
-    if (data.condition !== undefined) entity._condition = data.condition;
+    if (data.condition !== undefined) entity.condition = data.condition;
     if (data.sickness !== undefined) entity.sickness = data.sickness;
     if (data.isBleeding !== undefined) entity.isBleeding = data.isBleeding;
     if (data.drunkenness !== undefined) entity.drunkenness = data.drunkenness;
     if (data.isStarving !== undefined) entity.isStarving = data.isStarving;
     if (data.isDehydrated !== undefined) entity.isDehydrated = data.isDehydrated;
-    if (data.meleeKills !== undefined) entity._meleeKills = data.meleeKills;
+    if (data.meleeKills !== undefined) entity.meleeKills = data.meleeKills;
     if (data.meleeLvl !== undefined) entity.meleeLvl = data.meleeLvl;
-    if (data.rangedKills !== undefined) entity._rangedKills = data.rangedKills;
+    if (data.rangedKills !== undefined) entity.rangedKills = data.rangedKills;
     if (data.rangedLvl !== undefined) entity.rangedLvl = data.rangedLvl;
-    if (data.craftingApUsed !== undefined) entity._craftingApUsed = data.craftingApUsed;
+    if (data.craftingApUsed !== undefined) entity.craftingApUsed = data.craftingApUsed;
     if (data.craftingLvl !== undefined) entity.craftingLvl = data.craftingLvl;
 
     if (data.inventory) {
-      import('../inventory/Container.js').then(({ Container }) => {
-        entity.inventory = Container.fromJSON(data.inventory);
-      });
+      entity.inventory = Container.fromJSON(data.inventory);
     }
 
     if (data.type === 'item') {

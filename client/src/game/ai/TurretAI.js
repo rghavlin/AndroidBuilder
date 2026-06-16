@@ -1,24 +1,6 @@
 import { LineOfSight } from '../utils/LineOfSight.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 
-// Accuracy & crit at player level 5 ranged combat:
-//   rangedLvl = 5
-//   accuracyBonus = (5 - 0) * 0.01 = 0.05
-//   baseHitChance (no scope, no laser, battle rifle stats):
-//     1.0 - (squaresAway - 1) * 0.05,  minAccuracy: 0.05
-//   critChance = 0.05 + (5 - 1) * 0.05 = 0.25
-
-const TURRET_RANGED_LVL = 5;
-const TURRET_MAX_RANGE  = 15; // tiles
-const TURRET_MAX_AP     = 10;
-const TURRET_AP_PER_SHOT = 1;
-const BATTLE_RIFLE_STATS = {
-  damage:          { min: 5, max: 18 },
-  accuracyFalloff: 0.05,
-  minAccuracy:     0.05,
-  noiseRadius:     18
-};
-
 export class TurretAI {
   /**
    * Execute one full turret turn.
@@ -38,6 +20,12 @@ export class TurretAI {
     const battery = turretItem.attachments?.['battery'];
     if (!battery || (battery.ammoCount || 0) <= 0) {
       turretItem.isOn = false;
+      actions.push({
+        type: 'SOUND',
+        entityId: `turret_${turretItem.instanceId}`,
+        metadata: { sound: 'power_down' }, // Example sound trigger
+        data: { x: turretX, y: turretY }
+      });
       return { actions };
     }
 
@@ -45,53 +33,67 @@ export class TurretAI {
     const mag = turretItem.attachments?.['ammo'];
     if (!mag || (mag.ammoCount || 0) <= 0) return { actions };
 
+    const def = turretItem.defId ? ItemDefs[turretItem.defId] : null;
+    const turretStats = def?.turretStats || {
+      maxRange: 15,
+      apPerShot: 1,
+      maxAp: 10,
+      rangedLvl: 5,
+      damage: { min: 5, max: 18 },
+      accuracyFalloff: 0.05,
+      minAccuracy: 0.05,
+      noiseRadius: 18
+    };
+
     // Check for suppressor
     const barrel = turretItem.attachments?.['barrel'];
     const isSuppressed = barrel?.categories?.includes('suppressor');
-    const noiseRadius = isSuppressed ? 3 : BATTLE_RIFLE_STATS.noiseRadius;
+    const noiseRadius = isSuppressed ? 3 : turretStats.noiseRadius;
 
-    let ap = TURRET_MAX_AP;
-    const accuracyBonus = TURRET_RANGED_LVL * 0.01; // 0.05
-    const critChance = 0.05 + (TURRET_RANGED_LVL - 1) * 0.05; // 0.25
+    let ap = turretStats.maxAp;
+    const accuracyBonus = turretStats.rangedLvl * 0.01;
+    const critChance = 0.05 + (turretStats.rangedLvl - 1) * 0.05;
 
-    // Build list of zombies in range, sorted nearest-first
+    // Build list of zombies in range, mapping distance to avoid recomputation
     const inRange = zombies
-      .filter(z => {
-        if (z.hp <= 0) return false;
+      .map(z => {
+        if (z.hp <= 0) return null;
         const dx = z.logicalX - turretX;
         const dy = z.logicalY - turretY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > TURRET_MAX_RANGE) return false;
-        const los = LineOfSight.hasLineOfSight(gameMap, turretX, turretY, z.logicalX, z.logicalY, { maxRange: TURRET_MAX_RANGE });
+        return { zombie: z, dist };
+      })
+      .filter(entry => {
+        if (!entry) return false;
+        if (entry.dist > turretStats.maxRange) return false;
+        const los = LineOfSight.hasLineOfSight(gameMap, turretX, turretY, entry.zombie.logicalX, entry.zombie.logicalY, { maxRange: turretStats.maxRange });
         return los.hasLineOfSight;
       })
-      .sort((a, b) => {
-        const dA = Math.sqrt(Math.pow(a.logicalX - turretX, 2) + Math.pow(a.logicalY - turretY, 2));
-        const dB = Math.sqrt(Math.pow(b.logicalX - turretX, 2) + Math.pow(b.logicalY - turretY, 2));
-        return dA - dB;
-      });
+      .sort((a, b) => a.dist - b.dist);
 
-    for (const zombie of inRange) {
+    for (const entry of inRange) {
+      const zombie = entry.zombie;
+      let dist = entry.dist;
+
       if (ap <= 0) break;
       if ((mag.ammoCount || 0) <= 0) break;
       if (zombie.hp <= 0) continue;
 
       // Fire until zombie dead, out of AP, or out of ammo
-      while (ap >= TURRET_AP_PER_SHOT && (mag.ammoCount || 0) > 0 && zombie.hp > 0) {
-        ap -= TURRET_AP_PER_SHOT;
+      while (ap >= turretStats.apPerShot && (mag.ammoCount || 0) > 0 && zombie.hp > 0) {
+        ap -= turretStats.apPerShot;
         mag.ammoCount = Math.max(0, mag.ammoCount - 1);
 
-        const distance    = Math.sqrt(Math.pow(zombie.logicalX - turretX, 2) + Math.pow(zombie.logicalY - turretY, 2));
-        const squaresAway = Math.floor(distance);
-        const baseHit     = Math.max(BATTLE_RIFLE_STATS.minAccuracy, 1.0 - (squaresAway - 1) * BATTLE_RIFLE_STATS.accuracyFalloff);
+        const squaresAway = Math.floor(dist);
+        const baseHit     = Math.max(turretStats.minAccuracy, 1.0 - (squaresAway - 1) * turretStats.accuracyFalloff);
         const hit         = Math.random() <= (baseHit + accuracyBonus);
         const isCrit      = hit && Math.random() <= critChance;
         let damage = 0;
 
         if (hit) {
           damage = isCrit
-            ? Math.floor(BATTLE_RIFLE_STATS.damage.max * 1.5)
-            : Math.floor(Math.random() * (BATTLE_RIFLE_STATS.damage.max - BATTLE_RIFLE_STATS.damage.min + 1)) + BATTLE_RIFLE_STATS.damage.min;
+            ? Math.floor(turretStats.damage.max * 1.5)
+            : Math.floor(Math.random() * (turretStats.damage.max - turretStats.damage.min + 1)) + turretStats.damage.min;
           zombie.takeDamage(damage);
         }
 

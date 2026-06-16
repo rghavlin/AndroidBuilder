@@ -3,6 +3,7 @@ import { CombatSystem } from '../systems/CombatSystem.js';
 import { DestructionSystem } from '../systems/DestructionSystem.js';
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
+import { ExplosionSystem } from '../systems/ExplosionSystem.js';
 
 export class IntentQueue {
   constructor() {
@@ -110,6 +111,10 @@ export class IntentQueue {
         if (entity) {
           InventorySystem.resolveDrop(entity, intent.component, engine.gameMap, actionQueue, engine);
         }
+        break;
+
+      case 'ExplosionIntent':
+        ExplosionSystem.resolve(intent.component, entityList, engine.gameMap, this, actionQueue, engine, intent);
         break;
 
       default:

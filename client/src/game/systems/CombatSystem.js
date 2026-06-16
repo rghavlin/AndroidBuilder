@@ -37,7 +37,12 @@ export class CombatSystem {
 
         const hitsToDestroy = Math.ceil(targetHealth / damageAmount);
         const maxHitsPossible = Math.floor(attackerAp / ATTACK_AP_COST);
-        const actualHits = Math.max(1, Math.min(hitsToDestroy, maxHitsPossible));
+        const actualHits = Math.min(hitsToDestroy, maxHitsPossible);
+
+        if (actualHits <= 0) {
+          attacker.removeComponent('DamageIntent');
+          return;
+        }
 
         const totalDamage = actualHits * damageAmount;
         const totalApCost = actualHits * ATTACK_AP_COST;
@@ -46,11 +51,7 @@ export class CombatSystem {
         const damageResult = target.takeDamage(totalDamage, true);
         const broken = !!(damageResult && damageResult.isBroken);
 
-        if (attacker.ap !== undefined) {
-          attacker.ap = Math.max(0, attacker.ap - totalApCost);
-        } else if (attacker.currentAP !== undefined) {
-          attacker.currentAP = Math.max(0, attacker.currentAP - totalApCost);
-        }
+        attacker.useAP(totalApCost);
 
         // Cascade: Enqueue NoiseEvent
         if (intentQueue) {
@@ -120,11 +121,7 @@ export class CombatSystem {
 
         // Deduct AP for attacking
         const apCost = 2.0;
-        if (attacker.ap !== undefined) {
-          attacker.ap = Math.max(0, attacker.ap - apCost);
-        } else if (attacker.currentAP !== undefined) {
-          attacker.currentAP = Math.max(0, attacker.currentAP - apCost);
-        }
+        attacker.useAP(apCost);
 
         // State Sync: If the target is the player (has InventoryContainer), flag engine._uiDirty = true
         const isPlayer = target.hasComponent('InventoryContainer');
