@@ -6,6 +6,9 @@
 
 import { LineOfSight } from '../utils/LineOfSight.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
+import Logger from '../utils/Logger.js';
+
+const log = Logger.scope('PlayerZombieTracker');
 
 export class PlayerZombieTracker {
   constructor() {
@@ -24,18 +27,18 @@ export class PlayerZombieTracker {
    */
   updateTracking(gameMap, player, playerFieldOfView, playerMovement = null) {
     if (!gameMap || !player || !playerFieldOfView) {
-      console.warn('[PlayerZombieTracker] Invalid parameters for updateTracking');
+      log.warn('Invalid parameters for updateTracking');
       return;
     }
 
     const pX = player.logicalX !== undefined ? player.logicalX : player.x;
     const pY = player.logicalY !== undefined ? player.logicalY : player.y;
-    console.log(`[PlayerZombieTracker] updateTracking called. Player pos: (${pX}, ${pY}). stack: ${new Error().stack.split('\n')[2]}`);
+    log.debug(`updateTracking called. Player pos: (${pX}, ${pY})`);
 
     // Get all zombies currently visible to the player
     const currentlyVisibleZombies = this.getVisibleZombies(gameMap, player, playerFieldOfView);
     if (currentlyVisibleZombies.length > 0) {
-      console.log(`[PlayerZombieTracker] currentlyVisibleZombies:`, currentlyVisibleZombies.map(z => `${z.zombie.id} at (${z.zombie.logicalX}, ${z.zombie.logicalY})`));
+      log.debug('currentlyVisibleZombies:', currentlyVisibleZombies.map(z => `${z.zombie.id} at (${z.zombie.logicalX}, ${z.zombie.logicalY})`));
     }
 
     // Process newly spotted zombies
@@ -111,7 +114,7 @@ export class PlayerZombieTracker {
           GameEvents.emit(GAME_EVENT.ZOMBIE_ALERTED, { zombie });
         }
 
-        console.log(`[PlayerZombieTracker] Zombie ${zombie.id} newly spotted by player at (${pX}, ${pY})`);
+        log.debug(`Zombie ${zombie.id} newly spotted by player at (${pX}, ${pY})`);
       }
     });
   }
@@ -137,7 +140,7 @@ export class PlayerZombieTracker {
         // Reset alerted state so they growl/alert again when they spot the player next time
         zombie.isAlerted = false;
         
-        console.log(`[PlayerZombieTracker] Zombie ${zombieId} lost sight of player at (${lastPlayerPos.x}, ${lastPlayerPos.y}), enabled search mode`);
+        log.debug(`Zombie ${zombieId} lost sight of player at (${lastPlayerPos.x}, ${lastPlayerPos.y}), enabled search mode`);
 
         // Remove from tracking since no longer visible
         this.spottedZombies.delete(zombieId);
@@ -201,7 +204,7 @@ export class PlayerZombieTracker {
    */
   clearAllTracking() {
     this.spottedZombies.clear();
-    console.log('[PlayerZombieTracker] All zombie tracking cleared');
+    log.debug('All zombie tracking cleared');
   }
 
   /**
@@ -213,7 +216,7 @@ export class PlayerZombieTracker {
    */
   updateCurrentVisibility(gameMap, player, playerFieldOfView) {
     if (!gameMap || !player || !playerFieldOfView) {
-      console.warn('[PlayerZombieTracker] Invalid parameters for updateCurrentVisibility');
+      log.warn('Invalid parameters for updateCurrentVisibility');
       return;
     }
 
@@ -241,9 +244,9 @@ export class PlayerZombieTracker {
    * Debug information about current tracking state
    */
   debugTracking() {
-    console.log(`[PlayerZombieTracker] Currently tracking ${this.spottedZombies.size} zombies:`);
+    log.debug(`Currently tracking ${this.spottedZombies.size} zombies:`);
     for (const [zombieId, { zombie, lastPlayerPos }] of this.spottedZombies.entries()) {
-      console.log(`  - ${zombieId} at (${zombie.x}, ${zombie.y}), last saw player at (${lastPlayerPos.x}, ${lastPlayerPos.y})`);
+      log.debug(`  - ${zombieId} at (${zombie.x}, ${zombie.y}), last saw player at (${lastPlayerPos.x}, ${lastPlayerPos.y})`);
     }
   }
 }

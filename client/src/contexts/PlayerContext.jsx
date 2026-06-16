@@ -254,19 +254,12 @@ export const PlayerProvider = ({ children }) => {
       if (didRecalculate) {
         setPlayerFieldOfView([...visibleTiles]);
       }
-      
-      // BUG 2 FIX: Instead of calling z.setTargetSighted every frame with rounded coordinates,
-      // we use the PlayerZombieTracker to handle LKP precisely when LOS is lost.
-      // We only update the tracker when the physical tile coordinate changes to avoid redundant checks.
-      if (engine.zombieTracker) {
-        const roundX = Math.round(smoothX);
-        const roundY = Math.round(smoothY);
-        if (engine.zombieTracker._lastTrackedX !== roundX || engine.zombieTracker._lastTrackedY !== roundY) {
-          engine.zombieTracker.updateTracking(gameMap, { x: roundX, y: roundY, id: engine.player.id }, visibleTiles);
-          engine.zombieTracker._lastTrackedX = roundX;
-          engine.zombieTracker._lastTrackedY = roundY;
-        }
-      }
+
+      // NOTE: Zombie tracking is intentionally NOT done here per-frame. Frame
+      // sampling rounds the interpolated position and can skip tiles when a frame
+      // advances more than one tile (long paths / dropped frames), missing tiles
+      // where the player briefly entered a zombie's view. Tracking is instead done
+      // tile-by-tile over the full path when the move completes (see below).
 
       visibleTiles.forEach(p => {
         const t = gameMap.getTile(p.x, p.y);
@@ -293,7 +286,7 @@ export const PlayerProvider = ({ children }) => {
                 options.riddenItemId = engine.riding.item.instanceId;
             }
             engine.gameMap.moveEntity(engine.player.id, final.x, final.y, options);
-            path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y, 3); });
+            path.forEach((pos, idx) => { if (idx > 0) ScentTrail.dropScent(gameMap, pos.x, pos.y); });
          }
 
         // Release lock before final snap so updatePlayerFieldOfView isn't blocked
@@ -303,13 +296,18 @@ export const PlayerProvider = ({ children }) => {
         updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange, isNightVision);
         updatePlayerCardinalPositions(gameMap);
         
-        // CRITICAL: Force a final tracker sync at movement end.
-        // This catches the case where the player returns to their starting tile
-        // (the _lastTrackedX optimization would skip this otherwise), ensuring
-        // any zombies that lost sight during the move get their LKP set.
+        // Tile-accurate zombie tracking: evaluate EVERY tile the player traversed,
+        // not just per-frame sampled positions. This guarantees a zombie that the
+        // player briefly passed into view of gets registered as "spotted", so when
+        // sight is lost again its last-known-position is set and it will investigate.
+        // (Previously a single fast frame could skip the only-visible tile, leaving
+        // the zombie with no LKP and making it fail to follow on repeat encounters.)
         if (engine.zombieTracker) {
           const finalVisibleTiles = engine.playerFieldOfView || [];
-          engine.zombieTracker.updateTracking(gameMap, { x: final.x, y: final.y, id: engine.player.id }, finalVisibleTiles);
+          for (let i = 1; i < path.length; i++) {
+            const step = path[i];
+            engine.zombieTracker.updateTracking(gameMap, { x: step.x, y: step.y, id: engine.player.id }, finalVisibleTiles);
+          }
           engine.zombieTracker._lastTrackedX = final.x;
           engine.zombieTracker._lastTrackedY = final.y;
         }

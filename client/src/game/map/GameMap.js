@@ -10,6 +10,9 @@ import { Item as ECSItem } from '../components/Item.js';
 import { Renderable } from '../components/Renderable.js';
 import { MeleeWeapon } from '../components/MeleeWeapon.js';
 import { Position } from '../components/Position.js';
+import Logger from '../utils/Logger.js';
+
+const log = Logger.scope('GameMap');
 
 /**
  * 20x20 map container with tile management and serialization
@@ -661,7 +664,7 @@ export class GameMap {
           }
         } else {
           if (!Pathfinding.canMoveDiagonally(this, oldX, oldY, newX, newY, entity, options)) {
-            console.warn(`[GameMap] moveEntity diagonal move blocked by edge walls between (${oldX}, ${oldY}) and (${newX}, ${newY})`);
+            log.warn(`moveEntity diagonal move blocked by edge walls between (${oldX}, ${oldY}) and (${newX}, ${newY})`);
             return false;
           }
         }
@@ -672,7 +675,7 @@ export class GameMap {
         y: entity.logicalY !== undefined ? entity.logicalY : entity.y 
       };
 
-      console.log(`[GameMap] Moving entity ${entityId} from (${oldPosition.x}, ${oldPosition.y}) to (${newX}, ${newY})`);
+      log.debug(`Moving entity ${entityId} from (${oldPosition.x}, ${oldPosition.y}) to (${newX}, ${newY})`);
 
       // Skip movement only if logically AND visually at target position, 
       // UNLESS a snap is explicitly requested and we aren't visually there yet.
@@ -681,7 +684,7 @@ export class GameMap {
       const snapRequested = options.snap !== false;
 
       if (isAtLogical && (isAtVisual || !snapRequested)) {
-        console.log(`[GameMap] Entity ${entityId} already at target position (${newX}, ${newY}), skipping move`);
+        log.debug(`Entity ${entityId} already at target position (${newX}, ${newY}), skipping move`);
         return true;
       }
 
@@ -696,7 +699,7 @@ export class GameMap {
       }
 
       // THEN update entity position via moveTo (updates gridX/Y)
-      console.log(`[GameMap] Updating logical position for entity ${entityId} to (${newX}, ${newY})`);
+      log.debug(`Updating logical position for entity ${entityId} to (${newX}, ${newY})`);
       
       const moveOptions = { ...options };
       
@@ -717,14 +720,14 @@ export class GameMap {
       }
 
       // Finally add to new tile
-      console.log(`[GameMap] Adding entity ${entityId} to new tile (${newX}, ${newY})`);
+      log.debug(`Adding entity ${entityId} to new tile (${newX}, ${newY})`);
       newTile.addEntity(entity);
 
       // Verify the move was successful
       const verifyTile = this.getTile(newX, newY);
       const entityFound = verifyTile.contents.find(e => e.id === entityId);
       if (!entityFound) {
-        console.error(`[GameMap] Entity ${entityId} not found in new tile after move!`);
+        log.error(`Entity ${entityId} not found in new tile after move!`);
         return false;
       }
 
@@ -734,10 +737,10 @@ export class GameMap {
         newPosition: { x: newX, y: newY }
       });
 
-      console.log(`[GameMap] Entity ${entityId} movement completed successfully`);
+      log.debug(`Entity ${entityId} movement completed successfully`);
       return true;
     } else {
-      console.warn(`[GameMap] Movement failed for entity ${entityId}:`, {
+      log.warn(`Movement failed for entity ${entityId}:`, {
         entityExists: !!entity,
         newTileExists: !!newTile,
         newTileWalkable: newTile ? newTile.isWalkable() : false

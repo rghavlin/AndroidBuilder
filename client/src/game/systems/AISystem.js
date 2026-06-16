@@ -1,8 +1,34 @@
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { DamageIntent } from '../components/DamageIntent.js';
 import { MoveIntent } from '../components/MoveIntent.js';
-import { ScentTrail } from '../utils/ScentTrail.js';
-import { LineOfSight } from '../utils/LineOfSight.js';
+import { ScentTrail, SCENT_FOLLOW_RADIUS } from '../utils/ScentTrail.js';
+
+/**
+ * Attempt to lock a zombie onto the freshest nearby scent breadcrumb.
+ * On success the breadcrumb is set as a sighted target (a temporary LKP), so the
+ * Investigating branch will A*-path to it on the next tick. We intentionally do
+ * NOT require line of sight or proximity: scent trails exist precisely to track
+ * the player around corners and through doors where LOS is blocked, and A*
+ * already routes around walls (returning no path -> the zombie falls to wander).
+ *
+ * @param {Entity} entity - The zombie
+ * @param {Position} zombiePos - The zombie's position component
+ * @param {GameMap} gameMap - The game map
+ * @param {AIBehavior} aiBehavior - The zombie's AIBehavior component
+ * @returns {boolean} true if a scent was found and the zombie was retargeted
+ */
+function tryFollowScent(entity, zombiePos, gameMap, aiBehavior) {
+  const freshestScent = ScentTrail.findFreshestScent(
+    gameMap, zombiePos.x, zombiePos.y, SCENT_FOLLOW_RADIUS, entity.lastScentSequence || 0
+  );
+  if (!freshestScent) return false;
+
+  entity.lastScentSequence = freshestScent.sequence;
+  entity.behaviorState = 'tracking';
+  entity.setTargetSighted(freshestScent.x, freshestScent.y);
+  aiBehavior.alertnessState = 'INVESTIGATING';
+  return true;
+}
 
 function getBeelineIntent(entity, zombiePos, targetX, targetY, gameMap, moveCost) {
   const dx = targetX - zombiePos.x;
@@ -148,7 +174,10 @@ export class AISystem {
             ];
             const walkable = neighbors.filter(pos => {
               const tile = gameMap.getTile(pos.x, pos.y);
-              return tile && tile.isWalkable(entity, { ignoreZombies: false });
+              if (!tile || !tile.isWalkable(entity, { ignoreZombies: false })) return false;
+              // A tile can be walkable yet separated by a thin edge wall; such a move
+              // is silently rejected by moveEntity, leaving the zombie stuck retrying it.
+              return !Pathfinding.isEdgeBlocked(gameMap, x, y, pos.x, pos.y, entity, { isZombie: true });
             });
             if (walkable.length > 0) {
               const chosen = walkable[Math.floor(Math.random() * walkable.length)];
@@ -262,6 +291,12 @@ export class AISystem {
               } else if (isDamage && currentAP >= 1.0) {
                 enqueueIntent('DamageIntent', intent);
               }
+            } else {
+              // No path, no beeline step, and nothing to breach toward the player
+              // (e.g. visible across a thin edge wall with no door). Reposition via a
+              // wander step instead of freezing in place; the LKP is already set, so
+              // the zombie will resume hunting/investigating once it has an angle.
+              executeWander();
             }
           }
         }
@@ -282,16 +317,8 @@ export class AISystem {
             aiBehavior.currentPath = [];
 
             // Follow scent trail if available, else wander
-            const freshestScent = ScentTrail.findFreshestScent(gameMap, zombiePos.x, zombiePos.y, 6, 0);
-            if (freshestScent) {
-              const distToScent = Math.sqrt(Math.pow(freshestScent.x - zombiePos.x, 2) + Math.pow(freshestScent.y - zombiePos.y, 2));
-              const hasLOS = LineOfSight.hasLineOfSight(gameMap, zombiePos.x, zombiePos.y, freshestScent.x, freshestScent.y).hasLineOfSight;
-              if (distToScent <= 1.5 || hasLOS) {
-                entity.setTargetSighted(freshestScent.x, freshestScent.y);
-                entity.lastScentSequence = freshestScent.sequence;
-                entity.behaviorState = 'tracking';
-                continue;
-              }
+            if (tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) {
+              continue;
             }
             executeWander();
           } else {
@@ -387,17 +414,8 @@ export class AISystem {
         }
         // Priority 3: Follow Scent Trail
         else {
-          const freshestScent = ScentTrail.findFreshestScent(gameMap, zombiePos.x, zombiePos.y, 5, entity.lastScentSequence || 0);
-          if (freshestScent) {
-            const distToScent = Math.sqrt(Math.pow(freshestScent.x - zombiePos.x, 2) + Math.pow(freshestScent.y - zombiePos.y, 2));
-            const hasLOS = LineOfSight.hasLineOfSight(gameMap, zombiePos.x, zombiePos.y, freshestScent.x, freshestScent.y).hasLineOfSight;
-            if (distToScent <= 1.5 || hasLOS) {
-              entity.behaviorState = 'tracking';
-              entity.lastScentSequence = freshestScent.sequence;
-              entity.setTargetSighted(freshestScent.x, freshestScent.y);
-              aiBehavior.alertnessState = 'INVESTIGATING';
-              continue;
-            }
+          if (tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) {
+            continue;
           }
 
           // Priority 4: Random Wander

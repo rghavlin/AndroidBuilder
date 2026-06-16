@@ -3,6 +3,12 @@
  * Manages "breadcrumbing" for zombie AI to follow player paths.
  * Allows zombies to track movements through doors/windows without point-to-point shortcuts.
  */
+// Number of turns a freshly-dropped scent marker lasts before fully decaying.
+export const SCENT_INTENSITY = 3;
+
+// Manhattan radius a zombie searches for scent breadcrumbs to follow.
+export const SCENT_FOLLOW_RADIUS = 6;
+
 export class ScentTrail {
   /**
    * Drop a scent marker on a tile
@@ -11,7 +17,7 @@ export class ScentTrail {
    * @param {number} y - Y coordinate
    * @param {number} intensity - Number of turns the scent lasts
    */
-  static dropScent(gameMap, x, y, intensity = 10) {
+  static dropScent(gameMap, x, y, intensity = SCENT_INTENSITY) {
     const tile = gameMap.getTile(x, y);
     if (tile) {
       gameMap.scentSequenceCounter++;

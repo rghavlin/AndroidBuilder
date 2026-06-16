@@ -117,6 +117,15 @@ export class SimulationManager {
       // Checkpoint 1: Run death check after startTurn fire damage and turret turns
       runDeathCheck();
 
+      // Force a full vision refresh at the start of the turn. The player's move
+      // happened on the player's turn and does NOT dirty stationary entities'
+      // Vision components (only an entity's own movement / door / explosion does).
+      // Without this, a stationary zombie's cached visibleEntities is stale and
+      // excludes the player even when it now has clear line of sight, so it never
+      // enters HUNTING and just stands there. Dirtying globally makes VisionSystem
+      // recompute every active entity once before any AI decision is made.
+      gameMap._visionDirty = true;
+
       // Sequential system execution in a loop to handle multi-step turns (AI AP consumption)
       let aiCycleCounter = 0;
       const maxAICycles = 50; // Allow entities to take up to 50 steps if they have AP (safely breaks early if AP spent)

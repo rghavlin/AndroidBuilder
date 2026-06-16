@@ -701,7 +701,7 @@ export class NPCAI {
       const fromPos = { x: npc.logicalX, y: npc.logicalY };
       if (gameMap.moveEntity(npc.id, nextStep.x, nextStep.y, { snap: false })) {
         npc.useAP(moveCost);
-        ScentTrail.dropScent(gameMap, nextStep.x, nextStep.y, 3);
+        ScentTrail.dropScent(gameMap, nextStep.x, nextStep.y);
         
         if (!npc.movementPath || npc.movementPath.length === 0) {
           npc.movementPath = [{ x: fromPos.x, y: fromPos.y }];
