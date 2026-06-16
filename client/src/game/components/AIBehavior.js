@@ -1,44 +1,38 @@
+/**
+ * AIBehavior — the zombie pursuit/search state used by AISystem's decision tree.
+ *
+ * Responsibilities (zombie-only):
+ *  - alertnessState: 'IDLE' | 'INVESTIGATING' | 'HUNTING' (what the zombie is doing)
+ *  - lastSeenPlayerCoords / heardNoiseCoords: investigation targets (the "memory")
+ *  - currentPath: cached A* path toward the current target
+ *
+ * Sibling component AIState (Entity facade props: behaviorState, lastSeen,
+ * targetSightedCoords, lastScentSequence, isAlerted) is shared with rabbits/NPCs
+ * and holds the animation/marker-facing state. The two overlap (alertnessState vs
+ * behaviorState; lastSeenPlayerCoords vs targetSightedCoords) and are candidates
+ * for a future merge — see memory note `zombie-ai-gotchas`.
+ *
+ * The constructor still accepts the legacy `state` / `lastSeenPlayerAt` keys so
+ * older saved games deserialize correctly; the runtime aliases for them were
+ * removed as dead code (nothing read them).
+ */
 export class AIBehavior {
   constructor(properties = {}) {
-    // 1. Alertness state: 'IDLE' | 'INVESTIGATING' | 'HUNTING'
-    this.alertnessState = properties.alertnessState !== undefined 
-      ? properties.alertnessState 
+    this.alertnessState = properties.alertnessState !== undefined
+      ? properties.alertnessState
       : (properties.state !== undefined ? properties.state.toUpperCase() : 'IDLE');
 
-    // 2. Memory coordinates
-    this.lastSeenPlayerCoords = properties.lastSeenPlayerCoords !== undefined 
-      ? properties.lastSeenPlayerCoords 
+    this.lastSeenPlayerCoords = properties.lastSeenPlayerCoords !== undefined
+      ? properties.lastSeenPlayerCoords
       : (properties.lastSeenPlayerAt !== undefined ? properties.lastSeenPlayerAt : null);
 
-    this.heardNoiseCoords = properties.heardNoiseCoords !== undefined 
-      ? properties.heardNoiseCoords 
+    this.heardNoiseCoords = properties.heardNoiseCoords !== undefined
+      ? properties.heardNoiseCoords
       : null;
 
-    // 3. Path caching array
-    this.currentPath = properties.currentPath !== undefined 
-      ? properties.currentPath 
+    this.currentPath = properties.currentPath !== undefined
+      ? properties.currentPath
       : [];
-
-    // 4. Legacy fields preserved for backward compatibility
-    this.alertLevel = properties.alertLevel !== undefined ? properties.alertLevel : 0;
-  }
-
-  // Getter/setter for 'state' (lowercased version of alertnessState for backward compatibility)
-  get state() {
-    return this.alertnessState.toLowerCase();
-  }
-  set state(val) {
-    if (typeof val === 'string') {
-      this.alertnessState = val.toUpperCase();
-    }
-  }
-
-  // Getter/setter for 'lastSeenPlayerAt' (alias to lastSeenPlayerCoords for backward compatibility)
-  get lastSeenPlayerAt() {
-    return this.lastSeenPlayerCoords;
-  }
-  set lastSeenPlayerAt(val) {
-    this.lastSeenPlayerCoords = val;
   }
 
   toJSON() {
