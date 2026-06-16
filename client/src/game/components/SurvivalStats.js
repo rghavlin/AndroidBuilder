@@ -13,4 +13,8 @@ export class SurvivalStats {
     this.isStarving = properties.isStarving !== undefined ? properties.isStarving : false;
     this.isDehydrated = properties.isDehydrated !== undefined ? properties.isDehydrated : false;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

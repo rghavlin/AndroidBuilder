@@ -40,4 +40,8 @@ export class AIBehavior {
   set lastSeenPlayerAt(val) {
     this.lastSeenPlayerCoords = val;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

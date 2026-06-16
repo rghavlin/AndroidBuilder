@@ -10,6 +10,7 @@ import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { TurretAI } from '../ai/TurretAI.js';
+import { FireSystem } from '../systems/FireSystem.js';
 
 export class SimulationManager {
   /**
@@ -23,8 +24,9 @@ export class SimulationManager {
     const actionQueue = [];
     if (!player) return actionQueue;
 
-    if (typeof gameMap.processTileFires === 'function') {
-      gameMap.processTileFires();
+    if (player) {
+      FireSystem.processTileFires(gameMap);
+      FireSystem.processEntityFires(gameMap);
     }
 
     GameMap.isSimulating = true;

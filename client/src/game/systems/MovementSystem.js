@@ -1,3 +1,5 @@
+import { FireSystem } from '../systems/FireSystem.js';
+
 export class MovementSystem {
   static resolve(entity, moveIntent, gameMap, actionQueue = []) {
     if (!gameMap || !entity) return;
@@ -25,6 +27,10 @@ export class MovementSystem {
       if (entity.hasComponent('Vision')) {
         entity.getComponent('Vision')._visionDirty = true;
       }
+      
+      // Check if entity walked into fire
+      FireSystem.checkTileIgnition(entity, gameMap);
+      
       actionQueue.push({
         type: 'MOVE',
         entityId: entity.id,

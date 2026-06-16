@@ -5,4 +5,8 @@ export class Position {
     this.level = properties.level !== undefined ? properties.level : 0;
     this.facing = properties.facing !== undefined ? properties.facing : 'south';
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

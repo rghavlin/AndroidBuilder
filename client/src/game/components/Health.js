@@ -4,4 +4,8 @@ export class Health {
     this.max = properties.max !== undefined ? properties.max : 100;
     this.isDead = properties.isDead !== undefined ? properties.isDead : false;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

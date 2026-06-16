@@ -2,6 +2,7 @@ import { EntityType } from '../entities/Entity.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { NoiseEvent } from '../components/NoiseEvent.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
+import { FireSystem } from '../systems/FireSystem.js';
 
 export class ExplosionSystem {
   /**
@@ -66,7 +67,7 @@ export class ExplosionSystem {
           if (isIncendiary && dist <= radius) {
             const tile = gameMap.getTile(tx, ty);
             if (tile) {
-              tile.fireTurns = 2;
+              FireSystem.ignite(tile, 2);
               if (gameMap.activeFires && typeof gameMap.activeFires.add === 'function') {
                 gameMap.activeFires.add(`${tx},${ty}`);
               }
@@ -101,7 +102,7 @@ export class ExplosionSystem {
       if (isIncendiary) {
         // Molotov damage: 2-7
         damage = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
-        entity.fireTurns = 2;
+        FireSystem.ignite(entity, 2);
       } else {
         // Grenade damage scaling:
         // Target (dist < 0.5): 20-30

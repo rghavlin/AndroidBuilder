@@ -323,6 +323,11 @@ class TurnManager {
 
       case 'SOUND':
         // Pure sound action
+        if (metadata && metadata.sound) {
+          audioManager.playSound(metadata.sound, metadata.audioOptions);
+        } else if (data && data.sound) {
+          audioManager.playSound(data.sound, data.audioOptions);
+        }
         break;
 
       case 'DEATH': {

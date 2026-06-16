@@ -5,4 +5,8 @@ export class LightEmitter {
     this.color = properties.color !== undefined ? properties.color : '#ffffff';
     this.isOn = properties.isOn !== undefined ? properties.isOn : false;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

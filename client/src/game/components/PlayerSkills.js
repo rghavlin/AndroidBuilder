@@ -7,4 +7,16 @@ export class PlayerSkills {
     this.craftingApUsed = properties.craftingApUsed !== undefined ? properties.craftingApUsed : 0;
     this.craftingLvl = properties.craftingLvl !== undefined ? properties.craftingLvl : 0;
   }
+
+  static getNextCraftingTarget(level) {
+    return 10 * Math.pow(2, level);
+  }
+
+  static getNextKillMilestone(level) {
+    return 5 * Math.pow(2, level);
+  }
+
+  toJSON() {
+    return { ...this };
+  }
 }

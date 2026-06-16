@@ -5,4 +5,8 @@ export class Vision {
     this.visibleEntities = properties.visibleEntities !== undefined ? properties.visibleEntities : [];
     this._visionDirty = properties._visionDirty !== undefined ? properties._visionDirty : true;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

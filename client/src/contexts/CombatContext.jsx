@@ -661,13 +661,17 @@ export const CombatProvider = ({ children }) => {
                         source: 'grenade'
                     });
                 }
+            } else if (action.type === 'SOUND') {
+                if (action.metadata?.sound) {
+                    playSound(action.metadata.sound, action.metadata.audioOptions);
+                }
             }
         });
 
         triggerMapUpdate();
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator]);
+    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator, playSound]);
     
     const performStoneThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;
@@ -957,13 +961,17 @@ export const CombatProvider = ({ children }) => {
                         source: 'molotov'
                     });
                 }
+            } else if (action.type === 'SOUND') {
+                if (action.metadata?.sound) {
+                    playSound(action.metadata.sound, action.metadata.audioOptions);
+                }
             }
         });
 
         triggerMapUpdate();
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, addLog]);
+    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, addLog, playSound]);
 
     return (
         <CombatContext.Provider value={{

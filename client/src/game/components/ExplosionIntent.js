@@ -8,4 +8,8 @@ export class ExplosionIntent {
     this.isIncendiary = properties.isIncendiary !== undefined ? properties.isIncendiary : false;
     this.sourceEntityId = properties.sourceEntityId !== undefined ? properties.sourceEntityId : null;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

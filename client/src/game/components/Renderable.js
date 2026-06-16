@@ -8,4 +8,8 @@ export class Renderable {
     this.zIndex = properties.zIndex !== undefined ? properties.zIndex : 1;
     this.isVisible = properties.isVisible !== undefined ? properties.isVisible : true;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

@@ -6,5 +6,9 @@ export class DamageIntent {
     this.targetX = properties.targetX !== undefined ? properties.targetX : null;
     this.targetY = properties.targetY !== undefined ? properties.targetY : null;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }
 

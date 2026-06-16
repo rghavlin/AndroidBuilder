@@ -4,4 +4,8 @@ export class Inventory {
     this.maxWeight = properties.maxWeight !== undefined ? properties.maxWeight : 50;
     this.maxSlots = properties.maxSlots !== undefined ? properties.maxSlots : 20;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

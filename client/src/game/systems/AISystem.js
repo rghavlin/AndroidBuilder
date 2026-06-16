@@ -299,26 +299,22 @@ export class AISystem {
             const absDx = Math.abs(targetX - zombiePos.x);
             const absDy = Math.abs(targetY - zombiePos.y);
             const isAdjacentToLkp = (absDx + absDy === 1) || (absDx === 1 && absDy === 1);
+            const canAttack = (absDx + absDy === 1) || (absDx === 1 && absDy === 1 && entity.subtype === 'mutant');
             
-            if (isAdjacentToLkp) {
-              const canAttack = (absDx + absDy === 1) || (absDx === 1 && absDy === 1 && entity.subtype === 'mutant');
+            if (isAdjacentToLkp && canAttack) {
               const blocking = Pathfinding.getBlockingStructure(gameMap, zombiePos.x, zombiePos.y, targetX, targetY);
               
               if (blocking) {
-                if (canAttack) {
-                  if (currentAP >= 1.0) {
-                    enqueueIntent('DamageIntent', new DamageIntent({
-                      amount: 1,
-                      targetId: blocking.id,
-                      isStructure: true,
-                      targetX: targetX,
-                      targetY: targetY
-                    }));
-                  }
-                  continue;
+                if (currentAP >= 1.0) {
+                  enqueueIntent('DamageIntent', new DamageIntent({
+                    amount: 1,
+                    targetId: blocking.id,
+                    isStructure: true,
+                    targetX: targetX,
+                    targetY: targetY
+                  }));
                 }
-                // Basic diagonal zombie next to a blocked tile should not hold position;
-                // it needs to pathfind to a cardinal neighbor to attack.
+                continue;
               } else {
                 // If we are adjacent to the LKP and there is no structure block, we are close enough.
                 // Do not wander away; hold position and wait.

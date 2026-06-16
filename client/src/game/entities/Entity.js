@@ -26,6 +26,8 @@ import { ActionPoints } from '../components/ActionPoints.js';
 import { SurvivalStats } from '../components/SurvivalStats.js';
 import { PlayerSkills } from '../components/PlayerSkills.js';
 import { Container } from '../inventory/Container.js';
+import { AIState } from '../components/AIState.js';
+import { Burnable } from '../components/Burnable.js';
 
 // COMPONENT_CLASSES: Registry of components that can be attached to entities.
 // Divided into Permanent Data Components and Intent/Action Tags.
@@ -46,6 +48,8 @@ export const COMPONENT_CLASSES = {
   ActionPoints,
   SurvivalStats,
   PlayerSkills,
+  AIState,
+  Burnable,
 
   // --- Intent / Action Tags (Temporary States) ---
   MoveIntent,
@@ -96,20 +100,10 @@ export class Entity extends SafeEventEmitter {
     this.isHostile = false;
     this.typeId = 'survivor';
     this.equippedWeaponId = null;
-    this.behaviorState = 'idle';
-    this.currentTarget = null;
-    this.hasDemanded = false;
-    this.hasExtorted = false;
     this.sightRange = 18;
-    this.heardNoise = false;
-    this.noiseCoords = { x: 0, y: 0 };
     this.noiseBlacklist = [];
     this.recentThreats = [];
-    this.goalTarget = null;
     this.hasExited = false;
-    this.currentPath = null;
-    this.stunnedTurns = 0;
-    this.fireTurns = 0;
     this._condition = type === 'item' ? null : 'Normal';
     this.pendingAPRefill = null;
     this.movementPath = [];
@@ -118,13 +112,72 @@ export class Entity extends SafeEventEmitter {
     this.inventory = null;
 
     // ECS AI & Alertness States
-    this.lastSeen = false;
-    this.targetSightedCoords = { x: 0, y: 0 };
-    this.lastScentSequence = 0;
-    this.isAlerted = false;
     this.isActive = false;
     this.activeAction = null;
   }
+
+
+  // AIState Facades
+  get behaviorState() { const ai = this.getComponent('AIState'); return ai ? ai.behaviorState : 'idle'; }
+  set behaviorState(val) { const ai = this.getComponent('AIState'); if (ai) { ai.behaviorState = val; this.notifyChange(); } else { this.addComponent(new AIState({behaviorState: val})); } }
+
+  get currentTarget() { const ai = this.getComponent('AIState'); return ai ? ai.currentTarget : null; }
+  set currentTarget(val) { const ai = this.getComponent('AIState'); if (ai) { ai.currentTarget = val; this.notifyChange(); } }
+
+  get heardNoise() { const ai = this.getComponent('AIState'); return ai ? ai.heardNoise : false; }
+  set heardNoise(val) { const ai = this.getComponent('AIState'); if (ai) { ai.heardNoise = val; this.notifyChange(); } }
+
+  get noiseCoords() { const ai = this.getComponent('AIState'); return ai ? ai.noiseCoords : { x: 0, y: 0 }; }
+  set noiseCoords(val) { const ai = this.getComponent('AIState'); if (ai) { ai.noiseCoords = val; this.notifyChange(); } }
+
+  get noiseBlacklist() { const ai = this.getComponent('AIState'); return ai ? ai.noiseBlacklist : []; }
+  set noiseBlacklist(val) { const ai = this.getComponent('AIState'); if (ai) { ai.noiseBlacklist = val; this.notifyChange(); } }
+
+  get recentThreats() { const ai = this.getComponent('AIState'); return ai ? ai.recentThreats : []; }
+  set recentThreats(val) { const ai = this.getComponent('AIState'); if (ai) { ai.recentThreats = val; this.notifyChange(); } }
+
+  get goalTarget() { const ai = this.getComponent('AIState'); return ai ? ai.goalTarget : null; }
+  set goalTarget(val) { const ai = this.getComponent('AIState'); if (ai) { ai.goalTarget = val; this.notifyChange(); } }
+
+  get lastSeen() { const ai = this.getComponent('AIState'); return ai ? ai.lastSeen : false; }
+  set lastSeen(val) { const ai = this.getComponent('AIState'); if (ai) { ai.lastSeen = val; this.notifyChange(); } }
+
+  get targetSightedCoords() { const ai = this.getComponent('AIState'); return ai ? ai.targetSightedCoords : { x: 0, y: 0 }; }
+  set targetSightedCoords(val) { const ai = this.getComponent('AIState'); if (ai) { ai.targetSightedCoords = val; this.notifyChange(); } }
+
+  get lastScentSequence() { const ai = this.getComponent('AIState'); return ai ? ai.lastScentSequence : 0; }
+  set lastScentSequence(val) { const ai = this.getComponent('AIState'); if (ai) { ai.lastScentSequence = val; this.notifyChange(); } }
+
+  get isAlerted() { const ai = this.getComponent('AIState'); return ai ? ai.isAlerted : false; }
+  set isAlerted(val) { const ai = this.getComponent('AIState'); if (ai) { ai.isAlerted = val; this.notifyChange(); } }
+
+  get currentPath() { const ai = this.getComponent('AIState'); return ai ? ai.currentPath : null; }
+  set currentPath(val) { const ai = this.getComponent('AIState'); if (ai) { ai.currentPath = val; this.notifyChange(); } }
+
+  get hasDemanded() { const ai = this.getComponent('AIState'); return ai ? ai.hasDemanded : false; }
+  set hasDemanded(val) { const ai = this.getComponent('AIState'); if (ai) { ai.hasDemanded = val; this.notifyChange(); } }
+
+  get hasExtorted() { const ai = this.getComponent('AIState'); return ai ? ai.hasExtorted : false; }
+  set hasExtorted(val) { const ai = this.getComponent('AIState'); if (ai) { ai.hasExtorted = val; this.notifyChange(); } }
+
+  get fleeRecoverChance() { const ai = this.getComponent('AIState'); return ai ? ai.fleeRecoverChance : 0; }
+  set fleeRecoverChance(val) { const ai = this.getComponent('AIState'); if (ai) { ai.fleeRecoverChance = val; this.notifyChange(); } }
+
+  get stunnedTurns() { const ai = this.getComponent('AIState'); return ai ? ai.stunnedTurns : 0; }
+  set stunnedTurns(val) { const ai = this.getComponent('AIState'); if (ai) { ai.stunnedTurns = val; this.notifyChange(); } }
+
+  // Burnable Facades
+  get fireTurns() { const b = this.getComponent('Burnable'); return b ? b.fireTurns : 0; }
+  set fireTurns(val) { 
+    const b = this.getComponent('Burnable'); 
+    if (b) { 
+      b.fireTurns = val; 
+      this.notifyChange(); 
+    } else { 
+      this.addComponent(new Burnable({fireTurns: val})); 
+    }
+  }
+
 
   // Getters/setters for dual-coordinate rendering system
   get x() { return this._renderX; }
@@ -665,7 +718,7 @@ export class Entity extends SafeEventEmitter {
 
   onItemCrafted(apUsed = 1) {
     this.craftingApUsed += apUsed;
-    const nextTarget = 10 * Math.pow(2, this.craftingLvl);
+    const nextTarget = PlayerSkills.getNextCraftingTarget(this.craftingLvl);
     if (this.craftingApUsed >= nextTarget) {
       this.craftingLvl++;
     }
@@ -699,14 +752,9 @@ export class Entity extends SafeEventEmitter {
     this.wasAttackedThisTurn = false;
     this.movementPath = [{ x: this.logicalX, y: this.logicalY }];
     if (this.behaviorState === 'fleeing' && this.fleeRecoverChance !== undefined && Math.random() < this.fleeRecoverChance) {
-      this.behaviorState = 'idle';
     }
 
-    if (this.fireTurns > 0 && (this.type === 'player' || this.type === 'zombie' || this.type === 'npc' || this.type === 'rabbit')) {
-      this.fireTurns--;
-      const fireDamage = Math.floor(Math.random() * 4) + 2; // 2-5 damage
-      this.takeDamage(fireDamage, { id: 'fire', type: 'hazard' });
-    }
+
   }
 
   endTurn() {
@@ -756,15 +804,7 @@ export class Entity extends SafeEventEmitter {
       this.emit('entityMoved', { oldPosition: { x: oldX, y: oldY }, newPosition: { x, y } });
     }
 
-    const gameMap = engine ? engine.gameMap : null;
-    if (gameMap && (this.type === 'player' || this.type === 'zombie' || this.type === 'npc' || this.type === 'rabbit')) {
-      const tile = gameMap.getTile(x, y);
-      if (tile && tile.fireTurns > 0) {
-        this.fireTurns = 2;
-        const fireDamage = Math.floor(Math.random() * 4) + 2; // 2-5 damage
-        this.takeDamage(fireDamage, { id: 'fire_tile', type: 'hazard' });
-      }
-    }
+
   }
 
   async playAction(action, callbacks = {}) {
@@ -886,8 +926,6 @@ export class Entity extends SafeEventEmitter {
   }
 
   clearNoiseHeard() {
-    this.heardNoise = false;
-    this.noiseCoords = { x: 0, y: 0 };
     const aiComp = this.getComponent('AIBehavior');
     if (aiComp) {
       aiComp.heardNoiseCoords = null;
@@ -913,9 +951,6 @@ export class Entity extends SafeEventEmitter {
   }
 
   clearLastSeen() {
-    this.lastSeen = false;
-    this.targetSightedCoords = { x: 0, y: 0 };
-    this.lastScentSequence = 0;
     const aiComp = this.getComponent('AIBehavior');
     if (aiComp) {
       aiComp.lastSeenPlayerCoords = null;
@@ -975,25 +1010,9 @@ export class Entity extends SafeEventEmitter {
       name: this.name,
       isHostile: this.isHostile,
       equippedWeaponId: this.equippedWeaponId,
-      behaviorState: this.behaviorState,
-      currentTarget: this.currentTarget,
       typeId: this.typeId,
-      hasDemanded: this.hasDemanded,
-      hasExtorted: this.hasExtorted,
       sightRange: this.sightRange,
-      heardNoise: this.heardNoise,
-      noiseCoords: this.noiseCoords,
-      noiseBlacklist: this.noiseBlacklist,
-      recentThreats: this.recentThreats,
-      goalTarget: this.goalTarget,
       hasExited: this.hasExited,
-      currentPath: this.currentPath,
-      stunnedTurns: this.stunnedTurns,
-      fireTurns: this.fireTurns,
-      lastSeen: this.lastSeen,
-      targetSightedCoords: this.targetSightedCoords,
-      lastScentSequence: this.lastScentSequence,
-      isAlerted: this.isAlerted,
       isActive: this.isActive,
       hp: this.hp,
       maxHp: this.maxHp,
@@ -1081,24 +1100,8 @@ export class Entity extends SafeEventEmitter {
     if (data.isHostile !== undefined) entity.isHostile = data.isHostile;
     if (data.typeId !== undefined) entity.typeId = data.typeId;
     if (data.equippedWeaponId !== undefined) entity.equippedWeaponId = data.equippedWeaponId;
-    if (data.behaviorState !== undefined) entity.behaviorState = data.behaviorState;
-    if (data.currentTarget !== undefined) entity.currentTarget = data.currentTarget;
-    if (data.hasDemanded !== undefined) entity.hasDemanded = data.hasDemanded;
-    if (data.hasExtorted !== undefined) entity.hasExtorted = data.hasExtorted;
     if (data.sightRange !== undefined) entity.sightRange = data.sightRange;
-    if (data.heardNoise !== undefined) entity.heardNoise = data.heardNoise;
-    if (data.noiseCoords !== undefined) entity.noiseCoords = data.noiseCoords;
-    if (data.noiseBlacklist !== undefined) entity.noiseBlacklist = data.noiseBlacklist;
-    if (data.recentThreats !== undefined) entity.recentThreats = data.recentThreats;
-    if (data.goalTarget !== undefined) entity.goalTarget = data.goalTarget;
     if (data.hasExited !== undefined) entity.hasExited = data.hasExited;
-    if (data.currentPath !== undefined) entity.currentPath = data.currentPath;
-    if (data.stunnedTurns !== undefined) entity.stunnedTurns = data.stunnedTurns;
-    if (data.fireTurns !== undefined) entity.fireTurns = data.fireTurns;
-    if (data.lastSeen !== undefined) entity.lastSeen = data.lastSeen;
-    if (data.targetSightedCoords !== undefined) entity.targetSightedCoords = data.targetSightedCoords;
-    if (data.lastScentSequence !== undefined) entity.lastScentSequence = data.lastScentSequence;
-    if (data.isAlerted !== undefined) entity.isAlerted = data.isAlerted;
     if (data.isActive !== undefined) entity.isActive = data.isActive;
     if (data.nutrition !== undefined) entity.nutrition = data.nutrition;
     if (data.maxNutrition !== undefined) entity.maxNutrition = data.maxNutrition;

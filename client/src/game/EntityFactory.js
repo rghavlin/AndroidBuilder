@@ -5,12 +5,14 @@ import { Renderable } from './components/Renderable.js';
 import { Movable } from './components/Movable.js';
 import { InventoryContainer } from './components/InventoryContainer.js';
 import { AIBehavior } from './components/AIBehavior.js';
+import { AIState } from './components/AIState.js';
 import { LightEmitter } from './components/LightEmitter.js';
 import { Vision } from './components/Vision.js';
 import { Inventory } from './components/Inventory.js';
 import { ActionPoints } from './components/ActionPoints.js';
 import { SurvivalStats } from './components/SurvivalStats.js';
 import { PlayerSkills } from './components/PlayerSkills.js';
+import { Burnable } from './components/Burnable.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
@@ -54,6 +56,7 @@ export const EntityFactory = {
       craftingApUsed: 0,
       craftingLvl: 0
     }));
+    entity.addComponent(new Burnable({ fireTurns: 0 }));
 
     return entity;
   },
@@ -85,8 +88,10 @@ export const EntityFactory = {
     entity.addComponent(new Movable({ apCost: typeDef.moveCostMultiplier, baseSpeed: 1 }));
     entity.addComponent(new Renderable({ spriteId: typeDef.spriteKey, color: color, zIndex: 1 }));
     entity.addComponent(new AIBehavior({ state: 'idle' }));
+    entity.addComponent(new AIState({ behaviorState: 'idle' }));
     entity.addComponent(new Vision({ range: typeDef.sightRange || 15 }));
     entity.addComponent(new ActionPoints({ current: typeDef.maxAP, max: typeDef.maxAP }));
+    entity.addComponent(new Burnable({ fireTurns: 0, fireResistance: subtype === 'firefighter' ? 2 : 0 }));
 
     // Backing stats matching legacy Zombie constructor
     entity.sightRange = typeDef.sightRange || 15;
@@ -109,8 +114,10 @@ export const EntityFactory = {
     entity.addComponent(new Movable({ apCost: 1, baseSpeed: 1 }));
     entity.addComponent(new Renderable({ spriteId: 'npc', color: '#ffb37e', zIndex: 1 }));
     entity.addComponent(new AIBehavior({ state: 'idle' }));
+    entity.addComponent(new AIState({ behaviorState: 'idle' }));
     entity.addComponent(new Vision({ range: typeDef.sightRange || 18 }));
     entity.addComponent(new ActionPoints({ current: typeDef.maxAP, max: typeDef.maxAP }));
+    entity.addComponent(new Burnable({ fireTurns: 0 }));
 
     // Backing stats matching legacy NPC constructor
     entity.fleeRecoverChance = typeDef.fleeRecoverChance;

@@ -5,4 +5,8 @@ export class NoiseEvent {
     this.volume = properties.volume !== undefined ? properties.volume : 0;
     this.sourceEntityId = properties.sourceEntityId !== undefined ? properties.sourceEntityId : null;
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

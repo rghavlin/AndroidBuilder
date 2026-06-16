@@ -1,4 +1,6 @@
 import { Entity, EntityType } from './Entity.js';
+import { AIState } from '../components/AIState.js';
+import { Burnable } from '../components/Burnable.js';
 import { SequencerAction } from '../managers/SequencerAction.js';
 import engine from '../GameEngine.js';
 
@@ -23,6 +25,10 @@ export class Rabbit extends Entity {
     this.animationProgress = 0; // 0.0 to 1.0
 
     this.isActive = false; // Whether it's this rabbit's turn
+    
+    // Add components
+    this.addComponent(new AIState({ behaviorState: 'idle' }));
+    this.addComponent(new Burnable({ fireTurns: 0 }));
   }
 
   /**
