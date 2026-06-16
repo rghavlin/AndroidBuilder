@@ -11,6 +11,8 @@ import { IntentQueue } from './IntentQueue.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { TurretAI } from '../ai/TurretAI.js';
 import { FireSystem } from '../systems/FireSystem.js';
+import { DestructionSystem } from '../systems/DestructionSystem.js';
+import { DestroyIntent } from '../components/DestroyIntent.js';
 
 export class SimulationManager {
   /**
@@ -37,6 +39,7 @@ export class SimulationManager {
     }
 
     try {
+      const intentQueue = new IntentQueue();
       let npcs = gameMap.getEntitiesByType(EntityType.NPC) || [];
       let zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE) || [];
 
@@ -65,77 +68,12 @@ export class SimulationManager {
       // Construct entity list for ECS systems
       let ecsEntities = [player, ...activeZombies, ...npcs];
 
-      const checkAndProcessDeaths = () => {
-        const allEntities = Array.from(gameMap.entityMap.values());
-        const checkList = allEntities.filter(e => 
-          e && e.id !== player.id && (e.type === 'zombie' || e.type === 'npc' || e.type === 'rabbit' || e.type === EntityType.ZOMBIE || e.type === EntityType.NPC || e.type === EntityType.RABBIT)
-        );
-
-        let diedAny = false;
-        for (const entity of checkList) {
-          if (entity.hp <= 0 || (typeof entity.isDead === 'function' && entity.isDead())) {
-            if (gameMap.getEntity(entity.id)) {
-              console.log(`[SimulationManager] Entity ${entity.id} (${entity.type}) died during turn simulation.`);
-
-              if (typeof entity.die === 'function') {
-                entity.die();
-              }
-
-              const ex = entity.logicalX !== undefined ? entity.logicalX : (entity.x || 0);
-              const ey = entity.logicalY !== undefined ? entity.logicalY : (entity.y || 0);
-
-              if (entity.type === 'zombie' || entity.type === EntityType.ZOMBIE) {
-                const lootGenerator = engine.lootGenerator;
-                const hasWindow = gameMap.getTile(ex, ey)?.contents.some(e => e.type === 'window' || e.type === EntityType.WINDOW);
-                if (lootGenerator && !hasWindow && Math.random() < 0.75) {
-                  const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
-                  if (loot && loot.length > 0) {
-                    gameMap.addItemsToTile(ex, ey, loot);
-                  }
-                }
-              } else if (entity.type === 'npc' || entity.type === EntityType.NPC) {
-                const items = entity.inventory ? entity.inventory.getAllItems() : [];
-                if (items.length > 0) {
-                  gameMap.addItemsToTile(ex, ey, items);
-                  entity.inventory.clear();
-                }
-              } else if (entity.type === 'rabbit' || entity.type === EntityType.RABBIT) {
-                const meat = createItemFromDef('food.raw_meat');
-                if (meat) {
-                  gameMap.addItemsToTile(ex, ey, [meat]);
-                }
-              }
-
-              gameMap.removeEntity(entity.id);
-
-              actionQueue.push({
-                type: 'DEATH',
-                entityId: entity.id,
-                data: {
-                  x: ex,
-                  y: ey,
-                  entityType: entity.type
-                }
-              });
-
-              diedAny = true;
-            }
-          }
-        }
-
-        if (diedAny) {
-          activeZombies = activeZombies.filter(z => z.hp > 0);
-          npcs = npcs.filter(n => n.hp > 0);
-          zombies = zombies.filter(z => z.hp > 0);
-          ecsEntities = ecsEntities.filter(e => e.id === player.id || e.hp > 0);
-
-          const remainingZombies = gameMap.getEntitiesByType('zombie');
-          remainingZombies.forEach(z => {
-            if (z.currentTarget && !gameMap.getEntity(z.currentTarget.id)) {
-              z.currentTarget = null;
-              z.behaviorState = 'idle';
-            }
-          });
+      const runDeathCheck = () => {
+        if (SimulationManager.checkAndProcessDeaths(gameMap, ecsEntities, intentQueue, actionQueue, player)) {
+          activeZombies = activeZombies.filter(z => z.hp > 0 && gameMap.getEntity(z.id));
+          npcs = npcs.filter(n => n.hp > 0 && gameMap.getEntity(n.id));
+          zombies = zombies.filter(z => z.hp > 0 && gameMap.getEntity(z.id));
+          ecsEntities = ecsEntities.filter(e => e.id === player.id || (e.hp > 0 && gameMap.getEntity(e.id)));
         }
       };
 
@@ -145,15 +83,8 @@ export class SimulationManager {
       const playerY = player ? player.logicalY : null;
       // Collect all items in the game map (which include placed items and containers on the ground)
       const mapItems = gameMap.getEntitiesByType('item');
-      // If the player is on a tile, we also want to consider items in their ground container
-      const groundItems = (engine && engine.inventoryManager && engine.inventoryManager.groundContainer)
-        ? engine.inventoryManager.groundContainer.getAllItems()
-        : [];
       
-      // Merge map items and ground container items, avoiding duplicates if any
-      const allItems = new Set([...mapItems, ...groundItems]);
-
-      for (const item of allItems) {
+      for (const item of mapItems) {
         if (!item) continue;
         
         // Items in groundContainer might not have explicit logicalX/Y, they inherit from player/tile
@@ -177,18 +108,14 @@ export class SimulationManager {
           }
         }
       }
-      checkAndProcessDeaths();
 
       // --- 2. Replenish AP for active zombies ---
       activeZombies.forEach(z => {
         if (typeof z.startTurn === 'function') z.startTurn();
       });
 
-      // Check for deaths after startTurn fire damage
-      checkAndProcessDeaths();
-
-      // Instantiate the centralized Intent Queue
-      const intentQueue = new IntentQueue();
+      // Checkpoint 1: Run death check after startTurn fire damage and turret turns
+      runDeathCheck();
 
       // Sequential system execution in a loop to handle multi-step turns (AI AP consumption)
       let aiCycleCounter = 0;
@@ -212,12 +139,12 @@ export class SimulationManager {
         // Run the IntentQueue to absolute completion (resolving all starting and cascading intents)
         intentQueue.resolve(ecsEntities, engine.worldManager, engine, actionQueue);
 
-        // Check for deaths after move intents (which might trigger stepping on fire/hazards)
-        checkAndProcessDeaths();
-
         newIntentsGenerated = true;
         aiCycleCounter++;
       }
+
+      // Checkpoint 2: Run death check after AI cycle loop completes
+      runDeathCheck();
 
       // 2. Legacy Processing (Rabbit Turns) - Runs ONLY after IntentQueue has completely resolved
       const rabbits = gameMap.getEntitiesByType(EntityType.RABBIT) || [];
@@ -227,7 +154,6 @@ export class SimulationManager {
         try {
           if (typeof rabbit.startTurn === 'function') rabbit.startTurn();
           if (rabbit.hp <= 0) {
-            checkAndProcessDeaths();
             return;
           }
           const turnResult = RabbitAI.executeRabbitTurn(rabbit, gameMap, player, zombies);
@@ -238,7 +164,6 @@ export class SimulationManager {
           console.error(`[SimulationManager] Error processing rabbit ${rabbit.id}:`, err);
         }
       });
-      checkAndProcessDeaths();
 
       // 3. Legacy Processing (NPC Turns) - Runs ONLY after IntentQueue has completely resolved
       const npcsToProcess = [...npcs];
@@ -248,7 +173,6 @@ export class SimulationManager {
         try {
           if (typeof npc.startTurn === 'function') npc.startTurn();
           if (npc.hp <= 0) {
-            checkAndProcessDeaths();
             continue;
           }
           const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, zombies);
@@ -265,7 +189,9 @@ export class SimulationManager {
           console.error(`[SimulationManager] Error processing NPC ${npc.id}:`, err);
         }
       }
-      checkAndProcessDeaths();
+
+      // Checkpoint 3: Run death check at the end of the simulation
+      runDeathCheck();
 
       // 5. Vision System Update
       VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
@@ -289,5 +215,33 @@ export class SimulationManager {
    */
   static executeNPCTurn(npc, gameMap, player, zombies, skipAPReset = false) {
     return NPCAI.executeNPCTurn(npc, gameMap, player, zombies, skipAPReset);
+  }
+
+  /**
+   * Statically processes deaths for all entities except the player.
+   */
+  static checkAndProcessDeaths(gameMap, ecsEntities, intentQueue, actionQueue, player) {
+    const allEntities = Array.from(gameMap.entityMap.values());
+    const checkList = allEntities.filter(e => 
+      e && e.id !== player.id && (e.type === 'zombie' || e.type === 'npc' || e.type === 'rabbit' || e.type === EntityType.ZOMBIE || e.type === EntityType.NPC || e.type === EntityType.RABBIT)
+    );
+
+    let diedAny = false;
+    for (const entity of checkList) {
+      if (entity.hp <= 0 || (typeof entity.isDead === 'function' && entity.isDead())) {
+        if (gameMap.getEntity(entity.id)) {
+          console.log(`[SimulationManager] Entity ${entity.id} (${entity.type}) died during turn simulation.`);
+          DestructionSystem.resolve(
+            new DestroyIntent({ entityId: entity.id }),
+            ecsEntities,
+            gameMap,
+            intentQueue,
+            actionQueue
+          );
+          diedAny = true;
+        }
+      }
+    }
+    return diedAny;
   }
 }

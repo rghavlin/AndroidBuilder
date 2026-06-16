@@ -284,38 +284,14 @@ class TurnManager {
             target.inflictSickness(24);
           }
 
-          // Check if target died from the damage
+          // Check if target died from the damage (visual triggers only)
           if (typeof target.isDead === 'function' && target.isDead()) {
-            console.log(`[TurnManager] Entity ${target.id} (${target.type}) died from attack.`);
-            if (target.type === 'npc' || target.type === EntityType.NPC) {
-              if (typeof target.die === 'function') {
-                target.die(); // Emits npcDied event
-              }
-              const items = target.inventory ? target.inventory.getAllItems() : [];
-              if (items.length > 0) {
-                gameMap.addItemsToTile(target.logicalX, target.logicalY, items);
-                target.inventory.clear();
-              }
-            }
-            
             if (target.type === 'zombie' || target.type === EntityType.ZOMBIE) {
               if (!this.flashedEntityIds.has(target.id)) {
                 GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: target.logicalX ?? target.x, y: target.logicalY ?? target.y });
                 this.flashedEntityIds.add(target.id);
               }
             }
-
-            // Remove the dead entity from the map
-            gameMap.removeEntity(target.id);
-            
-            // Clear targeting references from all zombies to avoid ghost chasing
-            const allZombies = gameMap.getEntitiesByType(EntityType.ZOMBIE);
-            allZombies.forEach(z => {
-              if (z.currentTarget && z.currentTarget.id === target.id) {
-                z.currentTarget = null;
-                z.behaviorState = 'idle';
-              }
-            });
           }
         }
         break;

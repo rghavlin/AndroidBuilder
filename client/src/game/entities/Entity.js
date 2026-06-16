@@ -729,7 +729,7 @@ export class Entity extends SafeEventEmitter {
     const isMelee = type === 'melee';
     const currentLevel = isMelee ? this.meleeLvl : this.rangedLvl;
     this.modifyStat(isMelee ? 'meleeKills' : 'rangedKills', 1);
-    const nextMilestone = 5 * Math.pow(2, currentLevel);
+    const nextMilestone = PlayerSkills.getNextKillMilestone(currentLevel);
     if (this[isMelee ? 'meleeKills' : 'rangedKills'] >= nextMilestone) {
       const newLevel = currentLevel + 1;
       this.setStat(isMelee ? 'meleeLvl' : 'rangedLvl', newLevel);
@@ -1037,7 +1037,9 @@ export class Entity extends SafeEventEmitter {
       craftingApUsed: this.craftingApUsed,
       craftingLvl: this.craftingLvl,
       inventory: this.inventory ? this.inventory.toJSON() : null,
-      components: Object.fromEntries(this.components)
+      components: Object.fromEntries(
+        [...this.components].map(([name, comp]) => [name, typeof comp?.toJSON === 'function' ? comp.toJSON() : comp])
+      )
     };
 
     if (this.type === 'item') {

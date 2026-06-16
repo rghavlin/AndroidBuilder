@@ -106,7 +106,7 @@ export class AISystem {
     if (!gameMap) return intentsGenerated;
 
     for (const entity of entityList) {
-      if (entity.type === 'zombie' && entity.hasComponent('AIBehavior') && entity.hasComponent('Position')) {
+      if (entity.type === 'zombie' && entity.hp > 0 && entity.hasComponent('AIBehavior') && entity.hasComponent('Position')) {
         if (entity.hasComponent('MoveIntent') || entity.hasComponent('DamageIntent')) {
           continue;
         }

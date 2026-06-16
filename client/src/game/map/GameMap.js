@@ -1542,8 +1542,9 @@ export class GameMap {
   convertLegacyItemToECS(itemData) {
     if (!itemData) return null;
 
-    // Create new ECS Entity
-    const entity = new Entity(null, 'item');
+    // Create new ECS Entity - preserve instanceId if available
+    const entityId = itemData.instanceId || null;
+    const entity = new Entity(entityId, 'item');
 
     // Get item template fields
     const defId = itemData.defId || itemData.id;

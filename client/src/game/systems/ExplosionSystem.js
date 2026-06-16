@@ -3,6 +3,7 @@ import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { NoiseEvent } from '../components/NoiseEvent.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
 import { FireSystem } from '../systems/FireSystem.js';
+import { DestructionSystem } from './DestructionSystem.js';
 
 export class ExplosionSystem {
   /**
@@ -77,17 +78,37 @@ export class ExplosionSystem {
       }
     }
 
-    // 3. Damage & Ignite living entities
+    // 3. Destroy items on the ground within blast radius
+    let itemsDestroyed = false;
+    for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
+      for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
+        const tx = targetX + dx;
+        const ty = targetY + dy;
+        if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > radius + 0.1) continue;
+        const tile = gameMap.getTile(tx, ty);
+        if (tile && tile.inventoryItems && tile.inventoryItems.length > 0) {
+          gameMap.setItemsOnTile(tx, ty, []);
+          itemsDestroyed = true;
+        }
+      }
+    }
+
+    if (itemsDestroyed) {
+      actionQueue.push({
+        type: 'EXPLOSION_LOG',
+        data: { log: 'Explosion destroys items on the ground!' }
+      });
+    }
+
+    // 4. Damage & Ignite living entities
     entities.forEach(entity => {
       if (
         entity.type !== EntityType.PLAYER &&
         entity.type !== EntityType.ZOMBIE &&
         entity.type !== EntityType.RABBIT &&
-        entity.type !== EntityType.NPC &&
-        entity.type !== 'player' &&
-        entity.type !== 'zombie' &&
-        entity.type !== 'rabbit' &&
-        entity.type !== 'npc'
+        entity.type !== EntityType.NPC
       ) return;
 
       const entityX = entity.logicalX !== undefined ? entity.logicalX : entity.x;
@@ -140,42 +161,15 @@ export class ExplosionSystem {
             }
           });
 
-          // Spawning loot
-          if ((entity.type === 'zombie' || entity.type === EntityType.ZOMBIE) && engine?.lootGenerator) {
-            const hasWindow = gameMap.getTile(entityX, entityY)?.contents.some(e => e.type === 'window' || e.type === EntityType.WINDOW);
-            if (!hasWindow && Math.random() < 0.75) {
-              const loot = engine.lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
-              if (loot && loot.length > 0) {
-                gameMap.addItemsToTile(entityX, entityY, loot);
-              }
-            }
-          } else if (entity.type === 'npc' || entity.type === EntityType.NPC) {
-            if (typeof entity.die === 'function') {
-              entity.die();
-            }
-            const items = entity.inventory ? entity.inventory.getAllItems() : [];
-            if (items.length > 0) {
-              gameMap.addItemsToTile(entityX, entityY, items);
-              entity.inventory.clear();
-            }
-          } else if (entity.type === 'rabbit' || entity.type === EntityType.RABBIT) {
-            const meat = createItemFromDef('food.raw_meat');
-            if (meat) {
-              gameMap.addItemsToTile(entityX, entityY, [meat]);
-            }
-          }
-
-          gameMap.removeEntity(entity.id);
-
-          actionQueue.push({
-            type: 'DEATH',
-            entityId: entity.id,
-            data: {
-              x: entityX,
-              y: entityY,
-              entityType: entity.type
-            }
-          });
+          // Route death through DestructionSystem.resolve()
+          DestructionSystem.resolve(
+            new DestroyIntent({ entityId: entity.id }),
+            entities,
+            gameMap,
+            intentQueue,
+            actionQueue,
+            parentEnvelope
+          );
         }
       }
     });
@@ -302,28 +296,6 @@ export class ExplosionSystem {
       });
     }
 
-    // 7. Destroy items on the ground within blast radius
-    let itemsDestroyed = false;
-    for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
-      for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
-        const tx = targetX + dx;
-        const ty = targetY + dy;
-        if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > radius + 0.1) continue;
-        const tile = gameMap.getTile(tx, ty);
-        if (tile && tile.inventoryItems && tile.inventoryItems.length > 0) {
-          gameMap.setItemsOnTile(tx, ty, []);
-          itemsDestroyed = true;
-        }
-      }
-    }
 
-    if (itemsDestroyed) {
-      actionQueue.push({
-        type: 'EXPLOSION_LOG',
-        data: { log: 'Explosion destroys items on the ground!' }
-      });
-    }
   }
 }

@@ -1,4 +1,7 @@
 import { NoiseEvent } from '../components/NoiseEvent.js';
+import engine from '../GameEngine.js';
+import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { EntityType } from '../entities/Entity.js';
 
 export class DestructionSystem {
   /**
@@ -23,9 +26,42 @@ export class DestructionSystem {
       x = target.logicalX !== undefined ? target.logicalX : (target.x || 0);
       y = target.logicalY !== undefined ? target.logicalY : (target.y || 0);
       
-      // Call die if entity supports it (handles item drops)
+      let npcItems = [];
+      if (target.type === 'npc' || target.type === EntityType.NPC) {
+        npcItems = target.inventory ? target.inventory.getAllItems() : [];
+      }
+
+      // Call die if entity supports it (handles item drops / npc inventory clears)
       if (typeof target.die === 'function') {
         target.die();
+      }
+
+      // Drop loot on death
+      if (target.type === 'zombie' || target.type === EntityType.ZOMBIE) {
+        const lootGenerator = engine?.lootGenerator;
+        const tile = gameMap ? gameMap.getTile(x, y) : null;
+        const hasWindow = tile?.contents.some(e => e.type === 'window' || e.type === EntityType.WINDOW);
+        if (lootGenerator && !hasWindow && Math.random() < 0.75) {
+          const loot = lootGenerator.generateZombieLoot(target.subtype, gameMap ? gameMap.mapNumber : 1);
+          if (loot && loot.length > 0 && gameMap) {
+            gameMap.addItemsToTile(x, y, loot);
+          }
+        }
+      } else if (target.type === 'npc' || target.type === EntityType.NPC) {
+        // Fallback: If engine event loop didn't drop the items (e.g. engine.gameMap not set in tests)
+        if (npcItems.length > 0 && gameMap) {
+          const tileItems = gameMap.getItemsOnTile(x, y) || [];
+          const alreadyDropped = npcItems.some(item => tileItems.some(tItem => tItem.id === item.id || tItem.instanceId === item.instanceId));
+          if (!alreadyDropped) {
+            gameMap.addItemsToTile(x, y, npcItems);
+          }
+          target.inventory.clear();
+        }
+      } else if (target.type === 'rabbit' || target.type === EntityType.RABBIT) {
+        const meat = createItemFromDef('food.raw_meat');
+        if (meat && gameMap) {
+          gameMap.addItemsToTile(x, y, [meat]);
+        }
       }
     }
 
@@ -36,7 +72,7 @@ export class DestructionSystem {
     }
 
     // Clear targeting references from zombies
-    const zombies = entities.filter(e => e.type === 'zombie');
+    const zombies = entities.filter(e => e.type === 'zombie' || e.type === EntityType.ZOMBIE);
     zombies.forEach(z => {
       if (z.currentTarget && z.currentTarget.id === targetId) {
         z.currentTarget = null;
