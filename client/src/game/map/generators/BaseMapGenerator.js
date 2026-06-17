@@ -117,5 +117,80 @@ export class BaseMapGenerator {
 
     return hasRoadTile;
   }
+
+  /**
+   * Generic road-driven zoning: place rows of buildings down both sides of every
+   * road segment, facing the road. Works for any axis-aligned road network (the
+   * authored spine + procedural branches from RoadNetwork), replacing the
+   * per-template hardcoded passZoning enumerations.
+   *
+   * Relies on placeBuildingsFromAnchor's grass+buffer collision check, so rows
+   * from neighbouring segments simply don't overlap each other or the roads —
+   * gaps open naturally where a branch crosses. Run AFTER all roads are
+   * rasterized so every road reads as non-grass.
+   *
+   * @param {MapBuilder} builder
+   * @param {Array<{x1,y1,x2,y2,orientation,thickness,sidewalkThickness}>} segments
+   * @param {Object} [options] overrides for placeBuildingsFromAnchor sizing
+   */
+  zoneAlongSegments(builder, segments, options = {}) {
+    const common = {
+      setback: 2, minW: 10, maxW: 16, minH: 10, maxH: 14,
+      gap: 4, ...options
+    };
+
+    for (const seg of segments) {
+      const thickness = seg.thickness ?? 5;
+      const sidewalk = seg.sidewalkThickness ?? 1;
+      const hs = Math.floor(thickness / 2) + sidewalk; // road+sidewalk half-width
+
+      // Scale building count to the segment's length so long streets (the full
+      // boulevard / cross-streets) fill end to end instead of stopping partway.
+      const segLen = seg.orientation === 'horizontal' ? (seg.x2 - seg.x1) : (seg.y2 - seg.y1);
+      const maxBuildings = options.maxBuildings ?? Math.max(2, Math.ceil(segLen / 14));
+
+      if (seg.orientation === 'horizontal') {
+        const cy = seg.y1;
+        // Clamp the row to the segment's x-extent so buildings never overshoot
+        // past the road's ends into open grass.
+        const run = { ...common, maxBuildings, runStart: seg.x1, runEnd: seg.x2 };
+        // North side: anchor on the road's north edge, buildings face south.
+        builder.placeBuildingsFromAnchor(seg.x1, cy - hs, 'east', 'south', run);
+        // South side: anchor on the road's south edge, buildings face north.
+        builder.placeBuildingsFromAnchor(seg.x1, cy + hs, 'east', 'north', run);
+      } else {
+        const cx = seg.x1;
+        const run = { ...common, maxBuildings, runStart: seg.y1, runEnd: seg.y2 };
+        // West side: buildings face east. East side: buildings face west.
+        builder.placeBuildingsFromAnchor(cx - hs, seg.y1, 'south', 'east', run);
+        builder.placeBuildingsFromAnchor(cx + hs, seg.y1, 'south', 'west', run);
+      }
+    }
+  }
+
+  /**
+   * Generic specialization: convert a few road-fronting residential buildings into
+   * POIs (grocer, firestation, ...). Mirrors the existing per-template passes but
+   * works off whatever buildings zoneAlongSegments produced.
+   *
+   * @param {MapBuilder} builder
+   * @param {string} templateName
+   * @param {number} mapNumber
+   */
+  specializeBuildings(builder, templateName, mapNumber) {
+    const residential = builder.metadata.buildings.filter(b => b.type === 'residential');
+    const candidates = residential.filter(b => this.hasRoadFrontage(builder, b, 6));
+    if (candidates.length === 0) return;
+
+    const area = builder.width * builder.height;
+    const count = Math.max(1, Math.floor(area / 5000));
+    const selected = this.getRandomSubarray(candidates, count);
+    const types = this.getSpecialBuildingTypes(mapNumber, templateName, selected.length);
+
+    selected.forEach((b, i) => {
+      builder.clearArea(b.x, b.y, b.width, b.height);
+      builder.drawSpecialBuilding(b, types[i]);
+    });
+  }
 }
 

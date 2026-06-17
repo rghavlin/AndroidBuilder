@@ -1,4 +1,5 @@
 import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { validateConnectivity } from './MapConnectivityValidator.js';
 import { MapBuilder } from './MapBuilder.js';
 import { RoadGenerator } from './generators/RoadGenerator.js';
 import { SplitRoadGenerator } from './generators/SplitRoadGenerator.js';
@@ -6,6 +7,7 @@ import { WindingRoadGenerator } from './generators/WindingRoadGenerator.js';
 import { MirroredWindingRoadGenerator } from './generators/MirroredWindingRoadGenerator.js';
 import { LabMapGenerator } from './generators/LabMapGenerator.js';
 import { StartingRoadGenerator } from './generators/StartingRoadGenerator.js';
+import { BranchingRoadGenerator } from './generators/BranchingRoadGenerator.js';
 import { isSpecialBuilding } from './BuildingTypes.js';
 
 /**
@@ -31,6 +33,7 @@ export class TemplateMapGenerator {
     this.generators.set('mirrored_winding_road', new MirroredWindingRoadGenerator());
     this.generators.set('lab', new LabMapGenerator());
     this.generators.set('starting_road', new StartingRoadGenerator());
+    this.generators.set('branching_road', new BranchingRoadGenerator());
   }
 
   /**
@@ -241,6 +244,19 @@ export class TemplateMapGenerator {
       parameters: {}
     });
 
+    // Branching Road template - wide central spine with procedural side-streets.
+    // Sized at ~2x the winding-road maps (85x125) so side roads and building
+    // blocks have real room to spread out from the central spine.
+    this.templates.set('branching_road', {
+      name: 'Branching Road',
+      size: { width: 170, height: 250 },
+      layout: [], // Procedurally generated
+      parameters: {
+        randomWalls: { min: 0, max: 2 },
+        extraFloors: { min: 0, max: 3 }
+      }
+    });
+
     // Starting Road template - 45x125 map with player starting yard/house at bottom
     this.templates.set('starting_road', {
       name: 'Starting Road',
@@ -288,20 +304,13 @@ export class TemplateMapGenerator {
       mapData.tiles = this.layoutToTileData(builder.layout);
     }
 
-    // Set transition tiles at road exits
-    const roadXMin = 22;
-    const roadXMax = mapData.width - 23;
+    // Set transition tiles at road exits. Generators that know their road
+    // geometry record exit positions in metadata.exits (the single source of
+    // truth); templates without one exit at the horizontal center.
     const centerX = Math.floor(mapData.width / 2);
-    let northExitX = centerX;
-    let southExitX = centerX;
-    
-    if (templateName === 'winding_road') {
-        northExitX = roadXMax;
-        southExitX = roadXMin;
-    } else if (templateName === 'mirrored_winding_road') {
-        northExitX = roadXMin;
-        southExitX = roadXMax;
-    }
+    const exits = mapData.metadata?.exits;
+    const northExitX = exits?.north?.x ?? centerX;
+    const southExitX = exits?.south?.x ?? centerX;
 
     this.setTileData(mapData, northExitX, 0, 'transition');
     if (templateName !== 'starting_road') {
@@ -821,6 +830,45 @@ export class TemplateMapGenerator {
     };
 
     return templateStartPositions[templateName] || { x: Math.floor(width / 2), y: height - 2 };
+  }
+
+  /**
+   * Generate a map and apply it to a fresh GameMap, regenerating until it passes
+   * the connectivity gate (spawn/exits/buildings reachable). If no attempt fully
+   * passes within maxAttempts, the least-bad map is returned with a warning so
+   * map generation never deadlocks.
+   *
+   * @param {string} templateName
+   * @param {Object} config - passed to generateFromTemplate (e.g. { mapNumber })
+   * @param {Function} GameMapClass - the GameMap constructor (passed in to avoid an import cycle)
+   * @param {Object} [opts]
+   * @param {number} [opts.maxAttempts=6]
+   * @returns {Promise<{ gameMap: Object, mapData: Object, validation: Object, attempts: number }>}
+   */
+  async generateValidatedMap(templateName, config = {}, GameMapClass, { maxAttempts = 6 } = {}) {
+    let best = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const mapData = this.generateFromTemplate(templateName, config);
+      const gameMap = new GameMapClass(mapData.width, mapData.height);
+      if (config.mapNumber !== undefined) gameMap.mapNumber = config.mapNumber;
+      await this.applyToGameMap(gameMap, mapData);
+
+      const validation = validateConnectivity(gameMap, mapData);
+      const result = { gameMap, mapData, validation, attempts: attempt };
+
+      if (validation.ok) {
+        if (attempt > 1) {
+          console.log(`[TemplateMapGenerator] Connectivity OK for '${templateName}' on attempt ${attempt}`);
+        }
+        return result;
+      }
+
+      console.warn(`[TemplateMapGenerator] Connectivity attempt ${attempt}/${maxAttempts} for '${templateName}' failed (score ${validation.score}): ${validation.reasons.join('; ')}`);
+      if (!best || validation.score < best.validation.score) best = result;
+    }
+
+    console.error(`[TemplateMapGenerator] No fully-connected '${templateName}' map after ${maxAttempts} attempts; using least-bad (score ${best.validation.score})`);
+    return best;
   }
 
   /**

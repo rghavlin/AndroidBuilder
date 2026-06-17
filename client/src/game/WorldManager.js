@@ -313,22 +313,18 @@ export class WorldManager {
 
       // Generate new map using template system
       const templateMapGenerator = new TemplateMapGenerator();
-      let mapData;
 
       // Maps 1-3: Road, 4: Winding, 5: Mirrored Winding, 6: Split Road, 7+: Random
       let templateToUse = this.determineTemplateForMap(nextMapId);
 
-      mapData = templateMapGenerator.generateFromTemplate(templateToUse, {
-        randomWalls: 1,
-        extraFloors: 2,
-        mapNumber: mapNumber
-      });
-
-      // Create GameMap instance and apply template
-      const gameMap = new GameMap(mapData.width, mapData.height);
+      // Generate + apply through the connectivity gate (regenerates if unplayable)
+      const { gameMap, mapData } = await templateMapGenerator.generateValidatedMap(
+        templateToUse,
+        { randomWalls: 1, extraFloors: 2, mapNumber: mapNumber },
+        GameMap
+      );
       const mapNumberForGen = this.extractMapNumber(nextMapId);
       gameMap.mapNumber = mapNumberForGen;
-      await templateMapGenerator.applyToGameMap(gameMap, mapData);
 
       // SPAWN LOOT: New procedural loot generation
       const { LootGenerator } = await import('./map/LootGenerator.js');
@@ -520,7 +516,7 @@ export class WorldManager {
 
     // Progression logic (Must match executeTransition)
     if (this.DEV_FORCE_LAB && mapNumber === 1) return 'lab';
-    if (mapNumber === 1) return 'starting_road';
+    if (mapNumber === 1) return 'branching_road'; // TEMP: testing the branching road generator as map 1
     if (mapNumber <= 3) return 'road';
     if (mapNumber === 4) return 'winding_road';
     if (mapNumber === 5) return 'mirrored_winding_road';
@@ -758,16 +754,28 @@ export class WorldManager {
         const mapNumber = this.extractMapNumber(targetMapId);
         let templateToUse = this.determineTemplateForMap(targetMapId);
 
-        let generatedMapData = templateMapGenerator.generateFromTemplate(templateToUse, {
-          randomWalls: 1,
-          extraFloors: 2,
-          mapNumber: mapNumber
-        });
-
-        // Create GameMap instance and apply template
-        const gameMap = new GameMap(generatedMapData.width, generatedMapData.height);
+        // Generate + apply through the connectivity gate (regenerates if unplayable)
+        const { gameMap, mapData: generatedMapData } = await templateMapGenerator.generateValidatedMap(
+          templateToUse,
+          { randomWalls: 1, extraFloors: 2, mapNumber: mapNumber },
+          GameMap
+        );
         gameMap.mapNumber = mapNumber;
-        await templateMapGenerator.applyToGameMap(gameMap, generatedMapData);
+
+        // Finalize spawn from the freshly generated map's own exits rather than
+        // the pre-generation prediction in checkTransitionPoint(). This keeps the
+        // player on the actual road exit even if the map's size or exit columns
+        // differ from the guess (e.g. randomized road layouts). spawnPosition.y
+        // encodes the approach edge: y<=1 means we entered from the north (top).
+        const tp = generatedMapData.metadata?.spawnZones?.transitionPoints;
+        if (tp) {
+          const enteringTop = spawnPosition.y <= 1;
+          if (enteringTop && tp.north) {
+            spawnPosition = { x: tp.north.x, y: 1 };
+          } else if (!enteringTop && tp.south) {
+            spawnPosition = { x: tp.south.x, y: gameMap.height - 2 };
+          }
+        }
 
         // SPAWN LOOT: New procedural loot generation
         const { LootGenerator } = await import('./map/LootGenerator.js');

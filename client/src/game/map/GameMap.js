@@ -1151,13 +1151,8 @@ export class GameMap {
    * Get the first walkable tile (used for player spawn)
    */
   getStartTile() {
-    // Try to get the specific starting position (17,123) for the road map
-    const startTile = this.getTile(17, 123);
-    if (startTile && startTile.isWalkable()) {
-      return startTile;
-    }
-
-    // Fallback to searching for walkable tiles
+    // Return the first walkable tile. Spawn positioning is owned by the
+    // generators' getStartPosition(); this is only a generic fallback.
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         const tile = this.getTile(x, y);

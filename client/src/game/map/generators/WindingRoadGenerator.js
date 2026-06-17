@@ -1,6 +1,26 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
 
 /**
+ * Horizontal inset (in tiles) of the vertical road runs from each map edge.
+ * roadXMin sits this far from the left edge; roadXMax the same from the right.
+ * Single source of truth shared with getStartPosition() and the exit metadata.
+ */
+const ROAD_INSET = 22;
+
+/**
+ * Derive the three S-curve road bands (Y rows) for a map of the given height.
+ * The curve always has 3 bands but stretches to fill the map: the top band sits
+ * near y=4, the bottom band a fixed gap from the bottom edge, and the middle is
+ * the midpoint. Reproduces the legacy [100, 52, 4] exactly at height 125.
+ */
+function deriveRoadBands(height) {
+  const top = 4;
+  const bottom = height - 25;
+  const mid = Math.round((top + bottom) / 2);
+  return [bottom, mid, top];
+}
+
+/**
  * WindingRoadGenerator - Multi-pass S-curve suburban generation
  */
 export class WindingRoadGenerator extends BaseMapGenerator {
@@ -8,11 +28,19 @@ export class WindingRoadGenerator extends BaseMapGenerator {
     const context = {
       roadThickness: config.roadThickness || 5,
       sidewalkThickness: config.sidewalkThickness || 1,
-      roadXMin: 22,
-      roadXMax: builder.width - 23,
-      roadY: [100, 52, 4],
+      roadXMin: ROAD_INSET,
+      roadXMax: builder.width - (ROAD_INSET + 1),
+      roadY: deriveRoadBands(builder.height),
       sHalf: 3,
       mapNumber: config.mapNumber || 1
+    };
+
+    // Record road exits so TemplateMapGenerator places transition tiles without
+    // re-deriving the road geometry. South exit is the bottom vertical run,
+    // north exit is the top vertical run (see passTopology).
+    builder.metadata.exits = {
+      north: { x: context.roadXMax, y: 0 },
+      south: { x: context.roadXMin, y: builder.height - 1 }
     };
 
     // PASS 1: Topology (Roads and Boundaries)
@@ -101,7 +129,7 @@ export class WindingRoadGenerator extends BaseMapGenerator {
     const tentPool = buildings.filter(b => {
         if (b.type !== 'residential') return false;
         const isFarPerim = b.x < 20 || b.x > width - 20;
-        const isNearCorner = Math.abs(b.y - 4) < 15 || Math.abs(b.y - 52) < 15 || Math.abs(b.y - 100) < 15;
+        const isNearCorner = roadY.some(ry => Math.abs(b.y - ry) < 15);
         return isFarPerim && isNearCorner;
     });
 
@@ -220,6 +248,7 @@ export class WindingRoadGenerator extends BaseMapGenerator {
   }
 
   getStartPosition(width, height) {
-    return { x: 22, y: height - 2 };
+    // Player starts at the bottom (south) road run, which sits at roadXMin.
+    return { x: ROAD_INSET, y: height - 2 };
   }
 }

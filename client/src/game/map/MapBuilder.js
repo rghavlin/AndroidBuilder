@@ -831,8 +831,15 @@ export class MapBuilder {
       minH = 14, maxH = 18,
       gap = 4,
       setback = 2,
-      maxBuildings = 10
+      maxBuildings = 10,
+      // Optional clamp of the row to a road's extent along the growth axis, so
+      // buildings only sit beside the actual road and never overshoot its end
+      // into open grass. Default unbounded (legacy behavior).
+      runStart = -Infinity,
+      runEnd = Infinity
     } = options;
+
+    const horizontalGrowth = (growthDir === 'east' || growthDir === 'west');
 
     let currentX = anchorX;
     let currentY = anchorY;
@@ -842,6 +849,13 @@ export class MapBuilder {
 
     while (placedCount < maxBuildings && attempts < maxAttempts) {
       attempts++;
+
+      // Stop once we've grown past the road's extent.
+      if (growthDir === 'east' && currentX > runEnd) break;
+      if (growthDir === 'west' && currentX < runStart) break;
+      if (growthDir === 'south' && currentY > runEnd) break;
+      if (growthDir === 'north' && currentY < runStart) break;
+
       const bW = minW + Math.floor(Math.random() * (maxW - minW + 1));
       const bH = minH + Math.floor(Math.random() * (maxH - minH + 1));
 
@@ -860,7 +874,12 @@ export class MapBuilder {
         bY = (growthDir === 'north') ? currentY - bH : currentY;
       }
 
-      if (bX < 2 || bX + bW >= this.width - 2 || bY < 2 || bY + bH >= this.height - 2) {
+      // Keep the building's along-axis footprint within the road's extent.
+      const runLo = horizontalGrowth ? bX : bY;
+      const runHi = horizontalGrowth ? bX + bW - 1 : bY + bH - 1;
+      const outsideRun = runLo < runStart || runHi > runEnd;
+
+      if (outsideRun || bX < 2 || bX + bW >= this.width - 2 || bY < 2 || bY + bH >= this.height - 2) {
         if (growthDir === 'west') currentX--;
         else if (growthDir === 'east') currentX++;
         else if (growthDir === 'north') currentY--;
