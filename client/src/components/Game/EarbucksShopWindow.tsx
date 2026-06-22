@@ -14,7 +14,7 @@ interface EarbucksShopWindowProps {
 }
 
 interface ShopItemRowProps {
-  item: { defId: string; name: string; price: number };
+  item: { defId: string; name: string; price: number; stock?: number | null; purchased?: number };
   mapId: string;
   playerEarbucks: number;
   onBuySuccess: () => void;
@@ -27,8 +27,21 @@ function ShopItemRow({ item, mapId, playerEarbucks, onBuySuccess, onBuyFail }: S
   const imageSrc = useItemImage(imageId);
   const [errorFlash, setErrorFlash] = useState(false);
 
+  const available = earbucksShopSystem.getAvailable(item);
+  const isFinite = available !== Infinity;
+  const isOutOfStock = available <= 0;
+  const canAfford = playerEarbucks >= item.price;
+  const canBuy = canAfford && !isOutOfStock;
+
   const handleBuy = () => {
-    if (playerEarbucks < item.price) {
+    if (isOutOfStock) {
+      setErrorFlash(true);
+      setTimeout(() => setErrorFlash(false), 600);
+      onBuyFail('Out of stock');
+      return;
+    }
+
+    if (!canAfford) {
       setErrorFlash(true);
       setTimeout(() => setErrorFlash(false), 600);
       onBuyFail('Insufficient funds');
@@ -72,6 +85,13 @@ function ShopItemRow({ item, mapId, playerEarbucks, onBuySuccess, onBuyFail }: S
           <span className="text-[10px] text-zinc-500 font-medium">
             {itemDef?.description || 'No description available'}
           </span>
+          <span className="text-[10px] font-black uppercase tracking-wider mt-0.5">
+            {isFinite
+              ? <span className={isOutOfStock ? "text-red-400" : "text-amber-400"}>
+                  {isOutOfStock ? 'Sold out' : `${available} left`}
+                </span>
+              : <span className="text-zinc-600">In stock ∞</span>}
+          </span>
         </div>
       </div>
 
@@ -90,14 +110,15 @@ function ShopItemRow({ item, mapId, playerEarbucks, onBuySuccess, onBuyFail }: S
         {/* Buy Button */}
         <button
           onClick={handleBuy}
+          disabled={!canBuy}
           className={cn(
             "px-4 py-2 font-black rounded-lg text-[10px] uppercase tracking-wider transition-all min-w-[70px]",
-            playerEarbucks >= item.price
+            canBuy
               ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/20 active:scale-95"
               : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
           )}
         >
-          Buy
+          {isOutOfStock ? 'Sold' : 'Buy'}
         </button>
       </div>
     </div>

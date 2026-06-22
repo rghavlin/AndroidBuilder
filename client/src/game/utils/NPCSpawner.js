@@ -241,7 +241,7 @@ export class NPCSpawner {
   }
 
   /**
-   * Spawn a stationary shopkeeper NPC inside the town square compound building.
+   * Spawn a stationary shopkeeper NPC at the town square compound entrance.
    * @param {GameMap} gameMap - The map to spawn the shopkeeper on
    */
   static spawnShopkeeper(gameMap) {
@@ -251,43 +251,12 @@ export class NPCSpawner {
       return null;
     }
     
-    // Pick the center tile of the building:
-    const tx = Math.floor(compound.x + compound.width / 2);
-    const ty = Math.floor(compound.y + compound.height / 2);
+    // Position exactly in between the two barrier icons at the compound gate entrance:
+    const spawnX = Math.floor(gameMap.width / 2);
+    const spawnY = compound.fenceBounds?.y2;
     
-    let spawnX = tx;
-    let spawnY = ty;
-    let found = false;
-    
-    const tile = gameMap.getTile(spawnX, spawnY);
-    if (tile && tile.isWalkable() && tile.terrain === 'floor') {
-      found = true;
-    } else {
-      // Search from center outwards within compound bounding box
-      for (let r = 1; r < Math.max(compound.width, compound.height); r++) {
-        for (let dy = -r; dy <= r; dy++) {
-          for (let dx = -r; dx <= r; dx++) {
-            const cx = tx + dx;
-            const cy = ty + dy;
-            if (cx >= compound.x && cx < compound.x + compound.width &&
-                cy >= compound.y && cy < compound.y + compound.height) {
-              const t = gameMap.getTile(cx, cy);
-              if (t && t.isWalkable() && t.terrain === 'floor') {
-                spawnX = cx;
-                spawnY = cy;
-                found = true;
-                break;
-              }
-            }
-          }
-          if (found) break;
-        }
-        if (found) break;
-      }
-    }
-    
-    if (!found) {
-      console.warn('[NPCSpawner] spawnShopkeeper: no walkable floor tile found in compound.');
+    if (spawnY === undefined) {
+      console.warn('[NPCSpawner] spawnShopkeeper: no fenceBounds.y2 found in compound.');
       return null;
     }
     

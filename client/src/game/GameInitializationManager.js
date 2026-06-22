@@ -353,6 +353,15 @@ class GameInitializationManager extends EventEmitter {
       this.gameObjects.lootGenerator = lootGenerator;
       lootGenerator.spawnLoot(gameMap, 1, this.customConfig);
 
+      // SPAWN SHOPKEEPER: Stationary Town Merchant at the town square gate (branching_road maps)
+      const { NPCSpawner } = await import('./utils/NPCSpawner.js');
+      const shopkeeper = NPCSpawner.spawnShopkeeper(gameMap);
+      if (shopkeeper) {
+        const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
+        earbucksShopSystem.initCatalog('map_001');
+        console.log('[GameInitializationManager] Spawned shopkeeper and initialized Earbucks catalog');
+      }
+
       // Clean up south transition tile for first map
       try {
         const points = gameMap.metadata?.spawnZones?.transitionPoints;

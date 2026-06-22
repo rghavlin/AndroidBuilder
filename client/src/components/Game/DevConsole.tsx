@@ -48,7 +48,8 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         maxAp: 0,
         nutrition: 0,
         hydration: 0,
-        energy: 0
+        energy: 0,
+        earbucks: 0
     });
 
     // Sync from actual player when tab opens
@@ -61,7 +62,8 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                 maxAp: engine.player.maxAp,
                 nutrition: engine.player.nutrition || 0,
                 hydration: engine.player.hydration || 0,
-                energy: engine.player.energy || 0
+                energy: engine.player.energy || 0,
+                earbucks: engine.player.earbucks || 0
             });
         }
     }, [activeTab]);
@@ -478,6 +480,8 @@ function PlayerTab({ stats, updateStat }: any) {
                     <StatSlider label="Hydration" value={stats.hydration} max={100} onChange={v => updateStat('hydration', v)} color="bg-cyan-500" />
                     <StatSlider label="Energy" value={stats.energy} max={100} onChange={v => updateStat('energy', v)} color="bg-yellow-500" />
                 </div>
+                <h3 className="text-xs font-bold uppercase text-primary tracking-widest border-b border-primary/20 pb-1 pt-2">Currency</h3>
+                <StatInput label="Earbucks (♪)" value={stats.earbucks} onChange={v => updateStat('earbucks', parseInt(v)||0)} />
             </div>
         </div>
     )
@@ -521,6 +525,8 @@ function DevConsoleShopManager() {
     const [itemDefs, setItemDefs] = useState<any>({});
     const [selectedDefId, setSelectedDefId] = useState('');
     const [price, setPrice] = useState(5);
+    const [unlimited, setUnlimited] = useState(true);
+    const [stock, setStock] = useState(1);
     
     const currentMapId = engine.worldManager?.currentMapId || 'map_001';
     
@@ -544,7 +550,12 @@ function DevConsoleShopManager() {
     const handleAddItem = () => {
         if (!selectedDefId) return;
         const name = itemDefs[selectedDefId]?.name || selectedDefId;
-        earbucksShopSystem.addItem(currentMapId, { defId: selectedDefId, name, price });
+        earbucksShopSystem.addItem(currentMapId, {
+            defId: selectedDefId,
+            name,
+            price,
+            stock: unlimited ? null : Math.max(0, stock)
+        });
     };
 
     const handleRemoveItem = (defId: string) => {
@@ -582,6 +593,11 @@ function DevConsoleShopManager() {
                                         <span className="text-emerald-400">[{item.price} ♪]</span>
                                         <span>{item.name}</span>
                                         <span className="text-[10px] text-zinc-600">({item.defId})</span>
+                                        <span className="text-[10px] text-amber-400 uppercase font-black">
+                                            {(item.stock === null || item.stock === undefined)
+                                                ? 'Stock ∞'
+                                                : `Stock ${Math.max(0, item.stock - (item.purchased || 0))}/${item.stock}`}
+                                        </span>
                                     </div>
                                     <Button 
                                         variant="ghost" 
@@ -618,8 +634,8 @@ function DevConsoleShopManager() {
 
                             <div className="w-24 flex flex-col gap-1.5">
                                 <Label className="text-[10px] text-zinc-500 uppercase font-bold">Price (♪)</Label>
-                                <Input 
-                                    type="number" 
+                                <Input
+                                    type="number"
                                     min="1"
                                     value={price}
                                     onChange={e => setPrice(Math.max(1, parseInt(e.target.value) || 1))}
@@ -627,7 +643,30 @@ function DevConsoleShopManager() {
                                 />
                             </div>
 
-                            <Button 
+                            <div className="w-28 flex flex-col gap-1.5">
+                                <Label className="text-[10px] text-zinc-500 uppercase font-bold">Stock</Label>
+                                <div className="flex items-center gap-1.5 h-9">
+                                    <button
+                                        type="button"
+                                        onClick={() => setUnlimited(u => !u)}
+                                        title={unlimited ? 'Unlimited stock' : 'Finite stock'}
+                                        className={`h-9 px-2 rounded-md border font-mono text-sm shrink-0 ${unlimited ? 'bg-emerald-600/80 border-emerald-500 text-white' : 'bg-black border-primary/40 text-zinc-400'}`}
+                                    >
+                                        ∞
+                                    </button>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        disabled={unlimited}
+                                        value={unlimited ? '' : stock}
+                                        placeholder="∞"
+                                        onChange={e => setStock(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="bg-black text-white border-primary/40 focus:border-primary text-center font-mono h-9 disabled:opacity-40"
+                                    />
+                                </div>
+                            </div>
+
+                            <Button
                                 className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-9 gap-1"
                                 onClick={handleAddItem}
                             >

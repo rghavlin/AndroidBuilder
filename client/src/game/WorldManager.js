@@ -87,6 +87,10 @@ export class WorldManager {
       const serializedMap = gameMap.toJSON();
       const isCurrentMap = (mapId === this.currentMapId || this.currentMapId === null);
 
+      // Preserve persistent per-map metadata (e.g. the Earbucks shop catalog and
+      // its purchased/stock state) that was attached to the existing map entry.
+      const existingMetadata = this.maps.get(mapId)?.metadata || {};
+
       const mapData = {
         id: mapId,
         serializedMap: isCurrentMap ? serializedMap : null,
@@ -95,6 +99,7 @@ export class WorldManager {
         lastProcessedTurn: currentTurn, // Track when this map was last active
         type: templateType || gameMap.template || 'road',
         metadata: {
+          ...existingMetadata,
           width: gameMap.width,
           height: gameMap.height,
           entityCount: gameMap.getAllEntities().length,
@@ -380,11 +385,15 @@ export class WorldManager {
         mapNumber: gameMap.mapNumber
       });
 
+      // Spawn the shopkeeper BEFORE saving so it's included in the serialized snapshot
+      if (templateToUse === 'branching_road') {
+        NPCSpawner.spawnShopkeeper(gameMap);
+      }
+
       // Save to world collection
       const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn, templateToUse);
 
       if (templateToUse === 'branching_road') {
-        NPCSpawner.spawnShopkeeper(gameMap);
         const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
         earbucksShopSystem.initCatalog(savedMapId);
       }
@@ -831,11 +840,15 @@ export class WorldManager {
           mapNumber: mapNumber
         });
 
+        // Spawn the shopkeeper BEFORE saving so it's included in the serialized snapshot
+        if (templateToUse === 'branching_road') {
+          NPCSpawner.spawnShopkeeper(gameMap);
+        }
+
         // Save to world collection with the correct target ID
         this.saveCurrentMap(gameMap, targetMapId, currentTurn, templateToUse);
 
         if (templateToUse === 'branching_road') {
-          NPCSpawner.spawnShopkeeper(gameMap);
           const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
           earbucksShopSystem.initCatalog(targetMapId);
         }

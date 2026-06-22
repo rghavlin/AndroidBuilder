@@ -13,32 +13,49 @@ class EarbucksShopSystem {
     }
     
     if (!mapEntry.metadata.shopCatalog) {
+      // stock === null means an infinite supply; a finite number caps how many
+      // can be purchased on this map (tracked via the `purchased` counter).
       mapEntry.metadata.shopCatalog = [
-        { defId: 'food.corn', name: 'Corn', price: 5 },
-        { defId: 'food.waterbottle', name: 'Water Bottle', price: 20 },
-        { defId: 'tool.lighter', name: 'Lighter', price: 30 }
+        { defId: 'food.corn', name: 'Corn', price: 5, stock: null, purchased: 0 },
+        { defId: 'food.waterbottle', name: 'Water Bottle', price: 20, stock: null, purchased: 0 },
+        { defId: 'tool.lighter', name: 'Lighter', price: 30, stock: 1, purchased: 0 }
       ];
     }
   }
-  
+
+  /**
+   * Number of this item still available for purchase.
+   * @returns {number} Infinity for unlimited stock, otherwise remaining count.
+   */
+  getAvailable(item) {
+    if (!item || item.stock === null || item.stock === undefined) return Infinity;
+    return Math.max(0, item.stock - (item.purchased || 0));
+  }
+
   getCatalog(mapId) {
     this.initCatalog(mapId);
     const mapEntry = engine.worldManager?.maps.get(mapId);
     return mapEntry?.metadata?.shopCatalog || [];
   }
-  
-  addItem(mapId, { defId, name, price }) {
+
+  addItem(mapId, { defId, name, price, stock = null }) {
     this.initCatalog(mapId);
     const mapEntry = engine.worldManager?.maps.get(mapId);
     if (!mapEntry || !mapEntry.metadata) return;
-    
+
+    // Normalize stock: null = infinite, otherwise a non-negative integer.
+    const normalizedStock = (stock === null || stock === undefined)
+      ? null
+      : Math.max(0, Math.floor(stock));
+
     const catalog = mapEntry.metadata.shopCatalog || [];
     const existing = catalog.find(i => i.defId === defId);
     if (existing) {
       existing.price = price;
       existing.name = name;
+      existing.stock = normalizedStock;
     } else {
-      catalog.push({ defId, name, price });
+      catalog.push({ defId, name, price, stock: normalizedStock, purchased: 0 });
     }
     mapEntry.metadata.shopCatalog = catalog;
     engine.notifyUpdate();
@@ -60,11 +77,15 @@ class EarbucksShopSystem {
     if (!itemConfig) {
       return { success: false, reason: 'Item not in catalog' };
     }
-    
+
+    if (this.getAvailable(itemConfig) <= 0) {
+      return { success: false, reason: 'Out of stock' };
+    }
+
     if (!player || player.earbucks < itemConfig.price) {
       return { success: false, reason: 'Insufficient funds' };
     }
-    
+
     // Create the item
     const itemData = createItemFromDef(defId);
     if (!itemData) {
@@ -80,7 +101,12 @@ class EarbucksShopSystem {
     
     // Deduct earbucks
     player.earbucks -= itemConfig.price;
-    
+
+    // Track purchase against finite stock
+    if (itemConfig.stock !== null && itemConfig.stock !== undefined) {
+      itemConfig.purchased = (itemConfig.purchased || 0) + 1;
+    }
+
     // Notify log/event
     if (engine.addLog) {
       engine.addLog(`Bought ${itemConfig.name} for ${itemConfig.price} Earbucks.`, 'info');
