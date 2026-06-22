@@ -62,11 +62,8 @@ export class ZombieSpawner {
       }
     };
 
-    // 1. Basic Zombies with top-half bias
-    const spawnInTopHalf = Math.random() < 0.75;
-    const yMin = spawnInTopHalf ? 0 : Math.floor(gameMap.height * 0.5);
-    const yRange = spawnInTopHalf ? Math.floor(gameMap.height * 0.5) : (gameMap.height - yMin);
-    spawnHelper('basic', basicCount, 7, { yMin, yRange });
+    // 1. Basic Zombies equally distributed across the entire map
+    spawnHelper('basic', basicCount, 7);
 
     // 2. Specialized Ranges
     const crawlerCount = Math.floor(Math.random() * (crawlerRange.max - crawlerRange.min + 1)) + crawlerRange.min;

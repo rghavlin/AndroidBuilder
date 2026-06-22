@@ -134,34 +134,41 @@ export class BaseMapGenerator {
    * @param {Object} [options] overrides for placeBuildingsFromAnchor sizing
    */
   zoneAlongSegments(builder, segments, options = {}) {
-    const common = {
-      setback: 2, minW: 10, maxW: 16, minH: 10, maxH: 14,
-      gap: 4, ...options
-    };
+    // Rowhouse-shaped lots: SHALLOW perpendicular to the street (depth) but
+    // variable ALONG it (frontage). Keeping depth small lets two rows sit
+    // back-to-back in a block, so streets develop on BOTH sides instead of one
+    // deep row leaving a backyard. Tight gap packs the frontage.
+    const {
+      depthMin = 10, depthMax = 13,   // perpendicular to the street
+      frontMin = 10, frontMax = 18,   // along the street
+      setback = 2, gap = 2
+    } = options;
 
     for (const seg of segments) {
       const thickness = seg.thickness ?? 5;
       const sidewalk = seg.sidewalkThickness ?? 1;
       const hs = Math.floor(thickness / 2) + sidewalk; // road+sidewalk half-width
 
-      // Scale building count to the segment's length so long streets (the full
-      // boulevard / cross-streets) fill end to end instead of stopping partway.
+      // Scale building count to the segment's length so long streets fill end to end.
       const segLen = seg.orientation === 'horizontal' ? (seg.x2 - seg.x1) : (seg.y2 - seg.y1);
-      const maxBuildings = options.maxBuildings ?? Math.max(2, Math.ceil(segLen / 14));
+      const maxBuildings = options.maxBuildings ?? Math.max(2, Math.ceil(segLen / 12));
 
       if (seg.orientation === 'horizontal') {
         const cy = seg.y1;
-        // Clamp the row to the segment's x-extent so buildings never overshoot
-        // past the road's ends into open grass.
-        const run = { ...common, maxBuildings, runStart: seg.x1, runEnd: seg.x2 };
-        // North side: anchor on the road's north edge, buildings face south.
+        // Depth is the Y dimension here; frontage is the X dimension.
+        const run = {
+          setback, gap, maxBuildings, runStart: seg.x1, runEnd: seg.x2,
+          minW: frontMin, maxW: frontMax, minH: depthMin, maxH: depthMax
+        };
         builder.placeBuildingsFromAnchor(seg.x1, cy - hs, 'east', 'south', run);
-        // South side: anchor on the road's south edge, buildings face north.
         builder.placeBuildingsFromAnchor(seg.x1, cy + hs, 'east', 'north', run);
       } else {
         const cx = seg.x1;
-        const run = { ...common, maxBuildings, runStart: seg.y1, runEnd: seg.y2 };
-        // West side: buildings face east. East side: buildings face west.
+        // Depth is the X dimension here; frontage is the Y dimension.
+        const run = {
+          setback, gap, maxBuildings, runStart: seg.y1, runEnd: seg.y2,
+          minW: depthMin, maxW: depthMax, minH: frontMin, maxH: frontMax
+        };
         builder.placeBuildingsFromAnchor(cx - hs, seg.y1, 'south', 'east', run);
         builder.placeBuildingsFromAnchor(cx + hs, seg.y1, 'south', 'west', run);
       }
@@ -176,21 +183,67 @@ export class BaseMapGenerator {
    * @param {MapBuilder} builder
    * @param {string} templateName
    * @param {number} mapNumber
+   * @param {Object} [options]
+   * @param {string[]} [options.types]  exact list of POI types to place (overrides the
+   *                                    area-based count + getSpecialBuildingTypes)
+   * @param {boolean} [options.scatter] spread the chosen buildings evenly across the map
    */
-  specializeBuildings(builder, templateName, mapNumber) {
+  specializeBuildings(builder, templateName, mapNumber, options = {}) {
     const residential = builder.metadata.buildings.filter(b => b.type === 'residential');
     const candidates = residential.filter(b => this.hasRoadFrontage(builder, b, 6));
     if (candidates.length === 0) return;
 
-    const area = builder.width * builder.height;
-    const count = Math.max(1, Math.floor(area / 5000));
-    const selected = this.getRandomSubarray(candidates, count);
-    const types = this.getSpecialBuildingTypes(mapNumber, templateName, selected.length);
+    let types;
+    if (options.types) {
+      // Shuffle so a given type isn't always assigned to the same scattered slot.
+      types = this.getRandomSubarray(options.types, options.types.length);
+    } else {
+      const area = builder.width * builder.height;
+      const count = Math.max(1, Math.floor(area / 5000));
+      types = this.getSpecialBuildingTypes(mapNumber, templateName, count);
+    }
+
+    const selected = options.scatter
+      ? this._selectScattered(candidates, types.length)
+      : this.getRandomSubarray(candidates, types.length);
 
     selected.forEach((b, i) => {
+      const type = types[i];
+      if (!type) return;
       builder.clearArea(b.x, b.y, b.width, b.height);
-      builder.drawSpecialBuilding(b, types[i]);
+      builder.drawSpecialBuilding(b, type);
     });
+  }
+
+  /**
+   * Pick `n` buildings spread as evenly as possible across the map via
+   * farthest-point sampling (each pick maximizes its minimum distance to the
+   * already-picked set).
+   */
+  _selectScattered(candidates, n) {
+    if (candidates.length <= n) return [...candidates];
+    const cx = (b) => b.x + b.width / 2;
+    const cy = (b) => b.y + b.height / 2;
+
+    const picked = [candidates[Math.floor(Math.random() * candidates.length)]];
+    const inPicked = new Set(picked);
+    while (picked.length < n) {
+      let best = null, bestDist = -1;
+      for (const c of candidates) {
+        if (inPicked.has(c)) continue;
+        let minD = Infinity;
+        for (const p of picked) {
+          const dx = cx(c) - cx(p), dy = cy(c) - cy(p);
+          const d = dx * dx + dy * dy;
+          if (d < minD) minD = d;
+        }
+        if (minD > bestDist) { bestDist = minD; best = c; }
+      }
+      if (!best) break;
+      picked.push(best);
+      inPicked.add(best);
+    }
+    return picked;
   }
 }
 

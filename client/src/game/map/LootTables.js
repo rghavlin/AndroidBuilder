@@ -100,10 +100,7 @@ export const ZOMBIE_LOOT = {
     exotic: ['weapon.9mmPistol', 'weapon.357Pistol', 'weapon.shotgun', 'tool.smallflashlight']
 };
 
-export const MAP_WIDE_UNIQUES = [
-    { defId: 'tool.lighter' },
-    { defId: 'tool.matchbook' }
-];
+export const MAP_WIDE_UNIQUES = [];
 
 export const MAP_WIDE_REQUIREMENTS = {
     1: [

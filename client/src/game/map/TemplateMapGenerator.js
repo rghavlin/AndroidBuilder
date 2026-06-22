@@ -249,7 +249,7 @@ export class TemplateMapGenerator {
     // blocks have real room to spread out from the central spine.
     this.templates.set('branching_road', {
       name: 'Branching Road',
-      size: { width: 170, height: 250 },
+      size: { width: 220, height: 260 },
       layout: [], // Procedurally generated
       parameters: {
         randomWalls: { min: 0, max: 2 },
@@ -992,7 +992,9 @@ export class TemplateMapGenerator {
           // Phase 2: Create Door entity
           if (!doorData.isOpening) {
             const door = new Door(
-              doorData.id || `door-${doorData.x}-${doorData.y}`,
+              // Include the edge: a corner tile can legitimately host two doors on
+              // different edges, which collide if the id is only (x,y).
+              doorData.id || `door-${doorData.x}-${doorData.y}-${doorData.edge || 'x'}`,
               doorData.x,
               doorData.y,
               doorData.isLocked,
@@ -1020,7 +1022,8 @@ export class TemplateMapGenerator {
         const { Window } = await import('../entities/Window.js');
         templateMapData.metadata.windows.forEach(windowData => {
           const window = new Window(
-            windowData.id || `window-${windowData.x}-${windowData.y}`,
+            // Include the edge so two windows on different edges of one tile don't collide.
+            windowData.id || `window-${windowData.x}-${windowData.y}-${windowData.edge || 'x'}`,
             windowData.x,
             windowData.y,
             windowData.isLocked,

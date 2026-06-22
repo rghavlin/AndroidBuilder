@@ -1539,41 +1539,44 @@ export class LootGenerator {
         const uniqueSpawns = MAP_WIDE_UNIQUES;
         let spawnsToProcess = [...uniqueSpawns];
 
-        // NEW RULE: After Map 2, spawn only 1 of either, rather than 1 of each.
-        // For Map 5+, reduce the chance of even 1 of them spawning to 50%.
-        if (mapNumber > 2) {
-            // Pick exactly one from the list
-            const picked = spawnsToProcess[Math.floor(Math.random() * spawnsToProcess.length)];
-            spawnsToProcess = [picked];
+        if (spawnsToProcess.length > 0) {
+            // NEW RULE: After Map 2, spawn only 1 of either, rather than 1 of each.
+            // For Map 5+, reduce the chance of even 1 of them spawning to 50%.
+            if (mapNumber > 2) {
+                // Pick exactly one from the list
+                const picked = spawnsToProcess[Math.floor(Math.random() * spawnsToProcess.length)];
+                spawnsToProcess = [picked];
 
-            // Map 5+ reduction check
-            if (mapNumber >= 5) {
-                if (Math.random() > 0.50) {
-                    spawnsToProcess = [];
-                    console.log(`[LootGenerator] Map ${mapNumber} >= 5: Skipped unique item spawn (50% chance)`);
+                // Map 5+ reduction check
+                if (mapNumber >= 5) {
+                    if (Math.random() > 0.50) {
+                        spawnsToProcess = [];
+                        console.log(`[LootGenerator] Map ${mapNumber} >= 5: Skipped unique item spawn (50% chance)`);
+                    }
                 }
             }
-        }
 
-        console.log(`[LootGenerator] Applying map-wide uniques for ${spawnsToProcess.length} items (Map ${mapNumber})...`);
+            console.log(`[LootGenerator] Applying map-wide uniques for ${spawnsToProcess.length} items (Map ${mapNumber})...`);
 
-        spawnsToProcess.forEach(config => {
-            // Pick a random existing loot pile
-            const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
-            const itemData = createItemFromDef(config.defId);
-            
-            if (itemData) {
-                const item = new Item(itemData);
-                // Standard randomization (replaces manual capacity check)
-                LootGenerator.applySpawnDefaults(item, false);
-
-                // Add to the tile
-                const currentItems = gameMap.getItemsOnTile(tilePos.x, tilePos.y);
-                gameMap.setItemsOnTile(tilePos.x, tilePos.y, [...currentItems, item]);
+            spawnsToProcess.forEach(config => {
+                if (!config) return;
+                // Pick a random existing loot pile
+                const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
+                const itemData = createItemFromDef(config.defId);
                 
-                console.log(`[LootGenerator]   -> Placed ${item.name} at (${tilePos.x}, ${tilePos.y}) with ${item.ammoCount || 'fixed'} charges.`);
-            }
-        });
+                if (itemData) {
+                    const item = new Item(itemData);
+                    // Standard randomization (replaces manual capacity check)
+                    LootGenerator.applySpawnDefaults(item, false);
+
+                    // Add to the tile
+                    const currentItems = gameMap.getItemsOnTile(tilePos.x, tilePos.y);
+                    gameMap.setItemsOnTile(tilePos.x, tilePos.y, [...currentItems, item]);
+                    
+                    console.log(`[LootGenerator]   -> Placed ${item.name} at (${tilePos.x}, ${tilePos.y}) with ${item.ammoCount || 'fixed'} charges.`);
+                }
+            });
+        }
     }
 
     /**

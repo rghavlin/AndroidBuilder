@@ -1981,8 +1981,7 @@ export const ItemDefs = {
     stackMax: 1,
     capacity: 10,
     ammoCount: 10,
-    spawnAmmoPercent: 1.0,
-    noLoot: true
+    spawnAmmoPercent: 1.0
   },
   'tool.matchbook': {
     id: 'tool.matchbook',
@@ -1996,8 +1995,7 @@ export const ItemDefs = {
     stackMax: 1,
     capacity: 15,
     ammoCount: 15,
-    spawnAmmoPercent: 1.0,
-    noLoot: true
+    spawnAmmoPercent: 1.0
   },
   'tool.pliers': {
     id: 'tool.pliers',

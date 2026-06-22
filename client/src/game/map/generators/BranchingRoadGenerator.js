@@ -16,6 +16,12 @@ import { RoadNetwork, makeSeededRandom } from '../RoadNetwork.js';
  * The network stays connected by construction (secondaries reach their bounding
  * cross-streets, which cross the boulevard). Building rows are clamped to each
  * street's extent (zoneAlongSegments), so every building fronts a road.
+ *
+ * At the center is a TOWN SQUARE: a grass plaza enclosed by a ring road. The
+ * boulevard is interrupted there and meets the ring at top/bottom-center; the
+ * ring's top and bottom are full-width cross-streets so the neighborhoods still
+ * connect across. The plaza interior is kept clear of buildings (a future
+ * building type goes there).
  */
 
 const SPINE_THICKNESS = 9;    // the wide central boulevard
@@ -23,6 +29,8 @@ const STREET_THICKNESS = 5;   // cross-streets and secondary streets
 const SIDEWALK = 1;
 const EDGE = 4;               // keep streets this far from the side fences
 const SPINE_HALF = Math.floor(SPINE_THICKNESS / 2) + SIDEWALK;
+const STREET_HALF = Math.floor(STREET_THICKNESS / 2) + SIDEWALK;
+const PLAZA_HALF = 24;        // half-size of the central town square (grass + ring)
 
 export class BranchingRoadGenerator extends BaseMapGenerator {
   generate(config, builder) {
@@ -43,40 +51,103 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
       sidewalkThickness: SIDEWALK
     });
 
-    // Boulevard.
-    net.addSegment({ x: centerX, y: 0 }, { x: centerX, y: height - 1 }, 'authored', 0, { thickness: SPINE_THICKNESS });
+    // Town square (centered): grass plaza enclosed by a ring road.
+    const centerY = Math.floor(height / 2);
+    const plaza = {
+      top: centerY - PLAZA_HALF, bottom: centerY + PLAZA_HALF,
+      left: centerX - PLAZA_HALF, right: centerX + PLAZA_HALF
+    };
 
-    // A few major cross-streets at jittered spacing (these touch the boulevard).
-    const majorYs = [];
-    let y = EDGE + randInt(26, 42);
-    while (y <= height - 1 - EDGE - 22) {
-      majorYs.push(y);
-      y += randInt(50, 74); // wide spacing -> few cross-streets off the boulevard
-    }
-    for (const my of majorYs) {
-      net.addSegment({ x: EDGE, y: my }, { x: width - 1 - EDGE, y: my }, 'authored', 0, { thickness: STREET_THICKNESS });
-    }
+    // Boulevard, interrupted by the plaza: meets the ring at top/bottom-center.
+    net.addSegment({ x: centerX, y: 0 }, { x: centerX, y: plaza.top }, 'authored', 0, { thickness: SPINE_THICKNESS });
+    net.addSegment({ x: centerX, y: plaza.bottom }, { x: centerX, y: height - 1 }, 'authored', 0, { thickness: SPINE_THICKNESS });
 
-    // Secondary vertical streets within each band, branching off the cross-streets.
-    // Gaps are bounded (so no block is wider than ~2 building depths and therefore
-    // never has an empty middle) but jittered (so blocks stay irregular).
-    const bandBounds = [0, ...majorYs, height - 1];
+    // Ring: top & bottom are full-width cross-streets; left & right close the loop.
+    net.addSegment({ x: EDGE, y: plaza.top }, { x: width - 1 - EDGE, y: plaza.top }, 'authored', 0, { thickness: STREET_THICKNESS });
+    net.addSegment({ x: EDGE, y: plaza.bottom }, { x: width - 1 - EDGE, y: plaza.bottom }, 'authored', 0, { thickness: STREET_THICKNESS });
+    net.addSegment({ x: plaza.left, y: plaza.top }, { x: plaza.left, y: plaza.bottom }, 'authored', 0, { thickness: STREET_THICKNESS });
+    net.addSegment({ x: plaza.right, y: plaza.top }, { x: plaza.right, y: plaza.bottom }, 'authored', 0, { thickness: STREET_THICKNESS });
+
+    // Other major cross-streets at jittered spacing. Kept >= 30 tiles from the
+    // plaza ring so the bands beside it are tall enough to seat buildings (a
+    // cross-street landing just outside the ring would leave an empty thin band).
+    const crossYs = [plaza.top, plaza.bottom];
+    for (let y = EDGE + randInt(26, 42); y <= height - 1 - EDGE - 28; y += randInt(50, 74)) {
+      if (y < plaza.top - 30 || y > plaza.bottom + 30) {
+        crossYs.push(y);
+        net.addSegment({ x: EDGE, y }, { x: width - 1 - EDGE, y }, 'authored', 0, { thickness: STREET_THICKNESS });
+      }
+    }
+    crossYs.sort((a, b) => a - b);
+
+    // Secondary vertical streets within each band (bounded jittered gaps -> no
+    // empty middles, varied blocks). The plaza band skips the square itself.
+    const topCapStreets = [];
+    const bottomCapStreets = [];
+    const bands = [];
+    const bandBounds = [0, ...crossYs, height - 1];
     for (let i = 0; i < bandBounds.length - 1; i++) {
       const top = bandBounds[i];
       const bottom = bandBounds[i + 1];
       if (bottom - top < 28) continue; // thin bands fill from the cross-streets alone
-      // Left of boulevard: boulevard is the right edge (a road), fence is the left.
-      this._addSecondaries(net, randInt, top, bottom, EDGE + 2, centerX - SPINE_HALF - 4, 'right');
-      // Right of boulevard: boulevard is the left edge, fence is the right.
-      this._addSecondaries(net, randInt, top, bottom, centerX + SPINE_HALF + 4, width - 1 - EDGE - 2, 'left');
+
+      const isPlaza = (top === plaza.top && bottom === plaza.bottom);
+      let secs;
+      if (isPlaza) {
+        // Plaza band: zone the strips beside the square; leave the square itself.
+        secs = [
+          ...this._addSecondaries(net, randInt, top, bottom, EDGE + 2, plaza.left - 4, 'right'),
+          ...this._addSecondaries(net, randInt, top, bottom, plaza.right + 4, width - 1 - EDGE - 2, 'left')
+        ];
+      } else {
+        secs = [
+          ...this._addSecondaries(net, randInt, top, bottom, EDGE + 2, centerX - SPINE_HALF - 4, 'right'),
+          ...this._addSecondaries(net, randInt, top, bottom, centerX + SPINE_HALF + 4, width - 1 - EDGE - 2, 'left')
+        ];
+      }
+
+      // Vertical roads bounding this band's columns (for two-sided zoning).
+      const verticals = secs.map(x => ({ x, hs: STREET_HALF }));
+      if (isPlaza) {
+        verticals.push({ x: plaza.left, hs: STREET_HALF }, { x: plaza.right, hs: STREET_HALF });
+      } else {
+        verticals.push({ x: centerX, hs: SPINE_HALF });
+      }
+      bands.push({ top, bottom, verticals, isPlaza });
+
+      // Streets in the first/last band run to the map edge -> cap as cul-de-sacs.
+      if (top === 0) topCapStreets.push(...secs);
+      if (bottom === height - 1) bottomCapStreets.push(...secs);
     }
 
     net.rasterize(builder);
 
-    this.zoneAlongSegments(builder, net.segments);
-    this.specializeBuildings(builder, 'branching_road', config.mapNumber || 1);
+    // Fill each band column with two rows of rowhouses (one facing each bounding
+    // street), so every street develops on BOTH sides.
+    this._zoneBandColumns(builder, bands, plaza, width);
 
-    // Top/bottom borders: fence the grass, leave the boulevard exits open.
+    // Fixed POI mix for this map: 2 each except 1 hardware store, scattered evenly.
+    this.specializeBuildings(builder, 'branching_road', config.mapNumber || 1, {
+      types: [
+        'grocer', 'grocer',
+        'firestation', 'firestation',
+        'police', 'police',
+        'gas_station', 'gas_station',
+        'hardware_store'
+      ],
+      scatter: true
+    });
+
+    // Keep the plaza interior clear: remove any building that intrudes into it.
+    this._clearPlazaInterior(builder, plaza);
+
+    // Cap dead-end vertical streets that reach the top/bottom edge (cul-de-sacs):
+    // fence at the edge, a sidewalk strip just inside. The boulevard is excluded
+    // (its ends are the map exits).
+    for (const x of topCapStreets) this._capStreet(builder, x, 0, 1);
+    for (const x of bottomCapStreets) this._capStreet(builder, x, height - 1, -1);
+
+    // Top/bottom borders: fence the remaining grass, leave the boulevard exits open.
     for (let x = 0; x < width; x++) {
       if (builder.getTerrain(x, 0) === 'grass') builder.setTerrain(x, 0, 'fence');
       if (builder.getTerrain(x, height - 1) === 'grass') builder.setTerrain(x, height - 1, 'fence');
@@ -87,28 +158,150 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
       south: { x: centerX, y: height - 1 }
     };
     builder.metadata.roadSegments = net.toMetadata();
+
+    // Record the grass plaza interior (inside the ring road) for later use.
+    builder.metadata.townSquare = {
+      x: plaza.left + STREET_HALF + 1,
+      y: plaza.top + STREET_HALF + 1,
+      width: (plaza.right - plaza.left) - 2 * (STREET_HALF + 1),
+      height: (plaza.bottom - plaza.top) - 2 * (STREET_HALF + 1)
+    };
   }
 
   /**
-   * Fill [xLo, xHi] with vertical streets spanning [top, bottom] at jittered but
-   * BOUNDED gaps, so every resulting column is narrow enough to fill completely
-   * with buildings (no empty middle) while gap sizes still vary block to block.
-   * Walks outward from the boulevard side so the boulevard-adjacent column is
-   * always road-bounded on both edges.
+   * Fill every band's columns with two-sided rowhouse rows. Each column (the grass
+   * between two consecutive vertical roads, or a road and the side fence) gets a
+   * row of buildings facing each bounding road. Depth is adapted to the column's
+   * width so the two rows fill it back-to-back -> every street develops on BOTH
+   * sides with at most a small backyard.
+   */
+  _zoneBandColumns(builder, bands, plaza, width) {
+    for (const band of bands) {
+      const edges = [
+        { x: 1, hs: 0, road: false },                       // left fence boundary
+        ...band.verticals.map(v => ({ ...v, road: true })),
+        { x: width - 2, hs: 0, road: false }                // right fence boundary
+      ].sort((a, b) => a.x - b.x);
+
+      for (let i = 0; i < edges.length - 1; i++) {
+        const a = edges[i];
+        const b = edges[i + 1];
+        // Leave the town square itself empty.
+        if (band.isPlaza && a.x === plaza.left && b.x === plaza.right) continue;
+        this._fillColumn(builder, a, b, band.top, band.bottom);
+      }
+    }
+  }
+
+  /** Place the row(s) of buildings in one column between edges a (left) and b (right). */
+  _fillColumn(builder, a, b, top, bottom) {
+    const DEPTH_MIN = 8, DEPTH_MAX = 18;
+    const gx0 = a.road ? a.x + a.hs + 1 : a.x;  // first grass column
+    const gx1 = b.road ? b.x - b.hs - 1 : b.x;  // last grass column
+    const grassW = gx1 - gx0 + 1;
+    if (grassW < DEPTH_MIN + 1) return;
+
+    const maxB = Math.max(2, Math.ceil((bottom - top) / 12));
+    const cap = (d) => Math.max(DEPTH_MIN, Math.min(DEPTH_MAX, d));
+    // GAP between neighbouring houses along the street (>= 3, ideally 4); the
+    // collision buffer is floor(gap/2) so this also keeps a real grass margin.
+    const HOUSE_GAP = 4;
+    const BACKYARD = 4; // grass seam reserved between the two back-to-back rows
+    const row = (frontage, anchorX, depth) => builder.placeBuildingsFromAnchor(
+      anchorX, top, 'south', frontage,
+      { setback: 2, gap: HOUSE_GAP, maxBuildings: maxB, runStart: top, runEnd: bottom,
+        minW: depth, maxW: depth, minH: 10, maxH: 18 }
+    );
+
+    // Two back-to-back rows: each is (grassW - 2*setback - BACKYARD)/2 deep so a
+    // ~BACKYARD-tile grass seam stays between their backs.
+    const twoDepth = Math.floor((grassW - 4 - BACKYARD) / 2);
+    if (a.road && b.road && twoDepth >= DEPTH_MIN) {
+      const depth = Math.min(DEPTH_MAX, twoDepth);
+      row('west', a.x + a.hs, depth);  // east side of a (faces the left road)
+      row('east', b.x - b.hs, depth);  // west side of b (faces the right road)
+    } else if (a.road) {
+      row('west', a.x + a.hs, cap(grassW - 5));  // one row facing the left road
+    } else if (b.road) {
+      row('east', b.x - b.hs, cap(grassW - 5));  // one row facing the right road
+    }
+  }
+
+  /**
+   * Remove any building whose footprint pokes into the plaza interior (the grass
+   * inside the ring road), so the town square stays open.
+   */
+  _clearPlazaInterior(builder, plaza) {
+    // Interior = the grass strictly inside the ring road.
+    const ix0 = plaza.left + STREET_HALF + 1;
+    const ix1 = plaza.right - STREET_HALF - 1;
+    const iy0 = plaza.top + STREET_HALF + 1;
+    const iy1 = plaza.bottom - STREET_HALF - 1;
+
+    // Iterate a copy: clearArea() mutates metadata.buildings as it filters.
+    for (const b of [...builder.metadata.buildings]) {
+      const intrudes = b.x <= ix1 && b.x + b.width - 1 >= ix0 && b.y <= iy1 && b.y + b.height - 1 >= iy0;
+      if (intrudes) builder.clearArea(b.x, b.y, b.width, b.height);
+    }
+
+    // Wipe any road/sidewalk that bled in from the boulevard/ring endpoints so the
+    // square is pure grass (the box is inside the ring, so the ring road is safe).
+    builder.fill('grass', ix0, iy0, ix1, iy1);
+  }
+
+  /**
+   * Place vertical streets dividing [xLo, xHi] (spanning [top, bottom]) into
+   * fillable columns. Interior gaps are sized for TWO back-to-back building rows
+   * (so the column fills from both bounding streets, no empty middle), jittered so
+   * blocks still vary. The fence-side leftover column is bounded to ~one building
+   * depth so its single row (the fence has no buildings) fills it instead of
+   * leaving a wasted strip. Walks outward from the boulevard side.
    *
    * @param {'left'|'right'} boulevardSide which edge of [xLo,xHi] abuts the boulevard
    */
-  _addSecondaries(net, randInt, top, bottom, xLo, xHi, boulevardSide, { minGap = 18, maxGap = 26 } = {}) {
+  _addSecondaries(net, randInt, top, bottom, xLo, xHi, boulevardSide, { target = 44, fenceCol = 20 } = {}) {
+    const place = (x) => net.addSegment({ x, y: top }, { x, y: bottom }, 'authored', 0, { thickness: STREET_THICKNESS });
     if (xHi - xLo < 16) return;
 
-    const place = (x) => net.addSegment({ x, y: top }, { x, y: bottom }, 'authored', 0, { thickness: STREET_THICKNESS });
+    // Reserve a narrow one-row column against the fence (which has no buildings on
+    // its far side); split the rest (road on both ends) into ~target-wide columns
+    // that fill from both sides with a small backyard gap.
+    let splitLo, splitHi, fenceDivider;
+    if (boulevardSide === 'left') {      // boulevard at xLo, fence at xHi
+      fenceDivider = xHi - fenceCol;
+      splitLo = xLo; splitHi = fenceDivider;
+    } else {                             // boulevard at xHi, fence at xLo
+      fenceDivider = xLo + fenceCol;
+      splitLo = fenceDivider; splitHi = xHi;
+    }
 
-    if (boulevardSide === 'right') {
-      // Boulevard at xHi; walk toward the fence at xLo, stopping ~one depth short.
-      for (let x = xHi - randInt(minGap, maxGap); x > xLo + 12; x -= randInt(minGap, maxGap)) place(x);
-    } else {
-      // Boulevard at xLo; walk toward the fence at xHi.
-      for (let x = xLo + randInt(minGap, maxGap); x < xHi - 12; x += randInt(minGap, maxGap)) place(x);
+    const dividers = [];
+    const splitW = splitHi - splitLo;
+    if (splitW >= 18) {
+      let n = Math.max(1, Math.round(splitW / target));
+      while (splitW / n > 46) n++;        // keep columns from getting too wide (big backyards)
+      const base = splitW / n;
+      for (let k = 1; k < n; k++) dividers.push(Math.round(splitLo + k * base + randInt(-3, 3)));
+    }
+    if (fenceDivider > xLo + 12 && fenceDivider < xHi - 12) dividers.push(fenceDivider);
+
+    for (const x of dividers) place(x);
+    return dividers;
+  }
+
+  /**
+   * Cap a vertical street that dead-ends at a map edge as a cul-de-sac: fence
+   * across the street width at the very edge, then a sidewalk strip just inside.
+   *
+   * @param {number} cx     street centerline x
+   * @param {number} edgeY  the edge row (0 or height-1)
+   * @param {number} dir    +1 for the top edge, -1 for the bottom edge
+   */
+  _capStreet(builder, cx, edgeY, dir) {
+    for (let x = cx - STREET_HALF; x <= cx + STREET_HALF; x++) {
+      if (x <= 0 || x >= builder.width - 1) continue; // leave the side fences
+      builder.setTerrain(x, edgeY, 'fence');            // terminate at the edge
+      builder.setTerrain(x, edgeY + dir, 'sidewalk');   // strip just inside the fence
     }
   }
 

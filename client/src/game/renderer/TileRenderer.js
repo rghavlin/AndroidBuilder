@@ -159,34 +159,47 @@ export const TileRenderer = {
                     screenX, screenY, tileSize, tileSize
                 );
             } else {
-                ctx.strokeStyle = imageLoader.tileSet === 'b&w' ? '#555555' : '#8a2525';
-                ctx.lineWidth = Math.max(8, Math.floor(tileSize * 0.16));
+                // Two-tone wall: a dark casing under a lighter core, so the wall
+                // reads against BOTH dark backgrounds (road) and light ones (floor),
+                // and stays distinct from the near-white window frames.
+                const isBW = imageLoader.tileSet === 'b&w';
+                const coreColor = isBW ? '#bfbfbf' : '#a83838';
+                const casingColor = isBW ? '#1c1c1c' : '#2a0a0a';
+                const coreW = Math.max(6, Math.floor(tileSize * 0.16));
+                const casingW = coreW + Math.max(4, Math.floor(tileSize * 0.12));
                 ctx.lineCap = 'square';
-                
-                if (hasN) {
-                    ctx.beginPath();
-                    ctx.moveTo(screenX, screenY);
-                    ctx.lineTo(screenX + tileSize, screenY);
-                    ctx.stroke();
-                }
-                if (hasS) {
-                    ctx.beginPath();
-                    ctx.moveTo(screenX, screenY + tileSize);
-                    ctx.lineTo(screenX + tileSize, screenY + tileSize);
-                    ctx.stroke();
-                }
-                if (hasW) {
-                    ctx.beginPath();
-                    ctx.moveTo(screenX, screenY);
-                    ctx.lineTo(screenX, screenY + tileSize);
-                    ctx.stroke();
-                }
-                if (hasE) {
-                    ctx.beginPath();
-                    ctx.moveTo(screenX + tileSize, screenY);
-                    ctx.lineTo(screenX + tileSize, screenY + tileSize);
-                    ctx.stroke();
-                }
+
+                const strokeEdges = (lineWidth, color) => {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = lineWidth;
+                    if (hasN) {
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY);
+                        ctx.lineTo(screenX + tileSize, screenY);
+                        ctx.stroke();
+                    }
+                    if (hasS) {
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY + tileSize);
+                        ctx.lineTo(screenX + tileSize, screenY + tileSize);
+                        ctx.stroke();
+                    }
+                    if (hasW) {
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY);
+                        ctx.lineTo(screenX, screenY + tileSize);
+                        ctx.stroke();
+                    }
+                    if (hasE) {
+                        ctx.beginPath();
+                        ctx.moveTo(screenX + tileSize, screenY);
+                        ctx.lineTo(screenX + tileSize, screenY + tileSize);
+                        ctx.stroke();
+                    }
+                };
+
+                strokeEdges(casingW, casingColor); // dark casing first
+                strokeEdges(coreW, coreColor);     // light core on top
             }
         }
         
