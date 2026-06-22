@@ -139,6 +139,19 @@ export function escalateTurretsAgainstPlayer(gameMap, faction = 'town') {
       escalated++;
     }
   }
+
+  // Also escalate any NPCs belonging to the faction
+  const npcs = gameMap.getEntitiesByType('npc') || [];
+  for (const npc of npcs) {
+    if (factionOf(npc) === faction) {
+      if (!npc.hostileOverrides) npc.hostileOverrides = new Set();
+      if (!npc.hostileOverrides.has('player')) {
+        npc.hostileOverrides.add('player');
+        npc.isHostile = true; // Legacy isHostile fallback check
+      }
+    }
+  }
+
   return escalated;
 }
 

@@ -490,6 +490,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance < 2.5) {
+        // Disable context menu for shopkeeper if hostile to town faction
+        const isShopkeeper = npc.typeId === 'shopkeeper' || npc.isShopkeeper;
+        const isHostile = typeof npc.isHostileTo === 'function' ? npc.isHostileTo(player) : false;
+        if (isShopkeeper && isHostile) {
+          console.log('[MapInterface] Shopkeeper is hostile. Disabling context menu.');
+          return;
+        }
         setNpcMenu({ x, y, screenX, screenY, npc });
       } else {
         console.log('[MapInterface] NPC too far for interaction:', distance.toFixed(2));
@@ -590,7 +597,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           >
             {npcMenu.npc.typeId === 'shopkeeper' || npcMenu.npc.isShopkeeper ? (
               <button
-                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
+                disabled={typeof npcMenu.npc.isHostileTo === 'function' ? npcMenu.npc.isHostileTo(playerRef.current) : false}
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
                   if (!isPlayerTurn) return;
                   setIsShopOpen(true);
