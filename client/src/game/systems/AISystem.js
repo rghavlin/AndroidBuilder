@@ -453,7 +453,10 @@ export class AISystem {
         : entity.canSeeEntity(gameMap, player);
 
       // --- Decision tree (highest priority first) ---
-      if (playerInLoS) {
+      // Hunting is gated on faction hostility. Zombies are HOSTILE -> player in
+      // the stance table, so this is always true today (no behavior change); the
+      // candidate set widens in later phases as other factions become targetable.
+      if (playerInLoS && entity.isHostileTo(player)) {
         huntPlayer(ctx);                                                   // Priority 1: hunt
       } else if (aiBehavior.lastSeenPlayerCoords || aiBehavior.heardNoiseCoords) {
         investigate(ctx);                                                  // Priority 2: investigate

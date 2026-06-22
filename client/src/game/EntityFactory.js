@@ -24,6 +24,7 @@ export const EntityFactory = {
     const entity = new Entity(null, 'player', x, y);
     entity.type = 'player';
     entity.name = 'Player';
+    entity.factionId = 'player';
     entity.blocksMovement = true;
 
     // Components
@@ -67,6 +68,7 @@ export const EntityFactory = {
     entity.type = 'zombie';
     entity.subtype = subtype;
     entity.name = typeDef.name;
+    entity.factionId = 'zombies';
     entity.blocksMovement = true;
 
     // Subtype-specific colors for rendering
@@ -106,6 +108,7 @@ export const EntityFactory = {
     entity.typeId = typeId;
     entity.name = name || typeDef.name;
     entity.isHostile = isHostile;
+    entity.factionId = typeDef.factionId || 'survivors';
     entity.blocksMovement = true;
 
     // Components

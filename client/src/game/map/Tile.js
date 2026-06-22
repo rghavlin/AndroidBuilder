@@ -2,6 +2,7 @@
  * Tiles are the core building blocks - they know their state and emit events
  */
 import { EntityType } from '../entities/Entity.js';
+import { isTurretPassableBy } from '../ai/TurretCombat.js';
 
 export class Tile {
   constructor(x, y, terrain = 'grass') {
@@ -99,6 +100,16 @@ export class Tile {
       // Bypass for open/broken structures
       if (item.type === EntityType.DOOR && item.isOpen) continue;
       if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !isPlayer) continue;
+
+      // Powered-on turrets block movement for everyone except their own faction
+      // (the player can always step onto their own turret to retrieve it). Inert
+      // turrets are walkable by all. This is dynamic, independent of blocksMovement.
+      if (item.defId === 'placeable.auto_turret') {
+        if (isTurretPassableBy(item, entity)) continue;
+        // Same-tile safety: never block a mover already standing on this tile.
+        if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;
+        return false;
+      }
 
       if (item.blocksMovement) {
 

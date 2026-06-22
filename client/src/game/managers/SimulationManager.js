@@ -10,6 +10,7 @@ import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { TurretAI } from '../ai/TurretAI.js';
+import { getExposedTurretTargets } from '../ai/TurretCombat.js';
 import { FireSystem } from '../systems/FireSystem.js';
 import { DestructionSystem } from '../systems/DestructionSystem.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
@@ -81,13 +82,22 @@ export class SimulationManager {
       // Runs first, immediately after the player's turn (before zombies, rabbits, NPCs)
       const playerX = player ? player.logicalX : null;
       const playerY = player ? player.logicalY : null;
+
+      // Faction-based candidate targets for all turrets: living player + zombies +
+      // npcs, plus exposed (non-shielded) enemy turret entities. TurretAI filters
+      // these to the ones each turret is hostile toward.
+      const livingTargets = [player, ...zombies, ...npcs].filter(
+        e => e && (e.hp === undefined || e.hp > 0) && !e.hasExited
+      );
+      const exposedTurrets = getExposedTurretTargets(gameMap, [player, ...npcs]);
+      const turretTargets = [...livingTargets, ...exposedTurrets];
       // Fire one item if it is an active turret, OR recurse into its container
       // (vehicles/wagons can carry a turret in their grid). Shared by the on-map
       // scan and the ground-container scan so both behave identically.
       const fireTurretFromItem = (item, atX, atY) => {
         if (!item) return;
         if (item.defId === 'placeable.auto_turret' && item.isOn) {
-          const result = TurretAI.executeTurretTurn(item, atX, atY, gameMap, zombies);
+          const result = TurretAI.executeTurretTurn(item, atX, atY, gameMap, turretTargets);
           if (result.actions?.length) actionQueue.push(...result.actions);
           return;
         }

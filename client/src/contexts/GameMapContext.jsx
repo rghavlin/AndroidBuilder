@@ -6,6 +6,7 @@ import { useVisualEffects } from './VisualEffectsContext.jsx';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { VehicleUtils } from '../game/utils/VehicleUtils.js';
+import { isTurretPassableBy } from '../game/ai/TurretCombat.js';
 
 const GameMapContext = createContext();
 
@@ -135,7 +136,9 @@ export const GameMapProvider = ({ children }) => {
       const entityFilter = (tile) => {
         if (!tile.flags || !tile.flags.explored) return false;
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
-        return !tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door' && e.type !== 'EntityType.WINDOW' && e.type !== 'EntityType.DOOR');
+        const blockedByEntity = tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door' && e.type !== 'EntityType.WINDOW' && e.type !== 'EntityType.DOOR');
+        const blockedByTurret = tile.contents.some(e => e.defId === 'placeable.auto_turret' && !isTurretPassableBy(e, player));
+        return !blockedByEntity && !blockedByTurret;
       };
 
       const isWalkable = Pathfinding.isTileWalkable(targetTile, entityFilter);

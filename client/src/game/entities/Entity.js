@@ -1,5 +1,6 @@
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { LineOfSight } from '../utils/LineOfSight.js';
+import { FactionRegistry } from '../ai/FactionRegistry.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import engine from '../GameEngine.js';
 import { SequencerAction } from '../managers/SequencerAction.js';
@@ -98,6 +99,13 @@ export class Entity extends SafeEventEmitter {
     // Backing stats/properties for facade backward compatibility
     this.name = 'Entity';
     this.isHostile = false;
+    // Faction membership for AI hostility resolution. When null, getFaction()
+    // derives a sensible default from the entity type (so old saves and entities
+    // created outside EntityFactory still get a correct faction).
+    this.factionId = null;
+    // Per-entity runtime hostility escalation (faction ids or specific entity ids).
+    // e.g. the town adds 'player' here after the player attacks the shopkeeper.
+    this.hostileOverrides = new Set();
     this.typeId = 'survivor';
     this.equippedWeaponId = null;
     this.sightRange = 18;
@@ -993,6 +1001,48 @@ export class Entity extends SafeEventEmitter {
     return this.canSeePosition(gameMap, targetX, targetY);
   }
 
+  /**
+   * Resolve this entity's faction. Falls back to a type-based default when
+   * factionId was never explicitly assigned (old saves, ad-hoc creation).
+   */
+  getFaction() {
+    if (this.factionId) return this.factionId;
+    switch (this.type) {
+      case EntityType.PLAYER: return 'player';
+      case EntityType.ZOMBIE: return 'zombies';
+      case EntityType.NPC: return 'survivors';
+      case EntityType.RABBIT:
+      case EntityType.ANIMAL: return 'wildlife';
+      default: return 'neutral';
+    }
+  }
+
+  /**
+   * Whether this entity is hostile toward `target`. Resolution order:
+   *  1. Per-entity overrides (runtime escalation) — by entity id or faction id.
+   *  2. Legacy per-NPC hostility toward the player (preserves current behavior).
+   *  3. Static directional faction stance table.
+   */
+  isHostileTo(target) {
+    if (!target || target === this) return false;
+    const targetFaction = target.getFaction ? target.getFaction() : null;
+
+    if (this.hostileOverrides && this.hostileOverrides.size > 0) {
+      if (this.hostileOverrides.has(target.id) ||
+          (targetFaction && this.hostileOverrides.has(targetFaction))) {
+        return true;
+      }
+    }
+
+    // Legacy: an NPC flagged isHostile attacks the player. Kept as a source of
+    // truth so Phase 1 wiring is behavior-identical; folded into factions later.
+    if (this.type === EntityType.NPC && target.type === EntityType.PLAYER && this.isHostile) {
+      return true;
+    }
+
+    return FactionRegistry.isHostile(this.getFaction(), targetFaction);
+  }
+
   getDistanceTo(x, y) {
     const dx = this.logicalX - x;
     const dy = this.logicalY - y;
@@ -1026,6 +1076,8 @@ export class Entity extends SafeEventEmitter {
       equippedWeaponId: this.equippedWeaponId,
       typeId: this.typeId,
       isShopkeeper: this.isShopkeeper || false,
+      factionId: this.factionId,
+      hostileOverrides: this.hostileOverrides ? Array.from(this.hostileOverrides) : [],
       sightRange: this.sightRange,
       hasExited: this.hasExited,
       isActive: this.isActive,
@@ -1118,6 +1170,8 @@ export class Entity extends SafeEventEmitter {
     if (data.isHostile !== undefined) entity.isHostile = data.isHostile;
     if (data.typeId !== undefined) entity.typeId = data.typeId;
     if (data.isShopkeeper !== undefined) entity.isShopkeeper = data.isShopkeeper;
+    if (data.factionId !== undefined) entity.factionId = data.factionId;
+    if (Array.isArray(data.hostileOverrides)) entity.hostileOverrides = new Set(data.hostileOverrides);
     if (data.equippedWeaponId !== undefined) entity.equippedWeaponId = data.equippedWeaponId;
     if (data.sightRange !== undefined) entity.sightRange = data.sightRange;
     if (data.hasExited !== undefined) entity.hasExited = data.hasExited;

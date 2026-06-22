@@ -4,6 +4,7 @@ import { Container } from './Container.js';
 import { PocketLayouts } from './PocketLayouts.js';
 import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
+import { FactionRegistry } from '../ai/FactionRegistry.js';
 
 /**
  * Item Instance - Runtime item with state
@@ -38,6 +39,9 @@ export class Item extends SafeEventEmitter {
       attachments = null,
       capacity = null,
       ammoCount = undefined,
+      hp = undefined,
+      maxHp = undefined,
+      factionId = undefined,
       consumptionEffects = null,
       waterQuality = undefined,
       shelfLife = null,
@@ -118,6 +122,23 @@ export class Item extends SafeEventEmitter {
     this.capacity = capacity;
     this.ammoCount = ammoCount;
 
+    // Combat attributes. ONLY items whose definition declares an hp pool (e.g.
+    // turrets) are attackable; everything else leaves hp/maxHp undefined so they
+    // never read as "destroyed" and don't acquire a stray hp:0 when round-tripped
+    // through an ECS item-entity (whose hp getter returns 0).
+    const combatDef = this.defId ? ItemDefs[this.defId] : null;
+    if (combatDef && combatDef.hp !== undefined) {
+      this.maxHp = maxHp !== undefined ? maxHp : combatDef.maxHp;
+      this.hp = hp !== undefined ? hp : (this.maxHp !== undefined ? this.maxHp : combatDef.hp);
+    } else {
+      this.hp = undefined;
+      this.maxHp = undefined;
+    }
+    this.factionId = factionId;
+    // Per-entity hostility escalation (faction ids / entity ids). Used by turret
+    // faction targeting and runtime escalation (e.g. town turrets vs the player).
+    this.hostileOverrides = Array.isArray(config.hostileOverrides) ? new Set(config.hostileOverrides) : new Set();
+
     // Equipment properties
     this.equippableSlot = equippableSlot;
     this.isEquipped = isEquipped;
@@ -177,6 +198,7 @@ export class Item extends SafeEventEmitter {
       if (def.condition !== undefined && (this.condition === null || this.condition === undefined)) this.condition = def.condition;
       if (def.capacity !== undefined && this.capacity === null) this.capacity = def.capacity;
       if (def.ammoCount !== undefined && this.ammoCount === undefined) this.ammoCount = def.ammoCount;
+      if (def.factionId !== undefined && this.factionId === undefined) this.factionId = def.factionId;
       if (def.ammoDefId && !this.ammoDefId) this.ammoDefId = def.ammoDefId;
       if (def.equippableSlot && !this.equippableSlot) this.equippableSlot = def.equippableSlot;
       if (def.rarity && !this.rarity) this.rarity = def.rarity;
@@ -302,6 +324,10 @@ export class Item extends SafeEventEmitter {
         key !== 'attachments' &&
         key !== 'id' &&
         key !== 'components' &&
+        // hp/maxHp are gated on the definition above; never copy a stray hp:0
+        // that came from an ECS item-entity round-trip onto a non-combat item.
+        key !== 'hp' &&
+        key !== 'maxHp' &&
         this[key] === undefined
       ) {
         this[key] = value;
@@ -601,6 +627,57 @@ export class Item extends SafeEventEmitter {
   }
 
 
+
+  // --- Faction & combat (turrets) ---
+
+  /** Faction this item belongs to (turrets). Defaults to 'neutral' when unset. */
+  getFaction() {
+    return this.factionId || 'neutral';
+  }
+
+  isAutoTurret() {
+    return this.defId === 'placeable.auto_turret';
+  }
+
+  /**
+   * Whether this item (turret) is hostile toward `target`: per-entity overrides
+   * first, then the directional faction stance table. Mirrors Entity.isHostileTo
+   * (minus the NPC legacy clause) so turret AI can target uniformly.
+   */
+  isHostileTo(target) {
+    if (!target || target === this) return false;
+    const targetFaction = typeof target.getFaction === 'function' ? target.getFaction() : null;
+    if (this.hostileOverrides && this.hostileOverrides.size > 0) {
+      if (this.hostileOverrides.has(target.id) ||
+          this.hostileOverrides.has(target.instanceId) ||
+          (targetFaction && this.hostileOverrides.has(targetFaction))) {
+        return true;
+      }
+    }
+    return FactionRegistry.isHostile(this.getFaction(), targetFaction);
+  }
+
+  /**
+   * Turrets not owned by the player (e.g. the town's defenses) are treated as
+   * having infinite battery + ammo and stay permanently powered on.
+   */
+  isInfiniteTurret() {
+    return this.isAutoTurret() && this.getFaction() !== 'player';
+  }
+
+  /**
+   * Apply combat damage to an attackable item (turret). No-op for items without
+   * an hp pool. Returns remaining hp.
+   */
+  takeDamage(amount) {
+    if (this.hp === undefined || this.hp === null) return undefined;
+    this.hp = Math.max(0, this.hp - amount);
+    return this.hp;
+  }
+
+  isDead() {
+    return this.hp !== undefined && this.hp !== null && this.hp <= 0;
+  }
 
   get isSpoiled() {
     return this.hasTrait(ItemTrait.SPOILABLE) && this.shelfLife !== null && this.shelfLife <= 0;
@@ -1396,11 +1473,17 @@ export class Item extends SafeEventEmitter {
         key === 'attachments' ||
         key === 'traits' ||
         key === 'listeners' ||
+        key === 'hostileOverrides' ||
         key === 'components'
       ) {
         continue;
       }
       data[key] = value;
+    }
+
+    // Serialize faction hostility overrides as a plain array (Set isn't JSON-able)
+    if (this.hostileOverrides && this.hostileOverrides.size > 0) {
+      data.hostileOverrides = Array.from(this.hostileOverrides);
     }
 
     // Serialize Traits

@@ -13,6 +13,7 @@ import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { getAttackableTurretOnTile, removeDestroyedTurret, escalateTurretsAgainstPlayer } from '../game/ai/TurretCombat.js';
 import engine from '../game/GameEngine.js';
 import { IntentQueue } from '../game/managers/IntentQueue.js';
 import { ExplosionIntent } from '../game/components/ExplosionIntent.js';
@@ -158,9 +159,10 @@ export const CombatProvider = ({ children }) => {
 
         const tile = gameMap.getTile(targetX, targetY);
         const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
-        const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
+        const turret = !targetEntity ? getAttackableTurretOnTile(tile, player) : null;
+        const structure = (!targetEntity && !turret) ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
 
-        if (!targetEntity && !structure) return { success: false, reason: 'No target here' };
+        if (!targetEntity && !turret && !structure) return { success: false, reason: 'No target here' };
 
         // Stun Rod battery charge check and consumption
         let isStunRodActive = false;
@@ -242,6 +244,16 @@ export const CombatProvider = ({ children }) => {
                 }
                 addLog(logMsg, 'combat');
                 if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
+                if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
+                    const escalated = escalateTurretsAgainstPlayer(gameMap, 'town');
+                    if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
+                }
+            } else if (turret) {
+                turret.takeDamage(damage);
+                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
+                // Attacking a faction's turret provokes that whole faction.
+                const escalated = escalateTurretsAgainstPlayer(gameMap, turret.getFaction?.());
+                if (escalated > 0) addLog('The turrets turn on you!', 'warning');
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
@@ -305,6 +317,12 @@ export const CombatProvider = ({ children }) => {
                 }
                 
                 gameMap.removeEntity(targetEntity.id);
+                cancelTargeting();
+            }
+
+            if (turret && turret.isDead()) {
+                addLog('Turret destroyed!', 'combat');
+                removeDestroyedTurret(turret, gameMap, targetX, targetY);
                 cancelTargeting();
             }
             triggerMapUpdate();
@@ -376,9 +394,10 @@ export const CombatProvider = ({ children }) => {
 
         const tile = gameMap.getTile(targetX, targetY);
         const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
-        const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
-        
-        if (!targetEntity && !structure) {
+        const turret = !targetEntity ? getAttackableTurretOnTile(tile, player) : null;
+        const structure = (!targetEntity && !turret) ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
+
+        if (!targetEntity && !turret && !structure) {
             cancelTargeting();
             return { success: false, reason: 'No target at location' };
         }
@@ -482,6 +501,16 @@ export const CombatProvider = ({ children }) => {
                     targetEntity.takeDamage(damage);
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
                     if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
+                    if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
+                        const escalated = escalateTurretsAgainstPlayer(gameMap, 'town');
+                        if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
+                    }
+                } else if (turret) {
+                    turret.takeDamage(damage);
+                    addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
+                    // Attacking a faction's turret provokes that whole faction.
+                    const escalated = escalateTurretsAgainstPlayer(gameMap, turret.getFaction?.());
+                    if (escalated > 0) addLog('The turrets turn on you!', 'warning');
                 } else if (structure) {
                     if (structure.type === EntityType.WINDOW) {
                         structure.break();
@@ -558,6 +587,13 @@ export const CombatProvider = ({ children }) => {
                     gameMap.removeEntity(targetEntity.id);
                     cancelTargeting();
                     break; // End burst if target dies
+                }
+
+                if (turret && turret.isDead()) {
+                    addLog('Turret destroyed!', 'combat');
+                    removeDestroyedTurret(turret, gameMap, targetX, targetY);
+                    cancelTargeting();
+                    break; // End burst if the turret is destroyed
                 }
             } else {
                 addLog(`Player attacks: miss (${weapon.name})`, 'combat');

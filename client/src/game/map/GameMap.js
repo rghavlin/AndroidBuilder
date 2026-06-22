@@ -7,6 +7,7 @@ import { Entity, EntityType } from '../entities/Entity.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { Item as ECSItem } from '../components/Item.js';
+import { Health } from '../components/Health.js';
 import { Renderable } from '../components/Renderable.js';
 import { MeleeWeapon } from '../components/MeleeWeapon.js';
 import { Position } from '../components/Position.js';
@@ -1632,6 +1633,24 @@ export class GameMap {
     entity.name = name;
     entity.subtype = defId ? defId.split('.').pop() : 'default';
     entity.condition = itemData.condition !== undefined ? itemData.condition : null;
+
+    // Combat attributes (turrets). Entity exposes hp/maxHp/factionId as
+    // getters/defaults (0 / null, not undefined), so the generic copy loop below
+    // skips them. Transfer them explicitly so a deployed turret keeps its hp pool
+    // (as a Health component) and its faction.
+    if (itemData.maxHp !== undefined || itemData.hp !== undefined) {
+      const max = itemData.maxHp !== undefined ? itemData.maxHp : itemData.hp;
+      const current = itemData.hp !== undefined ? itemData.hp : max;
+      entity.addComponent(new Health({ current, max }));
+    }
+    if (itemData.factionId !== undefined && itemData.factionId !== null) {
+      entity.factionId = itemData.factionId;
+    }
+    if (itemData.hostileOverrides) {
+      entity.hostileOverrides = itemData.hostileOverrides instanceof Set
+        ? new Set(itemData.hostileOverrides)
+        : new Set(Array.isArray(itemData.hostileOverrides) ? itemData.hostileOverrides : []);
+    }
 
     // Copy all other fields from itemData to entity for backwards compatibility
     for (const [key, value] of Object.entries(itemData)) {

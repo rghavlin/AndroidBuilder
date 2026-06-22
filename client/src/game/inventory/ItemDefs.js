@@ -2532,6 +2532,12 @@ export const ItemDefs = {
     imageId: 'turret',
     width: 4,
     height: 4,
+    // Faction defaults to the player (crafted/owned turrets). Neutral turrets
+    // (e.g. the town's defenses) override factionId at spawn and are treated as
+    // having infinite power/ammo and always powered on.
+    factionId: 'player',
+    hp: 40,
+    maxHp: 40,
     traits: [ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED, ItemTrait.GROUND_ONLY],
     categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
     isOn: false,

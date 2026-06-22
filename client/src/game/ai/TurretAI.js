@@ -8,30 +8,54 @@ export class TurretAI {
    * @param {number} turretX     - Logical X of the turret's tile
    * @param {number} turretY     - Logical Y
    * @param {GameMap} gameMap
-   * @param {Array}  zombies     - All living zombie entities on map
+   * @param {Array}  candidates  - Potential target entities (player, zombies,
+   *   npcs, exposed turret entities). Filtered to faction-hostile targets here.
    * @returns {{ actions: Array }} - Action records for TurnManager
    */
-  static executeTurretTurn(turretItem, turretX, turretY, gameMap, zombies) {
+  static executeTurretTurn(turretItem, turretX, turretY, gameMap, candidates) {
     const actions = [];
 
-    // Gate: must be on and have battery
-    if (!turretItem.isOn) return { actions };
+    // Neutral/non-player turrets have infinite power + ammo and are always on,
+    // so they bypass the battery/magazine gates and never consume resources.
+    const infinite = typeof turretItem.isInfiniteTurret === 'function'
+      ? turretItem.isInfiniteTurret()
+      : (turretItem.factionId && turretItem.factionId !== 'player');
 
-    const battery = turretItem.attachments?.['battery'];
-    if (!battery || (battery.ammoCount || 0) <= 0) {
-      turretItem.isOn = false;
-      actions.push({
-        type: 'SOUND',
-        entityId: `turret_${turretItem.instanceId}`,
-        metadata: { sound: 'power_down' }, // Example sound trigger
-        data: { x: turretX, y: turretY }
-      });
-      return { actions };
+    const mag = turretItem.attachments?.['ammo'];
+
+    if (!infinite) {
+      // Gate: must be on and have battery
+      if (!turretItem.isOn) return { actions };
+
+      const battery = turretItem.attachments?.['battery'];
+      if (!battery || (battery.ammoCount || 0) <= 0) {
+        turretItem.isOn = false;
+        actions.push({
+          type: 'SOUND',
+          entityId: `turret_${turretItem.instanceId}`,
+          metadata: { sound: 'power_down' }, // Example sound trigger
+          data: { x: turretX, y: turretY }
+        });
+        return { actions };
+      }
+
+      // Gate: must have a magazine with ammo. Out of ammo => auto power-down
+      // (turret goes inert: untargetable and walkable by all).
+      if (!mag || (mag.ammoCount || 0) <= 0) {
+        turretItem.isOn = false;
+        actions.push({
+          type: 'SOUND',
+          entityId: `turret_${turretItem.instanceId}`,
+          metadata: { sound: 'power_down' },
+          data: { x: turretX, y: turretY }
+        });
+        return { actions };
+      }
     }
 
-    // Gate: must have a magazine with ammo
-    const mag = turretItem.attachments?.['ammo'];
-    if (!mag || (mag.ammoCount || 0) <= 0) return { actions };
+    // Ammo availability + consumption: unlimited for infinite turrets.
+    const hasAmmo = () => infinite || (mag && (mag.ammoCount || 0) > 0);
+    const consumeAmmo = () => { if (!infinite && mag) mag.ammoCount = Math.max(0, mag.ammoCount - 1); };
 
     const def = turretItem.defId ? ItemDefs[turretItem.defId] : null;
     const turretStats = def?.turretStats || {
@@ -54,35 +78,39 @@ export class TurretAI {
     const accuracyBonus = turretStats.rangedLvl * 0.01;
     const critChance = 0.05 + (turretStats.rangedLvl - 1) * 0.05;
 
-    // Build list of zombies in range, mapping distance to avoid recomputation
-    const inRange = zombies
-      .map(z => {
-        if (z.hp <= 0) return null;
-        const dx = z.logicalX - turretX;
-        const dy = z.logicalY - turretY;
+    // Build list of in-range, visible, faction-HOSTILE targets sorted nearest-first.
+    const inRange = (candidates || [])
+      .map(c => {
+        if (!c || c === turretItem) return null;
+        if (c.hp !== undefined && c.hp <= 0) return null;
+        if (!turretItem.isHostileTo(c)) return null;
+        const cx = c.logicalX !== undefined ? c.logicalX : c.x;
+        const cy = c.logicalY !== undefined ? c.logicalY : c.y;
+        const dx = cx - turretX;
+        const dy = cy - turretY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        return { zombie: z, dist };
+        return { target: c, dist, cx, cy };
       })
       .filter(entry => {
         if (!entry) return false;
         if (entry.dist > turretStats.maxRange) return false;
-        const los = LineOfSight.hasLineOfSight(gameMap, turretX, turretY, entry.zombie.logicalX, entry.zombie.logicalY, { maxRange: turretStats.maxRange });
+        const los = LineOfSight.hasLineOfSight(gameMap, turretX, turretY, entry.cx, entry.cy, { maxRange: turretStats.maxRange });
         return los.hasLineOfSight;
       })
       .sort((a, b) => a.dist - b.dist);
 
     for (const entry of inRange) {
-      const zombie = entry.zombie;
+      const target = entry.target;
       let dist = entry.dist;
 
       if (ap <= 0) break;
-      if ((mag.ammoCount || 0) <= 0) break;
-      if (zombie.hp <= 0) continue;
+      if (!hasAmmo()) break;
+      if (target.hp <= 0) continue;
 
-      // Fire until zombie dead, out of AP, or out of ammo
-      while (ap >= turretStats.apPerShot && (mag.ammoCount || 0) > 0 && zombie.hp > 0) {
+      // Fire until target dead, out of AP, or out of ammo
+      while (ap >= turretStats.apPerShot && hasAmmo() && target.hp > 0) {
         ap -= turretStats.apPerShot;
-        mag.ammoCount = Math.max(0, mag.ammoCount - 1);
+        consumeAmmo();
 
         const squaresAway = Math.floor(dist);
         const baseHit     = Math.max(turretStats.minAccuracy, 1.0 - (squaresAway - 1) * turretStats.accuracyFalloff);
@@ -94,7 +122,7 @@ export class TurretAI {
           damage = isCrit
             ? Math.floor(turretStats.damage.max * 1.5)
             : Math.floor(Math.random() * (turretStats.damage.max - turretStats.damage.min + 1)) + turretStats.damage.min;
-          zombie.takeDamage(damage);
+          target.takeDamage(damage);
         }
 
         // Noise
@@ -105,15 +133,15 @@ export class TurretAI {
           entityId: `turret_${turretItem.instanceId}`,
           data: {
             turretX, turretY,
-            targetId:    zombie.id,
-            targetX:     zombie.logicalX,
-            targetY:     zombie.logicalY,
+            targetId:    target.id,
+            targetX:     entry.cx,
+            targetY:     entry.cy,
             hit, isCrit, damage,
-            isDead:      zombie.hp <= 0
+            isDead:      target.hp <= 0
           }
         });
 
-        if (zombie.hp <= 0) break;
+        if (target.hp <= 0) break;
       }
     }
 

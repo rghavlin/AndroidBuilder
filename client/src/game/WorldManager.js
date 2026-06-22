@@ -388,6 +388,7 @@ export class WorldManager {
       // Spawn the shopkeeper BEFORE saving so it's included in the serialized snapshot
       if (templateToUse === 'branching_road') {
         NPCSpawner.spawnShopkeeper(gameMap);
+        NPCSpawner.spawnTownTurrets(gameMap);
       }
 
       // Save to world collection
@@ -843,6 +844,7 @@ export class WorldManager {
         // Spawn the shopkeeper BEFORE saving so it's included in the serialized snapshot
         if (templateToUse === 'branching_road') {
           NPCSpawner.spawnShopkeeper(gameMap);
+          NPCSpawner.spawnTownTurrets(gameMap);
         }
 
         // Save to world collection with the correct target ID

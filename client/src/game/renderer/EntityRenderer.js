@@ -22,6 +22,27 @@ function getTempCanvas(size) {
   return { canvas: tempCanvas, ctx: tempCtx };
 }
 
+/**
+ * The powered-on auto-turret an on-map entity is or carries: the entity itself
+ * if it's a powered turret, otherwise a powered turret nested in its container
+ * (e.g. a wagon). Returns null if none. Used for turret icon priority + the
+ * pulsing "active/targetable" border. (Inert turrets return null.)
+ */
+function getPoweredTurretForEntity(entity) {
+  if (!entity) return null;
+  if (entity.defId === 'placeable.auto_turret' && entity.isOn) return entity;
+  const grid = entity.containerGrid || (typeof entity.getContainerGrid === 'function' ? entity.getContainerGrid() : null);
+  if (grid && grid.items) {
+    const items = grid.items instanceof Map
+      ? Array.from(grid.items.values())
+      : (Array.isArray(grid.items) ? grid.items : Object.values(grid.items));
+    for (const it of items) {
+      if (it && it.defId === 'placeable.auto_turret' && it.isOn) return it;
+    }
+  }
+  return null;
+}
+
 export const EntityRenderer = {
   renderEntity: (ctx, entity, tileSize, sprites, visibilitySet, isExplored, engine, currentTime = performance.now(), isGlobalAnimating = false) => {
     // Reset globalAlpha to ensure state from previous entity draws doesn't leak
@@ -126,7 +147,11 @@ export const EntityRenderer = {
       // Standard Sprite Rendering
       // Standardize subtype: use 'basic' if null/undefined to hit base sprite entries
       const subtype = entity.type === EntityType.PLAYER ? null : (entity.subtype || 'basic');
-      
+
+      // The powered-on turret this item is or carries (null otherwise). Drives
+      // turret icon priority, forced token rendering, and the pulsing ring.
+      const renderTurret = entity.type === 'item' ? getPoweredTurretForEntity(entity) : null;
+
       // Phase 27: Priority for Image Mapping
       // 1. If it's an Item with an explicit imageId, use it (canonical)
       // 2. If it's an item subtype with a definition, use that definition's imageId
@@ -158,6 +183,13 @@ export const EntityRenderer = {
           }
         } else {
           effectiveImageId = entity.imageId || (ItemDefs[subtype]?.imageId) || subtype;
+        }
+
+        // Turret icon priority: a carrier (e.g. a wagon) holding a powered-on
+        // turret renders AS the turret — it's the exposed, targetable object on
+        // this tile. (Standalone turrets already use the turret image.)
+        if (renderTurret && entity.defId !== 'placeable.auto_turret') {
+          effectiveImageId = 'turret';
         }
       }
 
@@ -239,9 +271,13 @@ export const EntityRenderer = {
 
         // Metadata driven: check if the item is marked as full-tile
         // We check the entity property (set by GameMap for ground items) or the definition
-        let isFullTileItem = entity.renderFullTile || 
-                               ItemDefs[subtype]?.renderFullTile || 
+        let isFullTileItem = entity.renderFullTile ||
+                               ItemDefs[subtype]?.renderFullTile ||
                                ItemDefs[entity.defId]?.renderFullTile;
+
+        // A powered-on turret (standalone or wagon-carried) always renders as a
+        // circular token so its framing ring can pulse to signal it's active.
+        if (renderTurret) isFullTileItem = false;
 
         // Override: render crops, furniture, and vehicles in a circular token frame (not full tile)
         if (isCrop || hasFurnitureOrVehicle) {
@@ -353,13 +389,22 @@ export const EntityRenderer = {
           ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Draw inner silver border
-          ctx.strokeStyle = '#e2e8f0';
-          ctx.lineWidth = Math.max(0.8, drawSize * 0.04);
+          // Draw inner border. Normally silver; a powered-on turret pulses its
+          // ring between silver and dark electric blue to signal it's active.
+          if (renderTurret) {
+            const t = 0.5 + 0.5 * Math.sin(currentTime / 250); // 0..1
+            const lerp = (a, b) => Math.round(a + (b - a) * t);
+            // silver (226,232,240) <-> dark electric blue (15,60,180)
+            ctx.strokeStyle = `rgb(${lerp(226, 15)}, ${lerp(232, 60)}, ${lerp(240, 180)})`;
+            ctx.lineWidth = Math.max(1.2, drawSize * 0.06);
+          } else {
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = Math.max(0.8, drawSize * 0.04);
+          }
           ctx.beginPath();
           ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.stroke();
-          
+
           ctx.restore();
         }
 

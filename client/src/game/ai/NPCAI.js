@@ -76,7 +76,9 @@ export class NPCAI {
         }
 
         // Priority 3: Hostile Player Interaction
-        if (npc.isHostile && npc.canSeeEntity(gameMap, player)) {
+        // Routed through the faction layer; for NPCs isHostileTo(player) folds in
+        // the legacy isHostile flag, so behavior is unchanged in Phase 1.
+        if (npc.isHostileTo(player) && npc.canSeeEntity(gameMap, player)) {
           if (this.DEBUG) console.log(`[NPCAI] Hostile NPC sees player. Initiating player interaction.`);
           if (this.processHostilePlayer(npc, gameMap, player, turnResult)) {
             continue;

@@ -74,7 +74,18 @@ export const TurnProcessingUtils = {
      * @returns {boolean} - Whether the item was modified
      */
     processAutoTurretDrain(itemData) {
-        if (itemData.defId === 'placeable.auto_turret' && itemData.isOn) {
+        if (itemData.defId !== 'placeable.auto_turret') return false;
+
+        // Neutral/non-player turrets have infinite power and stay permanently on.
+        const isInfinite = typeof itemData.isInfiniteTurret === 'function'
+            ? itemData.isInfiniteTurret()
+            : (itemData.factionId && itemData.factionId !== 'player');
+        if (isInfinite) {
+            itemData.isOn = true;
+            return true;
+        }
+
+        if (itemData.isOn) {
             const battery = itemData.attachments?.['battery'];
             if (battery && (battery.ammoCount || 0) >= 1) {
                 battery.ammoCount = Math.max(0, battery.ammoCount - 1);

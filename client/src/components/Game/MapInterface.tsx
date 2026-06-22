@@ -43,6 +43,7 @@ import { NPCDemandDialog } from './NPCDemandDialog';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import { createItemFromDef } from '../../game/inventory/ItemDefs.js';
 import { Item } from '../../game/inventory/Item.js';
+import { getCarriedPoweredTurret } from '../../game/ai/TurretCombat.js';
 import { ItemContextMenu } from '../Inventory/ItemContextMenu';
 import { ItemTooltip } from '../Inventory/ItemTooltip';
 
@@ -1513,7 +1514,15 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   }
   
   const cropInfo = targetTile?.cropInfo;
-  const lootItems = targetTile?.inventoryItems || [];
+  // Surface a powered-on turret carried inside a wagon/container so the tooltip
+  // names the turret (the exposed, targetable object), not just the carrier.
+  const rawLootItems = targetTile?.inventoryItems || [];
+  const lootItems: any[] = [];
+  for (const it of rawLootItems) {
+    const carriedTurret = getCarriedPoweredTurret(it);
+    if (carriedTurret) lootItems.push(carriedTurret);
+    lootItems.push(it);
+  }
   const specialBuilding = targetTile?.contents.find((e: any) => e.type === 'place_icon')?.subtype || null;
 
   // Logic for Zombie visibility: must be in player's current FOV (using visual position for check)

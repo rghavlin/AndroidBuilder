@@ -67,6 +67,7 @@ export const NPCTypes = {
   },
   shopkeeper: {
     name: 'Town Merchant',
+    factionId: 'town',
     hp: 20,
     maxAP: 0,
     hostilityChance: 0,

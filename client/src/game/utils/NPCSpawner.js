@@ -277,4 +277,41 @@ export class NPCSpawner {
     }
     return null;
   }
+
+  /**
+   * Spawn the town faction's defensive auto-turrets on the fence tiles flanking
+   * the barrier icons either side of the shopkeeper's gate. These are neutral
+   * (town faction): infinite battery/ammo, always powered on. They fire on
+   * zombies unconditionally, and on the player only after escalation (the player
+   * attacking the shopkeeper).
+   * @param {GameMap} gameMap
+   * @returns {number} number of turrets spawned
+   */
+  static spawnTownTurrets(gameMap) {
+    const compound = gameMap.metadata?.townSquareCompound;
+    if (!compound || !compound.fenceBounds || compound.fenceBounds.y2 === undefined) {
+      console.warn('[NPCSpawner] spawnTownTurrets aborted: no townSquareCompound fenceBounds.');
+      return 0;
+    }
+
+    const y = compound.fenceBounds.y2;
+    const centerX = Math.floor(gameMap.width / 2);
+    // Barriers sit at centerX +/- 1 (flanking the gate); turrets sit one tile
+    // further out, on the fence tiles flanking those barriers.
+    const positions = [centerX - 2, centerX + 2];
+
+    let count = 0;
+    for (const x of positions) {
+      if (x < 0 || x >= gameMap.width) continue;
+      const turretData = createItemFromDef('placeable.auto_turret', { factionId: 'town', isOn: true });
+      if (!turretData) continue;
+      const turret = new Item(turretData);
+      turret.factionId = 'town';
+      turret.isOn = true;
+      gameMap.addItemsToTile(x, y, [turret]);
+      count++;
+      console.log(`[NPCSpawner] Spawned town turret at (${x}, ${y})`);
+    }
+    return count;
+  }
 }
