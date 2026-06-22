@@ -597,7 +597,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                   playSound('Click');
                 }}
               >
-                Shop
+                Talk
               </button>
             ) : (
               <button
@@ -636,7 +636,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             isBartering ||
             activeNpcDemand ||
             isSkillsOpen ||
-            isSleeping
+            isSleeping ||
+            isShopOpen
           ) {
             return null;
           }

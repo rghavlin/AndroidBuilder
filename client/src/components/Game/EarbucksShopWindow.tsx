@@ -82,9 +82,6 @@ function ShopItemRow({ item, mapId, playerEarbucks, onBuySuccess, onBuyFail }: S
         )}
         <div className="flex flex-col">
           <span className="font-bold text-white text-sm">{item.name}</span>
-          <span className="text-[10px] text-zinc-500 font-medium">
-            {itemDef?.description || 'No description available'}
-          </span>
           <span className="text-[10px] font-black uppercase tracking-wider mt-0.5">
             {isFinite
               ? <span className={isOutOfStock ? "text-red-400" : "text-amber-400"}>
@@ -171,12 +168,9 @@ export default function EarbucksShopWindow({ mapId, onClose }: EarbucksShopWindo
       >
         {/* Header */}
         <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-zinc-950/80">
-          <div className="flex flex-col">
-            <h2 className="text-lg font-black text-white tracking-tighter uppercase italic">
-              Town Merchant Shop
-            </h2>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black -mt-0.5">
-              Compound Exchange · Map 1
+          <div className="flex-1 mr-4">
+            <p className="text-xs text-zinc-300 font-medium italic leading-relaxed">
+              "We don't have room for any more people, but if you're willing to help out with killing zombies, we'll share some of what we've got."
             </p>
           </div>
           <button
@@ -188,7 +182,7 @@ export default function EarbucksShopWindow({ mapId, onClose }: EarbucksShopWindo
         </div>
 
         {/* Content list */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-3 bg-zinc-900/10 scrollbar-thin">
+        <div className="flex-1 p-6 overflow-y-auto space-y-3 bg-zinc-900/10 custom-scrollbar">
           {catalog.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-zinc-500">
               <span className="text-3xl mb-2">🏪</span>

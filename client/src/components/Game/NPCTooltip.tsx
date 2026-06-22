@@ -7,6 +7,8 @@ interface NPCTooltipProps {
         maxHp: number;
         stunnedTurns?: number;
         fireTurns?: number;
+        typeId?: string;
+        isShopkeeper?: boolean;
     };
 }
 
@@ -15,6 +17,20 @@ interface NPCTooltipProps {
  */
 export function NPCTooltip({ npc }: NPCTooltipProps) {
     if (!npc) return null;
+
+    const isShopkeeper = npc.typeId === 'shopkeeper' || npc.isShopkeeper;
+
+    if (isShopkeeper) {
+        return (
+            <div className="p-3 min-w-[120px] bg-black/85 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl animate-in fade-in zoom-in duration-150">
+                <div className="flex flex-col items-center gap-1">
+                    <h4 className="font-black text-sm text-white tracking-[0.2em] uppercase text-center w-full">
+                        Survivor
+                    </h4>
+                </div>
+            </div>
+        );
+    }
 
     const baseName = npc.name;
     const conditions: string[] = [];
