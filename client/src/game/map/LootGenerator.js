@@ -168,8 +168,16 @@ export class LootGenerator {
 
         // 2. Identify outdoor tiles and spawn outdoor loot (excluding doorway tiles)
         const outdoorTiles = [];
+        const compound = gameMap.metadata?.townSquareCompound;
         for (let y = 0; y < gameMap.height; y++) {
             for (let x = 0; x < gameMap.width; x++) {
+                const isInsideCompound = compound &&
+                  x >= compound.fenceBounds.x1 &&
+                  x <= compound.fenceBounds.x2 &&
+                  y >= compound.fenceBounds.y1 &&
+                  y <= compound.fenceBounds.y2;
+                if (isInsideCompound) continue;
+
                 const tile = gameMap.getTile(x, y);
                 if (!tile || !tile.isWalkable()) continue;
                 
@@ -377,6 +385,16 @@ export class LootGenerator {
                             isSpaceFree = false;
                             break;
                         }
+                        const compound = gameMap.metadata?.townSquareCompound;
+                        const isInsideCompound = compound &&
+                          tx >= compound.fenceBounds.x1 &&
+                          tx <= compound.fenceBounds.x2 &&
+                          ty >= compound.fenceBounds.y1 &&
+                          ty <= compound.fenceBounds.y2;
+                        if (isInsideCompound) {
+                            isSpaceFree = false;
+                            break;
+                        }
                         const existing = gameMap.getItemsOnTile(tx, ty);
                         if (existing && existing.length > 0) {
                             isSpaceFree = false;
@@ -575,7 +593,7 @@ export class LootGenerator {
      * Spawn safes inside random buildings
      */
     spawnSafes(gameMap, count) {
-        const buildings = gameMap.buildings || [];
+        const buildings = (gameMap.buildings || []).filter(b => b.type !== 'compound');
         if (buildings.length === 0) {
             console.warn('[LootGenerator] No buildings found to spawn safes');
             return;

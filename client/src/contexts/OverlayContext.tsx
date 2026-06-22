@@ -5,6 +5,8 @@ interface OverlayContextType {
   setActiveTradeNpc: (npc: any | null) => void;
   isBartering: boolean;
   setIsBartering: (open: boolean) => void;
+  isShopOpen: boolean;
+  setIsShopOpen: (open: boolean) => void;
   logHistoryOpen: boolean;
   setLogHistoryOpen: (open: boolean) => void;
   showMainMenu: boolean;
@@ -21,6 +23,7 @@ const OverlayContext = createContext<OverlayContextType | undefined>(undefined);
 export function OverlayProvider({ children }: { children: ReactNode }) {
   const [activeTradeNpc, setActiveTradeNpc] = useState<any | null>(null);
   const [isBartering, setIsBartering] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
   const [logHistoryOpen, setLogHistoryOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [isExtensionOpen, setIsExtensionOpen] = useState(false);
@@ -28,6 +31,7 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
   const resetAll = () => {
     setActiveTradeNpc(null);
     setIsBartering(false);
+    setIsShopOpen(false);
     setLogHistoryOpen(false);
     setShowMainMenu(false);
     setIsExtensionOpen(false);
@@ -39,6 +43,8 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
       setActiveTradeNpc,
       isBartering,
       setIsBartering,
+      isShopOpen,
+      setIsShopOpen,
       logHistoryOpen,
       setLogHistoryOpen,
       showMainMenu,

@@ -6,6 +6,7 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
 import { TradeDialog } from './TradeDialog';
 import BarterWindow from './BarterWindow';
+import EarbucksShopWindow from './EarbucksShopWindow';
 import LogHistoryWindow from './LogHistoryWindow';
 import PlayerSkillsWindow from './PlayerSkillsWindow';
 import MainMenuWindow from './MainMenuWindow';
@@ -25,6 +26,7 @@ export default function OverlayManager() {
   const { 
     activeTradeNpc, setActiveTradeNpc,
     isBartering, setIsBartering,
+    isShopOpen, setIsShopOpen,
     logHistoryOpen, setLogHistoryOpen,
     showMainMenu, setShowMainMenu,
     isExtensionOpen, setIsExtensionOpen
@@ -78,6 +80,14 @@ export default function OverlayManager() {
                 setIsBartering(false);
                 setActiveTradeNpc(null);
               }} 
+            />
+          )}
+
+          {/* Earbucks Shop Window */}
+          {isShopOpen && (
+            <EarbucksShopWindow
+              mapId={worldManager?.currentMapId || 'map_001'}
+              onClose={() => setIsShopOpen(false)}
             />
           )}
 

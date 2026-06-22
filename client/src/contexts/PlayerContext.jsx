@@ -24,7 +24,8 @@ export const usePlayer = () => {
           energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
           isStarving: false, isDehydrated: false,
           meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
-          craftingApUsed: 0, craftingLvl: 0
+          craftingApUsed: 0, craftingLvl: 0,
+          earbucks: 0
         },
         isMoving: false,
         movementPath: [],
@@ -85,7 +86,8 @@ export const PlayerProvider = ({ children }) => {
       drunkenness: 0,
       isStarving: false, isDehydrated: false,
       meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
-      craftingApUsed: 0, craftingLvl: 0
+      craftingApUsed: 0, craftingLvl: 0,
+      earbucks: 0
     };
 
     return {
@@ -110,6 +112,7 @@ export const PlayerProvider = ({ children }) => {
       rangedLvl: player.rangedLvl,
       craftingApUsed: player.craftingApUsed,
       craftingLvl: player.craftingLvl,
+      earbucks: player.earbucks || 0,
       ammo: 0 // Legacy
     };
   }, [enginePulse]);

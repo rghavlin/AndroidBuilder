@@ -320,6 +320,13 @@ class TurnManager {
             GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: deathX, y: deathY });
             this.flashedEntityIds.add(entityId);
           }
+          // Award 1 Earbuck if a zombie dies during turn simulation (turret, fire, npc, etc.)
+          if (engine.player) {
+            engine.player.earbucks = (engine.player.earbucks || 0) + 1;
+            if (context.addLog) {
+              context.addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
+            }
+          }
         }
 
         gameMap.removeEntity(entityId);

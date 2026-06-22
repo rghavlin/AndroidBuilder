@@ -577,6 +577,20 @@ export class Entity extends SafeEventEmitter {
     this.notifyChange();
   }
 
+  get earbucks() {
+    const skills = this.getComponent('PlayerSkills');
+    return skills ? skills.earbucks : 0;
+  }
+  set earbucks(v) {
+    let skills = this.getComponent('PlayerSkills');
+    if (!skills) {
+      skills = new PlayerSkills();
+      this.addComponent(skills);
+    }
+    skills.earbucks = Math.max(0, v);
+    this.notifyChange();
+  }
+
   // ECS operations
   addComponent(nameOrComponent, componentData = null) {
     if (typeof nameOrComponent === 'string') {
@@ -1011,6 +1025,7 @@ export class Entity extends SafeEventEmitter {
       isHostile: this.isHostile,
       equippedWeaponId: this.equippedWeaponId,
       typeId: this.typeId,
+      isShopkeeper: this.isShopkeeper || false,
       sightRange: this.sightRange,
       hasExited: this.hasExited,
       isActive: this.isActive,
@@ -1036,6 +1051,7 @@ export class Entity extends SafeEventEmitter {
       rangedLvl: this.rangedLvl,
       craftingApUsed: this.craftingApUsed,
       craftingLvl: this.craftingLvl,
+      earbucks: this.earbucks,
       inventory: this.inventory ? this.inventory.toJSON() : null,
       components: Object.fromEntries(
         [...this.components].map(([name, comp]) => [name, typeof comp?.toJSON === 'function' ? comp.toJSON() : comp])
@@ -1101,6 +1117,7 @@ export class Entity extends SafeEventEmitter {
     if (data.name !== undefined) entity.name = data.name;
     if (data.isHostile !== undefined) entity.isHostile = data.isHostile;
     if (data.typeId !== undefined) entity.typeId = data.typeId;
+    if (data.isShopkeeper !== undefined) entity.isShopkeeper = data.isShopkeeper;
     if (data.equippedWeaponId !== undefined) entity.equippedWeaponId = data.equippedWeaponId;
     if (data.sightRange !== undefined) entity.sightRange = data.sightRange;
     if (data.hasExited !== undefined) entity.hasExited = data.hasExited;
@@ -1123,6 +1140,7 @@ export class Entity extends SafeEventEmitter {
     if (data.rangedLvl !== undefined) entity.rangedLvl = data.rangedLvl;
     if (data.craftingApUsed !== undefined) entity.craftingApUsed = data.craftingApUsed;
     if (data.craftingLvl !== undefined) entity.craftingLvl = data.craftingLvl;
+    if (data.earbucks !== undefined) entity.earbucks = data.earbucks;
 
     if (data.inventory) {
       entity.inventory = Container.fromJSON(data.inventory);

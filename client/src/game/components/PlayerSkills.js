@@ -6,6 +6,7 @@ export class PlayerSkills {
     this.rangedLvl = properties.rangedLvl !== undefined ? properties.rangedLvl : 0;
     this.craftingApUsed = properties.craftingApUsed !== undefined ? properties.craftingApUsed : 0;
     this.craftingLvl = properties.craftingLvl !== undefined ? properties.craftingLvl : 0;
+    this.earbucks = properties.earbucks !== undefined ? properties.earbucks : 0;
   }
 
   static getNextCraftingTarget(level) {

@@ -1,11 +1,12 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost, CloudRain, Sun } from "lucide-react";
+import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost, CloudRain, Sun, Store, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import engine from '../../game/GameEngine.js';
+import { earbucksShopSystem } from '../../game/systems/EarbucksShopSystem.js';
 
 interface DevConsoleProps {
     onClose: () => void;
@@ -218,6 +219,34 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         engine.notifyUpdate();
     };
 
+    const spawnFriendlyNPC = async () => {
+        if (!engine.isReady()) return;
+        const { EntityFactory } = await import('../../game/EntityFactory.js');
+        const { createItemFromDef } = await import('../../game/inventory/ItemDefs.js');
+        const { Item } = await import('../../game/inventory/Item.js');
+        
+        let targetX = engine.player.x;
+        let targetY = engine.player.y - 1;
+        if (targetY < 0) {
+            targetY = engine.player.y + 1;
+        }
+        
+        const n = EntityFactory.createNPC(targetX, targetY, false, 'survivor', 'Friendly Survivor', `spawned-npc-${Date.now()}`);
+        
+        // Give the NPC some basic items to facilitate bartering/trading
+        const itemDefsToGive = ['food.canned_beans', 'medical.bandage', 'weapon.9mmPistol', 'ammo.bullet_9mm'];
+        itemDefsToGive.forEach(defId => {
+            const itemData = createItemFromDef(defId);
+            if (itemData) {
+                const item = new Item(itemData);
+                n.inventory.addItem(item);
+            }
+        });
+
+        engine.gameMap.addEntity(n, targetX, targetY);
+        engine.notifyUpdate();
+    };
+
     const clearZombies = () => {
         if (!engine.gameMap) return;
         const zombies = engine.gameMap.getEntitiesByType('zombie');
@@ -334,43 +363,53 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                     )}
 
                     {activeTab === 'world' && (
-                        <div className="flex-1 grid grid-cols-2 gap-4 place-items-start content-start">
-                            <WorldToolButton 
-                                icon={<Eye className="h-5 w-5" />} 
-                                title="Reveal Map" 
-                                desc="Clear all Fog of War" 
-                                onClick={revealMap} 
-                            />
-                            <WorldToolButton 
-                                icon={<Ghost className="h-5 w-5" />} 
-                                title="Spawn Zombie" 
-                                desc="At player location" 
-                                onClick={() => spawnZombie()} 
-                            />
-                            <WorldToolButton 
-                                icon={<Skull className="h-5 w-5 text-red-500" />} 
-                                title="Clear Population" 
-                                desc="Kill every zombie on map" 
-                                onClick={clearZombies} 
-                            />
-                            <WorldToolButton 
-                                icon={<Globe className={`h-5 w-5 ${engine.renderDebugColors ? 'text-red-500' : 'text-primary'}`} />} 
-                                title="Toggle Textures" 
-                                desc={engine.renderDebugColors ? "Currently: OFF (Simple Mode)" : "Currently: ON (Textured)"} 
-                                onClick={toggleTextures} 
-                            />
-                            <WorldToolButton 
-                                icon={<CloudRain className={`h-5 w-5 ${engine.weather?.type === 'rain' ? 'text-blue-400' : 'text-primary'}`} />} 
-                                title="Toggle Rain" 
-                                desc={engine.weather?.type === 'rain' ? "Stop Raining" : "Start Raining (Intensity 50%)"} 
-                                onClick={toggleRain} 
-                            />
-                            <WorldToolButton 
-                                icon={<Ghost className={`h-5 w-5 ${engine.seeThroughWalls ? 'text-purple-500' : 'text-primary'}`} />} 
-                                title="X-Ray Vision" 
-                                desc={engine.seeThroughWalls ? "Currently: ON (Zombies Visible)" : "Currently: OFF (LOS Only)"} 
-                                onClick={toggleXRay} 
-                            />
+                        <div className="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
+                            <div className="grid grid-cols-2 gap-4 place-items-start content-start">
+                                <WorldToolButton 
+                                    icon={<Eye className="h-5 w-5" />} 
+                                    title="Reveal Map" 
+                                    desc="Clear all Fog of War" 
+                                    onClick={revealMap} 
+                                />
+                                <WorldToolButton 
+                                    icon={<Ghost className="h-5 w-5" />} 
+                                    title="Spawn Zombie" 
+                                    desc="At player location" 
+                                    onClick={() => spawnZombie()} 
+                                />
+                                <WorldToolButton 
+                                    icon={<User className="h-5 w-5 text-emerald-400" />} 
+                                    title="Spawn Friendly NPC" 
+                                    desc="Adjacent with trade items" 
+                                    onClick={() => spawnFriendlyNPC()} 
+                                />
+                                <WorldToolButton 
+                                    icon={<Skull className="h-5 w-5 text-red-500" />} 
+                                    title="Clear Population" 
+                                    desc="Kill every zombie on map" 
+                                    onClick={clearZombies} 
+                                />
+                                <WorldToolButton 
+                                    icon={<Globe className={`h-5 w-5 ${engine.renderDebugColors ? 'text-red-500' : 'text-primary'}`} />} 
+                                    title="Toggle Textures" 
+                                    desc={engine.renderDebugColors ? "Currently: OFF (Simple Mode)" : "Currently: ON (Textured)"} 
+                                    onClick={toggleTextures} 
+                                />
+                                <WorldToolButton 
+                                    icon={<CloudRain className={`h-5 w-5 ${engine.weather?.type === 'rain' ? 'text-blue-400' : 'text-primary'}`} />} 
+                                    title="Toggle Rain" 
+                                    desc={engine.weather?.type === 'rain' ? "Stop Raining" : "Start Raining (Intensity 50%)"} 
+                                    onClick={toggleRain} 
+                                />
+                                <WorldToolButton 
+                                    icon={<Ghost className={`h-5 w-5 ${engine.seeThroughWalls ? 'text-purple-500' : 'text-primary'}`} />} 
+                                    title="X-Ray Vision" 
+                                    desc={engine.seeThroughWalls ? "Currently: ON (Zombies Visible)" : "Currently: OFF (LOS Only)"} 
+                                    onClick={toggleXRay} 
+                                />
+                            </div>
+                            
+                            <DevConsoleShopManager />
                         </div>
                     )}
                 </CardContent>
@@ -475,4 +514,129 @@ function StatSlider({ label, value, max, onChange, color }: any) {
             </div>
         </div>
     )
+}
+
+function DevConsoleShopManager() {
+    const [isCollapsed, setIsCollapsed] = useState(true);
+    const [itemDefs, setItemDefs] = useState<any>({});
+    const [selectedDefId, setSelectedDefId] = useState('');
+    const [price, setPrice] = useState(5);
+    
+    const currentMapId = engine.worldManager?.currentMapId || 'map_001';
+    
+    const catalog = useSyncExternalStore(
+        (cb) => engine.subscribe(cb),
+        () => earbucksShopSystem.getCatalog(currentMapId)
+    );
+
+    useEffect(() => {
+        const loadItemDefs = async () => {
+            const { ItemDefs } = await import('../../game/inventory/ItemDefs.js');
+            setItemDefs(ItemDefs);
+            const keys = Object.keys(ItemDefs).filter(key => !key.includes('.icon') && !key.includes('.sprite')).sort();
+            if (keys.length > 0) {
+                setSelectedDefId(keys[0]);
+            }
+        };
+        loadItemDefs();
+    }, []);
+
+    const handleAddItem = () => {
+        if (!selectedDefId) return;
+        const name = itemDefs[selectedDefId]?.name || selectedDefId;
+        earbucksShopSystem.addItem(currentMapId, { defId: selectedDefId, name, price });
+    };
+
+    const handleRemoveItem = (defId: string) => {
+        earbucksShopSystem.removeItem(currentMapId, defId);
+    };
+
+    const itemKeys = Object.keys(itemDefs).filter(key => !key.includes('.icon') && !key.includes('.sprite')).sort();
+
+    return (
+        <div className="w-full border border-white/10 rounded-xl bg-zinc-950/40 p-4 mt-2">
+            <div 
+                className="flex items-center justify-between cursor-pointer select-none"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+                <div className="flex items-center gap-2">
+                    <Store className="h-5 w-5 text-emerald-400" />
+                    <span className="font-bold text-sm text-white uppercase tracking-wider">Shop Management</span>
+                </div>
+                {isCollapsed ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronUp className="h-4 w-4 text-zinc-400" />}
+            </div>
+
+            {!isCollapsed && (
+                <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="text-[10px] text-zinc-400 uppercase font-black tracking-widest border-b border-white/5 pb-2">
+                        Current Shop Catalog ({currentMapId})
+                    </div>
+
+                    {catalog.length === 0 ? (
+                        <div className="text-xs text-zinc-500 italic py-2">No items in shop catalog.</div>
+                    ) : (
+                        <div className="max-h-40 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                            {catalog.map(item => (
+                                <div key={item.defId} className="flex items-center justify-between p-2 bg-black/40 border border-white/5 rounded-lg text-xs font-mono">
+                                    <div className="flex items-center gap-2 text-zinc-300">
+                                        <span className="text-emerald-400">[{item.price} ♪]</span>
+                                        <span>{item.name}</span>
+                                        <span className="text-[10px] text-zinc-600">({item.defId})</span>
+                                    </div>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6 hover:bg-red-500/20 text-zinc-500 hover:text-red-400 rounded"
+                                        onClick={() => handleRemoveItem(item.defId)}
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="border-t border-white/5 pt-4">
+                        <div className="text-[10px] text-zinc-400 uppercase font-black tracking-widest mb-2">
+                            Add Item to Catalog
+                        </div>
+                        <div className="flex gap-2 items-end">
+                            <div className="flex-1 flex flex-col gap-1.5">
+                                <Label className="text-[10px] text-zinc-500 uppercase font-bold">Item Definition</Label>
+                                <select 
+                                    value={selectedDefId}
+                                    onChange={e => setSelectedDefId(e.target.value)}
+                                    className="h-9 w-full bg-black text-white border border-primary/40 focus:border-primary rounded-md px-3 font-mono text-xs focus-visible:outline-none"
+                                >
+                                    {itemKeys.map(key => (
+                                        <option key={key} value={key} className="bg-zinc-950 font-mono text-xs">
+                                            {itemDefs[key]?.name || key} ({key})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="w-24 flex flex-col gap-1.5">
+                                <Label className="text-[10px] text-zinc-500 uppercase font-bold">Price (♪)</Label>
+                                <Input 
+                                    type="number" 
+                                    min="1"
+                                    value={price}
+                                    onChange={e => setPrice(Math.max(1, parseInt(e.target.value) || 1))}
+                                    className="bg-black text-white border-primary/40 focus:border-primary text-center font-mono h-9"
+                                />
+                            </div>
+
+                            <Button 
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-9 gap-1"
+                                onClick={handleAddItem}
+                            >
+                                <Plus className="h-4 w-4" /> Add
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }

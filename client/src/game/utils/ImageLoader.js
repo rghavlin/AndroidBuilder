@@ -175,7 +175,11 @@ export class ImageLoader {
       let extensionIndex = 0;
       let basePathIndex = 0;
 
-      const basePaths = [
+      const basePaths = placeName === 'barrier' ? [
+        './images/map/',
+        '/images/map/',
+        this.basePath.root + 'map/'
+      ] : [
         this.basePath.places,
         '/images/places/',
         './images/places/'

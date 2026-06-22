@@ -38,6 +38,7 @@ import { useAudio } from '../../contexts/AudioContext.jsx';
 import GameEventLog from './GameEventLog';
 import LogHistoryWindow from './LogHistoryWindow';
 import PlayerSkillsWindow from './PlayerSkillsWindow';
+import EarbucksDisplay from './EarbucksDisplay';
 import { NPCDemandDialog } from './NPCDemandDialog';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import { createItemFromDef } from '../../game/inventory/ItemDefs.js';
@@ -170,6 +171,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     showMainMenu, setShowMainMenu,
     activeTradeNpc, setActiveTradeNpc,
     isBartering, setIsBartering,
+    isShopOpen, setIsShopOpen,
     isExtensionOpen, setIsExtensionOpen
   } = useOverlays();
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
@@ -513,14 +515,18 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         style={{ height: 'var(--header-height)' }}
         data-testid="map-header"
       >
-        <button
-          className="w-12 h-12 flex items-center justify-center transition-all active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110"
-          title="Main Menu"
-          data-testid="main-menu-button"
-          onClick={() => setShowMainMenu(true)}
-        >
-          <Menu className="h-6 w-6 text-zinc-300 hover:text-white transition-colors" />
-        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            className="w-12 h-12 flex items-center justify-center transition-all active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110"
+            title="Main Menu"
+            data-testid="main-menu-button"
+            onClick={() => setShowMainMenu(true)}
+          >
+            <Menu className="h-6 w-6 text-zinc-300 hover:text-white transition-colors" />
+          </button>
+
+          <EarbucksDisplay />
+        </div>
 
         {/* Action Buttons Group (Better spacing between log and slots) */}
         <div className="flex items-center flex-1 px-2 min-w-0">
@@ -581,17 +587,31 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             style={{ left: npcMenu.screenX, top: npcMenu.screenY }}
             onMouseLeave={() => setNpcMenu(null)}
           >
-            <button
-              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
-              onClick={() => {
-                if (!isPlayerTurn) return;
-                setActiveTradeNpc(npcMenu.npc);
-                setNpcMenu(null);
-                playSound('Click');
-              }}
-            >
-              Trade
-            </button>
+            {npcMenu.npc.typeId === 'shopkeeper' || npcMenu.npc.isShopkeeper ? (
+              <button
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
+                onClick={() => {
+                  if (!isPlayerTurn) return;
+                  setIsShopOpen(true);
+                  setNpcMenu(null);
+                  playSound('Click');
+                }}
+              >
+                Shop
+              </button>
+            ) : (
+              <button
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
+                onClick={() => {
+                  if (!isPlayerTurn) return;
+                  setActiveTradeNpc(npcMenu.npc);
+                  setNpcMenu(null);
+                  playSound('Click');
+                }}
+              >
+                Trade
+              </button>
+            )}
           </div>
         )}
 

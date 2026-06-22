@@ -50,7 +50,14 @@ export class ZombieSpawner {
           const distToPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
           const actualMinDist = minDistance !== null ? minDistance : minDist;
 
-          if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0) {
+          const compound = gameMap.metadata?.townSquareCompound;
+          const isInsideCompound = compound &&
+            x >= compound.fenceBounds.x1 &&
+            x <= compound.fenceBounds.x2 &&
+            y >= compound.fenceBounds.y1 &&
+            y <= compound.fenceBounds.y2;
+
+          if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0 && !isInsideCompound) {
             const zombieId = `zombie-${subtype}-${Date.now()}-${spawnedCount}`;
             if (gameMap.addEntity(EntityFactory.createZombie(x, y, subtype, zombieId), x, y)) {
               spawnedCount++;

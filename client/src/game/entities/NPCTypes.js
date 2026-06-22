@@ -64,6 +64,17 @@ export const NPCTypes = {
     
     minItems: 10,
     maxItems: 20
+  },
+  shopkeeper: {
+    name: 'Town Merchant',
+    hp: 20,
+    maxAP: 0,
+    hostilityChance: 0,
+    fleeRecoverChance: 0,
+    sightRange: 5,
+    pools: { weapons: [], foodWater: [], rare: [], general: [] },
+    minItems: 0,
+    maxItems: 0
   }
 };
 

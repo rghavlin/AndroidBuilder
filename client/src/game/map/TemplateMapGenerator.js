@@ -342,8 +342,17 @@ export class TemplateMapGenerator {
     const validSpots = [];
     const { width, height, tiles } = mapData;
 
+    const compound = mapData.metadata?.townSquareCompound;
     for (let y = 1; y < height - 1; y++) {
       for (let x = 1; x < width - 1; x++) {
+        if (compound &&
+            x >= compound.fenceBounds.x1 &&
+            x <= compound.fenceBounds.x2 &&
+            y >= compound.fenceBounds.y1 &&
+            y <= compound.fenceBounds.y2) {
+          continue;
+        }
+
         const tile = tiles[y][x];
         if (tile.terrain !== 'grass') continue;
 
@@ -422,8 +431,17 @@ export class TemplateMapGenerator {
     const { width, height, tiles } = mapData;
     const decorTypes = ['outdoordecor1', 'outdoordecor2', 'outdoordecor3', 'outdoordecor4', 'outdoordecor5'];
 
+    const compound = mapData.metadata?.townSquareCompound;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
+        if (compound &&
+            x >= compound.fenceBounds.x1 &&
+            x <= compound.fenceBounds.x2 &&
+            y >= compound.fenceBounds.y1 &&
+            y <= compound.fenceBounds.y2) {
+          continue;
+        }
+
         const tile = tiles[y] && tiles[y][x];
         if (tile && tile.terrain === 'grass') {
           const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
@@ -444,8 +462,17 @@ export class TemplateMapGenerator {
     const { width, height, tiles } = mapData;
     const decorTypes = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'];
 
+    const compound = mapData.metadata?.townSquareCompound;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
+        if (compound &&
+            x >= compound.fenceBounds.x1 &&
+            x <= compound.fenceBounds.x2 &&
+            y >= compound.fenceBounds.y1 &&
+            y <= compound.fenceBounds.y2) {
+          continue;
+        }
+
         const tile = tiles[y] && tiles[y][x];
         if (tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor')) {
           const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;

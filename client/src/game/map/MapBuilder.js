@@ -924,7 +924,11 @@ export class MapBuilder {
       width: this.width,
       height: this.height,
       tiles: this.layout.map((row, y) =>
-        row.map((cell, x) => ({ x, y, terrain: cell.terrain, edgeWalls: cell.edgeWalls, contents: [] }))
+        row.map((cell, x) => {
+          const tile = { x, y, terrain: cell.terrain, edgeWalls: cell.edgeWalls, contents: [] };
+          if (cell.inventoryItems) tile.inventoryItems = cell.inventoryItems;
+          return tile;
+        })
       ),
       template: templateName,
       config: config,

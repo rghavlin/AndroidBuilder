@@ -283,6 +283,11 @@ export const CombatProvider = ({ children }) => {
                         const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                         if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
                     }
+                    // Award 1 Earbuck per zombie kill
+                    if (engine.player) {
+                        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
+                        addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
+                    }
                 } else if (targetEntity.type === EntityType.NPC) {
                     // NPCs drop their entire inventory on death
                     if (typeof targetEntity.die === 'function') {
@@ -522,6 +527,11 @@ export const CombatProvider = ({ children }) => {
                                 }
                             }
                         }
+                        // Award 1 Earbuck per zombie kill
+                        if (engine.player) {
+                            engine.player.earbucks = (engine.player.earbucks || 0) + 1;
+                            addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
+                        }
                     } else if (targetEntity.type === EntityType.NPC) {
                         // NPCs drop their entire inventory on death
                         if (typeof targetEntity.die === 'function') {
@@ -653,6 +663,12 @@ export const CombatProvider = ({ children }) => {
                     color: '#ef4444',
                     duration: 1500
                 });
+                if (action.data.entityType === EntityType.ZOMBIE) {
+                    if (engine.player) {
+                        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
+                        addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
+                    }
+                }
             } else if (action.type === 'STRUCTURE_INTERACT') {
                 if (action.data.broken) {
                     GameEvents.emit(action.data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {
@@ -780,6 +796,11 @@ export const CombatProvider = ({ children }) => {
                         if (lootGenerator && !isWindowTile(gameMap, targetX, targetY) && Math.random() < 0.75) {
                             const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
                             if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
+                        }
+                        // Award 1 Earbuck per zombie kill
+                        if (engine.player) {
+                            engine.player.earbucks = (engine.player.earbucks || 0) + 1;
+                            addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
                         }
                     } else if (targetEntity.type === EntityType.NPC) {
                         if (typeof targetEntity.die === 'function') targetEntity.die();
@@ -953,6 +974,12 @@ export const CombatProvider = ({ children }) => {
                     color: '#f97316',
                     duration: 1500
                 });
+                if (action.data.entityType === EntityType.ZOMBIE) {
+                    if (engine.player) {
+                        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
+                        addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
+                    }
+                }
             } else if (action.type === 'STRUCTURE_INTERACT') {
                 if (action.data.broken) {
                     GameEvents.emit(action.data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {

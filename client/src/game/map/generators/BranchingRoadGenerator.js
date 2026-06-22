@@ -1,5 +1,6 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
 import { RoadNetwork, makeSeededRandom } from '../RoadNetwork.js';
+import { createItemFromDef } from '../../inventory/ItemDefs.js';
 
 /**
  * BranchingRoadGenerator - a wide central boulevard with an irregular street grid.
@@ -122,6 +123,12 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
 
     net.rasterize(builder);
 
+    // Add sidewalk tiles at the top and bottom of the town square to cross the boulevard
+    for (let x = centerX - 5; x <= centerX + 5; x++) {
+      builder.setTerrain(x, plaza.top + STREET_HALF, 'sidewalk');
+      builder.setTerrain(x, plaza.bottom - STREET_HALF, 'sidewalk');
+    }
+
     // Fill each band column with two rows of rowhouses (one facing each bounding
     // street), so every street develops on BOTH sides.
     this._zoneBandColumns(builder, bands, plaza, width);
@@ -166,6 +173,9 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
       width: (plaza.right - plaza.left) - 2 * (STREET_HALF + 1),
       height: (plaza.bottom - plaza.top) - 2 * (STREET_HALF + 1)
     };
+
+    // Build the fenced compound inside the town square
+    this._buildTownSquareCompound(builder, plaza);
   }
 
   /**
@@ -302,6 +312,171 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
       if (x <= 0 || x >= builder.width - 1) continue; // leave the side fences
       builder.setTerrain(x, edgeY, 'fence');            // terminate at the edge
       builder.setTerrain(x, edgeY + dir, 'sidewalk');   // strip just inside the fence
+    }
+  }
+
+  /**
+   * Build a fenced compound with a central building in the town square.
+   * Leaves 6 grass tiles between the building and the fence.
+   */
+  _buildTownSquareCompound(builder, plaza) {
+    const ts = builder.metadata.townSquare;
+    if (!ts) return;
+
+    const x1 = ts.x;
+    const y1 = ts.y;
+    const x2 = ts.x + ts.width - 1;
+    const y2 = ts.y + ts.height - 1;
+
+    // Draw the fence perimeter
+    for (let x = x1; x <= x2; x++) {
+      builder.setTerrain(x, y1, 'fence');
+      builder.setTerrain(x, y2, 'fence');
+    }
+    for (let y = y1; y <= y2; y++) {
+      builder.setTerrain(x1, y, 'fence');
+      builder.setTerrain(x2, y, 'fence');
+    }
+
+    // Cut a gate on the south side at horizontal center (3-tile wide gap)
+    const centerX = Math.floor(builder.width / 2);
+    // Remove fence and place sidewalk for the gate entrance
+    for (let gx = centerX - 1; gx <= centerX + 1; gx++) {
+      builder.setTerrain(gx, y2, 'sidewalk');
+    }
+
+    // 6-tile grass gap. Building boundaries:
+    const GRASS_GAP = 6;
+    const FENCE_WIDTH = 1;
+    const offset = FENCE_WIDTH + GRASS_GAP;
+
+    const bx = x1 + offset;
+    const by = y1 + offset;
+    const bw = ts.width - 2 * offset;
+    const bh = ts.height - 2 * offset;
+
+    if (bw > 0 && bh > 0) {
+      // 1. Draw floor terrain
+      for (let y = by; y < by + bh; y++) {
+        for (let x = bx; x < bx + bw; x++) {
+          builder.setTerrain(x, y, 'floor');
+        }
+      }
+
+      // 2. Draw outer walls (edge walls)
+      // Top wall (north edge)
+      for (let x = bx; x < bx + bw; x++) {
+        builder.setEdgeWall(x, by, 'n', true);
+      }
+      // Bottom wall (south edge)
+      for (let x = bx; x < bx + bw; x++) {
+        builder.setEdgeWall(x, by + bh - 1, 's', true);
+      }
+      // Left wall (west edge)
+      for (let y = by; y < by + bh; y++) {
+        builder.setEdgeWall(bx, y, 'w', true);
+      }
+      // Right wall (east edge)
+      for (let y = by; y < by + bh; y++) {
+        builder.setEdgeWall(bx + bw - 1, y, 'e', true);
+      }
+
+      // 3. Place double doors in the center of the south wall
+      const southY = by + bh - 1;
+      const doorX1 = centerX - 1;
+      const doorX2 = centerX;
+
+      // Doors are walkable (terrain = floor)
+      builder.setTerrain(doorX1, southY, 'floor');
+      builder.setTerrain(doorX2, southY, 'floor');
+
+      // Register the doors in metadata
+      builder.metadata.doors.push({
+        x: doorX1,
+        y: southY,
+        isLocked: false,
+        isOpen: false,
+        edge: 's'
+      });
+      builder.metadata.doors.push({
+        x: doorX2,
+        y: southY,
+        isLocked: false,
+        isOpen: false,
+        edge: 's'
+      });
+
+      // Register building of type 'compound'
+      builder.registerBuilding('compound', bx, by, bw, bh, {
+        frontage: 'south',
+        entranceX: doorX1,
+        entranceY: southY
+      });
+      
+      builder.metadata.townSquareCompound = {
+        x: bx,
+        y: by,
+        width: bw,
+        height: bh,
+        fenceBounds: {
+          x1: x1,
+          y1: y1,
+          x2: x2,
+          y2: y2
+        }
+      };
+
+      // Place barriers on both sides of the fence opening (unwalkable, full-tile images)
+      // leaving only a 1-tile space (centerX) to enter the compound.
+      const barrierLeftX = centerX - 1;
+      const barrierRightX = centerX + 1;
+
+      builder.metadata.placeIcons.push({ subtype: 'barrier', x: barrierLeftX, y: y2 });
+      builder.metadata.placeIcons.push({ subtype: 'barrier', x: barrierRightX, y: y2 });
+
+      // Inside the fence, left side (shifted right to sit just left of the opening):
+      // 3 columns of harvestable crops (Tomato, Carrot, Corn), 4 in each column
+      const cropDefs = [
+        { x: 103, defId: 'provision.harvestable_tomato', subtype: 'harvestable_tomato' },
+        { x: 105, defId: 'provision.harvestable_carrot', subtype: 'harvestable_carrot' },
+        { x: 107, defId: 'provision.harvestable_corn', subtype: 'harvestable_corn' }
+      ];
+
+      cropDefs.forEach(col => {
+        for (let cy = 144; cy <= 147; cy++) {
+          const cropItem = createItemFromDef(col.defId, {
+            subtype: col.subtype,
+            x: col.x,
+            y: cy,
+            isWild: false,
+            isHarvestable: true
+          });
+          if (cropItem) {
+            const cell = builder.layout[cy][col.x];
+            if (!cell.inventoryItems) cell.inventoryItems = [];
+            cell.inventoryItems.push(cropItem);
+          }
+        }
+      });
+
+      // Inside the fence, right side (shifted left to sit just right of the opening):
+      // 6 rain catchers (2x3 grid)
+      const rainCatcherCols = [113, 115];
+      const rainCatcherRows = [144, 146, 148];
+
+      rainCatcherCols.forEach(cx => {
+        rainCatcherRows.forEach(cy => {
+          const rcItem = createItemFromDef('provision.rain_collector', {
+            x: cx,
+            y: cy
+          });
+          if (rcItem) {
+            const cell = builder.layout[cy][cx];
+            if (!cell.inventoryItems) cell.inventoryItems = [];
+            cell.inventoryItems.push(rcItem);
+          }
+        });
+      });
     }
   }
 

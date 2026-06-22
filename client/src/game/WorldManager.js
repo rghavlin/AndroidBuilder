@@ -383,6 +383,12 @@ export class WorldManager {
       // Save to world collection
       const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn, templateToUse);
 
+      if (templateToUse === 'branching_road') {
+        NPCSpawner.spawnShopkeeper(gameMap);
+        const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
+        earbucksShopSystem.initCatalog(savedMapId);
+      }
+
       this.emit('mapGenerated', {
         mapId: savedMapId,
         mapType: mapType,
@@ -827,6 +833,12 @@ export class WorldManager {
 
         // Save to world collection with the correct target ID
         this.saveCurrentMap(gameMap, targetMapId, currentTurn, templateToUse);
+
+        if (templateToUse === 'branching_road') {
+          NPCSpawner.spawnShopkeeper(gameMap);
+          const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
+          earbucksShopSystem.initCatalog(targetMapId);
+        }
 
         mapData = {
           mapId: targetMapId,
