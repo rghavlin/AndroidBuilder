@@ -1,0 +1,7 @@
+# Project Rules & Instructions
+
+This project is a JavaScript/TypeScript (Node.js, Electron, React, Vite) application.
+
+## Language Restrictions
+- **No Python files:** Do not create, write, or run any Python (`.py`) files in this repository. All scripts, helper tools, and migrations must be written in JavaScript (`.js`, `.mjs`) or TypeScript (`.ts`).
+- Any scratch or utility files must also adhere to this rule (e.g., use `.js`/`.mjs`/`.ts` for all testing and automation).

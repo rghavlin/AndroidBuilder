@@ -1,0 +1,15 @@
+{
+  "python.analysis.exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/dist-electron",
+    "**/tmp",
+    "**/temp"
+  ],
+  "python.venvFolders": [],
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/dist-electron": true
+  }
+}
