@@ -289,29 +289,26 @@ class GameInitializationManager extends EventEmitter {
         // Check if easyStart is chosen
         const isEasyStart = this.customConfig && this.customConfig.easyStart === true;
 
+        // Create an item from its def and equip it; returns the item (or null).
+        const equip = (defId) => {
+          const def = createItemFromDef(defId);
+          if (!def) return null;
+          const item = new Item(def);
+          inventoryManager.equipItem(item);
+          return item;
+        };
+
+        // Both difficulties start dressed in a Pocket T-shirt + Sweatpants.
+        const shirt = equip('clothing.pocket_t');
+        if (shirt) console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
+        const pants = equip('clothing.sweatpants');
+        if (pants) console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
+
         if (isEasyStart) {
-          // Easy Start starting equipment:
-          // 1. Create Pocket T-shirt
-          const shirtDef = createItemFromDef('clothing.pocket_t');
-          if (shirtDef) {
-            const shirt = new Item(shirtDef);
-            inventoryManager.equipItem(shirt);
-            console.log('[GameInitializationManager] Easy Start: Equipped starting shirt:', shirt.name);
-          }
-
-          // 2. Create Sweatpants
-          const pantsDef = createItemFromDef('clothing.sweatpants');
-          if (pantsDef) {
-            const pants = new Item(pantsDef);
-            inventoryManager.equipItem(pants);
-            console.log('[GameInitializationManager] Easy Start: Equipped starting pants:', pants.name);
-          }
-
+          // Easy Start adds a stocked school backpack and a crowbar.
           // 3. Create Book Bag / school backpack
-          const backpackDef = createItemFromDef('backpack.school');
-          if (backpackDef) {
-            const backpack = new Item(backpackDef);
-            inventoryManager.equipItem(backpack);
+          const backpack = equip('backpack.school');
+          if (backpack) {
             console.log('[GameInitializationManager] Easy Start: Equipped starting backpack:', backpack.name);
 
             // Now put items inside the backpack
@@ -338,29 +335,9 @@ class GameInitializationManager extends EventEmitter {
           }
 
           // 4. Create Crowbar and equip in melee slot
-          const crowbarDef = createItemFromDef('weapon.crowbar');
-          if (crowbarDef) {
-            const crowbar = new Item(crowbarDef);
-            inventoryManager.equipItem(crowbar);
+          const crowbar = equip('weapon.crowbar');
+          if (crowbar) {
             console.log('[GameInitializationManager] Easy Start: Equipped starting crowbar in melee slot');
-          }
-
-        } else {
-          // Normal start starting equipment:
-          // 1. Create Pocket T-shirt
-          const shirtDef = createItemFromDef('clothing.pocket_t');
-          if (shirtDef) {
-            const shirt = new Item(shirtDef);
-            inventoryManager.equipItem(shirt);
-            console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
-          }
-
-          // 2. Create Sweatpants
-          const pantsDef = createItemFromDef('clothing.sweatpants');
-          if (pantsDef) {
-            const pants = new Item(pantsDef);
-            inventoryManager.equipItem(pants);
-            console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
           }
         }
       } catch (err) {

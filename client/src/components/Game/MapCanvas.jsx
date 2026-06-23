@@ -5,7 +5,7 @@ import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { TileRenderer } from '../../game/renderer/TileRenderer.js';
-import { EntityRenderer } from '../../game/renderer/EntityRenderer.js';
+import { EntityRenderer, getLargestItemInTile } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../../game/entities/Entity.js';
@@ -717,27 +717,13 @@ export default function MapCanvas({
           const subtype = i.subtype || 'basic';
           if (subtype === 'ground_pile') {
             const tileItems = currentMap.getItemsOnTile(Math.round(i.x), Math.round(i.y));
-            if (tileItems && tileItems.length > 0) {
-              let largestItem = null;
-              let maxArea = -1;
-              for (const item of tileItems) {
-                const defId = item.defId || item.id;
-                const def = ItemDefs[defId];
-                const w = item.width || def?.width || 1;
-                const h = item.height || def?.height || 1;
-                const area = w * h;
-                if (area > maxArea) {
-                  maxArea = area;
-                  largestItem = item;
-                }
-              }
-              if (largestItem) {
-                const defId = largestItem.defId || largestItem.id;
-                const def = ItemDefs[defId];
-                const id = largestItem.imageId || def?.imageId || defId;
-                if (id && id !== 'basic') {
-                  itemImageIds.push(id);
-                }
+            const largestItem = getLargestItemInTile(tileItems);
+            if (largestItem) {
+              const defId = largestItem.defId || largestItem.id;
+              const def = ItemDefs[defId];
+              const id = largestItem.imageId || def?.imageId || defId;
+              if (id && id !== 'basic') {
+                itemImageIds.push(id);
               }
             } else {
               itemImageIds.push('default');

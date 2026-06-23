@@ -204,17 +204,20 @@ Reduce maintenance burden by extracting shared logic from copy-pasted code.
   - `0.4 + (mapNumber - 1) * 0.05` copy-pasted in `generateRandomItems` and `generateZombieLoot`
   - Done: `getFoodRejectionChance(mapNumber)` helper + named `FOOD_SCARCITY` constants in LootGenerator.js.
 
-- [ ] **P4-10** Deduplicate largest-item-in-tile logic in EntityRenderer
+- [x] **P4-10** Deduplicate largest-item-in-tile logic in EntityRenderer
   - Same `maxArea` scan runs twice in `renderEntity` (lines 161 and 311)
+  - Done: single `getLargestItemInTile(tileItems)` module helper; both `effectiveImageId` and item-background blocks call it.
 
-- [ ] **P4-11** Extract `gridItems` helper from TurretCombat and reuse in SimulationManager
+- [x] **P4-11** Extract `gridItems` helper from TurretCombat and reuse in SimulationManager
+  - Done: moved `gridItems` to `inventory/gridUtils.js`; TurretCombat imports it, both SimulationManager grid-scan sites use it.
 
-- [ ] **P4-12** Consolidate `escalateTurretsAgainstPlayer` naming
+- [x] **P4-12** Consolidate `escalateTurretsAgainstPlayer` naming
   - TurretCombat.js:143 — also escalates NPCs despite the name
-  - Rename to `escalateFactionAgainstPlayer` or split
+  - Done: renamed to `escalateFactionAgainstPlayer` (def, import, 6 CombatContext call sites, scratch test); doc comment now notes it covers both turrets and NPCs.
 
-- [ ] **P4-13** Deduplicate starting equipment blocks in GameInitializationManager
+- [x] **P4-13** Deduplicate starting equipment blocks in GameInitializationManager
   - Easy/normal mode blocks share shirt+pants creation identically
+  - Done: added local `equip(defId)` helper; hoisted shared shirt+pants out of the branch, easy-start `if` now only adds the backpack + crowbar (empty `else` removed).
 
 ---
 

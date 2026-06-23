@@ -6,6 +6,7 @@ import { EntityType } from '../entities/Entity.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
+import { gridItems } from '../inventory/gridUtils.js';
 
 let tempCanvas = null;
 let tempCtx = null;
@@ -33,15 +34,33 @@ function getPoweredTurretForEntity(entity) {
   if (!entity) return null;
   if (entity.defId === TURRET_DEF_ID && entity.isOn) return entity;
   const grid = entity.containerGrid || (typeof entity.getContainerGrid === 'function' ? entity.getContainerGrid() : null);
-  if (grid && grid.items) {
-    const items = grid.items instanceof Map
-      ? Array.from(grid.items.values())
-      : (Array.isArray(grid.items) ? grid.items : Object.values(grid.items));
-    for (const it of items) {
-      if (it && it.defId === TURRET_DEF_ID && it.isOn) return it;
-    }
+  for (const it of gridItems(grid)) {
+    if (it && it.defId === TURRET_DEF_ID && it.isOn) return it;
   }
   return null;
+}
+
+/**
+ * The largest item (by footprint area) among items sharing a ground tile, used
+ * to decide which item a ground pile renders as. Width/height fall back to the
+ * item definition, then to 1. Returns null for an empty/missing list.
+ */
+export function getLargestItemInTile(tileItems) {
+  if (!tileItems || tileItems.length === 0) return null;
+  let largestItem = null;
+  let maxArea = -1;
+  for (const item of tileItems) {
+    const defId = item.defId || item.id;
+    const def = ItemDefs[defId];
+    const w = item.width || def?.width || 1;
+    const h = item.height || def?.height || 1;
+    const area = w * h;
+    if (area > maxArea) {
+      maxArea = area;
+      largestItem = item;
+    }
+  }
+  return largestItem;
 }
 
 export const EntityRenderer = {
@@ -162,25 +181,11 @@ export const EntityRenderer = {
       if (entity.type === 'item') {
         if (subtype === 'ground_pile' && engine && engine.gameMap) {
           const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
-          if (tileItems && tileItems.length > 0) {
-            let largestItem = null;
-            let maxArea = -1;
-            for (const item of tileItems) {
-              const defId = item.defId || item.id;
-              const def = ItemDefs[defId];
-              const w = item.width || def?.width || 1;
-              const h = item.height || def?.height || 1;
-              const area = w * h;
-              if (area > maxArea) {
-                maxArea = area;
-                largestItem = item;
-              }
-            }
-            if (largestItem) {
-              const defId = largestItem.defId || largestItem.id;
-              const def = ItemDefs[defId];
-              effectiveImageId = largestItem.imageId || def?.imageId || defId;
-            }
+          const largestItem = getLargestItemInTile(tileItems);
+          if (largestItem) {
+            const defId = largestItem.defId || largestItem.id;
+            const def = ItemDefs[defId];
+            effectiveImageId = largestItem.imageId || def?.imageId || defId;
           }
         } else {
           effectiveImageId = entity.imageId || (ItemDefs[subtype]?.imageId) || subtype;
@@ -310,27 +315,13 @@ export const EntityRenderer = {
           
           if (subtype === 'ground_pile' && engine && engine.gameMap) {
             const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
-            if (tileItems && tileItems.length > 0) {
-              let largestItem = null;
-              let maxArea = -1;
-              for (const item of tileItems) {
-                const defId = item.defId || item.id;
-                const def = ItemDefs[defId];
-                const w = item.width || def?.width || 1;
-                const h = item.height || def?.height || 1;
-                const area = w * h;
-                if (area > maxArea) {
-                  maxArea = area;
-                  largestItem = item;
-                }
-              }
-              if (largestItem) {
-                const defId = largestItem.defId || largestItem.id;
-                matchingDef = ItemDefs[defId];
-                const cats = largestItem.categories || matchingDef?.categories || [];
-                isFood = cats.includes('food');
-                isMedical = cats.includes('medical');
-              }
+            const largestItem = getLargestItemInTile(tileItems);
+            if (largestItem) {
+              const defId = largestItem.defId || largestItem.id;
+              matchingDef = ItemDefs[defId];
+              const cats = largestItem.categories || matchingDef?.categories || [];
+              isFood = cats.includes('food');
+              isMedical = cats.includes('medical');
             }
           } else {
             const defId = entity.defId || subtype;

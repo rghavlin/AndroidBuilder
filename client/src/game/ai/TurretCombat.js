@@ -11,17 +11,12 @@
  * Both are surfaced so a powered-on wagon-mounted turret is targetable too.
  */
 
+import { gridItems } from '../inventory/gridUtils.js';
+
 export const TURRET_DEF_ID = 'placeable.auto_turret';
 
 export function isPoweredTurret(obj) {
   return !!obj && obj.defId === TURRET_DEF_ID && obj.isOn === true;
-}
-
-function gridItems(grid) {
-  if (!grid || !grid.items) return [];
-  if (grid.items instanceof Map) return Array.from(grid.items.values());
-  if (Array.isArray(grid.items)) return grid.items;
-  return Object.values(grid.items || {});
 }
 
 function factionOf(obj) {
@@ -122,12 +117,13 @@ export function getAttackableTurretOnTile(tile, attacker) {
 }
 
 /**
- * Escalation: make every turret of `faction` on the map hostile to the player
- * (adds 'player' to each turret's hostileOverrides). Idempotent. Used when the
- * player attacks the shopkeeper to activate the town's defensive turrets.
+ * Escalation: make every member of `faction` on the map — both turrets and NPCs
+ * — hostile to the player (adds 'player' to each one's hostileOverrides).
+ * Idempotent. Used when the player attacks the shopkeeper to activate the town's
+ * defensive turrets and townsfolk.
  * @returns {number} number of turrets newly escalated
  */
-export function escalateTurretsAgainstPlayer(gameMap, faction = 'town') {
+export function escalateFactionAgainstPlayer(gameMap, faction = 'town') {
   if (!gameMap || typeof gameMap.getEntitiesByType !== 'function') return 0;
   const turrets = gameMap.getEntitiesByType('item')
     .filter(e => e && e.defId === TURRET_DEF_ID && factionOf(e) === faction);

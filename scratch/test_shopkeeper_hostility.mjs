@@ -1,7 +1,7 @@
 import { EntityFactory } from '../client/src/game/EntityFactory.js';
 import { GameMap } from '../client/src/game/map/GameMap.js';
 import { NPCSpawner } from '../client/src/game/utils/NPCSpawner.js';
-import { escalateTurretsAgainstPlayer } from '../client/src/game/ai/TurretCombat.js';
+import { escalateFactionAgainstPlayer } from '../client/src/game/ai/TurretCombat.js';
 
 let allPassed = true;
 function assert(condition, message) {
@@ -35,7 +35,7 @@ assert(shopkeeper.getFaction() === 'town', 'Shopkeeper faction is town');
 assert(shopkeeper.isHostileTo(player) === false, 'Shopkeeper is initially friendly/neutral to player');
 
 // 3. Trigger escalation
-const escalated = escalateTurretsAgainstPlayer(map, 'town');
+const escalated = escalateFactionAgainstPlayer(map, 'town');
 console.log(`Escalated town faction, escalated turrets count: ${escalated}`);
 
 // 4. Assert that the shopkeeper has become hostile

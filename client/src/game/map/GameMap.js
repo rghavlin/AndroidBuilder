@@ -9,6 +9,7 @@ import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { Item as ECSItem } from '../components/Item.js';
 import { Item } from '../inventory/Item.js';
+import { gridItems } from '../inventory/gridUtils.js';
 import { Health } from '../components/Health.js';
 import { Renderable } from '../components/Renderable.js';
 import { MeleeWeapon } from '../components/MeleeWeapon.js';
@@ -953,21 +954,7 @@ export class GameMap {
     let itemExpired = false;
     let itemModified = false;
 
-    // Helper to get items array from a container grid/pocket
-    const getGridItems = (grid) => {
-      if (!grid || !grid.items) return [];
-      if (grid.items instanceof Map) {
-        return Array.from(grid.items.values());
-      }
-      if (Array.isArray(grid.items)) {
-        return grid.items;
-      }
-      if (typeof grid.items === 'object' && grid.items !== null) {
-        return Object.values(grid.items);
-      }
-      return [];
-    };
-    
+
     // --- POWER SOURCE LOGIC ---
     if (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) {
       if (TurnProcessingUtils.processPowerSource(itemData)) {
@@ -978,7 +965,7 @@ export class GameMap {
     // --- BATTERY CHARGER LOGIC ---
     if (itemData.defId === 'tool.battery_charger') {
       if (isPowered) {
-        TurnProcessingUtils.chargeBatteries(getGridItems(itemData.containerGrid));
+        TurnProcessingUtils.chargeBatteries(gridItems(itemData.containerGrid));
         itemModified = true;
       }
     }
@@ -986,7 +973,7 @@ export class GameMap {
     // --- SOLAR CHARGER LOGIC ---
     if (itemData.defId === 'tool.solar_charger') {
       if (isOutdoors && isDaylight) {
-        TurnProcessingUtils.chargeBatteries(getGridItems(itemData.containerGrid));
+        TurnProcessingUtils.chargeBatteries(gridItems(itemData.containerGrid));
         itemModified = true;
       }
     }
@@ -1036,7 +1023,7 @@ export class GameMap {
     // FIX: Also check if any sibling items inside this container provide power
     const providesInternalPower = isPowered || 
                                   (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) ||
-                                  (getGridItems(itemData.containerGrid).some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn));
+                                  (gridItems(itemData.containerGrid).some(it => it.traits?.includes(ItemTrait.POWER_SOURCE) && it.isOn));
 
     // --- RECURSION ---
     
@@ -1531,11 +1518,6 @@ export class GameMap {
 
   _chargeBatteries(chargerData) {
     if (!chargerData.containerGrid) return;
-    const items = chargerData.containerGrid.items instanceof Map 
-      ? Array.from(chargerData.containerGrid.items.values()) 
-      : (Array.isArray(chargerData.containerGrid.items) 
-          ? chargerData.containerGrid.items 
-          : Object.values(chargerData.containerGrid.items || {}));
-    TurnProcessingUtils.chargeBatteries(items);
+    TurnProcessingUtils.chargeBatteries(gridItems(chargerData.containerGrid));
   }
 }

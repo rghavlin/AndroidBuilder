@@ -13,7 +13,7 @@ import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
-import { getAttackableTurretOnTile, removeDestroyedTurret, escalateTurretsAgainstPlayer } from '../game/ai/TurretCombat.js';
+import { getAttackableTurretOnTile, removeDestroyedTurret, escalateFactionAgainstPlayer } from '../game/ai/TurretCombat.js';
 import engine from '../game/GameEngine.js';
 import { IntentQueue } from '../game/managers/IntentQueue.js';
 import { ExplosionIntent } from '../game/components/ExplosionIntent.js';
@@ -352,14 +352,14 @@ export const CombatProvider = ({ children }) => {
                 addLog(logMsg, 'combat');
                 if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
                 if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
-                    const escalated = escalateTurretsAgainstPlayer(gameMap, 'town');
+                    const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
                     if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
                 }
             } else if (turret) {
                 turret.takeDamage(damage);
                 addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
                 // Attacking a faction's turret provokes that whole faction.
-                const escalated = escalateTurretsAgainstPlayer(gameMap, turret.getFaction?.());
+                const escalated = escalateFactionAgainstPlayer(gameMap, turret.getFaction?.());
                 if (escalated > 0) addLog('The turrets turn on you!', 'warning');
             } else if (structure) {
                 if (structure.type === 'window') {
@@ -573,14 +573,14 @@ export const CombatProvider = ({ children }) => {
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
                     if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
                     if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
-                        const escalated = escalateTurretsAgainstPlayer(gameMap, 'town');
+                        const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
                         if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
                     }
                 } else if (turret) {
                     turret.takeDamage(damage);
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
                     // Attacking a faction's turret provokes that whole faction.
-                    const escalated = escalateTurretsAgainstPlayer(gameMap, turret.getFaction?.());
+                    const escalated = escalateFactionAgainstPlayer(gameMap, turret.getFaction?.());
                     if (escalated > 0) addLog('The turrets turn on you!', 'warning');
                 } else if (structure) {
                     if (structure.type === EntityType.WINDOW) {
@@ -782,7 +782,7 @@ export const CombatProvider = ({ children }) => {
 
                 // Attacking a town shopkeeper provokes the town's turrets.
                 if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
-                    const escalated = escalateTurretsAgainstPlayer(gameMap, 'town');
+                    const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
                     if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
                 }
 
@@ -813,7 +813,7 @@ export const CombatProvider = ({ children }) => {
                 turret.takeDamage(damage);
                 addLog(`You hit the turret with a stone: ${damage} damage`, 'combat');
                 // Attacking a faction's turret provokes that whole faction.
-                const escalated = escalateTurretsAgainstPlayer(gameMap, turret.getFaction?.());
+                const escalated = escalateFactionAgainstPlayer(gameMap, turret.getFaction?.());
                 if (escalated > 0) addLog('The turrets turn on you!', 'warning');
 
                 // Spawn a recoverable stone on the hit tile

@@ -9,6 +9,7 @@ import { RabbitAI } from '../ai/RabbitAI.js';
 import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { gridItems } from '../inventory/gridUtils.js';
 import { TurretAI } from '../ai/TurretAI.js';
 import { getExposedTurretTargets, TURRET_DEF_ID, removeDestroyedTurret } from '../ai/TurretCombat.js';
 import { FireSystem } from '../systems/FireSystem.js';
@@ -106,9 +107,7 @@ export class SimulationManager {
           return;
         }
         if (item.containerGrid) {
-          const nestedItems = item.containerGrid.items instanceof Map
-            ? Array.from(item.containerGrid.items.values())
-            : (Array.isArray(item.containerGrid.items) ? item.containerGrid.items : Object.values(item.containerGrid.items || {}));
+          const nestedItems = gridItems(item.containerGrid);
           for (const nestedItem of nestedItems) {
             fireTurretFromItem(nestedItem, atX, atY);
           }
@@ -294,9 +293,7 @@ export class SimulationManager {
         containerGrid = item.getContainerGrid();
       }
       if (containerGrid) {
-        const nestedItems = containerGrid.items instanceof Map
-          ? Array.from(containerGrid.items.values())
-          : (Array.isArray(containerGrid.items) ? containerGrid.items : Object.values(containerGrid.items || {}));
+        const nestedItems = gridItems(containerGrid);
 
         let cleanedAny = false;
         for (const nestedItem of nestedItems) {
