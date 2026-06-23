@@ -1,6 +1,6 @@
 # Active Projects, Roadmaps & Testing Protocols
 
-This document is the centralized, live dashboard tracking ongoing feature implementations, structural migrations, and feature backlogs. It also establishes the mandatory testing protocols used to verify stability.
+This document is the centralized, live dashboard tracking completed and ongoing feature implementations, structural migrations, and feature backlogs. It also establishes the mandatory testing protocols used to verify stability.
 
 ---
 
@@ -26,17 +26,17 @@ Integrate a single, trait-based inventory into the existing UI in small, low-ris
 * **5D — Nested Specialty Containers (Read-Only Open) [COMPLETE]**
 * **5E — Ground ↔ Backpack Moves [COMPLETE]**
 * **5F — Specialty Container Moves (Right-Click Open / Left-Click Drag) [COMPLETE]**
-* **5G — Selection-Based Drag Interactions [PENDING]**
+* **5G — Selection-Based Drag Interactions [COMPLETE]**
   * Left-click item → highlight at origin.
   * R key or right-click → rotate selected item 90°.
   * Mouse over grid → shows green (valid) or red (invalid) overlay footprint.
   * Left-click empty cell → place item; Escape or click item again → deselect.
-* **5H — Equipment Interaction & Backpack Management [PENDING]**
+* **5H — Equipment Interaction & Backpack Management [COMPLETE]**
   * Left-click equipment slot → select item (red highlight on slot). Click cell to unequip.
   * Opened backpacks show "Quick Move All" to transfer items from equipped backpack.
   * Disallow placing a backpack-with-items inside another backpack.
 
-#### Phase 6 — Unified Clothing Panel Layout [PENDING]
+#### Phase 6 — Unified Clothing Panel Layout [COMPLETE]
 * **6A — Refactor BackpackGrid into ClothingContainerPanel:** Create generic collapsible component.
 * **6B — Create UnifiedClothingPanel Component:** Scroll container with three collapsible sections: Upper Body, Lower Body, Backpack.
 * **6C — Replace BackpackGrid with UnifiedClothingPanel:** Switch `InventoryPanel.tsx` to use the new collapsible layout.
@@ -52,12 +52,12 @@ Migrate legacy monolithic orchestration contexts to modular, sub-contexts and es
 
 ### Current Implementation Roadmap
 
-#### Phase 4 — Complete `useGame()` Deprecation [PENDING]
+#### Phase 4 — Complete `useGame()` Deprecation [COMPLETE]
 * **Step 1:** Audit all codebase usages of legacy aggregated `useGame()` hooks.
 * **Step 2:** Migrate legacy components to direct sub-context hooks (`usePlayer()`, `useGameMap()`, `useCamera()`).
 * **Step 3:** Remove sub-context data aggregation from `GameContext.jsx`, simplifying `useGame()` to expose only core initialization and orchestration functions.
 
-#### Phase 5 — Advanced Refactoring Features [PENDING]
+#### Phase 5 — Advanced Refactoring Features [COMPLETE]
 * **Step 1 (Enhanced Error Boundaries):** Implement context-specific error handling with graceful recovery for `Player`, `GameMap`, and `Camera`.
 * **Step 2 (Performance Optimization):** Implement selective re-render patterns and subscription models to minimize re-renders on high-frequency coordinate/stat updates.
 * **Step 3 (Feature Expansion Framework):** Establish patterns for integrating upcoming sub-systems (Sound, settings, etc.) without tight context coupling.
@@ -72,7 +72,7 @@ Add sound effects and music using a decoupled, event-driven pattern.
 * Central `AudioManager` class instantiated during preloading.
 * Sound triggers wired to `GameEvents` for movement, item pickup, and combat hits.
 
-### Phase 2: Advanced Audio Backlog [PENDING]
+### Phase 2: Advanced Audio Backlog [COMPLETE]
 * **Background Music:** Looping audio track support.
 * **Dynamic State Transitions:** Shift music (e.g., exploration to tense combat music) based on threat levels or entity proximity.
 * **Spatial Audio:** Sound effect volume adjustments based on Manhattan distance from the player.

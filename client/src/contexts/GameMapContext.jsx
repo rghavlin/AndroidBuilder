@@ -5,6 +5,7 @@ import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { VehicleUtils } from '../game/utils/VehicleUtils.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 
@@ -154,55 +155,8 @@ export const GameMapProvider = ({ children }) => {
         apCost = VehicleUtils.calculateDragCost(activeHoverItems, path, engine.gameMap, apCost);
       }
       
-      let door = targetTile.contents.find(e => e.type === EntityType.DOOR);
-      if (!door) {
-        const north = engine.gameMap.getTile(x, y - 1);
-        const nd = north?.contents.find(e => e.type === EntityType.DOOR && e.edge === 's');
-        if (nd) door = nd;
-        
-        if (!door) {
-          const south = engine.gameMap.getTile(x, y + 1);
-          const sd = south?.contents.find(e => e.type === EntityType.DOOR && e.edge === 'n');
-          if (sd) door = sd;
-        }
-        
-        if (!door) {
-          const west = engine.gameMap.getTile(x - 1, y);
-          const wd = west?.contents.find(e => e.type === EntityType.DOOR && e.edge === 'e');
-          if (wd) door = wd;
-        }
-        
-        if (!door) {
-          const east = engine.gameMap.getTile(x + 1, y);
-          const ed = east?.contents.find(e => e.type === EntityType.DOOR && e.edge === 'w');
-          if (ed) door = ed;
-        }
-      }
-
-      let windowEntity = targetTile.contents.find(e => e.type === EntityType.WINDOW);
-      if (!windowEntity) {
-        const north = engine.gameMap.getTile(x, y - 1);
-        const nw = north?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 's');
-        if (nw) windowEntity = nw;
-        
-        if (!windowEntity) {
-          const south = engine.gameMap.getTile(x, y + 1);
-          const sw = south?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 'n');
-          if (sw) windowEntity = sw;
-        }
-        
-        if (!windowEntity) {
-          const west = engine.gameMap.getTile(x - 1, y);
-          const ww = west?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 'e');
-          if (ww) windowEntity = ww;
-        }
-        
-        if (!windowEntity) {
-          const east = engine.gameMap.getTile(x + 1, y);
-          const ew = east?.contents.find(e => e.type === EntityType.WINDOW && e.edge === 'w');
-          if (ew) windowEntity = ew;
-        }
-      }
+      const { structure: door } = findEdgeStructure(engine.gameMap, x, y, { type: 'door' });
+      const { structure: windowEntity } = findEdgeStructure(engine.gameMap, x, y, { type: 'window' });
 
       const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);
       const rabbit = targetTile.contents.find(e => e.type === EntityType.RABBIT);

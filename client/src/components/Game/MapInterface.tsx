@@ -18,6 +18,7 @@ import { ActionSlotButton } from './ActionSlotButton';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { EntityType } from '../../game/entities/Entity.js';
+import { findEdgeStructure } from '../../game/utils/EdgeStructure.js';
 import { cn } from "@/lib/utils";
 import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
@@ -361,34 +362,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     const tile = gameMap.getTile(x, y);
     if (!tile) return;
 
-    let door = tile.contents.find((e: any) => e.type === EntityType.DOOR);
-    let doorX = x;
-    let doorY = y;
-
-    if (!door) {
-      // Check neighbors for edge doors facing (x, y)
-      const north = gameMap.getTile(x, y - 1);
-      const nd = north?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 's');
-      if (nd) { door = nd; doorX = x; doorY = y - 1; }
-
-      if (!door) {
-        const south = gameMap.getTile(x, y + 1);
-        const sd = south?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 'n');
-        if (sd) { door = sd; doorX = x; doorY = y + 1; }
-      }
-
-      if (!door) {
-        const west = gameMap.getTile(x - 1, y);
-        const wd = west?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 'e');
-        if (wd) { door = wd; doorX = x - 1; doorY = y; }
-      }
-
-      if (!door) {
-        const east = gameMap.getTile(x + 1, y);
-        const ed = east?.contents.find((e: any) => e.type === EntityType.DOOR && e.edge === 'w');
-        if (ed) { door = ed; doorX = x + 1; doorY = y; }
-      }
-    }
+    const { structure: door, structureX: doorX, structureY: doorY } =
+      findEdgeStructure(gameMap, x, y, { type: 'door' });
 
     if (door) {
       const px = Math.floor(player.x);
@@ -413,34 +388,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       return;
     }
 
-    let windowEntity = tile.contents.find((e: any) => e.type === EntityType.WINDOW);
-    let windowX = x;
-    let windowY = y;
-
-    if (!windowEntity) {
-      // Check neighbors for edge windows facing (x, y)
-      const north = gameMap.getTile(x, y - 1);
-      const nw = north?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 's');
-      if (nw) { windowEntity = nw; windowX = x; windowY = y - 1; }
-
-      if (!windowEntity) {
-        const south = gameMap.getTile(x, y + 1);
-        const sw = south?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 'n');
-        if (sw) { windowEntity = sw; windowX = x; windowY = y + 1; }
-      }
-
-      if (!windowEntity) {
-        const west = gameMap.getTile(x - 1, y);
-        const ww = west?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 'e');
-        if (ww) { windowEntity = ww; windowX = x - 1; windowY = y; }
-      }
-
-      if (!windowEntity) {
-        const east = gameMap.getTile(x + 1, y);
-        const ew = east?.contents.find((e: any) => e.type === EntityType.WINDOW && e.edge === 'w');
-        if (ew) { windowEntity = ew; windowX = x + 1; windowY = y; }
-      }
-    }
+    const { structure: windowEntity, structureX: windowX, structureY: windowY } =
+      findEdgeStructure(gameMap, x, y, { type: 'window' });
 
     if (windowEntity) {
       const px = Math.floor(player.x);
@@ -1496,30 +1445,11 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   const zombie = allEntities.find((e: any) => e.type === 'zombie' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   const npc = allEntities.find((e: any) => e.type === EntityType.NPC && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   const rabbit = allEntities.find((e: any) => e.type === 'rabbit' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
-  // Find door/window on the hovered tile or its edge neighbors
-  let door = allEntities.find((e: any) => e.type === 'door' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
-  if (!door) {
-    const hx = hoveredTile.x;
-    const hy = hoveredTile.y;
-    door = allEntities.find((e: any) => e.type === 'door' && (
-      (Math.round(e.x) === hx && Math.round(e.y) === hy - 1 && e.edge === 's') ||
-      (Math.round(e.x) === hx && Math.round(e.y) === hy + 1 && e.edge === 'n') ||
-      (Math.round(e.x) === hx - 1 && Math.round(e.y) === hy && e.edge === 'e') ||
-      (Math.round(e.x) === hx + 1 && Math.round(e.y) === hy && e.edge === 'w')
-    ));
-  }
-
-  let window = allEntities.find((e: any) => e.type === 'window' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
-  if (!window) {
-    const hx = hoveredTile.x;
-    const hy = hoveredTile.y;
-    window = allEntities.find((e: any) => e.type === 'window' && (
-      (Math.round(e.x) === hx && Math.round(e.y) === hy - 1 && e.edge === 's') ||
-      (Math.round(e.x) === hx && Math.round(e.y) === hy + 1 && e.edge === 'n') ||
-      (Math.round(e.x) === hx - 1 && Math.round(e.y) === hy && e.edge === 'e') ||
-      (Math.round(e.x) === hx + 1 && Math.round(e.y) === hy && e.edge === 'w')
-    ));
-  }
+  // Find door/window on the hovered tile or its edge neighbors. Structures are
+  // static (integer coords matching their tile), so the tile-based helper is
+  // equivalent to the visual-position search used for moving entities above.
+  const { structure: door } = findEdgeStructure(gameMapRef.current, hoveredTile.x, hoveredTile.y, { type: 'door' });
+  const { structure: window } = findEdgeStructure(gameMapRef.current, hoveredTile.x, hoveredTile.y, { type: 'window' });
   
   const cropInfo = targetTile?.cropInfo;
   // Surface a powered-on turret carried inside a wagon/container so the tooltip

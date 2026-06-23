@@ -11,6 +11,7 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 
 import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
+import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { getAttackableTurretOnTile, removeDestroyedTurret, escalateFactionAgainstPlayer } from '../game/ai/TurretCombat.js';
@@ -23,18 +24,30 @@ const isWindowTile = (gameMap, x, y) => {
     return !!(tile && tile.contents.some(e => e.type === EntityType.WINDOW));
 };
 
-// Resolve the primary combat target occupying a tile, in priority order:
-// living entity (zombie/rabbit/npc) > attackable turret > breakable structure (window/door).
+// Resolve the primary combat target for a click at (x, y), in priority order:
+// living entity (zombie/rabbit/npc) > attackable turret > breakable structure
+// (window/door). Edge-aligned windows/doors are anchored to a single tile but
+// visually sit on the shared boundary between two tiles, so when no structure is
+// found on the clicked tile we also check the four neighbors for an edge
+// structure facing this tile. This lets the player smash a window while standing
+// on its sill (clicking outward) instead of having to back up a tile first.
+// structureX/structureY give the structure's true anchor tile, where damage,
+// effects, and noise must be applied.
 // Thrown stones can't target turrets, so callers pass includeTurret:false there.
-const resolveTileTarget = (tile, player, { includeTurret = true } = {}) => {
+const resolveTileTarget = (gameMap, x, y, player, { includeTurret = true } = {}) => {
+    const tile = gameMap?.getTile(x, y);
     const targetEntity = tile?.contents.find(
         e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC
     ) || null;
     const turret = (includeTurret && !targetEntity) ? (getAttackableTurretOnTile(tile, player) || null) : null;
-    const structure = (!targetEntity && !turret)
-        ? (tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) || null)
-        : null;
-    return { targetEntity, turret, structure };
+
+    let structure = null;
+    let structureX = x;
+    let structureY = y;
+    if (!targetEntity && !turret) {
+        ({ structure, structureX, structureY } = findEdgeStructure(gameMap, x, y));
+    }
+    return { targetEntity, turret, structure, structureX, structureY };
 };
 
 // Every zombie kill awards the player a single Earbuck.
@@ -254,6 +267,19 @@ export const CombatProvider = ({ children }) => {
 
         if (player.ap < 1) return { success: false, reason: 'Not enough AP' };
 
+        // Resolve the target first so an edge-aligned window/door can be hit when
+        // the player clicks the tile on their side of the wall (e.g. smashing a
+        // window while standing on its sill). Retarget to the structure's anchor
+        // tile so the range check, damage, effects, and noise all land correctly.
+        const { targetEntity, turret, structure, structureX, structureY } = resolveTileTarget(gameMap, targetX, targetY, player);
+
+        if (!targetEntity && !turret && !structure) return { success: false, reason: 'No target here' };
+
+        if (structure) {
+            targetX = structureX;
+            targetY = structureY;
+        }
+
         const dx = Math.abs(player.x - targetX);
         const dy = Math.abs(player.y - targetY);
         const defStats = ItemDefs[weapon.defId]?.combat || {};
@@ -265,11 +291,6 @@ export const CombatProvider = ({ children }) => {
         if (distance > weaponRange + 0.1) {
             return { success: false, reason: 'Target out of range' };
         }
-
-        const tile = gameMap.getTile(targetX, targetY);
-        const { targetEntity, turret, structure } = resolveTileTarget(tile, player);
-
-        if (!targetEntity && !turret && !structure) return { success: false, reason: 'No target here' };
 
         // Stun Rod battery charge check and consumption
         let isStunRodActive = false;
@@ -459,19 +480,25 @@ export const CombatProvider = ({ children }) => {
 
         if (!ammoFound) return { success: false, reason: 'Out of ammo' };
 
-        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
-        if (stats.minRange && distance < stats.minRange) return { success: false, reason: 'Target too close' };
-
-        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, { maxRange: 20 });
-        if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
-
-        const tile = gameMap.getTile(targetX, targetY);
-        const { targetEntity, turret, structure } = resolveTileTarget(tile, player);
+        // Resolve target first so an edge-aligned window/door retargets to its
+        // anchor tile before the distance and line-of-sight checks run.
+        const { targetEntity, turret, structure, structureX, structureY } = resolveTileTarget(gameMap, targetX, targetY, player);
 
         if (!targetEntity && !turret && !structure) {
             cancelTargeting();
             return { success: false, reason: 'No target at location' };
         }
+
+        if (structure) {
+            targetX = structureX;
+            targetY = structureY;
+        }
+
+        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
+        if (stats.minRange && distance < stats.minRange) return { success: false, reason: 'Target too close' };
+
+        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, { maxRange: 20 });
+        if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
 
         // 2. Event emission for UI and Audio (Emit once per burst for sound sync)
         const attackData = { 
@@ -708,6 +735,19 @@ export const CombatProvider = ({ children }) => {
             return { success: false, reason: 'Not enough AP' };
         }
 
+        // Resolve target first so an edge-aligned window/door retargets to its
+        // anchor tile before the range and line-of-sight checks run.
+        const { targetEntity, turret, structure, structureX, structureY } = resolveTileTarget(gameMap, targetX, targetY, player, { includeTurret: false });
+
+        if (!targetEntity && !turret && !structure) {
+            return { success: false, reason: 'No target at location' };
+        }
+
+        if (structure) {
+            targetX = structureX;
+            targetY = structureY;
+        }
+
         // 2. Range Check (Matches Sight Range)
         const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
         const maxRange = (engine._fovOptions?.maxRange || 15) + 0.5;
@@ -721,13 +761,6 @@ export const CombatProvider = ({ children }) => {
         });
         if (!losResult.hasLineOfSight) {
             return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
-        }
-
-        const tile = gameMap.getTile(targetX, targetY);
-        const { targetEntity, turret, structure } = resolveTileTarget(tile, player);
-
-        if (!targetEntity && !turret && !structure) {
-            return { success: false, reason: 'No target at location' };
         }
 
         // 4. Execution
