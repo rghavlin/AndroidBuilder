@@ -285,27 +285,30 @@ Larger structural improvements for long-term maintainability as the game grows.
 
 Address hot-path issues that will matter as maps get larger.
 
-- [ ] **P6-01** Hoist `terrainColors` object out of `drawTile`
+- [x] **P6-01** Hoist `terrainColors` object out of `drawTile`
   - TileRenderer.js:29 — allocated inside per-tile render function, thousands of times per frame
   - Move to module scope as a `const`
+  - Done: Hoisted `TERRAIN_COLORS` and `GRASS_VARIANTS` to module scope.
 
-- [ ] **P6-02** Pass `currentTime` to TileRenderer instead of calling `Date.now()` per tile
+- [x] **P6-02** Pass `currentTime` to TileRenderer instead of calling `Date.now()` per tile
   - TileRenderer.js:208 — called for every tile with fire overlay
+  - Done: Passed `currentTime` from `MapCanvas.jsx` to `TileRenderer.drawTile` and used it for fire overlay logic.
 
-- [ ] **P6-03** Cache grass/road sprite variant indices
+- [x] **P6-03** Cache grass/road sprite variant indices
   - TileRenderer.js:63 — deterministic hash recomputed every frame for every tile
+  - Done: Caches variant indices lazily as a `_variantIndex` property on `tile` objects so they are computed only once per tile.
 
-- [ ] **P6-04** Pre-compute item category flags on entities instead of per-frame lookups
+- [x] **P6-04** Pre-compute item category flags on entities instead of per-frame lookups
   - EntityRenderer.js:241 — scans defId, traits, categories, and falls back to ItemDefs lookup per item per frame
 
-- [ ] **P6-05** Cache `isSheltered()` results per tile per turn
+- [x] **P6-05** Cache `isSheltered()` results per tile per turn
   - GameMap.js:160 — BFS runs per-entity per-turn but buildings don't change between turns
 
-- [ ] **P6-06** Reduce per-tile event listeners on large maps
+- [x] **P6-06** Reduce per-tile event listeners on large maps
   - GameMap.js:52 — creates tileClicked/tileHovered listeners on every tile (45,000 on 150x150)
   - Single handler on map with coordinate computation would scale better
 
-- [ ] **P6-07** Fix `recalculateFOV` scalability
+- [x] **P6-07** Fix `recalculateFOV` scalability
   - GameEngine.js:448 — O(area * lights * LOS) with 2601-tile scan
   - Consider caching light sources or limiting scan to known emitter positions
 

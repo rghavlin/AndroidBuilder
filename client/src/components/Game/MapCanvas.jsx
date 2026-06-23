@@ -208,7 +208,7 @@ export default function MapCanvas({
           const isExplored = tile.flags?.explored;
           const isVisible = visibleTileSet.has(`${worldX},${worldY}`);
 
-          TileRenderer.drawTile(ctx, worldX, worldY, rTileSize, tile, isVisible, isExplored, isNight, engine, imageLoader.images);
+          TileRenderer.drawTile(ctx, worldX, worldY, rTileSize, tile, isVisible, isExplored, isNight, engine, imageLoader.images, currentTime);
         }
       }
       ctx.restore();

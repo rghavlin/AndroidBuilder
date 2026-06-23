@@ -335,6 +335,37 @@ export class Item extends SafeEventEmitter {
         this[key] = value;
       }
     }
+
+    // Precomputed category flags for rendering optimizations (P6-04)
+    this.isCrop = !!((this.defId && (this.defId.endsWith('_plant') || this.defId.startsWith('provision.harvestable_'))) || config.isWild || config.isHarvestable);
+    
+    // Determine isFurnitureOrVehicle
+    let isFav = false;
+    if (this.defId) {
+      if (this.defId.startsWith('furniture.') || this.defId.startsWith('vehicle.')) {
+        isFav = true;
+      } else {
+        const itemTraits = this.traits || [];
+        const itemCats = this.categories || [];
+        if (itemTraits.includes('furniture') || itemTraits.includes('vehicle') ||
+            itemCats.includes('furniture') || itemCats.includes('vehicle')) {
+          isFav = true;
+        } else {
+          const def = ItemDefs[this.defId];
+          if (def) {
+            const defTraits = def.traits || [];
+            const defCategories = def.categories || [];
+            isFav = defTraits.includes('furniture') || defTraits.includes('vehicle') ||
+                defCategories.includes('furniture') || defCategories.includes('vehicle');
+          }
+        }
+      }
+    }
+    this.isFurnitureOrVehicle = isFav;
+
+    const cats = this.categories || [];
+    this.isFood = cats.includes(ItemCategory.FOOD);
+    this.isMedical = cats.includes(ItemCategory.MEDICAL);
   }
 
 
@@ -496,6 +527,36 @@ export class Item extends SafeEventEmitter {
     this.produce = def.produce !== undefined ? def.produce : null;
     this.produceMin = def.produceMin !== undefined ? def.produceMin : undefined;
     this.produceMax = def.produceMax !== undefined ? def.produceMax : undefined;
+
+    // Re-compute category flags for rendering optimizations (P6-04)
+    this.isCrop = !!((this.defId && (this.defId.endsWith('_plant') || this.defId.startsWith('provision.harvestable_'))) || this.isWild || this.isHarvestable);
+    
+    let isFav = false;
+    if (this.defId) {
+      if (this.defId.startsWith('furniture.') || this.defId.startsWith('vehicle.')) {
+        isFav = true;
+      } else {
+        const itemTraits = this.traits || [];
+        const itemCats = this.categories || [];
+        if (itemTraits.includes('furniture') || itemTraits.includes('vehicle') ||
+            itemCats.includes('furniture') || itemCats.includes('vehicle')) {
+          isFav = true;
+        } else {
+          const itemDef = ItemDefs[this.defId];
+          if (itemDef) {
+            const defTraits = itemDef.traits || [];
+            const defCategories = itemDef.categories || [];
+            isFav = defTraits.includes('furniture') || defTraits.includes('vehicle') ||
+                defCategories.includes('furniture') || defCategories.includes('vehicle');
+          }
+        }
+      }
+    }
+    this.isFurnitureOrVehicle = isFav;
+
+    const cats = this.categories || [];
+    this.isFood = cats.includes(ItemCategory.FOOD);
+    this.isMedical = cats.includes(ItemCategory.MEDICAL);
 
     // Signal update
     this.emit('updated', this);

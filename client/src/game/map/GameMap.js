@@ -60,16 +60,7 @@ export class GameMap extends SafeEventEmitter {
       const row = [];
       for (let x = 0; x < this.width; x++) {
         const tile = new Tile(x, y, 'grass');
-
-        // Set up tile event forwarding to map level
-        tile.addEventListener('tileClicked', (data) => {
-          this.emit('tileClicked', data);
-        });
-
-        tile.addEventListener('tileHovered', (data) => {
-          this.emit('tileHovered', data);
-        });
-
+        tile.gameMap = this;
         row.push(tile);
       }
       this.tiles.push(row);
@@ -145,6 +136,13 @@ export class GameMap extends SafeEventEmitter {
   }
 
   /**
+   * Clear the sheltered status cache
+   */
+  clearShelteredCache() {
+    this._shelteredCache = null;
+  }
+
+  /**
    * Static Utility: Check if a position is sheltered (inside a building)
    * @param {GameMap} gameMap - The map to check
    * @param {number} x - X coordinate
@@ -154,10 +152,21 @@ export class GameMap extends SafeEventEmitter {
   static isSheltered(gameMap, x, y) {
     if (!gameMap) return false;
 
+    // Check cache
+    if (!gameMap._shelteredCache) {
+      gameMap._shelteredCache = new Map();
+    } else {
+      const cached = gameMap._shelteredCache.get(`${x},${y}`);
+      if (cached !== undefined) return cached;
+    }
+
     const startTile = gameMap.getTile(x, y);
     // PHASE 15: Support tent_floor and transition (doorways) as sheltered terrain
     const isIndoorTerrain = startTile && (startTile.terrain === 'floor' || startTile.terrain === 'tent_floor');
-    if (!isIndoorTerrain) return false;
+    if (!isIndoorTerrain) {
+      gameMap._shelteredCache.set(`${x},${y}`, false);
+      return false;
+    }
 
     const queue = [{ x, y }];
     const visited = new Set([`${x},${y}`]);
@@ -195,6 +204,7 @@ export class GameMap extends SafeEventEmitter {
 
         const isIndoors = tile.terrain === 'floor' || tile.terrain === 'tent_floor';
         if (!isIndoors || (tile.terrain === 'window' && !isClosedWindow)) {
+          gameMap._shelteredCache.set(`${x},${y}`, false);
           return false;
         }
 
@@ -202,6 +212,7 @@ export class GameMap extends SafeEventEmitter {
         queue.push(next);
       }
     }
+    gameMap._shelteredCache.set(`${x},${y}`, true);
     return true;
   }
 
@@ -490,6 +501,7 @@ export class GameMap extends SafeEventEmitter {
     const tile = this.getTile(x, y);
     if (tile) {
       tile.terrain = terrain;
+      this.clearShelteredCache();
       // Initialize water resource levels for new water tiles
       if (terrain === 'water') {
         tile.waterAmount = 100;
@@ -815,6 +827,7 @@ export class GameMap extends SafeEventEmitter {
    */
   processTurn(player = null, isSleeping = false, turn = 1, playerCardinalPositions = [], lastSeenTaggedTiles = new Set()) {
     console.log('[GameMap] Processing turn-based effects...');
+    this.clearShelteredCache();
     const actionQueue = [];
     
     // Decay scent trails
@@ -1370,6 +1383,7 @@ export class GameMap extends SafeEventEmitter {
           }
         }
 
+        tile.gameMap = gameMap;
         gameMap.tiles[y][x] = tile;
       }
     }
@@ -1510,6 +1524,8 @@ export class GameMap extends SafeEventEmitter {
 
     // Generate/ensure instanceId matches entity id
     entity.instanceId = entity.id;
+
+    entity.precomputeItemFlags();
 
     return entity;
   }

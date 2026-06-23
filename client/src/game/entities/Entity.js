@@ -4,6 +4,9 @@ import { FactionRegistry } from '../ai/FactionRegistry.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import engine from '../GameEngine.js';
 import { SequencerAction } from '../managers/SequencerAction.js';
+import { ItemDefs } from '../inventory/ItemDefs.js';
+import { ItemCategory } from '../inventory/traits.js';
+
 
 import { Position } from '../components/Position.js';
 import { Health } from '../components/Health.js';
@@ -100,7 +103,7 @@ export const ITEM_SERIALIZED_FIELDS = [
   'description', 'combat', 'rangedStats', 'rarity', 'backgroundColor', 'scooterMode',
   'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
   'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
-  'availableFireModes'
+  'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical'
 ];
 
 export const EntityType = {
@@ -840,6 +843,52 @@ export class Entity extends SafeEventEmitter {
     return Math.abs(this.logicalX - targetX) === 1 && Math.abs(this.logicalY - targetY) === 1;
   }
 
+  precomputeItemFlags() {
+    if (this.type !== 'item') return;
+
+    const defId = this.defId || this.id;
+    const def = ItemDefs[defId];
+
+    // 1. isCrop
+    this.isCrop = !!((defId && (defId.endsWith('_plant') || defId.startsWith('provision.harvestable_'))) || this.isWild || this.isHarvestable);
+
+    // 2. isFurnitureOrVehicle
+    let isFav = false;
+    if (defId) {
+      if (defId.startsWith('furniture.') || defId.startsWith('vehicle.')) {
+        isFav = true;
+      } else {
+        const itemTraits = this.traits || [];
+        const itemCats = this.categories || [];
+        if (itemTraits.includes('furniture') || itemTraits.includes('vehicle') ||
+            itemCats.includes('furniture') || itemCats.includes('vehicle')) {
+          isFav = true;
+        } else if (def) {
+          const defTraits = def.traits || [];
+          const defCategories = def.categories || [];
+          isFav = defTraits.includes('furniture') || defTraits.includes('vehicle') ||
+              defCategories.includes('furniture') || defCategories.includes('vehicle');
+        }
+      }
+    }
+    this.isFurnitureOrVehicle = isFav;
+
+    // 3. isFood & isMedical
+    const cats = this.categories || [];
+    let isFood = cats.includes(ItemCategory.FOOD);
+    let isMedical = cats.includes(ItemCategory.MEDICAL);
+
+    if (!isFood && def && def.categories) {
+      isFood = def.categories.includes(ItemCategory.FOOD);
+    }
+    if (!isMedical && def && def.categories) {
+      isMedical = def.categories.includes(ItemCategory.MEDICAL);
+    }
+
+    this.isFood = isFood;
+    this.isMedical = isMedical;
+  }
+
   toJSON() {
     const data = {
       id: this.id,
@@ -935,6 +984,7 @@ export class Entity extends SafeEventEmitter {
       if (data.pocketGrids) {
         entity.pocketGrids = data.pocketGrids;
       }
+      entity.precomputeItemFlags();
     }
 
     if (data.components) {

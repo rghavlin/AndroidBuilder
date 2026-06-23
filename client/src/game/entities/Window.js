@@ -31,6 +31,9 @@ export class Window extends Entity {
         const map = this.gameMap || (engine && engine.gameMap);
         if (map) {
             map._visionDirty = true;
+            if (typeof map.clearShelteredCache === 'function') {
+                map.clearShelteredCache();
+            }
         }
     }
 

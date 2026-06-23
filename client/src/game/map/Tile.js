@@ -11,7 +11,6 @@ export class Tile {
     this.terrain = terrain; // 'grass', 'wall', 'floor', 'road', 'sidewalk', 'fence', 'building'
     this.contents = []; // Array of entities on this tile
     this.inventoryItems = []; // Array of serialized items on this tile
-    this.listeners = new Map(); // Event listeners
     this.flags = {}; // Tile-specific flags (e.g., for fog of war)
     this.scent = 0; // Current scent intensity (turns remaining)
     this.scentSequence = 0; // Global sequence number for trail following
@@ -25,32 +24,28 @@ export class Tile {
   }
 
   /**
-   * Add event listener for tile events
+   * No-op event listener registration kept for potential third-party/test compatibility.
    */
   addEventListener(eventType, callback) {
-    if (!this.listeners.has(eventType)) {
-      this.listeners.set(eventType, []);
-    }
-    this.listeners.get(eventType).push(callback);
+    // Left empty since events are now bubbled directly to gameMap.
   }
 
   /**
-   * Emit events with context for React components
+   * Emit events directly on the parent gameMap to reduce per-tile event listener overhead.
    */
   emit(eventType, data = {}) {
-    const eventData = {
-      tile: { x: this.x, y: this.y, terrain: this.terrain },
-      contents: this.contents.map(entity => ({
-        id: entity.id,
-        type: entity.type,
-        position: { x: entity.x, y: entity.y }
-      })),
-      timestamp: Date.now(),
-      ...data
-    };
-
-    if (this.listeners.has(eventType)) {
-      this.listeners.get(eventType).forEach(callback => callback(eventData));
+    if (this.gameMap) {
+      const eventData = {
+        tile: { x: this.x, y: this.y, terrain: this.terrain },
+        contents: this.contents.map(entity => ({
+          id: entity.id,
+          type: entity.type,
+          position: { x: entity.x, y: entity.y }
+        })),
+        timestamp: Date.now(),
+        ...data
+      };
+      this.gameMap.emit(eventType, eventData);
     }
   }
 

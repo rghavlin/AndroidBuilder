@@ -15,36 +15,41 @@ const SPRITE_ATLAS_MAP = {
   'sand':        { col: 3, row: 7 }
 };
 
+const TERRAIN_COLORS = {
+  'grass': '#1a3c1a',
+  'road': '#2d2d2d',
+  'transition': '#2d2d2d',
+  'sidewalk': '#555',
+  'wall': '#888',     // High-contrast structural gray
+  'building': '#777', // Concrete/Building gray
+  'fence': '#4a3728', 
+  'tree': '#064e3b',
+  'tent_wall': '#78716c',
+  'tent_floor': '#5b4d3d', 
+  'floor': '#333', 
+  'water': '#1a3c5a',
+  'dirt': '#3d2b1f'
+};
+
+const GRASS_VARIANTS = [
+  { col: 0, row: 15 }, { col: 1, row: 15 }, { col: 2, row: 15 }, { col: 3, row: 15 },
+  { col: 0, row: 14 }, { col: 1, row: 14 }, { col: 2, row: 14 }, { col: 3, row: 14 }
+];
+
 export const TileRenderer = {
   /**
    * Draw a single map tile (Terrain, Fog, FOV)
    */
-  drawTile: (ctx, x, y, tileSize, tile, isVisible, isExplored, isNight, engine, sprites) => {
+  drawTile: (ctx, x, y, tileSize, tile, isVisible, isExplored, isNight, engine, sprites, currentTime) => {
     const screenX = x * tileSize;
     const screenY = y * tileSize;
 
     // 1. Draw Terrain (If explored)
     if (isExplored) {
         // Step A: Draw Base Color Layer (Ensures visibility even if texture fails/is dark)
-        const terrainColors = {
-            'grass': '#1a3c1a',
-            'road': '#2d2d2d',
-            'transition': '#2d2d2d',
-            'sidewalk': '#555',
-            'wall': '#888',     // High-contrast structural gray
-            'building': '#777', // Concrete/Building gray
-            'fence': '#4a3728', 
-            'tree': '#064e3b',
-            'tent_wall': '#78716c',
-            'tent_floor': '#5b4d3d', 
-            'floor': '#333', 
-            'water': '#1a3c5a',
-            'dirt': '#3d2b1f'
-        };
-        
         // Use structural mapping for important types to guarantee visibility
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
-        ctx.fillStyle = (isStructural ? terrainColors[tile.terrain] : (tile.color || terrainColors[tile.terrain])) || '#222';
+        ctx.fillStyle = (isStructural ? TERRAIN_COLORS[tile.terrain] : (tile.color || TERRAIN_COLORS[tile.terrain])) || '#222';
         ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
         // Step B: Draw Texture Layer (On top of base color) - Skipped in Debug Mode
@@ -59,22 +64,27 @@ export const TileRenderer = {
                         let mapping;
                         
                         if (tile.terrain === 'grass') {
-                            // Bottom Left Grass (Row 14 & 15, Col 0-3)
-                            const grassVariants = [
-                                { col: 0, row: 15 }, { col: 1, row: 15 }, { col: 2, row: 15 }, { col: 3, row: 15 },
-                                { col: 0, row: 14 }, { col: 1, row: 14 }, { col: 2, row: 14 }, { col: 3, row: 14 }
-                            ];
-                            const index = Math.abs(x * 31 + y * 17) % grassVariants.length;
-                            mapping = grassVariants[index];
+                            if (tile._variantIndex === undefined) {
+                                tile._variantIndex = Math.abs(x * 31 + y * 17) % GRASS_VARIANTS.length;
+                            }
+                            mapping = GRASS_VARIANTS[tile._variantIndex];
                         } else if (tile.terrain === 'road' || tile.terrain === 'transition') {
-                            // Randomize road slabs to create natural road wear/cracks
-                            const roadHash = Math.abs(x * 13 + y * 7) % 10;
-                            if (roadHash < 3) {
-                                mapping = { col: 5, row: 7 }; // Cracked pavement
-                            } else if (roadHash < 6) {
-                                mapping = { col: 6, row: 1 }; // Worn concrete slab with crack
+                            if (tile._variantIndex === undefined) {
+                                const roadHash = Math.abs(x * 13 + y * 7) % 10;
+                                if (roadHash < 3) {
+                                    tile._variantIndex = 0; // Cracked pavement
+                                } else if (roadHash < 6) {
+                                    tile._variantIndex = 1; // Worn concrete slab with crack
+                                } else {
+                                    tile._variantIndex = 2; // Concrete slab with crack
+                                }
+                            }
+                            if (tile._variantIndex === 0) {
+                                mapping = { col: 5, row: 7 };
+                            } else if (tile._variantIndex === 1) {
+                                mapping = { col: 6, row: 1 };
                             } else {
-                                mapping = { col: 7, row: 0 }; // Concrete slab with crack
+                                mapping = { col: 7, row: 0 };
                             }
                         } else {
                             mapping = SPRITE_ATLAS_MAP[tile.terrain];
@@ -205,7 +215,8 @@ export const TileRenderer = {
         
         // Fire Overlay
         if (tile.fireTurns > 0) {
-            const pulse = 0.35 + Math.sin(Date.now() / 180) * 0.15;
+            const time = currentTime || Date.now();
+            const pulse = 0.35 + Math.sin(time / 180) * 0.15;
             ctx.fillStyle = `rgba(249, 115, 22, ${pulse})`;
             ctx.fillRect(screenX, screenY, tileSize, tileSize);
         }

@@ -63,6 +63,8 @@ export function getLargestItemInTile(tileItems) {
   return largestItem;
 }
 
+
+
 export const EntityRenderer = {
   renderEntity: (ctx, entity, tileSize, sprites, visibilitySet, isExplored, engine, currentTime = performance.now(), isGlobalAnimating = false) => {
     // Reset globalAlpha to ensure state from previous entity draws doesn't leak
@@ -245,35 +247,10 @@ export const EntityRenderer = {
 
         // Check if the item on the tile is a crop (growing or harvestable, wild or player-planted)
         const tileItems = (engine && engine.gameMap) ? engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y)) : [];
-        const isCrop = tileItems.some(item => {
-          const defId = item.defId || item.id;
-          return (defId && (defId.endsWith('_plant') || defId.startsWith('provision.harvestable_'))) || item.isWild || item.isHarvestable;
-        });
+        const isCrop = tileItems.some(item => item.isCrop || false);
 
         // Check if the item on the tile is a piece of furniture or a vehicle
-        const hasFurnitureOrVehicle = tileItems.some(item => {
-          const defId = item.defId || item.id;
-          if (!defId) return false;
-          if (defId.startsWith('furniture.') || defId.startsWith('vehicle.')) return true;
-          
-          const traits = item.traits || [];
-          const categories = item.categories || [];
-          if (traits.includes('furniture') || traits.includes('vehicle') ||
-              categories.includes('furniture') || categories.includes('vehicle')) {
-            return true;
-          }
-          
-          const def = ItemDefs[defId];
-          if (def) {
-            const defTraits = def.traits || [];
-            const defCategories = def.categories || [];
-            if (defTraits.includes('furniture') || defTraits.includes('vehicle') ||
-                defCategories.includes('furniture') || defCategories.includes('vehicle')) {
-              return true;
-            }
-          }
-          return false;
-        });
+        const hasFurnitureOrVehicle = tileItems.some(item => item.isFurnitureOrVehicle || false);
 
         // Metadata driven: check if the item is marked as full-tile
         // We check the entity property (set by GameMap for ground items) or the definition
@@ -309,26 +286,24 @@ export const EntityRenderer = {
         // Draw background token circle for items
         if (entity.type === 'item' && !isFullTileItem && !isExit) {
           let itemBgColor = '#0a0a0a';
-          let matchingDef = null;
           let isFood = false;
           let isMedical = false;
+          let matchingDef = null;
           
           if (subtype === 'ground_pile' && engine && engine.gameMap) {
             const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
             const largestItem = getLargestItemInTile(tileItems);
             if (largestItem) {
+              isFood = largestItem.isFood || false;
+              isMedical = largestItem.isMedical || false;
               const defId = largestItem.defId || largestItem.id;
-              matchingDef = ItemDefs[defId];
-              const cats = largestItem.categories || matchingDef?.categories || [];
-              isFood = cats.includes('food');
-              isMedical = cats.includes('medical');
+              matchingDef = largestItem._def || ItemDefs[defId];
             }
           } else {
+            isFood = entity.isFood || false;
+            isMedical = entity.isMedical || false;
             const defId = entity.defId || subtype;
-            matchingDef = ItemDefs[defId];
-            const cats = matchingDef?.categories || [];
-            isFood = cats.includes('food');
-            isMedical = cats.includes('medical');
+            matchingDef = entity._def || ItemDefs[defId];
           }
 
           if (isCrop) {

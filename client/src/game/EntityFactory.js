@@ -149,6 +149,7 @@ export const EntityFactory = {
     entity.addComponent(new Renderable({ spriteId: 'flashlight', color: '#ffffff', zIndex: 0 }));
     entity.addComponent(new LightEmitter({ radius: 5, intensity: 1.0, color: '#ffffff', isOn: false }));
     entity.addComponent('ItemData', { defId: 'flashlight', weight: 1 });
+    entity.precomputeItemFlags();
     return entity;
   },
 
@@ -181,6 +182,10 @@ export const EntityFactory = {
           entity.addComponent(componentName, componentData);
         }
       }
+    }
+
+    if (entity.type === 'item') {
+      entity.precomputeItemFlags();
     }
 
     return entity;
