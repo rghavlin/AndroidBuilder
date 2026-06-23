@@ -1,6 +1,7 @@
-import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { createItemFromDef, ItemDefs } from '../inventory/ItemDefs.js';
 import { Item } from '../inventory/Item.js';
 import engine from '../GameEngine.js';
+import { DEFAULT_SHOP_CATALOG } from '../config/ShopConfig.js';
 
 const EMPTY_CATALOG = [];
 
@@ -17,11 +18,13 @@ class EarbucksShopSystem {
     if (!mapEntry.metadata.shopCatalog) {
       // stock === null means an infinite supply; a finite number caps how many
       // can be purchased on this map (tracked via the `purchased` counter).
-      mapEntry.metadata.shopCatalog = [
-        { defId: 'food.corn', name: 'Corn', price: 5, stock: null, purchased: 0 },
-        { defId: 'food.waterbottle', name: 'Water Bottle', price: 20, stock: null, purchased: 0 },
-        { defId: 'tool.lighter', name: 'Lighter', price: 30, stock: 1, purchased: 0 }
-      ];
+      mapEntry.metadata.shopCatalog = DEFAULT_SHOP_CATALOG.map(item => ({
+        defId: item.defId,
+        name: ItemDefs[item.defId]?.name || 'Unknown Item',
+        price: item.price,
+        stock: item.stock,
+        purchased: 0
+      }));
     }
   }
 
@@ -53,18 +56,19 @@ class EarbucksShopSystem {
     const catalog = mapEntry.metadata.shopCatalog || EMPTY_CATALOG;
     const existingIndex = catalog.findIndex(i => i.defId === defId);
     let newCatalog;
+    const derivedName = name || ItemDefs[defId]?.name || 'Unknown Item';
     if (existingIndex !== -1) {
       newCatalog = [...catalog];
       newCatalog[existingIndex] = {
         ...newCatalog[existingIndex],
         price,
-        name,
+        name: derivedName,
         stock: normalizedStock
       };
     } else {
       newCatalog = [
         ...catalog,
-        { defId, name, price, stock: normalizedStock, purchased: 0 }
+        { defId, name: derivedName, price, stock: normalizedStock, purchased: 0 }
       ];
     }
     mapEntry.metadata.shopCatalog = newCatalog;

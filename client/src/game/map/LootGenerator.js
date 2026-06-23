@@ -4,7 +4,7 @@ import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/tra
 import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
 import { ZombieTypes } from '../entities/ZombieTypes.js';
 import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.js';
-import { isInsideCompound } from './MapUtils.js';
+import { isInsideCompound, isInsideAnyBuilding } from './MapUtils.js';
 
 
 const LOOT_CONSTANTS = {
@@ -12,6 +12,20 @@ const LOOT_CONSTANTS = {
     FUEL_COVER_OFFSET: 3,
     WATER_BOTTLE_RESTRICTION_MAP: LootProgression.WATER_BOTTLE_RESTRICTION_MAP,
 };
+
+// Progressive food scarcity: 40% base rejection on Map 1, +5% per map, capped at 85%.
+const FOOD_SCARCITY = { base: 0.4, perMap: 0.05, max: 0.85 };
+
+/**
+ * Chance (0..max) that a food drop is rejected on a given map, rising with depth.
+ * Shared by generateRandomItems() and generateZombieLoot().
+ * @param {number} mapNumber
+ * @returns {number}
+ */
+export function getFoodRejectionChance(mapNumber) {
+    const chance = FOOD_SCARCITY.base + (mapNumber - 1) * FOOD_SCARCITY.perMap;
+    return Math.min(FOOD_SCARCITY.max, Math.max(0.0, chance));
+}
 
 /**
  * LootGenerator - Handles random item spawning on maps
@@ -289,14 +303,11 @@ export class LootGenerator {
         console.log(`[LootGenerator] Furniture: Spawned ${bedsSpawned} beds across ${buildings.length} residential buildings`);
         
         const allBuildings = gameMap.buildings || [];
-        const isInsideAnyBuilding = (x, y) => allBuildings.some(b => 
-            x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
-        );
         const isBranching = gameMap.template === 'branching_road';
 
         // Phase 25: Toy Wagon Spawn (35% chance per map, strictly outdoor; 2-4 on large map)
         const wagonTiles = outdoorLootTiles.filter(pos => {
-            if (isInsideAnyBuilding(pos.x, pos.y)) return false;
+            if (isInsideAnyBuilding(allBuildings, pos.x, pos.y)) return false;
             const existing = gameMap.getItemsOnTile(pos.x, pos.y);
             return !existing || existing.length === 0;
         });
@@ -322,7 +333,7 @@ export class LootGenerator {
         const mowerTiles = outdoorLootTiles.filter(pos => {
             const tile = gameMap.getTile(pos.x, pos.y);
             if (!tile || tile.terrain !== 'grass') return false;
-            if (isInsideAnyBuilding(pos.x, pos.y)) return false;
+            if (isInsideAnyBuilding(allBuildings, pos.x, pos.y)) return false;
             const existing = gameMap.getItemsOnTile(pos.x, pos.y);
             return !existing || existing.length === 0;
         });
@@ -354,11 +365,8 @@ export class LootGenerator {
      */
     spawnScooter(gameMap, outdoorLootTiles = []) {
         const allBuildings = gameMap.buildings || [];
-        const isInsideAnyBuilding = (x, y) => allBuildings.some(b => 
-            x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
-        );
         const scooterTiles = outdoorLootTiles.filter(pos => {
-            if (isInsideAnyBuilding(pos.x, pos.y)) return false;
+            if (isInsideAnyBuilding(allBuildings, pos.x, pos.y)) return false;
             const existing = gameMap.getItemsOnTile(pos.x, pos.y);
             return !existing || existing.length === 0;
         });
@@ -810,10 +818,7 @@ export class LootGenerator {
             const isSeed = def.id && def.id.endsWith('seeds');
             const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD))) && def.id !== 'food.whiskey';
             if (isFood) {
-                // Progressive food scarcity: 40% base rejection on Map 1, +5% per map, max 85% on Map 10 (Slightly increased food drops)
-                let rejectionChance = 0.4 + (mapNumber - 1) * 0.05;
-                rejectionChance = Math.min(0.85, Math.max(0.0, rejectionChance));
-                if (Math.random() < rejectionChance) {
+                if (Math.random() < getFoodRejectionChance(mapNumber)) {
                     continue; // Reject food spawning for this drop slot
                 }
                 if (hasFoodInPile) continue;
@@ -1341,10 +1346,7 @@ export class LootGenerator {
                     const isSeed = def.id && def.id.endsWith('seeds');
                     const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD))) && def.id !== 'food.whiskey';
                     if (isFood) {
-                        // Progressive food scarcity: 40% base rejection on Map 1, +5% per map, max 85% on Map 10 (Slightly increased food drops)
-                        let rejectionChance = 0.4 + (mapNumber - 1) * 0.05;
-                        rejectionChance = Math.min(0.85, Math.max(0.0, rejectionChance));
-                        if (Math.random() < rejectionChance) {
+                        if (Math.random() < getFoodRejectionChance(mapNumber)) {
                             continue; // Reject food drop
                         }
                     }

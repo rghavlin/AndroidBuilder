@@ -1,6 +1,7 @@
 import { EntityType } from '../entities/Entity.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { LineOfSight } from '../utils/LineOfSight.js';
+import { findSouthTransitionTile } from '../map/MapUtils.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { getNPCType } from '../entities/NPCTypes.js';
@@ -564,7 +565,7 @@ export class NPCAI {
   static processTravelSouth(npc, gameMap, turnResult) {
     // 1. Locate exit goal if missing
     if (!npc.goalTarget) {
-      const exit = this.findSouthExitTile(gameMap);
+      const exit = findSouthTransitionTile(gameMap);
       if (exit) {
         npc.goalTarget = exit;
         if (this.DEBUG) console.log(`[NPCAI] Exit goal assigned at (${exit.x}, ${exit.y})`);
@@ -794,25 +795,4 @@ export class NPCAI {
     return true;
   }
 
-  /**
-   * Scan bottom edge of map for south transition exit tile
-   */
-  static findSouthExitTile(gameMap) {
-    const y = gameMap.height - 1;
-    // Preferred: 'transition' terrain tile
-    for (let x = 0; x < gameMap.width; x++) {
-      const tile = gameMap.getTile(x, y);
-      if (tile && tile.terrain === 'transition') {
-        return { x, y };
-      }
-    }
-    // Fallback: any walkable edge tile
-    for (let x = 0; x < gameMap.width; x++) {
-      const tile = gameMap.getTile(x, y);
-      if (tile && tile.isWalkable()) {
-        return { x, y };
-      }
-    }
-    return null;
-  }
 }

@@ -1,5 +1,5 @@
-import { LineOfSight } from '../utils/LineOfSight.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
+import { AITargeting } from './AITargeting.js';
 
 export class TurretAI {
   /**
@@ -58,16 +58,11 @@ export class TurretAI {
     const consumeAmmo = () => { if (!infinite && mag) mag.ammoCount = Math.max(0, mag.ammoCount - 1); };
 
     const def = turretItem.defId ? ItemDefs[turretItem.defId] : null;
-    const turretStats = def?.turretStats || {
-      maxRange: 15,
-      apPerShot: 1,
-      maxAp: 10,
-      rangedLvl: 5,
-      damage: { min: 5, max: 18 },
-      accuracyFalloff: 0.05,
-      minAccuracy: 0.05,
-      noiseRadius: 18
-    };
+    const turretStats = def?.turretStats;
+    if (!turretStats) {
+      console.warn(`[TurretAI] No turretStats found for item defId "${turretItem.defId}"`);
+      return { actions };
+    }
 
     // Check for suppressor
     const barrel = turretItem.attachments?.['barrel'];
@@ -78,34 +73,24 @@ export class TurretAI {
     const accuracyBonus = turretStats.rangedLvl * 0.01;
     const critChance = 0.05 + (turretStats.rangedLvl - 1) * 0.05;
 
-    // Build list of in-range, visible, faction-HOSTILE targets sorted nearest-first.
-    const inRange = (candidates || [])
-      .map(c => {
-        if (!c || c === turretItem) return null;
-        if (c.hp !== undefined && c.hp <= 0) return null;
-        if (!turretItem.isHostileTo(c)) return null;
-        const cx = c.logicalX !== undefined ? c.logicalX : c.x;
-        const cy = c.logicalY !== undefined ? c.logicalY : c.y;
-        const dx = cx - turretX;
-        const dy = cy - turretY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        return { target: c, dist, cx, cy };
-      })
-      .filter(entry => {
-        if (!entry) return false;
-        if (entry.dist > turretStats.maxRange) return false;
-        const los = LineOfSight.hasLineOfSight(gameMap, turretX, turretY, entry.cx, entry.cy, { maxRange: turretStats.maxRange });
-        return los.hasLineOfSight;
-      })
-      .sort((a, b) => a.dist - b.dist);
+    // In-range, visible, faction-HOSTILE targets sorted nearest-first. The turret
+    // is an Item placed at (turretX, turretY), so we measure distance/LOS from that
+    // tile via the `origin` option rather than the attacker's own position.
+    const targets = AITargeting.acquireTargets(turretItem, candidates || [], {
+      gameMap,
+      maxRange: turretStats.maxRange,
+      requireLineOfSight: true,
+      origin: { x: turretX, y: turretY }
+    });
 
-    for (const entry of inRange) {
-      const target = entry.target;
-      let dist = entry.dist;
-
+    for (const target of targets) {
       if (ap <= 0) break;
       if (!hasAmmo()) break;
       if (target.hp <= 0) continue;
+
+      const cx = target.logicalX !== undefined ? target.logicalX : target.x;
+      const cy = target.logicalY !== undefined ? target.logicalY : target.y;
+      const dist = Math.sqrt((cx - turretX) ** 2 + (cy - turretY) ** 2);
 
       // Fire until target dead, out of AP, or out of ammo
       while (ap >= turretStats.apPerShot && hasAmmo() && target.hp > 0) {
@@ -135,8 +120,8 @@ export class TurretAI {
             turretX, turretY,
             targetId:    target.id,
             targetType:  target.type,
-            targetX:     entry.cx,
-            targetY:     entry.cy,
+            targetX:     cx,
+            targetY:     cy,
             hit, isCrit, damage,
             isDead:      target.hp <= 0
           }

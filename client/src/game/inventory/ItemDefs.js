@@ -813,6 +813,8 @@ export const ItemDefs = {
       accuracyFalloff: 0.1,
       minAccuracy: 0.01
     },
+    // Direct-load weapon: ammo is loaded round-by-round into the ammo slot up to `capacity`
+    directLoad: { slotId: 'ammo', ammoId: 'ammo.357', capacity: 6 },
     spawnMaxRounds: 6
   },
   'weapon.hunting_rifle': {
@@ -835,6 +837,8 @@ export const ItemDefs = {
       accuracyFalloff: 0.07,
       minAccuracy: 0.01
     },
+    // Direct-load weapon: ammo is loaded round-by-round into the ammo slot up to `capacity`
+    directLoad: { slotId: 'ammo', ammoId: 'ammo.308', capacity: 5 },
     spawnMaxRounds: 4
   },
   'weapon.battle_rifle': {
@@ -2078,6 +2082,8 @@ export const ItemDefs = {
     attachmentSlots: [
       { id: 'ammo', name: 'Ammo', hidden: true, allowedCategories: [ItemCategory.AMMO], allowedItems: ['ammo.shotgun_shells'] }
     ],
+    // Direct-load weapon: ammo is loaded round-by-round into the ammo slot up to `capacity`
+    directLoad: { slotId: 'ammo', ammoId: 'ammo.shotgun_shells', capacity: 7 },
     rangedStats: {
       isShotgun: true,
       noiseRadius: 25,
@@ -2190,7 +2196,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE],
     categories: [ItemCategory.TOOL_RING],
-    beltGrid: { width: 2, height: 3, allowedItems: ['weapon.hammer', 'weapon.makeshift_hammer', 'weapon.crowbar', 'weapon.wrench', 'weapon.pliers'] }
+    beltGrid: { width: 2, height: 3, allowedItems: ['weapon.hammer', 'weapon.makeshift_hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.pliers'] }
   },
   'weapon.sling': {
     id: 'weapon.sling',
@@ -2381,6 +2387,7 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.READABLE],
     categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 500,
     description: 'Increase MaxAP by 1 for each 100 pages read.'
   },
   'book.nomad_survivor_1': {

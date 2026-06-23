@@ -823,9 +823,11 @@ export class Item extends SafeEventEmitter {
     
     // 6. If it's a book, show global pages left
     if (this.hasTrait(ItemTrait.READABLE)) {
-      // Use globalThis.gameEngine as the bridge to global state
+      // Use globalThis.gameEngine as the bridge to global state.
+      // Fall back to the book definition's total page count if no live stats exist yet.
       const engine = globalThis.gameEngine;
-      return engine?.bookStats?.[this.defId]?.pagesLeft ?? 500;
+      const defaultPages = ItemDefs[this.defId]?.totalPages ?? 0;
+      return engine?.bookStats?.[this.defId]?.pagesLeft ?? defaultPages;
     }
 
     // 6. If it's an ignitable item (Torch), show its condition as charges

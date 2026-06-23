@@ -1,4 +1,5 @@
 import { isSpecialBuilding } from './BuildingTypes.js';
+import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 
 /**
  * MapBuilder - Utility for geometric drawing and building placement
@@ -468,7 +469,7 @@ export class MapBuilder {
   }
 
   generateCentralHallwayLayout(x, y, w, h, frontage, entranceX, entranceY, backX, backY) {
-    const minInteriorSize = 3;
+    const minInteriorSize = MAP_GEN_CONFIG.minInteriorSize;
     if (frontage === 'north' || frontage === 'south') {
       // Vertical hallway (width 2)
       let hallX = Math.max(x + 3, Math.min(x + w - 5, entranceX - 1));
@@ -586,7 +587,7 @@ export class MapBuilder {
   }
 
   generateLivingRoomHubLayout(x, y, w, h, frontage, entranceX, entranceY, backX, backY) {
-    const minInteriorSize = 3;
+    const minInteriorSize = MAP_GEN_CONFIG.minInteriorSize;
     const iw = w - 2;
     const ih = h - 2;
 
@@ -676,7 +677,7 @@ export class MapBuilder {
   }
 
   generateLCorridorLayout(x, y, w, h, frontage, entranceX, entranceY, backX, backY) {
-    const minInteriorSize = 3;
+    const minInteriorSize = MAP_GEN_CONFIG.minInteriorSize;
     const iw = w - 2;
     const ih = h - 2;
 
@@ -787,7 +788,7 @@ export class MapBuilder {
   }
 
   generateDirectPartitionLayout(x, y, w, h, entranceX, entranceY, backX, backY) {
-    const minInteriorSize = 3;
+    const minInteriorSize = MAP_GEN_CONFIG.minInteriorSize;
     const iw = w - 2;
     const ih = h - 2;
 
@@ -879,7 +880,8 @@ export class MapBuilder {
       const runHi = horizontalGrowth ? bX + bW - 1 : bY + bH - 1;
       const outsideRun = runLo < runStart || runHi > runEnd;
 
-      if (outsideRun || bX < 2 || bX + bW >= this.width - 2 || bY < 2 || bY + bH >= this.height - 2) {
+      const margin = MAP_GEN_CONFIG.buildingBorderMargin;
+      if (outsideRun || bX < margin || bX + bW >= this.width - margin || bY < margin || bY + bH >= this.height - margin) {
         if (growthDir === 'west') currentX--;
         else if (growthDir === 'east') currentX++;
         else if (growthDir === 'north') currentY--;

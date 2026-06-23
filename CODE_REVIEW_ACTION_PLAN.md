@@ -123,29 +123,29 @@ Address remaining hardcoded values to make the codebase data-driven and extensib
   - WorldManager.js:534 — map-number-to-template assignments
   - TemplateMapGenerator.js:187 — stale spawn zone coordinates
 
-- [ ] **P3-04** Move earbucks shop catalog to a data file
+- [x] **P3-04** Move earbucks shop catalog to a data file
   - EarbucksShopSystem.js:18 — catalog items hardcoded in system class
   - Derive item names from `ItemDefs` instead of duplicating
 
-- [ ] **P3-05** Remove hardcoded turret stats fallback in TurretAI
+- [x] **P3-05** Remove hardcoded turret stats fallback in TurretAI
   - TurretAI.js:62 — fallback stats duplicate ItemDefs values and can drift
 
-- [ ] **P3-06** Move decoration probability, building margins, and other map gen constants to config
+- [x] **P3-06** Move decoration probability, building margins, and other map gen constants to config
   - TemplateMapGenerator.js:452 — 0.08 probability inline
   - MapBuilder.js:882 — 2-tile border margin hardcoded
   - MapBuilder.js:470 — `minInteriorSize = 3` repeated in four layout methods
 
-- [ ] **P3-07** Move weapon direct-load capacities to weapon definitions
+- [x] **P3-07** Move weapon direct-load capacities to weapon definitions
   - InventoryManager.js:1203 — per-weapon capacity hardcoded by defId
 
-- [ ] **P3-08** Move book page count fallback to definition data
+- [x] **P3-08** Move book page count fallback to definition data
   - Item.js:827 — magic number `500` for pagesLeft fallback
 
-- [ ] **P3-09** Fix road template size/layout mismatch
+- [x] **P3-09** Fix road template size/layout mismatch
   - TemplateMapGenerator.js:142 — `road` template declares 45x125 but layout is 20x39
   - Either remove the stale layout or match the declared size
 
-- [ ] **P3-10** Fix `belt.tool_ring` referencing non-existent `'weapon.pliers'`
+- [x] **P3-10** Fix `belt.tool_ring` referencing non-existent `'weapon.pliers'`
   - ItemDefs.js:2186 — should be `'tool.pliers'`
   - Consider using a category instead of an explicit defId list
 
@@ -155,36 +155,54 @@ Address remaining hardcoded values to make the codebase data-driven and extensib
 
 Reduce maintenance burden by extracting shared logic from copy-pasted code.
 
-- [ ] **P4-01** Extract shared kill-processing logic from CombatContext
+- [x] **P4-01** Extract shared kill-processing logic from CombatContext
   - Five combat functions duplicate: target finding, LOS, damage calc, kill processing, earbuck awards, loot drops
   - Extract `processKill()`, `awardEarbucks()`, and shared target-resolution helpers
   - Also consolidate the 5 identical earbuck award blocks and remove redundant `|| 0` guards
+  - Done: added `resolveTileTarget()`, `awardZombieEarbuck()`, `processEntityKill()`, `processExplosionActions()`.
+    Per-site quirks preserved via flags (stone skips level-up log / NPC clear / cancel-targeting).
+    `|| 0` on earbucks kept — it's not redundant (undefined on first kill).
 
-- [ ] **P4-02** Extract shared map population pipeline from WorldManager
+- [x] **P4-02** Extract shared map population pipeline from WorldManager
   - `generateNextMap()` and `executeTransition()` duplicate ~200 lines
   - Create a `populateMap()` helper for template selection, spawning, loot, etc.
+  - Done: added `_generateAndPopulateMap(mapId, currentTurn, spawnPosition)`; both methods now thin wrappers.
+    Dropped the dead `minDistance:15` (no-op when player is null) to keep both paths identical.
 
-- [ ] **P4-03** Deduplicate `loadMap()` / `loadMapForTransition()` in WorldManager
+- [x] **P4-03** Deduplicate `loadMap()` / `loadMapForTransition()` in WorldManager
   - ~90% identical code, difference is `fromJSON` vs `fromJSONSelective` and event name
+  - Done: both delegate to `_loadMapInternal(mapId, currentTurn, forTransition)`.
 
-- [ ] **P4-04** Deduplicate `fromJSON()` / `fromJSONSelective()` in GameMap
+- [x] **P4-04** Deduplicate `fromJSON()` / `fromJSONSelective()` in GameMap
   - ~200 lines of identical tile/entity restoration logic
+  - Done: shared `_restoreTilesAndEntities(gameMap, data, options)`. Unifying the entity
+    switch also fixed a latent bug — selective loads were silently dropping `rabbit`
+    and `place_icon` entities (missing switch cases). Header/crop differences kept per-method.
 
-- [ ] **P4-05** Deduplicate `loadGameFromStateData()` / `loadGameDirect()` in GameContext
+- [x] **P4-05** Deduplicate `loadGameFromStateData()` / `loadGameDirect()` in GameContext
   - ~80 lines each with trivially different data sources
+  - Done: shared `applyLoadedState(loadedState, { dispatchGameLoaded })`. Each path now just
+    fetches its state (loadGameState vs loadFromStorage) and delegates. `loadGameFromStateData`
+    also gained the zombieTracker init it was previously missing (parity with the other load paths).
 
-- [ ] **P4-06** Have TurretAI delegate to AITargeting for target selection
+- [x] **P4-06** Have TurretAI delegate to AITargeting for target selection
   - TurretAI reimplements filter-hostile/check-range/check-LOS/sort-by-distance
   - AITargeting.acquireTargets already provides this pipeline
+  - Done: added an `origin` option to `acquireTargets` (measure distance/LOS from a tile,
+    for position-less Item attackers like turrets); TurretAI now calls it instead of its
+    own map/filter/sort pipeline.
 
-- [ ] **P4-07** Deduplicate `findSouthExitTile` / `findSouthTransitionTile`
+- [x] **P4-07** Deduplicate `findSouthExitTile` / `findSouthTransitionTile`
   - NPCAI.js and NPCSpawner.js have identical implementations
+  - Done: single `findSouthTransitionTile(gameMap)` in MapUtils.js; both files import it.
 
-- [ ] **P4-08** Deduplicate `isInsideAnyBuilding` lambda
+- [x] **P4-08** Deduplicate `isInsideAnyBuilding` lambda
   - Defined independently in LootGenerator.spawnFurniture and spawnScooter
+  - Done: single `isInsideAnyBuilding(buildings, x, y)` in MapUtils.js; both methods import it.
 
-- [ ] **P4-09** Deduplicate food scarcity formula
+- [x] **P4-09** Deduplicate food scarcity formula
   - `0.4 + (mapNumber - 1) * 0.05` copy-pasted in `generateRandomItems` and `generateZombieLoot`
+  - Done: `getFoodRejectionChance(mapNumber)` helper + named `FOOD_SCARCITY` constants in LootGenerator.js.
 
 - [ ] **P4-10** Deduplicate largest-item-in-tile logic in EntityRenderer
   - Same `maxArea` scan runs twice in `renderEntity` (lines 161 and 311)

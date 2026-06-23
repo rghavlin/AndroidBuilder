@@ -1,3 +1,5 @@
+import { LineOfSight } from '../utils/LineOfSight.js';
+
 /**
  * AITargeting - Faction-aware target selection shared by all AI (zombies, NPCs,
  * turrets). Centralizes "who may I attack" so hostility is resolved consistently
@@ -14,17 +16,21 @@ export const AITargeting = {
    * Filter candidates down to living entities `attacker` is hostile toward,
    * sorted nearest-first.
    *
-   * @param {Entity} attacker
+   * @param {Entity} attacker - Must implement isHostileTo(). When no `origin` is
+   *   given it must also implement getDistanceTo()/canSeeEntity() (Entity AIs).
    * @param {Array<Entity>} candidates
    * @param {Object} [options]
    * @param {GameMap} [options.gameMap]   - required when requireLineOfSight is set
    * @param {number}  [options.maxRange]  - Euclidean tile range cap
    * @param {boolean} [options.requireLineOfSight=false]
+   * @param {{x:number,y:number}} [options.origin] - Measure distance/LOS from this
+   *   tile instead of the attacker's own position. Lets position-less attackers
+   *   (e.g. a placed turret Item) reuse this pipeline.
    * @returns {Array<Entity>}
    */
   acquireTargets(attacker, candidates, options = {}) {
     if (!attacker || !Array.isArray(candidates)) return [];
-    const { gameMap = null, maxRange = Infinity, requireLineOfSight = false } = options;
+    const { gameMap = null, maxRange = Infinity, requireLineOfSight = false, origin = null } = options;
 
     const results = [];
     for (const candidate of candidates) {
@@ -34,10 +40,17 @@ export const AITargeting = {
 
       const cx = candidate.logicalX !== undefined ? candidate.logicalX : candidate.x;
       const cy = candidate.logicalY !== undefined ? candidate.logicalY : candidate.y;
-      const dist = attacker.getDistanceTo(cx, cy);
+      const dist = origin
+        ? Math.sqrt((cx - origin.x) ** 2 + (cy - origin.y) ** 2)
+        : attacker.getDistanceTo(cx, cy);
       if (dist > maxRange) continue;
 
-      if (requireLineOfSight && gameMap && !attacker.canSeeEntity(gameMap, candidate)) continue;
+      if (requireLineOfSight && gameMap) {
+        const visible = origin
+          ? LineOfSight.hasLineOfSight(gameMap, origin.x, origin.y, cx, cy, { maxRange }).hasLineOfSight
+          : attacker.canSeeEntity(gameMap, candidate);
+        if (!visible) continue;
+      }
 
       results.push({ entity: candidate, dist });
     }

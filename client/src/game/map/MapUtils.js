@@ -10,3 +10,44 @@ export function isInsideCompound(compound, x, y) {
   const { x1, x2, y1, y2 } = compound.fenceBounds;
   return x >= x1 && x <= x2 && y >= y1 && y <= y2;
 }
+
+/**
+ * Check whether (x, y) falls inside any building's footprint. Buildings use
+ * top-left origin + width/height bounds (distinct from compound fenceBounds).
+ * @param {Array<{x:number,y:number,width:number,height:number}>} buildings
+ * @param {number} x
+ * @param {number} y
+ * @returns {boolean}
+ */
+export function isInsideAnyBuilding(buildings, x, y) {
+  if (!buildings) return false;
+  return buildings.some(b =>
+    x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+  );
+}
+
+/**
+ * Find the south-edge transition tile (y = height - 1). Prefers a 'transition'
+ * terrain tile; falls back to any walkable edge tile. Shared by NPC pathing
+ * (NPCAI) and NPC spawning (NPCSpawner).
+ * @param {GameMap} gameMap
+ * @returns {{x: number, y: number} | null}
+ */
+export function findSouthTransitionTile(gameMap) {
+  const y = gameMap.height - 1;
+  // Preferred: 'transition' terrain tile
+  for (let x = 0; x < gameMap.width; x++) {
+    const tile = gameMap.getTile(x, y);
+    if (tile && tile.terrain === 'transition') {
+      return { x, y };
+    }
+  }
+  // Fallback: any walkable edge tile
+  for (let x = 0; x < gameMap.width; x++) {
+    const tile = gameMap.getTile(x, y);
+    if (tile && tile.isWalkable()) {
+      return { x, y };
+    }
+  }
+  return null;
+}

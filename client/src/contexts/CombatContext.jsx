@@ -23,6 +23,27 @@ const isWindowTile = (gameMap, x, y) => {
     return !!(tile && tile.contents.some(e => e.type === EntityType.WINDOW));
 };
 
+// Resolve the primary combat target occupying a tile, in priority order:
+// living entity (zombie/rabbit/npc) > attackable turret > breakable structure (window/door).
+// Thrown stones can't target turrets, so callers pass includeTurret:false there.
+const resolveTileTarget = (tile, player, { includeTurret = true } = {}) => {
+    const targetEntity = tile?.contents.find(
+        e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC
+    ) || null;
+    const turret = (includeTurret && !targetEntity) ? (getAttackableTurretOnTile(tile, player) || null) : null;
+    const structure = (!targetEntity && !turret)
+        ? (tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) || null)
+        : null;
+    return { targetEntity, turret, structure };
+};
+
+// Every zombie kill awards the player a single Earbuck.
+const awardZombieEarbuck = () => {
+    if (engine.player) {
+        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
+    }
+};
+
 const CombatContext = createContext();
 
 export const useCombat = () => {
@@ -122,6 +143,94 @@ export const CombatProvider = ({ children }) => {
         forceRefresh();
     }, [gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh]);
 
+    // Shared kill handling for direct player attacks (melee / ranged / thrown stone).
+    // Handles the kill log, skill XP, faction-specific drops and the Earbuck award.
+    // Per-site quirks are passed as flags so behavior stays byte-for-byte identical:
+    //  - logLevelUp:           melee/ranged announce skill level-ups; stone does not.
+    //  - lootToGroundIfOnPlayer: ranged drops loot into the ground container when the
+    //                            target dies on the player's own tile (melee/stone don't).
+    //  - clearNpcInventory:    melee/ranged clear the looted NPC inventory; stone doesn't.
+    //  - cancelOnKill:         melee/ranged cancel targeting on kill; stone doesn't.
+    const processEntityKill = useCallback((entity, lootX, lootY, {
+        killType,
+        logLevelUp = true,
+        lootToGroundIfOnPlayer = false,
+        clearNpcInventory = true,
+        cancelOnKill = true,
+    }) => {
+        const gameMap = gameMapRef.current;
+        const player = playerRef.current;
+
+        addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed!`, 'combat');
+        const newLevel = recordKill(killType);
+        if (logLevelUp && newLevel) {
+            addLog(`LEVEL UP! ${killType.charAt(0).toUpperCase() + killType.slice(1)} skill is now level ${newLevel}!`, 'warning');
+        }
+
+        // Place dropped items either on the ground container (ranged-on-player-tile) or the map tile.
+        const placeItems = (items) => {
+            if (!items || items.length === 0) return;
+            if (lootToGroundIfOnPlayer && player && entity.x === player.x && entity.y === player.y && engine.inventoryManager) {
+                items.forEach(it => engine.inventoryManager.groundContainer.addItem(it, null, null, true));
+                engine.inventoryManager.groundManager.updateCategoryAreas();
+                engine.inventoryManager.emit('inventoryChanged');
+            } else {
+                gameMap.addItemsToTile(lootX, lootY, items);
+            }
+        };
+
+        if (entity.type === EntityType.ZOMBIE) {
+            if (entity.subtype === 'acid') triggerAcidEffect(entity, true);
+            if (lootGenerator && !isWindowTile(gameMap, lootX, lootY) && Math.random() < 0.75) {
+                const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
+                if (loot?.length > 0) placeItems(loot);
+            }
+            awardZombieEarbuck();
+        } else if (entity.type === EntityType.NPC) {
+            // NPCs drop their entire inventory on death
+            if (typeof entity.die === 'function') entity.die(); // Emits npcDied event
+            const items = entity.inventory.getAllItems();
+            if (items.length > 0) {
+                placeItems(items);
+                if (clearNpcInventory) entity.inventory.clear();
+            }
+        } else if (entity.type === EntityType.RABBIT) {
+            const meat = createItemFromDef('food.raw_meat');
+            if (meat) placeItems([meat]);
+        }
+
+        gameMap.removeEntity(entity.id);
+        if (cancelOnKill) cancelTargeting();
+    }, [gameMapRef, playerRef, addLog, recordKill, lootGenerator, triggerAcidEffect, cancelTargeting]);
+
+    // Shared playback for the action queue produced by an ExplosionIntent (grenades / molotovs).
+    // The two callers differ only in the death-effect color and the structure-break source tag.
+    const processExplosionActions = useCallback((actionQueue, { deathColor, source }) => {
+        actionQueue.forEach(action => {
+            if (action.type === 'TILE_FLASH') {
+                addEffect({ type: 'tile_flash', x: action.data.x, y: action.data.y, color: action.data.color, duration: action.data.duration });
+            } else if (action.type === 'DAMAGE_EFFECT') {
+                addEffect({ type: 'damage', x: action.data.x, y: action.data.y, value: action.data.damage, color: action.data.color, duration: 1500 });
+                addLog(action.data.log, 'combat');
+            } else if (action.type === 'EXPLOSION_LOG') {
+                addLog(action.data.log, 'combat');
+            } else if (action.type === 'DEATH') {
+                addEffect({ type: 'damage', x: action.data.x, y: action.data.y, value: 'Killed', color: deathColor, duration: 1500 });
+                if (action.data.entityType === EntityType.ZOMBIE) awardZombieEarbuck();
+            } else if (action.type === 'STRUCTURE_INTERACT') {
+                if (action.data.broken) {
+                    GameEvents.emit(action.data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {
+                        windowPos: action.data.targetType === 'window' ? action.data.to : undefined,
+                        doorPos: action.data.targetType === 'door' ? action.data.to : undefined,
+                        source
+                    });
+                }
+            } else if (action.type === 'SOUND') {
+                if (action.metadata?.sound) playSound(action.metadata.sound, action.metadata.audioOptions);
+            }
+        });
+    }, [addEffect, addLog, playSound]);
+
     const performMeleeAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
         const gameMap = gameMapRef.current;
@@ -158,9 +267,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         const tile = gameMap.getTile(targetX, targetY);
-        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
-        const turret = !targetEntity ? getAttackableTurretOnTile(tile, player) : null;
-        const structure = (!targetEntity && !turret) ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
+        const { targetEntity, turret, structure } = resolveTileTarget(tile, player);
 
         if (!targetEntity && !turret && !structure) return { success: false, reason: 'No target here' };
 
@@ -283,40 +390,7 @@ export const CombatProvider = ({ children }) => {
             });
 
             if (targetEntity && targetEntity.isDead()) {
-                addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
-                const newLevel = recordKill('melee');
-                if (newLevel) {
-                    addLog(`LEVEL UP! Melee skill is now level ${newLevel}!`, 'warning');
-                }
-                
-                if (targetEntity.type === EntityType.ZOMBIE) {
-                    if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
-                    if (lootGenerator && !isWindowTile(gameMap, targetX, targetY) && Math.random() < 0.75) {
-                        const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
-                        if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
-                    }
-                    // Award 1 Earbuck per zombie kill
-                    if (engine.player) {
-                        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                    }
-                } else if (targetEntity.type === EntityType.NPC) {
-                    // NPCs drop their entire inventory on death
-                    if (typeof targetEntity.die === 'function') {
-                        targetEntity.die(); // Emits npcDied event
-                    }
-                    const items = targetEntity.inventory.getAllItems();
-                    if (items.length > 0) {
-                        gameMap.addItemsToTile(targetX, targetY, items);
-                        targetEntity.inventory.clear();
-                    }
-                } else if (targetEntity.type === 'rabbit') {
-                    // Rabbits always drop 1 raw meat
-                    const meat = createItemFromDef('food.raw_meat');
-                    if (meat) gameMap.addItemsToTile(targetX, targetY, [meat]);
-                }
-                
-                gameMap.removeEntity(targetEntity.id);
-                cancelTargeting();
+                processEntityKill(targetEntity, targetX, targetY, { killType: 'melee' });
             }
 
             if (turret && turret.isDead()) {
@@ -344,7 +418,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats, playerStats]);
+    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats, playerStats, destroyItem, processEntityKill]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
@@ -392,9 +466,7 @@ export const CombatProvider = ({ children }) => {
         if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
 
         const tile = gameMap.getTile(targetX, targetY);
-        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
-        const turret = !targetEntity ? getAttackableTurretOnTile(tile, player) : null;
-        const structure = (!targetEntity && !turret) ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
+        const { targetEntity, turret, structure } = resolveTileTarget(tile, player);
 
         if (!targetEntity && !turret && !structure) {
             cancelTargeting();
@@ -535,55 +607,7 @@ export const CombatProvider = ({ children }) => {
 
                 if (targetEntity && targetEntity.isDead()) {
                     kills++;
-                    addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
-                    const newLevel = recordKill('ranged');
-                    if (newLevel) {
-                        addLog(`LEVEL UP! Ranged skill is now level ${newLevel}!`, 'warning');
-                    }
-                    
-                    if (targetEntity.type === EntityType.ZOMBIE) {
-                        if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
-                        if (lootGenerator && !isWindowTile(gameMap, targetEntity.x, targetEntity.y) && Math.random() < 0.75) {
-                            const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
-                            if (loot?.length > 0) {
-                                if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
-                                    loot.forEach(item => engine.inventoryManager.groundContainer.addItem(item, null, null, true));
-                                    engine.inventoryManager.groundManager.updateCategoryAreas();
-                                    engine.inventoryManager.emit('inventoryChanged');
-                                } else {
-                                    gameMap.addItemsToTile(targetEntity.x, targetEntity.y, loot);
-                                }
-                            }
-                        }
-                        // Award 1 Earbuck per zombie kill
-                        if (engine.player) {
-                            engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                        }
-                    } else if (targetEntity.type === EntityType.NPC) {
-                        // NPCs drop their entire inventory on death
-                        if (typeof targetEntity.die === 'function') {
-                            targetEntity.die(); // Emits npcDied event
-                        }
-                        const items = targetEntity.inventory.getAllItems();
-                        if (items.length > 0) {
-                            gameMap.addItemsToTile(targetEntity.x, targetEntity.y, items);
-                            targetEntity.inventory.clear();
-                        }
-                    } else if (targetEntity.type === EntityType.RABBIT) {
-                        const meat = createItemFromDef('food.raw_meat');
-                        if (meat) {
-                            if (targetEntity.x === player.x && targetEntity.y === player.y && engine.inventoryManager) {
-                                engine.inventoryManager.groundContainer.addItem(meat, null, null, true);
-                                engine.inventoryManager.groundManager.updateCategoryAreas();
-                                engine.inventoryManager.emit('inventoryChanged');
-                            } else {
-                                gameMap.addItemsToTile(targetEntity.x, targetEntity.y, [meat]);
-                            }
-                        }
-                    }
-                    
-                    gameMap.removeEntity(targetEntity.id);
-                    cancelTargeting();
+                    processEntityKill(targetEntity, targetEntity.x, targetEntity.y, { killType: 'ranged', lootToGroundIfOnPlayer: true });
                     break; // End burst if target dies
                 }
 
@@ -611,7 +635,7 @@ export const CombatProvider = ({ children }) => {
         forceRefresh();
         triggerMapUpdate();
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats]);
+    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, processEntityKill]);
 
     const performGrenadeThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;
@@ -667,60 +691,12 @@ export const CombatProvider = ({ children }) => {
         intentQueue.resolve(ecsEntities, engine.worldManager, engine, actionQueue);
 
         // 6. Process actions generated by ExplosionSystem
-        actionQueue.forEach(action => {
-            if (action.type === 'TILE_FLASH') {
-                addEffect({
-                    type: 'tile_flash',
-                    x: action.data.x,
-                    y: action.data.y,
-                    color: action.data.color,
-                    duration: action.data.duration
-                });
-            } else if (action.type === 'DAMAGE_EFFECT') {
-                addEffect({
-                    type: 'damage',
-                    x: action.data.x,
-                    y: action.data.y,
-                    value: action.data.damage,
-                    color: action.data.color,
-                    duration: 1500
-                });
-                addLog(action.data.log, 'combat');
-            } else if (action.type === 'EXPLOSION_LOG') {
-                addLog(action.data.log, 'combat');
-            } else if (action.type === 'DEATH') {
-                addEffect({
-                    type: 'damage',
-                    x: action.data.x,
-                    y: action.data.y,
-                    value: 'Killed',
-                    color: '#ef4444',
-                    duration: 1500
-                });
-                if (action.data.entityType === EntityType.ZOMBIE) {
-                    if (engine.player) {
-                        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                    }
-                }
-            } else if (action.type === 'STRUCTURE_INTERACT') {
-                if (action.data.broken) {
-                    GameEvents.emit(action.data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {
-                        windowPos: action.data.targetType === 'window' ? action.data.to : undefined,
-                        doorPos: action.data.targetType === 'door' ? action.data.to : undefined,
-                        source: 'grenade'
-                    });
-                }
-            } else if (action.type === 'SOUND') {
-                if (action.metadata?.sound) {
-                    playSound(action.metadata.sound, action.metadata.audioOptions);
-                }
-            }
-        });
+        processExplosionActions(actionQueue, { deathColor: '#ef4444', source: 'grenade' });
 
         triggerMapUpdate();
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator, playSound]);
+    }, [playerRef, gameMapRef, triggerMapUpdate, forceRefresh, destroyItem, processExplosionActions]);
     
     const performStoneThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;
@@ -748,10 +724,9 @@ export const CombatProvider = ({ children }) => {
         }
 
         const tile = gameMap.getTile(targetX, targetY);
-        const targetEntity = tile?.contents.find(e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC);
-        const structure = !targetEntity ? tile?.contents.find(e => e.type === EntityType.WINDOW || e.type === EntityType.DOOR) : null;
-        
-        if (!targetEntity && !structure) {
+        const { targetEntity, turret, structure } = resolveTileTarget(tile, player);
+
+        if (!targetEntity && !turret && !structure) {
             return { success: false, reason: 'No target at location' };
         }
 
@@ -805,12 +780,18 @@ export const CombatProvider = ({ children }) => {
                 targetEntity.takeDamage(damage, { id: 'thrown_stone', type: 'weapon' });
                 addLog(`Player throws stone: ${damage} damage`, 'combat');
 
+                // Attacking a town shopkeeper provokes the town's turrets.
+                if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
+                    const escalated = escalateTurretsAgainstPlayer(gameMap, 'town');
+                    if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
+                }
+
                 // Spawn a recoverable stone on the hit tile
                 const droppedStone = createItemFromDef('crafting.stone');
                 if (droppedStone) {
                     gameMap.addItemsToTile(targetX, targetY, [droppedStone]);
                 }
-                
+
                 addEffect({
                     type: 'damage',
                     x: targetX,
@@ -821,28 +802,31 @@ export const CombatProvider = ({ children }) => {
                 });
 
                 if (targetEntity.isDead()) {
-                    addLog(`${targetEntity.type.charAt(0).toUpperCase() + targetEntity.type.slice(1)} killed!`, 'combat');
-                    recordKill('ranged');
-                    
-                    if (targetEntity.type === EntityType.ZOMBIE) {
-                        if (targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, true);
-                        if (lootGenerator && !isWindowTile(gameMap, targetX, targetY) && Math.random() < 0.75) {
-                            const loot = lootGenerator.generateZombieLoot(targetEntity.subtype, gameMap.mapNumber);
-                            if (loot?.length > 0) gameMap.addItemsToTile(targetX, targetY, loot);
-                        }
-                        // Award 1 Earbuck per zombie kill
-                        if (engine.player) {
-                            engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                        }
-                    } else if (targetEntity.type === EntityType.NPC) {
-                        if (typeof targetEntity.die === 'function') targetEntity.die();
-                        const items = targetEntity.inventory.getAllItems();
-                        if (items.length > 0) gameMap.addItemsToTile(targetX, targetY, items);
-                    } else if (targetEntity.type === 'rabbit') {
-                        const meat = createItemFromDef('food.raw_meat');
-                        if (meat) gameMap.addItemsToTile(targetX, targetY, [meat]);
-                    }
-                    gameMap.removeEntity(targetEntity.id);
+                    processEntityKill(targetEntity, targetX, targetY, {
+                        killType: 'ranged',
+                        logLevelUp: false,
+                        clearNpcInventory: false,
+                        cancelOnKill: false,
+                    });
+                }
+            } else if (turret) {
+                turret.takeDamage(damage);
+                addLog(`You hit the turret with a stone: ${damage} damage`, 'combat');
+                // Attacking a faction's turret provokes that whole faction.
+                const escalated = escalateTurretsAgainstPlayer(gameMap, turret.getFaction?.());
+                if (escalated > 0) addLog('The turrets turn on you!', 'warning');
+
+                // Spawn a recoverable stone on the hit tile
+                const droppedStone = createItemFromDef('crafting.stone');
+                if (droppedStone) {
+                    gameMap.addItemsToTile(targetX, targetY, [droppedStone]);
+                }
+
+                addEffect({ type: 'damage', x: targetX, y: targetY, value: damage, color: '#ef4444', duration: 1200 });
+
+                if (turret.isDead()) {
+                    addLog('Turret destroyed!', 'combat');
+                    removeDestroyedTurret(turret, gameMap, targetX, targetY);
                 }
             } else if (structure) {
                 if (structure.type === EntityType.WINDOW) {
@@ -875,7 +859,7 @@ export const CombatProvider = ({ children }) => {
         triggerMapUpdate();
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, lootGenerator, playerStats, recordKill, triggerAcidEffect]);
+    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, playerStats, processEntityKill]);
 
     const performMolotovThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;
@@ -976,60 +960,12 @@ export const CombatProvider = ({ children }) => {
         intentQueue.resolve(ecsEntities, engine.worldManager, engine, actionQueue);
 
         // 7. Process actions generated by ExplosionSystem
-        actionQueue.forEach(action => {
-            if (action.type === 'TILE_FLASH') {
-                addEffect({
-                    type: 'tile_flash',
-                    x: action.data.x,
-                    y: action.data.y,
-                    color: action.data.color,
-                    duration: action.data.duration
-                });
-            } else if (action.type === 'DAMAGE_EFFECT') {
-                addEffect({
-                    type: 'damage',
-                    x: action.data.x,
-                    y: action.data.y,
-                    value: action.data.damage,
-                    color: action.data.color,
-                    duration: 1500
-                });
-                addLog(action.data.log, 'combat');
-            } else if (action.type === 'EXPLOSION_LOG') {
-                addLog(action.data.log, 'combat');
-            } else if (action.type === 'DEATH') {
-                addEffect({
-                    type: 'damage',
-                    x: action.data.x,
-                    y: action.data.y,
-                    value: 'Killed',
-                    color: '#f97316',
-                    duration: 1500
-                });
-                if (action.data.entityType === EntityType.ZOMBIE) {
-                    if (engine.player) {
-                        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                    }
-                }
-            } else if (action.type === 'STRUCTURE_INTERACT') {
-                if (action.data.broken) {
-                    GameEvents.emit(action.data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {
-                        windowPos: action.data.targetType === 'window' ? action.data.to : undefined,
-                        doorPos: action.data.targetType === 'door' ? action.data.to : undefined,
-                        source: 'molotov'
-                    });
-                }
-            } else if (action.type === 'SOUND') {
-                if (action.metadata?.sound) {
-                    playSound(action.metadata.sound, action.metadata.audioOptions);
-                }
-            }
-        });
+        processExplosionActions(actionQueue, { deathColor: '#f97316', source: 'molotov' });
 
         triggerMapUpdate();
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, lootGenerator, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, addLog, playSound]);
+    }, [playerRef, gameMapRef, forceRefresh, triggerMapUpdate, inventoryRef, destroyItem, addLog, processExplosionActions]);
 
     return (
         <CombatContext.Provider value={{

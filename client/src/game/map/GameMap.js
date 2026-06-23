@@ -1250,6 +1250,147 @@ export class GameMap {
   }
 
   /**
+   * Shared tile + entity restoration used by both fromJSON() and
+   * fromJSONSelective(). Restores detached inventory entities, then every tile
+   * and its contents (with the full entity-type switch), then legacy tile
+   * inventory items. Header fields (buildings, crop metadata, etc.) remain the
+   * responsibility of the calling method.
+   * @param {GameMap} gameMap - Target map; header fields already populated.
+   * @param {Object} data - Serialized map data.
+   * @param {Object} [options]
+   * @param {Array<string>} [options.excludeEntityTypes=[]] - Types to skip (e.g. ['player']).
+   * @param {Array<string>|null} [options.includeEntityTypes=null] - If set, restore only these.
+   */
+  static async _restoreTilesAndEntities(gameMap, data, options = {}) {
+    const { excludeEntityTypes = [], includeEntityTypes = null } = options;
+
+    // Entity classes not already imported at module scope.
+    const { TestEntity } = await import('../entities/TestEntity.js');
+    const { Door } = await import('../entities/Door.js');
+    const { Window } = await import('../entities/Window.js');
+    const { PlaceIcon } = await import('../entities/PlaceIcon.js');
+    const { Rabbit } = await import('../entities/Rabbit.js');
+
+    // Sync an entity's coordinate fields + Position component to a tile.
+    const syncEntityPosition = (entity, x, y) => {
+      let pos = entity.getComponent('Position');
+      if (!pos) {
+        pos = new Position({ x, y, level: 0 });
+        entity.addComponent(pos);
+      }
+      entity.logicalX = x;
+      entity.logicalY = y;
+      entity.gridX = x;
+      entity.gridY = y;
+      entity.renderX = x;
+      entity.renderY = y;
+      entity.x = x;
+      entity.y = y;
+    };
+
+    // Restore detached entities first (items in inventories)
+    if (data.detachedEntities) {
+      for (const entityData of data.detachedEntities) {
+        const entity = entityData.components
+          ? Entity.fromJSON(entityData)
+          : gameMap.convertLegacyItemToECS(entityData);
+        if (entity) {
+          gameMap.entityMap.set(entity.id, entity);
+        }
+      }
+    }
+
+    // Restore tiles and their contents
+    for (let y = 0; y < data.height; y++) {
+      for (let x = 0; x < data.width; x++) {
+        const tileData = data.tiles[y][x];
+        if (!tileData) continue;
+
+        const tile = Tile.fromJSON(tileData);
+
+        // Restore entities on this tile (with optional type filtering)
+        if (tileData.contents) {
+          for (const entityData of tileData.contents) {
+            const entityType = entityData.type;
+
+            if (excludeEntityTypes.includes(entityType)) continue;
+            if (includeEntityTypes && !includeEntityTypes.includes(entityType)) continue;
+
+            if (entityType === 'item' && (entityData.subtype === 'ground_pile' || entityData.isProxy)) {
+              // Skip legacy ground proxies as items are now first-class ECS entities
+              continue;
+            }
+
+            let entity;
+            switch (entityType) {
+              case 'player':
+              case 'zombie':
+              case 'npc':
+                entity = Entity.fromJSON(entityData);
+                break;
+              case 'test':
+                entity = TestEntity.fromJSON(entityData);
+                break;
+              case 'item':
+                entity = entityData.components
+                  ? Entity.fromJSON(entityData)
+                  : gameMap.convertLegacyItemToECS(entityData);
+                break;
+              case 'door':
+                entity = Door.fromJSON(entityData);
+                break;
+              case 'window':
+                entity = Window.fromJSON(entityData);
+                break;
+              case 'place_icon':
+                entity = PlaceIcon.fromJSON(entityData);
+                break;
+              case 'rabbit':
+                entity = Rabbit.fromJSON(entityData);
+                break;
+              default:
+                console.warn(`[GameMap] Unknown entity type during restoration: ${entityType}`);
+                continue;
+            }
+
+            if (entity) {
+              syncEntityPosition(entity, x, y);
+              tile.addEntity(entity);
+              gameMap.entityMap.set(entity.id, entity);
+            }
+          }
+        }
+
+        // Aggressive legacy migration of tile inventoryItems
+        if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
+          const rawLegacyItems = [...tileData.inventoryItems];
+          tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
+          for (const itemData of rawLegacyItems) {
+            // Skip if this item was already restored as an ECS entity from tile contents
+            const entityId = itemData.id || itemData.instanceId;
+            if (entityId && gameMap.entityMap.has(entityId)) {
+              const existingEntity = gameMap.entityMap.get(entityId);
+              if (!tile.inventoryItems.includes(existingEntity)) {
+                tile.inventoryItems.push(existingEntity);
+              }
+              continue;
+            }
+            const entity = gameMap.convertLegacyItemToECS(itemData);
+            if (entity) {
+              syncEntityPosition(entity, x, y);
+              tile.addEntity(entity);
+              gameMap.entityMap.set(entity.id, entity);
+              console.log(`[GameMap] Migrated legacy inventory item ${itemData.name || itemData.id} to ECS entity at (${x}, ${y})`);
+            }
+          }
+        }
+
+        gameMap.tiles[y][x] = tile;
+      }
+    }
+  }
+
+  /**
    * Create GameMap from JSON data with selective entity restoration
    * @param {Object} data - Serialized map data
    * @param {Object} options - Restoration options
@@ -1264,153 +1405,11 @@ export class GameMap {
     gameMap.mapNumber = data.mapNumber || 1;
     gameMap.template = data.template || 'road';
     gameMap.activeFires = new Set(data.activeFires || []);
+
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
-
-    // Import required classes
-    const { Entity } = await import('../entities/Entity.js');
-    const { TestEntity } = await import('../entities/TestEntity.js');
-    const { Item } = await import('../inventory/Item.js');
-    const { Door } = await import('../entities/Door.js');
-    const { Window } = await import('../entities/Window.js');
-
     console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
 
-    // Restore detached entities first (items in inventories)
-    if (data.detachedEntities) {
-      for (const entityData of data.detachedEntities) {
-        let entity;
-        if (entityData.components) {
-          entity = Entity.fromJSON(entityData);
-        } else {
-          entity = gameMap.convertLegacyItemToECS(entityData);
-        }
-        if (entity) {
-          gameMap.entityMap.set(entity.id, entity);
-        }
-      }
-    }
-
-    // Restore tiles
-    for (let y = 0; y < data.height; y++) {
-      for (let x = 0; x < data.width; x++) {
-        const tileData = data.tiles[y][x];
-        if (tileData) {
-          const tile = Tile.fromJSON(tileData);
-
-          // Restore entities on this tile with filtering
-          if (tileData.contents) {
-            for (const entityData of tileData.contents) {
-              const entityType = entityData.type;
-
-              // Skip if entity type is excluded
-              if (excludeEntityTypes.includes(entityType)) {
-                console.log(`[GameMap] Skipping excluded entity type: ${entityType} (${entityData.id})`);
-                continue;
-              }
-
-              // Skip if includeEntityTypes is specified and this type is not included
-              if (includeEntityTypes && !includeEntityTypes.includes(entityType)) {
-                console.log(`[GameMap] Skipping non-included entity type: ${entityType} (${entityData.id})`);
-                continue;
-              }
-
-              let entity;
-              if (entityType === 'item' && (entityData.subtype === 'ground_pile' || entityData.isProxy)) {
-                // Skip legacy ground proxies as items are now first-class ECS entities
-                continue;
-              } else {
-                switch (entityType) {
-                  case 'player':
-                  case 'zombie':
-                  case 'npc':
-                    entity = Entity.fromJSON(entityData);
-                    break;
-                  case 'test':
-                    entity = TestEntity.fromJSON(entityData);
-                    break;
-                  case 'item':
-                    if (entityData.components) {
-                      entity = Entity.fromJSON(entityData);
-                    } else {
-                      entity = gameMap.convertLegacyItemToECS(entityData);
-                    }
-                    break;
-                  case 'door':
-                    entity = Door.fromJSON(entityData);
-                    break;
-                  case 'window':
-                    entity = Window.fromJSON(entityData);
-                    break;
-                  default:
-                    console.warn(`[GameMap] Unknown entity type during selective restoration: ${entityType}`);
-                    continue;
-                }
-              }
-
-              if (entity) {
-                // Ensure coordinate fields and position component sync up
-                let pos = entity.getComponent('Position');
-                if (!pos) {
-                  pos = new Position({ x, y, level: 0 });
-                  entity.addComponent(pos);
-                }
-                entity.logicalX = x;
-                entity.logicalY = y;
-                entity.gridX = x;
-                entity.gridY = y;
-                entity.renderX = x;
-                entity.renderY = y;
-                entity.x = x;
-                entity.y = y;
-
-                tile.addEntity(entity);
-                gameMap.entityMap.set(entity.id, entity);
-                console.log(`[GameMap] Restored entity: ${entity.id} (${entity.type}) at (${x}, ${y})`);
-              }
-            }
-          }
-
-          // Aggressive legacy migration of tile inventoryItems
-          if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
-            const rawLegacyItems = [...tileData.inventoryItems];
-            tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
-            for (const itemData of rawLegacyItems) {
-              // Skip if this item was already restored as an ECS entity from tile contents
-              const entityId = itemData.id || itemData.instanceId;
-              if (entityId && gameMap.entityMap.has(entityId)) {
-                const existingEntity = gameMap.entityMap.get(entityId);
-                if (!tile.inventoryItems.includes(existingEntity)) {
-                  tile.inventoryItems.push(existingEntity);
-                }
-                continue;
-              }
-              const entity = gameMap.convertLegacyItemToECS(itemData);
-              if (entity) {
-                let pos = entity.getComponent('Position');
-                if (!pos) {
-                  pos = new Position({ x, y, level: 0 });
-                  entity.addComponent(pos);
-                }
-                entity.logicalX = x;
-                entity.logicalY = y;
-                entity.gridX = x;
-                entity.gridY = y;
-                entity.renderX = x;
-                entity.renderY = y;
-                entity.x = x;
-                entity.y = y;
-
-                tile.addEntity(entity);
-                gameMap.entityMap.set(entity.id, entity);
-                console.log(`[GameMap] Migrated legacy inventory item ${itemData.name || itemData.id} to ECS entity at (${x}, ${y})`);
-              }
-            }
-          }
-
-          gameMap.tiles[y][x] = tile;
-        }
-      }
-    }
+    await GameMap._restoreTilesAndEntities(gameMap, data, options);
 
     console.log(`[GameMap] Selective restoration completed with ${gameMap.entityMap.size} entities`);
     gameMap.rebuildEntityTypeIndex();
@@ -1426,149 +1425,14 @@ export class GameMap {
     gameMap.mapNumber = data.mapNumber || 1;
     gameMap.template = data.template || 'road';
     gameMap.activeFires = new Set(data.activeFires || []);
-    
+
     if (data.specialBuildings && gameMap.buildings.length === 0) {
       gameMap.buildings = data.specialBuildings;
     }
     gameMap.specialBuildings = gameMap.buildings;
 
-    // Import required classes
-    const { Tile } = await import('./Tile.js');
-    const { Entity } = await import('../entities/Entity.js');
-    const { TestEntity } = await import('../entities/TestEntity.js');
-    const { Item } = await import('../inventory/Item.js');
-    const { Door } = await import('../entities/Door.js');
-    const { Window } = await import('../entities/Window.js');
-    const { PlaceIcon } = await import('../entities/PlaceIcon.js');
-    const { Rabbit } = await import('../entities/Rabbit.js');
-
-    // Restore detached entities first (items in inventories)
-    if (data.detachedEntities) {
-      for (const entityData of data.detachedEntities) {
-        let entity;
-        if (entityData.components) {
-          entity = Entity.fromJSON(entityData);
-        } else {
-          entity = gameMap.convertLegacyItemToECS(entityData);
-        }
-        if (entity) {
-          gameMap.entityMap.set(entity.id, entity);
-        }
-      }
-    }
-
-    // Restore tiles
-    for (let y = 0; y < data.height; y++) {
-      for (let x = 0; x < data.width; x++) {
-        const tileData = data.tiles[y][x];
-        if (tileData) {
-          const tile = Tile.fromJSON(tileData);
-
-          // Restore entities on this tile
-          if (tileData.contents) {
-            for (const entityData of tileData.contents) {
-              let entity;
-              if (entityData.type === 'item' && (entityData.subtype === 'ground_pile' || entityData.isProxy)) {
-                // Skip legacy ground proxies as items are now first-class ECS entities
-                continue;
-              } else {
-                switch (entityData.type) {
-                  case 'player':
-                  case 'zombie':
-                  case 'npc':
-                    entity = Entity.fromJSON(entityData);
-                    break;
-                  case 'test':
-                    entity = TestEntity.fromJSON(entityData);
-                    break;
-                  case 'item':
-                    if (entityData.components) {
-                      entity = Entity.fromJSON(entityData);
-                    } else {
-                      entity = gameMap.convertLegacyItemToECS(entityData);
-                    }
-                    break;
-                  case 'door':
-                    entity = Door.fromJSON(entityData);
-                    break;
-                  case 'window':
-                    entity = Window.fromJSON(entityData);
-                    break;
-                  case 'place_icon':
-                    entity = PlaceIcon.fromJSON(entityData);
-                    break;
-                  case 'rabbit':
-                    entity = Rabbit.fromJSON(entityData);
-                    break;
-                  default:
-                    console.warn(`[GameMap] Unknown entity type during restoration: ${entityData.type}`);
-                    continue;
-                }
-              }
-
-              if (entity) {
-                // Ensure coordinate fields and position component sync up
-                let pos = entity.getComponent('Position');
-                if (!pos) {
-                  pos = new Position({ x, y, level: 0 });
-                  entity.addComponent(pos);
-                }
-                entity.logicalX = x;
-                entity.logicalY = y;
-                entity.gridX = x;
-                entity.gridY = y;
-                entity.renderX = x;
-                entity.renderY = y;
-                entity.x = x;
-                entity.y = y;
-
-                tile.addEntity(entity);
-                gameMap.entityMap.set(entity.id, entity);
-              }
-            }
-          }
-
-          // Aggressive legacy migration of tile inventoryItems
-          if (tileData.inventoryItems && tileData.inventoryItems.length > 0) {
-            const rawLegacyItems = [...tileData.inventoryItems];
-            tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
-            for (const itemData of rawLegacyItems) {
-              // Skip if this item was already restored as an ECS entity from tile contents
-              const entityId = itemData.id || itemData.instanceId;
-              if (entityId && gameMap.entityMap.has(entityId)) {
-                const existingEntity = gameMap.entityMap.get(entityId);
-                if (!tile.inventoryItems.includes(existingEntity)) {
-                  tile.inventoryItems.push(existingEntity);
-                }
-                continue;
-              }
-              const entity = gameMap.convertLegacyItemToECS(itemData);
-              if (entity) {
-                let pos = entity.getComponent('Position');
-                if (!pos) {
-                  pos = new Position({ x, y, level: 0 });
-                  entity.addComponent(pos);
-                }
-                entity.logicalX = x;
-                entity.logicalY = y;
-                entity.gridX = x;
-                entity.gridY = y;
-                entity.renderX = x;
-                entity.renderY = y;
-                entity.x = x;
-                entity.y = y;
-
-                tile.addEntity(entity);
-                gameMap.entityMap.set(entity.id, entity);
-                console.log(`[GameMap] Migrated legacy inventory item ${itemData.name || itemData.id} to ECS entity at (${x}, ${y})`);
-              }
-            }
-          }
-
-          gameMap.tiles[y][x] = tile;
-        }
-      }
-    }
+    // Full restoration: no type filtering (restore every entity).
+    await GameMap._restoreTilesAndEntities(gameMap, data);
 
     // Restore crop metadata for all tiles
     for (let y = 0; y < gameMap.height; y++) {

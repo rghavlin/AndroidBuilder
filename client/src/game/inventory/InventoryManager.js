@@ -1196,16 +1196,15 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     // 4. SPECIAL CASE: Direct Loading Weapons (Shotgun, .357 Drum, Hunting Rifle)
-    const isDirectLoadWeapon = (weapon.defId === 'weapon.357Pistol' && item.defId === 'ammo.357') ||
-      (weapon.defId === 'weapon.hunting_rifle' && item.defId === 'ammo.308') ||
-      (weapon.defId === 'weapon.shotgun' && item.defId === 'ammo.shotgun_shells');
+    // Config is data-driven via the weapon's `directLoad` definition ({ slotId, ammoId, capacity }).
+    const directLoad = ItemDefs[weapon.defId]?.directLoad;
+    const isDirectLoadWeapon = !!directLoad &&
+      slotId === directLoad.slotId &&
+      item.defId === directLoad.ammoId;
 
-    if (isDirectLoadWeapon && slotId === 'ammo' && item.isAmmo()) {
+    if (isDirectLoadWeapon && item.isAmmo()) {
       const existingAmmo = weapon.attachments[slotId];
-      let maxCapacity = 5; // Default
-      if (weapon.defId === 'weapon.357Pistol') maxCapacity = 6;
-      else if (weapon.defId === 'weapon.shotgun') maxCapacity = 7;
-      else if (weapon.defId === 'weapon.hunting_rifle') maxCapacity = 5;
+      const maxCapacity = directLoad.capacity;
 
       if (existingAmmo) {
         const spaceLeft = maxCapacity - existingAmmo.stackCount;
@@ -1734,11 +1733,22 @@ export class InventoryManager extends SafeEventEmitter {
     // Try preferred container first
     if (preferredContainerId) {
       const container = this.getContainer(preferredContainerId);
-      if (container && container.addItem(item, preferredX, preferredY, allowStacking)) {
-        this.emit('inventoryChanged');
-        return { success: true, container: container.id };
+      if (container) {
+        // Virtual containers (equipment slots, weapon/clothing mod slots) expose
+        // placeItemAt() instead of the grid addItem(). This path is hit when a move
+        // fails and the item is returned to a virtual source (e.g. re-equipping an
+        // item that couldn't be dropped where the user dragged it).
+        const placed = typeof container.addItem === 'function'
+          ? container.addItem(item, preferredX, preferredY, allowStacking)
+          : (typeof container.placeItemAt === 'function'
+              ? container.placeItemAt(item, preferredX, preferredY)
+              : false);
+        if (placed) {
+          this.emit('inventoryChanged');
+          return { success: true, container: container.id };
+        }
       }
-      
+
       // If strict mode is ON and preferred failed, we STOP here.
       if (strict) {
         return { success: false, reason: 'No space in preferred container' };

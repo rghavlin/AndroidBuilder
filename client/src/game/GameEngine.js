@@ -2,6 +2,7 @@ import { SafeEventEmitter } from './utils/SafeEventEmitter.js';
 import { InventoryManager } from './inventory/InventoryManager.js';
 import { LineOfSight } from './utils/LineOfSight.js';
 import { ItemDefs } from './inventory/ItemDefs.js';
+import { ItemTrait } from './inventory/traits.js';
 import { WeatherManager } from './utils/WeatherManager.js';
 import { getSightRangeForHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
 import { getHourFromTurn } from './utils/TimeUtils.js';
@@ -100,19 +101,18 @@ class GameEngine extends SafeEventEmitter {
     this.weatherManager = new WeatherManager(this);
 
     // Phase: Book Tracking
-    this.bookStats = {
-      'book.life_in_motion': {
-        pagesLeft: 500,
-        milestonesReached: 0 // Track how many 100-page milestones were processed
-      },
-      'book.nomad_survivor_1': { pagesLeft: 15, milestonesReached: 0 },
-      'book.nomad_survivor_2': { pagesLeft: 15, milestonesReached: 0 },
-      'book.nomad_survivor_3': { pagesLeft: 15, milestonesReached: 0 },
-      'book.nomad_survivor_4': { pagesLeft: 30, milestonesReached: 0 },
-      'book.nomad_survivor_5': { pagesLeft: 40, milestonesReached: 0 },
-      'book.nomad_survivor_6': { pagesLeft: 50, milestonesReached: 0 },
-      'book.nomad_survivor_7': { pagesLeft: 25, milestonesReached: 0 }
-    };
+    // Fresh-game defaults are derived from each READABLE book definition's
+    // totalPages (single-sourced in ItemDefs). A loaded save overrides these
+    // wholesale via GameSaveSystem (engine.bookStats = saveData.bookStats).
+    this.bookStats = {};
+    for (const [defId, def] of Object.entries(ItemDefs)) {
+      if (def.traits?.includes(ItemTrait.READABLE)) {
+        this.bookStats[defId] = {
+          pagesLeft: def.totalPages, // Track how many pages remain to be read
+          milestonesReached: 0 // Track how many 100-page milestones were processed
+        };
+      }
+    }
 
     // Global event cleanups (Removed this.removeAllListeners() to preserve React Provider context listeners on reset)
 

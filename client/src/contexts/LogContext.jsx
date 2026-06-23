@@ -141,9 +141,21 @@ export const LogProvider = ({ children }) => {
 
         const handleTurretFired = (data) => {
             console.log('[LogContext] 🤖 Turret fired event received:', data);
+            // Label the target by what it actually is. Attackable turrets are
+            // item-entities (type 'item'), so a turret shooting another turret
+            // must not be logged as a zombie.
+            const targetLabel = (() => {
+                switch (data.targetType) {
+                    case EntityType.ZOMBIE: return 'Zombie';
+                    case EntityType.NPC: return 'Survivor';
+                    case EntityType.PLAYER: return 'you';
+                    case 'item': return 'Turret'; // attackable turrets are item-entities
+                    default: return 'target';
+                }
+            })();
             const status = data.hit
-                ? `${data.isCrit ? 'CRITICAL HIT! ' : ''}hits Zombie for ${data.damage} damage${data.isDead ? ' - KILLED!' : ''}`
-                : 'misses Zombie!';
+                ? `${data.isCrit ? 'CRITICAL HIT! ' : ''}hits ${targetLabel} for ${data.damage} damage${data.isDead ? ' - KILLED!' : ''}`
+                : `misses ${targetLabel}!`;
             addLog(`Auto turret fires and ${status}`, 'combat');
         };
 

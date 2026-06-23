@@ -1,6 +1,7 @@
 import { EntityFactory } from '../EntityFactory.js';
 import { Item } from '../inventory/Item.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { findSouthTransitionTile } from '../map/MapUtils.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
@@ -22,7 +23,7 @@ export class NPCSpawner {
     if (mapNumber <= 1) return 0;
     
     const spawned = [];
-    const southExitTile = this.findSouthTransitionTile(gameMap);
+    const southExitTile = findSouthTransitionTile(gameMap);
     if (!southExitTile) {
       console.warn('[NPCSpawner] NPC spawning aborted: no south transition or walkable tile found at south edge.');
       return 0; // No south exit = no NPCs
@@ -144,28 +145,6 @@ export class NPCSpawner {
     const candidates = preferredPositions.length > 0 ? preferredPositions : fallbackPositions;
     if (candidates.length > 0) {
       return candidates[Math.floor(Math.random() * candidates.length)];
-    }
-    return null;
-  }
-
-  /**
-   * Find transition tile at the south edge (y = height - 1)
-   */
-  static findSouthTransitionTile(gameMap) {
-    const y = gameMap.height - 1;
-    // 1. Scan for 'transition' terrain tile
-    for (let x = 0; x < gameMap.width; x++) {
-      const tile = gameMap.getTile(x, y);
-      if (tile && tile.terrain === 'transition') {
-        return { x, y };
-      }
-    }
-    // 2. Fallback: Any walkable tile at the south edge
-    for (let x = 0; x < gameMap.width; x++) {
-      const tile = gameMap.getTile(x, y);
-      if (tile && tile.isWalkable()) {
-        return { x, y };
-      }
     }
     return null;
   }

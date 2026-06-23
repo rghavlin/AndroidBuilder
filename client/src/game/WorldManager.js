@@ -156,12 +156,17 @@ export class WorldManager {
   }
 
   /**
-   * Load a map from the world collection (full restoration for save/load)
+   * Shared map-loading pipeline for loadMap() and loadMapForTransition().
+   * The two only differ along the `forTransition` axis: transitions restore
+   * selectively (excluding players to avoid duplicates), stamp the map number,
+   * and emit a different event.
    * @param {string} mapId - Map identifier to load
-   * @param {number} currentTurn - The current game turn count (for catch-up)
-   * @returns {Promise<Object>} - Deserialized map data
+   * @param {number|null} currentTurn - Current game turn (for catch-up)
+   * @param {boolean} forTransition - Selective, player-excluding load when true
+   * @returns {Promise<{gameMap: Object, metadata: Object}>}
    */
-  async loadMap(mapId, currentTurn = null) {
+  async _loadMapInternal(mapId, currentTurn, forTransition) {
+    const failCtx = forTransition ? ' for transition' : '';
     try {
       if (!this.maps.has(mapId)) {
         throw new Error(`Map ${mapId} not found in world collection`);
@@ -174,7 +179,9 @@ export class WorldManager {
       }
 
       const mapData = this.maps.get(mapId);
-      logger.info(`Loading map ${mapId} from world collection (full restoration)`);
+      logger.info(forTransition
+        ? `Loading map ${mapId} for transition (excluding players)`
+        : `Loading map ${mapId} from world collection (full restoration)`);
 
       // Decompress if serializedMap is null in memory
       let serializedMap = mapData.serializedMap;
@@ -203,9 +210,16 @@ export class WorldManager {
         throw new Error(`Map data for ${mapId} is empty and could not be loaded/decompressed`);
       }
 
-      // Import GameMap class and restore from JSON with all entities
+      // Import GameMap class and restore. Transitions exclude players to prevent
+      // duplicating the traveling player into the destination map.
       const { GameMap } = await import('./map/GameMap.js');
-      const gameMap = await GameMap.fromJSON(serializedMap);
+      let gameMap;
+      if (forTransition) {
+        gameMap = await GameMap.fromJSONSelective(serializedMap, { excludeEntityTypes: ['player'] });
+        gameMap.mapNumber = this.extractMapNumber(mapId);
+      } else {
+        gameMap = await GameMap.fromJSON(serializedMap);
+      }
 
       // CATCH-UP TURN PROCESSING
       if (currentTurn !== null && mapData.lastProcessedTurn !== undefined) {
@@ -220,21 +234,33 @@ export class WorldManager {
 
       this.currentMapId = mapId;
 
-      this.emit('mapLoaded', {
+      this.emit(forTransition ? 'mapLoadedForTransition' : 'mapLoaded', {
         mapId: mapId,
         gameMap: gameMap,
         metadata: mapData.metadata
       });
 
-      logger.info(`Map ${mapId} loaded successfully with ${gameMap.getAllEntities().length} entities`);
+      logger.info(forTransition
+        ? `Map ${mapId} loaded for transition with ${gameMap.getAllEntities().length} entities (no players)`
+        : `Map ${mapId} loaded successfully with ${gameMap.getAllEntities().length} entities`);
       return {
         gameMap: gameMap,
         metadata: mapData.metadata
       };
     } catch (error) {
-      console.error(`[WorldManager] Failed to load map ${mapId}:`, error);
-      throw new Error(`Failed to load map ${mapId}: ` + error.message);
+      console.error(`[WorldManager] Failed to load map ${mapId}${failCtx}:`, error);
+      throw new Error(`Failed to load map ${mapId}${failCtx}: ` + error.message);
     }
+  }
+
+  /**
+   * Load a map from the world collection (full restoration for save/load)
+   * @param {string} mapId - Map identifier to load
+   * @param {number} currentTurn - The current game turn count (for catch-up)
+   * @returns {Promise<Object>} - Deserialized map data
+   */
+  async loadMap(mapId, currentTurn = null) {
+    return this._loadMapInternal(mapId, currentTurn, false);
   }
 
   /**
@@ -244,81 +270,7 @@ export class WorldManager {
    * @returns {Promise<Object>} - Deserialized map data without player entities
    */
   async loadMapForTransition(mapId, currentTurn = null) {
-    try {
-      if (!this.maps.has(mapId)) {
-        throw new Error(`Map ${mapId} not found in world collection`);
-      }
-
-      // Await active compression if one is running
-      if (this.compressionLocks.has(mapId)) {
-        logger.info(`Waiting for active compression of map ${mapId} to complete before loading...`);
-        await this.compressionLocks.get(mapId);
-      }
-
-      const mapData = this.maps.get(mapId);
-      logger.info(`Loading map ${mapId} for transition (excluding players)`);
-
-      // Decompress if serializedMap is null in memory
-      let serializedMap = mapData.serializedMap;
-      if (!serializedMap) {
-        if (mapData.compressedMap) {
-          const decompressed = await decompressString(mapData.compressedMap);
-          serializedMap = JSON.parse(decompressed);
-          mapData.serializedMap = serializedMap; // cache in memory while active
-        } else if (this.saveSlot) {
-          const { GameSaveSystem } = await import('./GameSaveSystem.js');
-          const chunk = await GameSaveSystem.loadChunkFromStorage(this.saveSlot, mapId);
-          if (chunk) {
-            mapData.compressedMap = chunk.compressedMap;
-            serializedMap = chunk.serializedMap;
-            if (!serializedMap && chunk.compressedMap) {
-              const decompressed = await decompressString(chunk.compressedMap);
-              serializedMap = JSON.parse(decompressed);
-            }
-            mapData.serializedMap = serializedMap;
-          }
-        }
-      }
-
-      if (!serializedMap) {
-        throw new Error(`Map data for ${mapId} is empty and could not be loaded/decompressed`);
-      }
-
-      // Import GameMap class and restore selectively (exclude players)
-      const { GameMap } = await import('./map/GameMap.js');
-      const gameMap = await GameMap.fromJSONSelective(serializedMap, {
-        excludeEntityTypes: ['player']
-      });
-      gameMap.mapNumber = this.extractMapNumber(mapId);
-
-      // CATCH-UP TURN PROCESSING
-      if (currentTurn !== null && mapData.lastProcessedTurn !== undefined) {
-        const missedTurns = currentTurn - mapData.lastProcessedTurn;
-        if (missedTurns > 0) {
-          logger.info(`Map ${mapId} catching up on ${missedTurns} missed turns...`);
-          for (let i = 0; i < missedTurns; i++) {
-            gameMap.processTurn();
-          }
-        }
-      }
-
-      this.currentMapId = mapId;
-
-      this.emit('mapLoadedForTransition', {
-        mapId: mapId,
-        gameMap: gameMap,
-        metadata: mapData.metadata
-      });
-
-      logger.info(`Map ${mapId} loaded for transition with ${gameMap.getAllEntities().length} entities (no players)`);
-      return {
-        gameMap: gameMap,
-        metadata: mapData.metadata
-      };
-    } catch (error) {
-      console.error(`[WorldManager] Failed to load map ${mapId} for transition:`, error);
-      throw new Error(`Failed to load map ${mapId} for transition: ` + error.message);
-    }
+    return this._loadMapInternal(mapId, currentTurn, true);
   }
 
   /**
@@ -326,108 +278,140 @@ export class WorldManager {
    * @param {string} mapType - Type of map to generate ('road', 'forest', 'alley')
    * @returns {Promise<Object>} - Generated map data
    */
+  /**
+   * Generate, populate, and persist a brand-new map for the given id.
+   * Single source of truth for the map-population pipeline shared by
+   * generateNextMap() and the new-map branch of executeTransition().
+   *
+   * @param {string} mapId - Target map id to generate.
+   * @param {number} currentTurn - Turn stamped onto the saved snapshot.
+   * @param {{x:number,y:number}|null} [spawnPosition=null] - For transitions, the
+   *   approach position. It is re-resolved against the freshly generated map's own
+   *   exits (and used to keep zombies/animals clear of the entry), then returned.
+   *   Pass null for standalone generation.
+   * @returns {Promise<{gameMap, savedMapId, templateToUse, metadata, spawnPosition}>}
+   */
+  async _generateAndPopulateMap(mapId, currentTurn, spawnPosition = null) {
+    const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
+    const { GameMap } = await import('./map/GameMap.js');
+
+    const templateMapGenerator = new TemplateMapGenerator();
+    const mapNumber = this.extractMapNumber(mapId);
+    // Maps 1-3: Road, 4: Winding, 5: Mirrored Winding, 6: Split Road, 7+: Random
+    const templateToUse = this.determineTemplateForMap(mapId);
+
+    // Generate + apply through the connectivity gate (regenerates if unplayable)
+    const { gameMap, mapData: generatedMapData } = await templateMapGenerator.generateValidatedMap(
+      templateToUse,
+      { randomWalls: 1, extraFloors: 2, mapNumber },
+      GameMap
+    );
+    gameMap.mapNumber = mapNumber;
+
+    // For transitions, finalize the spawn from the freshly generated map's own
+    // exits rather than the pre-generation prediction in checkTransitionPoint().
+    // This keeps the player on the actual road exit even if the map's size or exit
+    // columns differ from the guess. spawnPosition.y encodes the approach edge:
+    // y<=1 means we entered from the north (top).
+    let resolvedSpawn = spawnPosition;
+    if (spawnPosition) {
+      const tp = generatedMapData.metadata?.spawnZones?.transitionPoints;
+      if (tp) {
+        const enteringTop = spawnPosition.y <= 1;
+        if (enteringTop && tp.north) {
+          resolvedSpawn = { x: tp.north.x, y: 1 };
+        } else if (!enteringTop && tp.south) {
+          resolvedSpawn = { x: tp.south.x, y: gameMap.height - 2 };
+        }
+      }
+    }
+
+    // SPAWN LOOT: New procedural loot generation
+    const { LootGenerator } = await import('./map/LootGenerator.js');
+    new LootGenerator().spawnLoot(gameMap, mapNumber);
+
+    // SPAWN ZOMBIES: Initial map population (scaled by area)
+    const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
+    const progression = getProgressionForMap(mapNumber || 1);
+
+    let randomSwatCount = 0;
+    let randomFirefighterCount = 0;
+    let soldierCount = 0;
+    if (mapNumber > 3) {
+      const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
+      if (Math.random() < (swatChance || 0.15)) randomSwatCount = Math.floor(Math.random() * 2) + 1;
+      if (Math.random() < (firefighterChance || 0.15)) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
+      if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
+    }
+
+    const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;
+    const scale = (v) => Math.floor(v * areaMultiplier);
+    const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
+
+    ZombieSpawner.spawnZombies(gameMap, resolvedSpawn, {
+      basicCount: scale(progression.basicCount),
+      crawlerRange: scaleRange(progression.crawlerRange),
+      runnerCount: scale(progression.runnerCount),
+      acidRange: scaleRange(progression.acidRange),
+      fatRange: scaleRange(progression.fatRange),
+      randomSwatCount: scale(randomSwatCount),
+      randomFirefighterCount: scale(randomFirefighterCount),
+      soldierCount: scale(soldierCount),
+      spitterCount: scale(progression.spitterCount || 0),
+      maxTotal: scale(progression.maxTotal)
+    });
+
+    // SPAWN ANIMALS: Procedural rabbit generation
+    const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
+    AnimalSpawner.spawnAnimals(gameMap, resolvedSpawn, {
+      rabbitRange: { min: 1, max: 2 }
+    });
+
+    // SPAWN NPCs: Goal-directed travelers
+    const { NPCSpawner } = await import('./utils/NPCSpawner.js');
+    NPCSpawner.spawnNPCs(gameMap, {
+      count: 1, // Start with 1 NPC per map
+      mapNumber
+    });
+
+    // Spawn the shopkeeper/town turrets BEFORE saving so they're in the snapshot
+    if (templateToUse === 'branching_road') {
+      NPCSpawner.spawnShopkeeper(gameMap);
+      NPCSpawner.spawnTownTurrets(gameMap);
+    }
+
+    // Persist to the world collection
+    const savedMapId = this.saveCurrentMap(gameMap, mapId, currentTurn, templateToUse);
+
+    if (templateToUse === 'branching_road') {
+      const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
+      earbucksShopSystem.initCatalog(savedMapId);
+    }
+
+    this.emit('mapGenerated', {
+      mapId: savedMapId,
+      mapType: templateToUse,
+      gameMap
+    });
+
+    return {
+      gameMap,
+      savedMapId,
+      templateToUse,
+      metadata: generatedMapData.metadata,
+      spawnPosition: resolvedSpawn
+    };
+  }
+
   async generateNextMap(mapType = 'road', currentTurn = 1) {
     try {
       const nextMapId = this.generateMapId();
-      const mapNumber = this.extractMapNumber(nextMapId);
-
-      // Import required classes
-      const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
-      const { GameMap } = await import('./map/GameMap.js');
-
-      // Generate new map using template system
-      const templateMapGenerator = new TemplateMapGenerator();
-
-      // Maps 1-3: Road, 4: Winding, 5: Mirrored Winding, 6: Split Road, 7+: Random
-      let templateToUse = this.determineTemplateForMap(nextMapId);
-
-      // Generate + apply through the connectivity gate (regenerates if unplayable)
-      const { gameMap, mapData } = await templateMapGenerator.generateValidatedMap(
-        templateToUse,
-        { randomWalls: 1, extraFloors: 2, mapNumber: mapNumber },
-        GameMap
-      );
-      const mapNumberForGen = this.extractMapNumber(nextMapId);
-      gameMap.mapNumber = mapNumberForGen;
-
-      // SPAWN LOOT: New procedural loot generation
-      const { LootGenerator } = await import('./map/LootGenerator.js');
-      const lootGenerator = new LootGenerator();
-      lootGenerator.spawnLoot(gameMap, gameMap.mapNumber);
-
-      // SPAWN ZOMBIES: Initial map population (Scaled by area)
-      const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
-      const progression = getProgressionForMap(gameMap.mapNumber || 1);
-      
-      let randomSwatCount = 0;
-      let randomFirefighterCount = 0;
-      let soldierCount = 0;
-
-      if (gameMap.mapNumber > 3) {
-        const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
-        if (Math.random() < (swatChance || 0.15)) randomSwatCount = Math.floor(Math.random() * 2) + 1;
-        if (Math.random() < (firefighterChance || 0.15)) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
-        if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
-      }
-
-      const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;
-      const scale = (v) => Math.floor(v * areaMultiplier);
-      const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
-
-      ZombieSpawner.spawnZombies(gameMap, null, {
-        basicCount: scale(progression.basicCount),
-        crawlerRange: scaleRange(progression.crawlerRange),
-        runnerCount: scale(progression.runnerCount),
-        acidRange: scaleRange(progression.acidRange),
-        fatRange: scaleRange(progression.fatRange),
-        randomSwatCount: scale(randomSwatCount),
-        randomFirefighterCount: scale(randomFirefighterCount),
-        soldierCount: scale(soldierCount),
-        spitterCount: scale(progression.spitterCount || 0),
-        maxTotal: scale(progression.maxTotal),
-
-        minDistance: 15,
-
-      });
-
-      
-      // SPAWN ANIMALS: Procedural rabbit generation
-      const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
-      AnimalSpawner.spawnAnimals(gameMap, null, {
-        rabbitRange: { min: 1, max: 2 }
-      });
-
-      // SPAWN NPCs: Goal-directed travelers
-      const { NPCSpawner } = await import('./utils/NPCSpawner.js');
-      NPCSpawner.spawnNPCs(gameMap, {
-        count: 1, // Start with 1 NPC per map
-        mapNumber: gameMap.mapNumber
-      });
-
-      // Spawn the shopkeeper BEFORE saving so it's included in the serialized snapshot
-      if (templateToUse === 'branching_road') {
-        NPCSpawner.spawnShopkeeper(gameMap);
-        NPCSpawner.spawnTownTurrets(gameMap);
-      }
-
-      // Save to world collection
-      const savedMapId = this.saveCurrentMap(gameMap, nextMapId, currentTurn, templateToUse);
-
-      if (templateToUse === 'branching_road') {
-        const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
-        earbucksShopSystem.initCatalog(savedMapId);
-      }
-
-      this.emit('mapGenerated', {
-        mapId: savedMapId,
-        mapType: mapType,
-        gameMap: gameMap
-      });
+      const { gameMap, savedMapId, templateToUse } = await this._generateAndPopulateMap(nextMapId, currentTurn, null);
 
       logger.info(`Generated and saved new ${mapType} map: ${savedMapId}`);
       return {
         mapId: savedMapId,
-        gameMap: gameMap,
+        gameMap,
         mapType: templateToUse
       };
     } catch (error) {
@@ -741,117 +725,20 @@ export class WorldManager {
       } else {
         console.log(`[WorldManager] Generating new map: ${targetMapId}`);
 
-        // Import required classes
-        const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
-        const { GameMap } = await import('./map/GameMap.js');
-        const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
-        const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
-
-        // Generate new map using template system with specific ID
-        const templateMapGenerator = new TemplateMapGenerator();
-        const mapNumber = this.extractMapNumber(targetMapId);
-        let templateToUse = this.determineTemplateForMap(targetMapId);
-
-        // Generate + apply through the connectivity gate (regenerates if unplayable)
-        const { gameMap, mapData: generatedMapData } = await templateMapGenerator.generateValidatedMap(
-          templateToUse,
-          { randomWalls: 1, extraFloors: 2, mapNumber: mapNumber },
-          GameMap
-        );
-        gameMap.mapNumber = mapNumber;
-
-        // Finalize spawn from the freshly generated map's own exits rather than
-        // the pre-generation prediction in checkTransitionPoint(). This keeps the
-        // player on the actual road exit even if the map's size or exit columns
-        // differ from the guess (e.g. randomized road layouts). spawnPosition.y
-        // encodes the approach edge: y<=1 means we entered from the north (top).
-        const tp = generatedMapData.metadata?.spawnZones?.transitionPoints;
-        if (tp) {
-          const enteringTop = spawnPosition.y <= 1;
-          if (enteringTop && tp.north) {
-            spawnPosition = { x: tp.north.x, y: 1 };
-          } else if (!enteringTop && tp.south) {
-            spawnPosition = { x: tp.south.x, y: gameMap.height - 2 };
-          }
-        }
-
-        // SPAWN LOOT: New procedural loot generation
-        const { LootGenerator } = await import('./map/LootGenerator.js');
-        const lootGenerator = new LootGenerator();
-        lootGenerator.spawnLoot(gameMap, mapNumber);
-
-        const progression = getProgressionForMap(mapNumber);
-        console.log(`[WorldManager] Applying progression for Map ${mapNumber}:`, progression);
-        
-        let randomSwatCount = 0;
-        let randomFirefighterCount = 0;
-        let soldierCount = 0;
-
-        if (mapNumber > 3) {
-          const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
-          if (Math.random() < (swatChance || 0.15)) randomSwatCount = Math.floor(Math.random() * 2) + 1;
-          if (Math.random() < (firefighterChance || 0.15)) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
-          if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
-        }
-
-        const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;
-        const scale = (v) => Math.floor(v * areaMultiplier);
-        const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
-
-        ZombieSpawner.spawnZombies(gameMap, spawnPosition, {
-          basicCount: scale(progression.basicCount),
-          crawlerRange: scaleRange(progression.crawlerRange),
-          runnerCount: scale(progression.runnerCount),
-          acidRange: scaleRange(progression.acidRange),
-          fatRange: scaleRange(progression.fatRange),
-          randomSwatCount: scale(randomSwatCount),
-          randomFirefighterCount: scale(randomFirefighterCount),
-          soldierCount: scale(soldierCount),
-          spitterCount: scale(progression.spitterCount || 0),
-          maxTotal: scale(progression.maxTotal)
-        });
-        
-        // SPAWN ANIMALS: Procedural rabbit generation
-        AnimalSpawner.spawnAnimals(gameMap, spawnPosition, {
-          rabbitRange: { min: 1, max: 2 }
-        });
-        
-        // SPAWN NPCs: Goal-directed travelers
-        const { NPCSpawner } = await import('./utils/NPCSpawner.js');
-        NPCSpawner.spawnNPCs(gameMap, {
-          count: 1, // Start with 1 NPC per map
-          mapNumber: mapNumber
-        });
-
-        // Spawn the shopkeeper BEFORE saving so it's included in the serialized snapshot
-        if (templateToUse === 'branching_road') {
-          NPCSpawner.spawnShopkeeper(gameMap);
-          NPCSpawner.spawnTownTurrets(gameMap);
-        }
-
-        // Save to world collection with the correct target ID
-        this.saveCurrentMap(gameMap, targetMapId, currentTurn, templateToUse);
-
-        if (templateToUse === 'branching_road') {
-          const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
-          earbucksShopSystem.initCatalog(targetMapId);
-        }
+        // Generate + populate + persist via the shared pipeline. It also re-resolves
+        // the spawn position against the freshly generated map's exits.
+        const populated = await this._generateAndPopulateMap(targetMapId, currentTurn, spawnPosition);
+        spawnPosition = populated.spawnPosition;
 
         mapData = {
           mapId: targetMapId,
-          gameMap: gameMap,
-          mapType: templateToUse,
-          metadata: generatedMapData.metadata
+          gameMap: populated.gameMap,
+          mapType: populated.templateToUse,
+          metadata: populated.metadata
         };
 
         // UPDATE CURRENT MAP ID
         this.currentMapId = targetMapId;
-
-        this.emit('mapGenerated', {
-          mapId: targetMapId,
-          mapType: templateToUse,
-          gameMap: gameMap
-        });
 
         console.log(`[WorldManager] Generated and saved new road map: ${targetMapId}`);
       }
