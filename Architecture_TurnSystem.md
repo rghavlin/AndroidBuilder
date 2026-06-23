@@ -28,6 +28,7 @@ When a turn ends, the engine calculates the **entire** round for all entities in
 - **Rule:** Entities calculate their math and push `Action` objects into a master `actionQueue`.
 - Example Action: `{ type: 'move', entityId: 'zombie_1', to: {x: 5, y: 10} }`
 - Example Action: `{ type: 'demand', entityId: 'npc_2' }`
+- **AI Execution Models Split:** Zombies currently use a declarative ECS Intent-Component model (`AISystem`), while NPCs and Rabbits use legacy imperative mutation. For details on routing guidelines and the long-term unification plan, refer to the [AI Architecture Guidelines](file:///c:/Games/AndroidBuilder/Architecture_AI.md).
 
 ### 3. Phase 2: Playback (Visuals & Side-Effects)
 Once `simulateTurn()` generates the queue, it hands it to `playbackTurn()`.

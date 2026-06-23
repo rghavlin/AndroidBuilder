@@ -12,6 +12,7 @@ import { Inventory } from './components/Inventory.js';
 import { ActionPoints } from './components/ActionPoints.js';
 import { SurvivalStats } from './components/SurvivalStats.js';
 import { PlayerSkills } from './components/PlayerSkills.js';
+import { PlayerWallet } from './components/PlayerWallet.js';
 import { Burnable } from './components/Burnable.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
@@ -57,6 +58,7 @@ export const EntityFactory = {
       craftingApUsed: 0,
       craftingLvl: 0
     }));
+    entity.addComponent(new PlayerWallet({ earbucks: 0 }));
     entity.addComponent(new Burnable({ fireTurns: 0 }));
 
     return entity;

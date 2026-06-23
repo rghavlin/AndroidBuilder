@@ -56,12 +56,23 @@ const STANCES = {
   // hostile NPCs are handled per-entity (legacy isHostile / hostileOverrides).
 };
 
+const VALID_FACTIONS = new Set(Object.values(FACTIONS));
+const isDev = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.DEV : (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
+
 export const FactionRegistry = {
   /**
    * How `from` faction regards `to` faction.
    * @returns {'ally'|'neutral'|'hostile'}
    */
   stance(from, to) {
+    if (isDev) {
+      if (from && !VALID_FACTIONS.has(from)) {
+        console.warn(`[FactionRegistry] Unrecognized 'from' faction ID: "${from}"`);
+      }
+      if (to && !VALID_FACTIONS.has(to)) {
+        console.warn(`[FactionRegistry] Unrecognized 'to' faction ID: "${to}"`);
+      }
+    }
     if (!from || !to) return STANCE.NEUTRAL;
     if (from === to) return STANCE.ALLY;
     return STANCES[from]?.[to] ?? STANCE.NEUTRAL;

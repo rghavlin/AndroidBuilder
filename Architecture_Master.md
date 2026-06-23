@@ -71,6 +71,15 @@ The `InventoryManager` handles items, slots, grids, and ownership.
 
 ---
 
+## 6. AI Execution Models (Zombies vs. NPCs)
+
+The codebase splits AI execution between a declarative ECS intent-component system (Zombies) and legacy imperative mutation (NPCs and Rabbits).
+
+- **Rule: ECS-Intent for Swarms.** Swarm-like entities must queue intents (`MoveIntent`, `DamageIntent`) via the `AISystem` rather than mutating state directly.
+- **Plan: Long-Term Unification.** For details on routing guidelines and the long-term plan to unify NPC behavior under the ECS model, refer to the [AI Architecture Guidelines](file:///c:/Games/AndroidBuilder/Architecture_AI.md).
+
+---
+
 ## Checklist to Prevent Regressions Before Writing Code:
 1. **Am I blurring the lines between Math and UI?** (e.g., adding `isAnimating` to a core AI script).
 2. **Am I creating a race condition?** (e.g., relying on `setTimeout` to sync game state).

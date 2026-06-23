@@ -26,6 +26,7 @@ import { DropIntent } from '../components/DropIntent.js';
 import { ActionPoints } from '../components/ActionPoints.js';
 import { SurvivalStats } from '../components/SurvivalStats.js';
 import { PlayerSkills } from '../components/PlayerSkills.js';
+import { PlayerWallet } from '../components/PlayerWallet.js';
 import { Container } from '../inventory/Container.js';
 import { AIState } from '../components/AIState.js';
 import { Burnable } from '../components/Burnable.js';
@@ -70,6 +71,7 @@ export const COMPONENT_CLASSES = {
   ActionPoints,
   SurvivalStats,
   PlayerSkills,
+  PlayerWallet,
   AIState,
   Burnable,
 
@@ -356,16 +358,16 @@ export class Entity extends SafeEventEmitter {
   }
 
   get earbucks() {
-    const skills = this.getComponent('PlayerSkills');
-    return skills ? skills.earbucks : 0;
+    const wallet = this.getComponent('PlayerWallet');
+    return wallet ? wallet.earbucks : 0;
   }
   set earbucks(v) {
-    let skills = this.getComponent('PlayerSkills');
-    if (!skills) {
-      skills = new PlayerSkills();
-      this.addComponent(skills);
+    let wallet = this.getComponent('PlayerWallet');
+    if (!wallet) {
+      wallet = new PlayerWallet();
+      this.addComponent(wallet);
     }
-    skills.earbucks = Math.max(0, v);
+    wallet.earbucks = Math.max(0, v);
     this.notifyChange();
   }
 

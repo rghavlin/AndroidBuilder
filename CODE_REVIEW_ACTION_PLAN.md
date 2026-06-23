@@ -259,21 +259,25 @@ Larger structural improvements for long-term maintainability as the game grows.
 - [x] **P5-07** Replace biased `sort(() => Math.random() - 0.5)` with Fisher-Yates shuffle
   - Appears 10+ times across TemplateMapGenerator and LootGenerator
 
-- [ ] **P5-08** Add FactionRegistry validation for faction names
+- [x] **P5-08** Add FactionRegistry validation for faction names
   - Currently any string including typos silently returns NEUTRAL
   - Add dev-mode warning for unrecognized faction IDs
+  - Done: added check of valid factions in `stance()`, gated behind `isDev`. Verified via `verify_faction_validation.mjs`.
 
-- [ ] **P5-09** Add `removeDestroyedTurret` silent-failure logging
+- [x] **P5-09** Add `removeDestroyedTurret` silent-failure logging
   - TurretCombat.js:162 — returns silently if neither removal path matches
+  - Done: added warning log at end of `removeDestroyedTurret` if no removal paths matched. Verified via `verify_turret_removal_logging.mjs`.
 
-- [ ] **P5-10** Separate earbucks from PlayerSkills component
+- [x] **P5-10** Separate earbucks from PlayerSkills component
   - Currency stored alongside skill stats conflates two concerns
   - Consider a `PlayerCurrency` or `PlayerWallet` component
+  - Done: created `PlayerWallet` component to hold `earbucks`. Updated `PlayerSkills` and `Entity` accessor mappings to delegate to it, preserving backwards compatibility. Verified via `verify_player_wallet.mjs`.
 
-- [ ] **P5-11** Consider long-term AI execution model unification
+- [x] **P5-11** Consider long-term AI execution model unification
   - Zombies use intent/component system; NPCs use direct imperative mutation
   - Document the split explicitly and route new entity types consistently
   - Full unification is a larger effort but should be planned
+  - Done: created `Architecture_AI.md` detailing the split, routing rules, and the migration path. Updated `Architecture_Master.md` and `Architecture_TurnSystem.md` to reference it.
 
 ---
 
@@ -329,7 +333,8 @@ Low-risk items to address as you touch adjacent code.
 
 - [ ] **P7-09** Change `let dist` to `const dist` in TurretAI.js:104
 
-- [ ] **P7-10** Use `instanceId` comparison only in `removeDestroyedTurret` (drop reference-equality check)
+- [x] **P7-10** Use `instanceId` comparison only in `removeDestroyedTurret` (drop reference-equality check)
+  - Done: simplified nested container item scan in `removeDestroyedTurret` to use only `instanceId` checks.
 
 - [ ] **P7-11** Replace `Math.random().toString(36).substr()` with `substring()` (deprecated method)
   - NPCSpawner.js:179, ItemDefs.js:2580

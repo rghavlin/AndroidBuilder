@@ -172,14 +172,22 @@ export function removeDestroyedTurret(turret, gameMap, x, y) {
 
   // Nested in a wagon/container parked on the tile.
   const tile = gameMap.getTile(x, y);
-  if (!tile || !tile.contents) return;
-  for (const e of tile.contents) {
-    const grid = e.containerGrid || (typeof e.getContainerGrid === 'function' ? e.getContainerGrid() : null);
-    if (grid && typeof grid.removeItem === 'function') {
-      if (gridItems(grid).some(it => it === turret || it.instanceId === turret.instanceId)) {
-        grid.removeItem(turret.instanceId);
-        return;
+  if (tile && tile.contents) {
+    for (const e of tile.contents) {
+      const grid = e.containerGrid || (typeof e.getContainerGrid === 'function' ? e.getContainerGrid() : null);
+      if (grid && typeof grid.removeItem === 'function') {
+        if (gridItems(grid).some(it => it.instanceId === turret.instanceId)) {
+          grid.removeItem(turret.instanceId);
+          return;
+        }
       }
     }
   }
+
+  console.warn(`[TurretCombat] removeDestroyedTurret failed to find/remove turret:`, {
+    id: turret.id,
+    instanceId: turret.instanceId,
+    x,
+    y
+  });
 }
