@@ -3,7 +3,7 @@ import { InventoryManager } from './inventory/InventoryManager.js';
 import { LineOfSight } from './utils/LineOfSight.js';
 import { ItemDefs } from './inventory/ItemDefs.js';
 import { WeatherManager } from './utils/WeatherManager.js';
-import { getSightRangeForHour } from './config/VisionConfig.js';
+import { getSightRangeForHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
 
 
 /**
@@ -77,7 +77,7 @@ class GameEngine extends SafeEventEmitter {
     this.turn = 1;
     this.isFlashlightOn = false;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
-    this._fovOptions = { maxRange: 15, isNight: false, isFlashlightOn: false, flashlightRange: 8, isNightVision: false };
+    this._fovOptions = { maxRange: MAX_VISION_RANGE, isNight: false, isFlashlightOn: false, flashlightRange: FLASHLIGHT_RANGE, isNightVision: false };
     this._lastFovOptionsHash = ''; // Cache hash to throttle redundant FOV updates
     this.renderDebugColors = false; 
     this.seeThroughWalls = false;

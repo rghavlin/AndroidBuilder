@@ -13,6 +13,7 @@ import { useAction } from "../../contexts/ActionContext.jsx";
 import { useAudio } from "../../contexts/AudioContext.jsx";
 import { useCombat } from "../../contexts/CombatContext.jsx";
 import { ItemTrait, ItemCategory } from "../../game/inventory/traits.js";
+import { TURRET_DEF_ID } from "../../game/ai/TurretCombat.js";
 import { getScaleFactor } from "@/hooks/useWindowSize";
 import { Item, createItemFromDef } from "../../game/inventory/index.js";
 import { useLog } from "../../contexts/LogContext.jsx";
@@ -557,7 +558,7 @@ export default function UniversalGrid({
         const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
         const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
         const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
-        const isAutoTurret = item.defId === 'placeable.auto_turret';
+        const isAutoTurret = item.defId === TURRET_DEF_ID;
         
         if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
            console.debug('[UniversalGrid] Cannot switch selection to non-movable item:', item.name);
@@ -585,7 +586,7 @@ export default function UniversalGrid({
       const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
       const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
       const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
-      const isAutoTurret = item.defId === 'placeable.auto_turret';
+      const isAutoTurret = item.defId === TURRET_DEF_ID;
       
       if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
         console.debug('[UniversalGrid] Cannot pick up non-movable item:', item.name);
@@ -1012,7 +1013,7 @@ export default function UniversalGrid({
               {(() => {
                 const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
                 const isHotplate = item.defId === 'tool.battery_powered_hotplate';
-                const isAutoTurret = item.defId === 'placeable.auto_turret';
+                const isAutoTurret = item.defId === TURRET_DEF_ID;
                 const isSpecialGroundContainer = (isScooter || isHotplate || isAutoTurret || item.hasTrait?.(ItemTrait.VEHICLE) || item.hasTrait?.(ItemTrait.PLANTER)) && 
                                                (containerId === 'ground' || isScooter || (isAutoTurret && (containerId === 'ground' || container?.isVehicle)) || (item.hasTrait?.(ItemTrait.PLANTER) && (containerId.includes('-container') || containerId.includes('-grid'))));
                 if (!isSpecialGroundContainer) return null;

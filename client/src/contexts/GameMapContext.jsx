@@ -6,7 +6,7 @@ import { useVisualEffects } from './VisualEffectsContext.jsx';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { VehicleUtils } from '../game/utils/VehicleUtils.js';
-import { isTurretPassableBy } from '../game/ai/TurretCombat.js';
+import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 
 const GameMapContext = createContext();
 
@@ -83,7 +83,7 @@ export const GameMapProvider = ({ children }) => {
         const riddenItemId = engine.riding?.item?.instanceId;
         return !tile.contents.some(entity => {
           if (entity.id === player.id) return false;
-          if (entity.type === 'window' || entity.type === 'door' || entity.type === 'EntityType.WINDOW' || entity.type === 'EntityType.DOOR') return false;
+          if (entity.type === 'window' || entity.type === 'door') return false;
           if (draggedItemId && (entity.id === draggedItemId || entity.instanceId === draggedItemId)) return false;
           if (riddenItemId && (entity.id === riddenItemId || entity.instanceId === riddenItemId)) return false;
           return entity.blocksMovement;
@@ -136,8 +136,8 @@ export const GameMapProvider = ({ children }) => {
       const entityFilter = (tile) => {
         if (!tile.flags || !tile.flags.explored) return false;
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
-        const blockedByEntity = tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door' && e.type !== 'EntityType.WINDOW' && e.type !== 'EntityType.DOOR');
-        const blockedByTurret = tile.contents.some(e => e.defId === 'placeable.auto_turret' && !isTurretPassableBy(e, player));
+        const blockedByEntity = tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door');
+        const blockedByTurret = tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player));
         return !blockedByEntity && !blockedByTurret;
       };
 

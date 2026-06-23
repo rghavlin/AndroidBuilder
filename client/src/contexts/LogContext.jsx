@@ -72,7 +72,7 @@ export const LogProvider = ({ children }) => {
             
             // Normalize data between ZOMBIE_ATTACK and NPC_ATTACK structures
             const entity = data.zombie || data.entity || data.npc;
-            const isNPC = entity && (entity.type === 'npc' || entity.type === EntityType.NPC);
+            const isNPC = entity && (entity.type === EntityType.NPC);
             const entityName = isNPC ? (entity.name || 'Survivor') : 'Zombie';
             
             const isSuccess = data.success !== undefined ? data.success : data.hit;
@@ -108,9 +108,9 @@ export const LogProvider = ({ children }) => {
             if (data.source === 'player') return;
             const actorName = data.entity?.type === 'npc' ? 'Survivor' : 'Zombie';
             const targetType = data.targetType;
-            if (targetType === EntityType.DOOR || targetType === 'door') {
+            if (targetType === EntityType.DOOR) {
                 addLog(`${actorName} bangs on the door!`, 'world');
-            } else if (targetType === EntityType.WINDOW || targetType === 'window') {
+            } else if (targetType === EntityType.WINDOW) {
                 addLog(`${actorName} smashes against the window!`, 'world');
             }
         };

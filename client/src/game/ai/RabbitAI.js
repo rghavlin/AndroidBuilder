@@ -1,5 +1,6 @@
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { LineOfSight } from '../utils/LineOfSight.js';
+import { MAX_VISION_RANGE } from '../config/VisionConfig.js';
 
 /**
  * Rabbit AI system
@@ -28,7 +29,7 @@ export class RabbitAI {
       const distToPlayer = Math.sqrt(Math.pow(rabbit.logicalX - player.logicalX, 2) + Math.pow(rabbit.logicalY - player.logicalY, 2));
       
       // Rabbit Vicinity Awareness (10 tiles) OR Sight (15 tiles)
-      const canSeePlayer = (distToPlayer <= 15) ? LineOfSight.canSeeEntity(gameMap, rabbit, player, { maxRange: 15 }).hasLineOfSight : false;
+      const canSeePlayer = (distToPlayer <= MAX_VISION_RANGE) ? LineOfSight.canSeeEntity(gameMap, rabbit, player, { maxRange: MAX_VISION_RANGE }).hasLineOfSight : false;
       let hasDetectedPlayer = distToPlayer <= 10 || canSeePlayer;
 
       // 2. Check for nearest Zombie (within 5 squares)
@@ -52,7 +53,7 @@ export class RabbitAI {
         
         // Re-check detection every step if not already fleeing
         if (!hasDetectedPlayer) {
-          const currentlyVisible = (currentDistToPlayer <= 15) ? LineOfSight.canSeeEntity(gameMap, rabbit, player, { maxRange: 15 }).hasLineOfSight : false;
+          const currentlyVisible = (currentDistToPlayer <= MAX_VISION_RANGE) ? LineOfSight.canSeeEntity(gameMap, rabbit, player, { maxRange: MAX_VISION_RANGE }).hasLineOfSight : false;
           if (currentDistToPlayer <= 10 || currentlyVisible) {
             hasDetectedPlayer = true;
           }

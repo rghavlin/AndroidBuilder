@@ -5,6 +5,7 @@ import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../entities/Entity.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
+import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 let tempCanvas = null;
 let tempCtx = null;
@@ -30,14 +31,14 @@ function getTempCanvas(size) {
  */
 function getPoweredTurretForEntity(entity) {
   if (!entity) return null;
-  if (entity.defId === 'placeable.auto_turret' && entity.isOn) return entity;
+  if (entity.defId === TURRET_DEF_ID && entity.isOn) return entity;
   const grid = entity.containerGrid || (typeof entity.getContainerGrid === 'function' ? entity.getContainerGrid() : null);
   if (grid && grid.items) {
     const items = grid.items instanceof Map
       ? Array.from(grid.items.values())
       : (Array.isArray(grid.items) ? grid.items : Object.values(grid.items));
     for (const it of items) {
-      if (it && it.defId === 'placeable.auto_turret' && it.isOn) return it;
+      if (it && it.defId === TURRET_DEF_ID && it.isOn) return it;
     }
   }
   return null;
@@ -188,7 +189,7 @@ export const EntityRenderer = {
         // Turret icon priority: a carrier (e.g. a wagon) holding a powered-on
         // turret renders AS the turret — it's the exposed, targetable object on
         // this tile. (Standalone turrets already use the turret image.)
-        if (renderTurret && entity.defId !== 'placeable.auto_turret') {
+        if (renderTurret && entity.defId !== TURRET_DEF_ID) {
           effectiveImageId = 'turret';
         }
       }

@@ -2,11 +2,12 @@ import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { ItemDefs, createItemFromDef } from './ItemDefs.js';
 import { GroundManager } from './GroundManager.js';
-import { EquipmentSlot, ItemTrait, ItemCategory, Rarity, FireMode } from './traits.js';
+import { EquipmentSlot, ItemTrait, ItemCategory, Rarity, FireMode, getFuelValue } from './traits.js';
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { CraftingManager } from './CraftingManager.js';
 import audioManager from '../utils/AudioManager.js';
+import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 /**
  * InventoryManager coordinates all containers in the game
@@ -1061,14 +1062,7 @@ export class InventoryManager extends SafeEventEmitter {
   fuelCampfire(fuelItem, targetCampfire) {
     if (!fuelItem || !targetCampfire) return { success: false, reason: 'Invalid items' };
 
-    // 1. Determine fuel value
-    let turnExtension = 0;
-    if (fuelItem.defId === 'crafting.rag') turnExtension = 0.5;
-    else if (fuelItem.defId === 'weapon.stick') turnExtension = 1.0;
-    else if (fuelItem.defId === 'weapon.plank') turnExtension = 1.0;
-    else if (fuelItem.hasCategory?.(ItemCategory.BOOK)) turnExtension = 1.0;
-    else if (fuelItem.hasCategory?.(ItemCategory.CLOTHING)) turnExtension = 0.5;
-    else if (fuelItem.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback
+    const turnExtension = getFuelValue(fuelItem);
 
     if (turnExtension <= 0) {
       return { success: false, reason: 'Item is not valid fuel' };
@@ -1179,12 +1173,7 @@ export class InventoryManager extends SafeEventEmitter {
         categories: item.categories
       });
 
-      let turnExtension = 0;
-      if (item.defId === 'crafting.rag') turnExtension = 0.5;
-      else if (item.defId === 'weapon.stick') turnExtension = 1.0;
-      else if (item.defId === 'weapon.plank') turnExtension = 1.0;
-      else if (item.hasCategory?.(ItemCategory.BOOK)) turnExtension = 1.0;
-      else if (item.hasCategory?.(ItemCategory.FUEL)) turnExtension = 0.5; // Fallback for other fuel items
+      const turnExtension = getFuelValue(item);
 
       if (turnExtension > 0) {
         const totalExtension = turnExtension * (item.stackCount || 1);
@@ -1952,7 +1941,7 @@ export class InventoryManager extends SafeEventEmitter {
       return { success: false, reason: 'Turn off the hotplate before picking it up.' };
     }
 
-    if (itemToMove.defId === 'placeable.auto_turret' && itemToMove.isOn && toContainerId !== 'ground' && !toContainerId.endsWith('-container') && !toContainerId.endsWith('-grid')) {
+    if (itemToMove.defId === TURRET_DEF_ID && itemToMove.isOn && toContainerId !== 'ground' && !toContainerId.endsWith('-container') && !toContainerId.endsWith('-grid')) {
       return { success: false, reason: 'Turn off the auto turret before picking it up.' };
     }
 

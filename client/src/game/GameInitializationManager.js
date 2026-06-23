@@ -1,5 +1,5 @@
 import { EventEmitter } from './utils/EventEmitter.js';
-import { getProgressionForMap } from './config/ProgressionConfig.js';
+import { getProgressionForMap, BASELINE_MAP_AREA } from './config/ProgressionConfig.js';
 import { WorldManager } from './WorldManager.js';
 import { TemplateMapGenerator } from './map/TemplateMapGenerator.js';
 import { GameMap } from './map/GameMap.js';
@@ -461,8 +461,7 @@ class GameInitializationManager extends EventEmitter {
     // Initial map typically has more zombies or specific distribution
     const progression = getProgressionForMap(1); // Explicitly use Map 1
 
-    // Scale by area relative to standard 45x125 map (5625 tiles)
-    const areaMultiplier = (gameMap.width * gameMap.height) / 5625;
+    const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;
     const scale = (v) => Math.floor(v * areaMultiplier);
     const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
 

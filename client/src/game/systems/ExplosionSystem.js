@@ -175,7 +175,7 @@ export class ExplosionSystem {
     });
 
     // 4. Doors within blast radius
-    const allDoors = entities.filter(e => e.type === 'door' || e.type === EntityType.DOOR);
+    const allDoors = entities.filter(e => e.type === EntityType.DOOR);
     allDoors.forEach(door => {
       const doorX = door.logicalX !== undefined ? door.logicalX : door.x;
       const doorY = door.logicalY !== undefined ? door.logicalY : door.y;
@@ -211,7 +211,7 @@ export class ExplosionSystem {
     });
 
     // 5. Windows within blast radius
-    const allWindows = entities.filter(e => e.type === 'window' || e.type === EntityType.WINDOW);
+    const allWindows = entities.filter(e => e.type === EntityType.WINDOW);
     allWindows.forEach(win => {
       const winX = win.logicalX !== undefined ? win.logicalX : win.x;
       const winY = win.logicalY !== undefined ? win.logicalY : win.y;

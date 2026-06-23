@@ -6,7 +6,8 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { ItemTrait } from '../game/inventory/traits.js';
-import { isTurretPassableBy } from '../game/ai/TurretCombat.js';
+import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
+import { MAX_VISION_RANGE } from '../game/config/VisionConfig.js';
 
 const logger = Logger.scope('PlayerContext');
 
@@ -162,8 +163,8 @@ export const PlayerProvider = ({ children }) => {
       { x: player.x, y: player.y - 1, direction: 'up' }
     ].map(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
-      const isPassable = tile && !tile.contents.some(e => e.blocksMovement && e.type !== 'window' && e.type !== 'door' && e.type !== 'EntityType.WINDOW' && e.type !== 'EntityType.DOOR') &&
-        !tile.contents.some(e => e.defId === 'placeable.auto_turret' && !isTurretPassableBy(e, player)) &&
+      const isPassable = tile && !tile.contents.some(e => e.blocksMovement && e.type !== 'window' && e.type !== 'door') &&
+        !tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player)) &&
         !['wall', 'building', 'fence', 'tree'].includes(tile.terrain);
       const hasZombie = tile && tile.contents.some(e => e.type === 'zombie');
       const zombieId = hasZombie ? tile.contents.find(e => e.type === 'zombie')?.id : null;
@@ -204,7 +205,7 @@ export const PlayerProvider = ({ children }) => {
         isAimingWithScope, 
         flashlightRange,
         isNightVision,
-        maxRange: 15 // Default daylight range
+        maxRange: MAX_VISION_RANGE
       });
 
       // Phase 28 Fix: Always use the central engine to calculate FOV.

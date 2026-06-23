@@ -27,7 +27,7 @@ export class DestructionSystem {
       y = target.logicalY !== undefined ? target.logicalY : (target.y || 0);
       
       let npcItems = [];
-      if (target.type === 'npc' || target.type === EntityType.NPC) {
+      if (target.type === EntityType.NPC) {
         npcItems = target.inventory ? target.inventory.getAllItems() : [];
       }
 
@@ -37,17 +37,17 @@ export class DestructionSystem {
       }
 
       // Drop loot on death
-      if (target.type === 'zombie' || target.type === EntityType.ZOMBIE) {
+      if (target.type === EntityType.ZOMBIE) {
         const lootGenerator = engine?.lootGenerator;
         const tile = gameMap ? gameMap.getTile(x, y) : null;
-        const hasWindow = tile?.contents.some(e => e.type === 'window' || e.type === EntityType.WINDOW);
+        const hasWindow = tile?.contents.some(e => e.type === EntityType.WINDOW);
         if (lootGenerator && !hasWindow && Math.random() < 0.75) {
           const loot = lootGenerator.generateZombieLoot(target.subtype, gameMap ? gameMap.mapNumber : 1);
           if (loot && loot.length > 0 && gameMap) {
             gameMap.addItemsToTile(x, y, loot);
           }
         }
-      } else if (target.type === 'npc' || target.type === EntityType.NPC) {
+      } else if (target.type === EntityType.NPC) {
         // Fallback: If engine event loop didn't drop the items (e.g. engine.gameMap not set in tests)
         if (npcItems.length > 0 && gameMap) {
           const tileItems = gameMap.getItemsOnTile(x, y) || [];
@@ -57,7 +57,7 @@ export class DestructionSystem {
           }
           target.inventory.clear();
         }
-      } else if (target.type === 'rabbit' || target.type === EntityType.RABBIT) {
+      } else if (target.type === EntityType.RABBIT) {
         const meat = createItemFromDef('food.raw_meat');
         if (meat && gameMap) {
           gameMap.addItemsToTile(x, y, [meat]);
@@ -72,7 +72,7 @@ export class DestructionSystem {
     }
 
     // Clear targeting references from zombies
-    const zombies = entities.filter(e => e.type === 'zombie' || e.type === EntityType.ZOMBIE);
+    const zombies = entities.filter(e => e.type === EntityType.ZOMBIE);
     zombies.forEach(z => {
       if (z.currentTarget && z.currentTarget.id === targetId) {
         z.currentTarget = null;

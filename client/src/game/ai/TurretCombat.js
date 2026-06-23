@@ -11,7 +11,7 @@
  * Both are surfaced so a powered-on wagon-mounted turret is targetable too.
  */
 
-const TURRET_DEF_ID = 'placeable.auto_turret';
+export const TURRET_DEF_ID = 'placeable.auto_turret';
 
 export function isPoweredTurret(obj) {
   return !!obj && obj.defId === TURRET_DEF_ID && obj.isOn === true;

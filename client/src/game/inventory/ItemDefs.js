@@ -16,6 +16,7 @@ export const ItemDefs = {
     width: 3,
     height: 3,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
     containerGrid: { width: 4, height: 5 }
   },
@@ -29,6 +30,7 @@ export const ItemDefs = {
     width: 3,
     height: 3,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
     containerGrid: { width: 4, height: 4 }
   },
@@ -43,6 +45,7 @@ export const ItemDefs = {
     width: 4,
     height: 4,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
     containerGrid: { width: 5, height: 7 }
   },
@@ -56,6 +59,7 @@ export const ItemDefs = {
     width: 5,
     height: 5,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
+    categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
     containerGrid: { width: 6, height: 10 }
   },

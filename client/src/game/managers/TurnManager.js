@@ -234,7 +234,7 @@ class TurnManager {
       }
 
       case 'ATTACK': {
-        const eventType = (entity.type === 'npc' || entity.type === EntityType.NPC) ? GAME_EVENT.NPC_ATTACK : GAME_EVENT.ZOMBIE_ATTACK;
+        const eventType = (entity.type === EntityType.NPC) ? GAME_EVENT.NPC_ATTACK : GAME_EVENT.ZOMBIE_ATTACK;
         
         // 1. Play visual animation with synchronized feedback trigger
         if (entity && typeof entity.playAction === 'function') {
@@ -286,7 +286,7 @@ class TurnManager {
 
           // Check if target died from the damage (visual triggers only)
           if (typeof target.isDead === 'function' && target.isDead()) {
-            if (target.type === 'zombie' || target.type === EntityType.ZOMBIE) {
+            if (target.type === EntityType.ZOMBIE) {
               if (!this.flashedEntityIds.has(target.id)) {
                 GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: target.logicalX ?? target.x, y: target.logicalY ?? target.y });
                 this.flashedEntityIds.add(target.id);
@@ -315,7 +315,7 @@ class TurnManager {
         const deathX = entity ? (entity.logicalX ?? entity.x) : data?.x;
         const deathY = entity ? (entity.logicalY ?? entity.y) : data?.y;
         
-        if ((entityType === 'zombie' || entityType === EntityType.ZOMBIE) && deathX !== undefined && deathY !== undefined) {
+        if (entityType === EntityType.ZOMBIE && deathX !== undefined && deathY !== undefined) {
           if (!this.flashedEntityIds.has(entityId)) {
             GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: deathX, y: deathY });
             this.flashedEntityIds.add(entityId);

@@ -244,7 +244,7 @@ export const SleepProvider = ({ children }) => {
               addEffect({ type: 'damage', x: targetPos.x, y: targetPos.y, value: 'bang', color: '#ffffff', duration: 800 });
             }
           } else if (action.type === 'ATTACK' && action.data.targetType === 'player') {
-            if (entity && (entity.type === 'zombie' || entity.type === EntityType.ZOMBIE)) {
+            if (entity && (entity.type === EntityType.ZOMBIE)) {
               if (action.data.success) {
                 player.takeDamage(action.data.damage, entity);
                 if (action.data.bleedingInflicted) player.setBleeding(true);
@@ -254,11 +254,11 @@ export const SleepProvider = ({ children }) => {
               }
               GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: action.data.success, zombieId: entity.id });
               hitByZombie = true;
-            } else if (entity && (entity.type === 'npc' || entity.type === EntityType.NPC)) {
+            } else if (entity && (entity.type === EntityType.NPC)) {
               npcInterruption = true;
             }
           } else if (action.type === 'DEMAND') {
-            if (entity && (entity.type === 'npc' || entity.type === EntityType.NPC) && !entity.hasDemanded) {
+            if (entity && (entity.type === EntityType.NPC) && !entity.hasDemanded) {
               npcInterruption = true;
             }
           }

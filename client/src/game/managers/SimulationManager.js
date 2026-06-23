@@ -10,7 +10,7 @@ import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { TurretAI } from '../ai/TurretAI.js';
-import { getExposedTurretTargets } from '../ai/TurretCombat.js';
+import { getExposedTurretTargets, TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { FireSystem } from '../systems/FireSystem.js';
 import { DestructionSystem } from '../systems/DestructionSystem.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
@@ -96,7 +96,7 @@ export class SimulationManager {
       // scan and the ground-container scan so both behave identically.
       const fireTurretFromItem = (item, atX, atY) => {
         if (!item) return;
-        if (item.defId === 'placeable.auto_turret' && item.isOn) {
+        if (item.defId === TURRET_DEF_ID && item.isOn) {
           const result = TurretAI.executeTurretTurn(item, atX, atY, gameMap, turretTargets);
           if (result.actions?.length) actionQueue.push(...result.actions);
           return;
@@ -251,7 +251,7 @@ export class SimulationManager {
   static checkAndProcessDeaths(gameMap, ecsEntities, intentQueue, actionQueue, player) {
     const allEntities = Array.from(gameMap.entityMap.values());
     const checkList = allEntities.filter(e => 
-      e && e.id !== player.id && (e.type === 'zombie' || e.type === 'npc' || e.type === 'rabbit' || e.type === EntityType.ZOMBIE || e.type === EntityType.NPC || e.type === EntityType.RABBIT)
+      e && e.id !== player.id && (e.type === EntityType.ZOMBIE || e.type === EntityType.NPC || e.type === EntityType.RABBIT)
     );
 
     let diedAny = false;

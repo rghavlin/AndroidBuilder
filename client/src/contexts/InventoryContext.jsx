@@ -9,6 +9,7 @@ import Logger from '../game/utils/Logger.js';
 import engine from '../game/GameEngine.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { TurnProcessingUtils } from '../game/utils/TurnProcessingUtils.js';
+import { TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 
 const logger = Logger.scope('InventoryContext');
 
@@ -380,7 +381,7 @@ export const InventoryProvider = ({ children }) => {
       playSound('Fail');
       return false;
     }
-    if (item && item.defId === 'placeable.auto_turret' && item.isOn) {
+    if (item && item.defId === TURRET_DEF_ID && item.isOn) {
       addLog('Turn off the auto turret before picking it up.', 'error');
       playSound('Fail');
       return false;

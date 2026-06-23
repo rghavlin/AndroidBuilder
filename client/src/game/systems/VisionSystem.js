@@ -173,14 +173,14 @@ export class VisionSystem {
     if (tile.contents && Array.isArray(tile.contents)) {
       for (const entity of tile.contents) {
         // Doors block sight when closed and not broken
-        if (entity.type === 'door' || entity.type === 'EntityType.DOOR') {
+        if (entity.type === 'door') {
           if (entity.edge !== undefined) continue;
           if (!entity.isOpen && !entity.isBroken) {
             return true;
           }
         }
         // Windows do not block sight
-        if (entity.type === 'window' || entity.type === 'EntityType.WINDOW') {
+        if (entity.type === 'window') {
           continue;
         }
         if (entity.blocksSight === true) {
@@ -213,14 +213,14 @@ export class VisionSystem {
     if (!hasWall) return false;
 
     // Check if there is a door/window on that edge
-    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'EntityType.DOOR' || e.type === 'EntityType.WINDOW') && (!e.edge || e.edge === dir1to2));
-    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'EntityType.DOOR' || e.type === 'EntityType.WINDOW') && (!e.edge || e.edge === dir2to1));
+    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir1to2));
+    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir2to1));
     const allBreachable = [...breachable1, ...breachable2];
 
     if (allBreachable.length === 0) return true; // Solid wall blocks sight
 
     for (const e of allBreachable) {
-      if ((e.type === 'door' || e.type === 'EntityType.DOOR') && !e.isOpen && !e.isBroken) {
+      if ((e.type === 'door') && !e.isOpen && !e.isBroken) {
         return true; // Closed door blocks sight
       }
       // Open doors or windows (even closed/broken) allow sight

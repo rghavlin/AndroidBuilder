@@ -5,6 +5,7 @@ import { PocketLayouts } from './PocketLayouts.js';
 import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
+import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 /**
  * Item Instance - Runtime item with state
@@ -636,7 +637,7 @@ export class Item extends SafeEventEmitter {
   }
 
   isAutoTurret() {
-    return this.defId === 'placeable.auto_turret';
+    return this.defId === TURRET_DEF_ID;
   }
 
   /**

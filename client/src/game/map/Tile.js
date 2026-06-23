@@ -2,7 +2,7 @@
  * Tiles are the core building blocks - they know their state and emit events
  */
 import { EntityType } from '../entities/Entity.js';
-import { isTurretPassableBy } from '../ai/TurretCombat.js';
+import { isTurretPassableBy, TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 export class Tile {
   constructor(x, y, terrain = 'grass') {
@@ -62,8 +62,8 @@ export class Tile {
     let hasEntry = false;
     
     // Determine if the entity is the player
-    const isZombie = options.isZombie || (entity && (entity.type === 'zombie' || entity.type === EntityType.ZOMBIE));
-    const isNPC = entity && (entity.type === 'npc' || entity.type === EntityType.NPC);
+    const isZombie = options.isZombie || (entity && entity.type === EntityType.ZOMBIE);
+    const isNPC = entity && entity.type === EntityType.NPC;
     const isPlayer = !isZombie && !isNPC;
 
     for (const item of this.contents) {
@@ -104,7 +104,7 @@ export class Tile {
       // Powered-on turrets block movement for everyone except their own faction
       // (the player can always step onto their own turret to retrieve it). Inert
       // turrets are walkable by all. This is dynamic, independent of blocksMovement.
-      if (item.defId === 'placeable.auto_turret') {
+      if (item.defId === TURRET_DEF_ID) {
         if (isTurretPassableBy(item, entity)) continue;
         // Same-tile safety: never block a mover already standing on this tile.
         if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;

@@ -1,5 +1,5 @@
 import Logger from './utils/Logger.js';
-import { getProgressionForMap } from './config/ProgressionConfig.js';
+import { getProgressionForMap, BASELINE_MAP_AREA } from './config/ProgressionConfig.js';
 import GameEvents, { GAME_EVENT } from './utils/GameEvents.js';
 import { compressString, decompressString } from './GameSaveSystem.js';
 
@@ -351,7 +351,7 @@ export class WorldManager {
         if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
       }
 
-      const areaMultiplier = (gameMap.width * gameMap.height) / 5625;
+      const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;
       const scale = (v) => Math.floor(v * areaMultiplier);
       const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
 
@@ -812,7 +812,7 @@ export class WorldManager {
           if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
         }
 
-        const areaMultiplier = (gameMap.width * gameMap.height) / 5625;
+        const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;
         const scale = (v) => Math.floor(v * areaMultiplier);
         const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
 

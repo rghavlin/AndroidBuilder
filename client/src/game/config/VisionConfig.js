@@ -2,6 +2,9 @@
  * Centralized configuration and helpers for vision mechanics (e.g. Day/Night cycle, weather reductions)
  */
 
+export const MAX_VISION_RANGE = 15;
+export const FLASHLIGHT_RANGE = 8;
+
 /**
  * Calculates base ambient sight range based on the hour of the day.
  * @param {number} hour - Hour of the day (0 to 23)

@@ -1,5 +1,6 @@
 
 import { ItemCategory } from './traits.js';
+import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 /**
  * Crafting Recipes Definition
@@ -430,7 +431,7 @@ export const CraftingRecipes = [
     {
         id: 'crafting.auto_turret',
         name: 'Auto Turret',
-        resultItem: 'placeable.auto_turret',
+        resultItem: TURRET_DEF_ID,
         description: 'A fully automated defensive turret that detects and eliminates zombies within range. Requires a large battery for power and a .556 magazine for ammunition.',
         apCost: 20,
         tab: 'crafting',

@@ -52,7 +52,9 @@ export const ItemCategory = {
   AMMO_POUCH: 'ammo_pouch',
   TOOL_RING: 'tool_ring',
   BELT_POUCH: 'belt_pouch',
-  BOOK: 'book'
+  BOOK: 'book',
+  CONTAINER: 'container',
+  FURNITURE: 'furniture'
 };
 
 // Trait flags
@@ -120,7 +122,9 @@ export const CategoryDisplayName = {
   [ItemCategory.AMMO_POUCH]: 'misc',
   [ItemCategory.TOOL_RING]: 'misc',
   [ItemCategory.BELT_POUCH]: 'misc',
-  [ItemCategory.BOOK]: 'misc'
+  [ItemCategory.BOOK]: 'misc',
+  [ItemCategory.CONTAINER]: 'containers',
+  [ItemCategory.FURNITURE]: 'furniture'
 };
 
 // Map equipment slots to user-friendly category fallbacks
@@ -149,3 +153,19 @@ export const CategoryPriority = {
   'containers': 11,
   'misc': 12
 };
+
+const FUEL_VALUES = {
+  'crafting.rag': 0.5,
+  'weapon.stick': 1.0,
+  'weapon.plank': 1.0,
+};
+
+export function getFuelValue(item) {
+  if (!item) return 0;
+  const byDefId = FUEL_VALUES[item.defId];
+  if (byDefId !== undefined) return byDefId;
+  if (item.hasCategory?.(ItemCategory.BOOK)) return 1.0;
+  if (item.hasCategory?.(ItemCategory.CLOTHING)) return 0.5;
+  if (item.hasCategory?.(ItemCategory.FUEL)) return 0.5;
+  return 0;
+}

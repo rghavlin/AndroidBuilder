@@ -2,6 +2,11 @@
  * ProgressionConfig - Centralized difficulty scaling for map progression
  */
 
+// Standard 45x125 map area — used to scale entity counts for larger/smaller maps
+export const BASELINE_MAP_AREA = 5625;
+
+export const DEFAULT_DANGER_RADIUS = 8;
+
 export const LootProgression = {
   WATER_BOTTLE_RESTRICTION_MAP: 3,
 };

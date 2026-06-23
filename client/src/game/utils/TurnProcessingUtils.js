@@ -1,4 +1,5 @@
 import { ItemTrait } from '../inventory/traits.js';
+import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 /**
  * TurnProcessingUtils - Shared logic for turn-based item effects.
@@ -74,7 +75,7 @@ export const TurnProcessingUtils = {
      * @returns {boolean} - Whether the item was modified
      */
     processAutoTurretDrain(itemData) {
-        if (itemData.defId !== 'placeable.auto_turret') return false;
+        if (itemData.defId !== TURRET_DEF_ID) return false;
 
         // Neutral/non-player turrets have infinite power and stay permanently on.
         const isInfinite = typeof itemData.isInfiniteTurret === 'function'

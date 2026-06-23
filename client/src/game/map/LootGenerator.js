@@ -3,7 +3,7 @@ import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
 import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
 import { ZombieTypes } from '../entities/ZombieTypes.js';
-import { LootProgression } from '../config/ProgressionConfig.js';
+import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.js';
 
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
@@ -191,10 +191,8 @@ export class LootGenerator {
             }
         }
 
-        // Calculate area-based multiplier (Baseline: 45x125 = 5625 tiles)
-        const baselineArea = 5625;
         const currentArea = gameMap.width * gameMap.height;
-        const areaMultiplier = currentArea / baselineArea;
+        const areaMultiplier = currentArea / BASELINE_MAP_AREA;
 
         const outdoorDropCount = Math.floor((18 + Math.floor(Math.random() * 7)) * areaMultiplier);
         const selectedOutdoor = this.getRandomSubarray(outdoorTiles, outdoorDropCount);

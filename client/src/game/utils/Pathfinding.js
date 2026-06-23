@@ -395,8 +395,8 @@ export class Pathfinding {
   static isTileWalkable(tile, entityOrFilter = null, options = {}) {
     if (entityOrFilter && typeof entityOrFilter === 'function') return entityOrFilter(tile);
     
-    const isZombie = options.isZombie || (entityOrFilter && (entityOrFilter.type === 'zombie' || entityOrFilter.type === EntityType.ZOMBIE));
-    const isNPC = options.isNPC || (entityOrFilter && (entityOrFilter.type === 'npc' || entityOrFilter.type === EntityType.NPC));
+    const isZombie = options.isZombie || (entityOrFilter && entityOrFilter.type === EntityType.ZOMBIE);
+    const isNPC = options.isNPC || (entityOrFilter && entityOrFilter.type === EntityType.NPC);
     
     // SAFETY: If we are checking the entity's current position, it MUST be walkable
     // (Prevents being stuck if a door closes on the zombie's current tile)
@@ -455,12 +455,12 @@ export class Pathfinding {
     const wallBlocks = (tile1.edgeWalls && tile1.edgeWalls[dir1to2]) || (tile2.edgeWalls && tile2.edgeWalls[dir2to1]);
     
     if (wallBlocks) {
-      const isZombie = options.isZombie || (entity && typeof entity !== 'function' && entity.type === 'zombie');
-      const isNPC = entity && typeof entity !== 'function' && entity.type === 'npc';
+      const isZombie = options.isZombie || (entity && typeof entity !== 'function' && entity.type === EntityType.ZOMBIE);
+      const isNPC = entity && typeof entity !== 'function' && entity.type === EntityType.NPC;
       const isPlayer = !isZombie && !isNPC;
 
-      const breachable1 = tile1.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir1to2));
-      const breachable2 = tile2.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir2to1));
+      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir1to2));
+      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir2to1));
       
       const allBreachable = [...breachable1, ...breachable2];
       
@@ -488,9 +488,9 @@ export class Pathfinding {
     if (!tile1 || !tile2) return null;
 
     // Check full-tile structures on target tile
-    const fullTileStructure = tile2.contents.find(e => 
-      (((e.type === EntityType.DOOR || e.type === 'door') && !e.isOpen && !e.isDamaged && !e.isBroken) || 
-       ((e.type === EntityType.WINDOW || e.type === 'window') && (e.isReinforced || (!e.isBroken && !e.isOpen)))) && 
+    const fullTileStructure = tile2.contents.find(e =>
+      ((e.type === EntityType.DOOR && !e.isOpen && !e.isDamaged && !e.isBroken) ||
+       (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) &&
       !e.edge
     );
     if (fullTileStructure) return fullTileStructure;
@@ -504,13 +504,13 @@ export class Pathfinding {
     else if (y2 < y1) { dir1to2 = 'n'; dir2to1 = 's'; }
 
     if (dir1to2) {
-      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir1to2));
-      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir2to1));
-      
+      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir1to2));
+      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir2to1));
+
       const allBreachable = [...breachable1, ...breachable2];
       for (const e of allBreachable) {
-        if (((e.type === EntityType.DOOR || e.type === 'door') && !e.isOpen && !e.isDamaged && !e.isBroken) || 
-            ((e.type === EntityType.WINDOW || e.type === 'window') && (e.isReinforced || (!e.isBroken && !e.isOpen)))) {
+        if ((e.type === EntityType.DOOR && !e.isOpen && !e.isDamaged && !e.isBroken) ||
+            (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) {
           return e;
         }
       }

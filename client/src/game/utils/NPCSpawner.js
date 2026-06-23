@@ -2,6 +2,7 @@ import { EntityFactory } from '../EntityFactory.js';
 import { Item } from '../inventory/Item.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { getNPCType } from '../entities/NPCTypes.js';
+import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 
 /**
@@ -64,7 +65,7 @@ export class NPCSpawner {
               const ty = y + dy;
               if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
               const neighborTile = gameMap.getTile(tx, ty);
-              if (neighborTile && neighborTile.contents.some(e => e.type === 'zombie' || e.type === 'EntityType.ZOMBIE')) {
+              if (neighborTile && neighborTile.contents.some(e => e.type === 'zombie')) {
                 zombieNearby = true;
                 break;
               }
@@ -303,7 +304,7 @@ export class NPCSpawner {
     let count = 0;
     for (const x of positions) {
       if (x < 0 || x >= gameMap.width) continue;
-      const turretData = createItemFromDef('placeable.auto_turret', { factionId: 'town', isOn: true });
+      const turretData = createItemFromDef(TURRET_DEF_ID, { factionId: 'town', isOn: true });
       if (!turretData) continue;
       const turret = new Item(turretData);
       turret.factionId = 'town';

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Wrench, Zap, Power, Battery } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipPortal } from "@/components/ui/tooltip";
 import { ItemTrait } from '../../game/inventory/traits.js';
+import { TURRET_DEF_ID } from '../../game/ai/TurretCombat.js';
 
 interface FloatingContainerOverlayProps {
   item: any;
@@ -47,7 +48,7 @@ export default function FloatingContainerOverlay({
    const isPlanter = item.hasTrait?.(ItemTrait.PLANTER);
    const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
    const isHotplate = item.defId === 'tool.battery_powered_hotplate';
-   const isAutoTurret = item.defId === 'placeable.auto_turret';
+   const isAutoTurret = item.defId === TURRET_DEF_ID;
 
   const handleSelectPlanter = (e: React.MouseEvent) => {
     if (!isPlanter || isDragging || isDraggingSeed) return;

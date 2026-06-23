@@ -6,6 +6,7 @@ import { ItemDefs } from '../inventory/ItemDefs.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 import engine from '../GameEngine.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
+import { DEFAULT_DANGER_RADIUS } from '../config/ProgressionConfig.js';
 
 /**
  * NPCAI - Handles decision making for NPCs (Travelers heading south)
@@ -46,7 +47,7 @@ export class NPCAI {
         // Priority 1: Flee from zombies (Avoidance)
         if (threats.length > 0) {
           const typeDef = getNPCType(npc.typeId);
-          const dangerRadius = typeDef.ai?.dangerRadius || 5;
+          const dangerRadius = typeDef.ai?.dangerRadius || DEFAULT_DANGER_RADIUS;
           const surroundThreshold = typeDef.ai?.surroundThreshold || 3;
           
           const realThreatsInDangerZone = threats.filter(t => {
@@ -125,7 +126,7 @@ export class NPCAI {
   static evaluateZombieThreats(npc, gameMap, zombies) {
     const currentTurn = engine.turn || 1;
     const typeDef = getNPCType(npc.typeId);
-    const dangerRadius = typeDef.ai?.dangerRadius || 8;
+    const dangerRadius = typeDef.ai?.dangerRadius || DEFAULT_DANGER_RADIUS;
     
     // Clean up old memory (older than 3 turns or simulated dead)
     npc.recentThreats = (npc.recentThreats || []).filter(t => {
@@ -167,7 +168,7 @@ export class NPCAI {
     npc.recentThreats = (npc.recentThreats || []).filter(t => {
       if (npc.canSeePosition(gameMap, t.x, t.y)) {
         const tile = gameMap.getTile(t.x, t.y);
-        const hasZombie = tile && tile.contents.some(e => e.type === EntityType.ZOMBIE || e.type === 'zombie');
+        const hasZombie = tile && tile.contents.some(e => e.type === EntityType.ZOMBIE);
         if (!hasZombie) {
           if (this.DEBUG) {
             console.log(`[NPCAI] Memory threat at (${t.x}, ${t.y}) cleared because tile is empty and in LOS.`);
@@ -626,7 +627,7 @@ export class NPCAI {
     if (nextStep) {
       // Safety check: Does this next step put us within dangerRadius of a known threat?
       const typeDef = getNPCType(npc.typeId);
-      const dangerRadius = typeDef.ai?.dangerRadius || 8;
+      const dangerRadius = typeDef.ai?.dangerRadius || DEFAULT_DANGER_RADIUS;
       const memoryDangerRadius = Math.max(3, dangerRadius - 1);
       
       const entersDangerZone = (npc.recentThreats || []).some(t => {

@@ -2,7 +2,7 @@
 import { CraftingRecipes } from './CraftingRecipes.js';
 import { Item } from './Item.js';
 import { ItemDefs, createItemFromDef, getItemName } from './ItemDefs.js';
-import { ItemCategory, ItemTrait } from './traits.js';
+import { ItemCategory, ItemTrait, getFuelValue } from './traits.js';
 
 export class CraftingManager {
     constructor(inventoryManager) {
@@ -231,11 +231,7 @@ export class CraftingManager {
             const candidates = ingredientContainer.getAllItems();
             const fuelItem = candidates.find(i => i.hasCategory(ItemCategory.FUEL));
             if (fuelItem) {
-                if (fuelItem.defId === 'crafting.rag') lifetimeTurns = 0.5;
-                else if (fuelItem.defId === 'weapon.stick') lifetimeTurns = 1.0;
-                else if (fuelItem.defId === 'weapon.plank') lifetimeTurns = 1.0;
-                else if (fuelItem.hasCategory(ItemCategory.CLOTHING)) lifetimeTurns = 0.5;
-                else if (fuelItem.hasCategory(ItemCategory.FUEL)) lifetimeTurns = 0.5;
+                lifetimeTurns = getFuelValue(fuelItem);
                 console.log(`[CraftingManager] Campfire fuel identified: ${fuelItem.name}, lifetime: ${lifetimeTurns} turns`);
             }
         }
