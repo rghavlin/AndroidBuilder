@@ -20,7 +20,7 @@ export const LogProvider = ({ children }) => {
     const lastAtmosphereLogTime = React.useRef(0);
 
     const addLog = useCallback((message, type = 'info') => {
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = Math.random().toString(36).substring(2, 11);
         const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         
         // Define colors/styles based on type

@@ -44,6 +44,10 @@ class EarbucksShopSystem {
   }
 
   addItem(mapId, { defId, name, price, stock = null }) {
+    if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) {
+      console.warn(`[EarbucksShopSystem] Ignoring addItem for "${defId}": invalid price ${price} (must be a positive number)`);
+      return;
+    }
     this.initCatalog(mapId);
     const mapEntry = engine.worldManager?.maps.get(mapId);
     if (!mapEntry || !mapEntry.metadata) return;

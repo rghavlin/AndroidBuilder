@@ -157,7 +157,7 @@ export class NPCSpawner {
     const typeId = options.typeId || 'survivor';
     const typeDef = getNPCType(typeId);
     
-    const id = `npc_${gameRandom.next().toString(36).substr(2, 9)}`;
+    const id = `npc_${gameRandom.next().toString(36).substring(2, 11)}`;
     const name = options.name || typeDef.name || 'Survivor';
     
     const isHostile = options.isHostile !== undefined 

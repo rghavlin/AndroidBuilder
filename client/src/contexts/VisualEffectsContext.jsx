@@ -30,7 +30,7 @@ export const VisualEffectsProvider = ({ children }) => {
      */
     const addEffect = useCallback((effect) => {
         const newEffect = {
-            id: `eff_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            id: `eff_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             startTime: performance.now(),
             duration: 1000, // Default duration 1s
             ...effect

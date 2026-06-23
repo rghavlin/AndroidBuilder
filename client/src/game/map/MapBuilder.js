@@ -52,7 +52,7 @@ export class MapBuilder {
     const inArea = (mx, my) => (mx >= x && mx < x + w && my >= y && my < y + h);
     
     this.metadata.doors = this.metadata.doors.filter(d => !inArea(d.x, d.y));
-    this.metadata.windows = this.metadata.windows.filter(w => !inArea(w.x, w.y));
+    this.metadata.windows = this.metadata.windows.filter(win => !inArea(win.x, win.y));
     this.metadata.placeIcons = this.metadata.placeIcons.filter(i => !inArea(i.x, i.y));
     // Filter buildings that intersect the area
     this.metadata.buildings = this.metadata.buildings.filter(b => {

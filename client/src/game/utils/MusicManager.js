@@ -6,7 +6,7 @@ import audioManager from './AudioManager';
  */
 class MusicManager {
     constructor() {
-        this.id = Math.random().toString(36).substr(2, 9);
+        this.id = Math.random().toString(36).substring(2, 11);
         this.playlists = {};
         this.currentPlaylist = null;
         this.currentTrackIndex = 0;

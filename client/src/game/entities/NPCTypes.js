@@ -85,5 +85,8 @@ export const NPCTypes = {
  * @returns {Object}
  */
 export function getNPCType(subtype) {
+  if (subtype && !NPCTypes[subtype]) {
+    console.warn(`[NPCTypes] Unknown NPC subtype "${subtype}", falling back to survivor`);
+  }
   return NPCTypes[subtype] || NPCTypes.survivor;
 }

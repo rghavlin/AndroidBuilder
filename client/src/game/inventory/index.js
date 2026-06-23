@@ -153,7 +153,7 @@ export function createItem(type, subtype, options = {}) {
   const template = ITEM_TEMPLATES[templateKey] || {};
 
   const defaults = {
-    id: `${type}-${actualSubtype}-${Date.now()}-${gameRandom.next().toString(36).substr(2, 5)}`,
+    id: `${type}-${actualSubtype}-${Date.now()}-${gameRandom.next().toString(36).substring(2, 7)}`,
     type,
     subtype: actualSubtype,
     name: `${actualSubtype.charAt(0).toUpperCase() + actualSubtype.slice(1)} ${type}`,
@@ -200,7 +200,7 @@ export function createAttachment(subtype, options = {}) {
 // Convenience function to create containers
 export function createContainer(type, options = {}) {
   const defaults = {
-    id: `${type}-container-${Date.now()}-${gameRandom.next().toString(36).substr(2, 5)}`,
+    id: `${type}-container-${Date.now()}-${gameRandom.next().toString(36).substring(2, 7)}`,
     type,
     name: `${type} Container`,
     ...options

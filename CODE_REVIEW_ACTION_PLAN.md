@@ -318,47 +318,70 @@ Address hot-path issues that will matter as maps get larger.
 
 Low-risk items to address as you touch adjacent code.
 
-- [ ] **P7-01** Set `NPCAI.DEBUG = false`
+- [x] **P7-01** Set `NPCAI.DEBUG = false`
 
 - [ ] **P7-02** Gate console.log calls behind debug flags or use Logger utility consistently
+  - Deferred: not a discrete fix — this is a codebase-wide stylistic sweep across hundreds of
+    call sites and should be tackled as its own focused pass, not bundled into polish.
 
-- [ ] **P7-03** Rename `Container.autoSort()` method to `performAutoSort()` to avoid shadowing the boolean property
+- [x] **P7-03** Rename `Container.autoSort()` method to `performAutoSort()` to avoid shadowing the boolean property
+  - Done: renamed the method (the instance boolean `this.autoSort` shadowed it). No external
+    callers existed (`.autoSort()` was never invoked anywhere), so the rename is non-breaking.
 
-- [ ] **P7-04** Fix `Item.js` double-assignment of `dragApPenalty`/`noDrag` (lines 214-215 and 242-248)
+- [x] **P7-04** Fix `Item.js` double-assignment of `dragApPenalty`/`noDrag`
+  - Done: removed the second (identical) `dragApPenalty`/`noDrag` inherit block; the first one
+    higher in the def-merge already covers it.
 
-- [ ] **P7-05** Remove dead `getDefId` check in `Item.js:999`
+- [x] **P7-05** Remove dead `getDefId` check in `Item.js` `canStackWith`
+  - Done: `otherItem.getDefId?.()` always returned undefined (no such method); simplified to
+    `this.defId !== otherItem.defId`.
 
-- [ ] **P7-06** Remove dead `insideWeight` field in LootGenerator.js:29
+- [x] **P7-06** Remove dead `insideWeight` field in LootGenerator constructor
 
-- [ ] **P7-07** Remove orphaned JSDoc comment block in LootGenerator.js:389
+- [x] **P7-07** Remove orphaned JSDoc comment block in LootGenerator (doubled `/**` above `spawnGenerator`)
 
-- [ ] **P7-08** Fix variable shadowing `w` in MapBuilder.js:53 (`clearArea` filter callback)
+- [x] **P7-08** Fix variable shadowing `w` in MapBuilder `clearArea` filter callback
+  - Done: renamed the windows-filter param `w` → `win` (was shadowing the `w` width arg).
 
-- [ ] **P7-09** Change `let dist` to `const dist` in TurretAI.js:104
+- [x] **P7-09** Change `let dist` to `const dist` in TurretAI
+  - Already satisfied: the P4-06 refactor left it as `const dist`.
 
 - [x] **P7-10** Use `instanceId` comparison only in `removeDestroyedTurret` (drop reference-equality check)
   - Done: simplified nested container item scan in `removeDestroyedTurret` to use only `instanceId` checks.
 
-- [ ] **P7-11** Replace `Math.random().toString(36).substr()` with `substring()` (deprecated method)
-  - NPCSpawner.js:179, ItemDefs.js:2580
+- [x] **P7-11** Replace `Math.random().toString(36).substr()` with `substring()` (deprecated method)
+  - Done: converted all 9 `.substr(2, n)` call sites in client/src to `.substring(2, 2+n)`
+    (preserving length): VisualEffectsContext, LogContext, ItemDefs, NPCSpawner, MusicManager,
+    inventory/index (×2), GameEvents, AudioManager, GameInitializationManager.
 
 - [ ] **P7-12** Standardize `SPECIAL_BUILDING_LOOT` table format in LootTables.js
-  - Some entries are flat arrays, others are nested objects
+  - Deferred: the two shapes (weighted `{key,weight}` arrays vs categorized string-arrays + `rules`)
+    back genuinely different spawn logic in LootGenerator (~lines 905-1166). "Standardizing" means
+    rewriting that bespoke consumer code — a real refactor with regression risk, not a polish item.
 
 - [ ] **P7-13** Remove catch-all property copy loop in Item constructor
-  - Item.js:318 — `for (const [key, value] of Object.entries(config))` copies any unknown property
+  - Deferred: this loop is load-bearing — it round-trips dynamic/custom item properties through
+    serialization. Removing it risks silent data loss; needs a deliberate field allow-list instead.
 
-- [ ] **P7-14** Add price validation in EarbucksShopSystem.addItem
-  - Zero/negative prices allow free or earbuck-generating purchases
+- [x] **P7-14** Add price validation in EarbucksShopSystem.addItem
+  - Done: rejects non-finite or `<= 0` prices with a warning before mutating the catalog.
 
-- [ ] **P7-15** Remove stale `window.gameInitInstances` tracking from GameInitializationManager
+- [x] **P7-15** Remove stale `window.gameInitInstances` tracking from GameInitializationManager
+  - Done: dropped the global Set (constructor add, reset() delete) and its consumers in
+    GameContext (HMR-clear, duplicate-guard, cleanup-delete). The `initManagerRef.current` guard
+    already prevents duplicate creation (shared across StrictMode double-invokes).
 
-- [ ] **P7-16** Log warning for unknown NPC subtype fallback in NPCTypes.js:88
+- [x] **P7-16** Log warning for unknown NPC subtype fallback in NPCTypes `getNPCType`
+  - Done: warns only when a truthy-but-unrecognized subtype is passed (undefined still silently
+    defaults to survivor).
 
-- [ ] **P7-17** Fix Item constructor fireMode conditional clarity (Item.js:264)
+- [x] **P7-17** Fix Item constructor fireMode conditional clarity
+  - Done: changed `this.fireMode === FireMode.SINGLE` to `=== undefined` — matches the surrounding
+    inherit-from-def pattern and actually lets `def.fireMode` apply (SINGLE isn't set until later).
 
-- [ ] **P7-18** Fix SimulationManager item position fallback to player position
-  - SimulationManager.js:117 — skip items lacking coordinates instead of guessing player position
+- [x] **P7-18** Fix SimulationManager item position fallback to player position
+  - Done: on-map item scan now skips items lacking `logicalX`/`logicalY` instead of firing them
+    from the player's position; the ground-container scan already covers detached/on-player items.
 
 ---
 

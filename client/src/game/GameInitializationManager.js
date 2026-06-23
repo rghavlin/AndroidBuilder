@@ -30,23 +30,10 @@ class GameInitializationManager extends EventEmitter {
     this.error = null;
     this.preloadData = null;
 
-    // Add unique instance tracking to detect duplicates
-    this.instanceId = `GameInitManager_${Date.now()}_${gameRandom.next().toString(36).substr(2, 9)}`;
+    // Unique instance id (used in logs to distinguish managers)
+    this.instanceId = `GameInitManager_${Date.now()}_${gameRandom.next().toString(36).substring(2, 11)}`;
     if (isDev) {
       console.log(`[GameInitializationManager] 🆔 NEW INSTANCE CREATED: ${this.instanceId}`);
-    }
-
-    // Track all instances globally to detect duplicates
-    if (!window.gameInitInstances) {
-      window.gameInitInstances = new Set();
-    }
-    window.gameInitInstances.add(this.instanceId);
-    if (isDev) {
-      console.log(`[GameInitializationManager] 📊 TOTAL INSTANCES NOW ACTIVE: ${window.gameInitInstances.size}`);
-      if (window.gameInitInstances.size > 1) {
-        console.error(`[GameInitializationManager] 🚨🚨🚨 MULTIPLE INITIALIZATION MANAGERS DETECTED!`);
-        console.error(`[GameInitializationManager] Active instances:`, Array.from(window.gameInitInstances));
-      }
     }
   }
 
@@ -472,12 +459,6 @@ class GameInitializationManager extends EventEmitter {
     this.preloadData = null;
     this.customConfig = null;
     this.removeAllListeners();
-
-    // Clean up global tracking
-    if (window.gameInitInstances && this.instanceId) {
-      window.gameInitInstances.delete(this.instanceId);
-      console.log(`[GameInitializationManager] Removed instance ${this.instanceId} from global tracking`);
-    }
   }
 
   destroy() {

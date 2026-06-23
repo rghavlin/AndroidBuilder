@@ -43,7 +43,6 @@ export function getFoodRejectionChance(mapNumber) {
  */
 export class LootGenerator {
     constructor() {
-        this.insideWeight = 0.75; // Legacy, kept for compatibility if needed
         this.itemKeys = [];
         this.backpacksSpawned = 0;
     }
@@ -391,7 +390,6 @@ export class LootGenerator {
         }
     }
 
-    /**
     /**
      * Spawn generators behind buildings (2-4 on large map)
      */

@@ -241,13 +241,6 @@ export class Item extends SafeEventEmitter {
         });
       }
 
-      // Sync dragApPenalty
-      if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) {
-        this.dragApPenalty = def.dragApPenalty;
-      }
-      if (def.noDrag !== undefined && this.noDrag === undefined) {
-        this.noDrag = def.noDrag;
-      }
       if (def.isLocked !== undefined && this.isLocked === undefined) {
         this.isLocked = def.isLocked;
       }
@@ -263,7 +256,7 @@ export class Item extends SafeEventEmitter {
       if (def.providesElectricity !== undefined && this.providesElectricity === undefined) {
         this.providesElectricity = def.providesElectricity;
       }
-      if (def.fireMode !== undefined && this.fireMode === FireMode.SINGLE) {
+      if (def.fireMode !== undefined && this.fireMode === undefined) {
         this.fireMode = def.fireMode;
       }
       if (def.availableFireModes !== undefined && this.availableFireModes.length === 0) {
@@ -1061,7 +1054,7 @@ export class Item extends SafeEventEmitter {
     }
 
     // Items MUST have the same definition ID to stack in a single slot
-    if (this.defId !== otherItem.getDefId?.() && this.defId !== otherItem.defId) {
+    if (this.defId !== otherItem.defId) {
       return false;
     }
 

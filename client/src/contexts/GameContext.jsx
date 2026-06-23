@@ -1080,19 +1080,6 @@ const GameContextInner = ({ children }) => {
       return;
     }
 
-    // HMR Fix: Clear stale global instances on development hot reload
-    if (process.env.NODE_ENV === 'development' && window.gameInitInstances && window.gameInitInstances.size > 0) {
-      console.warn('[GameContext] 🔄 HMR detected - clearing stale global instances');
-      window.gameInitInstances.clear();
-    }
-
-    // Check global instances to prevent race conditions (after HMR cleanup)
-    if (window.gameInitInstances && window.gameInitInstances.size > 0) {
-      console.error('[GameContext] 🚨 GLOBAL INSTANCES ALREADY EXIST! Preventing duplicate creation');
-      console.error('[GameContext] - Existing instances:', Array.from(window.gameInitInstances));
-      return;
-    }
-
     console.log('[GameContext] ✅ Creating NEW GameInitializationManager...');
 
     const zombieTracker = new PlayerZombieTracker();
@@ -1110,13 +1097,6 @@ const GameContextInner = ({ children }) => {
       if (initManagerRef.current) {
         console.log('[GameContext] - Cleaning up manager:', initManagerRef.current.instanceId);
         initManagerRef.current.removeAllListeners();
-
-        // Remove from global tracking
-        if (window.gameInitInstances && initManagerRef.current.instanceId) {
-          window.gameInitInstances.delete(initManagerRef.current.instanceId);
-          console.log('[GameContext] - Removed from global tracking. Remaining instances:', window.gameInitInstances.size);
-        }
-
         initManagerRef.current = null;
       }
     };

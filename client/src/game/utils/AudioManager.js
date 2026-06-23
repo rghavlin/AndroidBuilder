@@ -4,7 +4,7 @@
  */
 class AudioManager {
   constructor() {
-    this.id = Math.random().toString(36).substr(2, 9);
+    this.id = Math.random().toString(36).substring(2, 11);
     console.debug(`[AudioManager] New instance created: ${this.id}`);
     this.sounds = new Map(); // Store { instances: Audio[], index: number }
     this.soundDefaults = new Map(); // Store default volume per sound

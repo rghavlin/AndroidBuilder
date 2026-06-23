@@ -60,7 +60,7 @@ export const GAME_EVENT = {
 class GameEventBus extends SafeEventEmitter {
   constructor() {
     super();
-    this.id = Math.random().toString(36).substr(2, 9);
+    this.id = Math.random().toString(36).substring(2, 11);
     console.log(`[GameEvents] 🚌 Global Event Bus initialized: ${this.id}`);
   }
 }

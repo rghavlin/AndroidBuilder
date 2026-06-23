@@ -14,7 +14,7 @@ import { gameRandom } from '../utils/SeededRandom.js';
  * NPCAI - Handles decision making for NPCs (Travelers heading south)
  */
 export class NPCAI {
-  static DEBUG = true;
+  static DEBUG = false;
 
   /**
    * Execute NPC turn logic

@@ -797,7 +797,7 @@ export class Container {
   /**
    * Auto-sort items in container by category and size
    */
-  autoSort() {
+  performAutoSort() {
     if (!this.autoSort) return false;
 
     const items = this.getAllItems();

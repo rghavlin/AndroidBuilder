@@ -115,11 +115,13 @@ export class SimulationManager {
       };
 
       // On-map items (placed turrets, vehicles on the ground away from the player).
+      // Items lacking coordinates are handled by the ground-container scan below
+      // (they're detached from the map when the player stands on their tile), so
+      // skip them here rather than guessing the player's position.
       for (const item of gameMap.getEntitiesByType('item')) {
         if (!item) continue;
-        const itemX = item.logicalX !== undefined ? item.logicalX : playerX;
-        const itemY = item.logicalY !== undefined ? item.logicalY : playerY;
-        fireTurretFromItem(item, itemX, itemY);
+        if (item.logicalX === undefined || item.logicalY === undefined) continue;
+        fireTurretFromItem(item, item.logicalX, item.logicalY);
       }
 
       // Player's ground container. When the player stands ON a turret's tile (or a
