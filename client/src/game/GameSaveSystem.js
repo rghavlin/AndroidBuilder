@@ -1,4 +1,5 @@
 import engine from './GameEngine.js';
+import { gameRandom } from './utils/SeededRandom.js';
 
 export const DEFAULT_PLAYER_STATS = {
   hp: 100,
@@ -249,6 +250,7 @@ export class GameSaveSystem {
 
         // Core game state - only essential data
         turn: gameState.turn,
+        gameSeed: engine.gameSeed || null,
         bookStats: engine.bookStats,
 
         // Map state (includes all tiles and entities) - this contains positions
@@ -409,6 +411,13 @@ export class GameSaveSystem {
 
       if (saveData.bookStats) {
           engine.bookStats = saveData.bookStats;
+      }
+
+      // Restore game seed for PRNG continuity
+      if (saveData.gameSeed !== undefined && saveData.gameSeed !== null) {
+        engine.gameSeed = saveData.gameSeed;
+        gameRandom.seed(saveData.gameSeed);
+        console.log(`[GameSaveSystem] Restored game seed: ${saveData.gameSeed}`);
       }
 
       console.log('[GameSaveSystem] Game state loaded successfully');

@@ -1,3 +1,4 @@
+import { gameRandom } from '../../utils/SeededRandom.js';
 /**
  * BaseMapGenerator - Strategy interface for map generation
  */
@@ -27,7 +28,7 @@ export class BaseMapGenerator {
     let len = arr.length;
     const taken = new Array(len);
     while (n--) {
-      const x = Math.floor(Math.random() * len);
+      const x = Math.floor(gameRandom.next() * len);
       result[n] = arr[x in taken ? taken[x] : x];
       taken[x] = --len in taken ? taken[len] : len;
     }
@@ -59,7 +60,7 @@ export class BaseMapGenerator {
     while (result.length < count) {
       const remainingPool = basePool.filter(type => !result.includes(type));
       if (remainingPool.length === 0) break;
-      const randomType = remainingPool[Math.floor(Math.random() * remainingPool.length)];
+      const randomType = remainingPool[gameRandom.nextInt(0, remainingPool.length - 1)];
       result.push(randomType);
     }
 
@@ -225,7 +226,7 @@ export class BaseMapGenerator {
     const cx = (b) => b.x + b.width / 2;
     const cy = (b) => b.y + b.height / 2;
 
-    const picked = [candidates[Math.floor(Math.random() * candidates.length)]];
+    const picked = [candidates[gameRandom.nextInt(0, candidates.length - 1)]];
     const inPicked = new Set(picked);
     while (picked.length < n) {
       let best = null, bestDist = -1;

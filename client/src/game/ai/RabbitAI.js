@@ -2,6 +2,7 @@ import { Pathfinding } from '../utils/Pathfinding.js';
 import { LineOfSight } from '../utils/LineOfSight.js';
 import { MAX_VISION_RANGE } from '../config/VisionConfig.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 /**
  * Rabbit AI system
  * Handles fleeing behavior for Rabbit entities
@@ -167,7 +168,7 @@ export class RabbitAI {
    */
   static executeRandomWander(rabbit, gameMap, turnResult) {
     const directions = Pathfinding.getNeighbors(rabbit.logicalX, rabbit.logicalY, true);
-    const shuffled = directions.sort(() => Math.random() - 0.5);
+    const shuffled = gameRandom.shuffle(directions);
     
     for (const dir of shuffled) {
       if (this.canMoveToTile(gameMap, dir.x, dir.y, rabbit)) {

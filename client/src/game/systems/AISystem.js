@@ -3,6 +3,7 @@ import { DamageIntent } from '../components/DamageIntent.js';
 import { MoveIntent } from '../components/MoveIntent.js';
 import { ScentTrail, SCENT_FOLLOW_RADIUS } from '../utils/ScentTrail.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 /**
  * Attempt to lock a zombie onto the freshest nearby scent breadcrumb.
  * On success the breadcrumb is set as a sighted target (a temporary LKP), so the
@@ -179,7 +180,7 @@ function wander(ctx) {
     return !Pathfinding.isEdgeBlocked(gameMap, x, y, pos.x, pos.y, entity, { isZombie: true });
   });
   if (walkable.length > 0) {
-    const chosen = walkable[Math.floor(Math.random() * walkable.length)];
+    const chosen = walkable[gameRandom.nextInt(0, walkable.length - 1)];
     ctx.enqueue('MoveIntent', new MoveIntent({ dx: chosen.x - x, dy: chosen.y - y }));
   }
 }

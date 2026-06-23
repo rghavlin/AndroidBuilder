@@ -48,6 +48,9 @@ export class CombatSystem {
         const totalApCost = actualHits * ATTACK_AP_COST;
 
         // Apply Bulk State Changes
+        // SIMULATION-FIRST damage (see TurnManager damage-timing models): structures
+        // take the full damage now (silent=true), and the STRUCTURE_INTERACT action
+        // queued below is cosmetic — TurnManager must NOT re-apply it during playback.
         const damageResult = target.takeDamage(totalDamage, true);
         const broken = !!(damageResult && damageResult.isBroken);
 
@@ -93,7 +96,11 @@ export class CombatSystem {
         if (actionQueue) {
           const attackerPos = attacker.getComponent('Position') || { x: attacker.x, y: attacker.y };
           const targetPos = target.getComponent('Position') || { x: target.x, y: target.y };
-          // In the real game, defer damage application to visual playback
+          // PLAYBACK-FIRST damage (see TurnManager damage-timing models): for
+          // entity-vs-entity combat we do NOT apply damage here. TurnManager's
+          // ATTACK case calls takeDamage() after the swing animation so the hit
+          // lands when the animation connects. The `else` branch below is the
+          // direct/test path (no actionQueue), which applies damage immediately.
           actionQueue.push({
             type: 'ATTACK',
             entityId: attacker.id,

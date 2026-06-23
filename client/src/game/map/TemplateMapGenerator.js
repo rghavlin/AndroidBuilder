@@ -13,6 +13,7 @@ import { isInsideCompound } from './MapUtils.js';
 import { TEMPLATE_METADATA } from '../config/TemplateConfig.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 /**
  * TemplateMapGenerator - Template-based map generation system
  * Generates maps from predefined templates with configurable parameters
@@ -347,7 +348,7 @@ export class TemplateMapGenerator {
     const mapNumber = mapData.config?.mapNumber || 1;
     // If map level > 2, 50% chance that NO wild crops appear (unless it is branching_road)
     const isBranching = mapData.template === 'branching_road';
-    if (!isBranching && mapNumber > 2 && Math.random() > 0.5) {
+    if (!isBranching && mapNumber > 2 && gameRandom.next() > 0.5) {
       console.log(`[TemplateMapGenerator] Map ${mapNumber} skipped wild crop generation (50% chance)`);
       return;
     }
@@ -356,7 +357,7 @@ export class TemplateMapGenerator {
     const count = isBranching ? 5 : 1;
     const selectedSpots = [];
     if (validSpots.length > 0) {
-      const shuffledSpots = [...validSpots].sort(() => Math.random() - 0.5);
+      const shuffledSpots = gameRandom.shuffle([...validSpots]);
       const actualCount = Math.min(count, shuffledSpots.length);
       for (let i = 0; i < actualCount; i++) {
         selectedSpots.push(shuffledSpots[i]);
@@ -372,7 +373,7 @@ export class TemplateMapGenerator {
 
     selectedSpots.forEach(spot => {
       const tile = tiles[spot.y][spot.x];
-      const cropDef = crops[Math.floor(Math.random() * crops.length)];
+      const cropDef = crops[gameRandom.nextInt(0, crops.length - 1)];
       
       const wildCropItem = createItemFromDef(cropDef.defId, {
         subtype: cropDef.subtype,
@@ -406,8 +407,8 @@ export class TemplateMapGenerator {
         const tile = tiles[y] && tiles[y][x];
         if (tile && tile.terrain === 'grass') {
           const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
-          if (!hasCropsOrItems && Math.random() < MAP_GEN_CONFIG.decorationProbability) {
-            const decor = decorTypes[Math.floor(Math.random() * decorTypes.length)];
+          if (!hasCropsOrItems && gameRandom.next() < MAP_GEN_CONFIG.decorationProbability) {
+            const decor = decorTypes[gameRandom.nextInt(0, decorTypes.length - 1)];
             tile.decoration = decor;
           }
         }
@@ -433,8 +434,8 @@ export class TemplateMapGenerator {
         const tile = tiles[y] && tiles[y][x];
         if (tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor')) {
           const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
-          if (!hasCropsOrItems && Math.random() < MAP_GEN_CONFIG.decorationProbability) {
-            const decor = decorTypes[Math.floor(Math.random() * decorTypes.length)];
+          if (!hasCropsOrItems && gameRandom.next() < MAP_GEN_CONFIG.decorationProbability) {
+            const decor = decorTypes[gameRandom.nextInt(0, decorTypes.length - 1)];
             tile.decoration = decor;
           }
         }
@@ -540,8 +541,8 @@ export class TemplateMapGenerator {
 
     while (added < count && attempts < maxAttempts) {
       attempts++;
-      const x = Math.floor(Math.random() * width);
-      const y = Math.floor(Math.random() * height);
+      const x = Math.floor(gameRandom.next() * width);
+      const y = Math.floor(gameRandom.next() * height);
 
       const cell = layout[y][x];
       const isWall = typeof cell === 'object' ? cell.terrain === 'wall' : cell === 'wall';
@@ -570,8 +571,8 @@ export class TemplateMapGenerator {
 
     while (added < count && attempts < maxAttempts) {
       attempts++;
-      const x = Math.floor(Math.random() * width);
-      const y = Math.floor(Math.random() * height);
+      const x = Math.floor(gameRandom.next() * width);
+      const y = Math.floor(gameRandom.next() * height);
 
       const cell = layout[y][x];
       const isGrass = typeof cell === 'object' ? cell.terrain === 'grass' : cell === 'grass';

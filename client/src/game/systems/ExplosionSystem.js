@@ -5,6 +5,7 @@ import { DestroyIntent } from '../components/DestroyIntent.js';
 import { FireSystem } from '../systems/FireSystem.js';
 import { DestructionSystem } from './DestructionSystem.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 export class ExplosionSystem {
   /**
    * Resolve an ExplosionIntent.
@@ -122,7 +123,7 @@ export class ExplosionSystem {
       let damage;
       if (isIncendiary) {
         // Molotov damage: 2-7
-        damage = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
+        damage = Math.floor(gameRandom.next() * (maxDamage - minDamage + 1)) + minDamage;
         FireSystem.ignite(entity, 2);
       } else {
         // Grenade damage scaling:
@@ -130,11 +131,11 @@ export class ExplosionSystem {
         // 1 tile (0.5 <= dist < 1.5): 15-20
         // 2 tiles (1.5 <= dist < 2.5): 10-15
         if (dist < 0.5) {
-          damage = Math.floor(Math.random() * 11) + 20; // 20-30
+          damage = gameRandom.nextInt(0, 10) + 20; // 20-30
         } else if (dist < 1.5) {
-          damage = Math.floor(Math.random() * 6) + 15;  // 15-20
+          damage = gameRandom.nextInt(0, 5) + 15;  // 15-20
         } else {
-          damage = Math.floor(Math.random() * 6) + 10;  // 10-15
+          damage = gameRandom.nextInt(0, 5) + 10;  // 10-15
         }
       }
 

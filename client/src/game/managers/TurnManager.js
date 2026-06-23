@@ -6,6 +6,39 @@ import engine from '../GameEngine.js';
 /**
  * TurnManager - Orchestrates the sequential playback of game actions.
  * Ensures animations are locked and audio is synchronized.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * DAMAGE-TIMING MODELS (canonical reference for P5-02)
+ *
+ * The game resolves a turn in two phases: a synchronous *simulation* phase
+ * (SimulationManager runs the AI/systems and produces an action queue) followed
+ * by an async *playback* phase (this class animates that queue). Damage is
+ * applied in ONE of those phases depending on the action type. There are two
+ * models, and the choice is deliberate — do not "fix" one to match the other
+ * without understanding why:
+ *
+ *  1. SIMULATION-FIRST  (damage already applied; playback is purely cosmetic)
+ *     - TURRET_SHOT:        TurretAI calls target.takeDamage() during simulation
+ *                           (TurretAI.js), so a turret can keep firing at the
+ *                           post-hit HP within the same turn. Playback only
+ *                           emits visual/audio events — it must NOT re-apply.
+ *     - STRUCTURE_INTERACT: CombatSystem applies takeDamage(total, silent=true)
+ *                           during simulation (CombatSystem.js). The playback
+ *                           case carries an explicit "do NOT call takeDamage"
+ *                           note for the same reason.
+ *
+ *  2. PLAYBACK-FIRST    (damage deferred to the animation's impact moment)
+ *     - ATTACK (entity-vs-entity): CombatSystem pushes the ATTACK action WITHOUT
+ *                           applying damage; the ATTACK case below applies
+ *                           takeDamage() *after* the swing animation so HP/death
+ *                           visuals line up with the moment of contact.
+ *
+ * Rule of thumb: structures/turrets resolve in simulation (no per-hit animation
+ * to sync against, and intra-turn HP must be live); living-entity melee/ranged
+ * attacks resolve in playback (the hit should land when the animation connects).
+ * Player-initiated attacks are a separate path resolved immediately in
+ * CombatContext, outside this queue.
+ * ────────────────────────────────────────────────────────────────────────────
  */
 class TurnManager {
   constructor() {
@@ -206,8 +239,9 @@ class TurnManager {
             }
           });
         }
-        // NOTE: Do NOT call takeDamage here. It was already applied silently during
-        // simulation. Calling it again would double-apply damage and corrupt HP values.
+        // SIMULATION-FIRST (see class header): Do NOT call takeDamage here. It was
+        // already applied silently during simulation. Calling it again would
+        // double-apply damage and corrupt HP values.
         break;
 
       case 'ESCAPE': {
@@ -271,7 +305,8 @@ class TurnManager {
           });
         }
         
-        // 3. Apply damage AFTER animation for proper synchronization
+        // 3. PLAYBACK-FIRST: apply damage AFTER the animation (CombatSystem
+        // deliberately did not apply it during simulation — see class header).
         const target = data.targetType === 'player' ? player : gameMap.getEntity(data.targetId);
         if (target && data.success && data.damage > 0) {
           if (typeof target.takeDamage === 'function') {
@@ -346,7 +381,9 @@ class TurnManager {
         break;
 
       case 'TURRET_SHOT': {
-        // Emit turret fire event for log / audio / visual effects
+        // SIMULATION-FIRST: damage was already applied by TurretAI during
+        // simulation (see class header). This case is cosmetic only — emit
+        // fire/hit/kill visuals; do NOT call takeDamage here.
         GameEvents.emit(GAME_EVENT.TURRET_FIRED, {
           ...data,
           hit:    data.hit,

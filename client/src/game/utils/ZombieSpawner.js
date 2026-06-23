@@ -1,6 +1,7 @@
 import { EntityFactory } from '../EntityFactory.js';
 import { isInsideCompound } from '../map/MapUtils.js';
 
+import { gameRandom } from './SeededRandom.js';
 /**
  * ZombieSpawner - Utility class to handle zombie population on maps
  * Centralizes spawning logic for initial and subsequent maps
@@ -40,11 +41,11 @@ export class ZombieSpawner {
         while (!spawned && attempts < 50) {
           let x, y;
           if (constraints.yMin !== undefined && constraints.yRange !== undefined) {
-            x = Math.floor(Math.random() * gameMap.width);
-            y = constraints.yMin + Math.floor(Math.random() * constraints.yRange);
+            x = Math.floor(gameRandom.next() * gameMap.width);
+            y = constraints.yMin + Math.floor(gameRandom.next() * constraints.yRange);
           } else {
-            x = Math.floor(Math.random() * gameMap.width);
-            y = Math.floor(Math.random() * gameMap.height);
+            x = Math.floor(gameRandom.next() * gameMap.width);
+            y = Math.floor(gameRandom.next() * gameMap.height);
           }
 
           const tile = gameMap.getTile(x, y);
@@ -70,15 +71,15 @@ export class ZombieSpawner {
     spawnHelper('basic', basicCount, 7);
 
     // 2. Specialized Ranges
-    const crawlerCount = Math.floor(Math.random() * (crawlerRange.max - crawlerRange.min + 1)) + crawlerRange.min;
+    const crawlerCount = gameRandom.nextInt(crawlerRange.min, crawlerRange.max);
     spawnHelper('crawler', crawlerCount, 10);
     
     spawnHelper('runner', runnerCount, 10);
     
-    const acidCount = Math.floor(Math.random() * (acidRange.max - acidRange.min + 1)) + acidRange.min;
+    const acidCount = gameRandom.nextInt(acidRange.min, acidRange.max);
     spawnHelper('acid', acidCount, 10);
     
-    const fatCount = Math.floor(Math.random() * (fatRange.max - fatRange.min + 1)) + fatRange.min;
+    const fatCount = gameRandom.nextInt(fatRange.min, fatRange.max);
     spawnHelper('fat', fatCount, 10);
 
     spawnHelper('spitter', spitterCount, 10);
@@ -102,12 +103,12 @@ export class ZombieSpawner {
     buildings.forEach((station, sIdx) => {
       // Firefighters in Fire Stations
       if (station.type === 'firestation') {
-        const ffCount = Math.floor(Math.random() * (firefighterRange.max - firefighterRange.min + 1)) + firefighterRange.min;
+        const ffCount = gameRandom.nextInt(firefighterRange.min, firefighterRange.max);
         let spawnedForStation = 0;
         let attempts = 0;
         while (spawnedForStation < ffCount && attempts < 50 && canSpawnMore()) {
-          const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const x = station.x + 1 + Math.floor(gameRandom.next() * (station.width - 2));
+          const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
             const zombieId = `zombie-firefighter-${Date.now()}-${sIdx}-${spawnedForStation}`;
@@ -121,12 +122,12 @@ export class ZombieSpawner {
 
         // Bomb Disposal Zombie (5% + map# chance)
         const bdChance = (5 + (gameMap.mapNumber || 1)) / 100;
-        if (Math.random() < bdChance && canSpawnMore()) {
+        if (gameRandom.next() < bdChance && canSpawnMore()) {
             let bdAttempts = 0;
             let bdSpawned = false;
             while (!bdSpawned && bdAttempts < 50) {
-                const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-                const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+                const x = station.x + 1 + Math.floor(gameRandom.next() * (station.width - 2));
+                const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
                 const tile = gameMap.getTile(x, y);
                 if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
                     const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
@@ -142,12 +143,12 @@ export class ZombieSpawner {
 
       // SWAT in Police Stations
       if (station.type === 'police' || station.type === 'police_station') {
-        const sCount = Math.floor(Math.random() * (swatRange.max - swatRange.min + 1)) + swatRange.min;
+        const sCount = gameRandom.nextInt(swatRange.min, swatRange.max);
         let spawnedForStation = 0;
         let attempts = 0;
         while (spawnedForStation < sCount && attempts < 100 && canSpawnMore()) {
-          const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const x = station.x + 1 + Math.floor(gameRandom.next() * (station.width - 2));
+          const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
             const zombieId = `zombie-swat-${Date.now()}-${sIdx}-${spawnedForStation}`;
@@ -161,12 +162,12 @@ export class ZombieSpawner {
 
         // Bomb Disposal Zombie (5% + map# chance)
         const bdChance = (5 + (gameMap.mapNumber || 1)) / 100;
-        if (Math.random() < bdChance && canSpawnMore()) {
+        if (gameRandom.next() < bdChance && canSpawnMore()) {
             let bdAttempts = 0;
             let bdSpawned = false;
             while (!bdSpawned && bdAttempts < 50) {
-                const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-                const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+                const x = station.x + 1 + Math.floor(gameRandom.next() * (station.width - 2));
+                const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
                 const tile = gameMap.getTile(x, y);
                 if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
                     const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
@@ -185,13 +186,13 @@ export class ZombieSpawner {
         console.log(`[ZombieSpawner] Army Tent: Spawning soldier zombies for tent at (${station.x}, ${station.y})`);
         
         // 1-2 Soldiers Inside
-        const insideCount = 1 + Math.floor(Math.random() * 2);
+        const insideCount = 1 + gameRandom.nextInt(0, 1);
         for (let i = 0; i < insideCount && canSpawnMore(); i++) {
           let spawnedIn = false;
           let inAttempts = 0;
           while (!spawnedIn && inAttempts < 20) {
-            const rx = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-            const ry = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+            const rx = station.x + 1 + Math.floor(gameRandom.next() * (station.width - 2));
+            const ry = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
             const tile = gameMap.getTile(rx, ry);
             if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
               const zombieId = `zombie-soldier-in-${Date.now()}-${sIdx}-${i}`;
@@ -205,12 +206,12 @@ export class ZombieSpawner {
         }
         
         // 1-2 Soldiers Outside (Radial spawn)
-        const outsideCount = 1 + Math.floor(Math.random() * 2);
+        const outsideCount = 1 + gameRandom.nextInt(0, 1);
         for (let i = 0; i < outsideCount && canSpawnMore(); i++) {
           let foundOut = false;
           for (let attempt = 0; attempt < 25; attempt++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 5 + Math.random() * 4; 
+            const angle = gameRandom.next() * Math.PI * 2;
+            const dist = 5 + gameRandom.next() * 4; 
             const rx = Math.max(0, Math.min(gameMap.width - 1, Math.floor(station.x + station.width / 2 + Math.cos(angle) * dist)));
             const ry = Math.max(0, Math.min(gameMap.height - 1, Math.floor(station.y + station.height / 2 + Math.sin(angle) * dist)));
             
@@ -235,8 +236,8 @@ export class ZombieSpawner {
         while (!mutantSpawned && mAttempts < 100 && canSpawnMore()) {
           const hX = station.hallXStart || (station.x + 7);
           const hW = station.hallWidth || 4;
-          const x = hX + Math.floor(Math.random() * hW);
-          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const x = hX + Math.floor(gameRandom.next() * hW);
+          const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
             const zombieId = `zombie-mutant-${Date.now()}-${sIdx}`;
@@ -252,8 +253,8 @@ export class ZombieSpawner {
         let otherMutantsSpawned = 0;
         let omAttempts = 0;
         while (otherMutantsSpawned < 4 && omAttempts < 150 && canSpawnMore()) {
-          const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const x = station.x + 1 + Math.floor(gameRandom.next() * (station.width - 2));
+          const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
             const zombieId = `zombie-mutant-additional-${Date.now()}-${sIdx}-${otherMutantsSpawned}`;
@@ -266,12 +267,12 @@ export class ZombieSpawner {
         }
 
         // 3. Spawn 4-6 Soldier Zombies anywhere in the Lab
-        const sCount = 4 + Math.floor(Math.random() * 3);
+        const sCount = 4 + gameRandom.nextInt(0, 2);
         let spawnedForLab = 0;
         let sAttempts = 0;
         while (spawnedForLab < sCount && sAttempts < 150 && canSpawnMore()) {
-          const x = station.x + 1 + Math.floor(Math.random() * (station.width - 2));
-          const y = station.y + 1 + Math.floor(Math.random() * (station.height - 2));
+          const x = station.x + 1 + Math.floor(gameRandom.next() * (station.width - 2));
+          const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
             const zombieId = `zombie-labsoldier-${Date.now()}-${sIdx}-${spawnedForLab}`;
@@ -289,8 +290,8 @@ export class ZombieSpawner {
         let spawnedOutside = 0;
         let outAttempts = 0;
         while (spawnedOutside < 2 && outAttempts < 50 && canSpawnMore()) {
-          const dx = Math.floor(Math.random() * 4) - 1; // -1, 0, 1, 2
-          const dy = 1 + Math.floor(Math.random() * 3); // 1, 2, 3
+          const dx = gameRandom.nextInt(0, 3) - 1; // -1, 0, 1, 2
+          const dy = 1 + gameRandom.nextInt(0, 2); // 1, 2, 3
           const targetX = entX + dx;
           const targetY = entY + dy;
           const tile = gameMap.getTile(targetX, targetY);

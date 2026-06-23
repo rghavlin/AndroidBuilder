@@ -10,6 +10,7 @@ import { LootGenerator } from './map/LootGenerator.js';
 import engine from './GameEngine.js';
 import tradingSystem from './systems/TradingSystem.js';
 
+import { gameRandom } from './utils/SeededRandom.js';
 const INIT_STATES = {
   IDLE: 'idle',
   PRELOADING: 'preloading',
@@ -30,7 +31,7 @@ class GameInitializationManager extends EventEmitter {
     this.preloadData = null;
 
     // Add unique instance tracking to detect duplicates
-    this.instanceId = `GameInitManager_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.instanceId = `GameInitManager_${Date.now()}_${gameRandom.next().toString(36).substr(2, 9)}`;
     if (isDev) {
       console.log(`[GameInitializationManager] 🆔 NEW INSTANCE CREATED: ${this.instanceId}`);
     }
@@ -71,6 +72,15 @@ class GameInitializationManager extends EventEmitter {
 
     try {
       console.log('[GameInitializationManager] Starting initialization sequence...');
+
+      // Generate a deterministic base seed for the entire game session.
+      // This can be overridden via customConfig.seed for reproducible runs.
+      const gameSeed = (customConfig && customConfig.seed !== undefined)
+        ? customConfig.seed
+        : (Math.random() * 0xFFFFFFFF) >>> 0;
+      engine.gameSeed = gameSeed;
+      gameRandom.seed(gameSeed);
+      console.log(`[GameInitializationManager] 🎲 Game seed: ${gameSeed}`);
 
       // Phase 1: Preloading
       await this._transitionToState(INIT_STATES.PRELOADING);

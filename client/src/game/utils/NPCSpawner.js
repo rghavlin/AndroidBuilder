@@ -6,6 +6,7 @@ import { getNPCType } from '../entities/NPCTypes.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 
+import { gameRandom } from './SeededRandom.js';
 /**
  * NPCSpawner - Handles placement of NPCs on maps.
  */
@@ -144,7 +145,7 @@ export class NPCSpawner {
     
     const candidates = preferredPositions.length > 0 ? preferredPositions : fallbackPositions;
     if (candidates.length > 0) {
-      return candidates[Math.floor(Math.random() * candidates.length)];
+      return candidates[gameRandom.nextInt(0, candidates.length - 1)];
     }
     return null;
   }
@@ -156,12 +157,12 @@ export class NPCSpawner {
     const typeId = options.typeId || 'survivor';
     const typeDef = getNPCType(typeId);
     
-    const id = `npc_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `npc_${gameRandom.next().toString(36).substr(2, 9)}`;
     const name = options.name || typeDef.name || 'Survivor';
     
     const isHostile = options.isHostile !== undefined 
       ? options.isHostile 
-      : (Math.random() < (typeDef.hostilityChance || 0));
+      : (gameRandom.next() < (typeDef.hostilityChance || 0));
       
     const npc = EntityFactory.createNPC(x, y, isHostile, typeId, name, id);
     npc.goalTarget = options.goalTarget || null;
@@ -169,11 +170,11 @@ export class NPCSpawner {
     // Generate items
     const minItems = typeDef.minItems || 5;
     const maxItems = typeDef.maxItems || 10;
-    const numItems = minItems + Math.floor(Math.random() * (maxItems - minItems + 1));
+    const numItems = minItems + Math.floor(gameRandom.next() * (maxItems - minItems + 1));
     
     // 1. Equip random weapon
     if (typeDef.pools && typeDef.pools.weapons && typeDef.pools.weapons.length > 0) {
-      const weaponDefId = typeDef.pools.weapons[Math.floor(Math.random() * typeDef.pools.weapons.length)];
+      const weaponDefId = typeDef.pools.weapons[gameRandom.nextInt(0, typeDef.pools.weapons.length - 1)];
       const weaponData = createItemFromDef(weaponDefId);
       if (weaponData) {
         const weaponItem = Item.fromJSON(weaponData);
@@ -190,7 +191,7 @@ export class NPCSpawner {
     while (itemsAdded < numItems && attempts < maxAttempts) {
       attempts++;
       let pool = 'general';
-      const rand = Math.random();
+      const rand = gameRandom.next();
       if (rand < 0.10) {
         pool = 'rare';
       } else if (rand < 0.50) {
@@ -199,7 +200,7 @@ export class NPCSpawner {
       
       const itemPool = typeDef.pools?.[pool] || typeDef.pools?.general || [];
       if (itemPool.length > 0) {
-        const itemDefId = itemPool[Math.floor(Math.random() * itemPool.length)];
+        const itemDefId = itemPool[gameRandom.nextInt(0, itemPool.length - 1)];
         const itemData = createItemFromDef(itemDefId);
         if (itemData) {
           const item = Item.fromJSON(itemData);

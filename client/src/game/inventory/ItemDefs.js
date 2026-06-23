@@ -1276,10 +1276,10 @@ export const ItemDefs = {
     consumptionSound: 'Bandage',
     pileLimitOne: true,
     stackMax: 10,
-    consumptionEffects: [
-      { type: 'heal', value: { min: 4, max: 7 } },
-      { type: 'stop_bleeding', value: true }
-    ]
+    consumptionEffects: {
+      heal: { min: 4, max: 7 },
+      stop_bleeding: true
+    }
   },
   'medical.wound_spray': {
     id: 'medical.wound_spray',
@@ -1293,10 +1293,10 @@ export const ItemDefs = {
     consumptionSound: 'Spray',
     pileLimitOne: true,
     stackMax: 5,
-    consumptionEffects: [
-      { type: 'heal', value: 8 },
-      { type: 'stop_bleeding', value: true }
-    ]
+    consumptionEffects: {
+      heal: 8,
+      stop_bleeding: true
+    }
   },
   'medical.first_aid_kit': {
     id: 'medical.first_aid_kit',
@@ -1310,9 +1310,9 @@ export const ItemDefs = {
     consumptionSound: 'Bandage',
     pileLimitOne: true,
     stackMax: 5,
-    consumptionEffects: [
-      { type: 'heal', value: 'Max HP' }
-    ]
+    consumptionEffects: {
+      heal: 'Max HP'
+    }
   },
 
   'medical.antiseptic': {

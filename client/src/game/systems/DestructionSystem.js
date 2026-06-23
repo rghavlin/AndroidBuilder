@@ -3,6 +3,7 @@ import engine from '../GameEngine.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { EntityType } from '../entities/Entity.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 export class DestructionSystem {
   /**
    * Resolve a single DestroyIntent.
@@ -41,7 +42,7 @@ export class DestructionSystem {
         const lootGenerator = engine?.lootGenerator;
         const tile = gameMap ? gameMap.getTile(x, y) : null;
         const hasWindow = tile?.contents.some(e => e.type === EntityType.WINDOW);
-        if (lootGenerator && !hasWindow && Math.random() < 0.75) {
+        if (lootGenerator && !hasWindow && gameRandom.next() < 0.75) {
           const loot = lootGenerator.generateZombieLoot(target.subtype, gameMap ? gameMap.mapNumber : 1);
           if (loot && loot.length > 0 && gameMap) {
             gameMap.addItemsToTile(x, y, loot);

@@ -7,6 +7,7 @@ import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.
 import { isInsideCompound, isInsideAnyBuilding } from './MapUtils.js';
 
 
+import { gameRandom } from '../utils/SeededRandom.js';
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
     FUEL_COVER_OFFSET: 3,
@@ -83,16 +84,16 @@ export class LootGenerator {
 
             // Tiered probability for loot drops in building (Increased by ~10% each)
             // 95% chance for 1st
-            if (Math.random() < 0.95) {
+            if (gameRandom.next() < 0.95) {
                 dropCount++;
                 // 60% chance for 2nd
-                if (Math.random() < 0.60) {
+                if (gameRandom.next() < 0.60) {
                     dropCount++;
                     // 35% chance for 3rd
-                    if (Math.random() < 0.35) {
+                    if (gameRandom.next() < 0.35) {
                         dropCount++;
                         // 15% chance for 4th
-                        if (Math.random() < 0.15) {
+                        if (gameRandom.next() < 0.15) {
                             dropCount++;
                         }
                     }
@@ -116,7 +117,7 @@ export class LootGenerator {
             // Phase 25: Guaranteed Building Loot (Every building has 1-3 planks)
             const guaranteedTiles = buildingTiles.filter(pos => !this.isNearDoor(gameMap, pos.x, pos.y));
             if (guaranteedTiles.length > 0) {
-                const plankCount = 1 + Math.floor(Math.random() * 3);
+                const plankCount = 1 + gameRandom.nextInt(0, 2);
                 const plankTiles = this.getRandomSubarray(guaranteedTiles, plankCount);
                 plankTiles.forEach(pos => {
                     const plank = createItemFromDef('weapon.plank');
@@ -166,7 +167,7 @@ export class LootGenerator {
             });
 
             // Guaranteed starting home planks: 1-3 planks
-            const plankCount = 1 + Math.floor(Math.random() * 3);
+            const plankCount = 1 + gameRandom.nextInt(0, 2);
             const plankTiles = this.getRandomSubarray(nonDoorTiles, plankCount);
             plankTiles.forEach(pos => {
                 const plank = createItemFromDef('weapon.plank');
@@ -206,7 +207,7 @@ export class LootGenerator {
         const currentArea = gameMap.width * gameMap.height;
         const areaMultiplier = currentArea / BASELINE_MAP_AREA;
 
-        const outdoorDropCount = Math.floor((18 + Math.floor(Math.random() * 7)) * areaMultiplier);
+        const outdoorDropCount = Math.floor((18 + gameRandom.nextInt(0, 6)) * areaMultiplier);
         const selectedOutdoor = this.getRandomSubarray(outdoorTiles, outdoorDropCount);
 
         selectedOutdoor.forEach(pos => {
@@ -218,9 +219,9 @@ export class LootGenerator {
         console.log(`[LootGenerator] Outdoor: Spawned ${outdoorDropCount} loot drops on ${outdoorTiles.length} tiles (Area Multiplier: ${areaMultiplier.toFixed(2)})`);
         
         // Phase 25: Designate Low Spots for Water Puddles (Scaled)
-        let lowSpotBase = 3 + Math.floor(Math.random() * 3);
+        let lowSpotBase = 3 + gameRandom.nextInt(0, 2);
         if (gameMap.template === 'winding_road' || gameMap.template === 'mirrored_winding_road') {
-            lowSpotBase = 5 + Math.floor(Math.random() * 5); // More for winding maps
+            lowSpotBase = 5 + gameRandom.nextInt(0, 4); // More for winding maps
         }
         const lowSpotCount = Math.floor(lowSpotBase * areaMultiplier);
         const potentialLowSpots = outdoorTiles.filter(pos => gameMap.getItemsOnTile(pos.x, pos.y).length === 0);
@@ -232,7 +233,7 @@ export class LootGenerator {
         const numPuddles = isBranching ? 4 : 1;
 
         if (lowSpots.length > 0) {
-            const shuffledLowSpots = [...lowSpots].sort(() => Math.random() - 0.5);
+            const shuffledLowSpots = gameRandom.shuffle([...lowSpots]);
             const actualPuddles = Math.min(numPuddles, shuffledLowSpots.length);
             for (let i = 0; i < actualPuddles; i++) {
                 const pos = shuffledLowSpots[i];
@@ -268,7 +269,7 @@ export class LootGenerator {
 
         buildings.forEach(building => {
             // 25% chance to spawn a bed in a residential house 
-            if (Math.random() > 0.25) return;
+            if (gameRandom.next() > 0.25) return;
 
             const floorTiles = [];
             // Interior tiles only
@@ -290,7 +291,7 @@ export class LootGenerator {
             }
 
             if (floorTiles.length > 0) {
-                const pos = floorTiles[Math.floor(Math.random() * floorTiles.length)];
+                const pos = floorTiles[gameRandom.nextInt(0, floorTiles.length - 1)];
                 const bedItem = createItemFromDef('placeable.bed');
                 if (bedItem) {
                     // Place directly on tile
@@ -313,11 +314,11 @@ export class LootGenerator {
         });
 
         const numWagons = isBranching
-            ? (2 + Math.floor(Math.random() * 3))
-            : (Math.random() < 0.35 ? 1 : 0);
+            ? (2 + gameRandom.nextInt(0, 2))
+            : (gameRandom.next() < 0.35 ? 1 : 0);
 
         if (numWagons > 0 && wagonTiles.length > 0) {
-            const shuffledWagons = [...wagonTiles].sort(() => Math.random() - 0.5);
+            const shuffledWagons = gameRandom.shuffle([...wagonTiles]);
             const actualWagons = Math.min(numWagons, shuffledWagons.length);
             for (let i = 0; i < actualWagons; i++) {
                 const pos = shuffledWagons[i];
@@ -339,11 +340,11 @@ export class LootGenerator {
         });
 
         const numMowers = isBranching
-            ? (3 + Math.floor(Math.random() * 3))
+            ? (3 + gameRandom.nextInt(0, 2))
             : 1;
 
         if (mowerTiles.length > 0) {
-            const shuffledMowers = [...mowerTiles].sort(() => Math.random() - 0.5);
+            const shuffledMowers = gameRandom.shuffle([...mowerTiles]);
             const actualMowers = Math.min(numMowers, shuffledMowers.length);
             for (let i = 0; i < actualMowers; i++) {
                 const pos = shuffledMowers[i];
@@ -372,11 +373,11 @@ export class LootGenerator {
         });
 
         const numScooters = gameMap.template === 'branching_road'
-            ? (2 + Math.floor(Math.random() * 3))
+            ? (2 + gameRandom.nextInt(0, 2))
             : 1;
 
         if (scooterTiles.length > 0) {
-            const shuffledScooters = [...scooterTiles].sort(() => Math.random() - 0.5);
+            const shuffledScooters = gameRandom.shuffle([...scooterTiles]);
             const actualScooters = Math.min(numScooters, shuffledScooters.length);
             for (let i = 0; i < actualScooters; i++) {
                 const pos = shuffledScooters[i];
@@ -399,10 +400,10 @@ export class LootGenerator {
         if (buildings.length === 0) return;
 
         // Shuffle buildings to try different ones if the first choice is blocked
-        const shuffledBuildings = [...buildings].sort(() => Math.random() - 0.5);
+        const shuffledBuildings = gameRandom.shuffle([...buildings]);
         
         const targetCount = gameMap.template === 'branching_road'
-            ? (2 + Math.floor(Math.random() * 3))
+            ? (2 + gameRandom.nextInt(0, 2))
             : 1;
 
         let spawnedCount = 0;
@@ -449,7 +450,7 @@ export class LootGenerator {
                 if (generatorData) {
                     const generator = Item.fromJSON(generatorData);
                     // Generators spawn with a small amount of fuel (0-5)
-                    generator.ammoCount = Math.floor(Math.random() * LOOT_CONSTANTS.GENERATOR_SPAWN_FUEL_MAX);
+                    generator.ammoCount = Math.floor(gameRandom.next() * LOOT_CONSTANTS.GENERATOR_SPAWN_FUEL_MAX);
                     gameMap.setItemsOnTile(spawnX, spawnY, [generator]);
                     console.log(`[LootGenerator] Spawned Generator behind building at (${spawnX}, ${spawnY})`);
                     spawnedCount++;
@@ -480,10 +481,10 @@ export class LootGenerator {
         const options = [];
 
         // Option: A gun (max one)
-        const hasGun = Math.random() < 0.7; // 70% chance to contain a gun
+        const hasGun = gameRandom.next() < 0.7; // 70% chance to contain a gun
         let spawnedGunInfo = null;
         if (hasGun) {
-            const gunInfo = SAFE_GUNS[Math.floor(Math.random() * SAFE_GUNS.length)];
+            const gunInfo = SAFE_GUNS[gameRandom.nextInt(0, SAFE_GUNS.length - 1)];
             spawnedGunInfo = gunInfo;
             options.push(() => {
                 const gun = createItemFromDef(gunInfo.gun);
@@ -502,7 +503,7 @@ export class LootGenerator {
                 if (!spawnedGunInfo) return null;
                 const ammo = createItemFromDef(spawnedGunInfo.ammo);
                 if (ammo) {
-                    const count = 15 + Math.floor(Math.random() * 6); // 15-20
+                    const count = 15 + gameRandom.nextInt(0, 5); // 15-20
                     const item = Item.fromJSON(ammo);
                     item.stackCount = count;
                     return item;
@@ -512,12 +513,12 @@ export class LootGenerator {
         }
 
         // Option: MREs (1-2)
-        if (Math.random() < 0.8) {
+        if (gameRandom.next() < 0.8) {
             options.push(() => {
                 const mre = createItemFromDef('food.mre');
                 if (mre) {
                     const item = Item.fromJSON(mre);
-                    item.stackCount = Math.random() < 0.5 ? 1 : 2;
+                    item.stackCount = gameRandom.next() < 0.5 ? 1 : 2;
                     return item;
                 }
                 return null;
@@ -525,7 +526,7 @@ export class LootGenerator {
         }
 
         // Option: Full water bottles (1-2)
-        if (Math.random() < 0.8) {
+        if (gameRandom.next() < 0.8) {
             options.push(() => {
                 const bottle = createItemFromDef('food.waterbottle');
                 if (bottle) {
@@ -539,12 +540,12 @@ export class LootGenerator {
         }
 
         // Option: Any ammo (15-20 rounds)
-        if (Math.random() < 0.8) {
+        if (gameRandom.next() < 0.8) {
             options.push(() => {
-                const randGun = SAFE_GUNS[Math.floor(Math.random() * SAFE_GUNS.length)];
+                const randGun = SAFE_GUNS[gameRandom.nextInt(0, SAFE_GUNS.length - 1)];
                 const ammo = createItemFromDef(randGun.ammo);
                 if (ammo) {
-                    const count = 15 + Math.floor(Math.random() * 6); // 15-20
+                    const count = 15 + gameRandom.nextInt(0, 5); // 15-20
                     const item = Item.fromJSON(ammo);
                     item.stackCount = count;
                     return item;
@@ -554,7 +555,7 @@ export class LootGenerator {
         }
 
         // Option: flashlight (with full battery)
-        if (Math.random() < 0.6) {
+        if (gameRandom.next() < 0.6) {
             options.push(() => {
                 const flData = createItemFromDef('tool.smallflashlight');
                 if (flData) {
@@ -569,11 +570,11 @@ export class LootGenerator {
         }
 
         // Option: batteries (2-4)
-        if (Math.random() < 0.7) {
+        if (gameRandom.next() < 0.7) {
             options.push(() => {
                 const bat = createItemFromDef('tool.battery');
                 if (bat) {
-                    const count = 2 + Math.floor(Math.random() * 3); // 2-4
+                    const count = 2 + gameRandom.nextInt(0, 2); // 2-4
                     const item = Item.fromJSON(bat);
                     item.stackCount = count;
                     return item;
@@ -583,7 +584,7 @@ export class LootGenerator {
         }
 
         // Option: hand cranked battery charger
-        if (Math.random() < 0.5) {
+        if (gameRandom.next() < 0.5) {
             options.push(() => {
                 const charger = createItemFromDef('tool.crank_charger');
                 return charger ? Item.fromJSON(charger) : null;
@@ -591,7 +592,7 @@ export class LootGenerator {
         }
 
         // Option: first aid kit
-        if (Math.random() < 0.6) {
+        if (gameRandom.next() < 0.6) {
             options.push(() => {
                 const kit = createItemFromDef('medical.first_aid_kit');
                 return kit ? Item.fromJSON(kit) : null;
@@ -599,7 +600,7 @@ export class LootGenerator {
         }
 
         // Shuffle the option generators
-        const shuffled = options.sort(() => Math.random() - 0.5);
+        const shuffled = gameRandom.shuffle(options);
 
         // Try to generate and add each item
         let gunAdded = false;
@@ -641,7 +642,7 @@ export class LootGenerator {
         }
 
         // Shuffle buildings to distribute safes randomly
-        const shuffledBuildings = [...buildings].sort(() => Math.random() - 0.5);
+        const shuffledBuildings = gameRandom.shuffle([...buildings]);
         let safesSpawned = 0;
 
         for (const building of shuffledBuildings) {
@@ -659,7 +660,7 @@ export class LootGenerator {
             }
 
             // Shuffle candidates
-            const shuffledCandidates = candidates.sort(() => Math.random() - 0.5);
+            const shuffledCandidates = gameRandom.shuffle(candidates);
 
             for (const pos of shuffledCandidates) {
                 // Check if 3x3 footprint is entirely on floor, not near door, and has no other items
@@ -780,7 +781,7 @@ export class LootGenerator {
             return sum + weight;
         }, 0);
 
-        let random = Math.random() * totalWeight;
+        let random = gameRandom.next() * totalWeight;
         for (const key of filteredKeys) {
             const def = ItemDefs[key];
             const rarity = def.rarity || Rarity.COMMON;
@@ -800,7 +801,7 @@ export class LootGenerator {
      * Generate 1-3 random items with rarity and limits
      */
     generateRandomItems(location = 'any', mapNumber = 1, options = {}) {
-        const count = 1 + Math.floor(Math.random() * 3);
+        const count = 1 + gameRandom.nextInt(0, 2);
         const items = [];
         let hasFoodInPile = false;
         const seenKeysInPile = new Set();
@@ -818,7 +819,7 @@ export class LootGenerator {
             const isSeed = def.id && def.id.endsWith('seeds');
             const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD))) && def.id !== 'food.whiskey';
             if (isFood) {
-                if (Math.random() < getFoodRejectionChance(mapNumber)) {
+                if (gameRandom.next() < getFoodRejectionChance(mapNumber)) {
                     continue; // Reject food spawning for this drop slot
                 }
                 if (hasFoodInPile) continue;
@@ -874,7 +875,7 @@ export class LootGenerator {
             const coverData = createItemFromDef('furniture.fuel_cover');
             if (coverData) {
                 const cover = Item.fromJSON(coverData);
-                cover.ammoCount = 5 + Math.floor(Math.random() * 16); // 5-20
+                cover.ammoCount = 5 + gameRandom.nextInt(0, 15); // 5-20
                 gameMap.setItemsOnTile(coverX, coverY, [cover]);
                 console.log(`[LootGenerator] Spawned Fuel Cover at (${coverX}, ${coverY}) with ${cover.ammoCount} fuel`);
             }
@@ -894,8 +895,8 @@ export class LootGenerator {
         if (floorTiles.length === 0) return;
 
         // 3 to 6 drops (Hardware store gets more: 6 to 10)
-        let dropCount = 3 + Math.floor(Math.random() * 4);
-        if (type === 'hardware_store') dropCount = 6 + Math.floor(Math.random() * 5);
+        let dropCount = 3 + gameRandom.nextInt(0, 3);
+        if (type === 'hardware_store') dropCount = 6 + gameRandom.nextInt(0, 4);
         const selectedTiles = this.getRandomSubarray(floorTiles, dropCount);
 
         console.log(`[LootGenerator] Spawning specialized loot for ${type} in ${dropCount} drops`);
@@ -903,14 +904,14 @@ export class LootGenerator {
         // Building-wide random rolls (ONE per building)
         const buildingRules = SPECIAL_BUILDING_LOOT[type]?.rules || {};
         const buildingState = {
-            hasGun: buildingRules.hasGun ? Math.random() < buildingRules.hasGun : false,
-            hasTool: buildingRules.hasTool ? Math.random() < buildingRules.hasTool : false,
-            hasBackpack: buildingRules.hasBackpack ? Math.random() < buildingRules.hasBackpack : false,
-            hasGrenade: buildingRules.hasGrenade ? Math.random() < buildingRules.hasGrenade : false,
-            hasBattleRifle: buildingRules.hasBattleRifle ? Math.random() < buildingRules.hasBattleRifle : false,
-            has9mm: buildingRules.has9mm ? Math.random() < buildingRules.has9mm : false,
-            hasDesertEagle: buildingRules.hasDesertEagle ? Math.random() < buildingRules.hasDesertEagle : false,
-            hasNightVision: buildingRules.hasNightVision ? Math.random() < buildingRules.hasNightVision : false,
+            hasGun: buildingRules.hasGun ? gameRandom.next() < buildingRules.hasGun : false,
+            hasTool: buildingRules.hasTool ? gameRandom.next() < buildingRules.hasTool : false,
+            hasBackpack: buildingRules.hasBackpack ? gameRandom.next() < buildingRules.hasBackpack : false,
+            hasGrenade: buildingRules.hasGrenade ? gameRandom.next() < buildingRules.hasGrenade : false,
+            hasBattleRifle: buildingRules.hasBattleRifle ? gameRandom.next() < buildingRules.hasBattleRifle : false,
+            has9mm: buildingRules.has9mm ? gameRandom.next() < buildingRules.has9mm : false,
+            hasDesertEagle: buildingRules.hasDesertEagle ? gameRandom.next() < buildingRules.hasDesertEagle : false,
+            hasNightVision: buildingRules.hasNightVision ? gameRandom.next() < buildingRules.hasNightVision : false,
             gunDropIndex: -1,
             toolDropIndex: -1,
             backpackDropIndex: -1,
@@ -921,20 +922,20 @@ export class LootGenerator {
             nightVisionDropIndex: -1
         };
 
-        if (buildingRules.hasGun) buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.hasTool) buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.hasBackpack) buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.hasGrenade) buildingState.grenadeDropIndex = buildingState.hasGrenade ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.hasBattleRifle) buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.has9mm) buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.hasDesertEagle) buildingState.desertEagleDropIndex = buildingState.hasDesertEagle ? Math.floor(Math.random() * dropCount) : -1;
-        if (buildingRules.hasNightVision) buildingState.nightVisionDropIndex = buildingState.hasNightVision ? Math.floor(Math.random() * dropCount) : -1;
+        if (buildingRules.hasGun) buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.hasTool) buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.hasBackpack) buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.hasGrenade) buildingState.grenadeDropIndex = buildingState.hasGrenade ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.hasBattleRifle) buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.has9mm) buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.hasDesertEagle) buildingState.desertEagleDropIndex = buildingState.hasDesertEagle ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.hasNightVision) buildingState.nightVisionDropIndex = buildingState.hasNightVision ? Math.floor(gameRandom.next() * dropCount) : -1;
         
         // --- LABORATORY SPECIAL CASE ---
         if (type === 'lab' && buildingRules.roomLayout) {
             const layout = buildingRules.roomLayout;
-            const nvgRoomIndex = Math.floor(Math.random() * layout.roomsCount);
-            const nvgDropIndex = Math.floor(Math.random() * (buildingRules.dropsPerRoom?.min || 2));
+            const nvgRoomIndex = Math.floor(gameRandom.next() * layout.roomsCount);
+            const nvgDropIndex = Math.floor(gameRandom.next() * (buildingRules.dropsPerRoom?.min || 2));
             
             const wingWidth = layout.wingWidth;
             const roomHeight = layout.roomHeight;
@@ -962,20 +963,20 @@ export class LootGenerator {
 
                 const minD = buildingRules.dropsPerRoom?.min || 2;
                 const maxD = buildingRules.dropsPerRoom?.max || 3;
-                const roomDropCount = minD + Math.floor(Math.random() * (maxD - minD + 1));
+                const roomDropCount = minD + Math.floor(gameRandom.next() * (maxD - minD + 1));
                 const roomSelectedTiles = this.getRandomSubarray(roomFloorTiles, roomDropCount);
 
                 roomSelectedTiles.forEach((tilePos, dIdx) => {
                     const roomItems = [];
                     // Weighted chances moved to config-driven logic if needed, but currently keeping inline rolls
-                    if (Math.random() < 0.5) {
+                    if (gameRandom.next() < 0.5) {
                         const medPool = SPECIAL_BUILDING_LOOT[type].medical;
-                        const med = createItemFromDef(medPool[Math.floor(Math.random() * medPool.length)]);
+                        const med = createItemFromDef(medPool[gameRandom.nextInt(0, medPool.length - 1)]);
                         if (med) roomItems.push(med);
                     }
-                    if (Math.random() < 0.7) {
+                    if (gameRandom.next() < 0.7) {
                         const techPool = SPECIAL_BUILDING_LOOT[type].tech;
-                        const tech = createItemFromDef(techPool[Math.floor(Math.random() * techPool.length)]);
+                        const tech = createItemFromDef(techPool[gameRandom.nextInt(0, techPool.length - 1)]);
                         if (tech) {
                             LootGenerator.applySpawnDefaults(tech, false);
                             roomItems.push(tech);
@@ -1012,7 +1013,7 @@ export class LootGenerator {
                     const water = createItemFromDef('food.waterbottle');
                     if (water) {
                         const minFill = Math.floor(water.capacity * 0.5);
-                        water.ammoCount = minFill + Math.floor(Math.random() * (water.capacity - minFill + 1));
+                        water.ammoCount = minFill + Math.floor(gameRandom.next() * (water.capacity - minFill + 1));
                         items.push(water);
                     }
                 }
@@ -1028,9 +1029,9 @@ export class LootGenerator {
                     break;
                 case 'firestation':
                     // 50% chance for bandages or antibiotics in each loot drop
-                    if (Math.random() < 0.5) {
+                    if (gameRandom.next() < 0.5) {
                         const medKeys = SPECIAL_BUILDING_LOOT.firestation.medical;
-                        const medKey = medKeys[Math.floor(Math.random() * medKeys.length)];
+                        const medKey = medKeys[gameRandom.nextInt(0, medKeys.length - 1)];
                         const med = createItemFromDef(medKey);
                         if (med) {
                             med.stackCount = 1;
@@ -1041,7 +1042,7 @@ export class LootGenerator {
                     // 50% chance for ONE fire tool in building
                     if (index === buildingState.toolDropIndex) {
                         const toolKeys = SPECIAL_BUILDING_LOOT.firestation.tools;
-                        const toolKey = toolKeys[Math.floor(Math.random() * toolKeys.length)];
+                        const toolKey = toolKeys[gameRandom.nextInt(0, toolKeys.length - 1)];
                         const tool = createItemFromDef(toolKey);
                         if (tool) items.push(tool);
                     }
@@ -1054,9 +1055,9 @@ export class LootGenerator {
                     break;
                 case 'police':
                     // 50% chance for ammo in each loot drop
-                    if (Math.random() < 0.5) {
+                    if (gameRandom.next() < 0.5) {
                         const ammoKeys = SPECIAL_BUILDING_LOOT.police.ammo;
-                        const ammoKey = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
+                        const ammoKey = ammoKeys[gameRandom.nextInt(0, ammoKeys.length - 1)];
                         const ammo = createItemFromDef(ammoKey);
                         if (ammo) {
                             ammo.stackCount = 1;
@@ -1067,7 +1068,7 @@ export class LootGenerator {
                     // 50% chance for ONE gun in building
                     if (index === buildingState.gunDropIndex) {
                         const gunKeys = SPECIAL_BUILDING_LOOT.police.guns;
-                        const gunKey = gunKeys[Math.floor(Math.random() * gunKeys.length)];
+                        const gunKey = gunKeys[gameRandom.nextInt(0, gunKeys.length - 1)];
                         const gun = createItemFromDef(gunKey);
                         if (gun) {
                             LootGenerator.initializeWeaponAmmo(gun);
@@ -1082,9 +1083,9 @@ export class LootGenerator {
                     }
 
                     // 20% chance for tactical gear (holsters, ammo pouches) in each drop
-                    if (Math.random() < 0.20) {
+                    if (gameRandom.next() < 0.20) {
                         const gearKeys = SPECIAL_BUILDING_LOOT.police.gear;
-                        const gearKey = gearKeys[Math.floor(Math.random() * gearKeys.length)];
+                        const gearKey = gearKeys[gameRandom.nextInt(0, gearKeys.length - 1)];
                         const gear = createItemFromDef(gearKey);
                         if (gear) items.push(gear);
                     }
@@ -1092,29 +1093,29 @@ export class LootGenerator {
                 case 'army_tent':
                     // ARMY TENT RULES:
                     // 1-2 stacks of ammo in EVERY drop
-                    const ammoStackCount = 1 + Math.floor(Math.random() * 2); 
+                    const ammoStackCount = 1 + gameRandom.nextInt(0, 1); 
                     for(let i=0; i < ammoStackCount; i++) {
                         const ammoTypes = SPECIAL_BUILDING_LOOT.army_tent.ammo;
-                        const ammoKey = ammoTypes[Math.floor(Math.random() * ammoTypes.length)];
+                        const ammoKey = ammoTypes[gameRandom.nextInt(0, ammoTypes.length - 1)];
                         const ammo = createItemFromDef(ammoKey);
                         if (ammo) {
-                            ammo.stackCount = 5 + Math.floor(Math.random() * 6); // 5-10
+                            ammo.stackCount = 5 + gameRandom.nextInt(0, 5); // 5-10
                             items.push(ammo);
                         }
                     }
 
                     // Gun mods: possible in every drop
-                    if (Math.random() < 0.25) { // 25% chance for a mod in a drop
+                    if (gameRandom.next() < 0.25) { // 25% chance for a mod in a drop
                         const modKeys = SPECIAL_BUILDING_LOOT.army_tent.mods;
-                        const modKey = modKeys[Math.floor(Math.random() * modKeys.length)];
+                        const modKey = modKeys[gameRandom.nextInt(0, modKeys.length - 1)];
                         const mod = createItemFromDef(modKey);
                         if (mod) items.push(mod);
                     }
 
                     // 15% chance for tactical gear in each drop
-                    if (Math.random() < 0.15) {
+                    if (gameRandom.next() < 0.15) {
                         const gearKeys = SPECIAL_BUILDING_LOOT.army_tent.gear;
-                        const gearKey = gearKeys[Math.floor(Math.random() * gearKeys.length)];
+                        const gearKey = gearKeys[gameRandom.nextInt(0, gearKeys.length - 1)];
                         const gear = createItemFromDef(gearKey);
                         if (gear) items.push(gear);
                     }
@@ -1123,7 +1124,7 @@ export class LootGenerator {
                     if (index === buildingState.grenadeDropIndex) {
                         const grenade = createItemFromDef('weapon.grenade');
                         if (grenade) {
-                            grenade.stackCount = 2 + Math.floor(Math.random() * 2); // 2-3 grenades
+                            grenade.stackCount = 2 + gameRandom.nextInt(0, 1); // 2-3 grenades
                             items.push(grenade);
                         }
                     }
@@ -1165,16 +1166,16 @@ export class LootGenerator {
                     const hardwareLoot = SPECIAL_BUILDING_LOOT.hardware_store;
                     
                     // 60% chance for a tool in every drop
-                    if (Math.random() < 0.6) {
-                        const toolKey = hardwareLoot.tools[Math.floor(Math.random() * hardwareLoot.tools.length)];
+                    if (gameRandom.next() < 0.6) {
+                        const toolKey = hardwareLoot.tools[gameRandom.nextInt(0, hardwareLoot.tools.length - 1)];
                         const tool = createItemFromDef(toolKey);
                         if (tool) items.push(tool);
                     }
                     
                     // 1 guaranteed material, 50% chance for a second one
-                    const matCount = Math.random() < 0.5 ? 2 : 1;
+                    const matCount = gameRandom.next() < 0.5 ? 2 : 1;
                     for (let i = 0; i < matCount; i++) {
-                        const matKey = hardwareLoot.materials[Math.floor(Math.random() * hardwareLoot.materials.length)];
+                        const matKey = hardwareLoot.materials[gameRandom.nextInt(0, hardwareLoot.materials.length - 1)];
                         const mat = createItemFromDef(matKey);
                         if (mat) {
                             LootGenerator.applySpawnDefaults(mat, false);
@@ -1235,7 +1236,7 @@ export class LootGenerator {
         let len = arr.length;
         const taken = new Array(len);
         while (n--) {
-            const x = Math.floor(Math.random() * len);
+            const x = Math.floor(gameRandom.next() * len);
             result[n] = arr[x in taken ? taken[x] : x];
             taken[x] = --len in taken ? taken[len] : len;
         }
@@ -1255,7 +1256,7 @@ export class LootGenerator {
     _getProcessedLootKey(key, mapNumber) {
         if (mapNumber > LOOT_CONSTANTS.WATER_BOTTLE_RESTRICTION_MAP && key === 'food.waterbottle') {
             // If water bottle is picked after map 3, swap it for chips or granola bar
-            return Math.random() < 0.5 ? 'food.chips' : 'food.granolabar';
+            return gameRandom.next() < 0.5 ? 'food.chips' : 'food.granolabar';
         }
         return key;
     }
@@ -1267,7 +1268,7 @@ export class LootGenerator {
      */
     generateZombieLoot(subtype = 'basic', mapNumber = 1) {
         this.initItemKeys();
-        const itemCount = Math.random() < 0.5 ? 1 : 2;
+        const itemCount = gameRandom.next() < 0.5 ? 1 : 2;
         const items = [];
         let hasBeltInLoot = false;
 
@@ -1287,40 +1288,40 @@ export class LootGenerator {
 
             if (tableKey !== 'basic') {
                 const table = ZOMBIE_LOOT[tableKey];
-                const roll = Math.random();
+                const roll = gameRandom.next();
 
                 if (tableKey === 'firefighter') {
                     if (roll < 0.3) {
-                        selectedKey = table.specialized[Math.floor(Math.random() * table.specialized.length)];
+                        selectedKey = table.specialized[gameRandom.nextInt(0, table.specialized.length - 1)];
                     } else if (roll < 0.6) {
-                        selectedKey = table.medical[Math.floor(Math.random() * table.medical.length)];
+                        selectedKey = table.medical[gameRandom.nextInt(0, table.medical.length - 1)];
                     } else if (roll < 0.8) {
                         selectedKey = this._getProcessedLootKey('food.waterbottle', mapNumber);
                     } else {
-                        selectedKey = table.common[Math.floor(Math.random() * table.common.length)];
+                        selectedKey = table.common[gameRandom.nextInt(0, table.common.length - 1)];
                     }
                 } else if (tableKey === 'swat' || tableKey === 'soldier') {
                     if (roll < 0.4) {
-                        selectedKey = table.gear[Math.floor(Math.random() * table.gear.length)];
+                        selectedKey = table.gear[gameRandom.nextInt(0, table.gear.length - 1)];
                     } else if (roll < 0.8) {
-                        selectedKey = table.ammo[Math.floor(Math.random() * table.ammo.length)];
+                        selectedKey = table.ammo[gameRandom.nextInt(0, table.ammo.length - 1)];
                     } else {
                         selectedKey = this._getProcessedLootKey('food.waterbottle', mapNumber);
                     }
                 }
             } else {
-                const tierRoll = Math.random();
+                const tierRoll = gameRandom.next();
                 if (tierRoll < 0.65) {
                     // Common: any clothing or rag
                     const commonKeys = this.itemKeys.filter(key => {
                         const def = ItemDefs[key];
                         return (def.categories && def.categories.includes(ItemCategory.CLOTHING)) || key === 'crafting.rag';
                     });
-                    selectedKey = commonKeys[Math.floor(Math.random() * commonKeys.length)];
+                    selectedKey = commonKeys[gameRandom.nextInt(0, commonKeys.length - 1)];
                 } else if (tierRoll < 0.85) {
                     // Uncommon: granola bar, chips, water bottle, etc.
                     const uncommonKeys = ZOMBIE_LOOT.uncommon;
-                    const rawKey = uncommonKeys[Math.floor(Math.random() * uncommonKeys.length)];
+                    const rawKey = uncommonKeys[gameRandom.nextInt(0, uncommonKeys.length - 1)];
                     selectedKey = this._getProcessedLootKey(rawKey, mapNumber);
                 } else if (tierRoll < 0.95) {
                     // Rare: Any ammo, knife, lighter, matches
@@ -1329,11 +1330,11 @@ export class LootGenerator {
                         return (def.categories && def.categories.includes(ItemCategory.AMMO)) ||
                             key === 'weapon.knife' || key === 'tool.lighter' || key === 'tool.matchbook';
                     });
-                    selectedKey = rareKeys[Math.floor(Math.random() * rareKeys.length)];
+                    selectedKey = rareKeys[gameRandom.nextInt(0, rareKeys.length - 1)];
                 } else {
                     // Extremely rare: 9mm pistol, 357 pistol, shotgun, Flashlight
                     const exoticKeys = ZOMBIE_LOOT.exotic;
-                    selectedKey = exoticKeys[Math.floor(Math.random() * exoticKeys.length)];
+                    selectedKey = exoticKeys[gameRandom.nextInt(0, exoticKeys.length - 1)];
                 }
             }
             
@@ -1346,7 +1347,7 @@ export class LootGenerator {
                     const isSeed = def.id && def.id.endsWith('seeds');
                     const isFood = !isSeed && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD))) && def.id !== 'food.whiskey';
                     if (isFood) {
-                        if (Math.random() < getFoodRejectionChance(mapNumber)) {
+                        if (gameRandom.next() < getFoodRejectionChance(mapNumber)) {
                             continue; // Reject food drop
                         }
                     }
@@ -1370,10 +1371,10 @@ export class LootGenerator {
      * Helper to pick items from a weighted table and add to collection
      */
     addItemsFromTable(items, table, min, max) {
-        const count = min + Math.floor(Math.random() * (max - min + 1));
+        const count = min + Math.floor(gameRandom.next() * (max - min + 1));
         for (let i = 0; i < count; i++) {
             const totalWeight = table.reduce((sum, entry) => sum + entry.weight, 0);
-            let random = Math.random() * totalWeight;
+            let random = gameRandom.next() * totalWeight;
             let pickedKey = table[0].key;
             for (const entry of table) {
                 if (random < entry.weight) {
@@ -1414,7 +1415,7 @@ export class LootGenerator {
 
         // 1. Stack Count Randomization
         if (def.spawnStackMin !== undefined && def.spawnStackMax !== undefined) {
-            item.stackCount = def.spawnStackMin + Math.floor(Math.random() * (def.spawnStackMax - def.spawnStackMin + 1));
+            item.stackCount = def.spawnStackMin + Math.floor(gameRandom.next() * (def.spawnStackMax - def.spawnStackMin + 1));
         } else {
             // Default stack count for non-special items
             item.stackCount = 1;
@@ -1423,7 +1424,7 @@ export class LootGenerator {
         // 2. Ammo / Charge / Water Randomization
         if (def.spawnAmmoPercent !== undefined && item.capacity) {
             // Apply randomized fill based on capacity (0 to capacity * spawnAmmoPercent)
-            item.ammoCount = Math.floor(Math.random() * (item.capacity * def.spawnAmmoPercent + 1));
+            item.ammoCount = Math.floor(gameRandom.next() * (item.capacity * def.spawnAmmoPercent + 1));
 
             // Specialized Rule: Lighters and matches never spawn empty
             if ((item.defId === 'tool.lighter' || item.defId === 'tool.matchbook') && item.ammoCount < 1) {
@@ -1438,12 +1439,12 @@ export class LootGenerator {
         if (item.traits && item.traits.includes(ItemTrait.DEGRADABLE)) {
             const minCondition = isZombieLoot ? 10 : 15;
             const maxCondition = isZombieLoot ? 70 : 100;
-            item.condition = Math.floor(Math.random() * (maxCondition - minCondition + 1)) + minCondition;
+            item.condition = Math.floor(gameRandom.next() * (maxCondition - minCondition + 1)) + minCondition;
         }
 
         // Fuel Can randomization (1-10 units)
         if (item.defId === 'tool.fuel_can') {
-            item.ammoCount = 1 + Math.floor(Math.random() * 10);
+            item.ammoCount = 1 + gameRandom.nextInt(0, 9);
         }
 
         // 4. Special cases (Battery Powered items, Weapons)
@@ -1453,7 +1454,7 @@ export class LootGenerator {
                 const batteryData = createItemFromDef('tool.battery');
                 if (batteryData) {
                     const battery = new Item(batteryData);
-                    battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 10));
+                    battery.ammoCount = 1 + Math.floor(gameRandom.next() * (battery.capacity || 10));
                     if (!item.attachments) item.attachments = {};
                     item.attachments[batterySlot.id] = battery;
                 }
@@ -1468,9 +1469,9 @@ export class LootGenerator {
                 if (batteryData) {
                     const battery = new Item(batteryData);
                     if (item.defId === 'tool.battery_powered_hotplate') {
-                        battery.ammoCount = 10 + Math.floor(Math.random() * 21); // 10 to 30 charges
+                        battery.ammoCount = 10 + gameRandom.nextInt(0, 20); // 10 to 30 charges
                     } else {
-                        battery.ammoCount = 1 + Math.floor(Math.random() * (battery.capacity || 100));
+                        battery.ammoCount = 1 + Math.floor(gameRandom.next() * (battery.capacity || 100));
                     }
                     if (!item.attachments) item.attachments = {};
                     item.attachments[batterySlot.id] = battery;
@@ -1509,14 +1510,14 @@ export class LootGenerator {
         // 3. Randomize based on weapon type and capacity
         if (ammoItem.capacity !== undefined && ammoItem.capacity > 0) {
             // MAGAZINE-FED (9mm, Sniper)
-            ammoItem.ammoCount = 1 + Math.floor(Math.random() * ammoItem.capacity);
+            ammoItem.ammoCount = 1 + Math.floor(gameRandom.next() * ammoItem.capacity);
             console.log(`[Loot] Initialized ${item.defId} with magazine (${ammoItem.ammoCount}/${ammoItem.capacity} rounds)`);
         } else {
             // INTERNALLY-FED (.357, Shotgun, Hunting Rifle)
             const def = ItemDefs[item.defId];
             const maxRand = def?.spawnMaxRounds || 6;
             
-            ammoItem.stackCount = 1 + Math.floor(Math.random() * maxRand);
+            ammoItem.stackCount = 1 + Math.floor(gameRandom.next() * maxRand);
             console.log(`[Loot] Initialized ${item.defId} with ${ammoItem.stackCount} internally loaded rounds`);
         }
 
@@ -1573,7 +1574,7 @@ export class LootGenerator {
                     console.log(`[LootGenerator] Requirement for ${req.defId} not met (${currentCount}/${req.minCount}). Spawning ${toSpawn} more.`);
                     
                     for (let i = 0; i < toSpawn; i++) {
-                        const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
+                        const tilePos = lootTiles[gameRandom.nextInt(0, lootTiles.length - 1)];
                         const itemData = createItemFromDef(req.defId);
                         if (itemData) {
                             const item = new Item(itemData);
@@ -1597,12 +1598,12 @@ export class LootGenerator {
             // For Map 5+, reduce the chance of even 1 of them spawning to 50%.
             if (mapNumber > 2) {
                 // Pick exactly one from the list
-                const picked = spawnsToProcess[Math.floor(Math.random() * spawnsToProcess.length)];
+                const picked = spawnsToProcess[gameRandom.nextInt(0, spawnsToProcess.length - 1)];
                 spawnsToProcess = [picked];
 
                 // Map 5+ reduction check
                 if (mapNumber >= 5) {
-                    if (Math.random() > 0.50) {
+                    if (gameRandom.next() > 0.50) {
                         spawnsToProcess = [];
                         console.log(`[LootGenerator] Map ${mapNumber} >= 5: Skipped unique item spawn (50% chance)`);
                     }
@@ -1614,7 +1615,7 @@ export class LootGenerator {
             spawnsToProcess.forEach(config => {
                 if (!config) return;
                 // Pick a random existing loot pile
-                const tilePos = lootTiles[Math.floor(Math.random() * lootTiles.length)];
+                const tilePos = lootTiles[gameRandom.nextInt(0, lootTiles.length - 1)];
                 const itemData = createItemFromDef(config.defId);
                 
                 if (itemData) {
@@ -1677,7 +1678,7 @@ export class LootGenerator {
                 } else if (item.defId === 'tool.lighter') {
                     // Ensure charges are between 5 and 10
                     if (item.ammoCount === undefined || item.ammoCount < 5 || item.ammoCount > 10) {
-                        item.ammoCount = 5 + Math.floor(Math.random() * 6); // 5-10
+                        item.ammoCount = 5 + gameRandom.nextInt(0, 5); // 5-10
                     }
                     lighterCount++;
                 } else if (item.defId === 'tool.cooking_pot') {
@@ -1724,7 +1725,7 @@ export class LootGenerator {
 
         // 1 melee weapon at 100% condition (Machete, Fire axe, Hammer, Crowbar)
         if (!hasMeleeWeapon) {
-            const randomMeleeId = meleeIDs[Math.floor(Math.random() * meleeIDs.length)];
+            const randomMeleeId = meleeIDs[gameRandom.nextInt(0, meleeIDs.length - 1)];
             const weapon = createItemFromDef(randomMeleeId, { condition: 100 });
             if (weapon) itemsToAdd.push(weapon);
         }
@@ -1743,7 +1744,7 @@ export class LootGenerator {
 
         // 1 lighter with 5-10 charges
         if (lighterCount < 1) {
-            const charges = 5 + Math.floor(Math.random() * 6);
+            const charges = 5 + gameRandom.nextInt(0, 5);
             const lighter = createItemFromDef('tool.lighter', { ammoCount: charges });
             if (lighter) itemsToAdd.push(lighter);
         }
@@ -1761,7 +1762,7 @@ export class LootGenerator {
 
         // Distribute items to the selected loot tiles randomly
         itemsToAdd.forEach(item => {
-            const randomTile = tilesToUse[Math.floor(Math.random() * tilesToUse.length)];
+            const randomTile = tilesToUse[gameRandom.nextInt(0, tilesToUse.length - 1)];
             const currentItems = gameMap.getItemsOnTile(randomTile.x, randomTile.y) || [];
             gameMap.setItemsOnTile(randomTile.x, randomTile.y, [...currentItems, item]);
             console.log(`[LootGenerator]   -> Placed guaranteed ${item.name} at (${randomTile.x}, ${randomTile.y})`);

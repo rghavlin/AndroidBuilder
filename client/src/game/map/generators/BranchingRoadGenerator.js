@@ -1,5 +1,6 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
-import { RoadNetwork, makeSeededRandom } from '../RoadNetwork.js';
+import { RoadNetwork } from '../RoadNetwork.js';
+import { makeSeededRandom } from '../../utils/SeededRandom.js';
 import { createItemFromDef } from '../../inventory/ItemDefs.js';
 
 /**

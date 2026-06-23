@@ -1,3 +1,4 @@
+import { gameRandom } from '../utils/SeededRandom.js';
 export class FireSystem {
   static processTileFires(gameMap) {
     if (!gameMap || !gameMap.tiles) return;
@@ -30,7 +31,7 @@ export class FireSystem {
         burnable.fireTurns--;
         
         // Entity takes fire damage
-        const fireDamage = Math.max(1, Math.floor(Math.random() * 4) + 2 - (burnable.fireResistance || 0)); // 2-5 damage base
+        const fireDamage = Math.max(1, gameRandom.nextInt(0, 3) + 2 - (burnable.fireResistance || 0)); // 2-5 damage base
         entity.takeDamage(fireDamage, { id: 'fire', type: 'hazard' });
       }
     }
@@ -47,7 +48,7 @@ export class FireSystem {
       const burnable = entity.getComponent('Burnable');
       if (burnable) {
         burnable.fireTurns = 2; // Catch fire from tile
-        const fireDamage = Math.max(1, Math.floor(Math.random() * 4) + 2 - (burnable.fireResistance || 0));
+        const fireDamage = Math.max(1, gameRandom.nextInt(0, 3) + 2 - (burnable.fireResistance || 0));
         entity.takeDamage(fireDamage, { id: 'fire_tile', type: 'hazard' });
       }
     }

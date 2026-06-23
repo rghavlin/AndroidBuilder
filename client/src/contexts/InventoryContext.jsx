@@ -10,6 +10,7 @@ import engine from '../game/GameEngine.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { TurnProcessingUtils } from '../game/utils/TurnProcessingUtils.js';
 import { TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
+import { gameRandom } from '../game/utils/SeededRandom.js';
 
 const logger = Logger.scope('InventoryContext');
 
@@ -553,59 +554,31 @@ export const InventoryProvider = ({ children }) => {
       player.inflictSickness(3);
     }
 
-    // Helper to process a single effect data object
-    const processEffect = (effect) => {
+    Object.entries(effects).forEach(([key, value]) => {
       // Handle value ranges { min, max }
-      let val = effect.value;
+      let val = value;
       if (val && typeof val === 'object' && val.min !== undefined && val.max !== undefined) {
-          val = Math.floor(Math.random() * (val.max - val.min + 1)) + val.min;
+          val = gameRandom.nextInt(val.min, val.max);
       }
 
-      switch (effect.type) {
-        case 'heal':
+      if (key === 'hp' || key === 'heal') {
           player.heal(val === 'Max HP' ? player.maxHp : val, true);
-          break;
-        case 'modifyStat':
-        case 'nutrition':
-        case 'hydration':
-          const stat = effect.stat || effect.type; // Allow type as stat name for common stats
-          player.modifyStat(stat, val);
-          break;
-        case 'stop_bleeding':
+      } else if (key === 'stop_bleeding' && val === true) {
           player.setBleeding(false);
-          break;
-        case 'cure':
-          player.cure();
-          break;
-        case 'sickness':
+      } else if (key === 'sickness') {
           player.inflictSickness(val);
-          break;
-        default:
-          console.warn(`[InventoryContext] Unknown effect type: ${effect.type}`, effect);
+      } else if (key === 'cure' && val === true) {
+          player.cure();
+      } else if (key === 'condition') {
+          player.condition = val;
+          player.notifyChange();
+      } else if (['nutrition', 'hydration'].includes(key)) {
+          player.modifyStat(key, val);
+      } else {
+          // Fallback for any other numeric stats
+          if (typeof val === 'number') player.modifyStat(key, val);
       }
-    };
-
-    // 1. Process Legacy Object-style effects (e.g. { nutrition: 5 })
-    if (!Array.isArray(effects)) {
-        Object.entries(effects).forEach(([key, value]) => {
-           if (key === 'hp' || key === 'heal') player.heal(value, true);
-           else if (key === 'sickness') player.inflictSickness(value);
-           else if (key === 'cure' && value === true) player.cure();
-           else if (key === 'condition') {
-               player.condition = value;
-               player.notifyChange();
-           } else if (['nutrition', 'hydration'].includes(key)) {
-               player.modifyStat(key, value);
-           } else {
-               // Fallback for any other numeric stats
-               if (typeof value === 'number') player.modifyStat(key, value);
-           }
-        });
-        return;
-    }
-
-    // 2. Process Modern Array-style effects (e.g. for medical items)
-    effects.forEach(processEffect);
+    });
   }, []);
 
   const consumeItem = useCallback((item) => {

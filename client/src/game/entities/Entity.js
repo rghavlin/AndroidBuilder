@@ -30,6 +30,27 @@ import { Container } from '../inventory/Container.js';
 import { AIState } from '../components/AIState.js';
 import { Burnable } from '../components/Burnable.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
+function defineAccessors(TargetClass, componentName, ComponentClass, props) {
+  for (const [prop, defaultVal] of Object.entries(props)) {
+    Object.defineProperty(TargetClass.prototype, prop, {
+      get() {
+        const comp = this.getComponent(componentName);
+        return comp ? comp[prop] : defaultVal;
+      },
+      set(val) {
+        let comp = this.getComponent(componentName);
+        if (!comp) {
+          comp = new ComponentClass();
+          this.addComponent(comp);
+        }
+        comp[prop] = val;
+        this.notifyChange();
+      }
+    });
+  }
+}
+
 // COMPONENT_CLASSES: Registry of components that can be attached to entities.
 // Divided into Permanent Data Components and Intent/Action Tags.
 export const COMPONENT_CLASSES = {
@@ -61,6 +82,25 @@ export const COMPONENT_CLASSES = {
   DropIntent
 };
 
+export const SERIALIZED_FIELDS = [
+  'subtype', 'blocksMovement', 'name', 'isHostile', 'equippedWeaponId',
+  'typeId', 'isShopkeeper', 'factionId', 'sightRange', 'hasExited', 'isActive',
+  'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
+  'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding',
+  'drunkenness', 'isStarving', 'isDehydrated', 'meleeKills', 'meleeLvl',
+  'rangedKills', 'rangedLvl', 'craftingApUsed', 'craftingLvl', 'earbucks'
+];
+
+export const ITEM_SERIALIZED_FIELDS = [
+  'instanceId', 'defId', 'width', 'height', 'rotation', 'traits', 'categories',
+  'stackCount', 'stackMax', 'capacity', 'ammoCount', 'isLit', 'isOn',
+  'lifetimeTurns', 'imageId', 'equippableSlot', 'isEquipped', 'pocketLayoutId',
+  'description', 'combat', 'rangedStats', 'rarity', 'backgroundColor', 'scooterMode',
+  'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
+  'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
+  'availableFireModes'
+];
+
 export const EntityType = {
   PLAYER: 'player',
   ZOMBIE: 'zombie',
@@ -80,7 +120,7 @@ export class Entity extends SafeEventEmitter {
     this.id = id || (typeof crypto !== 'undefined' && crypto.randomUUID 
       ? crypto.randomUUID() 
       : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+          const r = gameRandom.next() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
         }));
     this.type = type;
@@ -125,66 +165,6 @@ export class Entity extends SafeEventEmitter {
   }
 
 
-  // AIState Facades
-  get behaviorState() { const ai = this.getComponent('AIState'); return ai ? ai.behaviorState : 'idle'; }
-  set behaviorState(val) { const ai = this.getComponent('AIState'); if (ai) { ai.behaviorState = val; this.notifyChange(); } else { this.addComponent(new AIState({behaviorState: val})); } }
-
-  get currentTarget() { const ai = this.getComponent('AIState'); return ai ? ai.currentTarget : null; }
-  set currentTarget(val) { const ai = this.getComponent('AIState'); if (ai) { ai.currentTarget = val; this.notifyChange(); } }
-
-  get heardNoise() { const ai = this.getComponent('AIState'); return ai ? ai.heardNoise : false; }
-  set heardNoise(val) { const ai = this.getComponent('AIState'); if (ai) { ai.heardNoise = val; this.notifyChange(); } }
-
-  get noiseCoords() { const ai = this.getComponent('AIState'); return ai ? ai.noiseCoords : { x: 0, y: 0 }; }
-  set noiseCoords(val) { const ai = this.getComponent('AIState'); if (ai) { ai.noiseCoords = val; this.notifyChange(); } }
-
-  get noiseBlacklist() { const ai = this.getComponent('AIState'); return ai ? ai.noiseBlacklist : []; }
-  set noiseBlacklist(val) { const ai = this.getComponent('AIState'); if (ai) { ai.noiseBlacklist = val; this.notifyChange(); } }
-
-  get recentThreats() { const ai = this.getComponent('AIState'); return ai ? ai.recentThreats : []; }
-  set recentThreats(val) { const ai = this.getComponent('AIState'); if (ai) { ai.recentThreats = val; this.notifyChange(); } }
-
-  get goalTarget() { const ai = this.getComponent('AIState'); return ai ? ai.goalTarget : null; }
-  set goalTarget(val) { const ai = this.getComponent('AIState'); if (ai) { ai.goalTarget = val; this.notifyChange(); } }
-
-  get lastSeen() { const ai = this.getComponent('AIState'); return ai ? ai.lastSeen : false; }
-  set lastSeen(val) { const ai = this.getComponent('AIState'); if (ai) { ai.lastSeen = val; this.notifyChange(); } }
-
-  get targetSightedCoords() { const ai = this.getComponent('AIState'); return ai ? ai.targetSightedCoords : { x: 0, y: 0 }; }
-  set targetSightedCoords(val) { const ai = this.getComponent('AIState'); if (ai) { ai.targetSightedCoords = val; this.notifyChange(); } }
-
-  get lastScentSequence() { const ai = this.getComponent('AIState'); return ai ? ai.lastScentSequence : 0; }
-  set lastScentSequence(val) { const ai = this.getComponent('AIState'); if (ai) { ai.lastScentSequence = val; this.notifyChange(); } }
-
-  get isAlerted() { const ai = this.getComponent('AIState'); return ai ? ai.isAlerted : false; }
-  set isAlerted(val) { const ai = this.getComponent('AIState'); if (ai) { ai.isAlerted = val; this.notifyChange(); } }
-
-  get currentPath() { const ai = this.getComponent('AIState'); return ai ? ai.currentPath : null; }
-  set currentPath(val) { const ai = this.getComponent('AIState'); if (ai) { ai.currentPath = val; this.notifyChange(); } }
-
-  get hasDemanded() { const ai = this.getComponent('AIState'); return ai ? ai.hasDemanded : false; }
-  set hasDemanded(val) { const ai = this.getComponent('AIState'); if (ai) { ai.hasDemanded = val; this.notifyChange(); } }
-
-  get hasExtorted() { const ai = this.getComponent('AIState'); return ai ? ai.hasExtorted : false; }
-  set hasExtorted(val) { const ai = this.getComponent('AIState'); if (ai) { ai.hasExtorted = val; this.notifyChange(); } }
-
-  get fleeRecoverChance() { const ai = this.getComponent('AIState'); return ai ? ai.fleeRecoverChance : 0; }
-  set fleeRecoverChance(val) { const ai = this.getComponent('AIState'); if (ai) { ai.fleeRecoverChance = val; this.notifyChange(); } }
-
-  get stunnedTurns() { const ai = this.getComponent('AIState'); return ai ? ai.stunnedTurns : 0; }
-  set stunnedTurns(val) { const ai = this.getComponent('AIState'); if (ai) { ai.stunnedTurns = val; this.notifyChange(); } }
-
-  // Burnable Facades
-  get fireTurns() { const b = this.getComponent('Burnable'); return b ? b.fireTurns : 0; }
-  set fireTurns(val) { 
-    const b = this.getComponent('Burnable'); 
-    if (b) { 
-      b.fireTurns = val; 
-      this.notifyChange(); 
-    } else { 
-      this.addComponent(new Burnable({fireTurns: val})); 
-    }
-  }
 
 
   // Getters/setters for dual-coordinate rendering system
@@ -336,20 +316,6 @@ export class Entity extends SafeEventEmitter {
     this.notifyChange();
   }
 
-  get maxNutrition() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.maxNutrition : 0;
-  }
-  set maxNutrition(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.maxNutrition = v;
-    this.notifyChange();
-  }
-
   get hydration() {
     const stats = this.getComponent('SurvivalStats');
     return stats ? stats.hydration : 0;
@@ -366,48 +332,6 @@ export class Entity extends SafeEventEmitter {
     } else if (stats.hydration > 0 && stats.isDehydrated) {
       stats.isDehydrated = false;
     }
-    this.notifyChange();
-  }
-
-  get maxHydration() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.maxHydration : 0;
-  }
-  set maxHydration(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.maxHydration = v;
-    this.notifyChange();
-  }
-
-  get energy() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.energy : 0;
-  }
-  set energy(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.energy = v;
-    this.notifyChange();
-  }
-
-  get maxEnergy() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.maxEnergy : 0;
-  }
-  set maxEnergy(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.maxEnergy = v;
     this.notifyChange();
   }
 
@@ -428,160 +352,6 @@ export class Entity extends SafeEventEmitter {
     } else {
       this._condition = v;
     }
-    this.notifyChange();
-  }
-
-  get sickness() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.sickness : 0;
-  }
-  set sickness(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.sickness = v;
-    this.notifyChange();
-  }
-
-  get isBleeding() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.isBleeding : false;
-  }
-  set isBleeding(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.isBleeding = v;
-    this.notifyChange();
-  }
-
-  get drunkenness() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.drunkenness : 0;
-  }
-  set drunkenness(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.drunkenness = v;
-    this.notifyChange();
-  }
-
-  get isStarving() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.isStarving : false;
-  }
-  set isStarving(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.isStarving = v;
-    this.notifyChange();
-  }
-
-  get isDehydrated() {
-    const stats = this.getComponent('SurvivalStats');
-    return stats ? stats.isDehydrated : false;
-  }
-  set isDehydrated(v) {
-    let stats = this.getComponent('SurvivalStats');
-    if (!stats) {
-      stats = new SurvivalStats();
-      this.addComponent(stats);
-    }
-    stats.isDehydrated = v;
-    this.notifyChange();
-  }
-
-  get meleeKills() {
-    const skills = this.getComponent('PlayerSkills');
-    return skills ? skills.meleeKills : 0;
-  }
-  set meleeKills(v) {
-    let skills = this.getComponent('PlayerSkills');
-    if (!skills) {
-      skills = new PlayerSkills();
-      this.addComponent(skills);
-    }
-    skills.meleeKills = v;
-    this.notifyChange();
-  }
-
-  get meleeLvl() {
-    const skills = this.getComponent('PlayerSkills');
-    return skills ? skills.meleeLvl : 0;
-  }
-  set meleeLvl(v) {
-    let skills = this.getComponent('PlayerSkills');
-    if (!skills) {
-      skills = new PlayerSkills();
-      this.addComponent(skills);
-    }
-    skills.meleeLvl = v;
-    this.notifyChange();
-  }
-
-  get rangedKills() {
-    const skills = this.getComponent('PlayerSkills');
-    return skills ? skills.rangedKills : 0;
-  }
-  set rangedKills(v) {
-    let skills = this.getComponent('PlayerSkills');
-    if (!skills) {
-      skills = new PlayerSkills();
-      this.addComponent(skills);
-    }
-    skills.rangedKills = v;
-    this.notifyChange();
-  }
-
-  get rangedLvl() {
-    const skills = this.getComponent('PlayerSkills');
-    return skills ? skills.rangedLvl : 0;
-  }
-  set rangedLvl(v) {
-    let skills = this.getComponent('PlayerSkills');
-    if (!skills) {
-      skills = new PlayerSkills();
-      this.addComponent(skills);
-    }
-    skills.rangedLvl = v;
-    this.notifyChange();
-  }
-
-  get craftingApUsed() {
-    const skills = this.getComponent('PlayerSkills');
-    return skills ? skills.craftingApUsed : 0;
-  }
-  set craftingApUsed(v) {
-    let skills = this.getComponent('PlayerSkills');
-    if (!skills) {
-      skills = new PlayerSkills();
-      this.addComponent(skills);
-    }
-    skills.craftingApUsed = v;
-    this.notifyChange();
-  }
-
-  get craftingLvl() {
-    const skills = this.getComponent('PlayerSkills');
-    return skills ? skills.craftingLvl : 0;
-  }
-  set craftingLvl(v) {
-    let skills = this.getComponent('PlayerSkills');
-    if (!skills) {
-      skills = new PlayerSkills();
-      this.addComponent(skills);
-    }
-    skills.craftingLvl = v;
     this.notifyChange();
   }
 
@@ -773,7 +543,7 @@ export class Entity extends SafeEventEmitter {
     this.isActive = true;
     this.wasAttackedThisTurn = false;
     this.movementPath = [{ x: this.logicalX, y: this.logicalY }];
-    if (this.behaviorState === 'fleeing' && this.fleeRecoverChance !== undefined && Math.random() < this.fleeRecoverChance) {
+    if (this.behaviorState === 'fleeing' && this.fleeRecoverChance !== undefined && gameRandom.next() < this.fleeRecoverChance) {
       this.behaviorState = 'idle';
     }
 
@@ -1078,58 +848,21 @@ export class Entity extends SafeEventEmitter {
       gridY: this.gridY,
       logicalX: this.logicalX,
       logicalY: this.logicalY,
-      subtype: this.subtype,
-      blocksMovement: this.blocksMovement,
-      name: this.name,
-      isHostile: this.isHostile,
-      equippedWeaponId: this.equippedWeaponId,
-      typeId: this.typeId,
-      isShopkeeper: this.isShopkeeper || false,
-      factionId: this.factionId,
       hostileOverrides: this.hostileOverrides ? Array.from(this.hostileOverrides) : [],
-      sightRange: this.sightRange,
-      hasExited: this.hasExited,
-      isActive: this.isActive,
-      hp: this.hp,
-      maxHp: this.maxHp,
-      ap: this.ap,
-      maxAp: this.maxAp,
-      nutrition: this.nutrition,
-      maxNutrition: this.maxNutrition,
-      hydration: this.hydration,
-      maxHydration: this.maxHydration,
-      energy: this.energy,
-      maxEnergy: this.maxEnergy,
-      condition: this.condition,
-      sickness: this.sickness,
-      isBleeding: this.isBleeding,
-      drunkenness: this.drunkenness || 0,
-      isStarving: this.isStarving,
-      isDehydrated: this.isDehydrated,
-      meleeKills: this.meleeKills,
-      meleeLvl: this.meleeLvl,
-      rangedKills: this.rangedKills,
-      rangedLvl: this.rangedLvl,
-      craftingApUsed: this.craftingApUsed,
-      craftingLvl: this.craftingLvl,
-      earbucks: this.earbucks,
       inventory: this.inventory ? this.inventory.toJSON() : null,
       components: Object.fromEntries(
         [...this.components].map(([name, comp]) => [name, typeof comp?.toJSON === 'function' ? comp.toJSON() : comp])
       )
     };
 
+    for (const field of SERIALIZED_FIELDS) {
+      if (this[field] !== undefined) {
+        data[field] = this[field];
+      }
+    }
+
     if (this.type === 'item') {
-      const itemFields = [
-        'instanceId', 'defId', 'width', 'height', 'rotation', 'traits', 'categories',
-        'stackCount', 'stackMax', 'condition', 'capacity', 'ammoCount', 'isLit', 'isOn',
-        'lifetimeTurns', 'imageId', 'subtype', 'equippableSlot', 'isEquipped', 'pocketLayoutId',
-        'description', 'combat', 'rangedStats', 'rarity', 'backgroundColor', 'scooterMode',
-        'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
-        'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
-        'availableFireModes'
-      ];
-      for (const field of itemFields) {
+      for (const field of ITEM_SERIALIZED_FIELDS) {
         if (this[field] !== undefined) {
           data[field] = this[field];
         }
@@ -1167,59 +900,21 @@ export class Entity extends SafeEventEmitter {
     entity.renderY = data.y !== undefined ? data.y : entity.gridY;
     entity.logicalX = entity.gridX;
     entity.logicalY = entity.gridY;
-    entity.subtype = data.subtype || null;
-    entity.blocksMovement = data.blocksMovement || false;
 
-    // Restore stats/properties
-    if (data.hp !== undefined) entity.hp = data.hp;
-    if (data.maxHp !== undefined) entity.maxHp = data.maxHp;
-    if (data.ap !== undefined) entity.ap = data.ap;
-    if (data.maxAp !== undefined) entity.maxAp = data.maxAp;
-    if (data.name !== undefined) entity.name = data.name;
-    if (data.isHostile !== undefined) entity.isHostile = data.isHostile;
-    if (data.typeId !== undefined) entity.typeId = data.typeId;
-    if (data.isShopkeeper !== undefined) entity.isShopkeeper = data.isShopkeeper;
-    if (data.factionId !== undefined) entity.factionId = data.factionId;
     if (Array.isArray(data.hostileOverrides)) entity.hostileOverrides = new Set(data.hostileOverrides);
-    if (data.equippedWeaponId !== undefined) entity.equippedWeaponId = data.equippedWeaponId;
-    if (data.sightRange !== undefined) entity.sightRange = data.sightRange;
-    if (data.hasExited !== undefined) entity.hasExited = data.hasExited;
-    if (data.isActive !== undefined) entity.isActive = data.isActive;
-    if (data.nutrition !== undefined) entity.nutrition = data.nutrition;
-    if (data.maxNutrition !== undefined) entity.maxNutrition = data.maxNutrition;
-    if (data.hydration !== undefined) entity.hydration = data.hydration;
-    if (data.maxHydration !== undefined) entity.maxHydration = data.maxHydration;
-    if (data.energy !== undefined) entity.energy = data.energy;
-    if (data.maxEnergy !== undefined) entity.maxEnergy = data.maxEnergy;
-    if (data.condition !== undefined) entity.condition = data.condition;
-    if (data.sickness !== undefined) entity.sickness = data.sickness;
-    if (data.isBleeding !== undefined) entity.isBleeding = data.isBleeding;
-    if (data.drunkenness !== undefined) entity.drunkenness = data.drunkenness;
-    if (data.isStarving !== undefined) entity.isStarving = data.isStarving;
-    if (data.isDehydrated !== undefined) entity.isDehydrated = data.isDehydrated;
-    if (data.meleeKills !== undefined) entity.meleeKills = data.meleeKills;
-    if (data.meleeLvl !== undefined) entity.meleeLvl = data.meleeLvl;
-    if (data.rangedKills !== undefined) entity.rangedKills = data.rangedKills;
-    if (data.rangedLvl !== undefined) entity.rangedLvl = data.rangedLvl;
-    if (data.craftingApUsed !== undefined) entity.craftingApUsed = data.craftingApUsed;
-    if (data.craftingLvl !== undefined) entity.craftingLvl = data.craftingLvl;
-    if (data.earbucks !== undefined) entity.earbucks = data.earbucks;
 
     if (data.inventory) {
       entity.inventory = Container.fromJSON(data.inventory);
     }
 
+    for (const field of SERIALIZED_FIELDS) {
+      if (data[field] !== undefined) {
+        entity[field] = data[field];
+      }
+    }
+
     if (data.type === 'item') {
-      const itemFields = [
-        'instanceId', 'defId', 'width', 'height', 'rotation', 'traits', 'categories',
-        'stackCount', 'stackMax', 'condition', 'capacity', 'ammoCount', 'isLit', 'isOn',
-        'lifetimeTurns', 'imageId', 'subtype', 'equippableSlot', 'isEquipped', 'pocketLayoutId',
-        'description', 'combat', 'rangedStats', 'rarity', 'backgroundColor', 'scooterMode',
-        'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
-        'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
-        'availableFireModes'
-      ];
-      for (const field of itemFields) {
+      for (const field of ITEM_SERIALIZED_FIELDS) {
         if (data[field] !== undefined) {
           entity[field] = data[field];
         }
@@ -1253,3 +948,46 @@ export class Entity extends SafeEventEmitter {
     return entity;
   }
 }
+defineAccessors(Entity, 'AIState', AIState, {
+  behaviorState: 'idle',
+  currentTarget: null,
+  heardNoise: false,
+  noiseCoords: { x: 0, y: 0 },
+  noiseBlacklist: [],
+  recentThreats: [],
+  goalTarget: null,
+  lastSeen: false,
+  targetSightedCoords: { x: 0, y: 0 },
+  lastScentSequence: 0,
+  isAlerted: false,
+  currentPath: null,
+  hasDemanded: false,
+  hasExtorted: false,
+  fleeRecoverChance: 0,
+  stunnedTurns: 0
+});
+
+defineAccessors(Entity, 'Burnable', Burnable, {
+  fireTurns: 0
+});
+
+defineAccessors(Entity, 'SurvivalStats', SurvivalStats, {
+  maxNutrition: 0,
+  maxHydration: 0,
+  energy: 0,
+  maxEnergy: 0,
+  sickness: 0,
+  isBleeding: false,
+  drunkenness: 0,
+  isStarving: false,
+  isDehydrated: false
+});
+
+defineAccessors(Entity, 'PlayerSkills', PlayerSkills, {
+  meleeKills: 0,
+  meleeLvl: 0,
+  rangedKills: 0,
+  rangedLvl: 0,
+  craftingApUsed: 0,
+  craftingLvl: 0
+});

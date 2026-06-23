@@ -263,9 +263,7 @@ export function ItemContextMenu({
                                     if (item?.categories?.includes('food')) return 'Eat';
                                     
                                     // Check for medical/healing effects or category
-                                    const effects = Array.isArray(item?.consumptionEffects) 
-                                        ? item.consumptionEffects 
-                                        : (item?.consumptionEffects ? Object.entries(item.consumptionEffects).map(([type, value]) => ({ type, value })) : []);
+                                    const effects = item?.consumptionEffects ? Object.entries(item.consumptionEffects).map(([type, value]) => ({ type, value })) : [];
                                     
                                     const isMedical = item?.categories?.includes('medical') || 
                                                      effects.some((e: any) => e.type === 'heal' || e.type === 'hp' || e.type === 'cure' || e.type === 'stop_bleeding');

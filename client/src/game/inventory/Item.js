@@ -7,6 +7,7 @@ import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 /**
  * Item Instance - Runtime item with state
  */
@@ -68,7 +69,7 @@ export class Item extends SafeEventEmitter {
     } = config;
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
-    const uniqueSuffix = Math.random().toString(36).substring(2, 9);
+    const uniqueSuffix = gameRandom.next().toString(36).substring(2, 9);
     const timestamp = Date.now();
     this.instanceId = instanceId || `item-${timestamp}-${uniqueSuffix}`;
     this.defId = defId || id;

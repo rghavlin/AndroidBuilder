@@ -8,6 +8,7 @@ import { getSightRangeForHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './conf
 import { getHourFromTurn } from './utils/TimeUtils.js';
 
 
+import { gameRandom } from './utils/SeededRandom.js';
 /**
  * GameEngine - The Central Source of Truth
  * 
@@ -59,7 +60,7 @@ class GameEngine extends SafeEventEmitter {
       this._heartbeatId = null;
     }
 
-    this.id = Math.floor(Math.random() * 1000000);
+    this.id = gameRandom.nextInt(0, 999999);
     console.log(`[GameEngine] 🚀 Initialized with ID: ${this.id}`);
     this.player = null;
     this.gameMap = null;

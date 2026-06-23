@@ -1,5 +1,6 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
 
+import { gameRandom } from '../../utils/SeededRandom.js';
 /**
  * Horizontal inset (in tiles) of the vertical road runs from each map edge.
  * Single source of truth shared with getStartPosition() and the exit metadata.
@@ -133,7 +134,7 @@ export class MirroredWindingRoadGenerator extends BaseMapGenerator {
 
     // A. Army Tent (Always 1 on winding road, independent of special building quota)
     if (tentPool.length > 0) {
-        const tentIdx = Math.floor(Math.random() * tentPool.length);
+        const tentIdx = gameRandom.nextInt(0, tentPool.length - 1);
         selected.push({ building: tentPool[tentIdx], type: 'army_tent' });
     }
 

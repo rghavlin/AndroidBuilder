@@ -3,20 +3,22 @@ import { getProgressionForMap, BASELINE_MAP_AREA } from './config/ProgressionCon
 import GameEvents, { GAME_EVENT } from './utils/GameEvents.js';
 import { compressString, decompressString } from './GameSaveSystem.js';
 import { TEMPLATE_METADATA, getTemplateForMapNumber } from './config/TemplateConfig.js';
+import { SafeEventEmitter } from './utils/SafeEventEmitter.js';
 
+import { gameRandom } from './utils/SeededRandom.js';
 const logger = Logger.scope('WorldManager');
 
 /**
  * WorldManager - Handles multiple maps, transitions, and world state persistence
  * Follows UniversalGoals.md: modular, serializable, event-driven
  */
-export class WorldManager {
+export class WorldManager extends SafeEventEmitter {
   constructor() {
+    super();
     this.maps = new Map(); // Map ID -> serialized map data
     this.compressionLocks = new Map(); // Map ID -> Promise (in-progress compression)
     this.currentMapId = null;
     this.mapCounter = 1;
-    this.listeners = new Map();
     this.DEV_FORCE_LAB = false; // Set to true to test Lab map on Map 1
     this.saveSlot = null; // Active save slot reference
 
@@ -41,21 +43,20 @@ export class WorldManager {
     GameEvents.off(GAME_EVENT.ZOMBIE_DIED, this._onZombieDied);
     this.maps.clear();
     this.compressionLocks.clear();
-    this.listeners.clear();
+    this.removeAllListeners();
   }
 
   /**
-   * Add event listener for world events
+   * Add event listener for world events. Alias for the SafeEventEmitter `on`
+   * API, kept for backward compatibility with existing call sites.
    */
   addEventListener(eventType, callback) {
-    if (!this.listeners.has(eventType)) {
-      this.listeners.set(eventType, []);
-    }
-    this.listeners.get(eventType).push(callback);
+    return this.on(eventType, callback);
   }
 
   /**
-   * Emit world events
+   * Emit world events. Enriches the payload with world state + a timestamp,
+   * then dispatches through SafeEventEmitter (which guards handler errors).
    */
   emit(eventType, data = {}) {
     const eventData = {
@@ -63,10 +64,7 @@ export class WorldManager {
       timestamp: Date.now(),
       ...data
     };
-
-    if (this.listeners.has(eventType)) {
-      this.listeners.get(eventType).forEach(callback => callback(eventData));
-    }
+    return super.emit(eventType, eventData);
   }
 
   /**
@@ -339,9 +337,9 @@ export class WorldManager {
     let soldierCount = 0;
     if (mapNumber > 3) {
       const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
-      if (Math.random() < (swatChance || 0.15)) randomSwatCount = Math.floor(Math.random() * 2) + 1;
-      if (Math.random() < (firefighterChance || 0.15)) randomFirefighterCount = Math.floor(Math.random() * 2) + 1;
-      if (Math.random() < (soldierChance || 0.10)) soldierCount = 1;
+      if (gameRandom.next() < (swatChance || 0.15)) randomSwatCount = gameRandom.nextInt(0, 1) + 1;
+      if (gameRandom.next() < (firefighterChance || 0.15)) randomFirefighterCount = gameRandom.nextInt(0, 1) + 1;
+      if (gameRandom.next() < (soldierChance || 0.10)) soldierCount = 1;
     }
 
     const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;

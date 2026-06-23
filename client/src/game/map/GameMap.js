@@ -10,21 +10,24 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { Item as ECSItem } from '../components/Item.js';
 import { Item } from '../inventory/Item.js';
 import { gridItems } from '../inventory/gridUtils.js';
+import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { Health } from '../components/Health.js';
 import { Renderable } from '../components/Renderable.js';
 import { MeleeWeapon } from '../components/MeleeWeapon.js';
 import { Position } from '../components/Position.js';
 import Logger from '../utils/Logger.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 const log = Logger.scope('GameMap');
 
 /**
  * 20x20 map container with tile management and serialization
  */
-export class GameMap {
+export class GameMap extends SafeEventEmitter {
   static isSimulating = false;
 
   constructor(width = 20, height = 20) {
+    super();
     this.width = width;
     this.height = height;
     this.tiles = [];
@@ -33,7 +36,6 @@ export class GameMap {
     // instead of scanning every entity. Maintained in addEntity/removeEntity and
     // rebuilt on deserialize. Safe because entity.type is set once at creation.
     this.entitiesByType = new Map();
-    this.listeners = new Map();
     this.scentSequenceCounter = 0;
     // Sparse index of tiles that currently hold scent ("x,y" keys). Lets scent
     // decay cost scale with the number of active scent tiles instead of the whole
@@ -77,17 +79,16 @@ export class GameMap {
   }
 
   /**
-   * Add event listener for map events
+   * Add event listener for map events. Alias for the SafeEventEmitter `on` API,
+   * kept for backward compatibility with existing call sites.
    */
   addEventListener(eventType, callback) {
-    if (!this.listeners.has(eventType)) {
-      this.listeners.set(eventType, []);
-    }
-    this.listeners.get(eventType).push(callback);
+    return this.on(eventType, callback);
   }
 
   /**
-   * Emit map events
+   * Emit map events. Enriches the payload with map dimensions + a timestamp,
+   * then dispatches through SafeEventEmitter (which guards handler errors).
    */
   emit(eventType, data = {}) {
     const eventData = {
@@ -95,10 +96,7 @@ export class GameMap {
       timestamp: Date.now(),
       ...data
     };
-
-    if (this.listeners.has(eventType)) {
-      this.listeners.get(eventType).forEach(callback => callback(eventData));
-    }
+    return super.emit(eventType, eventData);
   }
 
   /**
@@ -873,7 +871,7 @@ export class GameMap {
           }
         }
 
-        if (Math.random() < catchChance) {
+        if (gameRandom.next() < catchChance) {
           console.log(`[GameMap] 🐰 Rabbit CAUGHT in snare at (${x}, ${y})!`);
           
           items.splice(deployedSnareIndex, 1);

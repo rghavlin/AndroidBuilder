@@ -1,5 +1,6 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
 
+import { gameRandom } from '../../utils/SeededRandom.js';
 /**
  * SplitRoadGenerator - Generates a map with roads on both sides and houses in the center
  */
@@ -149,7 +150,7 @@ export class SplitRoadGenerator extends BaseMapGenerator {
     let candidateBuildings = buildings.filter(b => b.type === 'residential');
 
     if (candidateBuildings.length >= 1) {
-        const selectedIdx = Math.floor(Math.random() * candidateBuildings.length);
+        const selectedIdx = gameRandom.nextInt(0, candidateBuildings.length - 1);
         const b = candidateBuildings[selectedIdx];
         
         // Remove from residential list in metadata so it doesn't get treated as one

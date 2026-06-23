@@ -1,3 +1,4 @@
+import { gameRandom } from '../utils/SeededRandom.js';
 /**
  * ProgressionConfig - Centralized difficulty scaling for map progression
  */
@@ -85,7 +86,7 @@ export function getProgressionForMap(mapNumber) {
       min: baseConfig.fatRange.min + extraFat, 
       max: baseConfig.fatRange.max + extraFat 
     },
-    runnerCount: Math.floor(Math.random() * 3) + 2,
+    runnerCount: gameRandom.nextInt(0, 2) + 2,
     maxTotal: baseConfig.maxTotal + delta * 20,
     spitterCount: mapNumber >= 3 ? Math.floor((mapNumber - 1) / 2) : 0,
     randomSpecialized: {

@@ -1,5 +1,6 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
 
+import { gameRandom } from '../../utils/SeededRandom.js';
 /**
  * RoadGenerator - Generates straight road layouts
  */
@@ -78,11 +79,11 @@ export class RoadGenerator extends BaseMapGenerator {
         spawnTent = true;
     } else if (mapNumber > 4) {
         // 35% chance for straight roads past Map 4
-        spawnTent = Math.random() < 0.35;
+        spawnTent = gameRandom.next() < 0.35;
     }
 
     if (spawnTent && candidateBuildings.length > 0) {
-        const tentIdx = Math.floor(Math.random() * candidateBuildings.length);
+        const tentIdx = gameRandom.nextInt(0, candidateBuildings.length - 1);
         const b = candidateBuildings.splice(tentIdx, 1)[0];
 
         // Thorough cleanup

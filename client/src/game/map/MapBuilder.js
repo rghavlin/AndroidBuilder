@@ -1,6 +1,7 @@
 import { isSpecialBuilding } from './BuildingTypes.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 /**
  * MapBuilder - Utility for geometric drawing and building placement
  * Decouples map geometry from high-level generation logic
@@ -133,32 +134,32 @@ export class MapBuilder {
 
     // Entrance logic
     let entranceX, entranceY, entranceEdge;
-    if (frontage === 'east') { entranceX = x + w - 1; entranceY = y + 2 + Math.floor(Math.random() * (h - 4)); entranceEdge = 'e'; }
-    else if (frontage === 'west') { entranceX = x; entranceY = y + 2 + Math.floor(Math.random() * (h - 4)); entranceEdge = 'w'; }
-    else if (frontage === 'south') { entranceX = x + 2 + Math.floor(Math.random() * (w - 4)); entranceY = y + h - 1; entranceEdge = 's'; }
-    else { entranceX = x + 2 + Math.floor(Math.random() * (w - 4)); entranceY = y; entranceEdge = 'n'; }
+    if (frontage === 'east') { entranceX = x + w - 1; entranceY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); entranceEdge = 'e'; }
+    else if (frontage === 'west') { entranceX = x; entranceY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); entranceEdge = 'w'; }
+    else if (frontage === 'south') { entranceX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); entranceY = y + h - 1; entranceEdge = 's'; }
+    else { entranceX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); entranceY = y; entranceEdge = 'n'; }
 
     this.setTerrain(entranceX, entranceY, 'floor');
     this.metadata.doors.push({ 
       x: entranceX, 
       y: entranceY, 
-      isLocked: Math.random() < 0.2, 
+      isLocked: gameRandom.next() < 0.2, 
       isOpen: false,
       edge: entranceEdge
     });
 
     // Back door logic: Place on the opposite wall of the frontage
     let backX, backY, backEdge;
-    if (frontage === 'east') { backX = x; backY = y + 2 + Math.floor(Math.random() * (h - 4)); backEdge = 'w'; }
-    else if (frontage === 'west') { backX = x + w - 1; backY = y + 2 + Math.floor(Math.random() * (h - 4)); backEdge = 'e'; }
-    else if (frontage === 'south') { backX = x + 2 + Math.floor(Math.random() * (w - 4)); backY = y; backEdge = 'n'; }
-    else { backX = x + 2 + Math.floor(Math.random() * (w - 4)); backY = y + h - 1; backEdge = 's'; }
+    if (frontage === 'east') { backX = x; backY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); backEdge = 'w'; }
+    else if (frontage === 'west') { backX = x + w - 1; backY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); backEdge = 'e'; }
+    else if (frontage === 'south') { backX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); backY = y; backEdge = 'n'; }
+    else { backX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); backY = y + h - 1; backEdge = 's'; }
 
     this.setTerrain(backX, backY, 'floor');
     this.metadata.doors.push({
       x: backX,
       y: backY,
-      isLocked: Math.random() < 0.4, // Back doors are slightly more likely to be locked
+      isLocked: gameRandom.next() < 0.4, // Back doors are slightly more likely to be locked
       isOpen: false,
       edge: backEdge
     });
@@ -256,7 +257,7 @@ export class MapBuilder {
         let sx = entranceX, sy = entranceY;
         if (isHorizontal) sx = x + width - 3; else sy = y + height - 3;
         this.setTerrain(sx, sy, 'floor');
-        this.metadata.doors.push({ x: sx, y: sy, isLocked: Math.random() < 0.2, isOpen: false, edge: entranceEdge });
+        this.metadata.doors.push({ x: sx, y: sy, isLocked: gameRandom.next() < 0.2, isOpen: false, edge: entranceEdge });
 
         let ix, iy, iEdge;
         if (isHorizontal) { ix = x + wallOffset; iy = y + Math.floor(height / 2); iEdge = 'w'; }
@@ -267,7 +268,7 @@ export class MapBuilder {
         entranceX = sx; entranceY = sy; 
     } else {
         this.setTerrain(entranceX, entranceY, 'floor');
-        this.metadata.doors.push({ x: entranceX, y: entranceY, isLocked: Math.random() < 0.1, isOpen: false, edge: entranceEdge });
+        this.metadata.doors.push({ x: entranceX, y: entranceY, isLocked: gameRandom.next() < 0.1, isOpen: false, edge: entranceEdge });
     }
 
     // 3. Register Building
@@ -324,12 +325,12 @@ export class MapBuilder {
     });
 
     if (candidates.length > 0) {
-      let numRequested = Math.floor(Math.random() * 2) + 1; // 1 or 2 windows
+      let numRequested = gameRandom.nextInt(0, 1) + 1; // 1 or 2 windows
       const selected = [];
 
       for (let i = 0; i < numRequested; i++) {
         if (candidates.length === 0) break;
-        const idx = Math.floor(Math.random() * candidates.length);
+        const idx = gameRandom.nextInt(0, candidates.length - 1);
         const pick = candidates[idx];
         selected.push(pick);
         candidates = candidates.filter(c => Math.abs(c.x - pick.x) + Math.abs(c.y - pick.y) > 1);
@@ -339,7 +340,7 @@ export class MapBuilder {
         this.metadata.windows.push({
           x: t.x,
           y: t.y,
-          isLocked: Math.random() < 0.7,
+          isLocked: gameRandom.next() < 0.7,
           isOpen: false,
           edge: wEdge
         });
@@ -417,12 +418,12 @@ export class MapBuilder {
 
       if (candidates.length === 0) return;
 
-      let numRequested = Math.random() < 0.2 ? 0 : (Math.random() < 0.7 ? 1 : 2);
+      let numRequested = gameRandom.next() < 0.2 ? 0 : (gameRandom.next() < 0.7 ? 1 : 2);
       const selected = [];
 
       for (let i = 0; i < numRequested; i++) {
         if (candidates.length === 0) break;
-        const idx = Math.floor(Math.random() * candidates.length);
+        const idx = gameRandom.nextInt(0, candidates.length - 1);
         const pick = candidates[idx];
         selected.push(pick);
         candidates = candidates.filter(c => Math.abs(c.x - pick.x) + Math.abs(c.y - pick.y) > 1);
@@ -432,7 +433,7 @@ export class MapBuilder {
         this.metadata.windows.push({
           x: t.x,
           y: t.y,
-          isLocked: Math.random() < 0.7,
+          isLocked: gameRandom.next() < 0.7,
           isOpen: false,
           edge: wall.edge
         });
@@ -457,7 +458,7 @@ export class MapBuilder {
     if (iw < 8 || ih < 8) {
       this.generateDirectPartitionLayout(x, y, w, h, entranceX, entranceY, backX, backY);
     } else {
-      const roll = Math.random();
+      const roll = gameRandom.next();
       if (roll < 0.5) {
         this.generateCentralHallwayLayout(x, y, w, h, frontage, entranceX, entranceY, backX, backY);
       } else if (roll < 0.8) {
@@ -493,12 +494,12 @@ export class MapBuilder {
       // Partition left side horizontally
       const leftW = hallX - (x + 1);
       if (leftW >= minInteriorSize && h - 2 >= (minInteriorSize * 2) + 1) {
-        const splitLeftY = y + 1 + minInteriorSize + Math.floor(Math.random() * (h - 2 - minInteriorSize * 2 - 1));
+        const splitLeftY = y + 1 + minInteriorSize + Math.floor(gameRandom.next() * (h - 2 - minInteriorSize * 2 - 1));
         if (splitLeftY !== backY && splitLeftY !== entranceY) {
           for (let curX = x; curX <= hallX - 1; curX++) {
             this.setEdgeWall(curX, splitLeftY, 'n', true);
           }
-          const doorX = x + 1 + Math.floor(Math.random() * leftW);
+          const doorX = x + 1 + Math.floor(gameRandom.next() * leftW);
           this.metadata.doors.push({ x: doorX, y: splitLeftY, isLocked: false, isOpen: false, edge: 'n' });
         }
       }
@@ -506,25 +507,25 @@ export class MapBuilder {
       // Partition right side horizontally
       const rightW = (x + w - 2) - (hallX + 2) + 1;
       if (rightW >= minInteriorSize && h - 2 >= (minInteriorSize * 2) + 1) {
-        const splitRightY = y + 1 + minInteriorSize + Math.floor(Math.random() * (h - 2 - minInteriorSize * 2 - 1));
+        const splitRightY = y + 1 + minInteriorSize + Math.floor(gameRandom.next() * (h - 2 - minInteriorSize * 2 - 1));
         if (splitRightY !== backY && splitRightY !== entranceY) {
           for (let curX = hallX + 2; curX <= x + w - 1; curX++) {
             this.setEdgeWall(curX, splitRightY, 'n', true);
           }
-          const doorX = hallX + 2 + Math.floor(Math.random() * rightW);
+          const doorX = hallX + 2 + Math.floor(gameRandom.next() * rightW);
           this.metadata.doors.push({ x: doorX, y: splitRightY, isLocked: false, isOpen: false, edge: 'n' });
         }
       }
 
       // Add doors connecting rooms to vertical hallway
-      const doorY1 = y + 1 + Math.floor(Math.random() * 2);
+      const doorY1 = y + 1 + gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: hallX, y: doorY1, isLocked: false, isOpen: false, edge: 'w' });
-      const doorY2 = y + h - 2 - Math.floor(Math.random() * 2);
+      const doorY2 = y + h - 2 - gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: hallX, y: doorY2, isLocked: false, isOpen: false, edge: 'w' });
 
-      const doorY3 = y + 1 + Math.floor(Math.random() * 2);
+      const doorY3 = y + 1 + gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: hallX + 2, y: doorY3, isLocked: false, isOpen: false, edge: 'w' });
-      const doorY4 = y + h - 2 - Math.floor(Math.random() * 2);
+      const doorY4 = y + h - 2 - gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: hallX + 2, y: doorY4, isLocked: false, isOpen: false, edge: 'w' });
 
     } else {
@@ -550,12 +551,12 @@ export class MapBuilder {
       // Partition top side vertically
       const topH = hallY - (y + 1);
       if (topH >= minInteriorSize && w - 2 >= (minInteriorSize * 2) + 1) {
-        const splitTopX = x + 1 + minInteriorSize + Math.floor(Math.random() * (w - 2 - minInteriorSize * 2 - 1));
+        const splitTopX = x + 1 + minInteriorSize + Math.floor(gameRandom.next() * (w - 2 - minInteriorSize * 2 - 1));
         if (splitTopX !== backX && splitTopX !== entranceX) {
           for (let curY = y; curY <= hallY - 1; curY++) {
             this.setEdgeWall(splitTopX, curY, 'w', true);
           }
-          const doorY = y + 1 + Math.floor(Math.random() * topH);
+          const doorY = y + 1 + Math.floor(gameRandom.next() * topH);
           this.metadata.doors.push({ x: splitTopX, y: doorY, isLocked: false, isOpen: false, edge: 'w' });
         }
       }
@@ -563,25 +564,25 @@ export class MapBuilder {
       // Partition bottom side vertically
       const bottomH = (y + h - 2) - (hallY + 2) + 1;
       if (bottomH >= minInteriorSize && w - 2 >= (minInteriorSize * 2) + 1) {
-        const splitBottomX = x + 1 + minInteriorSize + Math.floor(Math.random() * (w - 2 - minInteriorSize * 2 - 1));
+        const splitBottomX = x + 1 + minInteriorSize + Math.floor(gameRandom.next() * (w - 2 - minInteriorSize * 2 - 1));
         if (splitBottomX !== backX && splitBottomX !== entranceX) {
           for (let curY = hallY + 2; curY <= y + h - 1; curY++) {
             this.setEdgeWall(splitBottomX, curY, 'w', true);
           }
-          const doorY = hallY + 2 + Math.floor(Math.random() * bottomH);
+          const doorY = hallY + 2 + Math.floor(gameRandom.next() * bottomH);
           this.metadata.doors.push({ x: splitBottomX, y: doorY, isLocked: false, isOpen: false, edge: 'w' });
         }
       }
 
       // Add doors connecting rooms to horizontal hallway
-      const doorX1 = x + 1 + Math.floor(Math.random() * 2);
+      const doorX1 = x + 1 + gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: doorX1, y: hallY, isLocked: false, isOpen: false, edge: 'n' });
-      const doorX2 = x + w - 2 - Math.floor(Math.random() * 2);
+      const doorX2 = x + w - 2 - gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: doorX2, y: hallY, isLocked: false, isOpen: false, edge: 'n' });
 
-      const doorX3 = x + 1 + Math.floor(Math.random() * 2);
+      const doorX3 = x + 1 + gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: doorX3, y: hallY + 2, isLocked: false, isOpen: false, edge: 'n' });
-      const doorX4 = x + w - 2 - Math.floor(Math.random() * 2);
+      const doorX4 = x + w - 2 - gameRandom.nextInt(0, 1);
       this.metadata.doors.push({ x: doorX4, y: hallY + 2, isLocked: false, isOpen: false, edge: 'n' });
     }
   }
@@ -627,10 +628,10 @@ export class MapBuilder {
       }
 
       // Add doors for both bedrooms into the living room hub (row splitY, edge 'n')
-      const doorX1 = x + 1 + Math.floor(Math.random() * (splitX - x - 1));
+      const doorX1 = x + 1 + Math.floor(gameRandom.next() * (splitX - x - 1));
       this.metadata.doors.push({ x: doorX1, y: splitY, isLocked: false, isOpen: false, edge: 'n' });
 
-      const doorX2 = splitX + Math.floor(Math.random() * (x + w - 1 - splitX));
+      const doorX2 = splitX + Math.floor(gameRandom.next() * (x + w - 1 - splitX));
       this.metadata.doors.push({ x: doorX2, y: splitY, isLocked: false, isOpen: false, edge: 'n' });
 
     } else {
@@ -668,10 +669,10 @@ export class MapBuilder {
       }
 
       // Add doors for both bedrooms into the living room (column splitX, edge 'w')
-      const doorY1 = y + 1 + Math.floor(Math.random() * (splitY - y - 1));
+      const doorY1 = y + 1 + Math.floor(gameRandom.next() * (splitY - y - 1));
       this.metadata.doors.push({ x: splitX, y: doorY1, isLocked: false, isOpen: false, edge: 'w' });
 
-      const doorY2 = splitY + Math.floor(Math.random() * (y + h - 1 - splitY));
+      const doorY2 = splitY + Math.floor(gameRandom.next() * (y + h - 1 - splitY));
       this.metadata.doors.push({ x: splitX, y: doorY2, isLocked: false, isOpen: false, edge: 'w' });
     }
   }
@@ -725,10 +726,10 @@ export class MapBuilder {
         this.setEdgeWall(hallX + 2, curY, 'w', true);
       }
       
-      const doorY1 = y + 1 + Math.floor(Math.random() * (hallY - y - 1));
+      const doorY1 = y + 1 + Math.floor(gameRandom.next() * (hallY - y - 1));
       this.metadata.doors.push({ x: hallX, y: doorY1, isLocked: false, isOpen: false, edge: 'w' });
       
-      const doorY2 = y + 1 + Math.floor(Math.random() * (hallY - y - 1));
+      const doorY2 = y + 1 + Math.floor(gameRandom.next() * (hallY - y - 1));
       this.metadata.doors.push({ x: hallX + 2, y: doorY2, isLocked: false, isOpen: false, edge: 'w' });
 
       // Bottom space: split vertically
@@ -743,13 +744,13 @@ export class MapBuilder {
         this.setEdgeWall(splitX, curY, 'w', true);
       }
 
-      const doorY3 = hallY + 2 + Math.floor(Math.random() * (y + h - 1 - (hallY + 2)));
+      const doorY3 = hallY + 2 + Math.floor(gameRandom.next() * (y + h - 1 - (hallY + 2)));
       this.metadata.doors.push({ x: splitX, y: doorY3, isLocked: false, isOpen: false, edge: 'w' });
 
-      const doorX1 = x + 1 + Math.floor(Math.random() * (splitX - x - 1));
+      const doorX1 = x + 1 + Math.floor(gameRandom.next() * (splitX - x - 1));
       this.metadata.doors.push({ x: doorX1, y: hallY + 2, isLocked: false, isOpen: false, edge: 'n' });
 
-      const doorX2 = splitX + Math.floor(Math.random() * (x + w - 1 - splitX));
+      const doorX2 = splitX + Math.floor(gameRandom.next() * (x + w - 1 - splitX));
       this.metadata.doors.push({ x: doorX2, y: hallY + 2, isLocked: false, isOpen: false, edge: 'n' });
 
     } else { // south or default
@@ -758,10 +759,10 @@ export class MapBuilder {
         this.setEdgeWall(hallX + 2, curY, 'w', true);
       }
 
-      const doorY1 = hallY + 2 + Math.floor(Math.random() * (y + h - 1 - (hallY + 2)));
+      const doorY1 = hallY + 2 + Math.floor(gameRandom.next() * (y + h - 1 - (hallY + 2)));
       this.metadata.doors.push({ x: hallX, y: doorY1, isLocked: false, isOpen: false, edge: 'w' });
 
-      const doorY2 = hallY + 2 + Math.floor(Math.random() * (y + h - 1 - (hallY + 2)));
+      const doorY2 = hallY + 2 + Math.floor(gameRandom.next() * (y + h - 1 - (hallY + 2)));
       this.metadata.doors.push({ x: hallX + 2, y: doorY2, isLocked: false, isOpen: false, edge: 'w' });
 
       // Top space: split vertically
@@ -776,13 +777,13 @@ export class MapBuilder {
         this.setEdgeWall(splitX, curY, 'w', true);
       }
 
-      const doorY3 = y + 1 + Math.floor(Math.random() * (hallY - y - 1));
+      const doorY3 = y + 1 + Math.floor(gameRandom.next() * (hallY - y - 1));
       this.metadata.doors.push({ x: splitX, y: doorY3, isLocked: false, isOpen: false, edge: 'w' });
 
-      const doorX1 = x + 1 + Math.floor(Math.random() * (splitX - x - 1));
+      const doorX1 = x + 1 + Math.floor(gameRandom.next() * (splitX - x - 1));
       this.metadata.doors.push({ x: doorX1, y: hallY, isLocked: false, isOpen: false, edge: 'n' });
 
-      const doorX2 = splitX + Math.floor(Math.random() * (x + w - 1 - splitX));
+      const doorX2 = splitX + Math.floor(gameRandom.next() * (x + w - 1 - splitX));
       this.metadata.doors.push({ x: doorX2, y: hallY, isLocked: false, isOpen: false, edge: 'n' });
     }
   }
@@ -805,7 +806,7 @@ export class MapBuilder {
       for (let curY = y; curY <= y + h - 1; curY++) {
         this.setEdgeWall(splitX, curY, 'w', true);
       }
-      const doorY = y + 1 + Math.floor(Math.random() * ih);
+      const doorY = y + 1 + Math.floor(gameRandom.next() * ih);
       this.metadata.doors.push({ x: splitX, y: doorY, isLocked: false, isOpen: false, edge: 'w' });
     } else {
       let splitY = y + 1 + Math.floor(ih * 0.5);
@@ -818,7 +819,7 @@ export class MapBuilder {
       for (let curX = x; curX <= x + w - 1; curX++) {
         this.setEdgeWall(curX, splitY, 'n', true);
       }
-      const doorX = x + 1 + Math.floor(Math.random() * iw);
+      const doorX = x + 1 + Math.floor(gameRandom.next() * iw);
       this.metadata.doors.push({ x: doorX, y: splitY, isLocked: false, isOpen: false, edge: 'n' });
     }
   }
@@ -857,8 +858,8 @@ export class MapBuilder {
       if (growthDir === 'south' && currentY > runEnd) break;
       if (growthDir === 'north' && currentY < runStart) break;
 
-      const bW = minW + Math.floor(Math.random() * (maxW - minW + 1));
-      const bH = minH + Math.floor(Math.random() * (maxH - minH + 1));
+      const bW = minW + Math.floor(gameRandom.next() * (maxW - minW + 1));
+      const bH = minH + Math.floor(gameRandom.next() * (maxH - minH + 1));
 
       let bX, bY;
       if (frontage === 'north') {

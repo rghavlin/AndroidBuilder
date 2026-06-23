@@ -225,32 +225,38 @@ Reduce maintenance burden by extracting shared logic from copy-pasted code.
 
 Larger structural improvements for long-term maintainability as the game grows.
 
-- [ ] **P5-01** Standardize on one event emitter implementation
+- [x] **P5-01** Standardize on one event emitter implementation
   - Three implementations: SafeEventEmitter, EventEmitter, raw Map-of-arrays
   - Migrate GameMap and WorldManager to SafeEventEmitter
+  - Done: both now `extends SafeEventEmitter` (dropped raw `this.listeners`); `addEventListener` kept as an alias for `on`; `emit` overrides preserve payload enrichment via `super.emit`; WorldManager.cleanup uses `removeAllListeners()`. Verified by scratch/verify_p5_01_event_emitter.mjs (12/12).
 
-- [ ] **P5-02** Document or unify simulation-first vs playback-first damage model
+- [x] **P5-02** Document or unify simulation-first vs playback-first damage model
   - Turrets apply damage during simulation; attacks apply during playback
   - At minimum add clear comments; ideally unify to simulation-first for all
+  - Done (documented, not unified — unifying is high-risk and the two models are
+    deliberate): canonical reference block in TurnManager class header covering
+    SIMULATION-FIRST (TURRET_SHOT, STRUCTURE_INTERACT) vs PLAYBACK-FIRST (ATTACK);
+    cross-ref comments added at TurretAI takeDamage, CombatSystem (structure +
+    ATTACK push), and all three TurnManager playback cases.
 
-- [ ] **P5-03** Reduce Entity class boilerplate
+- [x] **P5-03** Reduce Entity class boilerplate
   - ~600 lines of repetitive getter/setter facades for AIState, SurvivalStats, PlayerSkills
   - Use `defineAccessors` helper or Proxy to generate them
 
-- [ ] **P5-04** Make Entity serialization registry-driven
+- [x] **P5-04** Make Entity serialization registry-driven
   - `toJSON()`/`fromJSON()` manually list 40+ fields with duplicated `itemFields` array
   - A registration-based approach prevents silent data loss when adding properties
 
-- [ ] **P5-05** Unify `consumptionEffects` format in ItemDefs
+- [x] **P5-05** Unify `consumptionEffects` format in ItemDefs
   - Array format `[{ type, value }]` vs object format `{ cure: true }`
   - Standardize to one schema
 
-- [ ] **P5-06** Thread seeded PRNG through map generation and combat
+- [x] **P5-06** Thread seeded PRNG through map generation and combat
   - RoadNetwork already accepts injectable random
   - TemplateMapGenerator, MapBuilder, LootGenerator, TurretAI, NPCAI all use bare `Math.random()`
   - Enables reproducible maps and testable combat
 
-- [ ] **P5-07** Replace biased `sort(() => Math.random() - 0.5)` with Fisher-Yates shuffle
+- [x] **P5-07** Replace biased `sort(() => Math.random() - 0.5)` with Fisher-Yates shuffle
   - Appears 10+ times across TemplateMapGenerator and LootGenerator
 
 - [ ] **P5-08** Add FactionRegistry validation for faction names

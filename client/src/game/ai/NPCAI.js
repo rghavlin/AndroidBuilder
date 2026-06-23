@@ -9,6 +9,7 @@ import engine from '../GameEngine.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import { DEFAULT_DANGER_RADIUS } from '../config/ProgressionConfig.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 /**
  * NPCAI - Handles decision making for NPCs (Travelers heading south)
  */
@@ -763,14 +764,14 @@ export class NPCAI {
     }
 
     hitChance = Math.max(0.2, Math.min(0.95, hitChance));
-    const hit = Math.random() < hitChance;
+    const hit = gameRandom.next() < hitChance;
     let damage = 0;
 
     if (hit) {
       const damageRange = isRanged 
         ? (weaponDef?.rangedStats?.damage || weapon?.rangedStats?.damage || { min: 2, max: 5 }) 
         : (weaponDef?.combat?.damage || weaponDef?.damage || weapon?.damage || { min: 1, max: 3 });
-      damage = Math.floor(Math.random() * (damageRange.max - damageRange.min + 1)) + damageRange.min;
+      damage = gameRandom.nextInt(damageRange.min, damageRange.max);
       
       // Update simulated HP
       target.simulatedHp = (target.simulatedHp !== undefined ? target.simulatedHp : target.hp) - damage;

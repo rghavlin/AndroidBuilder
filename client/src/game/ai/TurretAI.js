@@ -1,6 +1,7 @@
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { AITargeting } from './AITargeting.js';
 
+import { gameRandom } from '../utils/SeededRandom.js';
 export class TurretAI {
   /**
    * Execute one full turret turn.
@@ -99,14 +100,18 @@ export class TurretAI {
 
         const squaresAway = Math.floor(dist);
         const baseHit     = Math.max(turretStats.minAccuracy, 1.0 - (squaresAway - 1) * turretStats.accuracyFalloff);
-        const hit         = Math.random() <= (baseHit + accuracyBonus);
-        const isCrit      = hit && Math.random() <= critChance;
+        const hit         = gameRandom.next() <= (baseHit + accuracyBonus);
+        const isCrit      = hit && gameRandom.next() <= critChance;
         let damage = 0;
 
         if (hit) {
           damage = isCrit
             ? Math.floor(turretStats.damage.max * 1.5)
-            : Math.floor(Math.random() * (turretStats.damage.max - turretStats.damage.min + 1)) + turretStats.damage.min;
+            : gameRandom.nextInt(turretStats.damage.min, turretStats.damage.max);
+          // SIMULATION-FIRST damage (see TurnManager damage-timing models): apply
+          // now so the while-loop above sees the post-hit HP and stops firing once
+          // the target dies. The TURRET_SHOT action below is cosmetic only —
+          // TurnManager must NOT re-apply this damage during playback.
           target.takeDamage(damage);
         }
 

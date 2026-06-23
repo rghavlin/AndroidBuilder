@@ -1,5 +1,6 @@
 import { Rabbit } from '../entities/Rabbit.js';
 
+import { gameRandom } from './SeededRandom.js';
 /**
  * AnimalSpawner - Utility class to handle animal population on maps
  */
@@ -22,7 +23,7 @@ export class AnimalSpawner {
     const mapHeight = gameMap.height;
 
     // 1. Determine how many rabbits to spawn
-    const rabbitCount = Math.floor(Math.random() * (rabbitRange.max - rabbitRange.min + 1)) + rabbitRange.min;
+    const rabbitCount = gameRandom.nextInt(rabbitRange.min, rabbitRange.max);
 
     for (let i = 0; i < rabbitCount; i++) {
       let attempts = 0;
@@ -30,8 +31,8 @@ export class AnimalSpawner {
       const maxAttempts = 50;
 
       while (!spawned && attempts < maxAttempts) {
-        const x = Math.floor(Math.random() * mapWidth);
-        const y = Math.floor(Math.random() * mapHeight);
+        const x = Math.floor(gameRandom.next() * mapWidth);
+        const y = Math.floor(gameRandom.next() * mapHeight);
 
         const tile = gameMap.getTile(x, y);
         const distToPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
@@ -40,7 +41,7 @@ export class AnimalSpawner {
         const isNaturalTerrain = tile && (tile.terrain === 'grass' || tile.terrain === 'foliage');
         
         if (isNaturalTerrain && tile.isWalkable() && distToPlayer >= minDistanceFromPlayer && tile.contents.length === 0) {
-          const rabbitId = `rabbit-${Date.now()}-${i}-${Math.floor(Math.random() * 1000)}`;
+          const rabbitId = `rabbit-${Date.now()}-${i}-${gameRandom.nextInt(0, 999)}`;
           const rabbit = new Rabbit(rabbitId, x, y);
           
           if (gameMap.addEntity(rabbit, x, y)) {
