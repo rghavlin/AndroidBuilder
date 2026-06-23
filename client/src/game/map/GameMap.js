@@ -3,10 +3,12 @@ import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from '../inventory/traits.js';
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
+import { getHourFromTurn } from '../utils/TimeUtils.js';
 import { Entity, EntityType } from '../entities/Entity.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { Item as ECSItem } from '../components/Item.js';
+import { Item } from '../inventory/Item.js';
 import { Health } from '../components/Health.js';
 import { Renderable } from '../components/Renderable.js';
 import { MeleeWeapon } from '../components/MeleeWeapon.js';
@@ -501,17 +503,15 @@ export class GameMap {
         if (!hasExit) {
           const exitDef = createItemFromDef('placeable.exit');
           if (exitDef) {
-            import('../inventory/Item.js').then(({ Item }) => {
-              const exitItem = new Item(exitDef);
-              exitItem.x = x;
-              exitItem.y = y;
-              if (!tile.inventoryItems) tile.inventoryItems = [];
-              if (!tile.inventoryItems.some(i => i.defId === 'placeable.exit')) {
-                tile.inventoryItems.push(exitItem);
-                this.setItemsOnTile(x, y, tile.inventoryItems);
-                console.debug(`[GameMap] Created placeable.exit on transition tile at (${x}, ${y})`);
-              }
-            }).catch(err => console.error('[GameMap] Failed to load Item for transition:', err));
+            const exitItem = new Item(exitDef);
+            exitItem.x = x;
+            exitItem.y = y;
+            if (!tile.inventoryItems) tile.inventoryItems = [];
+            if (!tile.inventoryItems.some(i => i.defId === 'placeable.exit')) {
+              tile.inventoryItems.push(exitItem);
+              this.setItemsOnTile(x, y, tile.inventoryItems);
+              console.debug(`[GameMap] Created placeable.exit on transition tile at (${x}, ${y})`);
+            }
           }
         }
       } else {
@@ -823,7 +823,7 @@ export class GameMap {
 
     
     // Phase 25: Environmental Conditions for Turn Processing
-    const currentHour = (6 + (turn - 1)) % 24;
+    const currentHour = getHourFromTurn(turn);
     const isDaylight = currentHour >= 6 && currentHour < 20;
 
     // Retrieve all items on the map

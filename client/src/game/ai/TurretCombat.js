@@ -168,6 +168,12 @@ export function removeDestroyedTurret(turret, gameMap, x, y) {
     return;
   }
 
+  // Direct container reference lookup (handles nested grids and ground container items perfectly)
+  if (turret._container && typeof turret._container.removeItem === 'function') {
+    turret._container.removeItem(turret.instanceId || turret.id);
+    return;
+  }
+
   // Nested in a wagon/container parked on the tile.
   const tile = gameMap.getTile(x, y);
   if (!tile || !tile.contents) return;

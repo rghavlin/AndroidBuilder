@@ -2,6 +2,7 @@ import Logger from './utils/Logger.js';
 import { getProgressionForMap, BASELINE_MAP_AREA } from './config/ProgressionConfig.js';
 import GameEvents, { GAME_EVENT } from './utils/GameEvents.js';
 import { compressString, decompressString } from './GameSaveSystem.js';
+import { TEMPLATE_METADATA, getTemplateForMapNumber } from './config/TemplateConfig.js';
 
 const logger = Logger.scope('WorldManager');
 
@@ -12,6 +13,7 @@ const logger = Logger.scope('WorldManager');
 export class WorldManager {
   constructor() {
     this.maps = new Map(); // Map ID -> serialized map data
+    this.compressionLocks = new Map(); // Map ID -> Promise (in-progress compression)
     this.currentMapId = null;
     this.mapCounter = 1;
     this.listeners = new Map();
@@ -38,6 +40,7 @@ export class WorldManager {
     console.log('[WorldManager] 🧼 Cleaning up event listeners and caches');
     GameEvents.off(GAME_EVENT.ZOMBIE_DIED, this._onZombieDied);
     this.maps.clear();
+    this.compressionLocks.clear();
     this.listeners.clear();
   }
 
@@ -122,16 +125,20 @@ export class WorldManager {
 
       // Asynchronously compress the map
       const serializedStr = JSON.stringify(serializedMap);
-      compressString(serializedStr).then(compressed => {
+      const compressionPromise = compressString(serializedStr).then(compressed => {
         mapData.compressedMap = compressed;
         // Purge raw JSON from memory if it is not the active map
         if (mapData.id !== this.currentMapId) {
           mapData.serializedMap = null;
         }
+        this.compressionLocks.delete(mapId);
       }).catch(err => {
         console.error(`[WorldManager] Async compression failed for map ${mapId}:`, err);
         mapData.serializedMap = serializedMap; // Fallback
+        this.compressionLocks.delete(mapId);
       });
+
+      this.compressionLocks.set(mapId, compressionPromise);
 
       logger.info(`*** MAP SAVED: ${mapId} at Turn ${currentTurn} ***`);
       logger.info(`*** WORLD COLLECTION NOW HAS ${this.maps.size} MAPS ***`);
@@ -158,6 +165,12 @@ export class WorldManager {
     try {
       if (!this.maps.has(mapId)) {
         throw new Error(`Map ${mapId} not found in world collection`);
+      }
+
+      // Await active compression if one is running
+      if (this.compressionLocks.has(mapId)) {
+        logger.info(`Waiting for active compression of map ${mapId} to complete before loading...`);
+        await this.compressionLocks.get(mapId);
       }
 
       const mapData = this.maps.get(mapId);
@@ -234,6 +247,12 @@ export class WorldManager {
     try {
       if (!this.maps.has(mapId)) {
         throw new Error(`Map ${mapId} not found in world collection`);
+      }
+
+      // Await active compression if one is running
+      if (this.compressionLocks.has(mapId)) {
+        logger.info(`Waiting for active compression of map ${mapId} to complete before loading...`);
+        await this.compressionLocks.get(mapId);
       }
 
       const mapData = this.maps.get(mapId);
@@ -453,24 +472,10 @@ export class WorldManager {
             } else {
                 // Predict next template and its SOUTH entrance position
                 const nextTemplate = this.determineTemplateForMap(nextMapId);
+                const nextMeta = TEMPLATE_METADATA[nextTemplate];
                 
-                if (nextTemplate === 'split_road') {
-                    nextHeight = 150;
-                } else if (nextTemplate === 'lab') {
-                    nextHeight = 84;
-                }
-                
-                if (nextTemplate === 'winding_road') {
-                    spawnX = 22; // South entrance is roadXMin
-                } else if (nextTemplate === 'mirrored_winding_road') {
-                    spawnX = 62; // South entrance is roadXMax
-                } else if (nextTemplate === 'split_road') {
-                    spawnX = 30; // Center of 60-wide map
-                } else if (nextTemplate === 'lab') {
-                    spawnX = 35; // Center of 70-wide map
-                } else {
-                    spawnX = 22; // Standard road
-                }
+                nextHeight = nextMeta?.size?.height ?? 125;
+                spawnX = nextMeta?.southEntranceX ?? 22;
             }
 
             return {
@@ -494,17 +499,8 @@ export class WorldManager {
         } else {
           // Fallback prediction for NORTH exit of the previous map
           const prevTemplate = this.determineTemplateForMap(prevMapId);
-          if (prevTemplate === 'winding_road') {
-            spawnX = 62; // North exit is roadXMax
-          } else if (prevTemplate === 'mirrored_winding_road') {
-            spawnX = 22; // North exit is roadXMin
-          } else if (prevTemplate === 'split_road') {
-            spawnX = 30; // Center of 60-wide map
-          } else if (prevTemplate === 'lab') {
-            spawnX = 35; // Center of 70-wide map
-          } else {
-            spawnX = 22; // Standard road
-          }
+          const prevMeta = TEMPLATE_METADATA[prevTemplate];
+          spawnX = prevMeta?.northExitX ?? 22;
         }
 
         return {
@@ -530,22 +526,7 @@ export class WorldManager {
         return this.maps.get(mapId).type;
     }
 
-    // Progression logic (Must match executeTransition)
-    if (this.DEV_FORCE_LAB && mapNumber === 1) return 'lab';
-    if (mapNumber === 1) return 'branching_road'; // TEMP: testing the branching road generator as map 1
-    if (mapNumber <= 3) return 'road';
-    if (mapNumber === 4) return 'winding_road';
-    if (mapNumber === 5) return 'mirrored_winding_road';
-    if (mapNumber === 6) return 'split_road';
-    if (mapNumber === 10) return 'lab';
-    
-    // For random maps, we need a deterministic choice or a saved one
-    // Using mapNumber as seed for pseudo-randomness
-    const seed = (mapNumber * 12345) % 100;
-    if (seed < 25) return 'road';
-    if (seed < 50) return 'winding_road';
-    if (seed < 75) return 'mirrored_winding_road';
-    return 'split_road';
+    return getTemplateForMapNumber(mapNumber, this.DEV_FORCE_LAB);
   }
 
   /**
@@ -750,6 +731,7 @@ export class WorldManager {
    * @returns {Promise<Object>} - Transition result
    */
   async executeTransition(targetMapId, spawnPosition, currentTurn = null) {
+    const fromMapId = this.currentMapId;
     try {
       // Check if target map exists, if not generate it
       let mapData;
@@ -878,7 +860,7 @@ export class WorldManager {
       this.currentMapId = targetMapId;
 
       this.emit('mapTransition', {
-        fromMapId: this.currentMapId,
+        fromMapId: fromMapId,
         toMapId: targetMapId,
         spawnPosition: spawnPosition
       });

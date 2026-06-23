@@ -421,8 +421,9 @@ class GameInitializationManager extends EventEmitter {
       if (shopkeeper) {
         NPCSpawner.spawnTownTurrets(gameMap);
         const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
-        earbucksShopSystem.initCatalog('map_001');
-        console.log('[GameInitializationManager] Spawned shopkeeper, town turrets, and initialized Earbucks catalog');
+        const mapId = worldManager?.currentMapId || 'map_001';
+        earbucksShopSystem.initCatalog(mapId);
+        console.log(`[GameInitializationManager] Spawned shopkeeper, town turrets, and initialized Earbucks catalog for ${mapId}`);
       }
 
       // Clean up south transition tile for first map

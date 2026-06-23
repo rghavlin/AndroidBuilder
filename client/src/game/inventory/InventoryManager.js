@@ -5,6 +5,7 @@ import { GroundManager } from './GroundManager.js';
 import { EquipmentSlot, ItemTrait, ItemCategory, Rarity, FireMode, getFuelValue } from './traits.js';
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
+import { getHourFromTurn } from '../utils/TimeUtils.js';
 import { CraftingManager } from './CraftingManager.js';
 import audioManager from '../utils/AudioManager.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
@@ -874,16 +875,22 @@ export class InventoryManager extends SafeEventEmitter {
   /**
    * Check if an item is currently equipped
    */
-  isItemEquipped(itemId) {
-    return Object.values(this.equipment).some(item => item && item.id === itemId);
+  isItemEquipped(itemOrId) {
+    if (!itemOrId) return false;
+    const targetId = typeof itemOrId === 'string' ? itemOrId : (itemOrId.instanceId || itemOrId.id);
+    return Object.values(this.equipment).some(item => 
+      item && (item.instanceId === targetId || item.id === targetId)
+    );
   }
 
   /**
    * Get equipment slot for an item
    */
-  getEquipmentSlot(itemId) {
+  getEquipmentSlot(itemOrId) {
+    if (!itemOrId) return null;
+    const targetId = typeof itemOrId === 'string' ? itemOrId : (itemOrId.instanceId || itemOrId.id);
     for (const [slot, item] of Object.entries(this.equipment)) {
-      if (item && item.id === itemId) {
+      if (item && (item.instanceId === targetId || item.id === targetId)) {
         return slot;
       }
     }
@@ -2907,7 +2914,7 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
     
-    this.emit('update');
+    this.emit('inventoryChanged');
     return true;
   }
 
@@ -3034,7 +3041,7 @@ export class InventoryManager extends SafeEventEmitter {
   processTurn(turn = 1, isOutdoors = false) {
     console.log('[InventoryManager] Processing turn for all items...');
     
-    const currentHour = (6 + (turn - 1)) % 24;
+    const currentHour = getHourFromTurn(turn);
     const isDaylight = currentHour >= 6 && currentHour < 20;
 
     const processedItemIds = new Set();

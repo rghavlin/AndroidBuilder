@@ -353,8 +353,8 @@ class TurnManager {
           damage: data.damage
         });
 
-        // Trigger the crimson flash immediately if this shot was a killing blow
-        if (data.isDead && data.targetId && data.targetX !== undefined && data.targetY !== undefined) {
+        // Trigger the crimson flash immediately if this shot was a killing blow on a zombie
+        if (data.isDead && data.targetType === EntityType.ZOMBIE && data.targetId && data.targetX !== undefined && data.targetY !== undefined) {
           if (!this.flashedEntityIds.has(data.targetId)) {
             GameEvents.emit(GAME_EVENT.ZOMBIE_KILLED, { x: data.targetX, y: data.targetY });
             this.flashedEntityIds.add(data.targetId);

@@ -134,6 +134,7 @@ export class TurretAI {
           data: {
             turretX, turretY,
             targetId:    target.id,
+            targetType:  target.type,
             targetX:     entry.cx,
             targetY:     entry.cy,
             hit, isCrit, damage,

@@ -1,4 +1,5 @@
 import { EntityFactory } from '../EntityFactory.js';
+import { isInsideCompound } from '../map/MapUtils.js';
 
 /**
  * ZombieSpawner - Utility class to handle zombie population on maps
@@ -51,13 +52,9 @@ export class ZombieSpawner {
           const actualMinDist = minDistance !== null ? minDistance : minDist;
 
           const compound = gameMap.metadata?.townSquareCompound;
-          const isInsideCompound = compound &&
-            x >= compound.fenceBounds.x1 &&
-            x <= compound.fenceBounds.x2 &&
-            y >= compound.fenceBounds.y1 &&
-            y <= compound.fenceBounds.y2;
+          const isInside = isInsideCompound(compound, x, y);
 
-          if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0 && !isInsideCompound) {
+          if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0 && !isInside) {
             const zombieId = `zombie-${subtype}-${Date.now()}-${spawnedCount}`;
             if (gameMap.addEntity(EntityFactory.createZombie(x, y, subtype, zombieId), x, y)) {
               spawnedCount++;

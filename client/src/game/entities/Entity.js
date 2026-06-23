@@ -774,6 +774,7 @@ export class Entity extends SafeEventEmitter {
     this.wasAttackedThisTurn = false;
     this.movementPath = [{ x: this.logicalX, y: this.logicalY }];
     if (this.behaviorState === 'fleeing' && this.fleeRecoverChance !== undefined && Math.random() < this.fleeRecoverChance) {
+      this.behaviorState = 'idle';
     }
 
 
@@ -804,6 +805,14 @@ export class Entity extends SafeEventEmitter {
       });
       this.inventory.clear();
     }
+  }
+
+  getEquippedWeapon() {
+    if (!this.equippedWeaponId || !this.inventory) return null;
+    if (typeof this.inventory.items?.get === 'function') {
+      return this.inventory.items.get(this.equippedWeaponId);
+    }
+    return null;
   }
 
   moveTo(x, y, options = {}) {

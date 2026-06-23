@@ -4,6 +4,7 @@ import { LineOfSight } from './utils/LineOfSight.js';
 import { ItemDefs } from './inventory/ItemDefs.js';
 import { WeatherManager } from './utils/WeatherManager.js';
 import { getSightRangeForHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
+import { getHourFromTurn } from './utils/TimeUtils.js';
 
 
 /**
@@ -377,7 +378,7 @@ class GameEngine extends SafeEventEmitter {
        const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
        
         // Calculate base ambient sight range based on hour of the day
-        const hour = (6 + (this.turn - 1)) % 24;
+        const hour = getHourFromTurn(this.turn);
         const baseRange = getSightRangeForHour(hour, maxRange);
 
         let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;

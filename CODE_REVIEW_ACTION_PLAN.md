@@ -37,10 +37,10 @@ These are prerequisites that many later fixes depend on. Establishing shared con
   - Currently duplicated in InventoryManager.fuelCampfire, InventoryManager.attachItemToWeapon, and CraftingManager.craft
   - Create `getFuelValue(item)` utility
 
-- [ ] **P1-07** Extract `isInsideCompound(compound, x, y)` utility
+- [x] **P1-07** Extract `isInsideCompound(compound, x, y)` utility
   - Currently inlined in 5+ locations across TemplateMapGenerator and LootGenerator
 
-- [ ] **P1-08** Extract `getHourFromTurn(turn)` utility
+- [x] **P1-08** Extract `getHourFromTurn(turn)` utility
   - Formula `(6 + (turn - 1)) % 24` is repeated in 5+ locations
   - GameEngine, GameContext (3 occurrences), GameMap
 
@@ -50,59 +50,59 @@ These are prerequisites that many later fixes depend on. Establishing shared con
 
 These are real bugs that can cause crashes, wrong behavior, or data corruption right now.
 
-- [ ] **P2-01** Fix turret-kills-turret cleanup gap
+- [x] **P2-01** Fix turret-kills-turret cleanup gap
   - After turret simulation in SimulationManager, scan for turret items with `hp <= 0`
   - Call `removeDestroyedTurret` or add turret items to `checkAndProcessDeaths`
   - Currently: destroyed turrets persist at hp=0, still blocking tiles
 
-- [ ] **P2-02** Fix `TURRET_SHOT` emitting `ZOMBIE_KILLED` for all target types
+- [x] **P2-02** Fix `TURRET_SHOT` emitting `ZOMBIE_KILLED` for all target types
   - In TurnManager.js:357, include `targetType` in action data
   - Only emit `ZOMBIE_KILLED` when target is actually a zombie
 
-- [ ] **P2-03** Fix `setTerrain()` async race condition in GameMap
+- [x] **P2-03** Fix `setTerrain()` async race condition in GameMap
   - Replace dynamic `import('../inventory/Item.js').then(...)` with a static import at file top
   - GameMap.js:499
 
-- [ ] **P2-04** Fix `saveCurrentMap()` async race condition in WorldManager
+- [x] **P2-04** Fix `saveCurrentMap()` async race condition in WorldManager
   - Await the compression or use a lock/flag to prevent loads during compression
   - WorldManager.js:117
 
-- [ ] **P2-05** Fix `isItemEquipped` and `getEquipmentSlot` to compare by `instanceId`
+- [x] **P2-05** Fix `isItemEquipped` and `getEquipmentSlot` to compare by `instanceId`
   - InventoryManager.js:877 and :883
   - Currently compares `item.id` (defId), producing wrong matches with duplicate items
 
-- [ ] **P2-06** Fix `searchItems` crash on null subtype
+- [x] **P2-06** Fix `searchItems` crash on null subtype
   - GroundManager.js:521 — add null guard: `item.subtype?.toLowerCase()`
 
-- [ ] **P2-07** Fix crafting autoload/unload to handle cooking workspace
+- [x] **P2-07** Fix crafting autoload/unload to handle cooking workspace
   - CraftingManager.js:585 and :637
   - `autoload()` and `unload()` only handle `crafting-tools`/`crafting-ingredients`
   - Add `cooking-tools` and `cooking-ingredients` handling
 
-- [ ] **P2-08** Fix `EarbucksShopWindow` snapshot returning mutable reference
+- [x] **P2-08** Fix `EarbucksShopWindow` snapshot returning mutable reference
   - Have `getCatalog()` return a shallow copy or replace the array on mutation
   - EarbucksShopWindow.tsx:134
 
-- [ ] **P2-09** Fix `addRandomWalls`/`addRandomFloors` infinite loop potential
+- [x] **P2-09** Fix `addRandomWalls`/`addRandomFloors` infinite loop potential
   - TemplateMapGenerator.js:581 — add max-attempts guard to `while (added < count)` loops
 
-- [ ] **P2-10** Fix `executeTransition()` reporting wrong `fromMapId`
+- [x] **P2-10** Fix `executeTransition()` reporting wrong `fromMapId`
   - WorldManager.js:880 — save `fromMapId` before overwriting `this.currentMapId`
 
-- [ ] **P2-11** Fix `disassembleItem` emitting wrong event name
+- [x] **P2-11** Fix `disassembleItem` emitting wrong event name
   - InventoryManager.js:2921 — emit `'inventoryChanged'` instead of `'update'`
 
-- [ ] **P2-12** Fix mismatched save/load stat defaults
+- [x] **P2-12** Fix mismatched save/load stat defaults
   - GameSaveSystem.js save defaults to `100`, load defaults to `1000`
   - Align to a single set of constants
 
-- [ ] **P2-13** Remove or implement empty fleeing-recovery block in Entity
+- [x] **P2-13** Remove or implement empty fleeing-recovery block in Entity
   - Entity.js:776 — `startTurn()` checks fleeing state but body is empty
 
-- [ ] **P2-14** Fix `spawnTestEntities()` referencing undefined classes
+- [x] **P2-14** Fix `spawnTestEntities()` referencing undefined classes
   - GameContext.jsx:1483 — remove or import `TestEntity` and `LegacyItem`
 
-- [ ] **P2-15** Add try/catch around turret firing in SimulationManager
+- [x] **P2-15** Add try/catch around turret firing in SimulationManager
   - SimulationManager.js:115 — matches existing pattern used for NPCs and rabbits
 
 ---
@@ -111,14 +111,14 @@ These are real bugs that can cause crashes, wrong behavior, or data corruption r
 
 Address remaining hardcoded values to make the codebase data-driven and extensible.
 
-- [ ] **P3-01** Use dynamic map ID for earbucks catalog init
+- [x] **P3-01** Use dynamic map ID for earbucks catalog init
   - GameInitializationManager.js:424 — replace `'map_001'` with actual map ID variable
 
-- [ ] **P3-02** Move NPC combat stats to weapon definitions
+- [x] **P3-02** Move NPC combat stats to weapon definitions
   - NPCAI.js:498 — ranged engagement range hardcoded to `8` instead of weapon range
   - NPCAI.js:729 — AP costs `2.0`/`1.0` hardcoded instead of from weapon def
 
-- [ ] **P3-03** Move spawn coordinates and template sizes to template metadata
+- [x] **P3-03** Move spawn coordinates and template sizes to template metadata
   - WorldManager.js:439 — spawn X positions per template type (22, 62, 30, 35)
   - WorldManager.js:534 — map-number-to-template assignments
   - TemplateMapGenerator.js:187 — stale spawn zone coordinates

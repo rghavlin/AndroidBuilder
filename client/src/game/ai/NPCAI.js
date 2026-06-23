@@ -495,10 +495,14 @@ export class NPCAI {
     } else {
       if (npc.hasDemanded) {
         const weapon = npc.getEquippedWeapon();
-        const isRanged = weapon && (ItemDefs[weapon.defId]?.rangedStats || weapon.rangedStats);
-        if (isRanged && dist <= 8) {
-          npc.behaviorState = 'attacking';
-          return this.performAttack(npc, player, turnResult, true);
+        const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
+        const isRanged = weapon && (weaponDef?.rangedStats || weapon.rangedStats);
+        if (isRanged) {
+          const maxRange = weaponDef?.rangedStats?.maxRange ?? weapon?.rangedStats?.maxRange ?? 8;
+          if (dist <= maxRange) {
+            npc.behaviorState = 'attacking';
+            return this.performAttack(npc, player, turnResult, true);
+          }
         }
       }
 
@@ -727,7 +731,16 @@ export class NPCAI {
    * Unified Attack Executor
    */
   static performAttack(npc, target, turnResult, isRanged) {
-    const apCost = isRanged ? 2.0 : 1.0;
+    const weapon = npc.getEquippedWeapon();
+    const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
+
+    let apCost = 1.0;
+    if (isRanged) {
+      apCost = weaponDef?.rangedStats?.apCost ?? weapon?.rangedStats?.apCost ?? 2.0;
+    } else {
+      apCost = weaponDef?.combat?.apCost ?? weapon?.combat?.apCost ?? 1.0;
+    }
+
     if (npc.ap < apCost) return false;
 
     npc.useAP(apCost);
@@ -736,8 +749,6 @@ export class NPCAI {
     const combatSkill = typeDef.ai?.combatSkill || 0.5;
 
     let hitChance = isRanged ? 0.70 : 0.75;
-    const weapon = npc.getEquippedWeapon();
-    const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
 
     if (isRanged) {
       const dist = npc.getDistanceTo(target.logicalX || target.x, target.logicalY || target.y);

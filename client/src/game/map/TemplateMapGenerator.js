@@ -9,6 +9,8 @@ import { LabMapGenerator } from './generators/LabMapGenerator.js';
 import { StartingRoadGenerator } from './generators/StartingRoadGenerator.js';
 import { BranchingRoadGenerator } from './generators/BranchingRoadGenerator.js';
 import { isSpecialBuilding } from './BuildingTypes.js';
+import { isInsideCompound } from './MapUtils.js';
+import { TEMPLATE_METADATA } from '../config/TemplateConfig.js';
 
 /**
  * TemplateMapGenerator - Template-based map generation system
@@ -140,8 +142,8 @@ export class TemplateMapGenerator {
 
     // Road template - 23x100 map with central strip
     this.templates.set('road', {
-      name: 'Road',
-      size: { width: 45, height: 125 },
+      name: TEMPLATE_METADATA.road.name,
+      size: TEMPLATE_METADATA.road.size,
       layout: [
         'gggggggfffffgggggggg',
         'gggggggfffffgggggggg',
@@ -184,8 +186,8 @@ export class TemplateMapGenerator {
         'gggggggfffffgggggggg'
       ],
       spawnZones: {
-        roadStart: [{ x: 17, y: 123 }, { x: 9, y: 7 }, { x: 10, y: 7 }],
-        roadEnd: [{ x: 9, y: 32 }, { x: 10, y: 32 }],
+        roadStart: [{ x: TEMPLATE_METADATA.road.southEntranceX, y: TEMPLATE_METADATA.road.size.height - 2 }],
+        roadEnd: [{ x: TEMPLATE_METADATA.road.northExitX, y: 1 }],
         roadside: [
           { x: 6, y: 15 }, { x: 13, y: 15 }, { x: 6, y: 20 }, { x: 13, y: 20 },
           { x: 6, y: 25 }, { x: 13, y: 25 }
@@ -199,8 +201,8 @@ export class TemplateMapGenerator {
 
     // Winding Road template - 75x125 map for S-curve suburban layout
     this.templates.set('winding_road', {
-      name: 'Winding Road',
-      size: { width: 85, height: 125 },
+      name: TEMPLATE_METADATA.winding_road.name,
+      size: TEMPLATE_METADATA.winding_road.size,
       layout: [], // Procedurally generated
       parameters: {
         randomWalls: { min: 0, max: 2 },
@@ -212,8 +214,8 @@ export class TemplateMapGenerator {
 
     // Mirrored Winding Road template
     this.templates.set('mirrored_winding_road', {
-      name: 'Mirrored Winding Road',
-      size: { width: 85, height: 125 },
+      name: TEMPLATE_METADATA.mirrored_winding_road.name,
+      size: TEMPLATE_METADATA.mirrored_winding_road.size,
       layout: [], // Procedurally generated
       parameters: {
         randomWalls: { min: 0, max: 2 },
@@ -225,8 +227,8 @@ export class TemplateMapGenerator {
 
     // Split Road template
     this.templates.set('split_road', {
-      name: 'Split Road',
-      size: { width: 60, height: 150 },
+      name: TEMPLATE_METADATA.split_road.name,
+      size: TEMPLATE_METADATA.split_road.size,
       layout: [], // Procedurally generated
       parameters: {
         randomWalls: { min: 0, max: 2 },
@@ -238,8 +240,8 @@ export class TemplateMapGenerator {
 
     // Lab template
     this.templates.set('lab', {
-      name: 'Lab',
-      size: { width: 70, height: 84 },
+      name: TEMPLATE_METADATA.lab.name,
+      size: TEMPLATE_METADATA.lab.size,
       layout: [], // Procedurally generated
       parameters: {}
     });
@@ -248,8 +250,8 @@ export class TemplateMapGenerator {
     // Sized at ~2x the winding-road maps (85x125) so side roads and building
     // blocks have real room to spread out from the central spine.
     this.templates.set('branching_road', {
-      name: 'Branching Road',
-      size: { width: 220, height: 260 },
+      name: TEMPLATE_METADATA.branching_road.name,
+      size: TEMPLATE_METADATA.branching_road.size,
       layout: [], // Procedurally generated
       parameters: {
         randomWalls: { min: 0, max: 2 },
@@ -259,8 +261,8 @@ export class TemplateMapGenerator {
 
     // Starting Road template - 45x125 map with player starting yard/house at bottom
     this.templates.set('starting_road', {
-      name: 'Starting Road',
-      size: { width: 45, height: 117 },
+      name: TEMPLATE_METADATA.starting_road.name,
+      size: TEMPLATE_METADATA.starting_road.size,
       layout: [], // Procedurally generated
       parameters: {
         randomWalls: { min: 0, max: 2 },
@@ -345,11 +347,7 @@ export class TemplateMapGenerator {
     const compound = mapData.metadata?.townSquareCompound;
     for (let y = 1; y < height - 1; y++) {
       for (let x = 1; x < width - 1; x++) {
-        if (compound &&
-            x >= compound.fenceBounds.x1 &&
-            x <= compound.fenceBounds.x2 &&
-            y >= compound.fenceBounds.y1 &&
-            y <= compound.fenceBounds.y2) {
+        if (isInsideCompound(compound, x, y)) {
           continue;
         }
 
@@ -438,11 +436,7 @@ export class TemplateMapGenerator {
     const compound = mapData.metadata?.townSquareCompound;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        if (compound &&
-            x >= compound.fenceBounds.x1 &&
-            x <= compound.fenceBounds.x2 &&
-            y >= compound.fenceBounds.y1 &&
-            y <= compound.fenceBounds.y2) {
+        if (isInsideCompound(compound, x, y)) {
           continue;
         }
 
@@ -469,11 +463,7 @@ export class TemplateMapGenerator {
     const compound = mapData.metadata?.townSquareCompound;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        if (compound &&
-            x >= compound.fenceBounds.x1 &&
-            x <= compound.fenceBounds.x2 &&
-            y >= compound.fenceBounds.y1 &&
-            y <= compound.fenceBounds.y2) {
+        if (isInsideCompound(compound, x, y)) {
           continue;
         }
 
@@ -582,8 +572,11 @@ export class TemplateMapGenerator {
     const height = layout.length;
     const width = layout[0].length;
     let added = 0;
+    let attempts = 0;
+    const maxAttempts = count * 100;
 
-    while (added < count) {
+    while (added < count && attempts < maxAttempts) {
+      attempts++;
       const x = Math.floor(Math.random() * width);
       const y = Math.floor(Math.random() * height);
 
@@ -609,8 +602,11 @@ export class TemplateMapGenerator {
     const height = layout.length;
     const width = layout[0].length;
     let added = 0;
+    let attempts = 0;
+    const maxAttempts = count * 100;
 
-    while (added < count) {
+    while (added < count && attempts < maxAttempts) {
+      attempts++;
       const x = Math.floor(Math.random() * width);
       const y = Math.floor(Math.random() * height);
 

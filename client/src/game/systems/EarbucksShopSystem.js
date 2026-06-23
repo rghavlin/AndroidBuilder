@@ -2,6 +2,8 @@ import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { Item } from '../inventory/Item.js';
 import engine from '../GameEngine.js';
 
+const EMPTY_CATALOG = [];
+
 class EarbucksShopSystem {
   initCatalog(mapId) {
     if (!engine.worldManager) return;
@@ -35,7 +37,7 @@ class EarbucksShopSystem {
   getCatalog(mapId) {
     this.initCatalog(mapId);
     const mapEntry = engine.worldManager?.maps.get(mapId);
-    return mapEntry?.metadata?.shopCatalog || [];
+    return mapEntry?.metadata?.shopCatalog || EMPTY_CATALOG;
   }
 
   addItem(mapId, { defId, name, price, stock = null }) {
@@ -48,16 +50,24 @@ class EarbucksShopSystem {
       ? null
       : Math.max(0, Math.floor(stock));
 
-    const catalog = mapEntry.metadata.shopCatalog || [];
-    const existing = catalog.find(i => i.defId === defId);
-    if (existing) {
-      existing.price = price;
-      existing.name = name;
-      existing.stock = normalizedStock;
+    const catalog = mapEntry.metadata.shopCatalog || EMPTY_CATALOG;
+    const existingIndex = catalog.findIndex(i => i.defId === defId);
+    let newCatalog;
+    if (existingIndex !== -1) {
+      newCatalog = [...catalog];
+      newCatalog[existingIndex] = {
+        ...newCatalog[existingIndex],
+        price,
+        name,
+        stock: normalizedStock
+      };
     } else {
-      catalog.push({ defId, name, price, stock: normalizedStock, purchased: 0 });
+      newCatalog = [
+        ...catalog,
+        { defId, name, price, stock: normalizedStock, purchased: 0 }
+      ];
     }
-    mapEntry.metadata.shopCatalog = catalog;
+    mapEntry.metadata.shopCatalog = newCatalog;
     engine.notifyUpdate();
   }
   
@@ -66,7 +76,7 @@ class EarbucksShopSystem {
     const mapEntry = engine.worldManager?.maps.get(mapId);
     if (!mapEntry || !mapEntry.metadata) return;
     
-    const catalog = mapEntry.metadata.shopCatalog || [];
+    const catalog = mapEntry.metadata.shopCatalog || EMPTY_CATALOG;
     mapEntry.metadata.shopCatalog = catalog.filter(i => i.defId !== defId);
     engine.notifyUpdate();
   }
@@ -104,7 +114,18 @@ class EarbucksShopSystem {
 
     // Track purchase against finite stock
     if (itemConfig.stock !== null && itemConfig.stock !== undefined) {
-      itemConfig.purchased = (itemConfig.purchased || 0) + 1;
+      const existingIndex = catalog.findIndex(i => i.defId === defId);
+      if (existingIndex !== -1) {
+        const newCatalog = [...catalog];
+        newCatalog[existingIndex] = {
+          ...newCatalog[existingIndex],
+          purchased: (newCatalog[existingIndex].purchased || 0) + 1
+        };
+        const mapEntry = engine.worldManager?.maps.get(mapId);
+        if (mapEntry && mapEntry.metadata) {
+          mapEntry.metadata.shopCatalog = newCatalog;
+        }
+      }
     }
 
     // Notify log/event

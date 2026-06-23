@@ -4,6 +4,8 @@ import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/tra
 import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
 import { ZombieTypes } from '../entities/ZombieTypes.js';
 import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.js';
+import { isInsideCompound } from './MapUtils.js';
+
 
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
@@ -172,12 +174,8 @@ export class LootGenerator {
         const compound = gameMap.metadata?.townSquareCompound;
         for (let y = 0; y < gameMap.height; y++) {
             for (let x = 0; x < gameMap.width; x++) {
-                const isInsideCompound = compound &&
-                  x >= compound.fenceBounds.x1 &&
-                  x <= compound.fenceBounds.x2 &&
-                  y >= compound.fenceBounds.y1 &&
-                  y <= compound.fenceBounds.y2;
-                if (isInsideCompound) continue;
+                if (isInsideCompound(compound, x, y)) continue;
+
 
                 const tile = gameMap.getTile(x, y);
                 if (!tile || !tile.isWalkable()) continue;
@@ -424,12 +422,7 @@ export class LootGenerator {
                             break;
                         }
                         const compound = gameMap.metadata?.townSquareCompound;
-                        const isInsideCompound = compound &&
-                          tx >= compound.fenceBounds.x1 &&
-                          tx <= compound.fenceBounds.x2 &&
-                          ty >= compound.fenceBounds.y1 &&
-                          ty <= compound.fenceBounds.y2;
-                        if (isInsideCompound) {
+                        if (isInsideCompound(compound, tx, ty)) {
                             isSpaceFree = false;
                             break;
                         }

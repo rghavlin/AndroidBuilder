@@ -1,5 +1,19 @@
 import engine from './GameEngine.js';
 
+export const DEFAULT_PLAYER_STATS = {
+  hp: 100,
+  maxHp: 100,
+  ap: 12,
+  maxAp: 12,
+  nutrition: 25,
+  maxNutrition: 25,
+  hydration: 25,
+  maxHydration: 25,
+  energy: 25,
+  maxEnergy: 25,
+  ammo: 0
+};
+
 // Compression helper using browser native CompressionStream / DecompressionStream
 export async function compressString(str) {
   if (typeof CompressionStream === 'undefined') {
@@ -245,17 +259,17 @@ export class GameSaveSystem {
 
         // Player stats only (position is stored in gameMap)
         playerStats: {
-          hp: gameState.player ? gameState.player.hp : 100,
-          maxHp: gameState.player ? gameState.player.maxHp : 100,
-          ap: gameState.player ? gameState.player.ap : 100,
-          maxAp: gameState.player ? gameState.player.maxAp : 100,
-          nutrition: gameState.player ? gameState.player.nutrition : 25,
-          maxNutrition: gameState.player ? gameState.player.maxNutrition : 25,
-          hydration: gameState.player ? gameState.player.hydration : 25,
-          maxHydration: gameState.player ? gameState.player.maxHydration : 25,
-          energy: gameState.player ? gameState.player.energy : 25,
-          maxEnergy: gameState.player ? gameState.player.maxEnergy : 25,
-          ammo: gameState.playerStats?.ammo || 0
+          hp: gameState.player ? gameState.player.hp : DEFAULT_PLAYER_STATS.hp,
+          maxHp: gameState.player ? gameState.player.maxHp : DEFAULT_PLAYER_STATS.maxHp,
+          ap: gameState.player ? gameState.player.ap : DEFAULT_PLAYER_STATS.ap,
+          maxAp: gameState.player ? gameState.player.maxAp : DEFAULT_PLAYER_STATS.maxAp,
+          nutrition: gameState.player ? gameState.player.nutrition : DEFAULT_PLAYER_STATS.nutrition,
+          maxNutrition: gameState.player ? gameState.player.maxNutrition : DEFAULT_PLAYER_STATS.maxNutrition,
+          hydration: gameState.player ? gameState.player.hydration : DEFAULT_PLAYER_STATS.hydration,
+          maxHydration: gameState.player ? gameState.player.maxHydration : DEFAULT_PLAYER_STATS.maxHydration,
+          energy: gameState.player ? gameState.player.energy : DEFAULT_PLAYER_STATS.energy,
+          maxEnergy: gameState.player ? gameState.player.maxEnergy : DEFAULT_PLAYER_STATS.maxEnergy,
+          ammo: gameState.playerStats?.ammo !== undefined ? gameState.playerStats.ammo : DEFAULT_PLAYER_STATS.ammo
         },
 
         // Inventory state (equipment, containers, items)
@@ -387,7 +401,7 @@ export class GameSaveSystem {
         inventoryManager: inventoryManager,
         lootGenerator: lootGenerator,
         turn: saveData.turn || 1,
-        playerStats: saveData.playerStats || { hp: 1000, maxHp: 1000, ap: 1000, maxAp: 1000, ammo: 0 },
+        playerStats: saveData.playerStats || DEFAULT_PLAYER_STATS,
         lastSeenTaggedTiles: new Set(), // Reset this - will be rebuilt
         metadata: saveData.metadata || {},
         interactionState: saveData.interactionState || null

@@ -521,7 +521,7 @@ export class GroundManager {
     return allItems.filter(item => {
       return item.name.toLowerCase().includes(searchTerm) ||
         item.type.toLowerCase().includes(searchTerm) ||
-        item.subtype.toLowerCase().includes(searchTerm) ||
+        (item.subtype?.toLowerCase().includes(searchTerm) || false) ||
         item.getCategory().toLowerCase().includes(searchTerm);
     });
   }

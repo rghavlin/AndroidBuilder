@@ -24,6 +24,8 @@ const logger = Logger.scope('GameContext');
 
 import { ItemTrait, EquipmentSlot } from '../game/inventory/traits.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import { getHourFromTurn } from '../game/utils/TimeUtils.js';
+import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
 
 const GameContext = createContext();
 
@@ -136,7 +138,7 @@ const GameContextInner = ({ children }) => {
     engine.isFlashlightOn = typeof val === 'function' ? val(engine.isFlashlightOn) : val;
     engine.notifyUpdate();
   }, []);
-  const hour = (6 + (turn - 1)) % 24;
+  const hour = getHourFromTurn(turn);
   const isNight = hour >= 20 || hour < 6;
 
   // Phase 7: Robust light state for internal GameContext callers
@@ -610,7 +612,7 @@ const GameContextInner = ({ children }) => {
     // 8. Time/Weather
     const newTurn = turn + 1;
     if (engine.weatherManager) engine.weatherManager.update(newTurn);
-    const nextHour = (6 + (newTurn - 1)) % 24;
+    const nextHour = getHourFromTurn(newTurn);
     const nextIsNight = nextHour >= 20 || nextHour < 6;
 
     GameEvents.emit(GAME_EVENT.TURN_ENDED);
@@ -896,7 +898,7 @@ const GameContextInner = ({ children }) => {
         if (retryResult.success && retryResult.actions.length > 0) {
            console.log(`[GameContext] 🏃 NPC ${npc.name} performing ${retryResult.actions.length} follow-up actions...`, retryResult.actions);
            const currentEngineTurn = engine.turn;
-           const nextHour = (6 + (currentEngineTurn - 1)) % 24;
+           const nextHour = getHourFromTurn(currentEngineTurn);
            const nextIsNight = nextHour >= 20 || nextHour < 6;
 
            await playbackTurn(retryResult.actions, false, currentEngineTurn, nextIsNight);
@@ -1175,7 +1177,7 @@ const GameContextInner = ({ children }) => {
       attachInventorySyncListener(loadedState.player, loadedState.inventoryManager);
 
       // Calculate isNight for the loaded turn
-      const loadedHour = (6 + (loadedState.turn - 1)) % 24;
+      const loadedHour = getHourFromTurn(loadedState.turn);
       const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
 
       // Restore flashlight state
@@ -1248,7 +1250,7 @@ const GameContextInner = ({ children }) => {
       attachInventorySyncListener(loadedState.player, loadedState.inventoryManager);
 
       // Calculate isNight for the loaded turn
-      const loadedHour = (6 + (loadedState.turn - 1)) % 24;
+      const loadedHour = getHourFromTurn(loadedState.turn);
       const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
 
       // Restore flashlight state
@@ -1318,7 +1320,7 @@ const GameContextInner = ({ children }) => {
       }
 
       // Calculate isNight for the loaded turn
-      const loadedHour = (6 + (loadedState.turn - 1)) % 24;
+      const loadedHour = getHourFromTurn(loadedState.turn);
       const loadedIsNight = loadedHour >= 20 || loadedHour < 6;
 
       // Restore flashlight state

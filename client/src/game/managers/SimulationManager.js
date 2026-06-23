@@ -10,7 +10,7 @@ import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { TurretAI } from '../ai/TurretAI.js';
-import { getExposedTurretTargets, TURRET_DEF_ID } from '../ai/TurretCombat.js';
+import { getExposedTurretTargets, TURRET_DEF_ID, removeDestroyedTurret } from '../ai/TurretCombat.js';
 import { FireSystem } from '../systems/FireSystem.js';
 import { DestructionSystem } from '../systems/DestructionSystem.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
@@ -97,8 +97,12 @@ export class SimulationManager {
       const fireTurretFromItem = (item, atX, atY) => {
         if (!item) return;
         if (item.defId === TURRET_DEF_ID && item.isOn) {
-          const result = TurretAI.executeTurretTurn(item, atX, atY, gameMap, turretTargets);
-          if (result.actions?.length) actionQueue.push(...result.actions);
+          try {
+            const result = TurretAI.executeTurretTurn(item, atX, atY, gameMap, turretTargets);
+            if (result.actions?.length) actionQueue.push(...result.actions);
+          } catch (err) {
+            console.error(`[SimulationManager] Error processing turret ${item.instanceId || item.id}:`, err);
+          }
           return;
         }
         if (item.containerGrid) {
@@ -245,9 +249,6 @@ export class SimulationManager {
     return NPCAI.executeNPCTurn(npc, gameMap, player, zombies, skipAPReset);
   }
 
-  /**
-   * Statically processes deaths for all entities except the player.
-   */
   static checkAndProcessDeaths(gameMap, ecsEntities, intentQueue, actionQueue, player) {
     const allEntities = Array.from(gameMap.entityMap.values());
     const checkList = allEntities.filter(e => 
@@ -270,6 +271,65 @@ export class SimulationManager {
         }
       }
     }
+
+    // --- Turret Death Cleanup (P2-01) ---
+    const playerX = player ? player.logicalX : null;
+    const playerY = player ? player.logicalY : null;
+
+    const checkAndCleanTurret = (item, atX, atY) => {
+      if (!item) return false;
+
+      if (item.defId === TURRET_DEF_ID) {
+        const isDead = typeof item.isDead === 'function' ? item.isDead() : (item.hp !== undefined && item.hp <= 0);
+        if (isDead) {
+          console.log(`[SimulationManager] Destroyed turret ${item.id || item.instanceId} detected at (${atX}, ${atY}). Cleaning up...`);
+          removeDestroyedTurret(item, gameMap, atX, atY);
+          return true;
+        }
+        return false;
+      }
+
+      let containerGrid = item.containerGrid;
+      if (!containerGrid && typeof item.getContainerGrid === 'function') {
+        containerGrid = item.getContainerGrid();
+      }
+      if (containerGrid) {
+        const nestedItems = containerGrid.items instanceof Map
+          ? Array.from(containerGrid.items.values())
+          : (Array.isArray(containerGrid.items) ? containerGrid.items : Object.values(containerGrid.items || {}));
+
+        let cleanedAny = false;
+        for (const nestedItem of nestedItems) {
+          if (nestedItem) {
+            if (checkAndCleanTurret(nestedItem, atX, atY)) {
+              cleanedAny = true;
+            }
+          }
+        }
+        return cleanedAny;
+      }
+      return false;
+    };
+
+    // 1. Scan on-map items
+    const mapItems = gameMap.getEntitiesByType('item') || [];
+    for (const item of mapItems) {
+      if (!item) continue;
+      const itemX = item.logicalX !== undefined ? item.logicalX : playerX;
+      const itemY = item.logicalY !== undefined ? item.logicalY : playerY;
+      if (checkAndCleanTurret(item, itemX, itemY)) {
+        diedAny = true;
+      }
+    }
+
+    // 2. Scan player's ground container items
+    const groundItems = engine?.inventoryManager?.groundContainer?.getAllItems?.() || [];
+    for (const item of groundItems) {
+      if (checkAndCleanTurret(item, playerX, playerY)) {
+        diedAny = true;
+      }
+    }
+
     return diedAny;
   }
 }

@@ -9,6 +9,7 @@ import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { useOverlays } from '../../contexts/OverlayContext';
+import { getHourFromTurn } from '../../game/utils/TimeUtils.js';
 
 interface GameControlsProps {
   playerStats: {
@@ -322,7 +323,7 @@ export default function GameControls({
           <div className="flex items-center justify-between gap-3 text-[10px] font-mono font-bold text-white/30 uppercase tracking-tighter tabular-nums">
             <span>Time</span>
             <span className="text-white/80">
-              {String((6 + (currentTurn - 1)) % 24).padStart(2, '0')}:00
+              {String(getHourFromTurn(currentTurn)).padStart(2, '0')}:00
             </span>
           </div>
         </div>

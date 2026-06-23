@@ -585,8 +585,11 @@ export class CraftingManager {
         // 1. Unload existing crafting items first
         this.unload();
 
-        const toolContainer = this.inv.getContainer('crafting-tools');
-        const ingredientContainer = this.inv.getContainer('crafting-ingredients');
+        // Dynamically resolve workspace containers based on recipe tab
+        const prefix = recipe.tab === 'cooking' ? 'cooking' : 'crafting';
+        const toolContainerId = `${prefix}-tools`;
+        const ingredientContainerId = `${prefix}-ingredients`;
+        const ingredientContainer = this.inv.getContainer(ingredientContainerId);
 
         // 2. Find and move tools
         for (const toolReq of recipe.tools) {
@@ -594,7 +597,7 @@ export class CraftingManager {
             if (found) {
                 const { item, container, equipment } = found;
                 const sourceId = container ? container.id : `equipment-${equipment}`;
-                this.inv.moveItem(item.instanceId, sourceId, 'crafting-tools');
+                this.inv.moveItem(item.instanceId, sourceId, toolContainerId);
             }
         }
 
@@ -610,7 +613,7 @@ export class CraftingManager {
                 
                 if (item.stackCount <= needed) {
                     const count = item.stackCount;
-                    this.inv.moveItem(item.instanceId, sourceId, 'crafting-ingredients');
+                    this.inv.moveItem(item.instanceId, sourceId, ingredientContainerId);
                     needed -= count;
                 } else {
                     const split = item.splitStack(needed);
@@ -631,13 +634,21 @@ export class CraftingManager {
      * Unload crafting workspace
      */
     unload() {
-        const toolContainer = this.inv.getContainer('crafting-tools');
-        const ingredientContainer = this.inv.getContainer('crafting-ingredients');
-        
-        const items = [
-            ...toolContainer.getAllItems(),
-            ...ingredientContainer.getAllItems()
+        // Clear all workspace containers (both crafting and cooking)
+        const containerIds = [
+            'crafting-tools', 'crafting-ingredients',
+            'cooking-tools', 'cooking-ingredients'
         ];
+
+        const items = [];
+        for (const id of containerIds) {
+            const container = this.inv.getContainer(id);
+            if (container) {
+                items.push(...container.getAllItems());
+            }
+        }
+
+        if (items.length === 0) return;
         
         items.forEach(item => {
             if (item._container) {

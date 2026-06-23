@@ -11,6 +11,7 @@ import { GameMap } from '../game/map/GameMap.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { ItemTrait } from '../game/inventory/traits.js';
 import { SimulationManager } from '../game/managers/SimulationManager.js';
+import { getHourFromTurn } from '../game/utils/TimeUtils.js';
 
 const SleepContext = createContext();
 
@@ -205,7 +206,8 @@ export const SleepProvider = ({ children }) => {
                 }
                 addLog(`${flashlight.name} has run out of power/burned out.`, 'warning');
                 // Recalculate FOV immediately so that AI logic for subsequent hours behaves correctly
-                const finalIsNight = (6 + (currentTurn - 1)) % 24 >= 20 || (6 + (currentTurn - 1)) % 24 < 6;
+                const currentHour = getHourFromTurn(currentTurn);
+                const finalIsNight = currentHour >= 20 || currentHour < 6;
                 const isNVG = flashlight.lightType === 'nightvision';
                 const range = flashlight.lightRange || 8;
                 updatePlayerFieldOfView(gameMap, finalIsNight, false, false, range, isNVG);
@@ -327,7 +329,7 @@ export const SleepProvider = ({ children }) => {
       updatePlayerStats({ ap: player.ap });
       wakePlayer();
       
-      const hour = (6 + (currentTurn - 1)) % 24;
+      const hour = getHourFromTurn(currentTurn);
       const finalIsNight = hour >= 20 || hour < 6;
       
       // Final FOV sync after full sleep
