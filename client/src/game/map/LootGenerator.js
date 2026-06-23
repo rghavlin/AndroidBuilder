@@ -161,9 +161,10 @@ export class LootGenerator {
             });
             console.log(`[LootGenerator] Starting home: Spawned 6 piles and ${plankCount} planks`);
 
-            if (config && config.easyStart === true) {
-                this.applyEasyStartLoot(gameMap, buildingTiles, selectedTiles);
-            }
+            // Easy Start starting home rules are disabled; starting items are now equipped directly on player setup
+            // if (config && config.easyStart === true) {
+            //     this.applyEasyStartLoot(gameMap, buildingTiles, selectedTiles);
+            // }
         });
 
         // 2. Identify outdoor tiles and spawn outdoor loot (excluding doorway tiles)
@@ -216,14 +217,21 @@ export class LootGenerator {
         const lowSpots = this.getRandomSubarray(potentialLowSpots, lowSpotCount);
         gameMap.lowSpots = lowSpots;
         
-        // Spawn one 50-unit puddle in a random low spot initially
+        // Spawn full 50-unit puddles in random low spot(s) (1 baseline, 4 total on branching_road)
+        const isBranching = gameMap.template === 'branching_road';
+        const numPuddles = isBranching ? 4 : 1;
+
         if (lowSpots.length > 0) {
-            const pos = lowSpots[Math.floor(Math.random() * lowSpots.length)];
-            const puddle = createItemFromDef('environment.water_puddle');
-            if (puddle) {
-                puddle.ammoCount = 50;
-                gameMap.setItemsOnTile(pos.x, pos.y, [puddle]);
-                console.log(`[LootGenerator] Designated ${lowSpotCount} low spots and spawned initial 50-unit puddle at (${pos.x}, ${pos.y})`);
+            const shuffledLowSpots = [...lowSpots].sort(() => Math.random() - 0.5);
+            const actualPuddles = Math.min(numPuddles, shuffledLowSpots.length);
+            for (let i = 0; i < actualPuddles; i++) {
+                const pos = shuffledLowSpots[i];
+                const puddle = createItemFromDef('environment.water_puddle');
+                if (puddle) {
+                    puddle.ammoCount = 50;
+                    gameMap.setItemsOnTile(pos.x, pos.y, [puddle]);
+                    console.log(`[LootGenerator] Spawned full 50-unit puddle at (${pos.x}, ${pos.y})`);
+                }
             }
         }
         
@@ -233,8 +241,8 @@ export class LootGenerator {
         // Spawn Generator (1 per map, behind a building)
         this.spawnGenerator(gameMap);
 
-        // Spawn Safes (1 on Map 1, 2 on Map 2+)
-        const safeCount = mapNumber === 1 ? 1 : 2;
+        // Spawn Safes (1 on Map 1, 2 on Map 2+; 3 on large map)
+        const safeCount = isBranching ? 3 : (mapNumber === 1 ? 1 : 2);
         this.spawnSafes(gameMap, safeCount);
 
         // 4. Final Pass: Apply map-wide unique loot rules
@@ -288,26 +296,33 @@ export class LootGenerator {
         const isInsideAnyBuilding = (x, y) => allBuildings.some(b => 
             x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
         );
+        const isBranching = gameMap.template === 'branching_road';
 
-        // Phase 25: Toy Wagon Spawn (35% chance per map, strictly outdoor)
-        if (Math.random() < 0.35) {
-            const wagonTiles = outdoorLootTiles.filter(pos => {
-                if (isInsideAnyBuilding(pos.x, pos.y)) return false;
-                const existing = gameMap.getItemsOnTile(pos.x, pos.y);
-                return !existing || existing.length === 0;
-            });
-            
-            if (wagonTiles.length > 0) {
-                const pos = wagonTiles[Math.floor(Math.random() * wagonTiles.length)];
+        // Phase 25: Toy Wagon Spawn (35% chance per map, strictly outdoor; 2-4 on large map)
+        const wagonTiles = outdoorLootTiles.filter(pos => {
+            if (isInsideAnyBuilding(pos.x, pos.y)) return false;
+            const existing = gameMap.getItemsOnTile(pos.x, pos.y);
+            return !existing || existing.length === 0;
+        });
+
+        const numWagons = isBranching
+            ? (2 + Math.floor(Math.random() * 3))
+            : (Math.random() < 0.35 ? 1 : 0);
+
+        if (numWagons > 0 && wagonTiles.length > 0) {
+            const shuffledWagons = [...wagonTiles].sort(() => Math.random() - 0.5);
+            const actualWagons = Math.min(numWagons, shuffledWagons.length);
+            for (let i = 0; i < actualWagons; i++) {
+                const pos = shuffledWagons[i];
                 const wagon = createItemFromDef('vehicle.toy_wagon');
                 if (wagon) {
                     gameMap.setItemsOnTile(pos.x, pos.y, [wagon]);
-                    console.log(`[LootGenerator] Furniture: Spawned single Toy Wagon at (${pos.x}, ${pos.y})`);
+                    console.log(`[LootGenerator] Furniture: Spawned Toy Wagon at (${pos.x}, ${pos.y})`);
                 }
             }
         }
 
-        // Electric Mower Spawn (Guaranteed 1 per map, strictly on grass)
+        // Electric Mower Spawn (Guaranteed 1 per map, strictly on grass; 3-5 on large map)
         const mowerTiles = outdoorLootTiles.filter(pos => {
             const tile = gameMap.getTile(pos.x, pos.y);
             if (!tile || tile.terrain !== 'grass') return false;
@@ -316,22 +331,30 @@ export class LootGenerator {
             return !existing || existing.length === 0;
         });
 
+        const numMowers = isBranching
+            ? (3 + Math.floor(Math.random() * 3))
+            : 1;
+
         if (mowerTiles.length > 0) {
-            const pos = mowerTiles[Math.floor(Math.random() * mowerTiles.length)];
-            const mower = createItemFromDef('furniture.electric_mower');
-            if (mower) {
-                LootGenerator.applySpawnDefaults(mower, false);
-                gameMap.setItemsOnTile(pos.x, pos.y, [mower]);
-                console.log(`[LootGenerator] Furniture: Spawned single Electric Mower at (${pos.x}, ${pos.y})`);
+            const shuffledMowers = [...mowerTiles].sort(() => Math.random() - 0.5);
+            const actualMowers = Math.min(numMowers, shuffledMowers.length);
+            for (let i = 0; i < actualMowers; i++) {
+                const pos = shuffledMowers[i];
+                const mower = createItemFromDef('furniture.electric_mower');
+                if (mower) {
+                    LootGenerator.applySpawnDefaults(mower, false);
+                    gameMap.setItemsOnTile(pos.x, pos.y, [mower]);
+                    console.log(`[LootGenerator] Furniture: Spawned Electric Mower at (${pos.x}, ${pos.y})`);
+                }
             }
         }
         
-        // Phase 25: Electric Scooter Spawn (Guaranteed 1 per map, strictly outdoor)
+        // Phase 25: Electric Scooter Spawn (Guaranteed 1 per map, strictly outdoor; 2-4 on large map)
         this.spawnScooter(gameMap, outdoorLootTiles);
     }
 
     /**
-     * Spawn a single electric scooter in an outdoor tile
+     * Spawn electric scooters in outdoor tiles (2-4 on large map)
      */
     spawnScooter(gameMap, outdoorLootTiles = []) {
         const allBuildings = gameMap.buildings || [];
@@ -344,19 +367,28 @@ export class LootGenerator {
             return !existing || existing.length === 0;
         });
 
+        const numScooters = gameMap.template === 'branching_road'
+            ? (2 + Math.floor(Math.random() * 3))
+            : 1;
+
         if (scooterTiles.length > 0) {
-            const pos = scooterTiles[Math.floor(Math.random() * scooterTiles.length)];
-            const scooter = createItemFromDef('vehicle.electric_scooter');
-            if (scooter) {
-                LootGenerator.applySpawnDefaults(scooter, false);
-                gameMap.setItemsOnTile(pos.x, pos.y, [scooter]);
-                console.log(`[LootGenerator] Furniture: Spawned single Electric Scooter at (${pos.x}, ${pos.y})`);
+            const shuffledScooters = [...scooterTiles].sort(() => Math.random() - 0.5);
+            const actualScooters = Math.min(numScooters, shuffledScooters.length);
+            for (let i = 0; i < actualScooters; i++) {
+                const pos = shuffledScooters[i];
+                const scooter = createItemFromDef('vehicle.electric_scooter');
+                if (scooter) {
+                    LootGenerator.applySpawnDefaults(scooter, false);
+                    gameMap.setItemsOnTile(pos.x, pos.y, [scooter]);
+                    console.log(`[LootGenerator] Furniture: Spawned Electric Scooter at (${pos.x}, ${pos.y})`);
+                }
             }
         }
     }
 
     /**
-     * Spawn a single generator behind a building
+    /**
+     * Spawn generators behind buildings (2-4 on large map)
      */
     spawnGenerator(gameMap) {
         const buildings = (gameMap.buildings || []).filter(b => b.type === 'residential');
@@ -365,7 +397,15 @@ export class LootGenerator {
         // Shuffle buildings to try different ones if the first choice is blocked
         const shuffledBuildings = [...buildings].sort(() => Math.random() - 0.5);
         
+        const targetCount = gameMap.template === 'branching_road'
+            ? (2 + Math.floor(Math.random() * 3))
+            : 1;
+
+        let spawnedCount = 0;
+
         for (const building of shuffledBuildings) {
+            if (spawnedCount >= targetCount) break;
+
             // "Behind" = Y - 3 (top of building)
             const spawnX = building.x + Math.floor(building.width / 2) - 1;
             const spawnY = building.y - 3;
@@ -413,12 +453,14 @@ export class LootGenerator {
                     generator.ammoCount = Math.floor(Math.random() * LOOT_CONSTANTS.GENERATOR_SPAWN_FUEL_MAX);
                     gameMap.setItemsOnTile(spawnX, spawnY, [generator]);
                     console.log(`[LootGenerator] Spawned Generator behind building at (${spawnX}, ${spawnY})`);
-                    return; // Spawn only one
+                    spawnedCount++;
                 }
             }
         }
         
-        console.warn('[LootGenerator] Could not find a suitable spot behind any building for the generator.');
+        if (spawnedCount < targetCount) {
+            console.warn(`[LootGenerator] Could not find a suitable spot behind any building for the generator. Spawned: ${spawnedCount}/${targetCount}`);
+        }
     }
 
     /**

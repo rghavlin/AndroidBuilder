@@ -298,7 +298,6 @@ export const CombatProvider = ({ children }) => {
                     // Award 1 Earbuck per zombie kill
                     if (engine.player) {
                         engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                        addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
                     }
                 } else if (targetEntity.type === EntityType.NPC) {
                     // NPCs drop their entire inventory on death
@@ -559,7 +558,6 @@ export const CombatProvider = ({ children }) => {
                         // Award 1 Earbuck per zombie kill
                         if (engine.player) {
                             engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                            addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
                         }
                     } else if (targetEntity.type === EntityType.NPC) {
                         // NPCs drop their entire inventory on death
@@ -702,7 +700,6 @@ export const CombatProvider = ({ children }) => {
                 if (action.data.entityType === EntityType.ZOMBIE) {
                     if (engine.player) {
                         engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                        addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
                     }
                 }
             } else if (action.type === 'STRUCTURE_INTERACT') {
@@ -836,7 +833,6 @@ export const CombatProvider = ({ children }) => {
                         // Award 1 Earbuck per zombie kill
                         if (engine.player) {
                             engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                            addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
                         }
                     } else if (targetEntity.type === EntityType.NPC) {
                         if (typeof targetEntity.die === 'function') targetEntity.die();
@@ -1013,7 +1009,6 @@ export const CombatProvider = ({ children }) => {
                 if (action.data.entityType === EntityType.ZOMBIE) {
                     if (engine.player) {
                         engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-                        addLog(`You earned 1 Earbuck! (${engine.player.earbucks} total)`, 'world');
                     }
                 }
             } else if (action.type === 'STRUCTURE_INTERACT') {

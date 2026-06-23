@@ -384,18 +384,22 @@ export class TemplateMapGenerator {
     if (validSpots.length === 0) return;
 
     const mapNumber = mapData.config?.mapNumber || 1;
-    // If map level > 2, 50% chance that NO wild crops appear
-    if (mapNumber > 2 && Math.random() > 0.5) {
+    // If map level > 2, 50% chance that NO wild crops appear (unless it is branching_road)
+    const isBranching = mapData.template === 'branching_road';
+    if (!isBranching && mapNumber > 2 && Math.random() > 0.5) {
       console.log(`[TemplateMapGenerator] Map ${mapNumber} skipped wild crop generation (50% chance)`);
       return;
     }
 
-    // Pick exactly 1 random spot (Max 1 per map)
-    const count = 1;
+    // Pick random spot(s) (1 baseline, 5 on branching_road)
+    const count = isBranching ? 5 : 1;
     const selectedSpots = [];
     if (validSpots.length > 0) {
-      const index = Math.floor(Math.random() * validSpots.length);
-      selectedSpots.push(validSpots.splice(index, 1)[0]);
+      const shuffledSpots = [...validSpots].sort(() => Math.random() - 0.5);
+      const actualCount = Math.min(count, shuffledSpots.length);
+      for (let i = 0; i < actualCount; i++) {
+        selectedSpots.push(shuffledSpots[i]);
+      }
     }
 
     // Crop definitions for wild variety

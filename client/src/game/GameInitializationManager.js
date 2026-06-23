@@ -286,20 +286,82 @@ class GameInitializationManager extends EventEmitter {
         const { createItemFromDef } = await import('./inventory/ItemDefs.js');
         const { Item } = await import('./inventory/Item.js');
 
-        // 1. Create Pocket T-shirt
-        const shirtDef = createItemFromDef('clothing.pocket_t');
-        if (shirtDef) {
-          const shirt = new Item(shirtDef);
-          inventoryManager.equipItem(shirt);
-          console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
-        }
+        // Check if easyStart is chosen
+        const isEasyStart = this.customConfig && this.customConfig.easyStart === true;
 
-        // 2. Create Sweatpants
-        const pantsDef = createItemFromDef('clothing.sweatpants');
-        if (pantsDef) {
-          const pants = new Item(pantsDef);
-          inventoryManager.equipItem(pants);
-          console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
+        if (isEasyStart) {
+          // Easy Start starting equipment:
+          // 1. Create Pocket T-shirt
+          const shirtDef = createItemFromDef('clothing.pocket_t');
+          if (shirtDef) {
+            const shirt = new Item(shirtDef);
+            inventoryManager.equipItem(shirt);
+            console.log('[GameInitializationManager] Easy Start: Equipped starting shirt:', shirt.name);
+          }
+
+          // 2. Create Sweatpants
+          const pantsDef = createItemFromDef('clothing.sweatpants');
+          if (pantsDef) {
+            const pants = new Item(pantsDef);
+            inventoryManager.equipItem(pants);
+            console.log('[GameInitializationManager] Easy Start: Equipped starting pants:', pants.name);
+          }
+
+          // 3. Create Book Bag / school backpack
+          const backpackDef = createItemFromDef('backpack.school');
+          if (backpackDef) {
+            const backpack = new Item(backpackDef);
+            inventoryManager.equipItem(backpack);
+            console.log('[GameInitializationManager] Easy Start: Equipped starting backpack:', backpack.name);
+
+            // Now put items inside the backpack
+            const backpackContainer = backpack.getContainerGrid();
+            if (backpackContainer) {
+              // 3 canned beans
+              const beans = new Item(createItemFromDef('food.beans', { stackCount: 3 }));
+              backpackContainer.addItem(beans);
+
+              // 2 granola bars
+              const granolas = new Item(createItemFromDef('food.granolabar', { stackCount: 2 }));
+              backpackContainer.addItem(granolas);
+
+              // 2 water bottles
+              const waterBottles = new Item(createItemFromDef('food.waterbottle', { stackCount: 2 }));
+              backpackContainer.addItem(waterBottles);
+
+              // 1 lighter with full charges (10 charges)
+              const lighter = new Item(createItemFromDef('tool.lighter', { ammoCount: 10 }));
+              backpackContainer.addItem(lighter);
+
+              console.log('[GameInitializationManager] Easy Start: Added starting items to backpack');
+            }
+          }
+
+          // 4. Create Crowbar and equip in melee slot
+          const crowbarDef = createItemFromDef('weapon.crowbar');
+          if (crowbarDef) {
+            const crowbar = new Item(crowbarDef);
+            inventoryManager.equipItem(crowbar);
+            console.log('[GameInitializationManager] Easy Start: Equipped starting crowbar in melee slot');
+          }
+
+        } else {
+          // Normal start starting equipment:
+          // 1. Create Pocket T-shirt
+          const shirtDef = createItemFromDef('clothing.pocket_t');
+          if (shirtDef) {
+            const shirt = new Item(shirtDef);
+            inventoryManager.equipItem(shirt);
+            console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
+          }
+
+          // 2. Create Sweatpants
+          const pantsDef = createItemFromDef('clothing.sweatpants');
+          if (pantsDef) {
+            const pants = new Item(pantsDef);
+            inventoryManager.equipItem(pants);
+            console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
+          }
         }
       } catch (err) {
         console.error('[GameInitializationManager] Failed to provide starting equipment:', err);

@@ -2039,8 +2039,9 @@ export const ItemDefs = {
     imageId: 'cookingpot',
     width: 2,
     height: 2,
-    traits: [],
-    categories: [ItemCategory.TOOL, ItemCategory.COOKING_POT]
+    traits: [ItemTrait.DEGRADABLE],
+    categories: [ItemCategory.TOOL, ItemCategory.COOKING_POT],
+    condition: 100
   },
 
   'weapon.frying_pan': {

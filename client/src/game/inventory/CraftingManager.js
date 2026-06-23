@@ -515,7 +515,11 @@ export class CraftingManager {
                 } else if (singleTool.isDegradable()) {
                     // Condition-based degradation (Hammer, Knife)
                     // Uses default fragility (2) or def-specified fragility, same as combat.
-                    singleTool.degrade();
+                    if (singleTool.hasCategory(ItemCategory.COOKING_POT)) {
+                        singleTool.degrade(1);
+                    } else {
+                        singleTool.degrade();
+                    }
                     console.log(`[CraftingManager] Degraded tool: ${singleTool.name}. Remaining: ${singleTool.condition}`);
                 }
             }
