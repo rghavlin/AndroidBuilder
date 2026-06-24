@@ -489,8 +489,10 @@ export const EntityRenderer = {
 
   drawDoor: (ctx, entity, x, y, tileSize) => {
     const isBW = imageLoader.tileSet === 'b&w';
-    const doorColor = isBW ? '#999999' : '#5d4037';
-    const strokeColor = isBW ? '#555555' : '#3e2723';
+    // Make doors much darker and higher contrast
+    const doorColor = isBW ? '#3a3a3a' : '#3e2723';
+    const strokeColor = isBW ? '#111111' : '#1a0a05';
+    const knobColor = isBW ? '#ffffff' : '#facc15';
     
     ctx.lineWidth = 3;
     const margin = tileSize / 8;
@@ -557,12 +559,50 @@ export const EntityRenderer = {
       ctx.fillRect(rx, ry, rw, rh);
       ctx.strokeStyle = strokeColor;
       ctx.strokeRect(rx, ry, rw, rh);
+
+      // Draw doorknob/handle if closed
+      if (!isOpen) {
+        ctx.save();
+        ctx.fillStyle = knobColor;
+        ctx.beginPath();
+        const knobRadius = Math.max(2, Math.floor(thickness * 0.25));
+        let kx, ky;
+        if (entity.edge === 'n' || entity.edge === 's') {
+          kx = rx + rw * 0.75;
+          ky = ry + rh / 2;
+        } else {
+          kx = rx + rw / 2;
+          ky = ry + rh * 0.75;
+        }
+        ctx.arc(kx, ky, knobRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
     } else {
       // Fallback: original centered drawing
       ctx.fillStyle = doorColor;
       ctx.fillRect(x + margin, y + margin, tileSize - margin * 2, tileSize - margin * 2);
       ctx.strokeStyle = strokeColor;
       ctx.strokeRect(x + margin, y + margin, tileSize - margin * 2, tileSize - margin * 2);
+
+      // Draw doorknob/handle if closed
+      if (!entity.visualIsOpen && !entity.isOpen) {
+        ctx.save();
+        ctx.fillStyle = knobColor;
+        ctx.beginPath();
+        const knobRadius = Math.max(2.5, Math.floor(tileSize * 0.06));
+        const kx = x + margin + (tileSize - margin * 2) * 0.75;
+        const ky = y + margin + (tileSize - margin * 2) * 0.5;
+        ctx.arc(kx, ky, knobRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   },
 

@@ -453,33 +453,41 @@ export class Pathfinding {
     if (!dir1to2) return false;
 
     const wallBlocks = (tile1.edgeWalls && tile1.edgeWalls[dir1to2]) || (tile2.edgeWalls && tile2.edgeWalls[dir2to1]);
-    
-    if (wallBlocks) {
-      const isZombie = options.isZombie || (entity && typeof entity !== 'function' && entity.type === EntityType.ZOMBIE);
-      const isNPC = entity && typeof entity !== 'function' && entity.type === EntityType.NPC;
-      const isPlayer = !isZombie && !isNPC;
 
-      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir1to2));
-      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir2to1));
-      
-      const allBreachable = [...breachable1, ...breachable2];
-      
-      // If there is no door/window, the edge is solid
-      if (allBreachable.length === 0) return true;
+    // Fast path for the overwhelmingly common open-floor edge: no wall flag and no
+    // door/window entity on either tile means nothing can block this boundary.
+    // (.some avoids allocating in the hot A* per-neighbour path.)
+    const isStruct = e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW;
+    if (!wallBlocks && !tile1.contents.some(isStruct) && !tile2.contents.some(isStruct)) return false;
 
-      for (const e of allBreachable) {
-         if (e.type === 'window' && isPlayer) {
-             // Windows are ALWAYS blocked for players (unwalkable)
-             continue;
-         }
-         if (e.isOpen || e.isBroken || e.isDamaged || ((isZombie || isNPC) && options.isPathfinding) || options.allowBreaching) {
-             return false; // Can pass through
-         }
-      }
-      return true; // Blocked by closed structure
+    // Doors/windows sitting on THIS boundary. We must consult these even when the
+    // edgeWalls flag is NOT set: a closed door/window is itself an obstacle.
+    // Previously this whole block only ran when wallBlocks was true, so a door
+    // whose edge-wall flag was missing (the template generator deliberately omits
+    // edge walls next to door tiles) became a "ghost" — getBlockingStructure still
+    // flagged it (so AI attacks it / it's targetable) but movement walked straight
+    // through. Gate passability on the structure, not just the flag.
+    const breachable1 = tile1.contents.filter(e => isStruct(e) && (!e.edge || e.edge === dir1to2));
+    const breachable2 = tile2.contents.filter(e => isStruct(e) && (!e.edge || e.edge === dir2to1));
+    const allBreachable = [...breachable1, ...breachable2];
+
+    // A wall flag with no door/window opening on this boundary is solid.
+    if (allBreachable.length === 0) return wallBlocks;
+
+    const isZombie = options.isZombie || (entity && typeof entity !== 'function' && entity.type === EntityType.ZOMBIE);
+    const isNPC = entity && typeof entity !== 'function' && entity.type === EntityType.NPC;
+    const isPlayer = !isZombie && !isNPC;
+
+    for (const e of allBreachable) {
+       if (e.type === 'window' && isPlayer) {
+           // Windows are ALWAYS blocked for players (unwalkable)
+           continue;
+       }
+       if (e.isOpen || e.isBroken || e.isDamaged || ((isZombie || isNPC) && options.isPathfinding) || options.allowBreaching) {
+           return false; // Can pass through
+       }
     }
-
-    return false;
+    return true; // Blocked by a closed structure (and/or wall)
   }
 
   static getBlockingStructure(gameMap, x1, y1, x2, y2) {

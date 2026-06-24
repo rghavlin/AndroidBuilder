@@ -32,7 +32,7 @@ export default function GameEventLog({ onClick, className }: GameEventLogProps) 
         >
             <div 
                 ref={scrollRef}
-                className="h-full w-full overflow-y-auto no-scrollbar pointer-events-none"
+                className="h-full w-full overflow-y-auto scrollbar-hide pointer-events-none"
             >
                 {displayLogs.length === 0 ? (
                     <div className="text-[10px] text-zinc-500 italic mt-0.5">
