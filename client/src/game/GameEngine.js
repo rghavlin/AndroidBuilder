@@ -376,6 +376,14 @@ class GameEngine extends SafeEventEmitter {
      if (!this.gameMap || !this.player) return false;
  
      try {
+       // Phase 13 & 19 Fix: LOS center MUST be integers for Bresenham's algorithm to function.
+       // We allow passing a custom position (like playerRenderPosition) for smooth vision updates.
+       const posX = customPos ? customPos.x : this.player.x;
+       const posY = customPos ? customPos.y : this.player.y;
+
+       const roundX = Math.round(posX);
+       const roundY = Math.round(posY);
+
        const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
        
         // Calculate base ambient sight range based on hour of the day
@@ -402,7 +410,10 @@ class GameEngine extends SafeEventEmitter {
        }
 
        // Weather reduction: reduce sight range by 15% when raining, 20% in heavy rain (intensity > 0.7)
-       if (this.weather && this.weather.type === 'rain') {
+       // Skip weather reduction if the player is inside (standing on floor or tent_floor terrain)
+       const playerTile = this.gameMap.getTile(roundX, roundY);
+       const isInside = playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor');
+       if (!isInside && this.weather && this.weather.type === 'rain') {
          const isHeavyRain = this.weather.intensity > 0.7;
          const reduction = isHeavyRain ? 0.20 : 0.15;
          range = range * (1 - reduction);
@@ -412,14 +423,6 @@ class GameEngine extends SafeEventEmitter {
          range = 15;
        }
  
-       // Phase 13 & 19 Fix: LOS center MUST be integers for Bresenham's algorithm to function.
-       // We allow passing a custom position (like playerRenderPosition) for smooth vision updates.
-       const posX = customPos ? customPos.x : this.player.x;
-       const posY = customPos ? customPos.y : this.player.y;
-
-       const roundX = Math.round(posX);
-       const roundY = Math.round(posY);
-
        console.log(`[recalculateFOV] Calculating FOV from (${posX}, ${posY}) -> round (${roundX}, ${roundY}) with range: ${range}`);
 
        // Compute FOV state hash to prevent redundant calculation on same tile / options

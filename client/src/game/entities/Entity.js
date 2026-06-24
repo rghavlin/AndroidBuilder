@@ -376,6 +376,7 @@ export class Entity extends SafeEventEmitter {
 
   // ECS operations
   addComponent(nameOrComponent, componentData = null) {
+    if (!this.components) this.components = new Map(); // self-heal a malformed entity
     if (typeof nameOrComponent === 'string') {
       this.components.set(nameOrComponent, componentData);
     } else if (nameOrComponent && typeof nameOrComponent === 'object') {
@@ -385,15 +386,19 @@ export class Entity extends SafeEventEmitter {
   }
 
   removeComponent(componentName) {
-    this.components.delete(componentName);
+    if (this.components) this.components.delete(componentName);
   }
 
   getComponent(componentName) {
-    return this.components.get(componentName);
+    // Defensive: a malformed/partially-restored entity may be missing its
+    // components map. Return undefined rather than throwing — the coordinate
+    // getters (logicalX/gridX/…) fall back to their backing fields, and a single
+    // bad entity must never crash the whole render frame or simulation tick.
+    return this.components ? this.components.get(componentName) : undefined;
   }
 
   hasComponent(componentName) {
-    return this.components.has(componentName);
+    return this.components ? this.components.has(componentName) : false;
   }
 
   // Logic facades for Entity API compatibility

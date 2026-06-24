@@ -13,6 +13,11 @@ import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 import engine from '../../game/GameEngine.js';
 import { getScaleFactor } from '../../hooks/useWindowSize';
 
+// Ids of malformed entities we've already warned about, so a single corrupt
+// entity doesn't spam the console at 60fps (this used to throw and blank the
+// entire frame — see the finite-coordinate guard in the render loop).
+const warnedMalformedEntityIds = new Set();
+
 /**
  * MapCanvas - Visual map rendering system for tile-based display
  * Renders the game map with proper terrain colors and entity positioning
@@ -230,6 +235,21 @@ export default function MapCanvas({
         const maxX = Math.max(entity.x, entity.logicalX ?? entity.x);
         const minY = Math.min(entity.y, entity.logicalY ?? entity.y);
         const maxY = Math.max(entity.y, entity.logicalY ?? entity.y);
+
+        // Resilience: a malformed/partially-restored entity (e.g. missing its
+        // components map, so the coordinate getters return undefined) would
+        // produce NaN bounds and crash the renderer — which, inside this frame's
+        // single try/catch, blanks the ENTIRE map (player, doors, windows,
+        // zombies all vanish). Skip such an entity and warn once instead.
+        if (!Number.isFinite(minX) || !Number.isFinite(maxX) || !Number.isFinite(minY) || !Number.isFinite(maxY)) {
+          if (!warnedMalformedEntityIds.has(entity.id)) {
+            warnedMalformedEntityIds.add(entity.id);
+            console.warn('[MapCanvas] Skipping malformed entity (non-finite position):', {
+              id: entity.id, type: entity.type, hasComponents: !!entity.components
+            });
+          }
+          return;
+        }
 
         if (maxX < extendedBounds.startX || minX > extendedBounds.endX || maxY < extendedBounds.startY || minY > extendedBounds.endY) return;
 

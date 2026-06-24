@@ -177,39 +177,93 @@ export const TileRenderer = {
                 const casingColor = isBW ? '#1c1c1c' : '#2a0a0a';
                 const coreW = Math.max(6, Math.floor(tileSize * 0.16));
                 const casingW = coreW + Math.max(4, Math.floor(tileSize * 0.12));
-                ctx.lineCap = 'square';
+                ctx.lineCap = 'butt'; // Use 'butt' to precisely control overlap and caps
 
-                const strokeEdges = (lineWidth, color) => {
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = lineWidth;
-                    if (hasN) {
-                        ctx.beginPath();
-                        ctx.moveTo(screenX, screenY);
-                        ctx.lineTo(screenX + tileSize, screenY);
-                        ctx.stroke();
-                    }
-                    if (hasS) {
-                        ctx.beginPath();
-                        ctx.moveTo(screenX, screenY + tileSize);
-                        ctx.lineTo(screenX + tileSize, screenY + tileSize);
-                        ctx.stroke();
-                    }
-                    if (hasW) {
-                        ctx.beginPath();
-                        ctx.moveTo(screenX, screenY);
-                        ctx.lineTo(screenX, screenY + tileSize);
-                        ctx.stroke();
-                    }
-                    if (hasE) {
-                        ctx.beginPath();
-                        ctx.moveTo(screenX + tileSize, screenY);
-                        ctx.lineTo(screenX + tileSize, screenY + tileSize);
-                        ctx.stroke();
-                    }
-                };
+                const getTile = (tx, ty) => engine && engine.gameMap ? engine.gameMap.getTile(tx, ty) : null;
+                
+                const wallAtN = (tx, ty) => hasEdgeWall(getTile(tx, ty), 'n') || hasEdgeWall(getTile(tx, ty - 1), 's');
+                const wallAtS = (tx, ty) => hasEdgeWall(getTile(tx, ty), 's') || hasEdgeWall(getTile(tx, ty + 1), 'n');
+                const wallAtW = (tx, ty) => hasEdgeWall(getTile(tx, ty), 'w') || hasEdgeWall(getTile(tx - 1, ty), 'e');
+                const wallAtE = (tx, ty) => hasEdgeWall(getTile(tx, ty), 'e') || hasEdgeWall(getTile(tx + 1, ty), 'w');
 
-                strokeEdges(casingW, casingColor); // dark casing first
-                strokeEdges(coreW, coreColor);     // light core on top
+                // Determine horizontal/vertical continuations
+                const nLeftConnect  = hasN && (wallAtN(x - 1, y) || wallAtW(x, y) || wallAtW(x, y - 1));
+                const nRightConnect = hasN && (wallAtN(x + 1, y) || wallAtE(x, y) || wallAtE(x, y - 1));
+
+                const sLeftConnect  = hasS && (wallAtS(x - 1, y) || wallAtW(x, y + 1) || wallAtW(x, y));
+                const sRightConnect = hasS && (wallAtS(x + 1, y) || wallAtE(x, y + 1) || wallAtE(x, y));
+
+                const wTopConnect    = hasW && (wallAtW(x, y - 1) || wallAtN(x, y) || wallAtN(x - 1, y));
+                const wBottomConnect = hasW && (wallAtW(x, y + 1) || wallAtS(x, y) || wallAtS(x - 1, y));
+
+                const eTopConnect    = hasE && (wallAtE(x, y - 1) || wallAtN(x + 1, y) || wallAtN(x, y));
+                const eBottomConnect = hasE && (wallAtE(x, y + 1) || wallAtS(x + 1, y) || wallAtS(x, y));
+
+                // Draw casings first
+                ctx.strokeStyle = casingColor;
+                ctx.lineWidth = casingW;
+
+                if (hasN) {
+                    const x1 = nLeftConnect ? screenX : screenX - casingW / 2;
+                    const x2 = nRightConnect ? screenX + tileSize : screenX + tileSize + casingW / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, screenY);
+                    ctx.lineTo(x2, screenY);
+                    ctx.stroke();
+                }
+                if (hasS) {
+                    const x1 = sLeftConnect ? screenX : screenX - casingW / 2;
+                    const x2 = sRightConnect ? screenX + tileSize : screenX + tileSize + casingW / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, screenY + tileSize);
+                    ctx.lineTo(x2, screenY + tileSize);
+                    ctx.stroke();
+                }
+                if (hasW) {
+                    const y1 = wTopConnect ? screenY : screenY - casingW / 2;
+                    const y2 = wBottomConnect ? screenY + tileSize : screenY + tileSize + casingW / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, y1);
+                    ctx.lineTo(screenX, y2);
+                    ctx.stroke();
+                }
+                if (hasE) {
+                    const y1 = eTopConnect ? screenY : screenY - casingW / 2;
+                    const y2 = eBottomConnect ? screenY + tileSize : screenY + tileSize + casingW / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + tileSize, y1);
+                    ctx.lineTo(screenX + tileSize, y2);
+                    ctx.stroke();
+                }
+
+                // Draw cores on top
+                ctx.strokeStyle = coreColor;
+                ctx.lineWidth = coreW;
+
+                if (hasN) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX - coreW / 2, screenY);
+                    ctx.lineTo(screenX + tileSize + coreW / 2, screenY);
+                    ctx.stroke();
+                }
+                if (hasS) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX - coreW / 2, screenY + tileSize);
+                    ctx.lineTo(screenX + tileSize + coreW / 2, screenY + tileSize);
+                    ctx.stroke();
+                }
+                if (hasW) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY - coreW / 2);
+                    ctx.lineTo(screenX, screenY + tileSize + coreW / 2);
+                    ctx.stroke();
+                }
+                if (hasE) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + tileSize, screenY - coreW / 2);
+                    ctx.lineTo(screenX + tileSize, screenY + tileSize + coreW / 2);
+                    ctx.stroke();
+                }
             }
         }
         
