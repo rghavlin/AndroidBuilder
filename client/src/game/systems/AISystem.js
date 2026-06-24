@@ -154,6 +154,84 @@ function getBeelineIntent(entity, zombiePos, targetX, targetY, gameMap, moveCost
 }
 
 /**
+ * Greedy hunting fallback: take the single step that best reduces distance to the
+ * player, instead of wandering randomly. Used by huntPlayer when the close-range
+ * A* (capped) and the straight-line beeline both come up empty — the two cases
+ * that previously dumped the zombie into a random wander and produced the visible
+ * oscillation / backstepping over a multi-step turn:
+ *   - lining up a CARDINAL approach to a window that is off the direct line to a
+ *     diagonally-visible player (the beeline only steps straight at the player and
+ *     never sidesteps to line up the opening), and
+ *   - rounding a lone obstacle when the player sits just beyond A*'s search radius.
+ *
+ * Considers every reachable neighbour — cardinal moves, breaching a closed
+ * door/window in the way, and clean diagonals — scores each by its remaining
+ * Chebyshev distance to the player (diagonal-aware, matching the A* heuristic),
+ * and lightly penalises stepping back onto the tile we just left so the zombie
+ * doesn't ping-pong. Never steps onto the player's own tile (melee handles that).
+ *
+ * @returns {MoveIntent|DamageIntent|null} null only when genuinely boxed in.
+ */
+function getGreedyHuntIntent(entity, zombiePos, targetX, targetY, gameMap, lastTile) {
+  const fromX = zombiePos.x;
+  const fromY = zombiePos.y;
+  const candidates = [];
+
+  // Cardinal neighbours: step through an open edge, or breach a closed structure.
+  const cardinals = [{ dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 }];
+  for (const { dx, dy } of cardinals) {
+    const nx = fromX + dx;
+    const ny = fromY + dy;
+    if (nx === targetX && ny === targetY) continue; // never body-block onto the player
+    const tile = gameMap.getTile(nx, ny);
+    if (!tile) continue;
+
+    const blocking = Pathfinding.getBlockingStructure(gameMap, fromX, fromY, nx, ny);
+    if (blocking) {
+      // A breachable door/window between us and the next tile — attacking it is
+      // forward progress toward the player.
+      candidates.push({
+        nx, ny,
+        intent: new DamageIntent({ amount: 1, targetId: blocking.id, isStructure: true, targetX: nx, targetY: ny })
+      });
+      continue;
+    }
+    if (Pathfinding.isEdgeBlocked(gameMap, fromX, fromY, nx, ny, entity, { isZombie: true })) continue;
+    if (!tile.isWalkable(entity, { ignoreZombies: false })) continue;
+    candidates.push({ nx, ny, intent: new MoveIntent({ dx, dy }) });
+  }
+
+  // Diagonal neighbours: clean pass only (a diagonal can't breach a corner).
+  const diagonals = [{ dx: 1, dy: 1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: -1, dy: -1 }];
+  for (const { dx, dy } of diagonals) {
+    const nx = fromX + dx;
+    const ny = fromY + dy;
+    if (nx === targetX && ny === targetY) continue;
+    const tile = gameMap.getTile(nx, ny);
+    if (!tile) continue;
+    if (!Pathfinding.canMoveDiagonally(gameMap, fromX, fromY, nx, ny, entity)) continue;
+    if (!tile.isWalkable(entity, { ignoreZombies: false })) continue;
+    candidates.push({ nx, ny, intent: new MoveIntent({ dx, dy }) });
+  }
+
+  if (candidates.length === 0) return null;
+
+  // Score by remaining Chebyshev distance to the player; add a small penalty for
+  // stepping back onto the tile we just left so equal-distance lateral moves win
+  // over a pointless reversal (a strictly-closer backtrack is still allowed).
+  let bestScore = Infinity;
+  for (const c of candidates) {
+    const dist = Math.max(Math.abs(c.nx - targetX), Math.abs(c.ny - targetY));
+    const isBacktrack = lastTile && lastTile.x === c.nx && lastTile.y === c.ny;
+    c.score = dist + (isBacktrack ? 0.5 : 0);
+    if (c.score < bestScore) bestScore = c.score;
+  }
+
+  const best = candidates.filter(c => c.score === bestScore);
+  return best[gameRandom.nextInt(0, best.length - 1)].intent;
+}
+
+/**
  * Priority 4 (last resort): random one-tile walk to a truly reachable neighbour.
  * Neighbours must be both tile-walkable AND not separated by a thin edge wall,
  * otherwise moveEntity silently rejects the move and the zombie loops in place.
@@ -225,12 +303,24 @@ function huntPlayer(ctx) {
   // Move toward player exact coords
   let intent = null;
 
-  // Try limited A* Pathfinding first for close-range smart breaching/navigation
+  // A* toward the player. The search radius must give A* enough room to route
+  // AROUND walls to a VISIBLE player — e.g. across to an off-axis window — rather
+  // than bail to the straight-line beeline below. The old flat cap of 6 was the
+  // root cause of the "won't go through the window / oscillates" bug: when a
+  // visible player sat >6 tiles away, A* returned nothing, the beeline stepped
+  // straight at the player into the dead-end wall, and the investigate branch
+  // (uncapped A*) pulled the other way toward the opening — so the zombie ping-
+  // ponged forever. Since hunting requires line of sight, the player is already
+  // within sight range; sizing the radius to ~2x the straight-line distance
+  // covers realistic detours while still bounding the search (Manhattan radius
+  // from the zombie, so a detour needs headroom beyond the direct distance).
+  const manhattanToPlayer = Math.abs(playerPos.x - zombiePos.x) + Math.abs(playerPos.y - zombiePos.y);
+  const huntSearchRadius = Math.max(8, manhattanToPlayer * 2 + 2);
   const path = Pathfinding.findPath(gameMap, zombiePos.x, zombiePos.y, playerPos.x, playerPos.y, {
     allowDiagonal: true,
     isZombie: true,
     entity,
-    maxDistance: 6, // Limit A* search to close range (dumb at distance)
+    maxDistance: huntSearchRadius,
     ignoreZombies: false, // Don't ignore zombies so they path around each other (swarm behavior)
     isPathfinding: true
   });
@@ -265,6 +355,14 @@ function huntPlayer(ctx) {
     intent = getBeelineIntent(entity, zombiePos, playerPos.x, playerPos.y, gameMap, moveCost);
   }
 
+  // Greedy fallback before any random wander: take the single distance-reducing
+  // step (breaching a structure in the way, refusing to reverse) so the zombie
+  // lines up off-axis windows and rounds lone obstacles that the capped A* and
+  // straight-line beeline miss, instead of jittering randomly across the turn.
+  if (!intent) {
+    intent = getGreedyHuntIntent(entity, zombiePos, playerPos.x, playerPos.y, gameMap, aiBehavior.lastTile);
+  }
+
   if (intent) {
     const isMove = intent instanceof MoveIntent;
     const isDamage = intent instanceof DamageIntent;
@@ -274,10 +372,9 @@ function huntPlayer(ctx) {
       ctx.enqueue('DamageIntent', intent);
     }
   } else {
-    // No path, no beeline step, and nothing to breach toward the player
-    // (e.g. visible across a thin edge wall with no door). Reposition via a
-    // wander step instead of freezing in place; the LKP is already set, so
-    // the zombie will resume hunting/investigating once it has an angle.
+    // Genuinely boxed in (e.g. visible across a thin edge wall with no door and
+    // no reachable neighbour that helps). Random wander as the absolute last
+    // resort instead of freezing; the LKP is set, so hunting resumes on an angle.
     wander(ctx);
   }
 }
@@ -439,6 +536,12 @@ export class AISystem {
       const ctx = {
         entity, zombiePos, gameMap, player, playerPos, aiBehavior, currentAP, moveCost,
         enqueue(intentType, intent) {
+          if (intentType === 'MoveIntent') {
+            // Remember the tile we're leaving so the greedy hunting fallback can
+            // avoid immediately stepping back onto it (anti-oscillation). Captured
+            // here, before the move resolves, so it reflects the pre-move tile.
+            aiBehavior.lastTile = { x: zombiePos.x, y: zombiePos.y };
+          }
           if (intentQueue) {
             intentQueue.enqueue(entity.id, intentType, intent);
           } else {
