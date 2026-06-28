@@ -284,6 +284,7 @@ export default function MapEditor() {
   const [buildings, setBuildings] = useState<BuildingMeta[]>([]);
 
   const [tool, setTool] = useState<ToolMode>('terrain');
+  const [brushSize, setBrushSize] = useState(1);
   const [selectedTerrain, setSelectedTerrain] = useState('grass');
   const [selectedEdge, setSelectedEdge] = useState<Edge>('n');
   const [selectedEntity, setSelectedEntity] = useState('zombie');
@@ -333,6 +334,34 @@ export default function MapEditor() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const undoStack = useRef<{ tiles: TileData[][]; buildings: BuildingMeta[] }[]>([]);
+  const strokeUndoPushed = useRef(false);
+  const buildingsRef = useRef(buildings);
+  buildingsRef.current = buildings;
+  const pushUndo = useCallback((tileSnap: TileData[][], buildingSnap: BuildingMeta[]) => {
+    undoStack.current.push({ tiles: tileSnap, buildings: buildingSnap });
+    if (undoStack.current.length > 50) undoStack.current.shift();
+  }, []);
+  const handleUndo = useCallback(() => {
+    const prev = undoStack.current.pop();
+    if (prev) {
+      setTiles(prev.tiles);
+      setBuildings(prev.buildings);
+      setStatusMsg('Undo');
+    }
+  }, []);
+
+  // ─── Ctrl+Z undo shortcut ─────────────────────────────────────────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleUndo]);
 
   // ─── Resize ──────────────────────────────────────────────────────────
   const resizeMap = useCallback((newW: number, newH: number) => {
@@ -354,8 +383,28 @@ export default function MapEditor() {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
 
     setTiles(prev => {
+      if (!strokeUndoPushed.current) {
+        pushUndo(prev, buildingsRef.current);
+        strokeUndoPushed.current = true;
+      }
       const next = prev.map(row => row.map(t => ({ ...t })));
-      const tile = { ...next[y][x], edgeWalls: { ...next[y][x].edgeWalls }, entities: [...next[y][x].entities], items: [...next[y][x].items] };
+
+      const useBrush = tool === 'terrain' || tool === 'eraser';
+      const half = Math.floor(brushSize / 2);
+      const coords: { cx: number; cy: number }[] = [];
+      if (useBrush) {
+        for (let dy = -half; dy < brushSize - half; dy++) {
+          for (let dx = -half; dx < brushSize - half; dx++) {
+            const cx = x + dx, cy = y + dy;
+            if (cx >= 0 && cy >= 0 && cx < width && cy < height) coords.push({ cx, cy });
+          }
+        }
+      } else {
+        coords.push({ cx: x, cy: y });
+      }
+
+      for (const { cx, cy } of coords) {
+      const tile = { ...next[cy][cx], edgeWalls: { ...next[cy][cx].edgeWalls }, entities: [...next[cy][cx].entities], items: [...next[cy][cx].items] };
       // Deep-copy each edge
       (['n', 'e', 's', 'w'] as Edge[]).forEach(e => {
         tile.edgeWalls[e] = { ...tile.edgeWalls[e] };
@@ -412,10 +461,11 @@ export default function MapEditor() {
           break;
       }
 
-      next[y][x] = tile;
+      next[cy][cx] = tile;
+      }
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, selectedEntity, selectedItem, triggerId, dialogSteps, dialogOneShot, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, selectedEntity, selectedItem, triggerId, dialogSteps, dialogOneShot, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -433,6 +483,7 @@ export default function MapEditor() {
     }
 
     setTiles(prev => {
+      pushUndo(prev, buildingsRef.current);
       const next = prev.map(row => row.map(t => {
         const edgeWalls: any = {};
         (['n', 'e', 's', 'w'] as Edge[]).forEach(e => edgeWalls[e] = { ...t.edgeWalls[e] });
@@ -466,7 +517,7 @@ export default function MapEditor() {
     canvas.width = width * CELL;
     canvas.height = height * CELL;
 
-    // Draw tiles
+    // Pass 1: terrain + grid
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const t = tiles[y][x];
@@ -475,6 +526,33 @@ export default function MapEditor() {
         const tc = TERRAIN_TYPES.find(tt => tt.id === t.terrain);
         ctx.fillStyle = tc?.color || '#222';
         ctx.fillRect(sx, sy, CELL, CELL);
+
+        if (showGrid) {
+          ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+          ctx.strokeRect(sx, sy, CELL, CELL);
+        }
+      }
+    }
+
+    // Building outlines
+    ctx.strokeStyle = '#ff0';
+    ctx.lineWidth = 2;
+    buildings.forEach(b => {
+      ctx.strokeRect(b.x * CELL + 1, b.y * CELL + 1, b.width * CELL - 2, b.height * CELL - 2);
+      ctx.fillStyle = 'rgba(255,255,0,0.7)';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(b.type, b.x * CELL + 4, b.y * CELL + 4);
+    });
+    ctx.lineWidth = 1;
+
+    // Pass 2: edges, entities, items, events (drawn on top of building outlines)
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const t = tiles[y][x];
+        const sx = x * CELL;
+        const sy = y * CELL;
 
         // Edge walls / doors / windows
         const drawEdge = (edge: Edge, ex: number, ey: number, ew: number, eh: number) => {
@@ -520,27 +598,8 @@ export default function MapEditor() {
           ctx.textBaseline = 'top';
           ctx.fillText('E', sx + 2, sy + 2);
         }
-
-        // Grid lines
-        if (showGrid) {
-          ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-          ctx.strokeRect(sx, sy, CELL, CELL);
-        }
       }
     }
-
-    // Building outlines
-    ctx.strokeStyle = '#ff0';
-    ctx.lineWidth = 2;
-    buildings.forEach(b => {
-      ctx.strokeRect(b.x * CELL + 1, b.y * CELL + 1, b.width * CELL - 2, b.height * CELL - 2);
-      ctx.fillStyle = 'rgba(255,255,0,0.7)';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText(b.type, b.x * CELL + 4, b.y * CELL + 4);
-    });
-    ctx.lineWidth = 1;
 
     // Building-rect drag preview
     if (tool === 'building_rect' && buildStart && hoverCell) {
@@ -557,9 +616,17 @@ export default function MapEditor() {
     // Hover highlight
     if (hoverCell && tool !== 'building_rect') {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
+      const useBrush = tool === 'terrain' || tool === 'eraser';
+      if (useBrush && brushSize > 1) {
+        const half = Math.floor(brushSize / 2);
+        const bx = hoverCell.x - half;
+        const by = hoverCell.y - half;
+        ctx.strokeRect(bx * CELL, by * CELL, brushSize * CELL, brushSize * CELL);
+      } else {
+        ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
+      }
     }
-  }, [tiles, buildings, width, height, showGrid, hoverCell, buildStart, tool]);
+  }, [tiles, buildings, width, height, showGrid, hoverCell, buildStart, tool, brushSize]);
 
   // ─── Mouse handlers ──────────────────────────────────────────────────
   const cellFromEvent = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -579,6 +646,7 @@ export default function MapEditor() {
     if (tool === 'building_rect') {
       setBuildStart({ x, y });
     } else {
+      strokeUndoPushed.current = false;
       setIsPainting(true);
       applyTool(x, y);
     }
@@ -706,7 +774,7 @@ export default function MapEditor() {
 
   const handleClear = () => {
     if (!confirm('Clear entire map?')) return;
-    setTiles(createEmptyGrid(width, height));
+    setTiles(prev => { pushUndo(prev, buildingsRef.current); return createEmptyGrid(width, height); });
     setBuildings([]);
     setStatusMsg('Map cleared');
   };
@@ -749,6 +817,7 @@ export default function MapEditor() {
             <button onClick={handleSaveEditor} style={btnStyle('#555')}>Save</button>
             <button onClick={handleOpenLoadPicker} style={btnStyle('#555')}>Load</button>
             <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#444')}>Import</button>
+            <button onClick={handleUndo} style={btnStyle('#555')}>Undo</button>
             <button onClick={handleClear} style={btnStyle('#7a2a2a')}>Clear</button>
           </div>
           <input ref={fileInputRef} type="file" accept=".json" onChange={handleLoadEditor} style={{ display: 'none' }} />
@@ -783,24 +852,44 @@ export default function MapEditor() {
 
         {/* Tool-specific options */}
         {tool === 'terrain' && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {TERRAIN_TYPES.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedTerrain(t.id)}
-                style={{
-                  padding: '4px 8px',
-                  background: t.color,
-                  color: '#eee',
-                  border: selectedTerrain === t.id ? '2px solid #fff' : '1px solid #555',
-                  borderRadius: 3,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {TERRAIN_TYPES.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedTerrain(t.id)}
+                  style={{
+                    padding: '4px 8px',
+                    background: t.color,
+                    color: '#eee',
+                    border: selectedTerrain === t.id ? '2px solid #fff' : '1px solid #555',
+                    borderRadius: 3,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <label style={{ fontSize: 11, color: '#888' }}>Brush</label>
+              {[1, 2, 3, 5].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setBrushSize(s)}
+                  style={{
+                    padding: '2px 8px',
+                    background: brushSize === s ? '#555' : '#222',
+                    color: '#eee',
+                    border: brushSize === s ? '1px solid #aaa' : '1px solid #444',
+                    borderRadius: 3,
+                    cursor: 'pointer',
+                    fontSize: 11,
+                  }}
+                >{s}x{s}</button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1043,6 +1132,7 @@ export default function MapEditor() {
 
         const removeEntity = (idx: number) => {
           setTiles(prev => {
+            pushUndo(prev, buildingsRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             next[ty][tx].entities.splice(idx, 1);
             return next;
@@ -1051,6 +1141,7 @@ export default function MapEditor() {
 
         const removeItem = (idx: number) => {
           setTiles(prev => {
+            pushUndo(prev, buildingsRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             next[ty][tx].items.splice(idx, 1);
             return next;
@@ -1059,6 +1150,7 @@ export default function MapEditor() {
 
         const removeEvent = () => {
           setTiles(prev => {
+            pushUndo(prev, buildingsRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             delete next[ty][tx].eventTrigger;
             return next;
