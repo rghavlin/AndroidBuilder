@@ -954,6 +954,53 @@ export class GameMap extends SafeEventEmitter {
   }
 
   /**
+   * Transform an item-on-tile to its next growth/decay stage IN PLACE, preserving
+   * its identity (instanceId/id, type, ECS components, position). Used for crop
+   * growth (plant -> harvestable) during turn processing.
+   *
+   * The previous implementation deleted every own property and Object.assign'd raw
+   * definition data over the entity. For ECS item entities that destroyed `type`,
+   * `components` and rebound `id` to the defId, leaving a malformed entity in the
+   * map (the "this.components is not iterable" save crash) and causing duplicate-id
+   * collisions when setItemsOnTile rebuilt the tile. This mirrors Item.updateFromDef:
+   * only definition-controlled fields are updated.
+   *
+   * @param {Object} itemData - Item entity (or plain item POJO) to mutate.
+   * @param {string} nextDefId - Definition id to transform into.
+   * @param {Object} def - The ItemDefs entry for nextDefId.
+   */
+  _transformItemInPlace(itemData, nextDefId, def) {
+    itemData.defId = nextDefId;
+    itemData.name = def.name || itemData.name;
+    itemData.imageId = def.imageId || itemData.imageId;
+    itemData.subtype = def.imageId || nextDefId.split('.').pop();
+    if (def.width !== undefined) itemData.width = def.width;
+    if (def.height !== undefined) itemData.height = def.height;
+    itemData.renderFullTile = def.renderFullTile !== undefined ? def.renderFullTile : itemData.renderFullTile;
+    itemData.traits = Array.isArray(def.traits) ? [...def.traits] : itemData.traits;
+    itemData.categories = Array.isArray(def.categories) ? [...def.categories] : itemData.categories;
+
+    // Growth / transform / produce state (next stage may clear these).
+    itemData.lifetimeTurns = def.lifetimeTurns !== undefined ? def.lifetimeTurns : null;
+    itemData.transformInto = def.transformInto !== undefined ? def.transformInto : null;
+    itemData.produce = def.produce !== undefined ? def.produce : null;
+    itemData.produceMin = def.produceMin;
+    itemData.produceMax = def.produceMax;
+    itemData.isCrop = !!((nextDefId.endsWith('_plant') || nextDefId.startsWith('provision.harvestable_')) || itemData.isWild || itemData.isHarvestable);
+
+    // Keep ECS components in sync (only present on real entities, not nested POJOs).
+    if (typeof itemData.getComponent === 'function') {
+      const renderable = itemData.getComponent('Renderable');
+      if (renderable) {
+        renderable.spriteId = itemData.imageId || nextDefId.split('.').pop();
+        if (def.backgroundColor) renderable.color = def.backgroundColor;
+      }
+      const itemComp = itemData.getComponent('Item');
+      if (itemComp) itemComp.name = itemData.name;
+    }
+  }
+
+  /**
    * Recursive helper to process turn effects on item POJOs (Plain Objects)
    * @param {Object} itemData - Item data object
    * @param {boolean} isPowered - Whether the item's location has power
@@ -1010,20 +1057,10 @@ export class GameMap extends SafeEventEmitter {
         const nextDef = ItemDefs[nextDefId];
         if (nextDef) {
           console.log(`[GameMap] Item ${itemData.name} (${itemData.instanceId}) transforming into ${nextDefId}`);
-          const instanceId = itemData.instanceId;
-          const x = itemData.x;
-          const y = itemData.y;
-          const rotation = itemData.rotation;
-
-          const newItemData = createItemFromDef(nextDefId);
-          Object.keys(itemData).forEach(key => delete itemData[key]);
-          Object.assign(itemData, newItemData);
-
-          itemData.instanceId = instanceId;
-          itemData.x = x;
-          itemData.y = y;
-          itemData.rotation = rotation;
-
+          // Mutate in place, preserving identity (instanceId/id, type, components,
+          // position). See _transformItemInPlace for why the old gut-and-refill was
+          // removed (malformed entities + duplicate ids).
+          this._transformItemInPlace(itemData, nextDefId, nextDef);
           return { expired: false, modified: true };
         }
       }
@@ -1208,9 +1245,54 @@ export class GameMap extends SafeEventEmitter {
   }
 
   /**
+   * Scan every entity (tile contents + entityMap) for a malformed `components`
+   * field (anything that isn't a Map). Logs each offender once and self-heals
+   * it so it can neither blank the render frame nor abort a save. Returns the
+   * list of offenders found {id, type, kind} for diagnostics.
+   *
+   * See the long-standing "malformed entity" bug: a component-less entity has
+   * thrown both in the render loop and in Entity.toJSON during save.
+   */
+  auditEntityComponents(context = 'audit') {
+    const offenders = [];
+    const inspect = (entity, where) => {
+      if (!entity || entity.components instanceof Map) return;
+      // Only care about ECS entities (those that use a components map).
+      if (!('components' in entity)) return;
+      const kind = Object.prototype.toString.call(entity.components);
+      offenders.push({ id: entity.id, type: entity.type, where, kind });
+      // Self-heal: preserve a plain-object map's contents, else start empty.
+      if (entity.components && typeof entity.components === 'object') {
+        entity.components = new Map(Object.entries(entity.components));
+      } else {
+        entity.components = new Map();
+      }
+    };
+
+    if (Array.isArray(this.tiles)) {
+      this.tiles.forEach(row => row && row.forEach(tile => {
+        if (tile && tile.contents) tile.contents.forEach(e => inspect(e, 'tile'));
+      }));
+    }
+    if (this.entityMap) {
+      for (const entity of this.entityMap.values()) inspect(entity, 'entityMap');
+    }
+
+    if (offenders.length > 0) {
+      console.warn(`[GameMap.auditEntityComponents:${context}] Found & healed ${offenders.length} entity(ies) with malformed components:`,
+        offenders.map(o => `${o.type}#${o.id}(${o.where},${o.kind})`).join(', '));
+    }
+    return offenders;
+  }
+
+  /**
    * Serialize GameMap to JSON
    */
   toJSON() {
+    // Defensive: heal any component-less entities before walking the tree so a
+    // single bad entity can't abort the whole save (see Entity._serializeComponents).
+    this.auditEntityComponents('toJSON');
+
     // Collect all entities in tile contents so we can identify detached ones
     const entitiesOnTiles = new Set();
     this.tiles.forEach(row => {

@@ -7,6 +7,7 @@ import { Settings, Sparkles, HelpCircle } from "lucide-react";
 import OptionsWindow from './OptionsWindow';
 import CreditsWindow from './CreditsWindow';
 import HelpWindow from './HelpWindow';
+import LoadGameWindow from './LoadGameWindow';
 import musicManager from '@/game/utils/MusicManager';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 
@@ -21,26 +22,19 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [autosaveInfo, setAutosaveInfo] = useState<any>(null);
-  const [backupInfo, setBackupInfo] = useState<any>(null);
+  const [showLoadGame, setShowLoadGame] = useState(false);
+  const [hasSave, setHasSave] = useState(false);
 
   const checkSave = async () => {
     try {
       const slots = await GameSaveSystem.listSaveSlots();
-      const autosave = slots.find(s => s.slotName === 'autosave');
-      setAutosaveInfo(autosave || null);
-      
-      const backups = slots.filter(s => s.slotName.startsWith('autosave_backup_'));
-      if (backups.length > 0) {
-        backups.sort((a, b) => b.timestamp - a.timestamp);
-        setBackupInfo(backups[0]);
-      } else {
-        setBackupInfo(null);
-      }
+      const found = slots.some(
+        s => s.slotName === 'autosave' || s.slotName.startsWith('autosave_backup_')
+      );
+      setHasSave(found);
     } catch (e) {
       console.warn('[StartMenu] Failed to check save slots:', e);
-      setAutosaveInfo(null);
-      setBackupInfo(null);
+      setHasSave(false);
     }
   };
 
@@ -82,24 +76,14 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     }
   };
 
-  const handleLoadGame = async () => {
+  const handleLoadSlot = async (slotName: string) => {
     setIsLoading(true);
-    console.log('[StartMenu] Requesting game initialization with post-load...');
+    console.log(`[StartMenu] Requesting load from slot ${slotName}...`);
     musicManager.playPlaylist('standard');
     if (onStartGame) {
-      onStartGame('load'); // Pass 'load' to indicate we want to load after init
+      onStartGame(`load:${slotName}`);
     }
-    setIsLoading(false);
-  };
-
-  const handleLoadBackup = async () => {
-    if (!backupInfo) return;
-    setIsLoading(true);
-    console.log(`[StartMenu] Requesting load from backup ${backupInfo.slotName}...`);
-    musicManager.playPlaylist('standard');
-    if (onStartGame) {
-      onStartGame(`load:${backupInfo.slotName}`);
-    }
+    setShowLoadGame(false);
     setIsLoading(false);
   };
 
@@ -134,31 +118,13 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
           </Button>
           
            <Button
-            onClick={handleLoadGame}
-            disabled={isLoading || !autosaveInfo}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto"
+            onClick={() => setShowLoadGame(true)}
+            disabled={isLoading || !hasSave}
+            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
             data-testid="button-load-game"
           >
-            <div>{isLoading ? 'Loading...' : 'Continue'}</div>
-            {autosaveInfo && !isLoading && (
-              <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
-                Saved {new Date(autosaveInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-              </div>
-            )}
+            {isLoading ? 'Loading...' : 'Load Game'}
           </Button>
-
-          {backupInfo && (
-            <Button
-              onClick={handleLoadBackup}
-              disabled={isLoading}
-              className="w-full py-4 text-sm font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto opacity-90 hover:opacity-100"
-            >
-              <div>Load Backup</div>
-              <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
-                Saved {new Date(backupInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-              </div>
-            </Button>
-          )}
 
           <Button
             onClick={() => setShowOptions(true)}
@@ -199,6 +165,12 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
       }} />}
       {showCredits && <CreditsWindow onClose={() => setShowCredits(false)} />}
       {showHelp && <HelpWindow onClose={() => setShowHelp(false)} />}
+      {showLoadGame && (
+        <LoadGameWindow
+          onClose={() => setShowLoadGame(false)}
+          onLoad={handleLoadSlot}
+        />
+      )}
     </div>
   );
 }

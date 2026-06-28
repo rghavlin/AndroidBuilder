@@ -894,6 +894,30 @@ export class Entity extends SafeEventEmitter {
     this.isMedical = isMedical;
   }
 
+  /**
+   * Serialize the component map defensively. A small number of malformed
+   * entities have been observed with a non-Map `components` field (see the
+   * self-heal in addComponent), which would otherwise throw
+   * "this.components is not iterable" and abort the entire save.
+   */
+  _serializeComponents() {
+    let entries;
+    if (this.components instanceof Map) {
+      entries = [...this.components];
+    } else if (this.components && typeof this.components === 'object') {
+      entries = Object.entries(this.components);
+      console.warn(`[Entity.toJSON] Entity id=${this.id} type=${this.type} had components as a plain object; serializing defensively.`);
+    } else {
+      entries = [];
+      if (this.components !== undefined) {
+        console.warn(`[Entity.toJSON] Entity id=${this.id} type=${this.type} had malformed components (${Object.prototype.toString.call(this.components)}); serializing as empty.`);
+      }
+    }
+    return Object.fromEntries(
+      entries.map(([name, comp]) => [name, typeof comp?.toJSON === 'function' ? comp.toJSON() : comp])
+    );
+  }
+
   toJSON() {
     const data = {
       id: this.id,
@@ -906,9 +930,7 @@ export class Entity extends SafeEventEmitter {
       logicalY: this.logicalY,
       hostileOverrides: this.hostileOverrides ? Array.from(this.hostileOverrides) : [],
       inventory: this.inventory ? this.inventory.toJSON() : null,
-      components: Object.fromEntries(
-        [...this.components].map(([name, comp]) => [name, typeof comp?.toJSON === 'function' ? comp.toJSON() : comp])
-      )
+      components: this._serializeComponents()
     };
 
     for (const field of SERIALIZED_FIELDS) {

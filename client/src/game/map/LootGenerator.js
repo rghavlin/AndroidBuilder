@@ -130,58 +130,7 @@ export class LootGenerator {
             }
         });
 
-        // Spawn starting home loot (Map 1 only)
-        const startingHomes = (gameMap.buildings || []).filter(b => b.type === 'starting_home');
-        console.log(`[LootGenerator] Detected ${startingHomes.length} starting homes for special loot`);
-        startingHomes.forEach((building, index) => {
-            const buildingTiles = [];
-            for (let curY = building.y + 1; curY < building.y + building.height - 1; curY++) {
-                for (let curX = building.x + 1; curX < building.x + building.width - 1; curX++) {
-                    const tile = gameMap.getTile(curX, curY);
-                    if (tile && tile.terrain === 'floor') {
-                        buildingTiles.push({ x: curX, y: curY });
-                    }
-                }
-            }
-            if (buildingTiles.length === 0) return;
-
-            const nonDoorTiles = buildingTiles.filter(pos => !this.isNearDoor(gameMap, pos.x, pos.y));
-            if (nonDoorTiles.length === 0) return;
-
-            // Generate exactly six piles
-            const pileCount = 6;
-            const selectedTiles = this.getRandomSubarray(nonDoorTiles, pileCount);
-
-            selectedTiles.forEach(pos => {
-                let items = [];
-                let attempts = 0;
-                while (items.length === 0 && attempts < 10) {
-                    items = this.generateRandomItems('inside', mapNumber);
-                    attempts++;
-                }
-                if (items.length > 0) {
-                    const current = gameMap.getItemsOnTile(pos.x, pos.y) || [];
-                    gameMap.setItemsOnTile(pos.x, pos.y, [...current, ...items]);
-                }
-            });
-
-            // Guaranteed starting home planks: 1-3 planks
-            const plankCount = 1 + gameRandom.nextInt(0, 2);
-            const plankTiles = this.getRandomSubarray(nonDoorTiles, plankCount);
-            plankTiles.forEach(pos => {
-                const plank = createItemFromDef('weapon.plank');
-                if (plank) {
-                    const current = gameMap.getItemsOnTile(pos.x, pos.y) || [];
-                    gameMap.setItemsOnTile(pos.x, pos.y, [...current, plank]);
-                }
-            });
-            console.log(`[LootGenerator] Starting home: Spawned 6 piles and ${plankCount} planks`);
-
-            // Easy Start starting home rules are disabled; starting items are now equipped directly on player setup
-            // if (config && config.easyStart === true) {
-            //     this.applyEasyStartLoot(gameMap, buildingTiles, selectedTiles);
-            // }
-        });
+        // Starting-home loot removed: the starting house no longer exists in the game.
 
         // 2. Identify outdoor tiles and spawn outdoor loot (excluding doorway tiles)
         const outdoorTiles = [];

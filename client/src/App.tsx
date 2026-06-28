@@ -4,6 +4,7 @@ import Game from './pages/game';
 import NotFound from './pages/not-found';
 import DevConsole from './components/Game/DevConsole'; // Standard import
 import ScreenScaler from './components/Game/ScreenScaler';
+import { Toaster } from './components/ui/toaster';
 
 // Use hash-based routing for Electron
 const hashLocation = () => {
@@ -86,6 +87,8 @@ export default function App() {
         <div id="modal-root" className="absolute inset-0 pointer-events-none z-40"></div>
         <div id="drag-root" className="absolute inset-0 pointer-events-none z-50"></div>
         <div id="tooltip-root" className="absolute inset-0 pointer-events-none z-[60]"></div>
+        
+        <Toaster />
       </ScreenScaler>
     </div>
   );

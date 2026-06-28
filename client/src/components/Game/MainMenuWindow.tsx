@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
 import OptionsWindow from './OptionsWindow';
 import HelpWindow from './HelpWindow';
+import LoadGameWindow from './LoadGameWindow';
 import { X, Settings, HelpCircle } from "lucide-react";
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 
@@ -17,26 +18,19 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
-    const [autosaveInfo, setAutosaveInfo] = useState<any>(null);
-    const [backupInfo, setBackupInfo] = useState<any>(null);
+    const [showLoadGame, setShowLoadGame] = useState(false);
+    const [hasSave, setHasSave] = useState(false);
 
     const checkSave = async () => {
         try {
             const slots = await GameSaveSystem.listSaveSlots();
-            const autosave = slots.find(s => s.slotName === 'autosave');
-            setAutosaveInfo(autosave || null);
-            
-            const backups = slots.filter(s => s.slotName.startsWith('autosave_backup_'));
-            if (backups.length > 0) {
-                backups.sort((a, b) => b.timestamp - a.timestamp);
-                setBackupInfo(backups[0]);
-            } else {
-                setBackupInfo(null);
-            }
+            const found = slots.some(
+                s => s.slotName === 'autosave' || s.slotName.startsWith('autosave_backup_')
+            );
+            setHasSave(found);
         } catch (e) {
             console.warn('[MainMenuWindow] Failed to check save slots:', e);
-            setAutosaveInfo(null);
-            setBackupInfo(null);
+            setHasSave(false);
         }
     };
 
@@ -65,31 +59,16 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
         // Now handled by GameScreen global render
     };
 
-    const handleLoadGame = async () => {
+    const handleLoadSlot = async (slotName: string) => {
         setIsLoading(true);
-        console.log('[MainMenuWindow] Loading saved game...');
-        // Load game logic - using same 'autosave' default as GameScreen
-        const success = await loadGameDirect('autosave');
+        console.log(`[MainMenuWindow] Loading saved game from slot ${slotName}...`);
+        const success = await loadGameDirect(slotName);
         if (success) {
             console.log('[MainMenuWindow] Load successful');
+            setShowLoadGame(false);
             onClose();
         } else {
             console.warn('[MainMenuWindow] Load failed');
-            // Optionally show feedback, for now just log
-        }
-        setIsLoading(false);
-    };
-
-    const handleLoadBackup = async () => {
-        if (!backupInfo) return;
-        setIsLoading(true);
-        console.log(`[MainMenuWindow] Loading backup ${backupInfo.slotName}...`);
-        const success = await loadGameDirect(backupInfo.slotName);
-        if (success) {
-            console.log('[MainMenuWindow] Backup load successful');
-            onClose();
-        } else {
-            console.warn('[MainMenuWindow] Backup load failed');
         }
         setIsLoading(false);
     };
@@ -121,31 +100,13 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     </Button>
 
                     <Button
-                        onClick={handleLoadGame}
-                        disabled={isLoading || !autosaveInfo}
-                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto"
+                        onClick={() => setShowLoadGame(true)}
+                        disabled={isLoading || !hasSave}
+                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
                         data-testid="button-menu-load-game"
                     >
-                        <div>{isLoading ? 'Loading...' : 'Continue'}</div>
-                        {autosaveInfo && !isLoading && (
-                            <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
-                                Saved {new Date(autosaveInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                            </div>
-                        )}
+                        {isLoading ? 'Loading...' : 'Load Game'}
                     </Button>
-
-                    {backupInfo && (
-                        <Button
-                            onClick={handleLoadBackup}
-                            disabled={isLoading}
-                            className="w-full py-4 text-sm font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto opacity-90 hover:opacity-100"
-                        >
-                            <div>Load Backup</div>
-                            <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
-                                Saved {new Date(backupInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                            </div>
-                        </Button>
-                    )}
 
                     <Button
                         onClick={() => setShowOptions(true)}
@@ -175,6 +136,12 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                 checkSave();
             }} />}
             {showHelp && <HelpWindow onClose={() => setShowHelp(false)} />}
+            {showLoadGame && (
+                <LoadGameWindow
+                    onClose={() => setShowLoadGame(false)}
+                    onLoad={handleLoadSlot}
+                />
+            )}
         </div>
     );
 }

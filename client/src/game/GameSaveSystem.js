@@ -343,6 +343,12 @@ export class GameSaveSystem {
       console.log('[GameSaveSystem] Restoring GameMap...');
       const gameMap = await this.restoreGameMapFromJSON(saveData.gameMap);
 
+      // Defensive: scan/heal any entity with a malformed components field on load
+      // (the toJSON path does the same on save). See "malformed entity" bug.
+      if (typeof gameMap.auditEntityComponents === 'function') {
+        gameMap.auditEntityComponents('load');
+      }
+
       // Restore WorldManager if available
       let worldManager = null;
       if (saveData.worldManager) {

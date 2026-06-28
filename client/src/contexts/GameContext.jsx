@@ -671,13 +671,15 @@ const GameContextInner = ({ children }) => {
           if (backupSuccess) {
             toast({
               title: "Game Backup Saved",
-              description: `Turn ${activeTurn} backup created successfully.`
+              description: `Turn ${activeTurn} backup created successfully.`,
+              duration: 2000
             });
           }
         } else {
           toast({
             title: "Game Saved",
-            description: `Autosave complete at turn ${activeTurn}.`
+            description: `Autosave complete at turn ${activeTurn}.`,
+            duration: 2000
           });
         }
       } else {
