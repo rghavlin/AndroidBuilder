@@ -380,6 +380,8 @@ const GameContextInner = ({ children }) => {
   }, []);
   
   const [activeNpcDemand, setActiveNpcDemand] = useState(null); // { npc, player }
+  const [activeDialog, setActiveDialog] = useState(null); // { id, steps: [{speaker, text}] }
+  const [firedDialogIds, setFiredDialogIds] = useState(new Set());
   const isAutosaving = engine.isAutosaving;
   const setIsAutosaving = useCallback((val) => {
     engine.isAutosaving = typeof val === 'function' ? val(engine.isAutosaving) : val;
@@ -960,6 +962,14 @@ const GameContextInner = ({ children }) => {
     }
   }, [activeNpcDemand, extortPlayer, playbackTurn, turn, addLog, setTurnPhase]);
 
+  const handleDialogDismiss = useCallback(() => {
+    console.log(`[GameContext] Dialog dismissed: "${activeDialog?.id}"`);
+    setActiveDialog(null);
+    setTurnPhase('PLAYER_TURN');
+    engine.turnPhase = 'PLAYER_TURN';
+    engine.notifyUpdate();
+  }, [activeDialog, setTurnPhase]);
+
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;
 
@@ -1101,6 +1111,33 @@ const GameContextInner = ({ children }) => {
       GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, handleMoveEnded);
     };
   }, []);
+
+  // Dialog trigger check on player move
+  useEffect(() => {
+    const checkDialogTrigger = () => {
+      const player = engine.player;
+      const gameMap = engine.gameMap;
+      if (!player || !gameMap || activeDialog) return;
+
+      const triggers = gameMap.metadata?.eventTriggers;
+      if (!triggers || triggers.length === 0) return;
+
+      const trigger = triggers.find(t => t.x === player.x && t.y === player.y);
+      if (!trigger || !trigger.steps || trigger.steps.length === 0) return;
+      if (trigger.oneShot && firedDialogIds.has(trigger.id)) return;
+
+      console.log(`[GameContext] Dialog triggered: "${trigger.id}" at (${player.x}, ${player.y})`);
+      setActiveDialog({ id: trigger.id, steps: trigger.steps });
+      setTurnPhase('PAUSED_FOR_EVENT');
+
+      if (trigger.oneShot) {
+        setFiredDialogIds(prev => new Set(prev).add(trigger.id));
+      }
+    };
+
+    GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, checkDialogTrigger);
+    return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, checkDialogTrigger);
+  }, [activeDialog, firedDialogIds]);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
@@ -1723,7 +1760,11 @@ const GameContextInner = ({ children }) => {
     
     // NPC Demand System
     activeNpcDemand,
-    handleNpcDemandResponse
+    handleNpcDemandResponse,
+
+    // Dialog System
+    activeDialog,
+    handleDialogDismiss
   }), [
     isInitialized,
     isGameReady,
@@ -1768,7 +1809,9 @@ const GameContextInner = ({ children }) => {
     handleMapTransitionCancel,
     isDefeated,
     setIsDefeated,
-    isProcessingTurn
+    isProcessingTurn,
+    activeDialog,
+    handleDialogDismiss
   ]);
 
   return (

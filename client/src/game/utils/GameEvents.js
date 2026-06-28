@@ -50,7 +50,11 @@ export const GAME_EVENT = {
   ZOMBIE_KILLED: 'zombie_killed',
 
   // Automated Defenses
-  TURRET_FIRED: 'turret_fired'
+  TURRET_FIRED: 'turret_fired',
+
+  // Dialog / Scenario Events
+  DIALOG_TRIGGERED: 'dialog_triggered',
+  DIALOG_DISMISSED: 'dialog_dismissed'
 };
 
 /**

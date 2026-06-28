@@ -17,6 +17,7 @@ import { NPCDemandDialog } from './NPCDemandDialog';
 import SleepOverlay from './SleepOverlay';
 import SleepModal from './SleepModal';
 import DefeatDialog from './DefeatDialog';
+import DialogOverlay from './DialogOverlay';
 
 /**
  * OverlayManager - Centralized portal hub for all global UI elements.
@@ -38,6 +39,8 @@ export default function OverlayManager() {
     handleMapTransitionCancel,
     activeNpcDemand,
     handleNpcDemandResponse,
+    activeDialog,
+    handleDialogDismiss,
     isSkillsOpen,
     toggleSkills
   } = useGame();
@@ -136,9 +139,17 @@ export default function OverlayManager() {
 
           {/* NPC Demand Dialog */}
           {activeNpcDemand && (
-            <NPCDemandDialog 
-              npc={activeNpcDemand.npc} 
-              onResponse={handleNpcDemandResponse} 
+            <NPCDemandDialog
+              npc={activeNpcDemand.npc}
+              onResponse={handleNpcDemandResponse}
+            />
+          )}
+
+          {/* Dialog Overlay (Scenario Events) */}
+          {activeDialog && (
+            <DialogOverlay
+              steps={activeDialog.steps}
+              onComplete={handleDialogDismiss}
             />
           )}
 

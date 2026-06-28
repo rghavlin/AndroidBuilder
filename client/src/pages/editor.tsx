@@ -43,7 +43,7 @@ interface TileData {
   edgeWalls: Record<Edge, EdgeState>;
   entities: { type: string; subtype?: string }[];
   items: string[];
-  eventTrigger?: { id: string; message: string };
+  eventTrigger?: { id: string; steps: { speaker: string; text: string }[]; oneShot: boolean };
 }
 
 interface BuildingMeta {
@@ -173,10 +173,16 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
   }
 
   // Event triggers
-  if (scenario.eventTriggers) {
-    for (const evt of scenario.eventTriggers) {
+  const triggers = scenario.eventTriggers || scenario.metadata?.eventTriggers;
+  if (triggers) {
+    for (const evt of triggers) {
       const t = tiles[evt.y]?.[evt.x];
-      if (t) t.eventTrigger = { id: evt.id, message: evt.message };
+      if (!t) continue;
+      if (evt.steps) {
+        t.eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot ?? true };
+      } else if (evt.message) {
+        t.eventTrigger = { id: evt.id, steps: [{ speaker: '', text: evt.message }], oneShot: true };
+      }
     }
   }
 
@@ -284,8 +290,13 @@ export default function MapEditor() {
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
   const [selectedItem, setSelectedItem] = useState('');
   const [itemCategory, setItemCategory] = useState('');
-  const [triggerMsg, setTriggerMsg] = useState('');
   const [triggerId, setTriggerId] = useState('');
+  const [dialogSteps, setDialogSteps] = useState<{ speaker: string; text: string }[]>([]);
+  const [dialogOneShot, setDialogOneShot] = useState(true);
+  const [editSpeaker, setEditSpeaker] = useState('');
+  const [editText, setEditText] = useState('');
+  const dialogStepsRef = useRef(dialogSteps);
+  dialogStepsRef.current = dialogSteps;
 
   // Build categorized item catalog from ItemDefs
   const allItems = useMemo(() => {
@@ -318,6 +329,7 @@ export default function MapEditor() {
   const [statusMsg, setStatusMsg] = useState('');
   const [showLoadPicker, setShowLoadPicker] = useState(false);
   const [savedScenarios, setSavedScenarios] = useState<{ name: string; width: number; height: number }[]>([]);
+  const [inspectTile, setInspectTile] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -382,8 +394,8 @@ export default function MapEditor() {
           if (selectedItem) tile.items.push(selectedItem);
           break;
         case 'event_trigger':
-          if (triggerId) {
-            tile.eventTrigger = { id: triggerId, message: triggerMsg };
+          if (triggerId && dialogStepsRef.current.length > 0) {
+            tile.eventTrigger = { id: triggerId, steps: [...dialogStepsRef.current], oneShot: dialogOneShot };
           }
           break;
         case 'eraser':
@@ -403,7 +415,7 @@ export default function MapEditor() {
       next[y][x] = tile;
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, selectedEntity, selectedItem, triggerId, triggerMsg, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, selectedEntity, selectedItem, triggerId, dialogSteps, dialogOneShot, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -561,12 +573,25 @@ export default function MapEditor() {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (e.button === 2) return; // right-click handled by onContextMenu
+    setInspectTile(null);
     const { x, y } = cellFromEvent(e);
     if (tool === 'building_rect') {
       setBuildStart({ x, y });
     } else {
       setIsPainting(true);
       applyTool(x, y);
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const { x, y } = cellFromEvent(e);
+    if (x < 0 || y < 0 || x >= width || y >= height) return;
+    const tile = tiles[y][x];
+    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger;
+    if (hasContent) {
+      setInspectTile({ x, y, screenX: e.clientX, screenY: e.clientY });
     }
   };
 
@@ -875,11 +900,53 @@ export default function MapEditor() {
         )}
 
         {tool === 'event_trigger' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: 11, color: '#888' }}>Trigger ID</label>
-            <input value={triggerId} onChange={e => setTriggerId(e.target.value)} placeholder="e.g. tutorial_step_1" style={{ ...inputStyle }} />
-            <label style={{ fontSize: 11, color: '#888' }}>Message</label>
-            <input value={triggerMsg} onChange={e => setTriggerMsg(e.target.value)} placeholder="Tutorial text..." style={{ ...inputStyle }} />
+            <input value={triggerId} onChange={e => setTriggerId(e.target.value)} placeholder="e.g. tutorial_intro" style={{ ...inputStyle }} />
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+              <input type="checkbox" checked={dialogOneShot} onChange={e => setDialogOneShot(e.target.checked)} />
+              One-shot (only triggers once)
+            </label>
+
+            <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
+              <label style={{ fontSize: 11, color: '#888' }}>Dialog Steps</label>
+              {dialogSteps.map((step, i) => (
+                <div key={i} style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
+                  <div style={{ color: '#7bb8ff', fontWeight: 'bold', fontSize: 11 }}>{step.speaker || '(narrator)'}</div>
+                  <div style={{ color: '#ccc', marginTop: 2 }}>{step.text}</div>
+                  <button
+                    onClick={() => setDialogSteps(prev => prev.filter((_, j) => j !== i))}
+                    style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', marginTop: 2 }}
+                  >Remove</button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+              <label style={{ fontSize: 11, color: '#888' }}>Add Step</label>
+              <input value={editSpeaker} onChange={e => setEditSpeaker(e.target.value)} placeholder="Speaker (optional)" style={{ ...inputStyle }} />
+              <textarea
+                value={editText}
+                onChange={e => setEditText(e.target.value)}
+                placeholder="Dialog text..."
+                rows={2}
+                style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+              />
+              <button
+                onClick={() => {
+                  if (!editText.trim()) return;
+                  setDialogSteps(prev => [...prev, { speaker: editSpeaker.trim(), text: editText.trim() }]);
+                  setEditText('');
+                }}
+                disabled={!editText.trim()}
+                style={btnStyle(editText.trim() ? '#2a7a2a' : '#333')}
+              >+ Add Step</button>
+            </div>
+
+            <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
+              Click a tile to place this dialog trigger. Steps play in order when the player walks on the tile.
+            </p>
           </div>
         )}
 
@@ -917,7 +984,7 @@ export default function MapEditor() {
               <div>Items: {tiles[hoverCell.y][hoverCell.x].items.join(', ')}</div>
             )}
             {tiles[hoverCell.y][hoverCell.x].eventTrigger && (
-              <div>Event: {tiles[hoverCell.y][hoverCell.x].eventTrigger!.id}</div>
+              <div>Event: {tiles[hoverCell.y][hoverCell.x].eventTrigger!.id} ({tiles[hoverCell.y][hoverCell.x].eventTrigger!.steps?.length || 0} steps{tiles[hoverCell.y][hoverCell.x].eventTrigger!.oneShot ? ', one-shot' : ''})</div>
             )}
           </div>
         )}
@@ -962,10 +1029,176 @@ export default function MapEditor() {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onContextMenu={handleContextMenu}
           onMouseLeave={() => { setIsPainting(false); setHoverCell(null); }}
           style={{ cursor: 'crosshair', imageRendering: 'pixelated' }}
         />
       </div>
+
+      {/* ─── Tile Inspector Popup ─── */}
+      {inspectTile && tiles[inspectTile.y]?.[inspectTile.x] && (() => {
+        const t = tiles[inspectTile.y][inspectTile.x];
+        const tx = inspectTile.x;
+        const ty = inspectTile.y;
+
+        const removeEntity = (idx: number) => {
+          setTiles(prev => {
+            const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
+            next[ty][tx].entities.splice(idx, 1);
+            return next;
+          });
+        };
+
+        const removeItem = (idx: number) => {
+          setTiles(prev => {
+            const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
+            next[ty][tx].items.splice(idx, 1);
+            return next;
+          });
+        };
+
+        const removeEvent = () => {
+          setTiles(prev => {
+            const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
+            delete next[ty][tx].eventTrigger;
+            return next;
+          });
+        };
+
+        const editEvent = () => {
+          if (t.eventTrigger) {
+            setTriggerId(t.eventTrigger.id);
+            setDialogSteps([...t.eventTrigger.steps]);
+            setDialogOneShot(t.eventTrigger.oneShot);
+            setTool('event_trigger');
+            setStatusMsg(`Editing event "${t.eventTrigger.id}" — modify steps then click a tile to place`);
+          }
+          setInspectTile(null);
+        };
+
+        const popStyle: React.CSSProperties = {
+          position: 'fixed',
+          left: Math.min(inspectTile.screenX, window.innerWidth - 320),
+          top: Math.min(inspectTile.screenY, window.innerHeight - 300),
+          zIndex: 200,
+          background: '#1a1a1a',
+          border: '1px solid #555',
+          borderRadius: 6,
+          padding: 12,
+          minWidth: 240,
+          maxWidth: 300,
+          maxHeight: '50vh',
+          overflowY: 'auto',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+        };
+
+        const sectionStyle: React.CSSProperties = {
+          borderTop: '1px solid #333',
+          paddingTop: 6,
+          marginTop: 6,
+        };
+
+        const rowStyle: React.CSSProperties = {
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '3px 0',
+          fontSize: 12,
+        };
+
+        const removeBtnStyle: React.CSSProperties = {
+          background: 'none',
+          border: 'none',
+          color: '#c44',
+          cursor: 'pointer',
+          fontSize: 11,
+          padding: '2px 6px',
+        };
+
+        const editBtnStyle: React.CSSProperties = {
+          background: 'none',
+          border: 'none',
+          color: '#7bb8ff',
+          cursor: 'pointer',
+          fontSize: 11,
+          padding: '2px 6px',
+        };
+
+        return (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setInspectTile(null)} />
+            <div style={popStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontWeight: 'bold', fontSize: 13, color: '#7bb8ff' }}>
+                  Tile ({tx}, {ty}) — {t.terrain}
+                </span>
+                <button onClick={() => setInspectTile(null)} style={{ ...removeBtnStyle, color: '#888' }}>✕</button>
+              </div>
+
+              {/* Entities */}
+              {t.entities.length > 0 && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Entities</div>
+                  {t.entities.map((ent, i) => {
+                    const def = ENTITY_TYPES.find(e => e.id === ent.type);
+                    return (
+                      <div key={i} style={rowStyle}>
+                        <span style={{ color: def?.color || '#aaa' }}>
+                          {def?.label || ent.type}{ent.subtype ? ` (${ent.subtype})` : ''}
+                        </span>
+                        <button onClick={() => removeEntity(i)} style={removeBtnStyle}>Remove</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Items */}
+              {t.items.length > 0 && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Items</div>
+                  {t.items.map((defId, i) => {
+                    const def = (ItemDefs as any)[defId];
+                    return (
+                      <div key={i} style={rowStyle}>
+                        <span style={{ color: '#fc0' }}>
+                          {def?.name || defId}
+                          {def ? ` (${def.width}×${def.height})` : ''}
+                        </span>
+                        <button onClick={() => removeItem(i)} style={removeBtnStyle}>Remove</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Event Trigger */}
+              {t.eventTrigger && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Event Trigger</div>
+                  <div style={{ fontSize: 12, color: '#f0f', marginBottom: 2 }}>
+                    {t.eventTrigger.id}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#aaa', marginBottom: 4 }}>
+                    {t.eventTrigger.steps?.length || 0} step{(t.eventTrigger.steps?.length || 0) !== 1 ? 's' : ''}
+                    {t.eventTrigger.oneShot ? ' · one-shot' : ' · repeatable'}
+                  </div>
+                  {t.eventTrigger.steps?.map((step, i) => (
+                    <div key={i} style={{ fontSize: 11, color: '#888', padding: '2px 0', borderTop: '1px solid #222' }}>
+                      {step.speaker && <span style={{ color: '#7bb8ff' }}>{step.speaker}: </span>}
+                      {step.text}
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                    <button onClick={editEvent} style={editBtnStyle}>Edit</button>
+                    <button onClick={removeEvent} style={removeBtnStyle}>Remove</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

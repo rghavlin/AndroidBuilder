@@ -1,5 +1,5 @@
 {
-  "name": "test01",
+  "name": "t1",
   "width": 20,
   "height": 20,
   "tiles": [
@@ -2959,21 +2959,21 @@
       {
         "x": 4,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 5,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2983,9 +2983,9 @@
       {
         "x": 6,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2995,10 +2995,10 @@
       {
         "x": 7,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
-          "e": true,
+          "n": false,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3201,19 +3201,19 @@
       {
         "x": 4,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 5,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3225,7 +3225,7 @@
       {
         "x": 6,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3237,10 +3237,10 @@
       {
         "x": 7,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3261,7 +3261,7 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3273,7 +3273,7 @@
       {
         "x": 10,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3285,7 +3285,7 @@
       {
         "x": 11,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3443,19 +3443,19 @@
       {
         "x": 4,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 5,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3467,7 +3467,7 @@
       {
         "x": 6,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3479,10 +3479,10 @@
       {
         "x": 7,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3503,7 +3503,7 @@
       {
         "x": 9,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3515,7 +3515,7 @@
       {
         "x": 10,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3527,7 +3527,7 @@
       {
         "x": 11,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3685,23 +3685,23 @@
       {
         "x": 4,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
-          "w": true
+          "s": false,
+          "w": false
         },
         "contents": []
       },
       {
         "x": 5,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3709,11 +3709,11 @@
       {
         "x": 6,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3721,11 +3721,11 @@
       {
         "x": 7,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
-          "s": true,
+          "e": false,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3757,6 +3757,490 @@
       {
         "x": 10,
         "y": 15,
+        "terrain": "road",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 11,
+        "y": 15,
+        "terrain": "road",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 12,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 13,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 14,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 16,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
+        "y": 15,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 1,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 2,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 3,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 4,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 5,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 6,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 7,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 8,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 9,
+        "y": 16,
+        "terrain": "road",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 10,
+        "y": 16,
+        "terrain": "road",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 11,
+        "y": 16,
+        "terrain": "road",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 12,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 13,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 14,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 16,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 1,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 2,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 3,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 4,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 5,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 6,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 7,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 8,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 9,
+        "y": 17,
+        "terrain": "road",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 10,
+        "y": 17,
         "terrain": "road",
         "edgeWalls": {
           "n": false,
@@ -3767,494 +4251,480 @@
         "contents": [],
         "inventoryItems": [
           {
-            "defId": "plank",
-            "quantity": 1
+            "instanceId": "weapon.hunting_rifle-1782687092639-wph2z",
+            "defId": "weapon.hunting_rifle",
+            "id": "weapon.hunting_rifle",
+            "name": "Hunting rifle (308)",
+            "rarity": "rare",
+            "imageId": "huntingrifle",
+            "width": 5,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "container",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "long_gun",
+            "categories": [
+              "weapon",
+              "gun"
+            ],
+            "attachmentSlots": [
+              {
+                "id": "sight",
+                "name": "Optic",
+                "allowedCategories": [
+                  "rifle_scope",
+                  "laser_sight"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Ammo",
+                "hidden": true,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "ammo.308"
+                ]
+              }
+            ],
+            "rangedStats": {
+              "noiseRadius": 18,
+              "damage": {
+                "min": 4,
+                "max": 15
+              },
+              "accuracyFalloff": 0.07,
+              "minAccuracy": 0.01
+            },
+            "directLoad": {
+              "slotId": "ammo",
+              "ammoId": "ammo.308",
+              "capacity": 5
+            },
+            "spawnMaxRounds": 4
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-lxfis",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-z5mt4",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-vj0os",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-3d2i6",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-syhoa",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-45lhm",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-9ovfo",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-eh74a",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-3h6c7",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-miq21",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-9sfud",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-w4apz",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-8a3r9",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-mily6",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-ho55g",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-idr8s",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-1y8in",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-59j3k",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-fh7tj",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-89zc2",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-56l7f",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.308-1782687092639-70p1l",
+            "defId": "ammo.308",
+            "id": "ammo.308",
+            "name": ".308 Ammo",
+            "rarity": "uncommon",
+            "imageId": "308ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
           }
         ]
-      },
-      {
-        "x": 11,
-        "y": 15,
-        "terrain": "road",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 15,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 16,
-        "terrain": "road",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 16,
-        "terrain": "road",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 16,
-        "terrain": "road",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 17,
-        "terrain": "road",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 17,
-        "terrain": "road",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
       },
       {
         "x": 11,
@@ -4851,15 +5321,7 @@
     ]
   ],
   "metadata": {
-    "buildings": [
-      {
-        "type": "residential",
-        "x": 4,
-        "y": 12,
-        "width": 4,
-        "height": 4
-      }
-    ],
+    "buildings": [],
     "specialBuildings": [],
     "doors": [],
     "windows": [],
@@ -4868,7 +5330,7 @@
       "playerStart": [
         {
           "x": 10,
-          "y": 15
+          "y": 17
         }
       ]
     }
@@ -4876,16 +5338,37 @@
   "entities": [
     {
       "type": "zombie",
-      "x": 5,
-      "y": 13,
+      "x": 10,
+      "y": 14,
       "subtype": null
     },
     {
       "type": "player",
       "x": 10,
-      "y": 15,
+      "y": 17,
       "subtype": null
     }
   ],
-  "eventTriggers": []
+  "eventTriggers": [
+    {
+      "x": 10,
+      "y": 15,
+      "id": "1",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "1"
+        },
+        {
+          "speaker": "",
+          "text": "2"
+        },
+        {
+          "speaker": "",
+          "text": "3"
+        }
+      ],
+      "oneShot": true
+    }
+  ]
 }

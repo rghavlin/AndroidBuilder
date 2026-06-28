@@ -1,5 +1,5 @@
 {
-  "name": "test02",
+  "name": "",
   "width": 20,
   "height": 20,
   "tiles": [
@@ -1955,21 +1955,21 @@
       {
         "x": 1,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 2,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1979,10 +1979,10 @@
       {
         "x": 3,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -1991,9 +1991,9 @@
       {
         "x": 4,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -2003,9 +2003,9 @@
       {
         "x": 5,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -2015,10 +2015,10 @@
       {
         "x": 6,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2197,19 +2197,19 @@
       {
         "x": 1,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 2,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2221,10 +2221,10 @@
       {
         "x": 3,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2233,7 +2233,7 @@
       {
         "x": 4,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2245,7 +2245,7 @@
       {
         "x": 5,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2257,10 +2257,10 @@
       {
         "x": 6,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2439,19 +2439,19 @@
       {
         "x": 1,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 2,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2463,10 +2463,10 @@
       {
         "x": 3,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2475,7 +2475,7 @@
       {
         "x": 4,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2487,7 +2487,7 @@
       {
         "x": 5,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2499,10 +2499,10 @@
       {
         "x": 6,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2523,7 +2523,7 @@
       {
         "x": 8,
         "y": 10,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2535,7 +2535,7 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2547,7 +2547,7 @@
       {
         "x": 10,
         "y": 10,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2559,7 +2559,7 @@
       {
         "x": 11,
         "y": 10,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2681,19 +2681,19 @@
       {
         "x": 1,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 2,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2705,10 +2705,10 @@
       {
         "x": 3,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2717,7 +2717,7 @@
       {
         "x": 4,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2729,7 +2729,7 @@
       {
         "x": 5,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2741,10 +2741,10 @@
       {
         "x": 6,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2765,7 +2765,7 @@
       {
         "x": 8,
         "y": 11,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2777,7 +2777,7 @@
       {
         "x": 9,
         "y": 11,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2789,7 +2789,7 @@
       {
         "x": 10,
         "y": 11,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2801,7 +2801,7 @@
       {
         "x": 11,
         "y": 11,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2923,19 +2923,19 @@
       {
         "x": 1,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 2,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2947,10 +2947,10 @@
       {
         "x": 3,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2959,7 +2959,7 @@
       {
         "x": 4,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2971,7 +2971,7 @@
       {
         "x": 5,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2983,10 +2983,10 @@
       {
         "x": 6,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -3007,7 +3007,7 @@
       {
         "x": 8,
         "y": 12,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3019,7 +3019,7 @@
       {
         "x": 9,
         "y": 12,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3031,7 +3031,7 @@
       {
         "x": 10,
         "y": 12,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3043,7 +3043,7 @@
       {
         "x": 11,
         "y": 12,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3165,19 +3165,19 @@
       {
         "x": 1,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 2,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3189,10 +3189,10 @@
       {
         "x": 3,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -3201,7 +3201,7 @@
       {
         "x": 4,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3213,7 +3213,7 @@
       {
         "x": 5,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3225,10 +3225,10 @@
       {
         "x": 6,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -3249,7 +3249,7 @@
       {
         "x": 8,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3261,7 +3261,7 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3273,7 +3273,7 @@
       {
         "x": 10,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3285,7 +3285,7 @@
       {
         "x": 11,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3407,23 +3407,23 @@
       {
         "x": 1,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 2,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -3431,11 +3431,11 @@
       {
         "x": 3,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -3443,11 +3443,11 @@
       {
         "x": 4,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -3455,11 +3455,11 @@
       {
         "x": 5,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -3467,11 +3467,11 @@
       {
         "x": 6,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -3491,7 +3491,7 @@
       {
         "x": 8,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3503,49 +3503,19 @@
       {
         "x": 9,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.hammer-1782686316799-szr0p",
-            "defId": "weapon.hammer",
-            "id": "weapon.hammer",
-            "name": "Hammer",
-            "rarity": "uncommon",
-            "imageId": "hammer",
-            "width": 3,
-            "height": 2,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "tool",
-              "hammer"
-            ],
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.7,
-              "damage": {
-                "min": 2,
-                "max": 8
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3557,7 +3527,7 @@
       {
         "x": 11,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3763,7 +3733,7 @@
       {
         "x": 8,
         "y": 15,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3775,7 +3745,7 @@
       {
         "x": 9,
         "y": 15,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3787,7 +3757,7 @@
       {
         "x": 10,
         "y": 15,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3799,7 +3769,7 @@
       {
         "x": 11,
         "y": 15,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4005,7 +3975,7 @@
       {
         "x": 8,
         "y": 16,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4017,7 +3987,7 @@
       {
         "x": 9,
         "y": 16,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4029,7 +3999,7 @@
       {
         "x": 10,
         "y": 16,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4041,7 +4011,7 @@
       {
         "x": 11,
         "y": 16,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4247,7 +4217,7 @@
       {
         "x": 8,
         "y": 17,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4259,7 +4229,7 @@
       {
         "x": 9,
         "y": 17,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4271,7 +4241,7 @@
       {
         "x": 10,
         "y": 17,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4283,7 +4253,7 @@
       {
         "x": 11,
         "y": 17,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4489,7 +4459,7 @@
       {
         "x": 8,
         "y": 18,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4501,7 +4471,7 @@
       {
         "x": 9,
         "y": 18,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4513,7 +4483,7 @@
       {
         "x": 10,
         "y": 18,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4525,7 +4495,7 @@
       {
         "x": 11,
         "y": 18,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4731,7 +4701,7 @@
       {
         "x": 8,
         "y": 19,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4743,7 +4713,7 @@
       {
         "x": 9,
         "y": 19,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4755,7 +4725,7 @@
       {
         "x": 10,
         "y": 19,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4767,7 +4737,7 @@
       {
         "x": 11,
         "y": 19,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4875,46 +4845,36 @@
     ]
   ],
   "metadata": {
-    "buildings": [],
+    "buildings": [
+      {
+        "type": "residential",
+        "x": 1,
+        "y": 8,
+        "width": 6,
+        "height": 7
+      }
+    ],
     "specialBuildings": [],
-    "doors": [],
+    "doors": [
+      {
+        "x": 3,
+        "y": 11,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "e"
+      },
+      {
+        "x": 6,
+        "y": 11,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "e"
+      }
+    ],
     "windows": [],
     "placeIcons": [],
-    "spawnZones": {
-      "playerStart": [
-        {
-          "x": 9,
-          "y": 15
-        }
-      ]
-    }
+    "spawnZones": {}
   },
-  "entities": [
-    {
-      "type": "zombie",
-      "x": 9,
-      "y": 10,
-      "subtype": null
-    },
-    {
-      "type": "player",
-      "x": 9,
-      "y": 15,
-      "subtype": null
-    }
-  ],
-  "eventTriggers": [
-    {
-      "x": 9,
-      "y": 12,
-      "id": "step1",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "STEP ONE!"
-        }
-      ],
-      "oneShot": true
-    }
-  ]
+  "entities": [],
+  "eventTriggers": []
 }
