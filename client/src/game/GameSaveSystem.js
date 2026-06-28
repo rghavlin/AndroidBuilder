@@ -474,7 +474,15 @@ export class GameSaveSystem {
 
       // Check if running in Electron native filesystem environment
       if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.saveGame === 'function') {
-        const serializedData = JSON.stringify(saveData);
+        let serializedData;
+        try {
+          serializedData = JSON.stringify(saveData);
+        } catch (stringError) {
+          console.error('[GameSaveSystem] FATAL: Circular reference detected during game save serialization:', stringError);
+          // Return false so GameContext shows the failure toast
+          return false;
+        }
+
         const result = await window.electronAPI.saveGame(slotName, serializedData);
         if (result && result.success) {
           console.log(`[GameSaveSystem] Game saved to desktop folder saves/${slotName}.json`);
@@ -493,7 +501,13 @@ export class GameSaveSystem {
         try {
           if (typeof window !== 'undefined' && window.localStorage) {
             const key = `zombie_road_save_${slotName}`;
-            const serializedData = JSON.stringify(saveData);
+            let serializedData;
+            try {
+              serializedData = JSON.stringify(saveData);
+            } catch (stringError) {
+              console.error('[GameSaveSystem] FATAL: Circular reference detected during localstorage serialization:', stringError);
+              return false;
+            }
             const compressedData = await compressString(serializedData);
             window.localStorage.setItem(key, compressedData);
             console.log(`[GameSaveSystem] Game saved to localStorage key: ${key} (compressed size: ${compressedData.length} chars, uncompressed: ${serializedData.length} chars)`);

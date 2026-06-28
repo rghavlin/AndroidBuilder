@@ -81,9 +81,10 @@ function GameScreenContent() {
   const handleStartGame = async (mode?: boolean | string) => {
     // Don't hide menu here - let the effect above do it when state changes
 
-    if (mode === 'load') {
-      console.log('[GameScreenContent] Loading saved game directly...');
-      const success = await loadGameDirect('autosave');
+    if (typeof mode === 'string' && mode.startsWith('load')) {
+      const slotName = mode.includes(':') ? mode.split(':')[1] : 'autosave';
+      console.log(`[GameScreenContent] Loading saved game directly from ${slotName}...`);
+      const success = await loadGameDirect(slotName);
       if (!success) {
         console.warn('[GameScreenContent] Load failed, falling back to new game');
         await initializeGame();

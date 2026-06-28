@@ -17,6 +17,7 @@ import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { toast } from '../hooks/use-toast';
 
 const logger = Logger.scope('GameContext');
 
@@ -661,6 +662,30 @@ const GameContextInner = ({ children }) => {
       
       if (success) {
         console.log(`[GameContext] 💾 Autosave successful at Turn ${turnOverride || turn}`);
+        
+        // Backup every 5 turns
+        const activeTurn = turnOverride || turn;
+        if (activeTurn > 0 && activeTurn % 5 === 0) {
+          const backupSlotName = `autosave_backup_${((activeTurn / 5) % 3) + 1}`;
+          const backupSuccess = await GameSaveSystem.saveToStorage(currentGameState, backupSlotName);
+          if (backupSuccess) {
+            toast({
+              title: "Game Backup Saved",
+              description: `Turn ${activeTurn} backup created successfully.`
+            });
+          }
+        } else {
+          toast({
+            title: "Game Saved",
+            description: `Autosave complete at turn ${activeTurn}.`
+          });
+        }
+      } else {
+        toast({
+          title: "Save Failed",
+          description: "Failed to autosave. Please check the console for details.",
+          variant: "destructive"
+        });
       }
 
       setIsAutosaving(false);
@@ -668,6 +693,11 @@ const GameContextInner = ({ children }) => {
       return success;
     } catch (error) {
       console.error('[GameContext] Autosave error:', error);
+      toast({
+        title: "Save Error",
+        description: "An error occurred while saving.",
+        variant: "destructive"
+      });
       setIsAutosaving(false);
       engine.isAutosaving = false;
       return false;

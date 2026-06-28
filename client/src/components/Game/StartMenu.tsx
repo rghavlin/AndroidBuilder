@@ -21,16 +21,26 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [hasSave, setHasSave] = useState(false);
+  const [autosaveInfo, setAutosaveInfo] = useState<any>(null);
+  const [backupInfo, setBackupInfo] = useState<any>(null);
 
   const checkSave = async () => {
     try {
       const slots = await GameSaveSystem.listSaveSlots();
-      const exists = slots.some(s => s.slotName === 'autosave');
-      setHasSave(exists);
+      const autosave = slots.find(s => s.slotName === 'autosave');
+      setAutosaveInfo(autosave || null);
+      
+      const backups = slots.filter(s => s.slotName.startsWith('autosave_backup_'));
+      if (backups.length > 0) {
+        backups.sort((a, b) => b.timestamp - a.timestamp);
+        setBackupInfo(backups[0]);
+      } else {
+        setBackupInfo(null);
+      }
     } catch (e) {
       console.warn('[StartMenu] Failed to check save slots:', e);
-      setHasSave(false);
+      setAutosaveInfo(null);
+      setBackupInfo(null);
     }
   };
 
@@ -82,6 +92,17 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     setIsLoading(false);
   };
 
+  const handleLoadBackup = async () => {
+    if (!backupInfo) return;
+    setIsLoading(true);
+    console.log(`[StartMenu] Requesting load from backup ${backupInfo.slotName}...`);
+    musicManager.playPlaylist('standard');
+    if (onStartGame) {
+      onStartGame(`load:${backupInfo.slotName}`);
+    }
+    setIsLoading(false);
+  };
+
   const handleCustomLaunch = async (config: any) => {
     // This is now handled by the parent GameScreen, but we keep the prop for internal state if needed
     // Actually, we should just call the parent's launch if we were still using local state, 
@@ -114,12 +135,30 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
           
            <Button
             onClick={handleLoadGame}
-            disabled={isLoading || !hasSave}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
+            disabled={isLoading || !autosaveInfo}
+            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto"
             data-testid="button-load-game"
           >
-            {isLoading ? 'Loading...' : 'Continue'}
+            <div>{isLoading ? 'Loading...' : 'Continue'}</div>
+            {autosaveInfo && !isLoading && (
+              <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
+                Saved {new Date(autosaveInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+              </div>
+            )}
           </Button>
+
+          {backupInfo && (
+            <Button
+              onClick={handleLoadBackup}
+              disabled={isLoading}
+              className="w-full py-4 text-sm font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto opacity-90 hover:opacity-100"
+            >
+              <div>Load Backup</div>
+              <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
+                Saved {new Date(backupInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+              </div>
+            </Button>
+          )}
 
           <Button
             onClick={() => setShowOptions(true)}

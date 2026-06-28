@@ -17,16 +17,26 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
-    const [hasSave, setHasSave] = useState(false);
+    const [autosaveInfo, setAutosaveInfo] = useState<any>(null);
+    const [backupInfo, setBackupInfo] = useState<any>(null);
 
     const checkSave = async () => {
         try {
             const slots = await GameSaveSystem.listSaveSlots();
-            const exists = slots.some(s => s.slotName === 'autosave');
-            setHasSave(exists);
+            const autosave = slots.find(s => s.slotName === 'autosave');
+            setAutosaveInfo(autosave || null);
+            
+            const backups = slots.filter(s => s.slotName.startsWith('autosave_backup_'));
+            if (backups.length > 0) {
+                backups.sort((a, b) => b.timestamp - a.timestamp);
+                setBackupInfo(backups[0]);
+            } else {
+                setBackupInfo(null);
+            }
         } catch (e) {
             console.warn('[MainMenuWindow] Failed to check save slots:', e);
-            setHasSave(false);
+            setAutosaveInfo(null);
+            setBackupInfo(null);
         }
     };
 
@@ -70,6 +80,20 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
         setIsLoading(false);
     };
 
+    const handleLoadBackup = async () => {
+        if (!backupInfo) return;
+        setIsLoading(true);
+        console.log(`[MainMenuWindow] Loading backup ${backupInfo.slotName}...`);
+        const success = await loadGameDirect(backupInfo.slotName);
+        if (success) {
+            console.log('[MainMenuWindow] Backup load successful');
+            onClose();
+        } else {
+            console.warn('[MainMenuWindow] Backup load failed');
+        }
+        setIsLoading(false);
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-auto">
             <Card className="w-96 metal-panel border-border shadow-2xl relative">
@@ -98,12 +122,30 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
 
                     <Button
                         onClick={handleLoadGame}
-                        disabled={isLoading || !hasSave}
-                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
+                        disabled={isLoading || !autosaveInfo}
+                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto"
                         data-testid="button-menu-load-game"
                     >
-                        {isLoading ? 'Loading...' : 'Load Game'}
+                        <div>{isLoading ? 'Loading...' : 'Continue'}</div>
+                        {autosaveInfo && !isLoading && (
+                            <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
+                                Saved {new Date(autosaveInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            </div>
+                        )}
                     </Button>
+
+                    {backupInfo && (
+                        <Button
+                            onClick={handleLoadBackup}
+                            disabled={isLoading}
+                            className="w-full py-4 text-sm font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto opacity-90 hover:opacity-100"
+                        >
+                            <div>Load Backup</div>
+                            <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
+                                Saved {new Date(backupInfo.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            </div>
+                        </Button>
+                    )}
 
                     <Button
                         onClick={() => setShowOptions(true)}
