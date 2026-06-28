@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { Settings, Sparkles, HelpCircle } from "lucide-react";
+import { Settings, Sparkles, HelpCircle, Map } from "lucide-react";
 import OptionsWindow from './OptionsWindow';
 import CreditsWindow from './CreditsWindow';
 import HelpWindow from './HelpWindow';
 import LoadGameWindow from './LoadGameWindow';
+import ScenarioPickerWindow from './ScenarioPickerWindow';
 import musicManager from '@/game/utils/MusicManager';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 
@@ -23,6 +24,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const [showCredits, setShowCredits] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showLoadGame, setShowLoadGame] = useState(false);
+  const [showScenarios, setShowScenarios] = useState(false);
   const [hasSave, setHasSave] = useState(false);
 
   const checkSave = async () => {
@@ -87,10 +89,11 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     setIsLoading(false);
   };
 
-  const handleCustomLaunch = async (config: any) => {
-    // This is now handled by the parent GameScreen, but we keep the prop for internal state if needed
-    // Actually, we should just call the parent's launch if we were still using local state, 
-    // but we are switching strictly to global.
+  const handleScenarioLoad = (scenarioData: any) => {
+    console.log(`[StartMenu] Loading scenario "${scenarioData.name}"...`);
+    musicManager.playPlaylist('standard');
+    setShowScenarios(false);
+    window.dispatchEvent(new CustomEvent('launch-custom-game', { detail: { scenarioData } }));
   };
 
   return (
@@ -124,6 +127,16 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             data-testid="button-load-game"
           >
             {isLoading ? 'Loading...' : 'Load Game'}
+          </Button>
+
+          <Button
+            onClick={() => setShowScenarios(true)}
+            disabled={isLoading}
+            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
+            data-testid="button-custom-map"
+          >
+            <Map className="h-5 w-5" />
+            Custom Map
           </Button>
 
           <Button
@@ -169,6 +182,12 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
         <LoadGameWindow
           onClose={() => setShowLoadGame(false)}
           onLoad={handleLoadSlot}
+        />
+      )}
+      {showScenarios && (
+        <ScenarioPickerWindow
+          onClose={() => setShowScenarios(false)}
+          onLoad={handleScenarioLoad}
         />
       )}
     </div>

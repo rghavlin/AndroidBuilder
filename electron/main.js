@@ -152,6 +152,126 @@ app.commandLine.appendSwitch('disable-blink-features', 'Geolocation');
 // Disable autoplay policy to allow game music to play instantly on startup
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
+// --- IPC Scenario Handlers (customMaps/) ---
+const scenarioDir = path.join(__dirname, '..', 'customMaps');
+
+ipcMain.handle('save-scenario', async (event, name, data) => {
+  try {
+    if (!fs.existsSync(scenarioDir)) fs.mkdirSync(scenarioDir, { recursive: true });
+    const filePath = path.join(scenarioDir, `${name}.scenario.json`);
+    const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    fs.writeFileSync(filePath, content, 'utf-8');
+    return { success: true, path: filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('save-scenario-editor', async (event, name, data) => {
+  try {
+    if (!fs.existsSync(scenarioDir)) fs.mkdirSync(scenarioDir, { recursive: true });
+    const filePath = path.join(scenarioDir, `${name}.editor.json`);
+    const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    fs.writeFileSync(filePath, content, 'utf-8');
+    return { success: true, path: filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('list-scenarios', async () => {
+  try {
+    if (!fs.existsSync(scenarioDir)) return [];
+    const files = fs.readdirSync(scenarioDir);
+    const scenarios = [];
+    for (const file of files) {
+      if (file.endsWith('.scenario.json')) {
+        const filePath = path.join(scenarioDir, file);
+        try {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const data = JSON.parse(content);
+          scenarios.push({ name: data.name || file, width: data.width, height: data.height, fileName: file });
+        } catch (err) {
+          console.warn('[Scenario IPC] Corrupt scenario file:', file);
+        }
+      }
+    }
+    return scenarios.sort((a, b) => a.name.localeCompare(b.name));
+  } catch (error) {
+    return [];
+  }
+});
+
+ipcMain.handle('load-scenario', async (event, fileName) => {
+  try {
+    const filePath = path.join(scenarioDir, fileName);
+    if (!fs.existsSync(filePath)) return null;
+    return fs.readFileSync(filePath, 'utf-8');
+  } catch (error) {
+    return null;
+  }
+});
+
+ipcMain.handle('load-scenario-editor', async (event, name) => {
+  try {
+    const filePath = path.join(scenarioDir, `${name}.editor.json`);
+    if (!fs.existsSync(filePath)) return null;
+    return fs.readFileSync(filePath, 'utf-8');
+  } catch (error) {
+    return null;
+  }
+});
+
+ipcMain.handle('delete-scenario', async (event, fileName) => {
+  try {
+    const filePath = path.join(scenarioDir, fileName);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    // Also delete editor state file
+    const editorFile = filePath.replace('.scenario.json', '.editor.json');
+    if (fs.existsSync(editorFile)) fs.unlinkSync(editorFile);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// --- IPC Editor Window ---
+let editorWindow = null;
+
+ipcMain.handle('open-editor-window', async () => {
+  if (editorWindow && !editorWindow.isDestroyed()) {
+    editorWindow.focus();
+    return { success: true, reused: true };
+  }
+
+  editorWindow = new BrowserWindow({
+    width: 1100,
+    height: 800,
+    minWidth: 900,
+    minHeight: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      enableRemoteModule: false,
+      preload: path.join(__dirname, 'preload.js')
+    },
+    title: 'Zombie Road — Map Editor',
+    show: false,
+  });
+
+  if (isDev) {
+    editorWindow.loadURL('http://localhost:5000/#/editor');
+  } else {
+    const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
+    editorWindow.loadFile(htmlPath, { hash: '#/editor' });
+  }
+
+  editorWindow.once('ready-to-show', () => editorWindow.show());
+  editorWindow.on('closed', () => { editorWindow = null; });
+
+  return { success: true, reused: false };
+});
+
 // --- IPC Save Handlers ---
 const saveDir = path.join(app.getPath('userData'), 'saves');
 

@@ -153,13 +153,19 @@ class GameInitializationManager extends EventEmitter {
 
     // Create TemplateMapGenerator and generate initial map
     const templateMapGenerator = new TemplateMapGenerator();
-    const templateToRequest = worldManager.determineTemplateForMap('map_001');
-    console.log(`[GameInitializationManager] 🗺️ REQUESTING INITIAL MAP TEMPLATE: "${templateToRequest}" (Timestamp: ${Date.now()})`);
-    
-    const mapData = templateMapGenerator.generateFromTemplate(templateToRequest, {
-      randomWalls: 1,
-      extraFloors: 2
-    });
+    let mapData;
+
+    if (this.customConfig?.scenarioData) {
+      console.log(`[GameInitializationManager] 🗺️ LOADING CUSTOM SCENARIO: "${this.customConfig.scenarioData.name}"`);
+      mapData = await templateMapGenerator.generateFromScenario(this.customConfig.scenarioData);
+    } else {
+      const templateToRequest = worldManager.determineTemplateForMap('map_001');
+      console.log(`[GameInitializationManager] 🗺️ REQUESTING INITIAL MAP TEMPLATE: "${templateToRequest}" (Timestamp: ${Date.now()})`);
+      mapData = templateMapGenerator.generateFromTemplate(templateToRequest, {
+        randomWalls: 1,
+        extraFloors: 2
+      });
+    }
     console.log('[GameInitializationManager] Template map generated:', mapData.template, mapData.width, 'x', mapData.height);
 
     // Store preload data for next phase
@@ -195,15 +201,21 @@ class GameInitializationManager extends EventEmitter {
 
       // Determine start position
       let startX = Math.floor(gameMap.width / 2), startY = Math.floor(gameMap.height * 0.9);
-      try {
-        const templateStartPos = templateMapGenerator.getStartPosition(mapData.template);
-        if (templateStartPos) {
-          startX = templateStartPos.x;
-          startY = templateStartPos.y;
-        }
-      } catch (error) {
-        if (isDev) {
-          console.warn('[GameInitializationManager] Could not get template start position, using default');
+      const scenarioSpawn = mapData.metadata?.spawnZones?.playerStart?.[0];
+      if (scenarioSpawn) {
+        startX = scenarioSpawn.x;
+        startY = scenarioSpawn.y;
+      } else {
+        try {
+          const templateStartPos = templateMapGenerator.getStartPosition(mapData.template);
+          if (templateStartPos) {
+            startX = templateStartPos.x;
+            startY = templateStartPos.y;
+          }
+        } catch (error) {
+          if (isDev) {
+            console.warn('[GameInitializationManager] Could not get template start position, using default');
+          }
         }
       }
 
@@ -365,7 +377,16 @@ class GameInitializationManager extends EventEmitter {
 
     try {
       const { gameMap, player, worldManager } = this.gameObjects;
+      const isScenario = !!this.customConfig?.scenarioData;
 
+      if (isScenario) {
+        console.log('[GameInitializationManager] Scenario mode — skipping procedural spawns');
+        if (worldManager) {
+          worldManager.zombiesSpawned['map_001'] = 0;
+          worldManager.zombiesKilled['map_001'] = 0;
+        }
+        this.gameObjects.lootGenerator = new LootGenerator();
+      } else {
       // Spawn initial zombies
       const spawnCount = this._spawnInitialZombies(gameMap, player);
       console.log('[GameInitializationManager] Spawned', spawnCount, 'initial zombies');
@@ -376,7 +397,7 @@ class GameInitializationManager extends EventEmitter {
       }
 
 
-      
+
       // SPAWN ANIMALS: Initial procedural rabbit generation
       const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
       AnimalSpawner.spawnAnimals(gameMap, player, {
@@ -388,6 +409,7 @@ class GameInitializationManager extends EventEmitter {
       const lootGenerator = new LootGenerator();
       this.gameObjects.lootGenerator = lootGenerator;
       lootGenerator.spawnLoot(gameMap, 1, this.customConfig);
+      }
 
       // SPAWN SHOPKEEPER: Stationary Town Merchant at the town square gate (branching_road maps)
       const { NPCSpawner } = await import('./utils/NPCSpawner.js');

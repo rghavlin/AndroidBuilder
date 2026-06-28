@@ -836,6 +836,20 @@ export class TemplateMapGenerator {
    * @param {number} [opts.maxAttempts=6]
    * @returns {Promise<{ gameMap: Object, mapData: Object, validation: Object, attempts: number }>}
    */
+  async generateFromScenario(scenarioData) {
+    const { ScenarioMapGenerator } = await import('./generators/ScenarioMapGenerator.js');
+    const builder = new MapBuilder(scenarioData.width, scenarioData.height);
+    const generator = new ScenarioMapGenerator(scenarioData);
+    generator.generate({}, builder);
+    const mapData = builder.getFinalMapData('scenario', {});
+    mapData.metadata.entities = scenarioData.entities || [];
+    mapData.metadata.eventTriggers = scenarioData.eventTriggers || [];
+    if (scenarioData.metadata?.spawnZones) {
+      mapData.metadata.spawnZones = { ...mapData.metadata.spawnZones, ...scenarioData.metadata.spawnZones };
+    }
+    return mapData;
+  }
+
   async generateValidatedMap(templateName, config = {}, GameMapClass, { maxAttempts = 6 } = {}) {
     let best = null;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -1058,7 +1072,27 @@ export class TemplateMapGenerator {
           gameMap.specialBuildings = templateMapData.metadata.specialBuildings;
         }
       }
-      
+
+      // Spawn scenario entities (zombies, NPCs, etc.)
+      if (templateMapData.metadata?.entities?.length > 0) {
+        const { EntityFactory } = await import('../EntityFactory.js');
+        for (const e of templateMapData.metadata.entities) {
+          if (e.type === 'player') continue;
+          try {
+            let entity;
+            if (e.type === 'zombie') {
+              entity = EntityFactory.createZombie(e.x, e.y, e.subtype || 'basic');
+            } else if (e.type === 'npc') {
+              entity = EntityFactory.createNPC(e.x, e.y);
+            }
+            if (entity) gameMap.addEntity(entity, e.x, e.y);
+          } catch (err) {
+            console.warn(`[TemplateMapGenerator] Failed to spawn scenario entity:`, e, err);
+          }
+        }
+        console.log(`[TemplateMapGenerator] Spawned ${templateMapData.metadata.entities.filter(e => e.type !== 'player').length} scenario entities`);
+      }
+
       return gameMap;
     } catch (error) {
       console.error('[TemplateMapGenerator] Failed to apply template to GameMap:', error);

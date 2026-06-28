@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Route, Switch, Router } from 'wouter';
 import Game from './pages/game';
+import MapEditor from './pages/editor';
 import NotFound from './pages/not-found';
 import DevConsole from './components/Game/DevConsole'; // Standard import
 import ScreenScaler from './components/Game/ScreenScaler';
@@ -65,6 +66,7 @@ export default function App() {
           <Switch>
             <Route path="/" component={Game} />
             <Route path="/game" component={Game} />
+            <Route path="/editor" component={MapEditor} />
             <Route component={NotFound} />
           </Switch>
         </Router>
