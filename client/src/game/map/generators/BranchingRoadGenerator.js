@@ -2,6 +2,7 @@ import { BaseMapGenerator } from './BaseMapGenerator.js';
 import { RoadNetwork } from '../RoadNetwork.js';
 import { makeSeededRandom } from '../../utils/SeededRandom.js';
 import { createItemFromDef } from '../../inventory/ItemDefs.js';
+import { computeTollGateLayout } from '../TollGate.js';
 
 /**
  * BranchingRoadGenerator - a wide central boulevard with an irregular street grid.
@@ -165,6 +166,15 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
       north: { x: centerX, y: 0 },
       south: { x: centerX, y: height - 1 }
     };
+
+    // Record the tollgate exclusion footprint now (before loot/zombie population)
+    // so spawners keep that area clear. The gate entities themselves are placed
+    // post-generation by NPCSpawner.spawnTollGate using the same calculation.
+    builder.metadata.tollGate = computeTollGateLayout(
+      builder.metadata.exits.north,
+      { edge: 'north' }
+    ).area;
+
     builder.metadata.roadSegments = net.toMetadata();
 
     // Record the grass plaza interior (inside the ring road) for later use.
@@ -177,6 +187,12 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
 
     // Build the fenced compound inside the town square
     this._buildTownSquareCompound(builder, plaza);
+
+    // Upgraded branching road for maps beyond map 1: spawn 4-6 army tents
+    if ((config.mapNumber || 1) > 1) {
+      const count = randInt(4, 6);
+      this._spawnArmyTents(builder, random, count);
+    }
   }
 
   /**
@@ -478,6 +494,97 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
           }
         });
       });
+    }
+  }
+
+  _canPlaceTent(builder, tx, ty, tw, th) {
+    if (tx < 2 || tx + tw >= builder.width - 2) return false;
+    if (ty < 2 || ty + th >= builder.height - 2) return false;
+
+    const ts = builder.metadata.townSquare;
+    if (ts) {
+      const tsX1 = ts.x - 10;
+      const tsY1 = ts.y - 10;
+      const tsX2 = ts.x + ts.width + 10;
+      const tsY2 = ts.y + ts.height + 10;
+      if (!(tx + tw < tsX1 || tx > tsX2 || ty + th < tsY1 || ty > tsY2)) {
+        return false;
+      }
+    }
+
+    const tg = builder.metadata.tollGate;
+    if (tg) {
+      if (!(tx + tw < tg.x1 || tx > tg.x2 || ty + th < tg.y1 || ty > tg.y2)) {
+        return false;
+      }
+    }
+
+    for (let y = ty - 1; y <= ty + th; y++) {
+      for (let x = tx - 1; x <= tx + tw; x++) {
+        if (x < 0 || x >= builder.width || y < 0 || y >= builder.height) return false;
+        const cell = builder.layout[y][x];
+        if (cell.terrain !== 'grass') return false;
+        if (cell.edgeWalls && (cell.edgeWalls.n || cell.edgeWalls.s || cell.edgeWalls.e || cell.edgeWalls.w)) return false;
+        if (cell.inventoryItems && cell.inventoryItems.length > 0) return false;
+      }
+    }
+
+    for (const b of builder.metadata.buildings) {
+      const bX1 = b.x - 1;
+      const bY1 = b.y - 1;
+      const bX2 = b.x + b.width;
+      const bY2 = b.y + b.height;
+      if (!(tx + tw < bX1 || tx > bX2 || ty + th < bY1 || ty > bY2)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  _spawnArmyTents(builder, random, count) {
+    const tentW = 12;
+    const tentH = 8;
+    const candidates = [];
+
+    for (let y = 10; y < builder.height - 15; y += 4) {
+      for (let x = 4; x < builder.width - 15; x += 4) {
+        if (this._canPlaceTent(builder, x, y, tentW, tentH)) {
+          candidates.push({ x, y });
+        }
+      }
+    }
+
+    if (candidates.length === 0) {
+      console.warn('[BranchingRoadGenerator] No suitable locations found for army tents!');
+      return;
+    }
+
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      const temp = candidates[i];
+      candidates[i] = candidates[j];
+      candidates[j] = temp;
+    }
+
+    const placed = [];
+    for (const c of candidates) {
+      if (placed.length >= count) break;
+
+      let overlap = false;
+      for (const p of placed) {
+        if (Math.abs(c.x - p.x) < 15 && Math.abs(c.y - p.y) < 11) {
+          overlap = true;
+          break;
+        }
+      }
+
+      if (!overlap) {
+        placed.push(c);
+        const isFacingEast = c.x < builder.width / 2;
+        builder.drawArmyTent(c.x, c.y, isFacingEast);
+        console.log(`[BranchingRoadGenerator] Placed army tent at (${c.x + 1}, ${c.y + 1})`);
+      }
     }
   }
 

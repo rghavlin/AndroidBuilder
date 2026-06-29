@@ -75,7 +75,12 @@ export const FLAT_PRICES = {
   // Backpacks
   'backpack.school': 30,    // School backpack
   'backpack.standard': 60,
-  'backpack.hiking': 150
+  'backpack.hiking': 150,
+
+  // Containers
+  'container.guncase': 40,
+  'container.lunchbox': 30,
+  'container.toolbox': 30
 };
 
 // Flat prices keyed by item category. Used for groups of interchangeable items

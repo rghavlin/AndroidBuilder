@@ -335,7 +335,7 @@ export class WorldManager extends SafeEventEmitter {
     let randomSwatCount = 0;
     let randomFirefighterCount = 0;
     let soldierCount = 0;
-    if (mapNumber > 3) {
+    if (progression.randomSpecialized || mapNumber > 3) {
       const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
       if (gameRandom.next() < (swatChance || 0.15)) randomSwatCount = gameRandom.nextInt(0, 1) + 1;
       if (gameRandom.next() < (firefighterChance || 0.15)) randomFirefighterCount = gameRandom.nextInt(0, 1) + 1;
@@ -376,6 +376,7 @@ export class WorldManager extends SafeEventEmitter {
     if (templateToUse === 'branching_road') {
       NPCSpawner.spawnShopkeeper(gameMap);
       NPCSpawner.spawnTownTurrets(gameMap);
+      NPCSpawner.spawnTollGate(gameMap);
     }
 
     // Persist to the world collection
@@ -540,7 +541,7 @@ export class WorldManager extends SafeEventEmitter {
    * Check if player can go south (not on first map)
    */
   canGoSouth() {
-    return this.currentMapId !== 'map_001';
+    return false;
   }
 
   /**
@@ -822,7 +823,7 @@ export class WorldManager extends SafeEventEmitter {
           let randomSwatCount = 0;
           let randomFirefighterCount = 0;
           let soldierCount = 0;
-          if (mapNumber > 3) {
+          if (progression.randomSpecialized || mapNumber > 3) {
             const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
             if (gameRandom.next() < (swatChance || 0.15)) randomSwatCount = gameRandom.nextInt(0, 1) + 1;
             if (gameRandom.next() < (firefighterChance || 0.15)) randomFirefighterCount = gameRandom.nextInt(0, 1) + 1;
@@ -876,8 +877,9 @@ export class WorldManager extends SafeEventEmitter {
           if (templateToUse === 'branching_road') {
             NPCSpawner.spawnShopkeeper(gameMap);
             NPCSpawner.spawnTownTurrets(gameMap);
+            NPCSpawner.spawnTollGate(gameMap);
           }
-          
+
           const savedMapId = this.saveCurrentMap(gameMap, targetMapId, currentTurn, templateToUse);
           if (templateToUse === 'branching_road') {
             const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');

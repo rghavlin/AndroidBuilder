@@ -76,6 +76,21 @@ export const NPCTypes = {
     pools: { weapons: [], foodWater: [], rare: [], general: [] },
     minItems: 0,
     maxItems: 0
+  },
+  // Stationary guard blocking the only opening of an exit tollgate. Town faction
+  // so the gate turrets never target it (and attacking it can escalate them).
+  // Killable (hp 20) but the player still can't outrun the turrets to the exit.
+  gatekeeper: {
+    name: 'Gatekeeper',
+    factionId: 'town',
+    hp: 20,
+    maxAP: 0,
+    hostilityChance: 0,
+    fleeRecoverChance: 0,
+    sightRange: 5,
+    pools: { weapons: [], foodWater: [], rare: [], general: [] },
+    minItems: 0,
+    maxItems: 0
   }
 };
 

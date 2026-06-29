@@ -1,6 +1,7 @@
 import { EntityFactory } from '../EntityFactory.js';
 import { gameRandom } from '../utils/SeededRandom.js';
 import { MAX_VISION_RANGE } from '../config/VisionConfig.js';
+import { isInsideTollGate } from '../map/MapUtils.js';
 import engine from '../GameEngine.js';
 
 export class ZombieReplenishmentSystem {
@@ -47,6 +48,7 @@ export class ZombieReplenishmentSystem {
     // 3. Candidate Pool Search:
     // Finds explored, walkable, empty tiles outside player's maximum sight range
     const visibleKeys = new Set((engine.playerFieldOfView || []).map(t => `${t.x},${t.y}`));
+    const tollGate = gameMap.metadata?.tollGate;
     const candidates = [];
 
     for (let x = 0; x < gameMap.width; x++) {
@@ -55,6 +57,7 @@ export class ZombieReplenishmentSystem {
         if (!tile || !tile.flags.explored || !tile.isWalkable() || tile.contents.length > 0) {
           continue;
         }
+        if (isInsideTollGate(tollGate, x, y)) continue;
 
         // Distance check (Euclidean distance matching vision system)
         const dx = x - player.x;

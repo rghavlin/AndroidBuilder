@@ -7,6 +7,7 @@ import { useInventory } from '../../contexts/InventoryContext';
 import { TradeDialog } from './TradeDialog';
 import BarterWindow from './BarterWindow';
 import EarbucksShopWindow from './EarbucksShopWindow';
+import TollWindow from './TollWindow';
 import LogHistoryWindow from './LogHistoryWindow';
 import PlayerSkillsWindow from './PlayerSkillsWindow';
 import MainMenuWindow from './MainMenuWindow';
@@ -28,6 +29,7 @@ export default function OverlayManager() {
     activeTradeNpc, setActiveTradeNpc,
     isBartering, setIsBartering,
     isShopOpen, setIsShopOpen,
+    tollGuard, setTollGuard,
     logHistoryOpen, setLogHistoryOpen,
     showMainMenu, setShowMainMenu,
     isExtensionOpen, setIsExtensionOpen
@@ -91,6 +93,14 @@ export default function OverlayManager() {
             <EarbucksShopWindow
               mapId={worldManager?.currentMapId || 'map_001'}
               onClose={() => setIsShopOpen(false)}
+            />
+          )}
+
+          {/* Exit Toll Window */}
+          {tollGuard && (
+            <TollWindow
+              guard={tollGuard}
+              onClose={() => setTollGuard(null)}
             />
           )}
 

@@ -4,6 +4,8 @@ import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { findSouthTransitionTile } from '../map/MapUtils.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
+import { PlaceIcon } from '../entities/PlaceIcon.js';
+import { computeTollGateLayout } from '../map/TollGate.js';
 
 
 import { gameRandom } from './SeededRandom.js';
@@ -294,5 +296,75 @@ export class NPCSpawner {
       console.log(`[NPCSpawner] Spawned town turret at (${x}, ${y})`);
     }
     return count;
+  }
+
+  /**
+   * Spawn the standard map-exit tollgate: a serpentine barrier maze, four
+   * town-faction auto-turrets at the corners, and a gate guard blocking the only
+   * opening. The whole layout is derived from the forward (north) exit center
+   * (see computeTollGateLayout), so it drops onto any town-sized map.
+   *
+   * Mirrors spawnTownTurrets/spawnShopkeeper: call before saving so the entities
+   * land in the map snapshot. Barriers persist as `place_icon` entities; turrets
+   * as town-faction items; the guard as a stationary `gatekeeper` NPC.
+   *
+   * NOTE: this only PLACES the gate. The turret-firing rules during a toll run
+   * and the pay-toll / guard-sidestep interaction are wired up separately.
+   *
+   * @param {GameMap} gameMap
+   * @param {object} [opts] forwarded to computeTollGateLayout (e.g. { lanes })
+   * @returns {boolean} whether the gate was placed
+   */
+  static spawnTollGate(gameMap, opts = {}) {
+    const centerX = Math.floor(gameMap.width / 2);
+    const exit = gameMap.metadata?.exits?.north || { x: centerX, y: 0 };
+
+    const layout = computeTollGateLayout(exit, { edge: 'north', ...opts });
+    const inBounds = (x, y) => x >= 0 && x < gameMap.width && y >= 0 && y < gameMap.height;
+
+    // Record the exclusion footprint so spawners (loot/zombies/replenishment) keep
+    // this area clear. The generator pre-records it (with default opts) before
+    // population; refresh it here so it matches the gate that was actually placed.
+    if (gameMap.metadata) gameMap.metadata.tollGate = layout.area;
+
+    // 1. Barriers — block movement but not sight, so turrets fire across the maze.
+    let barrierCount = 0;
+    for (const { x, y } of layout.barriers) {
+      if (!inBounds(x, y)) continue;
+      const icon = new PlaceIcon(`tollgate-barrier-${gameMap.id || 'map'}-${x}-${y}`, x, y, 'barrier');
+      if (gameMap.addEntity(icon, x, y)) barrierCount++;
+    }
+
+    // 2. Corner turrets — town faction (infinite battery/ammo, always on).
+    let turretCount = 0;
+    for (const { x, y } of layout.turrets) {
+      if (!inBounds(x, y)) continue;
+      const turretData = createItemFromDef(TURRET_DEF_ID, { factionId: 'town', isOn: true });
+      if (!turretData) continue;
+      const turret = new Item(turretData);
+      turret.factionId = 'town';
+      turret.isOn = true;
+      gameMap.addItemsToTile(x, y, [turret]);
+      turretCount++;
+    }
+
+    // 3. Gate guard — stationary, blocking the only opening. Records where to
+    // sidestep so the pay-toll interaction can clear the path later.
+    let guard = null;
+    const { x: gx, y: gy } = layout.guard;
+    if (inBounds(gx, gy)) {
+      const id = `tollguard_${gameMap.id || 'map'}`;
+      guard = EntityFactory.createNPC(gx, gy, false, 'gatekeeper', null, id);
+      guard.isTollGuard = true;
+      guard.goalTarget = null;
+      guard.tollSidestep = layout.guard.sidestep;
+      gameMap.addEntity(guard, gx, gy);
+    }
+
+    console.log(
+      `[NPCSpawner] Tollgate at north exit (${exit.x},${exit.y}): ` +
+      `${barrierCount} barriers, ${turretCount} turrets, guard=${!!guard}`
+    );
+    return barrierCount > 0;
   }
 }

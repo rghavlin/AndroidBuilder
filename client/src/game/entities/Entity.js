@@ -89,7 +89,8 @@ export const COMPONENT_CLASSES = {
 
 export const SERIALIZED_FIELDS = [
   'subtype', 'blocksMovement', 'name', 'isHostile', 'equippedWeaponId',
-  'typeId', 'isShopkeeper', 'factionId', 'sightRange', 'hasExited', 'isActive',
+  'typeId', 'isShopkeeper', 'isTollGuard', 'tollPaid', 'tollSidestep', 'tollTarget',
+  'factionId', 'sightRange', 'hasExited', 'isActive',
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
   'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding',
   'drunkenness', 'isStarving', 'isDehydrated', 'meleeKills', 'meleeLvl',

@@ -1,5 +1,5 @@
 import { EntityFactory } from '../EntityFactory.js';
-import { isInsideCompound } from '../map/MapUtils.js';
+import { isInsideCompound, isInsideTollGate } from '../map/MapUtils.js';
 
 import { gameRandom } from './SeededRandom.js';
 /**
@@ -53,7 +53,7 @@ export class ZombieSpawner {
           const actualMinDist = minDistance !== null ? minDistance : minDist;
 
           const compound = gameMap.metadata?.townSquareCompound;
-          const isInside = isInsideCompound(compound, x, y);
+          const isInside = isInsideCompound(compound, x, y) || isInsideTollGate(gameMap.metadata?.tollGate, x, y);
 
           if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0 && !isInside) {
             const zombieId = `zombie-${subtype}-${Date.now()}-${spawnedCount}`;
@@ -76,11 +76,16 @@ export class ZombieSpawner {
     
     spawnHelper('runner', runnerCount, 10);
     
+    const mapNumber = gameMap.mapNumber || 1;
+    const isMap1 = mapNumber === 1;
+
     const acidCount = gameRandom.nextInt(acidRange.min, acidRange.max);
-    spawnHelper('acid', acidCount, 10);
+    const acidConstraints = isMap1 ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
+    spawnHelper('acid', acidCount, 10, acidConstraints);
     
     const fatCount = gameRandom.nextInt(fatRange.min, fatRange.max);
-    spawnHelper('fat', fatCount, 10);
+    const fatConstraints = isMap1 ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
+    spawnHelper('fat', fatCount, 10, fatConstraints);
 
     spawnHelper('spitter', spitterCount, 10);
 
@@ -90,7 +95,6 @@ export class ZombieSpawner {
     spawnHelper('soldier', soldierCount, 10);
 
     // 4. Map-progression Mutants (Starting from Map 11)
-    const mapNumber = gameMap.mapNumber || 1;
     if (mapNumber >= 11) {
       const mutantCount = Math.min(10, mapNumber - 10);
       spawnHelper('mutant', mutantCount, 10);
@@ -216,7 +220,7 @@ export class ZombieSpawner {
             const ry = Math.max(0, Math.min(gameMap.height - 1, Math.floor(station.y + station.height / 2 + Math.sin(angle) * dist)));
             
             const tile = gameMap.getTile(rx, ry);
-            if (tile && tile.isWalkable() && tile.contents.length === 0) {
+            if (tile && tile.isWalkable() && tile.contents.length === 0 && !isInsideTollGate(gameMap.metadata?.tollGate, rx, ry)) {
               const zombieId = `zombie-soldier-out-${Date.now()}-${sIdx}-${i}`;
               if (gameMap.addEntity(EntityFactory.createZombie(rx, ry, 'soldier', zombieId), rx, ry)) {
                 spawnedCount++;
@@ -295,7 +299,7 @@ export class ZombieSpawner {
           const targetX = entX + dx;
           const targetY = entY + dy;
           const tile = gameMap.getTile(targetX, targetY);
-          if (tile && tile.isWalkable() && tile.contents.length === 0) {
+          if (tile && tile.isWalkable() && tile.contents.length === 0 && !isInsideTollGate(gameMap.metadata?.tollGate, targetX, targetY)) {
             const zombieId = `zombie-outsidesoldier-${Date.now()}-${sIdx}-${spawnedOutside}`;
             if (gameMap.addEntity(EntityFactory.createZombie(targetX, targetY, 'soldier', zombieId), targetX, targetY)) {
               spawnedCount++;

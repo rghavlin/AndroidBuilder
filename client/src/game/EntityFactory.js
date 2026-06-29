@@ -129,12 +129,13 @@ export const EntityFactory = {
     entity.sightRange = typeDef.sightRange || 18;
 
     // NPC Inventory
+    const isTollGuard = typeId === 'gatekeeper' || (id && id.startsWith('tollguard_'));
     entity.inventory = new Container({
       id: `${entity.id}_inventory`,
       type: 'npc_inventory',
       name: `${entity.name}'s Inventory`,
-      width: 6,
-      height: 15,
+      width: isTollGuard ? 12 : 6,
+      height: isTollGuard ? 8 : 15,
       autoSort: true
     });
 

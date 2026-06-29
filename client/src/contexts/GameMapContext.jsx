@@ -80,6 +80,9 @@ export const GameMapProvider = ({ children }) => {
         if (!tile.flags || !tile.flags.explored) return false;
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
 
+        const blockedByTurret = tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player));
+        if (blockedByTurret) return false;
+
         const draggedItemId = engine.dragging?.item?.instanceId;
         const riddenItemId = engine.riding?.item?.instanceId;
         return !tile.contents.some(entity => {

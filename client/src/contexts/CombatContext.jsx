@@ -372,7 +372,7 @@ export const CombatProvider = ({ children }) => {
                 }
                 addLog(logMsg, 'combat');
                 if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
-                if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
+                if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {
                     const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
                     if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
                 }
@@ -599,7 +599,7 @@ export const CombatProvider = ({ children }) => {
                     targetEntity.takeDamage(damage);
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
                     if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
-                    if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
+                    if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {
                         const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
                         if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
                     }
@@ -813,8 +813,8 @@ export const CombatProvider = ({ children }) => {
                 targetEntity.takeDamage(damage, { id: 'thrown_stone', type: 'weapon' });
                 addLog(`Player throws stone: ${damage} damage`, 'combat');
 
-                // Attacking a town shopkeeper provokes the town's turrets.
-                if (targetEntity.type === EntityType.NPC && targetEntity.isShopkeeper) {
+                // Attacking a town shopkeeper or gatekeeper provokes the town's turrets.
+                if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {
                     const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
                     if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
                 }

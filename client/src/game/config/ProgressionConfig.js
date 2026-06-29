@@ -16,13 +16,27 @@ export const MapProgression = {
   1: {
     basicCount: 18,
     crawlerRange: { min: 3, max: 6 },
-    acidRange: { min: 0, max: 0 },
-    fatRange: { min: 0, max: 0 },
+    acidRange: { min: 1, max: 1 },
+    fatRange: { min: 1, max: 1 },
     runnerCount: 1,
     spitterCount: 0,
     maxTotal: 120
   },
   2: {
+    basicCount: 35,
+    crawlerRange: { min: 6, max: 10 },
+    acidRange: { min: 3, max: 5 },
+    fatRange: { min: 4, max: 7 },
+    runnerCount: 3,
+    spitterCount: 2,
+    maxTotal: 180,
+    randomSpecialized: {
+      swatChance: 0.30,
+      firefighterChance: 0.30,
+      soldierChance: 0.20
+    }
+  },
+  3: {
     basicCount: 24,
     crawlerRange: { min: 3, max: 6 },
     acidRange: { min: 1, max: 2 },
@@ -31,7 +45,7 @@ export const MapProgression = {
     spitterCount: 0,
     maxTotal: 120
   },
-  3: {
+  4: {
     basicCount: 25,
     crawlerRange: { min: 4, max: 7 },
     acidRange: { min: 2, max: 3 },
@@ -40,7 +54,7 @@ export const MapProgression = {
     spitterCount: 1,
     maxTotal: 120
   },
-  4: {
+  5: {
     basicCount: 51,
     crawlerRange: { min: 9, max: 15 },
     acidRange: { min: 5, max: 7 },
@@ -63,7 +77,7 @@ export function getProgressionForMap(mapNumber) {
   }
 
   // Otherwise, use the formula for scaling past the max defined map
-  const maxDefinedMap = 4;
+  const maxDefinedMap = 5;
   const baseConfig = MapProgression[maxDefinedMap];
   const delta = mapNumber - maxDefinedMap;
 

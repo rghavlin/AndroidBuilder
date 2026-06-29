@@ -50,12 +50,13 @@ export const TEMPLATE_METADATA = {
 
 export const FIXED_TEMPLATE_ASSIGNMENTS = {
   1: 'branching_road',
-  2: 'road',
-  3: 'road',
-  4: 'winding_road',
-  5: 'mirrored_winding_road',
-  6: 'split_road',
-  10: 'lab'
+  2: 'branching_road',
+  3: 'lab',
+  4: 'road',
+  5: 'road',
+  6: 'winding_road',
+  7: 'mirrored_winding_road',
+  8: 'split_road'
 };
 
 /**

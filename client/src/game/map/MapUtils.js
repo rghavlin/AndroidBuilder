@@ -12,6 +12,19 @@ export function isInsideCompound(compound, x, y) {
 }
 
 /**
+ * Check if coordinates (x, y) lie inside the map-exit tollgate footprint.
+ * @param {Object} tollGate - The tollgate metadata rect (gameMap.metadata.tollGate)
+ * @param {number} x - The x-coordinate
+ * @param {number} y - The y-coordinate
+ * @returns {boolean} True if inside the tollgate area, false otherwise.
+ */
+export function isInsideTollGate(tollGate, x, y) {
+  if (!tollGate) return false;
+  const { x1, x2, y1, y2 } = tollGate;
+  return x >= x1 && x <= x2 && y >= y1 && y <= y2;
+}
+
+/**
  * Check whether (x, y) falls inside any building's footprint. Buildings use
  * top-left origin + width/height bounds (distinct from compound fenceBounds).
  * @param {Array<{x:number,y:number,width:number,height:number}>} buildings

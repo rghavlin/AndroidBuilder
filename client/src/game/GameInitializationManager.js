@@ -416,6 +416,7 @@ class GameInitializationManager extends EventEmitter {
       const shopkeeper = NPCSpawner.spawnShopkeeper(gameMap);
       if (shopkeeper) {
         NPCSpawner.spawnTownTurrets(gameMap);
+        NPCSpawner.spawnTollGate(gameMap);
         const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
         const mapId = worldManager?.currentMapId || 'map_001';
         earbucksShopSystem.initCatalog(mapId);

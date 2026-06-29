@@ -4,7 +4,7 @@ import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/tra
 import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
 import { ZombieTypes } from '../entities/ZombieTypes.js';
 import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.js';
-import { isInsideCompound, isInsideAnyBuilding } from './MapUtils.js';
+import { isInsideCompound, isInsideAnyBuilding, isInsideTollGate } from './MapUtils.js';
 
 
 import { gameRandom } from '../utils/SeededRandom.js';
@@ -139,9 +139,11 @@ export class LootGenerator {
         // 2. Identify outdoor tiles and spawn outdoor loot (excluding doorway tiles)
         const outdoorTiles = [];
         const compound = gameMap.metadata?.townSquareCompound;
+        const tollGate = gameMap.metadata?.tollGate;
         for (let y = 0; y < gameMap.height; y++) {
             for (let x = 0; x < gameMap.width; x++) {
                 if (isInsideCompound(compound, x, y)) continue;
+                if (isInsideTollGate(tollGate, x, y)) continue;
 
 
                 const tile = gameMap.getTile(x, y);
@@ -382,7 +384,7 @@ export class LootGenerator {
                             break;
                         }
                         const compound = gameMap.metadata?.townSquareCompound;
-                        if (isInsideCompound(compound, tx, ty)) {
+                        if (isInsideCompound(compound, tx, ty) || isInsideTollGate(gameMap.metadata?.tollGate, tx, ty)) {
                             isSpaceFree = false;
                             break;
                         }

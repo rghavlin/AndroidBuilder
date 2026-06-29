@@ -174,6 +174,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     activeTradeNpc, setActiveTradeNpc,
     isBartering, setIsBartering,
     isShopOpen, setIsShopOpen,
+    tollGuard, setTollGuard,
     isExtensionOpen, setIsExtensionOpen
   } = useOverlays();
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
@@ -415,17 +416,24 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     }
 
     if (tile.terrain === 'water') {
-      // Use robust floored distance for adjacency
       const px = Math.floor(player.x);
       const py = Math.floor(player.y);
       const dx = x - px;
       const dy = y - py;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const isAdjacentOrOn = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0) || (dx === 0 && dy === 0);
 
-      if (distance < 2.5) {
+      if (isAdjacentOrOn) {
         setWaterMenu({ x, y, screenX, screenY });
       } else {
-        console.log('[MapInterface] Water too far for interaction:', distance.toFixed(2));
+        console.log('[MapInterface] Water not adjacent for interaction');
+        addEffect({
+          type: 'damage',
+          x,
+          y,
+          value: 'Must be adjacent',
+          color: '#fbbf24',
+          duration: 1000
+        });
       }
       return;
     }
@@ -436,19 +444,32 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       const py = Math.floor(player.y);
       const dx = x - px;
       const dy = y - py;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const isAdjacentOrOn = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0) || (dx === 0 && dy === 0);
 
-      if (distance < 2.5) {
-        // Disable context menu for shopkeeper if hostile to town faction
+      if (isAdjacentOrOn) {
+        // Disable context menu for shopkeeper/gatekeeper if hostile to town faction
         const isShopkeeper = npc.typeId === 'shopkeeper' || npc.isShopkeeper;
+        const isTollGuard = !!npc.isTollGuard;
         const isHostile = typeof npc.isHostileTo === 'function' ? npc.isHostileTo(player) : false;
-        if (isShopkeeper && isHostile) {
-          console.log('[MapInterface] Shopkeeper is hostile. Disabling context menu.');
+        if ((isShopkeeper || isTollGuard) && isHostile) {
+          console.log('[MapInterface] Town NPC is hostile. Disabling context menu.');
+          return;
+        }
+        // A paid-off gatekeeper has stepped aside and can no longer be interacted with.
+        if (isTollGuard && npc.tollPaid) {
           return;
         }
         setNpcMenu({ x, y, screenX, screenY, npc });
       } else {
-        console.log('[MapInterface] NPC too far for interaction:', distance.toFixed(2));
+        console.log('[MapInterface] NPC not adjacent for interaction');
+        addEffect({
+          type: 'damage',
+          x,
+          y,
+          value: 'Must be adjacent',
+          color: '#fbbf24',
+          duration: 1000
+        });
       }
       return;
     }
@@ -557,6 +578,19 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               >
                 Talk
               </button>
+            ) : npcMenu.npc.isTollGuard ? (
+              <button
+                disabled={typeof npcMenu.npc.isHostileTo === 'function' ? npcMenu.npc.isHostileTo(playerRef.current) : false}
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => {
+                  if (!isPlayerTurn) return;
+                  setTollGuard(npcMenu.npc);
+                  setNpcMenu(null);
+                  playSound('Click');
+                }}
+              >
+                Talk
+              </button>
             ) : (
               <button
                 className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
@@ -595,7 +629,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             activeNpcDemand ||
             isSkillsOpen ||
             isSleeping ||
-            isShopOpen
+            isShopOpen ||
+            tollGuard
           ) {
             return null;
           }

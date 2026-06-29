@@ -2,7 +2,7 @@ import { createItemFromDef, ItemDefs } from '../inventory/ItemDefs.js';
 import { Item } from '../inventory/Item.js';
 import { getItemPrice } from '../inventory/ItemPricing.js';
 import engine from '../GameEngine.js';
-import { DEFAULT_SHOP_CATALOG } from '../config/ShopConfig.js';
+import { DEFAULT_SHOP_CATALOG, SHOP_CATALOG_BY_MAP } from '../config/ShopConfig.js';
 
 const EMPTY_CATALOG = [];
 
@@ -17,10 +17,13 @@ class EarbucksShopSystem {
     }
     
     if (!mapEntry.metadata.shopCatalog) {
+      const mapNumber = parseInt(mapId?.replace('map_', ''), 10) || 1;
+      const sourceCatalog = SHOP_CATALOG_BY_MAP[mapNumber] || DEFAULT_SHOP_CATALOG;
+      
       // stock === null means an infinite supply; a finite number caps how many
       // can be purchased on this map (tracked via the `purchased` counter).
       // Prices are read from the central price list, never stored by the shop.
-      mapEntry.metadata.shopCatalog = DEFAULT_SHOP_CATALOG.map(item => ({
+      mapEntry.metadata.shopCatalog = sourceCatalog.map(item => ({
         defId: item.defId,
         name: ItemDefs[item.defId]?.name || 'Unknown Item',
         price: getItemPrice(item.defId),
