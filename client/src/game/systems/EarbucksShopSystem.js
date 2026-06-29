@@ -1,5 +1,6 @@
 import { createItemFromDef, ItemDefs } from '../inventory/ItemDefs.js';
 import { Item } from '../inventory/Item.js';
+import { getItemPrice } from '../inventory/ItemPricing.js';
 import engine from '../GameEngine.js';
 import { DEFAULT_SHOP_CATALOG } from '../config/ShopConfig.js';
 
@@ -18,13 +19,21 @@ class EarbucksShopSystem {
     if (!mapEntry.metadata.shopCatalog) {
       // stock === null means an infinite supply; a finite number caps how many
       // can be purchased on this map (tracked via the `purchased` counter).
+      // Prices are read from the central price list, never stored by the shop.
       mapEntry.metadata.shopCatalog = DEFAULT_SHOP_CATALOG.map(item => ({
         defId: item.defId,
         name: ItemDefs[item.defId]?.name || 'Unknown Item',
-        price: item.price,
+        price: getItemPrice(item.defId),
         stock: item.stock,
         purchased: 0
       }));
+    } else {
+      // Re-sync prices from the central list in case it changed (e.g. for an
+      // existing save). Mutate in place so the catalog array keeps its identity
+      // for useSyncExternalStore subscribers.
+      for (const entry of mapEntry.metadata.shopCatalog) {
+        entry.price = getItemPrice(entry.defId);
+      }
     }
   }
 
@@ -43,14 +52,17 @@ class EarbucksShopSystem {
     return mapEntry?.metadata?.shopCatalog || EMPTY_CATALOG;
   }
 
-  addItem(mapId, { defId, name, price, stock = null }) {
-    if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) {
-      console.warn(`[EarbucksShopSystem] Ignoring addItem for "${defId}": invalid price ${price} (must be a positive number)`);
+  addItem(mapId, { defId, name, stock = null }) {
+    if (!defId || !ItemDefs[defId]) {
+      console.warn(`[EarbucksShopSystem] Ignoring addItem: unknown defId "${defId}"`);
       return;
     }
     this.initCatalog(mapId);
     const mapEntry = engine.worldManager?.maps.get(mapId);
     if (!mapEntry || !mapEntry.metadata) return;
+
+    // Price is always read from the central price list, never passed in.
+    const price = getItemPrice(defId);
 
     // Normalize stock: null = infinite, otherwise a non-negative integer.
     const normalizedStock = (stock === null || stock === undefined)

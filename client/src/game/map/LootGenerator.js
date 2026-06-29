@@ -45,6 +45,8 @@ export class LootGenerator {
     constructor() {
         this.itemKeys = [];
         this.backpacksSpawned = 0;
+        this.standardBackpacksSpawnedMap = 0;
+        this.hikingBackpacksSpawnedMap = 0;
     }
 
     /**
@@ -53,6 +55,8 @@ export class LootGenerator {
     spawnLoot(gameMap, mapNumber = 1, config = {}) {
         this.initItemKeys();
         this.backpacksSpawned = 0;
+        this.standardBackpacksSpawnedMap = 0;
+        this.hikingBackpacksSpawnedMap = 0;
 
         // 1. Identify special buildings and spawn specialized loot
         if (gameMap.specialBuildings) {
@@ -686,6 +690,21 @@ export class LootGenerator {
     }
 
     /**
+     * Enforce map-specific backpack limits
+     */
+    canSpawnBackpack(defId, mapNumber) {
+        if (mapNumber === 1) {
+            if (defId === 'backpack.hiking') {
+                return false; // 0 hiking backpacks on Map 1
+            }
+            if (defId === 'backpack.standard') {
+                return this.standardBackpacksSpawnedMap < 1; // max 1 standard backpack on Map 1
+            }
+        }
+        return true;
+    }
+
+    /**
      * Ensure item keys are initialized
      */
     initItemKeys() {
@@ -708,6 +727,14 @@ export class LootGenerator {
         const filteredKeys = this.itemKeys.filter(key => {
             // After map 3, water bottles only spawn in allowed locations
             if (mapNumber > LOOT_CONSTANTS.WATER_BOTTLE_RESTRICTION_MAP && key === 'food.waterbottle' && !options.allowWaterBottle) {
+                return false;
+            }
+            // Map 1 specific exclusions: standard and hiking backpacks do not drop in general loot
+            if (mapNumber === 1 && (key === 'backpack.standard' || key === 'backpack.hiking')) {
+                return false;
+            }
+            // All maps: hiking backpacks do not drop in general loot (restricted to special buildings)
+            if (key === 'backpack.hiking') {
                 return false;
             }
             const def = ItemDefs[key];
@@ -758,9 +785,15 @@ export class LootGenerator {
             const randomKey = this.getWeightedRandomItemKey(location, mapNumber, options);
             const def = ItemDefs[randomKey];
 
-            // 1. Map-wide limit: Max 1 backpack per map
+            // 1. Map-wide limit: Max 1 backpack per map (excluding school backpacks on Map 1)
             const isBackpack = def.equippableSlot === 'backpack' || (Array.isArray(def.equippableSlot) && def.equippableSlot.includes('backpack'));
-            if (isBackpack && this.backpacksSpawned >= 1) continue;
+            const isSchoolBackpack = randomKey === 'backpack.school';
+            const countsAsLimitedBackpack = isBackpack && !(mapNumber === 1 && isSchoolBackpack);
+            
+            if (countsAsLimitedBackpack && this.backpacksSpawned >= 1) continue;
+
+            // Enforce map-specific standard/hiking limits
+            if (!this.canSpawnBackpack(randomKey, mapNumber)) continue;
 
             // 2. Pile limit: Max 1 food item per loot pile
             const isSeed = def.id && def.id.endsWith('seeds');
@@ -779,7 +812,9 @@ export class LootGenerator {
             const selectedItem = createItemFromDef(randomKey);
             if (selectedItem) {
                 // Track limits
-                if (isBackpack) this.backpacksSpawned++;
+                if (countsAsLimitedBackpack) this.backpacksSpawned++;
+                if (randomKey === 'backpack.standard') this.standardBackpacksSpawnedMap++;
+                if (randomKey === 'backpack.hiking') this.hikingBackpacksSpawnedMap++;
                 if (isFood) hasFoodInPile = true;
                 seenKeysInPile.add(randomKey);
 
@@ -996,8 +1031,14 @@ export class LootGenerator {
 
                     // Backpack in building
                     if (index === buildingState.backpackDropIndex && buildingRules.backpackType) {
-                        const backpack = createItemFromDef(buildingRules.backpackType);
-                        if (backpack) items.push(backpack);
+                        if (this.canSpawnBackpack(buildingRules.backpackType, mapNumber)) {
+                            const backpack = createItemFromDef(buildingRules.backpackType);
+                            if (backpack) {
+                                items.push(backpack);
+                                if (buildingRules.backpackType === 'backpack.standard') this.standardBackpacksSpawnedMap++;
+                                if (buildingRules.backpackType === 'backpack.hiking') this.hikingBackpacksSpawnedMap++;
+                            }
+                        }
                     }
                     break;
                 case 'police':
@@ -1025,8 +1066,14 @@ export class LootGenerator {
 
                     // Backpack in building
                     if (index === buildingState.backpackDropIndex && buildingRules.backpackType) {
-                        const backpack = createItemFromDef(buildingRules.backpackType);
-                        if (backpack) items.push(backpack);
+                        if (this.canSpawnBackpack(buildingRules.backpackType, mapNumber)) {
+                            const backpack = createItemFromDef(buildingRules.backpackType);
+                            if (backpack) {
+                                items.push(backpack);
+                                if (buildingRules.backpackType === 'backpack.standard') this.standardBackpacksSpawnedMap++;
+                                if (buildingRules.backpackType === 'backpack.hiking') this.hikingBackpacksSpawnedMap++;
+                            }
+                        }
                     }
 
                     // 20% chance for tactical gear (holsters, ammo pouches) in each drop
@@ -1090,8 +1137,14 @@ export class LootGenerator {
                         }
                     }
                     if (index === buildingState.backpackDropIndex && buildingRules.backpackType) {
-                        const backpack = createItemFromDef(buildingRules.backpackType);
-                        if (backpack) items.push(backpack);
+                        if (this.canSpawnBackpack(buildingRules.backpackType, mapNumber)) {
+                            const backpack = createItemFromDef(buildingRules.backpackType);
+                            if (backpack) {
+                                items.push(backpack);
+                                if (buildingRules.backpackType === 'backpack.standard') this.standardBackpacksSpawnedMap++;
+                                if (buildingRules.backpackType === 'backpack.hiking') this.hikingBackpacksSpawnedMap++;
+                            }
+                        }
                     }
                     if (index === buildingState.desertEagleDropIndex) {
                         const deagle = createItemFromDef('weapon.deserteagle');

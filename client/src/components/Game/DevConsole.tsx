@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost, CloudRain, Sun, Store, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import engine from '../../game/GameEngine.js';
 import { earbucksShopSystem } from '../../game/systems/EarbucksShopSystem.js';
+import { getItemPrice } from '../../game/inventory/ItemPricing.js';
 
 interface DevConsoleProps {
     onClose: () => void;
@@ -292,6 +293,61 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         }
     };
 
+    const gatherAllItems = async () => {
+        if (!engine.isReady()) return;
+        
+        try {
+            console.log('[DevConsole] 📦 Gathering all items on map to player tile...');
+            const { Item } = await import('../../game/inventory/Item.js');
+            
+            const map = engine.gameMap;
+            const player = engine.player;
+            const inventoryManager = engine.inventoryManager;
+            
+            if (!map || !player || !inventoryManager || !inventoryManager.groundManager) {
+                console.error('[DevConsole] ❌ Engine systems not ready');
+                return;
+            }
+            
+            const playerX = player.x;
+            const playerY = player.y;
+            let totalGathered = 0;
+            
+            for (let y = 0; y < map.height; y++) {
+                for (let x = 0; x < map.width; x++) {
+                    if (x === playerX && y === playerY) continue;
+                    
+                    const itemsOnTile = map.getItemsFromTile(x, y);
+                    if (itemsOnTile && itemsOnTile.length > 0) {
+                        itemsOnTile.forEach(itemData => {
+                            try {
+                                const item = Item.fromJSON(itemData);
+                                if (item) {
+                                    inventoryManager.groundManager.addItemSmart(item);
+                                    totalGathered++;
+                                }
+                            } catch (err) {
+                                console.error('[DevConsole] ❌ Error gathering item:', err);
+                            }
+                        });
+                    }
+                }
+            }
+            
+            if (totalGathered > 0) {
+                // Organize and notify changes
+                inventoryManager.groundManager.updateCategoryAreas();
+                inventoryManager.emit('inventoryChanged');
+                engine.notifyUpdate();
+                console.log(`[DevConsole] ✅ Gathered ${totalGathered} items to player tile (${playerX}, ${playerY})`);
+            } else {
+                console.log('[DevConsole] ℹ️ No items found to gather on the map');
+            }
+        } catch (err) {
+            console.error('[DevConsole] 🚨 Gather items process crashed:', err);
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-background/90 backdrop-blur-md p-4 pointer-events-auto shadow-2xl">
             <Card className="w-full max-w-4xl bg-card border-primary/20 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -409,6 +465,12 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                                     desc={engine.seeThroughWalls ? "Currently: ON (Zombies Visible)" : "Currently: OFF (LOS Only)"} 
                                     onClick={toggleXRay} 
                                 />
+                                <WorldToolButton 
+                                    icon={<Package className="h-5 w-5 text-amber-500" />} 
+                                    title="Gather Items" 
+                                    desc="Gather all ground items to player tile" 
+                                    onClick={gatherAllItems} 
+                                />
                             </div>
                             
                             <DevConsoleShopManager />
@@ -524,9 +586,11 @@ function DevConsoleShopManager() {
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [itemDefs, setItemDefs] = useState<any>({});
     const [selectedDefId, setSelectedDefId] = useState('');
-    const [price, setPrice] = useState(5);
     const [unlimited, setUnlimited] = useState(true);
     const [stock, setStock] = useState(1);
+
+    // Price is read from the central price list, not entered manually.
+    const derivedPrice = selectedDefId ? getItemPrice(selectedDefId) : 0;
     
     const currentMapId = engine.worldManager?.currentMapId || 'map_001';
     
@@ -553,7 +617,6 @@ function DevConsoleShopManager() {
         earbucksShopSystem.addItem(currentMapId, {
             defId: selectedDefId,
             name,
-            price,
             stock: unlimited ? null : Math.max(0, stock)
         });
     };
@@ -634,13 +697,12 @@ function DevConsoleShopManager() {
 
                             <div className="w-24 flex flex-col gap-1.5">
                                 <Label className="text-[10px] text-zinc-500 uppercase font-bold">Price (♪)</Label>
-                                <Input
-                                    type="number"
-                                    min="1"
-                                    value={price}
-                                    onChange={e => setPrice(Math.max(1, parseInt(e.target.value) || 1))}
-                                    className="bg-black text-white border-primary/40 focus:border-primary text-center font-mono h-9"
-                                />
+                                <div
+                                    title="Price is read from the central price list (ItemPricing)"
+                                    className="h-9 flex items-center justify-center bg-black/60 text-emerald-400 border border-white/10 rounded-md text-center font-mono tabular-nums"
+                                >
+                                    {derivedPrice}
+                                </div>
                             </div>
 
                             <div className="w-28 flex flex-col gap-1.5">
