@@ -1,26 +1,7 @@
 import engine from '../GameEngine.js';
 import { getItemPrice } from '../inventory/ItemPricing.js';
+import { TOLL_TARGET } from '../config/ProgressionConfig.js';
 
-/**
- * TollGateSystem
- *
- * Backs the exit tollgate "pay" interaction (see TollWindow). The player drops
- * items into the gatekeeper's deposit grid; their combined Earbucks value (from
- * the central price list, getItemPrice) is the toll progress. When the value
- * reaches the target the player can pay: the deposit is consumed, the guard
- * steps aside into its reserved alcove, and it can no longer be interacted with.
- *
- * The deposit IS the guard NPC's own `inventory` container, so anything left in
- * it persists with the entity across save/load — the player can drop some items,
- * cancel out, and come back later with more (the target is never revealed; they
- * have to figure out what's enough).
- *
- * Mirrors TradingSystem's shape (start / getState / cancel + inventory-change
- * notifications) so the UI can stay a thin view.
- */
-
-// Starting toll value in Earbucks. Tune as needed.
-export const TOLL_TARGET = 200;
 
 class TollGateSystem {
   constructor() {

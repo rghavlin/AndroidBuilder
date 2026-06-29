@@ -451,16 +451,16 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
       builder.metadata.placeIcons.push({ subtype: 'barrier', x: barrierLeftX, y: y2 });
       builder.metadata.placeIcons.push({ subtype: 'barrier', x: barrierRightX, y: y2 });
 
-      // Inside the fence, left side (shifted right to sit just left of the opening):
+      // Outside the building, left side of the entrance pathway:
       // 3 columns of harvestable crops (Tomato, Carrot, Corn), 4 in each column
       const cropDefs = [
-        { x: 103, defId: 'provision.harvestable_tomato', subtype: 'harvestable_tomato' },
-        { x: 105, defId: 'provision.harvestable_carrot', subtype: 'harvestable_carrot' },
-        { x: 107, defId: 'provision.harvestable_corn', subtype: 'harvestable_corn' }
+        { x: centerX - 7, defId: 'provision.harvestable_tomato', subtype: 'harvestable_tomato' },
+        { x: centerX - 5, defId: 'provision.harvestable_carrot', subtype: 'harvestable_carrot' },
+        { x: centerX - 3, defId: 'provision.harvestable_corn', subtype: 'harvestable_corn' }
       ];
 
       cropDefs.forEach(col => {
-        for (let cy = 144; cy <= 147; cy++) {
+        for (let cy = y2 - 5; cy <= y2 - 2; cy++) {
           const cropItem = createItemFromDef(col.defId, {
             subtype: col.subtype,
             x: col.x,
@@ -476,10 +476,10 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
         }
       });
 
-      // Inside the fence, right side (shifted left to sit just right of the opening):
+      // Outside the building, right side of the entrance pathway:
       // 6 rain catchers (2x3 grid)
-      const rainCatcherCols = [113, 115];
-      const rainCatcherRows = [144, 146, 148];
+      const rainCatcherCols = [centerX + 3, centerX + 5];
+      const rainCatcherRows = [y2 - 5, y2 - 3, y2 - 1];
 
       rainCatcherCols.forEach(cx => {
         rainCatcherRows.forEach(cy => {
@@ -494,6 +494,7 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
           }
         });
       });
+
     }
   }
 

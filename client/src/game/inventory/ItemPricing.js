@@ -157,7 +157,7 @@ function isSeed(defId, def, inst) {
 
 // HP restored by a medical item: a flat number, a {min,max} range (use max),
 // or "Max HP" (heal to full -> the player's max HP).
-function healValue(def, inst) {
+function healValue(def, inst, context = {}) {
   const ce = field(inst, def, 'consumptionEffects');
   const heal = ce && ce.heal;
   if (heal === undefined || heal === null) return 0;
@@ -168,6 +168,7 @@ function healValue(def, inst) {
     return 0;
   }
   // String such as "Max HP": value equals the player's maximum HP.
+  if (context.playerMaxHp !== undefined) return context.playerMaxHp;
   const livePlayer = (typeof globalThis !== 'undefined') && globalThis.gameEngine?.player;
   return (livePlayer && livePlayer.maxHp) || DEFAULT_MAX_HP;
 }
@@ -175,9 +176,10 @@ function healValue(def, inst) {
 /**
  * Standard Earbucks price for an item.
  * @param {string|object} item - a defId, an item definition, or an Item instance.
+ * @param {object} [context] - optional evaluation context (e.g. { playerMaxHp })
  * @returns {number} price in Earbucks (>= 0).
  */
-export function getItemPrice(item) {
+export function getItemPrice(item, context = {}) {
   const { defId, def, inst } = resolve(item);
   if (!defId) return DEFAULT_PRICE;
 
@@ -204,7 +206,7 @@ export function getItemPrice(item) {
 
   // Medical: 1 per max HP healed. Items that don't restore HP fall back to default.
   if (hasCategory(def, inst, ItemCategory.MEDICAL)) {
-    const price = healValue(def, inst) * RATE_PER_HP_HEALED * qty;
+    const price = healValue(def, inst, context) * RATE_PER_HP_HEALED * qty;
     return price > 0 ? price : DEFAULT_PRICE;
   }
 

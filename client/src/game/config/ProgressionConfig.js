@@ -110,3 +110,6 @@ export function getProgressionForMap(mapNumber) {
     }
   };
 }
+
+export const TOLL_TARGET = 200;
+

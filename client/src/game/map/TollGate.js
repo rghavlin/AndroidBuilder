@@ -99,13 +99,13 @@ export function computeTollGateLayout(exit, opts = {}) {
   };
 
   // --- Side walls: seal both sidewalk columns across the maze rows so the player
-  // can't walk up the side or enter a lane sideways. Skip the guard's sidestep
-  // alcove so the gate can actually open. ---
+  // can't walk up the side or enter a lane sideways. Skip row farWall.y so we don't
+  // place side-wall barriers overlapping the corner turrets. ---
   const yLo = Math.min(nearWall.y, farWall.y);
   const yHi = Math.max(nearWall.y, farWall.y);
   for (const sx of [sideLeft, sideRight]) {
     for (let y = yLo; y <= yHi; y++) {
-      if (sx === guard.sidestep.x && y === guard.sidestep.y) continue; // leave alcove
+      if (y === farWall.y) continue; // leave bottom corners for the turrets
       barriers.push({ x: sx, y });
     }
   }
@@ -117,8 +117,9 @@ export function computeTollGateLayout(exit, opts = {}) {
   const turrets = [
     { x: sideLeft,  y: nearWall.y - dir }, // near-left  (exit row)
     { x: sideRight, y: nearWall.y - dir }, // near-right
-    { x: sideLeft,  y: guard.sidestep.x === sideLeft ? farWall.y : farWall.y + dir },  // far-left   (moved up if it's the alcove)
-    { x: sideRight, y: guard.sidestep.x === sideRight ? farWall.y : farWall.y + dir }   // far-right  (moved up if it's the alcove)
+    { x: sideLeft,  y: farWall.y },         // far-left   (corner seal)
+    { x: sideRight, y: farWall.y }          // far-right  (corner seal / blocks alcove for player)
+
   ];
 
   const bounds = { xLeft, xRight, yNear: nearWall.y, yFar: farWall.y };

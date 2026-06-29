@@ -384,6 +384,7 @@ class GameInitializationManager extends EventEmitter {
         if (worldManager) {
           worldManager.zombiesSpawned['map_001'] = 0;
           worldManager.zombiesKilled['map_001'] = 0;
+          worldManager.zombiesInitialCount['map_001'] = 0;
         }
         this.gameObjects.lootGenerator = new LootGenerator();
       } else {
@@ -394,7 +395,9 @@ class GameInitializationManager extends EventEmitter {
       if (worldManager) {
         worldManager.zombiesSpawned['map_001'] = spawnCount;
         worldManager.zombiesKilled['map_001'] = 0;
+        worldManager.zombiesInitialCount['map_001'] = spawnCount;
       }
+
 
 
 

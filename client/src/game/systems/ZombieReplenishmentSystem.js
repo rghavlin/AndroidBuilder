@@ -3,6 +3,9 @@ import { gameRandom } from '../utils/SeededRandom.js';
 import { MAX_VISION_RANGE } from '../config/VisionConfig.js';
 import { isInsideTollGate } from '../map/MapUtils.js';
 import engine from '../GameEngine.js';
+import Logger from '../utils/Logger.js';
+
+const logger = Logger.scope('ZombieReplenishment');
 
 export class ZombieReplenishmentSystem {
   /**
@@ -15,33 +18,33 @@ export class ZombieReplenishmentSystem {
   static processTurn(gameMap, player, worldManager, currentTurn) {
     const wm = worldManager || engine?.worldManager;
     if (!gameMap || !player || !wm) {
-      console.log('[ZombieReplenishment Debug] Missing engine or map context');
+      logger.debug('Missing engine or map context');
       return;
     }
 
     const mapId = wm.currentMapId;
     if (!mapId) {
-      console.log('[ZombieReplenishment Debug] Missing currentMapId');
+      logger.debug('Missing currentMapId');
       return;
     }
 
     const entryTurn = wm.firstEntryTurn[mapId] || 1;
     const turnsOnMap = currentTurn - entryTurn;
-    console.log(`[ZombieReplenishment Debug] mapId: ${mapId}, entryTurn: ${entryTurn}, currentTurn: ${currentTurn}, turnsOnMap: ${turnsOnMap}`);
+    logger.debug(`mapId: ${mapId}, entryTurn: ${entryTurn}, currentTurn: ${currentTurn}, turnsOnMap: ${turnsOnMap}`);
 
     // 1. Turn Gate: countdown starts when player first enters the map.
     // Zombie spawning begins at turn 25 (24 turns after entry).
     if (turnsOnMap < 24) {
-      console.log('[ZombieReplenishment Debug] Gated by turn count (less than 25 turns on map)');
+      logger.debug('Gated by turn count (less than 25 turns on map)');
       return;
     }
 
     // 2. Cap Gate: no more zombies than original starting total
     const liveZombies = gameMap.getEntitiesByType('zombie') || [];
-    const maxZombies = wm.zombiesSpawned[mapId] || 0;
-    console.log(`[ZombieReplenishment Debug] liveZombies: ${liveZombies.length}, maxZombies (cap): ${maxZombies}`);
+    const maxZombies = wm.zombiesInitialCount?.[mapId] ?? wm.zombiesSpawned[mapId] ?? 0;
+    logger.debug(`liveZombies: ${liveZombies.length}, maxZombies (cap): ${maxZombies}`);
     if (liveZombies.length >= maxZombies) {
-      console.log('[ZombieReplenishment Debug] Gated by cap (map has maximum allowed zombies)');
+      logger.debug('Gated by cap (map has maximum allowed zombies)');
       return;
     }
 
@@ -73,21 +76,21 @@ export class ZombieReplenishmentSystem {
       }
     }
 
-    console.log(`[ZombieReplenishment Debug] Found ${candidates.length} candidate spawn tiles.`);
+    logger.debug(`Found ${candidates.length} candidate sample tiles.`);
     if (candidates.length === 0) {
-      console.log('[ZombieReplenishment Debug] Gated by empty candidate pool (no explored, out-of-sight tiles)');
+      logger.debug('Gated by empty candidate pool (no explored, out-of-sight tiles)');
       return;
     }
 
     // 4. Sector-based Variety (3x3 grid)
-    if (!wm._lastReplenishSector) {
-      wm._lastReplenishSector = {};
+    if (!wm.lastReplenishSector) {
+      wm.lastReplenishSector = {};
     }
 
     const playerSectorX = Math.floor(player.x / (gameMap.width / 3));
     const playerSectorY = Math.floor(player.y / (gameMap.height / 3));
     const playerSectorId = playerSectorY * 3 + playerSectorX;
-    const lastSectorId = wm._lastReplenishSector[mapId];
+    const lastSectorId = wm.lastReplenishSector[mapId];
 
     // Filter to avoid player's sector and the last spawned sector
     let targetPool = candidates.filter(tile => {
@@ -141,8 +144,9 @@ export class ZombieReplenishmentSystem {
       wm.recordZombieSpawn(mapId);
       const finalSx = Math.floor(spawnTile.x / (gameMap.width / 3));
       const finalSy = Math.floor(spawnTile.y / (gameMap.height / 3));
-      wm._lastReplenishSector[mapId] = finalSy * 3 + finalSx;
-      console.log(`[ZombieReplenishment] Spawned ${subtype} zombie at (${spawnTile.x}, ${spawnTile.y}) on turn ${currentTurn}`);
+      wm.lastReplenishSector[mapId] = finalSy * 3 + finalSx;
+      logger.info(`Spawned ${subtype} zombie at (${spawnTile.x}, ${spawnTile.y}) on turn ${currentTurn}`);
     }
   }
 }
+

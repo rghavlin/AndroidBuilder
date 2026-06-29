@@ -342,7 +342,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   // Handler for map cell right clicks
   const onCellRightClick = (x: number, y: number, screenX: number, screenY: number) => {
     // Block all map interactions if it's not the player's turn
-    if (turnPhase !== 'PLAYER_TURN' || isAutosaving) {
+    if (!isPlayerTurn || isAutosaving) {
       console.debug('[MapInterface] Map right-click blocked - Not player turn or autosaving');
       return; 
     }

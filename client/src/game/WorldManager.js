@@ -27,6 +27,8 @@ export class WorldManager extends SafeEventEmitter {
     this.turnsFromEntryToExit = {};
     this.zombiesKilled = {};
     this.zombiesSpawned = {};
+    this.zombiesInitialCount = {};
+    this.lastReplenishSector = {};
     this.claimedPrizes = [];
 
     // Subscriptions
@@ -83,6 +85,11 @@ export class WorldManager extends SafeEventEmitter {
         const zombies = gameMap.getAllEntities().filter(e => e.type === 'zombie');
         this.zombiesSpawned[mapId] = zombies.length;
         this.zombiesKilled[mapId] = 0;
+      }
+
+      if (this.zombiesInitialCount[mapId] === undefined) {
+        const zombies = gameMap.getAllEntities().filter(e => e.type === 'zombie');
+        this.zombiesInitialCount[mapId] = zombies.length;
       }
 
       const serializedMap = gameMap.toJSON();
@@ -666,6 +673,8 @@ export class WorldManager extends SafeEventEmitter {
       turnsFromEntryToExit: this.turnsFromEntryToExit,
       zombiesKilled: this.zombiesKilled,
       zombiesSpawned: this.zombiesSpawned,
+      zombiesInitialCount: this.zombiesInitialCount,
+      lastReplenishSector: this.lastReplenishSector,
       claimedPrizes: this.claimedPrizes
     };
   }
@@ -984,6 +993,8 @@ export class WorldManager extends SafeEventEmitter {
     worldManager.turnsFromEntryToExit = data.turnsFromEntryToExit || {};
     worldManager.zombiesKilled = data.zombiesKilled || {};
     worldManager.zombiesSpawned = data.zombiesSpawned || {};
+    worldManager.zombiesInitialCount = data.zombiesInitialCount || {};
+    worldManager.lastReplenishSector = data.lastReplenishSector || {};
     worldManager.claimedPrizes = data.claimedPrizes || [];
 
     logger.info(`Restored from JSON with ${worldManager.maps.size} maps`);
