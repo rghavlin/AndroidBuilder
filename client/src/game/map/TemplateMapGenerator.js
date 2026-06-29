@@ -844,6 +844,7 @@ export class TemplateMapGenerator {
     const mapData = builder.getFinalMapData('scenario', {});
     mapData.metadata.entities = scenarioData.entities || [];
     mapData.metadata.eventTriggers = scenarioData.eventTriggers || [];
+    mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
     if (scenarioData.metadata?.spawnZones) {
       mapData.metadata.spawnZones = { ...mapData.metadata.spawnZones, ...scenarioData.metadata.spawnZones };
     }

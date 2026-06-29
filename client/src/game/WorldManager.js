@@ -433,6 +433,23 @@ export class WorldManager extends SafeEventEmitter {
     
     // Check for transition tile
     if (tile && tile.terrain === 'transition') {
+      // 1. Check for custom scenario map transitions
+      if (gameMap.metadata?.mapTransitions) {
+        const customTransition = gameMap.metadata.mapTransitions.find(
+          tr => tr.x === playerX && tr.y === playerY
+        );
+        if (customTransition) {
+          return {
+            direction: 'north', // Defaults to 'north' to trigger "Move on down the road?" prompt
+            position: { x: playerX, y: playerY },
+            nextMapId: customTransition.targetId,
+            spawnPosition: { x: 22, y: 123 }, // high Y value indicates entering from bottom/south
+            isCustom: true,
+            targetType: customTransition.targetType,
+            level: customTransition.level
+          };
+        }
+      }
         // NORTH transition at top edge (Entering NEXT map from SOUTH)
         if (playerY === 0) {
             const nextMapId = this.getNextMapId();
@@ -710,9 +727,10 @@ export class WorldManager extends SafeEventEmitter {
    * @param {string} targetMapId - ID of map to transition to
    * @param {Object} spawnPosition - Where to spawn player {x, y}
    * @param {number} currentTurn - The current game turn count
+   * @param {Object} customParams - Optional parameters for custom map generation
    * @returns {Promise<Object>} - Transition result
    */
-  async executeTransition(targetMapId, spawnPosition, currentTurn = null) {
+  async executeTransition(targetMapId, spawnPosition, currentTurn = null, customParams = null) {
     const fromMapId = this.currentMapId;
     try {
       // Check if target map exists, if not generate it
@@ -720,6 +738,151 @@ export class WorldManager extends SafeEventEmitter {
       if (this.maps.has(targetMapId)) {
         console.log(`[WorldManager] Loading existing map for transition: ${targetMapId}`);
         mapData = await this.loadMapForTransition(targetMapId, currentTurn);
+      } else if (customParams) {
+        console.log(`[WorldManager] Executing custom transition to:`, targetMapId, customParams);
+        if (customParams.targetType === 'scenario') {
+          // Load custom scenario
+          const { ScenarioStorage } = await import('./ScenarioStorage.js');
+          const scenarioData = await ScenarioStorage.load(targetMapId);
+          if (!scenarioData) {
+            throw new Error(`Custom scenario '${targetMapId}' not found`);
+          }
+          const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
+          const templateMapGenerator = new TemplateMapGenerator();
+          
+          // Generate mapData from scenario
+          const generatedMapData = await templateMapGenerator.generateFromScenario(scenarioData);
+          
+          const { GameMap } = await import('./map/GameMap.js');
+          const gameMap = new GameMap(generatedMapData.width, generatedMapData.height);
+          await templateMapGenerator.applyToGameMap(gameMap, generatedMapData);
+          
+          // Set map number if any, default to 1
+          gameMap.mapNumber = 1;
+          
+          // Resolve spawn position
+          const scenarioSpawn = generatedMapData.metadata?.spawnZones?.playerStart?.[0];
+          if (scenarioSpawn) {
+            spawnPosition = { x: scenarioSpawn.x, y: scenarioSpawn.y };
+          } else {
+            spawnPosition = { x: Math.floor(gameMap.width / 2), y: Math.floor(gameMap.height * 0.9) };
+          }
+          
+          const savedMapId = this.saveCurrentMap(gameMap, targetMapId, currentTurn, 'scenario');
+          mapData = {
+            mapId: savedMapId,
+            gameMap,
+            mapType: 'scenario',
+            metadata: generatedMapData.metadata
+          };
+        } else if (customParams.targetType === 'generator') {
+          // Procedural generation using a specific template/generator and level scaling
+          const generatorToTemplate = {
+            'BranchingRoadGenerator': 'branching_road',
+            'LabMapGenerator': 'lab',
+            'MirroredWindingRoadGenerator': 'mirrored_winding_road',
+            'RoadGenerator': 'road',
+            'SplitRoadGenerator': 'split_road',
+            'StartingRoadGenerator': 'starting_road',
+            'WindingRoadGenerator': 'winding_road'
+          };
+          const templateToUse = generatorToTemplate[customParams.targetId] || 'road';
+          const mapNumber = customParams.level || 1;
+          
+          const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
+          const { GameMap } = await import('./map/GameMap.js');
+          const templateMapGenerator = new TemplateMapGenerator();
+          
+          // Generate using the specific template & mapNumber (for loot/zombie scaling)
+          const { gameMap, mapData: generatedMapData } = await templateMapGenerator.generateValidatedMap(
+            templateToUse,
+            { randomWalls: 1, extraFloors: 2, mapNumber },
+            GameMap
+          );
+          gameMap.mapNumber = mapNumber;
+          
+          // SPAWN LOOT & ZOMBIES (same as normal map generation but with custom mapNumber)
+          const { LootGenerator } = await import('./map/LootGenerator.js');
+          new LootGenerator().spawnLoot(gameMap, mapNumber);
+          
+          const { ZombieSpawner } = await import('./utils/ZombieSpawner.js');
+          const { getProgressionForMap, BASELINE_MAP_AREA } = await import('./config/ProgressionConfig.js');
+          const progression = getProgressionForMap(mapNumber);
+          
+          // Determine specialized zombie counts
+          const { gameRandom } = await import('./utils/SeededRandom.js');
+          let randomSwatCount = 0;
+          let randomFirefighterCount = 0;
+          let soldierCount = 0;
+          if (mapNumber > 3) {
+            const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
+            if (gameRandom.next() < (swatChance || 0.15)) randomSwatCount = gameRandom.nextInt(0, 1) + 1;
+            if (gameRandom.next() < (firefighterChance || 0.15)) randomFirefighterCount = gameRandom.nextInt(0, 1) + 1;
+            if (gameRandom.next() < (soldierChance || 0.10)) soldierCount = 1;
+          }
+          
+          const areaMultiplier = (gameMap.width * gameMap.height) / BASELINE_MAP_AREA;
+          const scale = (v) => Math.floor(v * areaMultiplier);
+          const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
+          
+          // Use default spawn prediction or exit points if defined
+          let resolvedSpawn = spawnPosition || { x: Math.floor(gameMap.width / 2), y: gameMap.height - 2 };
+          const tp = generatedMapData.metadata?.spawnZones?.transitionPoints;
+          const enteringTop = spawnPosition ? spawnPosition.y <= 1 : true;
+          if (tp) {
+            if (enteringTop && tp.north) {
+              resolvedSpawn = { x: tp.north.x, y: 1 };
+            } else if (!enteringTop && tp.south) {
+              resolvedSpawn = { x: tp.south.x, y: gameMap.height - 2 };
+            }
+          } else {
+            if (enteringTop) {
+              resolvedSpawn = { x: Math.floor(gameMap.width / 2), y: 1 };
+            } else {
+              resolvedSpawn = { x: Math.floor(gameMap.width / 2), y: gameMap.height - 2 };
+            }
+          }
+          spawnPosition = resolvedSpawn;
+          
+          ZombieSpawner.spawnZombies(gameMap, resolvedSpawn, {
+            basicCount: scale(progression.basicCount),
+            crawlerRange: scaleRange(progression.crawlerRange),
+            runnerCount: scale(progression.runnerCount),
+            acidRange: scaleRange(progression.acidRange),
+            fatRange: scaleRange(progression.fatRange),
+            randomSwatCount: scale(randomSwatCount),
+            randomFirefighterCount: scale(randomFirefighterCount),
+            soldierCount: scale(soldierCount),
+            spitterCount: scale(progression.spitterCount || 0),
+            maxTotal: scale(progression.maxTotal)
+          });
+          
+          const { AnimalSpawner } = await import('./utils/AnimalSpawner.js');
+          AnimalSpawner.spawnAnimals(gameMap, resolvedSpawn, {
+            rabbitRange: { min: 1, max: 2 }
+          });
+          
+          const { NPCSpawner } = await import('./utils/NPCSpawner.js');
+          NPCSpawner.spawnNPCs(gameMap, { count: 1, mapNumber });
+          
+          if (templateToUse === 'branching_road') {
+            NPCSpawner.spawnShopkeeper(gameMap);
+            NPCSpawner.spawnTownTurrets(gameMap);
+          }
+          
+          const savedMapId = this.saveCurrentMap(gameMap, targetMapId, currentTurn, templateToUse);
+          if (templateToUse === 'branching_road') {
+            const { earbucksShopSystem } = await import('./systems/EarbucksShopSystem.js');
+            earbucksShopSystem.initCatalog(savedMapId);
+          }
+          
+          mapData = {
+            mapId: savedMapId,
+            gameMap,
+            mapType: templateToUse,
+            metadata: generatedMapData.metadata
+          };
+        }
       } else {
         console.log(`[WorldManager] Generating new map: ${targetMapId}`);
 

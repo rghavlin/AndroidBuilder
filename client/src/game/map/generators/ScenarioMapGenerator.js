@@ -35,6 +35,13 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
 
     if (entities) builder.metadata.entities = entities;
     if (eventTriggers) builder.metadata.eventTriggers = eventTriggers;
+
+    if (this.scenario.mapTransitions) {
+      builder.metadata.mapTransitions = this.scenario.mapTransitions;
+      for (const tr of this.scenario.mapTransitions) {
+        builder.setTerrain(tr.x, tr.y, 'transition');
+      }
+    }
   }
 
   getStartPosition(width, height) {

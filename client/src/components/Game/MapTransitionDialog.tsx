@@ -20,6 +20,7 @@ interface MapTransitionDialogProps {
   direction: 'north' | 'south';
   currentMapId: string;
   nextMapId: string;
+  isCustom?: boolean;
 }
 
 const FOOD_POOL = [
@@ -134,6 +135,7 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
   direction,
   currentMapId,
   nextMapId,
+  isCustom = false,
 }) => {
   const [showStats, setShowStats] = useState(false);
   const [prizes, setPrizes] = useState<string[]>([]);
@@ -144,7 +146,7 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
     : "Return to previous area?";
 
   const handleYes = async () => {
-    if (direction === 'south') {
+    if (direction === 'south' || isCustom) {
       const success = await onConfirm();
       if (success !== false) {
         onOpenChange(false);

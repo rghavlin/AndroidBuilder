@@ -35,7 +35,7 @@ const BUILDING_TYPES = [
 ];
 
 type Edge = 'n' | 'e' | 's' | 'w';
-type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger';
+type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger' | 'map_transition';
 
 interface EdgeState { wall: boolean; door: boolean; window: boolean; }
 interface TileData {
@@ -44,6 +44,7 @@ interface TileData {
   entities: { type: string; subtype?: string }[];
   items: string[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string }[]; oneShot: boolean };
+  mapTransition?: { targetType: 'scenario' | 'generator'; targetId: string; level?: number };
 }
 
 interface BuildingMeta {
@@ -100,6 +101,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
         },
         entities: t.entities || [],
         items: t.items || [],
+        mapTransition: t.mapTransition,
       };
     })
   );
@@ -186,6 +188,17 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     }
   }
 
+  // Map transitions
+  const transitions = scenario.mapTransitions || scenario.metadata?.mapTransitions;
+  if (transitions) {
+    for (const tr of transitions) {
+      const t = tiles[tr.y]?.[tr.x];
+      if (t) {
+        t.mapTransition = { targetType: tr.targetType, targetId: tr.targetId, level: tr.level };
+      }
+    }
+  }
+
   return {
     name: scenario.name || 'untitled',
     width: w,
@@ -250,6 +263,15 @@ function exportScenario(scenario: ScenarioData) {
     })
   );
 
+  const mapTransitions: any[] = [];
+  scenario.tiles.forEach((row, y) =>
+    row.forEach((t, x) => {
+      if (t.mapTransition) {
+        mapTransitions.push({ x, y, ...t.mapTransition });
+      }
+    })
+  );
+
   return {
     name: scenario.name,
     width: scenario.width,
@@ -269,6 +291,7 @@ function exportScenario(scenario: ScenarioData) {
     },
     entities,
     eventTriggers,
+    mapTransitions,
   };
 }
 
@@ -298,6 +321,19 @@ export default function MapEditor() {
   const [editText, setEditText] = useState('');
   const dialogStepsRef = useRef(dialogSteps);
   dialogStepsRef.current = dialogSteps;
+
+  const [transitionTargetType, setTransitionTargetType] = useState<'scenario' | 'generator'>('scenario');
+  const [transitionTargetId, setTransitionTargetId] = useState('');
+  const [transitionLevel, setTransitionLevel] = useState(1);
+  const [availableScenarios, setAvailableScenarios] = useState<{ name: string; width: number; height: number; fileName?: string }[]>([]);
+  const [exitImage, setExitImage] = useState<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    ScenarioStorage.list().then(list => setAvailableScenarios(list as any[])).catch(console.warn);
+    const img = new Image();
+    img.src = '/images/items/exit.png';
+    img.onload = () => setExitImage(img);
+  }, []);
 
   // Build categorized item catalog from ItemDefs
   const allItems = useMemo(() => {
@@ -447,6 +483,15 @@ export default function MapEditor() {
             tile.eventTrigger = { id: triggerId, steps: [...dialogStepsRef.current], oneShot: dialogOneShot };
           }
           break;
+        case 'map_transition':
+          if (transitionTargetId) {
+            tile.mapTransition = {
+              targetType: transitionTargetType,
+              targetId: transitionTargetId,
+              level: transitionTargetType === 'generator' ? transitionLevel : undefined
+            };
+          }
+          break;
         case 'eraser':
           tile.terrain = 'grass';
           tile.edgeWalls = {
@@ -458,6 +503,7 @@ export default function MapEditor() {
           tile.entities = [];
           tile.items = [];
           delete tile.eventTrigger;
+          delete tile.mapTransition;
           break;
       }
 
@@ -465,7 +511,7 @@ export default function MapEditor() {
       }
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, selectedEntity, selectedItem, triggerId, dialogSteps, dialogOneShot, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, selectedEntity, selectedItem, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -598,6 +644,19 @@ export default function MapEditor() {
           ctx.textBaseline = 'top';
           ctx.fillText('E', sx + 2, sy + 2);
         }
+
+        // Map transition indicator
+        if (t.mapTransition) {
+          if (exitImage) {
+            ctx.drawImage(exitImage, sx, sy, CELL, CELL);
+          } else {
+            ctx.fillStyle = '#0ff';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('T', sx + CELL / 2, sy + CELL / 2);
+          }
+        }
       }
     }
 
@@ -626,7 +685,7 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [tiles, buildings, width, height, showGrid, hoverCell, buildStart, tool, brushSize]);
+  }, [tiles, buildings, width, height, showGrid, hoverCell, buildStart, tool, brushSize, exitImage]);
 
   // ─── Mouse handlers ──────────────────────────────────────────────────
   const cellFromEvent = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -657,7 +716,7 @@ export default function MapEditor() {
     const { x, y } = cellFromEvent(e);
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const tile = tiles[y][x];
-    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger;
+    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition;
     if (hasContent) {
       setInspectTile({ x, y, screenX: e.clientX, screenY: e.clientY });
     }
@@ -847,6 +906,7 @@ export default function MapEditor() {
           {toolButton('entity', 'Entity')}
           {toolButton('item', 'Item')}
           {toolButton('event_trigger', 'Event')}
+          {toolButton('map_transition', 'Transition')}
           {toolButton('eraser', 'Eraser')}
         </div>
 
@@ -1039,6 +1099,81 @@ export default function MapEditor() {
           </div>
         )}
 
+        {tool === 'map_transition' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={{ fontSize: 11, color: '#888' }}>Target Type</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input
+                  type="radio"
+                  name="transitionTargetType"
+                  checked={transitionTargetType === 'scenario'}
+                  onChange={() => { setTransitionTargetType('scenario'); setTransitionTargetId(''); }}
+                />
+                Scenario
+              </label>
+              <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input
+                  type="radio"
+                  name="transitionTargetType"
+                  checked={transitionTargetType === 'generator'}
+                  onChange={() => { setTransitionTargetType('generator'); setTransitionTargetId(''); }}
+                />
+                Generator
+              </label>
+            </div>
+
+            <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+              {transitionTargetType === 'scenario' ? 'Select Scenario' : 'Select Generator'}
+            </label>
+            
+            <select
+              value={transitionTargetId}
+              onChange={e => setTransitionTargetId(e.target.value)}
+              style={{ ...inputStyle, width: '100%' }}
+            >
+              <option value="">— Select —</option>
+              {transitionTargetType === 'scenario' ? (
+                availableScenarios.map(s => (
+                  <option key={s.fileName || s.name} value={s.fileName || s.name}>
+                    {s.name} ({s.width}x{s.height})
+                  </option>
+                ))
+              ) : (
+                [
+                  'BranchingRoadGenerator',
+                  'LabMapGenerator',
+                  'MirroredWindingRoadGenerator',
+                  'RoadGenerator',
+                  'ScenarioMapGenerator',
+                  'SplitRoadGenerator',
+                  'StartingRoadGenerator',
+                  'WindingRoadGenerator'
+                ].map(gen => (
+                  <option key={gen} value={gen}>{gen}</option>
+                ))
+              )}
+            </select>
+
+            {transitionTargetType === 'generator' && (
+              <>
+                <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Level (Scaling)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={transitionLevel}
+                  onChange={e => setTransitionLevel(+e.target.value)}
+                  style={{ ...inputStyle }}
+                />
+              </>
+            )}
+
+            <p style={{ fontSize: 10, color: '#666', margin: 0, marginTop: 4 }}>
+              Click a tile to place this map transition. The player will be teleported here when stepping on the tile.
+            </p>
+          </div>
+        )}
+
         {/* Legend */}
         <div style={{ borderTop: '1px solid #333', paddingTop: 8, fontSize: 11, color: '#888' }}>
           <div style={{ marginBottom: 4, fontWeight: 'bold' }}>Legend</div>
@@ -1057,6 +1192,13 @@ export default function MapEditor() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
             <span style={{ color: '#f0f', fontWeight: 'bold' }}>E</span> Event Trigger
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+            {exitImage ? (
+              <img src="/images/items/exit.png" style={{ width: 14, height: 14, objectFit: 'contain' }} alt="Exit" />
+            ) : (
+              <span style={{ color: '#0ff', fontWeight: 'bold' }}>T</span>
+            )}Map Transition
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ border: '1px solid #ff0', display: 'inline-block', width: 12, height: 12, borderRadius: 2 }} />Building outline
           </div>
@@ -1074,6 +1216,9 @@ export default function MapEditor() {
             )}
             {tiles[hoverCell.y][hoverCell.x].eventTrigger && (
               <div>Event: {tiles[hoverCell.y][hoverCell.x].eventTrigger!.id} ({tiles[hoverCell.y][hoverCell.x].eventTrigger!.steps?.length || 0} steps{tiles[hoverCell.y][hoverCell.x].eventTrigger!.oneShot ? ', one-shot' : ''})</div>
+            )}
+            {tiles[hoverCell.y][hoverCell.x].mapTransition && (
+              <div>Transition: {tiles[hoverCell.y][hoverCell.x].mapTransition!.targetId} ({tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType}{tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'generator' ? `, Lvl ${tiles[hoverCell.y][hoverCell.x].mapTransition!.level}` : ''})</div>
             )}
           </div>
         )}
@@ -1157,6 +1302,15 @@ export default function MapEditor() {
           });
         };
 
+        const removeTransition = () => {
+          setTiles(prev => {
+            pushUndo(prev, buildingsRef.current);
+            const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
+            delete next[ty][tx].mapTransition;
+            return next;
+          });
+        };
+
         const editEvent = () => {
           if (t.eventTrigger) {
             setTriggerId(t.eventTrigger.id);
@@ -1164,6 +1318,17 @@ export default function MapEditor() {
             setDialogOneShot(t.eventTrigger.oneShot);
             setTool('event_trigger');
             setStatusMsg(`Editing event "${t.eventTrigger.id}" — modify steps then click a tile to place`);
+          }
+          setInspectTile(null);
+        };
+
+        const editTransition = () => {
+          if (t.mapTransition) {
+            setTransitionTargetType(t.mapTransition.targetType);
+            setTransitionTargetId(t.mapTransition.targetId);
+            setTransitionLevel(t.mapTransition.level || 1);
+            setTool('map_transition');
+            setStatusMsg(`Editing transition to "${t.mapTransition.targetId}" — click a tile to place`);
           }
           setInspectTile(null);
         };
@@ -1284,6 +1449,24 @@ export default function MapEditor() {
                   <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
                     <button onClick={editEvent} style={editBtnStyle}>Edit</button>
                     <button onClick={removeEvent} style={removeBtnStyle}>Remove</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Map Transition */}
+              {t.mapTransition && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Map Transition</div>
+                  <div style={{ fontSize: 12, color: '#0ff', marginBottom: 2 }}>
+                    Target: {t.mapTransition.targetId}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#aaa', marginBottom: 4 }}>
+                    Type: {t.mapTransition.targetType}
+                    {t.mapTransition.targetType === 'generator' && ` · Level: ${t.mapTransition.level}`}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                    <button onClick={editTransition} style={editBtnStyle}>Edit</button>
+                    <button onClick={removeTransition} style={removeBtnStyle}>Remove</button>
                   </div>
                 </div>
               )}

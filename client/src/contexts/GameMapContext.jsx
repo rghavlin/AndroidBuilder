@@ -196,7 +196,12 @@ export const GameMapProvider = ({ children }) => {
         engine.worldManager.saveCurrentMap(engine.gameMap, engine.worldManager.currentMapId, turn);
 
         // 2. Perform transition
-        const result = await engine.worldManager.executeTransition(transitionInfo.nextMapId, transitionInfo.spawnPosition, turn);
+        const result = await engine.worldManager.executeTransition(
+          transitionInfo.nextMapId,
+          transitionInfo.spawnPosition,
+          turn,
+          transitionInfo.isCustom ? { targetType: transitionInfo.targetType, targetId: transitionInfo.nextMapId, level: transitionInfo.level } : null
+        );
         if (!result.success) return false;
 
         const newMap = result.gameMap;

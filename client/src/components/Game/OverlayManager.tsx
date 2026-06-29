@@ -134,6 +134,7 @@ export default function OverlayManager() {
               direction={mapTransition.direction}
               currentMapId={worldManager?.currentMapId || 'unknown'}
               nextMapId={mapTransition.nextMapId}
+              isCustom={mapTransition.isCustom}
             />
           )}
 
