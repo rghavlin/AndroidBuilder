@@ -618,6 +618,14 @@ export class WorldManager extends SafeEventEmitter {
     logger.info(`Recorded zombie kill on map ${mapId}. Total: ${this.zombiesKilled[mapId]}/${this.zombiesSpawned[mapId] || 0}`);
   }
 
+  recordZombieSpawn(mapId) {
+    if (!mapId) return;
+    if (this.zombiesSpawned[mapId] === undefined) {
+      this.zombiesSpawned[mapId] = 0;
+    }
+    this.zombiesSpawned[mapId]++;
+  }
+
   getZombieKillsPercentage(mapId) {
     const killed = this.zombiesKilled[mapId] || 0;
     const spawned = this.zombiesSpawned[mapId] || 0;

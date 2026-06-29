@@ -4,6 +4,7 @@ import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from '../inventory/tra
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import { getHourFromTurn } from '../utils/TimeUtils.js';
+import { ZombieReplenishmentSystem } from '../systems/ZombieReplenishmentSystem.js';
 import { Entity, EntityType } from '../entities/Entity.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
@@ -933,6 +934,15 @@ export class GameMap extends SafeEventEmitter {
       } else {
         this.updateCropMetadata(x, y);
       }
+    }
+
+    // Zombie replenishment system check
+    try {
+      if (player) {
+        ZombieReplenishmentSystem.processTurn(this, player, null, turn);
+      }
+    } catch (err) {
+      console.error('[GameMap] Error in ZombieReplenishmentSystem:', err);
     }
 
     // Decay noise levels
