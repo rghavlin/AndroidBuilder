@@ -6,14 +6,36 @@
 const MAP_1_CATALOG = [
   { defId: 'food.corn', stock: null },
   { defId: 'food.waterbottle', stock: null },
-  { defId: 'tool.lighter', stock: 1 }
+  { defId: 'tool.lighter', stock: 1 },
+  { defId: 'crafting.tape', stock: 5 },
+  { defId: 'crafting.wire', stock: 5 },
+  { defId: 'crafting.rope', stock: 5 },
+  { defId: 'weapon.wrench', stock: 1 },
+  { defId: 'crafting.leather_belt', stock: 1 },
+  { defId: 'backpack.standard', stock: 1 },
+  { defId: 'food.tomato', stock: null },
+  { defId: 'food.carrot', stock: null },
+  { defId: 'food.cornseeds', stock: null },
+  { defId: 'food.tomatoseeds', stock: null },
+  { defId: 'food.carrotseeds', stock: null }
 ];
 
 // Catalog for map 2 (same for now — configure independently later)
 const MAP_2_CATALOG = [
   { defId: 'food.corn', stock: null },
   { defId: 'food.waterbottle', stock: null },
-  { defId: 'tool.lighter', stock: 1 }
+  { defId: 'tool.lighter', stock: 1 },
+  { defId: 'crafting.tape', stock: 5 },
+  { defId: 'crafting.wire', stock: 5 },
+  { defId: 'crafting.rope', stock: 5 },
+  { defId: 'weapon.wrench', stock: 1 },
+  { defId: 'crafting.leather_belt', stock: 1 },
+  { defId: 'backpack.standard', stock: 1 },
+  { defId: 'food.tomato', stock: null },
+  { defId: 'food.carrot', stock: null },
+  { defId: 'food.cornseeds', stock: null },
+  { defId: 'food.tomatoseeds', stock: null },
+  { defId: 'food.carrotseeds', stock: null }
 ];
 
 // Default fallback for all other branching road maps

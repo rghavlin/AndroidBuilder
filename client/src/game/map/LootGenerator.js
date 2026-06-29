@@ -294,7 +294,7 @@ export class LootGenerator {
         });
 
         const numMowers = isBranching
-            ? (3 + gameRandom.nextInt(0, 2))
+            ? (5 + gameRandom.nextInt(0, 4))
             : 1;
 
         if (mowerTiles.length > 0) {
@@ -327,7 +327,7 @@ export class LootGenerator {
         });
 
         const numScooters = gameMap.template === 'branching_road'
-            ? (2 + gameRandom.nextInt(0, 2))
+            ? (4 + gameRandom.nextInt(0, 3))
             : 1;
 
         if (scooterTiles.length > 0) {
@@ -356,7 +356,7 @@ export class LootGenerator {
         const shuffledBuildings = gameRandom.shuffle([...buildings]);
         
         const targetCount = gameMap.template === 'branching_road'
-            ? (2 + gameRandom.nextInt(0, 2))
+            ? (4 + gameRandom.nextInt(0, 3))
             : 1;
 
         let spawnedCount = 0;

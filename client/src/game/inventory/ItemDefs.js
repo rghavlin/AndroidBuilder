@@ -963,7 +963,7 @@ export const ItemDefs = {
   'tool.large_battery': {
     id: 'tool.large_battery',
     name: 'Large battery',
-    rarity: Rarity.RARE,
+    rarity: Rarity.UNCOMMON,
     imageId: 'largebattery',
     width: 2,
     height: 1,

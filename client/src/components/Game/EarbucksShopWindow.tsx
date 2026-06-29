@@ -136,6 +136,17 @@ export default function EarbucksShopWindow({ mapId, onClose }: EarbucksShopWindo
     () => earbucksShopSystem.getCatalog(mapId)
   );
 
+  const sortedCatalog = React.useMemo(() => {
+    return [...catalog].sort((a, b) => {
+      if (a.price !== b.price) {
+        return a.price - b.price;
+      }
+      const catA = ItemDefs[a.defId]?.categories?.[0] || '';
+      const catB = ItemDefs[b.defId]?.categories?.[0] || '';
+      return catA.localeCompare(catB);
+    });
+  }, [catalog]);
+
   const handleBuySuccess = () => {
     playSound('Craft');
   };
@@ -183,13 +194,13 @@ export default function EarbucksShopWindow({ mapId, onClose }: EarbucksShopWindo
 
         {/* Content list */}
         <div className="flex-1 p-6 overflow-y-auto space-y-3 bg-zinc-900/10 custom-scrollbar">
-          {catalog.length === 0 ? (
+          {sortedCatalog.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-zinc-500">
               <span className="text-3xl mb-2">🏪</span>
               <span className="text-xs uppercase font-bold tracking-wider">No items currently for sale</span>
             </div>
           ) : (
-            catalog.map((item) => (
+            sortedCatalog.map((item) => (
               <ShopItemRow
                 key={item.defId}
                 item={item}
