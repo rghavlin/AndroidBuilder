@@ -300,6 +300,147 @@ export const TileRenderer = {
   },
 
   /**
+   * Draw a tile into an offscreen chunk canvas — terrain, decorations, and
+   * edge walls only. No FOV/fog, no fire animation, no night tint; those
+   * dynamic overlays are applied by MapCanvas on top of the blitted chunk.
+   *
+   * @param localX/localY  — position within the chunk canvas (0…CHUNK_SIZE-1)
+   * @param worldX/worldY  — actual map coordinates (used for variant indices
+   *                         and neighbour tile lookups)
+   */
+  drawTileStatic: (ctx, localX, localY, worldX, worldY, tileSize, tile, engine, sprites) => {
+    const screenX = localX * tileSize;
+    const screenY = localY * tileSize;
+
+    // Base colour (always drawn — unexplored tiles are masked by MapCanvas)
+    const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
+    ctx.fillStyle = (isStructural ? TERRAIN_COLORS[tile.terrain] : (tile.color || TERRAIN_COLORS[tile.terrain])) || '#222';
+    ctx.fillRect(screenX, screenY, tileSize, tileSize);
+
+    // Texture layer
+    if (sprites && !engine.renderDebugColors) {
+      const isColorOnly = ['window'].includes(tile.terrain);
+      if (!isColorOnly) {
+        if (imageLoader.tileSet === 'spritesheet') {
+          const sheet = sprites['tile_spritesheet'];
+          if (sheet) {
+            let mapping;
+            if (tile.terrain === 'grass') {
+              if (tile._variantIndex === undefined) {
+                tile._variantIndex = Math.abs(worldX * 31 + worldY * 17) % GRASS_VARIANTS.length;
+              }
+              mapping = GRASS_VARIANTS[tile._variantIndex];
+            } else if (tile.terrain === 'road' || tile.terrain === 'transition') {
+              if (tile._variantIndex === undefined) {
+                const roadHash = Math.abs(worldX * 13 + worldY * 7) % 10;
+                tile._variantIndex = roadHash < 3 ? 0 : roadHash < 6 ? 1 : 2;
+              }
+              mapping = tile._variantIndex === 0 ? { col: 5, row: 7 }
+                      : tile._variantIndex === 1 ? { col: 6, row: 1 }
+                      :                            { col: 7, row: 0 };
+            } else {
+              mapping = SPRITE_ATLAS_MAP[tile.terrain];
+            }
+            if (mapping) {
+              const cellSize = 128;
+              const inset = 3;
+              ctx.drawImage(
+                sheet,
+                mapping.col * cellSize + inset, mapping.row * cellSize + inset,
+                cellSize - inset * 2, cellSize - inset * 2,
+                screenX, screenY, tileSize, tileSize
+              );
+            }
+          } else {
+            imageLoader.getTileImage(tile.terrain);
+          }
+        } else {
+          const terrainKey = tile.terrain === 'transition' ? 'road' : tile.terrain;
+          const sprite = sprites[`tile_${terrainKey}`];
+          if (sprite) {
+            ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
+          } else {
+            imageLoader.getTileImage(terrainKey);
+          }
+        }
+      }
+    }
+
+    // Decoration layer
+    if (tile.decoration && imageLoader.tileSet !== 'none' && !engine.renderDebugColors) {
+      const isIndoor = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration);
+      const decorType = isIndoor ? 'indoor' : 'outdoor';
+      const decorSprite = sprites?.[`decor_${decorType}_${tile.decoration}`];
+      if (decorSprite) {
+        ctx.drawImage(decorSprite, screenX, screenY, tileSize, tileSize);
+      } else {
+        imageLoader.getDecorationImage(tile.decoration, decorType);
+      }
+    }
+
+    // Edge walls — neighbour lookups use world coordinates
+    const hasDoorOrWindowOnEdge = (t, edge) =>
+      t?.contents?.some(e => (e.type === 'door' || e.type === 'window') && e.edge === edge) ?? false;
+    const hasEdgeWall = (t, edge) => t?.edgeWalls?.[edge] && !hasDoorOrWindowOnEdge(t, edge);
+
+    const hasN = hasEdgeWall(tile, 'n') || (engine?.gameMap && hasEdgeWall(engine.gameMap.getTile(worldX, worldY - 1), 's'));
+    const hasE = hasEdgeWall(tile, 'e') || (engine?.gameMap && hasEdgeWall(engine.gameMap.getTile(worldX + 1, worldY), 'w'));
+    const hasS = hasEdgeWall(tile, 's') || (engine?.gameMap && hasEdgeWall(engine.gameMap.getTile(worldX, worldY + 1), 'n'));
+    const hasW = hasEdgeWall(tile, 'w') || (engine?.gameMap && hasEdgeWall(engine.gameMap.getTile(worldX - 1, worldY), 'e'));
+
+    if (hasN || hasE || hasS || hasW) {
+      const sheet = (imageLoader.tileSet === 'spritesheet') ? sprites?.['tile_spritesheet'] : null;
+      if (sheet) {
+        const bitmask = (hasN ? 1 : 0) + (hasE ? 2 : 0) + (hasS ? 4 : 0) + (hasW ? 8 : 0);
+        const cellSize = 128;
+        ctx.drawImage(sheet, bitmask * cellSize, 0, cellSize, cellSize, screenX, screenY, tileSize, tileSize);
+      } else {
+        const isBW = imageLoader.tileSet === 'b&w';
+        const coreColor   = isBW ? '#bfbfbf' : '#a83838';
+        const casingColor = isBW ? '#1c1c1c' : '#2a0a0a';
+        const coreW   = Math.max(6, Math.floor(tileSize * 0.16));
+        const casingW = coreW + Math.max(4, Math.floor(tileSize * 0.12));
+        ctx.lineCap = 'butt';
+
+        const gmap = engine?.gameMap;
+        const getTile = (tx, ty) => gmap ? gmap.getTile(tx, ty) : null;
+        const wallAtN = (tx, ty) => hasEdgeWall(getTile(tx, ty), 'n') || hasEdgeWall(getTile(tx, ty - 1), 's');
+        const wallAtS = (tx, ty) => hasEdgeWall(getTile(tx, ty), 's') || hasEdgeWall(getTile(tx, ty + 1), 'n');
+        const wallAtW = (tx, ty) => hasEdgeWall(getTile(tx, ty), 'w') || hasEdgeWall(getTile(tx - 1, ty), 'e');
+        const wallAtE = (tx, ty) => hasEdgeWall(getTile(tx, ty), 'e') || hasEdgeWall(getTile(tx + 1, ty), 'w');
+
+        const nLeftConnect  = hasN && (wallAtN(worldX - 1, worldY) || wallAtW(worldX, worldY) || wallAtW(worldX, worldY - 1));
+        const nRightConnect = hasN && (wallAtN(worldX + 1, worldY) || wallAtE(worldX, worldY) || wallAtE(worldX, worldY - 1));
+        const sLeftConnect  = hasS && (wallAtS(worldX - 1, worldY) || wallAtW(worldX, worldY + 1) || wallAtW(worldX, worldY));
+        const sRightConnect = hasS && (wallAtS(worldX + 1, worldY) || wallAtE(worldX, worldY + 1) || wallAtE(worldX, worldY));
+        const wTopConnect    = hasW && (wallAtW(worldX, worldY - 1) || wallAtN(worldX, worldY) || wallAtN(worldX - 1, worldY));
+        const wBottomConnect = hasW && (wallAtW(worldX, worldY + 1) || wallAtS(worldX, worldY) || wallAtS(worldX - 1, worldY));
+        const eTopConnect    = hasE && (wallAtE(worldX, worldY - 1) || wallAtN(worldX + 1, worldY) || wallAtN(worldX, worldY));
+        const eBottomConnect = hasE && (wallAtE(worldX, worldY + 1) || wallAtS(worldX + 1, worldY) || wallAtS(worldX, worldY));
+
+        ctx.strokeStyle = casingColor;
+        ctx.lineWidth = casingW;
+        if (hasN) { const x1 = nLeftConnect  ? screenX : screenX - casingW/2; const x2 = nRightConnect ? screenX + tileSize : screenX + tileSize + casingW/2; ctx.beginPath(); ctx.moveTo(x1, screenY); ctx.lineTo(x2, screenY); ctx.stroke(); }
+        if (hasS) { const x1 = sLeftConnect  ? screenX : screenX - casingW/2; const x2 = sRightConnect ? screenX + tileSize : screenX + tileSize + casingW/2; ctx.beginPath(); ctx.moveTo(x1, screenY + tileSize); ctx.lineTo(x2, screenY + tileSize); ctx.stroke(); }
+        if (hasW) { const y1 = wTopConnect    ? screenY : screenY - casingW/2; const y2 = wBottomConnect ? screenY + tileSize : screenY + tileSize + casingW/2; ctx.beginPath(); ctx.moveTo(screenX, y1); ctx.lineTo(screenX, y2); ctx.stroke(); }
+        if (hasE) { const y1 = eTopConnect    ? screenY : screenY - casingW/2; const y2 = eBottomConnect ? screenY + tileSize : screenY + tileSize + casingW/2; ctx.beginPath(); ctx.moveTo(screenX + tileSize, y1); ctx.lineTo(screenX + tileSize, y2); ctx.stroke(); }
+
+        ctx.strokeStyle = coreColor;
+        ctx.lineWidth = coreW;
+        if (hasN) { ctx.beginPath(); ctx.moveTo(screenX - coreW/2, screenY); ctx.lineTo(screenX + tileSize + coreW/2, screenY); ctx.stroke(); }
+        if (hasS) { ctx.beginPath(); ctx.moveTo(screenX - coreW/2, screenY + tileSize); ctx.lineTo(screenX + tileSize + coreW/2, screenY + tileSize); ctx.stroke(); }
+        if (hasW) { ctx.beginPath(); ctx.moveTo(screenX, screenY - coreW/2); ctx.lineTo(screenX, screenY + tileSize + coreW/2); ctx.stroke(); }
+        if (hasE) { ctx.beginPath(); ctx.moveTo(screenX + tileSize, screenY - coreW/2); ctx.lineTo(screenX + tileSize, screenY + tileSize + coreW/2); ctx.stroke(); }
+      }
+    }
+
+    // Subtle grid line (same as drawTile)
+    ctx.strokeStyle = engine.renderDebugColors ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(screenX, screenY, tileSize, tileSize);
+  },
+
+  /**
    * Draw tile highlights (Hover, Targets, Paths)
    */
   drawHighlight: (ctx, x, y, tileSize, color, type = 'solid') => {

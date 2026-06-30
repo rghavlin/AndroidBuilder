@@ -5,6 +5,7 @@ import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { TileRenderer } from '../../game/renderer/TileRenderer.js';
+import { TileChunkCache, TILE_CHUNK_SIZE } from '../../game/renderer/TileChunkCache.js';
 import { EntityRenderer, getDominantItemInTile } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
@@ -39,6 +40,8 @@ export default function MapCanvas({
 }) {
   const canvasRef = useRef(null);
   const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
+  const chunkCacheRef = useRef(new TileChunkCache());
+  const lastRTileSizeRef = useRef(0);
 
   const renderMapRef = useRef(null);
   const handleMouseMoveRef = useRef(null);
@@ -67,6 +70,7 @@ export default function MapCanvas({
   const [, setLoadTick] = React.useState(0);
   useEffect(() => {
     imageLoader.onImageLoaded = () => {
+      chunkCacheRef.current.invalidateAll();
       setLoadTick(t => t + 1);
     };
     return () => { imageLoader.onImageLoaded = null; };
@@ -202,20 +206,66 @@ export default function MapCanvas({
         : (playerFieldOfView || []);
       const visibleTileSet = new Set(fovSource.map(v => `${Math.round(v.x)},${Math.round(v.y)}`));
 
-      // Layer 1: Tiles & Highlights
+      // Layer 1: Tiles — static terrain blitted from chunk cache, then dynamic overlays.
+      const chunkCache = chunkCacheRef.current;
+
+      // Clear all chunks when the physical tile size changes (zoom or DPR change).
+      if (rTileSize !== lastRTileSizeRef.current) {
+        chunkCache.invalidateAll();
+        lastRTileSizeRef.current = rTileSize;
+      }
+
       ctx.save();
       ctx.translate(globalOffsetX, globalOffsetY);
+
+      // Pass 1a: Blit cached chunk canvases (terrain, decorations, edge walls).
+      const startCX = Math.floor(extendedBounds.startX / TILE_CHUNK_SIZE);
+      const endCX   = Math.floor(extendedBounds.endX   / TILE_CHUNK_SIZE);
+      const startCY = Math.floor(extendedBounds.startY / TILE_CHUNK_SIZE);
+      const endCY   = Math.floor(extendedBounds.endY   / TILE_CHUNK_SIZE);
+
+      const visibleChunkKeys = new Set();
+      for (let cy = startCY; cy <= endCY; cy++) {
+        for (let cx = startCX; cx <= endCX; cx++) {
+          const key = `${cx},${cy}`;
+          visibleChunkKeys.add(key);
+          const chunkCanvas = chunkCache.getChunk(cx, cy, rTileSize, gameMap, engine, imageLoader.images);
+          ctx.drawImage(chunkCanvas, cx * TILE_CHUNK_SIZE * rTileSize, cy * TILE_CHUNK_SIZE * rTileSize);
+        }
+      }
+      chunkCache.evictOffscreen(visibleChunkKeys);
+
+      // Pass 1b: Dynamic per-tile overlays (fog of war, unexplored, night tint, fire).
+      // These are all simple fillRect calls — fast even at maximum zoom-out.
       for (let worldY = extendedBounds.startY; worldY <= extendedBounds.endY; worldY++) {
         for (let worldX = extendedBounds.startX; worldX <= extendedBounds.endX; worldX++) {
           const tile = gameMap.getTile(worldX, worldY);
           if (!tile) continue;
 
-          const isExplored = tile.flags?.explored;
-          const isVisible = visibleTileSet.has(`${worldX},${worldY}`);
+          const screenX = worldX * rTileSize;
+          const screenY = worldY * rTileSize;
 
-          TileRenderer.drawTile(ctx, worldX, worldY, rTileSize, tile, isVisible, isExplored, isNight, engine, imageLoader.images, currentTime);
+          if (!tile.flags?.explored) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
+          } else {
+            const isVisible = visibleTileSet.has(`${worldX},${worldY}`);
+            if (!isVisible) {
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+              ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
+            } else if (isNight) {
+              ctx.fillStyle = 'rgba(0, 5, 20, 0.3)';
+              ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
+            }
+            if (tile.fireTurns > 0) {
+              const pulse = 0.35 + Math.sin(currentTime / 180) * 0.15;
+              ctx.fillStyle = `rgba(249, 115, 22, ${pulse})`;
+              ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
+            }
+          }
         }
       }
+
       ctx.restore();
 
       // Layer 2 & 3: World Entities (Categorized by Z-Order)
@@ -790,6 +840,11 @@ export default function MapCanvas({
       preloadEntityImages();
     }
   }, [isInitialized, mapVersion]); // PHASE 23 Fix: Re-preload images whenever mapVersion changes (new map loaded)
+
+  // Bust chunk cache whenever the active map changes (new map loaded, save restored).
+  useEffect(() => {
+    chunkCacheRef.current.invalidateAll();
+  }, [mapVersion]);
 
   // Preload specific place icons when map changes
   useEffect(() => {
