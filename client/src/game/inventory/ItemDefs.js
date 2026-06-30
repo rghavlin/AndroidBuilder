@@ -165,11 +165,12 @@ export const ItemDefs = {
     id: 'vehicle.electric_scooter',
     name: 'Electric Scooter',
     noLoot: true,
+    noPickup: true,
     rarity: Rarity.RARE,
     imageId: 'electricscooter',
     width: 4,
     height: 3,
-    traits: [ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
     categories: [ItemCategory.VEHICLE],
     dragApPenalty: 1,          // Pull mode: +1 AP per tile
     rideApBonus: 0.5,          // Ride mode: -0.5 AP per tile
@@ -183,7 +184,8 @@ export const ItemDefs = {
       components: [
         { id: 'electric_motor', count: 1 },
         { id: 'weapon.metal_rod', count: 1 },
-        { id: 'crafting.wheel', count: 2 }
+        { id: 'crafting.wheel', count: 2 },
+        { id: 'crafting.metal_plate', count: 1 }
       ]
     }
   },
@@ -2211,6 +2213,7 @@ export const ItemDefs = {
     id: 'bedroll.closed',
     name: 'Bedroll (Closed)',
     rarity: Rarity.RARE,
+    noLoot: true,
     imageId: 'bedrollclosed',
     width: 2,
     height: 1,

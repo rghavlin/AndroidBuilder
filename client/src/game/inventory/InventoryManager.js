@@ -2896,7 +2896,7 @@ export class InventoryManager extends SafeEventEmitter {
     const data = def.disassembleData;
     let container = item._container;
     
-    if (!container && item.isFurniture) {
+    if (!container && item.isFurnitureOrVehicle) {
       container = this.getContainer('ground');
     }
 
