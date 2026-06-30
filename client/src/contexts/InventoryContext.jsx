@@ -802,6 +802,7 @@ export const InventoryProvider = ({ children }) => {
       if (lockpickItem.stackCount && lockpickItem.stackCount > 1) {
         lockpickItem.stackCount -= 1;
       } else {
+        lockpickItem.stackCount = 0;
         engine.inventoryManager.removeItem(lockpickItem.instanceId);
       }
       engine.inventoryManager.emit('inventoryChanged');
