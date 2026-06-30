@@ -612,7 +612,7 @@ export default function UniversalGrid({
       // Select Item: If we click an item while holding another and no specialized action occurred
       // If placement failed (e.g. occupied by another item), and that item is NOT stackable with ours,
       // then the user likely wants to SWITCH their selection to the clicked item.
-      if (item && item.instanceId) {
+      if (item && item.instanceId && result.reason !== 'Items inside') {
         // Phase 7 Fix: Prevent switching selection to non-movable or ground-only items
         const isGroundOnly = item.hasTrait?.(ItemTrait.GROUND_ONLY) || item.traits?.includes(ItemTrait.GROUND_ONLY) || (typeof item.isGroundOnly === 'function' && item.isGroundOnly());
         const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
@@ -636,7 +636,9 @@ export default function UniversalGrid({
       if (!result.reason) {
         console.debug('[UniversalGrid] Placement failed with no reason - likely blocked by checkPlayerTurn');
       }
-      playSound('Fail');
+      if (result.reason !== 'Items inside') {
+        playSound('Fail');
+      }
       clearSelected();
       return;
     }
@@ -693,7 +695,9 @@ export default function UniversalGrid({
 
       const result = placeSelected(containerId, x, y);
       if (!result.success) {
-        playSound('Fail');
+        if (result.reason !== 'Items inside') {
+          playSound('Fail');
+        }
         clearSelected();
       }
       return;

@@ -10,6 +10,35 @@ import { CraftingManager } from './CraftingManager.js';
 import audioManager from '../utils/AudioManager.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
+// Helpers to check if clothing or a backpack has items inside
+function hasItemsInside(item) {
+  if (!item) return false;
+  const grid = typeof item.getContainerGrid === 'function' ? item.getContainerGrid() : null;
+  if (grid && grid.items && grid.items.size > 0) {
+    return true;
+  }
+  const pockets = typeof item.getPocketContainers === 'function' ? item.getPocketContainers() : [];
+  for (const pocket of pockets) {
+    if (pocket && pocket.items && pocket.items.size > 0) {
+      return true;
+    }
+  }
+  const beltContainers = typeof item.getBeltContainers === 'function' ? item.getBeltContainers() : [];
+  for (const bc of beltContainers) {
+    if (bc && bc.items && bc.items.size > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isClothingOrBackpack(item) {
+  if (!item) return false;
+  const isBackpack = item.equippableSlot === 'backpack' || item.hasCategory?.(ItemCategory.CONTAINER) || item.categories?.includes('container');
+  const isClothing = item.hasCategory?.(ItemCategory.CLOTHING) || item.categories?.includes('clothing');
+  return isBackpack || isClothing;
+}
+
 /**
  * InventoryManager coordinates all containers in the game
  * Maintains the firewall between inventory and map systems
@@ -431,6 +460,16 @@ export class InventoryManager extends SafeEventEmitter {
    * Equip an item to a specific slot
    */
   equipItem(item, slot = null) {
+    // Check if player is trying to equip a clothing/backpack with items from the ground
+    const originContainer = item._container;
+    if (originContainer && originContainer.id === 'ground') {
+      if (isClothingOrBackpack(item) && hasItemsInside(item)) {
+        audioManager.playSound('Fail');
+        globalThis.gameEngine?.addLog?.('Items inside', 'error');
+        return { success: false, reason: 'Items inside' };
+      }
+    }
+
     // Auto-determine slot if not specified
     if (!slot && item.equippableSlot) {
       slot = Array.isArray(item.equippableSlot) ? item.equippableSlot[0] : item.equippableSlot;
@@ -1953,6 +1992,15 @@ export class InventoryManager extends SafeEventEmitter {
     if (!itemToMove) {
       console.warn('[InventoryManager] Item not found in source for move:', itemId, 'from:', fromContainerId);
       return { success: false, reason: 'Item not found' };
+    }
+
+    // Check if player is trying to move clothing or backpack with items from ground to inventory
+    if (fromContainerId === 'ground' && toContainerId !== 'ground') {
+      if (isClothingOrBackpack(itemToMove) && hasItemsInside(itemToMove)) {
+        audioManager.playSound('Fail');
+        globalThis.gameEngine?.addLog?.('Items inside', 'error');
+        return { success: false, reason: 'Items inside' };
+      }
     }
 
     if (itemToMove.defId === 'tool.battery_powered_hotplate' && itemToMove.isOn && toContainerId !== 'ground') {

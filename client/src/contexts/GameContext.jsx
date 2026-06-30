@@ -95,6 +95,15 @@ const GameContextInner = ({ children }) => {
     };
   }, []);
 
+  // Set up addLog reference on the engine dynamically
+  useEffect(() => {
+    engine.addLog = addLog;
+    return () => {
+      engine.addLog = null;
+    };
+  }, [addLog]);
+
+
   // State machine state
   const initializationState = engine.initializationState;
   const initRef = useRef(initializationState);

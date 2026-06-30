@@ -378,6 +378,60 @@ export function runContainerTests() {
     }
   });
 
+  runTest('Blocking non-empty ground container pickup', () => {
+    const manager = new InventoryManager();
+
+    // Create a backpack on the ground
+    const bp = new Item({
+      instanceId: 'test-bp',
+      defId: 'backpack.standard',
+      name: 'Standard Backpack',
+      equippableSlot: 'backpack',
+      containerGrid: { width: 4, height: 5 }
+    });
+    
+    // Add backpack to ground
+    manager.groundContainer.placeItemAt(bp, 0, 0);
+
+    // Create an item inside the backpack
+    const innerItem = new Item({
+      instanceId: 'inner-item',
+      defId: 'ammo.test',
+      traits: [ItemTrait.STACKABLE],
+      stackCount: 10
+    });
+    
+    // Add inner item to backpack grid
+    bp.getContainerGrid().addItem(innerItem, 0, 0);
+
+    // Create a player inventory container (e.g. personal inventory or just try to equip it)
+    // equipItem should fail
+    const equipResult = manager.equipItem(bp, 'backpack');
+    if (equipResult.success) {
+      throw new Error('Equipping backpack with items from ground should have failed');
+    }
+    if (equipResult.reason !== 'Items inside') {
+      throw new Error('Expected failure reason "Items inside", got: ' + equipResult.reason);
+    }
+
+    // moveItem to an inventory container should also fail
+    const personalInv = new Container({
+      id: 'player_inventory',
+      width: 10,
+      height: 10
+    });
+    manager.containers.set('player_inventory', personalInv);
+
+    const moveResult = manager.moveItem('test-bp', 'ground', 'player_inventory', 0, 0);
+    if (moveResult.success) {
+      throw new Error('Moving backpack with items from ground should have failed');
+    }
+    if (moveResult.reason !== 'Items inside') {
+      throw new Error('Expected failure reason "Items inside", got: ' + moveResult.reason);
+    }
+  });
+
+
   // Display results
   console.log('\n=== INVENTORY SYSTEM TEST RESULTS ===');
   testResults.forEach(result => console.log(result));

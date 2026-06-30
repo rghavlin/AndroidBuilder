@@ -63,7 +63,9 @@ export default function EquipmentSlots() {
         const result = equipSelectedItem(slotId);
         if (!result.success) {
           console.warn('[EquipmentSlots] Failed to equip item:', result.reason);
-          playSound('Fail');
+          if (result.reason !== 'Items inside') {
+            playSound('Fail');
+          }
           clearSelected();
         }
         return;

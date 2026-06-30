@@ -343,6 +343,13 @@ export function ItemContextMenu({
                                     Read 1 (1ap)
                                 </ContextMenuItem>
                                 <ContextMenuItem
+                                    onClick={() => readBook(item, 5)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!engine.player || engine.player.ap < 5 || (engine.bookStats?.[item.defId]?.pagesLeft || 0) < 5}
+                                >
+                                    Read 5 (5ap)
+                                </ContextMenuItem>
+                                <ContextMenuItem
                                     onClick={() => readBook(item, 'max')}
                                     className="hover:bg-accent focus:bg-accent focus:text-white"
                                     disabled={!engine.player || engine.player.ap < 1 || (engine.bookStats?.[item.defId]?.pagesLeft || 0) <= 0}

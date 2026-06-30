@@ -14,6 +14,35 @@ import { gameRandom } from '../game/utils/SeededRandom.js';
 
 const logger = Logger.scope('InventoryContext');
 
+// Helpers to check if clothing or a backpack has items inside
+function hasItemsInside(item) {
+  if (!item) return false;
+  const grid = typeof item.getContainerGrid === 'function' ? item.getContainerGrid() : null;
+  if (grid && grid.items && grid.items.size > 0) {
+    return true;
+  }
+  const pockets = typeof item.getPocketContainers === 'function' ? item.getPocketContainers() : [];
+  for (const pocket of pockets) {
+    if (pocket && pocket.items && pocket.items.size > 0) {
+      return true;
+    }
+  }
+  const beltContainers = typeof item.getBeltContainers === 'function' ? item.getBeltContainers() : [];
+  for (const bc of beltContainers) {
+    if (bc && bc.items && bc.items.size > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isClothingOrBackpack(item) {
+  if (!item) return false;
+  const isBackpack = item.equippableSlot === 'backpack' || item.hasCategory?.(ItemCategory.CONTAINER) || item.categories?.includes('container');
+  const isClothing = item.hasCategory?.(ItemCategory.CLOTHING) || item.categories?.includes('clothing');
+  return isBackpack || isClothing;
+}
+
 const InventoryContext = createContext();
 
 export const useInventory = () => {
@@ -440,6 +469,15 @@ export const InventoryProvider = ({ children }) => {
     if (!checkPlayerTurn().success) return { success: false };
     if (!selectedItem || !engine.inventoryManager) return { success: false };
     const { item, originContainerId, rotation } = selectedItem;
+
+    // Check if player is trying to move clothing or backpack with items from ground to inventory
+    if (originContainerId === 'ground' && targetId !== 'ground') {
+      if (isClothingOrBackpack(item) && hasItemsInside(item)) {
+        addLog('Items inside', 'error');
+        playSound('Fail');
+        return { success: false, reason: 'Items inside' };
+      }
+    }
     
     // Phase 22: Detect Equipment Transitions (Equip/Unequip)
     const isEquipping = String(targetId).startsWith('equipment-');
@@ -861,6 +899,12 @@ export const InventoryProvider = ({ children }) => {
       return { success: false, reason: 'Not enough AP' };
     }
 
+    if (apAvailable < apNeeded) {
+      addLog("Not enough AP to read.", 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Not enough AP' };
+    }
+
     if (stats.pagesLeft < apNeeded) {
         addLog("Not enough pages left in the book.", 'error');
         return { success: false, reason: 'Not enough pages' };
@@ -1052,6 +1096,15 @@ export const InventoryProvider = ({ children }) => {
     }
 
     const item = selectedItem.item;
+    const originContainerId = selectedItem.originContainerId;
+    if (originContainerId === 'ground') {
+      if (isClothingOrBackpack(item) && hasItemsInside(item)) {
+        addLog('Items inside', 'error');
+        playSound('Fail');
+        return { success: false, reason: 'Items inside' };
+      }
+    }
+
     const result = engine.inventoryManager.equipItem(item, slotId);
     
     if (result.success) {
@@ -1170,6 +1223,16 @@ export const InventoryProvider = ({ children }) => {
     
     const { item, originContainerId } = selectedItem;
     const targetId = targetContainerItem.containerGrid?.id || `${targetContainerItem.instanceId}-container`;
+
+    // Check if player is trying to move clothing or backpack with items from ground to inventory
+    if (originContainerId === 'ground' && targetId !== 'ground') {
+      if (isClothingOrBackpack(item) && hasItemsInside(item)) {
+        addLog('Items inside', 'error');
+        playSound('Fail');
+        return { success: false, reason: 'Items inside' };
+      }
+    }
+
     const container = engine.inventoryManager.getContainer(targetId);
 
     // 1. Recursion Check (Prevent putting container into itself)
