@@ -793,23 +793,32 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, playSound]);
 
-  const pickSafeLock = useCallback((item) => {
+  const pickSafeLock = useCallback((item, lockpickItem = null) => {
     const turnCheck = checkPlayerTurn();
     if (!turnCheck.success) return turnCheck;
     if (!engine.player || !engine.inventoryManager) return { success: false };
 
-    const hasLockpick = engine.inventoryManager.hasItemByDefId('tool.lockpick');
-    if (!hasLockpick) {
-      addLog("You need a lockpick in your inventory or on the ground to pick this lock.", 'error');
-      playSound('Fail');
-      return { success: false, reason: 'No lockpick' };
-    }
+    if (lockpickItem) {
+      if (lockpickItem.stackCount && lockpickItem.stackCount > 1) {
+        lockpickItem.stackCount -= 1;
+      } else {
+        engine.inventoryManager.removeItem(lockpickItem.instanceId);
+      }
+      engine.inventoryManager.emit('inventoryChanged');
+    } else {
+      const hasLockpick = engine.inventoryManager.hasItemByDefId('tool.lockpick');
+      if (!hasLockpick) {
+        addLog("You need a lockpick in your inventory or on the ground to pick this lock.", 'error');
+        playSound('Fail');
+        return { success: false, reason: 'No lockpick' };
+      }
 
-    const consumed = engine.inventoryManager.consumeItemByDefId('tool.lockpick');
-    if (!consumed) {
-      addLog("Failed to consume lockpick.", 'error');
-      playSound('Fail');
-      return { success: false, reason: 'Consumption failed' };
+      const consumed = engine.inventoryManager.consumeItemByDefId('tool.lockpick');
+      if (!consumed) {
+        addLog("Failed to consume lockpick.", 'error');
+        playSound('Fail');
+        return { success: false, reason: 'Consumption failed' };
+      }
     }
 
     item.isLocked = false;
@@ -890,7 +899,7 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, playSound]);
 
-  const disassembleItem = useCallback((item) => {
+  const disassembleItem = useCallback((item, tool = null) => {
     if (!checkPlayerTurn()) return { success: false };
     if (!engine.inventoryManager || !engine.player) return { success: false };
     
@@ -906,7 +915,13 @@ export const InventoryProvider = ({ children }) => {
       return { success: false, reason: 'Not enough AP' };
     }
 
-    const success = engine.inventoryManager.disassembleItem(item);
+    if (tool && tool.isDegradable() && tool.condition <= 0) {
+      addLog(`Your ${tool.name} is broken!`, 'warning');
+      playSound('Fail');
+      return { success: false, reason: 'Tool is broken' };
+    }
+
+    const success = engine.inventoryManager.disassembleItem(item, tool);
     if (success) {
       engine.player.useAP(apCost);
       addLog(`You disassembled the ${item.name}.`, 'item');
@@ -914,7 +929,11 @@ export const InventoryProvider = ({ children }) => {
       engine.notifyUpdate();
       return { success: true };
     } else {
-      addLog(`You need the required tool in the same container to disassemble this.`, 'error');
+      if (tool) {
+        addLog(`You need a functional tool to disassemble this.`, 'error');
+      } else {
+        addLog(`You need the required tool in the same container to disassemble this.`, 'error');
+      }
       playSound('Fail');
       return { success: false, reason: 'Missing tool' };
     }

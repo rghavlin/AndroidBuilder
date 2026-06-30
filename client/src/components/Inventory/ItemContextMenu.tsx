@@ -175,17 +175,7 @@ export function ItemContextMenu({
                                 {item.isOn ? 'Turn off' : 'Turn on'}
                             </ContextMenuItem>
                         )}
-                        {item?.defId === 'furniture.safe' && item.isLocked && (
-                            <ContextMenuItem
-                                onClick={() => {
-                                    pickSafeLock(item);
-                                }}
-                                disabled={!inventoryManager?.hasItemByDefId('tool.lockpick')}
-                                className="hover:bg-accent focus:bg-accent focus:text-white"
-                            >
-                                Pick lock (consume lockpick)
-                            </ContextMenuItem>
-                        )}
+
                         {canOpenContainer(item) && (
                             <ContextMenuItem
                                 onClick={() => {
@@ -292,47 +282,7 @@ export function ItemContextMenu({
                                 </ContextMenuItem>
                             </>
                         )}
-                        {(() => {
-                             const disassembleData = item?.disassembleData;
-                             if (!disassembleData) return null;
-                             
-                             // Use item's container, or fallback to the ground container if we know it's there
-                             let container = item?._container;
-                             if (!container) {
-                                 // Try to find the container via inventoryManager if possible
-                                 // Note: useGame might not be available here, but we can check item._containerId if it exists
-                                 // or assume if it's furniture it's likely on ground
-                                 if (item.hasTrait?.(ItemTrait.FURNITURE)) {
-                                     container = engine.inventoryManager?.getContainer('ground');
-                                 }
-                             }
-                             
-                             if (!container) return null;
-                             
-                             const toolId = disassembleData.toolId;
-                             const items = container.getAllItems();
-                            let hasTool = false;
-                            
-                            if (typeof toolId === 'string') {
-                                hasTool = items.some(i => i.defId === toolId);
-                            } else if (toolId && toolId.either) {
-                                hasTool = items.some(i => toolId.either.includes(i.defId));
-                            }
-                            
-                            const craftingLevel = engine.player?.craftingLvl || 0;
-                            const apCost = Math.max(1, (disassembleData.apCost || 10) - craftingLevel);
-                            
-                            if (!hasTool) return null;
 
-                            return (
-                                <ContextMenuItem
-                                    onClick={() => disassembleItem(item)}
-                                    className="hover:bg-accent focus:bg-accent focus:text-white"
-                                >
-                                    Disassemble ({apCost} AP)
-                                </ContextMenuItem>
-                            );
-                        })()}
                         {item?.defId === 'bedroll.closed' && (
                             <ContextMenuItem
                                 onClick={() => unrollBedroll(item)}

@@ -16,6 +16,7 @@ import { ItemTrait, ItemCategory } from "../../game/inventory/traits.js";
 import { TURRET_DEF_ID } from "../../game/ai/TurretCombat.js";
 import { getScaleFactor } from "@/hooks/useWindowSize";
 import { Item, createItemFromDef } from "../../game/inventory/index.js";
+import { ItemDefs } from "../../game/inventory/ItemDefs.js";
 import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
 import { GAP_SIZE } from "./constants";
@@ -68,7 +69,7 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource, disassembleItem, pickSafeLock } = useInventory();
   const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel } = useAction();
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
@@ -242,6 +243,32 @@ export default function UniversalGrid({
 
     // Play tactile feedback sound
     playSound('Click');
+
+    // Case -1: Handling Equipped Melee Tool targeting
+    if (targetingWeapon) {
+      if (item && item.disassembleData && containerId === 'ground' && targetingWeapon.slot === 'melee') {
+        const toolId = item.disassembleData.toolId;
+        let toolMatches = false;
+        if (typeof toolId === 'string') {
+          toolMatches = targetingWeapon.item.defId === toolId;
+        } else if (toolId && toolId.either) {
+          toolMatches = toolId.either.includes(targetingWeapon.item.defId);
+        }
+        
+        if (toolMatches) {
+          console.debug('[UniversalGrid] Disassembling item with equipped melee tool:', item.name, targetingWeapon.item.name);
+          const result = disassembleItem(item, targetingWeapon.item);
+          if (result.success) {
+            cancelTargeting();
+          }
+          return;
+        }
+      }
+      
+      // If we clicked any item while targeting weapon but not disassembling, cancel targeting
+      cancelTargeting();
+      return;
+    }
 
     // Case 0: Handling Targeting (e.g. Shovel Digging)
     if (targetingItem) {
@@ -423,6 +450,39 @@ export default function UniversalGrid({
         return;
       }
 
+      // SPECIALIZED ACTION: Disassembly using a held tool (selectedItem)
+      const disassembleData = item?.disassembleData;
+      if (disassembleData && containerId === 'ground') {
+        const toolId = disassembleData.toolId;
+        let toolMatches = false;
+        if (typeof toolId === 'string') {
+          toolMatches = selectedItem.item.defId === toolId;
+        } else if (toolId && toolId.either) {
+          toolMatches = toolId.either.includes(selectedItem.item.defId);
+        }
+        
+        if (toolMatches) {
+          console.debug('[UniversalGrid] Disassembling item with held tool:', item.name, selectedItem.item.name);
+          const result = disassembleItem(item, selectedItem.item);
+          if (result.success) {
+            clearSelected(); // Deselect the tool from the cursor!
+          }
+          return;
+        }
+      }
+
+      // SPECIALIZED ACTION: Lockpicking a Safe using a held lockpick (selectedItem)
+      const isLockpickSelected = selectedItem.item.defId === 'tool.lockpick';
+      const isLockedSafeClicked = item?.defId === 'furniture.safe' && (item.isLocked !== false && (item.isLocked === true || ItemDefs[item.defId]?.isLocked === true));
+      if (isLockpickSelected && isLockedSafeClicked && containerId === 'ground') {
+        console.debug('[UniversalGrid] Lockpicking Safe with held lockpick:', item.name);
+        const result = pickSafeLock(item, selectedItem.item);
+        if (result.success) {
+          clearSelected(); // Deselect the lockpick from the cursor!
+        }
+        return;
+      }
+
       // SPECIAL CASE: Fueling a campfire
       const isFuel = selectedItem.item.hasCategory?.('fuel') || selectedItem.item.categories?.includes('fuel');
       const isCampfire = item?.defId === 'placeable.campfire';
@@ -550,7 +610,6 @@ export default function UniversalGrid({
       }
 
       // Select Item: If we click an item while holding another and no specialized action occurred
-
       // If placement failed (e.g. occupied by another item), and that item is NOT stackable with ours,
       // then the user likely wants to SWITCH their selection to the clicked item.
       if (item && item.instanceId) {
@@ -559,8 +618,9 @@ export default function UniversalGrid({
         const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
         const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
         const isAutoTurret = item.defId === TURRET_DEF_ID;
+        const isNoPickup = item.noPickup || ItemDefs[item.defId]?.noPickup === true;
         
-        if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
+        if (isNoPickup || isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
            console.debug('[UniversalGrid] Cannot switch selection to non-movable item:', item.name);
            return;
         }
@@ -587,8 +647,9 @@ export default function UniversalGrid({
       const isNoDrag = item.noDrag || (typeof item.hasTrait === 'function' && item.hasTrait(ItemTrait.NO_DRAG));
       const isDraggable = item.hasTrait?.(ItemTrait.DRAGGABLE) || item.traits?.includes(ItemTrait.DRAGGABLE);
       const isAutoTurret = item.defId === TURRET_DEF_ID;
+      const isNoPickup = item.noPickup || ItemDefs[item.defId]?.noPickup === true;
       
-      if (isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
+      if (isNoPickup || isNoDrag || (isGroundOnly && containerId === 'ground' && !isDraggable && !isAutoTurret)) {
         console.debug('[UniversalGrid] Cannot pick up non-movable item:', item.name);
         return;
       }
@@ -597,9 +658,10 @@ export default function UniversalGrid({
       return;
     }
 
+
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     // If an item is selected, right-click on it rotates it

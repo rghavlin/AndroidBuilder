@@ -215,6 +215,8 @@ export class Item extends SafeEventEmitter {
       if (def.renderFullTile && this.renderFullTile === null) this.renderFullTile = def.renderFullTile;
       if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) this.dragApPenalty = def.dragApPenalty;
       if (def.noDrag !== undefined && this.noDrag === undefined) this.noDrag = def.noDrag;
+      if (def.noPickup !== undefined && this.noPickup === undefined) this.noPickup = def.noPickup;
+      if (def.isLocked !== undefined && this.isLocked === undefined) this.isLocked = def.isLocked;
       if (def.plantsAs) this.plantsAs = def.plantsAs;
       if (def.produceMin !== undefined) this.produceMin = def.produceMin;
       if (def.produceMax !== undefined) this.produceMax = def.produceMax;

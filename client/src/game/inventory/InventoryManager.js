@@ -708,7 +708,8 @@ export class InventoryManager extends SafeEventEmitter {
   canOpenContainer(item) {
     if (!item) return false;
 
-    if (item.isLocked) {
+    const isLocked = item.isLocked !== false && (item.isLocked === true || ItemDefs[item.defId]?.isLocked === true);
+    if (isLocked) {
       return false;
     }
 
@@ -2839,7 +2840,7 @@ export class InventoryManager extends SafeEventEmitter {
    * @param {Item} item - The item to disassemble
    * @returns {boolean} - Whether disassembly was successful
    */
-  disassembleItem(item) {
+  disassembleItem(item, toolInstance = null) {
     if (!item) return false;
     const def = ItemDefs[item.defId];
     if (!def || !def.disassembleData) return false;
@@ -2853,19 +2854,19 @@ export class InventoryManager extends SafeEventEmitter {
 
     if (!container) return false;
     
-    // Check for tool in the SAME container
-    const itemsInContainer = container.getAllItems();
-    let toolInstance = null;
-    
-    const toolId = data.toolId;
-    if (typeof toolId === 'string') {
-      toolInstance = itemsInContainer.find(i => i.defId === toolId && (!i.isDegradable() || i.condition > 0));
-    } else if (toolId && toolId.either) {
-      toolInstance = itemsInContainer.find(i => toolId.either.includes(i.defId) && (!i.isDegradable() || i.condition > 0));
+    // Check for tool
+    if (!toolInstance) {
+      const itemsInContainer = container.getAllItems();
+      const toolId = data.toolId;
+      if (typeof toolId === 'string') {
+        toolInstance = itemsInContainer.find(i => i.defId === toolId && (!i.isDegradable() || i.condition > 0));
+      } else if (toolId && toolId.either) {
+        toolInstance = itemsInContainer.find(i => toolId.either.includes(i.defId) && (!i.isDegradable() || i.condition > 0));
+      }
     }
     
     if (!toolInstance) {
-      console.warn('[InventoryManager] Missing or broken required tool for disassembly:', toolId);
+      console.warn('[InventoryManager] Missing or broken required tool for disassembly:', data.toolId);
       return false;
     }
     
