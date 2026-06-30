@@ -262,6 +262,27 @@ export class NPCSpawner {
   }
 
   /**
+   * Build a town-faction auto-turret fitted with a suppressor so its gunfire
+   * only wakes nearby zombies (noiseRadius 3) instead of broadcasting across the
+   * whole map. Town defenses fire often, so an un-suppressed turret would draw a
+   * steady stream of zombies into the compound.
+   * @returns {Item|null}
+   */
+  static createTownTurret() {
+    const turretData = createItemFromDef(TURRET_DEF_ID, { factionId: 'town', isOn: true });
+    if (!turretData) return null;
+    const turret = new Item(turretData);
+    turret.factionId = 'town';
+    turret.isOn = true;
+
+    const suppressorData = createItemFromDef('attachment.suppressor');
+    if (suppressorData) {
+      turret.attachItem('barrel', new Item(suppressorData));
+    }
+    return turret;
+  }
+
+  /**
    * Spawn the town faction's defensive auto-turrets on the fence tiles flanking
    * the barrier icons either side of the shopkeeper's gate. These are neutral
    * (town faction): infinite battery/ammo, always powered on. They fire on
@@ -286,11 +307,8 @@ export class NPCSpawner {
     let count = 0;
     for (const x of positions) {
       if (x < 0 || x >= gameMap.width) continue;
-      const turretData = createItemFromDef(TURRET_DEF_ID, { factionId: 'town', isOn: true });
-      if (!turretData) continue;
-      const turret = new Item(turretData);
-      turret.factionId = 'town';
-      turret.isOn = true;
+      const turret = NPCSpawner.createTownTurret();
+      if (!turret) continue;
       gameMap.addItemsToTile(x, y, [turret]);
       count++;
       console.log(`[NPCSpawner] Spawned town turret at (${x}, ${y})`);
@@ -339,11 +357,8 @@ export class NPCSpawner {
     let turretCount = 0;
     for (const { x, y } of layout.turrets) {
       if (!inBounds(x, y)) continue;
-      const turretData = createItemFromDef(TURRET_DEF_ID, { factionId: 'town', isOn: true });
-      if (!turretData) continue;
-      const turret = new Item(turretData);
-      turret.factionId = 'town';
-      turret.isOn = true;
+      const turret = NPCSpawner.createTownTurret();
+      if (!turret) continue;
       gameMap.addItemsToTile(x, y, [turret]);
       turretCount++;
     }

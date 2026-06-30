@@ -1044,17 +1044,6 @@ export const ItemDefs = {
     }
   },
 
-  'container.ammo_box': {
-    id: 'container.ammo_box',
-    name: 'Ammo Box',
-    noLoot: true,
-    rarity: Rarity.RARE,
-    imageId: 'toolbox', // No extension - loader will append .png (TODO: Replace with actual ammo box image)
-    width: 2,
-    height: 2,
-    traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
-    containerGrid: { width: 4, height: 3 }
-  },
   'container.lunchbox': {
     id: 'container.lunchbox',
     name: 'Lunchbox',

@@ -131,7 +131,6 @@ const ITEM_TEMPLATES = {
 
   // Containers (non-equippable)
   'container.toolbox': { width: 2, height: 2, containerGrid: { width: 4, height: 4 }, imageId: 'toolbox.png' },
-  'container.ammobox': { width: 2, height: 1, containerGrid: { width: 6, height: 3 }, imageId: 'ammobox.png' },
   'container.medkit': { width: 2, height: 2, containerGrid: { width: 3, height: 3 }, imageId: 'medkit.png' }
 };
 

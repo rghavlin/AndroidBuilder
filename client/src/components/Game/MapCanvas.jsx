@@ -5,7 +5,7 @@ import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { TileRenderer } from '../../game/renderer/TileRenderer.js';
-import { EntityRenderer, getLargestItemInTile } from '../../game/renderer/EntityRenderer.js';
+import { EntityRenderer, getDominantItemInTile } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../../game/entities/Entity.js';
@@ -737,11 +737,11 @@ export default function MapCanvas({
           const subtype = i.subtype || 'basic';
           if (subtype === 'ground_pile') {
             const tileItems = currentMap.getItemsOnTile(Math.round(i.x), Math.round(i.y));
-            const largestItem = getLargestItemInTile(tileItems);
-            if (largestItem) {
-              const defId = largestItem.defId || largestItem.id;
+            const dominantItem = getDominantItemInTile(tileItems);
+            if (dominantItem) {
+              const defId = dominantItem.defId || dominantItem.id;
               const def = ItemDefs[defId];
-              const id = largestItem.imageId || def?.imageId || defId;
+              const id = dominantItem.imageId || def?.imageId || defId;
               if (id && id !== 'basic') {
                 itemImageIds.push(id);
               }

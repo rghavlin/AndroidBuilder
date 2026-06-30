@@ -5,6 +5,7 @@ import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../entities/Entity.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
+import { EquipmentSlot, ItemCategory, ItemTrait } from '../inventory/traits.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { gridItems } from '../inventory/gridUtils.js';
 
@@ -40,27 +41,85 @@ function getPoweredTurretForEntity(entity) {
   return null;
 }
 
+// Ground-pile icon priority. A tile may hold many items, but it renders as a
+// single icon — the "dominant" item. We pick by category tier first (lower
+// rank = shown on top), then by footprint area within a tier. Tiers below mirror
+// the design: vehicles > backpacks > food > guns > medical > containers >
+// lighters/matches > (everything else, by size).
+const TILE_ICON_RANK = {
+  VEHICLE: 0,
+  BACKPACK: 1,
+  FOOD: 2,
+  GUN: 3,
+  MEDICAL: 4,
+  CONTAINER: 5,
+  FIRESTARTER: 6,
+  OTHER: 7,
+};
+
+const FIRESTARTER_DEF_IDS = new Set(['tool.lighter', 'tool.matchbook']);
+
+// Resolve traits/categories/slot from the item instance, falling back to its
+// definition (ground-pile entries are often plain data, not Item instances).
+function resolveItemMeta(item) {
+  const defId = item.defId || item.id;
+  const def = ItemDefs[defId] || {};
+  const traits = item.traits || def.traits || [];
+  const categories = item.categories || def.categories || [];
+  const equippableSlot = item.equippableSlot || def.equippableSlot;
+  return { defId, def, traits, categories, equippableSlot };
+}
+
 /**
- * The largest item (by footprint area) among items sharing a ground tile, used
- * to decide which item a ground pile renders as. Width/height fall back to the
- * item definition, then to 1. Returns null for an empty/missing list.
+ * Priority tier for a single item's ground-pile icon. Lower = higher priority.
  */
-export function getLargestItemInTile(tileItems) {
+function getTileIconRank(item) {
+  const { defId, traits, categories, equippableSlot } = resolveItemMeta(item);
+  const hasTrait = (t) => traits.includes(t);
+  const hasCategory = (c) => categories.includes(c);
+
+  if (hasTrait(ItemTrait.VEHICLE) || hasTrait(ItemTrait.WAGON) ||
+      hasTrait(ItemTrait.SCOOTER) || hasCategory(ItemCategory.VEHICLE)) {
+    return TILE_ICON_RANK.VEHICLE;
+  }
+  if (equippableSlot === EquipmentSlot.BACKPACK) return TILE_ICON_RANK.BACKPACK;
+  if (hasCategory(ItemCategory.FOOD)) return TILE_ICON_RANK.FOOD;
+  if (hasCategory(ItemCategory.GUN)) return TILE_ICON_RANK.GUN;
+  if (hasCategory(ItemCategory.MEDICAL) || hasTrait(ItemTrait.MEDICAL)) {
+    return TILE_ICON_RANK.MEDICAL;
+  }
+  // Loose containers (lunchbox, toolbox, gun case, medkit). Backpacks are
+  // already handled above, so any remaining CONTAINER-trait item lands here.
+  if (hasTrait(ItemTrait.CONTAINER)) return TILE_ICON_RANK.CONTAINER;
+  if (FIRESTARTER_DEF_IDS.has(defId)) return TILE_ICON_RANK.FIRESTARTER;
+  return TILE_ICON_RANK.OTHER;
+}
+
+/**
+ * The dominant item among items sharing a ground tile, used to decide which item
+ * a ground pile renders as. Selection is by category priority (vehicles >
+ * backpacks > food > guns > medical > containers > lighters/matches), and within
+ * a tier by footprint area (largest wins). Width/height fall back to the item
+ * definition, then to 1. Returns null for an empty/missing list.
+ */
+export function getDominantItemInTile(tileItems) {
   if (!tileItems || tileItems.length === 0) return null;
-  let largestItem = null;
-  let maxArea = -1;
+  let bestItem = null;
+  let bestRank = Infinity;
+  let bestArea = -1;
   for (const item of tileItems) {
-    const defId = item.defId || item.id;
-    const def = ItemDefs[defId];
+    const { def } = resolveItemMeta(item);
     const w = item.width || def?.width || 1;
     const h = item.height || def?.height || 1;
     const area = w * h;
-    if (area > maxArea) {
-      maxArea = area;
-      largestItem = item;
+    const rank = getTileIconRank(item);
+    if (rank < bestRank || (rank === bestRank && area > bestArea)) {
+      bestRank = rank;
+      bestArea = area;
+      bestItem = item;
     }
   }
-  return largestItem;
+  return bestItem;
 }
 
 
@@ -183,11 +242,11 @@ export const EntityRenderer = {
       if (entity.type === 'item') {
         if (subtype === 'ground_pile' && engine && engine.gameMap) {
           const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
-          const largestItem = getLargestItemInTile(tileItems);
-          if (largestItem) {
-            const defId = largestItem.defId || largestItem.id;
+          const dominantItem = getDominantItemInTile(tileItems);
+          if (dominantItem) {
+            const defId = dominantItem.defId || dominantItem.id;
             const def = ItemDefs[defId];
-            effectiveImageId = largestItem.imageId || def?.imageId || defId;
+            effectiveImageId = dominantItem.imageId || def?.imageId || defId;
           }
         } else {
           effectiveImageId = entity.imageId || (ItemDefs[subtype]?.imageId) || subtype;
@@ -292,12 +351,12 @@ export const EntityRenderer = {
           
           if (subtype === 'ground_pile' && engine && engine.gameMap) {
             const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
-            const largestItem = getLargestItemInTile(tileItems);
-            if (largestItem) {
-              isFood = largestItem.isFood || false;
-              isMedical = largestItem.isMedical || false;
-              const defId = largestItem.defId || largestItem.id;
-              matchingDef = largestItem._def || ItemDefs[defId];
+            const dominantItem = getDominantItemInTile(tileItems);
+            if (dominantItem) {
+              isFood = dominantItem.isFood || false;
+              isMedical = dominantItem.isMedical || false;
+              const defId = dominantItem.defId || dominantItem.id;
+              matchingDef = dominantItem._def || ItemDefs[defId];
             }
           } else {
             isFood = entity.isFood || false;
