@@ -1033,7 +1033,7 @@ export class GameMap extends SafeEventEmitter {
     // --- BATTERY CHARGER LOGIC ---
     if (itemData.defId === 'tool.battery_charger') {
       if (isPowered) {
-        TurnProcessingUtils.chargeBatteries(gridItems(itemData.containerGrid));
+        TurnProcessingUtils.chargeBatteries(gridItems(itemData.containerGrid), 5);
         itemModified = true;
       }
     }

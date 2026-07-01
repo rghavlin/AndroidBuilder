@@ -1,5 +1,5 @@
 {
-  "name": "t01",
+  "name": "transition test",
   "width": 20,
   "height": 20,
   "tiles": [
@@ -5691,15 +5691,12 @@
             "window": false
           }
         },
-        "entities": [
-          {
-            "type": "zombie",
-            "subtype": "basic",
-            "hp": 2,
-            "noLoot": true
-          }
-        ],
-        "items": []
+        "entities": [],
+        "items": [],
+        "mapTransition": {
+          "targetType": "tutorial_end",
+          "targetId": "tutorial_end"
+        }
       },
       {
         "terrain": "grass",
@@ -6247,7 +6244,10 @@
         ],
         "items": [
           {
-            "defId": "weapon.woodenbat"
+            "defId": "medical.bandage"
+          },
+          {
+            "defId": "weapon.fire_axe"
           }
         ]
       },
@@ -10859,5 +10859,6 @@
       }
     ]
   ],
-  "buildings": []
+  "buildings": [],
+  "noAutosave": true
 }

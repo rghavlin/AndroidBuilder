@@ -460,16 +460,6 @@ export class InventoryManager extends SafeEventEmitter {
    * Equip an item to a specific slot
    */
   equipItem(item, slot = null) {
-    // Check if player is trying to equip a clothing/backpack with items from the ground
-    const originContainer = item._container;
-    if (originContainer && originContainer.id === 'ground') {
-      if (isClothingOrBackpack(item) && hasItemsInside(item)) {
-        audioManager.playSound('Fail');
-        globalThis.gameEngine?.addLog?.('Items inside', 'error');
-        return { success: false, reason: 'Items inside' };
-      }
-    }
-
     // Auto-determine slot if not specified
     if (!slot && item.equippableSlot) {
       slot = Array.isArray(item.equippableSlot) ? item.equippableSlot[0] : item.equippableSlot;
@@ -3167,7 +3157,7 @@ export class InventoryManager extends SafeEventEmitter {
     if (item.defId === 'tool.battery_charger') {
       const chargerContainer = item.getContainerGrid?.();
       if (chargerContainer && this.isContainerPowered(chargerContainer.id)) {
-        TurnProcessingUtils.chargeBatteries(chargerContainer.getAllItems());
+        TurnProcessingUtils.chargeBatteries(chargerContainer.getAllItems(), 5);
       }
     }
 

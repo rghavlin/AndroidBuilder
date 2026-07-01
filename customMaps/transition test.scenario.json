@@ -1,7 +1,8 @@
 {
-  "name": "t02",
+  "name": "transition test",
   "width": 20,
   "height": 20,
+  "noAutosave": true,
   "tiles": [
     [
       {
@@ -2542,35 +2543,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.woodenbat-1782886088001-f75b1",
-            "defId": "weapon.woodenbat",
-            "id": "weapon.woodenbat",
-            "name": "Wooden Bat",
-            "rarity": "uncommon",
-            "imageId": "woodenbat",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon"
-            ],
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.75,
-              "damage": {
-                "min": 1,
-                "max": 6
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
@@ -2812,7 +2785,65 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "medical.bandage-1782900190106-jo0ea",
+            "defId": "medical.bandage",
+            "id": "medical.bandage",
+            "name": "Bandage",
+            "rarity": "common",
+            "imageId": "bandage",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "consumable",
+              "stackable"
+            ],
+            "categories": [
+              "medical"
+            ],
+            "consumptionSound": "Bandage",
+            "pileLimitOne": true,
+            "stackMax": 10,
+            "consumptionEffects": {
+              "heal": {
+                "min": 4,
+                "max": 7
+              },
+              "stop_bleeding": true
+            }
+          },
+          {
+            "instanceId": "weapon.fire_axe-1782900190106-ei5aj",
+            "defId": "weapon.fire_axe",
+            "id": "weapon.fire_axe",
+            "name": "Fire axe",
+            "rarity": "uncommon",
+            "imageId": "fireaxe",
+            "width": 5,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "degradable",
+              "canBreakDoors"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.9,
+              "damage": {
+                "min": 5,
+                "max": 15
+              }
+            },
+            "description": "Right click to use on doors and windows"
+          }
+        ]
       },
       {
         "x": 10,
@@ -4882,26 +4913,26 @@
       "playerStart": [
         {
           "x": 9,
-          "y": 10
+          "y": 11
         }
       ]
     }
   },
   "entities": [
     {
-      "type": "zombie",
-      "x": 9,
-      "y": 9,
-      "subtype": "basic",
-      "noLoot": true
-    },
-    {
       "type": "player",
       "x": 9,
-      "y": 10,
+      "y": 11,
       "subtype": null
     }
   ],
   "eventTriggers": [],
-  "mapTransitions": []
+  "mapTransitions": [
+    {
+      "x": 9,
+      "y": 10,
+      "targetType": "tutorial_end",
+      "targetId": "tutorial_end"
+    }
+  ]
 }

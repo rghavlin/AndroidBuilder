@@ -56,9 +56,9 @@ interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
   entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean }[];
-  items: { defId: string; ammoCount?: number; condition?: number }[];
+  items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string> }[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean };
-  mapTransition?: { targetType: 'scenario' | 'generator'; targetId: string; level?: number };
+  mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
 }
 
 interface BuildingMeta {
@@ -74,6 +74,7 @@ interface ScenarioData {
   tiles: TileData[][];
   buildings: BuildingMeta[];
   playerSpawn: { x: number; y: number } | null;
+  noAutosave?: boolean;
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -121,7 +122,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[] } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -146,7 +147,35 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         // Items: scenario stores as inventoryItems with defId
         if (st.inventoryItems) {
           tiles[y][x].items = st.inventoryItems
-            .map((it: any) => ({ defId: it.defId || it.id, ...(it.ammoCount !== undefined ? { ammoCount: it.ammoCount } : {}), ...(it.condition !== undefined ? { condition: it.condition } : {}) }))
+            .map((it: any) => {
+              const entry: any = { defId: it.defId || it.id };
+              if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
+              if (it.condition !== undefined) entry.condition = it.condition;
+              if (it.attachments) {
+                const itItemDef = (ItemDefs as any)[entry.defId];
+                const slotInfo = getBatterySlotInfo(itItemDef);
+                if (slotInfo && it.attachments[slotInfo.slotId]?.ammoCount !== undefined) {
+                  entry.batteryCharges = it.attachments[slotInfo.slotId].ammoCount;
+                }
+                if (itItemDef?.categories?.includes(ItemCategory.GUN)) {
+                  const ammoAtt = it.attachments['ammo'];
+                  if (ammoAtt) {
+                    if (itItemDef.directLoad) {
+                      entry.gunAmmoCount = ammoAtt.stackCount ?? 0;
+                    } else {
+                      entry.gunMagDefId = ammoAtt.defId;
+                      entry.gunAmmoCount = ammoAtt.ammoCount ?? 0;
+                    }
+                  }
+                  const nonAmmo: Record<string, string> = {};
+                  for (const [slotId, att] of Object.entries(it.attachments as Record<string, any>)) {
+                    if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
+                  }
+                  if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
+                }
+              }
+              return entry;
+            })
             .filter((it: any) => it.defId);
         }
       }
@@ -223,7 +252,23 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     height: h,
     tiles,
     buildings: scenario.metadata?.buildings || [],
+    noAutosave: scenario.noAutosave ?? false,
   };
+}
+
+// ─── Battery slot helper ─────────────────────────────────────────────────
+
+function getBatterySlotInfo(def: any): { slotId: string; batteryDefId: string; capacity: number } | null {
+  if (!def?.attachmentSlots) return null;
+  const slot = def.attachmentSlots.find((s: any) =>
+    s.allowedCategories?.includes(ItemCategory.BATTERY) ||
+    s.allowedCategories?.includes(ItemCategory.LARGE_BATTERY)
+  );
+  if (!slot) return null;
+  const isLarge = slot.allowedCategories?.includes(ItemCategory.LARGE_BATTERY);
+  const batteryDefId = isLarge ? 'tool.large_battery' : 'tool.battery';
+  const batteryDef = (ItemDefs as any)[batteryDefId];
+  return { slotId: slot.id, batteryDefId, capacity: batteryDef?.capacity ?? (isLarge ? 100 : 10) };
 }
 
 // ─── Export: convert editor state → MapBuilder-compatible JSON ───────────
@@ -243,6 +288,46 @@ function exportScenario(scenario: ScenarioData) {
           const full = createItemFromDef(item.defId);
           if (full && item.ammoCount !== undefined) full.ammoCount = item.ammoCount;
           if (full && item.condition !== undefined) full.condition = item.condition;
+          if (full && item.batteryCharges !== undefined) {
+            const slotInfo = getBatterySlotInfo((ItemDefs as any)[item.defId]);
+            if (slotInfo) {
+              const batteryItem = createItemFromDef(slotInfo.batteryDefId);
+              if (batteryItem) {
+                batteryItem.ammoCount = item.batteryCharges;
+                if (!full.attachments) full.attachments = {};
+                full.attachments[slotInfo.slotId] = batteryItem;
+              }
+            }
+          }
+          if (full && item.gunAmmoCount !== undefined) {
+            const gunDef = (ItemDefs as any)[item.defId];
+            if (gunDef?.directLoad) {
+              const ammoItem = createItemFromDef(gunDef.directLoad.ammoId);
+              if (ammoItem) {
+                ammoItem.stackCount = item.gunAmmoCount;
+                if (!full.attachments) full.attachments = {};
+                full.attachments[gunDef.directLoad.slotId] = ammoItem;
+              }
+            } else if (item.gunMagDefId) {
+              const mag = createItemFromDef(item.gunMagDefId);
+              if (mag) {
+                mag.ammoCount = item.gunAmmoCount;
+                if (!full.attachments) full.attachments = {};
+                full.attachments['ammo'] = mag;
+              }
+            }
+          }
+          if (full && item.gunAttachments) {
+            for (const [slotId, attDefId] of Object.entries(item.gunAttachments)) {
+              if (attDefId) {
+                const att = createItemFromDef(attDefId);
+                if (att) {
+                  if (!full.attachments) full.attachments = {};
+                  full.attachments[slotId] = att;
+                }
+              }
+            }
+          }
           return full || { defId: item.defId, quantity: 1 };
         });
       }
@@ -296,6 +381,7 @@ function exportScenario(scenario: ScenarioData) {
     name: scenario.name,
     width: scenario.width,
     height: scenario.height,
+    ...(scenario.noAutosave ? { noAutosave: true } : {}),
     tiles,
     metadata: {
       buildings: scenario.buildings,
@@ -323,6 +409,7 @@ export default function MapEditor() {
   const [width, setWidth] = useState(20);
   const [height, setHeight] = useState(20);
   const [scenarioName, setScenarioName] = useState('untitled');
+  const [noAutosave, setNoAutosave] = useState(false);
   const [tiles, setTiles] = useState<TileData[][]>(() => createEmptyGrid(20, 20));
   const [buildings, setBuildings] = useState<BuildingMeta[]>([]);
 
@@ -340,6 +427,10 @@ export default function MapEditor() {
   const [itemCategory, setItemCategory] = useState('');
   const [waterFill, setWaterFill] = useState<number | ''>('');
   const [conditionVal, setConditionVal] = useState<number | ''>('');
+  const [batteryCharges, setBatteryCharges] = useState<number | ''>('');
+  const [gunAmmoCount, setGunAmmoCount] = useState<number | ''>('');
+  const [gunMagDefId, setGunMagDefId] = useState('');
+  const [gunAttachments, setGunAttachments] = useState<Record<string, string>>({});
   const [triggerId, setTriggerId] = useState('');
   const [dialogSteps, setDialogSteps] = useState<{ speaker: string; text: string; video?: string }[]>([]);
   const [dialogOneShot, setDialogOneShot] = useState(true);
@@ -349,7 +440,7 @@ export default function MapEditor() {
   const dialogStepsRef = useRef(dialogSteps);
   dialogStepsRef.current = dialogSteps;
 
-  const [transitionTargetType, setTransitionTargetType] = useState<'scenario' | 'generator'>('scenario');
+  const [transitionTargetType, setTransitionTargetType] = useState<'scenario' | 'generator' | 'tutorial_end'>('scenario');
   const [transitionTargetId, setTransitionTargetId] = useState('');
   const [transitionLevel, setTransitionLevel] = useState(1);
   const [availableScenarios, setAvailableScenarios] = useState<{ name: string; width: number; height: number; fileName?: string }[]>([]);
@@ -514,9 +605,13 @@ export default function MapEditor() {
           break;
         case 'item':
           if (selectedItem) {
-            const itemEntry: { defId: string; ammoCount?: number; condition?: number } = { defId: selectedItem };
+            const itemEntry: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string> } = { defId: selectedItem };
             if (waterFill !== '') itemEntry.ammoCount = waterFill as number;
             if (conditionVal !== '') itemEntry.condition = conditionVal as number;
+            if (batteryCharges !== '') itemEntry.batteryCharges = batteryCharges as number;
+            if (gunAmmoCount !== '') itemEntry.gunAmmoCount = gunAmmoCount as number;
+            if (gunMagDefId) itemEntry.gunMagDefId = gunMagDefId;
+            if (Object.keys(gunAttachments).some(k => gunAttachments[k])) itemEntry.gunAttachments = { ...gunAttachments };
             tile.items.push(itemEntry);
           }
           break;
@@ -526,10 +621,10 @@ export default function MapEditor() {
           }
           break;
         case 'map_transition':
-          if (transitionTargetId) {
+          if (transitionTargetId || transitionTargetType === 'tutorial_end') {
             tile.mapTransition = {
               targetType: transitionTargetType,
-              targetId: transitionTargetId,
+              targetId: transitionTargetType === 'tutorial_end' ? 'tutorial_end' : transitionTargetId,
               level: transitionTargetType === 'generator' ? transitionLevel : undefined
             };
           }
@@ -553,7 +648,7 @@ export default function MapEditor() {
       }
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, selectedItem, waterFill, conditionVal, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -799,6 +894,7 @@ export default function MapEditor() {
       name: scenarioName,
       width, height, tiles, buildings,
       playerSpawn: getPlayerSpawn(),
+      noAutosave: noAutosave || undefined,
     };
     const exported = exportScenario(scenario);
 
@@ -812,7 +908,7 @@ export default function MapEditor() {
   };
 
   const handleSaveEditor = async () => {
-    const editorState = { name: scenarioName, width, height, tiles, buildings };
+    const editorState = { name: scenarioName, width, height, tiles, buildings, noAutosave: noAutosave || undefined };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
       setStatusMsg(`Editor state saved for "${scenarioName}"`);
@@ -842,6 +938,7 @@ export default function MapEditor() {
     setHeight(editor.height);
     setTiles(sanitizeTiles(editor.tiles));
     setBuildings(editor.buildings || []);
+    setNoAutosave(editor.noAutosave ?? false);
     setStatusMsg(`Loaded "${label}"`);
   };
 
@@ -914,6 +1011,10 @@ export default function MapEditor() {
             onChange={e => setScenarioName(e.target.value)}
             style={{ background: '#222', border: '1px solid #444', color: '#ddd', padding: '4px 8px', borderRadius: 3, fontSize: 13 }}
           />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer', marginTop: 2 }}>
+            <input type="checkbox" checked={noAutosave} onChange={e => setNoAutosave(e.target.checked)} />
+            Disable autosave
+          </label>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <button onClick={handleExport} style={btnStyle('#2a7a2a')}>Publish</button>
             <button onClick={handleSaveEditor} style={btnStyle('#555')}>Save</button>
@@ -1112,7 +1213,7 @@ export default function MapEditor() {
             <label style={{ fontSize: 11, color: '#888' }}>Item</label>
             <select
               value={selectedItem}
-              onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); }}
+              onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); setBatteryCharges(''); setGunAmmoCount(''); setGunMagDefId(''); setGunAttachments({}); }}
               style={{ ...inputStyle, width: '100%' }}
             >
               <option value="">— Select item —</option>
@@ -1128,18 +1229,21 @@ export default function MapEditor() {
             {(() => {
               const def = (ItemDefs as any)[selectedItem];
               const isWater = def?.traits?.includes(ItemTrait.WATER_CONTAINER);
-              if (!isWater) return null;
+              const isFuel = def?.traits?.includes(ItemTrait.FUEL_CONTAINER);
+              if (!isWater && !isFuel) return null;
               const cap: number = def.capacity ?? 0;
+              const label = isFuel ? `Fuel units (blank = empty, max ${cap})` : `Water units (blank = full, max ${cap})`;
+              const placeholder = isFuel ? '0' : String(cap);
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
-                  <label style={{ fontSize: 11, color: '#888' }}>Water units (blank = full, max {cap})</label>
+                  <label style={{ fontSize: 11, color: '#888' }}>{label}</label>
                   <input
                     type="number"
                     min={0}
                     max={cap}
                     value={waterFill}
                     onChange={e => setWaterFill(e.target.value === '' ? '' : Math.min(Number(e.target.value), cap))}
-                    placeholder={String(cap)}
+                    placeholder={placeholder}
                     style={{ ...inputStyle, width: '100%' }}
                   />
                 </div>
@@ -1161,6 +1265,97 @@ export default function MapEditor() {
                     placeholder="100"
                     style={{ ...inputStyle, width: '100%' }}
                   />
+                </div>
+              );
+            })()}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              const slotInfo = getBatterySlotInfo(def);
+              if (!slotInfo) return null;
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Battery charges (blank = no battery, max {slotInfo.capacity})</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={slotInfo.capacity}
+                    value={batteryCharges}
+                    onChange={e => setBatteryCharges(e.target.value === '' ? '' : Math.min(Number(e.target.value), slotInfo.capacity))}
+                    placeholder="blank = no battery"
+                    style={{ ...inputStyle, width: '100%' }}
+                  />
+                </div>
+              );
+            })()}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              if (!def?.categories?.includes(ItemCategory.GUN)) return null;
+              const slots: any[] = def.attachmentSlots || [];
+              const directLoad = def.directLoad;
+              const ammoSlot = slots.find((s: any) => s.id === 'ammo');
+              const nonAmmoSlots = slots.filter((s: any) => s.id !== 'ammo');
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Gun Loadout</label>
+
+                  {/* Non-ammo attachment slots (barrel, sight, etc.) */}
+                  {nonAmmoSlots.map((slot: any) => {
+                    const allowed = allItems.filter(it => {
+                      const itDef = (ItemDefs as any)[it.id];
+                      return slot.allowedItems?.includes(it.id) ||
+                        slot.allowedCategories?.some((cat: string) => itDef?.categories?.includes(cat));
+                    });
+                    return (
+                      <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <label style={{ fontSize: 11, color: '#888' }}>{slot.name}</label>
+                        <select
+                          value={gunAttachments[slot.id] || ''}
+                          onChange={e => setGunAttachments(prev => ({ ...prev, [slot.id]: e.target.value }))}
+                          style={{ ...inputStyle, width: '100%' }}
+                        >
+                          <option value="">— None —</option>
+                          {allowed.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
+                        </select>
+                      </div>
+                    );
+                  })}
+
+                  {/* Ammo slot */}
+                  {ammoSlot && !directLoad && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <label style={{ fontSize: 11, color: '#888' }}>{ammoSlot.name}</label>
+                      <select
+                        value={gunMagDefId}
+                        onChange={e => { setGunMagDefId(e.target.value); setGunAmmoCount(''); }}
+                        style={{ ...inputStyle, width: '100%' }}
+                      >
+                        <option value="">— No magazine —</option>
+                        {ammoSlot.allowedItems?.map((id: string) => {
+                          const magDef = (ItemDefs as any)[id];
+                          return <option key={id} value={id}>{magDef?.name || id}</option>;
+                        })}
+                      </select>
+                    </div>
+                  )}
+                  {ammoSlot && (directLoad || gunMagDefId) && (() => {
+                    const capacity = directLoad
+                      ? directLoad.capacity
+                      : ((ItemDefs as any)[gunMagDefId]?.capacity ?? 0);
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <label style={{ fontSize: 11, color: '#888' }}>Rounds loaded (blank = empty, max {capacity})</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={capacity}
+                          value={gunAmmoCount}
+                          onChange={e => setGunAmmoCount(e.target.value === '' ? '' : Math.min(Number(e.target.value), capacity))}
+                          placeholder="0"
+                          style={{ ...inputStyle, width: '100%' }}
+                        />
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })()}
@@ -1253,50 +1448,63 @@ export default function MapEditor() {
                 />
                 Generator
               </label>
+              <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input
+                  type="radio"
+                  name="transitionTargetType"
+                  checked={transitionTargetType === 'tutorial_end'}
+                  onChange={() => { setTransitionTargetType('tutorial_end'); setTransitionTargetId(''); }}
+                />
+                Tutorial End
+              </label>
             </div>
 
-            <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
-              {transitionTargetType === 'scenario' ? 'Select Scenario' : 'Select Generator'}
-            </label>
-            
-            <select
-              value={transitionTargetId}
-              onChange={e => setTransitionTargetId(e.target.value)}
-              style={{ ...inputStyle, width: '100%' }}
-            >
-              <option value="">— Select —</option>
-              {transitionTargetType === 'scenario' ? (
-                availableScenarios.map(s => (
-                  <option key={s.fileName || s.name} value={s.fileName || s.name}>
-                    {s.name} ({s.width}x{s.height})
-                  </option>
-                ))
-              ) : (
-                [
-                  'BranchingRoadGenerator',
-                  'LabMapGenerator',
-                  'MirroredWindingRoadGenerator',
-                  'RoadGenerator',
-                  'ScenarioMapGenerator',
-                  'SplitRoadGenerator',
-                  'StartingRoadGenerator',
-                  'WindingRoadGenerator'
-                ].map(gen => (
-                  <option key={gen} value={gen}>{gen}</option>
-                ))
-              )}
-            </select>
-
-            {transitionTargetType === 'generator' && (
+            {transitionTargetType !== 'tutorial_end' && (
               <>
-                <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Level (Scaling)</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={transitionLevel}
-                  onChange={e => setTransitionLevel(+e.target.value)}
-                  style={{ ...inputStyle }}
-                />
+                <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                  {transitionTargetType === 'scenario' ? 'Select Scenario' : 'Select Generator'}
+                </label>
+
+                <select
+                  value={transitionTargetId}
+                  onChange={e => setTransitionTargetId(e.target.value)}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  <option value="">— Select —</option>
+                  {transitionTargetType === 'scenario' ? (
+                    availableScenarios.map(s => (
+                      <option key={s.fileName || s.name} value={s.fileName || s.name}>
+                        {s.name} ({s.width}x{s.height})
+                      </option>
+                    ))
+                  ) : (
+                    [
+                      'BranchingRoadGenerator',
+                      'LabMapGenerator',
+                      'MirroredWindingRoadGenerator',
+                      'RoadGenerator',
+                      'ScenarioMapGenerator',
+                      'SplitRoadGenerator',
+                      'StartingRoadGenerator',
+                      'WindingRoadGenerator'
+                    ].map(gen => (
+                      <option key={gen} value={gen}>{gen}</option>
+                    ))
+                  )}
+                </select>
+
+                {transitionTargetType === 'generator' && (
+                  <>
+                    <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Level (Scaling)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={transitionLevel}
+                      onChange={e => setTransitionLevel(+e.target.value)}
+                      style={{ ...inputStyle }}
+                    />
+                  </>
+                )}
               </>
             )}
 
@@ -1350,7 +1558,7 @@ export default function MapEditor() {
               <div>Event: {tiles[hoverCell.y][hoverCell.x].eventTrigger!.id} ({tiles[hoverCell.y][hoverCell.x].eventTrigger!.steps?.length || 0} steps{tiles[hoverCell.y][hoverCell.x].eventTrigger!.oneShot ? ', one-shot' : ''})</div>
             )}
             {tiles[hoverCell.y][hoverCell.x].mapTransition && (
-              <div>Transition: {tiles[hoverCell.y][hoverCell.x].mapTransition!.targetId} ({tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType}{tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'generator' ? `, Lvl ${tiles[hoverCell.y][hoverCell.x].mapTransition!.level}` : ''})</div>
+              <div>Transition: {tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'tutorial_end' ? 'Tutorial End' : `${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetId} (${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType}${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'generator' ? `, Lvl ${tiles[hoverCell.y][hoverCell.x].mapTransition!.level}` : ''})`}</div>
             )}
           </div>
         )}
@@ -1460,7 +1668,7 @@ export default function MapEditor() {
             setTransitionTargetId(t.mapTransition.targetId);
             setTransitionLevel(t.mapTransition.level || 1);
             setTool('map_transition');
-            setStatusMsg(`Editing transition to "${t.mapTransition.targetId}" — click a tile to place`);
+            setStatusMsg(t.mapTransition.targetType === 'tutorial_end' ? 'Editing Tutorial End transition — click a tile to place' : `Editing transition to "${t.mapTransition.targetId}" — click a tile to place`);
           }
           setInspectTile(null);
         };
@@ -1585,14 +1793,32 @@ export default function MapEditor() {
                   {t.items.map((item, i) => {
                     const def = (ItemDefs as any)[item.defId];
                     const isWaterContainer = def?.traits?.includes(ItemTrait.WATER_CONTAINER);
+                    const isFuelContainer = def?.traits?.includes(ItemTrait.FUEL_CONTAINER);
                     const isDegradable = def?.traits?.includes(ItemTrait.DEGRADABLE);
+                    const slotInfo = getBatterySlotInfo(def);
+                    const isGun = def?.categories?.includes(ItemCategory.GUN);
+                    const gunAmmoLabel = (() => {
+                      if (!isGun) return '';
+                      const parts: string[] = [];
+                      if (item.gunMagDefId) parts.push((ItemDefs as any)[item.gunMagDefId]?.name || item.gunMagDefId);
+                      if (item.gunAmmoCount !== undefined) parts.push(`${item.gunAmmoCount} rds`);
+                      if (item.gunAttachments) {
+                        for (const attDefId of Object.values(item.gunAttachments)) {
+                          if (attDefId) parts.push((ItemDefs as any)[attDefId]?.name || attDefId);
+                        }
+                      }
+                      return parts.length ? ` · ${parts.join(', ')}` : '';
+                    })();
                     return (
                       <div key={i} style={rowStyle}>
                         <span style={{ color: '#fc0' }}>
                           {def?.name || item.defId}
                           {def ? ` (${def.width}×${def.height})` : ''}
                           {isWaterContainer && item.ammoCount !== undefined ? ` · ${item.ammoCount}/${def.capacity} water` : ''}
+                          {isFuelContainer && item.ammoCount !== undefined ? ` · ${item.ammoCount}/${def.capacity} fuel` : ''}
                           {isDegradable && item.condition !== undefined ? ` · ${item.condition}% cond` : ''}
+                          {slotInfo && item.batteryCharges !== undefined ? ` · ${item.batteryCharges}/${slotInfo.capacity} chg` : ''}
+                          {gunAmmoLabel}
                         </span>
                         <button onClick={() => removeItem(i)} style={removeBtnStyle}>Remove</button>
                       </div>
@@ -1630,12 +1856,14 @@ export default function MapEditor() {
                 <div style={sectionStyle}>
                   <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Map Transition</div>
                   <div style={{ fontSize: 12, color: '#0ff', marginBottom: 2 }}>
-                    Target: {t.mapTransition.targetId}
+                    {t.mapTransition.targetType === 'tutorial_end' ? 'Tutorial End' : `Target: ${t.mapTransition.targetId}`}
                   </div>
-                  <div style={{ fontSize: 11, color: '#aaa', marginBottom: 4 }}>
-                    Type: {t.mapTransition.targetType}
-                    {t.mapTransition.targetType === 'generator' && ` · Level: ${t.mapTransition.level}`}
-                  </div>
+                  {t.mapTransition.targetType !== 'tutorial_end' && (
+                    <div style={{ fontSize: 11, color: '#aaa', marginBottom: 4 }}>
+                      Type: {t.mapTransition.targetType}
+                      {t.mapTransition.targetType === 'generator' && ` · Level: ${t.mapTransition.level}`}
+                    </div>
+                  )}
                   <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
                     <button onClick={editTransition} style={editBtnStyle}>Edit</button>
                     <button onClick={removeTransition} style={removeBtnStyle}>Remove</button>

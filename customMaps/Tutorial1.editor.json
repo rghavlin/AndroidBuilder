@@ -5709,7 +5709,8 @@
         "entities": [],
         "items": [
           {
-            "defId": "furniture.electric_mower"
+            "defId": "furniture.electric_mower",
+            "batteryCharges": 22
           }
         ]
       },

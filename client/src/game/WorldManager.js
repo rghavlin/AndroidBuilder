@@ -447,14 +447,16 @@ export class WorldManager extends SafeEventEmitter {
           tr => tr.x === playerX && tr.y === playerY
         );
         if (customTransition) {
+          const isTutorialEnd = customTransition.targetType === 'tutorial_end';
           return {
-            direction: 'north', // Defaults to 'north' to trigger "Move on down the road?" prompt
+            direction: 'north',
             position: { x: playerX, y: playerY },
-            nextMapId: customTransition.targetId,
-            spawnPosition: { x: 22, y: 123 }, // high Y value indicates entering from bottom/south
+            nextMapId: isTutorialEnd ? 'BranchingRoadGenerator' : customTransition.targetId,
+            spawnPosition: { x: 22, y: 123 },
             isCustom: true,
-            targetType: customTransition.targetType,
-            level: customTransition.level
+            targetType: isTutorialEnd ? 'generator' : customTransition.targetType,
+            level: isTutorialEnd ? 1 : customTransition.level,
+            isTutorialEnd,
           };
         }
       }

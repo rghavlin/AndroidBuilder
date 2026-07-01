@@ -2061,7 +2061,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1782893549843-zwdqb",
+            "instanceId": "provision.harvestable_corn-1782895079248-fxfbd",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",
@@ -2081,7 +2081,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "food.cornseeds-1782893549843-wl4k2",
+            "instanceId": "food.cornseeds-1782895079248-wutp1",
             "defId": "food.cornseeds",
             "id": "food.cornseeds",
             "name": "Corn seeds",
@@ -2099,7 +2099,7 @@
             "plantsAs": "provision.corn_plant"
           },
           {
-            "instanceId": "food.cornseeds-1782893549843-r6xyb",
+            "instanceId": "food.cornseeds-1782895079248-dg52m",
             "defId": "food.cornseeds",
             "id": "food.cornseeds",
             "name": "Corn seeds",
@@ -2117,7 +2117,7 @@
             "plantsAs": "provision.corn_plant"
           },
           {
-            "instanceId": "crafting.rope-1782893549843-ecghr",
+            "instanceId": "crafting.rope-1782895079248-b0uqv",
             "defId": "crafting.rope",
             "id": "crafting.rope",
             "name": "Rope",
@@ -2621,7 +2621,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.electric_mower-1782893549843-a2tmi",
+            "instanceId": "furniture.electric_mower-1782895079248-00ns6",
             "defId": "furniture.electric_mower",
             "id": "furniture.electric_mower",
             "name": "Electric mower",
@@ -2680,6 +2680,29 @@
                   "count": 1
                 }
               ]
+            },
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.large_battery-1782895079248-0o9qj",
+                "defId": "tool.large_battery",
+                "id": "tool.large_battery",
+                "name": "Large battery",
+                "rarity": "uncommon",
+                "imageId": "largebattery",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "large_battery",
+                  "tool"
+                ],
+                "stackMax": 5,
+                "capacity": 100,
+                "ammoCount": 22
+              }
             }
           }
         ]
@@ -3169,7 +3192,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.toy_wagon-1782893549843-zvjy9",
+            "instanceId": "vehicle.toy_wagon-1782895079248-pn5hj",
             "defId": "vehicle.toy_wagon",
             "id": "vehicle.toy_wagon",
             "name": "Toy Wagon",
@@ -3241,7 +3264,7 @@
             }
           },
           {
-            "instanceId": "tool.cooking_pot-1782893549843-v3l90",
+            "instanceId": "tool.cooking_pot-1782895079248-m6vpd",
             "defId": "tool.cooking_pot",
             "id": "tool.cooking_pot",
             "name": "Cooking pot",
@@ -4229,7 +4252,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.wrench-1782893549843-kszqd",
+            "instanceId": "weapon.wrench-1782895079248-mu5nv",
             "defId": "weapon.wrench",
             "id": "weapon.wrench",
             "name": "Wrench",
@@ -4256,7 +4279,7 @@
             }
           },
           {
-            "instanceId": "clothing.workshirt-1782893549843-oa1ne",
+            "instanceId": "clothing.workshirt-1782895079248-qwuoa",
             "defId": "clothing.workshirt",
             "id": "clothing.workshirt",
             "name": "Work Shirt",
@@ -4339,7 +4362,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.waterbottle-1782893549843-y04zx",
+            "instanceId": "food.waterbottle-1782895079248-qkdah",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -4364,7 +4387,7 @@
             }
           },
           {
-            "instanceId": "weapon.knife-1782893549843-vb0rp",
+            "instanceId": "weapon.knife-1782895079248-md67g",
             "defId": "weapon.knife",
             "id": "weapon.knife",
             "name": "Knife",
@@ -4392,7 +4415,7 @@
             }
           },
           {
-            "instanceId": "clothing.pocket_t-1782893549843-3499j",
+            "instanceId": "clothing.pocket_t-1782895079248-u3cok",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -4413,7 +4436,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.pocket_t-1782893549843-rw4ar",
+            "instanceId": "clothing.pocket_t-1782895079248-5pjsj",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -4434,7 +4457,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.pocket_t-1782893549843-824h9",
+            "instanceId": "clothing.pocket_t-1782895079248-5kmam",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -4455,7 +4478,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1782893549843-g7ktc",
+            "instanceId": "clothing.sweatpants-1782895079248-4plab",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -4476,7 +4499,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1782893549843-npuyo",
+            "instanceId": "clothing.sweatpants-1782895079248-tgxdc",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -7101,7 +7124,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1782893549843-dpane",
+            "instanceId": "weapon.stick-1782895079249-9ln8s",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",

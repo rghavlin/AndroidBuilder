@@ -80,6 +80,7 @@ const GameContextInner = ({ children }) => {
   // Refs for internal use
   const initManagerRef = useRef(null);
   const autosaveTimeoutRef = useRef(null);
+  const noAutosaveRef = useRef(false);
   const [showDifficultySelect, setShowDifficultySelect] = useState(false);
   const difficultyResolveRef = useRef(null);
 
@@ -633,6 +634,10 @@ const GameContextInner = ({ children }) => {
 
   const performAutosave = useCallback(async (turnOverride = null) => {
     if (!isInitialized || engine.isSleeping) return false;
+    if (noAutosaveRef.current) {
+      console.log('[GameContext] Autosave skipped — noAutosave is set for this scenario');
+      return false;
+    }
     try {
       setIsAutosaving(true);
       engine.isAutosaving = true; // Phase 28 Fix: Immediate sync to prevent interaction races
@@ -1461,6 +1466,7 @@ const GameContextInner = ({ children }) => {
     }
 
     const finalConfig = { ...config, easyStart: chosenEasyStart };
+    noAutosaveRef.current = !!finalConfig.scenarioData?.noAutosave;
 
     const success = await initManagerRef.current.startInitialization(null, finalConfig);
     if (!success) {
@@ -1756,6 +1762,7 @@ const GameContextInner = ({ children }) => {
     loadGameFromStateData,
     loadAutosave,
     performAutosave,
+    enableAutosave: () => { noAutosaveRef.current = false; },
     exportGame,
     getSerializedSaveData,
 
@@ -1788,7 +1795,8 @@ const GameContextInner = ({ children }) => {
     // Dialog System
     activeDialog,
     handleDialogDismiss,
-    fireDialogAtPlayerTile
+    fireDialogAtPlayerTile,
+    enableAutosave: () => { noAutosaveRef.current = false; },
   }), [
     isInitialized,
     isGameReady,

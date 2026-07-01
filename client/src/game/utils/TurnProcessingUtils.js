@@ -10,7 +10,7 @@ export const TurnProcessingUtils = {
      * Common logic for charging batteries inside a charger container.
      * @param {Array} batteries - Array of items/data inside the charger
      */
-    chargeBatteries(batteries) {
+    chargeBatteries(batteries, amount = 1) {
         if (!Array.isArray(batteries)) return;
 
         batteries.forEach(battery => {
@@ -18,7 +18,7 @@ export const TurnProcessingUtils = {
             if (battery.defId === 'tool.battery' || battery.defId === 'tool.large_battery') {
                 const maxCharge = battery.capacity || 100;
                 if ((battery.ammoCount || 0) < maxCharge) {
-                    battery.ammoCount = (battery.ammoCount || 0) + 1;
+                    battery.ammoCount = Math.min(maxCharge, (battery.ammoCount || 0) + amount);
                     // Note: We don't log here to avoid spamming during sleep/batch processing
                 }
             }

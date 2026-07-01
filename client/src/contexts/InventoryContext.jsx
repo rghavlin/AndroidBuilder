@@ -1097,14 +1097,6 @@ export const InventoryProvider = ({ children }) => {
 
     const item = selectedItem.item;
     const originContainerId = selectedItem.originContainerId;
-    if (originContainerId === 'ground') {
-      if (isClothingOrBackpack(item) && hasItemsInside(item)) {
-        addLog('Items inside', 'error');
-        playSound('Fail');
-        return { success: false, reason: 'Items inside' };
-      }
-    }
-
     const result = engine.inventoryManager.equipItem(item, slotId);
     
     if (result.success) {

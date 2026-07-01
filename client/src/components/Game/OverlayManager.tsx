@@ -13,6 +13,7 @@ import PlayerSkillsWindow from './PlayerSkillsWindow';
 import MainMenuWindow from './MainMenuWindow';
 import DragPreviewLayer from '../Inventory/DragPreviewLayer';
 import { MapTransitionDialog } from './MapTransitionDialog';
+import { TutorialEndDialog } from './TutorialEndDialog';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { NPCDemandDialog } from './NPCDemandDialog';
 import SleepOverlay from './SleepOverlay';
@@ -35,16 +36,18 @@ export default function OverlayManager() {
     isExtensionOpen, setIsExtensionOpen
   } = useOverlays();
 
-  const { 
-    mapTransition, 
-    handleMapTransitionConfirmWrapper, 
+  const {
+    mapTransition,
+    handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel,
     activeNpcDemand,
     handleNpcDemandResponse,
     activeDialog,
     handleDialogDismiss,
     isSkillsOpen,
-    toggleSkills
+    toggleSkills,
+    initializeGame,
+    enableAutosave,
   } = useGame();
 
   const { worldManager } = useGameMap();
@@ -136,9 +139,22 @@ export default function OverlayManager() {
           />
 
           {/* Map Transition */}
-          {mapTransition && (
+          {mapTransition && mapTransition.isTutorialEnd ? (
+            <TutorialEndDialog
+              open={true}
+              onOpenChange={(open) => !open && handleMapTransitionCancel()}
+              onContinue={async () => {
+                enableAutosave();
+                return handleMapTransitionConfirmWrapper();
+              }}
+              onNewGame={() => {
+                handleMapTransitionCancel();
+                initializeGame(null);
+              }}
+            />
+          ) : mapTransition ? (
             <MapTransitionDialog
-              open={!!mapTransition}
+              open={true}
               onOpenChange={(open) => !open && handleMapTransitionCancel()}
               onConfirm={handleMapTransitionConfirmWrapper}
               direction={mapTransition.direction}
@@ -146,7 +162,7 @@ export default function OverlayManager() {
               nextMapId={mapTransition.nextMapId}
               isCustom={mapTransition.isCustom}
             />
-          )}
+          ) : null}
 
           {/* NPC Demand Dialog */}
           {activeNpcDemand && (
