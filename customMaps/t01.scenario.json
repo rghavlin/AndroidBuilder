@@ -1,5 +1,5 @@
 {
-  "name": "t2",
+  "name": "t01",
   "width": 20,
   "height": 20,
   "tiles": [
@@ -115,7 +115,7 @@
       {
         "x": 9,
         "y": 0,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -357,7 +357,7 @@
       {
         "x": 9,
         "y": 1,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -599,7 +599,7 @@
       {
         "x": 9,
         "y": 2,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -841,7 +841,7 @@
       {
         "x": 9,
         "y": 3,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1083,7 +1083,7 @@
       {
         "x": 9,
         "y": 4,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1325,7 +1325,7 @@
       {
         "x": 9,
         "y": 5,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1567,7 +1567,7 @@
       {
         "x": 9,
         "y": 6,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1809,7 +1809,7 @@
       {
         "x": 9,
         "y": 7,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2051,7 +2051,7 @@
       {
         "x": 9,
         "y": 8,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2293,7 +2293,7 @@
       {
         "x": 9,
         "y": 9,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2535,7 +2535,7 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2777,14 +2777,42 @@
       {
         "x": 9,
         "y": 11,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.woodenbat-1782885910988-sdrh8",
+            "defId": "weapon.woodenbat",
+            "id": "weapon.woodenbat",
+            "name": "Wooden Bat",
+            "rarity": "uncommon",
+            "imageId": "woodenbat",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.75,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 10,
@@ -3019,7 +3047,7 @@
       {
         "x": 9,
         "y": 12,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3261,7 +3289,7 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3503,7 +3531,7 @@
       {
         "x": 9,
         "y": 14,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3745,7 +3773,7 @@
       {
         "x": 9,
         "y": 15,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3987,7 +4015,7 @@
       {
         "x": 9,
         "y": 16,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4229,7 +4257,7 @@
       {
         "x": 9,
         "y": 17,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4471,7 +4499,7 @@
       {
         "x": 9,
         "y": 18,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4713,7 +4741,7 @@
       {
         "x": 9,
         "y": 19,
-        "terrain": "road",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4861,6 +4889,14 @@
   },
   "entities": [
     {
+      "type": "zombie",
+      "x": 9,
+      "y": 10,
+      "subtype": "basic",
+      "hp": 2,
+      "noLoot": true
+    },
+    {
       "type": "player",
       "x": 9,
       "y": 11,
@@ -4868,13 +4904,5 @@
     }
   ],
   "eventTriggers": [],
-  "mapTransitions": [
-    {
-      "x": 9,
-      "y": 0,
-      "targetType": "generator",
-      "targetId": "BranchingRoadGenerator",
-      "level": 1
-    }
-  ]
+  "mapTransitions": []
 }

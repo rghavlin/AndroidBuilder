@@ -93,7 +93,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     console.log(`[StartMenu] Loading scenario "${scenarioData.name}"...`);
     musicManager.playPlaylist('standard');
     setShowScenarios(false);
-    window.dispatchEvent(new CustomEvent('launch-custom-game', { detail: { scenarioData } }));
+    window.dispatchEvent(new CustomEvent('launch-custom-game', { detail: { scenarioData, easyStart: false } }));
   };
 
   return (

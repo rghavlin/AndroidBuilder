@@ -20,5 +20,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadScenario: (fileName) => ipcRenderer.invoke('load-scenario', fileName),
   loadScenarioEditor: (name) => ipcRenderer.invoke('load-scenario-editor', name),
   deleteScenario: (fileName) => ipcRenderer.invoke('delete-scenario', fileName),
-  openEditorWindow: () => ipcRenderer.invoke('open-editor-window')
+  openEditorWindow: () => ipcRenderer.invoke('open-editor-window'),
+  openGameWindow: () => ipcRenderer.invoke('open-game-window')
 });

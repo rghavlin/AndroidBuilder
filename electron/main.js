@@ -235,6 +235,44 @@ ipcMain.handle('delete-scenario', async (event, fileName) => {
   }
 });
 
+// --- IPC Game Window (launched from editor) ---
+ipcMain.handle('open-game-window', async () => {
+  const gameWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 800,
+    minHeight: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      enableRemoteModule: false,
+      preload: path.join(__dirname, 'preload.js')
+    },
+    title: 'Zombie Road',
+    show: false,
+  });
+
+  if (isDev) {
+    gameWindow.loadURL('http://localhost:5000/#/');
+  } else {
+    const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
+    gameWindow.loadFile(htmlPath, { hash: '#/' });
+  }
+
+  gameWindow.once('ready-to-show', () => gameWindow.show());
+
+  if (isDev) {
+    gameWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
+        gameWindow.webContents.openDevTools();
+        event.preventDefault();
+      }
+    });
+  }
+
+  return { success: true };
+});
+
 // --- IPC Editor Window ---
 let editorWindow = null;
 

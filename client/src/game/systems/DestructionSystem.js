@@ -42,7 +42,7 @@ export class DestructionSystem {
         const lootGenerator = engine?.lootGenerator;
         const tile = gameMap ? gameMap.getTile(x, y) : null;
         const hasWindow = tile?.contents.some(e => e.type === EntityType.WINDOW);
-        if (lootGenerator && !hasWindow && gameRandom.next() < 0.75) {
+        if (lootGenerator && !hasWindow && !target.noLoot && gameRandom.next() < 0.75) {
           const loot = lootGenerator.generateZombieLoot(target.subtype, gameMap ? gameMap.mapNumber : 1);
           if (loot && loot.length > 0 && gameMap) {
             gameMap.addItemsToTile(x, y, loot);
@@ -104,6 +104,5 @@ export class DestructionSystem {
       });
     }
 
-    console.log(`[DestructionSystem] Resolved DestroyIntent for entity: ${targetId} at (${x}, ${y})`);
   }
 }

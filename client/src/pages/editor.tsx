@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ScenarioStorage } from '@/game/ScenarioStorage';
 import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
-import { ItemCategory } from '@/game/inventory/traits';
+import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -29,6 +29,20 @@ const ENTITY_TYPES = [
   { id: 'rabbit',     label: 'Rabbit',     symbol: 'R', color: '#a86' },
 ];
 
+const ZOMBIE_SUBTYPES = [
+  { id: 'basic',        label: 'Zombie',          defaultHp: 10 },
+  { id: 'runner',       label: 'Runner',          defaultHp: 10 },
+  { id: 'crawler',      label: 'Crawler',         defaultHp: 7  },
+  { id: 'fat',          label: 'Fat Zombie',      defaultHp: 20 },
+  { id: 'soldier',      label: 'Soldier',         defaultHp: 25 },
+  { id: 'firefighter',  label: 'Firefighter',     defaultHp: 15 },
+  { id: 'swat',         label: 'SWAT',            defaultHp: 15 },
+  { id: 'acid',         label: 'Acid',            defaultHp: 10 },
+  { id: 'spitter',      label: 'Spitter',         defaultHp: 10 },
+  { id: 'bomb_disposal',label: 'Bomb Disposal',   defaultHp: 200 },
+  { id: 'mutant',       label: 'Mutant',          defaultHp: 75 },
+];
+
 const BUILDING_TYPES = [
   'residential', 'police', 'firestation', 'grocer', 'gas_station',
   'army_tent', 'hardware_store', 'lab'
@@ -37,13 +51,13 @@ const BUILDING_TYPES = [
 type Edge = 'n' | 'e' | 's' | 'w';
 type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger' | 'map_transition';
 
-interface EdgeState { wall: boolean; door: boolean; window: boolean; }
+interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; }
 interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
-  entities: { type: string; subtype?: string }[];
-  items: string[];
-  eventTrigger?: { id: string; steps: { speaker: string; text: string }[]; oneShot: boolean };
+  entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean }[];
+  items: { defId: string; ammoCount?: number; condition?: number }[];
+  eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean };
   mapTransition?: { targetType: 'scenario' | 'generator'; targetId: string; level?: number };
 }
 
@@ -131,7 +145,9 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
 
         // Items: scenario stores as inventoryItems with defId
         if (st.inventoryItems) {
-          tiles[y][x].items = st.inventoryItems.map((it: any) => it.defId || it.id).filter(Boolean);
+          tiles[y][x].items = st.inventoryItems
+            .map((it: any) => ({ defId: it.defId || it.id, ...(it.ammoCount !== undefined ? { ammoCount: it.ammoCount } : {}), ...(it.condition !== undefined ? { condition: it.condition } : {}) }))
+            .filter((it: any) => it.defId);
         }
       }
     }
@@ -144,6 +160,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
       if (!t || !d.edge) continue;
       t.edgeWalls[d.edge as Edge].wall = false;
       t.edgeWalls[d.edge as Edge].door = true;
+      t.edgeWalls[d.edge as Edge].locked = d.isLocked ?? false;
     }
   }
 
@@ -154,6 +171,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
       if (!t || !win.edge) continue;
       t.edgeWalls[win.edge as Edge].wall = false;
       t.edgeWalls[win.edge as Edge].window = true;
+      t.edgeWalls[win.edge as Edge].locked = win.isLocked ?? false;
     }
   }
 
@@ -161,7 +179,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
   if (scenario.entities) {
     for (const e of scenario.entities) {
       const t = tiles[e.y]?.[e.x];
-      if (t) t.entities.push({ type: e.type, subtype: e.subtype });
+      if (t) t.entities.push({ type: e.type, subtype: e.subtype, hp: e.hp || undefined, noLoot: e.noLoot || undefined });
     }
   }
 
@@ -221,9 +239,11 @@ function exportScenario(scenario: ScenarioData) {
       };
       const tile: any = { x, y, terrain: t.terrain, edgeWalls, contents: [] };
       if (t.items.length > 0) {
-        tile.inventoryItems = t.items.map(defId => {
-          const full = createItemFromDef(defId);
-          return full || { defId, quantity: 1 };
+        tile.inventoryItems = t.items.map(item => {
+          const full = createItemFromDef(item.defId);
+          if (full && item.ammoCount !== undefined) full.ammoCount = item.ammoCount;
+          if (full && item.condition !== undefined) full.condition = item.condition;
+          return full || { defId: item.defId, quantity: 1 };
         });
       }
       return tile;
@@ -236,10 +256,10 @@ function exportScenario(scenario: ScenarioData) {
     row.forEach((t, x) => {
       (['n', 'e', 's', 'w'] as Edge[]).forEach(edge => {
         if (t.edgeWalls[edge].door) {
-          doors.push({ x, y, isLocked: false, isOpen: false, edge });
+          doors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
         }
         if (t.edgeWalls[edge].window) {
-          windows.push({ x, y, isLocked: false, isOpen: false, edge });
+          windows.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
         }
       });
     })
@@ -249,7 +269,7 @@ function exportScenario(scenario: ScenarioData) {
   scenario.tiles.forEach((row, y) =>
     row.forEach((t, x) => {
       t.entities.forEach(e => {
-        entities.push({ type: e.type, x, y, subtype: e.subtype || null });
+        entities.push({ type: e.type, x, y, subtype: e.subtype || null, ...(e.hp ? { hp: e.hp } : {}), ...(e.noLoot ? { noLoot: true } : {}) });
       });
     })
   );
@@ -310,15 +330,22 @@ export default function MapEditor() {
   const [brushSize, setBrushSize] = useState(1);
   const [selectedTerrain, setSelectedTerrain] = useState('grass');
   const [selectedEdge, setSelectedEdge] = useState<Edge>('n');
+  const [edgeLocked, setEdgeLocked] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState('zombie');
+  const [zombieSubtype, setZombieSubtype] = useState('basic');
+  const [zombieHp, setZombieHp] = useState<number | ''>('');
+  const [zombieNoLoot, setZombieNoLoot] = useState(false);
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
   const [selectedItem, setSelectedItem] = useState('');
   const [itemCategory, setItemCategory] = useState('');
+  const [waterFill, setWaterFill] = useState<number | ''>('');
+  const [conditionVal, setConditionVal] = useState<number | ''>('');
   const [triggerId, setTriggerId] = useState('');
-  const [dialogSteps, setDialogSteps] = useState<{ speaker: string; text: string }[]>([]);
+  const [dialogSteps, setDialogSteps] = useState<{ speaker: string; text: string; video?: string }[]>([]);
   const [dialogOneShot, setDialogOneShot] = useState(true);
   const [editSpeaker, setEditSpeaker] = useState('');
   const [editText, setEditText] = useState('');
+  const [editVideo, setEditVideo] = useState('');
   const dialogStepsRef = useRef(dialogSteps);
   dialogStepsRef.current = dialogSteps;
 
@@ -459,11 +486,13 @@ export default function MapEditor() {
           tile.edgeWalls[selectedEdge].door = !tile.edgeWalls[selectedEdge].door;
           tile.edgeWalls[selectedEdge].wall = false;
           tile.edgeWalls[selectedEdge].window = false;
+          if (tile.edgeWalls[selectedEdge].door) tile.edgeWalls[selectedEdge].locked = edgeLocked;
           break;
         case 'edge_window':
           tile.edgeWalls[selectedEdge].window = !tile.edgeWalls[selectedEdge].window;
           tile.edgeWalls[selectedEdge].wall = false;
           tile.edgeWalls[selectedEdge].door = false;
+          if (tile.edgeWalls[selectedEdge].window) tile.edgeWalls[selectedEdge].locked = edgeLocked;
           break;
         case 'entity':
           if (selectedEntity === 'player') {
@@ -473,10 +502,23 @@ export default function MapEditor() {
             }));
             tile.entities = tile.entities.filter(e => e.type !== 'player');
           }
-          tile.entities.push({ type: selectedEntity });
+          {
+            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean } = { type: selectedEntity };
+            if (selectedEntity === 'zombie') {
+              ent.subtype = zombieSubtype;
+              if (zombieHp !== '') ent.hp = zombieHp as number;
+              if (zombieNoLoot) ent.noLoot = true;
+            }
+            tile.entities.push(ent);
+          }
           break;
         case 'item':
-          if (selectedItem) tile.items.push(selectedItem);
+          if (selectedItem) {
+            const itemEntry: { defId: string; ammoCount?: number; condition?: number } = { defId: selectedItem };
+            if (waterFill !== '') itemEntry.ammoCount = waterFill as number;
+            if (conditionVal !== '') itemEntry.condition = conditionVal as number;
+            tile.items.push(itemEntry);
+          }
           break;
         case 'event_trigger':
           if (triggerId && dialogStepsRef.current.length > 0) {
@@ -511,7 +553,7 @@ export default function MapEditor() {
       }
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, selectedEntity, selectedItem, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, selectedItem, waterFill, conditionVal, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -716,7 +758,8 @@ export default function MapEditor() {
     const { x, y } = cellFromEvent(e);
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const tile = tiles[y][x];
-    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition;
+    const hasDoorOrWindow = (['n', 'e', 's', 'w'] as Edge[]).some(e => tile.edgeWalls[e].door || tile.edgeWalls[e].window);
+    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || hasDoorOrWindow;
     if (hasContent) {
       setInspectTile({ x, y, screenX: e.clientX, screenY: e.clientY });
     }
@@ -878,6 +921,7 @@ export default function MapEditor() {
             <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#444')}>Import</button>
             <button onClick={handleUndo} style={btnStyle('#555')}>Undo</button>
             <button onClick={handleClear} style={btnStyle('#7a2a2a')}>Clear</button>
+            <button onClick={() => (window as any).electronAPI?.openGameWindow?.() ?? window.open(window.location.href.replace(/#.*$/, '#/'), '_blank')} style={btnStyle('#1a3a6a')}>▶ Launch Game</button>
           </div>
           <input ref={fileInputRef} type="file" accept=".json" onChange={handleLoadEditor} style={{ display: 'none' }} />
         </div>
@@ -975,28 +1019,64 @@ export default function MapEditor() {
                 </button>
               ))}
             </div>
+            {(tool === 'edge_door' || tool === 'edge_window') && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#ddd', cursor: 'pointer', marginTop: 4 }}>
+                <input type="checkbox" checked={edgeLocked} onChange={e => setEdgeLocked(e.target.checked)} />
+                Locked
+              </label>
+            )}
           </div>
         )}
 
         {tool === 'entity' && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {ENTITY_TYPES.map(e => (
-              <button
-                key={e.id}
-                onClick={() => setSelectedEntity(e.id)}
-                style={{
-                  padding: '4px 8px',
-                  background: selectedEntity === e.id ? e.color : '#333',
-                  color: '#eee',
-                  border: selectedEntity === e.id ? '2px solid #fff' : '1px solid #555',
-                  borderRadius: 3,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                }}
-              >
-                {e.label}
-              </button>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {ENTITY_TYPES.map(e => (
+                <button
+                  key={e.id}
+                  onClick={() => setSelectedEntity(e.id)}
+                  style={{
+                    padding: '4px 8px',
+                    background: selectedEntity === e.id ? e.color : '#333',
+                    color: '#eee',
+                    border: selectedEntity === e.id ? '2px solid #fff' : '1px solid #555',
+                    borderRadius: 3,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                  }}
+                >
+                  {e.label}
+                </button>
+              ))}
+            </div>
+
+            {selectedEntity === 'zombie' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#888' }}>Zombie Type</label>
+                <select
+                  value={zombieSubtype}
+                  onChange={e => { setZombieSubtype(e.target.value); setZombieHp(''); }}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  {ZOMBIE_SUBTYPES.map(z => (
+                    <option key={z.id} value={z.id}>{z.label} ({z.defaultHp} hp)</option>
+                  ))}
+                </select>
+                <label style={{ fontSize: 11, color: '#888' }}>Starting HP (blank = full health)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={zombieHp}
+                  onChange={e => setZombieHp(e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder={String(ZOMBIE_SUBTYPES.find(z => z.id === zombieSubtype)?.defaultHp ?? '')}
+                  style={{ ...inputStyle, width: '100%' }}
+                />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={zombieNoLoot} onChange={e => setZombieNoLoot(e.target.checked)} />
+                  No loot drop on death
+                </label>
+              </div>
+            )}
           </div>
         )}
 
@@ -1032,7 +1112,7 @@ export default function MapEditor() {
             <label style={{ fontSize: 11, color: '#888' }}>Item</label>
             <select
               value={selectedItem}
-              onChange={e => setSelectedItem(e.target.value)}
+              onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); }}
               style={{ ...inputStyle, width: '100%' }}
             >
               <option value="">— Select item —</option>
@@ -1045,6 +1125,45 @@ export default function MapEditor() {
                 {(() => { const def = (ItemDefs as any)[selectedItem]; return def ? `${def.name} — ${def.width}x${def.height}` : ''; })()}
               </div>
             )}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              const isWater = def?.traits?.includes(ItemTrait.WATER_CONTAINER);
+              if (!isWater) return null;
+              const cap: number = def.capacity ?? 0;
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Water units (blank = full, max {cap})</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={cap}
+                    value={waterFill}
+                    onChange={e => setWaterFill(e.target.value === '' ? '' : Math.min(Number(e.target.value), cap))}
+                    placeholder={String(cap)}
+                    style={{ ...inputStyle, width: '100%' }}
+                  />
+                </div>
+              );
+            })()}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              const isDegradable = def?.traits?.includes(ItemTrait.DEGRADABLE);
+              if (!isDegradable) return null;
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Condition % (blank = 100%)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={conditionVal}
+                    onChange={e => setConditionVal(e.target.value === '' ? '' : Math.min(100, Math.max(0, Number(e.target.value))))}
+                    placeholder="100"
+                    style={{ ...inputStyle, width: '100%' }}
+                  />
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1063,6 +1182,7 @@ export default function MapEditor() {
               {dialogSteps.map((step, i) => (
                 <div key={i} style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
                   <div style={{ color: '#7bb8ff', fontWeight: 'bold', fontSize: 11 }}>{step.speaker || '(narrator)'}</div>
+                  {step.video && <div style={{ color: '#fa0', fontSize: 10, marginTop: 2 }}>▶ {step.video}</div>}
                   <div style={{ color: '#ccc', marginTop: 2 }}>{step.text}</div>
                   <button
                     onClick={() => setDialogSteps(prev => prev.filter((_, j) => j !== i))}
@@ -1075,21 +1195,33 @@ export default function MapEditor() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
               <label style={{ fontSize: 11, color: '#888' }}>Add Step</label>
               <input value={editSpeaker} onChange={e => setEditSpeaker(e.target.value)} placeholder="Speaker (optional)" style={{ ...inputStyle }} />
+              <input
+                value={editVideo}
+                onChange={e => setEditVideo(e.target.value)}
+                placeholder="Video filename (optional, e.g. movement.webm)"
+                style={{ ...inputStyle }}
+              />
               <textarea
                 value={editText}
                 onChange={e => setEditText(e.target.value)}
-                placeholder="Dialog text..."
+                placeholder="Caption text below video..."
                 rows={2}
                 style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
               />
               <button
                 onClick={() => {
-                  if (!editText.trim()) return;
-                  setDialogSteps(prev => [...prev, { speaker: editSpeaker.trim(), text: editText.trim() }]);
+                  if (!editText.trim() && !editVideo.trim()) return;
+                  const step: { speaker: string; text: string; video?: string } = {
+                    speaker: editSpeaker.trim(),
+                    text: editText.trim(),
+                  };
+                  if (editVideo.trim()) step.video = editVideo.trim();
+                  setDialogSteps(prev => [...prev, step]);
                   setEditText('');
+                  setEditVideo('');
                 }}
-                disabled={!editText.trim()}
-                style={btnStyle(editText.trim() ? '#2a7a2a' : '#333')}
+                disabled={!editText.trim() && !editVideo.trim()}
+                style={btnStyle((editText.trim() || editVideo.trim()) ? '#2a7a2a' : '#333')}
               >+ Add Step</button>
             </div>
 
@@ -1209,10 +1341,10 @@ export default function MapEditor() {
           <div style={{ borderTop: '1px solid #333', paddingTop: 8, fontSize: 11, color: '#aaa' }}>
             <div><strong>({hoverCell.x}, {hoverCell.y})</strong> — {tiles[hoverCell.y][hoverCell.x].terrain}</div>
             {tiles[hoverCell.y][hoverCell.x].entities.length > 0 && (
-              <div>Entities: {tiles[hoverCell.y][hoverCell.x].entities.map(e => e.type).join(', ')}</div>
+              <div>Entities: {tiles[hoverCell.y][hoverCell.x].entities.map(e => e.subtype ? `${e.type}(${e.subtype})` : e.type).join(', ')}</div>
             )}
             {tiles[hoverCell.y][hoverCell.x].items.length > 0 && (
-              <div>Items: {tiles[hoverCell.y][hoverCell.x].items.join(', ')}</div>
+              <div>Items: {tiles[hoverCell.y][hoverCell.x].items.map(i => i.defId).join(', ')}</div>
             )}
             {tiles[hoverCell.y][hoverCell.x].eventTrigger && (
               <div>Event: {tiles[hoverCell.y][hoverCell.x].eventTrigger!.id} ({tiles[hoverCell.y][hoverCell.x].eventTrigger!.steps?.length || 0} steps{tiles[hoverCell.y][hoverCell.x].eventTrigger!.oneShot ? ', one-shot' : ''})</div>
@@ -1392,6 +1524,39 @@ export default function MapEditor() {
                 <button onClick={() => setInspectTile(null)} style={{ ...removeBtnStyle, color: '#888' }}>✕</button>
               </div>
 
+              {/* Edge Walls (doors / windows) */}
+              {(['n', 'e', 's', 'w'] as Edge[]).some(edge => t.edgeWalls[edge].door || t.edgeWalls[edge].window) && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Doors &amp; Windows</div>
+                  {(['n', 'e', 's', 'w'] as Edge[]).map(edge => {
+                    const es = t.edgeWalls[edge];
+                    if (!es.door && !es.window) return null;
+                    const label = { n: 'North', e: 'East', s: 'South', w: 'West' }[edge];
+                    const kind = es.door ? 'Door' : 'Window';
+                    const color = es.door ? '#c8a032' : '#5599dd';
+                    return (
+                      <div key={edge} style={rowStyle}>
+                        <span style={{ color }}>{label} {kind}</span>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={!!es.locked}
+                            onChange={() => {
+                              setTiles(prev => {
+                                const next = prev.map(r => r.map(c => ({ ...c, edgeWalls: { ...c.edgeWalls } })));
+                                next[ty][tx].edgeWalls[edge] = { ...next[ty][tx].edgeWalls[edge], locked: !es.locked };
+                                return next;
+                              });
+                            }}
+                          />
+                          Locked
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Entities */}
               {t.entities.length > 0 && (
                 <div style={sectionStyle}>
@@ -1401,7 +1566,10 @@ export default function MapEditor() {
                     return (
                       <div key={i} style={rowStyle}>
                         <span style={{ color: def?.color || '#aaa' }}>
-                          {def?.label || ent.type}{ent.subtype ? ` (${ent.subtype})` : ''}
+                          {def?.label || ent.type}
+                          {ent.subtype ? ` · ${ent.subtype}` : ''}
+                          {ent.hp ? ` · ${ent.hp} hp` : ''}
+                          {ent.noLoot ? ` · no loot` : ''}
                         </span>
                         <button onClick={() => removeEntity(i)} style={removeBtnStyle}>Remove</button>
                       </div>
@@ -1414,13 +1582,17 @@ export default function MapEditor() {
               {t.items.length > 0 && (
                 <div style={sectionStyle}>
                   <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Items</div>
-                  {t.items.map((defId, i) => {
-                    const def = (ItemDefs as any)[defId];
+                  {t.items.map((item, i) => {
+                    const def = (ItemDefs as any)[item.defId];
+                    const isWaterContainer = def?.traits?.includes(ItemTrait.WATER_CONTAINER);
+                    const isDegradable = def?.traits?.includes(ItemTrait.DEGRADABLE);
                     return (
                       <div key={i} style={rowStyle}>
                         <span style={{ color: '#fc0' }}>
-                          {def?.name || defId}
+                          {def?.name || item.defId}
                           {def ? ` (${def.width}×${def.height})` : ''}
+                          {isWaterContainer && item.ammoCount !== undefined ? ` · ${item.ammoCount}/${def.capacity} water` : ''}
+                          {isDegradable && item.condition !== undefined ? ` · ${item.condition}% cond` : ''}
                         </span>
                         <button onClick={() => removeItem(i)} style={removeBtnStyle}>Remove</button>
                       </div>

@@ -281,7 +281,10 @@ export default function CraftingUI() {
                             <div className="p-2 px-3 border-b border-border space-y-2 bg-secondary/5">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-sm font-bold uppercase tracking-tight">{selectedRecipe.name}</h3>
-                                    
+                                    {selectedRecipe.description && (
+                                        <div className="text-[10px] text-zinc-400 italic">{selectedRecipe.description}</div>
+                                    )}
+
                                      {/* Stew Stats (Dynamic) */}
                                     {predictedStewStats && (
                                         <div className="flex flex-col gap-1.5 p-1.5 bg-black/30 rounded border border-primary/20">

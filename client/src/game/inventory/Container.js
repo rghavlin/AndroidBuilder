@@ -377,6 +377,36 @@ export class Container {
       return false;
     }
 
+    // Special handling for the absolute sorting priority of "Help" item (1x1, forces to slot 0,0)
+    if (item.defId === 'placeable.help') {
+      // Evict anything currently at (0,0)
+      const occupant = this.grid[0]?.[0];
+      if (occupant && occupant !== itemId) {
+        const occ = this.items.get(occupant);
+        if (occ) {
+          this.removeItemFromGrid(occ);
+          if (this.items.has(itemId)) this.removeItemFromGrid(item);
+          item.x = 0;
+          item.y = 0;
+          item._container = this;
+          this.grid[0][0] = itemId;
+          this.items.set(itemId, item);
+          occ.x = undefined;
+          occ.y = undefined;
+          const pos = this.findAvailablePosition(occ);
+          if (pos) this.placeItemAt(occ, pos.x, pos.y);
+          return true;
+        }
+      }
+      if (this.items.has(itemId)) this.removeItemFromGrid(item);
+      item.x = 0;
+      item.y = 0;
+      item._container = this;
+      this.grid[0][0] = itemId;
+      this.items.set(itemId, item);
+      return true;
+    }
+
     // Special handling for the absolute sorting priority of "Exit" item
     if (item.defId === 'placeable.exit') {
       const occupantsToMove = [];

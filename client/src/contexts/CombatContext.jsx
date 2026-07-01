@@ -194,7 +194,7 @@ export const CombatProvider = ({ children }) => {
 
         if (entity.type === EntityType.ZOMBIE) {
             if (entity.subtype === 'acid') triggerAcidEffect(entity, true);
-            if (lootGenerator && !isWindowTile(gameMap, lootX, lootY) && Math.random() < 0.75) {
+            if (lootGenerator && !entity.noLoot && !isWindowTile(gameMap, lootX, lootY) && Math.random() < 0.75) {
                 const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
                 if (loot?.length > 0) placeItems(loot);
             }

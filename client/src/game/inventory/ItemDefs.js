@@ -18,7 +18,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
-    containerGrid: { width: 4, height: 5 }
+    containerGrid: { width: 4, height: 5 },
+    description: 'When on the ground, right-click to open'
   },
 
   'backpack.makeshift': {
@@ -32,7 +33,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
-    containerGrid: { width: 4, height: 4 }
+    containerGrid: { width: 4, height: 4 },
+    description: 'Do-it-yourself backpack'
   },
 
 
@@ -47,7 +49,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
-    containerGrid: { width: 5, height: 7 }
+    containerGrid: { width: 5, height: 7 },
+    description: 'When on the ground, right-click to open'
   },
 
   // Hiking backpack: 5×5 item footprint → 6×10 internal storage
@@ -61,7 +64,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     categories: [ItemCategory.CONTAINER],
     equippableSlot: EquipmentSlot.BACKPACK,
-    containerGrid: { width: 6, height: 10 }
+    containerGrid: { width: 6, height: 10 },
+    description: 'When on the ground, right-click to open'
   },
 
   // Toy Wagon: 4x6 Ground Container / Furniture
@@ -79,6 +83,7 @@ export const ItemDefs = {
     motorAssistBonus: 0.5,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
+    description: 'Used to move items',
     containerGrid: { width: 4, height: 5, isVehicle: true },
     attachmentSlots: [
       { id: 'motor', name: 'Electric Motor', allowedItems: ['electric_motor'] },
@@ -108,6 +113,7 @@ export const ItemDefs = {
     motorAssistBonus: 0.5,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
+    description: 'For moving items',
     containerGrid: { width: 5, height: 7, isVehicle: true },
     attachmentSlots: [
       { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
@@ -141,6 +147,7 @@ export const ItemDefs = {
     motorAssistBonus: 0.5,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
+    description: 'For moving items',
     containerGrid: { width: 6, height: 9, isVehicle: true },
     attachmentSlots: [
       { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
@@ -172,6 +179,7 @@ export const ItemDefs = {
     height: 3,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
     categories: [ItemCategory.VEHICLE],
+    description: 'Zoom! Dissasemble: Wrench',
     dragApPenalty: 1,          // Pull mode: +1 AP per tile
     rideApBonus: 0.5,          // Ride mode: -0.5 AP per tile
     renderFullTile: true,
@@ -352,7 +360,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
 
-    pocketLayoutId: 'pocket_tee'
+    pocketLayoutId: 'pocket_tee',
+    description: 'When on the ground, right-click to open pockets'
   },
 
   'clothing.workshirt': {
@@ -365,7 +374,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    pocketLayoutId: 'work_shirt'
+    pocketLayoutId: 'work_shirt',
+    description: 'When on the ground, right-click to open pockets'
   },
 
   'clothing.paramedic_shirt': {
@@ -379,7 +389,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     pocketLayoutId: 'paramedic_shirt',
-    backgroundColor: '#8a0303'
+    backgroundColor: '#8a0303',
+    description: 'When on the ground, right-click to open pockets'
   },
 
   'clothing.police_shirt': {
@@ -393,7 +404,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     pocketLayoutId: 'police_shirt',
-    backgroundColor: '#0a2e5c'
+    backgroundColor: '#0a2e5c',
+    description: 'When on the ground, right-click to open pockets'
   },
   'clothing.military_shirt': {
     id: 'clothing.military_shirt',
@@ -407,7 +419,8 @@ export const ItemDefs = {
     equippableSlot: EquipmentSlot.UPPER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
     pocketLayoutId: 'military_shirt',
-    backgroundColor: '#5C653A'
+    backgroundColor: '#5C653A',
+    description: 'When on the ground, right-click to open pockets'
   },
 
 
@@ -424,7 +437,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    pocketLayoutId: 'sweatpants'
+    pocketLayoutId: 'sweatpants',
+    description: 'When on the ground, right-click to open pockets'
   },
 
   'clothing.cargopants': {
@@ -437,7 +451,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    pocketLayoutId: 'cargo_pants'
+    pocketLayoutId: 'cargo_pants',
+    description: 'When on the ground, right-click to open pockets'
   },
   'clothing.blue_jeans': {
     id: 'clothing.blue_jeans',
@@ -449,7 +464,8 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.CONTAINER],
     equippableSlot: EquipmentSlot.LOWER_BODY,
     categories: [ItemCategory.CLOTHING, ItemCategory.FUEL],
-    pocketLayoutId: 'blue_jeans'
+    pocketLayoutId: 'blue_jeans',
+    description: 'When on the ground, right-click to open pockets'
   },
 
 
@@ -571,7 +587,8 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.70,
       damage: { min: 2, max: 8 }
-    }
+    },
+    description: 'Right click to use on doors and windows'
   },
   'weapon.fire_axe': {
     id: 'weapon.fire_axe',
@@ -587,7 +604,8 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.90,
       damage: { min: 5, max: 15 }
-    }
+    },
+    description: 'Right click to use on doors and windows'
   },
 
   'weapon.shovel': {
@@ -604,7 +622,8 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.75,
       damage: { min: 3, max: 9 }
-    }
+    },
+    description: 'Right click to dig a hole in the ground (grid).'
   },
 
   'weapon.stick': {
@@ -1043,7 +1062,8 @@ export const ItemDefs = {
       width: 4,
       height: 3,
       allowedCategories: [ItemCategory.TOOL]
-    }
+    },
+    description: 'Holds tools and materials'
   },
 
   'container.lunchbox': {
@@ -1059,7 +1079,8 @@ export const ItemDefs = {
       width: 4,
       height: 3,
       allowedCategories: [ItemCategory.FOOD]
-    }
+    },
+    description: 'Holds food and drinks'
   },
   'container.medkit': {
     id: 'container.medkit',
@@ -1074,7 +1095,8 @@ export const ItemDefs = {
       width: 4,
       height: 3,
       allowedCategories: [ItemCategory.MEDICAL]
-    }
+    },
+    description: 'Holds medical items'
   },
 
   'container.guncase': {
@@ -1097,7 +1119,8 @@ export const ItemDefs = {
         ItemCategory.RIFLE_SCOPE,
         ItemCategory.CHOKE
       ]
-    }
+    },
+    description: 'All things gun'
   },
 
   // Weapon Attachments
@@ -1580,7 +1603,8 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.GROUND_ONLY],
     categories: [],
-    noLoot: true
+    noLoot: true,
+    description: 'Plant seeds here'
   },
   'food.mre': {
     id: 'food.mre',
@@ -1621,7 +1645,8 @@ export const ItemDefs = {
     renderFullTile: true,
     noTooltipUnits: true,
     noTooltipRarity: true,
-    noLoot: true
+    noLoot: true,
+    description: 'Use a rubber hose on the fuel cover to put fuel into a fuel can'
   },
   'tool.rubber_hose': {
     id: 'tool.rubber_hose',
@@ -2017,7 +2042,8 @@ export const ItemDefs = {
     stackMax: 1,
     capacity: 5,
     ammoCount: 5,
-    noLoot: true
+    noLoot: true,
+    description: 'When no matches or lighter'
   },
   'crafting.glass_shard': {
     id: 'crafting.glass_shard',
@@ -2143,7 +2169,8 @@ export const ItemDefs = {
       { id: 'pouch', name: 'Pouch', allowedCategories: [ItemCategory.BELT_POUCH] },
       { id: 'tool_ring_left', name: 'Left Ring', allowedCategories: [ItemCategory.TOOL_RING] },
       { id: 'tool_ring_right', name: 'Right Ring', allowedCategories: [ItemCategory.TOOL_RING] }
-    ]
+    ],
+    description: 'Right-click to open equipment slots'
   },
   'belt.holster': {
     id: 'belt.holster',
@@ -2154,7 +2181,8 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE],
     categories: [ItemCategory.HOLSTER],
-    beltGrid: { width: 2, height: 3, allowedCategories: [ItemCategory.GUN] }
+    beltGrid: { width: 2, height: 3, allowedCategories: [ItemCategory.GUN] },
+    description: 'Equip to a belt'
   },
   'belt.ammo_pouch': {
     id: 'belt.ammo_pouch',
@@ -2165,7 +2193,8 @@ export const ItemDefs = {
     height: 1,
     traits: [ItemTrait.EQUIPPABLE],
     categories: [ItemCategory.AMMO_POUCH],
-    beltGrid: { width: 1, height: 1, allowedCategories: [ItemCategory.AMMO] }
+    beltGrid: { width: 1, height: 1, allowedCategories: [ItemCategory.AMMO] },
+    description: 'Equip to a belt'
   },
   'belt.pouch': {
     id: 'belt.pouch',
@@ -2176,7 +2205,8 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.EQUIPPABLE],
     categories: [ItemCategory.BELT_POUCH],
-    beltGrid: { width: 4, height: 2 }
+    beltGrid: { width: 4, height: 2 },
+    description: 'Equip to a belt'
   },
   'belt.tool_ring': {
     id: 'belt.tool_ring',
@@ -2218,7 +2248,8 @@ export const ItemDefs = {
     width: 2,
     height: 1,
     traits: [],
-    categories: [ItemCategory.TOOL]
+    categories: [ItemCategory.TOOL],
+    description: 'Portable bed. Right-click to unroll.'
   },
   'bedroll.open': {
     id: 'bedroll.open',
@@ -2252,7 +2283,8 @@ export const ItemDefs = {
         { id: 'weapon.plank', count: 4 },
         { id: 'crafting.nail', count: 4 }
       ]
-    }
+    },
+    description: 'Dissasemble: Hammer'
   },
 
   'vehicle.small_sled': {
@@ -2276,7 +2308,8 @@ export const ItemDefs = {
         { id: 'weapon.plank', count: 4 },
         { id: 'crafting.nail', count: 4 }
       ]
-    }
+    },
+    description: 'For moving items'
   },
 
   'furniture.electric_mower': {
@@ -2286,11 +2319,13 @@ export const ItemDefs = {
     noPickup: true,
     rarity: Rarity.RARE,
     imageId: 'electricmower',
+    categories: [ItemCategory.FURNITURE],
     width: 4,
     height: 5,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.OPENABLE_WHEN_NESTED, ItemTrait.FURNITURE],
     dragApPenalty: 1,
     renderFullTile: true,
+    description: 'Dissasemble: Wrench',
     attachmentSlots: [
       { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
     ],
@@ -2321,7 +2356,8 @@ export const ItemDefs = {
     providesElectricity: true,
     dragApPenalty: 1.5,
     renderFullTile: true,
-    noLoot: true
+    noLoot: true,
+    description: 'With fuel, turn on generator and place electric items beside it to power the items'
   },
   'furniture.safe': {
     id: 'furniture.safe',
@@ -2338,7 +2374,8 @@ export const ItemDefs = {
     containerGrid: {
       width: 5,
       height: 4
-    }
+    },
+    description: 'Use a lockpick to unlock'
   },
   'environment.water_puddle': {
     id: 'environment.water_puddle',
@@ -2356,7 +2393,8 @@ export const ItemDefs = {
     waterQuality: 'dirty',
     categories: [ItemCategory.ENVIRONMENT],
     noLoot: true,
-    renderFullTile: true
+    renderFullTile: true,
+    description: 'Use empty bottle or jug to collect dirty water'
   },
   'placeable.exit': {
     id: 'placeable.exit',
@@ -2369,6 +2407,17 @@ export const ItemDefs = {
     traits: [ItemTrait.GROUND_ONLY],
     noLoot: true,
     renderFullTile: true
+  },
+  'placeable.help': {
+    id: 'placeable.help',
+    name: '?',
+    rarity: Rarity.COMMON,
+    imageId: 'help',
+    width: 1,
+    height: 1,
+    noDrag: true,
+    traits: [ItemTrait.GROUND_ONLY],
+    noLoot: true
   },
   'book.life_in_motion': {
     id: 'book.life_in_motion',
@@ -2475,11 +2524,12 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED],
     categories: [ItemCategory.TOOL],
-    containerGrid: { 
-      width: 3, 
-      height: 2, 
-      allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
-    }
+    containerGrid: {
+      width: 3,
+      height: 2,
+      allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY]
+    },
+    description: 'Use with a generator'
   },
   'tool.solar_charger': {
     id: 'tool.solar_charger',

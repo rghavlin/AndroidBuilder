@@ -979,6 +979,20 @@ const GameContextInner = ({ children }) => {
     engine.notifyUpdate();
   }, [activeDialog, setTurnPhase]);
 
+  // Fire the dialog trigger at the player's current tile, ignoring oneShot state.
+  // Used by the placeable.help item click so the player can replay the tutorial at will.
+  const fireDialogAtPlayerTile = useCallback(() => {
+    const player = engine.player;
+    const gameMap = engine.gameMap;
+    if (!player || !gameMap) return;
+    const triggers = gameMap.metadata?.eventTriggers;
+    if (!triggers) return;
+    const trigger = triggers.find(t => t.x === player.x && t.y === player.y);
+    if (!trigger || !trigger.steps || trigger.steps.length === 0) return;
+    setActiveDialog({ id: trigger.id, steps: trigger.steps });
+    setTurnPhase('PAUSED_FOR_EVENT');
+  }, [setTurnPhase]);
+
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;
 
@@ -1773,7 +1787,8 @@ const GameContextInner = ({ children }) => {
 
     // Dialog System
     activeDialog,
-    handleDialogDismiss
+    handleDialogDismiss,
+    fireDialogAtPlayerTile
   }), [
     isInitialized,
     isGameReady,
@@ -1820,7 +1835,8 @@ const GameContextInner = ({ children }) => {
     setIsDefeated,
     isProcessingTurn,
     activeDialog,
-    handleDialogDismiss
+    handleDialogDismiss,
+    fireDialogAtPlayerTile
   ]);
 
   return (

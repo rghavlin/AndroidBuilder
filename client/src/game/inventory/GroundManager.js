@@ -139,9 +139,10 @@ export class GroundManager {
     const allItems = this.groundContainer.getAllItems();
     if (allItems.length === 0) return true;
 
-    // 1. Identify exit items and keep them
-    const exitItems = allItems.filter(item => item.defId === 'placeable.exit');
-    const otherItems = allItems.filter(item => item.defId !== 'placeable.exit');
+    // 1. Identify priority items (exit, help) and keep them in place
+    const isPriorityItem = (item) => item.defId === 'placeable.exit' || item.defId === 'placeable.help';
+    const exitItems = allItems.filter(isPriorityItem);
+    const otherItems = allItems.filter(item => !isPriorityItem(item));
 
     // 2. Remove non-exit items from container
     for (const item of otherItems) {

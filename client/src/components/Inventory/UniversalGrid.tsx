@@ -75,6 +75,7 @@ export default function UniversalGrid({
   const { playSound } = useAudio();
   const { addLog } = useLog();
   const { setMapTransition } = useGameMap();
+  const { fireDialogAtPlayerTile } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, { src: string, imageId: string }>>(new Map());
   const itemImagesRef = useRef<Map<string, { src: string, imageId: string }>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -319,6 +320,12 @@ export default function UniversalGrid({
        console.debug(`[UniversalGrid] Harvesting ${item.name} at:`, x, y);
        harvestPlant(item);
        return;
+    }
+
+    // Intercept clicks on the help item to replay the tile's tutorial dialog
+    if (item && item.defId === 'placeable.help') {
+      fireDialogAtPlayerTile?.();
+      return;
     }
 
     // Intercept clicks on the exit item to trigger map transition
@@ -663,7 +670,7 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     // If an item is selected, right-click on it rotates it
