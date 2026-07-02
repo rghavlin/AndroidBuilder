@@ -116,13 +116,19 @@ export class VisionSystem {
       const xChanged = e2 > -dy;
       const yChanged = e2 < dx;
 
-      // DIAGONAL CORNER CHECK: If both X and Y are about to change, check the corners
+      // DIAGONAL CORNER CHECK: If both X and Y are about to change, check the corners.
+      // Each detour must be clear along BOTH legs (matching LineOfSight.js) — otherwise
+      // sight can slip diagonally past a closed door or wall corner.
       if (xChanged && yChanged) {
         const corner1 = gameMap.getTile(x + sx, y);
         const corner2 = gameMap.getTile(x, y + sy);
-        
-        let isBlocked1 = !corner1 || this.isTileBlocking(gameMap, x + sx, y) || this.isEdgeBlocked(gameMap, x, y, x + sx, y);
-        let isBlocked2 = !corner2 || this.isTileBlocking(gameMap, x, y + sy) || this.isEdgeBlocked(gameMap, x, y, x, y + sy);
+
+        let isBlocked1 = !corner1 || this.isTileBlocking(gameMap, x + sx, y)
+          || this.isEdgeBlocked(gameMap, x, y, x + sx, y)
+          || this.isEdgeBlocked(gameMap, x + sx, y, x + sx, y + sy);
+        let isBlocked2 = !corner2 || this.isTileBlocking(gameMap, x, y + sy)
+          || this.isEdgeBlocked(gameMap, x, y, x, y + sy)
+          || this.isEdgeBlocked(gameMap, x, y + sy, x + sx, y + sy);
 
         if (isBlocked1 && isBlocked2) {
           return false;
@@ -141,8 +147,10 @@ export class VisionSystem {
         y += sy;
       }
 
-      // Check edge block along the cardinal step
-      if (this.isEdgeBlocked(gameMap, prevX, prevY, x, y)) {
+      // Check edge block along cardinal steps only — diagonal steps are already
+      // validated by the corner check above (isEdgeBlocked's direction math is
+      // only meaningful for adjacent cardinal tiles).
+      if ((xChanged !== yChanged) && this.isEdgeBlocked(gameMap, prevX, prevY, x, y)) {
         return false;
       }
 
@@ -210,12 +218,15 @@ export class VisionSystem {
     if (!dir1to2) return false;
 
     const hasWall = (t1.edgeWalls && t1.edgeWalls[dir1to2]) || (t2.edgeWalls && t2.edgeWalls[dir2to1]);
-    if (!hasWall) return false;
 
-    // Check if there is a door/window on that edge
+    // Doors clear their edge-wall flag at map load (the Door entity takes over
+    // blocking), so a closed door on this edge must block sight even when no
+    // wall flag remains. Collect breachables BEFORE the no-wall early return.
     const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir1to2));
     const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir2to1));
     const allBreachable = [...breachable1, ...breachable2];
+
+    if (!hasWall && allBreachable.length === 0) return false;
 
     if (allBreachable.length === 0) return true; // Solid wall blocks sight
 

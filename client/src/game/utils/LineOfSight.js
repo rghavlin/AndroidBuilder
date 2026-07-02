@@ -423,11 +423,15 @@ export class LineOfSight {
     if (!dir1to2) return false;
 
     const hasWall = (t1.edgeWalls && t1.edgeWalls[dir1to2]) || (t2.edgeWalls && t2.edgeWalls[dir2to1]);
-    if (!hasWall) return false;
 
+    // Doors clear their edge-wall flag at map load (the door entity takes over
+    // blocking), so a closed door on this edge must block sight even when no
+    // wall flag remains.
     const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir1to2));
     const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir2to1));
     const allBreachable = [...breachable1, ...breachable2];
+
+    if (!hasWall && allBreachable.length === 0) return false;
 
     if (allBreachable.length === 0) return true; // Solid wall blocks sight
 

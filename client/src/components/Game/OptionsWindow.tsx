@@ -281,44 +281,10 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                 step={0.01} 
                                                 onValueChange={handleMasterVolChange} 
                                             />
-                                        </div>
-
-                                        <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
-                                            <div className="flex justify-between items-center px-1">
-                                                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                                                    <Music className="w-4 h-4" /> Music Volume
-                                                </div>
-                                                <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded-md">
-                                                    {Math.round(musicVol * 100)}%
-                                                </span>
-                                            </div>
-                                            <Slider 
-                                                value={[musicVol]} 
-                                                max={1.0} 
-                                                step={0.01} 
-                                                onValueChange={handleMusicVolChange} 
-                                            />
-                                        </div>
-
-                                        <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
-                                            <div className="flex justify-between items-center px-1">
-                                                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                                                    <Volume1 className="w-4 h-4" /> SFX Volume
-                                                </div>
-                                                <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded-md">
-                                                    {Math.round(sfxVol * 100)}%
-                                                </span>
-                                            </div>
-                                            <Slider 
-                                                value={[sfxVol]} 
-                                                max={1.0} 
-                                                step={0.01} 
-                                                onValueChange={handleSfxVolChange} 
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </TabsContent>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </TabsContent>
 
                             <TabsContent value="saves" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
                                 <div className="space-y-6">

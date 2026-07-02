@@ -36,57 +36,6 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                 </CardHeader>
 
                 <CardContent className="pt-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 text-sm text-muted-foreground">
-                    {/* Music Section */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider border-b border-border/30 pb-1.5">
-                            <Music className="w-4 h-4 text-primary" />
-                            Music & Ambience
-                        </div>
-                        <ul className="space-y-2.5 list-disc list-inside pl-1 text-[13px] leading-relaxed">
-                            <li>
-                                Energetic background music by ZHRØ —{' '}
-                                <a href="https://freesound.org/s/750340/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    freesound.org
-                                </a>{' '}
-                                — License: Attribution 4.0
-                            </li>
-                            <li>
-                                Loopable horror ambience by ZHRØ —{' '}
-                                <a href="https://freesound.org/s/702966/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    freesound.org
-                                </a>{' '}
-                                — License: Attribution 4.0
-                            </li>
-                            <li>
-                                Dark urban/lofi background music by ZHRØ —{' '}
-                                <a href="https://freesound.org/s/755404/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    freesound.org
-                                </a>{' '}
-                                — License: Attribution 4.0
-                            </li>
-                            <li>
-                                Relaxation music #69 by ZHRØ —{' '}
-                                <a href="https://freesound.org/s/808969/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    freesound.org
-                                </a>{' '}
-                                — License: Attribution 4.0
-                            </li>
-                            <li>
-                                Sad piano music by ZHRØ —{' '}
-                                <a href="https://freesound.org/s/688767/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    freesound.org
-                                </a>{' '}
-                                — License: Attribution 4.0
-                            </li>
-                            <li>
-                                Emotional Sad Guitar Music by Tunetank —{' '}
-                                <a href="https://pixabay.com/music/acoustic-group-emotional-sad-guitar-music-349888/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    pixabay.com
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
                     {/* Graphics & Tiles Section */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider border-b border-border/30 pb-1.5">
@@ -95,13 +44,7 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                         </div>
                         <ul className="space-y-2.5 list-disc list-inside pl-1 text-[13px] leading-relaxed">
                             <li>
-                                Black and white tiles by Reactorcore —{' '}
-                                <a href="http://www.reactorcoregames.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    reactorcoregames.com
-                                </a>
-                            </li>
-                            <li>
-                                Standard tiles by Little Martian —{' '}
+                                Color tiles by Little Martian —{' '}
                                 <a href="https://little-martian.itch.io/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
                                     itch.io
                                 </a>

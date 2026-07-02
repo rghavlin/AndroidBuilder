@@ -1,5 +1,5 @@
 {
-  "name": "transition test",
+  "name": "Zombie detection test 2",
   "width": 20,
   "height": 20,
   "noAutosave": true,
@@ -1290,21 +1290,21 @@
       {
         "x": 6,
         "y": 5,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 5,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1314,9 +1314,9 @@
       {
         "x": 8,
         "y": 5,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1326,9 +1326,9 @@
       {
         "x": 9,
         "y": 5,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1338,10 +1338,10 @@
       {
         "x": 10,
         "y": 5,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -1532,19 +1532,19 @@
       {
         "x": 6,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1556,7 +1556,7 @@
       {
         "x": 8,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1568,7 +1568,7 @@
       {
         "x": 9,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1580,10 +1580,10 @@
       {
         "x": 10,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -1774,23 +1774,23 @@
       {
         "x": 6,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -1798,11 +1798,11 @@
       {
         "x": 8,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -1810,11 +1810,11 @@
       {
         "x": 9,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -1822,11 +1822,11 @@
       {
         "x": 10,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2785,65 +2785,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "medical.bandage-1782900190106-jo0ea",
-            "defId": "medical.bandage",
-            "id": "medical.bandage",
-            "name": "Bandage",
-            "rarity": "common",
-            "imageId": "bandage",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "consumable",
-              "stackable"
-            ],
-            "categories": [
-              "medical"
-            ],
-            "consumptionSound": "Bandage",
-            "pileLimitOne": true,
-            "stackMax": 10,
-            "consumptionEffects": {
-              "heal": {
-                "min": 4,
-                "max": 7
-              },
-              "stop_bleeding": true
-            }
-          },
-          {
-            "instanceId": "weapon.fire_axe-1782900190106-ei5aj",
-            "defId": "weapon.fire_axe",
-            "id": "weapon.fire_axe",
-            "name": "Fire axe",
-            "rarity": "uncommon",
-            "imageId": "fireaxe",
-            "width": 5,
-            "height": 2,
-            "traits": [
-              "equippable",
-              "degradable",
-              "canBreakDoors"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "tool"
-            ],
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.9,
-              "damage": {
-                "min": 5,
-                "max": 15
-              }
-            },
-            "description": "Right click to use on doors and windows"
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
@@ -3756,21 +3698,21 @@
       {
         "x": 5,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -3780,9 +3722,9 @@
       {
         "x": 7,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -3792,9 +3734,9 @@
       {
         "x": 8,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -3804,9 +3746,9 @@
       {
         "x": 9,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -3816,9 +3758,9 @@
       {
         "x": 10,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -3828,10 +3770,10 @@
       {
         "x": 11,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -3998,19 +3940,19 @@
       {
         "x": 5,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4022,7 +3964,7 @@
       {
         "x": 7,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4034,7 +3976,7 @@
       {
         "x": 8,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4046,7 +3988,7 @@
       {
         "x": 9,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4058,7 +4000,7 @@
       {
         "x": 10,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4070,10 +4012,10 @@
       {
         "x": 11,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -4240,19 +4182,19 @@
       {
         "x": 5,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4264,7 +4206,7 @@
       {
         "x": 7,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4276,7 +4218,7 @@
       {
         "x": 8,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4288,7 +4230,7 @@
       {
         "x": 9,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4300,7 +4242,7 @@
       {
         "x": 10,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4312,10 +4254,10 @@
       {
         "x": 11,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -4482,23 +4424,23 @@
       {
         "x": 5,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -4506,11 +4448,11 @@
       {
         "x": 7,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -4518,11 +4460,11 @@
       {
         "x": 8,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -4530,11 +4472,11 @@
       {
         "x": 9,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -4542,11 +4484,11 @@
       {
         "x": 10,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -4554,11 +4496,11 @@
       {
         "x": 11,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -4906,33 +4848,48 @@
   "metadata": {
     "buildings": [],
     "specialBuildings": [],
-    "doors": [],
+    "doors": [
+      {
+        "x": 8,
+        "y": 7,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "s"
+      },
+      {
+        "x": 8,
+        "y": 15,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "n"
+      }
+    ],
     "windows": [],
     "placeIcons": [],
     "spawnZones": {
       "playerStart": [
         {
-          "x": 9,
-          "y": 11
+          "x": 6,
+          "y": 15
         }
       ]
     }
   },
   "entities": [
     {
+      "type": "zombie",
+      "x": 8,
+      "y": 5,
+      "subtype": "basic",
+      "deaf": true
+    },
+    {
       "type": "player",
-      "x": 9,
-      "y": 11,
+      "x": 6,
+      "y": 15,
       "subtype": null
     }
   ],
   "eventTriggers": [],
-  "mapTransitions": [
-    {
-      "x": 9,
-      "y": 10,
-      "targetType": "tutorial_end",
-      "targetId": "tutorial_end"
-    }
-  ]
+  "mapTransitions": []
 }

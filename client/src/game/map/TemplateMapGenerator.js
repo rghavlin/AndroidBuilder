@@ -1110,6 +1110,7 @@ export class TemplateMapGenerator {
                 if (health) { health.current = Math.min(e.hp, health.max); }
               }
               if (e.noLoot && entity) entity.noLoot = true;
+              if (e.deaf && entity) entity.deaf = true;
             } else if (e.type === 'npc') {
               entity = EntityFactory.createNPC(e.x, e.y);
             }

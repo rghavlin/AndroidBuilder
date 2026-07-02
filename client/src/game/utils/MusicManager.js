@@ -109,8 +109,10 @@ class MusicManager {
     }
 
     async playCurrentTrack() {
-        if (!this.currentPlaylist || !this.playlists[this.currentPlaylist]) return;
+        // Temporarily disabled: the game will have no music
+        return;
 
+        if (!this.currentPlaylist || !this.playlists[this.currentPlaylist]) return;
         const track = this.playlists[this.currentPlaylist][this.currentTrackIndex];
         const trackUrl = typeof track === 'object' && track.url ? track.url : track;
 

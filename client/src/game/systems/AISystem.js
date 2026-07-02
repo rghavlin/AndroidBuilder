@@ -19,6 +19,7 @@ import { gameRandom } from '../utils/SeededRandom.js';
  * @returns {boolean} true if a scent was found and the zombie was retargeted
  */
 function tryFollowScent(entity, zombiePos, gameMap, aiBehavior) {
+  if (entity.deaf) return false;
   const freshestScent = ScentTrail.findFreshestScent(
     gameMap, zombiePos.x, zombiePos.y, SCENT_FOLLOW_RADIUS, entity.lastScentSequence || 0
   );

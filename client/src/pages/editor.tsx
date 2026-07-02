@@ -67,7 +67,7 @@ interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: bo
 interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
-  entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean }[];
+  entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean }[];
   items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string> }[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
@@ -221,7 +221,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
   if (scenario.entities) {
     for (const e of scenario.entities) {
       const t = tiles[e.y]?.[e.x];
-      if (t) t.entities.push({ type: e.type, subtype: e.subtype, hp: e.hp || undefined, noLoot: e.noLoot || undefined });
+      if (t) t.entities.push({ type: e.type, subtype: e.subtype, hp: e.hp || undefined, noLoot: e.noLoot || undefined, deaf: e.deaf || undefined });
     }
   }
 
@@ -376,7 +376,7 @@ function exportScenario(scenario: ScenarioData) {
   scenario.tiles.forEach((row, y) =>
     row.forEach((t, x) => {
       t.entities.forEach(e => {
-        entities.push({ type: e.type, x, y, subtype: e.subtype || null, ...(e.hp ? { hp: e.hp } : {}), ...(e.noLoot ? { noLoot: true } : {}) });
+        entities.push({ type: e.type, x, y, subtype: e.subtype || null, ...(e.hp ? { hp: e.hp } : {}), ...(e.noLoot ? { noLoot: true } : {}), ...(e.deaf ? { deaf: true } : {}) });
       });
     })
   );
@@ -446,6 +446,7 @@ export default function MapEditor() {
   const [zombieSubtype, setZombieSubtype] = useState('basic');
   const [zombieHp, setZombieHp] = useState<number | ''>('');
   const [zombieNoLoot, setZombieNoLoot] = useState(false);
+  const [zombieDeaf, setZombieDeaf] = useState(false);
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
   const [selectedPlaceIconSubtype, setSelectedPlaceIconSubtype] = useState('grocer');
   const [selectedItem, setSelectedItem] = useState('');
@@ -619,11 +620,12 @@ export default function MapEditor() {
             tile.entities = tile.entities.filter(e => e.type !== 'player');
           }
           {
-            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean } = { type: selectedEntity };
+            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean } = { type: selectedEntity };
             if (selectedEntity === 'zombie') {
               ent.subtype = zombieSubtype;
               if (zombieHp !== '') ent.hp = zombieHp as number;
               if (zombieNoLoot) ent.noLoot = true;
+              if (zombieDeaf) ent.deaf = true;
             }
             tile.entities.push(ent);
           }
@@ -677,7 +679,7 @@ export default function MapEditor() {
       }
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -1218,6 +1220,10 @@ export default function MapEditor() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
                   <input type="checkbox" checked={zombieNoLoot} onChange={e => setZombieNoLoot(e.target.checked)} />
                   No loot drop on death
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={zombieDeaf} onChange={e => setZombieDeaf(e.target.checked)} />
+                  Deaf (ignores noise, e.g. door opening)
                 </label>
               </div>
             )}
@@ -1840,6 +1846,7 @@ export default function MapEditor() {
                           {ent.subtype ? ` · ${ent.subtype}` : ''}
                           {ent.hp ? ` · ${ent.hp} hp` : ''}
                           {ent.noLoot ? ` · no loot` : ''}
+                          {ent.deaf ? ` · deaf` : ''}
                         </span>
                         <button onClick={() => removeEntity(i)} style={removeBtnStyle}>Remove</button>
                       </div>

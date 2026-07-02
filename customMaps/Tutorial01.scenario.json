@@ -1984,7 +1984,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.generator-1782950656529-i1ps0",
+            "instanceId": "furniture.generator-1782977837709-rlxa6",
             "defId": "furniture.generator",
             "id": "furniture.generator",
             "name": "Generator",
@@ -2010,6 +2010,32 @@
             "renderFullTile": true,
             "noLoot": true,
             "description": "With fuel, turn on generator and place electric items beside it to power the items"
+          },
+          {
+            "instanceId": "tool.battery_charger-1782977837709-g5302",
+            "defId": "tool.battery_charger",
+            "id": "tool.battery_charger",
+            "name": "Battery charger",
+            "rarity": "rare",
+            "imageId": "charger",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "container",
+              "openable-when-nested"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "containerGrid": {
+              "width": 3,
+              "height": 2,
+              "allowedCategories": [
+                "battery",
+                "large_battery"
+              ]
+            },
+            "description": "Use with a generator"
           }
         ]
       },
@@ -2340,7 +2366,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.fuel_cover-1782950656529-ma5lv",
+            "instanceId": "furniture.fuel_cover-1782977837709-vmqw7",
             "defId": "furniture.fuel_cover",
             "id": "furniture.fuel_cover",
             "name": "Fuel cover",
@@ -2363,6 +2389,44 @@
             "noLoot": true,
             "description": "Use a rubber hose on the fuel cover to put fuel into a fuel can",
             "ammoCount": 18
+          },
+          {
+            "instanceId": "tool.rubber_hose-1782977837709-afx4g",
+            "defId": "tool.rubber_hose",
+            "id": "tool.rubber_hose",
+            "name": "Rubber hose",
+            "rarity": "common",
+            "imageId": "rubberhose",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "canSiphon"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "spawnBias": {
+              "outside": 3,
+              "inside": 0.1
+            }
+          },
+          {
+            "instanceId": "tool.fuel_can-1782977837709-tg220",
+            "defId": "tool.fuel_can",
+            "id": "tool.fuel_can",
+            "name": "Fuel can",
+            "rarity": "rare",
+            "imageId": "fuelcan",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "fuel_container"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "capacity": 25,
+            "ammoDefId": "fuel"
           }
         ]
       },
@@ -2525,7 +2589,7 @@
       {
         "x": 24,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2537,7 +2601,7 @@
       {
         "x": 25,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2549,7 +2613,7 @@
       {
         "x": 26,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2561,7 +2625,7 @@
       {
         "x": 27,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2573,7 +2637,7 @@
       {
         "x": 28,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2585,7 +2649,7 @@
       {
         "x": 29,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2611,7 +2675,7 @@
       {
         "x": 1,
         "y": 7,
-        "terrain": "road",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2973,7 +3037,7 @@
       {
         "x": 1,
         "y": 8,
-        "terrain": "road",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3335,7 +3399,7 @@
       {
         "x": 1,
         "y": 9,
-        "terrain": "road",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3697,7 +3761,7 @@
       {
         "x": 1,
         "y": 10,
-        "terrain": "road",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4059,7 +4123,7 @@
       {
         "x": 1,
         "y": 11,
-        "terrain": "road",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4709,7 +4773,7 @@
       {
         "x": 25,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4721,7 +4785,7 @@
       {
         "x": 26,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4733,7 +4797,7 @@
       {
         "x": 27,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4745,7 +4809,7 @@
       {
         "x": 28,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4757,7 +4821,7 @@
       {
         "x": 29,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5574,7 +5638,68 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "medical.first_aid_kit-1782977837709-777im",
+            "defId": "medical.first_aid_kit",
+            "id": "medical.first_aid_kit",
+            "name": "First Aid Kit",
+            "rarity": "rare",
+            "imageId": "firstaidkit",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "consumable",
+              "stackable"
+            ],
+            "categories": [
+              "medical"
+            ],
+            "consumptionSound": "Bandage",
+            "pileLimitOne": true,
+            "stackMax": 5,
+            "consumptionEffects": {
+              "heal": "Max HP"
+            }
+          },
+          {
+            "instanceId": "crafting.tape-1782977837709-egy96",
+            "defId": "crafting.tape",
+            "id": "crafting.tape",
+            "name": "Tape",
+            "rarity": "common",
+            "imageId": "tape",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "tool",
+              "crafting_material"
+            ],
+            "stackMax": 20
+          },
+          {
+            "instanceId": "crafting.tape-1782977837709-m0xgs",
+            "defId": "crafting.tape",
+            "id": "crafting.tape",
+            "name": "Tape",
+            "rarity": "common",
+            "imageId": "tape",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "tool",
+              "crafting_material"
+            ],
+            "stackMax": 20
+          }
+        ]
       },
       {
         "x": 7,
@@ -6049,7 +6174,7 @@
       {
         "x": 16,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6061,7 +6186,7 @@
       {
         "x": 17,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6073,7 +6198,7 @@
       {
         "x": 18,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6085,7 +6210,7 @@
       {
         "x": 19,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6097,7 +6222,7 @@
       {
         "x": 20,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6109,7 +6234,7 @@
       {
         "x": 21,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6121,7 +6246,7 @@
       {
         "x": 22,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6133,7 +6258,7 @@
       {
         "x": 23,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6145,7 +6270,7 @@
       {
         "x": 24,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6157,7 +6282,7 @@
       {
         "x": 25,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6169,7 +6294,7 @@
       {
         "x": 26,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6181,7 +6306,7 @@
       {
         "x": 27,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6193,7 +6318,7 @@
       {
         "x": 28,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6205,7 +6330,7 @@
       {
         "x": 29,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6641,7 +6766,7 @@
       {
         "x": 5,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6653,19 +6778,50 @@
       {
         "x": 6,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.crowbar-1782977837709-4611v",
+            "defId": "weapon.crowbar",
+            "id": "weapon.crowbar",
+            "name": "Crowbar",
+            "rarity": "uncommon",
+            "imageId": "crowbar",
+            "width": 3,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "degradable",
+              "canBreakDoors"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool"
+            ],
+            "condition": 22,
+            "combat": {
+              "hitChance": 0.7,
+              "damage": {
+                "min": 2,
+                "max": 8
+              }
+            },
+            "description": "Right click to use on doors and windows"
+          }
+        ]
       },
       {
         "x": 7,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7022,7 +7178,387 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.9mmPistol-1782977837709-oo07n",
+            "defId": "weapon.9mmPistol",
+            "id": "weapon.9mmPistol",
+            "name": "9mm Pistol",
+            "rarity": "rare",
+            "imageId": "9mm pistol",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "container",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "handgun",
+            "categories": [
+              "weapon",
+              "gun"
+            ],
+            "attachmentSlots": [
+              {
+                "id": "barrel",
+                "name": "Barrel",
+                "allowedCategories": [
+                  "suppressor"
+                ]
+              },
+              {
+                "id": "sight",
+                "name": "Optic",
+                "allowedCategories": [
+                  "laser_sight"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Magazine",
+                "hidden": true,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "attachment.9mm_magazine",
+                  "attachment.9mm_extended_magazine"
+                ]
+              }
+            ],
+            "rangedStats": {
+              "noiseRadius": 12,
+              "damage": {
+                "min": 4,
+                "max": 10
+              },
+              "accuracyFalloff": 0.1,
+              "minAccuracy": 0.01
+            }
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-jq0kp",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-fliyu",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-7w1gy",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-fy7pz",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-hk0jo",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-u89ab",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-9ia9i",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-yi7yn",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-9vfzc",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-kx0fx",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-x8k4w",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-xgnak",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-tb6ic",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-sz7to",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "ammo.9mm-1782977837709-kgwth",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3
+          },
+          {
+            "instanceId": "attachment.9mm_magazine-1782977837709-idbou",
+            "defId": "attachment.9mm_magazine",
+            "id": "attachment.9mm_magazine",
+            "name": "9mm Magazine",
+            "rarity": "uncommon",
+            "imageId": "9mm_magazine",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "magazine"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "capacity": 10,
+            "ammoDefId": "ammo.9mm"
+          },
+          {
+            "instanceId": "attachment.9mm_magazine-1782977837709-ir97c",
+            "defId": "attachment.9mm_magazine",
+            "id": "attachment.9mm_magazine",
+            "name": "9mm Magazine",
+            "rarity": "uncommon",
+            "imageId": "9mm_magazine",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "magazine"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "capacity": 10,
+            "ammoDefId": "ammo.9mm"
+          }
+        ]
       },
       {
         "x": 7,
@@ -7384,7 +7920,86 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "environment.water_puddle-1782977837709-3r3s3",
+            "defId": "environment.water_puddle",
+            "id": "environment.water_puddle",
+            "name": "Water puddle",
+            "rarity": "common",
+            "imageId": "waterpuddle",
+            "width": 5,
+            "height": 5,
+            "isPickable": false,
+            "noDrag": true,
+            "traits": [
+              "water_bottle",
+              "consumable",
+              "water_source"
+            ],
+            "maxWater": 50,
+            "ammoCount": 50,
+            "capacity": 50,
+            "waterQuality": "dirty",
+            "categories": [
+              "environment"
+            ],
+            "noLoot": true,
+            "renderFullTile": true,
+            "description": "Use empty bottle or jug to collect dirty water"
+          },
+          {
+            "instanceId": "food.waterbottle-1782977837709-69081",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 0,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          },
+          {
+            "instanceId": "food.waterbottle-1782977837709-5ymcj",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 0,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -8108,7 +8723,83 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "provision.harvestable_corn-1782977837709-veoyj",
+            "defId": "provision.harvestable_corn",
+            "id": "provision.harvestable_corn",
+            "name": "Harvestable corn",
+            "rarity": "common",
+            "renderFullTile": true,
+            "imageId": "harvestablecorn",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "groundOnly"
+            ],
+            "categories": [],
+            "noLoot": true,
+            "noDrag": true,
+            "produce": "food.corn",
+            "produceMin": 4,
+            "produceMax": 7
+          },
+          {
+            "instanceId": "food.cornseeds-1782977837709-ank7m",
+            "defId": "food.cornseeds",
+            "id": "food.cornseeds",
+            "name": "Corn seeds",
+            "rarity": "uncommon",
+            "imageId": "cornseeds",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [],
+            "stackMax": 100,
+            "spawnStackMin": 2,
+            "spawnStackMax": 3,
+            "plantsAs": "provision.corn_plant"
+          },
+          {
+            "instanceId": "food.cornseeds-1782977837709-c3nm5",
+            "defId": "food.cornseeds",
+            "id": "food.cornseeds",
+            "name": "Corn seeds",
+            "rarity": "uncommon",
+            "imageId": "cornseeds",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [],
+            "stackMax": 100,
+            "spawnStackMin": 2,
+            "spawnStackMax": 3,
+            "plantsAs": "provision.corn_plant"
+          },
+          {
+            "instanceId": "crafting.rope-1782977837709-kjmz2",
+            "defId": "crafting.rope",
+            "id": "crafting.rope",
+            "name": "Rope",
+            "rarity": "uncommon",
+            "imageId": "rope",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material",
+              "tool"
+            ],
+            "stackMax": 5
+          }
+        ]
       },
       {
         "x": 7,
@@ -8832,7 +9523,94 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "furniture.electric_mower-1782977837709-2zwl3",
+            "defId": "furniture.electric_mower",
+            "id": "furniture.electric_mower",
+            "name": "Electric mower",
+            "noLoot": true,
+            "noPickup": true,
+            "rarity": "rare",
+            "imageId": "electricmower",
+            "categories": [
+              "furniture"
+            ],
+            "width": 4,
+            "height": 5,
+            "traits": [
+              "draggable",
+              "groundOnly",
+              "openable-when-nested",
+              "furniture"
+            ],
+            "dragApPenalty": 1,
+            "renderFullTile": true,
+            "description": "Dissasemble: Wrench",
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery"
+                ]
+              }
+            ],
+            "disassembleData": {
+              "toolId": "weapon.wrench",
+              "apCost": 15,
+              "components": [
+                {
+                  "id": "crafting.wheel",
+                  "count": 4
+                },
+                {
+                  "id": "electric_motor",
+                  "count": 1
+                },
+                {
+                  "id": "crafting.mower_blade",
+                  "count": 1
+                },
+                {
+                  "id": "weapon.metal_rod",
+                  "count": 2
+                },
+                {
+                  "id": "crafting.metal_plate",
+                  "count": 1
+                }
+              ]
+            },
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.large_battery-1782977837709-25zqp",
+                "defId": "tool.large_battery",
+                "id": "tool.large_battery",
+                "name": "Large battery",
+                "rarity": "uncommon",
+                "imageId": "largebattery",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "large_battery",
+                  "tool"
+                ],
+                "stackMax": 5,
+                "capacity": 100,
+                "ammoCount": 17
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -9163,7 +9941,7 @@
       {
         "x": 4,
         "y": 25,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9175,7 +9953,7 @@
       {
         "x": 5,
         "y": 25,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9187,19 +9965,111 @@
       {
         "x": 6,
         "y": 25,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "vehicle.toy_wagon-1782977837709-w47uv",
+            "defId": "vehicle.toy_wagon",
+            "id": "vehicle.toy_wagon",
+            "name": "Toy Wagon",
+            "noLoot": true,
+            "rarity": "uncommon",
+            "imageId": "toywagon",
+            "width": 4,
+            "height": 6,
+            "traits": [
+              "draggable",
+              "groundOnly",
+              "container",
+              "vehicle",
+              "wagon"
+            ],
+            "categories": [
+              "furniture",
+              "vehicle"
+            ],
+            "dragApPenalty": 1,
+            "motorAssistBonus": 0.5,
+            "terrainModifiers": {
+              "road": -0.5,
+              "sidewalk": -0.5
+            },
+            "renderFullTile": true,
+            "description": "Used to move items",
+            "containerGrid": {
+              "width": 4,
+              "height": 5,
+              "isVehicle": true
+            },
+            "attachmentSlots": [
+              {
+                "id": "motor",
+                "name": "Electric Motor",
+                "allowedItems": [
+                  "electric_motor"
+                ]
+              },
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery"
+                ]
+              }
+            ],
+            "disassembleData": {
+              "toolId": "weapon.wrench",
+              "apCost": 10,
+              "components": [
+                {
+                  "id": "crafting.wheel",
+                  "count": 4
+                },
+                {
+                  "id": "weapon.metal_rod",
+                  "count": 2
+                },
+                {
+                  "id": "crafting.metal_plate",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          {
+            "instanceId": "tool.cooking_pot-1782977837709-xhpxu",
+            "defId": "tool.cooking_pot",
+            "id": "tool.cooking_pot",
+            "name": "Cooking pot",
+            "rarity": "common",
+            "imageId": "cookingpot",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "degradable"
+            ],
+            "categories": [
+              "tool",
+              "cooking_pot"
+            ],
+            "condition": 42
+          }
+        ]
       },
       {
         "x": 7,
         "y": 25,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9211,7 +10081,7 @@
       {
         "x": 8,
         "y": 25,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9525,7 +10395,7 @@
       {
         "x": 4,
         "y": 26,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9537,7 +10407,7 @@
       {
         "x": 5,
         "y": 26,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9549,7 +10419,7 @@
       {
         "x": 6,
         "y": 26,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9561,7 +10431,7 @@
       {
         "x": 7,
         "y": 26,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9573,7 +10443,7 @@
       {
         "x": 8,
         "y": 26,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9950,7 +10820,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": true,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -10312,7 +11182,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -10674,7 +11544,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -11004,7 +11874,57 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "clothing.workshirt-1782977837709-vi2d2",
+            "defId": "clothing.workshirt",
+            "id": "clothing.workshirt",
+            "name": "Work Shirt",
+            "rarity": "uncommon",
+            "imageId": "workshirt",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "work_shirt",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "weapon.wrench-1782977837709-3q421",
+            "defId": "weapon.wrench",
+            "id": "weapon.wrench",
+            "name": "Wrench",
+            "rarity": "uncommon",
+            "imageId": "wrench",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -11036,7 +11956,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -11076,7 +11996,188 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.knife-1782977837709-2rasj",
+            "defId": "weapon.knife",
+            "id": "weapon.knife",
+            "name": "Knife",
+            "rarity": "common",
+            "imageId": "knife",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "knife"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 4
+              }
+            }
+          },
+          {
+            "instanceId": "clothing.pocket_t-1782977837709-k3bl7",
+            "defId": "clothing.pocket_t",
+            "id": "clothing.pocket_t",
+            "name": "Pocket T-Shirt",
+            "rarity": "common",
+            "imageId": "pocket-t",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "pocket_tee",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.pocket_t-1782977837709-u79s5",
+            "defId": "clothing.pocket_t",
+            "id": "clothing.pocket_t",
+            "name": "Pocket T-Shirt",
+            "rarity": "common",
+            "imageId": "pocket-t",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "pocket_tee",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.sweatpants-1782977837709-vvh5n",
+            "defId": "clothing.sweatpants",
+            "id": "clothing.sweatpants",
+            "name": "Sweatpants",
+            "rarity": "common",
+            "imageId": "sweatpants",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "sweatpants",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.sweatpants-1782977837709-wakd4",
+            "defId": "clothing.sweatpants",
+            "id": "clothing.sweatpants",
+            "name": "Sweatpants",
+            "rarity": "common",
+            "imageId": "sweatpants",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "sweatpants",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.sweatpants-1782977837709-s5ik8",
+            "defId": "clothing.sweatpants",
+            "id": "clothing.sweatpants",
+            "name": "Sweatpants",
+            "rarity": "common",
+            "imageId": "sweatpants",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "sweatpants",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.pocket_t-1782977837709-6078t",
+            "defId": "clothing.pocket_t",
+            "id": "clothing.pocket_t",
+            "name": "Pocket T-Shirt",
+            "rarity": "common",
+            "imageId": "pocket-t",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "pocket_tee",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "food.waterbottle-1782977837709-8o18a",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 2,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          }
+        ]
       },
       {
         "x": 13,
@@ -11398,7 +12499,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -11760,7 +12861,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": true,
           "w": false
         },
@@ -13562,7 +14663,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1782977837710-t5f8x",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 9,
@@ -14586,14 +15721,35 @@
       {
         "x": 6,
         "y": 14,
-        "isLocked": false,
+        "isLocked": true,
         "isOpen": false,
         "edge": "n"
       },
       {
         "x": 6,
         "y": 17,
+        "isLocked": true,
+        "isOpen": false,
+        "edge": "s"
+      },
+      {
+        "x": 6,
+        "y": 27,
         "isLocked": false,
+        "isOpen": false,
+        "edge": "n"
+      },
+      {
+        "x": 9,
+        "y": 30,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "e"
+      },
+      {
+        "x": 8,
+        "y": 32,
+        "isLocked": true,
         "isOpen": false,
         "edge": "s"
       }
@@ -14626,6 +15782,13 @@
         "isLocked": false,
         "isOpen": false,
         "edge": "s"
+      },
+      {
+        "x": 12,
+        "y": 32,
+        "isLocked": true,
+        "isOpen": false,
+        "edge": "s"
       }
     ],
     "placeIcons": [
@@ -14639,19 +15802,52 @@
       "playerStart": [
         {
           "x": 6,
-          "y": 8
+          "y": 21
         }
       ]
     }
   },
   "entities": [
     {
+      "type": "zombie",
+      "x": 6,
+      "y": 15,
+      "subtype": "acid",
+      "noLoot": true,
+      "deaf": true
+    },
+    {
       "type": "player",
       "x": 6,
-      "y": 8,
+      "y": 21,
       "subtype": null
+    },
+    {
+      "type": "zombie",
+      "x": 8,
+      "y": 36,
+      "subtype": "basic",
+      "hp": 1,
+      "noLoot": true
     }
   ],
-  "eventTriggers": [],
+  "eventTriggers": [
+    {
+      "x": 8,
+      "y": 37,
+      "id": "EquipAttack",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "EquipAttack"
+        },
+        {
+          "speaker": "",
+          "text": "Part 2"
+        }
+      ],
+      "oneShot": true
+    }
+  ],
   "mapTransitions": []
 }
