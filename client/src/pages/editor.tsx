@@ -48,8 +48,20 @@ const BUILDING_TYPES = [
   'army_tent', 'hardware_store', 'lab'
 ];
 
+const PLACE_ICON_TYPES = [
+  { id: 'grocer',         label: 'Grocer Sign',        symbol: 'G', color: '#4c4' },
+  { id: 'police',         label: 'Police Sign',         symbol: 'P', color: '#44f' },
+  { id: 'firestation',    label: 'Fire Station Sign',   symbol: 'F', color: '#f44' },
+  { id: 'gas_station',    label: 'Gas Station Sign',    symbol: '$', color: '#fa0' },
+  { id: 'fuelpump',       label: 'Fuel Pump',           symbol: 'U', color: '#fa0' },
+  { id: 'hardware_store', label: 'Hardware Store Sign', symbol: 'H', color: '#a64' },
+  { id: 'army_tent',      label: 'Army Tent Sign',      symbol: 'A', color: '#6a6' },
+  { id: 'lab',            label: 'Lab Sign',            symbol: 'L', color: '#0ff' },
+  { id: 'barrier',        label: 'Barrier',             symbol: 'B', color: '#888' },
+];
+
 type Edge = 'n' | 'e' | 's' | 'w';
-type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger' | 'map_transition';
+type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger' | 'map_transition' | 'place_icon';
 
 interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; }
 interface TileData {
@@ -59,6 +71,7 @@ interface TileData {
   items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string> }[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
+  placeIcon?: string;
 }
 
 interface BuildingMeta {
@@ -246,6 +259,15 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     }
   }
 
+  // Place icons
+  const placeIcons = scenario.metadata?.placeIcons;
+  if (placeIcons) {
+    for (const icon of placeIcons) {
+      const t = tiles[icon.y]?.[icon.x];
+      if (t) t.placeIcon = icon.subtype;
+    }
+  }
+
   return {
     name: scenario.name || 'untitled',
     width: w,
@@ -390,7 +412,9 @@ function exportScenario(scenario: ScenarioData) {
       ),
       doors,
       windows,
-      placeIcons: [],
+      placeIcons: scenario.tiles.flatMap((row: TileData[], y: number) =>
+        row.flatMap((t: TileData, x: number) => t.placeIcon ? [{ subtype: t.placeIcon, x, y }] : [])
+      ),
       spawnZones: scenario.playerSpawn
         ? { playerStart: [scenario.playerSpawn] }
         : {},
@@ -423,6 +447,7 @@ export default function MapEditor() {
   const [zombieHp, setZombieHp] = useState<number | ''>('');
   const [zombieNoLoot, setZombieNoLoot] = useState(false);
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
+  const [selectedPlaceIconSubtype, setSelectedPlaceIconSubtype] = useState('grocer');
   const [selectedItem, setSelectedItem] = useState('');
   const [itemCategory, setItemCategory] = useState('');
   const [waterFill, setWaterFill] = useState<number | ''>('');
@@ -629,6 +654,9 @@ export default function MapEditor() {
             };
           }
           break;
+        case 'place_icon':
+          tile.placeIcon = selectedPlaceIconSubtype;
+          break;
         case 'eraser':
           tile.terrain = 'grass';
           tile.edgeWalls = {
@@ -641,6 +669,7 @@ export default function MapEditor() {
           tile.items = [];
           delete tile.eventTrigger;
           delete tile.mapTransition;
+          delete tile.placeIcon;
           break;
       }
 
@@ -648,7 +677,7 @@ export default function MapEditor() {
       }
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -748,6 +777,19 @@ export default function MapEditor() {
         drawEdge('s', sx, sy + CELL - 3, CELL, 3);
         drawEdge('w', sx, sy, 3, CELL);
         drawEdge('e', sx + CELL - 3, sy, 3, CELL);
+
+        // Place icons
+        if (t.placeIcon) {
+          const iconDef = PLACE_ICON_TYPES.find(p => p.id === t.placeIcon);
+          ctx.fillStyle = iconDef?.color ?? '#fff';
+          ctx.font = 'bold 13px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(iconDef?.symbol ?? '?', sx + CELL / 2, sy + CELL / 2);
+          ctx.strokeStyle = iconDef?.color ?? '#fff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(sx + 2, sy + 2, CELL - 4, CELL - 4);
+        }
 
         // Entities
         if (t.entities.length > 0) {
@@ -854,7 +896,7 @@ export default function MapEditor() {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const tile = tiles[y][x];
     const hasDoorOrWindow = (['n', 'e', 's', 'w'] as Edge[]).some(e => tile.edgeWalls[e].door || tile.edgeWalls[e].window);
-    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || hasDoorOrWindow;
+    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || !!tile.placeIcon || hasDoorOrWindow;
     if (hasContent) {
       setInspectTile({ x, y, screenX: e.clientX, screenY: e.clientY });
     }
@@ -1048,6 +1090,7 @@ export default function MapEditor() {
           {toolButton('edge_door', 'Door')}
           {toolButton('edge_window', 'Window')}
           {toolButton('building_rect', 'Building')}
+          {toolButton('place_icon', 'Sign')}
           {toolButton('entity', 'Entity')}
           {toolButton('item', 'Item')}
           {toolButton('event_trigger', 'Event')}
@@ -1194,6 +1237,22 @@ export default function MapEditor() {
               ))}
             </select>
             <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>Click and drag on the grid to draw a building rectangle (min 3×3). Walls + floor auto-placed.</p>
+          </div>
+        )}
+
+        {tool === 'place_icon' && (
+          <div>
+            <label style={{ fontSize: 11, color: '#888' }}>Sign / Icon Type</label>
+            <select
+              value={selectedPlaceIconSubtype}
+              onChange={e => setSelectedPlaceIconSubtype(e.target.value)}
+              style={{ ...inputStyle, width: '100%', marginTop: 4 }}
+            >
+              {PLACE_ICON_TYPES.map(p => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+            <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>Click a tile to place the sign. Signs block movement. Use Eraser to remove.</p>
           </div>
         )}
 
@@ -1557,6 +1616,9 @@ export default function MapEditor() {
             {tiles[hoverCell.y][hoverCell.x].eventTrigger && (
               <div>Event: {tiles[hoverCell.y][hoverCell.x].eventTrigger!.id} ({tiles[hoverCell.y][hoverCell.x].eventTrigger!.steps?.length || 0} steps{tiles[hoverCell.y][hoverCell.x].eventTrigger!.oneShot ? ', one-shot' : ''})</div>
             )}
+            {tiles[hoverCell.y][hoverCell.x].placeIcon && (
+              <div>Sign: {PLACE_ICON_TYPES.find(p => p.id === tiles[hoverCell.y][hoverCell.x].placeIcon)?.label ?? tiles[hoverCell.y][hoverCell.x].placeIcon}</div>
+            )}
             {tiles[hoverCell.y][hoverCell.x].mapTransition && (
               <div>Transition: {tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'tutorial_end' ? 'Tutorial End' : `${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetId} (${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType}${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'generator' ? `, Lvl ${tiles[hoverCell.y][hoverCell.x].mapTransition!.level}` : ''})`}</div>
             )}
@@ -1848,6 +1910,28 @@ export default function MapEditor() {
                     <button onClick={editEvent} style={editBtnStyle}>Edit</button>
                     <button onClick={removeEvent} style={removeBtnStyle}>Remove</button>
                   </div>
+                </div>
+              )}
+
+              {/* Place Icon */}
+              {t.placeIcon && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Place Icon / Sign</div>
+                  <div style={{ fontSize: 12, color: '#fc0', marginBottom: 4 }}>
+                    {PLACE_ICON_TYPES.find(p => p.id === t.placeIcon)?.label ?? t.placeIcon}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setTiles(prev => {
+                        pushUndo(prev, buildingsRef.current);
+                        const next = prev.map(r => r.map(tile => ({ ...tile, edgeWalls: { ...tile.edgeWalls }, entities: [...tile.entities], items: [...tile.items] })));
+                        delete next[inspectTile!.y][inspectTile!.x].placeIcon;
+                        return next;
+                      });
+                      setInspectTile(null);
+                    }}
+                    style={removeBtnStyle}
+                  >Remove</button>
                 </div>
               )}
 
