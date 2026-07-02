@@ -17357,11 +17357,7 @@
             "window": false
           }
         },
-        "entities": [
-          {
-            "type": "player"
-          }
-        ],
+        "entities": [],
         "items": []
       },
       {
@@ -32119,7 +32115,11 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "player"
+          }
+        ],
         "items": []
       },
       {

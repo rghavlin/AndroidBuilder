@@ -241,6 +241,9 @@ function wander(ctx) {
   const { entity, zombiePos, gameMap, aiBehavior, currentAP, moveCost } = ctx;
   entity.behaviorState = 'wandering';
   aiBehavior.alertnessState = 'IDLE';
+  // Deaf zombies are scripted to hold position: they never react to noise/scent
+  // and now also skip idle wandering, staying put until they SEE the player.
+  if (entity.deaf) return;
   if (currentAP < moveCost) return;
 
   const x = zombiePos.x;

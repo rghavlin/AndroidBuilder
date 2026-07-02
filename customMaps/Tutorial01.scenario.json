@@ -1984,7 +1984,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.generator-1782977837709-rlxa6",
+            "instanceId": "furniture.generator-1782989916052-xyrlw",
             "defId": "furniture.generator",
             "id": "furniture.generator",
             "name": "Generator",
@@ -2012,7 +2012,7 @@
             "description": "With fuel, turn on generator and place electric items beside it to power the items"
           },
           {
-            "instanceId": "tool.battery_charger-1782977837709-g5302",
+            "instanceId": "tool.battery_charger-1782989916052-vxk2m",
             "defId": "tool.battery_charger",
             "id": "tool.battery_charger",
             "name": "Battery charger",
@@ -2366,7 +2366,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.fuel_cover-1782977837709-vmqw7",
+            "instanceId": "furniture.fuel_cover-1782989916052-evk1x",
             "defId": "furniture.fuel_cover",
             "id": "furniture.fuel_cover",
             "name": "Fuel cover",
@@ -2391,7 +2391,7 @@
             "ammoCount": 18
           },
           {
-            "instanceId": "tool.rubber_hose-1782977837709-afx4g",
+            "instanceId": "tool.rubber_hose-1782989916052-btlih",
             "defId": "tool.rubber_hose",
             "id": "tool.rubber_hose",
             "name": "Rubber hose",
@@ -2411,7 +2411,7 @@
             }
           },
           {
-            "instanceId": "tool.fuel_can-1782977837709-tg220",
+            "instanceId": "tool.fuel_can-1782989916052-jx4zs",
             "defId": "tool.fuel_can",
             "id": "tool.fuel_can",
             "name": "Fuel can",
@@ -5641,7 +5641,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.first_aid_kit-1782977837709-777im",
+            "instanceId": "medical.first_aid_kit-1782989916052-pp4ud",
             "defId": "medical.first_aid_kit",
             "id": "medical.first_aid_kit",
             "name": "First Aid Kit",
@@ -5664,7 +5664,7 @@
             }
           },
           {
-            "instanceId": "crafting.tape-1782977837709-egy96",
+            "instanceId": "crafting.tape-1782989916052-wgvqy",
             "defId": "crafting.tape",
             "id": "crafting.tape",
             "name": "Tape",
@@ -5682,7 +5682,7 @@
             "stackMax": 20
           },
           {
-            "instanceId": "crafting.tape-1782977837709-m0xgs",
+            "instanceId": "crafting.tape-1782989916052-f57z7",
             "defId": "crafting.tape",
             "id": "crafting.tape",
             "name": "Tape",
@@ -6788,7 +6788,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1782977837709-4611v",
+            "instanceId": "weapon.crowbar-1782989916052-d0eyx",
             "defId": "weapon.crowbar",
             "id": "weapon.crowbar",
             "name": "Crowbar",
@@ -7181,7 +7181,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.9mmPistol-1782977837709-oo07n",
+            "instanceId": "weapon.9mmPistol-1782989916052-iclms",
             "defId": "weapon.9mmPistol",
             "id": "weapon.9mmPistol",
             "name": "9mm Pistol",
@@ -7238,7 +7238,7 @@
             }
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-jq0kp",
+            "instanceId": "ammo.9mm-1782989916052-1y7ll",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7257,7 +7257,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-fliyu",
+            "instanceId": "ammo.9mm-1782989916052-hvf9a",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7276,7 +7276,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-7w1gy",
+            "instanceId": "ammo.9mm-1782989916052-ehfit",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7295,7 +7295,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-fy7pz",
+            "instanceId": "ammo.9mm-1782989916052-kps6f",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7314,7 +7314,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-hk0jo",
+            "instanceId": "ammo.9mm-1782989916052-zz5br",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7333,7 +7333,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-u89ab",
+            "instanceId": "ammo.9mm-1782989916052-25mm5",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7352,7 +7352,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-9ia9i",
+            "instanceId": "ammo.9mm-1782989916052-f0f69",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7371,7 +7371,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-yi7yn",
+            "instanceId": "ammo.9mm-1782989916052-tjevd",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7390,7 +7390,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-9vfzc",
+            "instanceId": "ammo.9mm-1782989916052-o6ipa",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7409,7 +7409,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-kx0fx",
+            "instanceId": "ammo.9mm-1782989916052-v3zu2",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7428,7 +7428,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-x8k4w",
+            "instanceId": "ammo.9mm-1782989916052-xd80d",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7447,7 +7447,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-xgnak",
+            "instanceId": "ammo.9mm-1782989916052-95qqv",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7466,7 +7466,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-tb6ic",
+            "instanceId": "ammo.9mm-1782989916052-z8hy9",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7485,7 +7485,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-sz7to",
+            "instanceId": "ammo.9mm-1782989916052-jtey9",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7504,7 +7504,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "ammo.9mm-1782977837709-kgwth",
+            "instanceId": "ammo.9mm-1782989916052-tupsg",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -7523,7 +7523,7 @@
             "spawnStackMax": 3
           },
           {
-            "instanceId": "attachment.9mm_magazine-1782977837709-idbou",
+            "instanceId": "attachment.9mm_magazine-1782989916052-reqn2",
             "defId": "attachment.9mm_magazine",
             "id": "attachment.9mm_magazine",
             "name": "9mm Magazine",
@@ -7541,7 +7541,7 @@
             "ammoDefId": "ammo.9mm"
           },
           {
-            "instanceId": "attachment.9mm_magazine-1782977837709-ir97c",
+            "instanceId": "attachment.9mm_magazine-1782989916052-4sqej",
             "defId": "attachment.9mm_magazine",
             "id": "attachment.9mm_magazine",
             "name": "9mm Magazine",
@@ -7923,7 +7923,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "environment.water_puddle-1782977837709-3r3s3",
+            "instanceId": "environment.water_puddle-1782989916052-e0yv1",
             "defId": "environment.water_puddle",
             "id": "environment.water_puddle",
             "name": "Water puddle",
@@ -7950,7 +7950,7 @@
             "description": "Use empty bottle or jug to collect dirty water"
           },
           {
-            "instanceId": "food.waterbottle-1782977837709-69081",
+            "instanceId": "food.waterbottle-1782989916052-ub40f",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -7975,7 +7975,7 @@
             }
           },
           {
-            "instanceId": "food.waterbottle-1782977837709-5ymcj",
+            "instanceId": "food.waterbottle-1782989916052-yfi2g",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -8726,7 +8726,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1782977837709-veoyj",
+            "instanceId": "provision.harvestable_corn-1782989916052-0qcry",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",
@@ -8746,7 +8746,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "food.cornseeds-1782977837709-ank7m",
+            "instanceId": "food.cornseeds-1782989916052-a0mja",
             "defId": "food.cornseeds",
             "id": "food.cornseeds",
             "name": "Corn seeds",
@@ -8764,7 +8764,7 @@
             "plantsAs": "provision.corn_plant"
           },
           {
-            "instanceId": "food.cornseeds-1782977837709-c3nm5",
+            "instanceId": "food.cornseeds-1782989916052-rgh1k",
             "defId": "food.cornseeds",
             "id": "food.cornseeds",
             "name": "Corn seeds",
@@ -8782,7 +8782,7 @@
             "plantsAs": "provision.corn_plant"
           },
           {
-            "instanceId": "crafting.rope-1782977837709-kjmz2",
+            "instanceId": "crafting.rope-1782989916052-v5q8j",
             "defId": "crafting.rope",
             "id": "crafting.rope",
             "name": "Rope",
@@ -9526,7 +9526,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.electric_mower-1782977837709-2zwl3",
+            "instanceId": "furniture.electric_mower-1782989916052-y37mu",
             "defId": "furniture.electric_mower",
             "id": "furniture.electric_mower",
             "name": "Electric mower",
@@ -9588,7 +9588,7 @@
             },
             "attachments": {
               "battery": {
-                "instanceId": "tool.large_battery-1782977837709-25zqp",
+                "instanceId": "tool.large_battery-1782989916052-hpei6",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -9975,7 +9975,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.toy_wagon-1782977837709-w47uv",
+            "instanceId": "vehicle.toy_wagon-1782989916052-2s66y",
             "defId": "vehicle.toy_wagon",
             "id": "vehicle.toy_wagon",
             "name": "Toy Wagon",
@@ -10047,7 +10047,7 @@
             }
           },
           {
-            "instanceId": "tool.cooking_pot-1782977837709-xhpxu",
+            "instanceId": "tool.cooking_pot-1782989916052-6ctp4",
             "defId": "tool.cooking_pot",
             "id": "tool.cooking_pot",
             "name": "Cooking pot",
@@ -11877,7 +11877,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.workshirt-1782977837709-vi2d2",
+            "instanceId": "clothing.workshirt-1782989916052-mv7f8",
             "defId": "clothing.workshirt",
             "id": "clothing.workshirt",
             "name": "Work Shirt",
@@ -11898,7 +11898,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "weapon.wrench-1782977837709-3q421",
+            "instanceId": "weapon.wrench-1782989916052-vqxhj",
             "defId": "weapon.wrench",
             "id": "weapon.wrench",
             "name": "Wrench",
@@ -11999,7 +11999,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.knife-1782977837709-2rasj",
+            "instanceId": "weapon.knife-1782989916052-jih2l",
             "defId": "weapon.knife",
             "id": "weapon.knife",
             "name": "Knife",
@@ -12027,7 +12027,7 @@
             }
           },
           {
-            "instanceId": "clothing.pocket_t-1782977837709-k3bl7",
+            "instanceId": "clothing.pocket_t-1782989916052-90xcs",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -12048,7 +12048,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.pocket_t-1782977837709-u79s5",
+            "instanceId": "clothing.pocket_t-1782989916052-zz3wc",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -12069,7 +12069,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1782977837709-vvh5n",
+            "instanceId": "clothing.sweatpants-1782989916052-9epl3",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -12090,7 +12090,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1782977837709-wakd4",
+            "instanceId": "clothing.sweatpants-1782989916052-51s58",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -12111,7 +12111,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1782977837709-s5ik8",
+            "instanceId": "clothing.sweatpants-1782989916052-ft90w",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -12132,7 +12132,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.pocket_t-1782977837709-6078t",
+            "instanceId": "clothing.pocket_t-1782989916052-vooyb",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -12153,7 +12153,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "food.waterbottle-1782977837709-8o18a",
+            "instanceId": "food.waterbottle-1782989916052-1a2ag",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -14666,7 +14666,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1782977837710-t5f8x",
+            "instanceId": "weapon.stick-1782989916052-cn8zl",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -15801,8 +15801,8 @@
     "spawnZones": {
       "playerStart": [
         {
-          "x": 6,
-          "y": 21
+          "x": 8,
+          "y": 39
         }
       ]
     }
@@ -15817,18 +15817,18 @@
       "deaf": true
     },
     {
-      "type": "player",
-      "x": 6,
-      "y": 21,
-      "subtype": null
-    },
-    {
       "type": "zombie",
       "x": 8,
       "y": 36,
       "subtype": "basic",
       "hp": 1,
       "noLoot": true
+    },
+    {
+      "type": "player",
+      "x": 8,
+      "y": 39,
+      "subtype": null
     }
   ],
   "eventTriggers": [
