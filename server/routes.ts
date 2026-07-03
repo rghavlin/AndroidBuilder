@@ -1,15 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
 
+// This app has no HTTP API. The Express server exists only to host the Vite dev
+// server (see server/vite.ts) so Electron dev can load http://localhost:5000 with
+// HMR. All game persistence is client-side (IndexedDB/localStorage on web,
+// Electron IPC to the filesystem on desktop) — there are no routes to register.
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
-
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
-
-  const httpServer = createServer(app);
-
-  return httpServer;
+  return createServer(app);
 }

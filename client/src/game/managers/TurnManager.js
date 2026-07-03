@@ -49,10 +49,24 @@ class TurnManager {
 
   /**
    * Immediately stop any current turn playback.
+   *
+   * INVARIANT: cancelling drops any not-yet-executed actions, including
+   * PLAYBACK-FIRST ATTACK damage that the simulation already committed to
+   * (see damage-timing models above). Every current caller replaces or locks
+   * the whole game state right after (defeat, load, new game), so that's
+   * acceptable — do NOT build a "skip animation" feature on this method, it
+   * would silently eat enemy hits.
    */
   cancelPlayback() {
     console.log('[TurnManager] 🛑 Cancellation requested - stopping playback loop');
     this.shouldCancel = true;
+    // Release any in-flight SequencerAction promises so the playback loop's
+    // current await returns and the finally block can clear isProcessing.
+    // Without this, a cancel during an animation leaves isProcessing stuck
+    // true and every later turn aborts with "Already processing".
+    if (engine && typeof engine.flushActiveActions === 'function') {
+      engine.flushActiveActions();
+    }
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Player } from '../client/src/game/entities/Player.js';
+import { EntityFactory } from '../client/src/game/EntityFactory.js';
 import engine from '../client/src/game/GameEngine.js';
 
 function runTest() {
@@ -6,7 +6,7 @@ function runTest() {
     
     // 1. Reset engine to initialize players/stats
     engine.reset();
-    const player = new Player('player-1', 'Player', 0, 0);
+    const player = EntityFactory.createPlayer(0, 0);
     player.ap = 100;
     player.maxAp = 100;
     engine.player = player;

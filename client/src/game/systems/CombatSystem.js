@@ -1,5 +1,10 @@
 import { NoiseEvent } from '../components/NoiseEvent.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
+import { getZombieType } from '../entities/ZombieTypes.js';
+import { gameRandom } from '../utils/SeededRandom.js';
+
+// Turns of sickness applied by an infecting hit (matches TurnManager playback).
+const SICKNESS_TURNS = 24;
 
 export class CombatSystem {
   static resolve(attacker, damageIntent, entities, gameMap, intentQueue, actionQueue = [], engine = null, parentEnvelope = null) {
@@ -92,15 +97,32 @@ export class CombatSystem {
           });
         }
       } else {
-        // Normal entity combat
+        // Normal entity combat.
+        // Roll the outcome ONCE here (simulation phase) so playback and the
+        // direct/test path agree on the same numbers. Per-type damage and
+        // afflictions come from the attacking zombie's ZombieTypes.combat block;
+        // any non-zombie attacker falls back to the intent's flat amount and
+        // inflicts no afflictions.
+        let damage = damageIntent.amount;
+        let bleedingInflicted = false;
+        let sickInflicted = false;
+        if (attacker.type === 'zombie') {
+          const combat = getZombieType(attacker.subtype)?.combat || {};
+          if (combat.damage && typeof combat.damage.min === 'number' && typeof combat.damage.max === 'number') {
+            damage = gameRandom.nextInt(combat.damage.min, combat.damage.max);
+          }
+          if (combat.bleedChance && gameRandom.next() < combat.bleedChance) bleedingInflicted = true;
+          if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
+        }
+
         if (actionQueue) {
           const attackerPos = attacker.getComponent('Position') || { x: attacker.x, y: attacker.y };
           const targetPos = target.getComponent('Position') || { x: target.x, y: target.y };
           // PLAYBACK-FIRST damage (see TurnManager damage-timing models): for
           // entity-vs-entity combat we do NOT apply damage here. TurnManager's
-          // ATTACK case calls takeDamage() after the swing animation so the hit
-          // lands when the animation connects. The `else` branch below is the
-          // direct/test path (no actionQueue), which applies damage immediately.
+          // ATTACK case calls takeDamage() and applies bleeding/sickness after the
+          // swing animation so the hit lands when the animation connects. The
+          // `else` branch below is the direct/test path (no actionQueue).
           actionQueue.push({
             type: 'ATTACK',
             entityId: attacker.id,
@@ -108,22 +130,26 @@ export class CombatSystem {
               targetId: target.id,
               targetType: target.type,
               success: true,
-              damage: damageIntent.amount,
+              damage,
+              bleedingInflicted,
+              sickInflicted,
               from: { x: attackerPos.x, y: attackerPos.y },
               to: { x: targetPos.x, y: targetPos.y }
             }
           });
         } else {
-          // direct/test execution
+          // direct/test execution: apply damage + afflictions immediately.
           if (typeof target.takeDamage === 'function') {
-            target.takeDamage(damageIntent.amount, attacker);
+            target.takeDamage(damage, attacker);
           } else if (target.hasComponent('Health')) {
             const health = target.getComponent('Health');
-            health.current = Math.max(0, health.current - damageIntent.amount);
+            health.current = Math.max(0, health.current - damage);
             if (health.current <= 0) {
               health.isDead = true;
             }
           }
+          if (bleedingInflicted && typeof target.setBleeding === 'function') target.setBleeding(true);
+          if (sickInflicted && typeof target.inflictSickness === 'function') target.inflictSickness(SICKNESS_TURNS);
         }
 
         // Deduct AP for attacking

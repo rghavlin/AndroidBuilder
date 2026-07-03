@@ -71,7 +71,7 @@ const GameContextInner = ({ children }) => {
   const { addEffect } = useVisualEffects();
   const { addLog, clearLogs } = useLog();
   const { playSound } = useAudio();
-  const { resetAll } = useOverlays();
+  const { resetAll, activeTradeNpc, isBartering, isShopOpen, tollGuard, logHistoryOpen, showMainMenu, isExtensionOpen } = useOverlays();
 
 
   // Phase 5A: inventoryManager is now managed by engine.inventoryManager
@@ -398,6 +398,29 @@ const GameContextInner = ({ children }) => {
     engine.notifyUpdate();
   }, []);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+
+  // Unified input-blocking flag: true whenever any modal/dialog is up and
+  // gameplay input (inventory clicks/drags, tile clicks, etc.) should be ignored.
+  // Crafting/cooking (isExtensionOpen) and the skills window (isSkillsOpen) are
+  // intentionally excluded - inventory interaction must stay usable while those are open.
+  const isModalBlocking = useMemo(() => {
+    return !!(
+      activeNpcDemand ||
+      activeDialog ||
+      mapTransition ||
+      activeTradeNpc ||
+      isBartering ||
+      isShopOpen ||
+      tollGuard ||
+      logHistoryOpen ||
+      showMainMenu ||
+      engine.isSleeping
+    );
+  }, [
+    activeNpcDemand, activeDialog, mapTransition,
+    activeTradeNpc, isBartering, isShopOpen, tollGuard,
+    logHistoryOpen, showMainMenu, enginePulse
+  ]);
   const [isDefeated, setIsDefeatedState] = useState(false);
   const isDefeatedRef = useRef(false);
   const setIsDefeated = useCallback((val) => {
@@ -1744,6 +1767,7 @@ const GameContextInner = ({ children }) => {
     setIsAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
+    isModalBlocking,
     engine,
     enginePulse,
     turnPhase,
@@ -1816,6 +1840,7 @@ const GameContextInner = ({ children }) => {
     setIsAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
+    isModalBlocking,
     activeNpcDemand,
     handleNpcDemandResponse,
     enginePulse,

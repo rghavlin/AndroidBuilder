@@ -75,7 +75,7 @@ export default function UniversalGrid({
   const { playSound } = useAudio();
   const { addLog } = useLog();
   const { setMapTransition } = useGameMap();
-  const { fireDialogAtPlayerTile } = useGame();
+  const { fireDialogAtPlayerTile, isModalBlocking } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, { src: string, imageId: string }>>(new Map());
   const itemImagesRef = useRef<Map<string, { src: string, imageId: string }>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -232,7 +232,8 @@ export default function UniversalGrid({
 
   const handleItemClick = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     if (event.button !== 0) return;
-    
+    if (isModalBlocking) return;
+
     console.warn('[UniversalGrid] handleItemClick triggered:', { 
       containerId, 
       itemId: item?.instanceId, 
@@ -670,9 +671,11 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile, isModalBlocking]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
+    if (isModalBlocking) return;
+
     // If an item is selected, right-click on it rotates it
     if (selectedItem && item && item.instanceId === selectedItem.item.instanceId) {
       event.preventDefault();
@@ -684,12 +687,14 @@ export default function UniversalGrid({
 
     // Do NOT call event.preventDefault() or stopPropagation() here for non-selected items.
     // This allows the Radix ContextMenu (parent) to trigger for the item.
-  }, [selectedItem, rotateSelected]);
+  }, [selectedItem, rotateSelected, isModalBlocking]);
 
   const handleSlotClick = useCallback((x: number, y: number) => {
+    if (isModalBlocking) return;
+
     // This handles clicks on EMPTY slots or general slot clicks from nested grids
     console.debug('[UniversalGrid] handleSlotClick (prop) triggered at:', x, y, 'containerId:', containerId);
-    
+
     // If we have a selected item, try to place it
     if (selectedItem) {
       // Phase 12: Apply placement restrictions if provided
@@ -712,9 +717,11 @@ export default function UniversalGrid({
 
     // Otherwise, bubble up to parent if provided
     onSlotClick?.(x, y);
-  }, [containerId, selectedItem, placeSelected, clearSelected, playSound, onSlotClick, onBeforeDrop]);
+  }, [containerId, selectedItem, placeSelected, clearSelected, playSound, onSlotClick, onBeforeDrop, isModalBlocking]);
 
   const handleGridContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (isModalBlocking) return;
+
     // 1. Priority: Handle active targeting (e.g. Shovel Digging)
     if (targetingItem || targetingWeapon) {
       event.preventDefault();
@@ -732,7 +739,7 @@ export default function UniversalGrid({
       console.log('[UniversalGrid] Right-click on grid - rotating selected item');
       rotateSelected();
     }
-  }, [targetingItem, targetingWeapon, selectedItem, cancelTargetingItem, cancelTargeting, rotateSelected, playSound]);
+  }, [targetingItem, targetingWeapon, selectedItem, cancelTargetingItem, cancelTargeting, rotateSelected, playSound, isModalBlocking]);
 
   const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (targetingItem) {

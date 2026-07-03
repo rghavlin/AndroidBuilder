@@ -435,6 +435,7 @@ export const CraftingRecipes = [
         description: 'A fully automated defensive turret that detects and eliminates zombies within range. Requires a large battery for power and a .556 magazine for ammunition.',
         apCost: 20,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_8',
         tools: [
             { id: 'tool.pliers', label: 'Pliers' }
         ],

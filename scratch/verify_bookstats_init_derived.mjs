@@ -37,6 +37,7 @@ const expected = {
   'book.nomad_survivor_5': 40,
   'book.nomad_survivor_6': 50,
   'book.nomad_survivor_7': 25,
+  'book.nomad_survivor_8': 50,
 };
 
 const fresh = buildFreshBookStats();

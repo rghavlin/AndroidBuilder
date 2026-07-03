@@ -14,13 +14,13 @@ import engine from "@/game/GameEngine";
 
 export default function EquipmentSlots() {
   const { inventoryRef, inventoryVersion, selectedItem, selectItem, clearSelected, equipSelectedItem, depositSelectedInto, attachSelectedInto, loadAmmoDirectly } = useInventory();
-  const { isPlayerTurn, isAutosaving, igniteTorch } = useGame();
+  const { isPlayerTurn, isAutosaving, igniteTorch, isModalBlocking } = useGame();
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
   const { playSound } = useAudio();
   const { isSleeping } = useSleep();
   const { addLog } = useLog();
 
-  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping;
+  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isModalBlocking;
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
   const equipmentSlots = [
@@ -35,6 +35,8 @@ export default function EquipmentSlots() {
   ];
 
   const handleSlotClick = (slotId: string) => {
+    if (isModalBlocking) return;
+
     const equippedItem = inventoryRef.current?.equipment[slotId];
 
     // disallow selection/unequip if no AP

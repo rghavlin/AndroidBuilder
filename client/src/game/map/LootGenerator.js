@@ -882,6 +882,13 @@ export class LootGenerator {
         let dropCount = 3 + gameRandom.nextInt(0, 3);
         if (type === 'hardware_store') dropCount = 6 + gameRandom.nextInt(0, 4);
         const selectedTiles = this.getRandomSubarray(floorTiles, dropCount);
+        // Guaranteed-drop indices MUST be rolled against the number of tiles we
+        // actually selected, not the requested dropCount. When a small building
+        // has fewer eligible floor tiles than dropCount, selectedTiles is shorter
+        // and an index in [0, dropCount) can point past the end — silently losing
+        // the "guaranteed" gun/backpack/etc. (selectedTiles.length >= 1 here since
+        // we returned early on floorTiles.length === 0.)
+        const dropSlots = selectedTiles.length;
 
         console.log(`[LootGenerator] Spawning specialized loot for ${type} in ${dropCount} drops`);
 
@@ -906,14 +913,14 @@ export class LootGenerator {
             nightVisionDropIndex: -1
         };
 
-        if (buildingRules.hasGun) buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(gameRandom.next() * dropCount) : -1;
-        if (buildingRules.hasTool) buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(gameRandom.next() * dropCount) : -1;
-        if (buildingRules.hasBackpack) buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(gameRandom.next() * dropCount) : -1;
-        if (buildingRules.hasGrenade) buildingState.grenadeDropIndex = buildingState.hasGrenade ? Math.floor(gameRandom.next() * dropCount) : -1;
-        if (buildingRules.hasBattleRifle) buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(gameRandom.next() * dropCount) : -1;
-        if (buildingRules.has9mm) buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(gameRandom.next() * dropCount) : -1;
-        if (buildingRules.hasDesertEagle) buildingState.desertEagleDropIndex = buildingState.hasDesertEagle ? Math.floor(gameRandom.next() * dropCount) : -1;
-        if (buildingRules.hasNightVision) buildingState.nightVisionDropIndex = buildingState.hasNightVision ? Math.floor(gameRandom.next() * dropCount) : -1;
+        if (buildingRules.hasGun) buildingState.gunDropIndex = buildingState.hasGun ? Math.floor(gameRandom.next() * dropSlots) : -1;
+        if (buildingRules.hasTool) buildingState.toolDropIndex = buildingState.hasTool ? Math.floor(gameRandom.next() * dropSlots) : -1;
+        if (buildingRules.hasBackpack) buildingState.backpackDropIndex = buildingState.hasBackpack ? Math.floor(gameRandom.next() * dropSlots) : -1;
+        if (buildingRules.hasGrenade) buildingState.grenadeDropIndex = buildingState.hasGrenade ? Math.floor(gameRandom.next() * dropSlots) : -1;
+        if (buildingRules.hasBattleRifle) buildingState.battleRifleDropIndex = buildingState.hasBattleRifle ? Math.floor(gameRandom.next() * dropSlots) : -1;
+        if (buildingRules.has9mm) buildingState.gun9mmDropIndex = buildingState.has9mm ? Math.floor(gameRandom.next() * dropSlots) : -1;
+        if (buildingRules.hasDesertEagle) buildingState.desertEagleDropIndex = buildingState.hasDesertEagle ? Math.floor(gameRandom.next() * dropSlots) : -1;
+        if (buildingRules.hasNightVision) buildingState.nightVisionDropIndex = buildingState.hasNightVision ? Math.floor(gameRandom.next() * dropSlots) : -1;
         
         // --- LABORATORY SPECIAL CASE ---
         if (type === 'lab' && buildingRules.roomLayout) {

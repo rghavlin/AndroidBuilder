@@ -28,11 +28,6 @@ export class SimulationManager {
     const actionQueue = [];
     if (!player) return actionQueue;
 
-    if (player) {
-      FireSystem.processTileFires(gameMap);
-      FireSystem.processEntityFires(gameMap);
-    }
-
     GameMap.isSimulating = true;
 
     // Strict UI Decoupling: Ensure UI dirty flag is false during simulation
@@ -41,6 +36,12 @@ export class SimulationManager {
     }
 
     try {
+      // Fire processing runs under isSimulating so its damage/visual events are
+      // deferred to playback like every other system, instead of flashing
+      // on-screen before the turn animates.
+      FireSystem.processTileFires(gameMap);
+      FireSystem.processEntityFires(gameMap);
+
       const intentQueue = new IntentQueue();
       let npcs = gameMap.getEntitiesByType(EntityType.NPC) || [];
       let zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE) || [];
@@ -106,8 +107,17 @@ export class SimulationManager {
           }
           return;
         }
-        if (item.containerGrid) {
-          const nestedItems = gridItems(item.containerGrid);
+        // Lazy-resolve the container: after a load, containerGrid stays null
+        // until getContainerGrid() initializes it from _containerGridData. Using
+        // the raw property here would silently skip turrets inside unopened
+        // vehicles/wagons until the player happens to open them in the UI.
+        // (checkAndCleanTurret below already resolves lazily — keep in sync.)
+        let containerGrid = item.containerGrid;
+        if (!containerGrid && typeof item.getContainerGrid === 'function') {
+          containerGrid = item.getContainerGrid();
+        }
+        if (containerGrid) {
+          const nestedItems = gridItems(containerGrid);
           for (const nestedItem of nestedItems) {
             fireTurretFromItem(nestedItem, atX, atY);
           }

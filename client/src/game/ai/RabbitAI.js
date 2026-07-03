@@ -143,20 +143,24 @@ export class RabbitAI {
       
       if (rabbit.currentAP >= apCost) {
         const fromPos = { x: rabbit.logicalX, y: rabbit.logicalY };
-        gameMap.moveEntity(rabbit.id, best.x, best.y, { snap: false });
-        rabbit.useAP(apCost);
-        rabbit.movementPath.push({ x: best.x, y: best.y });
-        
-        turnResult.actions.push({
-          type: 'MOVE',
-          entityId: rabbit.id,
-          data: {
-            from: fromPos,
-            to: { x: best.x, y: best.y },
-            apCost: apCost
-          }
-        });
-        return true;
+        // Only commit AP + animation if the logical move actually succeeded;
+        // moveEntity rejects blocked edges/occupied tiles, which would otherwise
+        // leave the rabbit visually sliding to a tile it isn't on.
+        if (gameMap.moveEntity(rabbit.id, best.x, best.y, { snap: false })) {
+          rabbit.useAP(apCost);
+          rabbit.movementPath.push({ x: best.x, y: best.y });
+
+          turnResult.actions.push({
+            type: 'MOVE',
+            entityId: rabbit.id,
+            data: {
+              from: fromPos,
+              to: { x: best.x, y: best.y },
+              apCost: apCost
+            }
+          });
+          return true;
+        }
       }
     }
     
@@ -176,20 +180,23 @@ export class RabbitAI {
         
         if (rabbit.currentAP >= apCost) {
           const fromPos = { x: rabbit.logicalX, y: rabbit.logicalY };
-          gameMap.moveEntity(rabbit.id, dir.x, dir.y, { snap: false });
-          rabbit.useAP(apCost);
-          rabbit.movementPath.push({ x: dir.x, y: dir.y });
-          
-          turnResult.actions.push({
-            type: 'MOVE',
-            entityId: rabbit.id,
-            data: {
-              from: fromPos,
-              to: { x: dir.x, y: dir.y },
-              apCost: apCost
-            }
-          });
-          return true;
+          // Guard the move: on rejection, fall through to try another direction
+          // rather than spending AP for a move that didn't happen.
+          if (gameMap.moveEntity(rabbit.id, dir.x, dir.y, { snap: false })) {
+            rabbit.useAP(apCost);
+            rabbit.movementPath.push({ x: dir.x, y: dir.y });
+
+            turnResult.actions.push({
+              type: 'MOVE',
+              entityId: rabbit.id,
+              data: {
+                from: fromPos,
+                to: { x: dir.x, y: dir.y },
+                apCost: apCost
+              }
+            });
+            return true;
+          }
         }
       }
     }

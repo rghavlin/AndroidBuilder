@@ -99,7 +99,7 @@ export const InventoryProvider = ({ children }) => {
   }, [openContainers]);
 
   const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedRecipeId, setSelectedRecipeId] = useState(CraftingRecipes[0]?.id || null);
+  const [selectedRecipeId, setSelectedRecipeId] = useState(null);
 
   const { addLog } = useLog();
   const { playSound } = useAudio();

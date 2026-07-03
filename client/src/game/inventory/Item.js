@@ -92,8 +92,6 @@ export class Item extends SafeEventEmitter {
       }
     }
 
-    console.debug('[Item] Created:', this.name, 'pocketLayout:', pocketLayoutId);
-
     // Grid properties
     this.width = width;
     this.height = height;
@@ -1222,14 +1220,6 @@ export class Item extends SafeEventEmitter {
       return 0;
     }
     return Math.min(otherItem.stackCount, this.stackMax - this.stackCount);
-  }
-
-  stackWith(otherItem) {
-    if (!this.canStackWith(otherItem)) {
-      return false;
-    }
-    this.stackCount += otherItem.stackCount;
-    return true;
   }
 
   splitStack(count) {

@@ -197,7 +197,9 @@ export class BaseMapGenerator {
     let types;
     if (options.types) {
       // Shuffle so a given type isn't always assigned to the same scattered slot.
-      types = this.getRandomSubarray(options.types, options.types.length);
+      // (getRandomSubarray(arr, arr.length) returns the array unshuffled — it only
+      // samples when n < length — so use an explicit shuffle here.)
+      types = gameRandom.shuffle([...options.types]);
     } else {
       const area = builder.width * builder.height;
       const count = Math.max(1, Math.floor(area / 5000));

@@ -491,22 +491,21 @@ export class Container {
     }
 
     if (occupants.length > 0 && !this.ignoreSize) {
-      // Phase Stacking Fallback: If exactly one occupant and it's stackable with the incoming item
+      // Phase Stacking Fallback: If exactly one occupant and it's stackable with the incoming item.
+      // This merge must be atomic: only consume the incoming item if its ENTIRE stack fits into
+      // the target's remaining space. A partial merge here would decrement item.stackCount and then
+      // fall through to `return false`, leaving the caller (which rolls back on false) with desynced
+      // counts. Partial stacking is handled properly by addItem()/attemptStacking().
       if (occupants.length === 1) {
         const targetId = occupants[0].itemId;
         const target = this.items.get(targetId);
         if (target && target.canStackWith(item)) {
           const spaceInStack = target.stackMax - target.stackCount;
-          const amountToTake = Math.min(item.stackCount, spaceInStack);
-          
-          if (amountToTake > 0) {
+          if (spaceInStack >= item.stackCount) {
             console.debug('[Container] Stacking into occupant during placeItemAt:', target.name);
-            target.stackCount += amountToTake;
-            item.stackCount -= amountToTake;
-            
-            if (item.stackCount <= 0) {
-              return true; // Fully merged
-            }
+            target.stackCount += item.stackCount;
+            item.stackCount = 0;
+            return true; // Fully merged
           }
         }
       }
@@ -545,11 +544,6 @@ export class Container {
     // Only add to items Map after successful grid placement
     this.items.set(itemId, item);
 
-    console.debug('[Container] ✅ SUCCESS: Placed item:', item.name, 'at', `(${x}, ${y})`, 'size:', `${width}x${height}`, 'instanceId:', itemId);
-    console.debug('[Container] Total items now:', this.items.size);
-    console.debug('[Container] Grid occupancy:', this.grid.slice(0, 10).map((row, y) =>
-      `Row ${y}: [` + row.map((cell, x) => cell ? `${x}:${cell.substring(0, 8)}` : '.').join(' ') + ']'
-    ).join('\n'));
     return true;
   }
 
@@ -931,7 +925,20 @@ export class Container {
     if (data.items) {
       for (const itemData of data.items) {
         const item = Item.fromJSON(itemData);
-        container.placeItemAt(item, item.x, item.y);
+        // Try the saved coordinates first; if placement is rejected (stale grid,
+        // occupied cell, or a def whose footprint changed since the save), fall
+        // back to any free position rather than silently dropping the item.
+        let placed = container.placeItemAt(item, item.x, item.y);
+        if (!placed) {
+          const pos = container.findAvailablePosition(item);
+          if (pos) {
+            placed = container.placeItemAt(item, pos.x, pos.y);
+          }
+        }
+        if (!placed) {
+          console.error('[Container] fromJSON: could not place saved item, item lost:',
+            item?.name, item?.instanceId, '-> container', container.id);
+        }
       }
     }
 

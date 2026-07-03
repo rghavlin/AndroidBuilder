@@ -99,12 +99,12 @@ export default function CraftingUI() {
         return item?.combat || null;
     }, [selectedRecipe]);
 
-    // If selected recipe is not in active tab, deselect it
+    // Ensure selected recipe is valid and visible in the current tab
     useEffect(() => {
-        if (selectedRecipe && selectedRecipe.tab !== activeTab) {
-            setSelectedRecipeId(null);
+        if (!selectedRecipeId || !filteredRecipes.some(r => r.id === selectedRecipeId)) {
+            setSelectedRecipeId(filteredRecipes.length > 0 ? filteredRecipes[0].id : null);
         }
-    }, [activeTab, selectedRecipe, setSelectedRecipeId]);
+    }, [filteredRecipes, selectedRecipeId, setSelectedRecipeId]);
 
     const craftingStatus = useMemo(() => {
         if (!selectedRecipeId || !inventoryRef.current) return { canCraft: false, missing: [] };

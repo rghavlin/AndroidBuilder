@@ -188,6 +188,9 @@ export class Door extends Entity {
      */
     takeDamage(amount, silent = false) {
         if (this.isOpen || this.isDamaged) {
+            // Already passable (open or previously broken). isBroken:true here means
+            // "no barrier to destroy", NOT "this hit broke the door" — callers should
+            // not treat this as a fresh break (no doorBroken event is emitted).
             if (!silent) this.syncVisualState();
             return { isBroken: true };
         }
@@ -222,8 +225,11 @@ export class Door extends Entity {
         const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged, data.edge);
         door.blocksMovement = data.blocksMovement;
         door.blocksSight = data.blocksSight;
-        door.hp = data.hp !== undefined ? data.hp : door.hp;
+        // maxHp MUST be restored before hp: the inherited hp setter clamps to the
+        // current health.max, so setting hp first would cap a reinforced door
+        // (e.g. 35/40) back down to the constructor default of 20.
         door.maxHp = data.maxHp !== undefined ? data.maxHp : door.maxHp;
+        door.hp = data.hp !== undefined ? data.hp : door.hp;
         // CRITICAL: Restore visualIsOpen from the saved isOpen state.
         // Without this, all open doors render as closed after a save/load
         // because EntityRenderer.drawDoor checks visualIsOpen, not isOpen.

@@ -243,12 +243,24 @@ export class Tile {
    * Serialize tile to JSON
    */
   toJSON() {
+    // `inventoryItems` holds LIVE item entities that are also present in
+    // `contents` (Tile.addEntity pushes to both). Serializing them in full here
+    // would write every ground item twice, doubling the save footprint. Emit an
+    // id reference for any item already in `contents` (the load path resolves it
+    // via entityMap); still fully serialize any legacy item not in contents so it
+    // can be migrated on load.
+    const contentIds = new Set(this.contents.map(e => e.id));
+    const inventoryItems = (this.inventoryItems || []).map(item => {
+      const id = item.id || item.instanceId;
+      if (id && contentIds.has(id)) return { _ref: id };
+      return typeof item.toJSON === 'function' ? item.toJSON() : item;
+    });
     return {
       x: this.x,
       y: this.y,
       terrain: this.terrain,
       contents: this.contents.map(entity => entity.toJSON()),
-      inventoryItems: this.inventoryItems, // items are already serialized
+      inventoryItems,
       flags: this.flags,
       scent: this.scent,
       scentSequence: this.scentSequence,

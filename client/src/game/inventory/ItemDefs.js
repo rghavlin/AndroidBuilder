@@ -1189,7 +1189,7 @@ export const ItemDefs = {
     imageId: 'deMagazine',
     width: 1,
     height: 1,
-    traits: [ItemTrait.MAGAZINE, ItemTrait.STACKABLE],
+    traits: [ItemTrait.MAGAZINE],
     categories: [ItemCategory.AMMO],
     capacity: 7,
     ammoCount: 0,
@@ -1629,8 +1629,7 @@ export const ItemDefs = {
     height: 2,
     traits: [ItemTrait.FUEL_CONTAINER],
     categories: [ItemCategory.TOOL],
-    capacity: 25,
-    ammoDefId: 'fuel' // Placeholder if fuel becomes a real item
+    capacity: 25
   },
   'furniture.fuel_cover': {
     id: 'furniture.fuel_cover',
@@ -2514,6 +2513,18 @@ export const ItemDefs = {
     categories: [ItemCategory.BOOK, ItemCategory.FUEL],
     totalPages: 25,
     description: 'Learn how to build a Stun rod'
+  },
+  'book.nomad_survivor_8': {
+    id: 'book.nomad_survivor_8',
+    name: 'Nomad Survivor Vol 8',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 50,
+    description: 'Learn how to build an Auto turret'
   },
   'tool.battery_charger': {
     id: 'tool.battery_charger',

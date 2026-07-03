@@ -178,10 +178,12 @@ export class Rabbit extends Entity {
    */
   static fromJSON(data) {
     const rabbit = new Rabbit(data.id, data.x, data.y);
-    rabbit.hp = data.hp || 5;
-    rabbit.maxHp = data.maxHp || 5;
-    rabbit.maxAP = data.maxAP || 25;
-    rabbit.currentAP = data.currentAP || 25;
+    // Use ?? not ||: hp 0 (dead) and currentAP 0 (spent) are valid saved values
+    // that || would silently reset to full.
+    rabbit.hp = data.hp ?? 5;
+    rabbit.maxHp = data.maxHp ?? 5;
+    rabbit.maxAP = data.maxAP ?? 25;
+    rabbit.currentAP = data.currentAP ?? 25;
     rabbit.isActive = data.isActive || false;
     rabbit.movementPath = data.movementPath || [];
     rabbit.isAnimating = data.isAnimating || false;

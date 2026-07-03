@@ -299,6 +299,13 @@ export class GameMap extends SafeEventEmitter {
    * Get tile at coordinates
    */
   getTile(x, y) {
+    // Floor fractional coords: callers occasionally pass interpolated/animation
+    // positions (e.g. moveEntity checks walkability before it sanitizes with
+    // Math.floor). Indexing this.tiles[2.5] yields undefined and then throws on
+    // [x]; flooring returns the containing tile (or null) instead of crashing.
+    // NaN floors to NaN, which fails the bounds check and returns null.
+    x = Math.floor(x);
+    y = Math.floor(y);
     if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
       return this.tiles[y][x];
     }
@@ -922,9 +929,12 @@ export class GameMap extends SafeEventEmitter {
           itemsModified = true;
         }
 
-        if (itemData.attachments || itemData.containerGrid || itemData.pocketGrids) {
-          itemsModified = true;
-        }
+        // NOTE: do NOT force itemsModified for every container/attachment item.
+        // _processItemDataTurn already reports modified=true whenever a nested
+        // item actually changed (drain, charge, spoil, expire), so an
+        // unconditional flag here just forced a full setItemsOnTile rebuild of
+        // the whole tile every single turn for any tile holding a backpack,
+        // wagon, safe, or battery-powered tool — pure churn when nothing changed.
 
         return true;
       });
@@ -1456,13 +1466,22 @@ export class GameMap extends SafeEventEmitter {
           const rawLegacyItems = [...tileData.inventoryItems];
           tile.inventoryItems = []; // Clear it first so tile.addEntity can populate it without duplicates
           for (const itemData of rawLegacyItems) {
-            // Skip if this item was already restored as an ECS entity from tile contents
-            const entityId = itemData.id || itemData.instanceId;
+            // Skip if this item was already restored as an ECS entity from tile contents.
+            // `_ref` is the id-only stub written by Tile.toJSON for items already
+            // present in `contents` (see the double-serialization fix there).
+            const entityId = itemData._ref || itemData.id || itemData.instanceId;
             if (entityId && gameMap.entityMap.has(entityId)) {
               const existingEntity = gameMap.entityMap.get(entityId);
               if (!tile.inventoryItems.includes(existingEntity)) {
                 tile.inventoryItems.push(existingEntity);
               }
+              continue;
+            }
+            // An id-only stub whose target wasn't in contents/entityMap is
+            // unrecoverable — skip it rather than converting the bare {_ref} into
+            // a malformed entity.
+            if (itemData._ref) {
+              console.warn(`[GameMap] inventoryItems _ref ${itemData._ref} at (${x}, ${y}) had no matching entity; dropping.`);
               continue;
             }
             const entity = gameMap.convertLegacyItemToECS(itemData);

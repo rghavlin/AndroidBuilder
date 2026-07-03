@@ -18,10 +18,13 @@ export default defineConfig(async ({ mode }) => {
           ]
         : []),
     ],
+    // Web production build (itch.io) is served from a subpath, so assets must
+    // load via relative URLs. Dev keeps an absolute base so the Vite dev server
+    // (hosted by server/index.ts on localhost:5000) resolves correctly.
+    base: isDev ? "/" : "./",
     resolve: {
       alias: {
         "@": path.resolve(import.meta.dirname, "client", "src"),
-        "@shared": path.resolve(import.meta.dirname, "shared"),
         "@assets": path.resolve(import.meta.dirname, "attached_assets"),
       },
     },

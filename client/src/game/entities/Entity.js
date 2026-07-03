@@ -87,6 +87,16 @@ export const COMPONENT_CLASSES = {
   DropIntent
 };
 
+// Reverse lookup: component constructor -> stable registry name. Built once so
+// addComponent can key components by constructor IDENTITY rather than
+// constructor.name. Production minification mangles class names (Health -> "e"),
+// which would store components under garbage keys and make getComponent('Health')
+// return undefined — the hp getter would then read 0 and kill the player the
+// instant a new game starts (a build-only bug invisible in unminified dev).
+const COMPONENT_NAME_BY_CTOR = new Map(
+  Object.entries(COMPONENT_CLASSES).map(([name, ctor]) => [ctor, name])
+);
+
 export const SERIALIZED_FIELDS = [
   'subtype', 'blocksMovement', 'name', 'isHostile', 'equippedWeaponId',
   'typeId', 'isShopkeeper', 'isTollGuard', 'tollPaid', 'tollSidestep', 'tollTarget',
@@ -155,8 +165,13 @@ export class Entity extends SafeEventEmitter {
     this.typeId = 'survivor';
     this.equippedWeaponId = null;
     this.sightRange = 18;
-    this.noiseBlacklist = [];
-    this.recentThreats = [];
+    // NOTE: noiseBlacklist/recentThreats are AIState-backed accessors (see
+    // defineAccessors below). Do NOT eagerly initialize them here — writing them
+    // would create an AIState component on every entity (items, doors, place
+    // icons), bloating saves. Real AI actors get their AIState from EntityFactory
+    // (or the Rabbit constructor), so their in-place .push() targets a
+    // per-instance array; the accessor default is only ever read, never mutated,
+    // on non-AI entities.
     this.hasExited = false;
     this._condition = type === 'item' ? null : 'Normal';
     this.pendingAPRefill = null;
@@ -381,7 +396,9 @@ export class Entity extends SafeEventEmitter {
     if (typeof nameOrComponent === 'string') {
       this.components.set(nameOrComponent, componentData);
     } else if (nameOrComponent && typeof nameOrComponent === 'object') {
-      const name = nameOrComponent.constructor.name;
+      // Resolve by constructor identity (minification-safe); fall back to
+      // constructor.name only for components not in the registry.
+      const name = COMPONENT_NAME_BY_CTOR.get(nameOrComponent.constructor) || nameOrComponent.constructor.name;
       this.components.set(name, nameOrComponent);
     }
   }
@@ -987,6 +1004,11 @@ export class Entity extends SafeEventEmitter {
       entity.inventory = Container.fromJSON(data.inventory);
     }
 
+    // NOTE: SERIALIZED_FIELDS lists hp before maxHp, and the hp setter clamps to
+    // the current Health.max. That would cap hp here — but the Health component is
+    // restored below (data.components loop) and REPLACES the component built by
+    // these facade setters, so the final hp/maxHp come from the component, not from
+    // this loop. Do not "fix" the ordering to rely on these setters instead.
     for (const field of SERIALIZED_FIELDS) {
       if (data[field] !== undefined) {
         entity[field] = data[field];

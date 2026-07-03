@@ -157,20 +157,17 @@ export class PlayerZombieTracker {
     const pX = Math.round(player.logicalX !== undefined ? player.logicalX : player.x);
     const pY = Math.round(player.logicalY !== undefined ? player.logicalY : player.y);
 
-    // Only update lastPlayerPos for zombies that are CONFIRMED still visible at the
-    // player's new position. This set only contains zombies with active LOS.
-    const confirmedVisibleIds = new Set(currentlyVisibleZombies.map(({ zombie }) => zombie.id));
-
+    // Every entry in currentlyVisibleZombies has confirmed LOS at the player's new
+    // position, so update its lastPlayerPos. Zombies already tracked only — newly
+    // spotted ones were added by processNewlySpottedZombies, and lost-sight ones
+    // were removed (with their LKP recorded) by processZombiesLostFromSight.
     currentlyVisibleZombies.forEach(({ zombie }) => {
-      if (this.spottedZombies.has(zombie.id) && confirmedVisibleIds.has(zombie.id)) {
-        // Safe to update: zombie has confirmed LOS to the player's new position
+      if (this.spottedZombies.has(zombie.id)) {
         this.spottedZombies.set(zombie.id, {
           zombie,
           lastPlayerPos: { x: pX, y: pY }
         });
       }
-      // If not in confirmedVisibleIds, processZombiesLostFromSight already
-      // handled this zombie and recorded the correct lastPlayerPos.
     });
   }
 

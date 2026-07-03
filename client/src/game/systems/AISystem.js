@@ -2,6 +2,7 @@ import { Pathfinding } from '../utils/Pathfinding.js';
 import { DamageIntent } from '../components/DamageIntent.js';
 import { MoveIntent } from '../components/MoveIntent.js';
 import { ScentTrail, SCENT_FOLLOW_RADIUS } from '../utils/ScentTrail.js';
+import { getZombieType } from '../entities/ZombieTypes.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -268,6 +269,52 @@ function wander(ctx) {
 }
 
 /**
+ * Spitter ranged attack ("spit"). Rolls hit/damage/sickness in the simulation
+ * phase (like NPCAI.performAttack) and pushes a self-contained ATTACK action with
+ * projectile metadata straight to the action queue — TurnManager's ATTACK case
+ * fires the PROJECTILE_FIRED visual and, on a hit, applies damage + sickness after
+ * the animation. Restores the pre-ECS ZombieAI.attemptRangedAttack behavior:
+ * accuracy 0.5, rangedDamage (1-3), sickChance (0.2). Bleeding is intentionally
+ * NOT rolled for a ranged spit (bleeding models a physical wound).
+ */
+function spitAtPlayer(ctx) {
+  const { entity, player, playerPos } = ctx;
+  const typeDef = getZombieType(entity.subtype);
+  const combat = typeDef.combat || {};
+  const apCost = typeDef.rangedApCost || 1.5;
+  const accuracy = typeDef.accuracy ?? 0.5;
+
+  entity.useAP(apCost);
+
+  const hit = gameRandom.next() < accuracy;
+  let damage = 0;
+  let sickInflicted = false;
+  if (hit) {
+    const min = combat.rangedDamage?.min ?? 1;
+    const max = combat.rangedDamage?.max ?? 3;
+    damage = gameRandom.nextInt(min, max);
+    if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
+  }
+
+  ctx.pushAction({
+    type: 'ATTACK',
+    entityId: entity.id,
+    metadata: {
+      projectile: { type: 'projectile', color: '#a855f7', targetX: playerPos.x, targetY: playerPos.y }
+    },
+    data: {
+      targetId: player.id,
+      targetType: 'player',
+      success: hit,
+      damage,
+      sickInflicted,
+      from: { x: entity.logicalX, y: entity.logicalY },
+      to: { x: playerPos.x, y: playerPos.y }
+    }
+  });
+}
+
+/**
  * Priority 1: the player is currently visible. Attack if in melee range,
  * otherwise step toward the player (smart A* at close range, beeline fallback),
  * and wander as a last resort if no progress toward the player is possible.
@@ -298,10 +345,24 @@ function huntPlayer(ctx) {
       }
     } else {
       if (currentAP >= 2.0) {
+        // `amount` is only a fallback: CombatSystem rolls the real per-type damage
+        // (and bleed/sickness) from the zombie's ZombieTypes.combat block.
         ctx.enqueue('DamageIntent', new DamageIntent({ amount: 2, targetId: player.id }));
       }
     }
     return;
+  }
+
+  // Spitter: player is visible (we're in huntPlayer) but out of melee reach — spit
+  // rather than close the distance, if within spit range and there's AP for it.
+  if (entity.subtype === 'spitter') {
+    const typeDef = getZombieType(entity.subtype);
+    const spitRange = typeDef.rangedRange || 5;
+    const spitApCost = typeDef.rangedApCost || 1.5;
+    if (currentAP >= spitApCost && entity.getDistanceTo(playerPos.x, playerPos.y) <= spitRange) {
+      spitAtPlayer(ctx);
+      return;
+    }
   }
 
   // Move toward player exact coords
@@ -507,8 +568,10 @@ export class AISystem {
       ? entities
       : (entities instanceof Map ? Array.from(entities.values()) : Object.values(entities));
 
-    // Find player entity
-    const player = entityList.find(e => e.hasComponent('InventoryContainer') && e.hasComponent('Position'));
+    // Find player entity. Match on type, not the presence of an InventoryContainer
+    // component — the latter happened to be player-unique but would misfire the day
+    // an NPC gets a real container.
+    const player = entityList.find(e => e.type === 'player' && e.hasComponent('Position'));
     if (!player) return intentsGenerated;
 
     const playerPos = player.getComponent('Position');
@@ -551,6 +614,13 @@ export class AISystem {
           } else {
             entity.addComponent(intent);
           }
+          intentsGenerated++;
+        },
+        // Push a fully-resolved action (e.g. a spitter's spit) straight to the
+        // action queue, bypassing the intent pipeline. Counts as activity so
+        // SimulationManager's AI cycle keeps looping while the zombie still has AP.
+        pushAction(action) {
+          actionQueue.push(action);
           intentsGenerated++;
         }
       };

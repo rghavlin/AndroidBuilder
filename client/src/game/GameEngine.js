@@ -60,6 +60,13 @@ class GameEngine extends SafeEventEmitter {
       this._heartbeatId = null;
     }
 
+    // Release any in-flight visual actions BEFORE dropping them. TurnManager
+    // awaits each SequencerAction.promise, which only resolves from the
+    // heartbeat — discarding an unresolved action would leave processQueue
+    // awaiting forever, isProcessing stuck true, and every future turn aborted
+    // with "Already processing" (enemies frozen for the rest of the session).
+    this.flushActiveActions();
+
     this.id = gameRandom.nextInt(0, 999999);
     console.log(`[GameEngine] 🚀 Initialized with ID: ${this.id}`);
     this.player = null;
@@ -176,14 +183,31 @@ class GameEngine extends SafeEventEmitter {
   }
 
   /**
+   * Resolve and drop all in-flight visual actions. MUST be used instead of
+   * activeActions.clear(): awaiting callers (TurnManager.processQueue) hang
+   * forever on actions that leave the heartbeat without resolving.
+   */
+  flushActiveActions() {
+    if (!this.activeActions) return;
+    for (const action of this.activeActions) {
+      if (typeof action.resolve === 'function') {
+        action.resolve();
+      }
+      action.isComplete = true;
+    }
+    this.activeActions.clear();
+  }
+
+  /**
    * Atomic synchronization of all game objects.
    * Called by the GameInitializationManager or GameContext when a map loads.
    */
   sync(gameObjects) {
     console.log('[GameEngine] 🔄 Synchronizing engine state:', Object.keys(gameObjects));
-    
-    // Clear any pending visual actions from the previous state
-    this.activeActions.clear();
+
+    // Resolve-and-clear any pending visual actions from the previous state
+    // (plain clear() would strand TurnManager awaits — see flushActiveActions)
+    this.flushActiveActions();
     
     if (gameObjects.player) {
        // Detach from old player if exists
