@@ -65,14 +65,12 @@ export class ExplosionSystem {
             data: { x: tx, y: ty, color: flashColor, duration: flashDuration }
           });
 
-          // Set fire for Molotovs
+          // Set fire for Molotovs. FireSystem.ignite registers the tile in
+          // gameMap.activeFires itself (single source of truth for the index).
           if (isIncendiary && dist <= radius) {
             const tile = gameMap.getTile(tx, ty);
             if (tile) {
               FireSystem.ignite(tile, 2);
-              if (gameMap.activeFires && typeof gameMap.activeFires.add === 'function') {
-                gameMap.activeFires.add(`${tx},${ty}`);
-              }
             }
           }
         }

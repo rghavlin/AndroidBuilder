@@ -77,14 +77,14 @@ export class ZombieSpawner {
     spawnHelper('runner', runnerCount, 10);
     
     const mapNumber = gameMap.mapNumber || 1;
-    const isMap1 = mapNumber === 1;
+    const isStraightRoad = gameMap.template === 'road' || gameMap.template === 'starting_road';
 
     const acidCount = gameRandom.nextInt(acidRange.min, acidRange.max);
-    const acidConstraints = isMap1 ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
+    const acidConstraints = isStraightRoad ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
     spawnHelper('acid', acidCount, 10, acidConstraints);
     
     const fatCount = gameRandom.nextInt(fatRange.min, fatRange.max);
-    const fatConstraints = isMap1 ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
+    const fatConstraints = isStraightRoad ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
     spawnHelper('fat', fatCount, 10, fatConstraints);
 
     spawnHelper('spitter', spitterCount, 10);

@@ -57,6 +57,12 @@ const awardZombieEarbuck = () => {
     }
 };
 
+// RNG NOTE: player combat deliberately uses Math.random(), NOT the engine's
+// seeded gameRandom. gameRandom must stay in lockstep across save/load for AI
+// determinism; player actions fire in unpredictable order and count, so routing
+// their hit/crit/damage rolls through gameRandom would desync that stream for the
+// simulation/AI side. Keep the player-driven rolls below on Math.random — do NOT
+// "fix" them to gameRandom.
 const CombatContext = createContext();
 
 export const useCombat = () => {
@@ -563,15 +569,18 @@ export const CombatProvider = ({ children }) => {
 
             let damage = 0;
             if (hit) {
-                damage = isCrit 
-                    ? Math.floor(stats.damage.max * 1.5)
-                    : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
-                    
-                if (!isCrit && stats.isShotgun) {
-                    let finalDamage = stats.damage.min;
+                if (stats.isShotgun) {
+                    // Shotgun pellets lose energy with distance, so damage falls off
+                    // for BOTH crits and normal hits. A crit starts from the boosted
+                    // max, a normal hit from the base min; then both decay by range.
+                    let finalDamage = isCrit ? (stats.damage.max * 1.5) : stats.damage.min;
                     if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
                     if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
                     damage = Math.floor(finalDamage);
+                } else {
+                    damage = isCrit
+                        ? Math.floor(stats.damage.max * 1.5)
+                        : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
                 }
             }
 
@@ -819,12 +828,6 @@ export const CombatProvider = ({ children }) => {
                     if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
                 }
 
-                // Spawn a recoverable stone on the hit tile
-                const droppedStone = createItemFromDef('crafting.stone');
-                if (droppedStone) {
-                    gameMap.addItemsToTile(targetX, targetY, [droppedStone]);
-                }
-
                 addEffect({
                     type: 'damage',
                     x: targetX,
@@ -848,12 +851,6 @@ export const CombatProvider = ({ children }) => {
                 // Attacking a faction's turret provokes that whole faction.
                 const escalated = escalateFactionAgainstPlayer(gameMap, turret.getFaction?.());
                 if (escalated > 0) addLog('The turrets turn on you!', 'warning');
-
-                // Spawn a recoverable stone on the hit tile
-                const droppedStone = createItemFromDef('crafting.stone');
-                if (droppedStone) {
-                    gameMap.addItemsToTile(targetX, targetY, [droppedStone]);
-                }
 
                 addEffect({ type: 'damage', x: targetX, y: targetY, value: damage, color: '#ef4444', duration: 1200 });
 
@@ -883,6 +880,15 @@ export const CombatProvider = ({ children }) => {
             });
             addLog('The stone misses the target.', 'combat');
             addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
+        }
+
+        // Thrown stones are always recoverable: drop one on the target tile for
+        // every outcome — hitting an entity/turret/structure OR missing. Previously
+        // only entity and turret hits dropped a stone, silently losing it on
+        // structure hits and misses.
+        const droppedStone = createItemFromDef('crafting.stone');
+        if (droppedStone) {
+            gameMap.addItemsToTile(targetX, targetY, [droppedStone]);
         }
 
         // Noise

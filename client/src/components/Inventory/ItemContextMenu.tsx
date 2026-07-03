@@ -378,7 +378,7 @@ export function ItemContextMenu({
                             if (!item || !item.hasTrait?.(ItemTrait.DRAGGABLE) || item.noDrag) return null;
                             
                             // Check if item is on ground
-                            const isDraggingThis = engine.dragging?.item.instanceId === item.instanceId;
+                            const isDraggingThis = engine.dragging?.item?.instanceId === item.instanceId;
                             
                             if (isDraggingThis) {
                                 return (

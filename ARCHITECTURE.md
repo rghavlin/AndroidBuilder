@@ -171,3 +171,18 @@ The `InventoryManager` handles items, slots, grids, and ownership.
 3. **Is my source of truth correct?** (e.g., reading a React `useState` array to calculate damage instead of checking the `Player` class).
 4. **Does this break if the player clicks rapidly?** (e.g., overlapping `endTurn` calls).
 5. **Does this action require player input during the turn?** If so, did I push an interrupt action to the playback queue instead of halting mid-simulation?
+
+---
+
+## 8. UI Theming and Styling (Light/Dark Mode)
+
+The UI is currently designed with a dark, skeuomorphic aesthetic (hardcoded hex colors, gradients, and custom CSS classes). A plan exists to support a dynamic Light/Dark theme toggle. When working on UI components, adhere to the following rules to prevent compounding technical debt:
+
+* **Rule: Use Semantic Tailwind Classes.**
+  Avoid hardcoding utility colors like `bg-zinc-950`, `bg-[#1a1a1a]`, or `border-[#333]` directly in React components. Instead, use semantic CSS variables defined in `client/src/index.css` via Tailwind (e.g., `bg-background`, `bg-card`, `border-border`).
+* **Rule: Abstract Custom CSS for Themes.**
+  If creating custom CSS classes (e.g., `.metal-panel`, `.inset-slot`), do not assume a strictly dark context. Structure them so they can be overridden when a `.light` class is applied to the root document.
+* **Rule: Canvas Rendering Colors must be Configurable.**
+  When adding new entities, terrains, or visual effects to `TileRenderer.js` or `EntityRenderer.js`, avoid hardcoding colors like `ctx.fillStyle = '#1a3c1a'`. Reference a palette object (like `TERRAIN_COLORS`) so that colors can dynamically swap when the application theme changes.
+
+For the full implementation plan to transition to a toggleable Light/Dark theme, see [UI_THEMING_PLAN.md](file:///c:/Games/AndroidBuilder/UI_THEMING_PLAN.md).

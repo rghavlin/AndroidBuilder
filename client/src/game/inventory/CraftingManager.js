@@ -57,6 +57,19 @@ export class CraftingManager {
         return singleItem;
     }
 
+    /** Does `tool` satisfy the `toolReq` (either-list, specific id, or category)? */
+    static _toolMatchesReq(tool, toolReq) {
+        if (toolReq.either) return toolReq.either.includes(tool.defId);
+        return tool.defId === toolReq.id || (toolReq.category && tool.categories.includes(toolReq.category));
+    }
+
+    /** Whether a tool is actually usable: charged (if charge-based) and not broken (if degradable). */
+    static _isToolUsable(tool) {
+        if (tool.capacity !== null && (tool.ammoCount === null || tool.ammoCount <= 0)) return false;
+        if (tool.isDegradable() && (tool.condition === null || tool.condition <= 0)) return false;
+        return true;
+    }
+
     getNearbyCampfire() {
         if (!this.inv.groundContainer) return null;
         return this.inv.groundContainer.getAllItems().find(item => 
@@ -123,33 +136,21 @@ export class CraftingManager {
 
         // 3. Check Tools (Handling either/or and categories)
         for (const toolReq of recipe.tools) {
-            let found = null;
-            if (toolReq.either) {
-                found = currentTools.find(t =>
-                    toolReq.either.includes(t.defId) && !usedInstances.has(t.instanceId)
-                );
-            } else {
-                found = currentTools.find(t =>
-                    (t.defId === toolReq.id || (toolReq.category && t.categories.includes(toolReq.category))) &&
-                    !usedInstances.has(t.instanceId)
-                );
-            }
-
-            if (found) {
-                // 1. If the tool has a capacity (like a lighter), it must have at least 1 charge
-                if (found.capacity !== null && (found.ammoCount === null || found.ammoCount <= 0)) {
-                    missing.push(`${found.name} (Empty)`);
-                    found = null; // Mark as not found for this requirement
-                } 
-                // 2. If the tool is degradable (like a hammer), it must have at least 1 condition
-                else if (found.isDegradable() && (found.condition === null || found.condition <= 0)) {
-                    missing.push(`${found.name} (Broken)`);
-                    found = null;
-                }
-            }
+            // Collect ALL unused matching tools, then pick the first USABLE one. Only
+            // testing the first match would falsely fail e.g. "lighter OR matches"
+            // when the first-found lighter is empty but valid matches exist.
+            const candidates = currentTools.filter(t =>
+                !usedInstances.has(t.instanceId) && CraftingManager._toolMatchesReq(t, toolReq)
+            );
+            const found = candidates.find(CraftingManager._isToolUsable);
 
             if (found) {
                 usedInstances.add(found.instanceId);
+            } else if (candidates.length > 0) {
+                // Matches exist but all are empty/broken — report the specific reason once.
+                const t = candidates[0];
+                const empty = t.capacity !== null && (t.ammoCount === null || t.ammoCount <= 0);
+                missing.push(`${t.name} (${empty ? 'Empty' : 'Broken'})`);
             } else {
                 missing.push(toolReq.label || toolReq.name || getItemName(toolReq.id));
             }
@@ -492,12 +493,10 @@ export class CraftingManager {
             const toolContainer = this.inv.getContainer(toolContainerId);
             const currentTools = toolContainer.getAllItems();
 
-            let found = null;
-            if (toolReq.either) {
-                found = currentTools.find(t => toolReq.either.includes(t.defId));
-            } else {
-                found = currentTools.find(t => t.defId === toolReq.id || (toolReq.category && t.categories.includes(toolReq.category)));
-            }
+            // Consume the same USABLE tool checkRequirements validated (prefer charged/
+            // unbroken); fall back to any match so we still degrade something.
+            const candidates = currentTools.filter(t => CraftingManager._toolMatchesReq(t, toolReq));
+            const found = candidates.find(CraftingManager._isToolUsable) || candidates[0] || null;
 
             if (found) {
                 // Use the helper for tool consumption from stack (e.g. for matches)

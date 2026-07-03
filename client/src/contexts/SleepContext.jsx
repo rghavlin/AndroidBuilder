@@ -35,7 +35,8 @@ export const SleepProvider = ({ children }) => {
     clearNPCAnimations,
     isNight,
     isFlashlightOnActual,
-    getActiveFlashlightRange
+    getActiveFlashlightRange,
+    runIdRef
   } = useGame();
 
   const { addLog } = useLog();
@@ -103,6 +104,12 @@ export const SleepProvider = ({ children }) => {
     // Phase 27 Fix: Allow resuming if already sleeping (bypassing isPlayerTurn check)
     if (!isInitialized || !player || !gameMap || (!isPlayerTurn && !isResuming)) return;
 
+    // Snapshot the run this sleep belongs to. gameMap/player above are captured
+    // once and reused every hour; if a new game starts mid-sleep (engine.reset()
+    // + a fresh player/gameMap), this loop must stop touching the live engine
+    // with this stale player's values instead of corrupting the new game.
+    const runIdAtStart = runIdRef.current;
+
     try {
       isResumingRef.current = true;
       if (!isResuming) {
@@ -121,6 +128,15 @@ export const SleepProvider = ({ children }) => {
 
         const hpBeforeHour = player.hp;
         await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // A new game can start during the 1s wait above. Bail out (not just
+        // break) so none of this stale hour's per-hour mutations below —
+        // especially updatePlayerStats, which writes onto engine.player
+        // directly — run against the freshly-initialized game's player.
+        if (runIdRef.current !== runIdAtStart) {
+          console.warn('[SleepContext] 🚫 performSleep resumed for a stale run; aborting.');
+          return;
+        }
 
         if (!mountedRef.current) break;
 
@@ -249,7 +265,11 @@ export const SleepProvider = ({ children }) => {
             if (entity && (entity.type === EntityType.ZOMBIE)) {
               if (action.data.success) {
                 player.takeDamage(action.data.damage, entity);
+                // Mirror TurnManager's awake ATTACK handling: apply BOTH afflictions.
+                // Without the sickness line, a spitter that hits a sleeping player
+                // would infect them when awake but not asleep.
                 if (action.data.bleedingInflicted) player.setBleeding(true);
+                if (action.data.sickInflicted) player.inflictSickness(24);
                 addLog(`Zombie attacks while you sleep! ${action.data.damage} damage`, 'combat');
               } else {
                 addLog(`A zombie swipes at you and misses!`, 'combat');

@@ -24,8 +24,6 @@ import { Inventory } from '../components/Inventory.js';
 import { Item } from '../components/Item.js';
 import { MeleeWeapon } from '../components/MeleeWeapon.js';
 import { Consumable } from '../components/Consumable.js';
-import { PickupIntent } from '../components/PickupIntent.js';
-import { DropIntent } from '../components/DropIntent.js';
 import { ActionPoints } from '../components/ActionPoints.js';
 import { SurvivalStats } from '../components/SurvivalStats.js';
 import { PlayerSkills } from '../components/PlayerSkills.js';
@@ -82,9 +80,7 @@ export const COMPONENT_CLASSES = {
   MoveIntent,
   DamageIntent,
   DestroyIntent,
-  NoiseEvent,
-  PickupIntent,
-  DropIntent
+  NoiseEvent
 };
 
 // Reverse lookup: component constructor -> stable registry name. Built once so

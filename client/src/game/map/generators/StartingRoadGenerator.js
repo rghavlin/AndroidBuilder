@@ -18,7 +18,7 @@ function startingHouseLayout(width, height) {
 }
 
 /**
- * StartingRoadGenerator - Generates the map 1 starting road layout
+ * StartingRoadGenerator - Generates the starting road layout (legacy Map 1 template)
  */
 export class StartingRoadGenerator extends BaseMapGenerator {
   generate(config, builder) {

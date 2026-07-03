@@ -41,77 +41,84 @@ function verify() {
     console.log('\n--- Test 2: progression mapping logic ---');
     assert(getTemplateForMapNumber(1) === 'branching_road', 'Map 1 is branching_road');
     assert(getTemplateForMapNumber(1, true) === 'lab', 'Map 1 is lab when devForceLab is true');
-    assert(getTemplateForMapNumber(2) === 'road', 'Map 2 is road');
-    assert(getTemplateForMapNumber(3) === 'road', 'Map 3 is road');
-    assert(getTemplateForMapNumber(4) === 'winding_road', 'Map 4 is winding_road');
-    assert(getTemplateForMapNumber(5) === 'mirrored_winding_road', 'Map 5 is mirrored_winding_road');
-    assert(getTemplateForMapNumber(6) === 'split_road', 'Map 6 is split_road');
-    assert(getTemplateForMapNumber(10) === 'lab', 'Map 10 is lab');
+    assert(getTemplateForMapNumber(1) === 'branching_road', 'Map 1 is branching_road');
+    assert(getTemplateForMapNumber(1, true) === 'lab', 'Map 1 is lab when devForceLab is true');
+    assert(getTemplateForMapNumber(2) === 'branching_road', 'Map 2 is branching_road');
+    assert(getTemplateForMapNumber(3) === 'lab', 'Map 3 is lab');
+    assert(getTemplateForMapNumber(4) === 'road', 'Map 4 is road');
+    assert(getTemplateForMapNumber(5) === 'road', 'Map 5 is road');
+    assert(getTemplateForMapNumber(6) === 'winding_road', 'Map 6 is winding_road');
+    assert(getTemplateForMapNumber(7) === 'mirrored_winding_road', 'Map 7 is mirrored_winding_road');
+    assert(getTemplateForMapNumber(8) === 'split_road', 'Map 8 is split_road');
     
-    const randomTemplate7 = getTemplateForMapNumber(7);
-    assert(['road', 'winding_road', 'mirrored_winding_road', 'split_road'].includes(randomTemplate7), `Map 7 maps to random road category: ${randomTemplate7}`);
+    const randomTemplate9 = getTemplateForMapNumber(9);
+    assert(['road', 'winding_road', 'mirrored_winding_road', 'split_road'].includes(randomTemplate9), `Map 9 maps to random road category: ${randomTemplate9}`);
 
     // --- TEST 3: WorldManager Transition Predictions ---
     console.log('\n--- Test 3: WorldManager predicted transition points ---');
     const world = new WorldManager();
-    world.currentMapId = 'map_004'; // Current map is map_004 (which transitions to map_005 next)
+    world.canGoSouth = () => true;
+    world.currentMapId = 'map_006'; // Winding Road. Transitions to map_007 next (Mirrored Winding Road)
 
-    // Set up mock map at map_004 (Winding Road)
-    const map4 = new GameMap(85, 125);
-    map4.mapNumber = 4;
+    // Set up mock map at map_006 (Winding Road)
+    const map6 = new GameMap(85, 125);
+    map6.mapNumber = 6;
+    map6.template = 'winding_road';
     
-    // Add player at y=0 on a transition tile (exiting to map_005 - Mirrored Winding Road)
+    // Add player at y=0 on a transition tile (exiting to map_007 - Mirrored Winding Road)
     const player = EntityFactory.createPlayer(22, 0);
-    map4.addEntity(player, 22, 0);
-    const tile = map4.getTile(22, 0);
+    map6.addEntity(player, 22, 0);
+    const tile = map6.getTile(22, 0);
     tile.terrain = 'transition';
 
-    // Test transition predicting Mirrored Winding Road (nextMapId is map_005)
+    // Test transition predicting Mirrored Winding Road (nextMapId is map_007)
     // Mirrored Winding Road has height 125, and southEntranceX 62
-    const transitionNorth = world.checkTransitionPoint(player, map4);
+    const transitionNorth = world.checkTransitionPoint(player, map6);
     assert(transitionNorth !== null, 'Transition detected going north');
-    assert(transitionNorth.nextMapId === 'map_005', 'Exits to map_005');
+    assert(transitionNorth.nextMapId === 'map_007', 'Exits to map_007');
     assert(transitionNorth.spawnPosition.x === 62 && transitionNorth.spawnPosition.y === 123, 
         `Mirrored Winding Road spawn predicted correctly: (${transitionNorth.spawnPosition.x}, ${transitionNorth.spawnPosition.y})`);
 
-    // Let's test entering split_road (map 6) from map 5
-    world.currentMapId = 'map_005';
-    const map5 = new GameMap(85, 125);
-    map5.mapNumber = 5;
-    player.x = 22; player.y = 0; // Exiting north from map 5 to map 6 (Split Road)
-    map5.addEntity(player, 22, 0);
-    map5.getTile(22, 0).terrain = 'transition';
+    // Let's test entering split_road (map 8) from map 7
+    world.currentMapId = 'map_007';
+    const map7 = new GameMap(85, 125);
+    map7.mapNumber = 7;
+    map7.template = 'mirrored_winding_road';
+    player.x = 22; player.y = 0; // Exiting north from map 7 to map 8 (Split Road)
+    map7.addEntity(player, 22, 0);
+    map7.getTile(22, 0).terrain = 'transition';
 
-    const transitionNorthToSplit = world.checkTransitionPoint(player, map5);
-    assert(transitionNorthToSplit !== null, 'Transition detected going north from map 5');
-    assert(transitionNorthToSplit.nextMapId === 'map_006', 'Exits to map_006');
+    const transitionNorthToSplit = world.checkTransitionPoint(player, map7);
+    assert(transitionNorthToSplit !== null, 'Transition detected going north from map 7');
+    assert(transitionNorthToSplit.nextMapId === 'map_008', 'Exits to map_008');
     assert(transitionNorthToSplit.spawnPosition.x === 30 && transitionNorthToSplit.spawnPosition.y === 148,
         `Split Road spawn predicted correctly: (${transitionNorthToSplit.spawnPosition.x}, ${transitionNorthToSplit.spawnPosition.y})`);
 
-    // Let's test entering lab (map 10) from map 9
-    world.currentMapId = 'map_009';
-    const map9 = new GameMap(45, 125);
-    map9.mapNumber = 9;
-    player.x = 22; player.y = 0; // Exiting north from map 9 to map 10 (Lab)
-    map9.addEntity(player, 22, 0);
-    map9.getTile(22, 0).terrain = 'transition';
+    // Let's test entering road (map 4) from map 3 (Lab)
+    world.currentMapId = 'map_003';
+    const map3 = new GameMap(70, 84);
+    map3.mapNumber = 3;
+    map3.template = 'lab';
+    player.x = 22; player.y = 0; // Exiting north from map 3 to map 4 (Road)
+    map3.addEntity(player, 22, 0);
+    map3.getTile(22, 0).terrain = 'transition';
 
-    const transitionNorthToLab = world.checkTransitionPoint(player, map9);
-    assert(transitionNorthToLab !== null, 'Transition detected going north from map 9');
-    assert(transitionNorthToLab.nextMapId === 'map_010', 'Exits to map_010');
-    assert(transitionNorthToLab.spawnPosition.x === 35 && transitionNorthToLab.spawnPosition.y === 82,
-        `Lab spawn predicted correctly: (${transitionNorthToLab.spawnPosition.x}, ${transitionNorthToLab.spawnPosition.y})`);
+    const transitionNorthToRoad = world.checkTransitionPoint(player, map3);
+    assert(transitionNorthToRoad !== null, 'Transition detected going north from map 3');
+    assert(transitionNorthToRoad.nextMapId === 'map_004', 'Exits to map_004');
+    assert(transitionNorthToRoad.spawnPosition.x === 22 && transitionNorthToRoad.spawnPosition.y === 123,
+        `Road spawn predicted correctly: (${transitionNorthToRoad.spawnPosition.x}, ${transitionNorthToRoad.spawnPosition.y})`);
 
-    // Test transition going back South to previous map (Map 5 -> Map 4)
-    world.currentMapId = 'map_005'; // Current map is map_005, previous is map_004 (Winding Road)
-    player.x = 22; player.y = 124; // Exiting south from bottom edge of map 5
-    map5.addEntity(player, 22, 124);
-    map5.getTile(22, 124).terrain = 'transition';
+    // Test transition going back South to previous map (Map 7 -> Map 6)
+    world.currentMapId = 'map_007'; // Current map is map_007, previous is map_006 (Winding Road)
+    player.x = 22; player.y = 124; // Exiting south from bottom edge of map 7
+    map7.addEntity(player, 22, 124);
+    map7.getTile(22, 124).terrain = 'transition';
 
-    // Back to map_004 (Winding Road) northExitX is 62
-    const transitionSouth = world.checkTransitionPoint(player, map5);
+    // Back to map_006 (Winding Road) northExitX is 62
+    const transitionSouth = world.checkTransitionPoint(player, map7);
     assert(transitionSouth !== null, 'Transition detected going south');
-    assert(transitionSouth.nextMapId === 'map_004', 'Exits south to map_004');
+    assert(transitionSouth.nextMapId === 'map_006', 'Exits south to map_006');
     assert(transitionSouth.spawnPosition.x === 62 && transitionSouth.spawnPosition.y === 1,
         `Winding Road north entrance predicted correctly: (${transitionSouth.spawnPosition.x}, ${transitionSouth.spawnPosition.y})`);
 

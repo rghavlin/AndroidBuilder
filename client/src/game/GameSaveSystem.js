@@ -251,6 +251,11 @@ export class GameSaveSystem {
         // Core game state - only essential data
         turn: gameState.turn,
         gameSeed: engine.gameSeed || null,
+        // The RNG's current working state, distinct from the original seed.
+        // Restoring THIS on load (instead of re-seeding to gameSeed) lets AI/
+        // world-gen rolls continue from where they left off rather than
+        // replaying identically from the start of the stream every load.
+        gameRandomState: gameRandom.getState(),
         bookStats: engine.bookStats,
 
         // Map state (includes all tiles and entities) - this contains positions
@@ -422,8 +427,19 @@ export class GameSaveSystem {
       // Restore game seed for PRNG continuity
       if (saveData.gameSeed !== undefined && saveData.gameSeed !== null) {
         engine.gameSeed = saveData.gameSeed;
-        gameRandom.seed(saveData.gameSeed);
-        console.log(`[GameSaveSystem] Restored game seed: ${saveData.gameSeed}`);
+
+        if (saveData.gameRandomState !== undefined && saveData.gameRandomState !== null) {
+          // Resume the RNG stream exactly where the save left off. Re-seeding to
+          // the original gameSeed here would replay every AI/world-gen roll
+          // since turn 1 identically on each load — save-scummable and the
+          // reason this field exists.
+          gameRandom.setState(saveData.gameRandomState);
+          console.log(`[GameSaveSystem] Restored game RNG state: ${saveData.gameRandomState} (seed: ${saveData.gameSeed})`);
+        } else {
+          // Older save predating gameRandomState: fall back to re-seeding.
+          gameRandom.seed(saveData.gameSeed);
+          console.log(`[GameSaveSystem] Restored game seed: ${saveData.gameSeed} (no saved RNG state; legacy save)`);
+        }
       }
 
       console.log('[GameSaveSystem] Game state loaded successfully');

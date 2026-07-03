@@ -39,7 +39,10 @@ export class SimulationManager {
       // Fire processing runs under isSimulating so its damage/visual events are
       // deferred to playback like every other system, instead of flashing
       // on-screen before the turn animates.
-      FireSystem.processTileFires(gameMap);
+      // gameMap.processTileFires() ticks only the sparse activeFires index and
+      // self-cleans extinguished tiles (vs the old FireSystem full-map scan that
+      // leaked activeFires into saves). Entity fires stay on FireSystem.
+      gameMap.processTileFires();
       FireSystem.processEntityFires(gameMap);
 
       const intentQueue = new IntentQueue();

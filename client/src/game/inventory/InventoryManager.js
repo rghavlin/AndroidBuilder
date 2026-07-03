@@ -1710,8 +1710,6 @@ export class InventoryManager extends SafeEventEmitter {
     // 1. Stack Merging Logic (Phase 17 Restoration)
     // Only attempt auto-merging if allowStacking is TRUE
     if (allowStacking && item.isStackable && item.isStackable()) {
-      console.debug(`[InventoryManager] Attempting to find stack for: ${item.name} (${item.defId})`);
-      
       // List of containers to search for stacking, in priority order
       const potentialContainers = [];
       
@@ -1737,26 +1735,22 @@ export class InventoryManager extends SafeEventEmitter {
       }
 
       // Search and merge
-      console.log(`[InventoryManager] Checking ${potentialContainers.length} containers for stacking:`, potentialContainers.map(c => c.id));
       for (const container of potentialContainers) {
         const stackTarget = this._findStackRecursive(container, item);
         if (stackTarget) {
             const { existingItem, container: targetContainer } = stackTarget;
             const spaceInStack = existingItem.stackMax - existingItem.stackCount;
             const amountToTake = Math.min(item.stackCount, spaceInStack);
-            
+
             existingItem.stackCount += amountToTake;
             item.stackCount -= amountToTake;
-            
-            console.log(`[InventoryManager] ✅ SUCCESS: Merged ${amountToTake} into existing stack in ${targetContainer.id}. Item remaining: ${item.stackCount}`);
-            
+
             if (item.stackCount <= 0) {
               this.emit('inventoryChanged');
               return { success: true, container: targetContainer.id, merged: true };
             }
         }
       }
-      console.log(`[InventoryManager] No valid stack found for: ${item.name}`);
     }
 
     // 2. Regular Grid Placement Logic
@@ -1794,10 +1788,8 @@ export class InventoryManager extends SafeEventEmitter {
 
     // Try pockets
     const pockets = this.getPocketContainers();
-    console.log(`[InventoryManager] Checking ${pockets.length} pockets for placement of ${item.name}`);
     for (const pocket of pockets) {
       if (pocket.addItem(item, null, null, allowStacking)) {
-        console.log(`[InventoryManager] ✅ SUCCESS: Placed ${item.name} in pocket: ${pocket.id}`);
         this.emit('inventoryChanged');
         return { success: true, container: pocket.id };
       }
@@ -2034,15 +2026,6 @@ export class InventoryManager extends SafeEventEmitter {
     const isSelfRefPocket = toContainer.id.startsWith(`${itemToMove.instanceId}-pocket-`);
     const isSelfRefContainer = toContainer.id === `${itemToMove.instanceId}-container`;
 
-    console.warn('[InventoryManager] DEBUG RECURSION:', {
-      itemName: itemToMove.name,
-      itemId: itemToMove.instanceId,
-      targetId: toContainer.id,
-      targetOwnerId: toContainer.ownerId,
-      isOwnerMatch: toContainer.ownerId && String(toContainer.ownerId) === String(itemToMove.instanceId),
-      isStringMatch: isSelfRefPocket || isSelfRefContainer
-    });
-
     if (isSelfRefPocket || isSelfRefContainer) {
       console.warn('[InventoryManager] Cannot place item into itself (ID match):', itemToMove.name);
       return { success: false, reason: 'Cannot place item into itself' };
@@ -2076,15 +2059,6 @@ export class InventoryManager extends SafeEventEmitter {
     if (rotation !== null) {
       item.rotation = rotation;
     }
-
-    console.log('[InventoryManager] Moving item:', {
-      itemId,
-      itemName: item.name,
-      from: fromContainerId,
-      to: toContainerId,
-      position: x !== null && y !== null ? `(${x}, ${y})` : 'auto',
-      rotation: item.rotation
-    });
 
     let success = false;
     if (x !== null && y !== null) {

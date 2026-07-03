@@ -61,7 +61,7 @@ export default function MapCanvas({
   // Phase 1: Engine data is read DIRECTLY from the engine singleton in the render loop
   // We use hooks only for initialization and non-realtime settings
   useGame(); 
-  const { playerRef, playerRenderPosition, isMoving: isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, playerFieldOfView } = usePlayer();
+  const { player, playerRef, playerRenderPosition, isMoving: isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, playerFieldOfView } = usePlayer();
   const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, setHoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
   const { effects, addEffect } = useVisualEffects();
@@ -709,9 +709,16 @@ export default function MapCanvas({
     }
   }, [gameMapRef, cameraRef, calculateTileSize, onCellRightClick]);
 
-  // Setup effect listeners for player actions
+  // Setup effect listeners for player actions.
+  // Bound to the reactive `player` value (from usePlayer()'s memoized context),
+  // NOT playerRef.current: a plain ref mutation doesn't cause a re-render, so
+  // using playerRef.current as a dependency lags one render cycle behind the
+  // actual engine.player swap (e.g. right after a new game starts post-death).
+  // During that lag window this effect would stay bound to the OLD, detached
+  // player object — so a stray takeDamage() call still in flight from the old
+  // game (see the runIdRef guards in GameContext/SleepContext) could fire a
+  // "ghost" damage flash at the old player's frozen coordinates on the new map.
   useEffect(() => {
-    const player = playerRef.current;
     if (!player || !addEffect) return;
 
     // Handle damage taken to trigger visual effects
@@ -759,7 +766,7 @@ export default function MapCanvas({
 
     player.on('damageTaken', handleDamageTaken);
     return () => player.off('damageTaken', handleDamageTaken);
-  }, [playerRef.current, addEffect]);
+  }, [player, addEffect]);
 
   // Preload entity images on initialization
   useEffect(() => {

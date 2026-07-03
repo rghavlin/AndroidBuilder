@@ -448,13 +448,36 @@ export class WorldManager extends SafeEventEmitter {
         );
         if (customTransition) {
           const isTutorialEnd = customTransition.targetType === 'tutorial_end';
+          const targetId = isTutorialEnd ? 'BranchingRoadGenerator' : customTransition.targetId;
+          const targetType = isTutorialEnd ? 'generator' : customTransition.targetType;
+          
+          let spawnPosition = { x: 22, y: 123 };
+          if (targetType === 'generator') {
+            const generatorToTemplate = {
+              'BranchingRoadGenerator': 'branching_road',
+              'LabMapGenerator': 'lab',
+              'MirroredWindingRoadGenerator': 'mirrored_winding_road',
+              'RoadGenerator': 'road',
+              'SplitRoadGenerator': 'split_road',
+              'StartingRoadGenerator': 'starting_road',
+              'WindingRoadGenerator': 'winding_road'
+            };
+            const nextTemplate = generatorToTemplate[targetId];
+            const nextMeta = TEMPLATE_METADATA[nextTemplate];
+            if (nextMeta) {
+              const nextHeight = nextMeta.size?.height ?? 125;
+              const nextSpawnX = nextMeta.southEntranceX ?? 22;
+              spawnPosition = { x: nextSpawnX, y: nextHeight - 2 };
+            }
+          }
+
           return {
             direction: 'north',
             position: { x: playerX, y: playerY },
-            nextMapId: isTutorialEnd ? 'BranchingRoadGenerator' : customTransition.targetId,
-            spawnPosition: { x: 22, y: 123 },
+            nextMapId: targetId,
+            spawnPosition,
             isCustom: true,
-            targetType: isTutorialEnd ? 'generator' : customTransition.targetType,
+            targetType,
             level: isTutorialEnd ? 1 : customTransition.level,
             isTutorialEnd,
           };

@@ -42,8 +42,8 @@ export default function FloatingContainerOverlay({
   // Get the internal container of the wagon/sled
   const containerGrid = item.getContainerGrid?.();
   
-   const isDragging = engine?.dragging?.item.instanceId === item.instanceId;
-   const isRidden = engine?.riding?.item.instanceId === item.instanceId;
+   const isDragging = engine?.dragging?.item?.instanceId === item.instanceId;
+   const isRidden = engine?.riding?.item?.instanceId === item.instanceId;
    const isWagon = item.hasTrait?.(ItemTrait.VEHICLE);
    const isPlanter = item.hasTrait?.(ItemTrait.PLANTER);
    const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);

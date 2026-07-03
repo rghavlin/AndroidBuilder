@@ -1,24 +1,8 @@
 import { gameRandom } from '../utils/SeededRandom.js';
 export class FireSystem {
-  static processTileFires(gameMap) {
-    if (!gameMap || !gameMap.tiles) return;
-    
-    // Iterate over all tiles
-    for (let x = 0; x < gameMap.width; x++) {
-      for (let y = 0; y < gameMap.height; y++) {
-        const tile = gameMap.getTile(x, y);
-        if (tile && tile.fireTurns > 0) {
-          tile.fireTurns--;
-          if (tile.fireTurns <= 0) {
-            // Extinguish, could leave ashes or emit an event
-            if (gameMap.engine) {
-               gameMap.engine.emit('tileFireExtinguished', { x, y });
-            }
-          }
-        }
-      }
-    }
-  }
+  // NOTE: tile-fire ticking lives on GameMap.processTileFires(), which iterates
+  // the sparse gameMap.activeFires index and self-cleans extinguished tiles.
+  // ignite() below is the single registrar for that index.
 
   static processEntityFires(gameMap) {
     if (!gameMap) return;
@@ -61,6 +45,11 @@ export class FireSystem {
     // If it's a tile
     if (target.x !== undefined && target.y !== undefined && typeof target.getComponent !== 'function') {
       target.fireTurns = turns;
+      // Register in the sparse active-fire index so processTileFires (which
+      // iterates only active fires) ticks and eventually extinguishes it.
+      if (target.gameMap?.activeFires) {
+        target.gameMap.activeFires.add(`${target.x},${target.y}`);
+      }
       return;
     }
 

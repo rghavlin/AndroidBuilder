@@ -749,7 +749,7 @@ const GameContextInner = ({ children }) => {
    * Phase 3 Refactor: Playback Phase
    * Plays out the actionQueue visually to the player.
    */
-  const playbackTurn = useCallback(async (actionQueue, demandTriggered, newTurn, nextIsNight) => {
+  const playbackTurn = useCallback(async (actionQueue, demandTriggered, newTurn, nextIsNight, runIdAtStart = runIdRef.current) => {
     const gameMap = engine.gameMap;
     const player = engine.player;
 
@@ -757,7 +757,7 @@ const GameContextInner = ({ children }) => {
     setTurnPhase('ANIMATING');
     engine.turnPhase = 'ANIMATING'; // Phase 28 Fix: Immediate sync
     setIsAnimatingZombies(true);
-    
+
     try {
       // Convert old actionQueue if it's still in the old format (defensive)
       const flatActions = Array.isArray(actionQueue) ? actionQueue : [
@@ -768,6 +768,19 @@ const GameContextInner = ({ children }) => {
       ];
 
       await turnManager.processQueue(flatActions, { gameMap, player, addEffect, addLog });
+
+      // A new game can start (bumping runIdRef) while the await above is
+      // in flight — cancelPlayback() stops the animation queue quickly but
+      // doesn't stop THIS function from resuming afterward. Without this
+      // check, the code below would write this stale turn's captured player
+      // stats onto whatever engine.player now is (the freshly-initialized
+      // new game's player), and force engine.turnPhase back to PLAYER_TURN
+      // regardless of the new game's own init state. This is the exact
+      // "old game plays on in the background after dying + New Game" bug.
+      if (runIdRef.current !== runIdAtStart) {
+        console.warn('[GameContext] 🚫 playbackTurn resumed for a stale run; skipping post-playback engine sync.');
+        return;
+      }
 
       // 4. Sync UI & State
       updatePlayerStats({
@@ -797,14 +810,19 @@ const GameContextInner = ({ children }) => {
       console.log('[GameContext] 🎬 Playback actions complete, notifying update...');
       engine.notifyUpdate();
     } finally {
-      // Ensure visual sync before release
+      // Visual sync of the captured (possibly detached/stale) gameMap's entities
+      // is harmless even for a stale run — it never touches the live engine.
       gameMap.entityMap.forEach(e => {
         if (typeof e.endTurn === 'function') e.endTurn();
         if (typeof e.syncVisualState === 'function') e.syncVisualState();
       });
 
-      // Safety Reset: Ensure the singleton is NOT left in ANIMATING state if playback finishes/crashes
-      engine.turnPhase = 'PLAYER_TURN';
+      // Safety Reset: Ensure the singleton is NOT left in ANIMATING state if
+      // playback finishes/crashes. Only for the run that's still current —
+      // a stale run must never overwrite a fresh game's turnPhase.
+      if (runIdRef.current === runIdAtStart) {
+        engine.turnPhase = 'PLAYER_TURN';
+      }
     }
   }, [updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, triggerMapUpdate, performAutosave, isFlashlightOnActual, setTurn, setTurnPhase]);
 
@@ -854,7 +872,7 @@ const GameContextInner = ({ children }) => {
           demandTriggered
       });
 
-      await playbackTurn(actionQueue, demandTriggered, newTurn, nextIsNight);
+      await playbackTurn(actionQueue, demandTriggered, newTurn, nextIsNight, myRunId);
 
       // Abort if a new game was started while this turn was playing back.
       if (myRunId !== runIdRef.current) {
@@ -1799,6 +1817,11 @@ const GameContextInner = ({ children }) => {
     animateVisibleNPCs,
     isFlashlightOnActual,
     isNightVisionActual,
+    // Stable ref (identity never changes) bumped on every new-game/restart.
+    // Lets long-running async loops that capture engine.player/engine.gameMap
+    // once (e.g. SleepContext.performSleep) detect a mid-flight new game and
+    // stop applying their stale results to the live engine.
+    runIdRef,
     getActiveFlashlightRange,
     clearNPCAnimations,
 

@@ -36,6 +36,29 @@ export class SeededRandom {
   }
 
   /**
+   * Get the current internal state (the mulberry32 working value, distinct from
+   * the original seed passed to seed()). Save this alongside the original seed
+   * so a reload can resume the EXACT point in the stream instead of restarting
+   * it — re-seeding to the original value on every load makes every subsequent
+   * AI/world-gen roll replay identically, which is save-scummable.
+   * @returns {number}
+   */
+  getState() {
+    return this._state;
+  }
+
+  /**
+   * Restore a previously captured state (from getState()), continuing the
+   * stream from that exact point rather than replaying from the original seed.
+   * @param {number} state
+   */
+  setState(state) {
+    if (typeof state === 'number' && !isNaN(state)) {
+      this._state = state >>> 0;
+    }
+  }
+
+  /**
    * Returns the next float in [0, 1). Core PRNG (mulberry32).
    * @returns {number}
    */
