@@ -509,19 +509,34 @@ function investigate(ctx) {
   if (!aiBehavior.currentPath || aiBehavior.currentPath.length <= 1) {
     needRecalculate = true;
   } else {
-    const cachedTarget = aiBehavior.currentPath[aiBehavior.currentPath.length - 1];
-    if (cachedTarget.x !== targetX || cachedTarget.y !== targetY) {
+    // Fast-forward the path so currentPath[0] matches the zombie's actual physical position.
+    // If the zombie was pushed/teleported off the path, this forces a recalculation.
+    const currentIndex = aiBehavior.currentPath.findIndex(p => p.x === zombiePos.x && p.y === zombiePos.y);
+    if (currentIndex === -1) {
       needRecalculate = true;
     } else {
-      const nextStep = aiBehavior.currentPath[1];
-      const tile = gameMap.getTile(nextStep.x, nextStep.y);
-      if (!tile) {
+      if (currentIndex > 0) {
+        aiBehavior.currentPath = aiBehavior.currentPath.slice(currentIndex);
+      }
+      
+      if (aiBehavior.currentPath.length <= 1) {
         needRecalculate = true;
       } else {
-        const isWalkable = Pathfinding.isTileWalkable(tile, entity, { isZombie: true });
-        const isEdgeBlocked = Pathfinding.isEdgeBlocked(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y, entity, { isZombie: true });
-        if (!isWalkable || isEdgeBlocked) {
+        const cachedTarget = aiBehavior.currentPath[aiBehavior.currentPath.length - 1];
+        if (cachedTarget.x !== targetX || cachedTarget.y !== targetY) {
           needRecalculate = true;
+        } else {
+          const nextStep = aiBehavior.currentPath[1];
+          const tile = gameMap.getTile(nextStep.x, nextStep.y);
+          if (!tile) {
+            needRecalculate = true;
+          } else {
+            const isWalkable = Pathfinding.isTileWalkable(tile, entity, { isZombie: true });
+            const isEdgeBlocked = Pathfinding.isEdgeBlocked(gameMap, zombiePos.x, zombiePos.y, nextStep.x, nextStep.y, entity, { isZombie: true });
+            if (!isWalkable || isEdgeBlocked) {
+              needRecalculate = true;
+            }
+          }
         }
       }
     }
@@ -547,8 +562,7 @@ function investigate(ctx) {
       }
     } else if (currentAP >= moveCost) {
       ctx.enqueue('MoveIntent', new MoveIntent({ dx: nextStep.x - zombiePos.x, dy: nextStep.y - zombiePos.y }));
-      // Shift the position off the cached path since we successfully enqueued a move
-      aiBehavior.currentPath.shift();
+      // We no longer shift here. The path is fast-forwarded based on actual position next turn.
     }
   } else {
     // Path blocked or no path: give up this target and wander.

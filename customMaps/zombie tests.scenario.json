@@ -1,5 +1,5 @@
 {
-  "name": "Zombie detection test 2",
+  "name": "zombie tests",
   "width": 20,
   "height": 20,
   "noAutosave": true,
@@ -1290,21 +1290,21 @@
       {
         "x": 6,
         "y": 5,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 5,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -1314,9 +1314,9 @@
       {
         "x": 8,
         "y": 5,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -1326,9 +1326,9 @@
       {
         "x": 9,
         "y": 5,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -1338,10 +1338,10 @@
       {
         "x": 10,
         "y": 5,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
-          "e": true,
+          "n": false,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -1532,19 +1532,19 @@
       {
         "x": 6,
         "y": 6,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 6,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1556,7 +1556,7 @@
       {
         "x": 8,
         "y": 6,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1568,7 +1568,7 @@
       {
         "x": 9,
         "y": 6,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1580,10 +1580,10 @@
       {
         "x": 10,
         "y": 6,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -1774,23 +1774,23 @@
       {
         "x": 6,
         "y": 7,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
-          "w": true
+          "s": false,
+          "w": false
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 7,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -1798,11 +1798,11 @@
       {
         "x": 8,
         "y": 7,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -1810,11 +1810,11 @@
       {
         "x": 9,
         "y": 7,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -1822,11 +1822,11 @@
       {
         "x": 10,
         "y": 7,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
-          "s": true,
+          "e": false,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3698,21 +3698,21 @@
       {
         "x": 5,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -3722,9 +3722,9 @@
       {
         "x": 7,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -3734,9 +3734,9 @@
       {
         "x": 8,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -3746,9 +3746,9 @@
       {
         "x": 9,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -3758,9 +3758,9 @@
       {
         "x": 10,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -3770,10 +3770,10 @@
       {
         "x": 11,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
-          "e": true,
+          "n": false,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3940,19 +3940,19 @@
       {
         "x": 5,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3964,7 +3964,7 @@
       {
         "x": 7,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3976,7 +3976,7 @@
       {
         "x": 8,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3988,7 +3988,7 @@
       {
         "x": 9,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4000,7 +4000,7 @@
       {
         "x": 10,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4012,10 +4012,10 @@
       {
         "x": 11,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -4182,19 +4182,19 @@
       {
         "x": 5,
         "y": 17,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 17,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4206,7 +4206,7 @@
       {
         "x": 7,
         "y": 17,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4218,7 +4218,7 @@
       {
         "x": 8,
         "y": 17,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4230,7 +4230,7 @@
       {
         "x": 9,
         "y": 17,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4242,7 +4242,7 @@
       {
         "x": 10,
         "y": 17,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4254,10 +4254,10 @@
       {
         "x": 11,
         "y": 17,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -4424,23 +4424,23 @@
       {
         "x": 5,
         "y": 18,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
-          "w": true
+          "s": false,
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 18,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4448,11 +4448,11 @@
       {
         "x": 7,
         "y": 18,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4460,11 +4460,11 @@
       {
         "x": 8,
         "y": 18,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4472,11 +4472,11 @@
       {
         "x": 9,
         "y": 18,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4484,11 +4484,11 @@
       {
         "x": 10,
         "y": 18,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4496,11 +4496,11 @@
       {
         "x": 11,
         "y": 18,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
-          "s": true,
+          "e": false,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4848,29 +4848,14 @@
   "metadata": {
     "buildings": [],
     "specialBuildings": [],
-    "doors": [
-      {
-        "x": 8,
-        "y": 7,
-        "isLocked": false,
-        "isOpen": false,
-        "edge": "s"
-      },
-      {
-        "x": 8,
-        "y": 15,
-        "isLocked": false,
-        "isOpen": false,
-        "edge": "n"
-      }
-    ],
+    "doors": [],
     "windows": [],
     "placeIcons": [],
     "spawnZones": {
       "playerStart": [
         {
-          "x": 6,
-          "y": 15
+          "x": 9,
+          "y": 11
         }
       ]
     }
@@ -4878,15 +4863,14 @@
   "entities": [
     {
       "type": "zombie",
-      "x": 8,
-      "y": 5,
-      "subtype": "basic",
-      "deaf": true
+      "x": 9,
+      "y": 8,
+      "subtype": "spitter"
     },
     {
       "type": "player",
-      "x": 6,
-      "y": 15,
+      "x": 9,
+      "y": 11,
       "subtype": null
     }
   ],

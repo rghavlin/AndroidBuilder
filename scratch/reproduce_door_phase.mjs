@@ -22,10 +22,10 @@ function build({ withEdgeWalls }) {
   gameMap.addEntity(player, 5, 2);
 
   // Two zombies stuck outside, both near the door.
-  const zA = EntityFactory.createZombie(5, 5, 'basic', 'zA'); // cardinal to door
-  const zB = EntityFactory.createZombie(4, 5, 'basic', 'zB'); // beside the door
-  gameMap.addEntity(zA, 5, 5);
-  gameMap.addEntity(zB, 4, 5);
+  const zA = EntityFactory.createZombie(5, 6, 'basic', 'zA'); // cardinal to door
+  const zB = EntityFactory.createZombie(4, 6, 'basic', 'zB'); // beside the door
+  gameMap.addEntity(zA, 5, 6);
+  gameMap.addEntity(zB, 4, 6);
 
   // Full wall along the whole boundary.
   for (let x = 0; x < 14; x++) {
@@ -40,6 +40,8 @@ function build({ withEdgeWalls }) {
   }
 
   const door = new Door('door-5-4-s', 5, 4, false, false, false, 's');
+  door.maxHp = 999;
+  door.hp = 999;
   gameMap.addEntity(door, 5, 4);
 
   return { gameMap, player, zA, zB, door };
@@ -52,7 +54,7 @@ function run({ withEdgeWalls }) {
 
   for (let t = 1; t <= 8 && !phased; t++) {
     [zA, zB].forEach(z => z.startTurn());
-    let tick = 0;
+    zA.setTargetSighted(5,2); zB.setTargetSighted(5,2); let tick = 0;
     while ((zA.currentAP > 0.05 || zB.currentAP > 0.05) && tick < 40) {
       tick++;
       VisionSystem.process(ecs, engine.worldManager, engine);
