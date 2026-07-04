@@ -78,6 +78,16 @@ function GameScreenContent() {
     }
   }, [initializationState, isGameReady, showStartMenu]);
 
+  // Show start menu when game is shut down/exited
+  useEffect(() => {
+    const handleShutdown = () => {
+      console.log('[GameScreenContent] Game shutdown event received, showing start menu');
+      setShowStartMenu(true);
+    };
+    window.addEventListener('game-shutdown', handleShutdown);
+    return () => window.removeEventListener('game-shutdown', handleShutdown);
+  }, []);
+
   const handleStartGame = async (mode?: boolean | string) => {
     // Don't hide menu here - let the effect above do it when state changes
 

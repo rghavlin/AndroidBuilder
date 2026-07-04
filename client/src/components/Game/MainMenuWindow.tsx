@@ -6,7 +6,7 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import OptionsWindow from './OptionsWindow';
 import HelpWindow from './HelpWindow';
 import LoadGameWindow from './LoadGameWindow';
-import { X, Settings, HelpCircle } from "lucide-react";
+import { X, Settings, HelpCircle, LogOut } from "lucide-react";
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 
 interface MainMenuWindowProps {
@@ -14,7 +14,7 @@ interface MainMenuWindowProps {
 }
 
 export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
-    const { initializeGame, loadGameDirect } = useGame();
+    const { initializeGame, loadGameDirect, shutdownGame } = useGame();
     const [isLoading, setIsLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
@@ -73,6 +73,12 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
         setIsLoading(false);
     };
 
+    const handleReturnToStartMenu = () => {
+        if (shutdownGame) {
+            shutdownGame();
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-auto">
             <Card className="w-96 metal-panel border-border shadow-2xl relative">
@@ -106,6 +112,16 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                         data-testid="button-menu-load-game"
                     >
                         {isLoading ? 'Loading...' : 'Load Game'}
+                    </Button>
+
+                    <Button
+                        onClick={handleReturnToStartMenu}
+                        disabled={isLoading}
+                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
+                        data-testid="button-menu-return-to-start"
+                    >
+                        <LogOut className="h-5 w-5" />
+                        Return to Start Menu
                     </Button>
 
                     <Button

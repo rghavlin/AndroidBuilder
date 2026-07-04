@@ -4,6 +4,7 @@ import StartModeDialog from '../components/Game/StartModeDialog.tsx';
 import { SimulationManager } from '../game/managers/SimulationManager.js';
 import turnManager from '../game/managers/TurnManager.js';
 import audioManager from '../game/utils/AudioManager.js';
+import musicManager from '../game/utils/MusicManager.js';
 import { GameSaveSystem } from '../game/GameSaveSystem.js';
 import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
@@ -1762,6 +1763,46 @@ const GameContextInner = ({ children }) => {
     return success;
   }, [mapTransitionConfirm, updatePlayerFieldOfView, updatePlayerCardinalPositions, cancelMovement, setCameraWorldBounds, inventoryManager, isNight, isFlashlightOn, getActiveFlashlightRange, isNightVisionActual]);
 
+  const shutdownGame = useCallback(() => {
+    console.log('[GameContext] 🔌 shutdownGame requested - resetting states and engine');
+
+    // Invalidate any ongoing async runs
+    runIdRef.current += 1;
+
+    // Stop playback, music, and all sounds
+    turnManager.cancelPlayback();
+    audioManager.stopAllSounds();
+    if (musicManager && typeof musicManager.stop === 'function') {
+      musicManager.stop();
+    }
+
+    // Reset game initialization manager
+    if (initManagerRef.current && typeof initManagerRef.current.reset === 'function') {
+      initManagerRef.current.reset();
+    }
+
+    // Reset core engine state
+    engine.reset();
+
+    // Reset local state variables
+    setIsGameReady(false);
+    setInitializationState('idle');
+    setInitializationError(null);
+    setIsDefeated(false);
+    setIsPlayerTurn(true);
+    setIsAnimatingZombies(false);
+    setIsFlashlightOn(false);
+    isProcessingTurnRef.current = false;
+    setIsProcessingTurn(false);
+    setContextSyncPhase('idle');
+
+    // Clear all active overlays
+    resetAll();
+
+    // Dispatch global event for GameScreen to show the start menu
+    window.dispatchEvent(new CustomEvent('game-shutdown'));
+  }, [resetAll]);
+
   const contextValue = useMemo(() => ({
     // Game lifecycle state only
     isInitialized,
@@ -1796,6 +1837,7 @@ const GameContextInner = ({ children }) => {
     endTurn,
     spawnTestEntities,
     spawnInitialZombies,
+    shutdownGame,
 
     // Save/Load orchestration
     saveGame,
@@ -1873,6 +1915,7 @@ const GameContextInner = ({ children }) => {
     endTurn,
     spawnTestEntities,
     spawnInitialZombies,
+    shutdownGame,
     saveGame,
     loadGame,
     loadGameDirect,
