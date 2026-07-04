@@ -561,14 +561,14 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         {/* NPC Context Menu */}
         {npcMenu && (
           <div
-            className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32 animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-[10002] bg-popover border border-border rounded-md shadow-lg py-1 w-32 animate-in fade-in zoom-in-95 duration-100"
             style={{ left: npcMenu.screenX, top: npcMenu.screenY }}
             onMouseLeave={() => setNpcMenu(null)}
           >
             {npcMenu.npc.typeId === 'shopkeeper' || npcMenu.npc.isShopkeeper ? (
               <button
                 disabled={typeof npcMenu.npc.isHostileTo === 'function' ? npcMenu.npc.isHostileTo(playerRef.current) : false}
-                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
                   if (!isPlayerTurn) return;
                   setIsShopOpen(true);
@@ -581,7 +581,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             ) : npcMenu.npc.isTollGuard ? (
               <button
                 disabled={typeof npcMenu.npc.isHostileTo === 'function' ? npcMenu.npc.isHostileTo(playerRef.current) : false}
-                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
                   if (!isPlayerTurn) return;
                   setTollGuard(npcMenu.npc);
@@ -593,7 +593,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               </button>
             ) : (
               <button
-                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors font-bold uppercase tracking-wider"
+                className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors font-bold uppercase tracking-wider"
                 onClick={() => {
                   if (!isPlayerTurn) return;
                   setActiveTradeNpc(npcMenu.npc);
@@ -658,12 +658,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       {/* Door Context Menu */}
       {doorMenu && (
         <div
-          className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32"
+          className="fixed z-[10002] bg-popover border border-border rounded-md shadow-lg py-1 w-32"
           style={{ left: doorMenu.screenX, top: doorMenu.screenY }}
           onMouseLeave={() => setDoorMenu(null)}
         >
           <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+            className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
             onClick={() => {
               if (!isPlayerTurn) return;
               const gameMap = gameMapRef.current;
@@ -747,7 +747,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           </button>
           {doorMenu.door.isLocked && !doorMenu.door.isOpen && (
             <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+            className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
               onClick={() => {
                 if (!isPlayerTurn) return;
                 const gameMap = gameMapRef.current;
@@ -802,7 +802,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             className={`w-full text-left px-3 py-2 text-sm transition-colors ${
               doorMenu.door.hp >= 40 
                 ? 'text-zinc-500 cursor-not-allowed' 
-                : 'text-white hover:bg-accent focus:bg-accent'
+                : 'text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent'
             }`}
             onClick={() => {
               if (!isPlayerTurn) return;
@@ -879,7 +879,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             {doorMenu.door.hp >= 40 ? 'Fully Reinforced' : `Repair/reinforce (5ap)`}
           </button>
           <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors border-t border-border mt-1"
             onClick={() => setDoorMenu(null)}
           >
             Cancel
@@ -890,7 +890,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       {/* Window Context Menu */}
       {windowMenu && (
         <div
-          className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32"
+          className="fixed z-[10002] bg-popover border border-border rounded-md shadow-lg py-1 w-32"
           style={{ left: windowMenu.screenX, top: windowMenu.screenY }}
           onMouseLeave={() => setWindowMenu(null)}
         >
@@ -899,8 +899,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               disabled={windowMenu.window.isBroken && windowMenu.window.isOpen}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                 (windowMenu.window.isBroken && windowMenu.window.isOpen)
-                  ? 'text-zinc-500 cursor-not-allowed'
-                  : 'text-white hover:bg-accent focus:bg-accent'
+                  ? 'text-muted-foreground cursor-not-allowed'
+                  : 'text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent'
               }`}
               onClick={() => {
                 if (windowMenu.window.isBroken && windowMenu.window.isOpen) return;
@@ -959,7 +959,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
           {windowMenu.window.isBroken && !windowMenu.window.isOpen && (
             <button
-              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+              className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
               onClick={() => {
                 if (!isPlayerTurn) return;
                 const gameMap = gameMapRef.current;
@@ -1010,7 +1010,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
           {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !(windowMenu.window.isReinforced && windowMenu.window.reinforcementHp > 0) && (
             <button
-              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+              className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
               onClick={() => {
                 if (!isPlayerTurn) return;
                 const gameMap = gameMapRef.current;
@@ -1112,10 +1112,10 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
           {/* Reinforce Window Option */}
           <button
-            className={`w-full text-left px-3 py-2 text-sm transition-colors border-t border-[#333] mt-1 ${
+            className={`w-full text-left px-3 py-2 text-sm transition-colors border-t border-border mt-1 ${
               windowMenu.window.reinforcementHp >= 20 
                 ? 'text-zinc-500 cursor-not-allowed' 
-                : 'text-white hover:bg-accent focus:bg-accent'
+                : 'text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent'
             }`}
             onClick={() => {
               if (!isPlayerTurn) return;
@@ -1188,7 +1188,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
           {windowMenu.window.isLocked && !windowMenu.window.isOpen && !windowMenu.window.isBroken && (
             <button
-              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+              className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
               onClick={() => {
               if (!isPlayerTurn) return;
               const gameMap = gameMapRef.current;
@@ -1238,7 +1238,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             </button>
           )}
           <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors border-t border-border mt-1"
             onClick={() => setWindowMenu(null)}
           >
             Cancel
@@ -1248,12 +1248,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       {/* Water Context Menu */}
       {waterMenu && (
         <div
-          className="fixed z-[10002] bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg py-1 w-32"
+          className="fixed z-[10002] bg-popover border border-border rounded-md shadow-lg py-1 w-32"
           style={{ left: waterMenu.screenX, top: waterMenu.screenY }}
           onMouseLeave={() => setWaterMenu(null)}
         >
           <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors"
+            className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
             onClick={() => {
               if (!isPlayerTurn) return;
               const player = playerRef.current;
@@ -1426,7 +1426,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             Fill Bottle
           </button>
           <button
-            className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent focus:bg-accent transition-colors border-t border-[#333] mt-1"
+            className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors border-t border-border mt-1"
             onClick={() => setWaterMenu(null)}
           >
             Cancel
@@ -1553,7 +1553,7 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
       {isRabbitVisible && <RabbitTooltip rabbit={rabbit as any} />}
       
       {/* Downward arrow/pointer */}
-      <div className="w-2.5 h-2.5 bg-[#1a1a1a] border-r border-b border-white/20 transform rotate-45 -mt-3.5 shadow-lg" />
+      <div className="w-2.5 h-2.5 bg-popover border-r border-b border-border transform rotate-45 -mt-3.5 shadow-lg" />
     </div>,
     tooltipRoot
   );

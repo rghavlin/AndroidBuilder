@@ -22,7 +22,7 @@ export function TradeDialog({ npc, onClose, onStartBarter }: TradeDialogProps) {
       {/* Click outside to close (neutral only maybe? but keeping simple for now) */}
       <div className="absolute inset-0" onClick={onClose} />
       
-      <div className="relative bg-[#121212] border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="relative bg-card border border-border rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header Header Header */}
         <div className={cn(
           "h-1.5 w-full",
@@ -32,24 +32,24 @@ export function TradeDialog({ npc, onClose, onStartBarter }: TradeDialogProps) {
         <div className="p-8">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+              <h3 className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em] mb-1">
                 Interaction: {isHostile ? 'Threat' : 'Barter'}
               </h3>
-              <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic">
+              <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase italic">
                 {npc.name}
               </h2>
             </div>
             <button 
               onClick={onClose}
-              className="p-1 hover:bg-white/10 rounded-full transition-colors"
+              className="p-1 hover:bg-muted rounded-full transition-colors"
             >
-              <X className="w-5 h-5 text-zinc-500" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
           
-          <div className="bg-white/5 border border-white/5 rounded-xl p-5 mb-8 relative">
-             <div className="absolute -top-3 left-4 bg-[#121212] px-2 text-[9px] font-bold text-zinc-600 uppercase tracking-widest italic">Message</div>
-             <p className="text-zinc-200 leading-relaxed font-medium">
+          <div className="bg-muted border border-border rounded-xl p-5 mb-8 relative">
+             <div className="absolute -top-3 left-4 bg-card px-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest italic">Message</div>
+             <p className="text-foreground leading-relaxed font-medium">
               {isHostile 
                 ? "\"I'm only going to say this once. Give me everything you've got. Backpack, weapons, all of it. Now. Or we find out how fast you bleed.\""
                 : "\"Hey there. Glad to see another face that isn't rotting. I've got a few supplies to spare if you've got the coin or trade. Interested?\""}
@@ -81,7 +81,7 @@ export function TradeDialog({ npc, onClose, onStartBarter }: TradeDialogProps) {
             
             <button 
               onClick={onClose}
-              className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white font-black rounded-lg transition-all uppercase tracking-widest text-[10px]"
+              className="w-full py-4 bg-secondary hover:bg-secondary/80 text-secondary-foreground hover:text-foreground font-black rounded-lg transition-all uppercase tracking-widest text-[10px]"
             >
               Decline & Walk Away
             </button>
@@ -89,8 +89,8 @@ export function TradeDialog({ npc, onClose, onStartBarter }: TradeDialogProps) {
         </div>
         
         {/* Footer decoration */}
-        <div className="bg-zinc-950 p-3 flex justify-center">
-            <span className="text-[8px] text-zinc-800 font-bold uppercase tracking-[0.5em]">End of Transmission</span>
+        <div className="bg-muted p-3 flex justify-center">
+            <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-[0.5em]">End of Transmission</span>
         </div>
       </div>
     </div>

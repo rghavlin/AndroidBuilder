@@ -77,26 +77,26 @@ export default function TollWindow({ guard, onClose }: TollWindowProps) {
           data-inventory-ui="true"
         >
           {/* Header (same shape as the Earbucks shop window) */}
-          <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-zinc-950/80">
+          <div className="px-4 py-3 border-b border-border flex justify-between items-center bg-muted/80">
             <div className="flex-1 mr-4">
-              <p className="text-xs text-zinc-300 font-medium italic leading-relaxed">
+              <p className="text-xs text-foreground font-medium italic leading-relaxed">
                 "Nobody passes without paying the toll. Leave enough and I'll let you through."
               </p>
             </div>
             <button
               onClick={handleCancel}
-              className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-red-500/20 border border-white/10 rounded-lg transition-all"
+              className="w-8 h-8 flex items-center justify-center bg-secondary hover:bg-red-500/20 border border-border rounded-lg transition-all"
             >
-              <X className="w-4 h-4 text-zinc-400" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
 
           {/* Deposit grid (large, scrollable) */}
-          <div className="flex-1 p-4 flex flex-col min-h-0 overflow-hidden bg-zinc-900/20">
+          <div className="flex-1 p-4 flex flex-col min-h-0 overflow-hidden bg-muted/20">
             <div className="px-1 mb-1">
-              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Toll Payment</h3>
+              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Toll Payment</h3>
             </div>
-            <div className="flex-1 bg-black/40 border border-white/5 rounded-lg overflow-hidden flex flex-col p-1 min-h-0">
+            <div className="flex-1 bg-background/40 border border-border rounded-lg overflow-hidden flex flex-col p-1 min-h-0">
               <ContainerGrid
                 containerId={containerId}
                 enableScroll
@@ -108,10 +108,10 @@ export default function TollWindow({ guard, onClose }: TollWindowProps) {
           </div>
 
           {/* Footer: hidden-target progress bar + Pay */}
-          <div className="px-6 py-3 border-t border-white/5 bg-zinc-950/80 flex items-center gap-6">
+          <div className="px-6 py-3 border-t border-border bg-muted/80 flex items-center gap-6">
             <div className="flex-1 flex flex-col gap-2">
               <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Toll Progress</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Toll Progress</span>
                 <span className={cn(
                   "text-[10px] font-black uppercase tracking-tighter",
                   canPay ? "text-emerald-400" : "text-amber-500"
@@ -119,7 +119,7 @@ export default function TollWindow({ guard, onClose }: TollWindowProps) {
                   {canPay ? "Enough" : "Not enough"}
                 </span>
               </div>
-              <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+              <div className="h-2.5 w-full bg-background rounded-full overflow-hidden p-0.5 border border-border">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-500",
@@ -137,7 +137,7 @@ export default function TollWindow({ guard, onClose }: TollWindowProps) {
                 "px-8 py-3 font-black rounded-lg transition-all uppercase tracking-widest text-[10px] shadow-lg flex-shrink-0 min-w-[140px]",
                 canPay
                   ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20"
-                  : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
               )}
             >
               Pay

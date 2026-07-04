@@ -20,6 +20,18 @@ import { ItemDefs } from "../../game/inventory/ItemDefs.js";
 import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
 import { GAP_SIZE } from "./constants";
+import { useTheme } from "../../contexts/ThemeContext";
+
+const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
+  if (!bgColor) return 'var(--card)';
+  if (theme === 'light') {
+    const lower = bgColor.toLowerCase();
+    if (lower === '#006b18') return '#639A88';
+    if (lower === '#8a0303') return '#C15C5C';
+    if (lower === '#0a2e5c') return '#5C8AB3';
+  }
+  return bgColor;
+};
 
 interface UniversalGridProps {
   containerId: string;
@@ -68,6 +80,7 @@ export default function UniversalGrid({
   tileImageUrl,
 }: UniversalGridProps) {
   const totalSlots = width * height;
+  const { theme } = useTheme();
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource, disassembleItem, pickSafeLock } = useInventory();
   const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel } = useAction();
@@ -977,7 +990,7 @@ export default function UniversalGrid({
               "absolute select-none z-10 transition-all duration-200 rounded-[3px] sunken-item-slab",
               "cursor-grab active:cursor-grabbing",
               hoveredItem === itemId ? "brightness-125 scale-[1.01]" : "",
-              isItemSelected ? "ring-2 ring-accent border-accent selected-item-overlay" : "",
+              isItemSelected ? (theme === 'light' ? "ring-2 ring-black border-black selected-item-overlay" : "ring-2 ring-accent border-accent selected-item-overlay") : "",
               !isItemSelected && isVehiclePulled ? "vehicle-pull-border" : "",
               !isItemSelected && isVehicleRidden ? "vehicle-ride-border" : ""
             )}
@@ -992,17 +1005,18 @@ export default function UniversalGrid({
               top: `${topPos}px`,
               width: `${gridWidth}px`,
               height: `${gridHeight}px`,
-              backgroundColor: item.backgroundColor || '#0a0a0a',
+              backgroundColor: getAdjustedBgColor(item.backgroundColor, theme),
             }}
           >
             {/* The trigger area for the context menu and tooltip is the entire item bounding box */}
             <div className="w-full h-full relative">
               {itemImageSrc && itemImageSrc !== 'failed' ? (
                 <img
+                  key={`${item.instanceId}:${theme}`}
                   src={itemImageSrc}
                   className={cn(
                     "absolute pointer-events-none select-none max-w-none",
-                    !item.backgroundColor && "mix-blend-screen"
+                    !item.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen")
                   )}
                   style={{
                     left: `${adjustedLeft - leftPos}px`,
@@ -1012,6 +1026,7 @@ export default function UniversalGrid({
                     objectFit: 'cover',
                     transform: transformStyle,
                     transformOrigin: 'top left',
+                    filter: (theme === 'light' && !item.backgroundColor) ? 'invert(1)' : undefined,
                   }}
                   alt={item.name}
                 />
@@ -1116,7 +1131,7 @@ export default function UniversalGrid({
     });
 
     return result;
-  }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick, inventoryVersion, hoveredItem]);
+  }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick, inventoryVersion, hoveredItem, theme]);
 
   if (gridType === 'scalable' && !isCalculated) {
     return (

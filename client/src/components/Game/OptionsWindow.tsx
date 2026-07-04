@@ -18,6 +18,7 @@ import musicManager from '@/game/utils/MusicManager';
 import { Slider } from "@/components/ui/slider";
 import { useGame } from '../../contexts/GameContext.jsx';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface OptionsWindowProps {
     onClose: () => void;
@@ -25,6 +26,7 @@ interface OptionsWindowProps {
 
 export default function OptionsWindow({ onClose }: OptionsWindowProps) {
     const { isGameReady, exportGame, loadGameFromStateData, getSerializedSaveData } = useGame();
+    const { theme, setTheme } = useTheme();
     const [activeTab, setActiveTab] = useState('audio');
     const [tempTileSet, setTempTileSet] = useState(imageLoader.tileSet);
     const [scaleToFit, setScaleToFit] = useState(() => {
@@ -256,6 +258,24 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                         </div>
                                         <p className="text-[10px] text-muted-foreground/60 italic px-1">
                                             Scale to Fit locks the aspect ratio to 16:9 and scales the interface to fit the viewport. Responsive stretches elements to fill the window.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">UI Theme</label>
+                                        <div className="flex gap-2">
+                                            <Select value={theme} onValueChange={(val) => setTheme(val as any)}>
+                                                <SelectTrigger className="flex-1 bg-muted/40 border-primary/10 hover:border-primary/30 transition-colors">
+                                                    <SelectValue placeholder="Select UI theme" />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[120]">
+                                                    <SelectItem value="dark">Dark Theme</SelectItem>
+                                                    <SelectItem value="light">Light Theme</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground/60 italic px-1">
+                                            Switch between Light and Dark interface modes.
                                         </p>
                                     </div>
                                 </div>

@@ -6,6 +6,7 @@ import NotFound from './pages/not-found';
 import DevConsole from './components/Game/DevConsole'; // Standard import
 import ScreenScaler from './components/Game/ScreenScaler';
 import { Toaster } from './components/ui/toaster';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Use hash-based routing for Electron
 const hashLocation = () => {
@@ -60,39 +61,41 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-full h-full w-full bg-background text-foreground relative">
-      <ScreenScaler>
-        <Router hook={useHashLocation}>
-          <Switch>
-            <Route path="/" component={Game} />
-            <Route path="/game" component={Game} />
-            <Route path="/editor" component={MapEditor} />
-            <Route component={NotFound} />
-          </Switch>
-        </Router>
+    <ThemeProvider>
+      <div className="min-h-full h-full w-full bg-background text-foreground relative">
+        <ScreenScaler>
+          <Router hook={useHashLocation}>
+            <Switch>
+              <Route path="/" component={Game} />
+              <Route path="/game" component={Game} />
+              <Route path="/editor" component={MapEditor} />
+              <Route component={NotFound} />
+            </Switch>
+          </Router>
 
-        {/* Global Dev Console - Completely decoupled from game logic layers */}
-        {isDevConsoleOpen && (
-          <DevConsole 
-            onClose={() => setIsDevConsoleOpen(false)}
-            onLaunch={(config) => {
-               console.log('[App] 🚀 Custom launch triggered from root App');
-               // Dispatch to whoever is listening (GameContext)
-               window.dispatchEvent(new CustomEvent('launch-custom-game', { detail: config }));
-               setIsDevConsoleOpen(false);
-            }}
-            isLoading={false} // Root App doesn't track loading, but console can handle its own state
-          />
-        )}
+          {/* Global Dev Console - Completely decoupled from game logic layers */}
+          {isDevConsoleOpen && (
+            <DevConsole 
+              onClose={() => setIsDevConsoleOpen(false)}
+              onLaunch={(config) => {
+                 console.log('[App] 🚀 Custom launch triggered from root App');
+                 // Dispatch to whoever is listening (GameContext)
+                 window.dispatchEvent(new CustomEvent('launch-custom-game', { detail: config }));
+                 setIsDevConsoleOpen(false);
+              }}
+              isLoading={false} // Root App doesn't track loading, but console can handle its own state
+            />
+          )}
 
-        {/* Portal root containers nested inside the scaling boundary */}
-        <div id="modal-root" className="absolute inset-0 pointer-events-none z-40"></div>
-        <div id="drag-root" className="absolute inset-0 pointer-events-none z-50"></div>
-        <div id="tooltip-root" className="absolute inset-0 pointer-events-none z-[60]"></div>
-        
-        <Toaster />
-      </ScreenScaler>
-    </div>
+          {/* Portal root containers nested inside the scaling boundary */}
+          <div id="modal-root" className="absolute inset-0 pointer-events-none z-40"></div>
+          <div id="drag-root" className="absolute inset-0 pointer-events-none z-50"></div>
+          <div id="tooltip-root" className="absolute inset-0 pointer-events-none z-[60]"></div>
+          
+          <Toaster />
+        </ScreenScaler>
+      </div>
+    </ThemeProvider>
   );
 }
 

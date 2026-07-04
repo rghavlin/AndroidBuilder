@@ -44,7 +44,7 @@ export function SplitDialog({ isOpen, onClose, item }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[325px] bg-[#1a1a1a] border-[#333] text-white z-[10001]">
+            <DialogContent className="sm:max-w-[325px] bg-card border-border text-foreground z-[10001]">
                 <DialogHeader>
                     <DialogTitle>Split Stack</DialogTitle>
                 </DialogHeader>
@@ -54,11 +54,11 @@ export function SplitDialog({ isOpen, onClose, item }) {
                             type="number"
                             value={amount}
                             onChange={handleInputChange}
-                            className="w-20 bg-[#2a2a2a] border-[#444] text-white focus:ring-accent"
+                            className="w-20 bg-muted border-border text-foreground focus:ring-accent"
                             min={1}
                             max={maxAmount}
                         />
-                        <span className="text-sm text-gray-400">/ {item.stackCount}</span>
+                        <span className="text-sm text-muted-foreground">/ {item.stackCount}</span>
                     </div>
                     <Slider
                         value={[amount]}
@@ -70,7 +70,7 @@ export function SplitDialog({ isOpen, onClose, item }) {
                     />
                 </div>
                 <DialogFooter className="gap-2 sm:gap-0">
-                    <Button variant="outline" onClick={onClose} className="border-[#444] text-gray-300 hover:bg-[#333]">
+                    <Button variant="outline" onClick={onClose} className="border-border text-muted-foreground hover:bg-secondary">
                         Cancel
                     </Button>
                     <Button onClick={handleConfirm} className="bg-accent hover:bg-accent/80 text-white">

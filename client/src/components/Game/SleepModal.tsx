@@ -27,9 +27,9 @@ export default function SleepModal() {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 pointer-events-auto">
-      <div className="bg-zinc-900 border border-white/10 p-6 rounded-lg max-w-sm w-full shadow-2xl">
-        <h2 className="text-xl font-bold text-white mb-4 uppercase tracking-wider">How long to sleep?</h2>
-        <p className="text-zinc-400 text-[10px] mb-4 uppercase">
+      <div className="bg-card border border-border p-6 rounded-lg max-w-sm w-full shadow-2xl">
+        <h2 className="text-xl font-bold text-foreground mb-4 uppercase tracking-wider">How long to sleep?</h2>
+        <p className="text-muted-foreground text-[10px] mb-4 uppercase">
           Max sleep based on energy: {maxSleepHours}h 
           {sleepMultiplier > 1 && <span className="text-green-500 ml-2">(+{(sleepMultiplier - 1) * 100}% bonus)</span>}
         </p>
@@ -39,7 +39,7 @@ export default function SleepModal() {
               key={hours}
               disabled={hours > maxSleepHours || buttonsDisabled}
               onClick={() => handleSleep(hours)}
-              className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold h-10 border border-white/5 disabled:opacity-20 disabled:grayscale"
+              className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold h-10 border border-border disabled:opacity-20 disabled:grayscale"
             >
               {hours}h
             </Button>

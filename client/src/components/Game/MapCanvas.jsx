@@ -42,6 +42,7 @@ export default function MapCanvas({
   const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
   const chunkCacheRef = useRef(new TileChunkCache());
   const lastRTileSizeRef = useRef(0);
+  const lastThemeRef = useRef(null);
 
   const renderMapRef = useRef(null);
   const handleMouseMoveRef = useRef(null);
@@ -86,19 +87,34 @@ export default function MapCanvas({
 
 
   // Define terrain colors (Grayscale Retro Palette for fallback)
-  const terrainColors = {
-    'grass': '#2a2a2a',    // Dark gray (but brighter than before)
-    'floor': '#555555',    // Medium gray
-    'wall': '#000000',     // Black (for high contrast edges)
-    'road': '#333333',     // Asphalt gray
-    'sidewalk': '#888888', // Light gray
-    'fence': '#444444',    // Dark gray
-    'building': '#aaaaaa', // Very light gray (walls)
-    'tent_wall': '#556b2f', // Olive Drab (for army tents)
-    'window': '#c0c0c0',   // Bright silver (terrain base)
-    'water': '#1b3a57',    // Muted slate blue
-    'sand': '#cccccc',     // Light silver
-    'tree': '#111111',     // Very dark
+  const isLightMode = document.documentElement.classList.contains('light');
+  const terrainColors = isLightMode ? {
+    'grass': '#e2e8f0',
+    'floor': '#f1f5f9',
+    'wall': '#475569',
+    'road': '#cbd5e1',
+    'sidewalk': '#94a3b8',
+    'fence': '#cbd5e1',
+    'building': '#94a3b8',
+    'tent_wall': '#cbd5e1',
+    'window': '#e2e8f0',
+    'water': '#38bdf8',
+    'sand': '#e2e8f0',
+    'tree': '#15803d',
+    'default': '#cbd5e1'
+  } : {
+    'grass': '#2a2a2a',
+    'floor': '#555555',
+    'wall': '#000000',
+    'road': '#333333',
+    'sidewalk': '#888888',
+    'fence': '#444444',
+    'building': '#aaaaaa',
+    'tent_wall': '#556b2f',
+    'window': '#c0c0c0',
+    'water': '#1b3a57',
+    'sand': '#cccccc',
+    'tree': '#111111',
     'default': '#222222'
   };
 
@@ -184,7 +200,14 @@ export default function MapCanvas({
 
       camera.updateViewportSize(logicalWidth, logicalHeight, baseTileSize);
 
-      ctx.fillStyle = '#111';
+      const isLight = document.documentElement.classList.contains('light');
+      const currentTheme = isLight ? 'light' : 'dark';
+      if (currentTheme !== lastThemeRef.current) {
+        chunkCacheRef.current.invalidateAll();
+        lastThemeRef.current = currentTheme;
+      }
+
+      ctx.fillStyle = isLight ? '#f5f5f7' : '#111';
       ctx.fillRect(0, 0, physicalWidth, physicalHeight);
 
       // 4. Rendering Layers

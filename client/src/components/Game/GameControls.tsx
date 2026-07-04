@@ -10,6 +10,7 @@ import { useAction } from '../../contexts/ActionContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { useOverlays } from '../../contexts/OverlayContext';
 import { getHourFromTurn } from '../../game/utils/TimeUtils.js';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface GameControlsProps {
   playerStats: {
@@ -41,25 +42,52 @@ interface StatBarProps {
   className?: string;
 }
 
-const StatBar = ({ label, current, max, suffix, className }: StatBarProps) => (
-  <div className={cn("flex flex-col gap-0.5", className)}>
-    <div className="flex justify-between items-baseline px-0.5">
-      <div className="flex items-baseline gap-1.5 overflow-hidden">
-        <span className="text-[9px] font-black text-white/40 uppercase tracking-tight whitespace-nowrap">{label}</span>
-        {suffix && <div className="flex-1 shrink-0">{suffix}</div>}
+const StatBar = ({ label, current, max, suffix, className }: StatBarProps) => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
+  let barFillClass = isLight ? "bg-foreground" : "bg-white";
+  if (isLight && label.toLowerCase() === 'health') {
+    barFillClass = ""; // Use inline style for custom sage green color
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-0.5", className)}>
+      <div className="flex justify-between items-baseline px-0.5">
+        <div className="flex items-baseline gap-1.5 overflow-hidden">
+          <span className={cn(
+            "text-[9px] font-black uppercase tracking-tight whitespace-nowrap",
+            isLight ? "text-muted-foreground/60" : "text-white/40"
+          )}>{label}</span>
+          {suffix && <div className="flex-1 shrink-0">{suffix}</div>}
+        </div>
+        <span className={cn(
+          "text-[10px] font-bold tabular-nums shrink-0",
+          isLight ? "text-foreground" : "text-white/80"
+        )}>
+          {Number.isInteger(current) ? current : current.toFixed(1)}
+          <span className={cn("mx-0.5 text-[8px]", isLight ? "text-muted-foreground/30" : "text-white/20")}>/</span>
+          {max}
+        </span>
       </div>
-      <span className="text-[10px] font-bold text-white/80 tabular-nums shrink-0">
-        {Number.isInteger(current) ? current : current.toFixed(1)}<span className="text-white/20 mx-0.5 text-[8px]">/</span>{max}
-      </span>
+      <div className={cn(
+        "h-2 w-full rounded-sm overflow-hidden border p-[1px]",
+        isLight ? "bg-muted border-border" : "bg-zinc-800/80 border-white/5"
+      )}>
+        <div 
+          className={cn(
+            "h-full transition-all duration-500 ease-out rounded-[1px]",
+            barFillClass
+          )} 
+          style={{ 
+            width: `${Math.min(100, Math.max(0, (current / max) * 100))}%`,
+            ...(isLight && label.toLowerCase() === 'health' ? { backgroundColor: '#639A88' } : {})
+          }} 
+        />
+      </div>
     </div>
-    <div className="h-2 w-full bg-zinc-800/80 rounded-sm overflow-hidden border border-white/5 p-[1px]">
-      <div 
-        className="h-full bg-white transition-all duration-500 ease-out rounded-[1px]" 
-        style={{ width: `${Math.min(100, Math.max(0, (current / max) * 100))}%` }} 
-      />
-    </div>
-  </div>
-);
+  );
+};
 
 export default function GameControls({ 
   playerStats: demoStats, 
@@ -68,6 +96,7 @@ export default function GameControls({
 }: GameControlsProps) {
   
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
+  const { theme } = useTheme();
   const { 
     turn, 
     endTurn, 
@@ -121,10 +150,10 @@ export default function GameControls({
   const sleepDisabled = buttonsDisabled || currentStats.energy >= 25;
 
   return (
-    <div className="unified-footer px-4 py-1 flex items-center h-[82px] w-full shadow-[0_-8px_25px_rgba(0,0,0,0.8)] z-20" data-testid="game-controls">
+    <div className="unified-footer px-4 py-1 flex items-center h-[82px] w-full shadow-[0_-8px_25px_rgba(0,0,0,0.15)] dark:shadow-[0_-8px_25px_rgba(0,0,0,0.8)] z-20" data-testid="game-controls">
       
       {/* 1. Primary Actions Group */}
-      <div className="flex items-center gap-2 pr-4 border-r border-white/10 h-full">
+      <div className="flex items-center gap-2 pr-4 border-r border-border dark:border-white/10 h-full">
         {/* End Turn */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -132,12 +161,22 @@ export default function GameControls({
               <Button
                 onClick={onEndTurnAction}
                 disabled={buttonsDisabled}
-                className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
+                className={cn(
+                  "p-0.5 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
+                  theme === 'light' 
+                    ? "bg-muted border border-zinc-300 hover:bg-muted/80 shadow-sm text-foreground" 
+                    : "bg-primary hover:bg-primary/90 shadow-xl border border-border dark:border-white/10"
+                )}
                 style={{ width: '56px', height: '56px' }}
                 data-testid="button-end-turn"
               >
                 {endTurnImage ? (
-                  <img src={endTurnImage} alt="End Turn" className="w-full h-full object-contain" />
+                  <img 
+                    src={endTurnImage} 
+                    alt="End Turn" 
+                    className="w-full h-full object-contain" 
+                    style={{ filter: theme === 'light' ? 'invert(1)' : 'none' }}
+                  />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
                 )}
@@ -156,12 +195,22 @@ export default function GameControls({
               <Button
                 onClick={() => triggerSleep(1)}
                 disabled={sleepDisabled}
-                className="p-0.5 bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border border-white/10"
+                className={cn(
+                  "p-0.5 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
+                  theme === 'light' 
+                    ? "bg-muted border border-zinc-300 hover:bg-muted/80 shadow-sm text-foreground" 
+                    : "bg-primary hover:bg-primary/90 shadow-xl border border-border dark:border-white/10"
+                )}
                 style={{ width: '56px', height: '56px' }}
                 data-testid="button-sleep"
               >
                 {sleepImage ? (
-                  <img src={sleepImage} alt="Sleep" className="w-full h-full object-contain" />
+                  <img 
+                    src={sleepImage} 
+                    alt="Sleep" 
+                    className="w-full h-full object-contain" 
+                    style={{ filter: theme === 'light' ? 'invert(1)' : 'none' }}
+                  />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">SLEEP</span>
                 )}
@@ -181,8 +230,15 @@ export default function GameControls({
                 onClick={() => setIsExtensionOpen(!isExtensionOpen)}
                 disabled={buttonsDisabled}
                 className={cn(
-                  "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border shadow-lg active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
-                  isExtensionOpen ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] bg-zinc-700" : "border-white/10"
+                  "p-1 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
+                  theme === 'light'
+                    ? (isExtensionOpen ? "ring-2 ring-[#639A88] bg-[#639A88]/10 shadow-none text-black" : "bg-muted hover:bg-muted/80 border-none shadow-none")
+                    : cn(
+                        "bg-zinc-800 hover:bg-zinc-700 border shadow-lg",
+                        isExtensionOpen 
+                          ? "border-white bg-zinc-700 shadow-[0_0_15px_rgba(255,255,255,0.2)]" 
+                          : "border-white/10"
+                      )
                 )}
                 style={{ width: '56px', height: '56px' }}
                 data-testid="button-crafting"
@@ -192,7 +248,8 @@ export default function GameControls({
                     src={craftingImage}
                     alt="Crafting"
                     className={cn(
-                      "w-full h-full object-contain p-1 invert grayscale",
+                      "w-full h-full object-contain p-1 grayscale",
+                      theme === 'dark' && "invert",
                       isExtensionOpen ? "opacity-100" : "opacity-40"
                     )}
                   />
@@ -215,8 +272,15 @@ export default function GameControls({
                 onClick={toggleSkills}
                 disabled={buttonsDisabled}
                 className={cn(
-                  "p-1 bg-zinc-800 hover:bg-zinc-700 transition-all border shadow-lg active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
-                  isSkillsOpen ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] bg-zinc-700" : "border-white/10"
+                  "p-1 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
+                  theme === 'light'
+                    ? (isSkillsOpen ? "ring-2 ring-[#639A88] bg-[#639A88]/10 shadow-none text-black" : "bg-muted hover:bg-muted/80 border-none shadow-none")
+                    : cn(
+                        "bg-zinc-800 hover:bg-zinc-700 border shadow-lg",
+                        isSkillsOpen 
+                          ? "border-white bg-zinc-700 shadow-[0_0_15px_rgba(255,255,255,0.2)]" 
+                          : "border-white/10"
+                      )
                 )}
                 style={{ width: '56px', height: '56px' }}
                 data-testid="button-stats"
@@ -226,7 +290,8 @@ export default function GameControls({
                     src={statsImage}
                     alt="Skills"
                     className={cn(
-                      "w-full h-full object-contain p-1 invert grayscale",
+                      "w-full h-full object-contain p-1 grayscale",
+                      theme === 'dark' && "invert",
                       isSkillsOpen ? "opacity-100" : "opacity-40"
                     )}
                   />
@@ -256,7 +321,7 @@ export default function GameControls({
                 {currentStats.condition !== 'Bleeding' && (
                   <span className={cn(
                     "text-[8px] font-bold px-1 rounded-sm uppercase tracking-tighter whitespace-nowrap",
-                    currentStats.condition === 'Normal' ? "bg-white/5 text-white/40" : "bg-amber-500/20 text-amber-500"
+                    currentStats.condition === 'Normal' ? "bg-muted text-muted-foreground/60 dark:bg-white/5 dark:text-white/40" : "bg-amber-500/20 text-amber-500"
                   )}>
                     {currentStats.condition}
                   </span>
@@ -312,17 +377,17 @@ export default function GameControls({
       </div>
 
       {/* 3. Secondary HUD: World Info */}
-      <div className="flex items-center gap-3 pl-4 border-l border-white/10 h-full shrink-0">
+      <div className="flex items-center gap-3 pl-4 border-l border-border dark:border-white/10 h-full shrink-0">
         
         {/* Compact Turn/Time vertical group */}
         <div className="flex flex-col gap-1.5 mr-1 hidden sm:flex">
-          <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-white/30 uppercase tracking-tighter tabular-nums">
+          <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-muted-foreground/60 dark:text-white/30 uppercase tracking-tighter tabular-nums">
             <span>Turn</span>
-            <span className="text-white/80">{currentTurn}</span>
+            <span className="text-foreground dark:text-white/80">{currentTurn}</span>
           </div>
-          <div className="flex items-center justify-between gap-3 text-[10px] font-mono font-bold text-white/30 uppercase tracking-tighter tabular-nums">
+          <div className="flex items-center justify-between gap-3 text-[10px] font-mono font-bold text-muted-foreground/60 dark:text-white/30 uppercase tracking-tighter tabular-nums">
             <span>Time</span>
-            <span className="text-white/80">
+            <span className="text-foreground dark:text-white/80">
               {String(getHourFromTurn(currentTurn)).padStart(2, '0')}:00
             </span>
           </div>

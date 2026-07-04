@@ -4,6 +4,7 @@ import { imageLoader } from '../../game/utils/ImageLoader';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useGridSize } from "@/contexts/GridSizeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface AttachmentSlotProps {
     weapon: any;
@@ -17,6 +18,7 @@ const AttachmentSlot = memo(({
     className
 }: AttachmentSlotProps) => {
     const { attachSelectedItemToWeapon, detachItemFromWeapon, selectItem, selectedItem, inventoryVersion } = useInventory();
+    const { theme } = useTheme();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     // Get current grid slot size dynamically from provider
@@ -93,13 +95,17 @@ const AttachmentSlot = memo(({
                             <>
                                 {imageSrc ? (
                                     <img
+                                        key={`${slot.id}:${theme}`}
                                         src={imageSrc}
                                         alt={attachedItem.name}
                                         className={cn(
                                             "w-full h-full object-cover p-1 transition-opacity",
-                                            !attachedItem?.backgroundColor && "mix-blend-screen",
+                                            !attachedItem?.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen"),
                                             selectedItem?.item?.instanceId === attachedItem.instanceId && "opacity-40 grayscale-[50%]"
                                         )}
+                                        style={{
+                                            filter: (theme === 'light' && !attachedItem?.backgroundColor) ? 'invert(1)' : undefined
+                                        }}
                                     />
                                 ) : (
                                     <span className={cn(

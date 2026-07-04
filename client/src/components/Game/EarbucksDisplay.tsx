@@ -1,5 +1,6 @@
 import { useSyncExternalStore, useRef, useEffect, useState } from 'react';
 import engine from '../../game/GameEngine.js';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * EarbucksDisplay
@@ -8,6 +9,7 @@ import engine from '../../game/GameEngine.js';
  * reacts instantly to every earbuck award without requiring a prop thread.
  */
 export default function EarbucksDisplay() {
+  const { theme } = useTheme();
   const earbucks = useSyncExternalStore(
     (cb) => engine.subscribe(cb),
     () => engine.player?.earbucks ?? 0
@@ -43,7 +45,10 @@ export default function EarbucksDisplay() {
         src="/images/UI/earbuck.png"
         alt="Earbucks"
         className="w-6 h-6 object-contain shrink-0"
-        style={{ imageRendering: 'pixelated' }}
+        style={{
+          imageRendering: 'pixelated',
+          filter: theme === 'light' ? 'invert(1)' : 'none'
+        }}
       />
       <span
         className="text-sm font-bold tabular-nums leading-none"

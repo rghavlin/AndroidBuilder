@@ -6,6 +6,7 @@ import { ItemTooltip } from '../Inventory/ItemTooltip';
 import { useItemImage } from '../../hooks/useItemImage';
 import { cn } from "@/lib/utils";
 import { ItemTrait } from "@/game/inventory/traits";
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ActionSlotButtonProps {
   slot: string;
@@ -14,6 +15,7 @@ interface ActionSlotButtonProps {
 
 export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButtonProps) => {
   const { inventoryRef, selectedItem, clearSelected } = useInventory();
+  const { theme } = useTheme();
   const { targetingWeapon, toggleTargeting } = useCombat();
   const { toggleFlashlight, igniteTorch } = useGame();
 
@@ -72,19 +74,31 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
           "w-12 h-12 rounded flex items-center justify-center transition-colors overflow-hidden relative",
           "equipment-slot-metal hover:brightness-110", // Base style for action buttons
           // Targeting state: Bright red outline/glow
-          item && isTargeting && "!border-red-500 shadow-[inset_0_0_10px_rgba(239,68,68,0.3),0_0_8px_rgba(239,68,68,0.5)]",
+          item && isTargeting && (
+            theme === 'light'
+              ? "!border-2 !border-solid !border-[#C15C5C] shadow-[inset_0_0_10px_rgba(193,92,92,0.15),0_0_8px_rgba(193,92,92,0.5)]"
+              : "!border-red-500 shadow-[inset_0_0_10px_rgba(239,68,68,0.3),0_0_8px_rgba(239,68,68,0.5)]"
+          ),
           // Flashlight ON state: Bright yellow/cyan outline/glow
-          isFlashlightActive && "!border-cyan-400 shadow-[inset_0_0_10px_rgba(34,211,238,0.3),0_0_10px_rgba(34,211,238,0.4)]"
+          isFlashlightActive && (
+            theme === 'light'
+              ? "!border-2 !border-solid !border-[#639A88] shadow-[inset_0_0_10px_rgba(99,154,136,0.15),0_0_8px_rgba(99,154,136,0.5)]"
+              : "!border-cyan-400 shadow-[inset_0_0_10px_rgba(34,211,238,0.3),0_0_10px_rgba(34,211,238,0.4)]"
+          )
         )}
       >
         {item && imageSrc && imageSrc !== 'failed' ? (
           <div className="w-full h-full p-1.5 flex items-center justify-center">
             <img
+              key={`${slot}:${theme}`}
               src={imageSrc}
               alt={item.name}
-              className="w-full h-full object-contain pointer-events-none mix-blend-screen"
+              className={cn(
+                "w-full h-full object-contain pointer-events-none",
+                theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen"
+              )}
               style={{
-                filter: "brightness(2) contrast(300%)"
+                filter: theme === 'light' ? "invert(1)" : "brightness(2) contrast(300%)"
               }}
             />
           </div>

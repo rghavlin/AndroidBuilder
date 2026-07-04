@@ -27,17 +27,17 @@ export function LootTooltip({ items }: LootTooltipProps) {
     });
 
     return (
-        <div className="p-3 min-w-[150px] bg-black/80 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="p-3 min-w-[150px] bg-popover backdrop-blur-md border border-border rounded-lg shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="flex flex-col gap-1.5">
                 {itemStrings.map((itemStr, index) => (
                     <div key={index} className="flex items-center justify-between text-[11px] font-medium">
-                        <span className="text-zinc-100 font-bold tracking-tight">{itemStr}</span>
+                        <span className="text-popover-foreground font-bold tracking-tight">{itemStr}</span>
                     </div>
                 ))}
             </div>
             
             {items.length > 5 && (
-                <div className="text-[9px] text-zinc-500 italic mt-2 text-center">
+                <div className="text-[9px] text-muted-foreground italic mt-2 text-center">
                     + {items.length - 5} more items...
                 </div>
             )}

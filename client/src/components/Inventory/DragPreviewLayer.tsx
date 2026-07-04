@@ -4,6 +4,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useGridSize } from "@/contexts/GridSizeContext";
 import { GAP_SIZE } from "./constants";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // Render counter outside component to persist across renders
 let renderCount = 0;
@@ -12,6 +13,7 @@ export default function DragPreviewLayer() {
   renderCount++;
   
   const inventoryContext = useInventory();
+  const { theme } = useTheme();
   const { dragState, updateDragPosition, rotateDrag, cancelDrag } = inventoryContext;
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
@@ -183,12 +185,14 @@ export default function DragPreviewLayer() {
     >
       {itemImage ? (
         <img
-           src={itemImage}
-           alt={item.name}
-           className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? 'mix-blend-screen' : ''}`}
-          style={{
-            transform: `rotate(${ rotation }deg)`,
-          }}
+            key={`${item.instanceId}:${theme}`}
+            src={itemImage}
+            alt={item.name}
+            className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? (theme === 'light' ? 'mix-blend-multiply' : 'mix-blend-screen') : ''}`}
+            style={{
+              transform: `rotate(${ rotation }deg)`,
+              filter: (theme === 'light' && !item?.backgroundColor) ? 'invert(1)' : undefined
+            }}
           onLoad={() => console.log('[DragPreviewLayer] ✓ Image rendered in DOM')}
           onError={(e) => console.error('[DragPreviewLayer] ✗ Image render error:', e)}
         />

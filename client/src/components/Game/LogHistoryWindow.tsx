@@ -3,13 +3,33 @@ import { useLog } from '../../contexts/LogContext';
 import { cn } from "@/lib/utils";
 import { History, X, Clock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface LogHistoryWindowProps {
     onClose: () => void;
 }
 
+const getLogColor = (type: string, originalColor: string, theme: string) => {
+    if (theme === 'light') {
+        switch (type) {
+            case 'combat':
+            case 'warning':
+                return '#C15C5C'; // Coral Red
+            case 'item':
+                return '#639A88'; // Sage Green
+            case 'world':
+                return '#5C8AB3'; // Police Blue
+            case 'system':
+            default:
+                return '#3f3f46'; // Dark charcoal text
+        }
+    }
+    return originalColor;
+};
+
 export default function LogHistoryWindow({ onClose }: LogHistoryWindowProps) {
     const { logs } = useLog();
+    const { theme } = useTheme();
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to bottom only if it was already at the bottom
@@ -20,7 +40,10 @@ export default function LogHistoryWindow({ onClose }: LogHistoryWindowProps) {
     }, [logs]);
 
     return (
-        <div className="flex flex-col h-full bg-background/50 rounded-lg overflow-hidden border border-border">
+        <div className={cn(
+            "flex flex-col h-full rounded-lg overflow-hidden border border-border",
+            theme === 'light' ? "bg-background shadow-lg" : "bg-background/50"
+        )}>
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border bg-card/30 p-4">
                 <div className="flex items-center gap-2">
@@ -40,7 +63,10 @@ export default function LogHistoryWindow({ onClose }: LogHistoryWindowProps) {
             {/* Content: List of logs */}
             <div 
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-black/20"
+                className={cn(
+                    "flex-1 overflow-y-auto p-4 custom-scrollbar",
+                    theme === 'light' ? "bg-zinc-50" : "bg-black/20"
+                )}
             >
                 {logs.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
@@ -52,17 +78,20 @@ export default function LogHistoryWindow({ onClose }: LogHistoryWindowProps) {
                         {logs.map((log) => (
                             <div 
                                 key={log.id} 
-                                className="border-b border-white/5 pb-2 last:border-0"
+                                className={cn(
+                                    "border-b pb-2 last:border-0",
+                                    theme === 'light' ? "border-zinc-200/60" : "border-white/5"
+                                )}
                             >
                                 <div className="flex items-start gap-3">
-                                    <span className="text-[10px] font-mono text-zinc-500 pt-0.5 shrink-0">
+                                    <span className={cn("text-[10px] font-mono pt-0.5 shrink-0", theme === 'light' ? "text-zinc-400" : "text-zinc-500")}>
                                         [{log.timestamp}]
                                     </span>
                                     <div 
-                                        className="text-xs leading-relaxed break-words font-medium"
-                                        style={{ color: log.color }}
+                                        className="text-xs leading-relaxed break-words font-semibold"
+                                        style={{ color: getLogColor(log.type, log.color, theme) }}
                                     >
-                                        <span className="opacity-60 text-[10px] uppercase font-bold mr-2">
+                                        <span className={cn("text-[10px] uppercase font-black mr-2", theme === 'light' ? "opacity-90" : "opacity-60")}>
                                             {log.type}
                                         </span>
                                         <span>{log.message}</span>

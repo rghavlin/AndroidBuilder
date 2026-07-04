@@ -1325,7 +1325,8 @@ export const ItemDefs = {
     pileLimitOne: true,
     stackMax: 5,
     consumptionEffects: {
-      heal: 'Max HP'
+      heal: 'Max HP',
+      stop_bleeding: true
     }
   },
 

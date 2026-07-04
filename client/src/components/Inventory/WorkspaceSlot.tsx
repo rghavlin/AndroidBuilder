@@ -5,6 +5,7 @@ import { imageLoader } from '../../game/utils/ImageLoader';
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface WorkspaceSlotProps {
     containerId: string;
@@ -22,6 +23,7 @@ const WorkspaceSlot = memo(({
     className
 }: WorkspaceSlotProps) => {
     const { getContainer, selectItem, selectedItem, placeSelected, inventoryVersion } = useInventory();
+    const { theme } = useTheme();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     const container = getContainer(containerId);
@@ -96,7 +98,18 @@ const WorkspaceSlot = memo(({
                     {item ? (
                         <>
                             {imageSrc ? (
-                                <img src={imageSrc} alt={item.name} className={cn("w-full h-full object-contain p-1", !item?.backgroundColor && "mix-blend-screen")} />
+                                <img 
+                                    key={`${item.instanceId}:${theme}`}
+                                    src={imageSrc} 
+                                    alt={item.name}                                        
+                                    className={cn(
+                                        "w-full h-full object-contain p-1", 
+                                        !item?.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen")
+                                    )} 
+                                    style={{
+                                        filter: (theme === 'light' && !item?.backgroundColor) ? 'invert(1)' : undefined
+                                    }}
+                                />
                             ) : (
                                 <span className="text-[0.6rem] font-bold text-accent text-center px-1 truncate">{item.name}</span>
                             )}

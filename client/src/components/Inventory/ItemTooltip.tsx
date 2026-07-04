@@ -20,7 +20,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
     return (
         <div className="p-2 min-w-[150px] space-y-1.5">
             <div className="flex justify-between items-start gap-4">
-                <h4 className="font-bold text-sm text-white leading-tight">
+                <h4 className="font-bold text-sm text-foreground leading-tight">
                     {item.name}
                     {item.waterQuality === 'dirty' && item.ammoCount > 0 && <span className="text-amber-600 ml-1">(Dirty water)</span>}
                 </h4>
@@ -29,15 +29,15 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             {/* Condition Bar */}
             {isDegradable && (
                 <div className="space-y-1">
-                    <div className="flex justify-between text-[10px] text-zinc-400">
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
                         <span>Condition</span>
                         <span className={cn(
-                            condition! > 50 ? "text-green-400" : (condition! > 20 ? "text-yellow-400" : "text-red-400")
+                             condition! > 50 ? "text-green-500" : (condition! > 20 ? "text-yellow-500" : "text-red-500")
                         )}>
                             {condition}%
                         </span>
                     </div>
-                    <div className="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                         <div
                             className={cn(
                                 "h-full transition-all duration-300",
@@ -51,19 +51,19 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
 
             {/* Combat Stats */}
             {combat && (
-                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                <div className="border-t border-border pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">Damage</span>
-                        <span className="text-zinc-200">{combat.damage.min}-{combat.damage.max}</span>
+                        <span className="text-muted-foreground">Damage</span>
+                        <span className="text-foreground">{combat.damage.min}-{combat.damage.max}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">Hit Chance</span>
-                        <span className="text-zinc-200">{Math.round(combat.hitChance * 100)}%</span>
+                        <span className="text-muted-foreground">Hit Chance</span>
+                        <span className="text-foreground">{Math.round(combat.hitChance * 100)}%</span>
                     </div>
                     {combat.range && combat.range > 1.5 && (
                         <div className="flex justify-between">
-                            <span className="text-zinc-500">Extended range</span>
-                            <span className="text-zinc-200">Yes</span>
+                            <span className="text-muted-foreground">Extended range</span>
+                            <span className="text-foreground">Yes</span>
                         </div>
                     )}
                 </div>
@@ -71,10 +71,10 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
 
             {/* Ranged Stats */}
             {rangedStats && (
-                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                <div className="border-t border-border pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">Damage</span>
-                        <span className="text-zinc-200">
+                        <span className="text-muted-foreground">Damage</span>
+                        <span className="text-foreground">
                             {rangedStats.damage.min === rangedStats.damage.max 
                                 ? rangedStats.damage.min 
                                 : `${rangedStats.damage.min}-${rangedStats.damage.max}`
@@ -83,8 +83,8 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                     </div>
                     {/* 100% hit range Info */}
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">100% hit range</span>
-                        <span className="text-zinc-200">
+                        <span className="text-muted-foreground">100% hit range</span>
+                        <span className="text-foreground">
                             {rangedStats.isShotgun 
                                 ? (rangedStats.accuracyMaxRange || 5) 
                                 : (item.attachments && Object.values(item.attachments).some((a: any) => a?.categories?.includes('rifle_scope')) 
@@ -95,10 +95,10 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                         </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">
+                        <span className="text-muted-foreground">
                             {rangedStats.isShotgun ? "Damage Dropoff" : "Accuracy Falloff"}
                         </span>
-                        <span className="text-zinc-200">
+                        <span className="text-foreground">
                             -{Math.round((rangedStats.isShotgun ? (rangedStats.damageFalloff || 0.1) : rangedStats.accuracyFalloff) * 100)}%/tile
                         </span>
                     </div>
@@ -107,26 +107,26 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
 
             {/* Ammo/Capacity/Water */}
             {(item.ammoCount > 0 || item.capacity > 0) && !item.hasTrait?.(ItemTrait.WATER_SOURCE) && !item.noTooltipUnits && (
-                <div className="text-[10px] text-zinc-400 flex justify-between">
+                <div className="text-[10px] text-muted-foreground flex justify-between">
                     <span>
                         {item.hasTrait?.(ItemTrait.WATER_CONTAINER) ? 'Water' : 
                          (item.hasTrait?.(ItemTrait.FUEL_CONTAINER) ? 'Fuel' :
                          (item.hasTrait?.(ItemTrait.CHARGE_BASED) ? 'Charges' : (item.hasTrait?.(ItemTrait.AMMO) ? 'Count' : 'Ammo')))}
                     </span>
-                    <span>{item.ammoCount}{item.capacity ? ` / ${item.capacity}` : ''}</span>
+                    <span className="text-foreground">{item.ammoCount}{item.capacity ? ` / ${item.capacity}` : ''}</span>
                 </div>
             )}
 
             {/* Consumable Effects */}
             {item.consumptionEffects && !item.hasTrait?.(ItemTrait.WATER_CONTAINER) && (
-                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                <div className="border-t border-border pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     {Object.entries(item.consumptionEffects as Record<string, any>).map(([stat, value]) => ({ stat, value }))
                     .map(({ stat, value }: { stat: string; value: any }) => (
                         <div key={stat} className="flex justify-between">
-                            <span className="text-zinc-500 capitalize">{stat.replace(/_/g, ' ')}</span>
+                            <span className="text-muted-foreground capitalize">{stat.replace(/_/g, ' ')}</span>
                             <span className={cn(
                                 "font-medium",
-                                (typeof value === 'number' && value < 0) || (typeof value === 'object' && value !== null && 'min' in value && value.min < 0) ? "text-orange-500" : "text-green-400"
+                                (typeof value === 'number' && value < 0) || (typeof value === 'object' && value !== null && 'min' in value && value.min < 0) ? "text-orange-500" : "text-green-500"
                             )}>
                                 {typeof value === 'object' && value !== null && 'min' in value && 'max' in value
                                     ? (value.min >= 0 ? `+${value.min}-${value.max}` : `${value.min}-${value.max}`)
@@ -139,12 +139,12 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
 
             {/* Spoilage Info */}
             {item.traits?.includes('spoilable') && (
-                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                <div className="border-t border-border pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">Spoils in</span>
+                        <span className="text-muted-foreground">Spoils in</span>
                         <span className={cn(
                             "font-bold",
-                            item.shelfLife <= 0 ? "text-red-500" : (item.shelfLife <= 12 ? "text-amber-500" : "text-zinc-200")
+                            item.shelfLife <= 0 ? "text-red-500" : (item.shelfLife <= 12 ? "text-amber-500" : "text-foreground")
                         )}>
                             {item.shelfLife <= 0 ? 'SPOILED' : `${item.shelfLife}h`}
                         </span>
@@ -154,9 +154,9 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
 
             {/* Harvest Info */}
             {item.lifetimeTurns !== null && item.defId?.endsWith('_plant') && (
-                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                <div className="border-t border-border pt-1.5 mt-1.5 space-y-1 text-[10px]">
                     <div className="flex justify-between">
-                        <span className="text-zinc-500">Ready in</span>
+                        <span className="text-muted-foreground">Ready in</span>
                         <span className="text-indigo-400 font-bold">
                             {item.lifetimeTurns}h
                         </span>
@@ -165,7 +165,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             )}
             {/* Description */}
             {item.description && item.defId !== 'food.stew' && (
-                <div className="border-t border-zinc-800 pt-1.5 mt-1.5 text-[10px] text-zinc-400 italic max-w-[200px] break-words whitespace-normal">
+                <div className="border-t border-border pt-1.5 mt-1.5 text-[10px] text-muted-foreground italic max-w-[200px] break-words whitespace-normal">
                     {item.description}
                 </div>
             )}

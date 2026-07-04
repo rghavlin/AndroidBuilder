@@ -31,8 +31,8 @@ export function BuildingTooltip({ type }: BuildingTooltipProps) {
     }
 
     return (
-        <div className="p-2.5 min-w-[120px] bg-black border border-white/40 rounded-sm shadow-xl animate-in fade-in zoom-in duration-150">
-            <h4 className="font-bold text-[11px] text-white uppercase tracking-widest text-center">
+        <div className="p-2.5 min-w-[120px] bg-popover border border-border rounded-sm shadow-xl animate-in fade-in zoom-in duration-150">
+            <h4 className="font-bold text-[11px] text-popover-foreground uppercase tracking-widest text-center">
                 {displayName}
             </h4>
         </div>

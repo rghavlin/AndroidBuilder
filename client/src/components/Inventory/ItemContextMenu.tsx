@@ -111,7 +111,7 @@ export function ItemContextMenu({
 
                 return (
                     <ContextMenuPortal>
-                        <ContextMenuContent className="w-48 bg-[#1a1a1a] border-[#333] text-white z-[10001]">
+                        <ContextMenuContent className="w-48 bg-popover border border-border text-popover-foreground z-[10001]">
                             {/* ... existing content ... */}
                         {(item.hasTrait?.(ItemTrait.CAN_BREAK_DOORS) || item.hasTrait?.(ItemTrait.CAN_PICK_LOCKS)) && (
                             <ContextMenuItem

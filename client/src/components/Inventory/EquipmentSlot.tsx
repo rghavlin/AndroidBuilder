@@ -4,6 +4,18 @@ import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
 import { useItemImage } from '../../hooks/useItemImage';
 import { useInventory } from "@/contexts/InventoryContext";
+import { useTheme } from "../../contexts/ThemeContext";
+
+const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
+  if (!bgColor) return undefined;
+  if (theme === 'light') {
+    const lower = bgColor.toLowerCase();
+    if (lower === '#006b18') return '#639A88';
+    if (lower === '#8a0303') return '#C15C5C';
+    if (lower === '#0a2e5c') return '#5C8AB3';
+  }
+  return bgColor;
+};
 
 interface EquipmentSlotProps {
   slotId: string;
@@ -34,6 +46,7 @@ const EquipmentSlot = memo(({
   className
 }: EquipmentSlotProps) => {
   const { selectedItem } = useInventory();
+  const { theme } = useTheme();
   const slotInfo = SLOT_INFO[slotId] || { name: slotId, icon: '?' };
   const imageId = item ? (item.imageId || item.image || item.id) : slotInfo.imageId;
   const imageSrc = useItemImage(imageId);
@@ -77,7 +90,7 @@ const EquipmentSlot = memo(({
               )
             )}
             style={{
-              background: (hasItem && item.backgroundColor) ? item.backgroundColor : undefined,
+              background: hasItem ? getAdjustedBgColor(item.backgroundColor, theme) : undefined,
             }}
             onClick={onClick}
             data-testid={`equipment-slot-${slotId}`}
@@ -85,17 +98,20 @@ const EquipmentSlot = memo(({
             {imageSrc && imageSrc !== 'failed' ? (
               <div className="w-full h-full p-1.5 flex items-center justify-center transition-opacity duration-300">
                 <img
+                  key={`${slotId}:${theme}`}
                   src={imageSrc}
                   alt={item?.name || slotInfo.name}
                   className={cn(
                     "w-full h-full object-contain pointer-events-none transition-transform",
                     hasItem && "rounded-full",
-                    hasItem ? (!item?.backgroundColor && "mix-blend-screen") : "mix-blend-multiply opacity-[0.35]"
+                    hasItem 
+                      ? (!item?.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen")) 
+                      : (theme === 'light' ? "mix-blend-multiply opacity-[0.35]" : "mix-blend-screen opacity-[0.35]")
                   )}
                   style={{
                     filter: !hasItem 
-                      ? "invert(1) contrast(300%)" 
-                      : (!item?.backgroundColor ? "brightness(2) contrast(300%)" : undefined)
+                      ? (theme === 'light' ? "invert(1)" : "none")
+                      : (!item?.backgroundColor ? (theme === 'light' ? "invert(1) contrast(300%)" : "brightness(2) contrast(300%)") : undefined)
                   }}
                 />
               </div>

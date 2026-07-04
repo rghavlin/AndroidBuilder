@@ -75,7 +75,7 @@ export default function BeltContainerPanel({
       {/* Header */}
       <button
         onClick={handleToggle}
-        className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent/50 transition-colors bg-zinc-900/40"
+        className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent/50 transition-colors bg-muted/40"
       >
         <span className="text-sm font-medium">
           Belt <span className="text-muted-foreground ml-2">({beltItem.name})</span>
@@ -89,9 +89,9 @@ export default function BeltContainerPanel({
 
       {/* Content */}
       {!isCollapsed && (
-        <div className="p-4 bg-black/20 flex flex-col items-center gap-6">
+        <div className="p-4 bg-muted/20 flex flex-col items-center gap-6">
           {!holsterLeft && !holsterRight && !ammoLeft && !ammoRight && !pouch && !toolRingLeft && !toolRingRight ? (
-            <div className="py-4 text-zinc-500 text-xs italic">No attachments equipped</div>
+            <div className="py-4 text-muted-foreground text-xs italic">No attachments equipped</div>
           ) : (
             <>
               {/* Top Row: Holsters and Ammo */}
@@ -105,7 +105,7 @@ export default function BeltContainerPanel({
                       style={{ width: `${Math.max(ammoLeft?.width || 0, ammoRight?.width || 0) * fixedSlotSize + (Math.max(ammoLeft?.width || 0, ammoRight?.width || 0) - 1) * 2}px` }}
                     >
                         <div className="flex flex-col items-center">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">Ammo</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Ammo</span>
                         </div>
                         <div className="flex flex-col gap-2 mt-1">
                             {ammoLeft && (

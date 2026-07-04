@@ -208,8 +208,13 @@ export default function EquipmentSlots() {
           const isSelected = selectedItem?.isEquipment &&
             selectedItem?.item?.instanceId === equippedItem?.instanceId;
 
+          const isLight = document.documentElement.classList.contains('light');
           return (
-            <div key={slot.id} className="w-12 h-12 flex-shrink-0 shadow-md">
+            <div key={slot.id} className={cn(
+              "w-12 h-12 flex-shrink-0",
+              equippedItem ? "rounded-full" : "rounded-lg",
+              !isLight && "shadow-md"
+            )}>
               <EquipmentSlot
                 slotId={slot.id}
                 item={equippedItem}

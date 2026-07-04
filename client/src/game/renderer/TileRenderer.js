@@ -31,6 +31,22 @@ const TERRAIN_COLORS = {
   'dirt': '#3d2b1f'
 };
 
+const LIGHT_TERRAIN_COLORS = {
+  'grass': '#e2e8f0',
+  'road': '#cbd5e1',
+  'transition': '#cbd5e1',
+  'sidewalk': '#94a3b8',
+  'wall': '#475569',
+  'building': '#94a3b8',
+  'fence': '#64748b',
+  'tree': '#334155',
+  'tent_wall': '#cbd5e1',
+  'tent_floor': '#e2e8f0',
+  'floor': '#f1f5f9',
+  'water': '#e2e8f0',
+  'dirt': '#e2e8f0'
+};
+
 const GRASS_VARIANTS = [
   { col: 0, row: 15 }, { col: 1, row: 15 }, { col: 2, row: 15 }, { col: 3, row: 15 },
   { col: 0, row: 14 }, { col: 1, row: 14 }, { col: 2, row: 14 }, { col: 3, row: 14 }
@@ -46,10 +62,11 @@ export const TileRenderer = {
 
     // 1. Draw Terrain (If explored)
     if (isExplored) {
-        // Step A: Draw Base Color Layer (Ensures visibility even if texture fails/is dark)
+        const isLight = document.documentElement.classList.contains('light');
         // Use structural mapping for important types to guarantee visibility
+        const colors = isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS;
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
-        ctx.fillStyle = (isStructural ? TERRAIN_COLORS[tile.terrain] : (tile.color || TERRAIN_COLORS[tile.terrain])) || '#222';
+        ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
         ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
         // Step B: Draw Texture Layer (On top of base color) - Skipped in Debug Mode
@@ -97,11 +114,13 @@ export const TileRenderer = {
                             const sy = mapping.row * cellSize + inset;
                             const sDim = cellSize - (inset * 2);
 
+                            if (isLight) ctx.globalAlpha = 0.25;
                             ctx.drawImage(
                                 sheet,
                                 sx, sy, sDim, sDim, // source bounds (cropped)
                                 screenX, screenY, tileSize, tileSize // destination on canvas
                             );
+                            if (isLight) ctx.globalAlpha = 1.0;
                         }
                     } else {
                         // Reactive lazy-loading for missing master sprite sheet
@@ -112,7 +131,9 @@ export const TileRenderer = {
                     const spriteKey = `tile_${terrainKey}`;
                     const sprite = sprites[spriteKey];
                     if (sprite) {
+                        if (isLight) ctx.globalAlpha = 0.25;
                         ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
+                        if (isLight) ctx.globalAlpha = 1.0;
                     } else {
                         // Reactive lazy-loading for missing tiles
                         imageLoader.getTileImage(terrainKey);
@@ -313,8 +334,10 @@ export const TileRenderer = {
     const screenY = localY * tileSize;
 
     // Base colour (always drawn — unexplored tiles are masked by MapCanvas)
+    const isLight = document.documentElement.classList.contains('light');
+    const colors = isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS;
     const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
-    ctx.fillStyle = (isStructural ? TERRAIN_COLORS[tile.terrain] : (tile.color || TERRAIN_COLORS[tile.terrain])) || '#222';
+    ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
     ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
     // Texture layer
@@ -344,12 +367,14 @@ export const TileRenderer = {
             if (mapping) {
               const cellSize = 128;
               const inset = 3;
+              if (isLight) ctx.globalAlpha = 0.25;
               ctx.drawImage(
                 sheet,
                 mapping.col * cellSize + inset, mapping.row * cellSize + inset,
                 cellSize - inset * 2, cellSize - inset * 2,
                 screenX, screenY, tileSize, tileSize
               );
+              if (isLight) ctx.globalAlpha = 1.0;
             }
           } else {
             imageLoader.getTileImage(tile.terrain);
@@ -358,7 +383,9 @@ export const TileRenderer = {
           const terrainKey = tile.terrain === 'transition' ? 'road' : tile.terrain;
           const sprite = sprites[`tile_${terrainKey}`];
           if (sprite) {
+            if (isLight) ctx.globalAlpha = 0.25;
             ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
+            if (isLight) ctx.globalAlpha = 1.0;
           } else {
             imageLoader.getTileImage(terrainKey);
           }

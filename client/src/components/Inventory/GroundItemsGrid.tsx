@@ -111,16 +111,16 @@ export default function GroundItemsGrid() {
           </h3>
           <button
             onClick={handleSort}
-            className="text-xs px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700 transition-colors font-medium cursor-pointer"
+            className="text-xs px-2.5 py-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded border border-border transition-colors font-medium cursor-pointer"
           >
             Sort
           </button>
         </div>
 
         <div 
-          className="flex-1 min-h-0 rounded border border-zinc-800 overflow-hidden relative"
+          className="flex-1 min-h-0 rounded border border-border overflow-hidden relative"
           style={{
-            backgroundColor: isNoneTileSet ? tileColor : '#0c0c0f',
+            backgroundColor: isNoneTileSet ? tileColor : 'var(--background)',
           }}
         >
           <UniversalGrid
