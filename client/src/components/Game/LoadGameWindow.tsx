@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { GameSaveSystem } from '@/game/GameSaveSystem';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface SaveSlot {
     slotName: string;
@@ -31,6 +31,8 @@ export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps)
     const [slots, setSlots] = useState<SaveSlot[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingSlot, setLoadingSlot] = useState<string | null>(null);
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
 
     useEffect(() => {
         let cancelled = false;
@@ -92,7 +94,7 @@ export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps)
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 pb-8">
                     {slots.length === 0 ? (
-                        <div className="text-center text-sm text-slate-300 opacity-80 py-4">
+                        <div className={`text-center text-sm py-4 ${isLight ? 'text-zinc-600' : 'text-slate-300 opacity-80'}`}>
                             No saved games found.
                         </div>
                     ) : (
@@ -105,7 +107,7 @@ export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps)
                                 data-testid={`button-load-slot-${slot.slotName}`}
                             >
                                 <div>{loadingSlot === slot.slotName ? 'Loading...' : labelFor(slot)}</div>
-                                <div className="text-xs font-normal text-slate-300 opacity-80 normal-case tracking-normal">
+                                <div className={`text-xs font-normal normal-case tracking-normal ${isLight ? 'text-zinc-500' : 'text-slate-400'}`}>
                                     {formatTimestamp(slot.timestamp)}
                                     {slot.turn ? ` • Turn ${slot.turn}` : ''}
                                 </div>

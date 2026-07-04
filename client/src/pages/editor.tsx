@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { ScenarioStorage } from '@/game/ScenarioStorage';
 import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
+import { GameSaveSystem } from '@/game/GameSaveSystem';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -278,6 +279,141 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
   };
 }
 
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean } {
+  const w = mapData.width;
+  const h = mapData.height;
+  const tiles = createEmptyGrid(w, h);
+
+  // Rebuild terrain and edge walls from save game tiles
+  if (mapData.tiles) {
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const st = mapData.tiles[y]?.[x];
+        if (!st) continue;
+        tiles[y][x].terrain = st.terrain || 'grass';
+
+        // Reconstruct edge booleans as walls initially
+        if (st.edgeWalls) {
+          (['n', 'e', 's', 'w'] as Edge[]).forEach(edge => {
+            if (st.edgeWalls[edge]) {
+              tiles[y][x].edgeWalls[edge].wall = true;
+            }
+          });
+        }
+
+        // Reconstruct item list on the tile from contents and inventoryItems
+        const itemEntities = (st.contents || []).filter((e: any) => e.type === 'item');
+        const rawItems = (st.inventoryItems || []).map((it: any) => {
+          if (it._ref) {
+            // Find full entity in contents
+            return itemEntities.find((e: any) => e.id === it._ref);
+          }
+          return it;
+        }).filter(Boolean);
+
+        const uniqueItems = new Map<string, any>();
+        itemEntities.forEach((it: any) => {
+          if (it.id) uniqueItems.set(it.id, it);
+        });
+        rawItems.forEach((it: any) => {
+          if (it.id) uniqueItems.set(it.id, it);
+        });
+
+        tiles[y][x].items = Array.from(uniqueItems.values())
+          .map((it: any) => {
+            const entry: any = { defId: it.defId || it.id };
+            if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
+            if (it.condition !== undefined) entry.condition = it.condition;
+            if (it.attachments) {
+              const itItemDef = (ItemDefs as any)[entry.defId];
+              const slotInfo = getBatterySlotInfo(itItemDef);
+              if (slotInfo && it.attachments[slotInfo.slotId]?.ammoCount !== undefined) {
+                entry.batteryCharges = it.attachments[slotInfo.slotId].ammoCount;
+              }
+              if (itItemDef?.categories?.includes(ItemCategory.GUN)) {
+                const ammoAtt = it.attachments['ammo'];
+                if (ammoAtt) {
+                  if (itItemDef.directLoad) {
+                    entry.gunAmmoCount = ammoAtt.stackCount ?? 0;
+                  } else {
+                    entry.gunMagDefId = ammoAtt.defId;
+                    entry.gunAmmoCount = ammoAtt.ammoCount ?? 0;
+                  }
+                }
+                const nonAmmo: Record<string, string> = {};
+                for (const [slotId, att] of Object.entries(it.attachments as Record<string, any>)) {
+                  if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
+                }
+                if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
+              }
+            }
+            return entry;
+          })
+          .filter((it: any) => it.defId);
+
+        // Reconstruct entities from contents
+        if (st.contents) {
+          for (const e of st.contents) {
+            if (e.type === 'player') {
+              tiles[y][x].entities.push({ type: 'player' });
+            } else if (e.type === 'zombie') {
+              tiles[y][x].entities.push({
+                type: 'zombie',
+                subtype: e.subtype || 'basic',
+                hp: e.hp,
+                noLoot: e.noLoot,
+                deaf: e.deaf,
+              });
+            } else if (e.type === 'npc') {
+              tiles[y][x].entities.push({ type: 'npc' });
+            } else if (e.type === 'rabbit') {
+              tiles[y][x].entities.push({ type: 'rabbit' });
+            } else if (e.type === 'place_icon') {
+              tiles[y][x].placeIcon = e.subtype;
+            } else if (e.type === 'door') {
+              tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
+              tiles[y][x].edgeWalls[e.edge as Edge].door = true;
+              tiles[y][x].edgeWalls[e.edge as Edge].locked = e.isLocked ?? false;
+            } else if (e.type === 'window') {
+              tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
+              tiles[y][x].edgeWalls[e.edge as Edge].window = true;
+              tiles[y][x].edgeWalls[e.edge as Edge].locked = e.isLocked ?? false;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Event Triggers and Map Transitions from map metadata
+  const metadata = mapData.metadata;
+  if (metadata?.eventTriggers) {
+    for (const evt of metadata.eventTriggers) {
+      const t = tiles[evt.y]?.[evt.x];
+      if (t) {
+        t.eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot ?? true };
+      }
+    }
+  }
+  if (metadata?.mapTransitions) {
+    for (const tr of metadata.mapTransitions) {
+      const t = tiles[tr.y]?.[tr.x];
+      if (t) {
+        t.mapTransition = { targetType: tr.targetType, targetId: tr.targetId, level: tr.level };
+      }
+    }
+  }
+
+  return {
+    name: mapData.name || 'imported_save',
+    width: w,
+    height: h,
+    tiles,
+    buildings: mapData.buildings || [],
+    noAutosave: mapData.noAutosave ?? false,
+  };
+}
+
 // ─── Battery slot helper ─────────────────────────────────────────────────
 
 function getBatterySlotInfo(def: any): { slotId: string; batteryDefId: string; capacity: number } | null {
@@ -436,6 +572,9 @@ export default function MapEditor() {
   const [noAutosave, setNoAutosave] = useState(false);
   const [tiles, setTiles] = useState<TileData[][]>(() => createEmptyGrid(20, 20));
   const [buildings, setBuildings] = useState<BuildingMeta[]>([]);
+  const [saveSlots, setSaveSlots] = useState<{ slotName: string; timestamp: number; turn?: number }[]>([]);
+  const [loadTab, setLoadTab] = useState<'scenarios' | 'saves'>('scenarios');
+  const [showGenPicker, setShowGenPicker] = useState(false);
 
   const [tool, setTool] = useState<ToolMode>('terrain');
   const [brushSize, setBrushSize] = useState(1);
@@ -513,7 +652,11 @@ export default function MapEditor() {
   const [inspectTile, setInspectTile] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const offscreenRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const minimapRef = useRef<HTMLCanvasElement>(null);
+  const isDraggingMinimap = useRef(false);
   const undoStack = useRef<{ tiles: TileData[][]; buildings: BuildingMeta[] }[]>([]);
   const strokeUndoPushed = useRef(false);
   const buildingsRef = useRef(buildings);
@@ -721,15 +864,16 @@ export default function MapEditor() {
     setStatusMsg(`Placed ${selectedBuildingType} (${bw}×${bh})`);
   }, [buildStart, selectedBuildingType]);
 
-  // ─── Canvas rendering ────────────────────────────────────────────────
+  // ─── Offscreen Static Map Renderer ───────────────────────────────────
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    if (!offscreenRef.current) {
+      offscreenRef.current = document.createElement('canvas');
+    }
+    const offscreen = offscreenRef.current;
+    offscreen.width = width * CELL;
+    offscreen.height = height * CELL;
+    const ctx = offscreen.getContext('2d');
     if (!ctx) return;
-
-    canvas.width = width * CELL;
-    canvas.height = height * CELL;
 
     // Pass 1: terrain + grid
     for (let y = 0; y < height; y++) {
@@ -840,6 +984,22 @@ export default function MapEditor() {
         }
       }
     }
+  }, [tiles, buildings, width, height, showGrid, exitImage]);
+
+  // ─── Main Canvas Render (Dynamic Overlays) ───────────────────────────
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = width * CELL;
+    canvas.height = height * CELL;
+
+    // Draw static offscreen map
+    if (offscreenRef.current) {
+      ctx.drawImage(offscreenRef.current, 0, 0);
+    }
 
     // Building-rect drag preview
     if (tool === 'building_rect' && buildStart && hoverCell) {
@@ -866,7 +1026,106 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [tiles, buildings, width, height, showGrid, hoverCell, buildStart, tool, brushSize, exitImage]);
+  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid]);
+
+  // ─── Minimap update logic ────────────────────────────────────────────
+  const updateMinimapViewport = useCallback(() => {
+    const canvas = minimapRef.current;
+    const container = scrollContainerRef.current;
+    const offscreen = offscreenRef.current;
+    if (!canvas || !container || !offscreen) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear and draw cached static map
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(offscreen, 0, 0, canvas.width, canvas.height);
+
+    // Calculate viewport bounds
+    const scrollLeft = container.scrollLeft;
+    const scrollTop = container.scrollTop;
+    const clientWidth = container.clientWidth;
+    const clientHeight = container.clientHeight;
+
+    const mapTotalW = width * CELL;
+    const mapTotalH = height * CELL;
+
+    const viewX = (scrollLeft / mapTotalW) * canvas.width;
+    const viewY = (scrollTop / mapTotalH) * canvas.height;
+    const viewW = Math.min(canvas.width - viewX, (clientWidth / mapTotalW) * canvas.width);
+    const viewH = Math.min(canvas.height - viewY, (clientHeight / mapTotalH) * canvas.height);
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(viewX, viewY, viewW, viewH);
+
+    // Draw semi-transparent mask outside viewport for focus
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    // left box
+    ctx.fillRect(0, 0, viewX, canvas.height);
+    // right box
+    ctx.fillRect(viewX + viewW, 0, canvas.width - (viewX + viewW), canvas.height);
+    // top box
+    ctx.fillRect(viewX, 0, viewW, viewY);
+    // bottom box
+    ctx.fillRect(viewX, viewY + viewH, viewW, canvas.height - (viewY + viewH));
+  }, [width, height]);
+
+  const handleScroll = useCallback(() => {
+    updateMinimapViewport();
+  }, [updateMinimapViewport]);
+
+  const handleMinimapInteraction = useCallback((clientX: number, clientY: number) => {
+    const canvas = minimapRef.current;
+    const container = scrollContainerRef.current;
+    if (!canvas || !container) return;
+    const rect = canvas.getBoundingClientRect();
+    const clickX = Math.max(0, Math.min(canvas.width, ((clientX - rect.left) / rect.width) * canvas.width));
+    const clickY = Math.max(0, Math.min(canvas.height, ((clientY - rect.top) / rect.height) * canvas.height));
+
+    const mapTotalW = width * CELL;
+    const mapTotalH = height * CELL;
+
+    const pctX = clickX / canvas.width;
+    const pctY = clickY / canvas.height;
+
+    container.scrollLeft = pctX * mapTotalW - container.clientWidth / 2;
+    container.scrollTop = pctY * mapTotalH - container.clientHeight / 2;
+    updateMinimapViewport();
+  }, [width, height, updateMinimapViewport]);
+
+  const onMinimapMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    isDraggingMinimap.current = true;
+    handleMinimapInteraction(e.clientX, e.clientY);
+  }, [handleMinimapInteraction]);
+
+  const onMinimapMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isDraggingMinimap.current) {
+      handleMinimapInteraction(e.clientX, e.clientY);
+    }
+  }, [handleMinimapInteraction]);
+
+  const onMinimapMouseUpOrLeave = useCallback(() => {
+    isDraggingMinimap.current = false;
+  }, []);
+
+  // Recalculate minimap canvas size on map size change
+  useEffect(() => {
+    const canvas = minimapRef.current;
+    if (!canvas) return;
+    const maxMinimapDim = 120;
+    const mapTotalW = width * CELL;
+    const mapTotalH = height * CELL;
+    const minimapScale = Math.min(maxMinimapDim / mapTotalW, maxMinimapDim / mapTotalH);
+    canvas.width = Math.round(mapTotalW * minimapScale);
+    canvas.height = Math.round(mapTotalH * minimapScale);
+    updateMinimapViewport();
+  }, [width, height, updateMinimapViewport]);
+
+  // Hook into offscreen redraw to keep minimap synced
+  useEffect(() => {
+    updateMinimapViewport();
+  }, [tiles, buildings, width, height, showGrid, exitImage, updateMinimapViewport]);
 
   // ─── Mouse handlers ──────────────────────────────────────────────────
   const cellFromEvent = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -906,7 +1165,10 @@ export default function MapEditor() {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { x, y } = cellFromEvent(e);
-    setHoverCell({ x, y });
+    setHoverCell(prev => {
+      if (prev && prev.x === x && prev.y === y) return prev;
+      return { x, y };
+    });
     if (isPainting && tool === 'terrain') {
       applyTool(x, y);
     }
@@ -966,6 +1228,15 @@ export default function MapEditor() {
     try {
       const list = await ScenarioStorage.list();
       setSavedScenarios(list as any[]);
+      
+      try {
+        const slots = await GameSaveSystem.listSaveSlots();
+        setSaveSlots(slots || []);
+      } catch (err) {
+        console.warn('Failed to list save slots:', err);
+        setSaveSlots([]);
+      }
+      
       setShowLoadPicker(true);
     } catch (e: any) {
       setStatusMsg(`Failed to list scenarios: ${e.message}`);
@@ -973,6 +1244,39 @@ export default function MapEditor() {
   };
 
   const applyLoadedData = (data: any, label: string) => {
+    let isSaveGame = false;
+    let mapData = data;
+    if (data && data.gameMap) {
+      isSaveGame = true;
+      mapData = data.gameMap;
+      if (!mapData.metadata && data.worldManager && data.worldManager.currentMapId) {
+        const mapsList = Array.isArray(data.worldManager.maps) ? data.worldManager.maps : [];
+        const mapEntry = mapsList.find((m: any) => m.id === data.worldManager.currentMapId);
+        if (mapEntry && mapEntry.metadata) {
+          mapData.metadata = mapEntry.metadata;
+        }
+      }
+    } else if (data && data.tiles && data.tiles[0]?.[0]?.contents !== undefined && data.scentSequenceCounter !== undefined) {
+      isSaveGame = true;
+    }
+
+    if (isSaveGame) {
+      try {
+        const editor = saveGameMapToEditorState(mapData);
+        setScenarioName(editor.name || 'imported_save');
+        setWidth(editor.width);
+        setHeight(editor.height);
+        setTiles(sanitizeTiles(editor.tiles));
+        setBuildings(editor.buildings || []);
+        setNoAutosave(editor.noAutosave ?? false);
+        setStatusMsg(`Loaded save game map "${label}"`);
+        return;
+      } catch (err: any) {
+        setStatusMsg(`Failed to parse save game: ${err.message}`);
+        return;
+      }
+    }
+
     // Detect format: editor state has tiles with .entities arrays,
     // scenario format has a top-level entities array and tiles with .inventoryItems
     const isScenarioFormat = data.metadata || data.entities || data.tiles?.[0]?.[0]?.contents !== undefined;
@@ -996,6 +1300,58 @@ export default function MapEditor() {
       applyLoadedData(data, name);
     } catch (e: any) {
       setStatusMsg(`Load failed: ${e.message}`);
+    }
+  };
+
+  const handlePickSaveSlot = async (slotName: string) => {
+    setShowLoadPicker(false);
+    try {
+      const components = await GameSaveSystem.loadFromStorage(slotName);
+      if (!components || !components.gameMap) {
+        setStatusMsg(`Failed to load save slot "${slotName}"`);
+        return;
+      }
+      
+      const serializedMap = components.gameMap.toJSON();
+      
+      let mapMetadata = null;
+      if (components.worldManager && components.worldManager.currentMapId) {
+        const mapEntry = components.worldManager.maps.get(components.worldManager.currentMapId);
+        if (mapEntry && mapEntry.metadata) {
+          mapMetadata = mapEntry.metadata;
+        }
+      }
+      
+      const editorData = saveGameMapToEditorState({
+        ...serializedMap,
+        name: `save_${slotName}`,
+        metadata: mapMetadata
+      });
+      
+      applyLoadedData(editorData, `Save: ${slotName}`);
+    } catch (e: any) {
+      console.warn('Failed to load save slot:', e);
+      setStatusMsg(`Load failed: ${e.message}`);
+    }
+  };
+
+  const handleGenerateTemplate = async (templateName: string) => {
+    if (!confirm('Generate template? This will replace the current map layout!')) return;
+    setShowGenPicker(false);
+    setStatusMsg(`Generating map template "${templateName}"...`);
+    try {
+      const { TemplateMapGenerator } = await import('@/game/map/TemplateMapGenerator');
+      const generator = new TemplateMapGenerator();
+      const scenarioData = generator.generateFromTemplate(templateName, { mapNumber: 1 });
+      if (!scenarioData) {
+        setStatusMsg('Generation failed: no map produced');
+        return;
+      }
+      scenarioData.name = `generated_${templateName}`;
+      applyLoadedData(scenarioData, `Generated: ${templateName}`);
+    } catch (err: any) {
+      console.error('Failed to generate template:', err);
+      setStatusMsg(`Generation failed: ${err.message}`);
     }
   };
 
@@ -1063,6 +1419,7 @@ export default function MapEditor() {
             <button onClick={handleExport} style={btnStyle('#2a7a2a')}>Publish</button>
             <button onClick={handleSaveEditor} style={btnStyle('#555')}>Save</button>
             <button onClick={handleOpenLoadPicker} style={btnStyle('#555')}>Load</button>
+            <button onClick={() => setShowGenPicker(true)} style={btnStyle('#6a4ab8')}>⚡ Generate</button>
             <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#444')}>Import</button>
             <button onClick={handleUndo} style={btnStyle('#555')}>Undo</button>
             <button onClick={handleClear} style={btnStyle('#7a2a2a')}>Clear</button>
@@ -1637,35 +1994,139 @@ export default function MapEditor() {
         )}
       </div>
 
+      {/* ─── Generator picker modal ─── */}
+      {showGenPicker && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setShowGenPicker(false)}>
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 320, maxHeight: '80vh', overflow: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Generate Map Template</h3>
+            <p style={{ fontSize: 12, color: '#aaa', marginBottom: 12 }}>Select a map template to procedurally generate. This will overwrite the current map!</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {[
+                { id: 'starting_road', name: 'Starting Road (Yard/House)' },
+                { id: 'road', name: 'Straight Road' },
+                { id: 'winding_road', name: 'Winding Road' },
+                { id: 'mirrored_winding_road', name: 'Mirrored Winding Road' },
+                { id: 'split_road', name: 'Split Road' },
+                { id: 'branching_road', name: 'Branching Road' },
+                { id: 'lab', name: 'Lab Complex' },
+                { id: 'small_building', name: 'Small Building base' },
+                { id: 'mall_section', name: 'Mall Section base' },
+                { id: 'outdoor_area', name: 'Outdoor Area base' },
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => handleGenerateTemplate(t.id)}
+                  style={{
+                    padding: '8px 12px',
+                    background: '#333',
+                    border: '1px solid #555',
+                    borderRadius: 4,
+                    color: '#ddd',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontSize: 13,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#444')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#333')}
+                >
+                  <span>{t.name}</span>
+                  <span style={{ color: '#888', fontSize: 10 }}>{t.id}</span>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowGenPicker(false)}
+              style={{ ...btnStyle('#555'), marginTop: 16, width: '100%' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       {/* ─── Load picker modal ─── */}
       {showLoadPicker && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setShowLoadPicker(false)}>
-          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 300, maxHeight: '60vh', overflow: 'auto' }}
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 320, maxHeight: '80vh', overflow: 'auto' }}
             onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Load Scenario</h3>
-            {savedScenarios.length === 0 ? (
-              <p style={{ color: '#888', fontSize: 13 }}>No saved scenarios found.</p>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Load Map</span>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button
+                  onClick={() => setLoadTab('scenarios')}
+                  style={{
+                    padding: '2px 8px',
+                    fontSize: 11,
+                    background: loadTab === 'scenarios' ? '#4a90d9' : '#333',
+                    border: '1px solid #555',
+                    borderRadius: 3,
+                    color: '#eee',
+                    cursor: 'pointer'
+                  }}
+                >Scenarios</button>
+                <button
+                  onClick={() => setLoadTab('saves')}
+                  style={{
+                    padding: '2px 8px',
+                    fontSize: 11,
+                    background: loadTab === 'saves' ? '#4a90d9' : '#333',
+                    border: '1px solid #555',
+                    borderRadius: 3,
+                    color: '#eee',
+                    cursor: 'pointer'
+                  }}
+                >Game Saves</button>
+              </div>
+            </h3>
+
+            {loadTab === 'scenarios' ? (
+              savedScenarios.length === 0 ? (
+                <p style={{ color: '#888', fontSize: 13 }}>No saved scenarios found.</p>
+              ) : (
+                savedScenarios.map(s => (
+                  <div key={s.name}
+                    onClick={() => handlePickScenario(s.name)}
+                    style={{ padding: '8px 12px', marginBottom: 4, background: '#333', borderRadius: 4, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#444')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '#333')}>
+                    <span style={{ color: '#ddd', fontSize: 13 }}>{s.name}</span>
+                    <span style={{ color: '#888', fontSize: 11 }}>{s.width}x{s.height}</span>
+                  </div>
+                ))
+              )
             ) : (
-              savedScenarios.map(s => (
-                <div key={s.name}
-                  onClick={() => handlePickScenario(s.name)}
-                  style={{ padding: '8px 12px', marginBottom: 4, background: '#333', borderRadius: 4, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#444')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '#333')}>
-                  <span style={{ color: '#ddd', fontSize: 13 }}>{s.name}</span>
-                  <span style={{ color: '#888', fontSize: 11 }}>{s.width}x{s.height}</span>
-                </div>
-              ))
+              saveSlots.length === 0 ? (
+                <p style={{ color: '#888', fontSize: 13 }}>No game saves found.</p>
+              ) : (
+                saveSlots.map(s => (
+                  <div key={s.slotName}
+                    onClick={() => handlePickSaveSlot(s.slotName)}
+                    style={{ padding: '8px 12px', marginBottom: 4, background: '#333', borderRadius: 4, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#444')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '#333')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#ddd', fontSize: 13, fontWeight: 'bold' }}>{s.slotName}</span>
+                      <span style={{ color: '#888', fontSize: 11 }}>Turn {s.turn || 1}</span>
+                    </div>
+                    <span style={{ color: '#666', fontSize: 10 }}>{new Date(s.timestamp).toLocaleString()}</span>
+                  </div>
+                ))
+              )
             )}
             <button onClick={() => setShowLoadPicker(false)}
-              style={{ ...btnStyle('#555'), marginTop: 8, width: '100%' }}>Cancel</button>
+              style={{ ...btnStyle('#555'), marginTop: 12, width: '100%' }}>Cancel</button>
           </div>
         </div>
       )}
 
       {/* ─── Canvas area ─── */}
-      <div style={{ flex: 1, overflow: 'auto', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', padding: 16 }}>
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        style={{ flex: 1, overflow: 'auto', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', padding: 16, position: 'relative' }}
+      >
         <canvas
           ref={canvasRef}
           onMouseDown={handleMouseDown}
@@ -1675,6 +2136,39 @@ export default function MapEditor() {
           onMouseLeave={() => { setIsPainting(false); setHoverCell(null); }}
           style={{ cursor: 'crosshair', imageRendering: 'pixelated' }}
         />
+
+        {/* ─── Floating Minimap ─── */}
+        <div style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          background: '#151515',
+          border: '2px solid #444',
+          borderRadius: 6,
+          padding: 6,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          zIndex: 10,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+          userSelect: 'none',
+        }}>
+          <div style={{ fontSize: 10, color: '#888', fontWeight: 'bold', alignSelf: 'flex-start' }}>NAVIGATION</div>
+          <canvas
+            ref={minimapRef}
+            onMouseDown={onMinimapMouseDown}
+            onMouseMove={onMinimapMouseMove}
+            onMouseUp={onMinimapMouseUpOrLeave}
+            onMouseLeave={onMinimapMouseUpOrLeave}
+            style={{ 
+              background: '#000', 
+              borderRadius: 3, 
+              cursor: 'pointer',
+              display: 'block'
+            }}
+          />
+        </div>
       </div>
 
       {/* ─── Tile Inspector Popup ─── */}

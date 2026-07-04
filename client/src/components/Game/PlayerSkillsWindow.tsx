@@ -19,8 +19,8 @@ export default function PlayerSkillsWindow({
       <div
         className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto transition-opacity duration-300"
         style={{
-          top: 'var(--header-height)',
-          bottom: 'var(--controls-height)'
+          top: 'var(--header-height, 80px)',
+          bottom: 'var(--controls-height, 82px)'
         }}
         onClick={onClose}
       />
@@ -28,12 +28,13 @@ export default function PlayerSkillsWindow({
       {/* Skills panel container */}
       <GridSizeProvider>
         <div
-          className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col p-4 overflow-hidden pointer-events-auto shadow-2xl"
+          className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col overflow-hidden pointer-events-auto"
           style={{
-            top: 'var(--header-height)',
-            bottom: 'var(--controls-height)'
+            top: 'var(--header-height, 80px)',
+            bottom: 'var(--controls-height, 82px)'
           }}
           data-testid="player-skills-window"
+          data-inventory-ui="true"
         >
           <PlayerSkillsUI />
         </div>

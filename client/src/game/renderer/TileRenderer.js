@@ -117,8 +117,8 @@ export const TileRenderer = {
                             if (isLight) ctx.globalAlpha = 0.25;
                             ctx.drawImage(
                                 sheet,
-                                sx, sy, sDim, sDim, // source bounds (cropped)
-                                screenX, screenY, tileSize, tileSize // destination on canvas
+                                sx, sy, sDim, sDim,
+                                screenX, screenY, tileSize, tileSize
                             );
                             if (isLight) ctx.globalAlpha = 1.0;
                         }
@@ -131,9 +131,9 @@ export const TileRenderer = {
                     const spriteKey = `tile_${terrainKey}`;
                     const sprite = sprites[spriteKey];
                     if (sprite) {
-                        if (isLight) ctx.globalAlpha = 0.25;
+                        if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 0.25;
                         ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
-                        if (isLight) ctx.globalAlpha = 1.0;
+                        if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 1.0;
                     } else {
                         // Reactive lazy-loading for missing tiles
                         imageLoader.getTileImage(terrainKey);
@@ -367,14 +367,14 @@ export const TileRenderer = {
             if (mapping) {
               const cellSize = 128;
               const inset = 3;
-              if (isLight) ctx.globalAlpha = 0.25;
+              if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 0.25;
               ctx.drawImage(
                 sheet,
                 mapping.col * cellSize + inset, mapping.row * cellSize + inset,
                 cellSize - inset * 2, cellSize - inset * 2,
                 screenX, screenY, tileSize, tileSize
               );
-              if (isLight) ctx.globalAlpha = 1.0;
+              if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 1.0;
             }
           } else {
             imageLoader.getTileImage(tile.terrain);
@@ -383,9 +383,9 @@ export const TileRenderer = {
           const terrainKey = tile.terrain === 'transition' ? 'road' : tile.terrain;
           const sprite = sprites[`tile_${terrainKey}`];
           if (sprite) {
-            if (isLight) ctx.globalAlpha = 0.25;
+            if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 0.25;
             ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
-            if (isLight) ctx.globalAlpha = 1.0;
+            if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 1.0;
           } else {
             imageLoader.getTileImage(terrainKey);
           }

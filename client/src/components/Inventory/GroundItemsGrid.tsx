@@ -2,6 +2,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
 import { useGame } from "@/contexts/GameContext.jsx";
 import { imageLoader } from "@/game/utils/ImageLoader";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function GroundItemsGrid() {
   const { getContainer, inventoryVersion, moveItem, inventoryRef } = useInventory();
@@ -97,10 +98,15 @@ export default function GroundItemsGrid() {
   const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(terrain);
   const tileColor = (isStructural ? terrainColors[terrain] : (playerTile?.color || terrainColors[terrain])) || '#222';
 
+  const { theme } = useTheme();
+
   const isNoneTileSet = imageLoader.tileSet === 'none';
   const isSpriteSheet = imageLoader.tileSet === 'spritesheet';
   const subFolder = imageLoader.tileSet === 'standard' ? '' : `${imageLoader.tileSet}/`;
-  const tileImageUrl = (isNoneTileSet || isSpriteSheet) ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
+  // In light mode, ground slots have a solid background so tile textures are invisible anyway —
+  // but the image still exists in the DOM and bleeds through semi-transparent placement previews.
+  // Suppress the URL in light mode so the preview overlay renders cleanly.
+  const tileImageUrl = (isNoneTileSet || isSpriteSheet || theme === 'light') ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">

@@ -81,6 +81,10 @@ export default function UniversalGrid({
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { theme } = useTheme();
+  // Frozen ref so overlays memo doesn't rebuild on every inventoryVersion bump.
+  // Theme only changes via the Settings menu — never during active gameplay.
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource, disassembleItem, pickSafeLock } = useInventory();
   const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel } = useAction();
@@ -990,7 +994,7 @@ export default function UniversalGrid({
               "absolute select-none z-10 transition-all duration-200 rounded-[3px] sunken-item-slab",
               "cursor-grab active:cursor-grabbing",
               hoveredItem === itemId ? "brightness-125 scale-[1.01]" : "",
-              isItemSelected ? (theme === 'light' ? "ring-2 ring-black border-black selected-item-overlay" : "ring-2 ring-accent border-accent selected-item-overlay") : "",
+              isItemSelected ? (themeRef.current === 'light' ? "ring-2 ring-black border-black selected-item-overlay" : "ring-2 ring-accent border-accent selected-item-overlay") : "",
               !isItemSelected && isVehiclePulled ? "vehicle-pull-border" : "",
               !isItemSelected && isVehicleRidden ? "vehicle-ride-border" : ""
             )}
@@ -1005,7 +1009,7 @@ export default function UniversalGrid({
               top: `${topPos}px`,
               width: `${gridWidth}px`,
               height: `${gridHeight}px`,
-              backgroundColor: getAdjustedBgColor(item.backgroundColor, theme),
+              backgroundColor: getAdjustedBgColor(item.backgroundColor, themeRef.current),
             }}
           >
             {/* The trigger area for the context menu and tooltip is the entire item bounding box */}
@@ -1016,7 +1020,7 @@ export default function UniversalGrid({
                   src={itemImageSrc}
                   className={cn(
                     "absolute pointer-events-none select-none max-w-none",
-                    !item.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen")
+                    !item.backgroundColor && (themeRef.current === 'light' ? "mix-blend-multiply" : "mix-blend-screen")
                   )}
                   style={{
                     left: `${adjustedLeft - leftPos}px`,
@@ -1026,7 +1030,7 @@ export default function UniversalGrid({
                     objectFit: 'cover',
                     transform: transformStyle,
                     transformOrigin: 'top left',
-                    filter: (theme === 'light' && !item.backgroundColor) ? 'invert(1)' : undefined,
+                    filter: (themeRef.current === 'light' && !item.backgroundColor) ? 'invert(1)' : undefined,
                   }}
                   alt={item.name}
                 />
@@ -1131,7 +1135,7 @@ export default function UniversalGrid({
     });
 
     return result;
-  }, [items, itemImages, grid, slotSize, GAP_SIZE, selectedItem, handleGridContainerClick, inventoryVersion, hoveredItem, theme]);
+  }, [items, itemImages, grid, slotSize, selectedItem, handleGridContainerClick, inventoryVersion, hoveredItem, theme]);
 
   if (gridType === 'scalable' && !isCalculated) {
     return (

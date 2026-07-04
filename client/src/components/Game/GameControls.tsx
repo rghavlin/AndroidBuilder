@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { cn } from "@/lib/utils";
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
@@ -38,14 +38,13 @@ interface StatBarProps {
   label: string;
   current: number;
   max: number;
+  isLight: boolean;
   suffix?: React.ReactNode;
   className?: string;
 }
 
-const StatBar = ({ label, current, max, suffix, className }: StatBarProps) => {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
-
+// memo: only re-renders when numeric props change, not on every movement frame
+const StatBar = memo(({ label, current, max, isLight, suffix, className }: StatBarProps) => {
   let barFillClass = isLight ? "bg-foreground" : "bg-white";
   if (isLight && label.toLowerCase() === 'health') {
     barFillClass = ""; // Use inline style for custom sage green color
@@ -87,7 +86,7 @@ const StatBar = ({ label, current, max, suffix, className }: StatBarProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default function GameControls({ 
   playerStats: demoStats, 
@@ -97,6 +96,7 @@ export default function GameControls({
   
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
   const { theme } = useTheme();
+  const isLight = theme === 'light';
   const { 
     turn, 
     endTurn, 
@@ -316,6 +316,7 @@ export default function GameControls({
             label="Health" 
             current={currentStats.hp} 
             max={currentStats.maxHp} 
+            isLight={isLight}
             suffix={
               <div className="flex items-center gap-1.5 overflow-hidden">
                 {currentStats.condition !== 'Bleeding' && (
@@ -349,6 +350,7 @@ export default function GameControls({
             label="Action" 
             current={currentStats.ap} 
             max={currentStats.maxAp} 
+            isLight={isLight}
             className="flex-1"
           />
         </div>
@@ -359,18 +361,21 @@ export default function GameControls({
             label="Nutrition" 
             current={currentStats.nutrition} 
             max={25} 
+            isLight={isLight}
             className="flex-1"
           />
           <StatBar 
             label="Hydration" 
             current={currentStats.hydration} 
             max={25} 
+            isLight={isLight}
             className="flex-1"
           />
           <StatBar 
             label="Energy" 
             current={currentStats.energy} 
             max={25} 
+            isLight={isLight}
             className="flex-1"
           />
         </div>
