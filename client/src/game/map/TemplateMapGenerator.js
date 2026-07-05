@@ -887,6 +887,9 @@ export class TemplateMapGenerator {
         if (templateMapData.metadata.specialBuildings) {
           gameMap.specialBuildings = templateMapData.metadata.specialBuildings;
         }
+        if (templateMapData.metadata.lowSpots) {
+          gameMap.lowSpots = templateMapData.metadata.lowSpots;
+        }
       }
 
       // Place placeable.help items on event trigger tiles

@@ -60,11 +60,11 @@ class GameInitializationManager extends EventEmitter {
     try {
       console.log('[GameInitializationManager] Starting initialization sequence...');
 
-      // Generate a deterministic base seed for the entire game session.
-      // This can be overridden via customConfig.seed for reproducible runs.
       const gameSeed = (customConfig && customConfig.seed !== undefined)
         ? customConfig.seed
-        : (Math.random() * 0xFFFFFFFF) >>> 0;
+        : (customConfig && customConfig.scenarioData && customConfig.scenarioData.seed !== undefined)
+          ? customConfig.scenarioData.seed
+          : (Math.random() * 0xFFFFFFFF) >>> 0;
       engine.gameSeed = gameSeed;
       gameRandom.seed(gameSeed);
       console.log(`[GameInitializationManager] 🎲 Game seed: ${gameSeed}`);

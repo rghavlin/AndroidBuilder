@@ -89,6 +89,8 @@ interface ScenarioData {
   buildings: BuildingMeta[];
   playerSpawn: { x: number; y: number } | null;
   noAutosave?: boolean;
+  seed?: number;
+  lowSpots?: { x: number; y: number }[];
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -136,7 +138,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[] } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -276,10 +278,12 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     tiles,
     buildings: scenario.metadata?.buildings || [],
     noAutosave: scenario.noAutosave ?? false,
+    seed: scenario.seed ?? scenario.metadata?.seed,
+    lowSpots: scenario.metadata?.lowSpots || scenario.lowSpots || [],
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[] } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -411,6 +415,8 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     tiles,
     buildings: mapData.buildings || [],
     noAutosave: mapData.noAutosave ?? false,
+    seed: mapData.seed ?? mapData.metadata?.seed,
+    lowSpots: mapData.metadata?.lowSpots || mapData.lowSpots || [],
   };
 }
 
@@ -540,9 +546,11 @@ function exportScenario(scenario: ScenarioData) {
     width: scenario.width,
     height: scenario.height,
     ...(scenario.noAutosave ? { noAutosave: true } : {}),
+    seed: scenario.seed,
     tiles,
     metadata: {
       buildings: scenario.buildings,
+      seed: scenario.seed,
       specialBuildings: scenario.buildings.filter(b =>
         ['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store', 'lab'].includes(b.type)
       ),
@@ -649,6 +657,12 @@ export default function MapEditor() {
   const [statusMsg, setStatusMsg] = useState('');
   const [showLoadPicker, setShowLoadPicker] = useState(false);
   const [savedScenarios, setSavedScenarios] = useState<{ name: string; width: number; height: number }[]>([]);
+  const [showLootModal, setShowLootModal] = useState(false);
+  const [lootAmount, setLootAmount] = useState<'lots' | 'some' | 'little'>('some');
+  const [mapSeed, setMapSeed] = useState<number | ''>('');
+  const [mapLowSpots, setMapLowSpots] = useState<{ x: number; y: number }[]>([]);
+  const [lootModalSeed, setLootModalSeed] = useState<string>('');
+  const [isGeneratingLoot, setIsGeneratingLoot] = useState(false);
   const [inspectTile, setInspectTile] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -688,6 +702,7 @@ export default function MapEditor() {
 
   // ─── Resize ──────────────────────────────────────────────────────────
   const resizeMap = useCallback((newW: number, newH: number) => {
+    if (isNaN(newW) || newW <= 0 || isNaN(newH) || newH <= 0) return;
     setTiles(prev => {
       const next = createEmptyGrid(newW, newH);
       for (let y = 0; y < Math.min(prev.length, newH); y++) {
@@ -866,6 +881,7 @@ export default function MapEditor() {
 
   // ─── Offscreen Static Map Renderer ───────────────────────────────────
   useEffect(() => {
+    if (width <= 0 || height <= 0) return;
     if (!offscreenRef.current) {
       offscreenRef.current = document.createElement('canvas');
     }
@@ -988,6 +1004,7 @@ export default function MapEditor() {
 
   // ─── Main Canvas Render (Dynamic Overlays) ───────────────────────────
   useEffect(() => {
+    if (width <= 0 || height <= 0) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -1201,6 +1218,8 @@ export default function MapEditor() {
       width, height, tiles, buildings,
       playerSpawn: getPlayerSpawn(),
       noAutosave: noAutosave || undefined,
+      seed: mapSeed !== '' ? Number(mapSeed) : undefined,
+      lowSpots: mapLowSpots,
     };
     const exported = exportScenario(scenario);
 
@@ -1214,7 +1233,16 @@ export default function MapEditor() {
   };
 
   const handleSaveEditor = async () => {
-    const editorState = { name: scenarioName, width, height, tiles, buildings, noAutosave: noAutosave || undefined };
+    const editorState = {
+      name: scenarioName,
+      width,
+      height,
+      tiles,
+      buildings,
+      noAutosave: noAutosave || undefined,
+      seed: mapSeed !== '' ? Number(mapSeed) : undefined,
+      lowSpots: mapLowSpots,
+    };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
       setStatusMsg(`Editor state saved for "${scenarioName}"`);
@@ -1269,6 +1297,8 @@ export default function MapEditor() {
         setTiles(sanitizeTiles(editor.tiles));
         setBuildings(editor.buildings || []);
         setNoAutosave(editor.noAutosave ?? false);
+        setMapSeed(editor.seed !== undefined ? editor.seed : '');
+        setMapLowSpots(editor.lowSpots || []);
         setStatusMsg(`Loaded save game map "${label}"`);
         return;
       } catch (err: any) {
@@ -1287,6 +1317,8 @@ export default function MapEditor() {
     setTiles(sanitizeTiles(editor.tiles));
     setBuildings(editor.buildings || []);
     setNoAutosave(editor.noAutosave ?? false);
+    setMapSeed(editor.seed !== undefined ? editor.seed : '');
+    setMapLowSpots(editor.lowSpots || []);
     setStatusMsg(`Loaded "${label}"`);
   };
 
@@ -1355,6 +1387,106 @@ export default function MapEditor() {
     }
   };
 
+  const mapEcsItemToEditorItem = (it: any) => {
+    const entry: any = { defId: it.defId || it.id };
+    if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
+    if (it.condition !== undefined) entry.condition = it.condition;
+    if (it.attachments) {
+      const itItemDef = (ItemDefs as any)[entry.defId];
+      const slotInfo = getBatterySlotInfo(itItemDef);
+      if (slotInfo && it.attachments[slotInfo.slotId]?.ammoCount !== undefined) {
+        entry.batteryCharges = it.attachments[slotInfo.slotId].ammoCount;
+      }
+      if (itItemDef?.categories?.includes(ItemCategory.GUN)) {
+        const ammoAtt = it.attachments['ammo'];
+        if (ammoAtt) {
+          if (itItemDef.directLoad) {
+            entry.gunAmmoCount = ammoAtt.stackCount ?? 0;
+          } else {
+            entry.gunMagDefId = ammoAtt.defId;
+            entry.gunAmmoCount = ammoAtt.ammoCount ?? 0;
+          }
+        }
+        const nonAmmo: Record<string, string> = {};
+        for (const [slotId, att] of Object.entries(it.attachments as Record<string, any>)) {
+          if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
+        }
+        if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
+      }
+    }
+    return entry;
+  };
+
+  const handleGenerateLoot = async () => {
+    setIsGeneratingLoot(true);
+    setStatusMsg('Running loot generator...');
+    try {
+      let finalSeed = parseInt(lootModalSeed, 10);
+      if (isNaN(finalSeed)) {
+        finalSeed = (Math.random() * 0xFFFFFFFF) >>> 0;
+      }
+
+      setMapSeed(finalSeed);
+      setLootModalSeed(finalSeed.toString());
+
+      const { gameRandom } = await import('@/game/utils/SeededRandom');
+      gameRandom.seed(finalSeed);
+
+      const scenario: ScenarioData = {
+        name: scenarioName,
+        width, height, tiles, buildings,
+        playerSpawn: getPlayerSpawn(),
+        noAutosave: noAutosave || undefined,
+        seed: finalSeed,
+      };
+      const exported = exportScenario(scenario);
+
+      const { TemplateMapGenerator } = await import('@/game/map/TemplateMapGenerator');
+      const { GameMap } = await import('@/game/map/GameMap');
+      const tmg = new TemplateMapGenerator();
+      const mapData = await tmg.generateFromScenario(exported);
+      const gameMap = new GameMap(mapData.width, mapData.height);
+      await tmg.applyToGameMap(gameMap, mapData);
+
+      const { LootGenerator } = await import('@/game/map/LootGenerator');
+      const gen = new LootGenerator();
+      
+      let mapNumberForLoot = 5;
+      if (lootAmount === 'lots') mapNumberForLoot = 1;
+      else if (lootAmount === 'little') mapNumberForLoot = 9;
+
+      gen.spawnLoot(gameMap, mapNumberForLoot);
+
+      const newTiles = tiles.map((row, y) =>
+        row.map((t, x) => {
+          const rawItems = gameMap.getItemsOnTile(x, y);
+          if (rawItems.length === 0) return t;
+
+          const generatedEditorItems = rawItems.map((entity: any) => {
+            const json = typeof entity.toJSON === 'function' ? entity.toJSON() : entity;
+            return mapEcsItemToEditorItem(json);
+          }).filter((it: any) => it.defId);
+
+          return {
+            ...t,
+            items: [...t.items, ...generatedEditorItems]
+          };
+        })
+      );
+
+      pushUndo(tiles, buildings);
+      setTiles(newTiles);
+      setMapLowSpots(gameMap.lowSpots || []);
+      setStatusMsg(`Loot generated using seed ${finalSeed}! (Amount level: ${lootAmount})`);
+      setShowLootModal(false);
+    } catch (err: any) {
+      console.error('[GenerateLoot] Failed:', err);
+      setStatusMsg(`Loot generation failed: ${err.message}`);
+    } finally {
+      setIsGeneratingLoot(false);
+    }
+  };
+
   const handleLoadEditor = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1420,6 +1552,10 @@ export default function MapEditor() {
             <button onClick={handleSaveEditor} style={btnStyle('#555')}>Save</button>
             <button onClick={handleOpenLoadPicker} style={btnStyle('#555')}>Load</button>
             <button onClick={() => setShowGenPicker(true)} style={btnStyle('#6a4ab8')}>⚡ Generate</button>
+            <button onClick={() => {
+              setLootModalSeed(mapSeed !== '' ? mapSeed.toString() : Math.floor(Math.random() * 1000000).toString());
+              setShowLootModal(true);
+            }} style={btnStyle('#2b9a7a')}>🎲 Loot Gen</button>
             <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#444')}>Import</button>
             <button onClick={handleUndo} style={btnStyle('#555')}>Undo</button>
             <button onClick={handleClear} style={btnStyle('#7a2a2a')}>Clear</button>
@@ -2117,6 +2253,90 @@ export default function MapEditor() {
             )}
             <button onClick={() => setShowLoadPicker(false)}
               style={{ ...btnStyle('#555'), marginTop: 12, width: '100%' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Loot generator modal ─── */}
+      {showLootModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setShowLootModal(false)}>
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 320, maxHeight: '80vh', overflow: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>🎲 Generate Ambient Loot</h3>
+            <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16 }}>
+              This will populate buildings and outdoor areas with random items. Items will be merged with any existing loot on the tiles.
+            </p>
+
+            {/* Loot Amount Selection */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>Loot Amount</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[
+                  { id: 'lots', label: 'Lots' },
+                  { id: 'some', label: 'Some' },
+                  { id: 'little', label: 'A Little' },
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setLootAmount(opt.id as any)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 4px',
+                      background: lootAmount === opt.id ? '#4a90d9' : '#333',
+                      color: '#eee',
+                      border: lootAmount === opt.id ? '2px solid #7bb8ff' : '1px solid #555',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontSize: 12,
+                      fontWeight: lootAmount === opt.id ? 'bold' : 'normal',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Seed Input */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
+              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>RNG Seed</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  value={lootModalSeed}
+                  onChange={e => setLootModalSeed(e.target.value.replace(/[^0-9-]/g, ''))}
+                  placeholder="Enter number seed"
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setLootModalSeed(Math.floor(Math.random() * 10000000).toString())}
+                  style={btnStyle('#555')}
+                >
+                  🎲 Random
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm / Cancel Actions */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={handleGenerateLoot}
+                disabled={isGeneratingLoot}
+                style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: '10px' }}
+              >
+                {isGeneratingLoot ? 'Generating...' : 'Generate'}
+              </button>
+              <button
+                onClick={() => setShowLootModal(false)}
+                disabled={isGeneratingLoot}
+                style={{ ...btnStyle('#555'), flex: 1, padding: '10px' }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
