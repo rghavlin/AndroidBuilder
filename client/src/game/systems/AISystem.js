@@ -344,7 +344,7 @@ function huntPlayer(ctx) {
         }));
       }
     } else {
-      if (currentAP >= 2.0) {
+      if (currentAP >= 1.0) {
         // `amount` is only a fallback: CombatSystem rolls the real per-type damage
         // (and bleed/sickness) from the zombie's ZombieTypes.combat block.
         ctx.enqueue('DamageIntent', new DamageIntent({ amount: 2, targetId: player.id }));

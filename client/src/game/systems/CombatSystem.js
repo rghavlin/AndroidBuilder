@@ -103,16 +103,22 @@ export class CombatSystem {
         // afflictions come from the attacking zombie's ZombieTypes.combat block;
         // any non-zombie attacker falls back to the intent's flat amount and
         // inflicts no afflictions.
+        let hit = true;
         let damage = damageIntent.amount;
         let bleedingInflicted = false;
         let sickInflicted = false;
         if (attacker.type === 'zombie') {
-          const combat = getZombieType(attacker.subtype)?.combat || {};
-          if (combat.damage && typeof combat.damage.min === 'number' && typeof combat.damage.max === 'number') {
-            damage = gameRandom.nextInt(combat.damage.min, combat.damage.max);
+          hit = gameRandom.next() < 0.50;
+          if (hit) {
+            const combat = getZombieType(attacker.subtype)?.combat || {};
+            if (combat.damage && typeof combat.damage.min === 'number' && typeof combat.damage.max === 'number') {
+              damage = gameRandom.nextInt(combat.damage.min, combat.damage.max);
+            }
+            if (combat.bleedChance && gameRandom.next() < combat.bleedChance) bleedingInflicted = true;
+            if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
+          } else {
+            damage = 0;
           }
-          if (combat.bleedChance && gameRandom.next() < combat.bleedChance) bleedingInflicted = true;
-          if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
         }
 
         if (actionQueue) {
@@ -129,7 +135,7 @@ export class CombatSystem {
             data: {
               targetId: target.id,
               targetType: target.type,
-              success: true,
+              success: hit,
               damage,
               bleedingInflicted,
               sickInflicted,
@@ -139,21 +145,23 @@ export class CombatSystem {
           });
         } else {
           // direct/test execution: apply damage + afflictions immediately.
-          if (typeof target.takeDamage === 'function') {
-            target.takeDamage(damage, attacker);
-          } else if (target.hasComponent('Health')) {
-            const health = target.getComponent('Health');
-            health.current = Math.max(0, health.current - damage);
-            if (health.current <= 0) {
-              health.isDead = true;
+          if (hit) {
+            if (typeof target.takeDamage === 'function') {
+              target.takeDamage(damage, attacker);
+            } else if (target.hasComponent('Health')) {
+              const health = target.getComponent('Health');
+              health.current = Math.max(0, health.current - damage);
+              if (health.current <= 0) {
+                health.isDead = true;
+              }
             }
+            if (bleedingInflicted && typeof target.setBleeding === 'function') target.setBleeding(true);
+            if (sickInflicted && typeof target.inflictSickness === 'function') target.inflictSickness(SICKNESS_TURNS);
           }
-          if (bleedingInflicted && typeof target.setBleeding === 'function') target.setBleeding(true);
-          if (sickInflicted && typeof target.inflictSickness === 'function') target.inflictSickness(SICKNESS_TURNS);
         }
 
         // Deduct AP for attacking
-        const apCost = 2.0;
+        const apCost = 1.0;
         attacker.useAP(apCost);
 
         // State Sync: If the target is the player (has InventoryContainer), flag engine._uiDirty = true
