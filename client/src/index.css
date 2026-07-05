@@ -442,4 +442,198 @@
     background: var(--card) !important;
     border-top: 1px solid var(--border) !important;
   }
+
+  /* --- LIGHT2 (NEUMORPHIC LIGHT) THEME OVERRIDES --- */
+
+  .light2 {
+    --background: hsl(210 20% 96%);      /* Clean soft blue-gray background */
+    --foreground: hsl(220 20% 15%);      /* Soft charcoal text */
+    --card: hsl(0 0% 100%);              /* White cards */
+    --card-foreground: hsl(220 20% 15%);
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(220 20% 15%);
+    --primary: hsl(142 40% 45%);         /* Muted brand color */
+    --secondary: hsl(210 20% 94%);
+    --secondary-foreground: hsl(220 20% 20%);
+    --muted: hsl(210 20% 94%);
+    --muted-foreground: hsl(220 10% 50%);
+    --accent: hsl(38 92% 55%);           /* Gold highlight */
+    --accent-foreground: hsl(220 20% 15%);
+    --border: hsl(210 15% 88%);
+    --input: hsl(210 15% 88%);
+    --ring: hsl(38 92% 55%);
+  }
+
+  /* Base Panels in Neumorphic Light */
+  .light2 .metal-panel {
+    background: #eef2f7 !important;
+    border: none !important;
+    box-shadow: inset 1px 1px 3px rgba(165, 180, 203, 0.2), inset -1px -1px 3px #ffffff, 0 10px 30px rgba(165, 180, 203, 0.15) !important;
+  }
+
+  .light2 .metal-panel:not([data-inventory-ui="true"]) {
+    border-top: 4px solid #639A88 !important;
+  }
+
+  /* Card layouts for clothing panel rows */
+  .light2 [data-testid="unified-clothing-panel"] {
+    background: #f0f2f5 !important;
+    padding: 12px !important;
+  }
+
+  .light2 [data-testid="unified-clothing-panel"] > div > .border-b {
+    border: none !important;
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 2px 2px 6px rgba(165, 180, 203, 0.25), -2px -2px 6px #ffffff !important;
+    margin-bottom: 12px !important;
+    overflow: hidden !important;
+  }
+
+  /* Empty Slots: Inset Neumorphic */
+  .light2 .empty-slot,
+  .light2 .inset-slot,
+  .light2 .transparent-ground-slot {
+    background: #e8ecf2;
+    box-shadow: inset 2px 2px 4px rgba(165, 180, 203, 0.4), inset -2px -2px 4px #ffffff;
+    border: none;
+  }
+
+  /* Placement highlights overrides */
+  .light2 .empty-slot.placement-preview-valid,
+  .light2 .inset-slot.placement-preview-valid,
+  .light2 .transparent-ground-slot.placement-preview-valid {
+    background: rgba(34, 197, 94, 0.6) !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(74, 222, 128, 0.8) !important;
+  }
+
+  .light2 .empty-slot.placement-preview-invalid,
+  .light2 .inset-slot.placement-preview-invalid,
+  .light2 .transparent-ground-slot.placement-preview-invalid {
+    background: rgba(239, 68, 68, 0.6) !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(248, 113, 113, 0.8) !important;
+  }
+
+  /* Occupied slots: Hide the recessed slot styling (shadows/backgrounds) so that grid lines don't show through transparent item cards */
+  .light2 .occupied-slot {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Equipment slot filled: Outset Neumorphic card */
+  .light2 .equipment-slot-metal {
+    background: #ffffff;
+    box-shadow: 2px 2px 5px rgba(165, 180, 203, 0.3), -2px -2px 5px #ffffff;
+    border: 1px solid rgba(165, 180, 203, 0.25);
+  }
+
+  /* Force all equipment slots to circular design */
+  .light2 [data-testid="equipment-slots"] .flex-shrink-0 {
+    border-radius: 9999px !important;
+    overflow: hidden !important;
+  }
+  .light2 .empty-slot.rounded-lg {
+    border-radius: 9999px !important;
+  }
+
+  /* Item Slabs (outset card feel) */
+  .light2 .sunken-item-slab {
+    border: 1px solid rgba(165, 180, 203, 0.2) !important;
+    box-shadow: 1px 1px 3px rgba(165, 180, 203, 0.15), -1px -1px 3px #ffffff !important;
+    border-radius: 6px !important;
+  }
+
+  /* Neumorphic Buttons */
+  .light2 .metal-button {
+    background: #ffffff !important;
+    border: 1px solid rgba(165, 180, 203, 0.25) !important;
+    color: #3f3f46 !important;
+    box-shadow: 2px 2px 5px rgba(165, 180, 203, 0.35), -2px -2px 5px #ffffff !important;
+    border-radius: 8px !important;
+    text-shadow: none !important;
+    transform: none !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .light2 .metal-button:hover {
+    background: #f4f6f9 !important;
+    box-shadow: 1px 1px 3px rgba(165, 180, 203, 0.2), -1px -1px 3px #ffffff !important;
+  }
+
+  .light2 .metal-button:active {
+    background: #e8ecf2 !important;
+    box-shadow: inset 2px 2px 4px rgba(165, 180, 203, 0.5), inset -2px -2px 4px #ffffff !important;
+  }
+
+  /* Ground items button */
+  .light2 [data-testid="ground-items-grid"] button {
+    background: #ffffff !important;
+    border: 1px solid rgba(165, 180, 203, 0.25) !important;
+    color: #3f3f46 !important;
+    box-shadow: 2px 2px 5px rgba(165, 180, 203, 0.3), -2px -2px 5px #ffffff !important;
+    border-radius: 8px !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .light2 [data-testid="ground-items-grid"] button:hover {
+    background: #f4f6f9 !important;
+    box-shadow: 1px 1px 3px rgba(165, 180, 203, 0.2), -1px -1px 3px #ffffff !important;
+  }
+
+  .light2 [data-testid="ground-items-grid"] button:active {
+    background: #e8ecf2 !important;
+    box-shadow: inset 2px 2px 4px rgba(165, 180, 203, 0.5), inset -2px -2px 4px #ffffff !important;
+  }
+
+  /* Gold Highlighting for Selected Overlay */
+  .light2 .selected-item-overlay {
+    border-color: #E2A73F !important;
+    box-shadow: 0 0 0 2px rgba(226, 167, 63, 0.5) !important;
+    animation: item-blink 1.5s infinite ease-in-out !important;
+  }
+
+  .light2 .equipment-slot-metal.active {
+    box-shadow: 0 0 0 2px rgba(226, 167, 63, 0.5) !important;
+    border: 2px solid #E2A73F !important;
+  }
+
+  /* Blue Pill Badges for Stack/Ammo overlays */
+  .light2 .sunken-item-slab span.bg-black\/85,
+  .light2 .sunken-item-slab span.bg-black\/90,
+  .light2 [data-testid^="equipment-slot"] span.bg-black\/85,
+  .light2 [data-inventory-ui="true"] span.bg-black\/85 {
+    background: #bfdbfe !important;
+    color: #1d4ed8 !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+    box-shadow: 0 1px 2px rgba(29, 78, 216, 0.15) !important;
+    font-weight: 700 !important;
+  }
+
+  /* Custom Neumorphic Scrollbars in Light2 */
+  .light2 .custom-scrollbar {
+    scrollbar-color: hsl(210 10% 80%) hsl(210 20% 96%);
+  }
+
+  .light2 .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(210 20% 96%);
+  }
+
+  .light2 .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(210 10% 80%);
+    border: 2px solid hsl(210 20% 96%);
+  }
+
+  .light2 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(210 10% 70%);
+  }
+
+  .light2 .custom-scrollbar::-webkit-scrollbar-corner {
+    background: hsl(210 20% 96%);
+  }
 }

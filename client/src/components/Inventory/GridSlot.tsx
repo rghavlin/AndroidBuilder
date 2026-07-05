@@ -70,13 +70,13 @@ const GridSlot = memo(({
         // Skeuomorphic inset slot design
         isTransparentGround ? "transparent-ground-slot" : "inset-slot",
         // Hover state
-        !isEmpty ? "hover:brightness-110" : "hover:brightness-125",
+        !isEmpty ? "hover:brightness-110 occupied-slot" : "hover:brightness-125",
         className,
         // Conditional states
         isHighlighted && "!ring-2 !ring-accent !shadow-[0_0_10px_rgba(250,204,21,0.5)]",
         isValidDrop && "!ring-2 !ring-green-500 !shadow-[0_0_10px_rgba(34,197,94,0.5)]",
-        isPreviewValid === true && "!bg-none !bg-green-500/60 hover:!bg-green-500/60 !border !border-green-400/80",
-        isPreviewValid === false && "!bg-none !bg-red-500/60 hover:!bg-red-500/60 !border !border-red-400/80"
+        isPreviewValid === true && "!bg-none !bg-green-500/60 hover:!bg-green-500/60 !border !border-green-400/80 placement-preview-valid",
+        isPreviewValid === false && "!bg-none !bg-red-500/60 hover:!bg-red-500/60 !border !border-red-400/80 placement-preview-invalid"
       )}
       style={{
         width: `${slotSize}px`,

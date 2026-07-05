@@ -123,12 +123,7 @@ export default function GroundItemsGrid() {
           </button>
         </div>
 
-        <div 
-          className="flex-1 min-h-0 rounded border border-border overflow-hidden relative"
-          style={{
-            backgroundColor: isNoneTileSet ? tileColor : 'var(--background)',
-          }}
-        >
+        <div className="flex-1 min-h-0 rounded border border-border overflow-hidden relative bg-background">
           <UniversalGrid
             containerId={groundContainer.id}
             width={groundContainer.width}
@@ -140,8 +135,7 @@ export default function GroundItemsGrid() {
             enableHorizontalScroll={true}
             onSlotClick={handleSlotClick}
             onSlotDrop={handleSlotDrop}
-            isTransparentGround={true}
-            tileImageUrl={tileImageUrl}
+            isTransparentGround={false}
             className="h-full"
           />
         </div>

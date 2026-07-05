@@ -43,12 +43,18 @@ interface StatBarProps {
   className?: string;
 }
 
+const STAT_COLORS: Record<string, string> = {
+  health: '#639A88',
+  action: '#B190CD',
+  nutrition: '#E5B869',
+  hydration: '#6B9BC3',
+  energy: '#C893B3',
+};
+
 // memo: only re-renders when numeric props change, not on every movement frame
 const StatBar = memo(({ label, current, max, isLight, suffix, className }: StatBarProps) => {
-  let barFillClass = isLight ? "bg-foreground" : "bg-white";
-  if (isLight && label.toLowerCase() === 'health') {
-    barFillClass = ""; // Use inline style for custom sage green color
-  }
+  const statKey = label.toLowerCase();
+  const barColor = STAT_COLORS[statKey] || (isLight ? '#3f3f46' : '#ffffff');
 
   return (
     <div className={cn("flex flex-col gap-0.5", className)}>
@@ -70,17 +76,14 @@ const StatBar = memo(({ label, current, max, isLight, suffix, className }: StatB
         </span>
       </div>
       <div className={cn(
-        "h-2 w-full rounded-sm overflow-hidden border p-[1px]",
+        "h-2 w-full rounded-full overflow-hidden border p-[1px]",
         isLight ? "bg-muted border-border" : "bg-zinc-800/80 border-white/5"
       )}>
         <div 
-          className={cn(
-            "h-full transition-all duration-500 ease-out rounded-[1px]",
-            barFillClass
-          )} 
+          className="h-full transition-all duration-500 ease-out rounded-full" 
           style={{ 
             width: `${Math.min(100, Math.max(0, (current / max) * 100))}%`,
-            ...(isLight && label.toLowerCase() === 'health' ? { backgroundColor: '#639A88' } : {})
+            backgroundColor: barColor
           }} 
         />
       </div>
@@ -96,7 +99,7 @@ export default function GameControls({
   
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
   const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const isLight = theme !== 'dark';
   const { 
     turn, 
     endTurn, 
@@ -163,7 +166,7 @@ export default function GameControls({
                 disabled={buttonsDisabled}
                 className={cn(
                   "p-0.5 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
-                  theme === 'light' 
+                  isLight 
                     ? "bg-muted border border-zinc-300 hover:bg-muted/80 shadow-sm text-foreground" 
                     : "bg-primary hover:bg-primary/90 shadow-xl border border-border dark:border-white/10"
                 )}
@@ -175,7 +178,7 @@ export default function GameControls({
                     src={endTurnImage} 
                     alt="End Turn" 
                     className="w-full h-full object-contain" 
-                    style={{ filter: theme === 'light' ? 'invert(1)' : 'none' }}
+                    style={{ filter: isLight ? 'invert(1)' : 'none' }}
                   />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
@@ -197,7 +200,7 @@ export default function GameControls({
                 disabled={sleepDisabled}
                 className={cn(
                   "p-0.5 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
-                  theme === 'light' 
+                  isLight 
                     ? "bg-muted border border-zinc-300 hover:bg-muted/80 shadow-sm text-foreground" 
                     : "bg-primary hover:bg-primary/90 shadow-xl border border-border dark:border-white/10"
                 )}
@@ -209,7 +212,7 @@ export default function GameControls({
                     src={sleepImage} 
                     alt="Sleep" 
                     className="w-full h-full object-contain" 
-                    style={{ filter: theme === 'light' ? 'invert(1)' : 'none' }}
+                    style={{ filter: isLight ? 'invert(1)' : 'none' }}
                   />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">SLEEP</span>
@@ -231,7 +234,7 @@ export default function GameControls({
                 disabled={buttonsDisabled}
                 className={cn(
                   "p-1 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
-                  theme === 'light'
+                  isLight
                     ? (isExtensionOpen ? "ring-2 ring-[#639A88] bg-[#639A88]/10 shadow-none text-black" : "bg-muted hover:bg-muted/80 border-none shadow-none")
                     : cn(
                         "bg-zinc-800 hover:bg-zinc-700 border shadow-lg",
@@ -249,7 +252,7 @@ export default function GameControls({
                     alt="Crafting"
                     className={cn(
                       "w-full h-full object-contain p-1 grayscale",
-                      theme === 'dark' && "invert",
+                      !isLight && "invert",
                       isExtensionOpen ? "opacity-100" : "opacity-40"
                     )}
                   />
@@ -273,7 +276,7 @@ export default function GameControls({
                 disabled={buttonsDisabled}
                 className={cn(
                   "p-1 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed",
-                  theme === 'light'
+                  isLight
                     ? (isSkillsOpen ? "ring-2 ring-[#639A88] bg-[#639A88]/10 shadow-none text-black" : "bg-muted hover:bg-muted/80 border-none shadow-none")
                     : cn(
                         "bg-zinc-800 hover:bg-zinc-700 border shadow-lg",
@@ -291,7 +294,7 @@ export default function GameControls({
                     alt="Skills"
                     className={cn(
                       "w-full h-full object-contain p-1 grayscale",
-                      theme === 'dark' && "invert",
+                      !isLight && "invert",
                       isSkillsOpen ? "opacity-100" : "opacity-40"
                     )}
                   />

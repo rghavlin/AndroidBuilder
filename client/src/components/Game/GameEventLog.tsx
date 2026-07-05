@@ -9,7 +9,7 @@ interface GameEventLogProps {
 }
 
 const getLogColor = (type: string, originalColor: string, theme: string) => {
-    if (theme === 'light') {
+    if (theme !== 'dark') {
         switch (type) {
             case 'combat':
             case 'warning':
@@ -46,7 +46,7 @@ export default function GameEventLog({ onClick, className }: GameEventLogProps) 
             onClick={onClick}
             className={cn(
                 "w-[180px] min-w-[120px] shrink ml-4 mr-2 h-[52px] rounded-md px-3 py-1.5 cursor-pointer transition-colors overflow-hidden group relative flex items-center shadow-inner",
-                theme === 'light'
+                theme !== 'dark'
                     ? "bg-zinc-100 hover:bg-zinc-200/90 border border-zinc-200 text-zinc-800"
                     : "bg-black/60 hover:bg-black/80 border border-white/5 text-white",
                 className
@@ -68,8 +68,8 @@ export default function GameEventLog({ onClick, className }: GameEventLogProps) 
                             className="text-[10px] leading-tight truncate animate-in fade-in slide-in-from-bottom-1 duration-300 flex items-center"
                             style={{ color: getLogColor(log.type, log.color, theme) }}
                         >
-                            <span className={cn("font-mono mr-1.5 shrink-0", theme === 'light' ? "text-zinc-500" : "opacity-40")}>[{log.timestamp}]</span>
-                            <span className={cn("font-bold uppercase mr-1.5 text-[9px] shrink-0", theme === 'light' ? "opacity-90" : "opacity-60")}>{log.type}</span>
+                            <span className={cn("font-mono mr-1.5 shrink-0", theme !== 'dark' ? "text-zinc-500" : "opacity-40")}>[{log.timestamp}]</span>
+                            <span className={cn("font-bold uppercase mr-1.5 text-[9px] shrink-0", theme !== 'dark' ? "opacity-90" : "opacity-60")}>{log.type}</span>
                             <span className="truncate font-semibold">{log.message}</span>
                         </div>
                     ))

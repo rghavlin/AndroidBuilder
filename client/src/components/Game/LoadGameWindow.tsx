@@ -36,7 +36,7 @@ const formatTimestamp = (ts: number) =>
 
 export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps) {
     const { theme } = useTheme();
-    const isLight = theme === 'light';
+    const isLight = theme !== 'dark';
 
     const defaultSlots: DisplaySlot[] = [
         { slotId: 'autosave', label: 'Slot 1: Autosave', description: 'Most Recent Save', saveData: null },

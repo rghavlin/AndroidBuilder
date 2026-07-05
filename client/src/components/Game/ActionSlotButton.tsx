@@ -16,6 +16,7 @@ interface ActionSlotButtonProps {
 export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButtonProps) => {
   const { inventoryRef, selectedItem, clearSelected } = useInventory();
   const { theme } = useTheme();
+  const isLight = theme !== 'dark';
   const { targetingWeapon, toggleTargeting } = useCombat();
   const { toggleFlashlight, igniteTorch } = useGame();
 
@@ -75,13 +76,13 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
           "equipment-slot-metal hover:brightness-110", // Base style for action buttons
           // Targeting state: Bright red outline/glow
           item && isTargeting && (
-            theme === 'light'
+            isLight
               ? "!border-2 !border-solid !border-[#C15C5C] shadow-[inset_0_0_10px_rgba(193,92,92,0.15),0_0_8px_rgba(193,92,92,0.5)]"
               : "!border-red-500 shadow-[inset_0_0_10px_rgba(239,68,68,0.3),0_0_8px_rgba(239,68,68,0.5)]"
           ),
           // Flashlight ON state: Bright yellow/cyan outline/glow
           isFlashlightActive && (
-            theme === 'light'
+            isLight
               ? "!border-2 !border-solid !border-[#639A88] shadow-[inset_0_0_10px_rgba(99,154,136,0.15),0_0_8px_rgba(99,154,136,0.5)]"
               : "!border-cyan-400 shadow-[inset_0_0_10px_rgba(34,211,238,0.3),0_0_10px_rgba(34,211,238,0.4)]"
           )
@@ -95,10 +96,10 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
               alt={item.name}
               className={cn(
                 "w-full h-full object-contain pointer-events-none",
-                theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen"
+                isLight ? "mix-blend-multiply" : "mix-blend-screen"
               )}
               style={{
-                filter: theme === 'light' ? "invert(1)" : "brightness(2) contrast(300%)"
+                filter: isLight ? "invert(1)" : "brightness(2) contrast(300%)"
               }}
             />
           </div>

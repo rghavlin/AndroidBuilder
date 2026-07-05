@@ -47,7 +47,7 @@ export default function EarbucksDisplay() {
         className="w-6 h-6 object-contain shrink-0"
         style={{
           imageRendering: 'pixelated',
-          filter: theme === 'light' ? 'invert(1)' : 'none'
+          filter: theme !== 'dark' ? 'invert(1)' : 'none'
         }}
       />
       <span

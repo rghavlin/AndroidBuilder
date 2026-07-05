@@ -23,9 +23,14 @@ import { GAP_SIZE } from "./constants";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
-  if (!bgColor) return 'var(--card)';
-  if (theme === 'light') {
-    const lower = bgColor.toLowerCase();
+  if (!bgColor) return theme === 'light2' ? 'rgba(255, 255, 255, 0.15)' : 'var(--card)';
+  const lower = bgColor.toLowerCase();
+  if (theme === 'light2') {
+    if (lower === '#006b18') return '#7BA899';
+    if (lower === '#8a0303') return '#D48989';
+    if (lower === '#0a2e5c') return '#6B9BC3';
+    if (lower === '#5c653a') return '#8B956C';
+  } else if (theme === 'light') {
     if (lower === '#006b18') return '#639A88';
     if (lower === '#8a0303') return '#C15C5C';
     if (lower === '#0a2e5c') return '#5C8AB3';
@@ -994,7 +999,7 @@ export default function UniversalGrid({
               "absolute select-none z-10 transition-all duration-200 rounded-[3px] sunken-item-slab",
               "cursor-grab active:cursor-grabbing",
               hoveredItem === itemId ? "brightness-125 scale-[1.01]" : "",
-              isItemSelected ? (themeRef.current === 'light' ? "ring-2 ring-black border-black selected-item-overlay" : "ring-2 ring-accent border-accent selected-item-overlay") : "",
+              isItemSelected ? (themeRef.current === 'light2' ? "ring-2 ring-[#E2A73F] border-[#E2A73F] selected-item-overlay" : themeRef.current === 'light' ? "ring-2 ring-black border-black selected-item-overlay" : "ring-2 ring-accent border-accent selected-item-overlay") : "",
               !isItemSelected && isVehiclePulled ? "vehicle-pull-border" : "",
               !isItemSelected && isVehicleRidden ? "vehicle-ride-border" : ""
             )}
@@ -1020,7 +1025,7 @@ export default function UniversalGrid({
                   src={itemImageSrc}
                   className={cn(
                     "absolute pointer-events-none select-none max-w-none",
-                    !item.backgroundColor && (themeRef.current === 'light' ? "mix-blend-multiply" : "mix-blend-screen")
+                    !item.backgroundColor && (themeRef.current !== 'dark' ? "mix-blend-multiply" : "mix-blend-screen")
                   )}
                   style={{
                     left: `${adjustedLeft - leftPos}px`,
@@ -1030,7 +1035,7 @@ export default function UniversalGrid({
                     objectFit: 'cover',
                     transform: transformStyle,
                     transformOrigin: 'top left',
-                    filter: (themeRef.current === 'light' && !item.backgroundColor) ? 'invert(1)' : undefined,
+                    filter: (themeRef.current === 'light2' && !item.backgroundColor) ? 'invert(0.75)' : (themeRef.current === 'light' && !item.backgroundColor) ? 'invert(1)' : undefined,
                   }}
                   alt={item.name}
                 />

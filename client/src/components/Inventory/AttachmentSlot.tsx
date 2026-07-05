@@ -19,6 +19,7 @@ const AttachmentSlot = memo(({
 }: AttachmentSlotProps) => {
     const { attachSelectedItemToWeapon, detachItemFromWeapon, selectItem, selectedItem, inventoryVersion } = useInventory();
     const { theme } = useTheme();
+    const isLight = theme !== 'dark';
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     // Get current grid slot size dynamically from provider
@@ -100,12 +101,12 @@ const AttachmentSlot = memo(({
                                         alt={attachedItem.name}
                                         className={cn(
                                             "w-full h-full object-cover p-1 transition-opacity",
-                                            !attachedItem?.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen"),
+                                            !attachedItem?.backgroundColor && (isLight ? "mix-blend-multiply" : "mix-blend-screen"),
                                             selectedItem?.item?.instanceId === attachedItem.instanceId && "opacity-40 grayscale-[50%]"
                                         )}
                                         style={{
-                                            filter: (theme === 'light' && !attachedItem?.backgroundColor) ? 'invert(1)' : undefined
-                                        }}
+                                             filter: (theme === 'light2' && !attachedItem?.backgroundColor) ? 'invert(0.75)' : (theme === 'light' && !attachedItem?.backgroundColor) ? 'invert(1)' : undefined
+                                         }}
                                     />
                                 ) : (
                                     <span className={cn(

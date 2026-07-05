@@ -7,9 +7,14 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
-  if (!bgColor) return undefined;
-  if (theme === 'light') {
-    const lower = bgColor.toLowerCase();
+  if (!bgColor) return theme === 'light2' ? 'rgba(255, 255, 255, 0.15)' : undefined;
+  const lower = bgColor.toLowerCase();
+  if (theme === 'light2') {
+    if (lower === '#006b18') return '#7BA899';
+    if (lower === '#8a0303') return '#D48989';
+    if (lower === '#0a2e5c') return '#6B9BC3';
+    if (lower === '#5c653a') return '#8B956C';
+  } else if (theme === 'light') {
     if (lower === '#006b18') return '#639A88';
     if (lower === '#8a0303') return '#C15C5C';
     if (lower === '#0a2e5c') return '#5C8AB3';
@@ -105,13 +110,13 @@ const EquipmentSlot = memo(({
                     "w-full h-full object-contain pointer-events-none transition-transform",
                     hasItem && "rounded-full",
                     hasItem 
-                      ? (!item?.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen")) 
-                      : (theme === 'light' ? "mix-blend-multiply opacity-[0.35]" : "mix-blend-screen opacity-[0.35]")
+                      ? (!item?.backgroundColor && (theme !== 'dark' ? "mix-blend-multiply" : "mix-blend-screen")) 
+                      : (theme !== 'dark' ? "mix-blend-multiply opacity-[0.35]" : "mix-blend-screen opacity-[0.35]")
                   )}
                   style={{
                     filter: !hasItem 
-                      ? (theme === 'light' ? "invert(1)" : "none")
-                      : (!item?.backgroundColor ? (theme === 'light' ? "invert(1) contrast(300%)" : "brightness(2) contrast(300%)") : undefined)
+                      ? (theme === 'light2' ? "invert(0.6)" : theme === 'light' ? "invert(1)" : "none")
+                      : (!item?.backgroundColor ? (theme === 'light2' ? "invert(0.75)" : theme === 'light' ? "invert(1) contrast(300%)" : "brightness(2) contrast(300%)") : undefined)
                   }}
                 />
               </div>

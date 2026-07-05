@@ -271,11 +271,12 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                 <SelectContent className="z-[120]">
                                                     <SelectItem value="dark">Dark Theme</SelectItem>
                                                     <SelectItem value="light">Light Theme</SelectItem>
+                                                    <SelectItem value="light2">Neumorphic Light</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <p className="text-[10px] text-muted-foreground/60 italic px-1">
-                                            Switch between Light and Dark interface modes.
+                                            Switch between Dark, Light, and Neumorphic Light interface modes.
                                         </p>
                                     </div>
                                 </div>

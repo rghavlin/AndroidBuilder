@@ -24,6 +24,7 @@ const WorkspaceSlot = memo(({
 }: WorkspaceSlotProps) => {
     const { getContainer, selectItem, selectedItem, placeSelected, inventoryVersion } = useInventory();
     const { theme } = useTheme();
+    const isLight = theme !== 'dark';
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     const container = getContainer(containerId);
@@ -104,11 +105,11 @@ const WorkspaceSlot = memo(({
                                     alt={item.name}                                        
                                     className={cn(
                                         "w-full h-full object-contain p-1", 
-                                        !item?.backgroundColor && (theme === 'light' ? "mix-blend-multiply" : "mix-blend-screen")
+                                        !item?.backgroundColor && (isLight ? "mix-blend-multiply" : "mix-blend-screen")
                                     )} 
-                                    style={{
-                                        filter: (theme === 'light' && !item?.backgroundColor) ? 'invert(1)' : undefined
-                                    }}
+                                     style={{
+                                         filter: (theme === 'light2' && !item?.backgroundColor) ? 'invert(0.75)' : (theme === 'light' && !item?.backgroundColor) ? 'invert(1)' : undefined
+                                     }}
                                 />
                             ) : (
                                 <span className="text-[0.6rem] font-bold text-accent text-center px-1 truncate">{item.name}</span>

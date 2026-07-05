@@ -9,6 +9,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 export default function DragPreviewLayer() {
   const inventoryContext = useInventory();
   const { theme } = useTheme();
+  const isLight = theme !== 'dark';
   const { dragState, updateDragPosition, rotateDrag, cancelDrag } = inventoryContext;
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
@@ -101,10 +102,10 @@ export default function DragPreviewLayer() {
           key={`${item.instanceId}:${theme}`}
           src={itemImage}
           alt={item.name}
-          className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? (theme === 'light' ? 'mix-blend-multiply' : 'mix-blend-screen') : ''}`}
+          className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? (isLight ? 'mix-blend-multiply' : 'mix-blend-screen') : ''}`}
           style={{
             transform: `rotate(${rotation}deg)`,
-            filter: (theme === 'light' && !item?.backgroundColor) ? 'invert(1)' : undefined
+            filter: (theme === 'light2' && !item?.backgroundColor) ? 'invert(0.75)' : (theme === 'light' && !item?.backgroundColor) ? 'invert(1)' : undefined
           }}
         />
       ) : (
