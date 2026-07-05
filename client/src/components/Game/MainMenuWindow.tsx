@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import OptionsWindow from './OptionsWindow';
 import HelpWindow from './HelpWindow';
 import LoadGameWindow from './LoadGameWindow';
+import SaveGameWindow from './SaveGameWindow';
 import { X, Settings, HelpCircle, LogOut } from "lucide-react";
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 
@@ -14,18 +14,20 @@ interface MainMenuWindowProps {
 }
 
 export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
-    const { initializeGame, loadGameDirect, shutdownGame } = useGame();
+    const { initializeGame, loadGameDirect, saveGame, shutdownGame } = useGame();
     const [isLoading, setIsLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [showLoadGame, setShowLoadGame] = useState(false);
+    const [showSaveGame, setShowSaveGame] = useState(false);
     const [hasSave, setHasSave] = useState(false);
 
     const checkSave = async () => {
         try {
             const slots = await GameSaveSystem.listSaveSlots();
             const found = slots.some(
-                s => s.slotName === 'autosave' || s.slotName.startsWith('autosave_backup_')
+                s => ['autosave', 'autosave_backup', 'manual_1', 'manual_2'].includes(s.slotName) ||
+                     s.slotName.startsWith('autosave_backup_')
             );
             setHasSave(found);
         } catch (e) {
@@ -55,8 +57,18 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
         setIsLoading(false);
     };
 
-    const handleCustomLaunch = async (config: any) => {
-        // Now handled by GameScreen global render
+    const handleSaveSlot = async (slotName: string) => {
+        setIsLoading(true);
+        console.log(`[MainMenuWindow] Saving game to slot ${slotName}...`);
+        const success = await saveGame(slotName);
+        if (success) {
+            console.log('[MainMenuWindow] Save successful');
+            setShowSaveGame(false);
+            checkSave();
+        } else {
+            console.warn('[MainMenuWindow] Save failed');
+        }
+        setIsLoading(false);
     };
 
     const handleLoadSlot = async (slotName: string) => {
@@ -106,6 +118,15 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     </Button>
 
                     <Button
+                        onClick={() => setShowSaveGame(true)}
+                        disabled={isLoading}
+                        className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
+                        data-testid="button-menu-save-game"
+                    >
+                        Save Game
+                    </Button>
+
+                    <Button
                         onClick={() => setShowLoadGame(true)}
                         disabled={isLoading || !hasSave}
                         className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
@@ -152,6 +173,15 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                 checkSave();
             }} />}
             {showHelp && <HelpWindow onClose={() => setShowHelp(false)} />}
+            {showSaveGame && (
+                <SaveGameWindow
+                    onClose={() => {
+                        setShowSaveGame(false);
+                        checkSave();
+                    }}
+                    onSave={handleSaveSlot}
+                />
+            )}
             {showLoadGame && (
                 <LoadGameWindow
                     onClose={() => setShowLoadGame(false)}

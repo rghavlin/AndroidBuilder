@@ -663,6 +663,10 @@ export default function MapEditor() {
   const [mapLowSpots, setMapLowSpots] = useState<{ x: number; y: number }[]>([]);
   const [lootModalSeed, setLootModalSeed] = useState<string>('');
   const [isGeneratingLoot, setIsGeneratingLoot] = useState(false);
+  const [showZombieModal, setShowZombieModal] = useState(false);
+  const [zombieDensity, setZombieDensity] = useState<'sparse' | 'normal' | 'dense'>('normal');
+  const [zombieModalSeed, setZombieModalSeed] = useState<string>('');
+  const [isGeneratingZombies, setIsGeneratingZombies] = useState(false);
   const [inspectTile, setInspectTile] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1487,6 +1491,115 @@ export default function MapEditor() {
     }
   };
 
+  const handleGenerateZombies = async () => {
+    setIsGeneratingZombies(true);
+    setStatusMsg('Running zombie spawner...');
+    try {
+      let finalSeed = parseInt(zombieModalSeed, 10);
+      if (isNaN(finalSeed)) {
+        finalSeed = (Math.random() * 0xFFFFFFFF) >>> 0;
+      }
+
+      setMapSeed(finalSeed);
+      setZombieModalSeed(finalSeed.toString());
+
+      const { gameRandom } = await import('@/game/utils/SeededRandom');
+      gameRandom.seed(finalSeed);
+
+      const scenario: ScenarioData = {
+        name: scenarioName,
+        width, height, tiles, buildings,
+        playerSpawn: getPlayerSpawn(),
+        noAutosave: noAutosave || undefined,
+        seed: finalSeed,
+      };
+      const exported = exportScenario(scenario);
+
+      const { TemplateMapGenerator } = await import('@/game/map/TemplateMapGenerator');
+      const { GameMap } = await import('@/game/map/GameMap');
+      const tmg = new TemplateMapGenerator();
+      const mapData = await tmg.generateFromScenario(exported);
+      const gameMap = new GameMap(mapData.width, mapData.height);
+      await tmg.applyToGameMap(gameMap, mapData);
+
+      // Density selection: 'sparse' -> map 1, 'normal' -> map 3, 'dense' -> map 6
+      let mapNumberForZombies = 3;
+      if (zombieDensity === 'sparse') mapNumberForZombies = 1;
+      else if (zombieDensity === 'dense') mapNumberForZombies = 6;
+
+      gameMap.mapNumber = mapNumberForZombies;
+
+      const playerPos = getPlayerSpawn() || { x: Math.floor(width / 2), y: Math.floor(height / 2) };
+
+      const { ZombieSpawner } = await import('@/game/utils/ZombieSpawner');
+      const { getProgressionForMap, BASELINE_MAP_AREA } = await import('@/game/config/ProgressionConfig');
+      const progression = getProgressionForMap(mapNumberForZombies);
+      const areaMultiplier = (width * height) / BASELINE_MAP_AREA;
+      const scale = (v: number) => Math.floor(v * areaMultiplier);
+      const scaleRange = (r: { min: number; max: number }) => ({ min: scale(r.min), max: scale(r.max) });
+
+      let randomSwatCount = 0;
+      let randomFirefighterCount = 0;
+      let soldierCount = 0;
+      if (progression.randomSpecialized || mapNumberForZombies > 3) {
+        const { swatChance, firefighterChance, soldierChance } = progression.randomSpecialized || {};
+        if (gameRandom.next() < (swatChance || 0.15)) randomSwatCount = gameRandom.nextInt(0, 1) + 1;
+        if (gameRandom.next() < (firefighterChance || 0.15)) randomFirefighterCount = gameRandom.nextInt(0, 1) + 1;
+        if (gameRandom.next() < (soldierChance || 0.10)) soldierCount = 1;
+      }
+
+      const options = {
+        basicCount: scale(progression.basicCount),
+        crawlerRange: scaleRange(progression.crawlerRange),
+        runnerCount: scale(progression.runnerCount),
+        acidRange: scaleRange(progression.acidRange),
+        fatRange: scaleRange(progression.fatRange),
+        randomSwatCount: scale(randomSwatCount),
+        randomFirefighterCount: scale(randomFirefighterCount),
+        soldierCount: scale(soldierCount),
+        spitterCount: scale(progression.spitterCount || 0),
+        maxTotal: scale(progression.maxTotal),
+        minDistance: 5
+      };
+
+      const spawnedCount = ZombieSpawner.spawnZombies(gameMap, playerPos, options);
+
+      const newTiles = tiles.map((row, y) =>
+        row.map((t, x) => {
+          const tile = gameMap.getTile(x, y);
+          if (!tile || tile.contents.length === 0) return t;
+
+          const spawnedZombies = tile.contents
+            .filter((entity: any) => entity.type === 'zombie')
+            .map((entity: any) => ({
+              type: 'zombie',
+              subtype: entity.subtype || 'basic',
+              hp: entity.hp || undefined,
+              noLoot: entity.noLoot || undefined,
+              deaf: entity.deaf || undefined
+            }));
+
+          if (spawnedZombies.length === 0) return t;
+
+          return {
+            ...t,
+            entities: [...t.entities, ...spawnedZombies]
+          };
+        })
+      );
+
+      pushUndo(tiles, buildings);
+      setTiles(newTiles);
+      setStatusMsg(`Spawned ${spawnedCount} zombies using seed ${finalSeed}! (Density level: ${zombieDensity})`);
+      setShowZombieModal(false);
+    } catch (err: any) {
+      console.error('[GenerateZombies] Failed:', err);
+      setStatusMsg(`Zombie generation failed: ${err.message}`);
+    } finally {
+      setIsGeneratingZombies(false);
+    }
+  };
+
   const handleLoadEditor = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1556,6 +1669,10 @@ export default function MapEditor() {
               setLootModalSeed(mapSeed !== '' ? mapSeed.toString() : Math.floor(Math.random() * 1000000).toString());
               setShowLootModal(true);
             }} style={btnStyle('#2b9a7a')}>🎲 Loot Gen</button>
+            <button onClick={() => {
+              setZombieModalSeed(mapSeed !== '' ? mapSeed.toString() : Math.floor(Math.random() * 1000000).toString());
+              setShowZombieModal(true);
+            }} style={btnStyle('#7a3a8a')}>🧟 Zombie Spawn</button>
             <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#444')}>Import</button>
             <button onClick={handleUndo} style={btnStyle('#555')}>Undo</button>
             <button onClick={handleClear} style={btnStyle('#7a2a2a')}>Clear</button>
@@ -2332,6 +2449,90 @@ export default function MapEditor() {
               <button
                 onClick={() => setShowLootModal(false)}
                 disabled={isGeneratingLoot}
+                style={{ ...btnStyle('#555'), flex: 1, padding: '10px' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Zombie generator modal ─── */}
+      {showZombieModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setShowZombieModal(false)}>
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 320, maxHeight: '80vh', overflow: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>🧟 Spawn Ambient Zombies</h3>
+            <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16 }}>
+              This will distribute zombies across walkable tiles. Building-specific spawns (SWAT in police, firefighters in fire stations, etc.) will be automatically applied. Zombies are merged with existing entities.
+            </p>
+
+            {/* Density Selection */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>Zombie Density</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[
+                  { id: 'sparse', label: 'Sparse' },
+                  { id: 'normal', label: 'Normal' },
+                  { id: 'dense', label: 'Dense' },
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setZombieDensity(opt.id as any)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 4px',
+                      background: zombieDensity === opt.id ? '#4a90d9' : '#333',
+                      color: '#eee',
+                      border: zombieDensity === opt.id ? '2px solid #7bb8ff' : '1px solid #555',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontSize: 12,
+                      fontWeight: zombieDensity === opt.id ? 'bold' : 'normal',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Seed Input */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
+              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>RNG Seed</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  value={zombieModalSeed}
+                  onChange={e => setZombieModalSeed(e.target.value.replace(/[^0-9-]/g, ''))}
+                  placeholder="Enter number seed"
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setZombieModalSeed(Math.floor(Math.random() * 10000000).toString())}
+                  style={btnStyle('#555')}
+                >
+                  🎲 Random
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm / Cancel Actions */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={handleGenerateZombies}
+                disabled={isGeneratingZombies}
+                style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: '10px' }}
+              >
+                {isGeneratingZombies ? 'Spawning...' : 'Spawn'}
+              </button>
+              <button
+                onClick={() => setShowZombieModal(false)}
+                disabled={isGeneratingZombies}
                 style={{ ...btnStyle('#555'), flex: 1, padding: '10px' }}
               >
                 Cancel

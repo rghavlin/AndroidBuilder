@@ -706,7 +706,7 @@ const GameContextInner = ({ children }) => {
         // Backup every 5 turns
         const activeTurn = turnOverride || turn;
         if (activeTurn > 0 && activeTurn % 5 === 0) {
-          const backupSlotName = `autosave_backup_${((activeTurn / 5) % 3) + 1}`;
+          const backupSlotName = 'autosave_backup';
           const backupSuccess = await GameSaveSystem.saveToStorage(currentGameState, backupSlotName);
           if (backupSuccess) {
             toast({
@@ -1601,10 +1601,8 @@ const GameContextInner = ({ children }) => {
   }, [updatePlayerFieldOfView, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
   const saveGame = useCallback(async (slotName = 'quicksave') => {
-    if (!isInitialized || contextSyncPhase !== 'ready') {
-      console.warn('[GameContext] Cannot save - contexts not synchronized', {
-        isInitialized, contextSyncPhase
-      });
+    if (!isInitialized) {
+      console.warn('[GameContext] Cannot save - game not initialized');
       return false;
     }
     try {
@@ -1648,28 +1646,55 @@ const GameContextInner = ({ children }) => {
         camera: engine.camera,
         inventoryManager: inventoryManager,
         turn: turn,
-        playerStats: { hp: engine.player?.hp || 100, maxHp: engine.player?.maxHp || 100, ap: engine.player?.ap || 12, maxAp: engine.player?.maxAp || 12, ammo: 0 }
+        playerStats: {
+          hp: engine.player?.hp || 100,
+          maxHp: engine.player?.maxHp || 100,
+          ap: engine.player?.ap || 12,
+          maxAp: engine.player?.maxAp || 12,
+          nutrition: engine.player?.nutrition || 25,
+          maxNutrition: engine.player?.maxNutrition || 25,
+          hydration: engine.player?.hydration || 25,
+          maxHydration: engine.player?.maxHydration || 25,
+          energy: engine.player?.energy || 25,
+          maxEnergy: engine.player?.maxEnergy || 25,
+          ammo: 0
+        }
       };
       const success = await GameSaveSystem.saveToStorage(currentGameState, slotName);
       if (success) {
         console.log(`[GameContext] Game saved successfully to slot: ${slotName}`);
+        let slotLabel = slotName;
+        if (slotName === 'manual_1') slotLabel = 'Manual Slot 1';
+        else if (slotName === 'manual_2') slotLabel = 'Manual Slot 2';
+        else if (slotName === 'autosave') slotLabel = 'Autosave Slot 1';
+        else if (slotName === 'autosave_backup') slotLabel = 'Autosave Backup Slot 2';
+
+        toast({
+          title: "Game Saved",
+          description: `Game manually saved to ${slotLabel} at turn ${turn}.`,
+          duration: 2000
+        });
+      } else {
+        toast({
+          title: "Save Failed",
+          description: "Failed to save game. Please check the console for details.",
+          variant: "destructive"
+        });
       }
       return success;
     } catch (error) {
       console.error('[GameContext] Failed to save game:', error);
       return false;
     }
-  }, [isInitialized, contextSyncPhase, turn]);
+  }, [isInitialized, turn, inventoryManager]);
 
   const loadAutosave = useCallback(async () => {
     return await loadGame('autosave');
   }, [loadGame]);
 
   const exportGame = useCallback((filename) => {
-    if (!isInitialized || contextSyncPhase !== 'ready') {
-      console.warn('[GameContext] Cannot export - contexts not synchronized', {
-        isInitialized, contextSyncPhase
-      });
+    if (!isInitialized) {
+      console.warn('[GameContext] Cannot export - game not initialized');
       return false;
     }
     try {
@@ -1691,8 +1716,8 @@ const GameContextInner = ({ children }) => {
   }, [isInitialized, turn, inventoryManager]);
 
   const getSerializedSaveData = useCallback(() => {
-    if (!isInitialized || contextSyncPhase !== 'ready') {
-      console.warn('[GameContext] Cannot serialize - contexts not synchronized');
+    if (!isInitialized) {
+      console.warn('[GameContext] Cannot serialize - game not initialized');
       return null;
     }
     try {

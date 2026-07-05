@@ -31,7 +31,8 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     try {
       const slots = await GameSaveSystem.listSaveSlots();
       const found = slots.some(
-        s => s.slotName === 'autosave' || s.slotName.startsWith('autosave_backup_')
+        s => ['autosave', 'autosave_backup', 'manual_1', 'manual_2'].includes(s.slotName) ||
+             s.slotName.startsWith('autosave_backup_')
       );
       setHasSave(found);
     } catch (e) {

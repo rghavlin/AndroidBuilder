@@ -126,3 +126,29 @@ If an image is not found or fails to load, the rendering system automatically dr
 * **NPC:** Green circle
 * **Items:** Colored squares representing the item type (weapon, ammo, food, etc.)
 * **Unknown:** Gray square
+
+---
+
+## 4. Map Evolution & Game Modes Roadmap
+
+This section documents the map system's development history and specifies how maps are loaded, generated, and utilized across the different game modes.
+
+### 1. The Evolution of Maps & Map Editor
+* **Predetermined & Infinite Maps (Legacy):** The project originally started with an infinite series of smaller, predetermined maps.
+* **Town-Size Maps (Intermediate):** The map system was then expanded to support large, town-sized maps.
+* **Custom Maps (Current/Future):** The architecture has transitioned to support completely custom maps.
+* **Editor Purpose Pivot:** The map editor was initially created to design a basic tutorial level. Its role has since expanded to serve as the authoring tool for the entire Campaign mode. Advanced features are continually integrated into the editor to support this campaign-creation capability.
+
+### 2. Supported Game Modes
+In the production release, the player will be able to choose from three distinct play modes:
+
+| Play Mode | Map Source | Generation vs. Loading | Details |
+| :--- | :--- | :--- | :--- |
+| **Freeplay** | Endless procedural map cycle | Dynamic Generation | The default endless mode. Maps are generated dynamically on demand (e.g., at game startup or during map transitions). No changes to the existing flow. |
+| **Campaign** | Custom-authored map sequence | Pre-made Map Loading | A narrative campaign starting with a tutorial level. Maps are custom-designed using the map editor and loaded in the sequence specified by the campaign flow. |
+| **Scenarios** | Standalone custom scenarios | Pre-made Map Loading | Standalone custom maps representing special gameplay situations or challenges, package-included in the game. |
+
+### 3. Production Role of the Map Editor
+* **In-Game Availability:** The Map Editor will be fully included in the production release.
+* **User Customization:** Players will have full access to the Map Editor to design, save, and load their own custom maps, operating with the same workflows currently available in the development build.
+

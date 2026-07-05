@@ -12,6 +12,13 @@ interface SaveSlot {
     version?: string;
 }
 
+interface DisplaySlot {
+    slotId: string;
+    label: string;
+    description: string;
+    saveData: SaveSlot | null;
+}
+
 interface LoadGameWindowProps {
     onClose: () => void;
     // Invoked with the chosen slot name. Should return a promise that resolves
@@ -28,11 +35,19 @@ const formatTimestamp = (ts: number) =>
     });
 
 export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps) {
-    const [slots, setSlots] = useState<SaveSlot[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [loadingSlot, setLoadingSlot] = useState<string | null>(null);
     const { theme } = useTheme();
     const isLight = theme === 'light';
+
+    const defaultSlots: DisplaySlot[] = [
+        { slotId: 'autosave', label: 'Slot 1: Autosave', description: 'Most Recent Save', saveData: null },
+        { slotId: 'autosave_backup', label: 'Slot 2: Autosave Backup', description: 'Backup', saveData: null },
+        { slotId: 'manual_1', label: 'Manual Slot 1', description: 'Manual Save', saveData: null },
+        { slotId: 'manual_2', label: 'Manual Slot 2', description: 'Manual Save', saveData: null }
+    ];
+
+    const [slots, setSlots] = useState<DisplaySlot[]>(defaultSlots);
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadingSlot, setLoadingSlot] = useState<string | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -41,18 +56,28 @@ export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps)
                 const allSlots: SaveSlot[] = await GameSaveSystem.listSaveSlots();
 
                 const autosave = allSlots.find(s => s.slotName === 'autosave') || null;
-                const backups = allSlots
-                    .filter(s => s.slotName.startsWith('autosave_backup_'))
-                    .sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Fallback search for legacy backups if 'autosave_backup' doesn't exist
+                const backup = allSlots.find(s => s.slotName === 'autosave_backup') || 
+                               allSlots.find(s => s.slotName === 'autosave_backup_1') || 
+                               allSlots.find(s => s.slotName === 'autosave_backup_2') || 
+                               allSlots.find(s => s.slotName === 'autosave_backup_3') || 
+                               null;
+                
+                const manual1 = allSlots.find(s => s.slotName === 'manual_1') || null;
+                const manual2 = allSlots.find(s => s.slotName === 'manual_2') || null;
 
-                const ordered: SaveSlot[] = [];
-                if (autosave) ordered.push(autosave);
-                ordered.push(...backups);
+                const displaySlots: DisplaySlot[] = [
+                    { slotId: 'autosave', label: 'Slot 1: Autosave', description: 'Most Recent Save', saveData: autosave },
+                    { slotId: 'autosave_backup', label: 'Slot 2: Autosave Backup', description: 'Backup', saveData: backup },
+                    { slotId: 'manual_1', label: 'Manual Slot 1', description: 'Manual Save', saveData: manual1 },
+                    { slotId: 'manual_2', label: 'Manual Slot 2', description: 'Manual Save', saveData: manual2 }
+                ];
 
-                if (!cancelled) setSlots(ordered);
+                if (!cancelled) setSlots(displaySlots);
             } catch (e) {
                 console.warn('[LoadGameWindow] Failed to list save slots:', e);
-                if (!cancelled) setSlots([]);
+                if (!cancelled) setSlots(defaultSlots);
             }
         };
         loadSlots();
@@ -72,9 +97,6 @@ export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps)
         }
     };
 
-    const labelFor = (slot: SaveSlot) =>
-        slot.slotName === 'autosave' ? 'Most Recent Save' : 'Backup';
-
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-auto">
             <Card className="w-96 metal-panel border-border shadow-2xl relative">
@@ -93,27 +115,36 @@ export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps)
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 pb-8">
-                    {slots.length === 0 ? (
-                        <div className={`text-center text-sm py-4 ${isLight ? 'text-zinc-600' : 'text-slate-300 opacity-80'}`}>
-                            No saved games found.
-                        </div>
-                    ) : (
-                        slots.map((slot) => (
+                    {slots.map((slot) => {
+                        const hasSave = slot.saveData !== null;
+                        const actualSlotName = slot.saveData?.slotName || slot.slotId;
+                        return (
                             <Button
-                                key={slot.slotName}
-                                onClick={() => handleLoad(slot.slotName)}
-                                disabled={isLoading}
-                                className="w-full py-4 text-sm font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto opacity-90 hover:opacity-100"
-                                data-testid={`button-load-slot-${slot.slotName}`}
+                                key={slot.slotId}
+                                onClick={() => hasSave && handleLoad(actualSlotName)}
+                                disabled={isLoading || !hasSave}
+                                className={`w-full py-4 text-sm font-bold metal-button uppercase tracking-wide flex-col items-center justify-center gap-1 h-auto ${
+                                    hasSave ? 'opacity-90 hover:opacity-100' : 'opacity-40 cursor-not-allowed'
+                                }`}
+                                data-testid={`button-load-slot-${slot.slotId}`}
                             >
-                                <div>{loadingSlot === slot.slotName ? 'Loading...' : labelFor(slot)}</div>
+                                <div>
+                                    {loadingSlot === actualSlotName ? 'Loading...' : slot.label}
+                                </div>
                                 <div className={`text-xs font-normal normal-case tracking-normal ${isLight ? 'text-zinc-500' : 'text-slate-400'}`}>
-                                    {formatTimestamp(slot.timestamp)}
-                                    {slot.turn ? ` • Turn ${slot.turn}` : ''}
+                                    {hasSave && slot.saveData ? (
+                                        <>
+                                            {formatTimestamp(slot.saveData.timestamp)}
+                                            {slot.saveData.turn ? ` • Turn ${slot.saveData.turn}` : ''}
+                                            {` (${slot.description})`}
+                                        </>
+                                    ) : (
+                                        `Empty (${slot.description})`
+                                    )}
                                 </div>
                             </Button>
-                        ))
-                    )}
+                        );
+                    })}
                 </CardContent>
             </Card>
         </div>
