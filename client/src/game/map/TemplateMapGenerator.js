@@ -286,16 +286,17 @@ export class TemplateMapGenerator {
     // Add spawn zones metadata
     mapData.metadata.spawnZones = {
       ...template.spawnZones,
-      roadStart: [{ x: southExitX, y: mapData.height - 2 }], 
+      roadStart: [{ x: southExitX, y: mapData.height - 2 }],
       transitionPoints: {
-        north: { x: northExitX, y: 0 }, 
-        south: { x: southExitX, y: mapData.height - 1 } 
+        north: { x: northExitX, y: 0 },
+        south: { x: southExitX, y: mapData.height - 1 }
       }
     };
 
     this.placeWildCrops(mapData);
     this.placeOutdoorDecorations(mapData);
     this.placeIndoorDecorations(mapData);
+    this.placeRoadAndSidewalkDecorations(mapData);
 
     console.log(`[TemplateMapGenerator] Generated '${templateName}' map using ${generator ? 'Strategy' : 'Legacy'} engine`);
     return mapData;
@@ -374,7 +375,7 @@ export class TemplateMapGenerator {
     selectedSpots.forEach(spot => {
       const tile = tiles[spot.y][spot.x];
       const cropDef = crops[gameRandom.nextInt(0, crops.length - 1)];
-      
+
       const wildCropItem = createItemFromDef(cropDef.defId, {
         subtype: cropDef.subtype,
         x: spot.x,
@@ -442,6 +443,33 @@ export class TemplateMapGenerator {
       }
     }
     console.log(`[TemplateMapGenerator] Placed indoor decorations`);
+  }
+
+  /**
+   * Place road and sidewalk decorations on road and sidewalk tiles
+   */
+  placeRoadAndSidewalkDecorations(mapData) {
+    const { width, height, tiles } = mapData;
+    const decorTypes = ['road1', 'road2', 'road3'];
+
+    const compound = mapData.metadata?.townSquareCompound;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (isInsideCompound(compound, x, y)) {
+          continue;
+        }
+
+        const tile = tiles[y] && tiles[y][x];
+        if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
+          const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
+          if (!hasCropsOrItems && gameRandom.next() < MAP_GEN_CONFIG.decorationProbability * 0.5) {
+            const decor = decorTypes[gameRandom.nextInt(0, decorTypes.length - 1)];
+            tile.decoration = decor;
+          }
+        }
+      }
+    }
+    console.log(`[TemplateMapGenerator] Placed road and sidewalk decorations`);
   }
 
   /**
@@ -576,7 +604,7 @@ export class TemplateMapGenerator {
     if (!mapData.metadata.buildings) {
       mapData.metadata.buildings = [];
     }
-    
+
     mapData.metadata.buildings.push({
       type,
       x,
@@ -585,7 +613,7 @@ export class TemplateMapGenerator {
       height,
       ...extra
     });
-    
+
     // Provide backward compatibility for specialBuildings key during map transition phase
     if (isSpecialBuilding(type)) {
       if (!mapData.metadata.specialBuildings) {
@@ -623,7 +651,7 @@ export class TemplateMapGenerator {
     const template = this.templates.get(templateName);
     const width = template ? template.size.width : 45;
     const height = template ? template.size.height : 125;
-    
+
     const generator = this.generators.get(templateName);
     if (generator) {
       return generator.getStartPosition(width, height);
@@ -767,39 +795,39 @@ export class TemplateMapGenerator {
         for (let x = 0; x < templateMapData.width; x++) {
           const tile = gameMap.getTile(x, y);
           const origTerrain = templateMapData.tiles[y] && templateMapData.tiles[y][x] ? templateMapData.tiles[y][x].terrain : null;
-          
+
           if (tile && (origTerrain === 'building' || origTerrain === 'wall')) {
-             // Check if this tile is on the outer perimeter of a building
-             const isOuterWall = templateMapData.metadata?.buildings?.some(b => {
-               const isWithinX = x >= b.x && x < b.x + b.width;
-               const isWithinY = y >= b.y && y < b.y + b.height;
-               if (isWithinX && isWithinY) {
-                 return x === b.x || x === b.x + b.width - 1 || y === b.y || y === b.y + b.height - 1;
-               }
-               return false;
-             }) || false;
+            // Check if this tile is on the outer perimeter of a building
+            const isOuterWall = templateMapData.metadata?.buildings?.some(b => {
+              const isWithinX = x >= b.x && x < b.x + b.width;
+              const isWithinY = y >= b.y && y < b.y + b.height;
+              if (isWithinX && isWithinY) {
+                return x === b.x || x === b.x + b.width - 1 || y === b.y || y === b.y + b.height - 1;
+              }
+              return false;
+            }) || false;
 
-             if (isOuterWall) {
-               // Keep outer walls as solid building/wall tiles so they block movement/sight and reveal/render correctly
-               continue;
-             }
+            if (isOuterWall) {
+              // Keep outer walls as solid building/wall tiles so they block movement/sight and reveal/render correctly
+              continue;
+            }
 
-             // Change terrain to floor so the tile is walkable
-             gameMap.setTerrain(x, y, 'floor');
-             
-             // Check original neighbors to determine which edge walls to create
-             const nTile = y > 0 ? templateMapData.tiles[y-1][x]?.terrain : null;
-             const sTile = y < templateMapData.height - 1 ? templateMapData.tiles[y+1][x]?.terrain : null;
-             const wTile = x > 0 ? templateMapData.tiles[y][x-1]?.terrain : null;
-             const eTile = x < templateMapData.width - 1 ? templateMapData.tiles[y][x+1]?.terrain : null;
-             
-             const isWallOrOpening = (t, tx, ty) => t === 'building' || t === 'wall' || hasDoorOrWindow(tx, ty);
-             
-             // If a neighboring tile was NOT a wall or door, we need an edge wall separating them
-             if (!isWallOrOpening(nTile, x, y - 1)) tile.edgeWalls.n = true;
-             if (!isWallOrOpening(sTile, x, y + 1)) tile.edgeWalls.s = true;
-             if (!isWallOrOpening(wTile, x - 1, y)) tile.edgeWalls.w = true;
-             if (!isWallOrOpening(eTile, x + 1, y)) tile.edgeWalls.e = true;
+            // Change terrain to floor so the tile is walkable
+            gameMap.setTerrain(x, y, 'floor');
+
+            // Check original neighbors to determine which edge walls to create
+            const nTile = y > 0 ? templateMapData.tiles[y - 1][x]?.terrain : null;
+            const sTile = y < templateMapData.height - 1 ? templateMapData.tiles[y + 1][x]?.terrain : null;
+            const wTile = x > 0 ? templateMapData.tiles[y][x - 1]?.terrain : null;
+            const eTile = x < templateMapData.width - 1 ? templateMapData.tiles[y][x + 1]?.terrain : null;
+
+            const isWallOrOpening = (t, tx, ty) => t === 'building' || t === 'wall' || hasDoorOrWindow(tx, ty);
+
+            // If a neighboring tile was NOT a wall or door, we need an edge wall separating them
+            if (!isWallOrOpening(nTile, x, y - 1)) tile.edgeWalls.n = true;
+            if (!isWallOrOpening(sTile, x, y + 1)) tile.edgeWalls.s = true;
+            if (!isWallOrOpening(wTile, x - 1, y)) tile.edgeWalls.w = true;
+            if (!isWallOrOpening(eTile, x + 1, y)) tile.edgeWalls.e = true;
           }
         }
       }
@@ -809,7 +837,7 @@ export class TemplateMapGenerator {
         const { Door } = await import('../entities/Door.js');
         templateMapData.metadata.doors.forEach(doorData => {
           const { x, y } = doorData;
-          
+
           // Phase 2: Create Door entity
           if (!doorData.isOpening) {
             const door = new Door(
@@ -831,7 +859,7 @@ export class TemplateMapGenerator {
               tile.edgeWalls[doorData.edge] = false;
             }
           }
-          
+
           // Ensure the door site itself is definitely walkable (floor)
           gameMap.setTerrain(doorData.x, doorData.y, 'floor');
         });
@@ -853,7 +881,7 @@ export class TemplateMapGenerator {
             windowData.edge
           );
           gameMap.addEntity(window, windowData.x, windowData.y);
-          
+
           // Ensure the window site itself is definitely walkable (floor)
           gameMap.setTerrain(windowData.x, windowData.y, 'floor');
         });

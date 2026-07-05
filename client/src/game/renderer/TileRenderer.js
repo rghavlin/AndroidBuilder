@@ -144,8 +144,12 @@ export const TileRenderer = {
 
         // Step B.5: Draw Decoration Layer (on top of terrain, below walls/fog)
         if (tile.decoration && imageLoader.tileSet !== 'none' && !engine.renderDebugColors) {
-            const isIndoor = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration);
-            const decorType = isIndoor ? 'indoor' : 'outdoor';
+            let decorType = 'outdoor';
+            if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration)) {
+                decorType = 'indoor';
+            } else if (['road1', 'road2', 'road3'].includes(tile.decoration)) {
+                decorType = 'roadandsidewalk';
+            }
             const decorKey = `decor_${decorType}_${tile.decoration}`;
             const decorSprite = sprites[decorKey];
             if (decorSprite) {
@@ -395,8 +399,12 @@ export const TileRenderer = {
 
     // Decoration layer
     if (tile.decoration && imageLoader.tileSet !== 'none' && !engine.renderDebugColors) {
-      const isIndoor = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration);
-      const decorType = isIndoor ? 'indoor' : 'outdoor';
+      let decorType = 'outdoor';
+      if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration)) {
+        decorType = 'indoor';
+      } else if (['road1', 'road2', 'road3'].includes(tile.decoration)) {
+        decorType = 'roadandsidewalk';
+      }
       const decorSprite = sprites?.[`decor_${decorType}_${tile.decoration}`];
       if (decorSprite) {
         ctx.drawImage(decorSprite, screenX, screenY, tileSize, tileSize);

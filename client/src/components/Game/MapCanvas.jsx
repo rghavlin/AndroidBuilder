@@ -863,6 +863,10 @@ export default function MapCanvas({
       const indoorDecorationsToPreload = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'];
       await Promise.all(indoorDecorationsToPreload.map(d => imageLoader.getDecorationImage(d, 'indoor')));
 
+      // Preload road and sidewalk decorations
+      const roadDecorationsToPreload = ['road1', 'road2', 'road3'];
+      await Promise.all(roadDecorationsToPreload.map(d => imageLoader.getDecorationImage(d, 'roadandsidewalk')));
+
       setImagesLoaded(true);
     };
 

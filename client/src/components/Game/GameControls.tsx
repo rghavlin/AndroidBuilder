@@ -44,11 +44,11 @@ interface StatBarProps {
 }
 
 const STAT_COLORS: Record<string, string> = {
-  health: '#639A88',
+  health: '#C893B3',
   action: '#B190CD',
-  nutrition: '#E5B869',
+  nutrition: '#639A88',
   hydration: '#6B9BC3',
-  energy: '#C893B3',
+  energy: '#E5B869',
 };
 
 // memo: only re-renders when numeric props change, not on every movement frame

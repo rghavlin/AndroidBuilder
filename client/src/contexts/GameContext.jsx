@@ -1806,6 +1806,12 @@ const GameContextInner = ({ children }) => {
       initManagerRef.current.reset();
     }
 
+    // Manager.reset() strips all event listeners, so re-wire them for the new
+    // run before the manager is used again by a subsequent initializeGame() call.
+    if (initManagerRef.current) {
+      wireManagerEvents(initManagerRef.current, runIdRef.current);
+    }
+
     // Reset core engine state
     engine.reset();
 
@@ -1826,7 +1832,7 @@ const GameContextInner = ({ children }) => {
 
     // Dispatch global event for GameScreen to show the start menu
     window.dispatchEvent(new CustomEvent('game-shutdown'));
-  }, [resetAll]);
+  }, [resetAll, wireManagerEvents]);
 
   const contextValue = useMemo(() => ({
     // Game lifecycle state only
