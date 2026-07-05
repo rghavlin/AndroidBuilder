@@ -14,6 +14,8 @@ import { SurvivalStats } from './components/SurvivalStats.js';
 import { PlayerSkills } from './components/PlayerSkills.js';
 import { PlayerWallet } from './components/PlayerWallet.js';
 import { Burnable } from './components/Burnable.js';
+import { RpgStats } from './components/RpgStats.js';
+import { ActiveDefense } from './components/ActiveDefense.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
@@ -60,6 +62,15 @@ export const EntityFactory = {
     }));
     entity.addComponent(new PlayerWallet({ earbucks: 0 }));
     entity.addComponent(new Burnable({ fireTurns: 0 }));
+    entity.addComponent(new RpgStats({
+      baseStrength: 20,
+      currentStrength: 20,
+      baseAgility: 40,
+      currentAgility: 40,
+      basePerception: 20,
+      currentPerception: 20
+    }));
+    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.10 }));
 
     return entity;
   },
@@ -123,6 +134,15 @@ export const EntityFactory = {
     entity.addComponent(new Vision({ range: typeDef.sightRange || 18 }));
     entity.addComponent(new ActionPoints({ current: typeDef.maxAP, max: typeDef.maxAP }));
     entity.addComponent(new Burnable({ fireTurns: 0 }));
+    entity.addComponent(new RpgStats({
+      baseStrength: 20,
+      currentStrength: 20,
+      baseAgility: 40,
+      currentAgility: 40,
+      basePerception: 20,
+      currentPerception: 20
+    }));
+    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.10 }));
 
     // Backing stats matching legacy NPC constructor
     entity.fleeRecoverChance = typeDef.fleeRecoverChance;

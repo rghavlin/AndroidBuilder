@@ -23,6 +23,9 @@ export default function EquipmentSlots() {
   const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isModalBlocking;
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
+  // TEMPORARY: 'armor' is parked here so it's equippable at all before the
+  // Phase 6 Stats-tab UI exists. It belongs in the Stats tab (not this always
+  // -visible bar) once that lands — move it there, don't leave it here.
   const equipmentSlots = [
     { id: 'backpack', name: 'Backpack', icon: '🎒' },
     { id: 'upper_body', name: 'Upper Body', icon: '👕' },
@@ -32,6 +35,7 @@ export default function EquipmentSlots() {
     { id: 'handgun', name: 'Handgun', icon: '🔫' },
     { id: 'long_gun', name: 'Long Gun', icon: '🔫' },
     { id: 'flashlight', name: 'Flashlight', icon: '🔦' },
+    { id: 'armor', name: 'Armor', icon: '🛡️' },
   ];
 
   const handleSlotClick = (slotId: string) => {

@@ -78,7 +78,9 @@ export const LogProvider = ({ children }) => {
             const isSuccess = data.success !== undefined ? data.success : data.hit;
             const damage = data.damage || 0;
 
-            if (isSuccess) {
+            if (data.dodged && data.targetType === EntityType.PLAYER) {
+                addLog('Dodged attack!', 'combat');
+            } else if (isSuccess) {
                 const hitTimes = data.hitCount > 1 ? ` ${data.hitCount} times` : '';
                 addLog(`${entityName} hits${hitTimes} (${damage} damage)`, 'combat');
             } else {
@@ -113,6 +115,10 @@ export const LogProvider = ({ children }) => {
             } else if (targetType === EntityType.WINDOW) {
                 addLog(`${actorName} smashes against the window!`, 'world');
             }
+        };
+
+        const handleArmorAbsorbed = (data) => {
+            addLog(`Your armor absorbs ${data.absorbed} damage!`, 'combat');
         };
 
         const handlePlayerDamage = (data) => {
@@ -153,6 +159,10 @@ export const LogProvider = ({ children }) => {
                     default: return 'target';
                 }
             })();
+            if (data.dodged && data.targetType === EntityType.PLAYER) {
+                addLog('Dodged attack!', 'combat');
+                return;
+            }
             const status = data.hit
                 ? `${data.isCrit ? 'CRITICAL HIT! ' : ''}hits ${targetLabel} for ${data.damage} damage${data.isDead ? ' - KILLED!' : ''}`
                 : `misses ${targetLabel}!`;
@@ -161,6 +171,7 @@ export const LogProvider = ({ children }) => {
 
         GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleCombatAttack);
         GameEvents.on(GAME_EVENT.NPC_ATTACK, handleCombatAttack);
+        GameEvents.on(GAME_EVENT.ARMOR_ABSORBED, handleArmorAbsorbed);
         GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
         GameEvents.on(GAME_EVENT.DOOR_BANG, handleStructureDamage);
         GameEvents.on(GAME_EVENT.DOOR_BROKEN, handleStructureDamage);
@@ -172,6 +183,7 @@ export const LogProvider = ({ children }) => {
         return () => {
             GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleCombatAttack);
             GameEvents.off(GAME_EVENT.NPC_ATTACK, handleCombatAttack);
+            GameEvents.off(GAME_EVENT.ARMOR_ABSORBED, handleArmorAbsorbed);
             GameEvents.off(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
             GameEvents.off(GAME_EVENT.DOOR_BANG, handleStructureDamage);
             GameEvents.off(GAME_EVENT.DOOR_BROKEN, handleStructureDamage);

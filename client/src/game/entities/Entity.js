@@ -31,6 +31,9 @@ import { PlayerWallet } from '../components/PlayerWallet.js';
 import { Container } from '../inventory/Container.js';
 import { AIState } from '../components/AIState.js';
 import { Burnable } from '../components/Burnable.js';
+import { RpgStats } from '../components/RpgStats.js';
+import { ActiveDefense } from '../components/ActiveDefense.js';
+import { EquippedArmor } from '../components/EquippedArmor.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 function defineAccessors(TargetClass, componentName, ComponentClass, props) {
@@ -75,6 +78,9 @@ export const COMPONENT_CLASSES = {
   PlayerWallet,
   AIState,
   Burnable,
+  RpgStats,
+  ActiveDefense,
+  EquippedArmor,
 
   // --- Intent / Action Tags (Temporary States) ---
   MoveIntent,
@@ -107,7 +113,7 @@ export const ITEM_SERIALIZED_FIELDS = [
   'instanceId', 'defId', 'width', 'height', 'rotation', 'traits', 'categories',
   'stackCount', 'stackMax', 'capacity', 'ammoCount', 'isLit', 'isOn',
   'lifetimeTurns', 'imageId', 'equippableSlot', 'isEquipped', 'pocketLayoutId',
-  'description', 'combat', 'rangedStats', 'rarity', 'backgroundColor', 'scooterMode',
+  'description', 'combat', 'rangedStats', 'armor', 'armorAbsorption', 'rarity', 'backgroundColor', 'scooterMode',
   'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
   'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
   'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical'
@@ -1089,4 +1095,24 @@ defineAccessors(Entity, 'PlayerSkills', PlayerSkills, {
   rangedLvl: 0,
   craftingApUsed: 0,
   craftingLvl: 0
+});
+
+defineAccessors(Entity, 'RpgStats', RpgStats, {
+  baseStrength: 20,
+  currentStrength: 20,
+  baseAgility: 40,
+  currentAgility: 40,
+  basePerception: 20,
+  currentPerception: 20
+});
+
+defineAccessors(Entity, 'ActiveDefense', ActiveDefense, {
+  defensesThisTurn: 0,
+  diminishingRate: 0.10
+});
+
+defineAccessors(Entity, 'EquippedArmor', EquippedArmor, {
+  absorption: 0,
+  maxAbsorption: 0,
+  weightRequirement: 0
 });

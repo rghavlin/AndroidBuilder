@@ -27,7 +27,11 @@ export const usePlayer = () => {
           isStarving: false, isDehydrated: false,
           meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
           craftingApUsed: 0, craftingLvl: 0,
-          earbucks: 0
+          earbucks: 0,
+          baseStrength: 20, currentStrength: 20,
+          baseAgility: 40, currentAgility: 40,
+          basePerception: 20, currentPerception: 20,
+          armorAbsorption: 0, armorMaxAbsorption: 0, armorWeightRequirement: 0
         },
         isMoving: false,
         movementPath: [],
@@ -89,7 +93,11 @@ export const PlayerProvider = ({ children }) => {
       isStarving: false, isDehydrated: false,
       meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
       craftingApUsed: 0, craftingLvl: 0,
-      earbucks: 0
+      earbucks: 0,
+      baseStrength: 20, currentStrength: 20,
+      baseAgility: 20, currentAgility: 20,
+      basePerception: 20, currentPerception: 20,
+      armorAbsorption: 0, armorMaxAbsorption: 0, armorWeightRequirement: 0
     };
 
     return {
@@ -115,6 +123,15 @@ export const PlayerProvider = ({ children }) => {
       craftingApUsed: player.craftingApUsed,
       craftingLvl: player.craftingLvl,
       earbucks: player.earbucks || 0,
+      baseStrength: player.baseStrength,
+      currentStrength: player.currentStrength,
+      baseAgility: player.baseAgility,
+      currentAgility: player.currentAgility,
+      basePerception: player.basePerception,
+      currentPerception: player.currentPerception,
+      armorAbsorption: player.absorption || 0,
+      armorMaxAbsorption: player.maxAbsorption || 0,
+      armorWeightRequirement: player.weightRequirement || 0,
       ammo: 0 // Legacy
     };
   }, [enginePulse]);

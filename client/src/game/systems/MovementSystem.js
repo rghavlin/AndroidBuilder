@@ -1,4 +1,8 @@
 import { FireSystem } from '../systems/FireSystem.js';
+import engine from '../GameEngine.js';
+import { markHeardIfInRange } from '../utils/PlayerHearing.js';
+
+const ZOMBIE_MOVE_NOISE = 3;
 
 export class MovementSystem {
   static resolve(entity, moveIntent, gameMap, actionQueue = []) {
@@ -45,6 +49,12 @@ export class MovementSystem {
         entity.ap = Math.max(0, entity.ap - movable.apCost);
       } else if (entity.currentAP !== undefined) {
         entity.currentAP = Math.max(0, entity.currentAP - movable.apCost);
+      }
+
+      // Idle zombies are silent; a moving one might be within the player's
+      // Perception-based earshot even without line of sight.
+      if (entity.type === 'zombie' && engine.player) {
+        markHeardIfInRange(entity, engine.player, ZOMBIE_MOVE_NOISE);
       }
     }
 

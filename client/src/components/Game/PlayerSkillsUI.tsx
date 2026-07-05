@@ -1,8 +1,9 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
-import { Target, Hammer, Info, Crosshair, Sparkles } from 'lucide-react';
+import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
+import { CombatResolver } from '@/game/systems/CombatResolver';
 
 interface SkillProgressBarProps {
     current: number;
@@ -20,10 +21,98 @@ const SkillProgressBar = ({ current, next, prev, color = "bg-primary" }: SkillPr
 
     return (
         <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden mt-1 border border-white/5">
-            <div 
+            <div
                 className={cn("h-full transition-all duration-500 ease-out", color)}
                 style={{ width: `${progress}%` }}
             />
+        </div>
+    );
+};
+
+interface CompactSkillCardProps {
+    title: string;
+    level: number;
+    progressLabel: string;
+    current: number;
+    next: number;
+    prev: number;
+    metrics: { icon: React.ReactNode; label: string; value: string; color: string }[];
+}
+
+// Condensed skill card: title/level on one line, progress bar with inline
+// count, then metrics packed into a single row beneath — about half the
+// vertical footprint of the old card so several can stack in a narrow column.
+const CompactSkillCard = ({ title, level, progressLabel, current, next, prev, metrics }: CompactSkillCardProps) => {
+    return (
+        <div className="bg-card/40 p-2.5 rounded-lg border border-border/40 hover:border-primary/30 transition-colors">
+            <div className="flex justify-between items-center mb-1.5">
+                <span className="text-[11px] font-bold text-foreground">{title}</span>
+                <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-mono border border-primary/20">
+                    LVL {level}
+                </span>
+            </div>
+
+            <div className="flex justify-between items-end">
+                <span className="text-[7px] text-muted-foreground uppercase tracking-tight">{progressLabel}</span>
+                <span className="text-[8px] font-mono text-foreground/80">
+                    {current} <span className="text-muted-foreground">/</span> {next}
+                </span>
+            </div>
+            <SkillProgressBar
+                current={current}
+                next={next}
+                prev={prev}
+                color="bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+            />
+
+            <div className={cn("flex gap-3 mt-2 pt-1.5 border-t border-white/5", metrics.length > 1 ? "justify-between" : "")}>
+                {metrics.map((m, i) => (
+                    <div key={i} className="flex items-center gap-1">
+                        {m.icon}
+                        <span className={cn("text-[9px] font-bold", m.color)}>{m.value}</span>
+                        <span className="text-[7px] text-muted-foreground uppercase">{m.label}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+interface StatCardProps {
+    icon: React.ReactNode;
+    name: string;
+    current: number;
+    base: number;
+    accentColor: string;
+    effects: string[];
+}
+
+// Roomy attribute card — deliberately more generous than the skill cards, with
+// space for additional effect lines as more systems (hearing, sight, etc.) tie
+// into these stats later.
+const StatCard = ({ icon, name, current, base, accentColor, effects }: StatCardProps) => {
+    const isDebuffed = current < base;
+    return (
+        <div className="bg-card/40 p-4 rounded-lg border border-border/40 hover:border-primary/30 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <div className={cn("w-7 h-7 rounded-md flex items-center justify-center border", accentColor)}>
+                        {icon}
+                    </div>
+                    <span className="text-[12px] font-bold text-foreground uppercase tracking-wide">{name}</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                    <span className="text-lg font-black text-foreground tabular-nums">{Math.round(current)}</span>
+                    {isDebuffed && (
+                        <span className="text-[9px] text-red-400/80 font-mono">(base {base})</span>
+                    )}
+                </div>
+            </div>
+            <div className="space-y-1 pl-1 border-l border-white/5">
+                {effects.map((line, i) => (
+                    <div key={i} className="text-[10px] text-muted-foreground pl-2">{line}</div>
+                ))}
+            </div>
         </div>
     );
 };
@@ -52,18 +141,18 @@ export default function PlayerSkillsUI() {
         const rangedPrev = rangedLvl === 0 ? 0 : 5 * Math.pow(2, rangedLvl - 1);
 
         return {
-            melee: { 
-                level: meleeLvl, 
-                kills: meleeKills, 
-                next: meleeNext, 
+            melee: {
+                level: meleeLvl,
+                kills: meleeKills,
+                next: meleeNext,
                 prev: meleePrev,
                 crit: 5 * meleeLvl, // Starting at 0% at level 0, 5% at level 1
                 acc: meleeLvl // Starting at 0% at level 0, 1% at level 1
             },
-            ranged: { 
-                level: rangedLvl, 
-                kills: rangedKills, 
-                next: rangedNext, 
+            ranged: {
+                level: rangedLvl,
+                kills: rangedKills,
+                next: rangedNext,
                 prev: rangedPrev,
                 crit: 5 * rangedLvl, // Starting at 0% at level 0, 5% at level 1
                 acc: rangedLvl // Starting at 0% at level 0, 1% at level 1
@@ -86,6 +175,26 @@ export default function PlayerSkillsUI() {
         };
     }, [playerStats]);
 
+    const attributes = useMemo(() => {
+        const currentStrength = playerStats.currentStrength ?? 20;
+        const baseStrength = playerStats.baseStrength ?? currentStrength;
+        const currentAgility = playerStats.currentAgility ?? 20;
+        const baseAgility = playerStats.baseAgility ?? currentAgility;
+        const currentPerception = playerStats.currentPerception ?? 20;
+        const basePerception = playerStats.basePerception ?? currentPerception;
+
+        const meleeDamageBonus = CombatResolver.strengthDamageBonus(currentStrength);
+        const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, playerStats.armorWeightRequirement || 0);
+        const dodgeChance = Math.max(0, Math.round(currentAgility - armorPenalty));
+        const critBonus = Math.round(CombatResolver.perceptionCritBonus(currentPerception) * 100);
+
+        return {
+            strength: { current: currentStrength, base: baseStrength, meleeDamageBonus, armorPenalty },
+            agility: { current: currentAgility, base: baseAgility, dodgeChance },
+            perception: { current: currentPerception, base: basePerception, critBonus }
+        };
+    }, [playerStats]);
+
     return (
         <div className="flex flex-col h-full bg-background/40 rounded-lg overflow-hidden border border-border/50 backdrop-blur-sm">
             {/* Header */}
@@ -102,153 +211,100 @@ export default function PlayerSkillsUI() {
                 </div>
             </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
-                
-                {/* Combat Section */}
-                <section className="space-y-4">
-                    <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-white">Combat Proficiency</h3>
+            {/* Scrollable Content: attributes on the left with room to grow, skills compact on the right */}
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div className="flex gap-4 items-start">
+
+                    {/* Attributes */}
+                    <div className="flex-1 min-w-[220px] space-y-3">
+                        <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Attributes</h3>
+                        </div>
+
+                        <StatCard
+                            icon={<Dumbbell className="w-3.5 h-3.5 text-orange-400" />}
+                            name="Strength"
+                            current={attributes.strength.current}
+                            base={attributes.strength.base}
+                            accentColor="bg-orange-500/10 border-orange-500/30"
+                            effects={[
+                                `Melee damage +${attributes.strength.meleeDamageBonus}`,
+                                attributes.strength.armorPenalty > 0
+                                    ? `Armor is ${attributes.strength.armorPenalty} points too heavy`
+                                    : 'Strong enough for worn armor'
+                            ]}
+                        />
+
+                        <StatCard
+                            icon={<Wind className="w-3.5 h-3.5 text-sky-400" />}
+                            name="Agility"
+                            current={attributes.agility.current}
+                            base={attributes.agility.base}
+                            accentColor="bg-sky-500/10 border-sky-500/30"
+                            effects={[
+                                `Dodge chance ~${attributes.agility.dodgeChance}% (1st this turn)`,
+                                'Repeat dodges the same turn are weaker'
+                            ]}
+                        />
+
+                        <StatCard
+                            icon={<Eye className="w-3.5 h-3.5 text-violet-400" />}
+                            name="Perception"
+                            current={attributes.perception.current}
+                            base={attributes.perception.base}
+                            accentColor="bg-violet-500/10 border-violet-500/30"
+                            effects={[
+                                `Crit chance +${attributes.perception.critBonus}%`
+                            ]}
+                        />
                     </div>
 
-                    {/* Melee Skill */}
-                    <div className="bg-card/40 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-colors">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-[11px] font-bold text-foreground">Melee Combat</span>
-                            <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-mono border border-primary/20">
-                                LVL {combatSkills.melee.level}
-                            </span>
+                    {/* Skills */}
+                    <div className="w-[240px] shrink-0 space-y-2">
+                        <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Skills</h3>
                         </div>
-                        
-                        <div className="flex gap-4">
-                            {/* Progression Side */}
-                            <div className="flex-1 space-y-1">
-                                <div className="flex justify-between items-end">
-                                    <span className="text-[8px] text-muted-foreground uppercase tracking-tight">KILLS</span>
-                                    <span className="text-[9px] font-mono text-foreground/80">
-                                        {combatSkills.melee.kills} <span className="text-muted-foreground">/</span> {combatSkills.melee.next}
-                                    </span>
-                                </div>
-                                <SkillProgressBar 
-                                    current={combatSkills.melee.kills} 
-                                    next={combatSkills.melee.next} 
-                                    prev={combatSkills.melee.prev}
-                                    color="bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
-                                />
-                            </div>
 
-                            {/* Stats Side */}
-                            <div className="flex-1 grid grid-cols-2 gap-2 border-l border-white/5 pl-4">
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] text-muted-foreground uppercase">Crit Chance</span>
-                                    <div className="flex items-center gap-1">
-                                        <Sparkles className="w-2.5 h-2.5 text-yellow-500" />
-                                        <span className="text-[10px] font-bold text-yellow-500/90">{combatSkills.melee.crit}%</span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] text-muted-foreground uppercase">Accuracy</span>
-                                    <div className="flex items-center gap-1">
-                                        <Crosshair className="w-2.5 h-2.5 text-green-500" />
-                                        <span className="text-[10px] font-bold text-green-500/90">+{combatSkills.melee.acc}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <CompactSkillCard
+                            title="Melee Combat"
+                            level={combatSkills.melee.level}
+                            progressLabel="Kills"
+                            current={combatSkills.melee.kills}
+                            next={combatSkills.melee.next}
+                            prev={combatSkills.melee.prev}
+                            metrics={[
+                                { icon: <Sparkles className="w-2.5 h-2.5 text-yellow-500" />, label: 'Crit', value: `${combatSkills.melee.crit}%`, color: 'text-yellow-500/90' },
+                                { icon: <Crosshair className="w-2.5 h-2.5 text-green-500" />, label: 'Acc', value: `+${combatSkills.melee.acc}%`, color: 'text-green-500/90' }
+                            ]}
+                        />
+
+                        <CompactSkillCard
+                            title="Ranged Combat"
+                            level={combatSkills.ranged.level}
+                            progressLabel="Kills"
+                            current={combatSkills.ranged.kills}
+                            next={combatSkills.ranged.next}
+                            prev={combatSkills.ranged.prev}
+                            metrics={[
+                                { icon: <Sparkles className="w-2.5 h-2.5 text-yellow-500" />, label: 'Crit', value: `${combatSkills.ranged.crit}%`, color: 'text-yellow-500/90' },
+                                { icon: <Crosshair className="w-2.5 h-2.5 text-green-500" />, label: 'Acc', value: `+${combatSkills.ranged.acc}%`, color: 'text-green-500/90' }
+                            ]}
+                        />
+
+                        <CompactSkillCard
+                            title="Crafting"
+                            level={craftingSkills.level}
+                            progressLabel="AP Used"
+                            current={craftingSkills.craftingApUsed}
+                            next={craftingSkills.next}
+                            prev={craftingSkills.prev}
+                            metrics={[
+                                { icon: <Hammer className="w-2.5 h-2.5 text-green-500" />, label: 'AP Bonus', value: `-${craftingSkills.apBonus}`, color: 'text-green-500/90' }
+                            ]}
+                        />
                     </div>
 
-                    {/* Ranged Skill */}
-                    <div className="bg-card/40 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-colors">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-[11px] font-bold text-foreground">Ranged Combat</span>
-                            <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-mono border border-primary/20">
-                                LVL {combatSkills.ranged.level}
-                            </span>
-                        </div>
-
-                        <div className="flex gap-4">
-                            {/* Progression Side */}
-                            <div className="flex-1 space-y-1">
-                                <div className="flex justify-between items-end">
-                                    <span className="text-[8px] text-muted-foreground uppercase tracking-tight">KILLS</span>
-                                    <span className="text-[9px] font-mono text-foreground/80">
-                                        {combatSkills.ranged.kills} <span className="text-muted-foreground">/</span> {combatSkills.ranged.next}
-                                    </span>
-                                </div>
-                                <SkillProgressBar 
-                                    current={combatSkills.ranged.kills} 
-                                    next={combatSkills.ranged.next} 
-                                    prev={combatSkills.ranged.prev}
-                                    color="bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
-                                />
-                            </div>
-
-                            {/* Stats Side */}
-                            <div className="flex-1 grid grid-cols-2 gap-2 border-l border-white/5 pl-4">
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] text-muted-foreground uppercase">Crit Chance</span>
-                                    <div className="flex items-center gap-1">
-                                        <Sparkles className="w-2.5 h-2.5 text-yellow-500" />
-                                        <span className="text-[10px] font-bold text-yellow-500/90">{combatSkills.ranged.crit}%</span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] text-muted-foreground uppercase">Accuracy</span>
-                                    <div className="flex items-center gap-1">
-                                        <Crosshair className="w-2.5 h-2.5 text-green-500" />
-                                        <span className="text-[10px] font-bold text-green-500/90">+{combatSkills.ranged.acc}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Crafting Section */}
-                <section className="space-y-4">
-                    <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-white">Crafting skill</h3>
-                    </div>
-
-                    <div className="bg-card/40 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-colors">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-[11px] font-bold text-foreground">General Crafting</span>
-                            <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-mono border border-primary/20">
-                                LVL {craftingSkills.level}
-                            </span>
-                        </div>
-                        
-                        <div className="flex gap-4">
-                            {/* Progression Side */}
-                            <div className="flex-1 space-y-1">
-                                <div className="flex justify-between items-end">
-                                    <span className="text-[8px] text-muted-foreground uppercase tracking-tight text-zinc-400">Crafting AP Used</span>
-                                    <span className="text-[9px] font-mono text-foreground/80">
-                                        {craftingSkills.craftingApUsed} <span className="text-muted-foreground">/</span> {craftingSkills.next}
-                                    </span>
-                                </div>
-                                <SkillProgressBar 
-                                    current={craftingSkills.craftingApUsed} 
-                                    next={craftingSkills.next} 
-                                    prev={craftingSkills.prev}
-                                    color="bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
-                                />
-                            </div>
-
-                            {/* Stats Side */}
-                            <div className="flex-1 border-l border-white/5 pl-4">
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] text-muted-foreground uppercase text-zinc-400">Crafting AP Bonus</span>
-                                    <div className="flex items-center gap-1">
-                                        <Hammer className="w-2.5 h-2.5 text-green-500" />
-                                        <span className="text-[10px] font-bold text-green-500/90">-{craftingSkills.apBonus} AP</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
+                </div>
             </div>
 
         </div>

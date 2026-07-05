@@ -25,6 +25,7 @@ interface GameControlsProps {
     isBleeding: boolean;
     isStarving: boolean;
     isDehydrated: boolean;
+    armorAbsorption?: number;
   };
   gameState: {
     turn: number;
@@ -41,6 +42,10 @@ interface StatBarProps {
   isLight: boolean;
   suffix?: React.ReactNode;
   className?: string;
+  // Layered on top of the fill, draining first and revealing the fill color
+  // beneath as it depletes (used for armor absorption over the Health bar).
+  overlayValue?: number;
+  overlayColor?: string;
 }
 
 const STAT_COLORS: Record<string, string> = {
@@ -52,9 +57,10 @@ const STAT_COLORS: Record<string, string> = {
 };
 
 // memo: only re-renders when numeric props change, not on every movement frame
-const StatBar = memo(({ label, current, max, isLight, suffix, className }: StatBarProps) => {
+const StatBar = memo(({ label, current, max, isLight, suffix, className, overlayValue, overlayColor }: StatBarProps) => {
   const statKey = label.toLowerCase();
   const barColor = STAT_COLORS[statKey] || (isLight ? '#3f3f46' : '#ffffff');
+  const hasOverlay = overlayValue !== undefined && overlayValue > 0;
 
   return (
     <div className={cn("flex flex-col gap-0.5", className)}>
@@ -79,13 +85,27 @@ const StatBar = memo(({ label, current, max, isLight, suffix, className }: StatB
         "h-2 w-full rounded-full overflow-hidden border p-[1px]",
         isLight ? "bg-muted border-border" : "bg-zinc-800/80 border-white/5"
       )}>
-        <div 
-          className="h-full transition-all duration-500 ease-out rounded-full" 
-          style={{ 
-            width: `${Math.min(100, Math.max(0, (current / max) * 100))}%`,
-            backgroundColor: barColor
-          }} 
-        />
+        {/* Both fills are absolutely positioned within this same content box so
+            the armor overlay can sit directly on top of (and shrink to reveal)
+            the health fill beneath it, instead of stacking side by side. */}
+        <div className="relative h-full w-full">
+          <div
+            className="absolute inset-0 h-full rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${Math.min(100, Math.max(0, (current / max) * 100))}%`,
+              backgroundColor: barColor
+            }}
+          />
+          {hasOverlay && (
+            <div
+              className="absolute inset-0 h-full rounded-full transition-all duration-500 ease-out"
+              style={{
+                width: `${Math.min(100, (overlayValue / max) * 100)}%`,
+                backgroundColor: overlayColor || '#7dd3fc'
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -315,11 +335,13 @@ export default function GameControls({
         
         {/* Row 1: Combat (HP and AP) */}
         <div className="flex items-center gap-4 md:gap-8">
-          <StatBar 
-            label="Health" 
-            current={currentStats.hp} 
-            max={currentStats.maxHp} 
+          <StatBar
+            label="Health"
+            current={currentStats.hp}
+            max={currentStats.maxHp}
             isLight={isLight}
+            overlayValue={currentStats.armorAbsorption}
+            overlayColor="#7dd3fc"
             suffix={
               <div className="flex items-center gap-1.5 overflow-hidden">
                 {currentStats.condition !== 'Bleeding' && (

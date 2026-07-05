@@ -1,10 +1,11 @@
 import { NoiseEvent } from '../components/NoiseEvent.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
-import { getZombieType } from '../entities/ZombieTypes.js';
-import { gameRandom } from '../utils/SeededRandom.js';
+import { CombatResolver } from './CombatResolver.js';
+import { markHeardIfInRange } from '../utils/PlayerHearing.js';
 
 // Turns of sickness applied by an infecting hit (matches TurnManager playback).
 const SICKNESS_TURNS = 24;
+const ZOMBIE_SMASH_NOISE = 10;
 
 export class CombatSystem {
   static resolve(attacker, damageIntent, entities, gameMap, intentQueue, actionQueue = [], engine = null, parentEnvelope = null) {
@@ -61,6 +62,12 @@ export class CombatSystem {
 
         attacker.useAP(totalApCost);
 
+        // Idle zombies are silent; a smashing one might be within the player's
+        // Perception-based earshot even without line of sight.
+        if (attacker.type === 'zombie' && engine && engine.player) {
+          markHeardIfInRange(attacker, engine.player, ZOMBIE_SMASH_NOISE);
+        }
+
         // Cascade: Enqueue NoiseEvent
         if (intentQueue) {
           intentQueue.enqueue(null, 'NoiseEvent', new NoiseEvent({
@@ -107,18 +114,21 @@ export class CombatSystem {
         let damage = damageIntent.amount;
         let bleedingInflicted = false;
         let sickInflicted = false;
+        let dodged = false;
+        let defenseApSpent = 0;
         if (attacker.type === 'zombie') {
-          hit = gameRandom.next() < 0.50;
-          if (hit) {
-            const combat = getZombieType(attacker.subtype)?.combat || {};
-            if (combat.damage && typeof combat.damage.min === 'number' && typeof combat.damage.max === 'number') {
-              damage = gameRandom.nextInt(combat.damage.min, combat.damage.max);
-            }
-            if (combat.bleedChance && gameRandom.next() < combat.bleedChance) bleedingInflicted = true;
-            if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
-          } else {
-            damage = 0;
-          }
+          const outcome = CombatResolver.rollZombie({
+            subtype: attacker.subtype,
+            defenderType: target.type,
+            defenderSubtype: target.subtype,
+            defender: target
+          });
+          hit = outcome.hit;
+          damage = outcome.damage;
+          bleedingInflicted = outcome.bleedingInflicted;
+          sickInflicted = outcome.sickInflicted;
+          dodged = outcome.dodged;
+          defenseApSpent = outcome.defenseApSpent;
         }
 
         if (actionQueue) {
@@ -128,7 +138,10 @@ export class CombatSystem {
           // entity-vs-entity combat we do NOT apply damage here. TurnManager's
           // ATTACK case calls takeDamage() and applies bleeding/sickness after the
           // swing animation so the hit lands when the animation connects. The
-          // `else` branch below is the direct/test path (no actionQueue).
+          // `else` branch below is the direct/test path (no actionQueue). The
+          // active-defense AP cost is deferred the same way (defenseApSpent),
+          // so the AP gauge drops in step with the animation, not the instant
+          // the simulation decides the outcome.
           actionQueue.push({
             type: 'ATTACK',
             entityId: attacker.id,
@@ -139,6 +152,8 @@ export class CombatSystem {
               damage,
               bleedingInflicted,
               sickInflicted,
+              dodged,
+              defenseApSpent,
               from: { x: attackerPos.x, y: attackerPos.y },
               to: { x: targetPos.x, y: targetPos.y }
             }
@@ -146,11 +161,12 @@ export class CombatSystem {
         } else {
           // direct/test execution: apply damage + afflictions immediately.
           if (hit) {
+            const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
             if (typeof target.takeDamage === 'function') {
-              target.takeDamage(damage, attacker);
+              if (finalDamage > 0) target.takeDamage(finalDamage, attacker);
             } else if (target.hasComponent('Health')) {
               const health = target.getComponent('Health');
-              health.current = Math.max(0, health.current - damage);
+              health.current = Math.max(0, health.current - finalDamage);
               if (health.current <= 0) {
                 health.isDead = true;
               }
@@ -158,6 +174,7 @@ export class CombatSystem {
             if (bleedingInflicted && typeof target.setBleeding === 'function') target.setBleeding(true);
             if (sickInflicted && typeof target.inflictSickness === 'function') target.inflictSickness(SICKNESS_TURNS);
           }
+          if (defenseApSpent > 0 && typeof target.useAP === 'function') target.useAP(defenseApSpent);
         }
 
         // Deduct AP for attacking

@@ -18,6 +18,7 @@ import { getAttackableTurretOnTile, removeDestroyedTurret, escalateFactionAgains
 import engine from '../game/GameEngine.js';
 import { IntentQueue } from '../game/managers/IntentQueue.js';
 import { ExplosionIntent } from '../game/components/ExplosionIntent.js';
+import { CombatResolver } from '../game/systems/CombatResolver.js';
 
 const isWindowTile = (gameMap, x, y) => {
     const tile = gameMap?.getTile(x, y);
@@ -314,31 +315,31 @@ export const CombatProvider = ({ children }) => {
 
         // 1. Calculate Outcome
         const meleeLvl = playerStats.meleeLvl || 1;
-        const accuracyBonus = (meleeLvl - (player.drunkenness || 0)) * 0.01;
         const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
-        const hit = isWindowTarget ? true : Math.random() <= (weaponStats.hitChance + accuracyBonus);
-        
-        const critChance = 0.05 + (meleeLvl - 1) * 0.05;
-        const isCrit = hit && Math.random() <= critChance;
-        
-        let baseDamage = isCrit 
-            ? Math.floor(weaponStats.damage.max * 1.5)
-            : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
-
-        let damage = baseDamage;
-        if (hit && player.drunkenness > 0) {
-            damage += player.drunkenness;
+        const { hit, isCrit, damage, extraDamageApplied, stunDuration, dodged, defenseApSpent } = CombatResolver.rollPlayerMelee({
+            weaponStats,
+            skillLvl: meleeLvl,
+            drunkenness: player.drunkenness || 0,
+            isWindowTarget,
+            isStunRodActive,
+            hasTargetEntity: !!targetEntity,
+            currentStrength: player.currentStrength,
+            currentPerception: player.currentPerception,
+            defenderType: targetEntity?.type,
+            defenderSubtype: targetEntity?.subtype,
+            defender: targetEntity
+        });
+        // Player-attacking is fully synchronous (no deferred playback), so the
+        // defender's active-defense AP cost applies immediately.
+        if (defenseApSpent > 0 && targetEntity && typeof targetEntity.useAP === 'function') {
+            targetEntity.useAP(defenseApSpent);
         }
-        let extraDamageApplied = 0;
-        let stunApplied = false;
-        let stunDuration = 0;
-
-        if (hit && isStunRodActive && targetEntity) {
-            extraDamageApplied = Math.floor(Math.random() * 5) + 1;
-            damage += extraDamageApplied;
-            stunDuration = Math.floor(Math.random() * 3) + 1;
+        if (dodged && targetEntity) {
+            addLog(`${targetEntity.name || targetEntity.type} dodges your attack!`, 'combat');
+        }
+        const stunApplied = stunDuration > 0;
+        if (stunApplied && targetEntity) {
             targetEntity.stunnedTurns = stunDuration;
-            stunApplied = true;
         }
 
         // Note: isKillingBlow is safe because Zombie/NPC takeDamage does not use armor or difficulty reductions
@@ -371,7 +372,8 @@ export const CombatProvider = ({ children }) => {
         // 4. Detailed Logic Execution
         if (hit) {
             if (targetEntity) {
-                targetEntity.takeDamage(damage);
+                const finalMeleeDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
+                if (finalMeleeDamage > 0) targetEntity.takeDamage(finalMeleeDamage);
                 let logMsg = `${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`;
                 if (stunApplied) {
                     logMsg += ` (Charged Strike! +${extraDamageApplied} damage, Stunned for ${stunDuration} turns!)`;
@@ -549,39 +551,32 @@ export const CombatProvider = ({ children }) => {
 
             // Outcome Calculation
             const rangedLvl = playerStats.rangedLvl || 1;
-            const accuracyBonus = (rangedLvl - (player.drunkenness || 0)) * 0.01;
             const squaresAway = Math.floor(distance);
             const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
             const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
             const hasLaserSight = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.LASER_SIGHT);
 
-            let baseHitChance = 1.0;
-            if (isSling) baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
-            else if (stats.isShotgun) baseHitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
-            else if (hasScope) baseHitChance = squaresAway <= 15 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
-            else if (hasLaserSight) baseHitChance = squaresAway <= 10 ? 1.0 : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 10) * stats.accuracyFalloff);
-            else baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
-
             const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
-            const hit = isWindowTarget ? true : Math.random() <= (baseHitChance + accuracyBonus);
-            const critChance = 0.05 + (rangedLvl - 1) * 0.05;
-            const isCrit = hit && Math.random() <= critChance;
-
-            let damage = 0;
-            if (hit) {
-                if (stats.isShotgun) {
-                    // Shotgun pellets lose energy with distance, so damage falls off
-                    // for BOTH crits and normal hits. A crit starts from the boosted
-                    // max, a normal hit from the base min; then both decay by range.
-                    let finalDamage = isCrit ? (stats.damage.max * 1.5) : stats.damage.min;
-                    if (squaresAway > 1) finalDamage *= Math.pow(1 - (stats.damageFalloff || 0.1), squaresAway - 1);
-                    if (squaresAway > 5) finalDamage *= Math.pow(1 - (stats.damageFalloffExtra || 0.1), squaresAway - 5);
-                    damage = Math.floor(finalDamage);
-                } else {
-                    damage = isCrit
-                        ? Math.floor(stats.damage.max * 1.5)
-                        : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
-                }
+            const { hit, isCrit, damage, dodged, defenseApSpent } = CombatResolver.rollPlayerRanged({
+                stats,
+                skillLvl: rangedLvl,
+                drunkenness: player.drunkenness || 0,
+                squaresAway,
+                isWindowTarget,
+                hasScope,
+                hasLaserSight,
+                currentPerception: player.currentPerception,
+                defenderType: targetEntity?.type,
+                defenderSubtype: targetEntity?.subtype,
+                defender: targetEntity
+            });
+            // Player-attacking is fully synchronous (no deferred playback), so the
+            // defender's active-defense AP cost applies immediately.
+            if (defenseApSpent > 0 && targetEntity && typeof targetEntity.useAP === 'function') {
+                targetEntity.useAP(defenseApSpent);
+            }
+            if (dodged && targetEntity) {
+                addLog(`${targetEntity.name || targetEntity.type} dodges your attack!`, 'combat');
             }
 
             // Note: isKillingBlow is safe because Zombie/NPC takeDamage does not use armor or difficulty reductions
@@ -605,7 +600,8 @@ export const CombatProvider = ({ children }) => {
                 hits++;
                 totalDamage += damage;
                 if (targetEntity) {
-                    targetEntity.takeDamage(damage);
+                    const finalRangedDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
+                    if (finalRangedDamage > 0) targetEntity.takeDamage(finalRangedDamage);
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
                     if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
                     if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {

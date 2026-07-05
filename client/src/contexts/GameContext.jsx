@@ -18,6 +18,7 @@ import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { applySurvivalCascade } from '../game/utils/SurvivalCascade.js';
 import { toast } from '../hooks/use-toast';
 
 const logger = Logger.scope('GameContext');
@@ -645,6 +646,9 @@ const GameContextInner = ({ children }) => {
     // AP Allotment
     const totalPenalty = Math.floor(Math.max(0, player.maxEnergy - player.energy) / 5) + Math.floor(Math.max(0, player.maxHp - player.hp) / 5);
     player.pendingAPRefill = Math.max(0, player.maxAp - totalPenalty - (player.drunkenness || 0));
+
+    // Survival cascade: hunger/thirst/exhaustion scale current Str/Agi/Per.
+    applySurvivalCascade(player);
 
     // 8. Time/Weather
     const newTurn = turn + 1;

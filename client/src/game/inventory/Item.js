@@ -50,6 +50,7 @@ export class Item extends SafeEventEmitter {
       lifetimeTurns = null,
       ammoDefId = null,
       rangedStats = null,
+      armorAbsorption = undefined,
       description = null,
       consumptionSound = null,
       transformInto = null,
@@ -114,6 +115,8 @@ export class Item extends SafeEventEmitter {
 
     // Condition (if degradable)
     this.condition = condition;
+    // Armor absorption pool (if armor) — remaining amount, distinct from `condition`.
+    this.armorAbsorption = armorAbsorption;
     this.fragility = 2; // Default
     if (this.defId && ItemDefs[this.defId]?.fragility) {
       this.fragility = ItemDefs[this.defId].fragility;
@@ -204,6 +207,10 @@ export class Item extends SafeEventEmitter {
       if (def.rarity && !this.rarity) this.rarity = def.rarity;
       if (def.combat && !this.combat) this.combat = def.combat;
       if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
+      if (def.armor) {
+        this.armor = def.armor;
+        if (this.armorAbsorption === undefined) this.armorAbsorption = def.armor.maxAbsorption;
+      }
       if (def.imageId && !this.imageId) this.imageId = def.imageId;
       if (def.produce && !this.produce) this.produce = def.produce;
       if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;

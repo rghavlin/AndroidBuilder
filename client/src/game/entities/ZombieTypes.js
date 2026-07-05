@@ -18,6 +18,7 @@ export const ZombieTypes = {
     accuracy: 0.5,
     moveCostMultiplier: 1.0,
     spriteKey: 'zombie',
+    stumbleEvasion: 0.05,
     combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
@@ -30,6 +31,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 0.5,
     canPassWindows: true,
     spriteKey: 'runnerzombie',
+    stumbleEvasion: 0.12,
     combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
@@ -42,6 +44,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: false,
     spriteKey: 'crawlerzombie',
+    stumbleEvasion: 0.08,
     combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
@@ -54,6 +57,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.5,
     canPassWindows: true,
     spriteKey: 'fatzombie',
+    stumbleEvasion: 0.0,
     combat: { damage: { min: 3, max: 6 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
@@ -66,6 +70,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'soldierzombie',
+    stumbleEvasion: 0.05,
     combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'soldier'
   },
@@ -78,6 +83,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'firefighterzombie',
+    stumbleEvasion: 0.05,
     combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'firefighter'
   },
@@ -90,6 +96,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'swatzombie',
+    stumbleEvasion: 0.05,
     combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'swat'
   },
@@ -102,6 +109,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'acidzombie',
+    stumbleEvasion: 0.08,
     combat: { damage: { min: 2, max: 5 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
@@ -117,6 +125,7 @@ export const ZombieTypes = {
     rangedRange: 5,
     rangedApCost: 1.5,
     spriteKey: 'spitterzombie',
+    stumbleEvasion: 0.08,
     combat: {
       damage: { min: 1, max: 4 },
       rangedDamage: { min: 1, max: 3 },
@@ -134,6 +143,7 @@ export const ZombieTypes = {
     moveCostMultiplier: 2.0,
     canPassWindows: true,
     spriteKey: 'bombdisposalzombie',
+    stumbleEvasion: 0.0,
     combat: { damage: { min: 3, max: 7 }, bleedChance: 0.05 },
     lootTable: 'swat' // They carry heavy gear
   },
@@ -147,6 +157,7 @@ export const ZombieTypes = {
     attackCost: 0.5,
     canPassWindows: true,
     spriteKey: 'zombiemutant',
+    stumbleEvasion: 0.05,
     combat: { damage: { min: 2, max: 5 }, bleedChance: 0.05 },
     lootTable: 'mutant'
   }

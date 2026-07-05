@@ -240,6 +240,22 @@ export const EntityRenderer = {
       }
     }
 
+    // Player hears this zombie's recent noise (move/smash) even without line
+    // of sight — render a vague, detail-free silhouette instead of skipping it
+    // or showing its real sprite (see PlayerHearing.markHeardIfInRange).
+    if (!isVisible && entity.type === EntityType.ZOMBIE && entity.heardByPlayer && !engine.seeThroughWalls) {
+      const ghostScreenX = renderX * tileSize;
+      const ghostScreenY = renderY * tileSize;
+      ctx.save();
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = '#3a3a3a';
+      ctx.beginPath();
+      ctx.arc(ghostScreenX + tileSize / 2, ghostScreenY + tileSize / 2, tileSize * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
     // Transient entities (zombies, rabbits) are ONLY visible if in active LOS
     if (!isVisible && !isPersistent && !engine.seeThroughWalls) return;
 

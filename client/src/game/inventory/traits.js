@@ -20,7 +20,8 @@ export const EquipmentSlot = {
   HANDGUN: 'handgun',
   LONG_GUN: 'long_gun',
   FLASHLIGHT: 'flashlight',
-  BELT: 'belt'
+  BELT: 'belt',
+  ARMOR: 'armor'
 };
 
 // Item categories for container restrictions
@@ -54,7 +55,8 @@ export const ItemCategory = {
   BELT_POUCH: 'belt_pouch',
   BOOK: 'book',
   CONTAINER: 'container',
-  FURNITURE: 'furniture'
+  FURNITURE: 'furniture',
+  ARMOR: 'armor'
 };
 
 // Trait flags
@@ -124,7 +126,8 @@ export const CategoryDisplayName = {
   [ItemCategory.BELT_POUCH]: 'misc',
   [ItemCategory.BOOK]: 'misc',
   [ItemCategory.CONTAINER]: 'containers',
-  [ItemCategory.FURNITURE]: 'furniture'
+  [ItemCategory.FURNITURE]: 'furniture',
+  [ItemCategory.ARMOR]: 'armor'
 };
 
 // Map equipment slots to user-friendly category fallbacks
@@ -135,7 +138,8 @@ export const SlotDisplayName = {
   [EquipmentSlot.UPPER_BODY]: 'armor',
   [EquipmentSlot.LOWER_BODY]: 'armor',
   [EquipmentSlot.BACKPACK]: 'containers',
-  [EquipmentSlot.BELT]: 'misc'
+  [EquipmentSlot.BELT]: 'misc',
+  [EquipmentSlot.ARMOR]: 'armor'
 };
 
 // Priority order for sorting categories (lower is higher priority)

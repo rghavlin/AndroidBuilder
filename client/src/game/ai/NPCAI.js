@@ -8,6 +8,7 @@ import { getNPCType } from '../entities/NPCTypes.js';
 import engine from '../GameEngine.js';
 import { ScentTrail } from '../utils/ScentTrail.js';
 import { DEFAULT_DANGER_RADIUS } from '../config/ProgressionConfig.js';
+import { CombatResolver } from '../systems/CombatResolver.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -750,29 +751,21 @@ export class NPCAI {
     const typeDef = getNPCType(npc.typeId);
     const combatSkill = typeDef.ai?.combatSkill || 0.5;
 
-    let hitChance = isRanged ? 0.70 : 0.75;
-
-    if (isRanged) {
-      const dist = npc.getDistanceTo(target.logicalX || target.x, target.logicalY || target.y);
-      const stats = weaponDef?.rangedStats || {};
-      const falloff = stats.accuracyFalloff || 0.1;
-      const baseChance = Math.max(stats.minAccuracy || 0.1, 1.0 - (dist - 1) * falloff);
-      hitChance = baseChance * (combatSkill * 2.0);
-    } else {
-      const baseChance = weaponDef?.combat?.hitChance || 0.75;
-      hitChance = baseChance * (combatSkill * 2.0);
-    }
-
-    hitChance = Math.max(0.2, Math.min(0.95, hitChance));
-    const hit = gameRandom.next() < hitChance;
-    let damage = 0;
+    const dist = isRanged ? npc.getDistanceTo(target.logicalX || target.x, target.logicalY || target.y) : 0;
+    const { hit, damage, dodged, defenseApSpent } = CombatResolver.rollNpc({
+      isRanged,
+      combatSkill,
+      weaponDef,
+      weapon,
+      distance: dist,
+      currentStrength: npc.currentStrength,
+      currentPerception: npc.currentPerception,
+      defenderType: target.type,
+      defenderSubtype: target.subtype,
+      defender: target
+    });
 
     if (hit) {
-      const damageRange = isRanged 
-        ? (weaponDef?.rangedStats?.damage || weapon?.rangedStats?.damage || { min: 2, max: 5 }) 
-        : (weaponDef?.combat?.damage || weaponDef?.damage || weapon?.damage || { min: 1, max: 3 });
-      damage = gameRandom.nextInt(damageRange.min, damageRange.max);
-      
       // Update simulated HP
       target.simulatedHp = (target.simulatedHp !== undefined ? target.simulatedHp : target.hp) - damage;
     }
@@ -788,6 +781,8 @@ export class NPCAI {
         targetType: target.type,
         success: hit,
         damage,
+        dodged,
+        defenseApSpent,
         from: { x: npc.logicalX, y: npc.logicalY },
         to: { x: target.logicalX || target.x, y: target.logicalY || target.y }
       }

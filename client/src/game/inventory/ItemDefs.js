@@ -470,6 +470,53 @@ export const ItemDefs = {
 
 
 
+  // Armor (crafted; single absorption pool, drains before HP, breaks at 0 —
+  // deliberately separate from clothing, which has no combat stats). Not
+  // placed in loot tables — crafted only, spawnable via dev console for now.
+  'armor.padded': {
+    id: 'armor.padded',
+    name: 'Padded Armor',
+    rarity: Rarity.COMMON,
+    imageId: 'paddedarmor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE],
+    equippableSlot: EquipmentSlot.ARMOR,
+    categories: [ItemCategory.ARMOR],
+    armor: { maxAbsorption: 7, weightRequirement: 10 },
+    description: 'Feather padding and tape. Light, easy to move in.'
+  },
+
+  'armor.leather': {
+    id: 'armor.leather',
+    name: 'Leather Armor',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'leatherarmor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE],
+    equippableSlot: EquipmentSlot.ARMOR,
+    categories: [ItemCategory.ARMOR],
+    armor: { maxAbsorption: 13, weightRequirement: 25 },
+    description: 'Belts of leather lashed together with tape.'
+  },
+
+  'armor.metal': {
+    id: 'armor.metal',
+    name: 'Metal Armor',
+    rarity: Rarity.RARE,
+    imageId: 'metalarmor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE],
+    equippableSlot: EquipmentSlot.ARMOR,
+    categories: [ItemCategory.ARMOR],
+    armor: { maxAbsorption: 20, weightRequirement: 50 },
+    description: 'Scrap plates taped together. Absorbs a beating, but its weight costs serious agility unless you\'re strong enough to carry it.'
+  },
+
+
+
   // Melee Weapons (degradable)
   'weapon.knife': {
     id: 'weapon.knife',

@@ -2,6 +2,7 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import audioManager from '../utils/AudioManager.js';
 import { EntityType } from '../entities/Entity.js';
 import engine from '../GameEngine.js';
+import { CombatResolver } from '../systems/CombatResolver.js';
 
 /**
  * TurnManager - Orchestrates the sequential playback of game actions.
@@ -322,9 +323,19 @@ class TurnManager {
         // 3. PLAYBACK-FIRST: apply damage AFTER the animation (CombatSystem
         // deliberately did not apply it during simulation — see class header).
         const target = data.targetType === 'player' ? player : gameMap.getEntity(data.targetId);
+
+        // Active-defense AP cost is deferred the same way as damage (see
+        // CombatResolver header): the dodge decision was made during simulation,
+        // but the AP gauge only drops now, in step with this animation, whether
+        // or not the dodge attempt actually succeeded.
+        if (target && data.defenseApSpent > 0 && typeof target.useAP === 'function') {
+          target.useAP(data.defenseApSpent);
+        }
+
         if (target && data.success && data.damage > 0) {
-          if (typeof target.takeDamage === 'function') {
-            target.takeDamage(data.damage, false);
+          const finalDamage = CombatResolver.applyArmorAbsorption(target, data.damage);
+          if (finalDamage > 0 && typeof target.takeDamage === 'function') {
+            target.takeDamage(finalDamage, false);
           }
           if (data.bleedingInflicted && typeof target.setBleeding === 'function') {
             target.setBleeding(true);

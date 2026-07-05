@@ -9,6 +9,7 @@ import { getHourFromTurn } from '../utils/TimeUtils.js';
 import { CraftingManager } from './CraftingManager.js';
 import audioManager from '../utils/AudioManager.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
+import engine from '../GameEngine.js';
 
 // Helpers to check if clothing or a backpack has items inside
 function hasItemsInside(item) {
@@ -58,7 +59,8 @@ export class InventoryManager extends SafeEventEmitter {
       handgun: null,
       long_gun: null,
       flashlight: null,
-      belt: null
+      belt: null,
+      armor: null
     };
 
     // Ground container (special auto-expanding container)
@@ -511,7 +513,18 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     this.updateDynamicContainers();
-    
+
+    // Armor is a single absorption pool tracked on the player's EquippedArmor
+    // component, not read live from the item each combat resolution — sync it
+    // here so it survives equip/unequip. `item.armorAbsorption` (set on the
+    // item instance) remembers partial wear if the same piece is re-equipped.
+    if (slot === 'armor' && engine.player) {
+      const armorDef = ItemDefs[item.defId]?.armor || {};
+      engine.player.absorption = item.armorAbsorption !== undefined ? item.armorAbsorption : (armorDef.maxAbsorption || 0);
+      engine.player.maxAbsorption = armorDef.maxAbsorption || 0;
+      engine.player.weightRequirement = armorDef.weightRequirement || 0;
+    }
+
     // Emit equip event for audio/UI feedback
     this.emit('itemEquipped', { item, slot });
 
@@ -537,7 +550,17 @@ export class InventoryManager extends SafeEventEmitter {
     this.equipment[slot] = null;
     item.isEquipped = false;
 
-    // Phase 18 Refactor: No more manual ID resetting here. 
+    // Persist remaining absorption onto the item instance so re-equipping the
+    // same piece later resumes from where it left off, then clear the
+    // player's live component.
+    if (slot === 'armor' && engine.player) {
+      item.armorAbsorption = engine.player.absorption || 0;
+      engine.player.absorption = 0;
+      engine.player.maxAbsorption = 0;
+      engine.player.weightRequirement = 0;
+    }
+
+    // Phase 18 Refactor: No more manual ID resetting here.
     // Container IDs are now stable and instance-based.
     this.updateDynamicContainers();
 

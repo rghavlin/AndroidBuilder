@@ -27,6 +27,7 @@ export const GAME_EVENT = {
   PLAYER_HEAL: 'player_heal',
   PLAYER_DAMAGE: 'player_damage',
   PLAYER_BLEEDING: 'player_bleeding',
+  ARMOR_ABSORBED: 'armor_absorbed',
   
   // Environmental
   NOISE_EMITTED: 'noise_emitted',

@@ -1,7 +1,6 @@
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { AITargeting } from './AITargeting.js';
-
-import { gameRandom } from '../utils/SeededRandom.js';
+import { CombatResolver } from '../systems/CombatResolver.js';
 export class TurretAI {
   /**
    * Execute one full turret turn.
@@ -71,8 +70,6 @@ export class TurretAI {
     const noiseRadius = isSuppressed ? 3 : turretStats.noiseRadius;
 
     let ap = turretStats.maxAp;
-    const accuracyBonus = turretStats.rangedLvl * 0.01;
-    const critChance = 0.05 + (turretStats.rangedLvl - 1) * 0.05;
 
     // In-range, visible, faction-HOSTILE targets sorted nearest-first. The turret
     // is an Item placed at (turretX, turretY), so we measure distance/LOS from that
@@ -99,21 +96,26 @@ export class TurretAI {
         consumeAmmo();
 
         const squaresAway = Math.floor(dist);
-        const baseHit     = Math.max(turretStats.minAccuracy, 1.0 - (squaresAway - 1) * turretStats.accuracyFalloff);
-        const hit         = gameRandom.next() <= (baseHit + accuracyBonus);
-        const isCrit      = hit && gameRandom.next() <= critChance;
-        let damage = 0;
+        const { hit, isCrit, damage, dodged, defenseApSpent } = CombatResolver.rollTurret({
+          turretStats,
+          rangedLvl: turretStats.rangedLvl,
+          squaresAway,
+          defenderType: target.type,
+          defenderSubtype: target.subtype,
+          defender: target
+        });
 
         if (hit) {
-          damage = isCrit
-            ? Math.floor(turretStats.damage.max * 1.5)
-            : gameRandom.nextInt(turretStats.damage.min, turretStats.damage.max);
           // SIMULATION-FIRST damage (see TurnManager damage-timing models): apply
           // now so the while-loop above sees the post-hit HP and stops firing once
           // the target dies. The TURRET_SHOT action below is cosmetic only —
           // TurnManager must NOT re-apply this damage during playback.
-          target.takeDamage(damage);
+          const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
+          if (finalDamage > 0) target.takeDamage(finalDamage);
         }
+        // Turrets already apply damage synchronously (no deferred playback for
+        // this action type), so the active-defense AP cost applies immediately too.
+        if (defenseApSpent > 0 && typeof target.useAP === 'function') target.useAP(defenseApSpent);
 
         // Noise
         if (gameMap.emitNoise) gameMap.emitNoise(turretX, turretY, noiseRadius);
@@ -127,7 +129,7 @@ export class TurretAI {
             targetType:  target.type,
             targetX:     cx,
             targetY:     cy,
-            hit, isCrit, damage,
+            hit, isCrit, damage, dodged,
             isDead:      target.hp <= 0
           }
         });
