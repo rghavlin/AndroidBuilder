@@ -10,6 +10,8 @@ import { useGame } from './GameContext.jsx';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
+import { gameRandom } from '../game/utils/SeededRandom.js';
+import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
 
 const ActionContext = createContext();
 
@@ -359,6 +361,7 @@ export const ActionProvider = ({ children }) => {
       playSound('Unlock');
       addLog(`You unlock the ${structure.type} with your ${targetingItem.name}.`, 'world');
       player.useAP(1);
+      AttributeProgressionManager.recordAction(player, 'LOCKPICK');
 
       // Consume lockpick
       if (targetingItem.stackCount > 1) {

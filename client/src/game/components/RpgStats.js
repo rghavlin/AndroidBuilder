@@ -8,6 +8,12 @@ export class RpgStats {
     this.currentPerception = properties.currentPerception !== undefined ? properties.currentPerception : this.basePerception;
     this.baseConstitution = properties.baseConstitution !== undefined ? properties.baseConstitution : 20;
     this.currentConstitution = properties.currentConstitution !== undefined ? properties.currentConstitution : this.baseConstitution;
+
+    // Attribute Experience
+    this.strengthXP = properties.strengthXP || 0;
+    this.agilityXP = properties.agilityXP || 0;
+    this.perceptionXP = properties.perceptionXP || 0;
+    this.constitutionXP = properties.constitutionXP || 0;
   }
 
   toJSON() {

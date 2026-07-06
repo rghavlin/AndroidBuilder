@@ -7,6 +7,7 @@ import { SequencerAction } from '../managers/SequencerAction.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { ItemCategory } from '../inventory/traits.js';
 import { CombatResolver } from '../systems/CombatResolver.js';
+import { AttributeProgressionManager } from '../systems/AttributeProgressionManager.js';
 
 
 import { Position } from '../components/Position.js';
@@ -453,6 +454,7 @@ export class Entity extends SafeEventEmitter {
       });
       if (this.type === 'player' && !silent) {
         GameEvents.emit(GAME_EVENT.PLAYER_HEAL, { amount: amountHealed, currentHp: this.hp });
+        AttributeProgressionManager.recordAction(this, 'HEAL_DAMAGE', { amount: amountHealed });
       }
       this.notifyChange();
     }
@@ -547,6 +549,9 @@ export class Entity extends SafeEventEmitter {
     const nextTarget = PlayerSkills.getNextCraftingTarget(this.craftingLvl);
     if (this.craftingApUsed >= nextTarget) {
       this.craftingLvl++;
+      if (this.type === 'player') {
+        AttributeProgressionManager.recordAction(this, 'CRAFTING_SKILL_UP');
+      }
     }
     this.notifyChange();
   }
@@ -559,6 +564,9 @@ export class Entity extends SafeEventEmitter {
     if (this[isMelee ? 'meleeKills' : 'rangedKills'] >= nextMilestone) {
       const newLevel = currentLevel + 1;
       this.setStat(isMelee ? 'meleeLvl' : 'rangedLvl', newLevel);
+      if (this.type === 'player') {
+        AttributeProgressionManager.recordAction(this, isMelee ? 'MELEE_SKILL_UP' : 'RANGED_SKILL_UP');
+      }
       return newLevel;
     }
     return null;
@@ -1109,7 +1117,11 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
   basePerception: 20,
   currentPerception: 20,
   baseConstitution: 20,
-  currentConstitution: 20
+  currentConstitution: 20,
+  strengthXP: 0,
+  agilityXP: 0,
+  perceptionXP: 0,
+  constitutionXP: 0
 });
 
 defineAccessors(Entity, 'ActiveDefense', ActiveDefense, {

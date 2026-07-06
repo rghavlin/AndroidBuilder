@@ -18,7 +18,9 @@ import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { CombatSystem } from '../game/systems/CombatSystem.js';
 import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
+import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
 import { toast } from '../hooks/use-toast';
 
 const logger = Logger.scope('GameContext');
@@ -587,7 +589,11 @@ const GameContextInner = ({ children }) => {
       // Sickness no longer deals direct HP damage — it saps Constitution (lowering
       // maxHp) via the survival cascade below. Here we just tick down its duration.
       player.sickness -= 1;
-      if (player.sickness === 0) player.condition = 'Normal';
+      AttributeProgressionManager.recordAction(player, 'ENDURE_HARDSHIP');
+      if (player.sickness === 0) {
+        player.condition = 'Normal';
+        AttributeProgressionManager.recordAction(player, 'DISEASE_RECOVERED');
+      }
     }
     if (player.drunkenness > 0) {
       player.drunkenness = Math.max(0, player.drunkenness - 1);
@@ -640,8 +646,14 @@ const GameContextInner = ({ children }) => {
     }
 
     // Survival penalties
-    if (player.nutrition === 0) player.takeDamage(1, { id: 'survival', type: 'starvation' });
-    if (player.hydration === 0) player.takeDamage(1, { id: 'survival', type: 'dehydration' });
+    if (player.nutrition === 0) {
+      player.takeDamage(1, { id: 'survival', type: 'starvation' });
+      AttributeProgressionManager.recordAction(player, 'ENDURE_HARDSHIP');
+    }
+    if (player.hydration === 0) {
+      player.takeDamage(1, { id: 'survival', type: 'dehydration' });
+      AttributeProgressionManager.recordAction(player, 'ENDURE_HARDSHIP');
+    }
 
     // Survival cascade + derived stats: refresh current Str/Agi/Per/Con from needs,
     // then re-derive maxHp/maxAp — must run BEFORE the AP allotment below so it reads

@@ -59,7 +59,11 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         currentStrength: 0,
         currentAgility: 0,
         currentPerception: 0,
-        currentConstitution: 0
+        currentConstitution: 0,
+        strengthXP: 0,
+        agilityXP: 0,
+        perceptionXP: 0,
+        constitutionXP: 0
     });
 
     // Sync from actual player when tab opens
@@ -81,7 +85,11 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                 currentStrength: engine.player.currentStrength || 0,
                 currentAgility: engine.player.currentAgility || 0,
                 currentPerception: engine.player.currentPerception || 0,
-                currentConstitution: engine.player.currentConstitution || 0
+                currentConstitution: engine.player.currentConstitution || 0,
+                strengthXP: engine.player.strengthXP || 0,
+                agilityXP: engine.player.agilityXP || 0,
+                perceptionXP: engine.player.perceptionXP || 0,
+                constitutionXP: engine.player.constitutionXP || 0
             });
         }
     }, [activeTab]);
@@ -104,7 +112,11 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
             currentStrength: engine.player.currentStrength || 0,
             currentAgility: engine.player.currentAgility || 0,
             currentPerception: engine.player.currentPerception || 0,
-            currentConstitution: engine.player.currentConstitution || 0
+            currentConstitution: engine.player.currentConstitution || 0,
+            strengthXP: engine.player.strengthXP || 0,
+            agilityXP: engine.player.agilityXP || 0,
+            perceptionXP: engine.player.perceptionXP || 0,
+            constitutionXP: engine.player.constitutionXP || 0
         }));
         engine.notifyUpdate();
     };
@@ -585,6 +597,13 @@ function PlayerTab({ stats, updateStat }: any) {
                     <AttributeControl label="Agility" base={stats.baseAgility} current={stats.currentAgility} onChange={(v: any) => updateStat('baseAgility', v)} />
                     <AttributeControl label="Perception" base={stats.basePerception} current={stats.currentPerception} onChange={(v: any) => updateStat('basePerception', v)} />
                     <AttributeControl label="Constitution" base={stats.baseConstitution} current={stats.currentConstitution} onChange={(v: any) => updateStat('baseConstitution', v)} />
+                </div>
+                <h3 className="text-xs font-bold uppercase text-primary tracking-widest border-b border-primary/20 pb-1 mt-4">Attribute Experience</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-1">
+                    <StatInput label="Strength XP" value={stats.strengthXP} onChange={(v: any) => updateStat('strengthXP', parseFloat(v)||0)} />
+                    <StatInput label="Agility XP" value={stats.agilityXP} onChange={(v: any) => updateStat('agilityXP', parseFloat(v)||0)} />
+                    <StatInput label="Perception XP" value={stats.perceptionXP} onChange={(v: any) => updateStat('perceptionXP', parseFloat(v)||0)} />
+                    <StatInput label="Constitution XP" value={stats.constitutionXP} onChange={(v: any) => updateStat('constitutionXP', parseFloat(v)||0)} />
                 </div>
             </div>
         </div>

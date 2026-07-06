@@ -2,6 +2,7 @@ import { gameRandom } from '../utils/SeededRandom.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 import engine from '../GameEngine.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
+import { AttributeProgressionManager } from './AttributeProgressionManager.js';
 
 // Single shared home for combat dice-rolling math, used by every attacker type
 // (player, NPC, zombie, turret). Combat capability tiers:
@@ -152,6 +153,9 @@ export class CombatResolver {
     const dodgeTarget = Math.max(0, baseDodge - armorPenalty - diminishingPenalty);
 
     const evaded = gameRandom.next() * 100 < dodgeTarget;
+    if (evaded && defender.type === 'player') {
+      AttributeProgressionManager.recordAction(defender, 'DODGE_SUCCESS');
+    }
     return { attempted: true, evaded, apCost: 1 };
   }
 

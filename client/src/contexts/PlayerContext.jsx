@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { ScentTrail } from '../game/utils/ScentTrail.js';
+import { VehicleUtils } from '../game/utils/VehicleUtils.js';
+import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
+import { Pathfinding } from '../game/utils/Pathfinding.js';
 import Logger from '../game/utils/Logger.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import engine from '../game/GameEngine.js';
@@ -380,6 +383,29 @@ export const PlayerProvider = ({ children }) => {
       } catch (err) {
         console.error('[PlayerContext] 🛵 Error in scooter battery depletion:', err);
       }
+    }
+    
+    // Attribute XP Hooks: Wagon Pulling and Sprint Bonus
+    try {
+      const baseCostWithBonus = Pathfinding.calculateMovementCost(gameMap, path);
+      const activeItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
+      
+      // If we are dragging something, the extra AP spent is the difference between total cost and base cost
+      if (activeItems.length > 0) {
+        const dragPenalty = cost - baseCostWithBonus;
+        if (dragPenalty > 0) {
+          AttributeProgressionManager.recordAction(engine.player, 'PULL_WAGON', { apSpent: dragPenalty });
+        }
+      }
+
+      // Calculate Sprint Bonus (fractional discount from Pathfinding.js)
+      const numTiles = path.length - 1;
+      const sprintBonus = Math.floor(numTiles / 5) * 0.5;
+      if (sprintBonus > 0) {
+        AttributeProgressionManager.recordAction(engine.player, 'SPRINT_BONUS', { apSaved: sprintBonus });
+      }
+    } catch (err) {
+      console.error('[PlayerContext] Error calculating movement XP:', err);
     }
     
     // Prime vision at the start position before locking

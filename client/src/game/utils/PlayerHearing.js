@@ -1,4 +1,5 @@
 import { gameRandom } from './SeededRandom.js';
+import { AttributeProgressionManager } from '../systems/AttributeProgressionManager.js';
 
 // Player-hears-zombies sensory check. Distinct from (and unrelated to) the
 // existing gameMap.emitNoise()/AudioSystem zombie-hears-player mechanics —
@@ -80,6 +81,7 @@ export function markHeardIfInRange(zombie, player, noiseLevel) {
     // pulse animation partway through.
     if (!zombie.heardByPlayer) {
       zombie.hearingRevealedAt = performance.now();
+      AttributeProgressionManager.recordAction(player, 'HEARING_SUCCESS');
     }
     zombie.heardByPlayer = true;
   }

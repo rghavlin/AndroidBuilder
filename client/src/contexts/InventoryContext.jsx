@@ -3,6 +3,8 @@ import { ItemTrait, FireMode, ItemCategory } from '../game/inventory/traits.js';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import { Item } from '../game/inventory/Item.js';
 import { CraftingRecipes } from '../game/inventory/CraftingRecipes.js';
+import { VehicleUtils } from '../game/utils/VehicleUtils.js';
+import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
 import { useLog } from './LogContext.jsx';
 import { useAudio } from './AudioContext.jsx';
 import Logger from '../game/utils/Logger.js';
@@ -871,6 +873,7 @@ export const InventoryProvider = ({ children }) => {
     item.isLocked = false;
     playSound('Unlock');
     addLog(`You successfully pick the lock on the safe.`, 'item');
+    AttributeProgressionManager.recordAction(engine.player, 'LOCKPICK');
 
     engine.notifyUpdate();
     return { success: true };
