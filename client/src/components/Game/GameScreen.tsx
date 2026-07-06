@@ -8,6 +8,7 @@ import MapInterface from './MapInterface';
 import InventoryPanel from "../Inventory/InventoryPanel";
 import GameControls from './GameControls';
 import StartMenu from './StartMenu';
+import CharacterCreator from './CharacterCreator';
 import { useWindowSize } from "@/hooks/useWindowSize";
 import { GameErrorBoundary } from './ErrorBoundary.tsx';
 import { MapTransitionDialog } from './MapTransitionDialog';
@@ -63,7 +64,10 @@ function GameScreenContent() {
     mapTransition,
     handleMapTransitionConfirmWrapper,
     handleMapTransitionCancel,
-    inventoryManager
+    inventoryManager,
+    showCharacterCreator,
+    resolveCharacterCreator,
+    cancelCharacterCreator
   } = useGame();
 
   // Hide start menu when initialization starts OR when game is ready (from init or direct load)
@@ -131,6 +135,12 @@ function GameScreenContent() {
 
   return (
     <>
+      {showCharacterCreator && (
+        <CharacterCreator 
+          onConfirm={resolveCharacterCreator}
+          onCancel={cancelCharacterCreator}
+        />
+      )}
       {showStartMenu ? (
         <StartMenu onStartGame={handleStartGame} />
       ) : !isGameReady ? (

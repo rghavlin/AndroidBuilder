@@ -24,7 +24,7 @@ import { Container } from './inventory/Container.js';
 import { BlueprintRegistry } from './BlueprintRegistry.js';
 
 export const EntityFactory = {
-  createPlayer(x, y) {
+  createPlayer(x, y, customStats = null) {
     const entity = new Entity(null, 'player', x, y);
     entity.type = 'player';
     entity.name = 'Player';
@@ -64,14 +64,14 @@ export const EntityFactory = {
     entity.addComponent(new PlayerWallet({ earbucks: 0 }));
     entity.addComponent(new Burnable({ fireTurns: 0 }));
     entity.addComponent(new RpgStats({
-      baseStrength: 20,
-      currentStrength: 20,
-      baseAgility: 40,
-      currentAgility: 40,
-      basePerception: 20,
-      currentPerception: 20,
-      baseConstitution: 20,
-      currentConstitution: 20
+      baseStrength: customStats?.strength !== undefined ? customStats.strength : 20,
+      currentStrength: customStats?.strength !== undefined ? customStats.strength : 20,
+      baseAgility: customStats?.agility !== undefined ? customStats.agility : 40,
+      currentAgility: customStats?.agility !== undefined ? customStats.agility : 40,
+      basePerception: customStats?.perception !== undefined ? customStats.perception : 20,
+      currentPerception: customStats?.perception !== undefined ? customStats.perception : 20,
+      baseConstitution: customStats?.constitution !== undefined ? customStats.constitution : 20,
+      currentConstitution: customStats?.constitution !== undefined ? customStats.constitution : 20
     }));
     entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.15 }));
 

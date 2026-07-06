@@ -2478,7 +2478,7 @@ export const ItemDefs = {
     traits: [ItemTrait.READABLE],
     categories: [ItemCategory.BOOK, ItemCategory.FUEL],
     totalPages: 500,
-    description: 'Increase MaxAP by 1 for each 100 pages read.'
+    description: 'Read to gain Agility and Perception XP (5 XP per page).'
   },
   'book.nomad_survivor_1': {
     id: 'book.nomad_survivor_1',

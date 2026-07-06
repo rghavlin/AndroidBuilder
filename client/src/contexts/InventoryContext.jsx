@@ -928,17 +928,9 @@ export const InventoryProvider = ({ children }) => {
     player.useAP(apNeeded);
     
     if (item.defId === 'book.life_in_motion') {
-      // Milestone check: Every 100 pages increases maxAp by 1
-      const totalPagesRead = 500 - stats.pagesLeft;
-      const currentMilestones = Math.floor(totalPagesRead / 100);
-      const newMilestones = currentMilestones - (stats.milestonesReached || 0);
-      
-      if (newMilestones > 0) {
-          player.modifyStat('maxAp', newMilestones);
-          stats.milestonesReached = currentMilestones;
-          addLog(`You feel enlightened. Max AP increased by ${newMilestones}!`, 'success');
-          playSound('LevelUp');
-      }
+      const xpGained = apNeeded * 5;
+      AttributeProgressionManager.recordAction(player, 'READ_LIFE_IN_MOTION', { pagesRead: apNeeded });
+      addLog(`You feel your reflexes sharpening. Gained +${xpGained} Agility XP and +${xpGained} Perception XP!`, 'success');
     } else if (item.defId.startsWith('book.nomad_survivor_')) {
       if (!wasFinished && stats.pagesLeft === 0) {
           const recipe = CraftingRecipes.find(r => r.requiredBook === item.defId);

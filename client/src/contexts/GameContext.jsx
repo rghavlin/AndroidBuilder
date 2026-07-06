@@ -87,6 +87,22 @@ const GameContextInner = ({ children }) => {
   const noAutosaveRef = useRef(false);
   const [showDifficultySelect, setShowDifficultySelect] = useState(false);
   const difficultyResolveRef = useRef(null);
+  const [showCharacterCreator, setShowCharacterCreator] = useState(false);
+  const characterCreatorResolveRef = useRef(null);
+
+  const resolveCharacterCreator = useCallback((stats) => {
+    if (characterCreatorResolveRef.current) {
+      characterCreatorResolveRef.current.resolve(stats);
+      characterCreatorResolveRef.current = null;
+    }
+  }, []);
+
+  const cancelCharacterCreator = useCallback(() => {
+    if (characterCreatorResolveRef.current) {
+      characterCreatorResolveRef.current.reject(new Error('Character creation cancelled'));
+      characterCreatorResolveRef.current = null;
+    }
+  }, []);
 
   // LastSeen tile tagging system to prevent zombie clustering
   const lastSeenTaggedTilesRef = useRef(new Set());
@@ -1515,6 +1531,22 @@ const GameContextInner = ({ children }) => {
     setTurn(1); // Reset turn counter to 1 for new game (06:00 start)
     clearLogs(); // Clear log from previous game
 
+    // Character Creator interception
+    let chosenStats = config && config.customStats !== undefined ? config.customStats : null;
+    if (chosenStats === null) {
+      setShowCharacterCreator(true);
+      try {
+        chosenStats = await new Promise((resolve, reject) => {
+          characterCreatorResolveRef.current = { resolve, reject };
+        });
+      } catch (err) {
+        console.log('[GameContext] Character creation cancelled.');
+        setShowCharacterCreator(false);
+        return false;
+      }
+      setShowCharacterCreator(false);
+    }
+
     // Easy Start difficulty selection interception
     let chosenEasyStart = config && config.easyStart !== undefined ? config.easyStart : null;
     
@@ -1526,7 +1558,7 @@ const GameContextInner = ({ children }) => {
       setShowDifficultySelect(false);
     }
 
-    const finalConfig = { ...config, easyStart: chosenEasyStart };
+    const finalConfig = { ...config, easyStart: chosenEasyStart, customStats: chosenStats };
     noAutosaveRef.current = !!finalConfig.scenarioData?.noAutosave;
 
     const success = await initManagerRef.current.startInitialization(null, finalConfig);
@@ -1888,6 +1920,9 @@ const GameContextInner = ({ children }) => {
     spawnTestEntities,
     spawnInitialZombies,
     shutdownGame,
+    showCharacterCreator,
+    resolveCharacterCreator,
+    cancelCharacterCreator,
 
     // Save/Load orchestration
     saveGame,
@@ -1963,6 +1998,9 @@ const GameContextInner = ({ children }) => {
     setTurnPhase,
     initializeGame,
     endTurn,
+    showCharacterCreator,
+    resolveCharacterCreator,
+    cancelCharacterCreator,
     spawnTestEntities,
     spawnInitialZombies,
     shutdownGame,

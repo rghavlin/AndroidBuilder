@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { ItemTrait } from '@/game/inventory/traits';
+import { ItemDefs } from '@/game/inventory/ItemDefs';
 
 interface ItemTooltipProps {
     item: any;
@@ -163,6 +164,28 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                     </div>
                 </div>
             )}
+            {/* Armor Info */}
+            {(() => {
+                const armorDef = item.armor || (item.defId && ItemDefs[item.defId]?.armor);
+                if (!armorDef) return null;
+                return (
+                    <div className="border-t border-border pt-1.5 mt-1.5 space-y-1 text-[10px]">
+                        {armorDef.maxAbsorption !== undefined && (
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Armor Protection</span>
+                                <span className="text-foreground">+{armorDef.maxAbsorption}</span>
+                            </div>
+                        )}
+                        {armorDef.weightRequirement !== undefined && (
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Recommended Strength</span>
+                                <span className="text-foreground">{armorDef.weightRequirement}</span>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
+
             {/* Description */}
             {item.description && item.defId !== 'food.stew' && (
                 <div className="border-t border-border pt-1.5 mt-1.5 text-[10px] text-muted-foreground italic max-w-[200px] break-words whitespace-normal">

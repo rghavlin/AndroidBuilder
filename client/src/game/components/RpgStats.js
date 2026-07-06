@@ -14,6 +14,11 @@ export class RpgStats {
     this.agilityXP = properties.agilityXP || 0;
     this.perceptionXP = properties.perceptionXP || 0;
     this.constitutionXP = properties.constitutionXP || 0;
+
+    this.strengthXpSpent = properties.strengthXpSpent || 0;
+    this.agilityXpSpent = properties.agilityXpSpent || 0;
+    this.perceptionXpSpent = properties.perceptionXpSpent || 0;
+    this.constitutionXpSpent = properties.constitutionXpSpent || 0;
   }
 
   toJSON() {

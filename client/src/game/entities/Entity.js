@@ -452,9 +452,11 @@ export class Entity extends SafeEventEmitter {
         currentHp: this.hp,
         maxHp: this.maxHp
       });
-      if (this.type === 'player' && !silent) {
-        GameEvents.emit(GAME_EVENT.PLAYER_HEAL, { amount: amountHealed, currentHp: this.hp });
+      if (this.type === 'player') {
         AttributeProgressionManager.recordAction(this, 'HEAL_DAMAGE', { amount: amountHealed });
+        if (!silent) {
+          GameEvents.emit(GAME_EVENT.PLAYER_HEAL, { amount: amountHealed, currentHp: this.hp });
+        }
       }
       this.notifyChange();
     }

@@ -410,13 +410,11 @@ class GameEngine extends SafeEventEmitter {
 
        const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
        
-        // Calculate base ambient sight range based on hour of the day
-        const hour = getHourFromTurn(this.turn);
-        const playerVision = this.player?.getComponent('Vision');
-        const playerVisionRange = playerVision ? playerVision.range : maxRange;
-        const baseRange = getSightRangeForHour(hour, playerVisionRange);
+         // Calculate base ambient sight range based on hour of the day (base 15 before perception bonus)
+         const hour = getHourFromTurn(this.turn);
+         const baseRange = getSightRangeForHour(hour, maxRange);
 
-        let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
+         let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
        
        // Phase NVG: Night Vision range override
        if (isFlashlightOn && isNightVision) {
@@ -434,6 +432,10 @@ class GameEngine extends SafeEventEmitter {
            range = 20;
          }
        }
+
+       // Apply Perception sight range bonus to final vision range (applies uniformly to day, night, flashlight, etc.)
+       const perceptionBonus = this.player ? Math.floor((this.player.currentPerception || 0) / 20) : 0;
+       range += perceptionBonus;
 
        // Weather reduction: reduce sight range by 15% when raining, 20% in heavy rain (intensity > 0.7)
        // Skip weather reduction if the player is inside (standing on floor or tent_floor terrain)

@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
-import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart } from 'lucide-react';
+import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { CombatResolver } from '@/game/systems/CombatResolver';
+import { AttributeProgressionManager } from '@/game/systems/AttributeProgressionManager';
 
 interface SkillProgressBarProps {
     current: number;
@@ -85,13 +86,21 @@ interface StatCardProps {
     base: number;
     accentColor: string;
     effects: string[];
+    totalXP: number;
+    spentXP: number;
+    requiredXP: number;
+    onRoll: () => void;
 }
 
 // Roomy attribute card — deliberately more generous than the skill cards, with
 // space for additional effect lines as more systems (hearing, sight, etc.) tie
-// into these stats later.
-const StatCard = ({ icon, name, current, base, accentColor, effects }: StatCardProps) => {
+// into these stats later. Now includes attribute XP progress bars and interactive dice upgrades.
+const StatCard = ({ icon, name, current, base, accentColor, effects, totalXP, spentXP, requiredXP, onRoll }: StatCardProps) => {
     const isDebuffed = current < base;
+    const progressXP = totalXP - spentXP;
+    const progress = Math.min(100, Math.max(0, (progressXP / requiredXP) * 100));
+    const isRollReady = progressXP >= requiredXP;
+
     return (
         <div className="bg-card/40 p-2.5 rounded-lg border border-border/40 hover:border-primary/30 transition-colors">
             <div className="flex items-center justify-between mb-1.5">
@@ -108,17 +117,49 @@ const StatCard = ({ icon, name, current, base, accentColor, effects }: StatCardP
                     )}
                 </div>
             </div>
-            <div className="space-y-0.5 pl-1 border-l border-white/5">
+            <div className="space-y-0.5 pl-1 border-l border-white/5 mb-2.5">
                 {effects.map((line, i) => (
                     <div key={i} className="text-[9.5px] leading-tight text-muted-foreground pl-1.5">{line}</div>
                 ))}
+            </div>
+
+            {/* XP progress bar and dice roll button */}
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/5">
+                <div className="flex-grow space-y-0.5">
+                    <div className="flex justify-between text-[8px] text-muted-foreground font-mono">
+                        <span>TOTAL: {Math.round(totalXP)}</span>
+                        <span>{Math.round(progressXP)} / {Math.round(requiredXP)}</span>
+                    </div>
+                    <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden border border-white/5">
+                        <div
+                            className={cn("h-full transition-all duration-500 ease-out", 
+                                isRollReady ? "bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] animate-pulse" : "bg-primary"
+                            )}
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                </div>
+                
+                <button
+                    onClick={onRoll}
+                    disabled={!isRollReady}
+                    className={cn(
+                        "w-7 h-7 shrink-0 rounded flex items-center justify-center border transition-all duration-300",
+                        isRollReady 
+                            ? "bg-emerald-500/25 border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/35 hover:text-emerald-300 cursor-pointer animate-bounce" 
+                            : "bg-secondary/20 border-white/5 text-muted-foreground/30 opacity-50 cursor-not-allowed"
+                    )}
+                    title={isRollReady ? "Click to roll for an upgrade!" : "Not enough XP to roll"}
+                >
+                    <Dices className="w-3.5 h-3.5" />
+                </button>
             </div>
         </div>
     );
 };
 
 export default function PlayerSkillsUI() {
-    const { playerStats } = usePlayer();
+    const { player, playerStats } = usePlayer();
     const [playerIcon, setPlayerIcon] = useState<string | null>(null);
 
     useEffect(() => {
@@ -187,20 +228,27 @@ export default function PlayerSkillsUI() {
 
         const meleeDamageBonus = CombatResolver.strengthDamageBonus(currentStrength);
         const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, playerStats.armorWeightRequirement || 0);
+        const wagonPullBonus = Math.floor(currentStrength / 20);
         const dodgeChance = Math.max(0, Math.round(currentAgility - armorPenalty));
         const critBonus = Math.round(CombatResolver.perceptionCritBonus(currentPerception) * 100);
         const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(currentAgility) * 100);
         const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(currentPerception) * 100);
+        const sightRangeBonus = Math.floor(currentPerception / 20);
         // maxHp is now derived from Constitution by recalcCharacter and lives on the
         // player, so display the real value; fall back to the formula only if absent.
         const maxHp = playerStats.maxHp ?? (10 + Math.max(0, Math.floor(currentConstitution * 0.5)));
         const sickResistPct = Math.round(CombatResolver.sicknessResistFraction(currentConstitution) * 100);
 
+        const reqStrXP = AttributeProgressionManager.getRequiredXP(baseStrength);
+        const reqAgiXP = AttributeProgressionManager.getRequiredXP(baseAgility);
+        const reqPerXP = AttributeProgressionManager.getRequiredXP(basePerception);
+        const reqConXP = AttributeProgressionManager.getRequiredXP(baseConstitution);
+
         return {
-            strength: { current: currentStrength, base: baseStrength, meleeDamageBonus, armorPenalty },
-            agility: { current: currentAgility, base: baseAgility, dodgeChance, meleeAimBonus },
-            perception: { current: currentPerception, base: basePerception, critBonus, rangedAimBonus },
-            constitution: { current: currentConstitution, base: baseConstitution, maxHp, sickResistPct }
+            strength: { current: currentStrength, base: baseStrength, meleeDamageBonus, armorPenalty, wagonPullBonus, totalXP: playerStats.strengthXP || 0, spentXP: playerStats.strengthXpSpent || 0, requiredXP: reqStrXP },
+            agility: { current: currentAgility, base: baseAgility, dodgeChance, meleeAimBonus, armorPenalty, totalXP: playerStats.agilityXP || 0, spentXP: playerStats.agilityXpSpent || 0, requiredXP: reqAgiXP },
+            perception: { current: currentPerception, base: basePerception, critBonus, rangedAimBonus, sightRangeBonus, totalXP: playerStats.perceptionXP || 0, spentXP: playerStats.perceptionXpSpent || 0, requiredXP: reqPerXP },
+            constitution: { current: currentConstitution, base: baseConstitution, maxHp, sickResistPct, totalXP: playerStats.constitutionXP || 0, spentXP: playerStats.constitutionXpSpent || 0, requiredXP: reqConXP }
         };
     }, [playerStats]);
 
@@ -231,21 +279,23 @@ export default function PlayerSkillsUI() {
                         </div>
 
                         <StatCard
-                            icon={<Dumbbell className="w-3 h-3 text-orange-400" />}
+                            icon={<Dumbbell className="w-3.5 h-3.5 text-orange-400" />}
                             name="Strength"
                             current={attributes.strength.current}
                             base={attributes.strength.base}
                             accentColor="bg-orange-500/10 border-orange-500/30"
                             effects={[
                                 `Melee damage +${attributes.strength.meleeDamageBonus}`,
-                                attributes.strength.armorPenalty > 0
-                                    ? `Armor is ${attributes.strength.armorPenalty} points too heavy`
-                                    : 'Strong enough for worn armor'
+                                `Wagon-pull AP bonus: +${attributes.strength.wagonPullBonus} AP`
                             ]}
+                            totalXP={attributes.strength.totalXP}
+                            spentXP={attributes.strength.spentXP}
+                            requiredXP={attributes.strength.requiredXP}
+                            onRoll={() => AttributeProgressionManager.rollAttribute(player, 'strength')}
                         />
 
                         <StatCard
-                            icon={<Wind className="w-3 h-3 text-sky-400" />}
+                            icon={<Wind className="w-3.5 h-3.5 text-sky-400" />}
                             name="Agility"
                             current={attributes.agility.current}
                             base={attributes.agility.base}
@@ -253,24 +303,36 @@ export default function PlayerSkillsUI() {
                             effects={[
                                 `Dodge chance ~${attributes.agility.dodgeChance}% (1st this turn)`,
                                 'Repeat dodges the same turn are weaker',
-                                `Melee hit +${attributes.agility.meleeAimBonus}%`
+                                `Melee hit +${attributes.agility.meleeAimBonus}%`,
+                                ...(attributes.agility.armorPenalty > 0
+                                    ? [`Armor agility penalty: -${attributes.agility.armorPenalty}`]
+                                    : [])
                             ]}
+                            totalXP={attributes.agility.totalXP}
+                            spentXP={attributes.agility.spentXP}
+                            requiredXP={attributes.agility.requiredXP}
+                            onRoll={() => AttributeProgressionManager.rollAttribute(player, 'agility')}
                         />
 
                         <StatCard
-                            icon={<Eye className="w-3 h-3 text-violet-400" />}
+                            icon={<Eye className="w-3.5 h-3.5 text-violet-400" />}
                             name="Perception"
                             current={attributes.perception.current}
                             base={attributes.perception.base}
                             accentColor="bg-violet-500/10 border-violet-500/30"
                             effects={[
                                 `Crit chance +${attributes.perception.critBonus}%`,
-                                `Ranged hit +${attributes.perception.rangedAimBonus}%`
+                                `Ranged hit +${attributes.perception.rangedAimBonus}%`,
+                                `Sight range bonus: +${attributes.perception.sightRangeBonus}`
                             ]}
+                            totalXP={attributes.perception.totalXP}
+                            spentXP={attributes.perception.spentXP}
+                            requiredXP={attributes.perception.requiredXP}
+                            onRoll={() => AttributeProgressionManager.rollAttribute(player, 'perception')}
                         />
 
                         <StatCard
-                            icon={<Heart className="w-3 h-3 text-rose-400" />}
+                            icon={<Heart className="w-3.5 h-3.5 text-rose-400" />}
                             name="Constitution"
                             current={attributes.constitution.current}
                             base={attributes.constitution.base}
@@ -279,11 +341,15 @@ export default function PlayerSkillsUI() {
                                 `Max HP ${attributes.constitution.maxHp}`,
                                 `Sickness resist −${attributes.constitution.sickResistPct}%`
                             ]}
+                            totalXP={attributes.constitution.totalXP}
+                            spentXP={attributes.constitution.spentXP}
+                            requiredXP={attributes.constitution.requiredXP}
+                            onRoll={() => AttributeProgressionManager.rollAttribute(player, 'constitution')}
                         />
                     </div>
 
                     {/* Skills */}
-                    <div className="w-[240px] shrink-0 space-y-2">
+                    <div className="w-[180px] shrink-0 space-y-2">
                         <div className="flex items-center gap-2 pb-1 border-b border-border/30">
                             <h3 className="text-xs font-bold uppercase tracking-wider text-white">Skills</h3>
                         </div>

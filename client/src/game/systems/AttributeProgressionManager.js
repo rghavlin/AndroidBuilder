@@ -72,6 +72,13 @@ export class AttributeProgressionManager {
         xpGained.constitutionXP = 50;
         break;
       
+      case 'READ_LIFE_IN_MOTION':
+        // Payload contains pagesRead
+        const pagesRead = payload.pagesRead || 0;
+        xpGained.agilityXP = pagesRead * 5;
+        xpGained.perceptionXP = pagesRead * 5;
+        break;
+
       default:
         console.warn(`[AttributeProgression] Unhandled action: ${action}`);
         return;
@@ -81,45 +88,80 @@ export class AttributeProgressionManager {
   }
 
   static applyXP(entity, stats, xpGained) {
-    let statIncreased = false;
+    let xpAdded = false;
 
     // Helper function to process individual stats
-    const processStat = (statName, xpName) => {
+    const processStat = (statName, xpName, xpSpentName) => {
       if (xpGained[xpName] > 0) {
         stats[xpName] += xpGained[xpName];
+        xpAdded = true;
         
+        const currentProgress = stats[xpName] - (stats[xpSpentName] || 0);
         const requiredXP = this.getRequiredXP(stats[statName]);
-        if (stats[xpName] >= requiredXP) {
-          stats[xpName] -= requiredXP; // Keep rollover XP
-          
-          // The dice roll: 1d3 stat increase
-          const roll = Math.floor(Math.random() * 3) + 1;
-          
-          // Cap at 100
-          stats[statName] = Math.min(100, stats[statName] + roll);
-          statIncreased = true;
-
+        if (currentProgress >= requiredXP) {
           const statLabel = statName.replace('base', '');
-          console.log(`[AttributeProgression] ${statLabel} increased by ${roll}! Now: ${stats[statName]}`);
-          
           toast({ 
-            title: 'Attribute Level Up', 
-            description: `Your ${statLabel} has increased! (+${roll})`
+            title: 'Dice Roll Available!', 
+            description: `You have earned enough XP to roll for a ${statLabel} upgrade! Open the Abilities screen to roll.`
           });
         }
       }
     };
 
-    processStat('baseStrength', 'strengthXP');
-    processStat('baseAgility', 'agilityXP');
-    processStat('basePerception', 'perceptionXP');
-    processStat('baseConstitution', 'constitutionXP');
+    processStat('baseStrength', 'strengthXP', 'strengthXpSpent');
+    processStat('baseAgility', 'agilityXP', 'agilityXpSpent');
+    processStat('basePerception', 'perceptionXP', 'perceptionXpSpent');
+    processStat('baseConstitution', 'constitutionXP', 'constitutionXpSpent');
 
-    if (statIncreased) {
+    if (xpAdded) {
+      if (typeof entity.notifyChange === 'function') {
+        entity.notifyChange();
+      }
+    }
+  }
+
+  /**
+   * Triggers a manual stat roll for the given attribute.
+   * @param {Entity} entity The player entity
+   * @param {string} statType The type of stat ('strength', 'agility', 'perception', 'constitution')
+   * @returns {number|null} The value rolled, or null if not enough XP
+   */
+  static rollAttribute(entity, statType) {
+    if (!entity) return null;
+    const stats = entity.getComponent('RpgStats');
+    if (!stats) return null;
+
+    const statName = `base${statType.charAt(0).toUpperCase()}${statType.slice(1)}`;
+    const xpName = `${statType}XP`;
+    const xpSpentName = `${statType}XpSpent`;
+
+    const currentProgress = stats[xpName] - (stats[xpSpentName] || 0);
+    const requiredXP = this.getRequiredXP(stats[statName]);
+    if (currentProgress >= requiredXP) {
+      stats[xpSpentName] = (stats[xpSpentName] || 0) + requiredXP;
+
+      // Roll 1d3
+      const roll = Math.floor(Math.random() * 3) + 1;
+
+      // Cap at 100
+      stats[statName] = Math.min(100, stats[statName] + roll);
+      
+      const currentName = `current${statType.charAt(0).toUpperCase()}${statType.slice(1)}`;
+      stats[currentName] = Math.min(100, stats[currentName] + roll);
+
       if (typeof entity.notifyChange === 'function') {
         entity.notifyChange();
       }
       recalcCharacter(entity);
+
+      toast({ 
+        title: 'Attribute Upgraded!', 
+        description: `Your ${statType.charAt(0).toUpperCase()}${statType.slice(1)} increased by +${roll}!`
+      });
+
+      return roll;
     }
+
+    return null;
   }
 }
