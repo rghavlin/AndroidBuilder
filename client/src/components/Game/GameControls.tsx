@@ -325,7 +325,7 @@ export default function GameControls({
             </div>
           </TooltipTrigger>
           <TooltipContent side="top">
-            <p className="text-xs font-semibold">Character Stats & Skills</p>
+            <p className="text-xs font-semibold">Character Stats & Abilities</p>
           </TooltipContent>
         </Tooltip>
       </div>

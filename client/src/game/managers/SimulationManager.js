@@ -15,6 +15,7 @@ import { getExposedTurretTargets, TURRET_DEF_ID, removeDestroyedTurret } from '.
 import { FireSystem } from '../systems/FireSystem.js';
 import { DestructionSystem } from '../systems/DestructionSystem.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
+import { computeHearingZone } from '../utils/PlayerHearing.js';
 
 export class SimulationManager {
   /**
@@ -65,6 +66,11 @@ export class SimulationManager {
       for (const zombie of zombies) {
         zombie.heardByPlayer = false;
       }
+
+      // Snapshot the player's hearing zone now, before zombies/NPCs act this
+      // turn, so noise checks during their phase read a frozen distance map
+      // instead of live-recomputing against a moving reference point.
+      player.hearingZone = computeHearingZone(player);
 
       // Performance filter: only process active zombies within sight/range
       let activeZombies = isSleeping

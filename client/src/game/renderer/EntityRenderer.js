@@ -243,14 +243,47 @@ export const EntityRenderer = {
     // Player hears this zombie's recent noise (move/smash) even without line
     // of sight — render a vague, detail-free silhouette instead of skipping it
     // or showing its real sprite (see PlayerHearing.markHeardIfInRange).
-    if (!isVisible && entity.type === EntityType.ZOMBIE && entity.heardByPlayer && !engine.seeThroughWalls) {
-      const ghostScreenX = renderX * tileSize;
-      const ghostScreenY = renderY * tileSize;
+    // Anchored to the entity's actual logical tile (entity.logicalX/Y), NOT
+    // renderX/renderY: those interpolate across the movement tween, which
+    // would otherwise drag the shadow through tiles on the zombie's path that
+    // were never themselves in hearing range (see PlayerHearing.js's
+    // per-turn hearingZone snapshot for why only the landing tile counts).
+    //
+    // Two gates beyond the plain !isVisible above, both fixing real leaks:
+    // - isVisible was computed from renderX/renderY (the mid-tween position),
+    //   so a zombie already LOS-visible at its logical landing tile could
+    //   still get a shadow drawn there because the tween hadn't caught up yet.
+    //   Re-check LOS against the logical tile specifically.
+    // - Only show once turnPhase is back to PLAYER_TURN: heardByPlayer is set
+    //   the instant the zombie moves during SIMULATING, but the shadow must
+    //   not appear mid-playback (ANIMATING) — that's still the zombies' turn.
+    const heardX = entity.logicalX !== undefined ? entity.logicalX : entity.x;
+    const heardY = entity.logicalY !== undefined ? entity.logicalY : entity.y;
+    const isLogicallyVisible = visibilitySet.has(`${Math.round(heardX)},${Math.round(heardY)}`);
+    const isPlayerTurnNow = !engine.turnPhase || engine.turnPhase === 'PLAYER_TURN';
+
+    if (!isVisible && !isLogicallyVisible && isPlayerTurnNow && entity.type === EntityType.ZOMBIE && entity.heardByPlayer && !engine.seeThroughWalls) {
+      const ghostScreenX = heardX * tileSize;
+      const ghostScreenY = heardY * tileSize;
+
+      // Brief pop + a couple of pulses right when it's newly heard, settling
+      // to a steady dim blip for the rest of the turn.
+      const PULSE_DURATION = 900;
+      const revealedAt = entity.hearingRevealedAt || 0;
+      const elapsed = currentTime - revealedAt;
+      let alpha = 0.4;
+      let radius = tileSize * 0.32;
+      if (elapsed >= 0 && elapsed < PULSE_DURATION) {
+        const pulse = Math.sin((elapsed / PULSE_DURATION) * Math.PI * 4) * 0.5 + 0.5;
+        alpha = 0.4 + pulse * 0.35;
+        radius = tileSize * (0.32 + pulse * 0.12);
+      }
+
       ctx.save();
-      ctx.globalAlpha = 0.4;
+      ctx.globalAlpha = alpha;
       ctx.fillStyle = '#3a3a3a';
       ctx.beginPath();
-      ctx.arc(ghostScreenX + tileSize / 2, ghostScreenY + tileSize / 2, tileSize * 0.32, 0, Math.PI * 2);
+      ctx.arc(ghostScreenX + tileSize / 2, ghostScreenY + tileSize / 2, radius, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
       return;
