@@ -31,6 +31,7 @@ export const usePlayer = () => {
           baseStrength: 20, currentStrength: 20,
           baseAgility: 40, currentAgility: 40,
           basePerception: 20, currentPerception: 20,
+          baseConstitution: 20, currentConstitution: 20,
           armorAbsorption: 0, armorMaxAbsorption: 0, armorWeightRequirement: 0
         },
         isMoving: false,
@@ -97,6 +98,7 @@ export const PlayerProvider = ({ children }) => {
       baseStrength: 20, currentStrength: 20,
       baseAgility: 20, currentAgility: 20,
       basePerception: 20, currentPerception: 20,
+      baseConstitution: 20, currentConstitution: 20,
       armorAbsorption: 0, armorMaxAbsorption: 0, armorWeightRequirement: 0
     };
 
@@ -129,6 +131,8 @@ export const PlayerProvider = ({ children }) => {
       currentAgility: player.currentAgility,
       basePerception: player.basePerception,
       currentPerception: player.currentPerception,
+      baseConstitution: player.baseConstitution,
+      currentConstitution: player.currentConstitution,
       armorAbsorption: player.absorption || 0,
       armorMaxAbsorption: player.maxAbsorption || 0,
       armorWeightRequirement: player.weightRequirement || 0,

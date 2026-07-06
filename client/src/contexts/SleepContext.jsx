@@ -12,7 +12,7 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { ItemTrait } from '../game/inventory/traits.js';
 import { SimulationManager } from '../game/managers/SimulationManager.js';
 import { getHourFromTurn } from '../game/utils/TimeUtils.js';
-import { applySurvivalCascade } from '../game/utils/SurvivalCascade.js';
+import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
 
 const SleepContext = createContext();
 
@@ -144,7 +144,7 @@ export const SleepProvider = ({ children }) => {
         player.modifyStat('energy', 2.5 * energyMultiplier);
         player.modifyStat('nutrition', -1);
         player.modifyStat('hydration', -1);
-        applySurvivalCascade(player);
+        recalcCharacter(player);
 
         // Phase 27: Starvation/Dehydration HP penalties (consistent with endTurn)
         if (player.nutrition <= 0) {

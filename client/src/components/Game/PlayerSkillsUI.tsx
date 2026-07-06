@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
-import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye } from 'lucide-react';
+import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { CombatResolver } from '@/game/systems/CombatResolver';
@@ -182,16 +182,25 @@ export default function PlayerSkillsUI() {
         const baseAgility = playerStats.baseAgility ?? currentAgility;
         const currentPerception = playerStats.currentPerception ?? 20;
         const basePerception = playerStats.basePerception ?? currentPerception;
+        const currentConstitution = playerStats.currentConstitution ?? 20;
+        const baseConstitution = playerStats.baseConstitution ?? currentConstitution;
 
         const meleeDamageBonus = CombatResolver.strengthDamageBonus(currentStrength);
         const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, playerStats.armorWeightRequirement || 0);
         const dodgeChance = Math.max(0, Math.round(currentAgility - armorPenalty));
         const critBonus = Math.round(CombatResolver.perceptionCritBonus(currentPerception) * 100);
+        const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(currentAgility) * 100);
+        const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(currentPerception) * 100);
+        // maxHp is now derived from Constitution by recalcCharacter and lives on the
+        // player, so display the real value; fall back to the formula only if absent.
+        const maxHp = playerStats.maxHp ?? (10 + Math.max(0, Math.floor(currentConstitution * 0.5)));
+        const sickResistPct = Math.round(CombatResolver.sicknessResistFraction(currentConstitution) * 100);
 
         return {
             strength: { current: currentStrength, base: baseStrength, meleeDamageBonus, armorPenalty },
-            agility: { current: currentAgility, base: baseAgility, dodgeChance },
-            perception: { current: currentPerception, base: basePerception, critBonus }
+            agility: { current: currentAgility, base: baseAgility, dodgeChance, meleeAimBonus },
+            perception: { current: currentPerception, base: basePerception, critBonus, rangedAimBonus },
+            constitution: { current: currentConstitution, base: baseConstitution, maxHp, sickResistPct }
         };
     }, [playerStats]);
 
@@ -243,7 +252,8 @@ export default function PlayerSkillsUI() {
                             accentColor="bg-sky-500/10 border-sky-500/30"
                             effects={[
                                 `Dodge chance ~${attributes.agility.dodgeChance}% (1st this turn)`,
-                                'Repeat dodges the same turn are weaker'
+                                'Repeat dodges the same turn are weaker',
+                                `Melee hit +${attributes.agility.meleeAimBonus}%`
                             ]}
                         />
 
@@ -254,7 +264,20 @@ export default function PlayerSkillsUI() {
                             base={attributes.perception.base}
                             accentColor="bg-violet-500/10 border-violet-500/30"
                             effects={[
-                                `Crit chance +${attributes.perception.critBonus}%`
+                                `Crit chance +${attributes.perception.critBonus}%`,
+                                `Ranged hit +${attributes.perception.rangedAimBonus}%`
+                            ]}
+                        />
+
+                        <StatCard
+                            icon={<Heart className="w-3.5 h-3.5 text-rose-400" />}
+                            name="Constitution"
+                            current={attributes.constitution.current}
+                            base={attributes.constitution.base}
+                            accentColor="bg-rose-500/10 border-rose-500/30"
+                            effects={[
+                                `Max HP ${attributes.constitution.maxHp}`,
+                                `Sickness resist −${attributes.constitution.sickResistPct}%`
                             ]}
                         />
                     </div>

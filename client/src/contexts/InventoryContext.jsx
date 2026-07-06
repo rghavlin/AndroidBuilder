@@ -11,6 +11,7 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { TurnProcessingUtils } from '../game/utils/TurnProcessingUtils.js';
 import { TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import { gameRandom } from '../game/utils/SeededRandom.js';
+import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
 
 const logger = Logger.scope('InventoryContext');
 
@@ -617,6 +618,10 @@ export const InventoryProvider = ({ children }) => {
           if (typeof val === 'number') player.modifyStat(key, val);
       }
     });
+
+    // Refresh derived attributes/maxHp/maxAp immediately so a condition or need change
+    // from eating (sickness, cure, restored nutrition) is visible before ending the turn.
+    recalcCharacter(player);
   }, []);
 
   const consumeItem = useCallback((item) => {
@@ -731,6 +736,9 @@ export const InventoryProvider = ({ children }) => {
     addLog(`You drink ${unitsToDrink} units of water from ${item.name}.`, 'item');
     playSound('Drink');
 
+    // Refresh derived attributes/maxHp/maxAp so dirty-water sickness (and restored
+    // hydration) show up immediately rather than only after ending the turn.
+    recalcCharacter(player);
     engine.notifyUpdate();
     return { success: true };
   }, [addLog, playSound]);

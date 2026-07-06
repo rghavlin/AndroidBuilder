@@ -6,6 +6,8 @@ export class RpgStats {
     this.currentAgility = properties.currentAgility !== undefined ? properties.currentAgility : this.baseAgility;
     this.basePerception = properties.basePerception !== undefined ? properties.basePerception : 20;
     this.currentPerception = properties.currentPerception !== undefined ? properties.currentPerception : this.basePerception;
+    this.baseConstitution = properties.baseConstitution !== undefined ? properties.baseConstitution : 20;
+    this.currentConstitution = properties.currentConstitution !== undefined ? properties.currentConstitution : this.baseConstitution;
   }
 
   toJSON() {

@@ -38,9 +38,46 @@ export class CombatResolver {
     return Math.floor(currentPerception / 15) * 0.05;
   }
 
+  /**
+   * Perception's aim bonus added to RANGED hit chance, and Agility's to MELEE hit
+   * chance. Deliberately light (≈+2% at baseline, stepping up with the attribute) so
+   * the trained melee/ranged skill remains the dominant hit-chance lever, with the
+   * attribute a small innate floor on top. Divisors chosen so the default attributes
+   * (Per 20, Agi 40) sit comfortably inside a step rather than on a cliff edge.
+   */
+  static perceptionAimBonus(currentPerception = 0) {
+    return Math.floor((currentPerception || 0) / 15) * 0.02;
+  }
+
+  static meleeAimBonus(currentAgility = 0) {
+    return Math.floor((currentAgility || 0) / 25) * 0.02;
+  }
+
   /** Strength's flat melee damage bonus, capped at +5. */
   static strengthDamageBonus(currentStrength = 0) {
     return Math.min(5, Math.floor(currentStrength / 20));
+  }
+
+  /** Constitution's sickness/disease resistance level, in integer steps (one per 20 points). */
+  static sicknessResistLevel(currentConstitution = 0) {
+    return Math.floor((currentConstitution || 0) / 20);
+  }
+
+  /** Fraction (0-1) of an inflicted sickness duration that Constitution shrugs off, capped. */
+  static sicknessResistFraction(currentConstitution = 0) {
+    return Math.min(0.6, CombatResolver.sicknessResistLevel(currentConstitution) * 0.15);
+  }
+
+  /**
+   * Shortens an inflicted sickness duration by Constitution's resistance. Applied at
+   * the single inflictSickness choke point, so it covers every source (zombie bites,
+   * spoiled food, dirty water). Always leaves at least 1 turn if any was inflicted —
+   * a hardy character shrugs sickness off faster, never becomes fully immune.
+   */
+  static applySicknessResistance(amount, currentConstitution = 0) {
+    if (!(amount > 0)) return amount;
+    const reduced = amount * (1 - CombatResolver.sicknessResistFraction(currentConstitution));
+    return Math.max(1, Math.round(reduced));
   }
 
   /** Agility penalty, in agility percentage points, from armor heavier than the defender can handle. */
@@ -133,9 +170,10 @@ export class CombatResolver {
   }
 
   /** Player melee attack roll. */
-  static rollPlayerMelee({ weaponStats, skillLvl, drunkenness = 0, isWindowTarget, isStunRodActive, hasTargetEntity, currentStrength = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
+  static rollPlayerMelee({ weaponStats, skillLvl, drunkenness = 0, isWindowTarget, isStunRodActive, hasTargetEntity, currentStrength = 20, currentAgility = 40, currentPerception = 20, defenderType, defenderSubtype, defender }) {
     const accuracyBonus = (skillLvl - drunkenness) * 0.01;
-    let hit = isWindowTarget ? true : Math.random() <= (weaponStats.hitChance + accuracyBonus);
+    const attributeAim = CombatResolver.meleeAimBonus(currentAgility);
+    let hit = isWindowTarget ? true : Math.random() <= (weaponStats.hitChance + accuracyBonus + attributeAim);
 
     const critChance = CombatResolver.weaponCritChance(weaponStats) + CombatResolver.perceptionCritBonus(currentPerception);
     let isCrit = hit && Math.random() <= critChance;
@@ -195,7 +233,8 @@ export class CombatResolver {
       baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
     }
 
-    let hit = isWindowTarget ? true : Math.random() <= (baseHitChance + accuracyBonus);
+    const attributeAim = CombatResolver.perceptionAimBonus(currentPerception);
+    let hit = isWindowTarget ? true : Math.random() <= (baseHitChance + accuracyBonus + attributeAim);
     const critChance = CombatResolver.weaponCritChance(stats) + CombatResolver.perceptionCritBonus(currentPerception);
     let isCrit = hit && Math.random() <= critChance;
 
@@ -240,7 +279,7 @@ export class CombatResolver {
    * zero modifier, so existing NPC balance is unchanged until NPC types are
    * tuned with different combatSkill values.
    */
-  static rollNpc({ isRanged, combatSkill, weaponDef, weapon, distance, currentStrength = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
+  static rollNpc({ isRanged, combatSkill, weaponDef, weapon, distance, currentStrength = 20, currentAgility = 40, currentPerception = 20, defenderType, defenderSubtype, defender }) {
     const skillModifier = (combatSkill - 0.5) * 0.5;
 
     let baseChance;
@@ -252,7 +291,10 @@ export class CombatResolver {
       baseChance = weaponDef?.combat?.hitChance || 0.75;
     }
 
-    const hitChance = Math.max(0.2, Math.min(0.95, baseChance + skillModifier));
+    const attributeAim = isRanged
+      ? CombatResolver.perceptionAimBonus(currentPerception)
+      : CombatResolver.meleeAimBonus(currentAgility);
+    const hitChance = Math.max(0.2, Math.min(0.95, baseChance + skillModifier + attributeAim));
     let hit = gameRandom.next() < hitChance;
 
     const critStatsBlock = isRanged ? (weaponDef?.rangedStats || {}) : (weaponDef?.combat || {});

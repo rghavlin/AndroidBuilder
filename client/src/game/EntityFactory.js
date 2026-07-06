@@ -16,6 +16,7 @@ import { PlayerWallet } from './components/PlayerWallet.js';
 import { Burnable } from './components/Burnable.js';
 import { RpgStats } from './components/RpgStats.js';
 import { ActiveDefense } from './components/ActiveDefense.js';
+import { recalcCharacter } from './utils/SurvivalCascade.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
@@ -68,9 +69,19 @@ export const EntityFactory = {
       baseAgility: 40,
       currentAgility: 40,
       basePerception: 20,
-      currentPerception: 20
+      currentPerception: 20,
+      baseConstitution: 20,
+      currentConstitution: 20
     }));
     entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.10 }));
+
+    // maxHp/maxAp are DERIVED from attributes, not hardcoded — the Health/ActionPoints
+    // values above are just placeholders. recalcCharacter (all components now present)
+    // computes the real caps; start the player at full HP/AP. NPCs deliberately do NOT
+    // run this: they lack SurvivalStats and keep their typeDef hp/maxAP.
+    recalcCharacter(entity);
+    entity.hp = entity.maxHp;
+    entity.ap = entity.maxAp;
 
     return entity;
   },
@@ -140,7 +151,9 @@ export const EntityFactory = {
       baseAgility: 40,
       currentAgility: 40,
       basePerception: 20,
-      currentPerception: 20
+      currentPerception: 20,
+      baseConstitution: 20,
+      currentConstitution: 20
     }));
     entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.10 }));
 

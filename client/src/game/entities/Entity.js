@@ -6,6 +6,7 @@ import engine from '../GameEngine.js';
 import { SequencerAction } from '../managers/SequencerAction.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { ItemCategory } from '../inventory/traits.js';
+import { CombatResolver } from '../systems/CombatResolver.js';
 
 
 import { Position } from '../components/Position.js';
@@ -529,7 +530,10 @@ export class Entity extends SafeEventEmitter {
   }
 
   inflictSickness(amount) {
-    this.sickness = Math.max(0, this.sickness + amount);
+    // Constitution shortens the sickness (and thus the disease burden it triggers).
+    // Single choke point for every source: zombie bites, spoiled food, dirty water.
+    const resisted = CombatResolver.applySicknessResistance(amount, this.currentConstitution);
+    this.sickness = Math.max(0, this.sickness + resisted);
     if (this.sickness > 0) {
       this.condition = 'Diseased';
     } else if (this.condition === 'Diseased') {
@@ -1103,7 +1107,9 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
   baseAgility: 40,
   currentAgility: 40,
   basePerception: 20,
-  currentPerception: 20
+  currentPerception: 20,
+  baseConstitution: 20,
+  currentConstitution: 20
 });
 
 defineAccessors(Entity, 'ActiveDefense', ActiveDefense, {

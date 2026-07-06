@@ -1973,7 +1973,9 @@ export const ItemDefs = {
     shelfLife: 24, // Eventually vanishes
     consumptionEffects: {
       nutrition: 4,
-      condition: 'Diseased' // Causes disease condition
+      sickness: 10 // Eating raw meat makes you sick (counter-based, so it saps
+      // attributes and tapers off, and is reduced by Constitution — unlike the old
+      // bare 'Diseased' condition, which had no counter and couldn't do either)
     }
   },
 

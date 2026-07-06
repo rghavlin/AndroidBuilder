@@ -324,6 +324,7 @@ export const CombatProvider = ({ children }) => {
             isStunRodActive,
             hasTargetEntity: !!targetEntity,
             currentStrength: player.currentStrength,
+            currentAgility: player.currentAgility,
             currentPerception: player.currentPerception,
             defenderType: targetEntity?.type,
             defenderSubtype: targetEntity?.subtype,

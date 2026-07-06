@@ -18,7 +18,7 @@ import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
-import { applySurvivalCascade } from '../game/utils/SurvivalCascade.js';
+import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
 import { toast } from '../hooks/use-toast';
 
 const logger = Logger.scope('GameContext');
@@ -584,8 +584,9 @@ const GameContextInner = ({ children }) => {
 
     // 2. Player Pre-Turn Math
     if (player.sickness > 0) {
+      // Sickness no longer deals direct HP damage — it saps Constitution (lowering
+      // maxHp) via the survival cascade below. Here we just tick down its duration.
       player.sickness -= 1;
-      player.takeDamage(1, { id: 'sickness', type: 'status' });
       if (player.sickness === 0) player.condition = 'Normal';
     }
     if (player.drunkenness > 0) {
@@ -610,10 +611,9 @@ const GameContextInner = ({ children }) => {
     if (player.nutrition >= 5 && player.hydration >= 5 && player.condition === 'Normal' && !player.isBleeding) {
       player.heal(1, true);
     }
-    if (player.condition === 'Diseased') {
-      player.modifyStat('ap', -1);
-      player.takeDamage(1, { id: 'disease', type: 'infection' });
-    }
+    // Disease no longer pokes HP or AP directly. Being sick saps Constitution (→ maxHp)
+    // and Agility/Perception (→ maxAp, dodge, crit, hearing) through the survival cascade
+    // below, so the whole "Diseased" effect flows through the attribute layer.
     if (player.isBleeding) {
       player.takeDamage(1, { id: 'bleeding', type: 'status' });
     }
@@ -643,12 +643,15 @@ const GameContextInner = ({ children }) => {
     if (player.nutrition === 0) player.takeDamage(1, { id: 'survival', type: 'starvation' });
     if (player.hydration === 0) player.takeDamage(1, { id: 'survival', type: 'dehydration' });
 
-    // AP Allotment
-    const totalPenalty = Math.floor(Math.max(0, player.maxEnergy - player.energy) / 5) + Math.floor(Math.max(0, player.maxHp - player.hp) / 5);
-    player.pendingAPRefill = Math.max(0, player.maxAp - totalPenalty - (player.drunkenness || 0));
+    // Survival cascade + derived stats: refresh current Str/Agi/Per/Con from needs,
+    // then re-derive maxHp/maxAp — must run BEFORE the AP allotment below so it reads
+    // a fresh maxAp.
+    recalcCharacter(player);
 
-    // Survival cascade: hunger/thirst/exhaustion scale current Str/Agi/Per.
-    applySurvivalCascade(player);
+    // AP Allotment. Exhaustion is now baked into maxAp itself (recalcCharacter), so
+    // only the injury penalty (missing HP) and drunkenness reduce the refill further.
+    const injuryPenalty = Math.floor(Math.max(0, player.maxHp - player.hp) / 5);
+    player.pendingAPRefill = Math.max(0, player.maxAp - injuryPenalty - (player.drunkenness || 0));
 
     // 8. Time/Weather
     const newTurn = turn + 1;

@@ -759,6 +759,7 @@ export class NPCAI {
       weapon,
       distance: dist,
       currentStrength: npc.currentStrength,
+      currentAgility: npc.currentAgility,
       currentPerception: npc.currentPerception,
       defenderType: target.type,
       defenderSubtype: target.subtype,
