@@ -1,5 +1,6 @@
 
 import { ItemTrait } from '../inventory/traits.js';
+import engine from '../GameEngine.js';
 
 /**
  * VehicleUtils - Shared logic for vehicle movement and drag mechanics
@@ -38,7 +39,9 @@ export const VehicleUtils = {
           motorBonusValue = item.getMotorizedBonus();
         }
 
-        let itemStepPenalty = Math.max(0, basePenalty - motorBonusValue);
+        const playerStrength = engine?.player?.currentStrength ?? 20;
+        const strengthBonus = Math.floor(playerStrength / 20); // +1 AP drag bonus for every 20 points of Strength
+        let itemStepPenalty = Math.max(0, basePenalty - motorBonusValue - strengthBonus);
         const originalPenalty = itemStepPenalty;
         
         // Scooter ride mode: REDUCES AP cost instead of increasing it
@@ -62,7 +65,10 @@ export const VehicleUtils = {
           }
         }
         
-        const finalItemStepPenalty = itemStepPenalty + terrainMod;
+        let finalItemStepPenalty = itemStepPenalty + terrainMod;
+        if (item.hasTrait && !item.hasTrait(ItemTrait.SCOOTER)) {
+          finalItemStepPenalty = Math.max(0, finalItemStepPenalty);
+        }
         stepCombinedPenalty += finalItemStepPenalty;
         
         if (itemArray.length > 1 && i === 1) {

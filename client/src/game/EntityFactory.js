@@ -73,7 +73,7 @@ export const EntityFactory = {
       baseConstitution: 20,
       currentConstitution: 20
     }));
-    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.10 }));
+    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.15 }));
 
     // maxHp/maxAp are DERIVED from attributes, not hardcoded — the Health/ActionPoints
     // values above are just placeholders. recalcCharacter (all components now present)
@@ -155,7 +155,7 @@ export const EntityFactory = {
       baseConstitution: 20,
       currentConstitution: 20
     }));
-    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.10 }));
+    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.15 }));
 
     // Backing stats matching legacy NPC constructor
     entity.fleeRecoverChance = typeDef.fleeRecoverChance;

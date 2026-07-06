@@ -8,6 +8,7 @@ import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost, Cl
 import engine from '../../game/GameEngine.js';
 import { earbucksShopSystem } from '../../game/systems/EarbucksShopSystem.js';
 import { getItemPrice } from '../../game/inventory/ItemPricing.js';
+import { recalcCharacter } from '../../game/utils/SurvivalCascade.js';
 
 interface DevConsoleProps {
     onClose: () => void;
@@ -50,7 +51,15 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         nutrition: 0,
         hydration: 0,
         energy: 0,
-        earbucks: 0
+        earbucks: 0,
+        baseStrength: 0,
+        baseAgility: 0,
+        basePerception: 0,
+        baseConstitution: 0,
+        currentStrength: 0,
+        currentAgility: 0,
+        currentPerception: 0,
+        currentConstitution: 0
     });
 
     // Sync from actual player when tab opens
@@ -64,7 +73,15 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                 nutrition: engine.player.nutrition || 0,
                 hydration: engine.player.hydration || 0,
                 energy: engine.player.energy || 0,
-                earbucks: engine.player.earbucks || 0
+                earbucks: engine.player.earbucks || 0,
+                baseStrength: engine.player.baseStrength || 0,
+                baseAgility: engine.player.baseAgility || 0,
+                basePerception: engine.player.basePerception || 0,
+                baseConstitution: engine.player.baseConstitution || 0,
+                currentStrength: engine.player.currentStrength || 0,
+                currentAgility: engine.player.currentAgility || 0,
+                currentPerception: engine.player.currentPerception || 0,
+                currentConstitution: engine.player.currentConstitution || 0
             });
         }
     }, [activeTab]);
@@ -72,7 +89,23 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
     const updatePlayerStat = (key: string, value: number) => {
         if (!engine.player) return;
         engine.player.setStat(key, value);
-        setPlayerStats(prev => ({ ...prev, [key]: value }));
+        
+        // Recalculate character caps and current attributes
+        recalcCharacter(engine.player);
+        
+        // Update local React state with recalculated properties
+        setPlayerStats(prev => ({ 
+            ...prev, 
+            [key]: value,
+            hp: engine.player.hp,
+            maxHp: engine.player.maxHp,
+            ap: engine.player.ap,
+            maxAp: engine.player.maxAp,
+            currentStrength: engine.player.currentStrength || 0,
+            currentAgility: engine.player.currentAgility || 0,
+            currentPerception: engine.player.currentPerception || 0,
+            currentConstitution: engine.player.currentConstitution || 0
+        }));
         engine.notifyUpdate();
     };
 
@@ -521,7 +554,7 @@ function WorldToolButton({ icon, title, desc, onClick }: any) {
 
 function PlayerTab({ stats, updateStat }: any) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-4">
                 <h3 className="text-xs font-bold uppercase text-primary tracking-widest border-b border-primary/20 pb-1">Vitals</h3>
                 <div className="space-y-6">
@@ -545,6 +578,32 @@ function PlayerTab({ stats, updateStat }: any) {
                 <h3 className="text-xs font-bold uppercase text-primary tracking-widest border-b border-primary/20 pb-1 pt-2">Currency</h3>
                 <StatInput label="Earbucks (♪)" value={stats.earbucks} onChange={v => updateStat('earbucks', parseInt(v)||0)} />
             </div>
+            <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase text-primary tracking-widest border-b border-primary/20 pb-1">Attributes (Base / Current)</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-1">
+                    <AttributeControl label="Strength" base={stats.baseStrength} current={stats.currentStrength} onChange={(v: any) => updateStat('baseStrength', v)} />
+                    <AttributeControl label="Agility" base={stats.baseAgility} current={stats.currentAgility} onChange={(v: any) => updateStat('baseAgility', v)} />
+                    <AttributeControl label="Perception" base={stats.basePerception} current={stats.currentPerception} onChange={(v: any) => updateStat('basePerception', v)} />
+                    <AttributeControl label="Constitution" base={stats.baseConstitution} current={stats.currentConstitution} onChange={(v: any) => updateStat('baseConstitution', v)} />
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function AttributeControl({ label, base, current, onChange }: any) {
+    return (
+        <div className="flex flex-col gap-0.5">
+            <div className="flex justify-between items-center text-[10px]">
+                <span className="uppercase font-bold">{label}</span>
+                <span className="font-mono text-muted-foreground">Current: {current}</span>
+            </div>
+            <Input 
+                type="number" 
+                value={base} 
+                onChange={e => onChange(parseInt(e.target.value)||0)} 
+                className="h-7 w-full font-mono bg-black text-white border-primary/40 focus:border-primary text-center" 
+            />
         </div>
     )
 }

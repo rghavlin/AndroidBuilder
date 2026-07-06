@@ -92,7 +92,7 @@ export class CombatResolver {
    * fire/starvation/disease damage never routes through this, by design.
    * Returns the post-armor damage to actually apply.
    */
-  static applyArmorAbsorption(defender, incomingDamage) {
+  static applyArmorAbsorption(defender, incomingDamage, inventoryManager = null) {
     if (!defender || !(incomingDamage > 0)) return incomingDamage;
 
     const absorption = defender.absorption || 0;
@@ -103,17 +103,20 @@ export class CombatResolver {
     GameEvents.emit(GAME_EVENT.ARMOR_ABSORBED, { absorbed, remaining: defender.absorption });
 
     if (defender.absorption <= 0) {
-      CombatResolver.breakEquippedArmor(defender);
+      CombatResolver.breakEquippedArmor(defender, inventoryManager);
     }
 
     return incomingDamage - absorbed;
   }
 
   /** Destroys the defender's equipped armor item and clears their armor component. */
-  static breakEquippedArmor(defender) {
-    const armorItem = engine.inventoryManager?.equipment?.armor;
-    if (armorItem && engine.inventoryManager) {
-      engine.inventoryManager.destroyItem(armorItem.instanceId);
+  static breakEquippedArmor(defender, inventoryManager = null) {
+    if (defender && defender.type === 'player') {
+      const inv = inventoryManager || engine.inventoryManager;
+      const armorItem = inv?.equipment?.armor;
+      if (armorItem && inv) {
+        inv.destroyItem(armorItem.instanceId);
+      }
     }
     if (defender) {
       defender.absorption = 0;
@@ -145,7 +148,8 @@ export class CombatResolver {
 
     const armorPenalty = CombatResolver.armorWeightPenalty(defender.currentStrength, defender.weightRequirement);
     const diminishingPenalty = priorDefenses * ((defender.diminishingRate ?? 0.15) * 100);
-    const dodgeTarget = Math.max(0, (defender.currentAgility || 0) - armorPenalty - diminishingPenalty);
+    const baseDodge = (defender.currentAgility || 0) * 0.5;
+    const dodgeTarget = Math.max(0, baseDodge - armorPenalty - diminishingPenalty);
 
     const evaded = gameRandom.next() * 100 < dodgeTarget;
     return { attempted: true, evaded, apCost: 1 };
@@ -173,25 +177,26 @@ export class CombatResolver {
   static rollPlayerMelee({ weaponStats, skillLvl, drunkenness = 0, isWindowTarget, isStunRodActive, hasTargetEntity, currentStrength = 20, currentAgility = 40, currentPerception = 20, defenderType, defenderSubtype, defender }) {
     const accuracyBonus = (skillLvl - drunkenness) * 0.01;
     const attributeAim = CombatResolver.meleeAimBonus(currentAgility);
-    let hit = isWindowTarget ? true : Math.random() <= (weaponStats.hitChance + accuracyBonus + attributeAim);
+    let hit = isWindowTarget ? true : gameRandom.next() <= (weaponStats.hitChance + accuracyBonus + attributeAim);
 
     const critChance = CombatResolver.weaponCritChance(weaponStats) + CombatResolver.perceptionCritBonus(currentPerception);
-    let isCrit = hit && Math.random() <= critChance;
+    let isCrit = hit && gameRandom.next() <= critChance;
 
     let baseDamage = isCrit
       ? Math.floor(weaponStats.damage.max * 1.5)
-      : (hit ? Math.floor(Math.random() * (weaponStats.damage.max - weaponStats.damage.min + 1)) + weaponStats.damage.min : 0);
+      : (hit ? gameRandom.nextInt(weaponStats.damage.min, weaponStats.damage.max) : 0);
 
     let damage = baseDamage;
     if (hit) damage += CombatResolver.strengthDamageBonus(currentStrength);
+    // Drunkenness increases melee damage (brawling bonus) while reducing accuracy
     if (hit && drunkenness > 0) damage += drunkenness;
 
     let extraDamageApplied = 0;
     let stunDuration = 0;
     if (hit && isStunRodActive && hasTargetEntity) {
-      extraDamageApplied = Math.floor(Math.random() * 5) + 1;
+      extraDamageApplied = gameRandom.nextInt(1, 5);
       damage += extraDamageApplied;
-      stunDuration = Math.floor(Math.random() * 3) + 1;
+      stunDuration = gameRandom.nextInt(1, 3);
     }
 
     let dodged = false;
@@ -234,9 +239,9 @@ export class CombatResolver {
     }
 
     const attributeAim = CombatResolver.perceptionAimBonus(currentPerception);
-    let hit = isWindowTarget ? true : Math.random() <= (baseHitChance + accuracyBonus + attributeAim);
+    let hit = isWindowTarget ? true : gameRandom.next() <= (baseHitChance + accuracyBonus + attributeAim);
     const critChance = CombatResolver.weaponCritChance(stats) + CombatResolver.perceptionCritBonus(currentPerception);
-    let isCrit = hit && Math.random() <= critChance;
+    let isCrit = hit && gameRandom.next() <= critChance;
 
     let damage = 0;
     if (hit) {
@@ -251,7 +256,7 @@ export class CombatResolver {
       } else {
         damage = isCrit
           ? Math.floor(stats.damage.max * 1.5)
-          : Math.floor(Math.random() * (stats.damage.max - stats.damage.min + 1)) + stats.damage.min;
+          : gameRandom.nextInt(stats.damage.min, stats.damage.max);
       }
     }
 

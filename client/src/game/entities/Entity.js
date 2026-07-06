@@ -1114,7 +1114,7 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
 
 defineAccessors(Entity, 'ActiveDefense', ActiveDefense, {
   defensesThisTurn: 0,
-  diminishingRate: 0.10
+  diminishingRate: 0.15
 });
 
 defineAccessors(Entity, 'EquippedArmor', EquippedArmor, {

@@ -3,6 +3,7 @@ import audioManager from '../utils/AudioManager.js';
 import { EntityType } from '../entities/Entity.js';
 import engine from '../GameEngine.js';
 import { CombatResolver } from '../systems/CombatResolver.js';
+import { SICKNESS_TURNS } from '../systems/CombatSystem.js';
 
 /**
  * TurnManager - Orchestrates the sequential playback of game actions.
@@ -333,7 +334,7 @@ class TurnManager {
         }
 
         if (target && data.success && data.damage > 0) {
-          const finalDamage = CombatResolver.applyArmorAbsorption(target, data.damage);
+          const finalDamage = CombatResolver.applyArmorAbsorption(target, data.damage, engine?.inventoryManager);
           if (finalDamage > 0 && typeof target.takeDamage === 'function') {
             target.takeDamage(finalDamage, false);
           }
@@ -341,7 +342,7 @@ class TurnManager {
             target.setBleeding(true);
           }
           if (data.sickInflicted && typeof target.inflictSickness === 'function') {
-            target.inflictSickness(24);
+            target.inflictSickness(SICKNESS_TURNS);
           }
 
           // Check if target died from the damage (visual triggers only)

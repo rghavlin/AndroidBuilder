@@ -412,7 +412,9 @@ class GameEngine extends SafeEventEmitter {
        
         // Calculate base ambient sight range based on hour of the day
         const hour = getHourFromTurn(this.turn);
-        const baseRange = getSightRangeForHour(hour, maxRange);
+        const playerVision = this.player?.getComponent('Vision');
+        const playerVisionRange = playerVision ? playerVision.range : maxRange;
+        const baseRange = getSightRangeForHour(hour, playerVisionRange);
 
         let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
        

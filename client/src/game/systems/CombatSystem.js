@@ -4,7 +4,7 @@ import { CombatResolver } from './CombatResolver.js';
 import { markHeardIfInRange } from '../utils/PlayerHearing.js';
 
 // Turns of sickness applied by an infecting hit (matches TurnManager playback).
-const SICKNESS_TURNS = 24;
+export const SICKNESS_TURNS = 24;
 const ZOMBIE_SMASH_NOISE = 10;
 
 export class CombatSystem {
@@ -161,7 +161,7 @@ export class CombatSystem {
         } else {
           // direct/test execution: apply damage + afflictions immediately.
           if (hit) {
-            const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
+            const finalDamage = CombatResolver.applyArmorAbsorption(target, damage, engine?.inventoryManager);
             if (typeof target.takeDamage === 'function') {
               if (finalDamage > 0) target.takeDamage(finalDamage, attacker);
             } else if (target.hasComponent('Health')) {
@@ -181,8 +181,8 @@ export class CombatSystem {
         const apCost = 1.0;
         attacker.useAP(apCost);
 
-        // State Sync: If the target is the player (has InventoryContainer), flag engine._uiDirty = true
-        const isPlayer = target.hasComponent('InventoryContainer');
+        // State Sync: If the target is the player, flag engine._uiDirty = true
+        const isPlayer = target.type === 'player';
         if (isPlayer && engine) {
           engine._uiDirty = true;
         }

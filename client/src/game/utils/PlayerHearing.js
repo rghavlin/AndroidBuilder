@@ -1,3 +1,5 @@
+import { gameRandom } from './SeededRandom.js';
+
 // Player-hears-zombies sensory check. Distinct from (and unrelated to) the
 // existing gameMap.emitNoise()/AudioSystem zombie-hears-player mechanics —
 // this is purely about the player's own Perception-driven awareness of
@@ -14,6 +16,7 @@ export function markHeardIfInRange(zombie, player, noiseLevel) {
   if (!zombie || !player) return;
 
   const hearingRadius = Math.floor((player.currentPerception || 0) / 10);
+  const maxDistance = hearingRadius + noiseLevel;
 
   const zx = zombie.logicalX !== undefined ? zombie.logicalX : zombie.x;
   const zy = zombie.logicalY !== undefined ? zombie.logicalY : zombie.y;
@@ -21,7 +24,14 @@ export function markHeardIfInRange(zombie, player, noiseLevel) {
   const py = player.logicalY !== undefined ? player.logicalY : player.y;
 
   const dist = Math.sqrt((zx - px) ** 2 + (zy - py) ** 2);
-  if (dist <= hearingRadius + noiseLevel) {
-    zombie.heardByPlayer = true;
+  if (dist <= maxDistance) {
+    const baseChance = player.currentPerception || 20;
+    const distancePenalty = dist * 4;
+    const volumeBonus = noiseLevel * 5;
+    const targetChance = Math.max(0, baseChance + volumeBonus - distancePenalty);
+
+    if (gameRandom.next() * 100 < targetChance) {
+      zombie.heardByPlayer = true;
+    }
   }
 }

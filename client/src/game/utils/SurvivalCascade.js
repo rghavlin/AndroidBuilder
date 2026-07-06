@@ -49,7 +49,7 @@ export function applySurvivalCascade(player) {
   const conditionMultiplier = 1 - avgDeficit * CASCADE_MAX_PENALTY;
 
   const sick = sicknessPenalties(player.sickness);
-  player.currentStrength = Math.round(player.baseStrength * conditionMultiplier);
+  player.currentStrength = Math.max(0, Math.round(player.baseStrength * conditionMultiplier));
   // Agility, Perception and Constitution take the survival hit like Strength, PLUS a
   // temporary sickness penalty — this is how the Diseased condition lowers maxAp/maxHp,
   // through the attribute layer rather than by poking AP/HP directly.
@@ -68,7 +68,7 @@ export function applySurvivalCascade(player) {
 export function deriveSecondaryStats(player, energyDeficit = 0) {
   if (!player) return;
 
-  const conBonus = Math.max(0, Math.floor((player.currentConstitution || 0) * 0.5));
+  const conBonus = Math.max(0, Math.floor((player.currentConstitution || 0) * 0.2));
   const newMaxHp = HP_FLOOR + conBonus;
   player.maxHp = newMaxHp;
   if (player.hp > newMaxHp) player.hp = newMaxHp;
@@ -85,4 +85,11 @@ export function recalcCharacter(player) {
   if (!player) return;
   const { energyDeficit } = applySurvivalCascade(player);
   deriveSecondaryStats(player, energyDeficit);
+
+  // Recalculate vision range: +1 sight range for every 20 points of current Perception
+  if (player.hasComponent('Vision')) {
+    const vision = player.getComponent('Vision');
+    const perceptionBonus = Math.floor((player.currentPerception || 0) / 20);
+    vision.range = 15 + perceptionBonus;
+  }
 }
