@@ -92,7 +92,7 @@ function GameScreenContent() {
     return () => window.removeEventListener('game-shutdown', handleShutdown);
   }, []);
 
-  const handleStartGame = async (mode?: boolean | string) => {
+  const handleStartGame = async (mode?: boolean | string | { customStats: any }) => {
     // Don't hide menu here - let the effect above do it when state changes
 
     if (typeof mode === 'string' && mode.startsWith('load')) {
@@ -109,7 +109,11 @@ function GameScreenContent() {
     // Only initialize a new game if no game was loaded and game is not already ready
     if (!isGameReady && !initializationError) {
       console.log('[GameScreenContent] Starting new game - initializing...');
-      await initializeGame();
+      if (mode && typeof mode === 'object') {
+        await initializeGame(mode);
+      } else {
+        await initializeGame();
+      }
     } else if (isGameReady) {
       console.log('[GameScreenContent] Game already ready, proceeding to game view');
     }

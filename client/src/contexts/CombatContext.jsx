@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { usePlayer } from './PlayerContext.jsx';
 import { useGameMap } from './GameMapContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
@@ -1002,6 +1002,14 @@ export const CombatProvider = ({ children }) => {
         forceRefresh();
         return { success: true };
     }, [playerRef, gameMapRef, forceRefresh, triggerMapUpdate, inventoryRef, destroyItem, addLog, processExplosionActions]);
+
+    useEffect(() => {
+        const handleShutdown = () => {
+            setTargetingWeapon(null);
+        };
+        window.addEventListener('game-shutdown', handleShutdown);
+        return () => window.removeEventListener('game-shutdown', handleShutdown);
+    }, []);
 
     return (
         <CombatContext.Provider value={{

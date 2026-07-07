@@ -383,7 +383,8 @@ ipcMain.handle('list-saves', async () => {
             slotName,
             timestamp: data.timestamp || stats.mtimeMs,
             turn: data.turn || 1,
-            version: data.version || '1.0.0'
+            version: data.version || '1.0.0',
+            characterId: data.characterId || null
           });
         } catch (err) {
           console.warn('[Save IPC] Corrupt save file:', file);

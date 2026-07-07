@@ -387,6 +387,17 @@ export const SleepProvider = ({ children }) => {
     }
   }, [isInitialized, performSleep]);
 
+  useEffect(() => {
+    const handleShutdown = () => {
+      setIsSleeping(false);
+      setSleepProgress(0);
+      setIsSleepModalOpen(false);
+      setSleepMultiplier(1);
+    };
+    window.addEventListener('game-shutdown', handleShutdown);
+    return () => window.removeEventListener('game-shutdown', handleShutdown);
+  }, []);
+
   const value = {
     isSleeping,
     sleepProgress,

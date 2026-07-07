@@ -160,7 +160,7 @@ export class NPCSpawner {
     const typeDef = getNPCType(typeId);
     
     const id = `npc_${gameRandom.next().toString(36).substring(2, 11)}`;
-    const name = options.name || typeDef.name || 'Survivor';
+    const name = options.name || null;
     
     const isHostile = options.isHostile !== undefined 
       ? options.isHostile 
@@ -247,7 +247,7 @@ export class NPCSpawner {
     const typeDef = getNPCType(typeId);
     
     const id = `shopkeeper_${gameMap.id || 'map1'}`;
-    const name = typeDef.name || 'Town Merchant';
+    const name = null;
     
     const npc = EntityFactory.createNPC(spawnX, spawnY, false, typeId, name, id);
     npc.isShopkeeper = true;

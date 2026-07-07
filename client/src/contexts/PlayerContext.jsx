@@ -478,6 +478,18 @@ export const PlayerProvider = ({ children }) => {
     GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);
   }, []);
 
+  useEffect(() => {
+    const handleShutdown = () => {
+      setIsMoving(false);
+      setMovementPath([]);
+      setMovementProgress(0);
+      setPlayerFieldOfView(null);
+      setPlayerCardinalPositions([]);
+    };
+    window.addEventListener('game-shutdown', handleShutdown);
+    return () => window.removeEventListener('game-shutdown', handleShutdown);
+  }, []);
+
   const contextValue = useMemo(() => ({
     player: engine.player,
     playerRef, // Static bridge ref

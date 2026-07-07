@@ -46,8 +46,13 @@ export default function App() {
       }
     };
 
+    const handleShutdown = () => {
+      setIsDevConsoleOpen(false);
+    };
+
     window.addEventListener('toggle-dev-console', handleToggle);
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('game-shutdown', handleShutdown);
     // Legacy support for direct window call
     (window as any).toggleDevConsole = (open: boolean) => {
        window.dispatchEvent(new CustomEvent('toggle-dev-console', { detail: open }));
@@ -56,6 +61,7 @@ export default function App() {
     return () => {
       window.removeEventListener('toggle-dev-console', handleToggle);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('game-shutdown', handleShutdown);
       delete (window as any).toggleDevConsole;
     };
   }, []);

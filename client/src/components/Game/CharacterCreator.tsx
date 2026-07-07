@@ -5,11 +5,13 @@ import { Dumbbell, Wind, Eye, Heart, Plus, Minus, Info } from "lucide-react";
 import { CombatResolver } from '../../game/systems/CombatResolver.js';
 
 interface CharacterCreatorProps {
-    onConfirm: (stats: { strength: number; agility: number; perception: number; constitution: number }) => void;
+    onConfirm: (stats: { strength: number; agility: number; perception: number; constitution: number; name: string }) => void;
     onCancel: () => void;
+    confirmLabel?: string;
 }
 
-export default function CharacterCreator({ onConfirm, onCancel }: CharacterCreatorProps) {
+export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: CharacterCreatorProps) {
+    const [name, setName] = useState('Nameless');
     const [stats, setStats] = useState({
         strength: 10,
         agility: 10,
@@ -99,6 +101,19 @@ export default function CharacterCreator({ onConfirm, onCancel }: CharacterCreat
                         <div>
                             <CardTitle className="text-2xl font-mono uppercase tracking-tighter text-foreground">Character Creation</CardTitle>
                         </div>
+                    </div>
+
+                    {/* Name Input Container */}
+                    <div className="flex items-center gap-2 max-w-[240px] w-full px-3 py-1.5 rounded-md bg-secondary/40 border border-primary/20 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-300">
+                        <span className="text-xs text-muted-foreground uppercase font-mono tracking-wider shrink-0">Name:</span>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            maxLength={20}
+                            className="bg-transparent border-none outline-none text-xs font-mono font-bold text-foreground w-full placeholder:text-muted-foreground/30 focus:outline-none"
+                            placeholder="Nameless"
+                        />
                     </div>
                     
                     {/* Points remaining badge */}
@@ -207,11 +222,11 @@ export default function CharacterCreator({ onConfirm, onCancel }: CharacterCreat
                                 Cancel
                             </Button>
                             <Button
-                                onClick={() => onConfirm(stats)}
+                                onClick={() => onConfirm({ ...stats, name: name.trim() || 'Nameless' })}
                                 disabled={isConfirmDisabled}
                                 className={`flex-1 py-5 text-sm font-bold uppercase tracking-wider ${isConfirmDisabled ? 'opacity-40 cursor-not-allowed' : 'metal-button-green'}`}
                             >
-                                Confirm
+                                {confirmLabel || 'Confirm'}
                             </Button>
                         </div>
                     </div>

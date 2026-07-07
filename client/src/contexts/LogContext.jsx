@@ -198,6 +198,14 @@ export const LogProvider = ({ children }) => {
         setLogs([]);
     }, []);
 
+    useEffect(() => {
+        const handleShutdown = () => {
+            clearLogs();
+        };
+        window.addEventListener('game-shutdown', handleShutdown);
+        return () => window.removeEventListener('game-shutdown', handleShutdown);
+    }, [clearLogs]);
+
     const value = useMemo(() => ({
         logs,
         addLog,

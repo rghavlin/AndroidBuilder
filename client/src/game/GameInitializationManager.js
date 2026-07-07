@@ -228,7 +228,7 @@ class GameInitializationManager extends EventEmitter {
       // Create player with detailed tracking
       const customStats = this.customConfig && this.customConfig.customStats ? this.customConfig.customStats : null;
       const player = EntityFactory.createPlayer(startX, startY, customStats);
-      player.id = 'player-1';
+      player.id = (customStats && customStats.id) ? customStats.id : 'player-1';
       if (isDev) {
         console.log(`[GameInitializationManager] 🎮 PLAYER CREATED by instance ${this.instanceId}:`);
         console.log(`[GameInitializationManager] - Player ID: ${player.id}`);

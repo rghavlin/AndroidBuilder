@@ -1123,7 +1123,11 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
   strengthXP: 0,
   agilityXP: 0,
   perceptionXP: 0,
-  constitutionXP: 0
+  constitutionXP: 0,
+  strengthXpSpent: 0,
+  agilityXpSpent: 0,
+  perceptionXpSpent: 0,
+  constitutionXpSpent: 0
 });
 
 defineAccessors(Entity, 'ActiveDefense', ActiveDefense, {

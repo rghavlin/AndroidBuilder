@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { Settings, Sparkles, HelpCircle, Map } from "lucide-react";
+import { Settings, Sparkles, HelpCircle, Map, User } from "lucide-react";
 import OptionsWindow from './OptionsWindow';
 import CreditsWindow from './CreditsWindow';
 import HelpWindow from './HelpWindow';
@@ -11,6 +11,8 @@ import LoadGameWindow from './LoadGameWindow';
 import ScenarioPickerWindow from './ScenarioPickerWindow';
 import musicManager from '@/game/utils/MusicManager';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
+import { CharacterRegistry } from '@/game/CharacterRegistry';
+import CharacterRegistryWindow from './CharacterRegistryWindow';
 
 interface StartMenuProps {
   onStartGame: (mode?: boolean | string) => void;
@@ -25,6 +27,8 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const [showHelp, setShowHelp] = useState(false);
   const [showLoadGame, setShowLoadGame] = useState(false);
   const [showScenarios, setShowScenarios] = useState(false);
+  const [showRegistry, setShowRegistry] = useState(false);
+  const [registryMode, setRegistryMode] = useState<'select' | 'manage'>('select');
   const [hasSave, setHasSave] = useState(false);
 
   const checkSave = async () => {
@@ -72,10 +76,41 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   }, []);
 
   const handleNewGame = () => {
-    console.log('[StartMenu] Starting new game...');
+    console.log('[StartMenu] Opening registry to select character for new game...');
+    setRegistryMode('select');
+    setShowRegistry(true);
+  };
+
+  const handleSelectCharacter = async (character: any) => {
+    try {
+      const slots = await GameSaveSystem.listSaveSlots();
+      const conflictingSlots = slots.filter((s: any) => s.characterId === character.id);
+
+      if (conflictingSlots.length > 0) {
+        const confirmDelete = window.confirm(
+          `Warning: The character "${character.name}" is already in use in ${conflictingSlots.length} active save game(s). ` +
+          `Starting a new game will delete the existing save games for this character.\n\n` +
+          `Do you want to proceed and delete the conflicting saves?`
+        );
+        if (!confirmDelete) return;
+
+        // Delete conflicting save slots
+        for (const slot of conflictingSlots) {
+          await GameSaveSystem.deleteSaveSlot(slot.slotName);
+        }
+        // Re-check save slots to update the Start Menu's Load Game button state
+        await checkSave();
+      }
+    } catch (e) {
+      console.warn('[StartMenu] Failed to scan or delete conflicting saves:', e);
+    }
+
+    setShowRegistry(false);
+    console.log('[StartMenu] Starting new game with character:', character.name);
     musicManager.playPlaylist('standard');
     if (onStartGame) {
-      onStartGame(false); // Indicate this is a new game
+      // Pass the selected character's stats as customStats
+      onStartGame({ customStats: character });
     }
   };
 
@@ -119,6 +154,19 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
             data-testid="button-new-game"
           >
             New Game
+          </Button>
+
+          <Button
+            onClick={() => {
+              setRegistryMode('manage');
+              setShowRegistry(true);
+            }}
+            disabled={isLoading}
+            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
+            data-testid="button-create-character"
+          >
+            <User className="h-5 w-5" />
+            Create Character
           </Button>
           
            <Button
@@ -189,6 +237,13 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
         <ScenarioPickerWindow
           onClose={() => setShowScenarios(false)}
           onLoad={handleScenarioLoad}
+        />
+      )}
+      {showRegistry && (
+        <CharacterRegistryWindow
+          mode={registryMode}
+          onClose={() => setShowRegistry(false)}
+          onSelect={handleSelectCharacter}
         />
       )}
     </div>

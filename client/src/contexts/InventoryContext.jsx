@@ -1641,6 +1641,16 @@ export const InventoryProvider = ({ children }) => {
     };
   }, [stopRiding, addLog]);
 
+  useEffect(() => {
+    const handleShutdown = () => {
+      setOpenContainers(new Set());
+      setSelectedItem(null);
+      setSelectedRecipeId(null);
+    };
+    window.addEventListener('game-shutdown', handleShutdown);
+    return () => window.removeEventListener('game-shutdown', handleShutdown);
+  }, []);
+
   const contextValue = useMemo(() => ({
     inventoryManager: engine.inventoryManager,
     inventoryPulse,

@@ -25,13 +25,14 @@ import { BlueprintRegistry } from './BlueprintRegistry.js';
 
 export const EntityFactory = {
   createPlayer(x, y, customStats = null) {
-    const entity = new Entity(null, 'player', x, y);
+    const entity = new Entity(customStats?.id || null, 'player', x, y);
     entity.type = 'player';
-    entity.name = 'Player';
+    entity.name = customStats?.name || 'Nameless';
     entity.factionId = 'player';
     entity.blocksMovement = true;
 
     // Components
+    // ...
     entity.addComponent(new Position({ x, y, level: 0 }));
     entity.addComponent(new Health({ current: 20, max: 20 }));
     entity.addComponent(new Renderable({ spriteId: 'player', color: '#ffffff', zIndex: 2 }));
@@ -54,24 +55,26 @@ export const EntityFactory = {
       isDehydrated: false
     }));
     entity.addComponent(new PlayerSkills({
-      meleeKills: 0,
-      meleeLvl: 0,
-      rangedKills: 0,
-      rangedLvl: 0,
-      craftingApUsed: 0,
-      craftingLvl: 0
+      meleeKills: customStats?.meleeKills !== undefined ? customStats.meleeKills : 0,
+      meleeLvl: customStats?.meleeLvl !== undefined ? customStats.meleeLvl : 0,
+      rangedKills: customStats?.rangedKills !== undefined ? customStats.rangedKills : 0,
+      rangedLvl: customStats?.rangedLvl !== undefined ? customStats.rangedLvl : 0,
+      craftingApUsed: customStats?.craftingApUsed !== undefined ? customStats.craftingApUsed : 0,
+      craftingLvl: customStats?.craftingLvl !== undefined ? customStats.craftingLvl : 0
     }));
-    entity.addComponent(new PlayerWallet({ earbucks: 0 }));
+    entity.addComponent(new PlayerWallet({ 
+      earbucks: customStats?.earbucks !== undefined ? customStats.earbucks : 0 
+    }));
     entity.addComponent(new Burnable({ fireTurns: 0 }));
     entity.addComponent(new RpgStats({
-      baseStrength: customStats?.strength !== undefined ? customStats.strength : 20,
-      currentStrength: customStats?.strength !== undefined ? customStats.strength : 20,
-      baseAgility: customStats?.agility !== undefined ? customStats.agility : 40,
-      currentAgility: customStats?.agility !== undefined ? customStats.agility : 40,
-      basePerception: customStats?.perception !== undefined ? customStats.perception : 20,
-      currentPerception: customStats?.perception !== undefined ? customStats.perception : 20,
-      baseConstitution: customStats?.constitution !== undefined ? customStats.constitution : 20,
-      currentConstitution: customStats?.constitution !== undefined ? customStats.constitution : 20
+      baseStrength: customStats?.baseStrength !== undefined ? customStats.baseStrength : (customStats?.strength !== undefined ? customStats.strength : 20),
+      currentStrength: customStats?.currentStrength !== undefined ? customStats.currentStrength : (customStats?.strength !== undefined ? customStats.strength : 20),
+      baseAgility: customStats?.baseAgility !== undefined ? customStats.baseAgility : (customStats?.agility !== undefined ? customStats.agility : 40),
+      currentAgility: customStats?.currentAgility !== undefined ? customStats.currentAgility : (customStats?.agility !== undefined ? customStats.agility : 40),
+      basePerception: customStats?.basePerception !== undefined ? customStats.basePerception : (customStats?.perception !== undefined ? customStats.perception : 20),
+      currentPerception: customStats?.currentPerception !== undefined ? customStats.currentPerception : (customStats?.perception !== undefined ? customStats.perception : 20),
+      baseConstitution: customStats?.baseConstitution !== undefined ? customStats.baseConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20),
+      currentConstitution: customStats?.currentConstitution !== undefined ? customStats.currentConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20)
     }));
     entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.15 }));
 
@@ -130,7 +133,7 @@ export const EntityFactory = {
     const entity = new Entity(id, 'npc', x, y);
     entity.type = 'npc';
     entity.typeId = typeId;
-    entity.name = name || typeDef.name;
+    entity.name = name || 'Nameless';
     entity.isHostile = isHostile;
     entity.factionId = typeDef.factionId || 'survivors';
     entity.blocksMovement = true;

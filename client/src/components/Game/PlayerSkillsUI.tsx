@@ -255,16 +255,25 @@ export default function PlayerSkillsUI() {
     return (
         <div className="flex flex-col h-full bg-background/40 rounded-lg overflow-hidden border border-border/50 backdrop-blur-sm">
             {/* Header */}
-            <div className="p-2 px-3 border-b border-border bg-card/30 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
-                    {playerIcon ? (
-                        <img src={playerIcon} alt="Player" className="w-full h-full object-contain p-0.5" />
-                    ) : (
-                        <Info className="w-4 h-4 text-primary" />
-                    )}
+            <div className="p-2 px-3 border-b border-border bg-card/30 flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
+                        {playerIcon ? (
+                            <img src={playerIcon} alt="Player" className="w-full h-full object-contain p-0.5" />
+                        ) : (
+                            <Info className="w-4 h-4 text-primary" />
+                        )}
+                    </div>
+                    <div>
+                        <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Character Abilities</h2>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Character Abilities</h2>
+
+                {/* Name Label */}
+                <div className="px-2.5 py-1 rounded bg-secondary/40 border border-primary/20 flex items-center max-w-[180px] overflow-hidden shrink-0">
+                    <span className="text-xs font-mono font-bold text-primary tracking-wide truncate" title={player?.name || 'Nameless'}>
+                        {player?.name || 'Nameless'}
+                    </span>
                 </div>
             </div>
 

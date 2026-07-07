@@ -1,5 +1,6 @@
 import engine from './GameEngine.js';
 import { gameRandom } from './utils/SeededRandom.js';
+import { CharacterRegistry } from './CharacterRegistry.js';
 
 export const DEFAULT_PLAYER_STATS = {
   hp: 100,
@@ -206,7 +207,8 @@ class IndexedDBStore {
               slotName: cursor.key,
               timestamp: cursor.value.timestamp,
               turn: cursor.value.turn,
-              version: cursor.value.version
+              version: cursor.value.version,
+              characterId: cursor.value.characterId || null
             });
             cursor.continue();
           } else {
@@ -247,6 +249,7 @@ export class GameSaveSystem {
       const saveData = {
         version: this.CURRENT_VERSION, 
         timestamp: Date.now(),
+        characterId: gameState.player ? gameState.player.id : null,
 
         // Core game state - only essential data
         turn: gameState.turn,
@@ -459,6 +462,15 @@ export class GameSaveSystem {
    */
   static async saveToStorage(gameState, slotName = 'quicksave') {
     try {
+      // Sync character stats to character registry whenever the character is saved
+      if (gameState.player) {
+        try {
+          CharacterRegistry.saveCharacterFromPlayer(gameState.player);
+        } catch (e) {
+          console.error('[GameSaveSystem] Failed to sync character to registry on save:', e);
+        }
+      }
+
       const saveData = this.saveGameState(gameState);
 
       // Save all inactive map chunks to storage!
@@ -776,7 +788,8 @@ export class GameSaveSystem {
                       slotName: slotName,
                       timestamp: data.timestamp || Date.now(),
                       turn: data.turn || 1,
-                      version: data.version || '1.0.0'
+                      version: data.version || '1.0.0',
+                      characterId: data.characterId || null
                     });
                   }
                 }

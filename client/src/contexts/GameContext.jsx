@@ -1547,6 +1547,13 @@ const GameContextInner = ({ children }) => {
       setShowCharacterCreator(false);
     }
 
+    // Generate persistent ID if not present
+    if (chosenStats && !chosenStats.id) {
+      chosenStats.id = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : 'char_' + Math.random().toString(36).substring(2, 15);
+    }
+
     // Easy Start difficulty selection interception
     let chosenEasyStart = config && config.easyStart !== undefined ? config.easyStart : null;
     
@@ -1877,13 +1884,22 @@ const GameContextInner = ({ children }) => {
     isProcessingTurnRef.current = false;
     setIsProcessingTurn(false);
     setContextSyncPhase('idle');
+    setIsSkillsOpen(false);
+    setActiveNpcDemand(null);
+    setActiveDialog(null);
+    setFiredDialogIds(new Set());
+    setShowDifficultySelect(false);
+    setShowCharacterCreator(false);
+    if (typeof handleMapTransitionCancel === 'function') {
+      handleMapTransitionCancel();
+    }
 
     // Clear all active overlays
     resetAll();
 
     // Dispatch global event for GameScreen to show the start menu
     window.dispatchEvent(new CustomEvent('game-shutdown'));
-  }, [resetAll, wireManagerEvents]);
+  }, [resetAll, wireManagerEvents, handleMapTransitionCancel]);
 
   const contextValue = useMemo(() => ({
     // Game lifecycle state only
