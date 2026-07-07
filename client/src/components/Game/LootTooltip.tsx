@@ -24,6 +24,10 @@ export function LootTooltip({ items }: LootTooltipProps) {
             if (!hasSpecialColor && !hasSpecialImage) {
                 name = 'Zombie Corpse';
             }
+            const earbucksVal = item.earbucksValue !== undefined ? item.earbucksValue : 1;
+            if (earbucksVal > 0) {
+                name += ' (earbuck)';
+            }
         }
         if (item.stackCount && item.stackCount > 1) {
             return `${name} (${item.stackCount})`;

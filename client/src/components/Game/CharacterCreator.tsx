@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Dumbbell, Wind, Eye, Heart, Plus, Minus, Info } from "lucide-react";
@@ -75,15 +75,30 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
 
     const handleAdjust = (statName: keyof typeof stats, amount: number) => {
         const currentVal = stats[statName];
-        const newVal = currentVal + amount;
+        let targetAmount = amount;
 
-        // Validation bounds check
-        if (newVal < statFloor) return;
-        if (amount > 0 && pointsRemaining <= 0) return;
+        if (targetAmount > 0) {
+            targetAmount = Math.min(targetAmount, pointsRemaining);
+        } else if (targetAmount < 0) {
+            targetAmount = Math.max(targetAmount, statFloor - currentVal);
+        }
+
+        if (targetAmount === 0) return;
 
         setStats(prev => ({
             ...prev,
-            [statName]: newVal
+            [statName]: currentVal + targetAmount
+        }));
+    };
+
+    const handleDirectChange = (statName: keyof typeof stats, newValue: number) => {
+        const currentVal = stats[statName];
+        const maxVal = currentVal + pointsRemaining;
+        const clampedVal = Math.min(maxVal, Math.max(statFloor, newValue));
+
+        setStats(prev => ({
+            ...prev,
+            [statName]: clampedVal
         }));
     };
 
@@ -128,8 +143,11 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                 <CardContent className="p-6 flex flex-col md:flex-row gap-6">
                     {/* Left Column - Attributes */}
                     <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                        <div className="flex items-center gap-2 pb-1 border-b border-border/30 justify-between">
                             <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">Attributes</h3>
+                            <span className="text-[9px] text-muted-foreground font-mono">
+                                Shift+Click = 10 | Type or Scroll to adjust
+                            </span>
                         </div>
 
                         {/* STRENGTH */}
@@ -138,10 +156,13 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                             name="Strength"
                             value={stats.strength}
                             effects={derivedStats.strengthEffects}
-                            onDecrement={() => handleAdjust('strength', -1)}
-                            onIncrement={() => handleAdjust('strength', 1)}
+                            onDecrement={(amount) => handleAdjust('strength', -(amount ?? 1))}
+                            onIncrement={(amount) => handleAdjust('strength', amount ?? 1)}
+                            onChange={(newValue) => handleDirectChange('strength', newValue)}
                             canDecrement={stats.strength > statFloor}
                             canIncrement={pointsRemaining > 0}
+                            pointsRemaining={pointsRemaining}
+                            statFloor={statFloor}
                         />
 
                         {/* AGILITY */}
@@ -150,10 +171,13 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                             name="Agility"
                             value={stats.agility}
                             effects={derivedStats.agilityEffects}
-                            onDecrement={() => handleAdjust('agility', -1)}
-                            onIncrement={() => handleAdjust('agility', 1)}
+                            onDecrement={(amount) => handleAdjust('agility', -(amount ?? 1))}
+                            onIncrement={(amount) => handleAdjust('agility', amount ?? 1)}
+                            onChange={(newValue) => handleDirectChange('agility', newValue)}
                             canDecrement={stats.agility > statFloor}
                             canIncrement={pointsRemaining > 0}
+                            pointsRemaining={pointsRemaining}
+                            statFloor={statFloor}
                         />
 
                         {/* PERCEPTION */}
@@ -162,10 +186,13 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                             name="Perception"
                             value={stats.perception}
                             effects={derivedStats.perceptionEffects}
-                            onDecrement={() => handleAdjust('perception', -1)}
-                            onIncrement={() => handleAdjust('perception', 1)}
+                            onDecrement={(amount) => handleAdjust('perception', -(amount ?? 1))}
+                            onIncrement={(amount) => handleAdjust('perception', amount ?? 1)}
+                            onChange={(newValue) => handleDirectChange('perception', newValue)}
                             canDecrement={stats.perception > statFloor}
                             canIncrement={pointsRemaining > 0}
+                            pointsRemaining={pointsRemaining}
+                            statFloor={statFloor}
                         />
 
                         {/* CONSTITUTION */}
@@ -174,10 +201,13 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                             name="Constitution"
                             value={stats.constitution}
                             effects={derivedStats.constitutionEffects}
-                            onDecrement={() => handleAdjust('constitution', -1)}
-                            onIncrement={() => handleAdjust('constitution', 1)}
+                            onDecrement={(amount) => handleAdjust('constitution', -(amount ?? 1))}
+                            onIncrement={(amount) => handleAdjust('constitution', amount ?? 1)}
+                            onChange={(newValue) => handleDirectChange('constitution', newValue)}
                             canDecrement={stats.constitution > statFloor}
                             canIncrement={pointsRemaining > 0}
+                            pointsRemaining={pointsRemaining}
+                            statFloor={statFloor}
                         />
                     </div>
 
@@ -242,10 +272,13 @@ interface StatAdjusterCardProps {
     name: string;
     value: number;
     effects: string[];
-    onDecrement: () => void;
-    onIncrement: () => void;
+    onDecrement: (amount?: number) => void;
+    onIncrement: (amount?: number) => void;
+    onChange: (newValue: number) => void;
     canDecrement: boolean;
     canIncrement: boolean;
+    pointsRemaining: number;
+    statFloor: number;
 }
 
 function StatAdjusterCard({
@@ -255,8 +288,11 @@ function StatAdjusterCard({
     effects,
     onDecrement,
     onIncrement,
+    onChange,
     canDecrement,
-    canIncrement
+    canIncrement,
+    pointsRemaining,
+    statFloor
 }: StatAdjusterCardProps) {
     const ratio = (value - 10) / 80;
     
@@ -284,6 +320,111 @@ function StatAdjusterCard({
                         name === 'Perception' ? 'bg-violet-500/10' :
                                                 'bg-rose-500/10';
 
+    // Direct numeric input local state
+    const [inputValue, setInputValue] = useState(value.toString());
+
+    // Keep local input in sync with external value changes (e.g. from increment/decrement buttons)
+    useEffect(() => {
+        setInputValue(value.toString());
+    }, [value]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawVal = e.target.value;
+        const cleanVal = rawVal.replace(/\D/g, ''); // Digits only
+        setInputValue(cleanVal);
+
+        if (cleanVal !== '') {
+            const parsedVal = parseInt(cleanVal, 10);
+            const maxVal = value + pointsRemaining;
+            // Only update parent if it's within the safe range [statFloor, maxVal]
+            if (parsedVal >= statFloor && parsedVal <= maxVal) {
+                onChange(parsedVal);
+            }
+        }
+    };
+
+    const handleBlur = () => {
+        let parsedVal = parseInt(inputValue, 10);
+        if (isNaN(parsedVal) || parsedVal < statFloor) {
+            parsedVal = statFloor;
+        } else {
+            const maxVal = value + pointsRemaining;
+            if (parsedVal > maxVal) {
+                parsedVal = maxVal;
+            }
+        }
+        onChange(parsedVal);
+        setInputValue(parsedVal.toString());
+    };
+
+    // Auto-repeat timers on button hold
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const decrementRef = useRef(onDecrement);
+    const incrementRef = useRef(onIncrement);
+    const canDecrementRef = useRef(canDecrement);
+    const canIncrementRef = useRef(canIncrement);
+
+    useEffect(() => {
+        decrementRef.current = onDecrement;
+        incrementRef.current = onIncrement;
+        canDecrementRef.current = canDecrement;
+        canIncrementRef.current = canIncrement;
+    });
+
+    const startRepeat = (isIncrement: boolean, step: number) => {
+        stopRepeat();
+
+        const action = () => {
+            if (isIncrement) {
+                if (canIncrementRef.current) {
+                    incrementRef.current(step);
+                } else {
+                    stopRepeat();
+                }
+            } else {
+                if (canDecrementRef.current) {
+                    decrementRef.current(step);
+                } else {
+                    stopRepeat();
+                }
+            }
+        };
+
+        action();
+
+        timerRef.current = setTimeout(() => {
+            intervalRef.current = setInterval(() => {
+                action();
+            }, 80);
+        }, 400);
+    };
+
+    const stopRepeat = () => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+    };
+
+    // Clean up timers on unmount
+    useEffect(() => {
+        return () => stopRepeat();
+    }, []);
+
+    const handleWheel = (e: React.WheelEvent) => {
+        const step = e.shiftKey || e.ctrlKey ? 10 : 1;
+        if (e.deltaY < 0) {
+            if (canIncrement) onIncrement(step);
+        } else {
+            if (canDecrement) onDecrement(step);
+        }
+    };
+
     return (
         <div 
             className="p-2.5 border rounded-lg flex flex-col transition-all duration-300 ease-out bg-card/40"
@@ -298,27 +439,54 @@ function StatAdjusterCard({
                 </div>
                 
                 {/* Spinbox controls */}
-                <div className="flex items-center gap-1.5 bg-background/60 p-1 rounded-md border border-white/5">
+                <div 
+                    className="flex items-center gap-1.5 bg-background/60 p-1 rounded-md border border-white/5"
+                    onWheel={handleWheel}
+                >
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={onDecrement}
+                        onMouseDown={(e) => {
+                            if (e.button !== 0) return;
+                            const step = e.shiftKey || e.ctrlKey ? 10 : 1;
+                            startRepeat(false, step);
+                        }}
+                        onMouseUp={stopRepeat}
+                        onMouseLeave={stopRepeat}
                         disabled={!canDecrement}
-                        className="h-6 w-6 rounded bg-secondary/50 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="h-6 w-6 rounded bg-secondary/50 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors select-none"
                     >
                         <Minus className="w-3 h-3" />
                     </Button>
                     
-                    <span className="w-7 text-center font-mono text-xs font-bold text-foreground tabular-nums">
-                        {value}
-                    </span>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleBlur();
+                                e.currentTarget.blur();
+                            }
+                        }}
+                        className="w-8 text-center font-mono text-xs font-bold text-foreground bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 focus:bg-background/80 rounded tabular-nums select-all"
+                    />
 
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={onIncrement}
+                        onMouseDown={(e) => {
+                            if (e.button !== 0) return;
+                            const step = e.shiftKey || e.ctrlKey ? 10 : 1;
+                            startRepeat(true, step);
+                        }}
+                        onMouseUp={stopRepeat}
+                        onMouseLeave={stopRepeat}
                         disabled={!canIncrement}
-                        className="h-6 w-6 rounded bg-secondary/50 hover:bg-emerald-500/20 text-muted-foreground hover:text-emerald-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="h-6 w-6 rounded bg-secondary/50 hover:bg-emerald-500/20 text-muted-foreground hover:text-emerald-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors select-none"
                     >
                         <Plus className="w-3 h-3" />
                     </Button>

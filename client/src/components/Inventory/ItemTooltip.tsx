@@ -25,6 +25,10 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
         if (!hasSpecialColor && !hasSpecialImage) {
             displayName = 'Zombie Corpse';
         }
+        const earbucksVal = item.earbucksValue !== undefined ? item.earbucksValue : 1;
+        if (earbucksVal > 0) {
+            displayName += ' (earbuck)';
+        }
     }
 
     return (

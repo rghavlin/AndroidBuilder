@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { X, Dumbbell, Wind, Eye, Heart, Plus, UserPlus, Award, Trash2 } from "lucide-react";
+import { X, Dumbbell, Wind, Eye, Heart, Plus, UserPlus, Award, Trash2, AlertTriangle } from "lucide-react";
 import { CharacterRegistry } from '@/game/CharacterRegistry';
 import CharacterCreator from './CharacterCreator';
 
@@ -106,9 +106,17 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                             }`}
                                         >
                                             <div className="flex justify-between items-start mb-2">
-                                                <span className={`font-mono text-base font-black tracking-wide ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                                                    {char.name}
-                                                </span>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className={`font-mono text-base font-black tracking-wide ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                                        {char.name}
+                                                    </span>
+                                                    {char.isInfected && (
+                                                        <span className="inline-flex items-center gap-1 text-[10px] text-red-500 font-bold uppercase tracking-wider bg-red-950/30 border border-red-500/20 px-1.5 py-0.5 rounded w-fit">
+                                                            <AlertTriangle className="w-2.5 h-2.5" />
+                                                            Infected
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="text-[10px] text-muted-foreground font-mono opacity-50 select-none">
                                                     ID: {char.id.substring(0, 8)}...
                                                 </span>
@@ -153,6 +161,20 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                     <div>
                                         <span className="text-[10px] uppercase text-muted-foreground block">Name</span>
                                         <span className="text-sm font-bold text-foreground">{selectedChar.name}</span>
+                                    </div>
+
+                                    <div>
+                                        <span className="text-[10px] uppercase text-muted-foreground block">Infection Status</span>
+                                        {selectedChar.isInfected ? (
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-500 bg-red-950/40 border border-red-500/30 px-2 py-1 rounded mt-1 select-none animate-pulse">
+                                                <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                                VIRAL INFECTION (Lethal)
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-950/20 border border-emerald-500/10 px-2 py-1 rounded mt-1 select-none">
+                                                Healthy
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Progression details */}

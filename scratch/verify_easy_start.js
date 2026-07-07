@@ -80,6 +80,13 @@ try {
     }
     console.log('✅ 1 Lighter with full charges found inside backpack');
 
+    // Verify 1 knife
+    const knife = backpackItems.find(i => i.defId === 'weapon.knife');
+    if (!knife) {
+        throw new Error('Expected starting knife inside backpack, found none');
+    }
+    console.log('✅ 1 Starting knife found inside backpack');
+
 
     // 2. VERIFY NORMAL START
     console.log('\n--- VERIFYING NORMAL START SETUP ---');

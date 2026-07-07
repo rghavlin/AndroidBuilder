@@ -340,6 +340,10 @@ class GameInitializationManager extends EventEmitter {
               const lighter = new Item(createItemFromDef('tool.lighter', { ammoCount: 10 }));
               backpackContainer.addItem(lighter);
 
+              // 1 knife
+              const knife = new Item(createItemFromDef('weapon.knife'));
+              backpackContainer.addItem(knife);
+
               console.log('[GameInitializationManager] Easy Start: Added starting items to backpack');
             }
           }

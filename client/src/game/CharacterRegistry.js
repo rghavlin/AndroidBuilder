@@ -28,6 +28,9 @@ export const CharacterRegistry = {
             if (c.constitution === undefined) {
               c.constitution = c.baseConstitution ?? c.currentConstitution ?? 20;
             }
+            if (c.isInfected === undefined) {
+              c.isInfected = false;
+            }
             // Purge legacy properties
             delete c.baseStrength;
             delete c.currentStrength;
@@ -94,6 +97,7 @@ export const CharacterRegistry = {
     character.agility = playerEntity.baseAgility ?? 40;
     character.perception = playerEntity.basePerception ?? 20;
     character.constitution = playerEntity.baseConstitution ?? 20;
+    character.isInfected = !!playerEntity.isInfected;
     
     // Purge legacy attributes from the object being saved
     delete character.baseStrength;

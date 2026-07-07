@@ -80,6 +80,9 @@ async function testRegistry() {
   if ('baseStrength' in savedBob || 'currentStrength' in savedBob) {
     throw new Error(`Expected legacy baseStrength/currentStrength keys to be absent, but they exist!`);
   }
+  if (savedBob.isInfected !== false) {
+    throw new Error(`Expected Bob's isInfected to be false, but got ${savedBob.isInfected}`);
+  }
   console.log("✅ Scenario A passed: Existing character overwritten successfully.");
 
   // 3. SCENARIO B: Game started with character creator (new character, not in registry yet)
@@ -94,7 +97,8 @@ async function testRegistry() {
     name: 'Newbie Alice',
     baseStrength: 15,
     currentStrength: 15,
-    earbucks: 100
+    earbucks: 100,
+    isInfected: true
   };
 
   CharacterRegistry.saveCharacterFromPlayer(playerEntityAlice);
@@ -103,6 +107,10 @@ async function testRegistry() {
   
   if (currentRegistry.length !== 2) {
     throw new Error(`Expected 2 characters in registry, but found ${currentRegistry.length}`);
+  }
+  const savedAlice = currentRegistry.find(c => c.id === 'char-creator-uuid-2');
+  if (!savedAlice || savedAlice.isInfected !== true) {
+    throw new Error(`Expected Alice to have isInfected === true, but got: ${savedAlice?.isInfected}`);
   }
   console.log("✅ Alice added to registry on first save.");
 
@@ -132,6 +140,9 @@ async function testRegistry() {
   const migratedChar = migratedCharacters[0];
   if (migratedChar.strength !== 22 || 'baseStrength' in migratedChar) {
     throw new Error("Migration failed!");
+  }
+  if (migratedChar.isInfected !== false) {
+    throw new Error("Migration failed to default isInfected to false!");
   }
   console.log("✅ Scenario D passed: Legacy format migrated successfully.");
 

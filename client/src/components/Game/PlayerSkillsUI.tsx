@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
-import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices } from 'lucide-react';
+import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices, AlertTriangle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { CombatResolver } from '@/game/systems/CombatResolver';
@@ -97,6 +97,7 @@ interface StatCardProps {
 // into these stats later. Now includes attribute XP progress bars and interactive dice upgrades.
 const StatCard = ({ icon, name, current, base, accentColor, effects, totalXP, spentXP, requiredXP, onRoll }: StatCardProps) => {
     const isDebuffed = current < base;
+    const isBuffed = current > base;
     const progressXP = totalXP - spentXP;
     const progress = Math.min(100, Math.max(0, (progressXP / requiredXP) * 100));
     const isRollReady = progressXP >= requiredXP;
@@ -111,9 +112,18 @@ const StatCard = ({ icon, name, current, base, accentColor, effects, totalXP, sp
                     <span className="text-[11px] font-bold text-foreground uppercase tracking-wide">{name}</span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                    <span className="text-base font-black text-foreground tabular-nums">{Math.round(current)}</span>
+                    <span className={cn(
+                        "text-base font-black tabular-nums",
+                        isBuffed ? "text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.2)]" :
+                        isDebuffed ? "text-red-400" : "text-foreground"
+                    )}>
+                        {Math.round(current)}
+                    </span>
                     {isDebuffed && (
                         <span className="text-[8px] text-red-400/80 font-mono">(base {base})</span>
+                    )}
+                    {isBuffed && (
+                        <span className="text-[8px] text-emerald-400/80 font-mono">(base {base})</span>
                     )}
                 </div>
             </div>
@@ -307,6 +317,14 @@ export default function PlayerSkillsUI() {
                     <div>
                         <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Character Abilities</h2>
                     </div>
+                    {playerStats?.isInfected && (
+                        <div className="ml-2 px-2 py-0.5 rounded bg-red-950/80 border border-red-500/50 flex items-center gap-1 select-none animate-pulse">
+                            <AlertTriangle className="w-3 h-3 text-red-500 shrink-0" />
+                            <span className="text-[9px] font-mono font-black text-red-400 uppercase tracking-wider">
+                                Infected
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Name Label */}
