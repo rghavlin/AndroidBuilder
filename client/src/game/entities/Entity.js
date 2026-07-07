@@ -1128,7 +1128,13 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
   strengthXpSpent: 0,
   agilityXpSpent: 0,
   perceptionXpSpent: 0,
-  constitutionXpSpent: 0
+  constitutionXpSpent: 0,
+  isInfected: false,
+  infectionTicksRemaining: 24,
+  treatmentTicksRemaining: 0,
+  treatmentSubtype: null,
+  treatmentColor: null,
+  treatmentName: null
 });
 
 defineAccessors(Entity, 'ActiveDefense', ActiveDefense, {

@@ -19,6 +19,14 @@ export class RpgStats {
     this.agilityXpSpent = properties.agilityXpSpent || 0;
     this.perceptionXpSpent = properties.perceptionXpSpent || 0;
     this.constitutionXpSpent = properties.constitutionXpSpent || 0;
+
+    // Infection & Treatment
+    this.isInfected = properties.isInfected !== undefined ? properties.isInfected : false;
+    this.infectionTicksRemaining = properties.infectionTicksRemaining !== undefined ? properties.infectionTicksRemaining : 24;
+    this.treatmentTicksRemaining = properties.treatmentTicksRemaining !== undefined ? properties.treatmentTicksRemaining : 0;
+    this.treatmentSubtype = properties.treatmentSubtype !== undefined ? properties.treatmentSubtype : null;
+    this.treatmentColor = properties.treatmentColor !== undefined ? properties.treatmentColor : null;
+    this.treatmentName = properties.treatmentName !== undefined ? properties.treatmentName : null;
   }
 
   toJSON() {

@@ -41,6 +41,7 @@ import LogHistoryWindow from './LogHistoryWindow';
 import PlayerSkillsWindow from './PlayerSkillsWindow';
 import EarbucksDisplay from './EarbucksDisplay';
 import { NPCDemandDialog } from './NPCDemandDialog';
+import InfectionHUD from './InfectionHUD';
 import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import { createItemFromDef } from '../../game/inventory/ItemDefs.js';
 import { Item } from '../../game/inventory/Item.js';
@@ -534,6 +535,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         style={{ padding: 0, margin: 0 }}
         onClick={handleMapAreaClick}
       >
+        <InfectionHUD />
         <MapCanvas
           onCellClick={onCellClick}
           onCellRightClick={onCellRightClick}

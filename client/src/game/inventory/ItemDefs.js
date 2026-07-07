@@ -2727,6 +2727,9 @@ export const ItemDefs = {
     stackable: true,
     stackMax: 10,
     categories: [ItemCategory.ENVIRONMENT],
+    consumptionEffects: {
+      treat_infection: 12
+    },
     description: 'Smashed zombie brain pulp.'
   }
 };

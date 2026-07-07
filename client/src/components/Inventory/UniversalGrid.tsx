@@ -390,6 +390,9 @@ export default function UniversalGrid({
           engine.inventoryManager?.addItem(brainstemItem);
         }
 
+        // Deselect the knife after harvesting
+        clearSelected();
+
         playSound('Loot');
         addLog('You extract a brainstem.', 'item');
         engine.inventoryManager?.emit('inventoryChanged');

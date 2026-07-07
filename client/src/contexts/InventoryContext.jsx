@@ -610,6 +610,15 @@ export const InventoryProvider = ({ children }) => {
           player.inflictSickness(val);
       } else if (key === 'cure' && val === true) {
           player.cure();
+      } else if (key === 'treat_infection') {
+          if (player.isInfected) {
+              player.treatmentTicksRemaining = val;
+              player.treatmentSubtype = item.zombieSubtype || 'basic';
+              player.treatmentColor = item.backgroundColor || null;
+              player.treatmentName = item.name || 'Zombie brain pulp';
+              player.infectionTicksRemaining = 24;
+              player.notifyChange();
+          }
       } else if (key === 'condition') {
           player.condition = val;
           player.notifyChange();

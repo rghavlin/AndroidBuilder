@@ -74,7 +74,13 @@ export const EntityFactory = {
       basePerception: customStats?.basePerception !== undefined ? customStats.basePerception : (customStats?.perception !== undefined ? customStats.perception : 20),
       currentPerception: customStats?.currentPerception !== undefined ? customStats.currentPerception : (customStats?.perception !== undefined ? customStats.perception : 20),
       baseConstitution: customStats?.baseConstitution !== undefined ? customStats.baseConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20),
-      currentConstitution: customStats?.currentConstitution !== undefined ? customStats.currentConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20)
+      currentConstitution: customStats?.currentConstitution !== undefined ? customStats.currentConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20),
+      isInfected: customStats?.isInfected !== undefined ? customStats.isInfected : false,
+      infectionTicksRemaining: customStats?.infectionTicksRemaining !== undefined ? customStats.infectionTicksRemaining : 24,
+      treatmentTicksRemaining: customStats?.treatmentTicksRemaining !== undefined ? customStats.treatmentTicksRemaining : 0,
+      treatmentSubtype: customStats?.treatmentSubtype !== undefined ? customStats.treatmentSubtype : null,
+      treatmentColor: customStats?.treatmentColor !== undefined ? customStats.treatmentColor : null,
+      treatmentName: customStats?.treatmentName !== undefined ? customStats.treatmentName : null
     }));
     entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.15 }));
 

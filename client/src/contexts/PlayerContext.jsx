@@ -104,7 +104,13 @@ export const PlayerProvider = ({ children }) => {
       baseAgility: 20, currentAgility: 20,
       basePerception: 20, currentPerception: 20,
       baseConstitution: 20, currentConstitution: 20,
-      armorAbsorption: 0, armorMaxAbsorption: 0, armorWeightRequirement: 0
+      armorAbsorption: 0, armorMaxAbsorption: 0, armorWeightRequirement: 0,
+      isInfected: false,
+      infectionTicksRemaining: 24,
+      treatmentTicksRemaining: 0,
+      treatmentSubtype: null,
+      treatmentColor: null,
+      treatmentName: null
     };
 
     return {
@@ -149,7 +155,13 @@ export const PlayerProvider = ({ children }) => {
       armorAbsorption: player.absorption || 0,
       armorMaxAbsorption: player.maxAbsorption || 0,
       armorWeightRequirement: player.weightRequirement || 0,
-      ammo: 0 // Legacy
+      ammo: 0, // Legacy
+      isInfected: player.isInfected,
+      infectionTicksRemaining: player.infectionTicksRemaining,
+      treatmentTicksRemaining: player.treatmentTicksRemaining,
+      treatmentSubtype: player.treatmentSubtype,
+      treatmentColor: player.treatmentColor,
+      treatmentName: player.treatmentName
     };
   }, [enginePulse]);
 

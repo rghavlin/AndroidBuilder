@@ -601,6 +601,24 @@ const GameContextInner = ({ children }) => {
     lastSeenTaggedTilesRef.current.clear();
 
     // 2. Player Pre-Turn Math
+    if (player.isInfected) {
+      if (player.treatmentTicksRemaining > 0) {
+        player.treatmentTicksRemaining -= 1;
+        if (player.treatmentTicksRemaining === 0) {
+          player.treatmentSubtype = null;
+          player.treatmentColor = null;
+          player.treatmentName = null;
+          addLog("Your treatment has worn off! The infection resumes...", "warning");
+        }
+      } else {
+        player.infectionTicksRemaining -= 1;
+        if (player.infectionTicksRemaining <= 0) {
+          player.hp = 0;
+          addLog("You have succumbed to the zombie virus.", "danger");
+        }
+      }
+    }
+
     if (player.sickness > 0) {
       // Sickness no longer deals direct HP damage — it saps Constitution (lowering
       // maxHp) via the survival cascade below. Here we just tick down its duration.

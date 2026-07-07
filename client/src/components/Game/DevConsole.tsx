@@ -63,7 +63,8 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         strengthXP: 0,
         agilityXP: 0,
         perceptionXP: 0,
-        constitutionXP: 0
+        constitutionXP: 0,
+        isInfected: false
     });
 
     // Sync from actual player when tab opens
@@ -89,12 +90,13 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                 strengthXP: engine.player.strengthXP || 0,
                 agilityXP: engine.player.agilityXP || 0,
                 perceptionXP: engine.player.perceptionXP || 0,
-                constitutionXP: engine.player.constitutionXP || 0
+                constitutionXP: engine.player.constitutionXP || 0,
+                isInfected: !!engine.player.isInfected
             });
         }
     }, [activeTab]);
 
-    const updatePlayerStat = (key: string, value: number) => {
+    const updatePlayerStat = (key: string, value: any) => {
         if (!engine.player) return;
         engine.player.setStat(key, value);
         
@@ -577,6 +579,15 @@ function PlayerTab({ stats, updateStat }: any) {
                     <div className="space-y-2">
                         <StatSlider label="Action Points" value={stats.ap} max={stats.maxAp} onChange={v => updateStat('ap', v)} color="bg-blue-500" />
                         <StatInput label="Max Action Points" value={stats.maxAp} onChange={v => updateStat('maxAp', parseInt(v)||0)} />
+                    </div>
+                    <div className="pt-2">
+                        <Button 
+                            variant={stats.isInfected ? "destructive" : "secondary"}
+                            className="w-full text-[10px] font-bold uppercase tracking-wider h-8 border border-red-500/10"
+                            onClick={() => updateStat('isInfected', !stats.isInfected)}
+                        >
+                            {stats.isInfected ? "⚠️ Infected: Toggle Off" : "☠️ Toggle Zombie Infection"}
+                        </Button>
                     </div>
                 </div>
             </div>

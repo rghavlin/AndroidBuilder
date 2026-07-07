@@ -49,13 +49,70 @@ export function applySurvivalCascade(player) {
   const conditionMultiplier = 1 - avgDeficit * CASCADE_MAX_PENALTY;
 
   const sick = sicknessPenalties(player.sickness);
-  player.currentStrength = Math.max(0, Math.round(player.baseStrength * conditionMultiplier));
+
+  const isInfected = !!player.isInfected;
+  const isTreated = isInfected && (player.treatmentTicksRemaining > 0);
+
+  let strMult = 1, agiMult = 1, perMult = 1, conMult = 1;
+  let strImmune = false, agiImmune = false, perImmune = false, conImmune = false;
+
+  if (isInfected && !isTreated) {
+    // debuff all attributes by a flat 10%
+    strMult = 0.9;
+    agiMult = 0.9;
+    perMult = 0.9;
+    conMult = 0.9;
+  } else if (isTreated && player.treatmentSubtype) {
+    const sub = player.treatmentSubtype.toLowerCase();
+    if (sub === 'basic' || sub === 'zombie') {
+      strImmune = true;
+    } else if (sub === 'runner') {
+      agiMult = 1.1;
+      agiImmune = true;
+    } else if (sub === 'acid') {
+      conMult = 1.1;
+      conImmune = true;
+    } else if (sub === 'fat') {
+      conMult = 1.05;
+      strMult = 1.05;
+      conImmune = true;
+      strImmune = true;
+    } else if (sub === 'peeper') {
+      perMult = 1.1;
+      perImmune = true;
+    } else if (sub === 'mutant') {
+      strMult = 1.2;
+      agiMult = 1.2;
+      perMult = 1.2;
+      conMult = 1.2;
+      strImmune = true;
+      agiImmune = true;
+      perImmune = true;
+      conImmune = true;
+    } else if (sub === 'spitter') {
+      agiMult = 1.05;
+      conMult = 1.05;
+      agiImmune = true;
+      conImmune = true;
+    }
+  }
+
+  const strCond = strImmune ? 1 : conditionMultiplier;
+  const agiCond = agiImmune ? 1 : conditionMultiplier;
+  const perCond = perImmune ? 1 : conditionMultiplier;
+  const conCond = conImmune ? 1 : conditionMultiplier;
+
+  const agiSick = agiImmune ? 0 : sick.agi;
+  const perSick = perImmune ? 0 : sick.per;
+  const conSick = conImmune ? 0 : sick.con;
+
+  player.currentStrength = Math.max(0, Math.round(player.baseStrength * strCond * strMult));
   // Agility, Perception and Constitution take the survival hit like Strength, PLUS a
   // temporary sickness penalty — this is how the Diseased condition lowers maxAp/maxHp,
   // through the attribute layer rather than by poking AP/HP directly.
-  player.currentAgility = Math.max(0, Math.round(player.baseAgility * conditionMultiplier) - sick.agi);
-  player.currentPerception = Math.max(0, Math.round(player.basePerception * conditionMultiplier) - sick.per);
-  player.currentConstitution = Math.max(0, Math.round(player.baseConstitution * conditionMultiplier) - sick.con);
+  player.currentAgility = Math.max(0, Math.round(player.baseAgility * agiCond * agiMult) - agiSick);
+  player.currentPerception = Math.max(0, Math.round(player.basePerception * perCond * perMult) - perSick);
+  player.currentConstitution = Math.max(0, Math.round(player.baseConstitution * conCond * conMult) - conSick);
 
   return { energyDeficit };
 }

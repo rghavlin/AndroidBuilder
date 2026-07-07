@@ -244,11 +244,51 @@ export default function PlayerSkillsUI() {
         const reqPerXP = AttributeProgressionManager.getRequiredXP(basePerception);
         const reqConXP = AttributeProgressionManager.getRequiredXP(baseConstitution);
 
+        const isInfected = playerStats.isInfected;
+        const isTreated = isInfected && (playerStats.treatmentTicksRemaining > 0);
+        const treatmentSubtype = playerStats.treatmentSubtype?.toLowerCase();
+
+        const getInfectionEffects = (statName) => {
+            const lines = [];
+            if (isInfected && !isTreated) {
+                lines.push("Infection: -10% to attributes");
+            } else if (isTreated) {
+                if (treatmentSubtype === 'mutant') {
+                    lines.push("Mutant Treatment: +20% & Decay Immune");
+                } else if (statName === 'Strength') {
+                    if (treatmentSubtype === 'basic' || treatmentSubtype === 'zombie') {
+                        lines.push("Zombie Treatment: Strength is Decay Immune");
+                    } else if (treatmentSubtype === 'fat') {
+                        lines.push("Fat Zombie Treatment: +5% Strength & Decay Immune");
+                    }
+                } else if (statName === 'Agility') {
+                    if (treatmentSubtype === 'runner') {
+                        lines.push("Runner Treatment: +10% Agility & Decay Immune");
+                    } else if (treatmentSubtype === 'spitter') {
+                        lines.push("Spitter Treatment: +5% Agility & Decay Immune");
+                    }
+                } else if (statName === 'Perception') {
+                    if (treatmentSubtype === 'peeper') {
+                        lines.push("Peeper Treatment: +10% Perception & Decay Immune");
+                    }
+                } else if (statName === 'Constitution') {
+                    if (treatmentSubtype === 'acid') {
+                        lines.push("Acid Treatment: +10% Constitution & Decay Immune");
+                    } else if (treatmentSubtype === 'fat') {
+                        lines.push("Fat Zombie Treatment: +5% Constitution & Decay Immune");
+                    } else if (treatmentSubtype === 'spitter') {
+                        lines.push("Spitter Treatment: +5% Constitution & Decay Immune");
+                    }
+                }
+            }
+            return lines;
+        };
+
         return {
-            strength: { current: currentStrength, base: baseStrength, meleeDamageBonus, armorPenalty, wagonPullBonus, totalXP: playerStats.strengthXP || 0, spentXP: playerStats.strengthXpSpent || 0, requiredXP: reqStrXP },
-            agility: { current: currentAgility, base: baseAgility, dodgeChance, meleeAimBonus, armorPenalty, totalXP: playerStats.agilityXP || 0, spentXP: playerStats.agilityXpSpent || 0, requiredXP: reqAgiXP },
-            perception: { current: currentPerception, base: basePerception, critBonus, rangedAimBonus, sightRangeBonus, totalXP: playerStats.perceptionXP || 0, spentXP: playerStats.perceptionXpSpent || 0, requiredXP: reqPerXP },
-            constitution: { current: currentConstitution, base: baseConstitution, maxHp, sickResistPct, totalXP: playerStats.constitutionXP || 0, spentXP: playerStats.constitutionXpSpent || 0, requiredXP: reqConXP }
+            strength: { current: currentStrength, base: baseStrength, meleeDamageBonus, armorPenalty, wagonPullBonus, totalXP: playerStats.strengthXP || 0, spentXP: playerStats.strengthXpSpent || 0, requiredXP: reqStrXP, infectionEffects: getInfectionEffects('Strength') },
+            agility: { current: currentAgility, base: baseAgility, dodgeChance, meleeAimBonus, armorPenalty, totalXP: playerStats.agilityXP || 0, spentXP: playerStats.agilityXpSpent || 0, requiredXP: reqAgiXP, infectionEffects: getInfectionEffects('Agility') },
+            perception: { current: currentPerception, base: basePerception, critBonus, rangedAimBonus, sightRangeBonus, totalXP: playerStats.perceptionXP || 0, spentXP: playerStats.perceptionXpSpent || 0, requiredXP: reqPerXP, infectionEffects: getInfectionEffects('Perception') },
+            constitution: { current: currentConstitution, base: baseConstitution, maxHp, sickResistPct, totalXP: playerStats.constitutionXP || 0, spentXP: playerStats.constitutionXpSpent || 0, requiredXP: reqConXP, infectionEffects: getInfectionEffects('Constitution') }
         };
     }, [playerStats]);
 
@@ -259,7 +299,7 @@ export default function PlayerSkillsUI() {
                 <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
                         {playerIcon ? (
-                            <img src={playerIcon} alt="Player" className="w-full h-full object-contain p-0.5" />
+                            <img src={playerIcon} alt="Player" className="w-full h-full object-cover" />
                         ) : (
                             <Info className="w-4 h-4 text-primary" />
                         )}
@@ -295,7 +335,8 @@ export default function PlayerSkillsUI() {
                             accentColor="bg-orange-500/10 border-orange-500/30"
                             effects={[
                                 `Melee damage +${attributes.strength.meleeDamageBonus}`,
-                                `Wagon-pull AP bonus: +${attributes.strength.wagonPullBonus} AP`
+                                `Wagon-pull AP bonus: +${attributes.strength.wagonPullBonus} AP`,
+                                ...attributes.strength.infectionEffects
                             ]}
                             totalXP={attributes.strength.totalXP}
                             spentXP={attributes.strength.spentXP}
@@ -315,7 +356,8 @@ export default function PlayerSkillsUI() {
                                 `Melee hit +${attributes.agility.meleeAimBonus}%`,
                                 ...(attributes.agility.armorPenalty > 0
                                     ? [`Armor agility penalty: -${attributes.agility.armorPenalty}`]
-                                    : [])
+                                    : []),
+                                ...attributes.agility.infectionEffects
                             ]}
                             totalXP={attributes.agility.totalXP}
                             spentXP={attributes.agility.spentXP}
@@ -332,7 +374,8 @@ export default function PlayerSkillsUI() {
                             effects={[
                                 `Crit chance +${attributes.perception.critBonus}%`,
                                 `Ranged hit +${attributes.perception.rangedAimBonus}%`,
-                                `Sight range bonus: +${attributes.perception.sightRangeBonus}`
+                                `Sight range bonus: +${attributes.perception.sightRangeBonus}`,
+                                ...attributes.perception.infectionEffects
                             ]}
                             totalXP={attributes.perception.totalXP}
                             spentXP={attributes.perception.spentXP}
@@ -348,7 +391,8 @@ export default function PlayerSkillsUI() {
                             accentColor="bg-rose-500/10 border-rose-500/30"
                             effects={[
                                 `Max HP ${attributes.constitution.maxHp}`,
-                                `Sickness resist −${attributes.constitution.sickResistPct}%`
+                                `Sickness resist −${attributes.constitution.sickResistPct}%`,
+                                ...attributes.constitution.infectionEffects
                             ]}
                             totalXP={attributes.constitution.totalXP}
                             spentXP={attributes.constitution.spentXP}
