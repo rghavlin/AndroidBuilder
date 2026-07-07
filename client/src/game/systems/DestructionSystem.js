@@ -4,6 +4,7 @@ import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { EntityType } from '../entities/Entity.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
+import { getCorpseOverrides } from '../entities/ZombieCorpseConfig.js';
 export class DestructionSystem {
   /**
    * Resolve a single DestroyIntent.
@@ -47,6 +48,12 @@ export class DestructionSystem {
           if (loot && loot.length > 0 && gameMap) {
             gameMap.addItemsToTile(x, y, loot);
           }
+        }
+        // Always drop a corpse (100% rate)
+        const corpseOverrides = getCorpseOverrides(target.subtype);
+        const corpse = createItemFromDef('zombie.corpse', corpseOverrides);
+        if (corpse && gameMap) {
+          gameMap.addItemsToTile(x, y, [corpse]);
         }
       } else if (target.type === EntityType.NPC) {
         // Fallback: If engine event loop didn't drop the items (e.g. engine.gameMap not set in tests)

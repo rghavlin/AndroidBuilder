@@ -104,7 +104,7 @@ const COMPONENT_NAME_BY_CTOR = new Map(
 export const SERIALIZED_FIELDS = [
   'subtype', 'blocksMovement', 'name', 'isHostile', 'equippedWeaponId',
   'typeId', 'isShopkeeper', 'isTollGuard', 'tollPaid', 'tollSidestep', 'tollTarget',
-  'factionId', 'sightRange', 'hasExited', 'isActive', 'noLoot', 'deaf',
+  'factionId', 'sightRange', 'hearingRangeMultiplier', 'hasExited', 'isActive', 'noLoot', 'deaf',
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
   'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding',
   'drunkenness', 'isStarving', 'isDehydrated', 'meleeKills', 'meleeLvl',
@@ -118,7 +118,8 @@ export const ITEM_SERIALIZED_FIELDS = [
   'description', 'combat', 'rangedStats', 'armor', 'armorAbsorption', 'rarity', 'backgroundColor', 'scooterMode',
   'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
   'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
-  'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical'
+  'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical', 'zombieSubtype',
+  'earbucksValue'
 ];
 
 export const EntityType = {

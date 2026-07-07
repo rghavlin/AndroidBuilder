@@ -33,6 +33,7 @@ const ENTITY_TYPES = [
 const ZOMBIE_SUBTYPES = [
   { id: 'basic',        label: 'Zombie',          defaultHp: 10 },
   { id: 'runner',       label: 'Runner',          defaultHp: 10 },
+  { id: 'peeper',       label: 'Peeper Zombie',   defaultHp: 10 },
   { id: 'crawler',      label: 'Crawler',         defaultHp: 7  },
   { id: 'fat',          label: 'Fat Zombie',      defaultHp: 20 },
   { id: 'soldier',      label: 'Soldier',         defaultHp: 25 },

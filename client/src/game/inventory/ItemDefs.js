@@ -2687,6 +2687,47 @@ export const ItemDefs = {
         allowedCategories: [ItemCategory.SUPPRESSOR]
       }
     ]
+  },
+  'zombie.corpse': {
+    id: 'zombie.corpse',
+    name: 'Zombie Corpse',
+    rarity: Rarity.COMMON,
+    imageId: 'zombiecorpse',
+    width: 4,
+    height: 6,
+    noDrag: true,
+    isPickable: false,
+    traits: [ItemTrait.GROUND_ONLY],
+    categories: [ItemCategory.ENVIRONMENT],
+    noLoot: true,
+    renderFullTile: true,
+    description: 'The remains of a zombie',
+    earbucksValue: 1
+  },
+  'zombie.brainstem': {
+    id: 'zombie.brainstem',
+    name: 'Zombie brainstem',
+    rarity: Rarity.COMMON,
+    imageId: 'brainstem',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    stackable: true,
+    stackMax: 10,
+    description: 'A preserved brainstem extracted from a zombie corpse.'
+  },
+  'zombie.brainpulp': {
+    id: 'zombie.brainpulp',
+    name: 'Zombie brain pulp',
+    rarity: Rarity.COMMON,
+    imageId: 'brainpulp',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
+    stackable: true,
+    stackMax: 10,
+    categories: [ItemCategory.ENVIRONMENT],
+    description: 'Smashed zombie brain pulp.'
   }
 };
 

@@ -54,7 +54,7 @@ for (let i = 0; i < iterations; i++) {
 }
 
 // Test generateZombieLoot for all subtypes
-const subtypes = ['basic', 'crawler', 'runner', 'firefighter', 'swat'];
+const subtypes = ['basic', 'crawler', 'runner', 'peeper', 'firefighter', 'swat'];
 for (const subtype of subtypes) {
     for (let i = 0; i < 200; i++) {
         const items = generator.generateZombieLoot(subtype);

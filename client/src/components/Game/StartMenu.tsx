@@ -30,6 +30,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   const [showRegistry, setShowRegistry] = useState(false);
   const [registryMode, setRegistryMode] = useState<'select' | 'manage'>('select');
   const [hasSave, setHasSave] = useState(false);
+  const [pendingScenarioData, setPendingScenarioData] = useState<any>(null);
 
   const checkSave = async () => {
     try {
@@ -106,11 +107,25 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     }
 
     setShowRegistry(false);
-    console.log('[StartMenu] Starting new game with character:', character.name);
-    musicManager.playPlaylist('standard');
-    if (onStartGame) {
-      // Pass the selected character's stats as customStats
-      onStartGame({ customStats: character });
+
+    if (pendingScenarioData) {
+      console.log('[StartMenu] Starting custom game with character:', character.name, 'and map:', pendingScenarioData.name);
+      musicManager.playPlaylist('standard');
+      window.dispatchEvent(new CustomEvent('launch-custom-game', {
+        detail: {
+          scenarioData: pendingScenarioData,
+          easyStart: false,
+          customStats: character
+        }
+      }));
+      setPendingScenarioData(null);
+    } else {
+      console.log('[StartMenu] Starting new game with character:', character.name);
+      musicManager.playPlaylist('standard');
+      if (onStartGame) {
+        // Pass the selected character's stats as customStats
+        onStartGame({ customStats: character });
+      }
     }
   };
 
@@ -126,10 +141,11 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
   };
 
   const handleScenarioLoad = (scenarioData: any) => {
-    console.log(`[StartMenu] Loading scenario "${scenarioData.name}"...`);
-    musicManager.playPlaylist('standard');
+    console.log(`[StartMenu] Scenario picked: "${scenarioData.name}". Opening registry to select character...`);
+    setPendingScenarioData(scenarioData);
     setShowScenarios(false);
-    window.dispatchEvent(new CustomEvent('launch-custom-game', { detail: { scenarioData, easyStart: false } }));
+    setRegistryMode('select');
+    setShowRegistry(true);
   };
 
   return (
@@ -242,7 +258,10 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
       {showRegistry && (
         <CharacterRegistryWindow
           mode={registryMode}
-          onClose={() => setShowRegistry(false)}
+          onClose={() => {
+            setShowRegistry(false);
+            setPendingScenarioData(null);
+          }}
           onSelect={handleSelectCharacter}
         />
       )}

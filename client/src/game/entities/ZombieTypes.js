@@ -35,6 +35,20 @@ export const ZombieTypes = {
     combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
+  peeper: {
+    name: 'Peeper Zombie',
+    hp: 10,
+    maxAP: 12,
+    sightRange: 30,
+    accuracy: 0.5,
+    moveCostMultiplier: 1.0,
+    canPassWindows: true,
+    spriteKey: 'peeperzombie',
+    stumbleEvasion: 0.05,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
+    lootTable: 'basic',
+    hearingRangeMultiplier: 2.0
+  },
   crawler: {
     name: 'Crawler',
     hp: 7.5,

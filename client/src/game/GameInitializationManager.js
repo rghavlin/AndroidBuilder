@@ -471,6 +471,7 @@ class GameInitializationManager extends EventEmitter {
       basicCount: scale(progression.basicCount),
       crawlerRange: scaleRange(progression.crawlerRange),
       runnerCount: scale(progression.runnerCount),
+      peeperCount: scale(progression.peeperCount),
       acidRange: scaleRange(progression.acidRange),
       fatRange: scaleRange(progression.fatRange),
       spitterCount: progression.spitterCount || 0, // Absolute count as per user requirements

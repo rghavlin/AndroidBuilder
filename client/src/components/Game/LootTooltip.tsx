@@ -1,10 +1,7 @@
 import React from 'react';
 
 interface LootTooltipProps {
-    items: Array<{
-        name: string;
-        stackCount?: number;
-    }>;
+    items: Array<any>;
 }
 
 /**
@@ -20,10 +17,18 @@ export function LootTooltip({ items }: LootTooltipProps) {
 
     // Map items to names with stack counts
     const itemStrings = validItems.map(item => {
-        if (item.stackCount && item.stackCount > 1) {
-            return `${item.name} (${item.stackCount})`;
+        let name = item.name;
+        if (item.defId === 'zombie.corpse') {
+            const hasSpecialColor = !!item.backgroundColor;
+            const hasSpecialImage = !!item.imageId && item.imageId !== 'zombiecorpse';
+            if (!hasSpecialColor && !hasSpecialImage) {
+                name = 'Zombie Corpse';
+            }
         }
-        return item.name;
+        if (item.stackCount && item.stackCount > 1) {
+            return `${name} (${item.stackCount})`;
+        }
+        return name;
     });
 
     return (

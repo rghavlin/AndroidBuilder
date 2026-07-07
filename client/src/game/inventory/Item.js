@@ -66,7 +66,9 @@ export class Item extends SafeEventEmitter {
       noDrag = undefined,
       rideApBonus = undefined,
       scooterMode = undefined,
-      isLocked = undefined
+      isLocked = undefined,
+      zombieSubtype = undefined,
+      earbucksValue = undefined
     } = config;
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -149,6 +151,8 @@ export class Item extends SafeEventEmitter {
     this.transformInto = transformInto;
     this.produce = produce;
     this.backgroundColor = backgroundColor;
+    this.zombieSubtype = zombieSubtype;
+    this.earbucksValue = earbucksValue;
 
     // Container properties (single container for backpacks, etc.)
     this._containerGridData = _containerGridData || containerGrid;
@@ -228,7 +232,8 @@ export class Item extends SafeEventEmitter {
       if (def.motorAssistBonus !== undefined) this.motorAssistBonus = def.motorAssistBonus;
       if (def.terrainModifiers) this.terrainModifiers = def.terrainModifiers;
       if (def.rideApBonus !== undefined) this.rideApBonus = def.rideApBonus;
-      if (def.scooterMode !== undefined) this.scooterMode = def.scooterMode;
+      if (def.scooterMode !== undefined && this.scooterMode === undefined) this.scooterMode = def.scooterMode;
+      if (def.earbucksValue !== undefined && this.earbucksValue === undefined) this.earbucksValue = def.earbucksValue;
       
       // Auto-inherit categories from definition if not already present
       if (def.categories && Array.isArray(def.categories)) {
@@ -1065,6 +1070,11 @@ export class Item extends SafeEventEmitter {
       return false;
     }
 
+    // Items with different zombie subtypes must not stack together
+    if (this.zombieSubtype !== otherItem.zombieSubtype) {
+      return false;
+    }
+
     // Special rule for Water Bottles: They only stack if they are EMPTY or FULL and levels match
     if (this.hasTrait(ItemTrait.WATER_CONTAINER)) {
       const capacity = this.capacity;
@@ -1503,7 +1513,8 @@ export class Item extends SafeEventEmitter {
     'consumptionEffects', 'waterQuality', 'shelfLife', 'lifetimeTurns', 'rarity',
     'combat', 'rangedStats', 'description', 'transformInto', 'produce',
     'backgroundColor', 'isOn', 'providesElectricity', 'fireMode',
-    'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked'
+    'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
+    'zombieSubtype', 'earbucksValue'
   ];
 
   // Serialization

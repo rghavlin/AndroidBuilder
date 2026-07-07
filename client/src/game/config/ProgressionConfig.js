@@ -19,6 +19,7 @@ export const MapProgression = {
     acidRange: { min: 1, max: 1 },
     fatRange: { min: 1, max: 1 },
     runnerCount: 1,
+    peeperCount: 1,
     spitterCount: 0,
     maxTotal: 120
   },
@@ -28,6 +29,7 @@ export const MapProgression = {
     acidRange: { min: 3, max: 5 },
     fatRange: { min: 4, max: 7 },
     runnerCount: 3,
+    peeperCount: 3,
     spitterCount: 2,
     maxTotal: 180,
     randomSpecialized: {
@@ -42,6 +44,7 @@ export const MapProgression = {
     acidRange: { min: 1, max: 2 },
     fatRange: { min: 2, max: 3 },
     runnerCount: 2,
+    peeperCount: 2,
     spitterCount: 0,
     maxTotal: 120
   },
@@ -51,6 +54,7 @@ export const MapProgression = {
     acidRange: { min: 2, max: 3 },
     fatRange: { min: 3, max: 4 },
     runnerCount: 2,
+    peeperCount: 2,
     spitterCount: 1,
     maxTotal: 120
   },
@@ -60,6 +64,7 @@ export const MapProgression = {
     acidRange: { min: 5, max: 7 },
     fatRange: { min: 7, max: 9 },
     runnerCount: 2,
+    peeperCount: 2,
     spitterCount: 1,
     maxTotal: 226
   }
@@ -101,6 +106,7 @@ export function getProgressionForMap(mapNumber) {
       max: baseConfig.fatRange.max + extraFat 
     },
     runnerCount: gameRandom.nextInt(0, 2) + 2,
+    peeperCount: gameRandom.nextInt(0, 2) + 2,
     maxTotal: baseConfig.maxTotal + delta * 20,
     spitterCount: mapNumber >= 3 ? Math.floor((mapNumber - 1) / 2) : 0,
     randomSpecialized: {

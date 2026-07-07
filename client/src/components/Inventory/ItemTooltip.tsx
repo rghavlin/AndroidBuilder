@@ -18,11 +18,20 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
     const combat = item.combat || (item.defId && item.defId.startsWith('weapon.') ? item.combat : null);
     const rangedStats = item.rangedStats;
 
+    let displayName = item.name;
+    if (item.defId === 'zombie.corpse') {
+        const hasSpecialColor = !!item.backgroundColor;
+        const hasSpecialImage = !!item.imageId && item.imageId !== 'zombiecorpse';
+        if (!hasSpecialColor && !hasSpecialImage) {
+            displayName = 'Zombie Corpse';
+        }
+    }
+
     return (
         <div className="p-2 min-w-[150px] space-y-1.5">
             <div className="flex justify-between items-start gap-4">
                 <h4 className="font-bold text-sm text-foreground leading-tight">
-                    {item.name}
+                    {displayName}
                     {item.waterQuality === 'dirty' && item.ammoCount > 0 && <span className="text-amber-600 ml-1">(Dirty water)</span>}
                 </h4>
             </div>

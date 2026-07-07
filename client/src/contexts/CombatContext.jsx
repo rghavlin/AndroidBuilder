@@ -8,6 +8,7 @@ import { useLog } from './LogContext.jsx';
 import { useAudio } from './AudioContext.jsx';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
+import { getCorpseOverrides } from '../game/entities/ZombieCorpseConfig.js';
 
 import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
@@ -51,11 +52,9 @@ const resolveTileTarget = (gameMap, x, y, player, { includeTurret = true } = {})
     return { targetEntity, turret, structure, structureX, structureY };
 };
 
-// Every zombie kill awards the player a single Earbuck.
+// Every zombie kill awards the player a single Earbuck (now disabled in favor of corpse collection).
 const awardZombieEarbuck = () => {
-    if (engine.player) {
-        engine.player.earbucks = (engine.player.earbucks || 0) + 1;
-    }
+    // Disabled - earbucks are now harvested from corpses by left-clicking them.
 };
 
 // RNG NOTE: player combat deliberately uses Math.random(), NOT the engine's
@@ -205,7 +204,12 @@ export const CombatProvider = ({ children }) => {
                 const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
                 if (loot?.length > 0) placeItems(loot);
             }
-            awardZombieEarbuck();
+            // Always drop a corpse (100% rate)
+            const corpseOverrides = getCorpseOverrides(entity.subtype);
+            const corpse = createItemFromDef('zombie.corpse', corpseOverrides);
+            if (corpse) {
+                placeItems([corpse]);
+            }
         } else if (entity.type === EntityType.NPC) {
             // NPCs drop their entire inventory on death
             if (typeof entity.die === 'function') entity.die(); // Emits npcDied event
@@ -236,7 +240,6 @@ export const CombatProvider = ({ children }) => {
                 addLog(action.data.log, 'combat');
             } else if (action.type === 'DEATH') {
                 addEffect({ type: 'damage', x: action.data.x, y: action.data.y, value: 'Killed', color: deathColor, duration: 1500 });
-                if (action.data.entityType === EntityType.ZOMBIE) awardZombieEarbuck();
             } else if (action.type === 'STRUCTURE_INTERACT') {
                 if (action.data.broken) {
                     GameEvents.emit(action.data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {

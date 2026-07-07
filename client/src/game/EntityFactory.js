@@ -101,6 +101,7 @@ export const EntityFactory = {
     // Subtype-specific colors for rendering
     let color = '#a6b09c'; // basic grayish green
     if (subtype === 'runner') color = '#e8a3a3'; // reddish
+    else if (subtype === 'peeper') color = '#ffeb3b'; // bright yellow
     else if (subtype === 'crawler') color = '#c3b4e6'; // purplish
     else if (subtype === 'fat') color = '#b0c3d9'; // bluish gray
     else if (subtype === 'soldier') color = '#99b898'; // military green
@@ -124,6 +125,7 @@ export const EntityFactory = {
 
     // Backing stats matching legacy Zombie constructor
     entity.sightRange = typeDef.sightRange || 15;
+    entity.hearingRangeMultiplier = typeDef.hearingRangeMultiplier || 1.0;
 
     return entity;
   },

@@ -119,10 +119,12 @@ export class ZombieReplenishmentSystem {
     // Weighted Subtype Probability (no mutants)
     const roll = gameRandom.next();
     let subtype = 'basic';
-    if (roll < 0.70) {
+    if (roll < 0.60) {
       subtype = 'basic';
-    } else if (roll < 0.80) {
+    } else if (roll < 0.70) {
       subtype = 'runner';
+    } else if (roll < 0.80) {
+      subtype = 'peeper';
     } else if (roll < 0.88) {
       subtype = 'crawler';
     } else if (roll < 0.93) {

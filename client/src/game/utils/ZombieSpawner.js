@@ -19,6 +19,7 @@ export class ZombieSpawner {
       basicCount = 15,
       crawlerRange = { min: 2, max: 4 },
       runnerCount = 1,
+      peeperCount = 1,
       acidRange = { min: 1, max: 2 },
       fatRange = { min: 1, max: 2 },
       firefighterRange = { min: 2, max: 3 },
@@ -75,6 +76,7 @@ export class ZombieSpawner {
     spawnHelper('crawler', crawlerCount, 10);
     
     spawnHelper('runner', runnerCount, 10);
+    spawnHelper('peeper', peeperCount, 10);
     
     const mapNumber = gameMap.mapNumber || 1;
     const isStraightRoad = gameMap.template === 'road' || gameMap.template === 'starting_road';

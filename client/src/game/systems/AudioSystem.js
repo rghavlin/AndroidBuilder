@@ -26,8 +26,9 @@ export class AudioSystem {
       if (entity.hp > 0 && !entity.hasExited && entity.hasComponent('AIBehavior') && entity.hasComponent('Position')) {
         const pos = entity.getComponent('Position');
         const dist = Math.sqrt(Math.pow(pos.x - x, 2) + Math.pow(pos.y - y, 2));
+        const hearingMultiplier = entity.hearingRangeMultiplier || 1.0;
 
-        if (dist <= volume) {
+        if (dist <= volume * hearingMultiplier) {
           if (typeof entity.setNoiseHeard === 'function') {
             entity.setNoiseHeard(x, y);
             entity.behaviorState = 'investigating';
