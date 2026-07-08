@@ -476,6 +476,7 @@ export const ItemDefs = {
   'armor.padded': {
     id: 'armor.padded',
     name: 'Padded Armor',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'paddedarmor',
     width: 1,
@@ -490,6 +491,7 @@ export const ItemDefs = {
   'armor.leather': {
     id: 'armor.leather',
     name: 'Leather Armor',
+    noLoot: true,
     rarity: Rarity.UNCOMMON,
     imageId: 'leatherarmor',
     width: 1,
@@ -504,6 +506,7 @@ export const ItemDefs = {
   'armor.metal': {
     id: 'armor.metal',
     name: 'Metal Armor',
+    noLoot: true,
     rarity: Rarity.RARE,
     imageId: 'metalarmor',
     width: 1,
@@ -2707,6 +2710,7 @@ export const ItemDefs = {
   'zombie.brainstem': {
     id: 'zombie.brainstem',
     name: 'Zombie brainstem',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'brainstem',
     width: 1,
@@ -2719,6 +2723,7 @@ export const ItemDefs = {
   'zombie.brainpulp': {
     id: 'zombie.brainpulp',
     name: 'Zombie brain pulp',
+    noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'brainpulp',
     width: 1,
