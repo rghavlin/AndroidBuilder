@@ -34,7 +34,6 @@ import { Container } from '../inventory/Container.js';
 import { AIState } from '../components/AIState.js';
 import { Burnable } from '../components/Burnable.js';
 import { RpgStats } from '../components/RpgStats.js';
-import { ActiveDefense } from '../components/ActiveDefense.js';
 import { EquippedArmor } from '../components/EquippedArmor.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
@@ -81,7 +80,6 @@ export const COMPONENT_CLASSES = {
   AIState,
   Burnable,
   RpgStats,
-  ActiveDefense,
   EquippedArmor,
 
   // --- Intent / Action Tags (Temporary States) ---
@@ -107,8 +105,8 @@ export const SERIALIZED_FIELDS = [
   'factionId', 'sightRange', 'hearingRangeMultiplier', 'hasExited', 'isActive', 'noLoot', 'deaf',
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
   'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding',
-  'drunkenness', 'isStarving', 'isDehydrated', 'meleeKills', 'meleeLvl',
-  'rangedKills', 'rangedLvl', 'craftingApUsed', 'craftingLvl', 'earbucks'
+  'drunkenness', 'isStarving', 'isDehydrated', 'meleeHits', 'meleeLvl',
+  'rangedHits', 'rangedLvl', 'defenseHits', 'defenseLvl', 'craftingApUsed', 'craftingLvl', 'earbucks'
 ];
 
 export const ITEM_SERIALIZED_FIELDS = [
@@ -536,7 +534,7 @@ export class Entity extends SafeEventEmitter {
 
   inflictSickness(amount) {
     // Constitution shortens the sickness (and thus the disease burden it triggers).
-    // Single choke point for every source: zombie bites, spoiled food, dirty water.
+    // Single choke point for every source: Spitter's toxic spit, spoiled food, dirty water.
     const resisted = CombatResolver.applySicknessResistance(amount, this.currentConstitution);
     this.sickness = Math.max(0, this.sickness + resisted);
     if (this.sickness > 0) {
@@ -544,6 +542,18 @@ export class Entity extends SafeEventEmitter {
     } else if (this.condition === 'Diseased') {
       this.condition = 'Normal';
     }
+    this.notifyChange();
+  }
+
+  /**
+   * Sets the zombie-virus infection flag — the permanent, lethal-if-untreated
+   * clock (see tickInfection/SurvivalCascade.js), entirely separate from the
+   * recoverable Disease/sickness mechanic above. Re-infecting an already-
+   * infected entity is a no-op; infection doesn't stack or reset progress.
+   */
+  inflictInfection() {
+    if (this.isInfected) return;
+    this.isInfected = true;
     this.notifyChange();
   }
 
@@ -559,17 +569,53 @@ export class Entity extends SafeEventEmitter {
     this.notifyChange();
   }
 
-  recordKill(type) {
+  /**
+   * Fires on every landed hit (not just kills) — skill progress and its paired
+   * attribute-XP trickle are both hit-driven, decoupled from whether the hit
+   * happened to be lethal. Melee grants Strength+Agility XP per hit, Ranged
+   * grants Agility+Perception, mirroring their skill-seed pairs. Returns the
+   * new level on a milestone crossing, or null otherwise.
+   */
+  recordHit(type) {
     const isMelee = type === 'melee';
-    const currentLevel = isMelee ? this.meleeLvl : this.rangedLvl;
-    this.modifyStat(isMelee ? 'meleeKills' : 'rangedKills', 1);
-    const nextMilestone = PlayerSkills.getNextKillMilestone(currentLevel);
-    if (this[isMelee ? 'meleeKills' : 'rangedKills'] >= nextMilestone) {
+    const hitField = isMelee ? 'meleeHits' : 'rangedHits';
+    const lvlField = isMelee ? 'meleeLvl' : 'rangedLvl';
+    const currentLevel = this[lvlField];
+
+    this.modifyStat(hitField, 1);
+    if (this.type === 'player') {
+      AttributeProgressionManager.recordAction(this, isMelee ? 'MELEE_HIT' : 'RANGED_HIT');
+    }
+
+    const nextMilestone = PlayerSkills.getNextHitMilestone(currentLevel);
+    if (this[hitField] >= nextMilestone) {
       const newLevel = currentLevel + 1;
-      this.setStat(isMelee ? 'meleeLvl' : 'rangedLvl', newLevel);
-      if (this.type === 'player') {
-        AttributeProgressionManager.recordAction(this, isMelee ? 'MELEE_SKILL_UP' : 'RANGED_SKILL_UP');
-      }
+      this.setStat(lvlField, newLevel);
+      return newLevel;
+    }
+    return null;
+  }
+
+  /**
+   * Fires on every successfully contested defense (the attacker's own hit
+   * roll succeeded, and this entity then evaded it) — an attack that would
+   * have missed anyway never calls this, since resolveDefense is only
+   * invoked from inside a roll function's `if (hit)` branch. Mirrors
+   * recordHit's per-action growth model exactly; grants Agility+Perception
+   * XP, matching Defense's seed pair. Player and NPC both progress; only the
+   * player also gets the attribute-XP trickle (same gating as recordHit).
+   */
+  recordDefense() {
+    const currentLevel = this.defenseLvl;
+    this.modifyStat('defenseHits', 1);
+    if (this.type === 'player') {
+      AttributeProgressionManager.recordAction(this, 'DEFENSE_SUCCESS');
+    }
+
+    const nextMilestone = PlayerSkills.getNextHitMilestone(currentLevel);
+    if (this.defenseHits >= nextMilestone) {
+      const newLevel = currentLevel + 1;
+      this.setStat('defenseLvl', newLevel);
       return newLevel;
     }
     return null;
@@ -1104,10 +1150,12 @@ defineAccessors(Entity, 'SurvivalStats', SurvivalStats, {
 });
 
 defineAccessors(Entity, 'PlayerSkills', PlayerSkills, {
-  meleeKills: 0,
+  meleeHits: 0,
   meleeLvl: 0,
-  rangedKills: 0,
+  rangedHits: 0,
   rangedLvl: 0,
+  defenseHits: 0,
+  defenseLvl: 0,
   craftingApUsed: 0,
   craftingLvl: 0
 });
@@ -1115,8 +1163,8 @@ defineAccessors(Entity, 'PlayerSkills', PlayerSkills, {
 defineAccessors(Entity, 'RpgStats', RpgStats, {
   baseStrength: 20,
   currentStrength: 20,
-  baseAgility: 40,
-  currentAgility: 40,
+  baseAgility: 20,
+  currentAgility: 20,
   basePerception: 20,
   currentPerception: 20,
   baseConstitution: 20,
@@ -1135,11 +1183,6 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
   treatmentSubtype: null,
   treatmentColor: null,
   treatmentName: null
-});
-
-defineAccessors(Entity, 'ActiveDefense', ActiveDefense, {
-  defensesThisTurn: 0,
-  diminishingRate: 0.15
 });
 
 defineAccessors(Entity, 'EquippedArmor', EquippedArmor, {

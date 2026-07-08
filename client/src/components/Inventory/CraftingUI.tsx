@@ -9,7 +9,7 @@ import { useAudio } from "@/contexts/AudioContext";
 import ContainerGrid from "@/components/Inventory/ContainerGrid";
 import WorkspaceSlot from "@/components/Inventory/WorkspaceSlot";
 import AttachmentSlot from './AttachmentSlot';
-import { Flame, Clock, Hammer, Soup, Target, Swords, MoveUp, Droplets, Utensils } from 'lucide-react';
+import { Flame, Clock, Hammer, Soup, Swords, MoveUp, Droplets, Utensils } from 'lucide-react';
 import { getItemName, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import engine from '../../game/GameEngine.js';
@@ -319,10 +319,6 @@ export default function CraftingUI() {
                                     {/* Stats Display (Combat Items) */}
                                     {resultItemStats && (
                                         <div className="flex items-center gap-4 text-[10px] text-zinc-400 font-bold uppercase tracking-wide bg-black/20 p-1.5 rounded border border-white/5">
-                                            <div className="flex items-center gap-1">
-                                                <Target className="w-3 h-3 text-primary/70" />
-                                                <span>Hit: {Math.round(resultItemStats.hitChance * 100)}%</span>
-                                            </div>
                                             <div className="flex items-center gap-1">
                                                 <Swords className="w-3 h-3 text-red-500/70" />
                                                 <span>Dmg: {resultItemStats.damage.min}-{resultItemStats.damage.max}</span>

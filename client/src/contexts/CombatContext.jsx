@@ -75,7 +75,7 @@ export const useCombat = () => {
 
 export const CombatProvider = ({ children }) => {
     const [targetingWeapon, setTargetingWeapon] = useState(null); // { item, slot }
-    const { playerRef, updatePlayerStats, playerStats, recordKill } = usePlayer();
+    const { playerRef, updatePlayerStats, playerStats, recordHit } = usePlayer();
     const { gameMapRef, lootGenerator, triggerMapUpdate } = useGameMap();
     const { addEffect } = useVisualEffects();
     const { forceRefresh, inventoryRef, destroyItem } = useInventory();
@@ -162,17 +162,27 @@ export const CombatProvider = ({ children }) => {
         forceRefresh();
     }, [gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh]);
 
+    // Fires on every landed player hit (not just kills) — skill progress and its
+    // paired attribute-XP trickle are hit-driven now, decoupled from whether the
+    // hit happened to be lethal. `announce` preserves the original per-site
+    // level-up-log behavior (thrown stones historically stayed silent on level-up).
+    const applyHitProgression = useCallback((type, announce = true) => {
+        const newLevel = recordHit(type);
+        if (announce && newLevel) {
+            addLog(`LEVEL UP! ${type.charAt(0).toUpperCase() + type.slice(1)} skill is now level ${newLevel}!`, 'warning');
+        }
+    }, [recordHit, addLog]);
+
     // Shared kill handling for direct player attacks (melee / ranged / thrown stone).
-    // Handles the kill log, skill XP, faction-specific drops and the Earbuck award.
+    // Handles the kill log, faction-specific drops and the Earbuck award. Skill
+    // XP is no longer tied to kills at all — see applyHitProgression, called at
+    // hit time regardless of whether the hit was lethal.
     // Per-site quirks are passed as flags so behavior stays byte-for-byte identical:
-    //  - logLevelUp:           melee/ranged announce skill level-ups; stone does not.
     //  - lootToGroundIfOnPlayer: ranged drops loot into the ground container when the
     //                            target dies on the player's own tile (melee/stone don't).
     //  - clearNpcInventory:    melee/ranged clear the looted NPC inventory; stone doesn't.
     //  - cancelOnKill:         melee/ranged cancel targeting on kill; stone doesn't.
     const processEntityKill = useCallback((entity, lootX, lootY, {
-        killType,
-        logLevelUp = true,
         lootToGroundIfOnPlayer = false,
         clearNpcInventory = true,
         cancelOnKill = true,
@@ -181,10 +191,6 @@ export const CombatProvider = ({ children }) => {
         const player = playerRef.current;
 
         addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed!`, 'combat');
-        const newLevel = recordKill(killType);
-        if (logLevelUp && newLevel) {
-            addLog(`LEVEL UP! ${killType.charAt(0).toUpperCase() + killType.slice(1)} skill is now level ${newLevel}!`, 'warning');
-        }
 
         // Place dropped items either on the ground container (ranged-on-player-tile) or the map tile.
         const placeItems = (items) => {
@@ -216,7 +222,7 @@ export const CombatProvider = ({ children }) => {
 
         gameMap.removeEntity(entity.id);
         if (cancelOnKill) cancelTargeting();
-    }, [gameMapRef, playerRef, addLog, recordKill, lootGenerator, triggerAcidEffect, cancelTargeting]);
+    }, [gameMapRef, playerRef, addLog, lootGenerator, triggerAcidEffect, cancelTargeting]);
 
     // Shared playback for the action queue produced by an ExplosionIntent (grenades / molotovs).
     // The two callers differ only in the death-effect color and the structure-break source tag.
@@ -310,7 +316,7 @@ export const CombatProvider = ({ children }) => {
         // 1. Calculate Outcome
         const meleeLvl = playerStats.meleeLvl || 1;
         const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
-        const { hit, isCrit, damage, extraDamageApplied, stunDuration, dodged, defenseApSpent } = CombatResolver.rollPlayerMelee({
+        const { hit, isCrit, damage, extraDamageApplied, stunDuration, dodged } = CombatResolver.rollPlayerMelee({
             weaponStats,
             skillLvl: meleeLvl,
             drunkenness: player.drunkenness || 0,
@@ -324,11 +330,6 @@ export const CombatProvider = ({ children }) => {
             defenderSubtype: targetEntity?.subtype,
             defender: targetEntity
         });
-        // Player-attacking is fully synchronous (no deferred playback), so the
-        // defender's active-defense AP cost applies immediately.
-        if (defenseApSpent > 0 && targetEntity && typeof targetEntity.useAP === 'function') {
-            targetEntity.useAP(defenseApSpent);
-        }
         if (dodged && targetEntity) {
             addLog(`${targetEntity.name || targetEntity.type} dodges your attack!`, 'combat');
         }
@@ -366,6 +367,7 @@ export const CombatProvider = ({ children }) => {
 
         // 4. Detailed Logic Execution
         if (hit) {
+            applyHitProgression('melee');
             if (targetEntity) {
                 const finalMeleeDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
                 if (finalMeleeDamage > 0) targetEntity.takeDamage(finalMeleeDamage);
@@ -414,7 +416,7 @@ export const CombatProvider = ({ children }) => {
             });
 
             if (targetEntity && targetEntity.isDead()) {
-                processEntityKill(targetEntity, targetX, targetY, { killType: 'melee' });
+                processEntityKill(targetEntity, targetX, targetY, {});
             }
 
             if (turret && turret.isDead()) {
@@ -442,7 +444,7 @@ export const CombatProvider = ({ children }) => {
         }
 
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats, playerStats, destroyItem, processEntityKill]);
+    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats, playerStats, destroyItem, processEntityKill, applyHitProgression]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
         const player = playerRef.current;
@@ -552,7 +554,7 @@ export const CombatProvider = ({ children }) => {
             const hasLaserSight = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.LASER_SIGHT);
 
             const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
-            const { hit, isCrit, damage, dodged, defenseApSpent } = CombatResolver.rollPlayerRanged({
+            const { hit, isCrit, damage, dodged } = CombatResolver.rollPlayerRanged({
                 stats,
                 skillLvl: rangedLvl,
                 drunkenness: player.drunkenness || 0,
@@ -560,16 +562,12 @@ export const CombatProvider = ({ children }) => {
                 isWindowTarget,
                 hasScope,
                 hasLaserSight,
+                currentAgility: player.currentAgility,
                 currentPerception: player.currentPerception,
                 defenderType: targetEntity?.type,
                 defenderSubtype: targetEntity?.subtype,
                 defender: targetEntity
             });
-            // Player-attacking is fully synchronous (no deferred playback), so the
-            // defender's active-defense AP cost applies immediately.
-            if (defenseApSpent > 0 && targetEntity && typeof targetEntity.useAP === 'function') {
-                targetEntity.useAP(defenseApSpent);
-            }
             if (dodged && targetEntity) {
                 addLog(`${targetEntity.name || targetEntity.type} dodges your attack!`, 'combat');
             }
@@ -594,6 +592,7 @@ export const CombatProvider = ({ children }) => {
             if (hit) {
                 hits++;
                 totalDamage += damage;
+                applyHitProgression('ranged');
                 if (targetEntity) {
                     const finalRangedDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
                     if (finalRangedDamage > 0) targetEntity.takeDamage(finalRangedDamage);
@@ -634,7 +633,7 @@ export const CombatProvider = ({ children }) => {
 
                 if (targetEntity && targetEntity.isDead()) {
                     kills++;
-                    processEntityKill(targetEntity, targetEntity.x, targetEntity.y, { killType: 'ranged', lootToGroundIfOnPlayer: true });
+                    processEntityKill(targetEntity, targetEntity.x, targetEntity.y, { lootToGroundIfOnPlayer: true });
                     break; // End burst if target dies
                 }
 
@@ -662,7 +661,7 @@ export const CombatProvider = ({ children }) => {
         forceRefresh();
         triggerMapUpdate();
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, processEntityKill]);
+    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, processEntityKill, applyHitProgression]);
 
     const performGrenadeThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;
@@ -787,6 +786,7 @@ export const CombatProvider = ({ children }) => {
         ProjectileManager.processProjectilePath(gameMap, player.x, player.y, targetX, targetY);
 
         if (hit) {
+            applyHitProgression('ranged', false);
             const damage = Math.floor(Math.random() * 4) + 1; // 1-4 damage
             const isKillingBlow = targetEntity && targetEntity.hp <= damage;
 
@@ -830,8 +830,6 @@ export const CombatProvider = ({ children }) => {
 
                 if (targetEntity.isDead()) {
                     processEntityKill(targetEntity, targetX, targetY, {
-                        killType: 'ranged',
-                        logLevelUp: false,
                         clearNpcInventory: false,
                         cancelOnKill: false,
                     });
@@ -889,7 +887,7 @@ export const CombatProvider = ({ children }) => {
         triggerMapUpdate();
         forceRefresh();
         return { success: true };
-    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, playerStats, processEntityKill]);
+    }, [playerRef, gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh, destroyItem, playerStats, processEntityKill, applyHitProgression]);
 
     const performMolotovThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;

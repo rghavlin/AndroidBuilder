@@ -80,7 +80,24 @@ Add sound effects and music using a decoupled, event-driven pattern.
 
 ---
 
-## 4. Universal Testing Protocol & Dev Console
+## 4. Project: Combat & Skill Coherence
+
+Full design doc, locked decisions, and phase details: `COMBAT_SKILL_COHERENCE_PLAN.md`.
+
+Unify melee/ranged/dodge into a coherent, Mythras-influenced skill system: percentile skills seeded once from attribute pairs (Melee=Str+Agi, Ranged=Agi+Per, Defense=Agi+Per), a new Defense skill every evading entity has (opposed-roll combat, no AP cost), crit folded into the hit roll as a degree-of-success, and all attribute→bonus formulas unified under one continuous conversion instead of seven ad hoc bucket sizes.
+
+### Implementation Roadmap
+* **Phase 1 — Unify attribute-bonus formulas (`attrMod`) [COMPLETE]**
+* **Phase 2 — Crit as degree-of-success [COMPLETE]**
+* **Phase 3 — Melee/Ranged: kills → hits, milestone → percentage, attribute XP split [COMPLETE]**
+* **Phase 4 — Defense skill + opposed-roll unification (RISKY) [COMPLETE]**
+* **Phase 5 — Character creation seed integration [COMPLETE]**
+
+**Project complete — all 5 phases implemented and verified.**
+
+---
+
+## 5. Universal Testing Protocol & Dev Console
 
 ### Golden Rule: In-Game Console Only
 **ALL inventory and game system testing MUST use the in-game Dev Console (activated via the `~` key).**

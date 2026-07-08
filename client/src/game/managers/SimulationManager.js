@@ -50,17 +50,6 @@ export class SimulationManager {
       let npcs = gameMap.getEntitiesByType(EntityType.NPC) || [];
       let zombies = gameMap.getEntitiesByType(EntityType.ZOMBIE) || [];
 
-      // Active Defense: reset dodge fatigue and the per-turn shadow AP pool for
-      // every Active Defender before this turn's zombie/turret attacks run, so
-      // diminishing returns don't carry over from the previous turn and dodge
-      // decisions are made against this turn's actual banked AP.
-      player.defensesThisTurn = 0;
-      player.pendingDefenseAp = player.ap;
-      for (const npc of npcs) {
-        npc.defensesThisTurn = 0;
-        npc.pendingDefenseAp = npc.ap;
-      }
-
       // Sensory cleanup: wipe last turn's "heard but not seen" ghost flags so
       // only zombies that are noisy again THIS turn render as silhouettes.
       for (const zombie of zombies) {

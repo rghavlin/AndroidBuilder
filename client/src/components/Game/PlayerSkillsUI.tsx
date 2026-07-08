@@ -1,10 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
-import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices, AlertTriangle } from 'lucide-react';
+import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices, AlertTriangle, Shield } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { CombatResolver } from '@/game/systems/CombatResolver';
 import { AttributeProgressionManager } from '@/game/systems/AttributeProgressionManager';
+import { PlayerSkills } from '@/game/components/PlayerSkills';
 import { previewDerivedStats, TREATMENT_EFFECTS } from '@/game/utils/SurvivalCascade';
 
 interface SkillProgressBarProps {
@@ -183,29 +184,41 @@ export default function PlayerSkillsUI() {
 
     const combatSkills = useMemo(() => {
         const meleeLvl = (playerStats.meleeLvl !== undefined ? playerStats.meleeLvl : 0);
-        const meleeKills = playerStats.meleeKills || 0;
-        const meleeNext = 5 * Math.pow(2, meleeLvl);
-        const meleePrev = meleeLvl === 0 ? 0 : 5 * Math.pow(2, meleeLvl - 1);
+        const meleeHits = playerStats.meleeHits || 0;
+        const meleeNext = PlayerSkills.getNextHitMilestone(meleeLvl);
+        const meleePrev = meleeLvl === 0 ? 0 : PlayerSkills.getNextHitMilestone(meleeLvl - 1);
 
         const rangedLvl = (playerStats.rangedLvl !== undefined ? playerStats.rangedLvl : 0);
-        const rangedKills = playerStats.rangedKills || 0;
-        const rangedNext = 5 * Math.pow(2, rangedLvl);
-        const rangedPrev = rangedLvl === 0 ? 0 : 5 * Math.pow(2, rangedLvl - 1);
+        const rangedHits = playerStats.rangedHits || 0;
+        const rangedNext = PlayerSkills.getNextHitMilestone(rangedLvl);
+        const rangedPrev = rangedLvl === 0 ? 0 : PlayerSkills.getNextHitMilestone(rangedLvl - 1);
+
+        const defenseLvl = (playerStats.defenseLvl !== undefined ? playerStats.defenseLvl : 0);
+        const defenseHits = playerStats.defenseHits || 0;
+        const defenseNext = PlayerSkills.getNextHitMilestone(defenseLvl);
+        const defensePrev = defenseLvl === 0 ? 0 : PlayerSkills.getNextHitMilestone(defenseLvl - 1);
 
         return {
             melee: {
                 level: meleeLvl,
-                kills: meleeKills,
+                hits: meleeHits,
                 next: meleeNext,
                 prev: meleePrev,
                 acc: meleeLvl // Starting at 0% at level 0, 1% at level 1
             },
             ranged: {
                 level: rangedLvl,
-                kills: rangedKills,
+                hits: rangedHits,
                 next: rangedNext,
                 prev: rangedPrev,
                 acc: rangedLvl // Starting at 0% at level 0, 1% at level 1
+            },
+            defense: {
+                level: defenseLvl,
+                hits: defenseHits,
+                next: defenseNext,
+                prev: defensePrev,
+                acc: defenseLvl // Starting at 0% at level 0, 1% at level 1
             }
         };
     }, [playerStats]);
@@ -238,11 +251,15 @@ export default function PlayerSkillsUI() {
         const meleeDamageBonus = CombatResolver.strengthDamageBonus(currentStrength);
         const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, playerStats.armorWeightRequirement || 0);
         const wagonPullBonus = Math.floor(currentStrength / 20);
-        const baseDodge = CombatResolver.dodgeChanceFromAgility(currentAgility);
-        const dodgeChance = Math.max(0, Math.round(baseDodge - armorPenalty));
-        const critBonus = Math.round(CombatResolver.perceptionCritBonus(currentPerception) * 100);
-        const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(currentAgility) * 100);
-        const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(currentPerception) * 100);
+        const defenseChance = Math.round(CombatResolver.totalDefenseChance({
+            defenseLvl: playerStats.defenseLvl || 0,
+            currentAgility,
+            currentPerception,
+            currentStrength,
+            weightRequirement: playerStats.armorWeightRequirement || 0
+        }) * 100);
+        const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(currentStrength, currentAgility) * 100);
+        const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(currentAgility, currentPerception) * 100);
         const sightRangeBonus = Math.floor(currentPerception / 20);
         const derivedFallback = previewDerivedStats({
             constitution: currentConstitution,
@@ -282,8 +299,8 @@ export default function PlayerSkillsUI() {
 
         return {
             strength: { current: currentStrength, base: baseStrength, meleeDamageBonus, armorPenalty, wagonPullBonus, totalXP: playerStats.strengthXP || 0, spentXP: playerStats.strengthXpSpent || 0, requiredXP: reqStrXP, infectionEffects: getInfectionEffects('Strength') },
-            agility: { current: currentAgility, base: baseAgility, dodgeChance, meleeAimBonus, armorPenalty, totalXP: playerStats.agilityXP || 0, spentXP: playerStats.agilityXpSpent || 0, requiredXP: reqAgiXP, infectionEffects: getInfectionEffects('Agility') },
-            perception: { current: currentPerception, base: basePerception, critBonus, rangedAimBonus, sightRangeBonus, totalXP: playerStats.perceptionXP || 0, spentXP: playerStats.perceptionXpSpent || 0, requiredXP: reqPerXP, infectionEffects: getInfectionEffects('Perception') },
+            agility: { current: currentAgility, base: baseAgility, defenseChance, meleeAimBonus, armorPenalty, totalXP: playerStats.agilityXP || 0, spentXP: playerStats.agilityXpSpent || 0, requiredXP: reqAgiXP, infectionEffects: getInfectionEffects('Agility') },
+            perception: { current: currentPerception, base: basePerception, rangedAimBonus, sightRangeBonus, totalXP: playerStats.perceptionXP || 0, spentXP: playerStats.perceptionXpSpent || 0, requiredXP: reqPerXP, infectionEffects: getInfectionEffects('Perception') },
             constitution: { current: currentConstitution, base: baseConstitution, maxHp, sickResistPct, totalXP: playerStats.constitutionXP || 0, spentXP: playerStats.constitutionXpSpent || 0, requiredXP: reqConXP, infectionEffects: getInfectionEffects('Constitution') }
         };
     }, [playerStats]);
@@ -355,8 +372,7 @@ export default function PlayerSkillsUI() {
                             base={attributes.agility.base}
                             accentColor="bg-sky-500/10 border-sky-500/30"
                             effects={[
-                                `Dodge chance ~${attributes.agility.dodgeChance}% (1st this turn)`,
-                                'Repeat dodges the same turn are weaker',
+                                `Defense ~${attributes.agility.defenseChance}%`,
                                 `Melee hit +${attributes.agility.meleeAimBonus}%`,
                                 ...(attributes.agility.armorPenalty > 0
                                     ? [`Armor agility penalty: -${attributes.agility.armorPenalty}`]
@@ -376,7 +392,6 @@ export default function PlayerSkillsUI() {
                             base={attributes.perception.base}
                             accentColor="bg-violet-500/10 border-violet-500/30"
                             effects={[
-                                `Crit chance +${attributes.perception.critBonus}%`,
                                 `Ranged hit +${attributes.perception.rangedAimBonus}%`,
                                 `Sight range bonus: +${attributes.perception.sightRangeBonus}`,
                                 ...attributes.perception.infectionEffects
@@ -414,8 +429,8 @@ export default function PlayerSkillsUI() {
                         <CompactSkillCard
                             title="Melee Combat"
                             level={combatSkills.melee.level}
-                            progressLabel="Kills"
-                            current={combatSkills.melee.kills}
+                            progressLabel="Hits"
+                            current={combatSkills.melee.hits}
                             next={combatSkills.melee.next}
                             prev={combatSkills.melee.prev}
                             metrics={[
@@ -426,12 +441,24 @@ export default function PlayerSkillsUI() {
                         <CompactSkillCard
                             title="Ranged Combat"
                             level={combatSkills.ranged.level}
-                            progressLabel="Kills"
-                            current={combatSkills.ranged.kills}
+                            progressLabel="Hits"
+                            current={combatSkills.ranged.hits}
                             next={combatSkills.ranged.next}
                             prev={combatSkills.ranged.prev}
                             metrics={[
                                 { icon: <Crosshair className="w-2.5 h-2.5 text-green-500" />, label: 'Acc', value: `+${combatSkills.ranged.acc}%`, color: 'text-green-500/90' }
+                            ]}
+                        />
+
+                        <CompactSkillCard
+                            title="Defense"
+                            level={combatSkills.defense.level}
+                            progressLabel="Hits"
+                            current={combatSkills.defense.hits}
+                            next={combatSkills.defense.next}
+                            prev={combatSkills.defense.prev}
+                            metrics={[
+                                { icon: <Shield className="w-2.5 h-2.5 text-green-500" />, label: 'Bonus', value: `+${combatSkills.defense.acc}%`, color: 'text-green-500/90' }
                             ]}
                         />
 

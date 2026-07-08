@@ -42,28 +42,36 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
         // Attribute effects matching PlayerSkillsUI / CombatResolver formulas
         const meleeDamageBonus = CombatResolver.strengthDamageBonus(stats.strength);
         const wagonPullBonus = Math.floor(stats.strength / 20);
-        const dodgeChance = CombatResolver.dodgeChanceFromAgility(stats.agility);
-        const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(stats.agility) * 100);
-        const critBonus = Math.round(CombatResolver.perceptionCritBonus(stats.perception) * 100);
-        const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(stats.perception) * 100);
+        const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(stats.strength, stats.agility) * 100);
+        const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(stats.agility, stats.perception) * 100);
+        const defenseBonus = Math.round(CombatResolver.defenseBonus(stats.agility, stats.perception) * 100);
         const sightRangeBonus = Math.floor(stats.perception / 20);
         const sickResistPct = Math.round(CombatResolver.sicknessResistFraction(stats.constitution) * 100);
+
+        // One-time skill seeds from the attribute pairs each skill trains on
+        // (Melee←Str+Agi, Ranged/Defense←Agi+Per). Sourced from the same
+        // seedLevel helper EntityFactory uses at creation, so preview == result.
+        const meleeSeed = CombatResolver.seedLevel(stats.strength, stats.agility);
+        const rangedSeed = CombatResolver.seedLevel(stats.agility, stats.perception);
+        const defenseSeed = CombatResolver.seedLevel(stats.agility, stats.perception);
 
         return {
             maxHp,
             maxAp,
             strengthEffects: [
                 `Melee damage +${meleeDamageBonus}`,
-                `Wagon-pull AP bonus: +${wagonPullBonus} AP`
+                `Wagon-pull AP bonus: +${wagonPullBonus} AP`,
+                `Melee skill starts at Lv ${meleeSeed} (+${meleeSeed}%)`
             ],
             agilityEffects: [
-                `Dodge chance ~${dodgeChance}% (1st this turn)`,
-                `Melee hit +${meleeAimBonus}%`
+                `Defense +${defenseBonus}%`,
+                `Melee hit +${meleeAimBonus}%`,
+                `Defense skill starts at Lv ${defenseSeed} (+${defenseSeed}%)`
             ],
             perceptionEffects: [
-                `Crit chance +${critBonus}%`,
                 `Ranged hit +${rangedAimBonus}%`,
-                `Sight range bonus: +${sightRangeBonus}`
+                `Sight range bonus: +${sightRangeBonus}`,
+                `Ranged skill starts at Lv ${rangedSeed} (+${rangedSeed}%)`
             ],
             constitutionEffects: [
                 `Max HP ${maxHp}`,

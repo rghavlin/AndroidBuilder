@@ -2,76 +2,112 @@ import { gameRandom } from '../utils/SeededRandom.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
 import engine from '../GameEngine.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
-import { AttributeProgressionManager } from './AttributeProgressionManager.js';
+
+// Shared continuous attribute->bonus conversion. Every "attribute nudges a
+// probability" site (melee/ranged aim, Defense, sickness resist) routes
+// through this one function instead of inventing its own bucket size, so a
+// one-point nutrition-cascade dip always moves the modifier a little instead
+// of doing nothing until it crosses an arbitrary threshold. BASELINE=20
+// matches the default value shared by Strength/Agility/Perception/Constitution.
+// STEP is a provisional magnitude, expected to be retuned from playtesting.
+const ATTR_MOD_BASELINE = 20;
+const ATTR_MOD_STEP = 0.0015;
+
+// Melee no longer reads a per-weapon accuracy stat (removed design decision:
+// weapon-level hitChance stacked unclamped on top of skill/attribute and, per
+// the itemization data, correlated WITH damage rather than trading off
+// against it — so it wasn't creating a meaningful choice, just quietly
+// contradicting "trained skill is the dominant hit-chance lever." Every melee
+// weapon now shares this flat base; weapons differentiate on damage, crit,
+// and (later) speed/AP cost instead. Provisional, tune from playtesting.
+const BASE_MELEE_HIT_CHANCE = 0.75;
+
+// Crit is a degree-of-success on the hit roll itself, not a separate roll:
+// the engine already rolls low-is-good (gameRandom.next() <= hitChance), so
+// landing WELL under that threshold (not just under it) is a crit. Perception
+// still matters for crit, but only indirectly — it's already folded into
+// hitChance via the aim nudge, which widens the crit band along with the hit
+// band. Replaces the old separate weaponCritChance + perceptionCritBonus
+// roll, and with it, any per-weapon crit-chance override — crit is now purely
+// a function of margin, not an item stat. Provisional divisor, tune later.
+const CRIT_DIVISOR = 5;
+
+// Every successful zombie attack (melee or Spitter's ranged spit) has a flat
+// chance to transmit the zombie-virus infection — this is deliberately
+// universal to all zombie types, not per-type data like bleedChance/sickChance,
+// since it's meant to be an eventual inevitability of fighting zombies at all,
+// not a special trait of any one archetype. Exported so AISystem.js's separate
+// Spitter-ranged-attack path (spitAtPlayer) can reuse the same constant instead
+// of hardcoding a second copy.
+export const ZOMBIE_INFECTION_CHANCE = 0.1;
+
+// Defense is a skill every entity capable of evading has (player, NPC), no AP
+// cost — passive and free on every incoming attack, resolved as a single roll
+// against a defense chance built the same way melee/ranged hit chance is
+// (a flat base + skillLvl*0.01 + an attrMod nudge from Agility+Perception).
+// There is no banked-AP dodge, no per-turn diminishing returns for repeat
+// defenses — those existed solely to gate the old AP-spend model, which is
+// gone. Zombies use a flat, per-type, non-growing value instead (see
+// ZombieTypes.js `defense`) since they have no attributes/skill at all.
+// Turrets/structures are Defenseless — a fixed target, like a door or
+// window, resolved as a bare attacker-hit-chance check with no defender roll.
+// Provisional base chance, tune from playtesting.
+const BASE_DEFENSE_CHANCE = 0.15;
 
 // Single shared home for combat dice-rolling math, used by every attacker type
-// (player, NPC, zombie, turret). Combat capability tiers:
-//   - Active Defender (player, NPCs) — automatically spends 1 banked AP per
-//     incoming hit to attempt a dodge, with diminishing returns per dodge this
-//     turn. There is no reactive prompt: because AP left unspent at end-of-turn
-//     just sits idle during the zombie/NPC/turret phase anyway, "how much AP to
-//     hold back before ending your turn" IS the player's defensive choice.
-//   - Passive Evader (zombies) — flat "stumble" evasion from their type def,
-//     no AP, no agency, since they're mindless.
-//   - Defenseless (turrets, structures) — never evades.
-//
-// AP-spend timing: many attacks against the player/NPCs resolve during the
-// SIMULATION phase (all at once) but only become visible during a separate,
-// slower PLAYBACK phase seconds later (see TurnManager's "PLAYBACK-FIRST"
-// damage model). If a dodge attempt mutated the defender's real `ap` the
-// instant it was decided, the AP gauge would visibly drop right when the
-// player clicks End Turn — before the attack that "caused" it has even
-// animated. So rollActiveDefense decides against a per-turn shadow AP pool
-// (`defender.pendingDefenseAp`, reset alongside defensesThisTurn at the start
-// of each turn) and reports how much AP *should* be spent; callers on a
-// deferred-playback path (zombies/NPCs attacking) apply that real AP
-// deduction at playback time, in step with the animation and log line.
-// Synchronous callers (the player directly clicking to attack, and turrets,
-// which already apply damage during simulation) apply it immediately.
+// (player, NPC, zombie, turret).
 export class CombatResolver {
-  /** Converts agility to base dodge chance percentage (0-100 scale). */
-  static dodgeChanceFromAgility(agility) {
-    return (agility || 0) * 0.5;
-  }
 
-  /** Base crit chance from a weapon/turret stats block, defaulting to 5% if unset. */
-  static weaponCritChance(statsBlock) {
-    return statsBlock?.critChance !== undefined ? statsBlock.critChance : 0.05;
-  }
-
-  /** Perception's precision bonus on top of a weapon's base crit chance. */
-  static perceptionCritBonus(currentPerception = 0) {
-    return Math.floor(currentPerception / 15) * 0.05;
+  /**
+   * Shared continuous attribute->bonus conversion (see module-level comment).
+   * Positive above baseline, negative below it, never bucketed/stepped.
+   */
+  static attrMod(attr = 0, step = ATTR_MOD_STEP) {
+    return ((attr || 0) - ATTR_MOD_BASELINE) * step;
   }
 
   /**
-   * Perception's aim bonus added to RANGED hit chance, and Agility's to MELEE hit
-   * chance. Deliberately light (≈+2% at baseline, stepping up with the attribute) so
-   * the trained melee/ranged skill remains the dominant hit-chance lever, with the
-   * attribute a small innate floor on top. Divisors chosen so the default attributes
-   * (Per 20, Agi 40) sit comfortably inside a step rather than on a cliff edge.
+   * Mythras-style one-time skill seed: a combat skill starts pre-leveled from
+   * the two attributes it's trained on (Melee←Str+Agi, Ranged/Defense←Agi+Per),
+   * reusing the same BASELINE=20 convention as attrMod. Deliberately small
+   * relative to earned progression — because getNextHitMilestone (12.5*2^level)
+   * is steep, a realistic 80-point creation allocation caps out around a 0-6
+   * level head start, nudging the starting line without substituting for the
+   * grind. Reads narratively as natural aptitude, not trained competency.
+   * Applied once at character creation, never re-derived from live attributes.
    */
-  static perceptionAimBonus(currentPerception = 0) {
-    return Math.floor((currentPerception || 0) / 15) * 0.02;
+  static seedLevel(attr1 = 0, attr2 = 0) {
+    return Math.max(0, Math.floor((((attr1 || 0) - ATTR_MOD_BASELINE) + ((attr2 || 0) - ATTR_MOD_BASELINE)) / 10));
   }
 
-  static meleeAimBonus(currentAgility = 0) {
-    return Math.floor((currentAgility || 0) / 25) * 0.02;
+  /**
+   * Melee hit-chance nudge from Strength+Agility (averaged), and Ranged's from
+   * Agility+Perception (averaged) — deliberately light so the trained melee/ranged
+   * skill remains the dominant hit-chance lever, with the attributes a small innate
+   * floor on top. `meleeAimBonus`/`perceptionAimBonus` names kept for call-site
+   * continuity even though both are now two-attribute averages, not single-attribute.
+   */
+  static meleeAimBonus(currentStrength = 0, currentAgility = 0) {
+    return (CombatResolver.attrMod(currentStrength) + CombatResolver.attrMod(currentAgility)) / 2;
   }
 
-  /** Strength's flat melee damage bonus, capped at +5. */
+  static perceptionAimBonus(currentAgility = 0, currentPerception = 0) {
+    return (CombatResolver.attrMod(currentAgility) + CombatResolver.attrMod(currentPerception)) / 2;
+  }
+
+  /** Defense's attribute nudge — same Agility+Perception average as Ranged's, since Defense shares that seed pair. */
+  static defenseBonus(currentAgility = 0, currentPerception = 0) {
+    return (CombatResolver.attrMod(currentAgility) + CombatResolver.attrMod(currentPerception)) / 2;
+  }
+
+  /** Strength's flat melee damage bonus, capped at +5. Provisional magnitude, tune later. */
   static strengthDamageBonus(currentStrength = 0) {
-    return Math.min(5, Math.floor(currentStrength / 20));
-  }
-
-  /** Constitution's sickness/disease resistance level, in integer steps (one per 20 points). */
-  static sicknessResistLevel(currentConstitution = 0) {
-    return Math.floor((currentConstitution || 0) / 20);
+    return Math.min(5, Math.max(0, (currentStrength - ATTR_MOD_BASELINE) * 0.05));
   }
 
   /** Fraction (0-1) of an inflicted sickness duration that Constitution shrugs off, capped. */
   static sicknessResistFraction(currentConstitution = 0) {
-    return Math.min(0.6, CombatResolver.sicknessResistLevel(currentConstitution) * 0.15);
+    return Math.min(0.6, Math.max(0, CombatResolver.attrMod(currentConstitution) * 5));
   }
 
   /**
@@ -132,64 +168,70 @@ export class CombatResolver {
   }
 
   /**
-   * Active Defender dodge attempt: reserves 1 AP from the defender's per-turn
-   * shadow AP pool and rolls against a dodge target built from current Agility,
-   * minus the over-weight-armor penalty and a per-dodge diminishing-returns
-   * penalty (both expressed in the same 0-100 scale as Agility). Only
-   * attempted when the defender has shadow AP banked to spend. Does NOT mutate
-   * the defender's real `ap` — callers apply `apCost` themselves, at whatever
-   * point (immediate or deferred to playback) matches their execution model.
+   * Player/NPC total Defense chance: a flat base + defenseLvl*0.01 (same shape
+   * as melee/ranged's skill-driven hit chance) + an Agility+Perception attrMod
+   * nudge, minus an over-weight-armor penalty. Single source of truth for both
+   * the actual combat roll (rollDefense) and UI previews (CharacterCreator/
+   * PlayerSkillsUI) — nothing hardcodes this formula a second time.
    */
-  static rollActiveDefense(defender) {
-    const availableAp = defender?.pendingDefenseAp !== undefined ? defender.pendingDefenseAp : (defender?.ap || 0);
-    if (!defender || availableAp < 1) return { attempted: false, evaded: false, apCost: 0 };
-
-    // Penalty is based on dodges already spent THIS turn before this one, so the
-    // first dodge attempt is never penalized — only repeat dodges in the same
-    // turn get progressively worse.
-    const priorDefenses = defender.defensesThisTurn || 0;
-
-    defender.pendingDefenseAp = availableAp - 1;
-    defender.defensesThisTurn = priorDefenses + 1;
-
-    const armorPenalty = CombatResolver.armorWeightPenalty(defender.currentStrength, defender.weightRequirement);
-    const diminishingPenalty = priorDefenses * ((defender.diminishingRate ?? 0.15) * 100);
-    const baseDodge = CombatResolver.dodgeChanceFromAgility(defender.currentAgility);
-    const dodgeTarget = Math.max(0, baseDodge - armorPenalty - diminishingPenalty);
-
-    const evaded = gameRandom.next() * 100 < dodgeTarget;
-    if (evaded && defender.type === 'player') {
-      AttributeProgressionManager.recordAction(defender, 'DODGE_SUCCESS');
-    }
-    return { attempted: true, evaded, apCost: 1 };
+  static totalDefenseChance({ defenseLvl = 0, currentAgility = 0, currentPerception = 0, currentStrength = 0, weightRequirement = 0 } = {}) {
+    const skillBonus = (defenseLvl || 0) * 0.01;
+    const attrNudge = CombatResolver.defenseBonus(currentAgility, currentPerception);
+    const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, weightRequirement) / 100;
+    return Math.max(0, BASE_DEFENSE_CHANCE + skillBonus + attrNudge - armorPenalty);
   }
 
   /**
-   * Resolves which combat capability tier a defender falls into and rolls its
-   * evasion accordingly: Passive Evaders roll their flat stumble chance,
-   * Active Defenders attempt a banked-AP dodge, Defenseless targets never evade.
+   * Player/NPC Defense roll, passive and free — no AP spent, no diminishing
+   * returns for repeat defenses in a turn (those existed only to gate the old
+   * banked-AP model). On a successful evade, records the defense against the
+   * defender's own Defense skill/attribute progression — only reached when
+   * the attacker's hit roll already succeeded (every caller gates this behind
+   * `if (hit)`), so an attack that would have missed anyway never grants
+   * Defense progress.
    */
-  static resolveDefenseTier({ defenderType, defenderSubtype, defender }) {
+  static rollDefense(defender) {
+    if (!defender) return false;
+    const defenseChance = CombatResolver.totalDefenseChance({
+      defenseLvl: defender.defenseLvl,
+      currentAgility: defender.currentAgility,
+      currentPerception: defender.currentPerception,
+      currentStrength: defender.currentStrength,
+      weightRequirement: defender.weightRequirement
+    });
+
+    const evaded = gameRandom.next() < defenseChance;
+    if (evaded && typeof defender.recordDefense === 'function') {
+      defender.recordDefense();
+    }
+    return evaded;
+  }
+
+  /**
+   * Resolves a defender's evasion: zombies roll their flat per-type `defense`
+   * value (no growth, no attributes); player/NPC roll the skill-driven
+   * Defense above; turrets/structures are Defenseless (a fixed target, like a
+   * door or window) and never evade.
+   */
+  static resolveDefense({ defenderType, defenderSubtype, defender }) {
     if (defenderType === 'zombie') {
-      const stumbleEvasion = getZombieType(defenderSubtype)?.stumbleEvasion || 0;
-      const evaded = stumbleEvasion > 0 && gameRandom.next() < stumbleEvasion;
-      return { tier: 'passiveEvader', evaded, apCost: 0 };
+      const defense = getZombieType(defenderSubtype)?.defense || 0;
+      return { evaded: defense > 0 && gameRandom.next() < defense };
     }
     if (defenderType === 'player' || defenderType === 'npc') {
-      const { evaded, apCost } = CombatResolver.rollActiveDefense(defender);
-      return { tier: 'activeDefender', evaded, apCost };
+      return { evaded: CombatResolver.rollDefense(defender) };
     }
-    return { tier: 'defenseless', evaded: false, apCost: 0 };
+    return { evaded: false };
   }
 
   /** Player melee attack roll. */
-  static rollPlayerMelee({ weaponStats, skillLvl, drunkenness = 0, isWindowTarget, isStunRodActive, hasTargetEntity, currentStrength = 20, currentAgility = 40, currentPerception = 20, defenderType, defenderSubtype, defender }) {
+  static rollPlayerMelee({ weaponStats, skillLvl, drunkenness = 0, isWindowTarget, isStunRodActive, hasTargetEntity, currentStrength = 20, currentAgility = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
     const accuracyBonus = (skillLvl - drunkenness) * 0.01;
-    const attributeAim = CombatResolver.meleeAimBonus(currentAgility);
-    let hit = isWindowTarget ? true : gameRandom.next() <= (weaponStats.hitChance + accuracyBonus + attributeAim);
-
-    const critChance = CombatResolver.weaponCritChance(weaponStats) + CombatResolver.perceptionCritBonus(currentPerception);
-    let isCrit = hit && gameRandom.next() <= critChance;
+    const attributeAim = CombatResolver.meleeAimBonus(currentStrength, currentAgility);
+    const hitChance = BASE_MELEE_HIT_CHANCE + accuracyBonus + attributeAim;
+    const roll = gameRandom.next();
+    let hit = isWindowTarget ? true : roll <= hitChance;
+    let isCrit = hit && roll <= hitChance / CRIT_DIVISOR;
 
     let baseDamage = isCrit
       ? Math.floor(weaponStats.damage.max * 1.5)
@@ -209,10 +251,8 @@ export class CombatResolver {
     }
 
     let dodged = false;
-    let defenseApSpent = 0;
     if (hit) {
-      const { evaded, apCost } = CombatResolver.resolveDefenseTier({ defenderType, defenderSubtype, defender });
-      defenseApSpent = apCost;
+      const { evaded } = CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
       if (evaded) {
         dodged = true;
         hit = false;
@@ -223,11 +263,11 @@ export class CombatResolver {
       }
     }
 
-    return { hit, isCrit, damage, extraDamageApplied, stunDuration, dodged, defenseApSpent };
+    return { hit, isCrit, damage, extraDamageApplied, stunDuration, dodged };
   }
 
   /** Player ranged single-shot roll. */
-  static rollPlayerRanged({ stats, skillLvl, drunkenness = 0, squaresAway, isWindowTarget, hasScope, hasLaserSight, currentPerception = 20, defenderType, defenderSubtype, defender }) {
+  static rollPlayerRanged({ stats, skillLvl, drunkenness = 0, squaresAway, isWindowTarget, hasScope, hasLaserSight, currentAgility = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
     const accuracyBonus = (skillLvl - drunkenness) * 0.01;
     const isSling = stats.isSling;
 
@@ -247,10 +287,11 @@ export class CombatResolver {
       baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
     }
 
-    const attributeAim = CombatResolver.perceptionAimBonus(currentPerception);
-    let hit = isWindowTarget ? true : gameRandom.next() <= (baseHitChance + accuracyBonus + attributeAim);
-    const critChance = CombatResolver.weaponCritChance(stats) + CombatResolver.perceptionCritBonus(currentPerception);
-    let isCrit = hit && gameRandom.next() <= critChance;
+    const attributeAim = CombatResolver.perceptionAimBonus(currentAgility, currentPerception);
+    const hitChance = baseHitChance + accuracyBonus + attributeAim;
+    const roll = gameRandom.next();
+    let hit = isWindowTarget ? true : roll <= hitChance;
+    let isCrit = hit && roll <= hitChance / CRIT_DIVISOR;
 
     let damage = 0;
     if (hit) {
@@ -270,10 +311,8 @@ export class CombatResolver {
     }
 
     let dodged = false;
-    let defenseApSpent = 0;
     if (hit) {
-      const { evaded, apCost } = CombatResolver.resolveDefenseTier({ defenderType, defenderSubtype, defender });
-      defenseApSpent = apCost;
+      const { evaded } = CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
       if (evaded) {
         dodged = true;
         hit = false;
@@ -282,7 +321,7 @@ export class CombatResolver {
       }
     }
 
-    return { hit, isCrit, damage, dodged, defenseApSpent };
+    return { hit, isCrit, damage, dodged };
   }
 
   /**
@@ -293,7 +332,7 @@ export class CombatResolver {
    * zero modifier, so existing NPC balance is unchanged until NPC types are
    * tuned with different combatSkill values.
    */
-  static rollNpc({ isRanged, combatSkill, weaponDef, weapon, distance, currentStrength = 20, currentAgility = 40, currentPerception = 20, defenderType, defenderSubtype, defender }) {
+  static rollNpc({ isRanged, combatSkill, weaponDef, weapon, distance, currentStrength = 20, currentAgility = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
     const skillModifier = (combatSkill - 0.5) * 0.5;
 
     let baseChance;
@@ -302,22 +341,19 @@ export class CombatResolver {
       const falloff = stats.accuracyFalloff || 0.1;
       baseChance = Math.max(stats.minAccuracy || 0.1, 1.0 - (distance - 1) * falloff);
     } else {
-      baseChance = weaponDef?.combat?.hitChance || 0.75;
+      baseChance = BASE_MELEE_HIT_CHANCE;
     }
 
     const attributeAim = isRanged
-      ? CombatResolver.perceptionAimBonus(currentPerception)
-      : CombatResolver.meleeAimBonus(currentAgility);
+      ? CombatResolver.perceptionAimBonus(currentAgility, currentPerception)
+      : CombatResolver.meleeAimBonus(currentStrength, currentAgility);
     const hitChance = Math.max(0.2, Math.min(0.95, baseChance + skillModifier + attributeAim));
-    let hit = gameRandom.next() < hitChance;
-
-    const critStatsBlock = isRanged ? (weaponDef?.rangedStats || {}) : (weaponDef?.combat || {});
-    const critChance = CombatResolver.weaponCritChance(critStatsBlock) + CombatResolver.perceptionCritBonus(currentPerception);
-    let isCrit = hit && gameRandom.next() < critChance;
+    const roll = gameRandom.next();
+    let hit = roll < hitChance;
+    let isCrit = hit && roll < hitChance / CRIT_DIVISOR;
 
     let damage = 0;
     let dodged = false;
-    let defenseApSpent = 0;
     if (hit) {
       const damageRange = isRanged
         ? (weaponDef?.rangedStats?.damage || weapon?.rangedStats?.damage || { min: 2, max: 5 })
@@ -325,8 +361,7 @@ export class CombatResolver {
       damage = isCrit ? Math.floor(damageRange.max * 1.5) : gameRandom.nextInt(damageRange.min, damageRange.max);
       if (!isRanged) damage += CombatResolver.strengthDamageBonus(currentStrength);
 
-      const { evaded, apCost } = CombatResolver.resolveDefenseTier({ defenderType, defenderSubtype, defender });
-      defenseApSpent = apCost;
+      const { evaded } = CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
       if (evaded) {
         dodged = true;
         hit = false;
@@ -335,7 +370,7 @@ export class CombatResolver {
       }
     }
 
-    return { hit, isCrit, damage, dodged, defenseApSpent };
+    return { hit, isCrit, damage, dodged };
   }
 
   /** Zombie melee roll. Attack accuracy stays a flat 50% — only the defender's evasion is new. */
@@ -344,8 +379,8 @@ export class CombatResolver {
     let damage = 0;
     let bleedingInflicted = false;
     let sickInflicted = false;
+    let infectionInflicted = false;
     let dodged = false;
-    let defenseApSpent = 0;
 
     if (hit) {
       const combat = getZombieType(subtype)?.combat || {};
@@ -354,19 +389,20 @@ export class CombatResolver {
       }
       if (combat.bleedChance && gameRandom.next() < combat.bleedChance) bleedingInflicted = true;
       if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
+      if (gameRandom.next() < ZOMBIE_INFECTION_CHANCE) infectionInflicted = true;
 
-      const { evaded, apCost } = CombatResolver.resolveDefenseTier({ defenderType, defenderSubtype, defender });
-      defenseApSpent = apCost;
+      const { evaded } = CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
       if (evaded) {
         dodged = true;
         hit = false;
         damage = 0;
         bleedingInflicted = false;
         sickInflicted = false;
+        infectionInflicted = false;
       }
     }
 
-    return { hit, damage, bleedingInflicted, sickInflicted, dodged, defenseApSpent };
+    return { hit, damage, bleedingInflicted, sickInflicted, infectionInflicted, dodged };
   }
 
   /** Turret ranged roll. Turrets have no Perception/Strength — crit stays rangedLvl-based. */
@@ -379,14 +415,12 @@ export class CombatResolver {
 
     let damage = 0;
     let dodged = false;
-    let defenseApSpent = 0;
     if (hit) {
       damage = isCrit
         ? Math.floor(turretStats.damage.max * 1.5)
         : gameRandom.nextInt(turretStats.damage.min, turretStats.damage.max);
 
-      const { evaded, apCost } = CombatResolver.resolveDefenseTier({ defenderType, defenderSubtype, defender });
-      defenseApSpent = apCost;
+      const { evaded } = CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
       if (evaded) {
         dodged = true;
         hit = false;
@@ -395,6 +429,6 @@ export class CombatResolver {
       }
     }
 
-    return { hit, isCrit, damage, dodged, defenseApSpent };
+    return { hit, isCrit, damage, dodged };
   }
 }

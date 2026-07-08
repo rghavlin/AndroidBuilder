@@ -96,7 +96,7 @@ export class TurretAI {
         consumeAmmo();
 
         const squaresAway = Math.floor(dist);
-        const { hit, isCrit, damage, dodged, defenseApSpent } = CombatResolver.rollTurret({
+        const { hit, isCrit, damage, dodged } = CombatResolver.rollTurret({
           turretStats,
           rangedLvl: turretStats.rangedLvl,
           squaresAway,
@@ -113,9 +113,6 @@ export class TurretAI {
           const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
           if (finalDamage > 0) target.takeDamage(finalDamage);
         }
-        // Turrets already apply damage synchronously (no deferred playback for
-        // this action type), so the active-defense AP cost applies immediately too.
-        if (defenseApSpent > 0 && typeof target.useAP === 'function') target.useAP(defenseApSpent);
 
         // Noise
         if (gameMap.emitNoise) gameMap.emitNoise(turretX, turretY, noiseRadius);

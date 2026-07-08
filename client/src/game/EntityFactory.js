@@ -15,8 +15,8 @@ import { PlayerSkills } from './components/PlayerSkills.js';
 import { PlayerWallet } from './components/PlayerWallet.js';
 import { Burnable } from './components/Burnable.js';
 import { RpgStats } from './components/RpgStats.js';
-import { ActiveDefense } from './components/ActiveDefense.js';
 import { recalcCharacter } from './utils/SurvivalCascade.js';
+import { CombatResolver } from './systems/CombatResolver.js';
 
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
@@ -54,11 +54,23 @@ export const EntityFactory = {
       isStarving: false,
       isDehydrated: false
     }));
+    // Mythras-style skill seeding: a NEW character's combat skills start
+    // pre-leveled from the attributes they're trained on (Melee←Str+Agi,
+    // Ranged/Defense←Agi+Per). This only applies when no explicit level is
+    // supplied — a loaded save passes its own meleeLvl/rangedLvl/defenseLvl,
+    // which take precedence so we never re-seed (and overwrite earned progress)
+    // on reload. Seeded off the chosen base attributes, resolved the same way
+    // RpgStats resolves them below.
+    const seedStr = customStats?.baseStrength !== undefined ? customStats.baseStrength : (customStats?.strength !== undefined ? customStats.strength : 20);
+    const seedAgi = customStats?.baseAgility !== undefined ? customStats.baseAgility : (customStats?.agility !== undefined ? customStats.agility : 20);
+    const seedPer = customStats?.basePerception !== undefined ? customStats.basePerception : (customStats?.perception !== undefined ? customStats.perception : 20);
     entity.addComponent(new PlayerSkills({
-      meleeKills: customStats?.meleeKills !== undefined ? customStats.meleeKills : 0,
-      meleeLvl: customStats?.meleeLvl !== undefined ? customStats.meleeLvl : 0,
-      rangedKills: customStats?.rangedKills !== undefined ? customStats.rangedKills : 0,
-      rangedLvl: customStats?.rangedLvl !== undefined ? customStats.rangedLvl : 0,
+      meleeHits: customStats?.meleeHits !== undefined ? customStats.meleeHits : 0,
+      meleeLvl: customStats?.meleeLvl !== undefined ? customStats.meleeLvl : CombatResolver.seedLevel(seedStr, seedAgi),
+      rangedHits: customStats?.rangedHits !== undefined ? customStats.rangedHits : 0,
+      rangedLvl: customStats?.rangedLvl !== undefined ? customStats.rangedLvl : CombatResolver.seedLevel(seedAgi, seedPer),
+      defenseHits: customStats?.defenseHits !== undefined ? customStats.defenseHits : 0,
+      defenseLvl: customStats?.defenseLvl !== undefined ? customStats.defenseLvl : CombatResolver.seedLevel(seedAgi, seedPer),
       craftingApUsed: customStats?.craftingApUsed !== undefined ? customStats.craftingApUsed : 0,
       craftingLvl: customStats?.craftingLvl !== undefined ? customStats.craftingLvl : 0
     }));
@@ -69,8 +81,8 @@ export const EntityFactory = {
     entity.addComponent(new RpgStats({
       baseStrength: customStats?.baseStrength !== undefined ? customStats.baseStrength : (customStats?.strength !== undefined ? customStats.strength : 20),
       currentStrength: customStats?.currentStrength !== undefined ? customStats.currentStrength : (customStats?.strength !== undefined ? customStats.strength : 20),
-      baseAgility: customStats?.baseAgility !== undefined ? customStats.baseAgility : (customStats?.agility !== undefined ? customStats.agility : 40),
-      currentAgility: customStats?.currentAgility !== undefined ? customStats.currentAgility : (customStats?.agility !== undefined ? customStats.agility : 40),
+      baseAgility: customStats?.baseAgility !== undefined ? customStats.baseAgility : (customStats?.agility !== undefined ? customStats.agility : 20),
+      currentAgility: customStats?.currentAgility !== undefined ? customStats.currentAgility : (customStats?.agility !== undefined ? customStats.agility : 20),
       basePerception: customStats?.basePerception !== undefined ? customStats.basePerception : (customStats?.perception !== undefined ? customStats.perception : 20),
       currentPerception: customStats?.currentPerception !== undefined ? customStats.currentPerception : (customStats?.perception !== undefined ? customStats.perception : 20),
       baseConstitution: customStats?.baseConstitution !== undefined ? customStats.baseConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20),
@@ -82,7 +94,6 @@ export const EntityFactory = {
       treatmentColor: customStats?.treatmentColor !== undefined ? customStats.treatmentColor : null,
       treatmentName: customStats?.treatmentName !== undefined ? customStats.treatmentName : null
     }));
-    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.15 }));
 
     // maxHp/maxAp are DERIVED from attributes, not hardcoded — the Health/ActionPoints
     // values above are just placeholders. recalcCharacter (all components now present)
@@ -159,14 +170,13 @@ export const EntityFactory = {
     entity.addComponent(new RpgStats({
       baseStrength: 20,
       currentStrength: 20,
-      baseAgility: 40,
-      currentAgility: 40,
+      baseAgility: 20,
+      currentAgility: 20,
       basePerception: 20,
       currentPerception: 20,
       baseConstitution: 20,
       currentConstitution: 20
     }));
-    entity.addComponent(new ActiveDefense({ defensesThisTurn: 0, diminishingRate: 0.15 }));
 
     // Backing stats matching legacy NPC constructor
     entity.fleeRecoverChance = typeDef.fleeRecoverChance;

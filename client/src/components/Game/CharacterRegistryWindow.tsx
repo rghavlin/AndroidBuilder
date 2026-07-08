@@ -190,6 +190,10 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                                 <span className="font-bold text-emerald-400">{selectedChar.rangedLvl ?? 0}</span>
                                             </div>
                                             <div className="flex justify-between">
+                                                <span>Defense Lvl</span>
+                                                <span className="font-bold text-emerald-400">{selectedChar.defenseLvl ?? 0}</span>
+                                            </div>
+                                            <div className="flex justify-between">
                                                 <span>Crafting Lvl</span>
                                                 <span className="font-bold text-emerald-400">{selectedChar.craftingLvl ?? 0}</span>
                                             </div>

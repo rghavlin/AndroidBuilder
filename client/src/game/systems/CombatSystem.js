@@ -114,8 +114,8 @@ export class CombatSystem {
         let damage = damageIntent.amount;
         let bleedingInflicted = false;
         let sickInflicted = false;
+        let infectionInflicted = false;
         let dodged = false;
-        let defenseApSpent = 0;
         if (attacker.type === 'zombie') {
           const outcome = CombatResolver.rollZombie({
             subtype: attacker.subtype,
@@ -127,8 +127,8 @@ export class CombatSystem {
           damage = outcome.damage;
           bleedingInflicted = outcome.bleedingInflicted;
           sickInflicted = outcome.sickInflicted;
+          infectionInflicted = outcome.infectionInflicted;
           dodged = outcome.dodged;
-          defenseApSpent = outcome.defenseApSpent;
         }
 
         if (actionQueue) {
@@ -138,10 +138,7 @@ export class CombatSystem {
           // entity-vs-entity combat we do NOT apply damage here. TurnManager's
           // ATTACK case calls takeDamage() and applies bleeding/sickness after the
           // swing animation so the hit lands when the animation connects. The
-          // `else` branch below is the direct/test path (no actionQueue). The
-          // active-defense AP cost is deferred the same way (defenseApSpent),
-          // so the AP gauge drops in step with the animation, not the instant
-          // the simulation decides the outcome.
+          // `else` branch below is the direct/test path (no actionQueue).
           actionQueue.push({
             type: 'ATTACK',
             entityId: attacker.id,
@@ -152,8 +149,8 @@ export class CombatSystem {
               damage,
               bleedingInflicted,
               sickInflicted,
+              infectionInflicted,
               dodged,
-              defenseApSpent,
               from: { x: attackerPos.x, y: attackerPos.y },
               to: { x: targetPos.x, y: targetPos.y }
             }
@@ -173,8 +170,8 @@ export class CombatSystem {
             }
             if (bleedingInflicted && typeof target.setBleeding === 'function') target.setBleeding(true);
             if (sickInflicted && typeof target.inflictSickness === 'function') target.inflictSickness(SICKNESS_TURNS);
+            if (infectionInflicted && typeof target.inflictInfection === 'function') target.inflictInfection();
           }
-          if (defenseApSpent > 0 && typeof target.useAP === 'function') target.useAP(defenseApSpent);
         }
 
         // Deduct AP for attacking

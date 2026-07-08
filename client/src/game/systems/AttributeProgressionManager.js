@@ -16,7 +16,7 @@ export class AttributeProgressionManager {
   /**
    * Called to record an action that gives attribute experience.
    * @param {Entity} entity The entity performing the action (usually the player)
-   * @param {string} action The name of the action (e.g. 'MELEE_SKILL_UP')
+   * @param {string} action The name of the action (e.g. 'MELEE_HIT')
    * @param {Object} payload Additional context, like `apSpent` or `amount`
    */
   static recordAction(entity, action, payload = {}) {
@@ -28,17 +28,22 @@ export class AttributeProgressionManager {
     const xpGained = { strengthXP: 0, agilityXP: 0, perceptionXP: 0, constitutionXP: 0 };
 
     switch (action) {
-      case 'MELEE_SKILL_UP':
-        // A skill level up grants enough XP to guarantee a stat roll.
-        xpGained.strengthXP = this.getRequiredXP(stats.baseStrength);
+      case 'MELEE_HIT':
+        // Small trickle per landed hit (not a lump at level-up) — split across
+        // Melee's seed pair, Strength+Agility, mirroring HEARING_SUCCESS in
+        // magnitude. Provisional, tune from playtesting.
+        xpGained.strengthXP = 4;
+        xpGained.agilityXP = 4;
         break;
       case 'PULL_WAGON':
         // Payload should contain apSpent (the extra AP penalty for dragging)
         xpGained.strengthXP = (payload.apSpent || 0) * 1.5;
         break;
 
-      case 'RANGED_SKILL_UP':
-        xpGained.perceptionXP = this.getRequiredXP(stats.basePerception);
+      case 'RANGED_HIT':
+        // Ranged's seed pair is Agility+Perception — same per-hit trickle pattern as MELEE_HIT.
+        xpGained.agilityXP = 4;
+        xpGained.perceptionXP = 4;
         break;
       case 'HEARING_SUCCESS':
         xpGained.perceptionXP = 5;
@@ -52,8 +57,13 @@ export class AttributeProgressionManager {
       case 'CRAFTING_SKILL_UP':
         xpGained.agilityXP = this.getRequiredXP(stats.baseAgility);
         break;
-      case 'DODGE_SUCCESS':
-        xpGained.agilityXP = 15;
+      case 'DEFENSE_SUCCESS':
+        // Fires on every successfully contested defense, not just occasional
+        // dodge attempts (the old AP-gated model) — split Agility+Perception
+        // trickle matching Defense's seed pair, same magnitude as MELEE_HIT/
+        // RANGED_HIT for consistency.
+        xpGained.agilityXP = 4;
+        xpGained.perceptionXP = 4;
         break;
       case 'SPRINT_BONUS':
         // Payload contains apSaved from pathfinding fractional discount

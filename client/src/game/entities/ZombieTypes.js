@@ -8,6 +8,15 @@
  * - sightRange: Distance in tiles the zombie can see the player
  * - moveCostMultiplier: AP cost multiplier for movement (lower is faster)
  * - canPassWindows: Whether the zombie can climb through windows (crawlers cannot)
+ * - defense: Flat evasion chance (0-1) against incoming attacks. Zombies have
+ *   no attributes/skill, so this never grows and never gets the attrMod nudge
+ *   player/NPC Defense gets — it's a fixed per-archetype stat (runner highest,
+ *   fat/bomb_disposal lowest), replacing the old stumbleEvasion name 1:1.
+ * - combat.bleedChance: every zombie type can inflict bleeding on a hit.
+ * - combat.sickChance: deliberately Spitter-exclusive — this inflicts the
+ *   generic "Diseased" condition (Entity.inflictSickness), not the zombie-bite
+ *   infection itself. Do not add it to other archetypes; a regular bite should
+ *   never cause plain sickness, only Spitter's ranged attack should.
  */
 export const ZombieTypes = {
   basic: {
@@ -18,8 +27,8 @@ export const ZombieTypes = {
     accuracy: 0.5,
     moveCostMultiplier: 1.0,
     spriteKey: 'zombie',
-    stumbleEvasion: 0.05,
-    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.05,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
   runner: {
@@ -31,8 +40,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 0.5,
     canPassWindows: true,
     spriteKey: 'runnerzombie',
-    stumbleEvasion: 0.12,
-    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.12,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
   peeper: {
@@ -44,8 +53,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'peeperzombie',
-    stumbleEvasion: 0.05,
-    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.05,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic',
     hearingRangeMultiplier: 2.0
   },
@@ -58,8 +67,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: false,
     spriteKey: 'crawlerzombie',
-    stumbleEvasion: 0.08,
-    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.08,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
   fat: {
@@ -71,8 +80,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.5,
     canPassWindows: true,
     spriteKey: 'fatzombie',
-    stumbleEvasion: 0.0,
-    combat: { damage: { min: 3, max: 6 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.0,
+    combat: { damage: { min: 3, max: 6 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
   soldier: {
@@ -84,8 +93,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'soldierzombie',
-    stumbleEvasion: 0.05,
-    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.05,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'soldier'
   },
   firefighter: {
@@ -97,8 +106,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'firefighterzombie',
-    stumbleEvasion: 0.05,
-    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.05,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'firefighter'
   },
   swat: {
@@ -110,8 +119,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'swatzombie',
-    stumbleEvasion: 0.05,
-    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.05,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
     lootTable: 'swat'
   },
   acid: {
@@ -123,8 +132,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 1.0,
     canPassWindows: true,
     spriteKey: 'acidzombie',
-    stumbleEvasion: 0.08,
-    combat: { damage: { min: 2, max: 5 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.08,
+    combat: { damage: { min: 2, max: 5 }, bleedChance: 0.05 },
     lootTable: 'basic'
   },
   spitter: {
@@ -139,7 +148,7 @@ export const ZombieTypes = {
     rangedRange: 5,
     rangedApCost: 1.5,
     spriteKey: 'spitterzombie',
-    stumbleEvasion: 0.08,
+    defense: 0.08,
     combat: {
       damage: { min: 1, max: 4 },
       rangedDamage: { min: 1, max: 3 },
@@ -157,8 +166,8 @@ export const ZombieTypes = {
     moveCostMultiplier: 2.0,
     canPassWindows: true,
     spriteKey: 'bombdisposalzombie',
-    stumbleEvasion: 0.0,
-    combat: { damage: { min: 3, max: 7 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.0,
+    combat: { damage: { min: 3, max: 7 }, bleedChance: 0.05 },
     lootTable: 'swat' // They carry heavy gear
   },
   mutant: {
@@ -171,8 +180,8 @@ export const ZombieTypes = {
     attackCost: 0.5,
     canPassWindows: true,
     spriteKey: 'zombiemutant',
-    stumbleEvasion: 0.05,
-    combat: { damage: { min: 2, max: 5 }, bleedChance: 0.05, sickChance: 0.1 },
+    defense: 0.05,
+    combat: { damage: { min: 2, max: 5 }, bleedChance: 0.05 },
     lootTable: 'mutant'
   }
 };

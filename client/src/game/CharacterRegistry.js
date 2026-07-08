@@ -20,7 +20,7 @@ export const CharacterRegistry = {
               c.strength = c.baseStrength ?? c.currentStrength ?? 20;
             }
             if (c.agility === undefined) {
-              c.agility = c.baseAgility ?? c.currentAgility ?? 40;
+              c.agility = c.baseAgility ?? c.currentAgility ?? 20;
             }
             if (c.perception === undefined) {
               c.perception = c.basePerception ?? c.currentPerception ?? 20;
@@ -94,7 +94,7 @@ export const CharacterRegistry = {
     
     // RPG Stats - Save base attributes only
     character.strength = playerEntity.baseStrength ?? 20;
-    character.agility = playerEntity.baseAgility ?? 40;
+    character.agility = playerEntity.baseAgility ?? 20;
     character.perception = playerEntity.basePerception ?? 20;
     character.constitution = playerEntity.baseConstitution ?? 20;
     character.isInfected = !!playerEntity.isInfected;
@@ -111,9 +111,11 @@ export const CharacterRegistry = {
     
     // Player Skills
     character.meleeLvl = playerEntity.meleeLvl ?? 0;
-    character.meleeKills = playerEntity.meleeKills ?? 0;
+    character.meleeHits = playerEntity.meleeHits ?? 0;
     character.rangedLvl = playerEntity.rangedLvl ?? 0;
-    character.rangedKills = playerEntity.rangedKills ?? 0;
+    character.rangedHits = playerEntity.rangedHits ?? 0;
+    character.defenseLvl = playerEntity.defenseLvl ?? 0;
+    character.defenseHits = playerEntity.defenseHits ?? 0;
     character.craftingLvl = playerEntity.craftingLvl ?? 0;
     character.craftingApUsed = playerEntity.craftingApUsed ?? 0;
     

@@ -270,11 +270,12 @@ export const SleepProvider = ({ children }) => {
             if (entity && (entity.type === EntityType.ZOMBIE)) {
               if (action.data.success) {
                 player.takeDamage(action.data.damage, entity);
-                // Mirror TurnManager's awake ATTACK handling: apply BOTH afflictions.
-                // Without the sickness line, a spitter that hits a sleeping player
-                // would infect them when awake but not asleep.
+                // Mirror TurnManager's awake ATTACK handling: apply ALL afflictions.
+                // Without these lines, a zombie that hits a sleeping player would
+                // apply them when awake but not asleep.
                 if (action.data.bleedingInflicted) player.setBleeding(true);
                 if (action.data.sickInflicted) player.inflictSickness(24);
+                if (action.data.infectionInflicted) player.inflictInfection();
                 addLog(`Zombie attacks while you sleep! ${action.data.damage} damage`, 'combat');
               } else {
                 addLog(`A zombie swipes at you and misses!`, 'combat');

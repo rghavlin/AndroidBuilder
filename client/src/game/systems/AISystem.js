@@ -3,6 +3,7 @@ import { DamageIntent } from '../components/DamageIntent.js';
 import { MoveIntent } from '../components/MoveIntent.js';
 import { ScentTrail, SCENT_FOLLOW_RADIUS } from '../utils/ScentTrail.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
+import { ZOMBIE_INFECTION_CHANCE } from './CombatResolver.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -289,11 +290,13 @@ function spitAtPlayer(ctx) {
   const hit = gameRandom.next() < accuracy;
   let damage = 0;
   let sickInflicted = false;
+  let infectionInflicted = false;
   if (hit) {
     const min = combat.rangedDamage?.min ?? 1;
     const max = combat.rangedDamage?.max ?? 3;
     damage = gameRandom.nextInt(min, max);
     if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
+    if (gameRandom.next() < ZOMBIE_INFECTION_CHANCE) infectionInflicted = true;
   }
 
   ctx.pushAction({
@@ -308,6 +311,7 @@ function spitAtPlayer(ctx) {
       success: hit,
       damage,
       sickInflicted,
+      infectionInflicted,
       from: { x: entity.logicalX, y: entity.logicalY },
       to: { x: playerPos.x, y: playerPos.y }
     }

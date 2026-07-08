@@ -752,7 +752,7 @@ export class NPCAI {
     const combatSkill = typeDef.ai?.combatSkill || 0.5;
 
     const dist = isRanged ? npc.getDistanceTo(target.logicalX || target.x, target.logicalY || target.y) : 0;
-    const { hit, damage, dodged, defenseApSpent } = CombatResolver.rollNpc({
+    const { hit, damage, dodged } = CombatResolver.rollNpc({
       isRanged,
       combatSkill,
       weaponDef,
@@ -783,7 +783,6 @@ export class NPCAI {
         success: hit,
         damage,
         dodged,
-        defenseApSpent,
         from: { x: npc.logicalX, y: npc.logicalY },
         to: { x: target.logicalX || target.x, y: target.logicalY || target.y }
       }

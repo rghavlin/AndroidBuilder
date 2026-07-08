@@ -28,11 +28,12 @@ export const usePlayer = () => {
           nutrition: 25, maxNutrition: 25, hydration: 25, maxHydration: 25, 
           energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
           isStarving: false, isDehydrated: false,
-          meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
+          meleeHits: 0, meleeLvl: 0, rangedHits: 0, rangedLvl: 0,
+          defenseHits: 0, defenseLvl: 0,
           craftingApUsed: 0, craftingLvl: 0,
           earbucks: 0,
           baseStrength: 20, currentStrength: 20,
-          baseAgility: 40, currentAgility: 40,
+          baseAgility: 20, currentAgility: 20,
           basePerception: 20, currentPerception: 20,
           baseConstitution: 20, currentConstitution: 20,
           strengthXP: 0, agilityXP: 0, perceptionXP: 0, constitutionXP: 0,
@@ -97,7 +98,8 @@ export const PlayerProvider = ({ children }) => {
       energy: 25, maxEnergy: 25, condition: 'Normal', isBleeding: false,
       drunkenness: 0,
       isStarving: false, isDehydrated: false,
-      meleeKills: 0, meleeLvl: 0, rangedKills: 0, rangedLvl: 0,
+      meleeHits: 0, meleeLvl: 0, rangedHits: 0, rangedLvl: 0,
+      defenseHits: 0, defenseLvl: 0,
       craftingApUsed: 0, craftingLvl: 0,
       earbucks: 0,
       baseStrength: 20, currentStrength: 20,
@@ -129,10 +131,12 @@ export const PlayerProvider = ({ children }) => {
       drunkenness: player.drunkenness || 0,
       isStarving: player.isStarving,
       isDehydrated: player.isDehydrated,
-      meleeKills: player.meleeKills,
+      meleeHits: player.meleeHits,
       meleeLvl: player.meleeLvl,
-      rangedKills: player.rangedKills,
+      rangedHits: player.rangedHits,
       rangedLvl: player.rangedLvl,
+      defenseHits: player.defenseHits,
+      defenseLvl: player.defenseLvl,
       craftingApUsed: player.craftingApUsed,
       craftingLvl: player.craftingLvl,
       earbucks: player.earbucks || 0,
@@ -187,12 +191,12 @@ export const PlayerProvider = ({ children }) => {
   }, []);
 
   /**
-   * Record a kill for a specific weapon type and handle leveling
-   * Logic moved to Player.js class.
+   * Record a landed hit (not just a kill) for a specific weapon type and
+   * handle skill leveling. Logic lives on the Entity class.
    */
-  const recordKill = useCallback((type) => {
+  const recordHit = useCallback((type) => {
     if (!engine.player) return null;
-    const result = engine.player.recordKill(type);
+    const result = engine.player.recordHit(type);
     engine.notifyUpdate();
     return result;
   }, []);
@@ -517,7 +521,7 @@ export const PlayerProvider = ({ children }) => {
     updatePlayerFieldOfView,
     updatePlayerCardinalPositions,
     getPlayerCardinalPositions,
-    recordKill,
+    recordHit,
     // Legacy null placeholders to prevent crashes in other components
     setPlayerRef: () => {},
     setPlayer: () => {},

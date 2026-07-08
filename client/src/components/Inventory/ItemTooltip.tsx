@@ -70,10 +70,6 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                         <span className="text-muted-foreground">Damage</span>
                         <span className="text-foreground">{combat.damage.min}-{combat.damage.max}</span>
                     </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Hit Chance</span>
-                        <span className="text-foreground">{Math.round(combat.hitChance * 100)}%</span>
-                    </div>
                     {combat.range && combat.range > 1.5 && (
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Extended range</span>

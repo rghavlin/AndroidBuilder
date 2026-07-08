@@ -325,14 +325,6 @@ class TurnManager {
         // deliberately did not apply it during simulation — see class header).
         const target = data.targetType === 'player' ? player : gameMap.getEntity(data.targetId);
 
-        // Active-defense AP cost is deferred the same way as damage (see
-        // CombatResolver header): the dodge decision was made during simulation,
-        // but the AP gauge only drops now, in step with this animation, whether
-        // or not the dodge attempt actually succeeded.
-        if (target && data.defenseApSpent > 0 && typeof target.useAP === 'function') {
-          target.useAP(data.defenseApSpent);
-        }
-
         if (target && data.success && data.damage > 0) {
           const finalDamage = CombatResolver.applyArmorAbsorption(target, data.damage, engine?.inventoryManager);
           if (finalDamage > 0 && typeof target.takeDamage === 'function') {
@@ -343,6 +335,9 @@ class TurnManager {
           }
           if (data.sickInflicted && typeof target.inflictSickness === 'function') {
             target.inflictSickness(SICKNESS_TURNS);
+          }
+          if (data.infectionInflicted && typeof target.inflictInfection === 'function') {
+            target.inflictInfection();
           }
 
           // Check if target died from the damage (visual triggers only)

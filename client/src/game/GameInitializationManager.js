@@ -4,6 +4,7 @@ import { WorldManager } from './WorldManager.js';
 import { TemplateMapGenerator } from './map/TemplateMapGenerator.js';
 import { GameMap } from './map/GameMap.js';
 import { EntityFactory } from './EntityFactory.js';
+import { PlayerSkills } from './components/PlayerSkills.js';
 import { Camera } from './Camera.js';
 import { ZombieSpawner } from './utils/ZombieSpawner.js';
 import { LootGenerator } from './map/LootGenerator.js';
@@ -241,24 +242,23 @@ class GameInitializationManager extends EventEmitter {
       // Apply Custom Player Stats if provided (Dev Console)
       if (this.customConfig && this.customConfig.playerConfig) {
         const pc = this.customConfig.playerConfig;
-        if (pc.meleeKills !== undefined) {
-          player.meleeKills = pc.meleeKills;
-          // Calculate melee level: 0-4: L0, 5-9: L1, 10-19: L2, 20-39: L3, 40-79: L4, 80+: L5
+        if (pc.meleeHits !== undefined) {
+          player.meleeHits = pc.meleeHits;
           let level = 0;
-          while (player.meleeKills >= 5 * Math.pow(2, level)) {
+          while (player.meleeHits >= PlayerSkills.getNextHitMilestone(level)) {
             level++;
           }
           player.meleeLvl = level;
-          console.log(`[GameInitializationManager] Dev: Set Melee Skill to Lvl ${level} (${player.meleeKills} kills)`);
+          console.log(`[GameInitializationManager] Dev: Set Melee Skill to Lvl ${level} (${player.meleeHits} hits)`);
         }
-        if (pc.rangedKills !== undefined) {
-          player.rangedKills = pc.rangedKills;
+        if (pc.rangedHits !== undefined) {
+          player.rangedHits = pc.rangedHits;
           let level = 0;
-          while (player.rangedKills >= 5 * Math.pow(2, level)) {
+          while (player.rangedHits >= PlayerSkills.getNextHitMilestone(level)) {
             level++;
           }
           player.rangedLvl = level;
-          console.log(`[GameInitializationManager] Dev: Set Ranged Skill to Lvl ${level} (${player.rangedKills} kills)`);
+          console.log(`[GameInitializationManager] Dev: Set Ranged Skill to Lvl ${level} (${player.rangedHits} hits)`);
         }
       }
 
