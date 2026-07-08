@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Dumbbell, Wind, Eye, Heart, Plus, Minus, Info } from "lucide-react";
 import { CombatResolver } from '../../game/systems/CombatResolver.js';
+import { previewDerivedStats } from '../../game/utils/SurvivalCascade.js';
 
 interface CharacterCreatorProps {
     onConfirm: (stats: { strength: number; agility: number; perception: number; constitution: number; name: string }) => void;
@@ -32,18 +33,16 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
     const pointsRemaining = maxPoints - pointsSpent;
 
     const derivedStats = useMemo(() => {
-        // HP uses Constitution
-        const conBonus = Math.max(0, Math.floor(stats.constitution * 0.2));
-        const maxHp = 10 + conBonus;
-
-        // AP uses Agility + Perception
-        const apAttrBonus = Math.floor((stats.agility + stats.perception) / 6);
-        const maxAp = 10 + apAttrBonus; // Assuming no exhaustion at start
+        const { maxHp, maxAp } = previewDerivedStats({
+            constitution: stats.constitution,
+            agility: stats.agility,
+            perception: stats.perception
+        });
 
         // Attribute effects matching PlayerSkillsUI / CombatResolver formulas
         const meleeDamageBonus = CombatResolver.strengthDamageBonus(stats.strength);
         const wagonPullBonus = Math.floor(stats.strength / 20);
-        const dodgeChance = stats.agility;
+        const dodgeChance = CombatResolver.dodgeChanceFromAgility(stats.agility);
         const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(stats.agility) * 100);
         const critBonus = Math.round(CombatResolver.perceptionCritBonus(stats.perception) * 100);
         const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(stats.perception) * 100);
@@ -125,6 +124,9 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
                             maxLength={20}
                             className="bg-transparent border-none outline-none text-xs font-mono font-bold text-foreground w-full placeholder:text-muted-foreground/30 focus:outline-none"
                             placeholder="Nameless"
@@ -440,7 +442,7 @@ function StatAdjusterCard({
                 
                 {/* Spinbox controls */}
                 <div 
-                    className="flex items-center gap-1.5 bg-background/60 p-1 rounded-md border border-white/5"
+                    className="flex items-center gap-1.5 bg-background/60 p-1 rounded-md border border-[var(--hairline)]"
                     onWheel={handleWheel}
                 >
                     <Button
@@ -467,11 +469,14 @@ function StatAdjusterCard({
                         onChange={handleInputChange}
                         onBlur={handleBlur}
                         onKeyDown={(e) => {
+                            e.stopPropagation();
                             if (e.key === 'Enter') {
                                 handleBlur();
                                 e.currentTarget.blur();
                             }
                         }}
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
                         className="w-8 text-center font-mono text-xs font-bold text-foreground bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 focus:bg-background/80 rounded tabular-nums select-all"
                     />
 
@@ -494,7 +499,7 @@ function StatAdjusterCard({
             </div>
 
             {/* Effects */}
-            <div className="space-y-0.5 pl-1 border-l border-white/5">
+            <div className="space-y-0.5 pl-1 border-l border-[var(--hairline)]">
                 {effects.map((line, i) => (
                     <div key={i} className="text-[9.5px] leading-tight text-muted-foreground pl-1.5">{line}</div>
                 ))}

@@ -12,7 +12,7 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { ItemTrait } from '../game/inventory/traits.js';
 import { SimulationManager } from '../game/managers/SimulationManager.js';
 import { getHourFromTurn } from '../game/utils/TimeUtils.js';
-import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
+import { recalcCharacter, tickInfection } from '../game/utils/SurvivalCascade.js';
 
 const SleepContext = createContext();
 
@@ -163,6 +163,9 @@ export const SleepProvider = ({ children }) => {
           }
         }
 
+        // Tick infection/treatment hourly during sleep
+        tickInfection(player, (msg, type) => addLog(msg, type));
+
         if (player.drunkenness > 0) {
           player.drunkenness = Math.max(0, player.drunkenness - 1);
         }
@@ -305,12 +308,21 @@ export const SleepProvider = ({ children }) => {
           isDehydrated: player.isDehydrated,
           condition: player.condition,
           sickness: player.sickness,
-          drunkenness: player.drunkenness
+          drunkenness: player.drunkenness,
+          isInfected: player.isInfected,
+          infectionTicksRemaining: player.infectionTicksRemaining,
+          treatmentTicksRemaining: player.treatmentTicksRemaining,
+          treatmentSubtype: player.treatmentSubtype,
+          treatmentColor: player.treatmentColor,
+          treatmentName: player.treatmentName
         });
 
         // Phase 27: Death Guard - check if player died in their sleep
         if (player.hp <= 0) {
-          wakePlayer('You collapsed from your injuries.');
+          const deathMsg = player.isInfected && player.infectionTicksRemaining <= 0
+            ? 'You succumbed to the zombie virus.'
+            : 'You collapsed from your injuries.';
+          wakePlayer(deathMsg);
           triggerMapUpdate();
           return;
         }

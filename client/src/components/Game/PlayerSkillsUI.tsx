@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { CombatResolver } from '@/game/systems/CombatResolver';
 import { AttributeProgressionManager } from '@/game/systems/AttributeProgressionManager';
+import { previewDerivedStats, TREATMENT_EFFECTS } from '@/game/utils/SurvivalCascade';
 
 interface SkillProgressBarProps {
     current: number;
@@ -21,7 +22,7 @@ const SkillProgressBar = ({ current, next, prev, color = "bg-primary" }: SkillPr
     }, [current, next, prev]);
 
     return (
-        <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden mt-1 border border-white/5">
+        <div className="w-full h-1 bg-[var(--track)] rounded-full overflow-hidden mt-1 border border-[var(--hairline)]">
             <div
                 className={cn("h-full transition-all duration-500 ease-out", color)}
                 style={{ width: `${progress}%` }}
@@ -66,7 +67,7 @@ const CompactSkillCard = ({ title, level, progressLabel, current, next, prev, me
                 color="bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
             />
 
-            <div className={cn("flex gap-3 mt-2 pt-1.5 border-t border-white/5", metrics.length > 1 ? "justify-between" : "")}>
+            <div className={cn("flex gap-3 mt-2 pt-1.5 border-t border-[var(--hairline)]", metrics.length > 1 ? "justify-between" : "")}>
                 {metrics.map((m, i) => (
                     <div key={i} className="flex items-center gap-1">
                         {m.icon}
@@ -127,20 +128,20 @@ const StatCard = ({ icon, name, current, base, accentColor, effects, totalXP, sp
                     )}
                 </div>
             </div>
-            <div className="space-y-0.5 pl-1 border-l border-white/5 mb-2.5">
+            <div className="space-y-0.5 pl-1 border-l border-[var(--hairline)] mb-2.5">
                 {effects.map((line, i) => (
                     <div key={i} className="text-[9.5px] leading-tight text-muted-foreground pl-1.5">{line}</div>
                 ))}
             </div>
 
             {/* XP progress bar and dice roll button */}
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/5">
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--hairline)]">
                 <div className="flex-grow space-y-0.5">
                     <div className="flex justify-between text-[8px] text-muted-foreground font-mono">
                         <span>TOTAL: {Math.round(totalXP)}</span>
                         <span>{Math.round(progressXP)} / {Math.round(requiredXP)}</span>
                     </div>
-                    <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden border border-white/5">
+                    <div className="w-full h-1 bg-[var(--track)] rounded-full overflow-hidden border border-[var(--hairline)]">
                         <div
                             className={cn("h-full transition-all duration-500 ease-out", 
                                 isRollReady ? "bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] animate-pulse" : "bg-primary"
@@ -157,7 +158,7 @@ const StatCard = ({ icon, name, current, base, accentColor, effects, totalXP, sp
                         "w-7 h-7 shrink-0 rounded flex items-center justify-center border transition-all duration-300",
                         isRollReady 
                             ? "bg-emerald-500/25 border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/35 hover:text-emerald-300 cursor-pointer animate-bounce" 
-                            : "bg-secondary/20 border-white/5 text-muted-foreground/30 opacity-50 cursor-not-allowed"
+                            : "bg-secondary/20 border-[var(--hairline)] text-muted-foreground/30 opacity-50 cursor-not-allowed"
                     )}
                     title={isRollReady ? "Click to roll for an upgrade!" : "Not enough XP to roll"}
                 >
@@ -197,7 +198,6 @@ export default function PlayerSkillsUI() {
                 kills: meleeKills,
                 next: meleeNext,
                 prev: meleePrev,
-                crit: 5 * meleeLvl, // Starting at 0% at level 0, 5% at level 1
                 acc: meleeLvl // Starting at 0% at level 0, 1% at level 1
             },
             ranged: {
@@ -205,7 +205,6 @@ export default function PlayerSkillsUI() {
                 kills: rangedKills,
                 next: rangedNext,
                 prev: rangedPrev,
-                crit: 5 * rangedLvl, // Starting at 0% at level 0, 5% at level 1
                 acc: rangedLvl // Starting at 0% at level 0, 1% at level 1
             }
         };
@@ -239,14 +238,18 @@ export default function PlayerSkillsUI() {
         const meleeDamageBonus = CombatResolver.strengthDamageBonus(currentStrength);
         const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, playerStats.armorWeightRequirement || 0);
         const wagonPullBonus = Math.floor(currentStrength / 20);
-        const dodgeChance = Math.max(0, Math.round(currentAgility - armorPenalty));
+        const baseDodge = CombatResolver.dodgeChanceFromAgility(currentAgility);
+        const dodgeChance = Math.max(0, Math.round(baseDodge - armorPenalty));
         const critBonus = Math.round(CombatResolver.perceptionCritBonus(currentPerception) * 100);
         const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(currentAgility) * 100);
         const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(currentPerception) * 100);
         const sightRangeBonus = Math.floor(currentPerception / 20);
-        // maxHp is now derived from Constitution by recalcCharacter and lives on the
-        // player, so display the real value; fall back to the formula only if absent.
-        const maxHp = playerStats.maxHp ?? (10 + Math.max(0, Math.floor(currentConstitution * 0.5)));
+        const derivedFallback = previewDerivedStats({
+            constitution: currentConstitution,
+            agility: currentAgility,
+            perception: currentPerception
+        });
+        const maxHp = playerStats.maxHp ?? derivedFallback.maxHp;
         const sickResistPct = Math.round(CombatResolver.sicknessResistFraction(currentConstitution) * 100);
 
         const reqStrXP = AttributeProgressionManager.getRequiredXP(baseStrength);
@@ -258,36 +261,19 @@ export default function PlayerSkillsUI() {
         const isTreated = isInfected && (playerStats.treatmentTicksRemaining > 0);
         const treatmentSubtype = playerStats.treatmentSubtype?.toLowerCase();
 
-        const getInfectionEffects = (statName) => {
+        const getInfectionEffects = (statName: string) => {
             const lines = [];
             if (isInfected && !isTreated) {
                 lines.push("Infection: -10% to attributes");
-            } else if (isTreated) {
-                if (treatmentSubtype === 'mutant') {
-                    lines.push("Mutant Treatment: +20% & Decay Immune");
-                } else if (statName === 'Strength') {
-                    if (treatmentSubtype === 'basic' || treatmentSubtype === 'zombie') {
-                        lines.push("Zombie Treatment: Strength is Decay Immune");
-                    } else if (treatmentSubtype === 'fat') {
-                        lines.push("Fat Zombie Treatment: +5% Strength & Decay Immune");
-                    }
-                } else if (statName === 'Agility') {
-                    if (treatmentSubtype === 'runner') {
-                        lines.push("Runner Treatment: +10% Agility & Decay Immune");
-                    } else if (treatmentSubtype === 'spitter') {
-                        lines.push("Spitter Treatment: +5% Agility & Decay Immune");
-                    }
-                } else if (statName === 'Perception') {
-                    if (treatmentSubtype === 'peeper') {
-                        lines.push("Peeper Treatment: +10% Perception & Decay Immune");
-                    }
-                } else if (statName === 'Constitution') {
-                    if (treatmentSubtype === 'acid') {
-                        lines.push("Acid Treatment: +10% Constitution & Decay Immune");
-                    } else if (treatmentSubtype === 'fat') {
-                        lines.push("Fat Zombie Treatment: +5% Constitution & Decay Immune");
-                    } else if (treatmentSubtype === 'spitter') {
-                        lines.push("Spitter Treatment: +5% Constitution & Decay Immune");
+            } else if (isTreated && treatmentSubtype) {
+                const sub = treatmentSubtype.toLowerCase();
+                const config = TREATMENT_EFFECTS[sub];
+                const effect = config?.effects?.[statName.toLowerCase()];
+                if (effect) {
+                    if (sub === 'mutant') {
+                        lines.push("Mutant Treatment: +20% & Decay Immune");
+                    } else {
+                        lines.push(`${config.label}: ${effect.label}`);
                     }
                 }
             }
@@ -342,7 +328,7 @@ export default function PlayerSkillsUI() {
                     {/* Attributes */}
                     <div className="flex-1 min-w-[220px] space-y-2">
                         <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Attributes</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Attributes</h3>
                         </div>
 
                         <StatCard
@@ -422,7 +408,7 @@ export default function PlayerSkillsUI() {
                     {/* Skills */}
                     <div className="w-[180px] shrink-0 space-y-2">
                         <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Skills</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Skills</h3>
                         </div>
 
                         <CompactSkillCard
@@ -433,7 +419,6 @@ export default function PlayerSkillsUI() {
                             next={combatSkills.melee.next}
                             prev={combatSkills.melee.prev}
                             metrics={[
-                                { icon: <Sparkles className="w-2.5 h-2.5 text-yellow-500" />, label: 'Crit', value: `${combatSkills.melee.crit}%`, color: 'text-yellow-500/90' },
                                 { icon: <Crosshair className="w-2.5 h-2.5 text-green-500" />, label: 'Acc', value: `+${combatSkills.melee.acc}%`, color: 'text-green-500/90' }
                             ]}
                         />
@@ -446,7 +431,6 @@ export default function PlayerSkillsUI() {
                             next={combatSkills.ranged.next}
                             prev={combatSkills.ranged.prev}
                             metrics={[
-                                { icon: <Sparkles className="w-2.5 h-2.5 text-yellow-500" />, label: 'Crit', value: `${combatSkills.ranged.crit}%`, color: 'text-yellow-500/90' },
                                 { icon: <Crosshair className="w-2.5 h-2.5 text-green-500" />, label: 'Acc', value: `+${combatSkills.ranged.acc}%`, color: 'text-green-500/90' }
                             ]}
                         />

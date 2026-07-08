@@ -19,7 +19,7 @@ import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { CombatSystem } from '../game/systems/CombatSystem.js';
-import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
+import { recalcCharacter, tickInfection } from '../game/utils/SurvivalCascade.js';
 import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
 import { toast } from '../hooks/use-toast';
 
@@ -601,23 +601,7 @@ const GameContextInner = ({ children }) => {
     lastSeenTaggedTilesRef.current.clear();
 
     // 2. Player Pre-Turn Math
-    if (player.isInfected) {
-      if (player.treatmentTicksRemaining > 0) {
-        player.treatmentTicksRemaining -= 1;
-        if (player.treatmentTicksRemaining === 0) {
-          player.treatmentSubtype = null;
-          player.treatmentColor = null;
-          player.treatmentName = null;
-          addLog("Your treatment has worn off! The infection resumes...", "warning");
-        }
-      } else {
-        player.infectionTicksRemaining -= 1;
-        if (player.infectionTicksRemaining <= 0) {
-          player.hp = 0;
-          addLog("You have succumbed to the zombie virus.", "danger");
-        }
-      }
-    }
+    tickInfection(player, (msg, type) => addLog(msg, type));
 
     if (player.sickness > 0) {
       // Sickness no longer deals direct HP damage — it saps Constitution (lowering
@@ -1232,6 +1216,32 @@ const GameContextInner = ({ children }) => {
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, handleMoveEnded);
     return () => {
       GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, handleMoveEnded);
+    };
+  }, []);
+
+  // Listen for attribute roll and upgrade notifications from engine
+  useEffect(() => {
+    const handleRollReady = (data) => {
+      toast({
+        title: 'Dice Roll Available!',
+        description: `You have earned enough XP to roll for a ${data.statLabel} upgrade! Open the Abilities screen to roll.`
+      });
+    };
+
+    const handleAttributeUpgraded = (data) => {
+      const formattedStat = data.statType.charAt(0).toUpperCase() + data.statType.slice(1);
+      toast({
+        title: 'Attribute Upgraded!',
+        description: `Your ${formattedStat} increased by +${data.roll}!`
+      });
+    };
+
+    GameEvents.on(GAME_EVENT.ATTRIBUTE_ROLL_READY, handleRollReady);
+    GameEvents.on(GAME_EVENT.ATTRIBUTE_UPGRADED, handleAttributeUpgraded);
+
+    return () => {
+      GameEvents.off(GAME_EVENT.ATTRIBUTE_ROLL_READY, handleRollReady);
+      GameEvents.off(GAME_EVENT.ATTRIBUTE_UPGRADED, handleAttributeUpgraded);
     };
   }, []);
 

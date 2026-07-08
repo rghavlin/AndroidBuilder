@@ -51,6 +51,8 @@
   --shadow-2xl: 0px 2px 0px 0px hsl(142 76% 36% / 0.00);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+  --track: hsl(240 5.9% 90%);
+  --hairline: hsl(240 5.9% 90%);
 }
 
 .dark {
@@ -81,6 +83,8 @@
   --sidebar-accent-foreground: hsl(43 96% 56%);
   --sidebar-border: hsl(240 6% 20%);
   --sidebar-ring: hsl(142 76% 36%);
+  --track: hsl(240 4% 16%);
+  --hairline: hsl(0 0% 100% / 0.05);
 }
 
 @layer base {
@@ -462,6 +466,8 @@
     --border: hsl(210 15% 88%);
     --input: hsl(210 15% 88%);
     --ring: hsl(38 92% 55%);
+    --track: hsl(210 20% 90%);
+    --hairline: hsl(210 15% 88%);
   }
 
   /* Base Panels in Neumorphic Light */

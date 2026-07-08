@@ -15,7 +15,7 @@ import { CharacterRegistry } from '@/game/CharacterRegistry';
 import CharacterRegistryWindow from './CharacterRegistryWindow';
 
 interface StartMenuProps {
-  onStartGame: (mode?: boolean | string) => void;
+  onStartGame: (mode?: boolean | string | { customStats: any }) => void;
 }
 
 export default function StartMenu({ onStartGame }: StartMenuProps) {

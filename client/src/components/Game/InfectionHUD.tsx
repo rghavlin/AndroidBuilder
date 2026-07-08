@@ -68,17 +68,17 @@ export default function InfectionHUD() {
           style={inlineStyle}
         >
           <ShieldCheck className="w-3.5 h-3.5" style={{ color: baseColor }} />
-          <span className="text-[10px] font-black tracking-tight text-white uppercase tabular-nums">
+          <span className="text-[10px] font-black tracking-tight text-foreground uppercase tabular-nums">
             Infection Neutralized — {playerStats.treatmentTicksRemaining}h Left
           </span>
           {playerStats.treatmentName && (
-            <span className="text-[8px] font-bold text-white/50 tracking-tight">
+            <span className="text-[8px] font-bold text-muted-foreground tracking-tight">
               ({playerStats.treatmentName})
             </span>
           )}
           <button 
             onClick={() => setIsMinimized(true)}
-            className="ml-2 p-0.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+            className="ml-2 p-0.5 rounded-full hover:bg-accent/10 text-muted-foreground hover:text-foreground transition-colors"
             title="Minimize HUD"
           >
             <Minus className="w-3 h-3" />
@@ -90,14 +90,14 @@ export default function InfectionHUD() {
 
   // Active untreated infection
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-red-950/80 border border-red-500/50 px-4 py-1.5 rounded-full flex items-center gap-2 backdrop-blur-md shadow-lg shadow-red-950/50 pointer-events-auto animate-pulse select-none">
-      <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
-      <span className="text-[10px] font-black tracking-tight text-red-200 uppercase tabular-nums">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-destructive/20 border border-destructive/50 px-4 py-1.5 rounded-full flex items-center gap-2 backdrop-blur-md shadow-lg shadow-destructive/20 pointer-events-auto animate-pulse select-none">
+      <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />
+      <span className="text-[10px] font-black tracking-tight text-destructive uppercase tabular-nums">
         Viral Infection — Lethal in {playerStats.infectionTicksRemaining}h
       </span>
       <button 
         onClick={() => setIsMinimized(true)}
-        className="ml-2 p-0.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+        className="ml-2 p-0.5 rounded-full hover:bg-accent/10 text-muted-foreground hover:text-foreground transition-colors"
         title="Minimize HUD"
       >
         <Minus className="w-3 h-3" />

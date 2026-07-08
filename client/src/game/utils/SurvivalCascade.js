@@ -27,6 +27,62 @@ const SICK_CON_PENALTY_CAP = 10;
 const SICK_AGI_PENALTY_CAP = 8;
 const SICK_PER_PENALTY_CAP = 8;
 
+export const TREATMENT_EFFECTS = {
+  basic: {
+    label: "Zombie Treatment",
+    effects: {
+      strength: { multiplier: 1.0, immune: true, label: "Strength is Decay Immune" }
+    }
+  },
+  zombie: {
+    label: "Zombie Treatment",
+    effects: {
+      strength: { multiplier: 1.0, immune: true, label: "Strength is Decay Immune" }
+    }
+  },
+  runner: {
+    label: "Runner Treatment",
+    effects: {
+      agility: { multiplier: 1.1, immune: true, label: "+10% Agility & Decay Immune" }
+    }
+  },
+  acid: {
+    label: "Acid Treatment",
+    effects: {
+      constitution: { multiplier: 1.1, immune: true, label: "+10% Constitution & Decay Immune" }
+    }
+  },
+  fat: {
+    label: "Fat Zombie Treatment",
+    effects: {
+      constitution: { multiplier: 1.05, immune: true, label: "+5% Constitution & Decay Immune" },
+      strength: { multiplier: 1.05, immune: true, label: "+5% Strength & Decay Immune" }
+    }
+  },
+  peeper: {
+    label: "Peeper Treatment",
+    effects: {
+      perception: { multiplier: 1.1, immune: true, label: "+10% Perception & Decay Immune" }
+    }
+  },
+  mutant: {
+    label: "Mutant Treatment",
+    effects: {
+      strength: { multiplier: 1.2, immune: true, label: "+20% & Decay Immune" },
+      agility: { multiplier: 1.2, immune: true, label: "+20% & Decay Immune" },
+      perception: { multiplier: 1.2, immune: true, label: "+20% & Decay Immune" },
+      constitution: { multiplier: 1.2, immune: true, label: "+20% & Decay Immune" }
+    }
+  },
+  spitter: {
+    label: "Spitter Treatment",
+    effects: {
+      agility: { multiplier: 1.05, immune: true, label: "+5% Agility & Decay Immune" },
+      constitution: { multiplier: 1.05, immune: true, label: "+5% Constitution & Decay Immune" }
+    }
+  }
+};
+
 export function sicknessPenalties(sickness = 0) {
   const s = Math.max(0, sickness || 0);
   return {
@@ -64,36 +120,24 @@ export function applySurvivalCascade(player) {
     conMult = 0.9;
   } else if (isTreated && player.treatmentSubtype) {
     const sub = player.treatmentSubtype.toLowerCase();
-    if (sub === 'basic' || sub === 'zombie') {
-      strImmune = true;
-    } else if (sub === 'runner') {
-      agiMult = 1.1;
-      agiImmune = true;
-    } else if (sub === 'acid') {
-      conMult = 1.1;
-      conImmune = true;
-    } else if (sub === 'fat') {
-      conMult = 1.05;
-      strMult = 1.05;
-      conImmune = true;
-      strImmune = true;
-    } else if (sub === 'peeper') {
-      perMult = 1.1;
-      perImmune = true;
-    } else if (sub === 'mutant') {
-      strMult = 1.2;
-      agiMult = 1.2;
-      perMult = 1.2;
-      conMult = 1.2;
-      strImmune = true;
-      agiImmune = true;
-      perImmune = true;
-      conImmune = true;
-    } else if (sub === 'spitter') {
-      agiMult = 1.05;
-      conMult = 1.05;
-      agiImmune = true;
-      conImmune = true;
+    const config = TREATMENT_EFFECTS[sub];
+    if (config && config.effects) {
+      if (config.effects.strength) {
+        strMult = config.effects.strength.multiplier ?? 1.0;
+        strImmune = config.effects.strength.immune ?? false;
+      }
+      if (config.effects.agility) {
+        agiMult = config.effects.agility.multiplier ?? 1.0;
+        agiImmune = config.effects.agility.immune ?? false;
+      }
+      if (config.effects.perception) {
+        perMult = config.effects.perception.multiplier ?? 1.0;
+        perImmune = config.effects.perception.immune ?? false;
+      }
+      if (config.effects.constitution) {
+        conMult = config.effects.constitution.multiplier ?? 1.0;
+        conImmune = config.effects.constitution.immune ?? false;
+      }
     }
   }
 
@@ -149,4 +193,43 @@ export function recalcCharacter(player) {
     const perceptionBonus = Math.floor((player.currentPerception || 0) / 20);
     vision.range = 15 + perceptionBonus;
   }
+}
+
+/**
+ * Ticks down player infection or treatment timer.
+ * Emits messages via the provided logCallback.
+ */
+export function tickInfection(player, logCallback = null) {
+  if (!player || !player.isInfected) return;
+
+  if (player.treatmentTicksRemaining > 0) {
+    player.treatmentTicksRemaining -= 1;
+    if (player.treatmentTicksRemaining === 0) {
+      player.treatmentSubtype = null;
+      player.treatmentColor = null;
+      player.treatmentName = null;
+      if (logCallback) {
+        logCallback("Your treatment has worn off! The infection resumes...", "warning");
+      }
+    }
+  } else {
+    player.infectionTicksRemaining -= 1;
+    if (player.infectionTicksRemaining <= 0) {
+      player.hp = 0;
+      if (logCallback) {
+        logCallback("You have succumbed to the zombie virus.", "danger");
+      }
+    }
+  }
+}
+
+/**
+ * Shared helper to calculate derived max HP and max AP from base attributes (used for UI previews).
+ */
+export function previewDerivedStats({ constitution, agility, perception }) {
+  const conBonus = Math.max(0, Math.floor((constitution || 0) * 0.2));
+  const maxHp = HP_FLOOR + conBonus;
+  const apAttrBonus = Math.floor(((agility || 0) + (perception || 0)) / 6);
+  const maxAp = AP_BASE + apAttrBonus;
+  return { maxHp, maxAp };
 }

@@ -29,6 +29,11 @@ import { AttributeProgressionManager } from './AttributeProgressionManager.js';
 // Synchronous callers (the player directly clicking to attack, and turrets,
 // which already apply damage during simulation) apply it immediately.
 export class CombatResolver {
+  /** Converts agility to base dodge chance percentage (0-100 scale). */
+  static dodgeChanceFromAgility(agility) {
+    return (agility || 0) * 0.5;
+  }
+
   /** Base crit chance from a weapon/turret stats block, defaulting to 5% if unset. */
   static weaponCritChance(statsBlock) {
     return statsBlock?.critChance !== undefined ? statsBlock.critChance : 0.05;
@@ -149,7 +154,7 @@ export class CombatResolver {
 
     const armorPenalty = CombatResolver.armorWeightPenalty(defender.currentStrength, defender.weightRequirement);
     const diminishingPenalty = priorDefenses * ((defender.diminishingRate ?? 0.15) * 100);
-    const baseDodge = (defender.currentAgility || 0) * 0.5;
+    const baseDodge = CombatResolver.dodgeChanceFromAgility(defender.currentAgility);
     const dodgeTarget = Math.max(0, baseDodge - armorPenalty - diminishingPenalty);
 
     const evaded = gameRandom.next() * 100 < dodgeTarget;

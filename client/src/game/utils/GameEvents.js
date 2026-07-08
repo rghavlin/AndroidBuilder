@@ -55,7 +55,11 @@ export const GAME_EVENT = {
 
   // Dialog / Scenario Events
   DIALOG_TRIGGERED: 'dialog_triggered',
-  DIALOG_DISMISSED: 'dialog_dismissed'
+  DIALOG_DISMISSED: 'dialog_dismissed',
+
+  // Attribute Upgrades
+  ATTRIBUTE_ROLL_READY: 'attribute_roll_ready',
+  ATTRIBUTE_UPGRADED: 'attribute_upgraded'
 };
 
 /**

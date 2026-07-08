@@ -1,3 +1,6 @@
+import { gameRandom } from '../utils/SeededRandom.js';
+import { createItemFromDef } from '../inventory/ItemDefs.js';
+
 export const ZombieCorpseConfig = {
   fat:    { name: 'Fat Zombie Corpse',    imageId: 'fatzombiecorpse', backgroundColor: '#833802' },
   mutant: { name: 'Mutant Corpse',        imageId: 'zombiemutantcorpse', backgroundColor: '#A10C00' },
@@ -47,4 +50,29 @@ export function getBrainPulpOverrides(zombieSubtype) {
     zombieSubtype: zombieSubtype || 'basic',
     ...(hasColor && { backgroundColor: config.backgroundColor }),
   };
+}
+
+/**
+ * Unifies zombie loot dropping and corpse spawning.
+ * Relies on seeded gameRandom to ensure reproducibility guarantees.
+ */
+export function dropZombieDeathLoot(target, x, y, gameMap, lootGenerator, placeItemsCallback) {
+  if (!target || !gameMap) return;
+
+  const tile = gameMap.getTile(x, y);
+  const hasWindow = tile?.contents.some(e => e.type === 'window');
+
+  if (lootGenerator && !target.noLoot && !hasWindow && gameRandom.next() < 0.75) {
+    const mapNumber = gameMap.mapNumber || 1;
+    const loot = lootGenerator.generateZombieLoot(target.subtype, mapNumber);
+    if (loot && loot.length > 0) {
+      placeItemsCallback(loot);
+    }
+  }
+
+  const corpseOverrides = getCorpseOverrides(target.subtype);
+  const corpse = createItemFromDef('zombie.corpse', corpseOverrides);
+  if (corpse) {
+    placeItemsCallback([corpse]);
+  }
 }

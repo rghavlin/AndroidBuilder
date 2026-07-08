@@ -8,7 +8,7 @@ import { useLog } from './LogContext.jsx';
 import { useAudio } from './AudioContext.jsx';
 import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
-import { getCorpseOverrides } from '../game/entities/ZombieCorpseConfig.js';
+import { getCorpseOverrides, dropZombieDeathLoot } from '../game/entities/ZombieCorpseConfig.js';
 
 import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
@@ -200,16 +200,7 @@ export const CombatProvider = ({ children }) => {
 
         if (entity.type === EntityType.ZOMBIE) {
             if (entity.subtype === 'acid') triggerAcidEffect(entity, true);
-            if (lootGenerator && !entity.noLoot && !isWindowTile(gameMap, lootX, lootY) && Math.random() < 0.75) {
-                const loot = lootGenerator.generateZombieLoot(entity.subtype, gameMap.mapNumber);
-                if (loot?.length > 0) placeItems(loot);
-            }
-            // Always drop a corpse (100% rate)
-            const corpseOverrides = getCorpseOverrides(entity.subtype);
-            const corpse = createItemFromDef('zombie.corpse', corpseOverrides);
-            if (corpse) {
-                placeItems([corpse]);
-            }
+            dropZombieDeathLoot(entity, lootX, lootY, gameMap, lootGenerator, placeItems);
         } else if (entity.type === EntityType.NPC) {
             // NPCs drop their entire inventory on death
             if (typeof entity.die === 'function') entity.die(); // Emits npcDied event

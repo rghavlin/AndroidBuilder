@@ -21,7 +21,6 @@ import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
 import { GAP_SIZE } from "./constants";
 import { useTheme } from "../../contexts/ThemeContext";
-import { getBrainstemOverrides, getBrainPulpOverrides } from "../../game/entities/ZombieCorpseConfig.js";
 
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
   if (!bgColor) return theme === 'light2' ? 'rgba(255, 255, 255, 0.15)' : 'var(--card)';
@@ -93,7 +92,7 @@ export default function UniversalGrid({
   themeRef.current = theme;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
   const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource, disassembleItem, pickSafeLock } = useInventory();
-  const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel } = useAction();
+  const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel, harvestBrainstem, harvestEarbucks, pulpBrainstem } = useAction();
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
   const { addLog } = useLog();
@@ -355,62 +354,9 @@ export default function UniversalGrid({
       );
 
       if (isKnifeSelected) {
-        const player = engine.player;
-        if (!player || player.ap < 5) {
-          addLog('Not enough AP to harvest brainstem (5 required)', 'error');
-          playSound('Fail');
-          return;
-        }
-
-        // If the corpse still has its earbuck, collect it
-        const earbucksVal = item.earbucksValue !== undefined ? item.earbucksValue : 1;
-        if (earbucksVal > 0) {
-          item.earbucksValue = 0;
-          if (player) {
-            player.earbucks = (player.earbucks || 0) + earbucksVal;
-            addLog(`Collected ${earbucksVal} Earbuck(s) from the zombie corpse.`, 'info');
-          }
-        }
-
-        // Create the brainstem item
-        const brainstemData = createItemFromDef('zombie.brainstem', getBrainstemOverrides(item.zombieSubtype));
-        const brainstemItem = new Item(brainstemData);
-
-        // Deduct AP
-        player.useAP(5);
-
-        // Replace the corpse on ground/container
-        const corpseX = item.x;
-        const corpseY = item.y;
-        container.removeItem(item.instanceId);
-
-        const placed = container.addItem(brainstemItem, corpseX, corpseY, false);
-        if (!placed) {
-          // Fallback placement if space is somehow blocked
-          engine.inventoryManager?.addItem(brainstemItem);
-        }
-
-        // Deselect the knife after harvesting
-        clearSelected();
-
-        playSound('Loot');
-        addLog('You extract a brainstem.', 'item');
-        engine.inventoryManager?.emit('inventoryChanged');
+        harvestBrainstem(item, container);
       } else {
-        // Standard left-click earbucks harvesting
-        const earbucksVal = item.earbucksValue !== undefined ? item.earbucksValue : 1;
-        if (earbucksVal > 0) {
-          playSound('Loot');
-          item.earbucksValue = 0;
-          if (engine.player) {
-            engine.player.earbucks = (engine.player.earbucks || 0) + earbucksVal;
-            addLog(`Collected ${earbucksVal} Earbuck(s) from the zombie corpse.`, 'info');
-          }
-          engine.inventoryManager?.emit('inventoryChanged');
-        } else {
-          addLog('This corpse has already been harvested for Earbucks.', 'info');
-          playSound('Fail');
-        }
+        harvestEarbucks(item);
       }
       return;
     }
@@ -425,36 +371,7 @@ export default function UniversalGrid({
       const isStoneSelected = selectedItem && selectedItem.item.defId === 'crafting.stone';
 
       if (isHammerSelected || isStoneSelected) {
-        const player = engine.player;
-        if (!player || player.ap < 5) {
-          addLog('Not enough AP to smash brainstem (5 required)', 'error');
-          playSound('Fail');
-          return;
-        }
-
-        // Deduct AP
-        player.useAP(5);
-
-        // Create brain pulp
-        const brainPulpData = createItemFromDef('zombie.brainpulp', getBrainPulpOverrides(item.zombieSubtype));
-        const brainPulpItem = new Item(brainPulpData);
-
-        // Replace brainstem at coordinates
-        const parentX = item.x;
-        const parentY = item.y;
-        container.removeItem(item.instanceId);
-
-        const placed = container.addItem(brainPulpItem, parentX, parentY, false);
-        if (!placed) {
-          engine.inventoryManager?.addItem(brainPulpItem);
-        }
-
-        // Deselect carried tool (hammer or stone)
-        clearSelected();
-
-        playSound('Click');
-        addLog('You smash the brainstem into brain pulp.', 'item');
-        engine.inventoryManager?.emit('inventoryChanged');
+        pulpBrainstem(item, container);
         return;
       }
     }

@@ -10,6 +10,8 @@ import { Item } from './client/src/game/inventory/Item.js';
 import { createItemFromDef } from './client/src/game/inventory/ItemDefs.js';
 import engine from './client/src/game/GameEngine.js';
 
+import { gameRandom } from './client/src/game/utils/SeededRandom.js';
+
 let allPassed = true;
 function assert(condition, message) {
   if (!condition) {
@@ -29,9 +31,10 @@ engine.lootGenerator = {
   }
 };
 
-// Mock Math.random to make the 75% random check always succeed
+// Mock Math.random and gameRandom to make the 75% random check always succeed
 const originalRandom = Math.random;
 Math.random = () => 0.1;
+gameRandom.next = () => 0.1;
 
 const map = new GameMap(10, 10);
 

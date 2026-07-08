@@ -12,6 +12,7 @@ import { EntityType } from '../game/entities/Entity.js';
 import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { gameRandom } from '../game/utils/SeededRandom.js';
 import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
+import { getBrainstemOverrides, getBrainPulpOverrides } from '../game/entities/ZombieCorpseConfig.js';
 
 const ActionContext = createContext();
 
@@ -560,6 +561,136 @@ export const ActionProvider = ({ children }) => {
     return { success: true };
   }, [addLog, updatePlayerStats, playSound]);
 
+  const harvestBrainstem = useCallback((corpseItem, container) => {
+    const player = engine.player;
+    if (!player) return { success: false };
+
+    if (player.ap < 5) {
+      addLog('Not enough AP to harvest brainstem (5 required)', 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Need 5 AP' };
+    }
+
+    // If the corpse still has its earbuck, collect it
+    const earbucksVal = corpseItem.earbucksValue !== undefined ? corpseItem.earbucksValue : 1;
+    if (earbucksVal > 0) {
+      corpseItem.earbucksValue = 0;
+      player.earbucks = (player.earbucks || 0) + earbucksVal;
+      addLog(`Collected ${earbucksVal} Earbuck(s) from the zombie corpse.`, 'info');
+    }
+
+    // Create the brainstem item
+    const brainstemData = createItemFromDef('zombie.brainstem', getBrainstemOverrides(corpseItem.zombieSubtype));
+    const brainstemItem = new Item(brainstemData);
+
+    // Deduct AP
+    player.useAP(5);
+    updatePlayerStats({ ap: player.ap });
+
+    // Replace the corpse on ground/container
+    const corpseX = corpseItem.x;
+    const corpseY = corpseItem.y;
+    container.removeItem(corpseItem.instanceId);
+
+    const placed = container.addItem(brainstemItem, corpseX, corpseY, false);
+    if (!placed) {
+      engine.inventoryManager?.addItem(brainstemItem);
+    }
+
+    if (typeof window.inv?.clearSelected === 'function') {
+      window.inv.clearSelected();
+    }
+
+    playSound('Loot');
+    addLog('You extract a brainstem.', 'item');
+
+    if (typeof window.inv?.refresh === 'function') {
+      window.inv.refresh();
+    } else {
+      engine.inventoryManager?.emit('inventoryChanged');
+    }
+
+    return { success: true };
+  }, [addLog, playSound, updatePlayerStats]);
+
+  const harvestEarbucks = useCallback((corpseItem) => {
+    const player = engine.player;
+    if (!player) return { success: false };
+
+    const earbucksVal = corpseItem.earbucksValue !== undefined ? corpseItem.earbucksValue : 1;
+    if (earbucksVal > 0) {
+      playSound('Loot');
+      corpseItem.earbucksValue = 0;
+      player.earbucks = (player.earbucks || 0) + earbucksVal;
+      addLog(`Collected ${earbucksVal} Earbuck(s) from the zombie corpse.`, 'info');
+      
+      if (typeof window.inv?.refresh === 'function') {
+        window.inv.refresh();
+      } else {
+        engine.inventoryManager?.emit('inventoryChanged');
+      }
+      return { success: true };
+    } else {
+      addLog('This corpse has already been harvested for Earbucks.', 'info');
+      playSound('Fail');
+      return { success: false, reason: 'Already harvested' };
+    }
+  }, [addLog, playSound]);
+
+  const pulpBrainstem = useCallback((stemItem, container) => {
+    const player = engine.player;
+    if (!player) return { success: false };
+
+    if (player.ap < 5) {
+      addLog('Not enough AP to smash brainstem (5 required)', 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Need 5 AP' };
+    }
+
+    // Deduct AP
+    player.useAP(5);
+    updatePlayerStats({ ap: player.ap });
+
+    // Create brain pulp
+    const brainPulpData = createItemFromDef('zombie.brainpulp', getBrainPulpOverrides(stemItem.zombieSubtype));
+    const brainPulpItem = new Item(brainPulpData);
+
+    const parentX = stemItem.x;
+    const parentY = stemItem.y;
+
+    if (stemItem.stackCount && stemItem.stackCount > 1) {
+      stemItem.stackCount -= 1;
+      // Slot remains occupied by the stack, so add pulp generally
+      const placed = container.addItem(brainPulpItem, null, null, true);
+      if (!placed) {
+        engine.inventoryManager?.addItem(brainPulpItem);
+      }
+    } else {
+      // Remove the single brainstem item completely
+      container.removeItem(stemItem.instanceId);
+      // Place the brain pulp in the exact same slot
+      const placed = container.addItem(brainPulpItem, parentX, parentY, false);
+      if (!placed) {
+        engine.inventoryManager?.addItem(brainPulpItem);
+      }
+    }
+
+    if (typeof window.inv?.clearSelected === 'function') {
+      window.inv.clearSelected();
+    }
+
+    playSound('Click');
+    addLog('You smash the brainstem into brain pulp.', 'item');
+
+    if (typeof window.inv?.refresh === 'function') {
+      window.inv.refresh();
+    } else {
+      engine.inventoryManager?.emit('inventoryChanged');
+    }
+
+    return { success: true };
+  }, [addLog, playSound, updatePlayerStats]);
+
   const value = {
     targetingItem,
     startTargetingItem,
@@ -571,7 +702,10 @@ export const ActionProvider = ({ children }) => {
     harvestPlant,
     useBreakingToolOnStructure,
     siphonFuel,
-    transferFuel
+    transferFuel,
+    harvestBrainstem,
+    harvestEarbucks,
+    pulpBrainstem
   };
 
   return (

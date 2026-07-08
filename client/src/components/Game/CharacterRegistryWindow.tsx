@@ -60,7 +60,7 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                         variant="ghost"
                         size="icon"
                         onClick={onClose}
-                        className="h-8 w-8 rounded-md bg-secondary/20 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 border border-white/5 transition-colors"
+                        className="h-8 w-8 rounded-md bg-secondary/20 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 border border-[var(--hairline)] transition-colors"
                     >
                         <X className="h-4 w-4" />
                     </Button>
@@ -111,11 +111,11 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                                         {char.name}
                                                     </span>
                                                     {char.isInfected && (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] text-red-500 font-bold uppercase tracking-wider bg-red-950/30 border border-red-500/20 px-1.5 py-0.5 rounded w-fit">
-                                                            <AlertTriangle className="w-2.5 h-2.5" />
-                                                            Infected
-                                                        </span>
-                                                    )}
+                                                         <span className="inline-flex items-center gap-1 text-[10px] text-destructive font-bold uppercase tracking-wider bg-destructive/10 border border-destructive/20 px-1.5 py-0.5 rounded w-fit">
+                                                             <AlertTriangle className="w-2.5 h-2.5" />
+                                                             Infected
+                                                         </span>
+                                                     )}
                                                 </div>
                                                 <span className="text-[10px] text-muted-foreground font-mono opacity-50 select-none">
                                                     ID: {char.id.substring(0, 8)}...
@@ -123,7 +123,7 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                             </div>
 
                                             {/* Attribute list */}
-                                            <div className="grid grid-cols-4 gap-1 text-[10px] font-mono text-muted-foreground border-t border-white/5 pt-2">
+                                             <div className="grid grid-cols-4 gap-1 text-[10px] font-mono text-muted-foreground border-t border-[var(--hairline)] pt-2">
                                                 <div className="flex items-center gap-1">
                                                     <Dumbbell className="w-3 h-3 text-orange-400/80" />
                                                     <span>STR {char.strength ?? 10}</span>
@@ -166,10 +166,10 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                     <div>
                                         <span className="text-[10px] uppercase text-muted-foreground block">Infection Status</span>
                                         {selectedChar.isInfected ? (
-                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-500 bg-red-950/40 border border-red-500/30 px-2 py-1 rounded mt-1 select-none animate-pulse">
-                                                <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                                                VIRAL INFECTION (Lethal)
-                                            </span>
+                                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-destructive bg-destructive/15 border border-destructive/30 px-2 py-1 rounded mt-1 select-none animate-pulse">
+                                                 <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />
+                                                 VIRAL INFECTION (Lethal)
+                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-950/20 border border-emerald-500/10 px-2 py-1 rounded mt-1 select-none">
                                                 Healthy
@@ -180,7 +180,7 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                     {/* Progression details */}
                                     <div className="space-y-1.5">
                                         <span className="text-[10px] uppercase text-muted-foreground block">Combat Skills</span>
-                                        <div className="bg-background/40 p-2 rounded border border-white/5 space-y-1 text-[11px]">
+                                         <div className="bg-background/40 p-2 rounded border border-[var(--hairline)] space-y-1 text-[11px]">
                                             <div className="flex justify-between">
                                                 <span>Melee Lvl</span>
                                                 <span className="font-bold text-emerald-400">{selectedChar.meleeLvl ?? 0}</span>

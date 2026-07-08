@@ -1,6 +1,6 @@
 import engine from '../GameEngine.js';
 import { recalcCharacter } from '../utils/SurvivalCascade.js';
-import { toast } from '../../hooks/use-toast.ts';
+import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 
 /**
  * AttributeProgressionManager
@@ -100,10 +100,7 @@ export class AttributeProgressionManager {
         const requiredXP = this.getRequiredXP(stats[statName]);
         if (currentProgress >= requiredXP) {
           const statLabel = statName.replace('base', '');
-          toast({ 
-            title: 'Dice Roll Available!', 
-            description: `You have earned enough XP to roll for a ${statLabel} upgrade! Open the Abilities screen to roll.`
-          });
+          GameEvents.emit(GAME_EVENT.ATTRIBUTE_ROLL_READY, { statName, statLabel });
         }
       }
     };
@@ -154,10 +151,7 @@ export class AttributeProgressionManager {
       }
       recalcCharacter(entity);
 
-      toast({ 
-        title: 'Attribute Upgraded!', 
-        description: `Your ${statType.charAt(0).toUpperCase()}${statType.slice(1)} increased by +${roll}!`
-      });
+      GameEvents.emit(GAME_EVENT.ATTRIBUTE_UPGRADED, { statType, roll });
 
       return roll;
     }
