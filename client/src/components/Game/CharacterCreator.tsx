@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Dumbbell, Wind, Eye, Heart, Plus, Minus, Info } from "lucide-react";
+import { Dumbbell, Wind, Eye, Heart, Plus, Minus, Info, Swords } from "lucide-react";
 import { CombatResolver } from '../../game/systems/CombatResolver.js';
 import { previewDerivedStats } from '../../game/utils/SurvivalCascade.js';
 
@@ -58,24 +58,33 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
         return {
             maxHp,
             maxAp,
+            // Single-attribute effects only — each of these depends on exactly
+            // the one attribute whose card it's shown under.
             strengthEffects: [
                 `Melee damage +${meleeDamageBonus}`,
-                `Wagon-pull AP bonus: +${wagonPullBonus} AP`,
-                `Melee skill starts at Lv ${meleeSeed} (+${meleeSeed}%)`
+                `Wagon-pull AP bonus: +${wagonPullBonus} AP`
             ],
-            agilityEffects: [
-                `Defense +${defenseBonus}%`,
-                `Melee hit +${meleeAimBonus}%`,
-                `Defense skill starts at Lv ${defenseSeed} (+${defenseSeed}%)`
-            ],
+            agilityEffects: [],
             perceptionEffects: [
-                `Ranged hit +${rangedAimBonus}%`,
-                `Sight range bonus: +${sightRangeBonus}`,
-                `Ranged skill starts at Lv ${rangedSeed} (+${rangedSeed}%)`
+                `Sight range bonus: +${sightRangeBonus}`
             ],
             constitutionEffects: [
                 `Max HP ${maxHp}`,
                 `Sickness resist −${sickResistPct}%`
+            ],
+            // Multi-attribute effects — each genuinely blends two attributes, so
+            // they don't belong under a single attribute's card (that's what
+            // misled the "why does Agility show +0% melee hit" question this
+            // panel exists to fix). Labeled with both contributing attributes.
+            // Max AP omitted here — it's already shown, correctly attributed to
+            // Agility + Perception, in the Derived Vitals panel.
+            combatModifiers: [
+                { label: 'Melee Hit', value: `+${meleeAimBonus}%`, attrs: 'Strength + Agility' },
+                { label: 'Ranged Hit', value: `+${rangedAimBonus}%`, attrs: 'Agility + Perception' },
+                { label: 'Defense', value: `+${defenseBonus}%`, attrs: 'Agility + Perception' },
+                { label: 'Melee skill seed', value: `Lv ${meleeSeed}`, attrs: 'Strength + Agility' },
+                { label: 'Ranged skill seed', value: `Lv ${rangedSeed}`, attrs: 'Agility + Perception' },
+                { label: 'Defense skill seed', value: `Lv ${defenseSeed}`, attrs: 'Agility + Perception' }
             ]
         };
     }, [stats]);
@@ -150,7 +159,8 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                     </div>
                 </CardHeader>
 
-                <CardContent className="p-6 flex flex-col md:flex-row gap-6">
+                <CardContent className="p-6 flex flex-col gap-6">
+                <div className="flex flex-col md:flex-row gap-6">
                     {/* Left Column - Attributes */}
                     <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-2 pb-1 border-b border-border/30 justify-between">
@@ -268,6 +278,32 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                             >
                                 {confirmLabel || 'Confirm'}
                             </Button>
+                        </div>
+                    </div>
+                </div>
+
+                    {/* Combat Modifiers - bonuses that blend two attributes together.
+                        Kept separate from the attribute cards above because a
+                        single-attribute card reads as "this bonus comes from this
+                        one stat," which is wrong for anything derived from an
+                        averaged pair (e.g. raising Agility alone won't move Melee
+                        Hit if Strength stays low) — each row names both. */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                            <Swords className="w-3.5 h-3.5 text-amber-400" />
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">Combat Modifiers</h3>
+                            <span className="text-[9px] text-muted-foreground font-mono ml-auto">Each blends two attributes — raising only one may not move it</span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {derivedStats.combatModifiers.map((mod, i) => (
+                                <div key={i} className="flex flex-col gap-0.5 p-2.5 rounded-lg border border-border/40 bg-muted/20">
+                                    <div className="flex items-baseline justify-between">
+                                        <span className="text-[10px] font-bold text-foreground uppercase tracking-wide">{mod.label}</span>
+                                        <span className="text-sm font-mono font-black text-amber-400 tabular-nums">{mod.value}</span>
+                                    </div>
+                                    <span className="text-[9px] text-muted-foreground font-mono">{mod.attrs}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </CardContent>
