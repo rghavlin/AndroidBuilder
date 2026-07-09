@@ -12,12 +12,31 @@
 // which live on SurvivalStats. NPCs don't carry SurvivalStats (their facades read
 // 0), so running this on an NPC would compute a full deficit and halve their stats.
 // Only ever call recalcCharacter on the player; NPCs keep their typeDef hp/maxAP.
+import { gameRandom } from './SeededRandom.js';
+
 const CASCADE_MAX_PENALTY = 0.5; // fully depleted needs cap stats at 50% of base
 
 const HP_FLOOR = 10;   // max HP never drops below this, whatever Constitution does
 const AP_BASE = 10;    // max AP before attribute bonus / fatigue penalty
 const AP_FLOOR = 5;    // max AP never drops below this — never fully incapacitated
 const AP_EXHAUSTION_COEF = 10; // energy deficit (0-1) × this = AP knocked off the base
+
+// How hard attributes push max HP / max AP. These are the survivability dials:
+// bump HP_PER_CON for a beefier health pool, AP_ATTR_DIVISOR down for more actions.
+const HP_PER_CON = 0.4;     // max HP gained per point of current Constitution
+const AP_ATTR_DIVISOR = 5;  // (Agility + Perception) / this = flat max-AP bonus
+
+// Single source of truth for the attribute → vitals formulas. deriveSecondaryStats
+// (live gameplay) and previewDerivedStats (char-creation UI) both route through these
+// so the numbers the creator screen shows always match what the player actually gets.
+export function maxHpFromAttributes(constitution) {
+  const conBonus = Math.max(0, Math.floor((constitution || 0) * HP_PER_CON));
+  return HP_FLOOR + conBonus;
+}
+
+export function maxApBonusFromAttributes(agility, perception) {
+  return Math.floor(((agility || 0) + (perception || 0)) / AP_ATTR_DIVISOR);
+}
 // While sick, these attributes are temporarily sapped (1 per remaining sickness turn,
 // each capped), tapering to 0 as the counter clears. This is how the "Diseased"
 // condition affects the character — entirely through the attribute layer rather than
@@ -26,6 +45,22 @@ const AP_EXHAUSTION_COEF = 10; // energy deficit (0-1) × this = AP knocked off 
 const SICK_CON_PENALTY_CAP = 10;
 const SICK_AGI_PENALTY_CAP = 8;
 const SICK_PER_PENALTY_CAP = 8;
+
+// Wound infection (rag-bound bleeding wound) routes through the exact same attribute
+// layer as sickness. While infected we feed this fixed sickness-equivalent magnitude
+// into sicknessPenalties, so it saps Con/Agi/Per by a steady amount that — unlike a
+// sickness counter — does NOT taper: it holds until the infection is actually cured.
+const WOUND_INFECTION_LEVEL = 6;
+
+// Per-turn Constitution roll to shake off a wound infection. Base chance plus a nudge
+// scaled off Constitution (same (attr-20)*step shape as CombatResolver.attrMod, inlined
+// here to keep this module import-free), plus a flat bonus while asleep — resting gives
+// the body a better shot at fighting it off.
+const WOUND_CURE_BASE = 0.08;
+const WOUND_CURE_CON_STEP = 0.0075; // per Constitution point above the 20 baseline
+const WOUND_CURE_SLEEP_BONUS = 0.10;
+const WOUND_CURE_MIN = 0.02;
+const WOUND_CURE_MAX = 0.95;
 
 export const TREATMENT_EFFECTS = {
   basic: {
@@ -104,7 +139,14 @@ export function applySurvivalCascade(player) {
   const avgDeficit = (nutritionDeficit + hydrationDeficit + energyDeficit) / 3;
   const conditionMultiplier = 1 - avgDeficit * CASCADE_MAX_PENALTY;
 
-  const sick = sicknessPenalties(player.sickness);
+  // Sickness and wound infection share one attribute-penalty channel. Take whichever
+  // demands the larger drop rather than stacking them, so a sick-AND-infected player is
+  // penalized once (by the worse of the two) instead of being double-docked.
+  const effectiveSickness = Math.max(
+    player.sickness || 0,
+    player.woundInfection ? WOUND_INFECTION_LEVEL : 0
+  );
+  const sick = sicknessPenalties(effectiveSickness);
 
   const isInfected = !!player.isInfected;
   const isTreated = isInfected && (player.treatmentTicksRemaining > 0);
@@ -169,12 +211,11 @@ export function applySurvivalCascade(player) {
 export function deriveSecondaryStats(player, energyDeficit = 0) {
   if (!player) return;
 
-  const conBonus = Math.max(0, Math.floor((player.currentConstitution || 0) * 0.2));
-  const newMaxHp = HP_FLOOR + conBonus;
+  const newMaxHp = maxHpFromAttributes(player.currentConstitution);
   player.maxHp = newMaxHp;
   if (player.hp > newMaxHp) player.hp = newMaxHp;
 
-  const apAttrBonus = Math.floor(((player.currentAgility || 0) + (player.currentPerception || 0)) / 6);
+  const apAttrBonus = maxApBonusFromAttributes(player.currentAgility, player.currentPerception);
   const exhaustionPenalty = Math.round(energyDeficit * AP_EXHAUSTION_COEF);
   const newMaxAp = Math.max(AP_FLOOR, AP_BASE + apAttrBonus - exhaustionPenalty);
   player.maxAp = newMaxAp;
@@ -224,12 +265,40 @@ export function tickInfection(player, logCallback = null) {
 }
 
 /**
+ * Per-turn chance (0-1) for a Constitution roll to clear a wound infection. Higher
+ * Constitution recovers faster; resting (asleep=true) adds a flat bonus.
+ */
+export function woundInfectionCureChance(currentConstitution = 0, asleep = false) {
+  const conBonus = ((currentConstitution || 0) - 20) * WOUND_CURE_CON_STEP;
+  const chance = WOUND_CURE_BASE + conBonus + (asleep ? WOUND_CURE_SLEEP_BONUS : 0);
+  return Math.max(WOUND_CURE_MIN, Math.min(WOUND_CURE_MAX, chance));
+}
+
+/**
+ * Rolls the per-tick Constitution check against an active wound infection. On success
+ * clears the infection and logs recovery; returns true iff the player was cured this
+ * tick. Shared by the per-turn (awake) and per-hour (asleep) loops so both use the
+ * same odds, differing only by the asleep bonus.
+ */
+export function rollWoundInfectionCure(player, { asleep = false, logCallback = null } = {}) {
+  if (!player || !player.woundInfection) return false;
+  const chance = woundInfectionCureChance(player.currentConstitution, asleep);
+  if (gameRandom.next() < chance) {
+    player.woundInfection = false;
+    player.notifyChange?.();
+    if (logCallback) {
+      logCallback('Your wound has healed cleanly — the infection has passed.', 'status');
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
  * Shared helper to calculate derived max HP and max AP from base attributes (used for UI previews).
  */
 export function previewDerivedStats({ constitution, agility, perception }) {
-  const conBonus = Math.max(0, Math.floor((constitution || 0) * 0.2));
-  const maxHp = HP_FLOOR + conBonus;
-  const apAttrBonus = Math.floor(((agility || 0) + (perception || 0)) / 6);
-  const maxAp = AP_BASE + apAttrBonus;
+  const maxHp = maxHpFromAttributes(constitution);
+  const maxAp = AP_BASE + maxApBonusFromAttributes(agility, perception);
   return { maxHp, maxAp };
 }

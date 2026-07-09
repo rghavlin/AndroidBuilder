@@ -104,7 +104,7 @@ export const SERIALIZED_FIELDS = [
   'typeId', 'isShopkeeper', 'isTollGuard', 'tollPaid', 'tollSidestep', 'tollTarget',
   'factionId', 'sightRange', 'hearingRangeMultiplier', 'hasExited', 'isActive', 'noLoot', 'deaf',
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
-  'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding',
+  'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding', 'woundInfection',
   'drunkenness', 'isStarving', 'isDehydrated', 'meleeHits', 'meleeLvl',
   'rangedHits', 'rangedLvl', 'defenseHits', 'defenseLvl', 'craftingApUsed', 'craftingLvl', 'earbucks'
 ];
@@ -363,6 +363,7 @@ export class Entity extends SafeEventEmitter {
     const stats = this.getComponent('SurvivalStats');
     if (stats) {
       if (stats.isBleeding) return 'Bleeding';
+      if (stats.woundInfection) return 'Infected';
       if (stats.sickness > 0) return 'Diseased';
       if (stats.drunkenness > 0) return 'Drunk';
       return stats.condition || 'Normal';
@@ -518,6 +519,7 @@ export class Entity extends SafeEventEmitter {
 
   cure() {
     this.sickness = 0;
+    this.woundInfection = false;
     this.condition = 'Normal';
     this.notifyChange();
   }
@@ -1144,6 +1146,7 @@ defineAccessors(Entity, 'SurvivalStats', SurvivalStats, {
   maxEnergy: 0,
   sickness: 0,
   isBleeding: false,
+  woundInfection: false,
   drunkenness: 0,
   isStarving: false,
   isDehydrated: false

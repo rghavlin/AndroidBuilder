@@ -19,7 +19,7 @@ import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { CombatSystem } from '../game/systems/CombatSystem.js';
-import { recalcCharacter, tickInfection } from '../game/utils/SurvivalCascade.js';
+import { recalcCharacter, tickInfection, rollWoundInfectionCure } from '../game/utils/SurvivalCascade.js';
 import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
 import { toast } from '../hooks/use-toast';
 
@@ -613,6 +613,16 @@ const GameContextInner = ({ children }) => {
         AttributeProgressionManager.recordAction(player, 'DISEASE_RECOVERED');
       }
     }
+    // Wound infection: like sickness it saps attributes via the survival cascade, but it
+    // doesn't tick down on a timer — each turn the player gets a Constitution roll to beat
+    // it, and otherwise it persists (cured also by antibiotics/antiseptic).
+    if (player.woundInfection) {
+      AttributeProgressionManager.recordAction(player, 'ENDURE_HARDSHIP');
+      const cured = rollWoundInfectionCure(player, { asleep: false, logCallback: (msg, type) => addLog(msg, type) });
+      if (cured) {
+        AttributeProgressionManager.recordAction(player, 'DISEASE_RECOVERED');
+      }
+    }
     if (player.drunkenness > 0) {
       player.drunkenness = Math.max(0, player.drunkenness - 1);
     }
@@ -829,6 +839,7 @@ const GameContextInner = ({ children }) => {
         hp: player.hp,
         isBleeding: player.isBleeding,
         sickness: player.sickness,
+        woundInfection: player.woundInfection,
         condition: player.condition,
         drunkenness: player.drunkenness
       });

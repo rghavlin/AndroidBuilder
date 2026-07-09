@@ -38,7 +38,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, bindWound, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -122,6 +122,16 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Use
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'crafting.rag' && engine.player?.isBleeding && (
+                            <ContextMenuItem
+                                onClick={() => {
+                                    bindWound(item);
+                                }}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Bind Wound
                             </ContextMenuItem>
                         )}
                         {(item?.defId === 'weapon.grenade' || item?.defId === 'weapon.molotov' || item?.defId === 'crafting.stone') && (
@@ -414,7 +424,7 @@ export function ItemContextMenu({
                                 Split Stack
                             </ContextMenuItem>
                         )}
-                        {!canSplit && !canOpenContainer(item) && !item?.hasTrait?.(ItemTrait.WATER_CONTAINER) && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && !item?.hasTrait?.(ItemTrait.DRAGGABLE) && (
+                        {!canSplit && !canOpenContainer(item) && !item?.hasTrait?.(ItemTrait.WATER_CONTAINER) && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && !item?.hasTrait?.(ItemTrait.DRAGGABLE) && !(item?.defId === 'crafting.rag' && engine.player?.isBleeding) && (
                             <ContextMenuItem disabled className="text-zinc-500">
                                 No actions available
                             </ContextMenuItem>

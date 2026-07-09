@@ -1090,6 +1090,10 @@ export class InventoryManager extends SafeEventEmitter {
               // Handle stack splitting for attachment slots (e.g. batteries)
               if (item.stackCount > 1) {
                 itemToAttach = item.splitStack(1);
+                // splitStack() intentionally does NOT mutate the source (see Item.splitStack);
+                // the caller must decrement it. Without this the remaining stack is re-added
+                // at full count, duplicating one unit every time a battery is pulled from a stack.
+                item.stackCount -= 1;
                 // Return remaining stack to inventory
                 this.addItem(item);
               }
@@ -1907,9 +1911,14 @@ export class InventoryManager extends SafeEventEmitter {
       targetContainerId: targetId
     });
 
-    // 1. Broad inclusion check
-    if (targetId.includes(itemId)) {
-      console.warn('[InventoryManager] Recursion detected (includes):', itemId, 'in', targetId);
+    // 1. Structural id check: a container owned by this item is named
+    // `${itemId}-container` or `${itemId}-grid`. Match those exact shapes rather
+    // than a loose substring — `targetId.includes(itemId)` false-positives whenever
+    // one instanceId is a textual prefix of another (same-millisecond ids such as
+    // `...-1` vs `...-12`, or split-stack ids `${itemId}-split-...`), wrongly
+    // rejecting legal moves as self-nesting. Pockets are handled in case 2 below.
+    if (targetId === `${itemId}-container` || targetId === `${itemId}-grid`) {
+      console.warn('[InventoryManager] Recursion detected (structural id):', itemId, 'in', targetId);
       return true;
     }
 
@@ -2083,6 +2092,10 @@ export class InventoryManager extends SafeEventEmitter {
       item.rotation = rotation;
     }
 
+    // Remember the incoming stack size so we can tell a partial merge (some units
+    // absorbed into an occupant, remainder left over) apart from a clean failure.
+    const originalStackCount = item.stackCount;
+
     let success = false;
     if (x !== null && y !== null) {
       success = toContainer.placeItemAt(item, x, y);
@@ -2159,6 +2172,21 @@ export class InventoryManager extends SafeEventEmitter {
       // Logic for auto-placement without coordinates
       const addResult = this.addItem(item, toContainerId);
       success = addResult.success;
+    }
+
+    // Partial stack merge: the drop couldn't be fully placed, but some units WERE
+    // absorbed into an occupant at the target (item.stackCount dropped without
+    // reaching 0). That's a real, committed change — the remainder is now orphaned
+    // (already removed from source, never re-placed). Re-home the remainder and
+    // report success so the caller fires notifyUpdate and clears the selection.
+    // Without this the merge silently sticks while moveItem returns failure.
+    if (!success && item.stackCount > 0 && item.stackCount < originalStackCount) {
+      const returnResult = this.addItem(item, fromContainerId, null, null, true);
+      if (!returnResult.success && fromContainer) {
+        fromContainer.placeItemAt(item, oldX, oldY);
+      }
+      this.emit('inventoryChanged');
+      return { success: true, container: toContainer.id, merged: true, partial: true };
     }
 
     if (!success && fromContainer) {

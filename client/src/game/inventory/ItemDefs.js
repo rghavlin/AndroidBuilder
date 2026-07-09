@@ -1387,9 +1387,13 @@ export const ItemDefs = {
     imageId: 'antiseptic',
     width: 1,
     height: 1,
-    traits: [ItemTrait.MEDICAL, ItemTrait.STACKABLE],
+    traits: [ItemTrait.MEDICAL, ItemTrait.STACKABLE, ItemTrait.CONSUMABLE],
     categories: [ItemCategory.MEDICAL],
-    stackMax: 5
+    consumptionSound: 'Spray',
+    stackMax: 5,
+    consumptionEffects: {
+      cure_infection: true // Clears a wound infection (not general sickness)
+    }
   },
   'medical.antibiotics': {
     id: 'medical.antibiotics',
@@ -2733,7 +2737,8 @@ export const ItemDefs = {
     stackMax: 10,
     categories: [ItemCategory.ENVIRONMENT],
     consumptionEffects: {
-      treat_infection: 12
+      treat_infection: 12,
+      nutrition: 7
     },
     description: 'Smashed zombie brain pulp.'
   }

@@ -12,7 +12,7 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { ItemTrait } from '../game/inventory/traits.js';
 import { SimulationManager } from '../game/managers/SimulationManager.js';
 import { getHourFromTurn } from '../game/utils/TimeUtils.js';
-import { recalcCharacter, tickInfection } from '../game/utils/SurvivalCascade.js';
+import { recalcCharacter, tickInfection, rollWoundInfectionCure } from '../game/utils/SurvivalCascade.js';
 
 const SleepContext = createContext();
 
@@ -166,6 +166,12 @@ export const SleepProvider = ({ children }) => {
         // Tick infection/treatment hourly during sleep
         tickInfection(player, (msg, type) => addLog(msg, type));
 
+        // Wound infection: roll the Constitution cure each sleeping hour. Rest gives a
+        // flat +10% over the awake odds (see WOUND_CURE_SLEEP_BONUS).
+        if (player.woundInfection) {
+          rollWoundInfectionCure(player, { asleep: true, logCallback: (msg, type) => addLog(msg, type) });
+        }
+
         if (player.drunkenness > 0) {
           player.drunkenness = Math.max(0, player.drunkenness - 1);
         }
@@ -309,6 +315,7 @@ export const SleepProvider = ({ children }) => {
           isDehydrated: player.isDehydrated,
           condition: player.condition,
           sickness: player.sickness,
+          woundInfection: player.woundInfection,
           drunkenness: player.drunkenness,
           isInfected: player.isInfected,
           infectionTicksRemaining: player.infectionTicksRemaining,

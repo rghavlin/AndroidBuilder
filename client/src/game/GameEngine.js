@@ -654,6 +654,7 @@ class GameEngine extends SafeEventEmitter {
           isBleeding: this.player.isBleeding,
           condition: this.player.condition,
           sickness: this.player.sickness,
+          woundInfection: this.player.woundInfection,
           drunkenness: this.player.drunkenness || 0,
           energy: this.player.energy,
           nutrition: this.player.nutrition,

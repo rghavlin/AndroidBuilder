@@ -51,6 +51,7 @@ export const EntityFactory = {
       condition: 'Normal',
       sickness: 0,
       isBleeding: false,
+      woundInfection: false,
       isStarving: false,
       isDehydrated: false
     }));

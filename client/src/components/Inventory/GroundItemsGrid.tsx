@@ -103,10 +103,10 @@ export default function GroundItemsGrid() {
   const isNoneTileSet = imageLoader.tileSet === 'none';
   const isSpriteSheet = imageLoader.tileSet === 'spritesheet';
   const subFolder = imageLoader.tileSet === 'standard' ? '' : `${imageLoader.tileSet}/`;
-  // In light mode, ground slots have a solid background so tile textures are invisible anyway —
-  // but the image still exists in the DOM and bleeds through semi-transparent placement previews.
-  // Suppress the URL in light mode so the preview overlay renders cleanly.
-  const tileImageUrl = (isNoneTileSet || isSpriteSheet || theme === 'light') ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
+  // The tile-texture background is a dark-theme-only feature. In the light themes ground slots
+  // have a solid background so the texture would be invisible anyway — and the image still bleeds
+  // through semi-transparent placement previews. Suppress the URL outside dark mode.
+  const tileImageUrl = (isNoneTileSet || isSpriteSheet || theme !== 'dark') ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
@@ -135,7 +135,8 @@ export default function GroundItemsGrid() {
             enableHorizontalScroll={true}
             onSlotClick={handleSlotClick}
             onSlotDrop={handleSlotDrop}
-            isTransparentGround={false}
+            isTransparentGround={!!tileImageUrl}
+            tileImageUrl={tileImageUrl}
             className="h-full"
           />
         </div>

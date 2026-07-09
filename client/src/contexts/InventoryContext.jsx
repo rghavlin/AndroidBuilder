@@ -610,6 +610,14 @@ export const InventoryProvider = ({ children }) => {
           player.inflictSickness(val);
       } else if (key === 'cure' && val === true) {
           player.cure();
+      } else if (key === 'cure_infection' && val === true) {
+          // Antiseptic: clears a rag-bound wound infection specifically, leaving any
+          // separate sickness counter untouched.
+          if (player.woundInfection) {
+            player.woundInfection = false;
+            player.notifyChange();
+            addLog('You disinfect the wound. The infection clears up.', 'status');
+          }
       } else if (key === 'treat_infection') {
           if (player.isInfected) {
               player.treatmentTicksRemaining = val;
@@ -661,6 +669,47 @@ export const InventoryProvider = ({ children }) => {
 
     return { success: true };
   }, [applyConsumptionEffects, playSound]);
+
+  // Bind a bleeding wound with a rag. Stops the bleeding immediately, but an unsterile
+  // rag carries a chance of causing a wound infection (a recoverable sickness-like
+  // condition — see SurvivalCascade / Entity.woundInfection). Only meaningful while
+  // bleeding; the context menu only surfaces it then.
+  const bindWound = useCallback((item) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return { success: false };
+    const player = engine.player;
+    if (!player || !engine.inventoryManager || !item) return { success: false };
+
+    if (!player.isBleeding) {
+      addLog('You are not bleeding.', 'info');
+      return { success: false };
+    }
+
+    // Chance a dirty rag introduces an infection when binding the wound.
+    const RAG_BIND_INFECTION_CHANCE = 0.35;
+
+    player.setBleeding(false);
+
+    if (!player.woundInfection && gameRandom.next() < RAG_BIND_INFECTION_CHANCE) {
+      player.woundInfection = true;
+      player.notifyChange();
+      addLog('You bind the wound with a rag, but it festers — the wound is now infected.', 'warning');
+    } else {
+      addLog('You bind the wound with a rag. The bleeding stops.', 'status');
+    }
+
+    // Consume one rag from the stack (mirrors consumeItem's stack handling).
+    if (item.hasTrait(ItemTrait.STACKABLE) && item.stackCount > 1) {
+      item.stackCount -= 1;
+    } else {
+      engine.inventoryManager.destroyItem(item.instanceId);
+    }
+
+    playSound('Bandage');
+    recalcCharacter(player);
+    engine.notifyUpdate();
+    return { success: true };
+  }, [addLog, playSound]);
 
   const drinkWater = useCallback((item, amount) => {
     if (!checkPlayerTurn()) return { success: false };
@@ -1684,6 +1733,7 @@ export const InventoryProvider = ({ children }) => {
     autoloadRecipe,
     unloadCrafting,
     consumeItem,
+    bindWound,
     drinkWater,
     unrollBedroll,
     rollupBedroll,
