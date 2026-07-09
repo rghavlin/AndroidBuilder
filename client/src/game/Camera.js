@@ -1,3 +1,9 @@
+import Logger from './utils/Logger.js';
+
+// Perf Phase 3: camera diagnostics fire on every pan/zoom/follow step. Route
+// them through the gated logger so they cost players nothing in production.
+const log = Logger.scope('Camera');
+
 /**
  * Camera - Handles viewport management and smooth following
  * Follows UniversalGoals.md: modular, event-driven, serialization
@@ -32,7 +38,7 @@ export class Camera {
     // Event system
     this.listeners = new Map();
 
-    console.log('[Camera] Camera initialized with viewport:', this.viewportWidth, 'x', this.viewportHeight);
+    log.debug('Camera initialized with viewport:', this.viewportWidth, 'x', this.viewportHeight);
   }
 
   /**
@@ -61,7 +67,7 @@ export class Camera {
         viewportWidth: this.viewportWidth,
         viewportHeight: this.viewportHeight
       });
-      console.log('[Camera] Zoom set to:', this.zoomLevel, 'viewport now:', this.viewportWidth, 'x', this.viewportHeight);
+      log.debug('Zoom set to:', this.zoomLevel, 'viewport now:', this.viewportWidth, 'x', this.viewportHeight);
     }
   }
 
@@ -117,7 +123,7 @@ export class Camera {
   setWorldBounds(width, height) {
     this.worldWidth = width;
     this.worldHeight = height;
-    console.log('[Camera] World bounds set to:', width, 'x', height);
+    log.debug('World bounds set to:', width, 'x', height);
   }
 
   /**
@@ -142,7 +148,7 @@ export class Camera {
     this.setPosition(newX, newY);
     // Only log significant center changes (reduced logging during smooth movement)
     if (Math.abs(newX - this.x) > 2 || Math.abs(newY - this.y) > 2) {
-      console.log('[Camera] Centered on:', Math.round(newX * 10) / 10, Math.round(newY * 10) / 10);
+      log.debug('Centered on:', Math.round(newX * 10) / 10, Math.round(newY * 10) / 10);
     }
   }
 
@@ -179,7 +185,7 @@ export class Camera {
     this.emit('cameraPositionChanged', { x: this.x, y: this.y });
     // Reduced logging for smooth movement (less frequent during animation)
     if (Math.abs(newX - this.x) > 1 || Math.abs(newY - this.y) > 1) {
-      console.log('[Camera] Position set to:', Math.round(newX * 10) / 10, Math.round(newY * 10) / 10);
+      log.debug('Position set to:', Math.round(newX * 10) / 10, Math.round(newY * 10) / 10);
     }
   }
 
@@ -210,7 +216,7 @@ export class Camera {
     // Only log constraint changes when position actually changes
     if (Math.abs(debugInfo.result.x - debugInfo.requested.x) > 0.01 ||
         Math.abs(debugInfo.result.y - debugInfo.requested.y) > 0.01) {
-      console.log('[Camera] Constraint applied:', {
+      log.debug('Constraint applied:', {
         from: `(${Math.round(debugInfo.requested.x)}, ${Math.round(debugInfo.requested.y)})`,
         to: `(${Math.round(debugInfo.result.x)}, ${Math.round(debugInfo.result.y)})`
       });
@@ -226,7 +232,7 @@ export class Camera {
     const constrainedPos = this.constrainPosition(x, y);
     this.targetX = constrainedPos.x;
     this.targetY = constrainedPos.y;
-    console.log('[Camera] Target set to:', this.targetX, this.targetY, '(requested:', x, y, ')');
+    log.debug('Target set to:', this.targetX, this.targetY, '(requested:', x, y, ')');
   }
 
   /**
@@ -236,7 +242,7 @@ export class Camera {
     if (entity && entity.x !== undefined && entity.y !== undefined) {
       this.setTarget(entity.x, entity.y);
       this.isFollowing = true;
-      console.log('[Camera] Following entity at:', entity.x, entity.y);
+      log.debug('Following entity at:', entity.x, entity.y);
     }
   }
 
@@ -265,7 +271,7 @@ export class Camera {
       this.emit('cameraPositionChanged', { x: this.x, y: this.y });
       // Reduced logging for smooth movement (less frequent during update)
       if (Math.abs(newX - this.x) > 1 || Math.abs(newY - this.y) > 1) {
-        console.log('[Camera] Position set to:', Math.round(newX * 10) / 10, Math.round(newY * 10) / 10);
+        log.debug('Position set to:', Math.round(newX * 10) / 10, Math.round(newY * 10) / 10);
       }
     }
   }

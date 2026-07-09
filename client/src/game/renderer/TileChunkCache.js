@@ -38,16 +38,39 @@ export class TileChunkCache {
   }
 
   /**
-   * Release chunks that are no longer on screen to cap GPU memory use.
-   * Call once per frame after blitting all visible chunks.
-   * @param {Set<string>} visibleKeys — set of "cx,cy" keys rendered this frame.
+   * Release chunks that are far off screen to cap GPU memory use, while keeping
+   * a margin ring of just-off-screen chunks cached (Perf Phase 5). The old
+   * version evicted every chunk not visible THIS frame, so panning back and
+   * forth continuously destroyed and rebuilt edge chunks. Retaining a margin
+   * means small pans reuse cached chunks instead of rebuilding them.
+   * Call once per frame after blitting the visible chunks.
+   * @param {number} startCX,endCX,startCY,endCY — visible chunk-coord bounds.
+   * @param {number} margin — rings of off-screen chunks to keep (default 2).
    */
-  evictOffscreen(visibleKeys) {
+  evictOffscreen(startCX, endCX, startCY, endCY, margin = 2) {
+    const minCX = startCX - margin;
+    const maxCX = endCX + margin;
+    const minCY = startCY - margin;
+    const maxCY = endCY + margin;
     for (const key of this._chunks.keys()) {
-      if (!visibleKeys.has(key)) {
+      const comma = key.indexOf(',');
+      const cx = parseInt(key.slice(0, comma), 10);
+      const cy = parseInt(key.slice(comma + 1), 10);
+      if (cx < minCX || cx > maxCX || cy < minCY || cy > maxCY) {
         this._chunks.delete(key);
       }
     }
+  }
+
+  /**
+   * Return the already-cached chunk entry ({ canvas, ctx, tileSize }) for a
+   * chunk coord, or null if it isn't cached — WITHOUT building or re-rendering
+   * it. Used by the zoom scale-blit path (Perf Phase 5): during an active zoom
+   * gesture MapCanvas draws the existing (old-size) canvas scaled to the new
+   * tile size, and only rebuilds crisp once the gesture settles.
+   */
+  peekChunk(cx, cy) {
+    return this._chunks.get(`${cx},${cy}`) || null;
   }
 
   /**

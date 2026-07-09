@@ -140,6 +140,12 @@ export class Pathfinding {
     openSet.push(startNode);
     openSetMap.set(`${startX},${startY}`, startNode);
 
+    // Perf Phase 6: getMovementCost() is called for every neighbor of every
+    // expanded node. Build its options object once here instead of spreading
+    // pathOptions on each call — getMovementCost only reads from it, never
+    // mutates it, so a single shared object is safe.
+    const movementCostOptions = { ...pathOptions, gameMap, isPathfinding: true };
+
     while (openSet.size() > 0) {
       const current = openSet.pop();
       if (!current) break;
@@ -179,7 +185,7 @@ export class Pathfinding {
         const distanceFromStart = Math.abs(neighbor.x - startX) + Math.abs(neighbor.y - startY);
         if (distanceFromStart > maxDistance) continue;
 
-        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...pathOptions, gameMap, isPathfinding: true });
+        const tentativeG = current.g + this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, movementCostOptions);
         const existingNode = openSetMap.get(neighborKey);
 
         if (!existingNode) {

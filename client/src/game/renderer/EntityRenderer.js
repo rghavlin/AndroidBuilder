@@ -12,6 +12,43 @@ import { gridItems } from '../inventory/gridUtils.js';
 let tempCanvas = null;
 let tempCtx = null;
 
+// Phase 1 (dirty-flag rendering): renderEntity sets hasPulser = true whenever it
+// draws a time-animated decoration (stun pulse, fire ring, active-turret ring,
+// heard-blip pulse). MapCanvas resets this before its entity passes and reads it
+// afterward to decide whether the scene must keep re-rendering while otherwise
+// idle. Shared module-level object so no call-site signature change is needed.
+export const frameRenderFlags = { hasPulser: false };
+
+// Perf Phase 2: per-frame cached tile-item lookups. During a render pass
+// MapCanvas sets engine._frameItemCache / _frameDominantCache (cleared each
+// frame). renderEntity resolves getItemsOnTile / dominant-item up to ~5x per
+// item entity per frame; these helpers collapse that to one lookup per tile per
+// frame. Falls back to a direct lookup when no frame cache is present (e.g.
+// called outside the render loop).
+function getTileItemsCached(engine, x, y) {
+  if (!engine || !engine.gameMap) return [];
+  const cache = engine._frameItemCache;
+  if (!cache) return engine.gameMap.getItemsOnTile(x, y);
+  const key = `${x},${y}`;
+  let items = cache.get(key);
+  if (items === undefined) {
+    items = engine.gameMap.getItemsOnTile(x, y);
+    cache.set(key, items);
+  }
+  return items;
+}
+
+function getDominantItemCached(engine, x, y) {
+  if (!engine || !engine.gameMap) return null;
+  const cache = engine._frameDominantCache;
+  if (!cache) return getDominantItemInTile(getTileItemsCached(engine, x, y));
+  const key = `${x},${y}`;
+  if (cache.has(key)) return cache.get(key); // cache null results too (empty tiles)
+  const dominant = getDominantItemInTile(getTileItemsCached(engine, x, y));
+  cache.set(key, dominant);
+  return dominant;
+}
+
 let lastQueryTime = 0;
 let cachedIsLight = false;
 
@@ -277,6 +314,7 @@ export const EntityRenderer = {
         const pulse = Math.sin((elapsed / PULSE_DURATION) * Math.PI * 4) * 0.5 + 0.5;
         alpha = 0.4 + pulse * 0.35;
         radius = tileSize * (0.32 + pulse * 0.12);
+        frameRenderFlags.hasPulser = true; // animating heard-blip; keep frames warm
       }
 
       ctx.save();
@@ -325,8 +363,7 @@ export const EntityRenderer = {
       let effectiveImageId = subtype;
       if (entity.type === 'item') {
         if (subtype === 'ground_pile' && engine && engine.gameMap) {
-          const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
-          const dominantItem = getDominantItemInTile(tileItems);
+          const dominantItem = getDominantItemCached(engine, Math.round(entity.x), Math.round(entity.y));
           if (dominantItem) {
             const defId = dominantItem.defId || dominantItem.id;
             const def = ItemDefs[defId];
@@ -389,7 +426,7 @@ export const EntityRenderer = {
         let drawSize = tileSize;
 
         // Check if the item on the tile is a crop (growing or harvestable, wild or player-planted)
-        const tileItems = (engine && engine.gameMap) ? engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y)) : [];
+        const tileItems = getTileItemsCached(engine, Math.round(entity.x), Math.round(entity.y));
         const isCrop = tileItems.some(item => item.isCrop || false);
 
         // Check if the item on the tile is a piece of furniture or a vehicle
@@ -434,8 +471,7 @@ export const EntityRenderer = {
           let matchingDef = null;
           
           if (subtype === 'ground_pile' && engine && engine.gameMap) {
-            const tileItems = engine.gameMap.getItemsOnTile(Math.round(entity.x), Math.round(entity.y));
-            const dominantItem = getDominantItemInTile(tileItems);
+            const dominantItem = getDominantItemCached(engine, Math.round(entity.x), Math.round(entity.y));
             if (dominantItem) {
               isFood = dominantItem.isFood || false;
               isMedical = dominantItem.isMedical || false;
@@ -520,6 +556,7 @@ export const EntityRenderer = {
           // Draw inner border. Normally silver; a powered-on turret pulses its
           // ring between silver and dark electric blue to signal it's active.
           if (renderTurret) {
+            frameRenderFlags.hasPulser = true; // pulsing active-turret ring
             const t = 0.5 + 0.5 * Math.sin(currentTime / 250); // 0..1
             const lerp = (a, b) => Math.round(a + (b - a) * t);
             // silver (226,232,240) <-> dark electric blue (15,60,180)
@@ -604,6 +641,7 @@ export const EntityRenderer = {
 
         // Orange pulsing frame for any entity on fire
         if (entity.fireTurns > 0) {
+          frameRenderFlags.hasPulser = true; // pulsing fire ring
           ctx.save();
           const pulse = 0.5 + Math.sin(currentTime / 150) * 0.4;
           ctx.strokeStyle = `rgba(249, 115, 22, ${pulse})`;
@@ -627,6 +665,7 @@ export const EntityRenderer = {
 
     // Pulse highlight for stunned entities (Sky blue)
     if (entity.stunnedTurns > 0) {
+      frameRenderFlags.hasPulser = true; // pulsing stun highlight
       let drawSize = tileSize;
       let drawX = screenX;
       let drawY = screenY;

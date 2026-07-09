@@ -9,6 +9,12 @@ import { getHourFromTurn } from './utils/TimeUtils.js';
 
 
 import { gameRandom } from './utils/SeededRandom.js';
+import Logger from './utils/Logger.js';
+
+// Perf Phase 3: scoped logger for hot-path diagnostics. debug()/info() are
+// no-ops in production and only fire in dev, so per-turn / per-frame logging
+// no longer costs players anything.
+const log = Logger.scope('GameEngine');
 /**
  * GameEngine - The Central Source of Truth
  * 
@@ -87,6 +93,7 @@ class GameEngine extends SafeEventEmitter {
     this.turn = 1;
     this.isFlashlightOn = false;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
+    this.playerFovSet = new Set(); // Perf Phase 2: cached "x,y" visibility Set for the renderer
     this._fovOptions = { maxRange: MAX_VISION_RANGE, isNight: false, isFlashlightOn: false, flashlightRange: FLASHLIGHT_RANGE, isNightVision: false };
     this._lastFovOptionsHash = ''; // Cache hash to throttle redundant FOV updates
     this.renderDebugColors = false; 
@@ -349,7 +356,7 @@ class GameEngine extends SafeEventEmitter {
     this.lastUpdate = Date.now();
     this.updateCount++;
     this._uiDirty = true;
-    console.log(`[GameEngine] 🔔 Pulse #${this.updateCount} emitted at ${new Date(this.lastUpdate).toLocaleTimeString()}`);
+    log.debug(`🔔 Pulse #${this.updateCount} emitted`);
     this.emit('update', this);
   }
 
@@ -451,7 +458,8 @@ class GameEngine extends SafeEventEmitter {
          range = 15;
        }
  
-       console.log(`[recalculateFOV] Calculating FOV from (${posX}, ${posY}) -> round (${roundX}, ${roundY}) with range: ${range}`);
+       // (Perf Phase 3: removed the per-frame [recalculateFOV] console.log here —
+       // it fired 60x/sec during movement, before the dedupe early-return below.)
 
        // Compute FOV state hash to prevent redundant calculation on same tile / options
        const optionsHash = `${roundX},${roundY},${range},${isNight},${isFlashlightOn},${isNightVision},${isAimingWithScope},${this.weather ? this.weather.type : 'clear'},${this.weather ? this.weather.intensity : 0},${this.turn}`;
@@ -559,10 +567,15 @@ class GameEngine extends SafeEventEmitter {
       }
 
       // Update explored flags (Silent mutation, will stay in sync with pulse)
+      // and build the render-side visibility Set once here (Perf Phase 2), so
+      // MapCanvas no longer rebuilds it from the FOV array every frame.
+      const fovSet = new Set();
       this.playerFieldOfView.forEach(pos => {
         const tile = this.gameMap.getTile(pos.x, pos.y);
         if (tile) tile.flags.explored = true;
+        fovSet.add(`${Math.round(pos.x)},${Math.round(pos.y)}`);
       });
+      this.playerFovSet = fovSet;
       return true;
     } catch (error) {
        console.error('[GameEngine] FOV Error:', error);
@@ -580,7 +593,7 @@ class GameEngine extends SafeEventEmitter {
    * Bridges standalone entity events to the global engine update signal
    */
   _handlePlayerStateChange() {
-    console.log('[GameEngine] 👤 Player state change detected -> triggering global pulse');
+    log.debug('👤 Player state change detected -> triggering global pulse');
     this.notifyUpdate();
   }
 
@@ -619,7 +632,7 @@ class GameEngine extends SafeEventEmitter {
    * External store snapshot for React (Atomic Bridge)
    */
   _handleInventoryChange() {
-    console.log('[GameEngine] 📦 Inventory change detected -> triggering global pulse');
+    log.debug('📦 Inventory change detected -> triggering global pulse');
     this._uiDirty = true;
     this.notifyUpdate();
   }

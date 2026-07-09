@@ -6,7 +6,7 @@ import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { TileRenderer } from '../../game/renderer/TileRenderer.js';
 import { TileChunkCache, TILE_CHUNK_SIZE } from '../../game/renderer/TileChunkCache.js';
-import { EntityRenderer, getDominantItemInTile } from '../../game/renderer/EntityRenderer.js';
+import { EntityRenderer, getDominantItemInTile, frameRenderFlags } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../../game/entities/Entity.js';
@@ -18,6 +18,12 @@ import { getScaleFactor } from '../../hooks/useWindowSize';
 // entity doesn't spam the console at 60fps (this used to throw and blank the
 // entire frame — see the finite-coordinate guard in the render loop).
 const warnedMalformedEntityIds = new Set();
+
+// Perf Phase 2: reused each frame for the player draw so we don't allocate a
+// fresh `{ ...player }` clone at 60fps. Object.assign has identical own-enumerable
+// copy semantics to the spread it replaces; renderEntity only reads known keys,
+// so any stale key left over from a previous frame is harmless.
+const playerRenderScratch = {};
 
 /**
  * MapCanvas - Visual map rendering system for tile-based display
@@ -41,7 +47,14 @@ export default function MapCanvas({
   const canvasRef = useRef(null);
   const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
   const chunkCacheRef = useRef(new TileChunkCache());
-  const lastRTileSizeRef = useRef(0);
+  // Perf Phase 5: zoom-settle state. Chunks are (re)built at `builtTileSizeRef`;
+  // while the live `rTileSize` differs (an in-progress zoom gesture) we scale-blit
+  // the existing chunks and only rebuild crisp once the gesture has been idle for
+  // ZOOM_SETTLE_MS. zoomPendingRef keeps the render loop warm until that rebuild.
+  const builtTileSizeRef = useRef(0);
+  const prevRTileSizeRef = useRef(0);
+  const lastZoomChangeAtRef = useRef(0);
+  const zoomPendingRef = useRef(false);
   const lastThemeRef = useRef(null);
 
   const renderMapRef = useRef(null);
@@ -49,13 +62,45 @@ export default function MapCanvas({
   const handleMouseUpRef = useRef(null);
   const handleWheelRef = useRef(null);
 
+  // Phase 1: Dirty-flag render gating. The rAF loop below renders only when
+  // something changed (renderRequestedRef), when the scene is continuously
+  // animating (continuousRef), or — throttled — when a pulsing element is on
+  // screen (sceneHasPulsersRef, re-set by renderMap each frame it draws one).
+  const renderRequestedRef = useRef(true); // render at least once on mount
+  const continuousRef = useRef(false);
+  const sceneHasPulsersRef = useRef(false);
+  const lastRenderTimeRef = useRef(0);
+  const lastPulseFrameRef = useRef(0);
+
+  const requestRender = useCallback(() => {
+    renderRequestedRef.current = true;
+  }, []);
+
   // Sync refs on every render to ensure they always call the latest closures
   useEffect(() => {
     renderMapRef.current = renderMap;
     handleMouseMoveRef.current = handleMouseMove;
     handleMouseUpRef.current = handleMouseUp;
     handleWheelRef.current = handleWheel;
+
+    // Refresh the continuous-animation snapshot for the gated rAF loop and
+    // request a frame. This effect runs on EVERY React render — i.e. exactly
+    // when a state/context change (hover, effects, movement, camera version,
+    // theme) could alter the map. When the game is truly idle there are no
+    // re-renders, so the loop stays quiet and the CPU goes idle.
+    continuousRef.current = Boolean(
+      isAnimatingMovement || isAnimatingZombies || (effects && effects.length > 0)
+    );
+    renderRequestedRef.current = true;
   });
+
+  // Belt-and-suspenders: engine state pulses (turn end, FOV, inventory, player
+  // state) may not always re-render this component through a context, so also
+  // request a frame directly on every engine 'update'.
+  useEffect(() => {
+    const unsubscribe = engine.subscribe(requestRender);
+    return unsubscribe;
+  }, [requestRender]);
 
 
   // Phase 1: Direct sub-context access (no more useGame() aggregation)
@@ -72,6 +117,7 @@ export default function MapCanvas({
   useEffect(() => {
     imageLoader.onImageLoaded = () => {
       chunkCacheRef.current.invalidateAll();
+      requestRender();
       setLoadTick(t => t + 1);
     };
     return () => { imageLoader.onImageLoaded = null; };
@@ -152,6 +198,21 @@ export default function MapCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Phase 1: reset the per-frame pulser flag. renderMap + EntityRenderer set
+    // it true when they draw a time-animated decoration; the rAF loop reads it
+    // to keep animating those while the scene is otherwise idle.
+    sceneHasPulsersRef.current = false;
+    frameRenderFlags.hasPulser = false;
+
+    // Perf Phase 2: per-frame memo for tile item lookups. EntityRenderer resolves
+    // getItemsOnTile / dominant-item up to ~5x per item entity per frame; these
+    // reused-and-cleared Maps collapse that to one lookup per tile per frame.
+    // Reused across frames (not reallocated) to avoid its own GC churn.
+    if (!engine._frameItemCache) engine._frameItemCache = new Map();
+    if (!engine._frameDominantCache) engine._frameDominantCache = new Map();
+    engine._frameItemCache.clear();
+    engine._frameDominantCache.clear();
+
     try {
       const layout = getLayoutDimensions(canvas);
       if (!layout) return;
@@ -221,22 +282,47 @@ export default function MapCanvas({
         endY: Math.min(gameMap.height - 1, visibleTiles.endY + extraTiles)
       };
       
-      // OPTIMIZATION: Convert visible tiles array to a Set of strings for O(1) high-speed lookups
-      // CRITICAL FIX: Use engine.playerFieldOfView as the primary source to avoid 'invisible entities' 
-      // when loading a game (avoids waiting for React state to cycle).
-      const fovSource = (engine.playerFieldOfView && engine.playerFieldOfView.length > 0) 
-        ? engine.playerFieldOfView 
-        : (playerFieldOfView || []);
-      const visibleTileSet = new Set(fovSource.map(v => `${Math.round(v.x)},${Math.round(v.y)}`));
+      // OPTIMIZATION: Visibility lookup Set for O(1) `.has()`. Perf Phase 2: the
+      // engine now builds this Set once per FOV recalculation (engine.playerFovSet),
+      // so we no longer rebuild it from the FOV array every single frame. Fall back
+      // to building it here only before the engine's first FOV pass (e.g. right
+      // after a load), using engine state or React state, whichever is populated —
+      // this preserves the original "avoid invisible entities on load" fix.
+      let visibleTileSet;
+      if (engine.playerFovSet && engine.playerFieldOfView && engine.playerFieldOfView.length > 0) {
+        visibleTileSet = engine.playerFovSet;
+      } else {
+        const fovSource = (engine.playerFieldOfView && engine.playerFieldOfView.length > 0)
+          ? engine.playerFieldOfView
+          : (playerFieldOfView || []);
+        visibleTileSet = new Set(fovSource.map(v => `${Math.round(v.x)},${Math.round(v.y)}`));
+      }
 
       // Layer 1: Tiles — static terrain blitted from chunk cache, then dynamic overlays.
       const chunkCache = chunkCacheRef.current;
 
-      // Clear all chunks when the physical tile size changes (zoom or DPR change).
-      if (rTileSize !== lastRTileSizeRef.current) {
-        chunkCache.invalidateAll();
-        lastRTileSizeRef.current = rTileSize;
+      // Perf Phase 5: defer chunk rebuilds during a zoom (or DPR) change until the
+      // gesture settles, instead of invalidating every visible chunk on each wheel
+      // notch. On the very first render adopt the current size directly; otherwise
+      // rebuild only after ZOOM_SETTLE_MS of no further size change. While pending,
+      // `zoomActive` drives the scale-blit path in the loop below.
+      const ZOOM_SETTLE_MS = 120;
+      if (builtTileSizeRef.current === 0) {
+        builtTileSizeRef.current = rTileSize;
+        prevRTileSizeRef.current = rTileSize;
+        lastZoomChangeAtRef.current = currentTime;
       }
+      if (rTileSize !== prevRTileSizeRef.current) {
+        lastZoomChangeAtRef.current = currentTime;
+        prevRTileSizeRef.current = rTileSize;
+      }
+      const zoomSettled = (currentTime - lastZoomChangeAtRef.current) >= ZOOM_SETTLE_MS;
+      if (rTileSize !== builtTileSizeRef.current && zoomSettled) {
+        chunkCache.invalidateAll();
+        builtTileSizeRef.current = rTileSize;
+      }
+      const zoomActive = rTileSize !== builtTileSizeRef.current;
+      zoomPendingRef.current = zoomActive;
 
       ctx.save();
       ctx.translate(globalOffsetX, globalOffsetY);
@@ -247,16 +333,27 @@ export default function MapCanvas({
       const startCY = Math.floor(extendedBounds.startY / TILE_CHUNK_SIZE);
       const endCY   = Math.floor(extendedBounds.endY   / TILE_CHUNK_SIZE);
 
-      const visibleChunkKeys = new Set();
+      const chunkPixels = TILE_CHUNK_SIZE * rTileSize;
       for (let cy = startCY; cy <= endCY; cy++) {
         for (let cx = startCX; cx <= endCX; cx++) {
-          const key = `${cx},${cy}`;
-          visibleChunkKeys.add(key);
+          const dx = cx * TILE_CHUNK_SIZE * rTileSize;
+          const dy = cy * TILE_CHUNK_SIZE * rTileSize;
+          if (zoomActive) {
+            // Mid-zoom: scale-blit the existing (old-size) chunk to the new size
+            // rather than rebuilding it. Rebuild happens crisply on settle above.
+            const entry = chunkCache.peekChunk(cx, cy);
+            if (entry) {
+              ctx.drawImage(entry.canvas, dx, dy, chunkPixels, chunkPixels);
+              continue;
+            }
+            // Not cached yet (e.g. just scrolled into view) — build at current size.
+          }
           const chunkCanvas = chunkCache.getChunk(cx, cy, rTileSize, gameMap, engine, imageLoader.images);
-          ctx.drawImage(chunkCanvas, cx * TILE_CHUNK_SIZE * rTileSize, cy * TILE_CHUNK_SIZE * rTileSize);
+          ctx.drawImage(chunkCanvas, dx, dy);
         }
       }
-      chunkCache.evictOffscreen(visibleChunkKeys);
+      // Keep a margin ring of off-screen chunks so small pans don't rebuild them.
+      chunkCache.evictOffscreen(startCX, endCX, startCY, endCY);
 
       // Pass 1b: Dynamic per-tile overlays (fog of war, unexplored, night tint, fire).
       // These are all simple fillRect calls — fast even at maximum zoom-out.
@@ -281,6 +378,7 @@ export default function MapCanvas({
               ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
             }
             if (tile.fireTurns > 0) {
+              frameRenderFlags.hasPulser = true; // animating fire-tile glow
               const pulse = 0.35 + Math.sin(currentTime / 180) * 0.15;
               ctx.fillStyle = `rgba(249, 115, 22, ${pulse})`;
               ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
@@ -408,7 +506,10 @@ export default function MapCanvas({
         
         ctx.save();
         ctx.translate(globalOffsetX, globalOffsetY);
-        EntityRenderer.renderEntity(ctx, { ...player, x: pX, y: pY }, rTileSize, imageLoader.images, visibleTileSet, true, engine, currentTime);
+        Object.assign(playerRenderScratch, player);
+        playerRenderScratch.x = pX;
+        playerRenderScratch.y = pY;
+        EntityRenderer.renderEntity(ctx, playerRenderScratch, rTileSize, imageLoader.images, visibleTileSet, true, engine, currentTime);
         ctx.restore();
       }
 
@@ -468,6 +569,11 @@ export default function MapCanvas({
           renderRain(ctx, physicalWidth, physicalHeight, engine.weather.intensity, dpr);
         }
       }
+
+      // Phase 1: publish whether this frame drew any time-animated decoration
+      // (fire, stun, active-turret ring, heard-blip). The rAF loop keeps those
+      // ticking (throttled) even when nothing else is changing.
+      sceneHasPulsersRef.current = frameRenderFlags.hasPulser;
 
     } catch (error) {
       console.error('[MapCanvas] Critical Rendering Error:', error);
@@ -580,7 +686,7 @@ export default function MapCanvas({
           camera.pan(tileDeltaX, tileDeltaY);
         }
         setLastMousePos({ x: event.clientX, y: event.clientY });
-        renderMapRef.current?.();
+        requestRender();
       }
     } else if (!isDragging) { // Only call handleCanvasHover if not currently dragging
       // Handle hover when not dragging - independent of player turn guards
@@ -615,8 +721,8 @@ export default function MapCanvas({
     }
 
     // Re-render the map with new zoom level
-    renderMapRef.current?.();
-  }, [cameraRef]); // Include cameraRef in dependencies
+    requestRender();
+  }, [cameraRef, requestRender]); // Include cameraRef in dependencies
 
   // Handle canvas click events (left click)
   const handleCanvasClick = useCallback((event) => {
@@ -925,13 +1031,45 @@ export default function MapCanvas({
     };
   }, []); // Decoupled from state changes; runs exactly once on mount
 
-  // Phase 17 & 18: Autonomous 60fps Rendering Loop
-  // This loop runs independently of React state, reading directly from the engine.
-  // We no longer guard with 'isInitialized' to ensure the heartbeat starts immediately.
+  // Phase 17 & 18 + Phase 1 (dirty-flag gating): Autonomous rendering loop.
+  // Runs independently of React state, reading directly from the engine, but
+  // now renders a frame ONLY when needed:
+  //   • renderRequestedRef — a one-shot dirty flag set by requestRender() / the
+  //     per-render sync effect / engine 'update' subscription.
+  //   • continuous animation — movement/zombie tweens, live effects, in-flight
+  //     visual actions, or active rain — render every frame.
+  //   • pulsers (fire/stun/turret/heard-blip) — render throttled to ~20fps.
+  //   • safety heartbeat — a low-rate fallback so a missed dirty source can
+  //     never strand the map on a stale frame (remove once Phase 1 is proven).
   useEffect(() => {
     let rafId;
-    const tick = () => {
-      renderMapRef.current?.();
+    const PULSE_INTERVAL_MS = 50;    // ~20fps for pulse-only frames
+    const SAFETY_INTERVAL_MS = 500;  // temporary fallback heartbeat
+
+    const tick = (now) => {
+      const continuous =
+        continuousRef.current ||
+        (engine.activeActions && engine.activeActions.size > 0) ||
+        (engine.weather && engine.weather.type === 'rain') ||
+        zoomPendingRef.current; // Phase 5: keep painting until the zoom settle-rebuild fires
+
+      let doRender = false;
+      if (renderRequestedRef.current || continuous) {
+        doRender = true;
+      } else if (sceneHasPulsersRef.current && (now - lastPulseFrameRef.current) >= PULSE_INTERVAL_MS) {
+        doRender = true;
+      } else if ((now - lastRenderTimeRef.current) >= SAFETY_INTERVAL_MS) {
+        doRender = true;
+      }
+
+      if (doRender) {
+        renderRequestedRef.current = false;
+        renderMapRef.current?.();
+        lastRenderTimeRef.current = now;
+        // renderMap has now refreshed sceneHasPulsersRef for this frame.
+        if (sceneHasPulsersRef.current) lastPulseFrameRef.current = now;
+      }
+
       rafId = requestAnimationFrame(tick);
     };
 
@@ -943,7 +1081,7 @@ export default function MapCanvas({
   useEffect(() => {
     const handleResize = () => {
       if (isInitialized && gameMapRef.current && cameraRef.current) {
-        renderMapRef.current?.();
+        requestRender();
       }
     };
 

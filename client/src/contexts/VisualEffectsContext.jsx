@@ -22,7 +22,6 @@ export const useVisualEffects = () => {
 export const VisualEffectsProvider = ({ children }) => {
     const [effects, setEffects] = useState([]);
     const effectsRef = useRef([]);
-    const [tick, setTick] = useState(0);
 
     /**
      * Add a new visual effect
@@ -48,21 +47,27 @@ export const VisualEffectsProvider = ({ children }) => {
 
         let animationFrame;
 
-        const animate = (currentTime) => {
+        const animate = () => {
             const now = performance.now();
             const initialCount = effectsRef.current.length;
 
             // Filter out expired effects
             effectsRef.current = effectsRef.current.filter(e => now - e.startTime < e.duration);
 
-            // If any effects were removed, update state
+            // Perf Phase 4: only push React state when the effect set actually
+            // changed (something expired). We no longer force a per-frame
+            // re-render (the old setTick) — the canvas render loop animates live
+            // effects itself by reading each effect's startTime/duration, and
+            // Phase 1 keeps it painting while effects.length > 0. This keeps a
+            // burst of damage numbers/flashes from thrashing every context
+            // consumer 60x/sec.
             if (effectsRef.current.length !== initialCount) {
                 setEffects([...effectsRef.current]);
             }
 
-            // If we still have effects, trigger a re-render for movement animation
+            // Keep polling for expiry while any effect is alive (cheap: just the
+            // filter above, no setState unless something expired).
             if (effectsRef.current.length > 0) {
-                setTick(t => t + 1);
                 animationFrame = requestAnimationFrame(animate);
             } else {
                 animationFrame = null;
@@ -156,7 +161,7 @@ export const VisualEffectsProvider = ({ children }) => {
     }, [addEffect]);
 
     return (
-        <VisualEffectsContext.Provider value={{ effects, addEffect, tick }}>
+        <VisualEffectsContext.Provider value={{ effects, addEffect }}>
             {children}
         </VisualEffectsContext.Provider>
     );
