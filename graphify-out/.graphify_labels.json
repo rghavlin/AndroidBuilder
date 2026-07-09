@@ -171,7 +171,14 @@
   "169": "Place Icon Serialization",
   "170": ".applyArmorAbsorption",
   "171": "verify_firefighter_spawn.js",
+  "172": "MapConnectivityValidator.js",
+  "173": "MockTile",
   "174": ".updateCropMetadata",
   "175": "ScenarioMapGenerator.js",
+  "176": "Consumable",
+  "177": "EquippedArmor",
+  "178": "tmp_verify_fix.js",
+  "179": "tmp_verify_loot.js",
+  "180": "tmp_verify_loot_summary.js",
   "181": ".setItemsOnTile"
 }

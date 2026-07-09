@@ -2740,7 +2740,7 @@ export const ItemDefs = {
       treat_infection: 12,
       nutrition: 7
     },
-    description: 'Smashed zombie brain pulp.'
+    description: 'Smashed zombie brain pulp. Treats zombie infection and restores nutrition, but causes sickness if consumed while not infected.'
   }
 };
 

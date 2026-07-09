@@ -595,6 +595,11 @@ export const InventoryProvider = ({ children }) => {
       player.inflictSickness(3);
     }
 
+    if (item.defId === 'zombie.brainpulp' && !player.isInfected) {
+      player.inflictSickness(3);
+      addLog('Eating zombie brain pulp while not infected makes you sick!', 'warning');
+    }
+
     Object.entries(effects).forEach(([key, value]) => {
       // Handle value ranges { min, max }
       let val = value;
@@ -641,7 +646,7 @@ export const InventoryProvider = ({ children }) => {
     // Refresh derived attributes/maxHp/maxAp immediately so a condition or need change
     // from eating (sickness, cure, restored nutrition) is visible before ending the turn.
     recalcCharacter(player);
-  }, []);
+  }, [addLog]);
 
   const consumeItem = useCallback((item) => {
     if (!checkPlayerTurn()) return { success: false };

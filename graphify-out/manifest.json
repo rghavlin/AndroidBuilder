@@ -655,8 +655,8 @@
     "semantic_hash": "6e101a2bf5eb2c2342cf7276b698bab5"
   },
   "client/src/contexts/InventoryContext.jsx": {
-    "mtime": 1783589445.0750353,
-    "ast_hash": "991fa9da62af6815daaf335833ff4f9d",
+    "mtime": 1783595153.5748534,
+    "ast_hash": "82708d23ad69c5a08e02d6433f748f2c",
     "semantic_hash": ""
   },
   "client/src/contexts/LogContext.jsx": {
@@ -1005,8 +1005,8 @@
     "semantic_hash": "d675046eca810628989adda63dfa5040"
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1783589415.85811,
-    "ast_hash": "86d181f9f465dcd31d4b597007f2f6ec",
+    "mtime": 1783595158.9464476,
+    "ast_hash": "d903070a036c0dec86892aebb7582f6f",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
@@ -1355,8 +1355,8 @@
     "semantic_hash": "92c293a3109316da2ca3951331e09f2c"
   },
   "client/src/game/utils/SurvivalCascade.js": {
-    "mtime": 1783589365.5930314,
-    "ast_hash": "2d555ab5f1b75000245f17175849d207",
+    "mtime": 1783590756.2645473,
+    "ast_hash": "252ab28b1559a6fd23cbbb5ea343367e",
     "semantic_hash": ""
   },
   "client/src/game/utils/TimeUtils.js": {
@@ -2455,9 +2455,9 @@
     "semantic_hash": "8f98e5da0c940963147dcb8b7eae41f6"
   },
   "client/public/sounds/click.ogg": {
-    "mtime": 1774782818.6871426,
-    "ast_hash": "c2165cc03659a032583ed770efbee083",
-    "semantic_hash": "c2165cc03659a032583ed770efbee083"
+    "mtime": 1783595026.8789802,
+    "ast_hash": "049e1fde7ad59ce71a601d7a1935c271",
+    "semantic_hash": ""
   },
   "client/public/sounds/climb.ogg": {
     "mtime": 1778830444.1637735,
