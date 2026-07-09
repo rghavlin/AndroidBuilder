@@ -10,9 +10,9 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1783496945.1821065,
-    "ast_hash": "74da2d899d6c69bf8578dc2a3ae38055",
-    "semantic_hash": "74da2d899d6c69bf8578dc2a3ae38055"
+    "mtime": 1783558817.1438313,
+    "ast_hash": "5a8837f7433c7fc14c31c4ed42dc5711",
+    "semantic_hash": ""
   },
   ".vscode/settings.json": {
     "mtime": 1782088493.5501156,
@@ -40,9 +40,9 @@
     "semantic_hash": "9d5f51c3124b6941464a0f227a685654"
   },
   "client/src/components/Game/CharacterCreator.tsx": {
-    "mtime": 1783500109.538788,
-    "ast_hash": "ffb8e71e0b325c2150184af4f8c2e0da",
-    "semantic_hash": "ffb8e71e0b325c2150184af4f8c2e0da"
+    "mtime": 1783512616.9142606,
+    "ast_hash": "a3467afb68b8007653579d281831f3ed",
+    "semantic_hash": ""
   },
   "client/src/components/Game/CharacterRegistryWindow.tsx": {
     "mtime": 1783500218.95384,
@@ -190,9 +190,9 @@
     "semantic_hash": "9e5814e6b7e6f0ce3adbb3b7efb85fdb"
   },
   "client/src/components/Game/PlayerSkillsUI.tsx": {
-    "mtime": 1783500201.7824986,
-    "ast_hash": "72a4cdb2185b24b0d55ef271d37ec9d7",
-    "semantic_hash": "72a4cdb2185b24b0d55ef271d37ec9d7"
+    "mtime": 1783557536.3127728,
+    "ast_hash": "09b38a547c5199f8647bd358a7adc8b9",
+    "semantic_hash": ""
   },
   "client/src/components/Game/PlayerSkillsWindow.tsx": {
     "mtime": 1783163481.1050708,
@@ -640,7 +640,7 @@
     "semantic_hash": "8f56946b3395924496394648277e13cf"
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1783471802.3838513,
+    "mtime": 1783554901.045558,
     "ast_hash": "24681eac13e33c0a2a32605baac6adaa",
     "semantic_hash": "24681eac13e33c0a2a32605baac6adaa"
   },
@@ -710,9 +710,9 @@
     "semantic_hash": "e512afbbce15e8144de7f976dc2b7c3b"
   },
   "client/src/game/EntityFactory.js": {
-    "mtime": 1783500055.189618,
-    "ast_hash": "02df7cf8dc0402147893428a601225e8",
-    "semantic_hash": "02df7cf8dc0402147893428a601225e8"
+    "mtime": 1783507355.0453415,
+    "ast_hash": "8814a922b6fd39fa6da024a126bbc526",
+    "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
     "mtime": 1783339045.3062139,
@@ -1055,9 +1055,9 @@
     "semantic_hash": "47f178c5f9b66b1b180520a1ba74630d"
   },
   "client/src/game/managers/TurnManager.js": {
-    "mtime": 1783501487.813392,
-    "ast_hash": "e4ab3f8ccc2a387a7f3a5540ed103c54",
-    "semantic_hash": "e4ab3f8ccc2a387a7f3a5540ed103c54"
+    "mtime": 1783558668.9121244,
+    "ast_hash": "e76744a23d709a80eecdf5ac753ef470",
+    "semantic_hash": ""
   },
   "client/src/game/map/AsciiMapRenderer.js": {
     "mtime": 1775421794.1513202,
@@ -1195,9 +1195,9 @@
     "semantic_hash": "30c2c69ad288cc1eaad7dd86dfac6073"
   },
   "client/src/game/systems/AISystem.js": {
-    "mtime": 1783501464.2214458,
-    "ast_hash": "bdfa3eb12b9f47efaeeebc3d49969b57",
-    "semantic_hash": "bdfa3eb12b9f47efaeeebc3d49969b57"
+    "mtime": 1783558190.0144112,
+    "ast_hash": "e7078c70f072d9035523cec4854526b2",
+    "semantic_hash": ""
   },
   "client/src/game/systems/AttributeProgressionManager.js": {
     "mtime": 1783499935.6407137,
@@ -1210,9 +1210,9 @@
     "semantic_hash": "1d4a4741d37762bdb6296d7a60e43092"
   },
   "client/src/game/systems/CombatResolver.js": {
-    "mtime": 1783501460.1596467,
-    "ast_hash": "6e4ce09db5230f04d468eb9a41de908e",
-    "semantic_hash": "6e4ce09db5230f04d468eb9a41de908e"
+    "mtime": 1783507355.0464265,
+    "ast_hash": "1b12af40efd6857689799ecd94b7ed7f",
+    "semantic_hash": ""
   },
   "client/src/game/systems/CombatSystem.js": {
     "mtime": 1783501483.6852412,
@@ -2668,5 +2668,45 @@
     "mtime": 1778910717.0,
     "ast_hash": "d6762c697129b6e23ddf679aa219bb29",
     "semantic_hash": "d6762c697129b6e23ddf679aa219bb29"
+  },
+  ".claude/settings.json": {
+    "mtime": 1783506396.5709045,
+    "ast_hash": "8029eac4d955a4fdc316a9104bf6c2e4",
+    "semantic_hash": ""
+  },
+  "scratch/diagnose_corridor.mjs": {
+    "mtime": 1783558268.6391778,
+    "ast_hash": "550959c0b3a8a1c52ec4f6364b403f56",
+    "semantic_hash": ""
+  },
+  "scratch/diagnose_lkp.mjs": {
+    "mtime": 1783558324.912324,
+    "ast_hash": "2d47c6fab1f41449e400e62f7d47b7da",
+    "semantic_hash": ""
+  },
+  "scratch/diagnose_lkp2.mjs": {
+    "mtime": 1783558423.9151254,
+    "ast_hash": "8472e0703f6d623327e100db159d09d4",
+    "semantic_hash": ""
+  },
+  "scratch/diagnose_sidestep.mjs": {
+    "mtime": 1783553508.2104037,
+    "ast_hash": "2a6cfd6a7f7d3836db2462810f8c8168",
+    "semantic_hash": ""
+  },
+  "scratch/diagnose_sidestep2.mjs": {
+    "mtime": 1783553733.5695212,
+    "ast_hash": "f3cb7e5f2464f71f6a36bad5c87a1503",
+    "semantic_hash": ""
+  },
+  "scratch/diagnose_sidestep3.mjs": {
+    "mtime": 1783554349.4524992,
+    "ast_hash": "59451d988f43f51613b49b674bc78b00",
+    "semantic_hash": ""
+  },
+  "client/index.html": {
+    "mtime": 1779874274.6585999,
+    "ast_hash": "1f814c42022cd43f8a64f5e44a17eef3",
+    "semantic_hash": ""
   }
 }

@@ -268,7 +268,7 @@ export default function PlayerSkillsUI() {
         const currentConstitution = playerStats.currentConstitution ?? 20;
         const baseConstitution = playerStats.baseConstitution ?? currentConstitution;
 
-        const meleeDamageBonus = CombatResolver.strengthDamageBonus(currentStrength);
+        const meleeDamageBonus = Math.round(CombatResolver.strengthDamageBonus(currentStrength));
         const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, playerStats.armorWeightRequirement || 0);
         const wagonPullBonus = Math.floor(currentStrength / 20);
         const defenseChance = Math.round(CombatResolver.totalDefenseChance({
@@ -317,9 +317,11 @@ export default function PlayerSkillsUI() {
             return lines;
         };
 
+        const formatBonus = (val: number) => (val >= 0 ? `+${val}%` : `${val}%`);
+
         const combatModifiers = [
-            { label: 'Melee Hit', value: `+${meleeAimBonus}%`, attrs: 'Strength + Agility' },
-            { label: 'Ranged Hit', value: `+${rangedAimBonus}%`, attrs: 'Agility + Perception' },
+            { label: 'Melee Hit', value: formatBonus(meleeAimBonus), attrs: 'Strength + Agility' },
+            { label: 'Ranged Hit', value: formatBonus(rangedAimBonus), attrs: 'Agility + Perception' },
             { label: 'Defense', value: `~${defenseChance}%`, attrs: 'Agility + Perception + Defense skill' }
         ];
 

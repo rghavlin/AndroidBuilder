@@ -1235,10 +1235,6 @@
       "client_src_game_config_progressionconfig_getprogressionformap",
       "client_src_game_config_progressionconfig_lootprogression",
       "client_src_game_config_progressionconfig_mapprogression",
-      "client_src_game_entities_placeicon_placeicon",
-      "client_src_game_entities_placeicon_placeicon_constructor",
-      "client_src_game_entities_placeicon_placeicon_fromjson",
-      "client_src_game_entities_placeicon_placeicon_tojson",
       "client_src_game_gameinitializationmanager_gameinitializationmanager_executeworldpopulation",
       "client_src_game_gameinitializationmanager_gameinitializationmanager_spawninitialzombies",
       "client_src_game_map_maputils_findsouthtransitiontile",
@@ -1284,15 +1280,6 @@
       "client_src_game_gameinitializationmanager_gameinitializationmanager_transitiontostate",
       "client_src_game_gameinitializationmanager_init_states",
       "client_src_game_utils_eventemitter",
-      "client_src_game_utils_eventemitter_eventemitter",
-      "client_src_game_utils_eventemitter_eventemitter_constructor",
-      "client_src_game_utils_eventemitter_eventemitter_emit",
-      "client_src_game_utils_eventemitter_eventemitter_listenercount",
-      "client_src_game_utils_eventemitter_eventemitter_off",
-      "client_src_game_utils_eventemitter_eventemitter_on",
-      "client_src_game_utils_eventemitter_eventemitter_once",
-      "client_src_game_utils_eventemitter_eventemitter_removealllisteners",
-      "client_src_game_utils_eventemitter_eventemitter_removelistener",
       "scratch_test_initialization",
       "scratch_test_initialization_initmanager",
       "scratch_verify_dynamic_catalog_init",
@@ -1312,6 +1299,9 @@
       "verify_firefighter_spawn_verifyspawning"
     ],
     "23": [
+      "agent_skills_cheap_inspector_index",
+      "agent_skills_cheap_inspector_index_inputcontent",
+      "agent_skills_cheap_inspector_index_runinspector",
       "client_src_contexts_gamecontext_gamecontextinner",
       "client_src_game_camera",
       "client_src_game_camera_camera_fromjson",
@@ -1588,12 +1578,6 @@
       "client_src_game_config_templateconfig_template_metadata",
       "client_src_game_worldmanager",
       "client_src_game_worldmanager_logger",
-      "scratch_verify_loadmap_dedup_p4_03",
-      "scratch_verify_loadmap_dedup_p4_03_assert",
-      "scratch_verify_loadmap_dedup_p4_03_gm",
-      "scratch_verify_loadmap_dedup_p4_03_players",
-      "scratch_verify_loadmap_dedup_p4_03_wm",
-      "scratch_verify_loadmap_dedup_p4_03_zombies",
       "scratch_verify_p5_01_event_emitter",
       "scratch_verify_p5_01_event_emitter_fn",
       "scratch_verify_p5_01_event_emitter_gm",
@@ -1610,7 +1594,13 @@
       "scratch_verify_road_template_p3_09_southx",
       "scratch_verify_template_metadata",
       "scratch_verify_template_metadata_assert",
-      "scratch_verify_template_metadata_verify"
+      "scratch_verify_template_metadata_verify",
+      "scratch_verify_worldmanager_populate_p4_02",
+      "scratch_verify_worldmanager_populate_p4_02_assert",
+      "scratch_verify_worldmanager_populate_p4_02_entities",
+      "scratch_verify_worldmanager_populate_p4_02_wm",
+      "scratch_verify_worldmanager_populate_p4_02_wm2",
+      "scratch_verify_worldmanager_populate_p4_02_zombies"
     ],
     "32": [
       "client_src_game_inventory_container_container",
@@ -3127,12 +3117,15 @@
       "scratch_transform_entity_propstoremovejson"
     ],
     "131": [
-      "scratch_verify_worldmanager_populate_p4_02",
-      "scratch_verify_worldmanager_populate_p4_02_assert",
-      "scratch_verify_worldmanager_populate_p4_02_entities",
-      "scratch_verify_worldmanager_populate_p4_02_wm",
-      "scratch_verify_worldmanager_populate_p4_02_wm2",
-      "scratch_verify_worldmanager_populate_p4_02_zombies"
+      "client_src_game_utils_eventemitter_eventemitter",
+      "client_src_game_utils_eventemitter_eventemitter_constructor",
+      "client_src_game_utils_eventemitter_eventemitter_emit",
+      "client_src_game_utils_eventemitter_eventemitter_listenercount",
+      "client_src_game_utils_eventemitter_eventemitter_off",
+      "client_src_game_utils_eventemitter_eventemitter_on",
+      "client_src_game_utils_eventemitter_eventemitter_once",
+      "client_src_game_utils_eventemitter_eventemitter_removealllisteners",
+      "client_src_game_utils_eventemitter_eventemitter_removelistener"
     ],
     "132": [
       "client_src_game_map_lootgenerator_getfoodrejectionchance",
@@ -3215,9 +3208,12 @@
       "tmp_verify_army_tent_templatemapgenerator"
     ],
     "144": [
-      "agent_skills_cheap_inspector_index",
-      "agent_skills_cheap_inspector_index_inputcontent",
-      "agent_skills_cheap_inspector_index_runinspector"
+      "scratch_verify_loadmap_dedup_p4_03",
+      "scratch_verify_loadmap_dedup_p4_03_assert",
+      "scratch_verify_loadmap_dedup_p4_03_gm",
+      "scratch_verify_loadmap_dedup_p4_03_players",
+      "scratch_verify_loadmap_dedup_p4_03_wm",
+      "scratch_verify_loadmap_dedup_p4_03_zombies"
     ],
     "145": [
       "client_src_game_utils_lineofsight_quadrant",
@@ -3315,6 +3311,12 @@
     ],
     "168": [
       "vite_config_electron"
+    ],
+    "169": [
+      "client_src_game_entities_placeicon_placeicon",
+      "client_src_game_entities_placeicon_placeicon_constructor",
+      "client_src_game_entities_placeicon_placeicon_fromjson",
+      "client_src_game_entities_placeicon_placeicon_tojson"
     ]
   },
   "cohesion": {
@@ -3339,9 +3341,9 @@
     "18": 0.0595959595959596,
     "19": 0.1273532668881506,
     "20": 0.12307692307692308,
-    "21": 0.09446693657219973,
-    "22": 0.07112375533428165,
-    "23": 0.1253968253968254,
+    "21": 0.11092436974789915,
+    "22": 0.09113300492610837,
+    "23": 0.1106612685560054,
     "24": 0.09747899159663866,
     "25": 0.07862903225806452,
     "26": 0.06451612903225806,
@@ -3449,7 +3451,7 @@
     "128": 0.4666666666666667,
     "129": 0.6,
     "130": 0.3333333333333333,
-    "131": 0.3333333333333333,
+    "131": 0.3055555555555556,
     "132": 0.4,
     "133": 0.4,
     "134": 0.4,
@@ -3462,7 +3464,7 @@
     "141": 0.5,
     "142": 0.5,
     "143": 0.5,
-    "144": 0.6666666666666666,
+    "144": 0.3333333333333333,
     "145": 0.6666666666666666,
     "146": 1.0,
     "147": 0.6666666666666666,
@@ -3486,7 +3488,8 @@
     "165": 1.0,
     "166": 1.0,
     "167": 1.0,
-    "168": 1.0
+    "168": 1.0,
+    "169": 0.5
   },
   "gods": [
     {
@@ -3542,17 +3545,6 @@
   ],
   "surprises": [
     {
-      "source": "runInspector()",
-      "target": "json",
-      "source_files": [
-        ".agent/skills/cheap-inspector/index.js",
-        "verify_phase_2.mjs"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "references",
-      "why": "connects across different repos/directories; bridges separate communities; peripheral node `runInspector()` unexpectedly reaches hub `json`"
-    },
-    {
       "source": "runTests()",
       "target": "EntityFactory",
       "source_files": [
@@ -3586,6 +3578,17 @@
       "why": "connects across different repos/directories; bridges separate communities; peripheral node `verifyRandomBuildings()` unexpectedly reaches hub `json`"
     },
     {
+      "source": "runInspector()",
+      "target": "json",
+      "source_files": [
+        ".agent/skills/cheap-inspector/index.js",
+        "verify_phase_2.mjs"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; peripheral node `runInspector()` unexpectedly reaches hub `json`"
+    },
+    {
       "source": "useHashLocation()",
       "target": "react",
       "source_files": [
@@ -3597,8 +3600,41 @@
       "why": "connects across different repos/directories; bridges separate communities"
     }
   ],
-  "tokens": {
-    "input": 931,
-    "output": 199
-  }
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `cn()` connect `UI Components` to `Shop and Log UI`, `Tooltip Components`, `Inventory and Skill Windows`, `HUD and Dialog UI`, `Character and Menu Windows`, `Sidebar UI Components`, `Options and Crafting UI`, `Dialog and Button UI`, `Developer Console UI`, `Dialog UI Components`, `Menubar UI Components`, `Form UI Components`, `Carousel UI Components`, `Toast UI Components`, `Chart UI Components`, `Command UI Components`, `Dropdown UI Components`, `Sheet UI Components`, `Table UI Components`, `Navigation Menu Components`, `OTP Input Components`?",
+      "why": "High betweenness centrality (0.104) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `dependencies` connect `External Dependencies` to `Project Package Metadata`, `Server and Vite Config`, `OTP Input Components`, `Custom React Hooks`?",
+      "why": "High betweenness centrality (0.057) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `react` connect `Custom React Hooks` to `Game Engine Context`, `Tooltip Components`, `Toast UI Components`, `External Dependencies`, `App Routing and Scaling`, `HUD and Dialog UI`, `Save Game Management`?",
+      "why": "High betweenness centrality (0.052) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps` to the rest of the system?",
+      "why": "760 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Item Components` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.03807390817469205 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `UI Components` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.03581929965249933 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Item Interaction Logic` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.053830227743271224 - nodes in this community are weakly interconnected."
+    }
+  ]
 }

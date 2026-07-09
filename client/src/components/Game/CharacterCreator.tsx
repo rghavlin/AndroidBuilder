@@ -40,7 +40,7 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
         });
 
         // Attribute effects matching PlayerSkillsUI / CombatResolver formulas
-        const meleeDamageBonus = CombatResolver.strengthDamageBonus(stats.strength);
+        const meleeDamageBonus = Math.round(CombatResolver.strengthDamageBonus(stats.strength));
         const wagonPullBonus = Math.floor(stats.strength / 20);
         const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(stats.strength, stats.agility) * 100);
         const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(stats.agility, stats.perception) * 100);
@@ -54,6 +54,8 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
         const meleeSeed = CombatResolver.seedLevel(stats.strength, stats.agility);
         const rangedSeed = CombatResolver.seedLevel(stats.agility, stats.perception);
         const defenseSeed = CombatResolver.seedLevel(stats.agility, stats.perception);
+
+        const formatBonus = (val: number) => (val >= 0 ? `+${val}%` : `${val}%`);
 
         return {
             maxHp,
@@ -79,9 +81,9 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
             // Max AP omitted here — it's already shown, correctly attributed to
             // Agility + Perception, in the Derived Vitals panel.
             combatModifiers: [
-                { label: 'Melee Hit', value: `+${meleeAimBonus}%`, attrs: 'Strength + Agility' },
-                { label: 'Ranged Hit', value: `+${rangedAimBonus}%`, attrs: 'Agility + Perception' },
-                { label: 'Defense', value: `+${defenseBonus}%`, attrs: 'Agility + Perception' },
+                { label: 'Melee Hit', value: formatBonus(meleeAimBonus), attrs: 'Strength + Agility' },
+                { label: 'Ranged Hit', value: formatBonus(rangedAimBonus), attrs: 'Agility + Perception' },
+                { label: 'Defense', value: formatBonus(defenseBonus), attrs: 'Agility + Perception' },
                 { label: 'Melee skill seed', value: `Lv ${meleeSeed}`, attrs: 'Strength + Agility' },
                 { label: 'Ranged skill seed', value: `Lv ${rangedSeed}`, attrs: 'Agility + Perception' },
                 { label: 'Defense skill seed', value: `Lv ${defenseSeed}`, attrs: 'Agility + Perception' }
@@ -122,15 +124,15 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
 
     return (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-background/95 backdrop-blur-md p-4 pointer-events-auto shadow-2xl">
-            <Card className="w-full max-w-4xl bg-card border-primary/20 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 metal-panel">
+            <Card className="w-full max-w-4xl max-h-[96vh] flex flex-col bg-card border-primary/20 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 metal-panel">
                 {/* Header */}
-                <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 pb-4">
-                    <div className="flex items-center gap-2.5">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                            <Info className="h-6 w-6" />
+                <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 p-4 pb-2.5 shrink-0">
+                    <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+                            <Info className="h-5 w-5" />
                         </div>
                         <div>
-                            <CardTitle className="text-2xl font-mono uppercase tracking-tighter text-foreground">Character Creation</CardTitle>
+                            <CardTitle className="text-xl font-mono uppercase tracking-tighter text-foreground">Character Creation</CardTitle>
                         </div>
                     </div>
 
@@ -159,151 +161,146 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
                     </div>
                 </CardHeader>
 
-                <CardContent className="p-6 flex flex-col gap-6">
-                <div className="flex flex-col md:flex-row gap-6">
-                    {/* Left Column - Attributes */}
-                    <div className="flex-1 space-y-3">
+                <CardContent className="p-4 flex flex-col gap-4 select-none shrink-0">
+                    {/* Top Row: Attributes grid */}
+                    <div className="space-y-2">
                         <div className="flex items-center gap-2 pb-1 border-b border-border/30 justify-between">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">Attributes</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-wider text-foreground/80">Attributes</h3>
                             <span className="text-[9px] text-muted-foreground font-mono">
                                 Shift+Click = 10 | Type or Scroll to adjust
                             </span>
                         </div>
+                        <div className="grid grid-cols-4 gap-2.5">
+                            {/* STRENGTH */}
+                            <StatAdjusterCard
+                                icon={<Dumbbell className="w-3.5 h-3.5 text-orange-400" />}
+                                name="Strength"
+                                value={stats.strength}
+                                effects={derivedStats.strengthEffects}
+                                onDecrement={(amount) => handleAdjust('strength', -(amount ?? 1))}
+                                onIncrement={(amount) => handleAdjust('strength', amount ?? 1)}
+                                onChange={(newValue) => handleDirectChange('strength', newValue)}
+                                canDecrement={stats.strength > statFloor}
+                                canIncrement={pointsRemaining > 0}
+                                pointsRemaining={pointsRemaining}
+                                statFloor={statFloor}
+                            />
 
-                        {/* STRENGTH */}
-                        <StatAdjusterCard
-                            icon={<Dumbbell className="w-3.5 h-3.5 text-orange-400" />}
-                            name="Strength"
-                            value={stats.strength}
-                            effects={derivedStats.strengthEffects}
-                            onDecrement={(amount) => handleAdjust('strength', -(amount ?? 1))}
-                            onIncrement={(amount) => handleAdjust('strength', amount ?? 1)}
-                            onChange={(newValue) => handleDirectChange('strength', newValue)}
-                            canDecrement={stats.strength > statFloor}
-                            canIncrement={pointsRemaining > 0}
-                            pointsRemaining={pointsRemaining}
-                            statFloor={statFloor}
-                        />
+                            {/* AGILITY */}
+                            <StatAdjusterCard
+                                icon={<Wind className="w-3.5 h-3.5 text-sky-400" />}
+                                name="Agility"
+                                value={stats.agility}
+                                effects={derivedStats.agilityEffects}
+                                onDecrement={(amount) => handleAdjust('agility', -(amount ?? 1))}
+                                onIncrement={(amount) => handleAdjust('agility', amount ?? 1)}
+                                onChange={(newValue) => handleDirectChange('agility', newValue)}
+                                canDecrement={stats.agility > statFloor}
+                                canIncrement={pointsRemaining > 0}
+                                pointsRemaining={pointsRemaining}
+                                statFloor={statFloor}
+                            />
 
-                        {/* AGILITY */}
-                        <StatAdjusterCard
-                            icon={<Wind className="w-3.5 h-3.5 text-sky-400" />}
-                            name="Agility"
-                            value={stats.agility}
-                            effects={derivedStats.agilityEffects}
-                            onDecrement={(amount) => handleAdjust('agility', -(amount ?? 1))}
-                            onIncrement={(amount) => handleAdjust('agility', amount ?? 1)}
-                            onChange={(newValue) => handleDirectChange('agility', newValue)}
-                            canDecrement={stats.agility > statFloor}
-                            canIncrement={pointsRemaining > 0}
-                            pointsRemaining={pointsRemaining}
-                            statFloor={statFloor}
-                        />
+                            {/* PERCEPTION */}
+                            <StatAdjusterCard
+                                icon={<Eye className="w-3.5 h-3.5 text-violet-400" />}
+                                name="Perception"
+                                value={stats.perception}
+                                effects={derivedStats.perceptionEffects}
+                                onDecrement={(amount) => handleAdjust('perception', -(amount ?? 1))}
+                                onIncrement={(amount) => handleAdjust('perception', amount ?? 1)}
+                                onChange={(newValue) => handleDirectChange('perception', newValue)}
+                                canDecrement={stats.perception > statFloor}
+                                canIncrement={pointsRemaining > 0}
+                                pointsRemaining={pointsRemaining}
+                                statFloor={statFloor}
+                            />
 
-                        {/* PERCEPTION */}
-                        <StatAdjusterCard
-                            icon={<Eye className="w-3.5 h-3.5 text-violet-400" />}
-                            name="Perception"
-                            value={stats.perception}
-                            effects={derivedStats.perceptionEffects}
-                            onDecrement={(amount) => handleAdjust('perception', -(amount ?? 1))}
-                            onIncrement={(amount) => handleAdjust('perception', amount ?? 1)}
-                            onChange={(newValue) => handleDirectChange('perception', newValue)}
-                            canDecrement={stats.perception > statFloor}
-                            canIncrement={pointsRemaining > 0}
-                            pointsRemaining={pointsRemaining}
-                            statFloor={statFloor}
-                        />
-
-                        {/* CONSTITUTION */}
-                        <StatAdjusterCard
-                            icon={<Heart className="w-3.5 h-3.5 text-rose-400" />}
-                            name="Constitution"
-                            value={stats.constitution}
-                            effects={derivedStats.constitutionEffects}
-                            onDecrement={(amount) => handleAdjust('constitution', -(amount ?? 1))}
-                            onIncrement={(amount) => handleAdjust('constitution', amount ?? 1)}
-                            onChange={(newValue) => handleDirectChange('constitution', newValue)}
-                            canDecrement={stats.constitution > statFloor}
-                            canIncrement={pointsRemaining > 0}
-                            pointsRemaining={pointsRemaining}
-                            statFloor={statFloor}
-                        />
-                    </div>
-
-                    {/* Right Column - Derived Vitals */}
-                    <div className="w-full md:w-[320px] shrink-0 flex flex-col gap-4">
-                        <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">Derived Vitals</h3>
-                        </div>
-
-                        <div className="flex-1 flex flex-col justify-center gap-5 p-5 border border-border/50 rounded-xl bg-muted/30 relative overflow-hidden">
-                            {/* HP Display */}
-                            <div className="flex items-center justify-between p-4 bg-red-500/5 dark:bg-red-950/10 border border-red-500/20 dark:border-red-500/10 rounded-lg">
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-bold uppercase text-red-500/80 dark:text-red-400/80 tracking-wider">Starting Health</h4>
-                                    <p className="text-[10px] text-muted-foreground">Derived from Constitution</p>
-                                </div>
-                                <div className="flex flex-col items-center">
-                                    <span className="text-4xl font-mono font-black text-red-500 dark:text-red-400 tracking-tighter tabular-nums">{derivedStats.maxHp}</span>
-                                    <span className="text-[9px] uppercase font-bold text-red-500/70 dark:text-red-400/70 tracking-widest mt-0.5">Max HP</span>
-                                </div>
-                            </div>
-
-                            {/* AP Display */}
-                            <div className="flex items-center justify-between p-4 bg-blue-500/5 dark:bg-blue-950/10 border border-blue-500/20 dark:border-blue-500/10 rounded-lg">
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-bold uppercase text-blue-500/80 dark:text-blue-400/80 tracking-wider">Starting Action Points</h4>
-                                    <p className="text-[10px] text-muted-foreground">Derived from Agility + Perception</p>
-                                </div>
-                                <div className="flex flex-col items-center">
-                                    <span className="text-4xl font-mono font-black text-blue-500 dark:text-blue-400 tracking-tighter tabular-nums">{derivedStats.maxAp}</span>
-                                    <span className="text-[9px] uppercase font-bold text-blue-500/70 dark:text-blue-400/70 tracking-widest mt-0.5">Max AP</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Decision Buttons */}
-                        <div className="flex gap-3">
-                            <Button
-                                onClick={onCancel}
-                                className="flex-1 py-5 text-sm font-bold metal-button uppercase tracking-wider"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={() => onConfirm({ ...stats, name: name.trim() || 'Nameless' })}
-                                disabled={isConfirmDisabled}
-                                className={`flex-1 py-5 text-sm font-bold uppercase tracking-wider ${isConfirmDisabled ? 'opacity-40 cursor-not-allowed' : 'metal-button-green'}`}
-                            >
-                                {confirmLabel || 'Confirm'}
-                            </Button>
+                            {/* CONSTITUTION */}
+                            <StatAdjusterCard
+                                icon={<Heart className="w-3.5 h-3.5 text-rose-400" />}
+                                name="Constitution"
+                                value={stats.constitution}
+                                effects={derivedStats.constitutionEffects}
+                                onDecrement={(amount) => handleAdjust('constitution', -(amount ?? 1))}
+                                onIncrement={(amount) => handleAdjust('constitution', amount ?? 1)}
+                                onChange={(newValue) => handleDirectChange('constitution', newValue)}
+                                canDecrement={stats.constitution > statFloor}
+                                canIncrement={pointsRemaining > 0}
+                                pointsRemaining={pointsRemaining}
+                                statFloor={statFloor}
+                            />
                         </div>
                     </div>
-                </div>
 
-                    {/* Combat Modifiers - bonuses that blend two attributes together.
-                        Kept separate from the attribute cards above because a
-                        single-attribute card reads as "this bonus comes from this
-                        one stat," which is wrong for anything derived from an
-                        averaged pair (e.g. raising Agility alone won't move Melee
-                        Hit if Strength stays low) — each row names both. */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                            <Swords className="w-3.5 h-3.5 text-amber-400" />
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">Combat Modifiers</h3>
-                            <span className="text-[9px] text-muted-foreground font-mono ml-auto">Each blends two attributes — raising only one may not move it</span>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {derivedStats.combatModifiers.map((mod, i) => (
-                                <div key={i} className="flex flex-col gap-0.5 p-2.5 rounded-lg border border-border/40 bg-muted/20">
-                                    <div className="flex items-baseline justify-between">
-                                        <span className="text-[10px] font-bold text-foreground uppercase tracking-wide">{mod.label}</span>
-                                        <span className="text-sm font-mono font-black text-amber-400 tabular-nums">{mod.value}</span>
+                    {/* Bottom Area: Modifiers & Vitals side-by-side */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        
+                        {/* Combat Modifiers: md:col-span-7 */}
+                        <div className="md:col-span-7 space-y-2 flex flex-col">
+                            <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                                <Swords className="w-3.5 h-3.5 text-amber-400" />
+                                <h3 className="text-[10px] font-black uppercase tracking-wider text-foreground/80">Combat Modifiers</h3>
+                                <span className="text-[8.5px] text-muted-foreground font-mono ml-auto">Blended pairs</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 flex-1">
+                                {derivedStats.combatModifiers.map((mod, i) => (
+                                    <div key={i} className="flex flex-col gap-0.5 p-2 rounded-lg border border-border/40 bg-muted/20 justify-center">
+                                        <div className="flex items-baseline justify-between gap-1">
+                                            <span className="text-[8.5px] font-extrabold text-foreground/80 uppercase tracking-wide truncate" title={mod.label}>{mod.label}</span>
+                                            <span className="text-xs font-mono font-black text-amber-400 tabular-nums">{mod.value}</span>
+                                        </div>
+                                        <span className="text-[8px] text-muted-foreground font-mono truncate" title={mod.attrs}>{mod.attrs}</span>
                                     </div>
-                                    <span className="text-[9px] text-muted-foreground font-mono">{mod.attrs}</span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Derived Vitals & Actions: md:col-span-5 */}
+                        <div className="md:col-span-5 space-y-3 flex flex-col justify-between">
+                            {/* HP/AP Display stack */}
+                            <div className="grid grid-cols-2 gap-2">
+                                {/* HP Display */}
+                                <div className="flex items-center justify-between p-2 bg-red-500/5 dark:bg-red-950/10 border border-red-500/20 dark:border-red-500/10 rounded-lg">
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-[9px] font-extrabold uppercase text-red-500/80 dark:text-red-400/80 tracking-wider">Health</h4>
+                                        <p className="text-[8px] text-muted-foreground leading-none">Derived HP</p>
+                                    </div>
+                                    <div className="flex items-baseline gap-0.5">
+                                        <span className="text-xl font-mono font-black text-red-500 dark:text-red-400 tracking-tighter tabular-nums">{derivedStats.maxHp}</span>
+                                        <span className="text-[7.5px] uppercase font-bold text-red-500/70 dark:text-red-400/70 tracking-widest">HP</span>
+                                    </div>
                                 </div>
-                            ))}
+
+                                {/* AP Display */}
+                                <div className="flex items-center justify-between p-2 bg-blue-500/5 dark:bg-blue-950/10 border border-blue-500/20 dark:border-blue-500/10 rounded-lg">
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-[9px] font-extrabold uppercase text-blue-500/80 dark:text-blue-400/80 tracking-wider">AP</h4>
+                                        <p className="text-[8px] text-muted-foreground leading-none">Derived AP</p>
+                                    </div>
+                                    <div className="flex items-baseline gap-0.5">
+                                        <span className="text-xl font-mono font-black text-blue-500 dark:text-blue-400 tracking-tighter tabular-nums">{derivedStats.maxAp}</span>
+                                        <span className="text-[7.5px] uppercase font-bold text-blue-500/70 dark:text-blue-400/70 tracking-widest">AP</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Decision Buttons */}
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={onCancel}
+                                    className="flex-1 py-2.5 text-xs font-bold metal-button uppercase tracking-wider"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={() => onConfirm({ ...stats, name: name.trim() || 'Nameless' })}
+                                    disabled={isConfirmDisabled}
+                                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider ${isConfirmDisabled ? 'opacity-40 cursor-not-allowed' : 'metal-button-green'}`}
+                                >
+                                    {confirmLabel || 'Confirm'}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
@@ -473,20 +470,20 @@ function StatAdjusterCard({
 
     return (
         <div 
-            className="p-2.5 border rounded-lg flex flex-col transition-all duration-300 ease-out bg-card/40"
+            className="p-2 border rounded-lg flex flex-col justify-between transition-all duration-300 ease-out bg-card/40"
             style={dynamicStyle}
         >
             <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-md flex items-center justify-center border ${iconBgColor} ${iconBorderColor}`}>
+                <div className="flex items-center gap-1.5">
+                    <div className={`w-5 h-5 rounded flex items-center justify-center border text-[10px] ${iconBgColor} ${iconBorderColor}`}>
                         {icon}
                     </div>
-                    <span className="text-[11px] font-bold text-foreground uppercase tracking-wide">{name}</span>
+                    <span className="text-[10px] font-bold text-foreground uppercase tracking-wide">{name}</span>
                 </div>
                 
                 {/* Spinbox controls */}
                 <div 
-                    className="flex items-center gap-1.5 bg-background/60 p-1 rounded-md border border-[var(--hairline)]"
+                    className="flex items-center gap-1 bg-background/60 p-0.5 rounded-md border border-[var(--hairline)]"
                     onWheel={handleWheel}
                 >
                     <Button
@@ -500,9 +497,9 @@ function StatAdjusterCard({
                         onMouseUp={stopRepeat}
                         onMouseLeave={stopRepeat}
                         disabled={!canDecrement}
-                        className="h-6 w-6 rounded bg-secondary/50 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors select-none"
+                        className="h-5 w-5 rounded bg-secondary/50 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors select-none"
                     >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-2.5 h-2.5" />
                     </Button>
                     
                     <input
@@ -521,7 +518,7 @@ function StatAdjusterCard({
                         }}
                         onClick={(e) => e.stopPropagation()}
                         onMouseDown={(e) => e.stopPropagation()}
-                        className="w-8 text-center font-mono text-xs font-bold text-foreground bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 focus:bg-background/80 rounded tabular-nums select-all"
+                        className="w-7 text-center font-mono text-[11px] font-bold text-foreground bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 focus:bg-background/80 rounded tabular-nums select-all"
                     />
 
                     <Button
@@ -535,18 +532,21 @@ function StatAdjusterCard({
                         onMouseUp={stopRepeat}
                         onMouseLeave={stopRepeat}
                         disabled={!canIncrement}
-                        className="h-6 w-6 rounded bg-secondary/50 hover:bg-emerald-500/20 text-muted-foreground hover:text-emerald-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors select-none"
+                        className="h-5 w-5 rounded bg-secondary/50 hover:bg-emerald-500/20 text-muted-foreground hover:text-emerald-400 disabled:opacity-30 disabled:hover:bg-transparent transition-colors select-none"
                     >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-2.5 h-2.5" />
                     </Button>
                 </div>
             </div>
 
             {/* Effects */}
-            <div className="space-y-0.5 pl-1 border-l border-[var(--hairline)]">
+            <div className="space-y-0.5 border-t border-[var(--hairline)]/35 pt-1.5 mt-1 flex flex-col justify-center min-h-[30px]">
                 {effects.map((line, i) => (
-                    <div key={i} className="text-[9.5px] leading-tight text-muted-foreground pl-1.5">{line}</div>
+                    <div key={i} className="text-[8.5px] leading-tight text-muted-foreground/80 font-mono truncate w-full text-left" title={line}>{line}</div>
                 ))}
+                {effects.length === 0 && (
+                    <div className="text-[8.5px] leading-tight text-muted-foreground/35 text-left select-none font-mono">-</div>
+                )}
             </div>
         </div>
     );

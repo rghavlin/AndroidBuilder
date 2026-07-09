@@ -222,13 +222,24 @@ function getGreedyHuntIntent(entity, zombiePos, targetX, targetY, gameMap, lastT
   // Score by remaining Chebyshev distance to the player; add a small penalty for
   // stepping back onto the tile we just left so equal-distance lateral moves win
   // over a pointless reversal (a strictly-closer backtrack is still allowed).
+  //
+  // Never step FURTHER from the player: greedy only runs after the hunt A* found
+  // no path to a visible player, so a distance-increasing step can't be rounding
+  // anything real (A*, with its generous radius, would have found such a detour) —
+  // it is the dead-end/corridor ping-pong where the only free neighbour is the way
+  // we came. Drop those; if nothing keeps or reduces distance, return null so the
+  // caller holds instead of pacing away from the player.
+  const currentDist = Math.max(Math.abs(fromX - targetX), Math.abs(fromY - targetY));
   let bestScore = Infinity;
   for (const c of candidates) {
     const dist = Math.max(Math.abs(c.nx - targetX), Math.abs(c.ny - targetY));
+    if (dist > currentDist) { c.score = Infinity; continue; }
     const isBacktrack = lastTile && lastTile.x === c.nx && lastTile.y === c.ny;
     c.score = dist + (isBacktrack ? 0.5 : 0);
     if (c.score < bestScore) bestScore = c.score;
   }
+
+  if (bestScore === Infinity) return null; // only distance-increasing moves available -> hold
 
   const best = candidates.filter(c => c.score === bestScore);
   return best[gameRandom.nextInt(0, best.length - 1)].intent;
@@ -369,6 +380,27 @@ function huntPlayer(ctx) {
     }
   }
 
+  // Adjacent but unable to melee (a non-mutant sitting DIAGONAL to the player, so
+  // getMeleeReach.canMeleeAttack is false). Do NOT fall through to A*: the only
+  // path to the player's tile routes the long way around to a distant open
+  // cardinal slot, and since the hunt path is recomputed from scratch every AI
+  // cycle it flip-flops — the zombie jitters d1<->d2 for the whole turn (the
+  // "sidesteps out of attack position then comes back" dance) while dealing zero
+  // damage. Instead: try to claim a cardinal attack slot reachable in ONE step
+  // (the beeline already targets exactly the <=2 near-cardinal tiles); if none is
+  // open, HOLD position and keep line of sight. Holding enqueues no intent, which
+  // is loop-safe (SimulationManager's AI cycle breaks when no zombie produces an
+  // intent). When a slot frees up next turn the beeline claims it automatically.
+  const chebToPlayer = Math.max(Math.abs(playerPos.x - zombiePos.x), Math.abs(playerPos.y - zombiePos.y));
+  if (chebToPlayer === 1 && !reach.canMeleeAttack) {
+    const slotIntent = getBeelineIntent(entity, zombiePos, playerPos.x, playerPos.y, gameMap, moveCost);
+    if (slotIntent instanceof MoveIntent && currentAP >= moveCost) {
+      ctx.enqueue('MoveIntent', slotIntent);
+    }
+    // else: no reachable open slot -> hold (no intent this cycle).
+    return;
+  }
+
   // Move toward player exact coords
   let intent = null;
 
@@ -441,10 +473,13 @@ function huntPlayer(ctx) {
       ctx.enqueue('DamageIntent', intent);
     }
   } else {
-    // Genuinely boxed in (e.g. visible across a thin edge wall with no door and
-    // no reachable neighbour that helps). Random wander as the absolute last
-    // resort instead of freezing; the LKP is set, so hunting resumes on an angle.
-    wander(ctx);
+    // Genuinely boxed in (e.g. visible across a thin edge wall with no door and no
+    // reachable neighbour that gets us closer). HOLD rather than wander: a hunter
+    // that wanders picks a random neighbour, which right next to a visible player
+    // is a guaranteed step AWAY and reads as an unmotivated backstep. The LKP is
+    // set and we keep line of sight, so hunting resumes the moment the player moves
+    // or a path opens.
+    entity.behaviorState = 'pursuing';
   }
 }
 

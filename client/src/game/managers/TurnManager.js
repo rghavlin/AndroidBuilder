@@ -45,7 +45,6 @@ import { SICKNESS_TURNS } from '../systems/CombatSystem.js';
 class TurnManager {
   constructor() {
     this.isProcessing = false;
-    this.actionDelay = 20; // Reduced from 100ms for snappier feel
     this.shouldCancel = false;
   }
 
@@ -94,72 +93,50 @@ class TurnManager {
     console.log(`[TurnManager] 🎬 START TURN PLAYBACK (${actionQueue.length} actions)`);
 
     try {
-      let i = 0;
-      while (i < actionQueue.length) {
-        if (this.shouldCancel) break;
-        const action = actionQueue[i];
-        if (!action) { i++; continue; }
+      // Partition the flat, cycle-ordered queue into independent playback "lanes":
+      // one lane per entity (preserving that entity's own relative action order),
+      // plus a shared GLOBAL lane for entity-less effects/logs (explosion flashes,
+      // etc.). Lanes are played CONCURRENTLY, so a zombie banging a door across the
+      // map — or an adjacent zombie taking 12 bites out of the player — no longer
+      // stalls every other zombie's walk animation, which is what made movement
+      // look stop-and-go. Ordering is preserved only WITHIN a lane, which is
+      // exactly what the damage-timing invariants require (see class header): each
+      // attacker's move→attack→death sequence still plays in order, so
+      // PLAYBACK-FIRST damage still lands at each swing's impact, and turret shots
+      // (keyed by their own turret id) stay sequential per turret.
+      const GLOBAL_KEY = '__global__';
+      const lanes = new Map();
+      for (const action of actionQueue) {
+        if (!action) continue;
+        const key = (action.entityId === undefined || action.entityId === null)
+          ? GLOBAL_KEY
+          : action.entityId;
+        if (!lanes.has(key)) lanes.set(key, []);
+        lanes.get(key).push(action);
+      }
 
-        // Group consecutive MOVE actions for parallel playback
-        if (action.type === 'MOVE') {
-          const moveBatch = [];
-          while (i < actionQueue.length && actionQueue[i] && actionQueue[i].type === 'MOVE') {
-            moveBatch.push(actionQueue[i]);
-            i++;
-          }
-          
-          console.log(`[TurnManager] 🏃 Parallelizing batch of ${moveBatch.length} MOVE actions`);
-          
-          // Group by entityId to ensure sequential movement for each individual entity
-          const entityMoveGroups = {};
-          moveBatch.forEach(move => {
-            if (!entityMoveGroups[move.entityId]) {
-              entityMoveGroups[move.entityId] = [];
-            }
-            entityMoveGroups[move.entityId].push(move);
-          });
-
-          // Play all entity sequences in parallel
-          await Promise.all(Object.values(entityMoveGroups).map(async (group) => {
-            for (const moveAction of group) {
-              if (this.shouldCancel) break;
-              try {
-                await this.executeAction(moveAction, context);
-              } catch (err) {
-                console.error(`[TurnManager] ❌ Error in parallel MOVE for ${moveAction.entityId}:`, err);
-                // Force sync position on failure to prevent "invisible" desyncs
-                const entity = context.gameMap.getEntity(moveAction.entityId);
-                if (entity && moveAction.data?.to) {
-                  entity.x = moveAction.data.to.x;
-                  entity.y = moveAction.data.to.y;
-                }
-              }
-            }
-          }));
-
-          // Small post-batch delay for visual clarity
-          if (this.actionDelay > 0) {
-            await new Promise(resolve => setTimeout(resolve, this.actionDelay));
-          }
-        } else {
-          // Sequential processing for non-MOVE actions (ATTACK, SOUND, etc.)
-          console.log(`[TurnManager] 🏃 Executing sequential action ${i+1}/${actionQueue.length}: ${action.type} for ${action.entityId}`);
+      const playLane = async (actions) => {
+        for (const action of actions) {
+          if (this.shouldCancel) break;
+          if (!action) continue;
           try {
             await this.executeAction(action, context);
           } catch (err) {
-            console.error(`[TurnManager] ❌ Error in sequential action ${action.type} for ${action.entityId}:`, err);
-          }
-          
-          const nextAction = actionQueue[i + 1];
-          if (nextAction && (nextAction.entityId !== action.entityId || nextAction.type === 'ATTACK')) {
-            // Only delay if it's NOT a WAIT action, to keep things snappy
-            if (this.actionDelay > 0 && action.type !== 'WAIT' && nextAction.type !== 'WAIT') {
-              await new Promise(resolve => setTimeout(resolve, this.actionDelay));
+            console.error(`[TurnManager] ❌ Error in ${action.type} for ${action.entityId}:`, err);
+            // Force-sync position on a failed MOVE to prevent "invisible" desyncs.
+            if (action.type === 'MOVE') {
+              const entity = context.gameMap.getEntity(action.entityId);
+              if (entity && action.data?.to) {
+                entity.x = action.data.to.x;
+                entity.y = action.data.to.y;
+              }
             }
           }
-          i++;
         }
-      }
+      };
+
+      console.log(`[TurnManager] 🏃 Playing ${lanes.size} parallel lane(s)`);
+      await Promise.all(Array.from(lanes.values()).map(playLane));
     } catch (error) {
       console.error(`[TurnManager] ❌ FATAL Playback error:`, error);
     } finally {
