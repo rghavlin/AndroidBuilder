@@ -953,14 +953,14 @@ export const CombatProvider = ({ children }) => {
         const igniterContainer = availableIgniters[0].container;
 
         selectedIgniter.consumeCharge(1);
-        if ((selectedIgniter.ammoCount || 0) <= 0 && selectedIgniter.defId === 'tool.matchbook') {
+        if ((selectedIgniter.ammoCount || 0) <= 0 && (selectedIgniter.defId === 'tool.matchbook' || selectedIgniter.defId === 'tool.lighter')) {
             if (igniterContainer) {
                 igniterContainer.removeItem(selectedIgniter.instanceId);
             } else {
                 destroyItem(selectedIgniter.instanceId);
             }
             selectedIgniter.stackCount = 0;
-            addLog('The matchbook is empty and discarded.', 'warning');
+            addLog(`The ${selectedIgniter.name.toLowerCase()} is empty and discarded.`, 'warning');
         }
 
         // Consume 1 Molotov

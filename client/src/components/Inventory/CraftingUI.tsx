@@ -22,6 +22,8 @@ export default function CraftingUI() {
         craftItem,
         autoloadRecipe,
         unloadCrafting,
+        cancelCraftingQueue,
+        craftingQueue,
         clearCraftingArea,
         inventoryRef,
         inventoryVersion
@@ -34,10 +36,20 @@ export default function CraftingUI() {
     const [activeTab, setActiveTab] = useState<'crafting' | 'cooking'>('crafting');
     const [isAutoloaded, setIsAutoloaded] = useState(false);
 
+    // Crafting queue only ever applies to the Crafting tab (Cooking stays single-turn).
+    const isQueued = activeTab === 'crafting' && !!craftingQueue;
+
     // Reset autoload state when recipe or tab changes
     useEffect(() => {
         setIsAutoloaded(false);
     }, [selectedRecipeId, activeTab]);
+
+    // While a crafting queue is active, the tab is locked onto that recipe.
+    useEffect(() => {
+        if (craftingQueue && activeTab === 'crafting' && selectedRecipeId !== craftingQueue.recipeId) {
+            setSelectedRecipeId(craftingQueue.recipeId);
+        }
+    }, [craftingQueue, activeTab, selectedRecipeId, setSelectedRecipeId]);
 
     const handleAutoloadToggle = () => {
         if (isAutoloaded) {
@@ -206,6 +218,12 @@ export default function CraftingUI() {
         }
     };
 
+    const handleCancelQueue = () => {
+        if (!window.confirm('Cancel this item? All AP invested so far will be lost.')) return;
+        cancelCraftingQueue();
+        addLog('Cancelled the crafting queue. Invested AP was lost.', 'warning');
+    };
+
     const isHotplate = nearbyCampfire?.defId === 'tool.battery_powered_hotplate';
     const isBurning = isHotplate ? nearbyCampfire.isOn : (nearbyCampfire && (nearbyCampfire.lifetimeTurns ?? 0) > 0);
 
@@ -251,20 +269,25 @@ export default function CraftingUI() {
                                 No {activeTab} recipes available.
                             </div>
                         ) : (
-                            filteredRecipes.map(recipe => (
+                            filteredRecipes.map(recipe => {
+                                const isLockedOut = isQueued && recipe.id !== craftingQueue.recipeId;
+                                return (
                                 <button
                                     key={recipe.id}
-                                    onClick={() => setSelectedRecipeId(recipe.id)}
+                                    onClick={() => { if (!isLockedOut) setSelectedRecipeId(recipe.id); }}
+                                    disabled={isLockedOut}
                                     className={cn(
                                         "w-full py-2 px-3 text-left transition-all border-y border-transparent relative",
                                         selectedRecipeId === recipe.id
                                             ? "glowing-border-active border z-10 rounded-sm"
-                                            : "hover:bg-card/50 border-b-border"
+                                            : "hover:bg-card/50 border-b-border",
+                                        isLockedOut && "opacity-30 cursor-not-allowed hover:bg-transparent"
                                     )}
                                 >
                                     <span className="text-[11px] font-bold truncate">{recipe.name}</span>
                                 </button>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 </div>
@@ -398,40 +421,69 @@ export default function CraftingUI() {
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1">Tool Slot</span>
-                                                <WorkspaceSlot
-                                                    containerId={activeTab === 'cooking' ? "cooking-tools" : "crafting-tools"}
-                                                    slotIndex={0}
-                                                    label={activeTab === 'cooking' ? "Cooking Pot" : "Tool"}
-                                                    icon={activeTab === 'cooking' ? "🍲" : "🛠️"}
-                                                />
+                                                <div className={cn("relative", isQueued && "pointer-events-none")}>
+                                                    <WorkspaceSlot
+                                                        containerId={activeTab === 'cooking' ? "cooking-tools" : "crafting-tools"}
+                                                        slotIndex={0}
+                                                        label={activeTab === 'cooking' ? "Cooking Pot" : "Tool"}
+                                                        icon={activeTab === 'cooking' ? "🍲" : "🛠️"}
+                                                    />
+                                                    {isQueued && (
+                                                        <div className="absolute inset-0 rounded-md ring-2 ring-amber-500/50 bg-black/20" />
+                                                    )}
+                                                </div>
                                             </div>
 
                                             <div className="flex flex-col items-center">
                                                 <Button
                                                     onClick={handleCraft}
-                                                    disabled={!craftingStatus.canCraft || !isPlayerTurn || isAutosaving}
+                                                    disabled={!craftingStatus.canCraft || !isPlayerTurn || isAutosaving || (isQueued && playerStats.ap <= 0)}
                                                     className={cn(
                                                         "w-24 h-8 text-[10px] font-bold shadow-lg transition-all",
                                                         "metal-button-green uppercase tracking-wide"
                                                     )}
                                                 >
-                                                    {activeTab === 'cooking' ? 'COOK' : 'CRAFT'}
+                                                    {activeTab === 'cooking' ? 'COOK' : (isQueued ? 'CONTINUE' : 'CRAFT')}
                                                 </Button>
- 
-                                                {/* Autoload/Unload Button (Crafting only) */}
+
                                                 {activeTab === 'crafting' && selectedRecipeId && (
-                                                    <Button
-                                                        onClick={handleAutoloadToggle}
-                                                        className={cn(
-                                                            "w-24 h-8 text-[10px] font-bold mt-2 transition-all shadow-md uppercase tracking-wide",
-                                                            isAutoloaded 
-                                                                ? "metal-button" 
-                                                                : "metal-button-green"
-                                                        )}
-                                                    >
-                                                        {isAutoloaded ? 'UNLOAD' : 'AUTOLOAD'}
-                                                    </Button>
+                                                    isQueued ? (
+                                                        <Button
+                                                            onClick={handleCancelQueue}
+                                                            disabled={!isPlayerTurn || isAutosaving}
+                                                            className="w-24 h-8 text-[10px] font-bold mt-2 transition-all shadow-md uppercase tracking-wide metal-button text-red-400"
+                                                        >
+                                                            CANCEL
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            onClick={handleAutoloadToggle}
+                                                            className={cn(
+                                                                "w-24 h-8 text-[10px] font-bold mt-2 transition-all shadow-md uppercase tracking-wide",
+                                                                isAutoloaded
+                                                                    ? "metal-button"
+                                                                    : "metal-button-green"
+                                                            )}
+                                                        >
+                                                            {isAutoloaded ? 'UNLOAD' : 'AUTOLOAD'}
+                                                        </Button>
+                                                    )
                                                 )}
+
+                                                {isQueued && (
+                                                    <div className="mt-2 w-24 flex flex-col gap-1">
+                                                        <div className="h-2 w-full rounded-full bg-black/40 border border-amber-500/30 overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-amber-500/80 transition-all"
+                                                                style={{ width: `${Math.min(100, (craftingQueue.apInvested / craftingQueue.apRequired) * 100)}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-[9px] text-amber-300 font-bold text-center">
+                                                            {craftingQueue.apInvested}/{craftingQueue.apRequired} AP
+                                                        </span>
+                                                    </div>
+                                                )}
+
                                                 {!craftingStatus.canCraft && craftingStatus.missing.length > 0 && (
                                                     <div className="mt-2 text-[9px] text-red-300 font-medium animate-in fade-in slide-in-from-top-1 text-center max-w-[100px] leading-tight text-white shadow-[0_0_10px_rgba(239,68,68,0.2)] bg-red-950/40 rounded p-1">
                                                         Missing: {craftingStatus.missing.join(', ')}
@@ -443,12 +495,17 @@ export default function CraftingUI() {
                                         {/* Right Column: Ingredients Grid */}
                                         <div className="flex flex-col items-center gap-1.5">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 font-mono">Ingredients Workspace</span>
-                                            <ContainerGrid 
-                                                containerId={activeTab === 'cooking' ? "cooking-ingredients" : "crafting-ingredients"} 
-                                                enableScroll={activeTab === 'crafting'}
-                                                scrollbarGutter={activeTab === 'crafting'}
-                                                maxHeight="400px"
-                                            />
+                                            <div className={cn("relative", isQueued && "pointer-events-none")}>
+                                                <ContainerGrid
+                                                    containerId={activeTab === 'cooking' ? "cooking-ingredients" : "crafting-ingredients"}
+                                                    enableScroll={activeTab === 'crafting'}
+                                                    scrollbarGutter={activeTab === 'crafting'}
+                                                    maxHeight="400px"
+                                                />
+                                                {isQueued && (
+                                                    <div className="absolute inset-0 rounded-md ring-2 ring-amber-500/50 bg-black/10" />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

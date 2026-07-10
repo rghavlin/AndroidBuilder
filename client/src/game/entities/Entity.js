@@ -436,6 +436,10 @@ export class Entity extends SafeEventEmitter {
     });
     if (this.type === 'player') {
       GameEvents.emit(GAME_EVENT.PLAYER_DAMAGE, { amount, currentHp: this.hp });
+      // Enduring injury builds Constitution — its main steady XP source.
+      if (amount > 0) {
+        AttributeProgressionManager.recordAction(this, 'TAKE_DAMAGE', { amount });
+      }
     }
     this.notifyChange();
     return { damageDealt: amount, isDead: this.hp <= 0 };

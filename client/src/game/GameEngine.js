@@ -129,6 +129,11 @@ class GameEngine extends SafeEventEmitter {
       }
     }
 
+    // Phase: Crafting Queue (multi-turn crafting)
+    // Fresh-game default is null (no item in progress). A loaded save overrides
+    // this wholesale via GameSaveSystem (engine.craftingQueue = saveData.craftingQueue).
+    this.craftingQueue = null;
+
     // Global event cleanups (Removed this.removeAllListeners() to preserve React Provider context listeners on reset)
 
     // Phase 4: Master Heartbeat Infrastructure

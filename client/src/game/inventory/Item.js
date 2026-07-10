@@ -676,6 +676,16 @@ export class Item extends SafeEventEmitter {
     if (this.hasTrait(ItemTrait.BATTERY) || this.hasTrait(ItemTrait.CHARGE_BASED)) {
       if ((this.ammoCount || 0) >= amount) {
         this.ammoCount -= amount;
+        if (this.ammoCount <= 0 && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook')) {
+          const invManager = window.gameEngine?.inventoryManager;
+          if (invManager) {
+            invManager.destroyItem(this.instanceId);
+          } else if (this._container) {
+            this._container.removeItem(this.instanceId);
+          }
+          this.stackCount = 0;
+          this.emitEvent('itemBroken', { item: this });
+        }
         return true;
       }
       return false;

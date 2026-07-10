@@ -157,17 +157,6 @@ export function ItemContextMenu({
                             </ContextMenuItem>
                         )}
 
-                        {(item?.defId === 'provision.harvestable_corn' || item?.defId === 'provision.harvestable_tomato' || item?.defId === 'provision.harvestable_carrot') && (
-                            <ContextMenuItem
-                                onClick={() => {
-                                    console.log('[ItemContextMenu] Harvest requested for:', item.name);
-                                    harvestPlant(item);
-                                }}
-                                className="hover:bg-accent focus:bg-accent focus:text-white"
-                            >
-                                Harvest
-                            </ContextMenuItem>
-                        )}
                         {item.availableFireModes && item.availableFireModes.length > 1 && (
                             <ContextMenuItem
                                 onClick={() => toggleFireMode(item)}

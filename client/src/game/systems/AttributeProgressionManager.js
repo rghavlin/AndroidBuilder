@@ -7,10 +7,17 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
  * Handles the logic for granting XP to base RPG attributes (Strength, Agility, Perception, Constitution).
  * When an attribute's XP reaches the required threshold, it rolls 1d3 to increase the base stat.
  */
+// Master pacing dial for attribute leveling. XP to raise an attribute currently at
+// `value` by one 1d3 roll = ATTR_XP_COEF * value^1.5. Still value-based, so pushing a
+// stat toward the 100 cap costs progressively more (natural diminishing returns) — but
+// the coefficient was 100, which made a base-20 stat need ~8,900 XP at a 4-per-hit
+// trickle (thousands of hits per level). Lower this to level attributes more often.
+const ATTR_XP_COEF = 6;
+
 export class AttributeProgressionManager {
   static getRequiredXP(currentStatLevel) {
-    // Standard exponential curve for attribute leveling
-    return 100 * Math.pow(currentStatLevel, 1.5);
+    // Value-based exponential curve for attribute leveling
+    return ATTR_XP_COEF * Math.pow(currentStatLevel, 1.5);
   }
 
   /**
@@ -55,7 +62,19 @@ export class AttributeProgressionManager {
         break;
 
       case 'CRAFTING_SKILL_UP':
-        xpGained.agilityXP = this.getRequiredXP(stats.baseAgility);
+        // A crafting skill-up sharpens hands and eyes — a modest flat bump split
+        // across Agility + Perception. This USED to grant getRequiredXP(baseAgility),
+        // a whole attribute level in one shot, which is why Agility was the only
+        // attribute that ever leveled. Now a trickle in line with combat gains.
+        xpGained.agilityXP = 30;
+        xpGained.perceptionXP = 30;
+        break;
+      case 'TAKE_DAMAGE':
+        // Surviving injury toughens the body — Constitution's steady income source.
+        // Without this Constitution barely gained XP (only healing, sickness ticks,
+        // and disease recovery), so it effectively never leveled. Scales with the
+        // hit taken; fired from Entity.takeDamage for the player.
+        xpGained.constitutionXP = (payload.amount || 0) * 4;
         break;
       case 'DEFENSE_SUCCESS':
         // Fires on every successfully contested defense, not just occasional

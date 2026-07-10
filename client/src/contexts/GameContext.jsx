@@ -316,15 +316,15 @@ const GameContextInner = ({ children }) => {
       addLog(`You ignite the torch using ${source.name}, but it burns out immediately and crumbles to ash.`, 'warning');
     }
     
-    // If source empty and is matchbook, discard it
-    if ((source.ammoCount || 0) <= 0 && source.defId === 'tool.matchbook') {
+    // If source empty and is matchbook or lighter, discard it
+    if ((source.ammoCount || 0) <= 0 && (source.defId === 'tool.matchbook' || source.defId === 'tool.lighter')) {
       if (container) {
         container.removeItem(source.instanceId);
       } else {
         inventoryManager.destroyItem(source.instanceId);
       }
       source.stackCount = 0;
-      addLog('The matchbook is empty and discarded.', 'item');
+      addLog(`The ${source.name.toLowerCase()} is empty and discarded.`, 'item');
     }
   }, [inventoryManager, addLog, playSound]);
 

@@ -70,6 +70,86 @@ export class CraftingManager {
         return true;
     }
 
+    /** Filter `candidates` down to items matching an ingredient requirement (either/category/specific + properties). */
+    static _matchIngredientReq(candidates, req) {
+        let matches = req.either
+            ? candidates.filter(i =>
+                req.either.includes(i.defId) ||
+                (i.categories && i.categories.some(cat => req.either.includes(cat)))
+            )
+            : req.category
+                ? candidates.filter(i => i.categories && i.categories.includes(req.category))
+                : candidates.filter(i => i.defId === req.id);
+
+        if (req.properties) {
+            matches = matches.filter(item =>
+                Object.entries(req.properties).every(([prop, val]) => item[prop] === val)
+            );
+        }
+        return matches;
+    }
+
+    /**
+     * When a craft can't complete this turn and enters the crafting queue, trim any
+     * ingredient/tool stacks in the workspace down to exactly what the recipe needs,
+     * returning the excess to inventory/ground. Without this, a locked workspace could
+     * be used to stash extra materials beyond carry capacity for the queue's duration.
+     */
+    _trimWorkspaceToRequirements(recipe, ingredientContainerId, toolContainerId) {
+        const ingredientContainer = this.inv.getContainer(ingredientContainerId);
+        const toolContainer = this.inv.getContainer(toolContainerId);
+
+        if (ingredientContainer) {
+            for (const req of recipe.ingredients) {
+                if (req.consumeUnits) continue; // Fill-level based (e.g. water), not stack-count based
+
+                const candidates = ingredientContainer.getAllItems();
+                const matches = CraftingManager._matchIngredientReq(candidates, req);
+                const totalCount = matches.reduce((sum, i) => sum + i.stackCount, 0);
+                let excess = totalCount - req.count;
+                if (excess <= 0) continue;
+
+                for (const item of matches) {
+                    if (excess <= 0) break;
+                    const takeExcess = Math.min(item.stackCount, excess);
+                    if (takeExcess <= 0) continue;
+
+                    if (takeExcess >= item.stackCount) {
+                        ingredientContainer.removeItem(item.instanceId);
+                        const added = this.inv.addItem(item, null, null, null, true);
+                        if (!added?.success) ingredientContainer.addItem(item);
+                    } else {
+                        const split = item.splitStack(takeExcess);
+                        if (split) {
+                            item.stackCount -= takeExcess;
+                            const added = this.inv.addItem(split, null, null, null, true);
+                            if (!added?.success) item.stackCount += takeExcess;
+                        }
+                    }
+                    excess -= takeExcess;
+                }
+            }
+        }
+
+        // Recipes need exactly 1 usable tool each; return any surplus stacked quantity.
+        if (toolContainer) {
+            for (const toolReq of recipe.tools) {
+                const candidates = toolContainer.getAllItems().filter(t => CraftingManager._toolMatchesReq(t, toolReq));
+                for (const item of candidates) {
+                    if (item.stackCount > 1) {
+                        const excess = item.stackCount - 1;
+                        const split = item.splitStack(excess);
+                        if (split) {
+                            item.stackCount -= excess;
+                            const added = this.inv.addItem(split, null, null, null, true);
+                            if (!added?.success) item.stackCount += excess;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     getNearbyCampfire() {
         if (!this.inv.groundContainer) return null;
         return this.inv.groundContainer.getAllItems().find(item => 
@@ -120,7 +200,10 @@ export class CraftingManager {
         const usedInstances = new Set();
 
         // 1. Check AP Cost
-        if (recipe.apCost && availableAP !== null) {
+        // Cooking is always a single-turn action, so insufficient AP hard-blocks it.
+        // Crafting-tab recipes can be completed across multiple turns via the crafting
+        // queue (see craft()), so AP shortfall is informational there, not blocking.
+        if (recipe.apCost && availableAP !== null && recipe.tab === 'cooking') {
             if (availableAP < actualAP) {
                 missing.push(`${actualAP} AP`);
             }
@@ -226,9 +309,69 @@ export class CraftingManager {
         const ingredientContainerId = `${prefix}-ingredients`;
         const ingredientContainer = this.inv.getContainer(ingredientContainerId);
 
+        // --- Multi-turn crafting queue (Crafting tab only; Cooking is always single-turn) ---
+        if (recipe.tab !== 'cooking') {
+            const engineRef = globalThis.gameEngine;
+            const ap = availableAP || 0;
+            const queue = engineRef?.craftingQueue;
+
+            if (queue && queue.recipeId !== recipeId) {
+                return { success: false, reason: 'Another item is already queued for crafting' };
+            }
+
+            if (queue) {
+                // CONTINUE: apply this turn's AP toward the item already in progress.
+                const remaining = queue.apRequired - queue.apInvested;
+                const apToApply = Math.min(ap, remaining);
+
+                if (apToApply >= remaining) {
+                    const completion = this._finishCraft(recipe, ingredientContainer, ingredientContainerId, toolContainerId);
+                    if (!completion.success) return completion;
+                    if (engineRef) engineRef.craftingQueue = null;
+                    return { ...completion, apCost: apToApply, apRequired: queue.apRequired, completed: true };
+                }
+
+                queue.apInvested += apToApply;
+                return {
+                    success: true, completed: false, queued: true,
+                    apInvested: queue.apInvested, apRequired: queue.apRequired, apCost: apToApply
+                };
+            }
+
+            if (ap < actualAP) {
+                // START: not enough AP to finish this turn, lock the workspace and begin the queue.
+                if (ap <= 0) return { success: false, reason: 'Not enough AP to begin crafting' };
+
+                this._trimWorkspaceToRequirements(recipe, ingredientContainerId, toolContainerId);
+                if (engineRef) {
+                    engineRef.craftingQueue = { recipeId, apRequired: actualAP, apInvested: ap };
+                }
+                return {
+                    success: true, completed: false, queued: true,
+                    apInvested: ap, apRequired: actualAP, apCost: ap
+                };
+            }
+            // else: enough AP and nothing queued yet -> fall through to instant completion below
+        }
+
+        const instantCompletion = this._finishCraft(recipe, ingredientContainer, ingredientContainerId, toolContainerId);
+        if (!instantCompletion.success) return instantCompletion;
+        return { ...instantCompletion, apCost: actualAP, apRequired: actualAP, completed: true };
+    } catch (error) {
+        console.error('[CraftingManager] Unexpected error during craft:', error);
+        return { success: false, reason: 'Internal error: ' + error.message };
+    }
+    }
+
+    /**
+     * Finish a craft: consume ingredients/tools and produce the result item. Shared by
+     * the instant-complete path and the crafting-queue completion path.
+     */
+    _finishCraft(recipe, ingredientContainer, ingredientContainerId, toolContainerId) {
+        try {
         // SPECIAL CASE: Determine lifetime for campfire based on fuel used
         let lifetimeTurns = null;
-        if (recipeId === 'crafting.campfire') {
+        if (recipe.id === 'crafting.campfire') {
             const candidates = ingredientContainer.getAllItems();
             const fuelItem = candidates.find(i => i.hasCategory(ItemCategory.FUEL));
             if (fuelItem) {
@@ -241,7 +384,7 @@ export class CraftingManager {
         let preservedProperties = {};
 
         // SPECIAL CASE: Stew dynamic scaling
-        if (recipeId === 'cooking.stew') {
+        if (recipe.id === 'cooking.stew') {
             const allItems = ingredientContainer.getAllItems();
             
             // 1. Gather possible ingredients and water
@@ -346,10 +489,10 @@ export class CraftingManager {
             });
             const stewItem = new Item(stewData);
 
-            return { success: true, item: stewItem, apCost: actualAP };
+            return { success: true, item: stewItem };
         }
         // SPECIAL CASE: Cooked Vegetables dynamic scaling
-        if (recipeId === 'cooking.cooked_vegetables') {
+        if (recipe.id === 'cooking.cooked_vegetables') {
             const allItems = ingredientContainer.getAllItems();
             const vegItems = allItems.filter(i => i.hasCategory(ItemCategory.VEGETABLE));
 
@@ -387,10 +530,10 @@ export class CraftingManager {
             });
             const vegItem = new Item(vegData);
 
-            return { success: true, item: vegItem, apCost: actualAP };
+            return { success: true, item: vegItem };
         }
 
-        if (recipeId === 'cooking.clean_water' || recipeId === 'cooking.clean_water_jug') {
+        if (recipe.id === 'cooking.clean_water' || recipe.id === 'cooking.clean_water_jug') {
             const candidates = ingredientContainer.getAllItems();
             
             // Look for the specific dirty container that triggered the craft
@@ -408,7 +551,7 @@ export class CraftingManager {
             } else {
                 // FALLBACK: Use definition capacity for the result item
                 const resultDef = ItemDefs[recipe.resultItem];
-                const capacity = resultDef?.capacity || (recipeId === 'cooking.clean_water_jug' ? 50 : 20);
+                const capacity = resultDef?.capacity || (recipe.id === 'cooking.clean_water_jug' ? 50 : 20);
                 preservedProperties.ammoCount = capacity;
                 preservedProperties.waterQuality = 'clean';
                 console.warn(`[CraftingManager] No dirty source found in workspace! Defaulting result ${recipe.resultItem} to FULL (${capacity} units).`);
@@ -505,7 +648,7 @@ export class CraftingManager {
 
                 if (singleTool.capacity !== null && (singleTool.ammoCount !== null && singleTool.ammoCount > 0)) {
                     // Charge-based consumption (Lighter, Matches)
-                    singleTool.ammoCount -= 1;
+                    singleTool.consumeCharge(1);
                     console.log(`[CraftingManager] Consumed 1 charge from tool: ${singleTool.name}. Remaining: ${singleTool.ammoCount}`);
                 } else if (singleTool.isDegradable()) {
                     // Condition-based degradation (Hammer, Knife)
@@ -540,7 +683,7 @@ export class CraftingManager {
             // Since it's auto-expanding and the ground is "infinite", this should always succeed.
             // We pass (0,0) as preferred coordinates to keep it near the player's logical center.
             if (ground.addItem(newItem, 0, 0, false)) {
-                return { success: true, item: newItem, placedInGround: true, apCost: actualAP, returnedItems };
+                return { success: true, item: newItem, placedInGround: true, returnedItems };
             } else {
                 // FALLBACK: If for some reason addItem fails (should be impossible on auto-expand ground),
                 // we try to force place it by clearing space at (0,0).
@@ -550,14 +693,14 @@ export class CraftingManager {
                 if (ground.placeItemAt(newItem, 0, 0)) {
                     // Re-add displaced items to any available spot
                     displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
-                    return { success: true, item: newItem, placedInGround: true, apCost: actualAP, returnedItems };
+                    return { success: true, item: newItem, placedInGround: true, returnedItems };
                 } else {
                     console.error('[CraftingManager] CRITICAL: Failed to place ground-only item even after clearing!');
                     // Restore displaced items
                     displacedItems.forEach(item => this.inv.addItem(item, 'ground', null, null, true));
                     
                     // Final safety: Just return the item even if placement failed (it might stay in workspace)
-                    return { success: true, item: newItem, placedInGround: false, apCost: actualAP, returnedItems };
+                    return { success: true, item: newItem, placedInGround: false, returnedItems };
                 }
             }
         }
@@ -565,7 +708,6 @@ export class CraftingManager {
         return {
             success: true,
             item: newItem,
-            apCost: actualAP,
             returnedItems
         };
     } catch (error) {
@@ -657,5 +799,14 @@ export class CraftingManager {
         });
         
         this.inv.emit('inventoryChanged');
+    }
+
+    /**
+     * Abandon the in-progress crafting queue. All AP invested so far is forfeited;
+     * the locked tool/ingredients remain sitting in the workspace, now unlocked/interactable.
+     */
+    cancelQueue() {
+        const engineRef = globalThis.gameEngine;
+        if (engineRef) engineRef.craftingQueue = null;
     }
 }

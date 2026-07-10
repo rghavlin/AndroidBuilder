@@ -260,6 +260,7 @@ export class GameSaveSystem {
         // replaying identically from the start of the stream every load.
         gameRandomState: gameRandom.getState(),
         bookStats: engine.bookStats,
+        craftingQueue: engine.craftingQueue,
 
         // Map state (includes all tiles and entities) - this contains positions
         gameMap: gameState.gameMap ? gameState.gameMap.toJSON() : null,
@@ -426,6 +427,8 @@ export class GameSaveSystem {
       if (saveData.bookStats) {
           engine.bookStats = saveData.bookStats;
       }
+
+      engine.craftingQueue = saveData.craftingQueue || null;
 
       // Restore game seed for PRNG continuity
       if (saveData.gameSeed !== undefined && saveData.gameSeed !== null) {

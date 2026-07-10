@@ -2941,7 +2941,7 @@ export class InventoryManager extends SafeEventEmitter {
       toolInstance.degrade();
       console.log(`[InventoryManager] Degraded tool ${toolInstance.name} during disassembly. Condition: ${toolInstance.condition}`);
     } else if (toolInstance.capacity !== null && (toolInstance.ammoCount !== null && toolInstance.ammoCount > 0)) {
-      toolInstance.ammoCount -= 1;
+      toolInstance.consumeCharge(1);
       console.log(`[InventoryManager] Consumed charge from tool ${toolInstance.name} during disassembly. Ammo: ${toolInstance.ammoCount}`);
     }
     

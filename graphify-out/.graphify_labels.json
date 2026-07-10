@@ -180,5 +180,15 @@
   "178": "tmp_verify_fix.js",
   "179": "tmp_verify_loot.js",
   "180": "tmp_verify_loot_summary.js",
-  "181": ".setItemsOnTile"
+  "181": ".setItemsOnTile",
+  "182": "TileChunkCache",
+  "183": "diagnose_lkp2.mjs",
+  "184": "verify_loadmap_dedup_p4_03.mjs",
+  "185": "verify_crop_rendering.js",
+  "186": "diagnose_lkp.mjs",
+  "187": "verify_earbucks_shop_snapshot.mjs",
+  "188": "verify_production_frontage.js",
+  "189": "verify_random_map_loops.mjs",
+  "190": "test_noise.js",
+  "191": "verify_saveload.mjs"
 }

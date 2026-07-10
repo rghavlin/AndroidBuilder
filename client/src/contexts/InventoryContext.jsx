@@ -1082,28 +1082,41 @@ export const InventoryProvider = ({ children }) => {
         });
       }
       
-      // DEDUCT AP AND REWARD EXP
+      // DEDUCT AP (only what this tick actually spent - may be a partial, multi-turn contribution)
       const apUsed = result.apCost || 0;
       if (apUsed > 0) {
         player.useAP(apUsed);
-        player.onItemCrafted(apUsed);
       }
-      
+
       engine.notifyUpdate();
-      addLog(`Crafted ${result.item?.name || 'item'}`, 'item');
-      
-      if (['cooking.cooked_meat', 'cooking.cooked_vegetables'].includes(recipeId)) {
-        playSound('Sizzle');
-      } else if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew'].includes(recipeId)) {
-        playSound('Boil');
-      } else if (recipeId === 'crafting.campfire') {
-        playSound('Ignite');
-      } else {
-        playSound('Craft');
+
+      if (result.completed) {
+        // REWARD EXP once, for the full recipe cost, only on the tick that finishes the item
+        player.onItemCrafted(result.apRequired || apUsed);
+        addLog(`Crafted ${result.item?.name || 'item'}`, 'item');
+
+        if (['cooking.cooked_meat', 'cooking.cooked_vegetables'].includes(recipeId)) {
+          playSound('Sizzle');
+        } else if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew'].includes(recipeId)) {
+          playSound('Boil');
+        } else if (recipeId === 'crafting.campfire') {
+          playSound('Ignite');
+        } else {
+          playSound('Craft');
+        }
+      } else if (result.queued) {
+        addLog(`Put ${apUsed} AP toward crafting (${result.apInvested}/${result.apRequired} AP).`, 'item');
+        playSound('Click');
       }
     }
     return result;
   }, [addLog, playSound]);
+
+  const cancelCraftingQueue = useCallback(() => {
+    if (!engine.inventoryManager) return;
+    engine.inventoryManager.craftingManager.cancelQueue();
+    engine.notifyUpdate();
+  }, []);
 
   const autoloadRecipe = useCallback((recipeId) => {
     if (!engine.inventoryManager) return { success: false };
@@ -1115,7 +1128,14 @@ export const InventoryProvider = ({ children }) => {
     return engine.inventoryManager.craftingManager.unload();
   }, []);
 
-  const clearCraftingArea = useCallback(() => engine.inventoryManager?.clearCraftingArea(), []);
+  const clearCraftingArea = useCallback(() => {
+    // While an item is queued mid-craft, its locked tool/ingredients must stay put
+    // across window close/reopen rather than being returned to inventory.
+    if (engine.craftingQueue) return;
+    engine.inventoryManager?.clearCraftingArea();
+  }, []);
+
+  const craftingQueue = engine.craftingQueue || null;
 
   const getPlacementPreview = useCallback((containerId, x, y) => {
     if (!selectedItem || !engine.inventoryManager) return null;
@@ -1737,6 +1757,8 @@ export const InventoryProvider = ({ children }) => {
     craftItem,
     autoloadRecipe,
     unloadCrafting,
+    cancelCraftingQueue,
+    craftingQueue,
     consumeItem,
     bindWound,
     drinkWater,

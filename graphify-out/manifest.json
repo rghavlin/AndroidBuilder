@@ -345,8 +345,8 @@
     "semantic_hash": "18fa86d376fe5e2c825e585a7ede892d"
   },
   "client/src/components/Inventory/ItemContextMenu.tsx": {
-    "mtime": 1783589473.2824616,
-    "ast_hash": "286e9fbc4161045f031fff756d7b9b05",
+    "mtime": 1783601755.2145896,
+    "ast_hash": "1a9378930afa78314a8ca99e602f10fd",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/ItemTooltip.tsx": {
@@ -635,13 +635,13 @@
     "semantic_hash": "32da00638860128668bf6487df2a9a96"
   },
   "client/src/contexts/CombatContext.jsx": {
-    "mtime": 1783499955.8216536,
-    "ast_hash": "8f56946b3395924496394648277e13cf",
-    "semantic_hash": "8f56946b3395924496394648277e13cf"
+    "mtime": 1783601445.2856915,
+    "ast_hash": "5634829bdee5f5dc68ac20e272088e7e",
+    "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1783589384.6114364,
-    "ast_hash": "5cd1a85a1a492916bf13f5058ec653a2",
+    "mtime": 1783601440.887202,
+    "ast_hash": "a25564b6e92661a94f6bcd0be6bf1063",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -935,8 +935,8 @@
     "semantic_hash": "6831cf6fbc1fd3152062a0e853450673"
   },
   "client/src/game/entities/Entity.js": {
-    "mtime": 1783589333.1580896,
-    "ast_hash": "b81d68b22a464b072309c1940242bf53",
+    "mtime": 1783639576.7054303,
+    "ast_hash": "a8ba697be52dea693df7d62cbee0392b",
     "semantic_hash": ""
   },
   "client/src/game/entities/NPCTypes.js": {
@@ -980,9 +980,9 @@
     "semantic_hash": "79a1e222b79d89ec3556ac97487705af"
   },
   "client/src/game/inventory/CraftingManager.js": {
-    "mtime": 1783078363.7987669,
-    "ast_hash": "cc3d3932de0c1f26aed3f5091b270e67",
-    "semantic_hash": "cc3d3932de0c1f26aed3f5091b270e67"
+    "mtime": 1783601430.791481,
+    "ast_hash": "1d293537a5cb9185769f15a0a42cefe3",
+    "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingRecipes.js": {
     "mtime": 1783035440.5351722,
@@ -995,14 +995,14 @@
     "semantic_hash": "8c65c19d26e48133bf9717130565ab84"
   },
   "client/src/game/inventory/InventoryManager.js": {
-    "mtime": 1783577081.9218538,
-    "ast_hash": "59aaf46bc0dfcc5573d9e64e9c0c1787",
+    "mtime": 1783601436.0990698,
+    "ast_hash": "cf8b86bd5b9fa9d375d1c48e16ec8fc7",
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
-    "mtime": 1783418587.9952404,
-    "ast_hash": "d675046eca810628989adda63dfa5040",
-    "semantic_hash": "d675046eca810628989adda63dfa5040"
+    "mtime": 1783601426.5461013,
+    "ast_hash": "30dee25f0bcca1222dcbefa1599a7f72",
+    "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
     "mtime": 1783595158.9464476,
@@ -1200,9 +1200,9 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/AttributeProgressionManager.js": {
-    "mtime": 1783499935.6407137,
-    "ast_hash": "5adb69ddbae4d57467aaac7e65d70593",
-    "semantic_hash": "5adb69ddbae4d57467aaac7e65d70593"
+    "mtime": 1783639571.3149366,
+    "ast_hash": "b0f898c3df55b404570ed89cdf78b954",
+    "semantic_hash": ""
   },
   "client/src/game/systems/AudioSystem.js": {
     "mtime": 1783404096.875108,
