@@ -16,7 +16,7 @@ export const CraftingRecipes = [
         name: 'Wagon',
         resultItem: 'vehicle.wagon',
         description: 'For moving items',
-        apCost: 15,
+        apCost: 20,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_4',
         tools: [
@@ -34,7 +34,7 @@ export const CraftingRecipes = [
         name: 'Cargo Wagon',
         resultItem: 'vehicle.cargo_wagon',
         description: 'For moving items',
-        apCost: 20,
+        apCost: 40,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_6',
         tools: [
@@ -52,7 +52,7 @@ export const CraftingRecipes = [
         name: 'Stun rod',
         resultItem: 'weapon.stun_rod',
         description: 'A defensive stun rod that can be powered with a large battery to shock and stun enemies.',
-        apCost: 10,
+        apCost: 22,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_7',
         tools: [
@@ -98,7 +98,7 @@ export const CraftingRecipes = [
         name: 'Makeshift Machete',
         resultItem: 'weapon.makeshift_machete',
         description: 'A sharp mower blade bound with rags to create a devastating makeshift weapon.',
-        apCost: 6,
+        apCost: 7,
         tab: 'crafting',
         tools: [],
         ingredients: [
@@ -112,7 +112,7 @@ export const CraftingRecipes = [
         name: 'Spear',
         resultItem: 'weapon.spear',
         description: 'A long-reaching weapon made from a stick and a sharp point.',
-        apCost: 6,
+        apCost: 7,
         tab: 'crafting',
         tools: [],
         ingredients: [
@@ -133,14 +133,14 @@ export const CraftingRecipes = [
         tools: [],
         resultItem: 'medical.bandage',
         resultCount: 2,
-        apCost: 2
+        apCost: 3
     },
     {
         id: 'crafting.rain_collector',
         name: 'Rain Collector',
         resultItem: 'provision.rain_collector',
         description: 'A large basin for collecting rainwater. Must be placed in the open air.',
-        apCost: 15,
+        apCost: 17,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_3',
         tools: [
@@ -186,7 +186,7 @@ export const CraftingRecipes = [
         name: 'Spiked Bat',
         resultItem: 'weapon.spikedbat',
         description: 'A wooden bat reinforced with nasty, protruding nails.',
-        apCost: 6,
+        apCost: 7,
         tab: 'crafting',
         tools: [
             { either: ['weapon.hammer', 'weapon.makeshift_hammer'], label: 'Any Hammer' }
@@ -201,7 +201,7 @@ export const CraftingRecipes = [
         name: 'Makeshift pack',
         resultItem: 'backpack.makeshift',
         description: 'Do-it-yourself backpack',
-        apCost: 5,
+        apCost: 6,
         tab: 'crafting',
         tools: [],
         ingredients: [
@@ -214,7 +214,7 @@ export const CraftingRecipes = [
         name: 'Torch',
         resultItem: 'tool.torch',
         description: 'A simple torch for lighting up the night. Requires a lighter or matches to ignite.',
-        apCost: 3,
+        apCost: 4,
         tab: 'crafting',
         tools: [],
         ingredients: [
@@ -301,7 +301,7 @@ export const CraftingRecipes = [
         name: 'Sling',
         resultItem: 'weapon.sling',
         description: 'A simple weapon for throwing stones over long distances.',
-        apCost: 10,
+        apCost: 8,
         tab: 'crafting',
         tools: [
             { category: ItemCategory.KNIFE, label: 'Any Knife' }
@@ -315,7 +315,7 @@ export const CraftingRecipes = [
         name: 'Makeshift Shovel',
         resultItem: 'weapon.makeshift_shovel',
         description: 'A crude shovel made from a metal plate and a sturdy stick.',
-        apCost: 8,
+        apCost: 9,
         tab: 'crafting',
         tools: [],
         ingredients: [
@@ -342,7 +342,7 @@ export const CraftingRecipes = [
         name: 'Bedroll',
         resultItem: 'bedroll.closed',
         description: 'Portable bed. Right-click to unroll.',
-        apCost: 10,
+        apCost: 11,
         tab: 'crafting',
         tools: [],
         ingredients: [
@@ -373,7 +373,7 @@ export const CraftingRecipes = [
         name: 'Planter box',
         resultItem: 'furniture.planter_box',
         description: 'A wooden box filled with soil for growing plants.',
-        apCost: 12,
+        apCost: 13,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_2',
         tools: [
@@ -390,7 +390,7 @@ export const CraftingRecipes = [
         name: 'Solar charger',
         resultItem: 'tool.solar_charger',
         description: 'A sustainable battery charging station. Requires daylight and outdoor placement to function.',
-        apCost: 20,
+        apCost: 26,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_5',
         tools: [
@@ -407,7 +407,7 @@ export const CraftingRecipes = [
         name: 'Lockpick',
         resultItem: 'tool.lockpick',
         description: 'A simple lockpick crafted from a wire and a nail.',
-        apCost: 2,
+        apCost: 3,
         tab: 'crafting',
         tools: [],
         ingredients: [
@@ -433,7 +433,7 @@ export const CraftingRecipes = [
         name: 'Auto Turret',
         resultItem: TURRET_DEF_ID,
         description: 'A fully automated defensive turret that detects and eliminates zombies within range. Requires a large battery for power and a .556 magazine for ammunition.',
-        apCost: 20,
+        apCost: 34,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_8',
         tools: [

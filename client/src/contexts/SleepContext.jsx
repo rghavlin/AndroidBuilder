@@ -128,7 +128,7 @@ export const SleepProvider = ({ children }) => {
         if (!engine.isSleeping || !mountedRef.current) break;
 
         const hpBeforeHour = player.hp;
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // A new game can start during the 1s wait above. Bail out (not just
         // break) so none of this stale hour's per-hour mutations below —

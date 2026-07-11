@@ -1050,16 +1050,17 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [addLog, playSound]);
 
-  const craftItem = useCallback((recipeId) => {
+  const craftItem = useCallback((recipeId, requestedAP = null) => {
     const turnCheck = checkPlayerTurn();
     if (!turnCheck.success) return turnCheck;
     if (!engine.inventoryManager || !engine.player) return { success: false, reason: 'System not ready' };
-    
+
     const player = engine.player;
     const craftingLevel = player.craftingLvl || 0;
-    
-    // Perform the craft through the manager
-    const result = engine.inventoryManager.craftingManager.craft(recipeId, craftingLevel, player.ap);
+
+    // Perform the craft through the manager. requestedAP lets the player invest less
+    // than their full turn's AP into a single Craft/Continue click (Crafting tab only).
+    const result = engine.inventoryManager.craftingManager.craft(recipeId, craftingLevel, player.ap, requestedAP);
     
     if (result.success) {
       if (result.item && !result.placedInGround) {

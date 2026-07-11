@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -121,11 +121,53 @@ export default function CraftingUI() {
     const craftingStatus = useMemo(() => {
         if (!selectedRecipeId || !inventoryRef.current) return { canCraft: false, missing: [] };
         return inventoryRef.current.craftingManager.checkRequirements(
-            selectedRecipeId, 
+            selectedRecipeId,
             playerStats.ap,
             playerStats.craftingLvl || 1
         );
     }, [selectedRecipeId, inventoryVersion, inventoryRef, playerStats.ap, playerStats.craftingLvl]);
+
+    // Full AP cost of the selected recipe (after crafting-level discount)
+    const selectedRecipeCost = useMemo(() => {
+        if (!selectedRecipe) return 0;
+        return Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl ?? 0)));
+    }, [selectedRecipe, playerStats.craftingLvl]);
+
+    // How much AP a single Craft/Continue click can still usefully spend right now
+    const maxApThisClick = useMemo(() => {
+        const remaining = isQueued ? Math.max(1, craftingQueue.apRequired - craftingQueue.apInvested) : selectedRecipeCost;
+        return Math.max(1, Math.min(playerStats.ap || 0, remaining));
+    }, [isQueued, craftingQueue, selectedRecipeCost, playerStats.ap]);
+
+    // How much AP to invest on the next Craft/Continue click (crafting tab only; defaults to 1)
+    const [apToSpend, setApToSpend] = useState(1);
+
+    useEffect(() => {
+        setApToSpend(1);
+    }, [selectedRecipeId, activeTab]);
+
+    useEffect(() => {
+        setApToSpend(prev => Math.max(1, Math.min(prev, maxApThisClick)));
+    }, [maxApThisClick]);
+
+    // Scroll-to-adjust for the AP spinner. Wired as a native, non-passive listener
+    // because React 18 attaches synthetic wheel handlers as passive, silently
+    // ignoring preventDefault() and letting the page scroll underneath the input.
+    const apSpinnerRef = useRef<HTMLInputElement>(null);
+    const maxApThisClickRef = useRef(maxApThisClick);
+    maxApThisClickRef.current = maxApThisClick;
+
+    useEffect(() => {
+        const el = apSpinnerRef.current;
+        if (!el) return;
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 1 : -1;
+            setApToSpend(prev => Math.max(1, Math.min(prev + delta, maxApThisClickRef.current)));
+        };
+        el.addEventListener('wheel', handleWheel, { passive: false });
+        return () => el.removeEventListener('wheel', handleWheel);
+    }, []);
 
     // PREDICTION: Stew Stats
     const predictedStewStats = useMemo(() => {
@@ -208,7 +250,7 @@ export default function CraftingUI() {
 
     const handleCraft = () => {
         if (selectedRecipeId) {
-            const result = craftItem(selectedRecipeId);
+            const result = craftItem(selectedRecipeId, activeTab === 'crafting' ? apToSpend : null);
             if (result.success) {
                 console.log("Crafting successful!");
             } else {
@@ -366,14 +408,40 @@ export default function CraftingUI() {
                                                 </span>
                                             )}
                                         </div>
-                                        <span className={cn(
-                                            "px-1.5 py-0.5 rounded",
-                                            playerStats.ap >= Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl ?? 0))) 
-                                                ? "bg-primary/10 text-primary" 
-                                                : "bg-red-500/10 text-red-400"
-                                        )}>
-                                            Cost: {Math.max(1, selectedRecipe.apCost - (selectedRecipe.tab === 'cooking' ? 0 : (playerStats.craftingLvl ?? 0)))} AP
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={cn(
+                                                "px-1.5 py-0.5 rounded",
+                                                playerStats.ap >= selectedRecipeCost
+                                                    ? "bg-primary/10 text-primary"
+                                                    : "bg-red-500/10 text-red-400"
+                                            )}>
+                                                Cost: {selectedRecipeCost} AP
+                                            </span>
+                                            {activeTab === 'crafting' && (
+                                                <>
+                                                    <input
+                                                        ref={apSpinnerRef}
+                                                        type="number"
+                                                        min={1}
+                                                        max={maxApThisClick}
+                                                        value={apToSpend}
+                                                        onChange={(e) => {
+                                                            const val = parseInt(e.target.value, 10);
+                                                            if (!Number.isNaN(val)) setApToSpend(Math.max(1, Math.min(val, maxApThisClick)));
+                                                        }}
+                                                        className="w-11 h-5 text-[10px] text-center bg-black/30 border border-border rounded normal-case font-bold text-foreground"
+                                                        title="AP to spend on the next Craft/Continue click (scroll to adjust)"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setApToSpend(maxApThisClick)}
+                                                        className="text-[9px] px-1.5 py-0.5 rounded border border-border bg-secondary/60 hover:bg-secondary font-bold uppercase tracking-wide"
+                                                    >
+                                                        Max
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5">
                                         {selectedRecipe.tools.map((t, i) => (
@@ -437,7 +505,7 @@ export default function CraftingUI() {
                                             <div className="flex flex-col items-center">
                                                 <Button
                                                     onClick={handleCraft}
-                                                    disabled={!craftingStatus.canCraft || !isPlayerTurn || isAutosaving || (isQueued && playerStats.ap <= 0)}
+                                                    disabled={!craftingStatus.canCraft || !isPlayerTurn || isAutosaving || (activeTab === 'crafting' && playerStats.ap <= 0)}
                                                     className={cn(
                                                         "w-24 h-8 text-[10px] font-bold shadow-lg transition-all",
                                                         "metal-button-green uppercase tracking-wide"

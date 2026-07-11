@@ -287,7 +287,7 @@ export class CraftingManager {
     /**
      * Perform the craft: consume items and return the new item
      */
-    craft(recipeId, craftingLevel = 0, availableAP = null) {
+    craft(recipeId, craftingLevel = 0, availableAP = null, requestedAP = null) {
         try {
             const recipe = CraftingRecipes.find(r => r.id === recipeId);
             if (!recipe) return { success: false, reason: 'Recipe not found' };
@@ -312,7 +312,10 @@ export class CraftingManager {
         // --- Multi-turn crafting queue (Crafting tab only; Cooking is always single-turn) ---
         if (recipe.tab !== 'cooking') {
             const engineRef = globalThis.gameEngine;
-            const ap = availableAP || 0;
+            const rawAvailable = availableAP || 0;
+            // requestedAP lets the player choose to invest less than their full turn's AP
+            // into this click; it can never exceed what they actually have.
+            const ap = requestedAP != null ? Math.max(0, Math.min(requestedAP, rawAvailable)) : rawAvailable;
             const queue = engineRef?.craftingQueue;
 
             if (queue && queue.recipeId !== recipeId) {

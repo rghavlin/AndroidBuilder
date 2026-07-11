@@ -1,7 +1,7 @@
 # Graph Report - AndroidBuilder  (2026-07-10)
 
 ## Corpus Check
-- 491 files · ~463,606 words
+- 491 files · ~463,556 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

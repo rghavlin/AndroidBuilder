@@ -7,6 +7,7 @@ import type {
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
+const DEFAULT_TOAST_DURATION = 5000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -160,6 +161,14 @@ function toast({ ...props }: Toast) {
       },
     },
   })
+
+  // Radix's own duration-based auto-dismiss timer is unreliable in apps with
+  // frequent re-renders (it pauses/resets on focus and prop changes), so we
+  // drive dismissal explicitly instead of relying on it.
+  const duration = props.duration ?? DEFAULT_TOAST_DURATION
+  if (duration !== Infinity) {
+    setTimeout(dismiss, duration)
+  }
 
   return {
     id: id,

@@ -3,7 +3,8 @@
 //      Agility/Perception/Constitution down from their BASE values.
 //   2. deriveSecondaryStats — maxHp and maxAp are DERIVED from those current
 //      attributes (never hand-set). maxHp from Constitution, maxAp from Agility+
-//      Perception minus a fatigue penalty.
+//      Perception. Energy only affects maxAp indirectly, via its share of the
+//      cascade's blended deficit pulling Agility/Perception down.
 // recalcCharacter runs both in order. Shared by GameContext's per-turn processing,
 // SleepContext's per-hour sleep loop, and EntityFactory at player creation, so all
 // three use the exact same formulas.
@@ -17,10 +18,8 @@ import { gameRandom } from './SeededRandom.js';
 const CASCADE_MAX_PENALTY = 0.5; // fully depleted needs cap stats at 50% of base
 
 const HP_FLOOR = 10;   // max HP never drops below this, whatever Constitution does
-const AP_BASE = 10;    // max AP before attribute bonus / fatigue penalty
+const AP_BASE = 10;    // max AP before attribute bonus
 const AP_FLOOR = 5;    // max AP never drops below this — never fully incapacitated
-const AP_EXHAUSTION_COEF = 10; // energy deficit (0-1) × this = AP knocked off the base
-
 // How hard attributes push max HP / max AP. These are the survivability dials:
 // bump HP_PER_CON for a beefier health pool, AP_ATTR_DIVISOR down for more actions.
 const HP_PER_CON = 0.4;     // max HP gained per point of current Constitution
@@ -127,11 +126,9 @@ export function sicknessPenalties(sickness = 0) {
   };
 }
 
-// Sets current* from base* scaled by how depleted the three needs are, and returns
-// the individual energy deficit (0-1) so the AP derivation can apply a fatigue
-// penalty keyed to exhaustion specifically rather than the blended average.
+// Sets current* from base* scaled by how depleted nutrition/hydration/energy are.
 export function applySurvivalCascade(player) {
-  if (!player) return { energyDeficit: 0 };
+  if (!player) return;
 
   const nutritionDeficit = Math.max(0, 1 - player.nutrition / (player.maxNutrition || 25));
   const hydrationDeficit = Math.max(0, 1 - player.hydration / (player.maxHydration || 25));
@@ -199,34 +196,38 @@ export function applySurvivalCascade(player) {
   player.currentAgility = Math.max(0, Math.round(player.baseAgility * agiCond * agiMult) - agiSick);
   player.currentPerception = Math.max(0, Math.round(player.basePerception * perCond * perMult) - perSick);
   player.currentConstitution = Math.max(0, Math.round(player.baseConstitution * conCond * conMult) - conSick);
-
-  return { energyDeficit };
 }
 
-// Derives maxHp/maxAp from current attributes and re-clamps hp/ap into the new
-// caps. Clamping only ever lowers current values — and because HP_FLOOR (10) keeps
-// maxHp at or above the player's starting HP, the hp clamp can never reach 0, so it
-// never trips death. maxHp uses current Constitution: starvation shrinks the bonus
-// but the floor guarantees it never falls below HP_FLOOR.
-export function deriveSecondaryStats(player, energyDeficit = 0) {
+// Derives maxHp/maxAp from current attributes and reconciles hp/ap against the new
+// caps: a drop in the cap takes the difference off current hp/ap like damage, and a
+// rise in the cap adds the difference to current hp/ap like healing. Because HP_FLOOR
+// (10) keeps maxHp at or above the player's starting HP, the hp clamp can never reach
+// 0, so it never trips death. maxHp uses current Constitution: starvation shrinks the
+// bonus but the floor guarantees it never falls below HP_FLOOR.
+export function deriveSecondaryStats(player) {
   if (!player) return;
 
+  const oldMaxHp = player.maxHp || 0;
   const newMaxHp = maxHpFromAttributes(player.currentConstitution);
   player.maxHp = newMaxHp;
-  if (player.hp > newMaxHp) player.hp = newMaxHp;
+  if (newMaxHp !== oldMaxHp) {
+    player.hp = Math.max(0, Math.min(newMaxHp, player.hp + (newMaxHp - oldMaxHp)));
+  }
 
+  const oldMaxAp = player.maxAp || 0;
   const apAttrBonus = maxApBonusFromAttributes(player.currentAgility, player.currentPerception);
-  const exhaustionPenalty = Math.round(energyDeficit * AP_EXHAUSTION_COEF);
-  const newMaxAp = Math.max(AP_FLOOR, AP_BASE + apAttrBonus - exhaustionPenalty);
+  const newMaxAp = Math.max(AP_FLOOR, AP_BASE + apAttrBonus);
   player.maxAp = newMaxAp;
-  if (player.ap > newMaxAp) player.ap = newMaxAp;
+  if (newMaxAp !== oldMaxAp) {
+    player.ap = Math.max(0, Math.min(newMaxAp, player.ap + (newMaxAp - oldMaxAp)));
+  }
 }
 
 // One recompute path: cascade current attributes, then derive maxHp/maxAp from them.
 export function recalcCharacter(player) {
   if (!player) return;
-  const { energyDeficit } = applySurvivalCascade(player);
-  deriveSecondaryStats(player, energyDeficit);
+  applySurvivalCascade(player);
+  deriveSecondaryStats(player);
 
   // Recalculate vision range: +1 sight range for every 20 points of current Perception
   if (player.hasComponent('Vision')) {
