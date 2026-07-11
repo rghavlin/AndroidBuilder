@@ -1,11 +1,11 @@
-# Graph Report - AndroidBuilder  (2026-07-11)
+# Graph Report - AndroidBuilder  (2026-07-10)
 
 ## Corpus Check
-- 491 files · ~465,096 words
+- 491 files · ~465,083 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3038 nodes · 7708 edges · 161 communities (118 shown, 43 thin omitted)
+- 3038 nodes · 7708 edges · 159 communities (116 shown, 43 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 123 edges (avg confidence: 0.79)
 - Token cost: 0 input · 0 output
 
@@ -130,13 +130,11 @@
 - Map Transition Verification
 - Zombie Interaction Testing
 - App Entry and Error Handling
-- table.tsx
 - Custom React Hooks
 - Logging Utility
 - Mock Entity System
 - Storage Compression Testing
 - OTP Input Components
-- WindingRoadGenerator
 - Road Generation Logic
 - Split Road Generation
 - API Query Client
@@ -190,15 +188,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (161 total, 43 thin omitted)
+## Communities (159 total, 43 thin omitted)
 
 ### Community 0 - "Item Components"
 Cohesion: 0.03
 Nodes (43): ActionPoints, AIState, Burnable, Consumable, EquippedArmor, Health, InventoryContainer, LightEmitter (+35 more)
 
 ### Community 1 - "UI Components"
-Cohesion: 0.08
-Nodes (47): StartModeDialog(), StartModeDialogProps, ActionContext, AudioContext, AudioProvider(), CameraContext, CameraProvider(), CombatContext (+39 more)
+Cohesion: 0.07
+Nodes (49): StartModeDialog(), StartModeDialogProps, ActionContext, ActionProvider(), AudioContext, AudioProvider(), CameraContext, CameraProvider() (+41 more)
 
 ### Community 3 - "Game Engine Context"
 Cohesion: 0.15
@@ -230,15 +228,15 @@ Nodes (4): COMPONENT_NAME_BY_CTOR, Entity, assert(), verify()
 
 ### Community 10 - "Item Metadata and Traits"
 Cohesion: 0.08
-Nodes (24): ActionSlotButtonProps, EarbucksShopWindowProps, ShopItemRow(), ShopItemRowProps, EquipmentSlot, EquipmentSlotProps, SLOT_INFO, GridSlot (+16 more)
+Nodes (26): ActionSlotButton(), ActionSlotButtonProps, EarbucksShopWindow(), EarbucksShopWindowProps, ShopItemRow(), ShopItemRowProps, EquipmentSlot, EquipmentSlotProps (+18 more)
 
 ### Community 11 - "External Dependencies"
 Cohesion: 0.04
 Nodes (53): dependencies, class-variance-authority, clsx, cmdk, date-fns, embla-carousel-react, framer-motion, @hookform/resolvers (+45 more)
 
 ### Community 12 - "Inventory and Skill Windows"
-Cohesion: 0.08
-Nodes (53): ActionSlotButton(), BarterWindow(), BarterWindowProps, DefeatDialog(), EarbucksShopWindow(), GameControls(), GameScreenContent(), InventoryExtensionWindowProps (+45 more)
+Cohesion: 0.09
+Nodes (36): BarterWindow(), BarterWindowProps, InventoryExtensionWindowProps, InventoryPanel(), PlayerSkillsWindowProps, TollWindow(), TollWindowProps, BackpackGrid() (+28 more)
 
 ### Community 13 - "Entity and Item Types"
 Cohesion: 0.06
@@ -249,8 +247,8 @@ Cohesion: 0.06
 Nodes (25): DestroyIntent, NoiseEvent, DestructionSystem, ExplosionSystem, FireSystem, actionQueue, activeZombie, diedAny (+17 more)
 
 ### Community 16 - "Shop and Pricing Config"
-Cohesion: 0.13
-Nodes (20): drawImprovedCursor(), lastRainUpdate, MapCanvas(), playerRenderScratch, rainParticles, renderRain(), warnedMalformedEntityIds, ScreenScaler() (+12 more)
+Cohesion: 0.25
+Nodes (10): ScreenScaler(), ScreenScalerProps, FloatingContainer(), FloatingContainerProps, GridSlotSizeConfig, useGridSlotSize(), getScaleFactor(), getScaleMode() (+2 more)
 
 ### Community 17 - "Entity Spawning and Scent"
 Cohesion: 0.10
@@ -266,7 +264,7 @@ Nodes (23): CharacterCreatorProps, StatAdjusterCardProps, CharacterRegistryWindo
 
 ### Community 21 - "World Progression and Spawning"
 Cohesion: 0.12
-Nodes (12): findSouthTransitionTile(), computeTollGateLayout(), TOLLGATE_DEFAULTS, AnimalSpawner, NPCSpawner, NOTE: this only PLACES the gate. The turret-firing rules during a toll run, ZombieSpawner, escalated (+4 more)
+Nodes (11): computeTollGateLayout(), TOLLGATE_DEFAULTS, AnimalSpawner, NPCSpawner, NOTE: this only PLACES the gate. The turret-firing rules during a toll run, ZombieSpawner, escalated, map (+3 more)
 
 ### Community 22 - "Game Initialization Manager"
 Cohesion: 0.15
@@ -301,8 +299,8 @@ Cohesion: 0.22
 Nodes (6): gen, generatorTemplates, mapData, northX, roadTemplate, southX
 
 ### Community 32 - "Container Grid Logic"
-Cohesion: 0.18
-Nodes (15): GameContextInner(), SleepProvider(), AttributeProgressionManager, applySurvivalCascade(), deriveSecondaryStats(), maxApBonusFromAttributes(), maxHpFromAttributes(), previewDerivedStats() (+7 more)
+Cohesion: 0.29
+Nodes (10): applySurvivalCascade(), deriveSecondaryStats(), maxApBonusFromAttributes(), maxHpFromAttributes(), previewDerivedStats(), rollWoundInfectionCure(), sicknessPenalties(), STEW_ATTRS (+2 more)
 
 ### Community 33 - "Options and Crafting UI"
 Cohesion: 0.44
@@ -314,7 +312,7 @@ Nodes (3): Camera, log, NOTE: This only moves the camera view, not any entities
 
 ### Community 35 - "Dialog and Button UI"
 Cohesion: 0.03
-Nodes (80): GameEventLog(), GameEventLogProps, getLogColor(), AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar() (+72 more)
+Nodes (91): GameEventLog(), GameEventLogProps, getLogColor(), AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar() (+83 more)
 
 ### Community 36 - "Loot and Layout Estimation"
 Cohesion: 0.14
@@ -429,8 +427,8 @@ Cohesion: 0.15
 Nodes (12): Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem, CarouselNext, CarouselOptions (+4 more)
 
 ### Community 72 - "Toast UI Components"
-Cohesion: 0.06
-Nodes (31): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps, GameControlsProps, STAT_COLORS (+23 more)
+Cohesion: 0.05
+Nodes (60): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DefeatDialog(), DoorTooltip(), DoorTooltipProps, GameControls() (+52 more)
 
 ### Community 73 - "World Object Spawning"
 Cohesion: 0.17
@@ -489,7 +487,7 @@ Cohesion: 0.20
 Nodes (7): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES
 
 ### Community 93 - "Command UI Components"
-Cohesion: 0.17
+Cohesion: 0.15
 Nodes (6): DevConsole(), exportScenario(), main(), MockGameMap, testWallGapFix(), verifyRestoration()
 
 ### Community 94 - "Dropdown UI Components"
@@ -521,8 +519,8 @@ Cohesion: 0.29
 Nodes (4): ScenarioPickerWindow(), electronStorage, idbStorage, ScenarioStorage
 
 ### Community 105 - "Winding Road Generation"
-Cohesion: 0.16
-Nodes (6): LootProgression, MapProgression, BaseMapGenerator, logger, gameRandom, makeSeededRandom()
+Cohesion: 0.12
+Nodes (7): LootProgression, MapProgression, BaseMapGenerator, deriveRoadBands(), WindingRoadGenerator, gameRandom, makeSeededRandom()
 
 ### Community 109 - "Zombie Line-of-Sight Testing"
 Cohesion: 0.22
@@ -553,24 +551,16 @@ Cohesion: 0.25
 Nodes (5): engine, expected, fresh, loaded, readableIds
 
 ### Community 116 - "Map Transition Verification"
-Cohesion: 0.25
-Nodes (5): m1, m2, m3, r1, r2
+Cohesion: 0.17
+Nodes (7): findSouthTransitionTile(), logger, m1, m2, m3, r1, r2
 
 ### Community 117 - "Zombie Interaction Testing"
 Cohesion: 0.25
 Nodes (7): basicResult, map, mutantResult, player, windowEntity, zombieBasic, zombieMutant
 
-### Community 119 - "table.tsx"
-Cohesion: 0.22
-Nodes (8): Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow
-
 ### Community 120 - "Custom React Hooks"
 Cohesion: 0.07
 Nodes (24): SimulationManager, tryFollowScent(), ScentTrail, gm, lead, player, trail, zs (+16 more)
-
-### Community 121 - "Logging Utility"
-Cohesion: 0.21
-Nodes (5): ClothingContainerPanel(), ClothingContainerPanelProps, logger, logger, Logger
 
 ### Community 123 - "Storage Compression Testing"
 Cohesion: 0.12
@@ -616,7 +606,7 @@ Nodes (4): content, fs, lines, path
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Dialog and Button UI` to `Game Engine Context`, `Mock Game Map`, `Item Metadata and Traits`, `Inventory and Skill Windows`, `Shop and Pricing Config`, `Character and Menu Windows`, `Sidebar UI Components`, `Dialog UI Components`, `Menubar UI Components`, `Save Game Management`, `Form UI Components`, `Toast Notification State`, `Carousel UI Components`, `Toast UI Components`, `Chart UI Components`, `Dropdown UI Components`, `Inventory Item Management`, `Navigation Menu Components`, `table.tsx`, `Logging Utility`, `OTP Input Components`?**
+- **Why does `cn()` connect `Dialog and Button UI` to `UI Components`, `Game Engine Context`, `Mock Game Map`, `Item Metadata and Traits`, `Inventory and Skill Windows`, `Shop and Pricing Config`, `Character and Menu Windows`, `Sidebar UI Components`, `Dialog UI Components`, `Menubar UI Components`, `Save Game Management`, `Form UI Components`, `Toast Notification State`, `Carousel UI Components`, `Toast UI Components`, `Chart UI Components`, `Dropdown UI Components`, `Inventory Item Management`, `Navigation Menu Components`, `OTP Input Components`?**
   _High betweenness centrality (0.091) - this node is a cross-community bridge._
 - **Why does `InventoryManager` connect `Inventory Management System` to `UI Components`, `Scenario Map Generation`, `Shop and Log UI`, `Tooltip Components`, `World Object Spawning`, `App Routing and Scaling`, `Item Power Tests`, `Inventory Persistence Tests`, `Map Generation Config`?**
   _High betweenness centrality (0.054) - this node is a cross-community bridge._
@@ -627,6 +617,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Item Components` be split into smaller, more focused modules?**
   _Cohesion score 0.03403279844824546 - nodes in this community are weakly interconnected._
 - **Should `UI Components` be split into smaller, more focused modules?**
-  _Cohesion score 0.0758714969241285 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0742296918767507 - nodes in this community are weakly interconnected._
 - **Should `Item Interaction Logic` be split into smaller, more focused modules?**
   _Cohesion score 0.05662862159789289 - nodes in this community are weakly interconnected._

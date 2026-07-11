@@ -305,7 +305,7 @@ class TurnManager {
         if (target && data.success && data.damage > 0) {
           const finalDamage = CombatResolver.applyArmorAbsorption(target, data.damage, engine?.inventoryManager);
           if (finalDamage > 0 && typeof target.takeDamage === 'function') {
-            target.takeDamage(finalDamage, false);
+            target.takeDamage(finalDamage, entity);
           }
           if (data.bleedingInflicted && typeof target.setBleeding === 'function') {
             target.setBleeding(true);

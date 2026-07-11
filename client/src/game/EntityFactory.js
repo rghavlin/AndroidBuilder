@@ -92,6 +92,7 @@ export const EntityFactory = {
       infectionTicksRemaining: customStats?.infectionTicksRemaining !== undefined ? customStats.infectionTicksRemaining : 24,
       treatmentTicksRemaining: customStats?.treatmentTicksRemaining !== undefined ? customStats.treatmentTicksRemaining : 0,
       treatmentSubtype: customStats?.treatmentSubtype !== undefined ? customStats.treatmentSubtype : null,
+      treatmentEffects: customStats?.treatmentEffects !== undefined ? customStats.treatmentEffects : null,
       treatmentColor: customStats?.treatmentColor !== undefined ? customStats.treatmentColor : null,
       treatmentName: customStats?.treatmentName !== undefined ? customStats.treatmentName : null
     }));

@@ -111,6 +111,7 @@ export const PlayerProvider = ({ children }) => {
       infectionTicksRemaining: 24,
       treatmentTicksRemaining: 0,
       treatmentSubtype: null,
+      treatmentEffects: null,
       treatmentColor: null,
       treatmentName: null
     };
@@ -164,6 +165,7 @@ export const PlayerProvider = ({ children }) => {
       infectionTicksRemaining: player.infectionTicksRemaining,
       treatmentTicksRemaining: player.treatmentTicksRemaining,
       treatmentSubtype: player.treatmentSubtype,
+      treatmentEffects: player.treatmentEffects,
       treatmentColor: player.treatmentColor,
       treatmentName: player.treatmentName
     };

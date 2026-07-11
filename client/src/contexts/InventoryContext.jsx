@@ -626,12 +626,24 @@ export const InventoryProvider = ({ children }) => {
       } else if (key === 'treat_infection') {
           if (player.isInfected) {
               player.treatmentTicksRemaining = val;
-              player.treatmentSubtype = item.zombieSubtype || 'basic';
-              player.treatmentColor = item.backgroundColor || null;
-              player.treatmentName = item.name || 'Zombie brain pulp';
+              if (effects.treat_effects) {
+                  // Brainstem stew: precomputed multi-attribute buff map (see CraftingManager).
+                  player.treatmentEffects = effects.treat_effects;
+                  player.treatmentSubtype = 'stew';
+                  player.treatmentColor = item.backgroundColor || null;
+                  player.treatmentName = item.name || 'Brainstem stew';
+              } else {
+                  // Raw brain pulp: single-subtype treatment.
+                  player.treatmentEffects = null;
+                  player.treatmentSubtype = item.zombieSubtype || 'basic';
+                  player.treatmentColor = item.backgroundColor || null;
+                  player.treatmentName = item.name || 'Zombie brain pulp';
+              }
               player.infectionTicksRemaining = 24;
               player.notifyChange();
           }
+      } else if (key === 'treat_effects') {
+          // Consumed together with treat_infection above; nothing to do on its own pass.
       } else if (key === 'condition') {
           player.condition = val;
           player.notifyChange();
@@ -1098,7 +1110,7 @@ export const InventoryProvider = ({ children }) => {
 
         if (['cooking.cooked_meat', 'cooking.cooked_vegetables'].includes(recipeId)) {
           playSound('Sizzle');
-        } else if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew'].includes(recipeId)) {
+        } else if (['cooking.clean_water', 'cooking.clean_water_jug', 'cooking.stew', 'cooking.brainstem_stew'].includes(recipeId)) {
           playSound('Boil');
         } else if (recipeId === 'crafting.campfire') {
           playSound('Ignite');

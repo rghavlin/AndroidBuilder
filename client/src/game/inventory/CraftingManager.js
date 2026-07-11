@@ -3,6 +3,8 @@ import { CraftingRecipes } from './CraftingRecipes.js';
 import { Item } from './Item.js';
 import { ItemDefs, createItemFromDef, getItemName } from './ItemDefs.js';
 import { ItemCategory, ItemTrait, getFuelValue } from './traits.js';
+import { computeBrainstemStewTreatment, STEW_MAX_STEMS } from '../utils/SurvivalCascade.js';
+import { getBrainstemStewColors } from '../entities/ZombieCorpseConfig.js';
 
 export class CraftingManager {
     constructor(inventoryManager) {
@@ -385,6 +387,99 @@ export class CraftingManager {
 
         // Track properties to preserve (e.g., water level when boiling)
         let preservedProperties = {};
+
+        // SPECIAL CASE: Brainstem stew — pool up to 4 brainstems into one treatment.
+        // Duration scales with stem count (6h each, capped at 24h); the buffs from each
+        // stem's zombie subtype are diluted and combined by computeBrainstemStewTreatment.
+        if (recipe.id === 'cooking.brainstem_stew') {
+            const allItems = ingredientContainer.getAllItems();
+            const brainstemItems = allItems.filter(i => i.defId === 'zombie.brainstem');
+            const waterContainers = allItems.filter(i => i.hasTrait(ItemTrait.WATER_CONTAINER) && (i.ammoCount || 0) > 0);
+            const totalWaterAvailable = waterContainers.reduce((sum, i) => sum + ((i.ammoCount || 0) * i.stackCount), 0);
+
+            if (brainstemItems.length === 0) return { success: false, reason: 'No brainstems found' };
+
+            // Greedily take up to STEW_MAX_STEMS brainstems, gated by water (2 units per stem),
+            // recording each stem's zombie subtype so buffs can be combined.
+            const subtypes = [];
+            const consumedInstances = new Map();
+            let stemsUsed = 0;
+            for (const item of brainstemItems) {
+                if (stemsUsed >= STEW_MAX_STEMS) break;
+                const canTake = Math.min(item.stackCount, STEW_MAX_STEMS - stemsUsed);
+                let take = 0;
+                for (let n = 0; n < canTake; n++) {
+                    if (totalWaterAvailable < (stemsUsed + 1) * 2) break; // Water check
+                    subtypes.push(item.zombieSubtype || 'basic');
+                    stemsUsed++;
+                    take++;
+                }
+                if (take > 0) consumedInstances.set(item.instanceId, take);
+                if (totalWaterAvailable < (stemsUsed + 1) * 2) break;
+            }
+
+            if (stemsUsed === 0) {
+                return { success: false, reason: 'Insufficient water (Need 2 units per brainstem)' };
+            }
+
+            const { hours, effects } = computeBrainstemStewTreatment(subtypes);
+            const stewColors = getBrainstemStewColors(subtypes);
+
+            // Consume brainstems
+            for (const [id, count] of consumedInstances.entries()) {
+                const item = ingredientContainer.items.get(id);
+                if (item) {
+                    item.stackCount -= count;
+                    if (item.stackCount <= 0) ingredientContainer.removeItem(id);
+                }
+            }
+
+            // Consume water (2 units per stem)
+            let waterToConsume = stemsUsed * 2;
+            for (const item of waterContainers) {
+                if (waterToConsume <= 0) break;
+                while (waterToConsume > 0 && (item.ammoCount || 0) > 0) {
+                    const consume = Math.min(item.ammoCount, waterToConsume);
+                    const targetItem = this._consumeFromStack(item, ingredientContainer);
+                    if (!targetItem) return { success: false, reason: 'No space in workspace to split stack' };
+                    targetItem.ammoCount -= consume;
+                    waterToConsume -= consume;
+                    if (item !== targetItem && item.stackCount <= 0) break;
+                    if (item === targetItem) break;
+                }
+            }
+
+            // Build a readable buff summary for the description/tooltip.
+            const attrAbbr = { strength: 'STR', agility: 'AGI', perception: 'PER', constitution: 'CON' };
+            const buffLines = Object.entries(effects)
+                .map(([attr, e]) => {
+                    const pct = Math.round((e.multiplier - 1) * 100);
+                    const parts = [];
+                    if (pct > 0) parts.push(`+${pct}%`);
+                    if (e.immune) parts.push('decay-immune');
+                    return parts.length ? `${attrAbbr[attr]} ${parts.join(', ')}` : null;
+                })
+                .filter(Boolean);
+            const buffSummary = buffLines.length ? ` Buffs: ${buffLines.join('; ')}.` : '';
+
+            const stewData = createItemFromDef(recipe.resultItem, {
+                consumptionEffects: {
+                    treat_infection: hours,
+                    treat_effects: effects,
+                    nutrition: 5 * stemsUsed,
+                    hydration: stemsUsed * 2
+                },
+                // backgroundColor stays a single flat hex (the first stem's color) for
+                // consumers that need a plain color (e.g. the infection HUD); brainstemColors
+                // carries the full ordered set so the item icon can render all of them.
+                backgroundColor: stewColors[0],
+                brainstemColors: stewColors,
+                description: `A grim broth of ${stemsUsed} zombie brainstem${stemsUsed > 1 ? 's' : ''}. Treats infection for ${hours}h while infected.${buffSummary}`
+            });
+            const stewItem = new Item(stewData);
+
+            return { success: true, item: stewItem };
+        }
 
         // SPECIAL CASE: Stew dynamic scaling
         if (recipe.id === 'cooking.stew') {

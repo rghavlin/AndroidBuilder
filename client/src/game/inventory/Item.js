@@ -56,6 +56,7 @@ export class Item extends SafeEventEmitter {
       transformInto = null,
       produce = null,
       backgroundColor = null,
+      brainstemColors = null,
       isLit = undefined,
       isOn = undefined,
       providesElectricity = undefined,
@@ -151,6 +152,10 @@ export class Item extends SafeEventEmitter {
     this.transformInto = transformInto;
     this.produce = produce;
     this.backgroundColor = backgroundColor;
+    // Ordered list of distinct brainstem colors that went into a brainstem stew, used to
+    // render a multi-color "rainbow" icon; backgroundColor stays a single flat color
+    // (the first of these) for consumers that need a plain hex, e.g. the infection HUD.
+    this.brainstemColors = brainstemColors;
     this.zombieSubtype = zombieSubtype;
     this.earbucksValue = earbucksValue;
 
@@ -1524,7 +1529,7 @@ export class Item extends SafeEventEmitter {
     'combat', 'rangedStats', 'description', 'transformInto', 'produce',
     'backgroundColor', 'isOn', 'providesElectricity', 'fireMode',
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
-    'zombieSubtype', 'earbucksValue'
+    'zombieSubtype', 'earbucksValue', 'brainstemColors'
   ];
 
   // Serialization

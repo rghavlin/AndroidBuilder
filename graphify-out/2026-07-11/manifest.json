@@ -365,9 +365,9 @@
     "semantic_hash": "c1f74cbd597d80cca1bfc1b6c5f5cb3b"
   },
   "client/src/components/Inventory/UniversalGrid.tsx": {
-    "mtime": 1783470899.674547,
-    "ast_hash": "4c6c9db836159db567d6dc38513ec9f6",
-    "semantic_hash": "4c6c9db836159db567d6dc38513ec9f6"
+    "mtime": 1783743429.0676706,
+    "ast_hash": "735a2654c11eac8cd245933efdb19668",
+    "semantic_hash": ""
   },
   "client/src/components/Inventory/WeaponModPanel.tsx": {
     "mtime": 1781066539.4834101,
@@ -655,8 +655,8 @@
     "semantic_hash": "6e101a2bf5eb2c2342cf7276b698bab5"
   },
   "client/src/contexts/InventoryContext.jsx": {
-    "mtime": 1783742585.1411817,
-    "ast_hash": "d0953541bbf38080781330c42283a5c5",
+    "mtime": 1783763282.0021362,
+    "ast_hash": "24c99befb00260e44fa2351d35650810",
     "semantic_hash": ""
   },
   "client/src/contexts/LogContext.jsx": {
@@ -965,9 +965,9 @@
     "semantic_hash": "b036d1370b288d9c953258361e7a0cd3"
   },
   "client/src/game/entities/ZombieCorpseConfig.js": {
-    "mtime": 1783472300.8599062,
-    "ast_hash": "46f3a0703951b91fb48c5017026702a7",
-    "semantic_hash": "46f3a0703951b91fb48c5017026702a7"
+    "mtime": 1783743376.0156615,
+    "ast_hash": "646509d144d5ae7395b989858a83c85a",
+    "semantic_hash": ""
   },
   "client/src/game/entities/ZombieTypes.js": {
     "mtime": 1783500803.853426,
@@ -980,8 +980,8 @@
     "semantic_hash": "79a1e222b79d89ec3556ac97487705af"
   },
   "client/src/game/inventory/CraftingManager.js": {
-    "mtime": 1783742576.3468356,
-    "ast_hash": "d2c5377c721ab979c0621713694be5d6",
+    "mtime": 1783743420.523058,
+    "ast_hash": "e60bc223e4688b3d962b2bd7635bc2f9",
     "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingRecipes.js": {
@@ -1000,8 +1000,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
-    "mtime": 1783644310.2446487,
-    "ast_hash": "30dee25f0bcca1222dcbefa1599a7f72",
+    "mtime": 1783743393.4405315,
+    "ast_hash": "675c3bd37cf357f7f9cde3396bfce122",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
@@ -1415,9 +1415,9 @@
     "semantic_hash": "57301a1dab453a8fb19f108c757330ec"
   },
   "client/src/lib/utils.ts": {
-    "mtime": 1765436395.6811655,
-    "ast_hash": "1d8011eb18769078bf77502b220daa5e",
-    "semantic_hash": "1d8011eb18769078bf77502b220daa5e"
+    "mtime": 1783743405.0372105,
+    "ast_hash": "f0ddc68e0c44cdeaf2d6f87f4c014fb0",
+    "semantic_hash": ""
   },
   "client/src/main.tsx": {
     "mtime": 1779744128.1840365,

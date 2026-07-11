@@ -130,7 +130,9 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
             {/* Consumable Effects */}
             {item.consumptionEffects && !item.hasTrait?.(ItemTrait.WATER_CONTAINER) && (
                 <div className="border-t border-border pt-1.5 mt-1.5 space-y-1 text-[10px]">
-                    {Object.entries(item.consumptionEffects as Record<string, any>).map(([stat, value]) => ({ stat, value }))
+                    {Object.entries(item.consumptionEffects as Record<string, any>)
+                    .filter(([stat]) => stat !== 'treat_effects')
+                    .map(([stat, value]) => ({ stat, value }))
                     .map(({ stat, value }: { stat: string; value: any }) => (
                         <div key={stat} className="flex justify-between">
                             <span className="text-muted-foreground capitalize">{stat.replace(/_/g, ' ')}</span>

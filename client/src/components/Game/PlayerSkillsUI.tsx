@@ -300,12 +300,23 @@ export default function PlayerSkillsUI() {
 
         const getInfectionEffects = (statName: string) => {
             const lines = [];
+            const attr = statName.toLowerCase();
             if (isInfected && !isTreated) {
                 lines.push("Infection: -10% to attributes");
+            } else if (isTreated && playerStats.treatmentEffects) {
+                // Brainstem stew: precomputed combined buffs.
+                const effect = playerStats.treatmentEffects[attr];
+                if (effect) {
+                    const pct = Math.round(((effect.multiplier ?? 1) - 1) * 100);
+                    const parts = [];
+                    if (pct > 0) parts.push(`+${pct}%`);
+                    if (effect.immune) parts.push('Decay Immune');
+                    if (parts.length) lines.push(`Brainstem Stew: ${parts.join(' & ')}`);
+                }
             } else if (isTreated && treatmentSubtype) {
                 const sub = treatmentSubtype.toLowerCase();
                 const config = TREATMENT_EFFECTS[sub];
-                const effect = config?.effects?.[statName.toLowerCase()];
+                const effect = config?.effects?.[attr];
                 if (effect) {
                     if (sub === 'mutant') {
                         lines.push("Mutant Treatment: +20% & Decay Immune");

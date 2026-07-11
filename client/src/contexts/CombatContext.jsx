@@ -370,7 +370,7 @@ export const CombatProvider = ({ children }) => {
             applyHitProgression('melee');
             if (targetEntity) {
                 const finalMeleeDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
-                if (finalMeleeDamage > 0) targetEntity.takeDamage(finalMeleeDamage);
+                if (finalMeleeDamage > 0) targetEntity.takeDamage(finalMeleeDamage, player);
                 let logMsg = `${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`;
                 if (stunApplied) {
                     logMsg += ` (Charged Strike! +${extraDamageApplied} damage, Stunned for ${stunDuration} turns!)`;
@@ -595,7 +595,7 @@ export const CombatProvider = ({ children }) => {
                 applyHitProgression('ranged');
                 if (targetEntity) {
                     const finalRangedDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
-                    if (finalRangedDamage > 0) targetEntity.takeDamage(finalRangedDamage);
+                    if (finalRangedDamage > 0) targetEntity.takeDamage(finalRangedDamage, player);
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
                     if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
                     if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {
@@ -810,7 +810,7 @@ export const CombatProvider = ({ children }) => {
                     });
                 }
                 
-                targetEntity.takeDamage(damage, { id: 'thrown_stone', type: 'weapon' });
+                targetEntity.takeDamage(damage, player);
                 addLog(`Player throws stone: ${damage} damage`, 'combat');
 
                 // Attacking a town shopkeeper or gatekeeper provokes the town's turrets.

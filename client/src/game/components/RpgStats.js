@@ -25,6 +25,7 @@ export class RpgStats {
     this.infectionTicksRemaining = properties.infectionTicksRemaining !== undefined ? properties.infectionTicksRemaining : 24;
     this.treatmentTicksRemaining = properties.treatmentTicksRemaining !== undefined ? properties.treatmentTicksRemaining : 0;
     this.treatmentSubtype = properties.treatmentSubtype !== undefined ? properties.treatmentSubtype : null;
+    this.treatmentEffects = properties.treatmentEffects !== undefined ? properties.treatmentEffects : null;
     this.treatmentColor = properties.treatmentColor !== undefined ? properties.treatmentColor : null;
     this.treatmentName = properties.treatmentName !== undefined ? properties.treatmentName : null;
   }

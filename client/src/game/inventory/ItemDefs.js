@@ -1928,6 +1928,25 @@ export const ItemDefs = {
       hydration: 5
     }
   },
+  'food.brainstem_stew': {
+    id: 'food.brainstem_stew',
+    name: 'Brainstem stew',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'vegetablesoup',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.CONSUMABLE, ItemTrait.SPOILABLE],
+    categories: [ItemCategory.FOOD],
+    stackMax: 1,
+    shelfLife: 72,
+    consumptionEffects: {
+      treat_infection: 24,
+      nutrition: 15,
+      hydration: 5
+    },
+    description: 'A grim broth of zombie brainstems. Treats infection and grants combined, diluted attribute buffs for the brewed duration.'
+  },
   'food.cooked_vegetables': {
     id: 'food.cooked_vegetables',
     name: 'Cooked vegetables',
@@ -2709,7 +2728,8 @@ export const ItemDefs = {
     noLoot: true,
     renderFullTile: true,
     description: 'The remains of a zombie',
-    earbucksValue: 1
+    earbucksValue: 1,
+    lifetimeTurns: 12
   },
   'zombie.brainstem': {
     id: 'zombie.brainstem',
@@ -2737,10 +2757,10 @@ export const ItemDefs = {
     stackMax: 10,
     categories: [ItemCategory.ENVIRONMENT],
     consumptionEffects: {
-      treat_infection: 12,
+      treat_infection: 6,
       nutrition: 7
     },
-    description: 'Smashed zombie brain pulp. Treats zombie infection and restores nutrition, but causes sickness if consumed while not infected.'
+    description: 'Smashed zombie brain pulp. Treats zombie infection for 6h and restores nutrition, but causes sickness if consumed while not infected. Cook brainstems into a stew to combine and extend their effects.'
   }
 };
 

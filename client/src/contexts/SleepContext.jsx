@@ -321,6 +321,7 @@ export const SleepProvider = ({ children }) => {
           infectionTicksRemaining: player.infectionTicksRemaining,
           treatmentTicksRemaining: player.treatmentTicksRemaining,
           treatmentSubtype: player.treatmentSubtype,
+          treatmentEffects: player.treatmentEffects,
           treatmentColor: player.treatmentColor,
           treatmentName: player.treatmentName
         });

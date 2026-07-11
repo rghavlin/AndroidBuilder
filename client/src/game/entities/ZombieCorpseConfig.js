@@ -39,6 +39,28 @@ export function getBrainstemOverrides(zombieSubtype) {
   };
 }
 
+// A plain/basic zombie brainstem has no configured color, so it renders black —
+// distinguishing it from the "no data" case (which also falls back to black) is
+// unnecessary since basic zombies genuinely have no signature color to show.
+export function getBrainstemColor(zombieSubtype) {
+  const config = ZombieCorpseConfig[zombieSubtype] || {};
+  return config.backgroundColor || '#000000';
+}
+
+/**
+ * Distinct, ordered (first-appearance) list of brainstem colors for a stew brewed from
+ * the given subtypes. One subtype in -> one color out (a single-type stew, including an
+ * all-basic one, is never a "rainbow" — it's just that color).
+ */
+export function getBrainstemStewColors(subtypes = []) {
+  const colors = [];
+  for (const sub of subtypes) {
+    const color = getBrainstemColor(sub || 'basic');
+    if (!colors.includes(color)) colors.push(color);
+  }
+  return colors.length > 0 ? colors : ['#000000'];
+}
+
 export function getBrainPulpOverrides(zombieSubtype) {
   const config = ZombieCorpseConfig[zombieSubtype] || {};
   const hasColor = !!config.backgroundColor;
@@ -71,6 +93,9 @@ export function dropZombieDeathLoot(target, x, y, gameMap, lootGenerator, placeI
   }
 
   const corpseOverrides = getCorpseOverrides(target.subtype);
+  if (target.lastAttacker?.type !== 'player') {
+    corpseOverrides.earbucksValue = 0;
+  }
   const corpse = createItemFromDef('zombie.corpse', corpseOverrides);
   if (corpse) {
     placeItemsCallback([corpse]);

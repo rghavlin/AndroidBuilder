@@ -106,7 +106,8 @@ export const SERIALIZED_FIELDS = [
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
   'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding', 'woundInfection',
   'drunkenness', 'isStarving', 'isDehydrated', 'meleeHits', 'meleeLvl',
-  'rangedHits', 'rangedLvl', 'defenseHits', 'defenseLvl', 'craftingApUsed', 'craftingLvl', 'earbucks'
+  'rangedHits', 'rangedLvl', 'defenseHits', 'defenseLvl', 'craftingApUsed', 'craftingLvl', 'earbucks',
+  'lastAttacker'
 ];
 
 export const ITEM_SERIALIZED_FIELDS = [
@@ -427,6 +428,9 @@ export class Entity extends SafeEventEmitter {
   takeDamage(amount, source = null) {
     const oldHp = this.hp;
     this.hp = Math.max(0, this.hp - amount);
+    if (source) {
+      this.lastAttacker = { id: source.id, type: source.type };
+    }
     this.emitEvent('damageTaken', {
       amount,
       oldHp,
@@ -1188,6 +1192,7 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
   infectionTicksRemaining: 24,
   treatmentTicksRemaining: 0,
   treatmentSubtype: null,
+  treatmentEffects: null,
   treatmentColor: null,
   treatmentName: null
 });

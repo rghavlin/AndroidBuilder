@@ -117,6 +117,55 @@ export const TREATMENT_EFFECTS = {
   }
 };
 
+// --- Brainstem stew tuning ---
+// Cooking brainstems into a stew trades potency for breadth and duration. Each brainstem
+// is worth BRAINSTEM_TREATMENT_HOURS of treatment (same currency as raw brain pulp), up to
+// STEW_MAX_STEMS stems (so a full pot lasts STEW_MAX_STEMS * BRAINSTEM_TREATMENT_HOURS = 24h).
+// Buffs from every stem are diluted (STEW_DILUTION) and stack additively per attribute, but
+// no single attribute may exceed STEW_MAX_ATTR_BONUS — the ceiling that keeps a pot of the
+// strong-but-rare mutant brainstems from getting out of hand.
+export const BRAINSTEM_TREATMENT_HOURS = 6;
+export const STEW_MAX_STEMS = 4;
+export const STEW_DILUTION = 0.5;
+export const STEW_MAX_ATTR_BONUS = 0.15; // +15% hard cap per attribute
+const STEW_ATTRS = ['strength', 'agility', 'perception', 'constitution'];
+
+/**
+ * Computes the treatment produced by brewing a set of brainstems into a stew.
+ * @param {string[]} subtypes One zombie-subtype string per brainstem going into the pot.
+ * @returns {{ hours: number, effects: Object }} Duration in hours and a per-attribute
+ *   effects map ({ strength: { multiplier, immune }, ... }) matching TREATMENT_EFFECTS shape.
+ */
+export function computeBrainstemStewTreatment(subtypes = []) {
+  const stems = subtypes.slice(0, STEW_MAX_STEMS);
+  const hours = stems.length * BRAINSTEM_TREATMENT_HOURS;
+
+  const bonus = { strength: 0, agility: 0, perception: 0, constitution: 0 };
+  const immune = { strength: false, agility: false, perception: false, constitution: false };
+
+  for (const sub of stems) {
+    const config = TREATMENT_EFFECTS[(sub || 'basic').toLowerCase()] || TREATMENT_EFFECTS.basic;
+    for (const attr of STEW_ATTRS) {
+      const eff = config.effects?.[attr];
+      if (!eff) continue;
+      bonus[attr] += ((eff.multiplier ?? 1.0) - 1.0) * STEW_DILUTION;
+      if (eff.immune) immune[attr] = true;
+    }
+  }
+
+  const effects = {};
+  for (const attr of STEW_ATTRS) {
+    const capped = Math.min(bonus[attr], STEW_MAX_ATTR_BONUS);
+    // Include an attribute if it gained any bonus OR any stem granted decay-immunity for it
+    // (e.g. the basic/zombie brainstem is a flat 0% buff whose only value is immunity).
+    if (capped > 0 || immune[attr]) {
+      effects[attr] = { multiplier: 1 + capped, immune: immune[attr] };
+    }
+  }
+
+  return { hours, effects };
+}
+
 export function sicknessPenalties(sickness = 0) {
   const s = Math.max(0, sickness || 0);
   return {
@@ -157,25 +206,32 @@ export function applySurvivalCascade(player) {
     agiMult = 0.9;
     perMult = 0.9;
     conMult = 0.9;
-  } else if (isTreated && player.treatmentSubtype) {
-    const sub = player.treatmentSubtype.toLowerCase();
-    const config = TREATMENT_EFFECTS[sub];
-    if (config && config.effects) {
-      if (config.effects.strength) {
-        strMult = config.effects.strength.multiplier ?? 1.0;
-        strImmune = config.effects.strength.immune ?? false;
+  } else if (isTreated) {
+    // A brainstem stew carries a precomputed multi-attribute effects map (player.treatmentEffects);
+    // raw brain pulp carries only a single subtype key. Prefer the map when present, else look up
+    // the subtype's profile — both share the same { strength: { multiplier, immune }, ... } shape.
+    let effects = null;
+    if (player.treatmentEffects) {
+      effects = player.treatmentEffects;
+    } else if (player.treatmentSubtype) {
+      effects = TREATMENT_EFFECTS[player.treatmentSubtype.toLowerCase()]?.effects || null;
+    }
+    if (effects) {
+      if (effects.strength) {
+        strMult = effects.strength.multiplier ?? 1.0;
+        strImmune = effects.strength.immune ?? false;
       }
-      if (config.effects.agility) {
-        agiMult = config.effects.agility.multiplier ?? 1.0;
-        agiImmune = config.effects.agility.immune ?? false;
+      if (effects.agility) {
+        agiMult = effects.agility.multiplier ?? 1.0;
+        agiImmune = effects.agility.immune ?? false;
       }
-      if (config.effects.perception) {
-        perMult = config.effects.perception.multiplier ?? 1.0;
-        perImmune = config.effects.perception.immune ?? false;
+      if (effects.perception) {
+        perMult = effects.perception.multiplier ?? 1.0;
+        perImmune = effects.perception.immune ?? false;
       }
-      if (config.effects.constitution) {
-        conMult = config.effects.constitution.multiplier ?? 1.0;
-        conImmune = config.effects.constitution.immune ?? false;
+      if (effects.constitution) {
+        conMult = effects.constitution.multiplier ?? 1.0;
+        conImmune = effects.constitution.immune ?? false;
       }
     }
   }
@@ -248,6 +304,7 @@ export function tickInfection(player, logCallback = null) {
     player.treatmentTicksRemaining -= 1;
     if (player.treatmentTicksRemaining === 0) {
       player.treatmentSubtype = null;
+      player.treatmentEffects = null;
       player.treatmentColor = null;
       player.treatmentName = null;
       if (logCallback) {

@@ -269,6 +269,22 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'cooking.brainstem_stew',
+        name: 'Brainstem stew',
+        resultItem: 'food.brainstem_stew',
+        description: 'Simmer zombie brainstems into a stew. Each brainstem adds 6h of treatment (max 4 = 24h); their attribute buffs combine at reduced potency.',
+        apCost: 5,
+        tab: 'cooking',
+        requiresCampfire: true,
+        tools: [
+            { category: ItemCategory.COOKING_POT, label: 'Any Cooking Pot' }
+        ],
+        ingredients: [
+            { id: 'zombie.brainstem', count: 1, label: 'Zombie brainstems (Max 4)' },
+            { either: ['food.waterbottle', 'food.waterjug'], count: 1, consumeUnits: 2, label: '2 water per brainstem' }
+        ]
+    },
+    {
         id: 'cooking.cooked_vegetables',
         name: 'Cooked vegetables',
         resultItem: 'food.cooked_vegetables',

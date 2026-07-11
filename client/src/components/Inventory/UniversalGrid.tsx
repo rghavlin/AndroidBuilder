@@ -21,6 +21,7 @@ import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
 import { GAP_SIZE } from "./constants";
 import { useTheme } from "../../contexts/ThemeContext";
+import { rainbowBackground } from "@/lib/utils";
 
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
   if (!bgColor) return theme === 'light2' ? 'rgba(255, 255, 255, 0.15)' : 'var(--card)';
@@ -1045,7 +1046,9 @@ export default function UniversalGrid({
               top: `${topPos}px`,
               width: `${gridWidth}px`,
               height: `${gridHeight}px`,
-              backgroundColor: getAdjustedBgColor(item.backgroundColor, themeRef.current),
+              background: (item.brainstemColors && item.brainstemColors.length > 1)
+                ? rainbowBackground(item.brainstemColors)
+                : getAdjustedBgColor(item.backgroundColor, themeRef.current),
             }}
           >
             {/* The trigger area for the context menu and tooltip is the entire item bounding box */}
@@ -1107,7 +1110,7 @@ export default function UniversalGrid({
               )}
 
               {/* Growth Progress Indicator for Plants */}
-              {item.defId !== 'placeable.campfire' && item.lifetimeTurns !== null && (
+              {item.defId !== 'placeable.campfire' && item.defId !== 'zombie.corpse' && item.lifetimeTurns !== null && (
                 <div className="absolute inset-0 pointer-events-none z-20">
                   <span className="absolute top-0 right-0 text-[0.65rem] leading-none font-black text-green-400 bg-black/90 px-[3px] py-[1.5px] rounded-bl-sm shadow-[0_0_5px_rgba(74,222,128,0.3)] border-b border-l border-green-500/30 whitespace-nowrap flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />

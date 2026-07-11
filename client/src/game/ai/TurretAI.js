@@ -111,7 +111,7 @@ export class TurretAI {
           // the target dies. The TURRET_SHOT action below is cosmetic only —
           // TurnManager must NOT re-apply this damage during playback.
           const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
-          if (finalDamage > 0) target.takeDamage(finalDamage);
+          if (finalDamage > 0) target.takeDamage(finalDamage, turretItem);
         }
 
         // Noise
