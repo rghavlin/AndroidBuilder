@@ -29,7 +29,7 @@ export default function FloatingContainerOverlay({
   onSlotClick,
   onSlotContextMenu
 }: FloatingContainerOverlayProps) {
-  const { selectItem, stopDrag, isContainerOpen, selectedItem, startDrag, openContainer, closeContainer, stopRiding } = useInventory();
+  const { selectItem, stopDrag, isContainerOpen, selectedItem, startDrag, openContainer, closeContainer, stopRiding, pendingHitchCart, startHitching, cancelHitching, confirmHitch, unhitchWagon } = useInventory();
   const { engine } = useGame();
   const { harvestPlant } = useAction();
   const { playSound } = useAudio();
@@ -49,6 +49,39 @@ export default function FloatingContainerOverlay({
    const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
    const isHotplate = item.defId === 'tool.battery_powered_hotplate';
    const isAutoTurret = item.defId === TURRET_DEF_ID;
+
+   // --- Global vehicle/hitch state (read from engine; valid for any item on the tile) ---
+   const draggingItem = engine?.dragging?.item;
+   const ridingItem = engine?.riding?.item;
+   // Hand-pulling = dragging a wagon that is NOT hitched (a hitched wagon dragged is auto-tow, driven by the cart)
+   const isHandPulling = !!draggingItem && !draggingItem.hitchedToInstanceId;
+   const isRidingVehicle = !!ridingItem;
+   const isAnyHitchPending = !!pendingHitchCart;
+   const groundItems = engine?.inventoryManager?.groundContainer?.getAllItems() || [];
+   // An active hitch exists on this tile if any tow-capable cart has a wagon attached
+   const activeHitchOnTile = groundItems.some((gi: any) => gi.canTow && gi.hitchedItemInstanceId);
+
+   // --- This item, as a cart ---
+   const isHitched = !!item.hitchedItemInstanceId;          // cart has a wagon attached
+   const isHitchPending = pendingHitchCart?.instanceId === item.instanceId;
+   const hitchedWagon = isHitched ? engine?.inventoryManager?.findItem(item.hitchedItemInstanceId)?.item : null;
+   const availableWagonOnTile = groundItems.some((gi: any) =>
+     gi.instanceId !== item.instanceId &&
+     gi.hasTrait?.(ItemTrait.WAGON) && !gi.hasTrait?.(ItemTrait.SCOOTER) &&
+     !gi.hitchedToInstanceId
+   );
+
+   // --- This item, as a wagon ---
+   const isThisHitched = !!item.hitchedToInstanceId;        // this wagon is attached to a cart
+   // While a cart is armed, this wagon's Pull button becomes the "select me to hitch" action
+   const isHitchTarget = isAnyHitchPending && isWagon && !isScooter && !isThisHitched;
+
+   const handleToggleHitch = (e: React.MouseEvent) => {
+     e.stopPropagation();
+     if (isHitched) { unhitchWagon(item); return; }
+     if (isHitchPending) { cancelHitching(); return; }
+     startHitching(item);
+   };
 
   const handleSelectPlanter = (e: React.MouseEvent) => {
     if (!isPlanter || isDragging || isDraggingSeed) return;
@@ -82,6 +115,11 @@ export default function FloatingContainerOverlay({
 
   const handleTogglePull = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // When a cart is armed for hitching, a wagon's Pull button selects it as the target
+    if (isHitchTarget) {
+      confirmHitch(item);
+      return;
+    }
     if (isDragging) {
       stopDrag(item);
     } else {
@@ -162,11 +200,20 @@ export default function FloatingContainerOverlay({
           {!isScooter && !isHotplate && !isAutoTurret && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  size="sm" 
-                  variant={isDragging ? "destructive" : "secondary"}
+                <Button
+                  size="sm"
+                  variant={isHitchTarget ? "default" : isDragging ? "destructive" : "secondary"}
                   className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                   onClick={handleTogglePull}
+                  disabled={
+                    isHitchTarget ? false :
+                    isThisHitched ? true :
+                    isDragging ? false :
+                    activeHitchOnTile ? true :
+                    isRidingVehicle ? true :
+                    isHandPulling ? true :
+                    false
+                  }
                 >
                   {isDragging ? "Drop" : "Pull"}
                 </Button>
@@ -190,6 +237,21 @@ export default function FloatingContainerOverlay({
                         Motorized Assist Active (-{motorBonus.toFixed(1)} AP)
                       </div>
                     )}
+                    {isHitchTarget && (
+                      <div className="text-[8px] text-green-400 font-bold uppercase mt-1">
+                        Click to hitch to the cart
+                      </div>
+                    )}
+                    {isThisHitched && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Hitched — release from the cart to pull by hand
+                      </div>
+                    )}
+                    {!isThisHitched && !isHitchTarget && isRidingVehicle && !isDragging && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Riding — hitch it to the cart to move it
+                      </div>
+                    )}
                   </div>
                 </TooltipContent>
               </TooltipPortal>
@@ -204,7 +266,7 @@ export default function FloatingContainerOverlay({
                   variant={isRidden ? "destructive" : "secondary"}
                   className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                   onClick={handleToggleRide}
-                  disabled={(batteryPercent <= 0 && !isRidden) || containerId !== 'ground'}
+                  disabled={(batteryPercent <= 0 && !isRidden) || containerId !== 'ground' || (isHandPulling && !isRidden)}
                 >
                   {isRidden ? "Stop" : "Ride"}
                 </Button>
@@ -225,6 +287,54 @@ export default function FloatingContainerOverlay({
                     {containerId !== 'ground' && (
                       <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
                         Must be on ground to ride
+                      </div>
+                    )}
+                    {isHandPulling && !isRidden && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Drop the wagon before riding
+                      </div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          )}
+
+          {item.canTow && containerId === 'ground' && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={isHitched ? "destructive" : "secondary"}
+                  className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                  onClick={handleToggleHitch}
+                  disabled={!isHitched && !isHitchPending && (isHandPulling || !availableWagonOnTile)}
+                >
+                  {isHitched ? "Unhitch" : isHitchPending ? "Cancel" : "Hitch"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" className="bg-black/90 border-white/20 p-2 z-[100]">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11px] font-black uppercase text-white tracking-widest">Tow Hitch</span>
+                    {isHitched && (
+                      <div className="text-[9px] text-zinc-400 font-bold uppercase mt-1">
+                        Towing: <span className="text-white">{hitchedWagon?.name || 'Wagon'}</span>
+                      </div>
+                    )}
+                    {isHitchPending && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Click a wagon's Pull button...
+                      </div>
+                    )}
+                    {!isHitched && !isHitchPending && isHandPulling && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Drop the wagon first
+                      </div>
+                    )}
+                    {!isHitched && !isHitchPending && !isHandPulling && !availableWagonOnTile && (
+                      <div className="text-[8px] text-red-400 font-bold uppercase mt-1">
+                        No wagon on this tile
                       </div>
                     )}
                   </div>
@@ -393,9 +503,9 @@ export default function FloatingContainerOverlay({
         ) : (
           containerGrid && (
             <div className={cn(
-              isPlanter 
-                ? "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" 
-                : "flex-1 min-h-0 w-full flex items-center justify-center pointer-events-auto"
+              isPlanter
+                ? "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                : "absolute inset-x-0 bottom-0 flex justify-center pointer-events-auto"
             )}>
               <div className={cn(
                 "pointer-events-auto",

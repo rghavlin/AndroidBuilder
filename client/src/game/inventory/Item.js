@@ -2,7 +2,7 @@ import { ItemTrait, ItemCategory, CategoryDisplayName, SlotDisplayName, FireMode
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { Container } from './Container.js';
 import { PocketLayouts } from './PocketLayouts.js';
-import { ItemDefs } from './ItemDefs.js'; // Import definitions for lookup
+import { ItemDefs, createItemFromDef } from './ItemDefs.js'; // Import definitions for lookup
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
@@ -235,6 +235,19 @@ export class Item extends SafeEventEmitter {
       if (def.produceMin !== undefined) this.produceMin = def.produceMin;
       if (def.produceMax !== undefined) this.produceMax = def.produceMax;
       if (def.motorAssistBonus !== undefined) this.motorAssistBonus = def.motorAssistBonus;
+      if (def.powerEfficiency !== undefined) this.powerEfficiency = def.powerEfficiency;
+      if (def.canTow !== undefined) this.canTow = def.canTow;
+
+      // Pre-equip attachments declared on the def (e.g. a golf cart spawning with its
+      // motors and batteries already installed). Only applies when nothing was
+      // explicitly provided — Item.fromJSON rebuilds this.attachments from saved
+      // data right after construction, overriding this fill for loaded games.
+      if (def.defaultAttachments && Object.keys(this.attachments).length === 0) {
+        Object.entries(def.defaultAttachments).forEach(([slotId, attachDefId]) => {
+          const attachData = createItemFromDef(attachDefId);
+          if (attachData) this.attachments[slotId] = new Item(attachData);
+        });
+      }
       if (def.terrainModifiers) this.terrainModifiers = def.terrainModifiers;
       if (def.rideApBonus !== undefined) this.rideApBonus = def.rideApBonus;
       if (def.scooterMode !== undefined && this.scooterMode === undefined) this.scooterMode = def.scooterMode;
@@ -409,6 +422,35 @@ export class Item extends SafeEventEmitter {
   }
 
   /**
+   * AP of drag reduction this tow-cart contributes to a hitched wagon while towing.
+   * 1 AP per active (motor + charged battery) pair by default, so a golf cart with
+   * two powered motors reduces the towed wagon's drag penalty by 2 AP. Configurable
+   * per def via `towApPerMotor`.
+   */
+  getTowBonus() {
+    if (!this.canTow || !this.attachments) return 0;
+
+    const perMotor = this.towApPerMotor ?? 1;
+    const slotPairs = [
+      ['motor', 'battery'],
+      ['motor_front', 'battery_front'],
+      ['motor_middle', 'battery_middle'],
+      ['motor_rear', 'battery_rear']
+    ];
+
+    let totalBonus = 0;
+    slotPairs.forEach(([motorSlot, batterySlot]) => {
+      const motor = this.attachments[motorSlot];
+      const battery = this.attachments[batterySlot];
+      if (motor && battery && (battery.ammoCount || 0) > 0) {
+        totalBonus += perMotor;
+      }
+    });
+
+    return totalBonus;
+  }
+
+  /**
    * Consume battery power from all active motor pairs based on distance traveled
    * @param {number} distance - Distance in tiles
    */
@@ -440,23 +482,60 @@ export class Item extends SafeEventEmitter {
   }
 
   /**
+   * Ride-mode battery slots with power available. A battery slot only needs a
+   * paired motor if the item actually defines one (e.g. golf cart's
+   * motor_front/battery_front) — the Electric Scooter's bare 'battery' slot has
+   * no corresponding motor slot since its motor is built into the frame.
+   */
+  _getActiveRideBatterySlots() {
+    if (!this.attachmentSlots || !this.attachments) return [];
+    return this.attachmentSlots
+      .filter(s => s.id.includes('battery'))
+      .map(s => s.id)
+      .filter(batterySlotId => {
+        const battery = this.attachments[batterySlotId];
+        if (!battery || (battery.ammoCount || 0) <= 0) return false;
+        const motorSlotId = batterySlotId.replace('battery', 'motor');
+        const hasMotorSlotDef = this.attachmentSlots.some(ms => ms.id === motorSlotId);
+        return !hasMotorSlotDef || !!this.attachments[motorSlotId];
+      });
+  }
+
+  /**
    * Check if the scooter is in ride mode AND has battery power
    */
   isScooterRideActive() {
     if (!this.hasTrait(ItemTrait.SCOOTER)) return false;
     if (!this.scooterMode || this.scooterMode !== 'ride') return false;
-    const battery = this.attachments?.['battery'];
-    return battery && (battery.ammoCount || 0) > 0;
+    return this._getActiveRideBatterySlots().length > 0;
   }
 
   /**
-   * Consume scooter power in ride mode
+   * Consume scooter power in ride mode. Distance is scaled by powerEfficiency
+   * (1 = Electric Scooter's default 1 charge/tile; 0.5 = golf cart's half rate).
+   * Fractional charge is banked on the vehicle so batteries only ever lose whole
+   * charges; whole charges are peeled off round-robin across active battery slots.
    */
   consumeScooterPower(distance) {
     if (!this.hasTrait(ItemTrait.SCOOTER)) return;
-    const battery = this.attachments?.['battery'];
-    if (battery && (battery.ammoCount || 0) > 0) {
-      battery.ammoCount = Math.max(0, battery.ammoCount - distance);
+    const activeSlots = this._getActiveRideBatterySlots();
+    if (activeSlots.length === 0) return;
+
+    const efficiency = this.powerEfficiency ?? this._def?.powerEfficiency ?? 1;
+    this._powerAccumulator = (this._powerAccumulator || 0) + distance * efficiency;
+
+    let wholeCharges = Math.floor(this._powerAccumulator);
+    this._powerAccumulator -= wholeCharges;
+
+    this._batteryDrainCursor = this._batteryDrainCursor || 0;
+    while (wholeCharges > 0) {
+      const slots = this._getActiveRideBatterySlots();
+      if (slots.length === 0) break;
+      const batterySlotId = slots[this._batteryDrainCursor % slots.length];
+      const battery = this.attachments[batterySlotId];
+      battery.ammoCount = Math.max(0, battery.ammoCount - 1);
+      wholeCharges--;
+      this._batteryDrainCursor++;
     }
   }
 

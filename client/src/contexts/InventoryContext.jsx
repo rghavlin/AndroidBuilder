@@ -103,6 +103,7 @@ export const InventoryProvider = ({ children }) => {
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedRecipeId, setSelectedRecipeId] = useState(null);
+  const [pendingHitchCart, setPendingHitchCart] = useState(null);
 
   const { addLog } = useLog();
   const { playSound } = useAudio();
@@ -340,10 +341,16 @@ export const InventoryProvider = ({ children }) => {
     }
 
     const mode = (item.hasTrait?.(ItemTrait.SCOOTER) && item.scooterMode === 'ride') ? 'ride' : 'pull';
-    
+
     // Safety: If attempting to pull, verify the item has the DRAGGABLE trait
     if (mode === 'pull' && !item.hasTrait?.(ItemTrait.DRAGGABLE)) {
       return { success: false, reason: 'This item cannot be pulled.' };
+    }
+
+    // A hitched wagon is towed automatically by its golf cart — can't also be
+    // pulled by hand until it's unhitched.
+    if (mode === 'pull' && item.hitchedToInstanceId) {
+      return { success: false, reason: 'This wagon is hitched. Unhitch it first.' };
     }
 
     const logAction = mode === 'ride' ? 'riding' : 'dragging';
@@ -356,6 +363,16 @@ export const InventoryProvider = ({ children }) => {
       };
       if (engine.inventoryManager) {
         engine.inventoryManager.ridingItem = item;
+
+        // Start towing whatever wagon is hitched to this cart
+        if (item.hitchedItemInstanceId) {
+          const wagon = engine.inventoryManager.findItem(item.hitchedItemInstanceId)?.item;
+          if (wagon) {
+            engine.dragging = { item: wagon, tileX: itemPos.x, tileY: itemPos.y };
+            engine.inventoryManager.draggedItem = wagon;
+          }
+        }
+
         engine.inventoryManager.sortGroundItems();
       }
     } else {
@@ -397,9 +414,15 @@ export const InventoryProvider = ({ children }) => {
 
     if (engine.riding && engine.riding.item.instanceId === target.instanceId) {
       addLog(`You stop riding the ${engine.riding.item.name}.`, 'item');
-      
+
       if (engine.riding.item.hasTrait?.(ItemTrait.SCOOTER)) {
         engine.riding.item.scooterMode = null;
+      }
+
+      // A hitched wagon stops following once its cart is parked, but stays hitched.
+      if (engine.riding.item.hitchedItemInstanceId && engine.dragging?.item?.instanceId === engine.riding.item.hitchedItemInstanceId) {
+        if (engine.inventoryManager) engine.inventoryManager.draggedItem = null;
+        engine.dragging = null;
       }
 
       if (engine.inventoryManager) engine.inventoryManager.ridingItem = null;
@@ -407,6 +430,79 @@ export const InventoryProvider = ({ children }) => {
       engine.notifyUpdate();
     }
   }, [addLog, inventoryPulse]);
+
+  // Hitching: begin waiting for the player to click a wagon on the ground to hitch
+  // to this cart. Cancel by calling again / clicking an invalid target.
+  const startHitching = useCallback((cartItem) => {
+    if (!cartItem) return;
+    setPendingHitchCart(cartItem);
+    addLog(`Select a wagon on the ground to hitch to the ${cartItem.name}.`, 'item');
+  }, [addLog]);
+
+  const cancelHitching = useCallback(() => {
+    setPendingHitchCart(null);
+  }, []);
+
+  const confirmHitch = useCallback((wagonItem) => {
+    if (!pendingHitchCart || !wagonItem) return false;
+    const cartItem = pendingHitchCart;
+    setPendingHitchCart(null);
+
+    if (wagonItem.instanceId === cartItem.instanceId) return false;
+    if (!wagonItem.hasTrait?.(ItemTrait.WAGON) || wagonItem.hasTrait?.(ItemTrait.SCOOTER)) {
+      addLog('That can\'t be hitched.', 'item');
+      return false;
+    }
+
+    const manager = engine.inventoryManager;
+
+    // Unhitch anything previously hitched to this cart or this wagon
+    if (cartItem.hitchedItemInstanceId) {
+      const prevWagon = manager?.findItem(cartItem.hitchedItemInstanceId)?.item;
+      if (prevWagon) prevWagon.hitchedToInstanceId = null;
+    }
+    if (wagonItem.hitchedToInstanceId) {
+      const prevCart = manager?.findItem(wagonItem.hitchedToInstanceId)?.item;
+      if (prevCart) prevCart.hitchedItemInstanceId = null;
+    }
+
+    // Manual pulling is superseded by hitching
+    if (engine.dragging?.item?.instanceId === wagonItem.instanceId) {
+      stopDrag(wagonItem);
+    }
+
+    cartItem.hitchedItemInstanceId = wagonItem.instanceId;
+    wagonItem.hitchedToInstanceId = cartItem.instanceId;
+
+    // If the cart is already being ridden, start towing immediately
+    if (engine.riding?.item?.instanceId === cartItem.instanceId && manager) {
+      engine.dragging = { item: wagonItem, tileX: wagonItem.x, tileY: wagonItem.y };
+      manager.draggedItem = wagonItem;
+    }
+
+    addLog(`Hitched the ${wagonItem.name} to the ${cartItem.name}.`, 'item');
+    if (manager) manager.sortGroundItems();
+    engine.notifyUpdate();
+    return true;
+  }, [pendingHitchCart, addLog, stopDrag]);
+
+  const unhitchWagon = useCallback((cartItem) => {
+    if (!cartItem?.hitchedItemInstanceId) return;
+    const manager = engine.inventoryManager;
+    const wagon = manager?.findItem(cartItem.hitchedItemInstanceId)?.item;
+
+    if (wagon) {
+      wagon.hitchedToInstanceId = null;
+      if (engine.dragging?.item?.instanceId === wagon.instanceId) {
+        stopDrag(wagon);
+      }
+    }
+
+    cartItem.hitchedItemInstanceId = null;
+    addLog(`Unhitched the ${wagon?.name || 'wagon'} from the ${cartItem.name}.`, 'item');
+    if (manager) manager.sortGroundItems();
+    engine.notifyUpdate();
+  }, [addLog, stopDrag]);
 
   const selectItem = useCallback((item, originId, x, y, extraProps = {}) => {
     if (item && item.defId === 'tool.battery_powered_hotplate' && item.isOn) {
@@ -1805,11 +1901,16 @@ export const InventoryProvider = ({ children }) => {
     startDrag,
     stopDrag,
     stopRiding,
+    pendingHitchCart,
+    startHitching,
+    cancelHitching,
+    confirmHitch,
+    unhitchWagon,
     // Add legacy fields to prevent crashes
     inventoryRef: { current: engine.inventoryManager },
     forceRefresh: () => engine.notifyUpdate(),
     inventoryVersion: inventoryPulse
-  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding, crankCharger, readBook, pickSafeLock]);
+  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding, crankCharger, readBook, pickSafeLock, pendingHitchCart, startHitching, cancelHitching, confirmHitch, unhitchWagon]);
 
   return (
     <InventoryContext.Provider value={contextValue}>

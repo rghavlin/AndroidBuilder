@@ -41,7 +41,18 @@ export const VehicleUtils = {
 
         const playerStrength = engine?.player?.currentStrength ?? 20;
         const strengthBonus = Math.floor(playerStrength / 20); // +1 AP drag bonus for every 20 points of Strength
-        let itemStepPenalty = Math.max(0, basePenalty - motorBonusValue - strengthBonus);
+
+        // Tow assist: if this wagon is hitched to a tow-cart that's currently being
+        // ridden, the cart's spare motor power further reduces the wagon's drag.
+        let towBonusValue = 0;
+        if (item.hitchedToInstanceId) {
+          const cart = itemArray.find(it => it.instanceId === item.hitchedToInstanceId);
+          if (cart && engine?.riding?.item?.instanceId === cart.instanceId && typeof cart.getTowBonus === 'function') {
+            towBonusValue = cart.getTowBonus();
+          }
+        }
+
+        let itemStepPenalty = Math.max(0, basePenalty - motorBonusValue - strengthBonus - towBonusValue);
         const originalPenalty = itemStepPenalty;
         
         // Scooter ride mode: REDUCES AP cost instead of increasing it

@@ -197,6 +197,47 @@ export const ItemDefs = {
       ]
     }
   },
+  'vehicle.golf_cart': {
+    id: 'vehicle.golf_cart',
+    name: 'Golf Cart',
+    noLoot: true,
+    noPickup: true,
+    rarity: Rarity.EPIC,
+    imageId: 'golfcart',
+    width: 5,
+    height: 7,
+    traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
+    categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
+    dragApPenalty: 3,          // Pull mode (no rider): base penalty before motor assist
+    motorAssistBonus: 0.5,     // Pull mode: AP assist per active motor/battery pair
+    rideApBonus: 0.5,          // Ride mode: -0.5 AP per tile, same as Electric Scooter
+    powerEfficiency: 0.5,      // Ride mode: half the battery drain per tile of a scooter
+    canTow: true,              // Can hitch a wagon to trail behind it
+    terrainModifiers: { road: -0.5, sidewalk: -0.5 },
+    renderFullTile: true,
+    containerGrid: { width: 5, height: 3, isVehicle: true },
+    attachmentSlots: [
+      { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+    ],
+    defaultAttachments: {
+      motor_front: 'electric_motor',
+      battery_front: 'tool.large_battery',
+      motor_rear: 'electric_motor',
+      battery_rear: 'tool.large_battery'
+    },
+    disassembleData: {
+      toolId: 'weapon.wrench',
+      apCost: 15,
+      components: [
+        { id: 'weapon.metal_rod', count: 2 },
+        { id: 'crafting.wheel', count: 4 },
+        { id: 'crafting.metal_plate', count: 2 }
+      ]
+    }
+  },
   'furniture.planter_box': {
     id: 'furniture.planter_box',
     name: 'Planter box',

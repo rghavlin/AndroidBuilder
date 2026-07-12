@@ -196,7 +196,13 @@ export class GroundManager {
         const isPulledB = engine?.dragging?.item?.instanceId === b.instanceId;
         if (isPulledA && !isPulledB) return -1;
         if (!isPulledA && isPulledB) return 1;
-        
+
+        // Golf carts (tow platforms) take priority among vehicles
+        const isGolfCartA = !!a.canTow;
+        const isGolfCartB = !!b.canTow;
+        if (isGolfCartA && !isGolfCartB) return -1;
+        if (!isGolfCartA && isGolfCartB) return 1;
+
         // Sort by size (largest first)
         const sizeA = a.getActualWidth() * a.getActualHeight();
         const sizeB = b.getActualWidth() * b.getActualHeight();
@@ -224,6 +230,17 @@ export class GroundManager {
       // Stable fallback
       return a.name.localeCompare(b.name) || a.instanceId.localeCompare(b.instanceId);
     });
+
+    // 4b. Force hitched wagons directly beneath their golf cart, regardless of
+    // where the general comparator above placed them.
+    for (const cart of stackedItems) {
+      if (!cart.hitchedItemInstanceId) continue;
+      const wagonIdx = stackedItems.findIndex(it => it.instanceId === cart.hitchedItemInstanceId);
+      const cartIdx = stackedItems.indexOf(cart);
+      if (wagonIdx === -1 || wagonIdx === cartIdx + 1) continue;
+      const [wagon] = stackedItems.splice(wagonIdx, 1);
+      stackedItems.splice(stackedItems.indexOf(cart) + 1, 0, wagon);
+    }
 
     // 5. Place items back into container grid (respecting remaining space)
     for (const item of stackedItems) {
