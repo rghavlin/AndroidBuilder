@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1783695959.0856507,
-    "ast_hash": "5a2481894cc416c8f321a36323d0471e",
+    "mtime": 1783765299.0868073,
+    "ast_hash": "5741718946d22334f35b9ee0fa392cd5",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -885,9 +885,9 @@
     "semantic_hash": "fe3bb57a8a17c7622bd47232bc14a13c"
   },
   "client/src/game/components/RpgStats.js": {
-    "mtime": 1783496743.9879253,
-    "ast_hash": "4ae364e3a608c0dd3673880e58443212",
-    "semantic_hash": "4ae364e3a608c0dd3673880e58443212"
+    "mtime": 1783765289.918585,
+    "ast_hash": "0fa48039b4ce156aaf6a32f4b4374781",
+    "semantic_hash": ""
   },
   "client/src/game/components/SurvivalStats.js": {
     "mtime": 1783589322.133129,

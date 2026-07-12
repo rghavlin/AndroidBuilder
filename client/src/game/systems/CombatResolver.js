@@ -20,7 +20,7 @@ const ATTR_MOD_STEP = 0.0015;
 // contradicting "trained skill is the dominant hit-chance lever." Every melee
 // weapon now shares this flat base; weapons differentiate on damage, crit,
 // and (later) speed/AP cost instead. Provisional, tune from playtesting.
-const BASE_MELEE_HIT_CHANCE = 0.75;
+const BASE_MELEE_HIT_CHANCE = 0.6;
 
 // Crit is a degree-of-success on the hit roll itself, not a separate roll:
 // the engine already rolls low-is-good (gameRandom.next() <= hitChance), so
