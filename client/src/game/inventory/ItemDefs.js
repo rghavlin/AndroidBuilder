@@ -2017,8 +2017,8 @@ export const ItemDefs = {
     shelfLife: 72,
     consumptionEffects: {
       treat_infection: 24,
-      nutrition: 15,
-      hydration: 5
+      nutrition: 4,
+      hydration: 4
     },
     description: 'A grim broth of zombie brainstems. Treats infection and grants combined, diluted attribute buffs for the brewed duration.'
   },
@@ -2056,7 +2056,23 @@ export const ItemDefs = {
     consumptionEffects: {
       nutrition: 10,
       sickness: 5 // Causes 5 turns of sickness
-    }
+    },
+    borderColor: '#FF69B4'
+  },
+
+  'food.rabbit_carcass': {
+    id: 'food.rabbit_carcass',
+    name: 'Rabbit carcass',
+    rarity: Rarity.COMMON,
+    renderFullTile: true,
+    imageId: 'rabbitcarcass',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.SPOILABLE],
+    categories: [],
+    noLoot: true,
+    shelfLife: 48,
+    transformInto: 'food.rotten_meat'
   },
 
   'food.rotten_meat': {
@@ -2833,7 +2849,7 @@ export const ItemDefs = {
     categories: [ItemCategory.ENVIRONMENT],
     consumptionEffects: {
       treat_infection: 6,
-      nutrition: 7
+      nutrition: 1
     },
     description: 'Smashed zombie brain pulp. Treats zombie infection for 6h and restores nutrition, but causes sickness if consumed while not infected. Cook brainstems into a stew to combine and extend their effects.'
   }

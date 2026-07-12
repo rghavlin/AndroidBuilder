@@ -212,6 +212,38 @@ export class LootGenerator {
 
         // 4. Final Pass: Apply map-wide unique loot rules
         this.applyMapWideUniqueRules(gameMap, mapNumber);
+
+        // 5. Extra Pass: Spawn additional sticks and stones on grass tiles
+        let grassTilesCount = 0;
+        let sticksSpawned = 0;
+        let stonesSpawned = 0;
+
+        for (let y = 0; y < gameMap.height; y++) {
+            for (let x = 0; x < gameMap.width; x++) {
+                const tile = gameMap.getTile(x, y);
+                if (tile && tile.terrain === 'grass' && tile.isWalkable()) {
+                    const existing = gameMap.getItemsOnTile(x, y) || [];
+                    if (existing.length === 0) {
+                        grassTilesCount++;
+                        const roll = gameRandom.next();
+                        if (roll < 0.015) { // 1.5% chance for a stick
+                            const stick = createItemFromDef('weapon.stick');
+                            if (stick) {
+                                gameMap.setItemsOnTile(x, y, [stick]);
+                                sticksSpawned++;
+                            }
+                        } else if (roll < 0.030) { // 1.5% chance for a stone (total 3% chance)
+                            const stone = createItemFromDef('crafting.stone');
+                            if (stone) {
+                                gameMap.setItemsOnTile(x, y, [stone]);
+                                stonesSpawned++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        console.log(`[LootGenerator] Grass Pass: Spawned ${sticksSpawned} sticks and ${stonesSpawned} stones on ${grassTilesCount} empty grass tiles.`);
     }
 
     /**
@@ -326,6 +358,8 @@ export class LootGenerator {
         const allBuildings = gameMap.buildings || [];
         const cartTiles = outdoorLootTiles.filter(pos => {
             if (isInsideAnyBuilding(allBuildings, pos.x, pos.y)) return false;
+            const tile = gameMap.getTile(pos.x, pos.y);
+            if (!tile || !['road', 'sidewalk', 'grass'].includes(tile.terrain)) return false;
             const existing = gameMap.getItemsOnTile(pos.x, pos.y);
             return !existing || existing.length === 0;
         });

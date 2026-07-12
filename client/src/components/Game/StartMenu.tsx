@@ -150,8 +150,8 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
 
   return (
     <div 
-      className="relative h-full w-full bg-cover bg-center bg-no-repeat flex items-center justify-center"
-      style={{ backgroundImage: "url('./images/background/menubackground.png')" }}
+      className="relative h-full w-full bg-no-repeat flex items-center justify-center"
+      style={{ backgroundImage: "url('./images/background/menubackground.png')", backgroundSize: '100% 100%' }}
     >
       {/* Dark overlay with slight blur to make the skeuomorphic menu panel pop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />

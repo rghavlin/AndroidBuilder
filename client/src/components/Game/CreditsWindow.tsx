@@ -63,7 +63,7 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                             Sound Effects
                         </div>
                         <p className="pl-1 text-[13px] leading-relaxed">
-                            Sidearm Studios, Darkwood Audio, YourPalRob, Snake
+                            Sidearm Studios
                         </p>
                     </div>
 

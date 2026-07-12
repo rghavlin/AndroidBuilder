@@ -562,6 +562,9 @@ export const EntityRenderer = {
             // silver (226,232,240) <-> dark electric blue (15,60,180)
             ctx.strokeStyle = `rgb(${lerp(226, 15)}, ${lerp(232, 60)}, ${lerp(240, 180)})`;
             ctx.lineWidth = Math.max(1.2, drawSize * 0.06);
+          } else if (matchingDef && matchingDef.borderColor) {
+            ctx.strokeStyle = matchingDef.borderColor;
+            ctx.lineWidth = Math.max(1.2, drawSize * 0.06);
           } else {
             ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = Math.max(0.8, drawSize * 0.04);

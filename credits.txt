@@ -1,3 +1,8 @@
+
+REPLACED: click.ogg
+
+
+
 Music: https://freesound.org/people/PatrickLieberkind/, https://freesound.org/people/ZHR%C3%98/
 
 
@@ -30,6 +35,10 @@ HEAL:
 IGNITE: C:\Games\audio\Darkworld Audio - Survival Effects [Free .ogg]\Equipment\MatchHandling1 (https://darkworldaudio.itch.io/sound-effects-survival-i)
 LIGHTON/LIGHTOFF: C:\Games\audio\Horror SFX Free\Horror SFX Free\Character\Flashlighton/off
 PILLS: C:\Games\audio\Darkworld Audio - Survival Effects [Free .ogg]\Medicine\Pillsbox1
+RAIN:c:\Games\audio\Essentials_Series_NOX_SOUND\Essentials_Series_NOX_SOUND\Nature_Essentials_NOX_SOUND\ambianceraincalm
+SLASH1:  C:\Games\audio\Shapeforms Audio Free Sound Effects\Shapeforms Audio Free Sound Effects\Hit and Punch Preview\AUDIO\PUNCH_SQUELCH_HEAVY_05
+SLING:  C:\Games\audio\Shapeforms Audio Free Sound Effects\Shapeforms Audio Free Sound Effects\Hit and Punch Preview\AUDIO\WHOOSH_AIRY_FLUTTER_01
+Zombie: se/monster2
 
 LIBRARIES & FRAMEWORKS:
 React: https://react.dev/ - MIT License (Copyright (c) Meta Platforms, Inc. and affiliates)

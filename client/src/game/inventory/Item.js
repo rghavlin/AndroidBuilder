@@ -56,6 +56,7 @@ export class Item extends SafeEventEmitter {
       transformInto = null,
       produce = null,
       backgroundColor = null,
+      borderColor = null,
       brainstemColors = null,
       isLit = undefined,
       isOn = undefined,
@@ -152,6 +153,7 @@ export class Item extends SafeEventEmitter {
     this.transformInto = transformInto;
     this.produce = produce;
     this.backgroundColor = backgroundColor;
+    this.borderColor = borderColor;
     // Ordered list of distinct brainstem colors that went into a brainstem stew, used to
     // render a multi-color "rainbow" icon; backgroundColor stays a single flat color
     // (the first of these) for consumers that need a plain hex, e.g. the infection HUD.
@@ -223,6 +225,7 @@ export class Item extends SafeEventEmitter {
       if (def.imageId && !this.imageId) this.imageId = def.imageId;
       if (def.produce && !this.produce) this.produce = def.produce;
       if (def.backgroundColor && !this.backgroundColor) this.backgroundColor = def.backgroundColor;
+      if (def.borderColor && !this.borderColor) this.borderColor = def.borderColor;
       if (def.disassembleData) this.disassembleData = def.disassembleData;
       if (def.containerGrid && !this._containerGridData) this._containerGridData = def.containerGrid;
       if (def.consumptionSound && !this.consumptionSound) this.consumptionSound = def.consumptionSound;
@@ -1606,7 +1609,7 @@ export class Item extends SafeEventEmitter {
     'ammoCount', 'equippableSlot', 'isEquipped', 'pocketLayoutId', 'categories',
     'consumptionEffects', 'waterQuality', 'shelfLife', 'lifetimeTurns', 'rarity',
     'combat', 'rangedStats', 'description', 'transformInto', 'produce',
-    'backgroundColor', 'isOn', 'providesElectricity', 'fireMode',
+    'backgroundColor', 'borderColor', 'isOn', 'providesElectricity', 'fireMode',
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
     'zombieSubtype', 'earbucksValue', 'brainstemColors'
   ];

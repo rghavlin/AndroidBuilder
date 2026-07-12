@@ -466,8 +466,8 @@ export class CraftingManager {
                 consumptionEffects: {
                     treat_infection: hours,
                     treat_effects: effects,
-                    nutrition: 5 * stemsUsed,
-                    hydration: stemsUsed * 2
+                    nutrition: stemsUsed,
+                    hydration: stemsUsed
                 },
                 // backgroundColor stays a single flat hex (the first stem's color) for
                 // consumers that need a plain color (e.g. the infection HUD); brainstemColors

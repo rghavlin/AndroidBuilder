@@ -3,6 +3,8 @@
  */
 import { EntityType } from '../entities/Entity.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../ai/TurretCombat.js';
+import engine from '../GameEngine.js';
+
 
 export class Tile {
   constructor(x, y, terrain = 'grass') {
@@ -60,6 +62,13 @@ export class Tile {
     const isZombie = options.isZombie || (entity && entity.type === EntityType.ZOMBIE);
     const isNPC = entity && entity.type === EntityType.NPC;
     const isPlayer = !isZombie && !isNPC;
+
+    // If the player is riding a golf cart, floor tiles are unwalkable
+    if (isPlayer && this.terrain === 'floor') {
+      if (engine && engine.riding && engine.riding.item && engine.riding.item.defId === 'vehicle.golf_cart') {
+        return false;
+      }
+    }
 
     for (const item of this.contents) {
       if (item.type === EntityType.DOOR && item.isOpen) {

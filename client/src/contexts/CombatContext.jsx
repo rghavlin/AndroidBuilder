@@ -216,8 +216,8 @@ export const CombatProvider = ({ children }) => {
                 if (clearNpcInventory) entity.inventory.clear();
             }
         } else if (entity.type === EntityType.RABBIT) {
-            const meat = createItemFromDef('food.raw_meat');
-            if (meat) placeItems([meat]);
+            const carcass = createItemFromDef('food.rabbit_carcass');
+            if (carcass) placeItems([carcass]);
         }
 
         gameMap.removeEntity(entity.id);

@@ -42,6 +42,10 @@ export class AttributeProgressionManager {
         xpGained.strengthXP = 4;
         xpGained.agilityXP = 4;
         break;
+      case 'BUTCHER_RABBIT':
+        xpGained.strengthXP = 15;
+        xpGained.agilityXP = 15;
+        break;
       case 'PULL_WAGON':
         // Payload should contain apSpent (the extra AP penalty for dragging)
         xpGained.strengthXP = (payload.apSpent || 0) * 1.5;

@@ -14,7 +14,7 @@ interface MainMenuWindowProps {
 }
 
 export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
-    const { initializeGame, loadGameDirect, saveGame, shutdownGame } = useGame();
+    const { loadGameDirect, saveGame, shutdownGame } = useGame();
     const [isLoading, setIsLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
@@ -48,14 +48,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
         return () => window.removeEventListener('game-loaded', handleGameLoaded);
     }, [onClose]);
 
-    const handleNewGame = async () => {
-        setIsLoading(true);
-        console.log('[MainMenuWindow] Starting new game...');
-        // Initialize new game logic
-        await initializeGame();
-        onClose(); // Close menu after action
-        setIsLoading(false);
-    };
+
 
     const handleSaveSlot = async (slotName: string) => {
         setIsLoading(true);
@@ -108,14 +101,7 @@ export default function MainMenuWindow({ onClose }: MainMenuWindowProps) {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 pb-8">
-                    <Button
-                        onClick={handleNewGame}
-                        disabled={isLoading}
-                        className="w-full py-6 text-xl font-bold metal-button-green uppercase tracking-wide"
-                        data-testid="button-menu-new-game"
-                    >
-                        New Game
-                    </Button>
+
 
                     <Button
                         onClick={() => setShowSaveGame(true)}

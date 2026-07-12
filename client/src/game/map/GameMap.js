@@ -908,8 +908,8 @@ export class GameMap extends SafeEventEmitter {
             console.log('[GameMap] Snare destroyed by rabbit catch (0 condition)');
           }
 
-          const rawMeat = createItemFromDef('food.raw_meat');
-          items.push(rawMeat);
+          const carcass = createItemFromDef('food.rabbit_carcass');
+          items.push(carcass);
 
           itemsModified = true;
         }

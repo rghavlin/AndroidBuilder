@@ -57,9 +57,9 @@ export class DestructionSystem {
           target.inventory.clear();
         }
       } else if (target.type === EntityType.RABBIT) {
-        const meat = createItemFromDef('food.raw_meat');
-        if (meat && gameMap) {
-          gameMap.addItemsToTile(x, y, [meat]);
+        const carcass = createItemFromDef('food.rabbit_carcass');
+        if (carcass && gameMap) {
+          gameMap.addItemsToTile(x, y, [carcass]);
         }
       }
     }

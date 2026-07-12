@@ -1010,9 +1010,10 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             </button>
           )}
 
-          {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !(windowMenu.window.isReinforced && windowMenu.window.reinforcementHp > 0) && (
+           {(windowMenu.window.isOpen || windowMenu.window.isBroken) && !(windowMenu.window.isReinforced && windowMenu.window.reinforcementHp > 0) && (
             <button
-              className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
+              disabled={engine.riding && engine.riding.item && engine.riding.item.defId === 'vehicle.golf_cart'}
+              className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => {
                 if (!isPlayerTurn) return;
                 const gameMap = gameMapRef.current;

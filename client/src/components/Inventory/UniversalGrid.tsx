@@ -19,6 +19,7 @@ import { Item, createItemFromDef } from "../../game/inventory/index.js";
 import { ItemDefs } from "../../game/inventory/ItemDefs.js";
 import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
+import { AttributeProgressionManager } from "../../game/systems/AttributeProgressionManager.js";
 import { GAP_SIZE } from "./constants";
 import { useTheme } from "../../contexts/ThemeContext";
 import { rainbowBackground } from "@/lib/utils";
@@ -486,6 +487,44 @@ export default function UniversalGrid({
         }
 
         addLog(`You cut ${item.name} into a rag.`, 'item');
+        return;
+      }
+
+      // Special Interaction: Butchering rabbit carcass with selected knife
+      const isCarcassClicked = item?.defId === 'food.rabbit_carcass';
+      if (isKnifeSelected && isCarcassClicked) {
+        const player = engine.player;
+        if (!player || player.ap < 3) {
+          addLog('Not enough AP to butcher rabbit carcass (3 required)', 'error');
+          playSound('Fail');
+          return;
+        }
+
+        // Proceed with butchering
+        player.useAP(3);
+        playSound('Click');
+
+        // Award Strength and Agility experience
+        AttributeProgressionManager.recordAction(player, 'BUTCHER_RABBIT');
+
+        // Create raw meat
+        const rawMeatData = createItemFromDef('food.raw_meat');
+        const rawMeatItem = new Item(rawMeatData);
+
+        // Replace carcass with raw meat at the same position in the container
+        const originalX = item.x;
+        const originalY = item.y;
+        container.removeItem(item.instanceId);
+        
+        // Add raw meat at the same slot. If it doesn't fit, fall back to adding it anywhere or on ground.
+        const placed = container.addItem(rawMeatItem, originalX, originalY, false);
+        if (!placed) {
+          engine.inventoryManager.addItem(rawMeatItem);
+        }
+
+        clearSelected(); // Deselect knife
+        addLog('You butchered the rabbit carcass and obtained raw meat.', 'item');
+        engine.inventoryManager.emit('inventoryChanged');
         return;
       }
 

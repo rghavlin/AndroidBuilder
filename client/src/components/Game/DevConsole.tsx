@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost, CloudRain, Sun, Store, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Bug, User, Shield, Flame, Skull, Zap, Package, Globe, Eye, Ghost, CloudRain, Sun, Store, Plus, Trash2, ChevronDown, ChevronUp, Rabbit } from "lucide-react";
 import engine from '../../game/GameEngine.js';
 import { earbucksShopSystem } from '../../game/systems/EarbucksShopSystem.js';
 import { getItemPrice } from '../../game/inventory/ItemPricing.js';
@@ -269,6 +269,14 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
         engine.notifyUpdate();
     };
 
+    const spawnRabbit = async () => {
+        if (!engine.isReady()) return;
+        const { Rabbit } = await import('../../game/entities/Rabbit.js');
+        const r = new Rabbit(`spawned-rabbit-${Date.now()}`, engine.player.x, engine.player.y - 2);
+        engine.gameMap.addEntity(r, r.x, r.y);
+        engine.notifyUpdate();
+    };
+
     const spawnFriendlyNPC = async () => {
         if (!engine.isReady()) return;
         const { EntityFactory } = await import('../../game/EntityFactory.js');
@@ -481,6 +489,12 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
                                     title="Spawn Zombie" 
                                     desc="At player location" 
                                     onClick={() => spawnZombie()} 
+                                />
+                                <WorldToolButton 
+                                    icon={<Rabbit className="h-5 w-5 text-amber-500" />} 
+                                    title="Spawn Rabbit" 
+                                    desc="At player location" 
+                                    onClick={() => spawnRabbit()} 
                                 />
                                 <WorldToolButton 
                                     icon={<User className="h-5 w-5 text-emerald-400" />} 
