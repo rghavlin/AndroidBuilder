@@ -8170,7 +8170,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_aistate",
-      "community": 39,
+      "community": 0,
       "norm_label": "aistate.js"
     },
     {
@@ -8180,7 +8180,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_aistate_aistate",
-      "community": 39,
+      "community": 0,
       "norm_label": "aistate"
     },
     {
@@ -8190,7 +8190,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_aistate_aistate_constructor",
-      "community": 39,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -8200,7 +8200,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "client_src_game_components_aistate_aistate_tojson",
-      "community": 39,
+      "community": 0,
       "norm_label": ".tojson()"
     },
     {
@@ -10250,7 +10250,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit",
-      "community": 39,
+      "community": 0,
       "norm_label": "rabbit.js"
     },
     {
@@ -12767,7 +12767,7 @@
       "label": "createItemFromDef()",
       "file_type": "code",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L2769",
+      "source_location": "L2788",
       "_origin": "ast",
       "id": "client_src_game_inventory_itemdefs_createitemfromdef",
       "community": 4,
@@ -12777,7 +12777,7 @@
       "label": "getItemName()",
       "file_type": "code",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L2787",
+      "source_location": "L2806",
       "_origin": "ast",
       "id": "client_src_game_inventory_itemdefs_getitemname",
       "community": 43,
@@ -13310,7 +13310,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_managers_sequenceraction",
-      "community": 39,
+      "community": 0,
       "norm_label": "sequenceraction.js"
     },
     {
@@ -13320,7 +13320,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "client_src_game_managers_sequenceraction_sequenceraction",
-      "community": 39,
+      "community": 0,
       "norm_label": "sequenceraction"
     },
     {
@@ -13330,7 +13330,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "client_src_game_managers_sequenceraction_sequenceraction_constructor",
-      "community": 39,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -13340,7 +13340,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "client_src_game_managers_sequenceraction_sequenceraction_update",
-      "community": 39,
+      "community": 0,
       "norm_label": ".update()"
     },
     {
@@ -25660,7 +25660,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scratch_verify_flee_recovery",
-      "community": 39,
+      "community": 0,
       "norm_label": "verify_flee_recovery.mjs"
     },
     {
@@ -29860,7 +29860,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "verify_phase_2",
-      "community": 39,
+      "community": 0,
       "norm_label": "verify_phase_2.mjs"
     },
     {
@@ -29870,7 +29870,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "verify_phase_2_assert",
-      "community": 39,
+      "community": 0,
       "norm_label": "assert()"
     },
     {
@@ -29880,7 +29880,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "verify_phase_2_ent",
-      "community": 39,
+      "community": 0,
       "norm_label": "ent"
     },
     {
@@ -29890,7 +29890,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "verify_phase_2_aicomp",
-      "community": 39,
+      "community": 0,
       "norm_label": "aicomp"
     },
     {
@@ -29900,7 +29900,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "verify_phase_2_zombie",
-      "community": 39,
+      "community": 0,
       "norm_label": "zombie"
     },
     {
@@ -29910,7 +29910,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "verify_phase_2_npc",
-      "community": 39,
+      "community": 0,
       "norm_label": "npc"
     },
     {
@@ -29920,7 +29920,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "verify_phase_2_rabbit",
-      "community": 39,
+      "community": 0,
       "norm_label": "rabbit"
     },
     {
@@ -29930,7 +29930,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "verify_phase_2_player",
-      "community": 39,
+      "community": 0,
       "norm_label": "player"
     },
     {
@@ -29950,7 +29950,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "verify_phase_2_restored",
-      "community": 39,
+      "community": 0,
       "norm_label": "restored"
     },
     {
@@ -79037,7 +79037,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L2769",
+      "source_location": "L2788",
       "weight": 1.0,
       "source": "client_src_game_inventory_itemdefs",
       "target": "client_src_game_inventory_itemdefs_createitemfromdef",
@@ -79047,7 +79047,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L2787",
+      "source_location": "L2806",
       "weight": 1.0,
       "source": "client_src_game_inventory_itemdefs",
       "target": "client_src_game_inventory_itemdefs_getitemname",
@@ -112689,5 +112689,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "312806f21cc0a95037d733cb07901f615cd178e3"
+  "built_at_commit": "8b1483516b87195855b9726ba10e712a701d61cd"
 }

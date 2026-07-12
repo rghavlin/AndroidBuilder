@@ -1,7 +1,7 @@
 # Graph Report - AndroidBuilder  (2026-07-11)
 
 ## Corpus Check
-- 491 files · ~465,122 words
+- 491 files · ~465,209 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `312806f2`
+- Built from commit: `8b148351`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -192,8 +192,8 @@
 ## Communities (160 total, 44 thin omitted)
 
 ### Community 0 - "Item Components"
-Cohesion: 0.04
-Nodes (34): ActionPoints, Burnable, Consumable, EquippedArmor, Health, InventoryContainer, LightEmitter, Movable (+26 more)
+Cohesion: 0.03
+Nodes (43): ActionPoints, AIState, Burnable, Consumable, EquippedArmor, Health, InventoryContainer, LightEmitter (+35 more)
 
 ### Community 1 - "UI Components"
 Cohesion: 0.07
@@ -324,8 +324,8 @@ Cohesion: 0.24
 Nodes (3): MapBuilder, verify(), test()
 
 ### Community 39 - "Tile Rendering and Cache"
-Cohesion: 0.05
-Nodes (19): AIState, Rabbit, SequencerAction, gm, serialized, aiComp, ent, npc (+11 more)
+Cohesion: 0.08
+Nodes (10): Rabbit, gm, serialized, map, mockTile, npc, player, rabbit (+2 more)
 
 ### Community 40 - "Line of Sight System"
 Cohesion: 0.19
@@ -616,7 +616,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps` to the rest of the system?**
   _778 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Item Components` be split into smaller, more focused modules?**
-  _Cohesion score 0.04075235109717868 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03403279844824546 - nodes in this community are weakly interconnected._
 - **Should `UI Components` be split into smaller, more focused modules?**
   _Cohesion score 0.0742296918767507 - nodes in this community are weakly interconnected._
 - **Should `Item Interaction Logic` be split into smaller, more focused modules?**

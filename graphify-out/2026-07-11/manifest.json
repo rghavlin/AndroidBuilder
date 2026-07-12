@@ -365,8 +365,8 @@
     "semantic_hash": "c1f74cbd597d80cca1bfc1b6c5f5cb3b"
   },
   "client/src/components/Inventory/UniversalGrid.tsx": {
-    "mtime": 1783743429.0676706,
-    "ast_hash": "735a2654c11eac8cd245933efdb19668",
+    "mtime": 1783765691.9287467,
+    "ast_hash": "728a21c6054addbec5b0dd4e61ee985e",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/WeaponModPanel.tsx": {
@@ -635,8 +635,8 @@
     "semantic_hash": "32da00638860128668bf6487df2a9a96"
   },
   "client/src/contexts/CombatContext.jsx": {
-    "mtime": 1783644310.2377546,
-    "ast_hash": "3bef8123881b2e8ea9a6c88a6d3b16db",
+    "mtime": 1783766521.878176,
+    "ast_hash": "f0279dcd5a0cd7fa1cfabb49a948734f",
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
@@ -765,9 +765,9 @@
     "semantic_hash": "3e4a2cfb504efcecba497014a9828df5"
   },
   "client/src/game/ai/TurretAI.js": {
-    "mtime": 1783499971.87348,
-    "ast_hash": "4907bba99343c6145552db3ff110fb92",
-    "semantic_hash": "4907bba99343c6145552db3ff110fb92"
+    "mtime": 1783766531.249331,
+    "ast_hash": "acebe9e4b4760e0398718a3c100de3ab",
+    "semantic_hash": ""
   },
   "client/src/game/ai/TurretCombat.js": {
     "mtime": 1782211740.6110744,
@@ -935,8 +935,8 @@
     "semantic_hash": "6831cf6fbc1fd3152062a0e853450673"
   },
   "client/src/game/entities/Entity.js": {
-    "mtime": 1783742589.7277346,
-    "ast_hash": "eaf758c692d69dd1bc14109535cce6a4",
+    "mtime": 1783766509.105389,
+    "ast_hash": "82cf04e5dddc9b254e69fc200eb81e19",
     "semantic_hash": ""
   },
   "client/src/game/entities/NPCTypes.js": {
@@ -965,8 +965,8 @@
     "semantic_hash": "b036d1370b288d9c953258361e7a0cd3"
   },
   "client/src/game/entities/ZombieCorpseConfig.js": {
-    "mtime": 1783743376.0156615,
-    "ast_hash": "646509d144d5ae7395b989858a83c85a",
+    "mtime": 1783766535.9580321,
+    "ast_hash": "30992e2b34817ad4b0614f701202fc79",
     "semantic_hash": ""
   },
   "client/src/game/entities/ZombieTypes.js": {
@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1783742535.0749674,
-    "ast_hash": "82ded8ea9b8c2eab271ac9b05a3d2ba6",
+    "mtime": 1783765687.5983355,
+    "ast_hash": "6a79ff004588325c1467642d9e886668",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
@@ -1055,8 +1055,8 @@
     "semantic_hash": "47f178c5f9b66b1b180520a1ba74630d"
   },
   "client/src/game/managers/TurnManager.js": {
-    "mtime": 1783558668.9121244,
-    "ast_hash": "e76744a23d709a80eecdf5ac753ef470",
+    "mtime": 1783766526.3813436,
+    "ast_hash": "21720f07bab5c1cf562c8ac3757b65e8",
     "semantic_hash": ""
   },
   "client/src/game/map/AsciiMapRenderer.js": {
@@ -1210,8 +1210,8 @@
     "semantic_hash": "1d4a4741d37762bdb6296d7a60e43092"
   },
   "client/src/game/systems/CombatResolver.js": {
-    "mtime": 1783507355.0464265,
-    "ast_hash": "1b12af40efd6857689799ecd94b7ed7f",
+    "mtime": 1783777083.7330847,
+    "ast_hash": "340bbb87e19ae2cd5985eed977f25252",
     "semantic_hash": ""
   },
   "client/src/game/systems/CombatSystem.js": {

@@ -590,6 +590,25 @@ export const ItemDefs = {
     }
   },
 
+  'weapon.nailplank': {
+    id: 'weapon.nailplank',
+    name: 'Nail Plank',
+    noLoot: true,
+    rarity: Rarity.UNCOMMON,
+    imageId: 'nailplank',
+    width: 4,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.75,
+      damage: { min: 2, max: 8 }
+    }
+  },
+
+
   'weapon.hammer': {
     id: 'weapon.hammer',
     name: 'Hammer',

@@ -116,7 +116,7 @@ export const CraftingRecipes = [
         tab: 'crafting',
         tools: [],
         ingredients: [
-            { id: 'weapon.stick', count: 1 },
+            { either: ['weapon.stick', 'weapon.plank'], count: 1, label: 'Stick or Plank' },
             { either: ['crafting.glass_shard', 'weapon.knife', 'weapon.makeshift_knife'], count: 1, label: 'Glass shard or Knife' },
             { either: ['crafting.tape', 'crafting.wire'], count: 1, label: 'Tape or Wire' }
         ]
@@ -194,6 +194,21 @@ export const CraftingRecipes = [
         ingredients: [
             { id: 'weapon.woodenbat', count: 1 },
             { id: 'crafting.nail', count: 4 }
+        ]
+    },
+    {
+        id: 'crafting.nailplank',
+        name: 'Nail Plank',
+        resultItem: 'weapon.nailplank',
+        description: 'A wooden plank reinforced with nasty, protruding nails.',
+        apCost: 7,
+        tab: 'crafting',
+        tools: [
+            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], label: 'Any Hammer' }
+        ],
+        ingredients: [
+            { id: 'weapon.plank', count: 1 },
+            { id: 'crafting.nail', count: 3 }
         ]
     },
     {

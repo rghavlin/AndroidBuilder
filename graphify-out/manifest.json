@@ -985,8 +985,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingRecipes.js": {
-    "mtime": 1783742542.0828533,
-    "ast_hash": "a49f1c8e9ac99c64ac30dfbd74fad28f",
+    "mtime": 1783819572.5581005,
+    "ast_hash": "e2224dc1b8d44a40f72d321a977fa78f",
     "semantic_hash": ""
   },
   "client/src/game/inventory/GroundManager.js": {
@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1783765687.5983355,
-    "ast_hash": "6a79ff004588325c1467642d9e886668",
+    "mtime": 1783819404.212367,
+    "ast_hash": "452213851bab9c342bcae67a3ae84a8e",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
