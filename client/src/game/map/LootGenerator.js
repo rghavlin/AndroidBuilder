@@ -313,6 +313,44 @@ export class LootGenerator {
         
         // Phase 25: Electric Scooter Spawn (Guaranteed 1 per map, strictly outdoor; 2-4 on large map)
         this.spawnScooter(gameMap, outdoorLootTiles);
+
+        // Spawn 2 golf carts on every map (with 2 motors and 2 batteries charged 20-100)
+        this.spawnGolfCarts(gameMap, outdoorLootTiles);
+    }
+
+    /**
+     * Spawn 2 golf carts on every map, each pre-equipped with 2 motors and 2 batteries
+     * charged with the same randomized value between 20 and 100.
+     */
+    spawnGolfCarts(gameMap, outdoorLootTiles = []) {
+        const allBuildings = gameMap.buildings || [];
+        const cartTiles = outdoorLootTiles.filter(pos => {
+            if (isInsideAnyBuilding(allBuildings, pos.x, pos.y)) return false;
+            const existing = gameMap.getItemsOnTile(pos.x, pos.y);
+            return !existing || existing.length === 0;
+        });
+
+        if (cartTiles.length > 0) {
+            const shuffledCarts = gameRandom.shuffle([...cartTiles]);
+            const actualCarts = Math.min(2, shuffledCarts.length);
+            for (let i = 0; i < actualCarts; i++) {
+                const pos = shuffledCarts[i];
+                const cartData = createItemFromDef('vehicle.golf_cart');
+                if (cartData) {
+                    const cart = new Item(cartData);
+                    const batteryCharge = gameRandom.nextInt(20, 100);
+                    
+                    const batteryFront = cart.attachments?.['battery_front'];
+                    const batteryRear = cart.attachments?.['battery_rear'];
+                    
+                    if (batteryFront) batteryFront.ammoCount = batteryCharge;
+                    if (batteryRear) batteryRear.ammoCount = batteryCharge;
+                    
+                    gameMap.setItemsOnTile(pos.x, pos.y, [cart]);
+                    console.log(`[LootGenerator] Furniture: Spawned Golf Cart at (${pos.x}, ${pos.y}) with charge ${batteryCharge}`);
+                }
+            }
+        }
     }
 
     /**

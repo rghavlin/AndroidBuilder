@@ -428,17 +428,14 @@ const GameContextInner = ({ children }) => {
       activeNpcDemand ||
       activeDialog ||
       mapTransition ||
-      activeTradeNpc ||
-      isBartering ||
-      isShopOpen ||
-      tollGuard ||
+      (activeTradeNpc && !isBartering) ||
       logHistoryOpen ||
       showMainMenu ||
       engine.isSleeping
     );
   }, [
     activeNpcDemand, activeDialog, mapTransition,
-    activeTradeNpc, isBartering, isShopOpen, tollGuard,
+    activeTradeNpc, isBartering,
     logHistoryOpen, showMainMenu, enginePulse
   ]);
   const [isDefeated, setIsDefeatedState] = useState(false);
