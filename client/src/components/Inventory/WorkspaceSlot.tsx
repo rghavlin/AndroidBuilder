@@ -7,6 +7,24 @@ import { ItemTooltip } from "./ItemTooltip";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
+const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
+    if (!bgColor) return undefined;
+    const lower = bgColor.toLowerCase();
+    if (theme === 'light2') {
+        if (lower === '#006b18') return '#7BA899';
+        if (lower === '#8a0303') return '#D48989';
+        if (lower === '#0a2e5c') return '#6B9BC3';
+        if (lower === '#5c653a') return '#8B956C';
+        if (lower === '#1e1b4b') return '#A5B4FC';
+    } else if (theme === 'light') {
+        if (lower === '#006b18') return '#639A88';
+        if (lower === '#8a0303') return '#C15C5C';
+        if (lower === '#0a2e5c') return '#5C8AB3';
+        if (lower === '#1e1b4b') return '#C7D2FE';
+    }
+    return bgColor;
+};
+
 interface WorkspaceSlotProps {
     containerId: string;
     slotIndex: number;
@@ -93,6 +111,15 @@ const WorkspaceSlot = memo(({
                         item && "border-accent bg-accent/10",
                         className
                     )}
+                    style={item ? {
+                        background: getAdjustedBgColor(item.backgroundColor, theme),
+                        ...(item.borderColor ? {
+                            borderColor: item.borderColor,
+                            borderWidth: '2px',
+                            borderStyle: 'solid',
+                            boxShadow: `0 0 4px ${item.borderColor}`
+                        } : {})
+                    } : undefined}
                     onClick={handleClick}
                     data-inventory-ui="true"
                 >

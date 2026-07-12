@@ -87,7 +87,7 @@ export const ItemDefs = {
     containerGrid: { width: 4, height: 5, isVehicle: true },
     attachmentSlots: [
       { id: 'motor', name: 'Electric Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -117,9 +117,9 @@ export const ItemDefs = {
     containerGrid: { width: 5, height: 7, isVehicle: true },
     attachmentSlots: [
       { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -151,11 +151,11 @@ export const ItemDefs = {
     containerGrid: { width: 6, height: 9, isVehicle: true },
     attachmentSlots: [
       { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_middle', name: 'Middle Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_middle', name: 'Middle Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'battery_middle', name: 'Middle Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -184,7 +184,7 @@ export const ItemDefs = {
     rideApBonus: 0.5,          // Ride mode: -0.5 AP per tile
     renderFullTile: true,
     attachmentSlots: [
-      { id: 'battery', name: 'Battery', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+      { id: 'battery', name: 'Battery', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -218,9 +218,9 @@ export const ItemDefs = {
     containerGrid: { width: 5, height: 3, isVehicle: true },
     attachmentSlots: [
       { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] },
+      { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
     ],
     defaultAttachments: {
       motor_front: 'electric_motor',
@@ -1103,6 +1103,21 @@ export const ItemDefs = {
     stackMax: 5,
     capacity: 100,
     ammoCount: 100
+  },
+  'tool.high_capacity_battery': {
+    id: 'tool.high_capacity_battery',
+    name: 'High-capacity battery',
+    rarity: Rarity.EXTREMELY_RARE,
+    imageId: 'largebattery',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.STACKABLE, ItemTrait.BATTERY],
+    categories: [ItemCategory.LARGE_BATTERY, ItemCategory.TOOL],
+    stackMax: 5,
+    capacity: 400,
+    ammoCount: 400,
+    backgroundColor: '#1E1B4B',
+    borderColor: '#818CF8'
   },
 
 
@@ -2462,7 +2477,7 @@ export const ItemDefs = {
     renderFullTile: true,
     description: 'Dissasemble: Wrench',
     attachmentSlots: [
-      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -2722,7 +2737,7 @@ export const ItemDefs = {
     lightRange: 2,
     lightType: 'glow',
     attachmentSlots: [
-      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery'] }
+      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
     ]
   },
   'placeable.auto_turret': {
@@ -2757,7 +2772,7 @@ export const ItemDefs = {
         id: 'battery',
         name: 'Power Cell',
         allowedCategories: [ItemCategory.LARGE_BATTERY],
-        allowedItems: ['tool.large_battery']
+        allowedItems: ['tool.large_battery', 'tool.high_capacity_battery']
       },
       {
         id: 'ammo',

@@ -566,7 +566,7 @@ export class Item extends SafeEventEmitter {
       const battery = this.attachments[slot.id];
       if (!battery) return { slotId: slot.id, name: slot.name, percent: 0, present: false };
       
-      const max = battery.capacity || (battery.defId === 'tool.large_battery' ? 100 : 10);
+      const max = battery.capacity || (battery.defId === 'tool.high_capacity_battery' ? 400 : (battery.defId === 'tool.large_battery' ? 100 : 10));
       const percent = (battery.ammoCount / max) * 100;
       return { 
         slotId: slot.id, 

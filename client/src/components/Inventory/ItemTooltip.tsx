@@ -121,7 +121,7 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                     <span>
                         {item.hasTrait?.(ItemTrait.WATER_CONTAINER) ? 'Water' : 
                          (item.hasTrait?.(ItemTrait.FUEL_CONTAINER) ? 'Fuel' :
-                         (item.hasTrait?.(ItemTrait.CHARGE_BASED) ? 'Charges' : (item.hasTrait?.(ItemTrait.AMMO) ? 'Count' : 'Ammo')))}
+                         (item.hasTrait?.(ItemTrait.CHARGE_BASED) || item.hasTrait?.(ItemTrait.BATTERY) ? 'Charges' : (item.hasTrait?.(ItemTrait.AMMO) ? 'Count' : 'Ammo')))}
                     </span>
                     <span className="text-foreground">{item.ammoCount}{item.capacity ? ` / ${item.capacity}` : ''}</span>
                 </div>

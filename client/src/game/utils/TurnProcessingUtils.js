@@ -14,9 +14,9 @@ export const TurnProcessingUtils = {
         if (!Array.isArray(batteries)) return;
 
         batteries.forEach(battery => {
-            // tool.battery (small) or tool.large_battery
-            if (battery.defId === 'tool.battery' || battery.defId === 'tool.large_battery') {
-                const maxCharge = battery.capacity || 100;
+            // tool.battery (small), tool.large_battery, or tool.high_capacity_battery
+            if (battery.defId === 'tool.battery' || battery.defId === 'tool.large_battery' || battery.defId === 'tool.high_capacity_battery') {
+                const maxCharge = battery.capacity || (battery.defId === 'tool.high_capacity_battery' ? 400 : (battery.defId === 'tool.large_battery' ? 100 : 10));
                 if ((battery.ammoCount || 0) < maxCharge) {
                     battery.ammoCount = Math.min(maxCharge, (battery.ammoCount || 0) + amount);
                     // Note: We don't log here to avoid spamming during sleep/batch processing

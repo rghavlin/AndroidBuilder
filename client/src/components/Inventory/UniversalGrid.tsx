@@ -31,10 +31,12 @@ const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
     if (lower === '#8a0303') return '#D48989';
     if (lower === '#0a2e5c') return '#6B9BC3';
     if (lower === '#5c653a') return '#8B956C';
+    if (lower === '#1e1b4b') return '#A5B4FC';
   } else if (theme === 'light') {
     if (lower === '#006b18') return '#639A88';
     if (lower === '#8a0303') return '#C15C5C';
     if (lower === '#0a2e5c') return '#5C8AB3';
+    if (lower === '#1e1b4b') return '#C7D2FE';
   }
   return bgColor;
 };
@@ -1049,6 +1051,12 @@ export default function UniversalGrid({
               background: (item.brainstemColors && item.brainstemColors.length > 1)
                 ? rainbowBackground(item.brainstemColors)
                 : getAdjustedBgColor(item.backgroundColor, themeRef.current),
+              ...(item.borderColor ? {
+                borderColor: item.borderColor,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                boxShadow: `0 0 4px ${item.borderColor}`
+              } : {})
             }}
           >
             {/* The trigger area for the context menu and tooltip is the entire item bounding box */}

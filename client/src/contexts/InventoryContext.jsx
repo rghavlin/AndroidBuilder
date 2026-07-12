@@ -989,7 +989,7 @@ export const InventoryProvider = ({ children }) => {
 
     // Check if any battery needs charging
     const needsCharging = batteries.some(b => {
-      const max = b.capacity || (b.defId === 'tool.large_battery' ? 100 : 10);
+      const max = b.capacity || (b.defId === 'tool.high_capacity_battery' ? 400 : (b.defId === 'tool.large_battery' ? 100 : 10));
       return (b.ammoCount || 0) < max;
     });
 
