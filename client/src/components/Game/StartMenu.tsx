@@ -150,14 +150,14 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
       className="relative h-full w-full bg-no-repeat select-none"
       style={{ backgroundImage: "url('./images/background/menubackground.png')", backgroundSize: '100% 100%' }}
     >
-      {/* Subtle, pure black gradient that fades in from the right edge of the screen */}
+      {/* Solid black, sharply angled geometric panel behind the menu list to completely obscure the background art */}
       <div 
-        className="absolute inset-y-0 right-0 w-[50%] pointer-events-none z-0"
-        style={{ background: 'linear-gradient(to left, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)' }}
+        className="absolute right-0 bottom-0 w-[32%] h-[55%] bg-black z-5 pointer-events-none"
+        style={{ clipPath: 'polygon(12% 18%, 100% 0, 100% 100%, 0 100%)' }}
       />
 
       {/* Menu buttons positioned in the bottom-right corner with tight compression */}
-      <div className="absolute bottom-8 right-[8%] z-10 flex flex-col gap-[1px] items-center justify-end min-w-[280px]">
+      <div className="absolute bottom-8 right-[4%] z-10 flex flex-col gap-[1px] items-center justify-end min-w-[280px]">
         <button
           onClick={handleNewGame}
           disabled={isLoading}

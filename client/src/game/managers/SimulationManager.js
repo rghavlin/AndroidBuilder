@@ -62,26 +62,27 @@ export class SimulationManager {
       player.hearingZone = computeHearingZone(player);
 
       // Performance filter: only process active zombies within sight/range
-      let activeZombies = isSleeping
-        ? zombies
-        : zombies.filter(z => {
-            if (z.hp <= 0) return false;
-            const zX = z.logicalX !== undefined ? z.logicalX : z.x;
-            const zY = z.logicalY !== undefined ? z.logicalY : z.y;
-            const pX = player.logicalX !== undefined ? player.logicalX : player.x;
-            const pY = player.logicalY !== undefined ? player.logicalY : player.y;
-            
-            const dx = Math.abs(zX - pX);
-            const dy = Math.abs(zY - pY);
-            if (dx < 60 && dy < 60) return true;
+      const activeDistance = isSleeping ? 80 : 60;
+      const npcDistance = isSleeping ? 40 : 30;
 
-            return npcs.some(npc => {
-              if (!npc || npc.hp <= 0 || npc.hasExited) return false;
-              const nX = npc.logicalX !== undefined ? npc.logicalX : npc.x;
-              const nY = npc.logicalY !== undefined ? npc.logicalY : npc.y;
-              return Math.abs(zX - nX) < 30 && Math.abs(zY - nY) < 30;
-            });
-          });
+      let activeZombies = zombies.filter(z => {
+        if (z.hp <= 0) return false;
+        const zX = z.logicalX !== undefined ? z.logicalX : z.x;
+        const zY = z.logicalY !== undefined ? z.logicalY : z.y;
+        const pX = player.logicalX !== undefined ? player.logicalX : player.x;
+        const pY = player.logicalY !== undefined ? player.logicalY : player.y;
+        
+        const dx = Math.abs(zX - pX);
+        const dy = Math.abs(zY - pY);
+        if (dx < activeDistance && dy < activeDistance) return true;
+
+        return npcs.some(npc => {
+          if (!npc || npc.hp <= 0 || npc.hasExited) return false;
+          const nX = npc.logicalX !== undefined ? npc.logicalX : npc.x;
+          const nY = npc.logicalY !== undefined ? npc.logicalY : npc.y;
+          return Math.abs(zX - nX) < npcDistance && Math.abs(zY - nY) < npcDistance;
+        });
+      });
 
       // Construct entity list for ECS systems
       let ecsEntities = [player, ...activeZombies, ...npcs];

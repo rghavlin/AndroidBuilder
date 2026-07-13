@@ -226,13 +226,13 @@ export class LootGenerator {
                     if (existing.length === 0) {
                         grassTilesCount++;
                         const roll = gameRandom.next();
-                        if (roll < 0.015) { // 1.5% chance for a stick
+                        if (roll < 0.0075) { // 0.75% chance for a stick
                             const stick = createItemFromDef('weapon.stick');
                             if (stick) {
                                 gameMap.setItemsOnTile(x, y, [stick]);
                                 sticksSpawned++;
                             }
-                        } else if (roll < 0.030) { // 1.5% chance for a stone (total 3% chance)
+                        } else if (roll < 0.015) { // 0.75% chance for a stone (total 1.5% chance)
                             const stone = createItemFromDef('crafting.stone');
                             if (stone) {
                                 gameMap.setItemsOnTile(x, y, [stone]);
