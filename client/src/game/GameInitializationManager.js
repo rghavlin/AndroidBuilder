@@ -186,6 +186,7 @@ class GameInitializationManager extends EventEmitter {
 
     try {
       const { inventoryManager, worldManager, templateMapGenerator, mapData } = this.preloadData;
+      const initialMapId = this.customConfig?.scenarioData?.name || 'map_001';
 
       // Create GameMap with template dimensions
       const gameMap = new GameMap(mapData.width, mapData.height);
@@ -288,7 +289,8 @@ class GameInitializationManager extends EventEmitter {
       }
 
       // Save initial map to world
-      const mapId = worldManager.saveCurrentMap(gameMap, 'map_001');
+      const mapId = worldManager.saveCurrentMap(gameMap, initialMapId);
+      worldManager.firstEntryTurn[initialMapId] = 1;
       console.log('[GameInitializationManager] Initial map saved as:', mapId);
 
       // Phase 10: Starting Equipment
@@ -382,14 +384,15 @@ class GameInitializationManager extends EventEmitter {
 
     try {
       const { gameMap, player, worldManager } = this.gameObjects;
+      const initialMapId = this.customConfig?.scenarioData?.name || 'map_001';
       const isScenario = !!this.customConfig?.scenarioData;
 
       if (isScenario) {
         console.log('[GameInitializationManager] Scenario mode — skipping procedural spawns');
         if (worldManager) {
-          worldManager.zombiesSpawned['map_001'] = 0;
-          worldManager.zombiesKilled['map_001'] = 0;
-          worldManager.zombiesInitialCount['map_001'] = 0;
+          worldManager.zombiesSpawned[initialMapId] = 0;
+          worldManager.zombiesKilled[initialMapId] = 0;
+          worldManager.zombiesInitialCount[initialMapId] = 0;
         }
         this.gameObjects.lootGenerator = new LootGenerator();
       } else {
@@ -398,9 +401,9 @@ class GameInitializationManager extends EventEmitter {
       console.log('[GameInitializationManager] Spawned', spawnCount, 'initial zombies');
 
       if (worldManager) {
-        worldManager.zombiesSpawned['map_001'] = spawnCount;
-        worldManager.zombiesKilled['map_001'] = 0;
-        worldManager.zombiesInitialCount['map_001'] = spawnCount;
+        worldManager.zombiesSpawned[initialMapId] = spawnCount;
+        worldManager.zombiesKilled[initialMapId] = 0;
+        worldManager.zombiesInitialCount[initialMapId] = spawnCount;
       }
 
 

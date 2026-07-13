@@ -45,6 +45,12 @@ const SICK_CON_PENALTY_CAP = 10;
 const SICK_AGI_PENALTY_CAP = 8;
 const SICK_PER_PENALTY_CAP = 8;
 
+// Hard ceiling on the sickness turn-counter itself (Entity.inflictSickness). Severity
+// already caps via the penalty constants above, but without this the *duration* could
+// still stack unboundedly (e.g. chained raw meat + dirty water), leaving the player
+// Diseased far longer than any single source intends.
+export const MAX_SICKNESS_DURATION = 30;
+
 // Wound infection (rag-bound bleeding wound) routes through the exact same attribute
 // layer as sickness. While infected we feed this fixed sickness-equivalent magnitude
 // into sicknessPenalties, so it saps Con/Agi/Per by a steady amount that — unlike a

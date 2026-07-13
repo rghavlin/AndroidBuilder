@@ -7,6 +7,7 @@ import { SequencerAction } from '../managers/SequencerAction.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { ItemCategory } from '../inventory/traits.js';
 import { CombatResolver } from '../systems/CombatResolver.js';
+import { MAX_SICKNESS_DURATION } from '../utils/SurvivalCascade.js';
 import { AttributeProgressionManager } from '../systems/AttributeProgressionManager.js';
 
 
@@ -118,7 +119,7 @@ export const ITEM_SERIALIZED_FIELDS = [
   'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
   'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
   'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical', 'zombieSubtype',
-  'earbucksValue'
+  'earbucksValue', 'transitionTargetId', 'transitionTargetX', 'transitionTargetY'
 ];
 
 export const EntityType = {
@@ -364,7 +365,7 @@ export class Entity extends SafeEventEmitter {
     const stats = this.getComponent('SurvivalStats');
     if (stats) {
       if (stats.isBleeding) return 'Bleeding';
-      if (stats.woundInfection) return 'Infected';
+      if (stats.woundInfection) return 'Wound Infection';
       if (stats.sickness > 0) return 'Diseased';
       if (stats.drunkenness > 0) return 'Drunk';
       return stats.condition || 'Normal';
@@ -533,25 +534,22 @@ export class Entity extends SafeEventEmitter {
   }
 
   setBleeding(val) {
+    // The `condition` getter derives 'Bleeding' straight from isBleeding, so there's
+    // no separate condition field to sync here.
     this.isBleeding = !!val;
-    if (this.isBleeding) {
-      this.condition = 'Bleeding';
-    } else if (this.condition === 'Bleeding') {
-      this.condition = 'Normal';
-    }
     this.notifyChange();
   }
 
   inflictSickness(amount) {
     // Constitution shortens the sickness (and thus the disease burden it triggers).
     // Single choke point for every source: Spitter's toxic spit, spoiled food, dirty water.
+    // Capped so a chain of contractions (raw meat + dirty water, etc.) can't leave the
+    // player Diseased for an absurd number of turns — severity is already capped via
+    // sicknessPenalties, but duration wasn't.
     const resisted = CombatResolver.applySicknessResistance(amount, this.currentConstitution);
-    this.sickness = Math.max(0, this.sickness + resisted);
-    if (this.sickness > 0) {
-      this.condition = 'Diseased';
-    } else if (this.condition === 'Diseased') {
-      this.condition = 'Normal';
-    }
+    this.sickness = Math.min(MAX_SICKNESS_DURATION, Math.max(0, this.sickness + resisted));
+    // The `condition` getter derives 'Diseased' straight from sickness > 0, so there's
+    // no separate condition field to sync here.
     this.notifyChange();
   }
 

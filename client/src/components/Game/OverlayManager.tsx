@@ -20,6 +20,7 @@ import SleepOverlay from './SleepOverlay';
 import SleepModal from './SleepModal';
 import DefeatDialog from './DefeatDialog';
 import DialogOverlay from './DialogOverlay';
+import SpeechBubbleInput from './SpeechBubbleInput';
 
 /**
  * OverlayManager - Centralized portal hub for all global UI elements.
@@ -179,6 +180,10 @@ export default function OverlayManager() {
               onComplete={handleDialogDismiss}
             />
           )}
+
+          {/* On-map speech bubbles: invisible click/key catcher to advance the
+              conversation. The bubbles are painted on the map canvas itself. */}
+          <SpeechBubbleInput />
 
           {/* Full Screen Overlays (Sleep, Defeat) */}
           <SleepOverlay />

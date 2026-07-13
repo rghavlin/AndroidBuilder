@@ -251,8 +251,9 @@ export const PlayerProvider = ({ children }) => {
       }
 
       // Sync vision parameters to engine for frame-by-frame movement recalculation
+      const activeIsNight = isNight || !!(gameMap?.metadata?.alwaysDark);
       engine.setFOVOptions({ 
-        isNight, 
+        isNight: activeIsNight, 
         isFlashlightOn, 
         isAimingWithScope, 
         flashlightRange,

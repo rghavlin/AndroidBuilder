@@ -65,9 +65,9 @@
     "semantic_hash": "5f8738bbf8d376444157a264059a373c"
   },
   "client/src/components/Game/DevConsole.tsx": {
-    "mtime": 1783423766.4319644,
-    "ast_hash": "4f4d939d334cf3357866b3fbdb789769",
-    "semantic_hash": "4f4d939d334cf3357866b3fbdb789769"
+    "mtime": 1783839018.2643423,
+    "ast_hash": "060f19c38281c09e98bc3ec25b4f3e9a",
+    "semantic_hash": ""
   },
   "client/src/components/Game/DialogOverlay.tsx": {
     "mtime": 1782813781.5502748,
@@ -150,9 +150,9 @@
     "semantic_hash": "8f527787b4aba5ccb4b4519035211ccf"
   },
   "client/src/components/Game/MainMenuWindow.tsx": {
-    "mtime": 1783213557.0170796,
-    "ast_hash": "0dcd8250b6d50d7f6cb31c4a7fcefa5d",
-    "semantic_hash": "0dcd8250b6d50d7f6cb31c4a7fcefa5d"
+    "mtime": 1783840119.82737,
+    "ast_hash": "dfd42445e95a8fd0a4a4a8a26a0f4381",
+    "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
     "mtime": 1783573447.7386348,
@@ -635,8 +635,8 @@
     "semantic_hash": "32da00638860128668bf6487df2a9a96"
   },
   "client/src/contexts/CombatContext.jsx": {
-    "mtime": 1783766521.878176,
-    "ast_hash": "f0279dcd5a0cd7fa1cfabb49a948734f",
+    "mtime": 1783839203.7437563,
+    "ast_hash": "854f32ce881d4e03be12b11b16304479",
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1783838553.978768,
-    "ast_hash": "3b01a88ea731050d2dd9b304be398822",
+    "mtime": 1783839403.0532162,
+    "ast_hash": "e44833bb619ea665f64b263989dcb09d",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {

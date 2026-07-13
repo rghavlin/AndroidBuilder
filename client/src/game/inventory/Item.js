@@ -70,7 +70,10 @@ export class Item extends SafeEventEmitter {
       scooterMode = undefined,
       isLocked = undefined,
       zombieSubtype = undefined,
-      earbucksValue = undefined
+      earbucksValue = undefined,
+      transitionTargetId = undefined,
+      transitionTargetX = undefined,
+      transitionTargetY = undefined
     } = config;
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -160,6 +163,9 @@ export class Item extends SafeEventEmitter {
     this.brainstemColors = brainstemColors;
     this.zombieSubtype = zombieSubtype;
     this.earbucksValue = earbucksValue;
+    this.transitionTargetId = transitionTargetId;
+    this.transitionTargetX = transitionTargetX;
+    this.transitionTargetY = transitionTargetY;
 
     // Container properties (single container for backpacks, etc.)
     this._containerGridData = _containerGridData || containerGrid;
@@ -231,8 +237,8 @@ export class Item extends SafeEventEmitter {
       if (def.consumptionSound && !this.consumptionSound) this.consumptionSound = def.consumptionSound;
       if (def.renderFullTile && this.renderFullTile === null) this.renderFullTile = def.renderFullTile;
       if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) this.dragApPenalty = def.dragApPenalty;
-      if (def.noDrag !== undefined && this.noDrag === undefined) this.noDrag = def.noDrag;
-      if (def.noPickup !== undefined && this.noPickup === undefined) this.noPickup = def.noPickup;
+      if (def.noDrag !== undefined) this.noDrag = def.noDrag;
+      this.noPickup = def.noPickup;
       if (def.isLocked !== undefined && this.isLocked === undefined) this.isLocked = def.isLocked;
       if (def.plantsAs) this.plantsAs = def.plantsAs;
       if (def.produceMin !== undefined) this.produceMin = def.produceMin;
@@ -265,13 +271,13 @@ export class Item extends SafeEventEmitter {
         });
       }
 
-      // Phase 25: Sync traits from definition to handle updates to existing items
+      // Phase 25: Sync traits from definition to handle updates to existing items (adds & removes)
       if (def.traits && Array.isArray(def.traits)) {
-        def.traits.forEach(trait => {
-          if (!this.traits.includes(trait)) {
-            this.traits.push(trait);
-          }
-        });
+        const hadStackable = this.traits.includes(ItemTrait.STACKABLE);
+        this.traits = [...def.traits];
+        if (hadStackable && !this.traits.includes(ItemTrait.STACKABLE)) {
+          this.traits.push(ItemTrait.STACKABLE);
+        }
       }
 
       if (def.isLocked !== undefined && this.isLocked === undefined) {
@@ -352,6 +358,10 @@ export class Item extends SafeEventEmitter {
         key !== 'attachments' &&
         key !== 'id' &&
         key !== 'components' &&
+        key !== 'noPickup' &&
+        key !== 'noDrag' &&
+        key !== 'renderFullTile' &&
+        key !== 'dragApPenalty' &&
         // hp/maxHp are gated on the definition above; never copy a stray hp:0
         // that came from an ECS item-entity round-trip onto a non-combat item.
         key !== 'hp' &&
@@ -1611,7 +1621,8 @@ export class Item extends SafeEventEmitter {
     'combat', 'rangedStats', 'description', 'transformInto', 'produce',
     'backgroundColor', 'borderColor', 'isOn', 'providesElectricity', 'fireMode',
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
-    'zombieSubtype', 'earbucksValue', 'brainstemColors'
+    'zombieSubtype', 'earbucksValue', 'brainstemColors',
+    'transitionTargetId', 'transitionTargetX', 'transitionTargetY'
   ];
 
   // Serialization

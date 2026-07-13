@@ -1,9 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { Settings, Sparkles, HelpCircle, Map, User } from "lucide-react";
 import OptionsWindow from './OptionsWindow';
 import CreditsWindow from './CreditsWindow';
 import HelpWindow from './HelpWindow';
@@ -150,92 +147,83 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
 
   return (
     <div 
-      className="relative h-full w-full bg-no-repeat flex items-center justify-center"
+      className="relative h-full w-full bg-no-repeat select-none"
       style={{ backgroundImage: "url('./images/background/menubackground.png')", backgroundSize: '100% 100%' }}
     >
-      {/* Dark overlay with slight blur to make the skeuomorphic menu panel pop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+      {/* Subtle, pure black gradient that fades in from the right edge of the screen */}
+      <div 
+        className="absolute inset-y-0 right-0 w-[50%] pointer-events-none z-0"
+        style={{ background: 'linear-gradient(to left, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)' }}
+      />
 
-      <Card className="relative z-10 w-96 metal-panel border-border shadow-2xl">
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="text-3xl font-black text-foreground drop-shadow-md tracking-wider uppercase">
-            Zombie Road
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <Button
-            onClick={handleNewGame}
-            disabled={isLoading}
-            className="w-full py-6 text-xl font-bold metal-button-green uppercase tracking-wide"
-            data-testid="button-new-game"
-          >
-            New Game
-          </Button>
+      {/* Menu buttons positioned in the bottom-right corner with tight compression */}
+      <div className="absolute bottom-8 right-[8%] z-10 flex flex-col gap-[1px] items-center justify-end min-w-[280px]">
+        <button
+          onClick={handleNewGame}
+          disabled={isLoading}
+          className="menu-btn-stencil"
+          data-testid="button-new-game"
+        >
+          New Game
+        </button>
 
-          <Button
-            onClick={() => {
-              setRegistryMode('manage');
-              setShowRegistry(true);
-            }}
-            disabled={isLoading}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
-            data-testid="button-create-character"
-          >
-            <User className="h-5 w-5" />
-            Create Character
-          </Button>
-          
-           <Button
-            onClick={() => setShowLoadGame(true)}
-            disabled={isLoading || !hasSave}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide"
-            data-testid="button-load-game"
-          >
-            {isLoading ? 'Loading...' : 'Load Game'}
-          </Button>
+        <button
+          onClick={() => {
+            setRegistryMode('manage');
+            setShowRegistry(true);
+          }}
+          disabled={isLoading}
+          className="menu-btn-stencil"
+          data-testid="button-create-character"
+        >
+          Create Character
+        </button>
+        
+        <button
+          onClick={() => setShowLoadGame(true)}
+          disabled={isLoading || !hasSave}
+          className="menu-btn-stencil"
+          data-testid="button-load-game"
+        >
+          {isLoading ? 'Loading...' : 'Load Game'}
+        </button>
 
-          <Button
-            onClick={() => setShowScenarios(true)}
-            disabled={isLoading}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
-            data-testid="button-custom-map"
-          >
-            <Map className="h-5 w-5" />
-            Custom Map
-          </Button>
+        <button
+          onClick={() => setShowScenarios(true)}
+          disabled={isLoading}
+          className="menu-btn-stencil"
+          data-testid="button-custom-map"
+        >
+          Custom Map
+        </button>
 
-          <Button
-            onClick={() => setShowOptions(true)}
-            disabled={isLoading}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
-            data-testid="button-start-options"
-          >
-            <Settings className="h-5 w-5" />
-            Options
-          </Button>
+        <button
+          onClick={() => setShowOptions(true)}
+          disabled={isLoading}
+          className="menu-btn-stencil"
+          data-testid="button-start-options"
+        >
+          Options
+        </button>
 
-          <Button
-            onClick={() => setShowCredits(true)}
-            disabled={isLoading}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
-            data-testid="button-start-credits"
-          >
-            <Sparkles className="h-5 w-5" />
-            Credits
-          </Button>
+        <button
+          onClick={() => setShowCredits(true)}
+          disabled={isLoading}
+          className="menu-btn-stencil"
+          data-testid="button-start-credits"
+        >
+          Credits
+        </button>
 
-          <Button
-            onClick={() => setShowHelp(true)}
-            disabled={isLoading}
-            className="w-full py-5 text-lg font-bold metal-button uppercase tracking-wide flex items-center justify-center gap-2"
-            data-testid="button-start-help"
-          >
-            <HelpCircle className="h-5 w-5" />
-            Help
-          </Button>
-
-        </CardContent>
-      </Card>
+        <button
+          onClick={() => setShowHelp(true)}
+          disabled={isLoading}
+          className="menu-btn-stencil"
+          data-testid="button-start-help"
+        >
+          Help
+        </button>
+      </div>
 
       {showOptions && <OptionsWindow onClose={() => {
         setShowOptions(false);

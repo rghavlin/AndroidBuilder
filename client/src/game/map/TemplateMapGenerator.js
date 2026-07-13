@@ -687,7 +687,11 @@ export class TemplateMapGenerator {
     const mapData = builder.getFinalMapData('scenario', {});
     mapData.metadata.entities = scenarioData.entities || [];
     mapData.metadata.eventTriggers = scenarioData.eventTriggers || [];
+    mapData.metadata.bubbleEvents = scenarioData.bubbleEvents || [];
     mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
+    if (scenarioData.metadata?.alwaysDark || scenarioData.alwaysDark) {
+      mapData.metadata.alwaysDark = true;
+    }
     if (scenarioData.metadata?.spawnZones) {
       mapData.metadata.spawnZones = { ...mapData.metadata.spawnZones, ...scenarioData.metadata.spawnZones };
     }

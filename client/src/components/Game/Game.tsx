@@ -11,6 +11,7 @@ import { AudioProvider } from '../../contexts/AudioContext.jsx';
 import { VisualEffectsProvider } from '../../contexts/VisualEffectsContext.jsx';
 import { InventoryProvider } from '../../contexts/InventoryContext.jsx';
 import { CombatProvider } from '../../contexts/CombatContext.jsx';
+import { SpeechBubbleProvider } from '../../contexts/SpeechBubbleContext.jsx';
 import { OverlayProvider } from '../../contexts/OverlayContext';
 import GameScreen from './GameScreen.tsx';
 import OverlayManager from './OverlayManager.tsx';
@@ -28,14 +29,16 @@ export default function Game() {
                   <PlayerProvider>
                     <InventoryProvider>
                       <CombatProvider>
-                        <GameProvider>
-                          <SleepProvider>
-                            <ActionProvider>
-                              <GameScreen />
-                              <OverlayManager />
-                            </ActionProvider>
-                          </SleepProvider>
-                        </GameProvider>
+                        <SpeechBubbleProvider>
+                          <GameProvider>
+                            <SleepProvider>
+                              <ActionProvider>
+                                <GameScreen />
+                                <OverlayManager />
+                              </ActionProvider>
+                            </SleepProvider>
+                          </GameProvider>
+                        </SpeechBubbleProvider>
                       </CombatProvider>
                     </InventoryProvider>
                   </PlayerProvider>

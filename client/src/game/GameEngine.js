@@ -419,19 +419,26 @@ class GameEngine extends SafeEventEmitter {
 
        const roundX = Math.round(posX);
        const roundY = Math.round(posY);
+       const isMapAlwaysDark = !!(this.gameMap?.metadata?.alwaysDark);
+       let isNight = this._fovOptions.isNight;
+       let baseRange;
 
-       const { maxRange, isNight, isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
-       
+       if (isMapAlwaysDark) {
+         isNight = true;
+         baseRange = 1.5;
+       } else {
          // Calculate base ambient sight range based on hour of the day (base 15 before perception bonus)
          const hour = getHourFromTurn(this.turn);
-         const baseRange = getSightRangeForHour(hour, maxRange);
-
-         let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
+         baseRange = getSightRangeForHour(hour, this._fovOptions.maxRange);
+       }
+       
+       const { isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
+       let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
        
        // Phase NVG: Night Vision range override
        if (isFlashlightOn && isNightVision) {
          if (isNight) {
-           range = maxRange; // Full day range at night
+           range = this._fovOptions.maxRange; // Full day range at night
          } else {
            range = 0.5; // Blindingly bright during day - only see own tile
          }
@@ -450,9 +457,9 @@ class GameEngine extends SafeEventEmitter {
        range += perceptionBonus;
 
        // Weather reduction: reduce sight range by 15% when raining, 20% in heavy rain (intensity > 0.7)
-       // Skip weather reduction if the player is inside (standing on floor or tent_floor terrain)
+       // Skip weather reduction if the player is inside (standing on floor or tent_floor terrain) or map is always dark
        const playerTile = this.gameMap.getTile(roundX, roundY);
-       const isInside = playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor');
+       const isInside = (playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor')) || isMapAlwaysDark;
        if (!isInside && this.weather && this.weather.type === 'rain') {
          const isHeavyRain = this.weather.intensity > 0.7;
          const reduction = isHeavyRain ? 0.20 : 0.15;

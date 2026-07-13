@@ -12,7 +12,7 @@ interface MapTransitionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<boolean> | void;
-  direction: 'north' | 'south';
+  direction: 'north' | 'south' | 'custom' | 'stairs_down' | 'stairs_up';
   currentMapId: string;
   nextMapId: string;
   isCustom?: boolean;
@@ -29,6 +29,8 @@ export const MapTransitionDialog: React.FC<MapTransitionDialogProps> = ({
 }) => {
   const message = direction === 'north' 
     ? "Move on down the road?" 
+    : direction === 'stairs_down' ? "Go downstairs?" 
+    : direction === 'stairs_up' ? "Go upstairs?"
     : "Return to previous area?";
 
   const handleYes = async () => {

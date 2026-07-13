@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Boston Traffic';
+  src: url('/fonts/boston_traffic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --header-height: 80px;
   --controls-height: 82px;
@@ -641,5 +648,53 @@
 
   .light2 .custom-scrollbar::-webkit-scrollbar-corner {
     background: hsl(210 20% 96%);
+  }
+
+  .menu-btn-stencil {
+    font-family: sans-serif;
+    color: #ffffff;
+    -webkit-text-stroke: 1.2px #000000;
+    text-shadow: 
+      -1.2px -1.2px 0 #000,  
+       1.2px -1.2px 0 #000,
+      -1.2px  1.2px 0 #000,
+       1.2px  1.2px 0 #000,
+       0px  2px 4px rgba(0,0,0,0.85);
+    background: transparent;
+    border: none;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: 0.08em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 0px 0.5rem;
+    display: inline-block;
+    outline: none;
+  }
+
+  .menu-btn-stencil:hover {
+    color: #facc15;
+    transform: scale(1.05);
+    text-shadow: 
+      -1.2px -1.2px 0 #000,  
+       1.2px -1.2px 0 #000,
+      -1.2px  1.2px 0 #000,
+       1.2px  1.2px 0 #000,
+       0 0 10px rgba(250, 204, 21, 0.8),
+       0px  3px 6px rgba(0,0,0,0.85);
+  }
+
+  .menu-btn-stencil:active {
+    transform: scale(0.96);
+  }
+
+  .menu-btn-stencil:disabled {
+    color: #64748b;
+    -webkit-text-stroke: 1px #334155;
+    text-shadow: none;
+    cursor: not-allowed;
+    transform: none;
   }
 }

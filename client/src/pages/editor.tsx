@@ -63,14 +63,25 @@ const PLACE_ICON_TYPES = [
 ];
 
 type Edge = 'n' | 'e' | 's' | 'w';
-type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger' | 'map_transition' | 'place_icon';
+type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger' | 'map_transition' | 'place_icon' | 'speech_bubble';
+
+// On-map, per-entity speech bubbles. A BubbleEvent is a sequence of lines, each
+// anchored to a specific tile/entity, played one at a time when its trigger
+// fires. Serialized to scenario top-level `bubbleEvents` (see SpeechBubbleContext).
+interface BubbleLine { x: number; y: number; speaker?: string; text: string; }
+interface BubbleEvent {
+  id: string;
+  oneShot: boolean;
+  trigger: { type: 'tile' | 'proximity'; x: number; y: number; radius?: number };
+  lines: BubbleLine[];
+}
 
 interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; }
 interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
   entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean }[];
-  items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string> }[];
+  items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number }[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
   placeIcon?: string;
@@ -90,8 +101,10 @@ interface ScenarioData {
   buildings: BuildingMeta[];
   playerSpawn: { x: number; y: number } | null;
   noAutosave?: boolean;
+  alwaysDark?: boolean;
   seed?: number;
   lowSpots?: { x: number; y: number }[];
+  bubbleEvents?: BubbleEvent[];
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -139,7 +152,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[] } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[] } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -167,6 +180,9 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
             .map((it: any) => {
               const entry: any = { defId: it.defId || it.id };
               if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
+              if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
+              if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
+              if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
               if (it.condition !== undefined) entry.condition = it.condition;
               if (it.attachments) {
                 const itItemDef = (ItemDefs as any)[entry.defId];
@@ -279,12 +295,14 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     tiles,
     buildings: scenario.metadata?.buildings || [],
     noAutosave: scenario.noAutosave ?? false,
+    alwaysDark: scenario.alwaysDark ?? scenario.metadata?.alwaysDark ?? false,
     seed: scenario.seed ?? scenario.metadata?.seed,
     lowSpots: scenario.metadata?.lowSpots || scenario.lowSpots || [],
+    bubbleEvents: scenario.bubbleEvents || scenario.metadata?.bubbleEvents || [],
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[] } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[] } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -328,6 +346,9 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
           .map((it: any) => {
             const entry: any = { defId: it.defId || it.id };
             if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
+            if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
+            if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
+            if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
             if (it.condition !== undefined) entry.condition = it.condition;
             if (it.attachments) {
               const itItemDef = (ItemDefs as any)[entry.defId];
@@ -416,8 +437,10 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     tiles,
     buildings: mapData.buildings || [],
     noAutosave: mapData.noAutosave ?? false,
+    alwaysDark: mapData.alwaysDark ?? mapData.metadata?.alwaysDark ?? false,
     seed: mapData.seed ?? mapData.metadata?.seed,
     lowSpots: mapData.metadata?.lowSpots || mapData.lowSpots || [],
+    bubbleEvents: mapData.bubbleEvents || mapData.metadata?.bubbleEvents || [],
   };
 }
 
@@ -453,6 +476,9 @@ function exportScenario(scenario: ScenarioData) {
           const full = createItemFromDef(item.defId);
           if (full && item.ammoCount !== undefined) full.ammoCount = item.ammoCount;
           if (full && item.condition !== undefined) full.condition = item.condition;
+          if (full && item.transitionTargetId !== undefined) full.transitionTargetId = item.transitionTargetId;
+          if (full && item.transitionTargetX !== undefined) full.transitionTargetX = item.transitionTargetX;
+          if (full && item.transitionTargetY !== undefined) full.transitionTargetY = item.transitionTargetY;
           if (full && item.batteryCharges !== undefined) {
             const slotInfo = getBatterySlotInfo((ItemDefs as any)[item.defId]);
             if (slotInfo) {
@@ -547,9 +573,11 @@ function exportScenario(scenario: ScenarioData) {
     width: scenario.width,
     height: scenario.height,
     ...(scenario.noAutosave ? { noAutosave: true } : {}),
+    ...(scenario.alwaysDark ? { alwaysDark: true } : {}),
     seed: scenario.seed,
     tiles,
     metadata: {
+      alwaysDark: scenario.alwaysDark,
       buildings: scenario.buildings,
       seed: scenario.seed,
       specialBuildings: scenario.buildings.filter(b =>
@@ -567,6 +595,7 @@ function exportScenario(scenario: ScenarioData) {
     entities,
     eventTriggers,
     mapTransitions,
+    ...(scenario.bubbleEvents && scenario.bubbleEvents.length ? { bubbleEvents: scenario.bubbleEvents } : {}),
   };
 }
 
@@ -579,6 +608,7 @@ export default function MapEditor() {
   const [height, setHeight] = useState(20);
   const [scenarioName, setScenarioName] = useState('untitled');
   const [noAutosave, setNoAutosave] = useState(false);
+  const [alwaysDark, setAlwaysDark] = useState(false);
   const [tiles, setTiles] = useState<TileData[][]>(() => createEmptyGrid(20, 20));
   const [buildings, setBuildings] = useState<BuildingMeta[]>([]);
   const [saveSlots, setSaveSlots] = useState<{ slotName: string; timestamp: number; turn?: number }[]>([]);
@@ -614,9 +644,106 @@ export default function MapEditor() {
   const dialogStepsRef = useRef(dialogSteps);
   dialogStepsRef.current = dialogSteps;
 
+  // ─── Speech bubble authoring state ───────────────────────────────────
+  const [bubbleEvents, setBubbleEvents] = useState<BubbleEvent[]>([]);
+  // Draft (currently-edited) event fields:
+  const [bubbleId, setBubbleId] = useState('');
+  const [bubbleOneShot, setBubbleOneShot] = useState(true);
+  const [bubbleTriggerType, setBubbleTriggerType] = useState<'tile' | 'proximity'>('tile');
+  const [bubbleTriggerRadius, setBubbleTriggerRadius] = useState<number>(2);
+  const [bubbleTrigger, setBubbleTrigger] = useState<{ x: number; y: number } | null>(null);
+  const [bubbleLines, setBubbleLines] = useState<BubbleLine[]>([]);
+  const [bubbleLineSpeaker, setBubbleLineSpeaker] = useState('');
+  const [bubbleLineText, setBubbleLineText] = useState('');
+  // What the next map click assigns: the trigger location, or a new line's anchor.
+  const [bubbleClickMode, setBubbleClickMode] = useState<'trigger' | 'anchor' | null>(null);
+  const bubbleEventsRef = useRef(bubbleEvents);
+  bubbleEventsRef.current = bubbleEvents;
+
+  const resetBubbleDraft = useCallback(() => {
+    setBubbleId('');
+    setBubbleOneShot(true);
+    setBubbleTriggerType('tile');
+    setBubbleTriggerRadius(2);
+    setBubbleTrigger(null);
+    setBubbleLines([]);
+    setBubbleLineSpeaker('');
+    setBubbleLineText('');
+    setBubbleClickMode(null);
+  }, []);
+
+  // Map-click routing while the speech_bubble tool is active.
+  const handleBubbleClick = useCallback((x: number, y: number) => {
+    if (x < 0 || y < 0 || x >= width || y >= height) return;
+    if (bubbleClickMode === 'trigger') {
+      setBubbleTrigger({ x, y });
+      setBubbleClickMode(null);
+      setStatusMsg(`Trigger set at (${x}, ${y})`);
+    } else if (bubbleClickMode === 'anchor') {
+      if (!bubbleLineText.trim()) {
+        setStatusMsg('Enter line text before picking an anchor');
+        setBubbleClickMode(null);
+        return;
+      }
+      const line: BubbleLine = { x, y, text: bubbleLineText.trim() };
+      if (bubbleLineSpeaker.trim()) line.speaker = bubbleLineSpeaker.trim();
+      setBubbleLines(prev => [...prev, line]);
+      setBubbleLineSpeaker('');
+      setBubbleLineText('');
+      setBubbleClickMode(null);
+      setStatusMsg(`Line anchored to entity at (${x}, ${y})`);
+    } else {
+      setStatusMsg('Pick "Set trigger" or "Pick anchor & add" first, then click a tile');
+    }
+  }, [width, height, bubbleClickMode, bubbleLineText, bubbleLineSpeaker]);
+
+  const commitBubbleEvent = useCallback(() => {
+    const id = bubbleId.trim();
+    if (!id) { setStatusMsg('Enter an event ID'); return; }
+    if (!bubbleTrigger) { setStatusMsg('Set a trigger location first'); return; }
+    if (bubbleLines.length === 0) { setStatusMsg('Add at least one line'); return; }
+    const ev: BubbleEvent = {
+      id,
+      oneShot: bubbleOneShot,
+      trigger: {
+        type: bubbleTriggerType,
+        x: bubbleTrigger.x,
+        y: bubbleTrigger.y,
+        ...(bubbleTriggerType === 'proximity' ? { radius: bubbleTriggerRadius } : {}),
+      },
+      lines: bubbleLines,
+    };
+    setBubbleEvents(prev => [...prev.filter(e => e.id !== id), ev]);
+    setStatusMsg(`Saved speech event "${id}" (${bubbleLines.length} line${bubbleLines.length !== 1 ? 's' : ''})`);
+    resetBubbleDraft();
+  }, [bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius, bubbleTrigger, bubbleLines, resetBubbleDraft]);
+
+  const editBubbleEvent = useCallback((id: string) => {
+    const ev = bubbleEventsRef.current.find(e => e.id === id);
+    if (!ev) return;
+    setBubbleId(ev.id);
+    setBubbleOneShot(ev.oneShot);
+    setBubbleTriggerType(ev.trigger.type);
+    setBubbleTriggerRadius(ev.trigger.radius ?? 2);
+    setBubbleTrigger({ x: ev.trigger.x, y: ev.trigger.y });
+    setBubbleLines(ev.lines.map(l => ({ ...l })));
+    setBubbleLineSpeaker('');
+    setBubbleLineText('');
+    setBubbleClickMode(null);
+    setTool('speech_bubble');
+    setStatusMsg(`Editing "${id}" — Save event to apply changes`);
+  }, []);
+
+  const deleteBubbleEvent = useCallback((id: string) => {
+    setBubbleEvents(prev => prev.filter(e => e.id !== id));
+    setStatusMsg(`Deleted speech event "${id}"`);
+  }, []);
+
   const [transitionTargetType, setTransitionTargetType] = useState<'scenario' | 'generator' | 'tutorial_end'>('scenario');
   const [transitionTargetId, setTransitionTargetId] = useState('');
   const [transitionLevel, setTransitionLevel] = useState(1);
+  const [transitionTargetX, setTransitionTargetX] = useState<number | ''>('');
+  const [transitionTargetY, setTransitionTargetY] = useState<number | ''>('');
   const [availableScenarios, setAvailableScenarios] = useState<{ name: string; width: number; height: number; fileName?: string }[]>([]);
   const [exitImage, setExitImage] = useState<HTMLImageElement | null>(null);
 
@@ -669,6 +796,15 @@ export default function MapEditor() {
   const [zombieModalSeed, setZombieModalSeed] = useState<string>('');
   const [isGeneratingZombies, setIsGeneratingZombies] = useState(false);
   const [inspectTile, setInspectTile] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
+  const [editStairsItem, setEditStairsItem] = useState<{ x: number; y: number; itemIndex: number } | null>(null);
+  const [editStairsId, setEditStairsId] = useState('');
+  const [editStairsX, setEditStairsX] = useState<number | ''>('');
+  const [editStairsY, setEditStairsY] = useState<number | ''>('');
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+  const requestConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmModal({ message, onConfirm });
+  };
+
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const offscreenRef = useRef<HTMLCanvasElement | null>(null);
@@ -795,11 +931,17 @@ export default function MapEditor() {
           break;
         case 'item':
           if (selectedItem) {
-            const itemEntry: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string> } = { defId: selectedItem };
+            const itemEntry: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number } = { defId: selectedItem };
             if (waterFill !== '') itemEntry.ammoCount = waterFill as number;
             if (conditionVal !== '') itemEntry.condition = conditionVal as number;
             if (batteryCharges !== '') itemEntry.batteryCharges = batteryCharges as number;
             if (gunAmmoCount !== '') itemEntry.gunAmmoCount = gunAmmoCount as number;
+            
+            if (selectedItem === 'placeable.stairs_down' || selectedItem === 'placeable.stairs_up') {
+              if (transitionTargetId) itemEntry.transitionTargetId = transitionTargetId;
+              if (transitionTargetX !== '') itemEntry.transitionTargetX = transitionTargetX as number;
+              if (transitionTargetY !== '') itemEntry.transitionTargetY = transitionTargetY as number;
+            }
             if (gunMagDefId) itemEntry.gunMagDefId = gunMagDefId;
             if (Object.keys(gunAttachments).some(k => gunAttachments[k])) itemEntry.gunAttachments = { ...gunAttachments };
             tile.items.push(itemEntry);
@@ -1035,6 +1177,52 @@ export default function MapEditor() {
       ctx.setLineDash([]);
     }
 
+    // Speech-bubble authoring markers (draft trigger + anchors, and saved events)
+    if (tool === 'speech_bubble') {
+      // Saved events: faint markers so authors see everything at a glance.
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (const ev of bubbleEvents) {
+        ctx.fillStyle = 'rgba(224,176,96,0.5)';
+        ctx.fillText('◆', ev.trigger.x * CELL + CELL / 2, ev.trigger.y * CELL + CELL / 2);
+        ev.lines.forEach((l, idx) => {
+          ctx.fillStyle = 'rgba(224,176,96,0.5)';
+          ctx.fillText(String(idx + 1), l.x * CELL + CELL / 2, l.y * CELL + CELL / 2);
+        });
+      }
+
+      // Draft trigger.
+      if (bubbleTrigger) {
+        ctx.strokeStyle = '#e0b060';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bubbleTrigger.x * CELL + 2, bubbleTrigger.y * CELL + 2, CELL - 4, CELL - 4);
+        ctx.fillStyle = '#e0b060';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('◆', bubbleTrigger.x * CELL + CELL / 2, bubbleTrigger.y * CELL + CELL / 2);
+        if (bubbleTriggerType === 'proximity') {
+          ctx.strokeStyle = 'rgba(224,176,96,0.4)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(bubbleTrigger.x * CELL + CELL / 2, bubbleTrigger.y * CELL + CELL / 2, bubbleTriggerRadius * CELL, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      // Draft line anchors (numbered in play order).
+      bubbleLines.forEach((l, idx) => {
+        ctx.strokeStyle = '#7bb8ff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(l.x * CELL + 4, l.y * CELL + 4, CELL - 8, CELL - 8);
+        ctx.fillStyle = '#7bb8ff';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(idx + 1), l.x * CELL + CELL / 2, l.y * CELL + CELL / 2);
+      });
+      ctx.lineWidth = 1;
+    }
+
     // Hover highlight
     if (hoverCell && tool !== 'building_rect') {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
@@ -1048,7 +1236,7 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid]);
+  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid, bubbleEvents, bubbleTrigger, bubbleTriggerType, bubbleTriggerRadius, bubbleLines]);
 
   // ─── Minimap update logic ────────────────────────────────────────────
   const updateMinimapViewport = useCallback(() => {
@@ -1164,7 +1352,9 @@ export default function MapEditor() {
     if (e.button === 2) return; // right-click handled by onContextMenu
     setInspectTile(null);
     const { x, y } = cellFromEvent(e);
-    if (tool === 'building_rect') {
+    if (tool === 'speech_bubble') {
+      handleBubbleClick(x, y);
+    } else if (tool === 'building_rect') {
       setBuildStart({ x, y });
     } else {
       strokeUndoPushed.current = false;
@@ -1207,6 +1397,31 @@ export default function MapEditor() {
     setIsPainting(false);
   };
 
+  // Effective bubble events for serialization: committed events PLUS the current
+  // draft if it's valid (trigger + at least one line). This prevents the common
+  // trap of building a conversation and forgetting to click "Save event" before
+  // publishing. A blank Event ID is auto-named.
+  const getEffectiveBubbleEvents = useCallback((): BubbleEvent[] => {
+    const events = [...bubbleEvents];
+    if (bubbleTrigger && bubbleLines.length > 0) {
+      const id = bubbleId.trim() || `speech_${events.length + 1}`;
+      const draft: BubbleEvent = {
+        id,
+        oneShot: bubbleOneShot,
+        trigger: {
+          type: bubbleTriggerType,
+          x: bubbleTrigger.x,
+          y: bubbleTrigger.y,
+          ...(bubbleTriggerType === 'proximity' ? { radius: bubbleTriggerRadius } : {}),
+        },
+        lines: bubbleLines,
+      };
+      const idx = events.findIndex(e => e.id === id);
+      if (idx >= 0) events[idx] = draft; else events.push(draft);
+    }
+    return events;
+  }, [bubbleEvents, bubbleTrigger, bubbleLines, bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius]);
+
   // ─── Save / Load ─────────────────────────────────────────────────────
   const getPlayerSpawn = (): { x: number; y: number } | null => {
     for (let y = 0; y < height; y++) {
@@ -1223,8 +1438,10 @@ export default function MapEditor() {
       width, height, tiles, buildings,
       playerSpawn: getPlayerSpawn(),
       noAutosave: noAutosave || undefined,
+      alwaysDark: alwaysDark || undefined,
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
+      bubbleEvents: getEffectiveBubbleEvents(),
     };
     const exported = exportScenario(scenario);
 
@@ -1245,8 +1462,10 @@ export default function MapEditor() {
       tiles,
       buildings,
       noAutosave: noAutosave || undefined,
+      alwaysDark: alwaysDark || undefined,
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
+      bubbleEvents: getEffectiveBubbleEvents(),
     };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
@@ -1302,8 +1521,11 @@ export default function MapEditor() {
         setTiles(sanitizeTiles(editor.tiles));
         setBuildings(editor.buildings || []);
         setNoAutosave(editor.noAutosave ?? false);
+        setAlwaysDark(editor.alwaysDark ?? false);
         setMapSeed(editor.seed !== undefined ? editor.seed : '');
         setMapLowSpots(editor.lowSpots || []);
+        setBubbleEvents((editor as any).bubbleEvents || []);
+        resetBubbleDraft();
         setStatusMsg(`Loaded save game map "${label}"`);
         return;
       } catch (err: any) {
@@ -1322,8 +1544,11 @@ export default function MapEditor() {
     setTiles(sanitizeTiles(editor.tiles));
     setBuildings(editor.buildings || []);
     setNoAutosave(editor.noAutosave ?? false);
+    setAlwaysDark(editor.alwaysDark ?? false);
     setMapSeed(editor.seed !== undefined ? editor.seed : '');
     setMapLowSpots(editor.lowSpots || []);
+    setBubbleEvents((editor as any).bubbleEvents || data.bubbleEvents || []);
+    resetBubbleDraft();
     setStatusMsg(`Loaded "${label}"`);
   };
 
@@ -1373,28 +1598,32 @@ export default function MapEditor() {
   };
 
   const handleGenerateTemplate = async (templateName: string) => {
-    if (!confirm('Generate template? This will replace the current map layout!')) return;
     setShowGenPicker(false);
-    setStatusMsg(`Generating map template "${templateName}"...`);
-    try {
-      const { TemplateMapGenerator } = await import('@/game/map/TemplateMapGenerator');
-      const generator = new TemplateMapGenerator();
-      const scenarioData = generator.generateFromTemplate(templateName, { mapNumber: 1 });
-      if (!scenarioData) {
-        setStatusMsg('Generation failed: no map produced');
-        return;
+    requestConfirm('Generate template? This will replace the current map layout!', async () => {
+      setStatusMsg(`Generating map template "${templateName}"...`);
+      try {
+        const { TemplateMapGenerator } = await import('@/game/map/TemplateMapGenerator');
+        const generator = new TemplateMapGenerator();
+        const scenarioData = generator.generateFromTemplate(templateName, { mapNumber: 1 });
+        if (!scenarioData) {
+          setStatusMsg('Generation failed: no map produced');
+          return;
+        }
+        scenarioData.name = `generated_${templateName}`;
+        applyLoadedData(scenarioData, `Generated: ${templateName}`);
+      } catch (err: any) {
+        console.error('Failed to generate template:', err);
+        setStatusMsg(`Generation failed: ${err.message}`);
       }
-      scenarioData.name = `generated_${templateName}`;
-      applyLoadedData(scenarioData, `Generated: ${templateName}`);
-    } catch (err: any) {
-      console.error('Failed to generate template:', err);
-      setStatusMsg(`Generation failed: ${err.message}`);
-    }
+    });
   };
 
   const mapEcsItemToEditorItem = (it: any) => {
     const entry: any = { defId: it.defId || it.id };
     if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
+    if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
+    if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
+    if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
     if (it.condition !== undefined) entry.condition = it.condition;
     if (it.attachments) {
       const itItemDef = (ItemDefs as any)[entry.defId];
@@ -1618,10 +1847,11 @@ export default function MapEditor() {
   };
 
   const handleClear = () => {
-    if (!confirm('Clear entire map?')) return;
-    setTiles(prev => { pushUndo(prev, buildingsRef.current); return createEmptyGrid(width, height); });
-    setBuildings([]);
-    setStatusMsg('Map cleared');
+    requestConfirm('Clear entire map?', () => {
+      setTiles(prev => { pushUndo(prev, buildingsRef.current); return createEmptyGrid(width, height); });
+      setBuildings([]);
+      setStatusMsg('Map cleared');
+    });
   };
 
   // ─── UI ───────────────────────────────────────────────────────────────
@@ -1660,6 +1890,10 @@ export default function MapEditor() {
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer', marginTop: 2 }}>
             <input type="checkbox" checked={noAutosave} onChange={e => setNoAutosave(e.target.checked)} />
             Disable autosave
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer', marginTop: 2 }}>
+            <input type="checkbox" checked={alwaysDark} onChange={e => setAlwaysDark(e.target.checked)} />
+            Always dark (indoors/underground)
           </label>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <button onClick={handleExport} style={btnStyle('#2a7a2a')}>Publish</button>
@@ -1707,6 +1941,7 @@ export default function MapEditor() {
           {toolButton('entity', 'Entity')}
           {toolButton('item', 'Item')}
           {toolButton('event_trigger', 'Event')}
+          {toolButton('speech_bubble', 'Speech')}
           {toolButton('map_transition', 'Transition')}
           {toolButton('eraser', 'Eraser')}
         </div>
@@ -2035,9 +2270,37 @@ export default function MapEditor() {
                 </div>
               );
             })()}
+            
+            {(selectedItem === 'placeable.stairs_down' || selectedItem === 'placeable.stairs_up') && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Stairs Transition Target</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <select
+                    value={transitionTargetId}
+                    onChange={e => setTransitionTargetId(e.target.value)}
+                    style={{ ...inputStyle, width: '100%' }}
+                  >
+                    <option value="">— Select map —</option>
+                    {availableScenarios.map(s => (
+                      <option key={s.name} value={s.name}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+                    <label style={{ fontSize: 11, color: '#888' }}>Target X</label>
+                    <input type="number" min={0} value={transitionTargetX} onChange={e => setTransitionTargetX(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+                    <label style={{ fontSize: 11, color: '#888' }}>Target Y</label>
+                    <input type="number" min={0} value={transitionTargetY} onChange={e => setTransitionTargetY(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            
           </div>
         )}
-
         {tool === 'event_trigger' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: 11, color: '#888' }}>Trigger ID</label>
@@ -2098,6 +2361,124 @@ export default function MapEditor() {
 
             <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
               Click a tile to place this dialog trigger. Steps play in order when the player walks on the tile.
+            </p>
+          </div>
+        )}
+
+        {tool === 'speech_bubble' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={{ fontSize: 11, color: '#888' }}>Event ID</label>
+            <input value={bubbleId} onChange={e => setBubbleId(e.target.value)} placeholder="e.g. rooftop_standoff" style={{ ...inputStyle }} />
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+              <input type="checkbox" checked={bubbleOneShot} onChange={e => setBubbleOneShot(e.target.checked)} />
+              One-shot (only triggers once)
+            </label>
+
+            {/* Trigger */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
+              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Trigger</label>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input type="radio" name="bubbleTriggerType" checked={bubbleTriggerType === 'tile'} onChange={() => setBubbleTriggerType('tile')} />
+                  Step on tile
+                </label>
+                <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input type="radio" name="bubbleTriggerType" checked={bubbleTriggerType === 'proximity'} onChange={() => setBubbleTriggerType('proximity')} />
+                  Proximity
+                </label>
+              </div>
+              {bubbleTriggerType === 'proximity' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Radius (tiles)</label>
+                  <input type="number" min={1} max={20} value={bubbleTriggerRadius} onChange={e => setBubbleTriggerRadius(Math.max(1, Number(e.target.value) || 1))} style={{ ...inputStyle, width: 60 }} />
+                </div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button
+                  onClick={() => setBubbleClickMode(m => m === 'trigger' ? null : 'trigger')}
+                  style={btnStyle(bubbleClickMode === 'trigger' ? '#b5651d' : '#333')}
+                >{bubbleClickMode === 'trigger' ? 'Click a tile…' : 'Set trigger location'}</button>
+                <span style={{ fontSize: 11, color: bubbleTrigger ? '#9c6' : '#888' }}>
+                  {bubbleTrigger ? `(${bubbleTrigger.x}, ${bubbleTrigger.y})` : 'not set'}
+                </span>
+              </div>
+            </div>
+
+            {/* Lines */}
+            <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
+              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Lines (each anchored to an entity)</label>
+              {bubbleLines.length === 0 && (
+                <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>No lines yet.</div>
+              )}
+              {bubbleLines.map((line, i) => (
+                <div key={i} style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#7bb8ff', fontWeight: 'bold', fontSize: 11 }}>{line.speaker || '(no speaker)'}</span>
+                    <span style={{ color: '#9c6', fontSize: 10 }}>@ ({line.x}, {line.y})</span>
+                  </div>
+                  <div style={{ color: '#ccc', marginTop: 2 }}>{line.text}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                    <button
+                      onClick={() => setBubbleLines(prev => prev.filter((_, j) => j !== i))}
+                      style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >Remove</button>
+                    <button
+                      onClick={() => { setBubbleLineSpeaker(line.speaker || ''); setBubbleLineText(line.text); setBubbleLines(prev => prev.filter((_, j) => j !== i)); }}
+                      style={{ fontSize: 10, color: '#7bb8ff', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >Edit</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add line */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+              <label style={{ fontSize: 11, color: '#888' }}>Add Line</label>
+              <input value={bubbleLineSpeaker} onChange={e => setBubbleLineSpeaker(e.target.value)} placeholder="Speaker (optional)" style={{ ...inputStyle }} />
+              <textarea
+                value={bubbleLineText}
+                onChange={e => setBubbleLineText(e.target.value)}
+                placeholder="What this entity says…"
+                rows={2}
+                style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+              />
+              <button
+                onClick={() => { if (bubbleLineText.trim()) setBubbleClickMode('anchor'); else setStatusMsg('Enter line text first'); }}
+                disabled={!bubbleLineText.trim()}
+                style={btnStyle(bubbleClickMode === 'anchor' ? '#b5651d' : (bubbleLineText.trim() ? '#2a7a2a' : '#333'))}
+              >{bubbleClickMode === 'anchor' ? 'Click the entity tile…' : '+ Pick anchor & add line'}</button>
+            </div>
+
+            <button onClick={commitBubbleEvent} style={btnStyle('#4a90d9')}>Save event</button>
+            <button onClick={resetBubbleDraft} style={btnStyle('#555')}>Clear draft</button>
+
+            {/* Committed events */}
+            {bubbleEvents.length > 0 && (
+              <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#888' }}>Saved speech events ({bubbleEvents.length})</label>
+                {bubbleEvents.map(ev => (
+                  <div key={ev.id} style={{ background: '#161616', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#e0b060', fontWeight: 'bold' }}>{ev.id}</span>
+                      <span style={{ color: '#888', fontSize: 10 }}>
+                        {ev.trigger.type === 'proximity' ? `prox r${ev.trigger.radius ?? 1}` : 'tile'} @ ({ev.trigger.x},{ev.trigger.y})
+                      </span>
+                    </div>
+                    <div style={{ color: '#aaa', fontSize: 10, marginTop: 1 }}>
+                      {ev.lines.length} line{ev.lines.length !== 1 ? 's' : ''}{ev.oneShot ? ' · one-shot' : ' · repeatable'}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                      <button onClick={() => editBubbleEvent(ev.id)} style={{ fontSize: 10, color: '#7bb8ff', background: 'none', border: 'none', cursor: 'pointer' }}>Edit</button>
+                      <button onClick={() => deleteBubbleEvent(ev.id)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
+              Build a conversation: set a trigger tile, then add lines each anchored to an entity. Lines play one at a time as bubbles over each entity. Click <b>Save event</b> before exporting.
             </p>
           </div>
         )}
@@ -2804,8 +3185,19 @@ export default function MapEditor() {
                           {isDegradable && item.condition !== undefined ? ` · ${item.condition}% cond` : ''}
                           {slotInfo && item.batteryCharges !== undefined ? ` · ${item.batteryCharges}/${slotInfo.capacity} chg` : ''}
                           {gunAmmoLabel}
+                          {(item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up') && item.transitionTargetId ? ` · ➡ ${item.transitionTargetId} (${item.transitionTargetX ?? '?'},${item.transitionTargetY ?? '?'})` : ''}
                         </span>
-                        <button onClick={() => removeItem(i)} style={removeBtnStyle}>Remove</button>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {(item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up') && (
+                            <button onClick={() => {
+                              setEditStairsItem({ x: tx, y: ty, itemIndex: i });
+                              setEditStairsId(item.transitionTargetId || '');
+                              setEditStairsX(item.transitionTargetX ?? '');
+                              setEditStairsY(item.transitionTargetY ?? '');
+                            }} style={editBtnStyle}>Edit</button>
+                          )}
+                          <button onClick={() => removeItem(i)} style={removeBtnStyle}>Remove</button>
+                        </div>
                       </div>
                     );
                   })}
@@ -2881,6 +3273,71 @@ export default function MapEditor() {
           </>
         );
       })()}
+      {editStairsItem && (() => {
+        const handleSaveEdit = () => {
+          setTiles(prev => {
+            const next = prev.map(r => r.map(c => ({ ...c, items: [...c.items] })));
+            const cell = next[editStairsItem.y][editStairsItem.x];
+            const item = cell.items[editStairsItem.itemIndex];
+            if (item) {
+              item.transitionTargetId = editStairsId;
+              item.transitionTargetX = editStairsX === '' ? undefined : Number(editStairsX);
+              item.transitionTargetY = editStairsY === '' ? undefined : Number(editStairsY);
+            }
+            return next;
+          });
+          setEditStairsItem(null);
+        };
+
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setEditStairsItem(null)}>
+            <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 300 }} onClick={e => e.stopPropagation()}>
+              <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Edit Stairs Target</h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                <select
+                  value={editStairsId}
+                  onChange={e => setEditStairsId(e.target.value)}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  <option value="">— Select map —</option>
+                  {availableScenarios.map(s => (
+                    <option key={s.name} value={s.name}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Target X</label>
+                  <input type="number" min={0} value={editStairsX} onChange={e => setEditStairsX(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle }} />
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Target Y</label>
+                  <input type="number" min={0} value={editStairsY} onChange={e => setEditStairsY(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={handleSaveEdit} style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: 8 }}>Save</button>
+                <button onClick={() => setEditStairsItem(null)} style={{ ...btnStyle('#555'), flex: 1, padding: 8 }}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {confirmModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 300, textAlign: 'center' }}>
+            <p style={{ fontSize: 14, color: '#eee', marginBottom: 16 }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <button onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }} style={{ ...btnStyle('#2b9a7a'), minWidth: 80 }}>Yes</button>
+              <button onClick={() => setConfirmModal(null)} style={{ ...btnStyle('#555'), minWidth: 80 }}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

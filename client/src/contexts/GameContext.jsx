@@ -13,6 +13,7 @@ import { CameraProvider, useCamera } from './CameraContext.jsx';
 import { InventoryProvider } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
+import { useSpeechBubbles } from './SpeechBubbleContext.jsx';
 import Logger from '../game/utils/Logger.js';
 import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
@@ -73,6 +74,7 @@ const GameContextInner = ({ children }) => {
   const { triggerMapUpdate, handleTileClick: mapHandleTileClick, handleTileHover, lastTileClick, hoveredTile, mapTransition, handleMapTransitionConfirm: mapTransitionConfirm, handleMapTransitionCancel } = useGameMap();
   const { setCameraWorldBounds } = useCamera();
   const { addEffect } = useVisualEffects();
+  const { isBubbleActive } = useSpeechBubbles();
   const { addLog, clearLogs } = useLog();
   const { playSound } = useAudio();
   const { resetAll, activeTradeNpc, isBartering, isShopOpen, tollGuard, logHistoryOpen, showMainMenu, isExtensionOpen } = useOverlays();
@@ -170,7 +172,12 @@ const GameContextInner = ({ children }) => {
     engine.notifyUpdate();
   }, []);
   const hour = getHourFromTurn(turn);
-  const isNight = hour >= 20 || hour < 6;
+  const isNight = useMemo(() => {
+    if (engine.gameMap?.metadata?.alwaysDark) {
+      return true;
+    }
+    return hour >= 20 || hour < 6;
+  }, [hour, enginePulse]);
 
   // Phase 7: Robust light state for internal GameContext callers
   // Note: These use the local inventoryManager state directly, avoiding the broken useInventory() hierarchy
@@ -427,6 +434,7 @@ const GameContextInner = ({ children }) => {
     return !!(
       activeNpcDemand ||
       activeDialog ||
+      isBubbleActive ||
       mapTransition ||
       (activeTradeNpc && !isBartering) ||
       logHistoryOpen ||
@@ -434,7 +442,7 @@ const GameContextInner = ({ children }) => {
       engine.isSleeping
     );
   }, [
-    activeNpcDemand, activeDialog, mapTransition,
+    activeNpcDemand, activeDialog, isBubbleActive, mapTransition,
     activeTradeNpc, isBartering,
     logHistoryOpen, showMainMenu, enginePulse
   ]);

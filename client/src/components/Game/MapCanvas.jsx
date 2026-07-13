@@ -8,6 +8,8 @@ import { TileRenderer } from '../../game/renderer/TileRenderer.js';
 import { TileChunkCache, TILE_CHUNK_SIZE } from '../../game/renderer/TileChunkCache.js';
 import { EntityRenderer, getDominantItemInTile, frameRenderFlags } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
+import { SpeechBubbleRenderer } from '../../game/renderer/SpeechBubbleRenderer.js';
+import { useSpeechBubbles } from '../../contexts/SpeechBubbleContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { EntityType } from '../../game/entities/Entity.js';
 import { ItemDefs } from '../../game/inventory/ItemDefs.js';
@@ -89,7 +91,7 @@ export default function MapCanvas({
     // theme) could alter the map. When the game is truly idle there are no
     // re-renders, so the loop stays quiet and the CPU goes idle.
     continuousRef.current = Boolean(
-      isAnimatingMovement || isAnimatingZombies || (effects && effects.length > 0)
+      isAnimatingMovement || isAnimatingZombies || (effects && effects.length > 0) || activeBubble
     );
     renderRequestedRef.current = true;
   });
@@ -111,7 +113,10 @@ export default function MapCanvas({
   const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, setHoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
   const { effects, addEffect } = useVisualEffects();
-  
+  const { activeBubble } = useSpeechBubbles();
+  // Tracks when the current bubble first became active, to drive its pop-in.
+  const bubbleAppearRef = useRef({ bubble: null, at: 0 });
+
   // Phase 25/26: Reactive Image Loading - trigger re-render when textures arrive
   const [, setLoadTick] = React.useState(0);
   useEffect(() => {
@@ -373,7 +378,7 @@ export default function MapCanvas({
             if (!isVisible) {
               ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
               ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
-            } else if (isNight) {
+            } else if (isNight || gameMap?.metadata?.alwaysDark) {
               ctx.fillStyle = 'rgba(0, 5, 20, 0.3)';
               ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
             }
@@ -558,6 +563,25 @@ export default function MapCanvas({
         ctx.restore();
       }
 
+      // Layer 5.5: On-map speech bubbles (drawn above entities/effects so they're
+      // never occluded). Anchored to the world tile of the current line.
+      if (activeBubble) {
+        // Stamp the appearance time whenever the active line changes so each
+        // bubble gets its own pop-in.
+        if (bubbleAppearRef.current.bubble !== activeBubble) {
+          bubbleAppearRef.current = { bubble: activeBubble, at: currentTime };
+        }
+        ctx.save();
+        ctx.translate(globalOffsetX, globalOffsetY);
+        SpeechBubbleRenderer.renderBubble(
+          ctx,
+          { ...activeBubble, appearedAt: bubbleAppearRef.current.at },
+          rTileSize,
+          currentTime
+        );
+        ctx.restore();
+      }
+
       // Layer 6: Global Weather (Screen Space)
       if (engine.weather && engine.weather.type === 'rain' && player) {
         const currentX = isAnimatingMovement ? playerRenderPosition.x : player.x;
@@ -579,7 +603,7 @@ export default function MapCanvas({
       console.error('[MapCanvas] Critical Rendering Error:', error);
     }
 
-  }, [getLayoutDimensions, calculateTileSize, isAnimatingMovement, playerRenderPosition, hoveredTile, isNight, isFlashlightOn, isNightVision, effects]);
+  }, [getLayoutDimensions, calculateTileSize, isAnimatingMovement, playerRenderPosition, hoveredTile, isNight, isFlashlightOn, isNightVision, effects, activeBubble]);
 
 
   // Handle mouse down for dragging

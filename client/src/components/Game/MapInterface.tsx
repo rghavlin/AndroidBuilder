@@ -860,7 +860,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               const wasBroken = doorMenu.door.isDamaged;
               doorMenu.door.repair(10);
               
-              playSound('Unlock'); // Using Unlock as fallback for mechanical sound
+              playSound('Hammer');
               addLog(wasBroken ? 'You repair the door.' : 'You reinforce the door.', 'world');
               
               if (wasBroken && doorMenu.door.hp >= 10) {
@@ -1171,7 +1171,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 inventory.consumeItemByDefId('weapon.plank', 1);
                 inventory.consumeItemByDefId('crafting.nail', 2);
                 
-                playSound('Repair');
+                playSound('Hammer');
                 addLog('You reinforce the window with planks.', 'world');
                 addEffect({
                    type: 'damage',

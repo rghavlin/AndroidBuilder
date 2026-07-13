@@ -574,7 +574,7 @@ export class WorldManager extends SafeEventEmitter {
    * Check if player can go south (not on first map)
    */
   canGoSouth() {
-    return false;
+    return this.currentMapId !== 'map_001';
   }
 
   /**
@@ -804,12 +804,14 @@ export class WorldManager extends SafeEventEmitter {
           // Set map number if any, default to 1
           gameMap.mapNumber = 1;
           
-          // Resolve spawn position
-          const scenarioSpawn = generatedMapData.metadata?.spawnZones?.playerStart?.[0];
-          if (scenarioSpawn) {
-            spawnPosition = { x: scenarioSpawn.x, y: scenarioSpawn.y };
-          } else {
-            spawnPosition = { x: Math.floor(gameMap.width / 2), y: Math.floor(gameMap.height * 0.9) };
+          // Resolve spawn position if not provided by the transition trigger
+          if (!spawnPosition) {
+            const scenarioSpawn = generatedMapData.metadata?.spawnZones?.playerStart?.[0];
+            if (scenarioSpawn) {
+              spawnPosition = { x: scenarioSpawn.x, y: scenarioSpawn.y };
+            } else {
+              spawnPosition = { x: Math.floor(gameMap.width / 2), y: Math.floor(gameMap.height * 0.9) };
+            }
           }
           
           const savedMapId = this.saveCurrentMap(gameMap, targetMapId, currentTurn, 'scenario');
@@ -869,24 +871,22 @@ export class WorldManager extends SafeEventEmitter {
           const scale = (v) => Math.floor(v * areaMultiplier);
           const scaleRange = (r) => ({ min: scale(r.min), max: scale(r.max) });
           
-          // Use default spawn prediction or exit points if defined
-          let resolvedSpawn = spawnPosition || { x: Math.floor(gameMap.width / 2), y: gameMap.height - 2 };
-          const tp = generatedMapData.metadata?.spawnZones?.transitionPoints;
-          const enteringTop = spawnPosition ? spawnPosition.y <= 1 : true;
-          if (tp) {
-            if (enteringTop && tp.north) {
-              resolvedSpawn = { x: tp.north.x, y: 1 };
-            } else if (!enteringTop && tp.south) {
-              resolvedSpawn = { x: tp.south.x, y: gameMap.height - 2 };
-            }
-          } else {
-            if (enteringTop) {
-              resolvedSpawn = { x: Math.floor(gameMap.width / 2), y: 1 };
+          // Use explicit spawn position if provided, else use default prediction or exit points
+          let resolvedSpawn = spawnPosition;
+          if (!resolvedSpawn) {
+            const tp = generatedMapData.metadata?.spawnZones?.transitionPoints;
+            const enteringTop = true; // default when generating new map without specific position
+            if (tp) {
+              if (enteringTop && tp.north) {
+                resolvedSpawn = { x: tp.north.x, y: 1 };
+              } else if (!enteringTop && tp.south) {
+                resolvedSpawn = { x: tp.south.x, y: gameMap.height - 2 };
+              }
             } else {
-              resolvedSpawn = { x: Math.floor(gameMap.width / 2), y: gameMap.height - 2 };
+              resolvedSpawn = { x: Math.floor(gameMap.width / 2), y: 1 };
             }
+            spawnPosition = resolvedSpawn;
           }
-          spawnPosition = resolvedSpawn;
           
           ZombieSpawner.spawnZombies(gameMap, resolvedSpawn, {
             basicCount: scale(progression.basicCount),

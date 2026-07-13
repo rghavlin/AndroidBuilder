@@ -386,15 +386,38 @@ export default function UniversalGrid({
       return;
     }
 
-    // Intercept clicks on the exit item to trigger map transition
-    if (item && item.defId === 'placeable.exit') {
+    // Intercept clicks on the exit item or stairs to trigger map transition
+    if (item && (item.defId === 'placeable.exit' || item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up')) {
       const gameMap = engine.gameMap;
       const player = engine.player;
       const worldManager = engine.worldManager;
       
       if (gameMap && player && worldManager) {
-        console.debug('[UniversalGrid] Left-clicked Exit item - triggering map transition dialog');
-        const transitionInfo = worldManager.checkTransitionPoint({ x: player.x, y: player.y }, gameMap);
+        console.debug('[UniversalGrid] Left-clicked transition item - triggering map transition dialog');
+        
+        let transitionInfo = null;
+        
+        if (item.defId === 'placeable.exit') {
+          transitionInfo = worldManager.checkTransitionPoint({ x: player.x, y: player.y }, gameMap);
+        } else {
+          if (!item.transitionTargetId) {
+             console.warn('[UniversalGrid] Stairs clicked but no transitionTargetId found on item!', item);
+             return;
+          }
+          
+          transitionInfo = {
+            direction: item.defId === 'placeable.stairs_down' ? 'stairs_down' : 'stairs_up',
+            position: { x: item.x !== undefined ? item.x : player.x, y: item.y !== undefined ? item.y : player.y },
+            nextMapId: item.transitionTargetId,
+            spawnPosition: (item.transitionTargetX !== undefined && item.transitionTargetY !== undefined) 
+                           ? { x: item.transitionTargetX, y: item.transitionTargetY } 
+                           : null,
+            targetType: 'scenario',
+            level: 1,
+            isCustom: true
+          };
+        }
+        
         if (transitionInfo) {
           if (setMapTransition) {
             setMapTransition(transitionInfo);
@@ -402,7 +425,7 @@ export default function UniversalGrid({
             console.error('[UniversalGrid] setMapTransition is not defined');
           }
         } else {
-          console.warn('[UniversalGrid] No transition point found at player position:', player.x, player.y);
+          console.warn('[UniversalGrid] No transition point found for item:', item.defId);
         }
       } else {
         console.error('[UniversalGrid] Missing engine components for map transition');

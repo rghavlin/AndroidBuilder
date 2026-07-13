@@ -68,7 +68,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Rain', url: 'sounds/rain1.ogg', volume: 0.5 },
           { name: 'Climb', url: 'sounds/climb.ogg', volume: 0.6 },
           { name: 'Sizzle', url: 'sounds/sizzle.ogg', volume: 0.6 },
-          { name: 'Scooter', url: 'sounds/scooter.ogg', volume: 0.225 },
+          { name: 'Scooter', url: 'sounds/scooter.ogg', volume: 0.45 },
+          { name: 'Hammer', url: 'sounds/Hammer.ogg', volume: 0.6 },
           { name: 'Repair', url: 'sounds/craft.ogg', volume: 0.6 }
         ];
         await Promise.all(

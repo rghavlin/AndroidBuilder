@@ -7,7 +7,7 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
   }
 
   generate(config, builder) {
-    const { tiles, metadata, entities, eventTriggers } = this.scenario;
+    const { tiles, metadata, entities, eventTriggers, bubbleEvents } = this.scenario;
 
     for (let y = 0; y < tiles.length; y++) {
       for (let x = 0; x < tiles[y].length; x++) {
@@ -36,6 +36,7 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
 
     if (entities) builder.metadata.entities = entities;
     if (eventTriggers) builder.metadata.eventTriggers = eventTriggers;
+    if (bubbleEvents) builder.metadata.bubbleEvents = bubbleEvents;
 
     if (this.scenario.mapTransitions) {
       builder.metadata.mapTransitions = this.scenario.mapTransitions;
