@@ -45,6 +45,37 @@ const ZOMBIE_SUBTYPES = [
   { id: 'mutant',       label: 'Mutant',          defaultHp: 75 },
 ];
 
+// NPC types the editor can author (drives stats/faction via NPCTypes.js at runtime).
+const NPC_TYPES = [
+  { id: 'survivor',   label: 'Survivor' },
+  { id: 'shopkeeper', label: 'Shopkeeper' },
+  { id: 'gatekeeper', label: 'Gatekeeper' },
+];
+
+// Custom icon catalog for NPCs: reuses art already shipped with the game (no
+// new asset pipeline). Each `key` is a literal image filename already present
+// in client/public/images/entities/ — EntityRenderer looks it up directly
+// (imageLoader.getImage(key)), bypassing the usual npc_<subtype> convention
+// since no such per-subtype NPC art exists.
+const NPC_ICON_OPTIONS = [
+  { key: 'npc',                label: 'Default (Survivor)' },
+  { key: 'player',              label: 'Player-like' },
+  { key: 'playerGREEN',         label: 'Player-like (Green)' },
+  { key: 'rabbit',               label: 'Rabbit' },
+  { key: 'zombie',               label: 'Zombie (basic)' },
+  { key: 'runnerzombie',         label: 'Zombie (Runner)' },
+  { key: 'peeperzombie',         label: 'Zombie (Peeper)' },
+  { key: 'crawlerzombie',        label: 'Zombie (Crawler)' },
+  { key: 'fatzombie',            label: 'Zombie (Fat)' },
+  { key: 'soldierzombie',        label: 'Zombie (Soldier)' },
+  { key: 'firefighterzombie',    label: 'Zombie (Firefighter)' },
+  { key: 'swatzombie',           label: 'Zombie (SWAT)' },
+  { key: 'acidzombie',           label: 'Zombie (Acid)' },
+  { key: 'spitterzombie',        label: 'Zombie (Spitter)' },
+  { key: 'bombdisposalzombie',   label: 'Zombie (Bomb Disposal)' },
+  { key: 'zombiemutant',         label: 'Zombie (Mutant)' },
+];
+
 const BUILDING_TYPES = [
   'residential', 'police', 'firestation', 'grocer', 'gas_station',
   'army_tent', 'hardware_store', 'lab'
@@ -69,20 +100,32 @@ type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity'
 // anchored to a specific tile/entity, played one at a time when its trigger
 // fires. Serialized to scenario top-level `bubbleEvents` (see SpeechBubbleContext).
 interface BubbleLine { x: number; y: number; speaker?: string; text: string; }
+// An event effect: spawn `count` of `defId` onto tile (x, y) when the event fires.
+interface ItemGrant { defId: string; count?: number; x: number; y: number; }
+// A modal dialog event that lives by id only (no tile) — fired solely via chaining.
+interface DialogEventDef {
+  id: string;
+  steps: { speaker: string; text: string; video?: string }[];
+  oneShot: boolean;
+  grants?: ItemGrant[];
+  next?: string;
+}
 interface BubbleEvent {
   id: string;
   oneShot: boolean;
   trigger: { type: 'tile' | 'proximity'; x: number; y: number; radius?: number };
   lines: BubbleLine[];
+  grants?: ItemGrant[];
+  next?: string; // id of an event to fire when this one completes
 }
 
 interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; }
 interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
-  entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean }[];
+  entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean; typeId?: string; name?: string; isHostile?: boolean; iconId?: string }[];
   items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number }[];
-  eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean };
+  eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean; grants?: ItemGrant[]; next?: string };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
   placeIcon?: string;
 }
@@ -105,6 +148,7 @@ interface ScenarioData {
   seed?: number;
   lowSpots?: { x: number; y: number }[];
   bubbleEvents?: BubbleEvent[];
+  chainDialogEvents?: DialogEventDef[];
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -152,7 +196,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[] } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[] } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -241,7 +285,16 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
   if (scenario.entities) {
     for (const e of scenario.entities) {
       const t = tiles[e.y]?.[e.x];
-      if (t) t.entities.push({ type: e.type, subtype: e.subtype, hp: e.hp || undefined, noLoot: e.noLoot || undefined, deaf: e.deaf || undefined });
+      if (t) t.entities.push({
+        type: e.type, subtype: e.subtype,
+        hp: e.hp || undefined,
+        noLoot: e.noLoot || undefined,
+        deaf: e.deaf || undefined,
+        typeId: e.typeId || undefined,
+        name: e.name || undefined,
+        isHostile: e.isHostile || undefined,
+        iconId: e.iconId || undefined,
+      });
     }
   }
 
@@ -256,12 +309,17 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
 
   // Event triggers
   const triggers = scenario.eventTriggers || scenario.metadata?.eventTriggers;
+  const chainDialogEvents: DialogEventDef[] = [];
   if (triggers) {
     for (const evt of triggers) {
+      if (evt.chainOnly || evt.x === undefined || evt.y === undefined) {
+        chainDialogEvents.push({ id: evt.id, steps: evt.steps || [], oneShot: evt.oneShot ?? true, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) });
+        continue;
+      }
       const t = tiles[evt.y]?.[evt.x];
       if (!t) continue;
       if (evt.steps) {
-        t.eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot ?? true };
+        t.eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot ?? true, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) };
       } else if (evt.message) {
         t.eventTrigger = { id: evt.id, steps: [{ speaker: '', text: evt.message }], oneShot: true };
       }
@@ -299,10 +357,11 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     seed: scenario.seed ?? scenario.metadata?.seed,
     lowSpots: scenario.metadata?.lowSpots || scenario.lowSpots || [],
     bubbleEvents: scenario.bubbleEvents || scenario.metadata?.bubbleEvents || [],
+    chainDialogEvents,
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[] } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[] } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -391,7 +450,13 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
                 deaf: e.deaf,
               });
             } else if (e.type === 'npc') {
-              tiles[y][x].entities.push({ type: 'npc' });
+              tiles[y][x].entities.push({
+                type: 'npc',
+                typeId: e.typeId,
+                name: e.name,
+                isHostile: e.isHostile,
+                iconId: e.iconId,
+              });
             } else if (e.type === 'rabbit') {
               tiles[y][x].entities.push({ type: 'rabbit' });
             } else if (e.type === 'place_icon') {
@@ -413,11 +478,16 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
 
   // Event Triggers and Map Transitions from map metadata
   const metadata = mapData.metadata;
+  const chainDialogEvents: DialogEventDef[] = [];
   if (metadata?.eventTriggers) {
     for (const evt of metadata.eventTriggers) {
+      if (evt.chainOnly || evt.x === undefined || evt.y === undefined) {
+        chainDialogEvents.push({ id: evt.id, steps: evt.steps || [], oneShot: evt.oneShot ?? true, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) });
+        continue;
+      }
       const t = tiles[evt.y]?.[evt.x];
       if (t) {
-        t.eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot ?? true };
+        t.eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot ?? true, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) };
       }
     }
   }
@@ -441,6 +511,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     seed: mapData.seed ?? mapData.metadata?.seed,
     lowSpots: mapData.metadata?.lowSpots || mapData.lowSpots || [],
     bubbleEvents: mapData.bubbleEvents || mapData.metadata?.bubbleEvents || [],
+    chainDialogEvents,
   };
 }
 
@@ -545,7 +616,16 @@ function exportScenario(scenario: ScenarioData) {
   scenario.tiles.forEach((row, y) =>
     row.forEach((t, x) => {
       t.entities.forEach(e => {
-        entities.push({ type: e.type, x, y, subtype: e.subtype || null, ...(e.hp ? { hp: e.hp } : {}), ...(e.noLoot ? { noLoot: true } : {}), ...(e.deaf ? { deaf: true } : {}) });
+        entities.push({
+          type: e.type, x, y, subtype: e.subtype || null,
+          ...(e.hp ? { hp: e.hp } : {}),
+          ...(e.noLoot ? { noLoot: true } : {}),
+          ...(e.deaf ? { deaf: true } : {}),
+          ...(e.typeId ? { typeId: e.typeId } : {}),
+          ...(e.name ? { name: e.name } : {}),
+          ...(e.isHostile ? { isHostile: true } : {}),
+          ...(e.iconId ? { iconId: e.iconId } : {}),
+        });
       });
     })
   );
@@ -558,6 +638,10 @@ function exportScenario(scenario: ScenarioData) {
       }
     })
   );
+  // Chain-only dialog events: no tile, fired only via event chaining.
+  (scenario.chainDialogEvents || []).forEach(ev => {
+    eventTriggers.push({ chainOnly: true, id: ev.id, steps: ev.steps, oneShot: ev.oneShot, ...(ev.grants ? { grants: ev.grants } : {}), ...(ev.next ? { next: ev.next } : {}) });
+  });
 
   const mapTransitions: any[] = [];
   scenario.tiles.forEach((row, y) =>
@@ -625,6 +709,10 @@ export default function MapEditor() {
   const [zombieHp, setZombieHp] = useState<number | ''>('');
   const [zombieNoLoot, setZombieNoLoot] = useState(false);
   const [zombieDeaf, setZombieDeaf] = useState(false);
+  const [npcTypeId, setNpcTypeId] = useState('survivor');
+  const [npcName, setNpcName] = useState('');
+  const [npcIsHostile, setNpcIsHostile] = useState(false);
+  const [npcIconId, setNpcIconId] = useState('npc');
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
   const [selectedPlaceIconSubtype, setSelectedPlaceIconSubtype] = useState('grocer');
   const [selectedItem, setSelectedItem] = useState('');
@@ -638,6 +726,7 @@ export default function MapEditor() {
   const [triggerId, setTriggerId] = useState('');
   const [dialogSteps, setDialogSteps] = useState<{ speaker: string; text: string; video?: string }[]>([]);
   const [dialogOneShot, setDialogOneShot] = useState(true);
+  const [dialogNext, setDialogNext] = useState(''); // chain: fire this event id on close
   const [editSpeaker, setEditSpeaker] = useState('');
   const [editText, setEditText] = useState('');
   const [editVideo, setEditVideo] = useState('');
@@ -655,10 +744,86 @@ export default function MapEditor() {
   const [bubbleLines, setBubbleLines] = useState<BubbleLine[]>([]);
   const [bubbleLineSpeaker, setBubbleLineSpeaker] = useState('');
   const [bubbleLineText, setBubbleLineText] = useState('');
+  const [bubbleNext, setBubbleNext] = useState(''); // chain: fire this event id on completion
   // What the next map click assigns: the trigger location, or a new line's anchor.
   const [bubbleClickMode, setBubbleClickMode] = useState<'trigger' | 'anchor' | null>(null);
   const bubbleEventsRef = useRef(bubbleEvents);
   bubbleEventsRef.current = bubbleEvents;
+
+  // ─── Item-grant authoring (shared by Event + Speech tools) ───────────
+  // Grants for the modal-dialog event currently being placed, and for the
+  // speech-bubble event draft, respectively.
+  const [dialogGrants, setDialogGrants] = useState<ItemGrant[]>([]);
+  const [bubbleGrants, setBubbleGrants] = useState<ItemGrant[]>([]);
+  const dialogGrantsRef = useRef(dialogGrants);
+  dialogGrantsRef.current = dialogGrants;
+  const dialogNextRef = useRef(dialogNext);
+  dialogNextRef.current = dialogNext;
+  // Pending grant being defined before its tile is picked.
+  const [grantDefId, setGrantDefId] = useState('');
+  const [grantCount, setGrantCount] = useState<number | ''>(1);
+  const [grantPickActive, setGrantPickActive] = useState(false);
+
+  // Route a map click to the pending grant's target tile. Adds to whichever
+  // event's grant list matches the active tool.
+  const handleGrantClick = useCallback((x: number, y: number) => {
+    if (x < 0 || y < 0 || x >= width || y >= height) return;
+    if (!grantDefId) { setStatusMsg('Select an item for the grant first'); setGrantPickActive(false); return; }
+    const grant: ItemGrant = { defId: grantDefId, count: (grantCount === '' ? 1 : grantCount) as number, x, y };
+    if (tool === 'speech_bubble') setBubbleGrants(prev => [...prev, grant]);
+    else setDialogGrants(prev => [...prev, grant]);
+    setGrantPickActive(false);
+    setStatusMsg(`Grant: ${grant.count}× ${grantDefId} → (${x}, ${y})`);
+  }, [width, height, grantDefId, grantCount, tool]);
+
+  // Shared "Give items" UI for both the Event and Speech panels.
+  const renderGrantsSection = (grants: ItemGrant[], setGrants: React.Dispatch<React.SetStateAction<ItemGrant[]>>) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
+      <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Give items (dropped on a tile when triggered)</label>
+      {grants.length === 0 && <div style={{ fontSize: 10, color: '#666' }}>No item grants.</div>}
+      {grants.map((g, i) => (
+        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '3px 6px', fontSize: 11 }}>
+          <span style={{ color: '#ccc' }}>
+            {g.count && g.count > 1 ? `${g.count}× ` : ''}{allItems.find(it => it.id === g.defId)?.name || g.defId}
+            <span style={{ color: '#9c6', marginLeft: 6 }}>@ ({g.x}, {g.y})</span>
+          </span>
+          <button onClick={() => setGrants(prev => prev.filter((_, j) => j !== i))} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>Remove</button>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <select value={grantDefId} onChange={e => setGrantDefId(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 0 }}>
+          <option value="">— select item —</option>
+          {allItems.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
+        </select>
+        <input type="number" min={1} value={grantCount} onChange={e => setGrantCount(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))} style={{ ...inputStyle, width: 48 }} />
+      </div>
+      <button
+        onClick={() => { if (!grantDefId) setStatusMsg('Select an item first'); else setGrantPickActive(true); }}
+        disabled={!grantDefId}
+        style={btnStyle(grantPickActive ? '#b5651d' : (grantDefId ? '#2a7a2a' : '#333'))}
+      >{grantPickActive ? 'Click the target tile…' : '+ Pick tile & add grant'}</button>
+    </div>
+  );
+
+  // Shared "then trigger another event" chain field for both event panels.
+  const renderChainSection = (value: string, setValue: (v: string) => void) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
+      <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Then trigger event (optional)</label>
+      <input
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder="event id to fire when this ends"
+        list="known-event-ids"
+        style={{ ...inputStyle }}
+      />
+      <datalist id="known-event-ids">
+        {knownEventIds.map(id => <option key={id} value={id} />)}
+      </datalist>
+      <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
+        Fires the named event (speech or dialog) when this one finishes. Chains any event to any other.
+      </p>
+    </div>
+  );
 
   const resetBubbleDraft = useCallback(() => {
     setBubbleId('');
@@ -670,6 +835,8 @@ export default function MapEditor() {
     setBubbleLineSpeaker('');
     setBubbleLineText('');
     setBubbleClickMode(null);
+    setBubbleGrants([]);
+    setBubbleNext('');
   }, []);
 
   // Map-click routing while the speech_bubble tool is active.
@@ -701,7 +868,7 @@ export default function MapEditor() {
     const id = bubbleId.trim();
     if (!id) { setStatusMsg('Enter an event ID'); return; }
     if (!bubbleTrigger) { setStatusMsg('Set a trigger location first'); return; }
-    if (bubbleLines.length === 0) { setStatusMsg('Add at least one line'); return; }
+    if (bubbleLines.length === 0 && bubbleGrants.length === 0) { setStatusMsg('Add at least one line or item grant'); return; }
     const ev: BubbleEvent = {
       id,
       oneShot: bubbleOneShot,
@@ -712,11 +879,13 @@ export default function MapEditor() {
         ...(bubbleTriggerType === 'proximity' ? { radius: bubbleTriggerRadius } : {}),
       },
       lines: bubbleLines,
+      ...(bubbleGrants.length > 0 ? { grants: bubbleGrants } : {}),
+      ...(bubbleNext.trim() ? { next: bubbleNext.trim() } : {}),
     };
     setBubbleEvents(prev => [...prev.filter(e => e.id !== id), ev]);
     setStatusMsg(`Saved speech event "${id}" (${bubbleLines.length} line${bubbleLines.length !== 1 ? 's' : ''})`);
     resetBubbleDraft();
-  }, [bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius, bubbleTrigger, bubbleLines, resetBubbleDraft]);
+  }, [bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius, bubbleTrigger, bubbleLines, bubbleGrants, bubbleNext, resetBubbleDraft]);
 
   const editBubbleEvent = useCallback((id: string) => {
     const ev = bubbleEventsRef.current.find(e => e.id === id);
@@ -727,6 +896,8 @@ export default function MapEditor() {
     setBubbleTriggerRadius(ev.trigger.radius ?? 2);
     setBubbleTrigger({ x: ev.trigger.x, y: ev.trigger.y });
     setBubbleLines(ev.lines.map(l => ({ ...l })));
+    setBubbleGrants(ev.grants ? ev.grants.map(g => ({ ...g })) : []);
+    setBubbleNext(ev.next || '');
     setBubbleLineSpeaker('');
     setBubbleLineText('');
     setBubbleClickMode(null);
@@ -739,6 +910,58 @@ export default function MapEditor() {
     setStatusMsg(`Deleted speech event "${id}"`);
   }, []);
 
+  // ─── Chain-only dialog events (no tile; fired only via chaining) ─────
+  const [chainDialogEvents, setChainDialogEvents] = useState<DialogEventDef[]>([]);
+
+  const commitChainDialogEvent = useCallback(() => {
+    const id = triggerId.trim();
+    if (!id) { setStatusMsg('Enter a Trigger ID first'); return; }
+    if (dialogStepsRef.current.length === 0 && dialogGrantsRef.current.length === 0) {
+      setStatusMsg('Add at least one step or item grant'); return;
+    }
+    const ev: DialogEventDef = {
+      id,
+      steps: [...dialogStepsRef.current],
+      oneShot: dialogOneShot,
+      ...(dialogGrantsRef.current.length > 0 ? { grants: [...dialogGrantsRef.current] } : {}),
+      ...(dialogNextRef.current.trim() ? { next: dialogNextRef.current.trim() } : {}),
+    };
+    setChainDialogEvents(prev => [...prev.filter(e => e.id !== id), ev]);
+    setStatusMsg(`Saved chain-only event "${id}" (no tile)`);
+    // Clear the dialog draft.
+    setTriggerId('');
+    setDialogSteps([]);
+    setDialogGrants([]);
+    setDialogNext('');
+    setDialogOneShot(true);
+  }, [triggerId, dialogOneShot]);
+
+  const editChainDialogEvent = useCallback((id: string) => {
+    const ev = chainDialogEvents.find(e => e.id === id);
+    if (!ev) return;
+    setTriggerId(ev.id);
+    setDialogSteps(ev.steps.map(s => ({ ...s })));
+    setDialogOneShot(ev.oneShot);
+    setDialogGrants(ev.grants ? ev.grants.map(g => ({ ...g })) : []);
+    setDialogNext(ev.next || '');
+    setTool('event_trigger');
+    setStatusMsg(`Editing chain-only event "${id}" — Save chain-only event to apply`);
+  }, [chainDialogEvents]);
+
+  const deleteChainDialogEvent = useCallback((id: string) => {
+    setChainDialogEvents(prev => prev.filter(e => e.id !== id));
+    setStatusMsg(`Deleted chain-only event "${id}"`);
+  }, []);
+
+  // Known event ids (speech + dialog) for the chain "then trigger" pickers.
+  const knownEventIds = useMemo(() => {
+    const ids = new Set<string>();
+    bubbleEvents.forEach(e => e.id && ids.add(e.id));
+    chainDialogEvents.forEach(e => e.id && ids.add(e.id));
+    tiles.forEach(row => row.forEach(t => { if (t.eventTrigger?.id) ids.add(t.eventTrigger.id); }));
+    return Array.from(ids).sort();
+  }, [bubbleEvents, chainDialogEvents, tiles]);
+
   const [transitionTargetType, setTransitionTargetType] = useState<'scenario' | 'generator' | 'tutorial_end'>('scenario');
   const [transitionTargetId, setTransitionTargetId] = useState('');
   const [transitionLevel, setTransitionLevel] = useState(1);
@@ -746,13 +969,38 @@ export default function MapEditor() {
   const [transitionTargetY, setTransitionTargetY] = useState<number | ''>('');
   const [availableScenarios, setAvailableScenarios] = useState<{ name: string; width: number; height: number; fileName?: string }[]>([]);
   const [exitImage, setExitImage] = useState<HTMLImageElement | null>(null);
+  // Full entity-art catalog (every image file in images/entities/), read live
+  // from disk via Electron IPC so any new art is pickable with no code change.
+  // Falls back to the curated NPC_ICON_OPTIONS list when not running in Electron.
+  const [entityImageKeys, setEntityImageKeys] = useState<string[] | null>(null);
 
   useEffect(() => {
     ScenarioStorage.list().then(list => setAvailableScenarios(list as any[])).catch(console.warn);
     const img = new Image();
     img.src = '/images/items/exit.png';
     img.onload = () => setExitImage(img);
+
+    const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.listEntityImages) {
+      electronAPI.listEntityImages().then((keys: string[]) => {
+        if (Array.isArray(keys) && keys.length > 0) setEntityImageKeys(keys.sort((a, b) => a.localeCompare(b)));
+      }).catch(console.warn);
+    }
   }, []);
+
+  // Turns a filename key like "bombdisposalzombie" into a readable label.
+  const iconKeyToLabel = (key: string): string => {
+    const curated = NPC_ICON_OPTIONS.find(o => o.key === key);
+    if (curated) return curated.label;
+    return key.replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
+  const npcIconChoices = useMemo(() => {
+    if (entityImageKeys && entityImageKeys.length > 0) {
+      return entityImageKeys.map(key => ({ key, label: iconKeyToLabel(key) }));
+    }
+    return NPC_ICON_OPTIONS;
+  }, [entityImageKeys]);
 
   // Build categorized item catalog from ItemDefs
   const allItems = useMemo(() => {
@@ -919,12 +1167,17 @@ export default function MapEditor() {
             tile.entities = tile.entities.filter(e => e.type !== 'player');
           }
           {
-            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean } = { type: selectedEntity };
+            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean; typeId?: string; name?: string; isHostile?: boolean; iconId?: string } = { type: selectedEntity };
             if (selectedEntity === 'zombie') {
               ent.subtype = zombieSubtype;
               if (zombieHp !== '') ent.hp = zombieHp as number;
               if (zombieNoLoot) ent.noLoot = true;
               if (zombieDeaf) ent.deaf = true;
+            } else if (selectedEntity === 'npc') {
+              ent.typeId = npcTypeId;
+              if (npcName.trim()) ent.name = npcName.trim();
+              if (npcIsHostile) ent.isHostile = true;
+              if (npcIconId && npcIconId !== 'npc') ent.iconId = npcIconId;
             }
             tile.entities.push(ent);
           }
@@ -948,8 +1201,14 @@ export default function MapEditor() {
           }
           break;
         case 'event_trigger':
-          if (triggerId && dialogStepsRef.current.length > 0) {
-            tile.eventTrigger = { id: triggerId, steps: [...dialogStepsRef.current], oneShot: dialogOneShot };
+          if (triggerId && (dialogStepsRef.current.length > 0 || dialogGrantsRef.current.length > 0)) {
+            tile.eventTrigger = {
+              id: triggerId,
+              steps: [...dialogStepsRef.current],
+              oneShot: dialogOneShot,
+              ...(dialogGrantsRef.current.length > 0 ? { grants: [...dialogGrantsRef.current] } : {}),
+              ...(dialogNextRef.current.trim() ? { next: dialogNextRef.current.trim() } : {}),
+            };
           }
           break;
         case 'map_transition':
@@ -984,7 +1243,7 @@ export default function MapEditor() {
       }
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -1223,6 +1482,22 @@ export default function MapEditor() {
       ctx.lineWidth = 1;
     }
 
+    // Item-grant target markers (Event + Speech tools).
+    if (tool === 'speech_bubble' || tool === 'event_trigger') {
+      const grants = tool === 'speech_bubble' ? bubbleGrants : dialogGrants;
+      grants.forEach(g => {
+        ctx.strokeStyle = '#3fb950';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(g.x * CELL + 3, g.y * CELL + 3, CELL - 6, CELL - 6);
+        ctx.fillStyle = '#3fb950';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('G', g.x * CELL + CELL / 2, g.y * CELL + CELL / 2);
+      });
+      ctx.lineWidth = 1;
+    }
+
     // Hover highlight
     if (hoverCell && tool !== 'building_rect') {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
@@ -1236,7 +1511,7 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid, bubbleEvents, bubbleTrigger, bubbleTriggerType, bubbleTriggerRadius, bubbleLines]);
+  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid, bubbleEvents, bubbleTrigger, bubbleTriggerType, bubbleTriggerRadius, bubbleLines, bubbleGrants, dialogGrants]);
 
   // ─── Minimap update logic ────────────────────────────────────────────
   const updateMinimapViewport = useCallback(() => {
@@ -1352,7 +1627,9 @@ export default function MapEditor() {
     if (e.button === 2) return; // right-click handled by onContextMenu
     setInspectTile(null);
     const { x, y } = cellFromEvent(e);
-    if (tool === 'speech_bubble') {
+    if (grantPickActive && (tool === 'speech_bubble' || tool === 'event_trigger')) {
+      handleGrantClick(x, y);
+    } else if (tool === 'speech_bubble') {
       handleBubbleClick(x, y);
     } else if (tool === 'building_rect') {
       setBuildStart({ x, y });
@@ -1403,7 +1680,7 @@ export default function MapEditor() {
   // publishing. A blank Event ID is auto-named.
   const getEffectiveBubbleEvents = useCallback((): BubbleEvent[] => {
     const events = [...bubbleEvents];
-    if (bubbleTrigger && bubbleLines.length > 0) {
+    if (bubbleTrigger && (bubbleLines.length > 0 || bubbleGrants.length > 0)) {
       const id = bubbleId.trim() || `speech_${events.length + 1}`;
       const draft: BubbleEvent = {
         id,
@@ -1415,12 +1692,14 @@ export default function MapEditor() {
           ...(bubbleTriggerType === 'proximity' ? { radius: bubbleTriggerRadius } : {}),
         },
         lines: bubbleLines,
+        ...(bubbleGrants.length > 0 ? { grants: bubbleGrants } : {}),
+        ...(bubbleNext.trim() ? { next: bubbleNext.trim() } : {}),
       };
       const idx = events.findIndex(e => e.id === id);
       if (idx >= 0) events[idx] = draft; else events.push(draft);
     }
     return events;
-  }, [bubbleEvents, bubbleTrigger, bubbleLines, bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius]);
+  }, [bubbleEvents, bubbleTrigger, bubbleLines, bubbleGrants, bubbleNext, bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius]);
 
   // ─── Save / Load ─────────────────────────────────────────────────────
   const getPlayerSpawn = (): { x: number; y: number } | null => {
@@ -1442,6 +1721,7 @@ export default function MapEditor() {
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
       bubbleEvents: getEffectiveBubbleEvents(),
+      chainDialogEvents,
     };
     const exported = exportScenario(scenario);
 
@@ -1466,6 +1746,7 @@ export default function MapEditor() {
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
       bubbleEvents: getEffectiveBubbleEvents(),
+      chainDialogEvents,
     };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
@@ -1525,6 +1806,7 @@ export default function MapEditor() {
         setMapSeed(editor.seed !== undefined ? editor.seed : '');
         setMapLowSpots(editor.lowSpots || []);
         setBubbleEvents((editor as any).bubbleEvents || []);
+        setChainDialogEvents((editor as any).chainDialogEvents || []);
         resetBubbleDraft();
         setStatusMsg(`Loaded save game map "${label}"`);
         return;
@@ -1548,6 +1830,7 @@ export default function MapEditor() {
     setMapSeed(editor.seed !== undefined ? editor.seed : '');
     setMapLowSpots(editor.lowSpots || []);
     setBubbleEvents((editor as any).bubbleEvents || data.bubbleEvents || []);
+    setChainDialogEvents((editor as any).chainDialogEvents || data.chainDialogEvents || []);
     resetBubbleDraft();
     setStatusMsg(`Loaded "${label}"`);
   };
@@ -2073,6 +2356,47 @@ export default function MapEditor() {
                 </label>
               </div>
             )}
+
+            {selectedEntity === 'npc' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#888' }}>NPC Type</label>
+                <select
+                  value={npcTypeId}
+                  onChange={e => setNpcTypeId(e.target.value)}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  {NPC_TYPES.map(t => (
+                    <option key={t.id} value={t.id}>{t.label}</option>
+                  ))}
+                </select>
+                <label style={{ fontSize: 11, color: '#888' }}>Name (optional)</label>
+                <input
+                  value={npcName}
+                  onChange={e => setNpcName(e.target.value)}
+                  placeholder="e.g. Doc"
+                  style={{ ...inputStyle, width: '100%' }}
+                />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={npcIsHostile} onChange={e => setNpcIsHostile(e.target.checked)} />
+                  Hostile
+                </label>
+                <label style={{ fontSize: 11, color: '#888' }}>Icon</label>
+                <select
+                  value={npcIconId}
+                  onChange={e => setNpcIconId(e.target.value)}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  {npcIconChoices.map(o => (
+                    <option key={o.key} value={o.key}>{o.label}</option>
+                  ))}
+                </select>
+                <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
+                  {entityImageKeys
+                    ? `Any image in the entities folder (${entityImageKeys.length} found).`
+                    : 'Icon reuses art already in the game — pick anything that fits the character.'}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -2359,9 +2683,39 @@ export default function MapEditor() {
               >+ Add Step</button>
             </div>
 
-            <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
-              Click a tile to place this dialog trigger. Steps play in order when the player walks on the tile.
-            </p>
+            {renderGrantsSection(dialogGrants, setDialogGrants)}
+
+            {renderChainSection(dialogNext, setDialogNext)}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
+              <button onClick={commitChainDialogEvent} style={btnStyle('#8a5cd9')}>Save as chain-only event (no tile)</button>
+              <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
+                Either <b>click a tile</b> to place this as a walk-on trigger, <b>or</b> save it as chain-only — an event with no tile that fires only when another event chains to it.
+              </p>
+            </div>
+
+            {chainDialogEvents.length > 0 && (
+              <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#888' }}>Chain-only events ({chainDialogEvents.length})</label>
+                {chainDialogEvents.map(ev => (
+                  <div key={ev.id} style={{ background: '#161616', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#b18cf0', fontWeight: 'bold' }}>{ev.id}</span>
+                      <span style={{ color: '#888', fontSize: 10 }}>no tile{ev.oneShot ? ' · one-shot' : ' · repeatable'}</span>
+                    </div>
+                    <div style={{ color: '#aaa', fontSize: 10, marginTop: 1 }}>
+                      {ev.steps.length} step{ev.steps.length !== 1 ? 's' : ''}
+                      {ev.grants?.length ? ` · ${ev.grants.length} grant${ev.grants.length !== 1 ? 's' : ''}` : ''}
+                      {ev.next ? ` · →${ev.next}` : ''}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                      <button onClick={() => editChainDialogEvent(ev.id)} style={{ fontSize: 10, color: '#7bb8ff', background: 'none', border: 'none', cursor: 'pointer' }}>Edit</button>
+                      <button onClick={() => deleteChainDialogEvent(ev.id)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -2449,6 +2803,10 @@ export default function MapEditor() {
                 style={btnStyle(bubbleClickMode === 'anchor' ? '#b5651d' : (bubbleLineText.trim() ? '#2a7a2a' : '#333'))}
               >{bubbleClickMode === 'anchor' ? 'Click the entity tile…' : '+ Pick anchor & add line'}</button>
             </div>
+
+            {renderGrantsSection(bubbleGrants, setBubbleGrants)}
+
+            {renderChainSection(bubbleNext, setBubbleNext)}
 
             <button onClick={commitBubbleEvent} style={btnStyle('#4a90d9')}>Save event</button>
             <button onClick={resetBubbleDraft} style={btnStyle('#555')}>Clear draft</button>
@@ -2606,7 +2964,10 @@ export default function MapEditor() {
           <div style={{ borderTop: '1px solid #333', paddingTop: 8, fontSize: 11, color: '#aaa' }}>
             <div><strong>({hoverCell.x}, {hoverCell.y})</strong> — {tiles[hoverCell.y][hoverCell.x].terrain}</div>
             {tiles[hoverCell.y][hoverCell.x].entities.length > 0 && (
-              <div>Entities: {tiles[hoverCell.y][hoverCell.x].entities.map(e => e.subtype ? `${e.type}(${e.subtype})` : e.type).join(', ')}</div>
+              <div>Entities: {tiles[hoverCell.y][hoverCell.x].entities.map(e => {
+                if (e.type === 'npc') return `npc(${e.name || e.typeId || 'survivor'})`;
+                return e.subtype ? `${e.type}(${e.subtype})` : e.type;
+              }).join(', ')}</div>
             )}
             {tiles[hoverCell.y][hoverCell.x].items.length > 0 && (
               <div>Items: {tiles[hoverCell.y][hoverCell.x].items.map(i => i.defId).join(', ')}</div>
@@ -3021,6 +3382,8 @@ export default function MapEditor() {
             setTriggerId(t.eventTrigger.id);
             setDialogSteps([...t.eventTrigger.steps]);
             setDialogOneShot(t.eventTrigger.oneShot);
+            setDialogGrants(t.eventTrigger.grants ? [...t.eventTrigger.grants] : []);
+            setDialogNext(t.eventTrigger.next || '');
             setTool('event_trigger');
             setStatusMsg(`Editing event "${t.eventTrigger.id}" — modify steps then click a tile to place`);
           }
@@ -3144,6 +3507,10 @@ export default function MapEditor() {
                           {ent.hp ? ` · ${ent.hp} hp` : ''}
                           {ent.noLoot ? ` · no loot` : ''}
                           {ent.deaf ? ` · deaf` : ''}
+                          {ent.type === 'npc' && ent.name ? ` · "${ent.name}"` : ''}
+                          {ent.type === 'npc' && ent.typeId ? ` · ${ent.typeId}` : ''}
+                          {ent.type === 'npc' && ent.isHostile ? ` · hostile` : ''}
+                          {ent.type === 'npc' && ent.iconId ? ` · icon:${ent.iconId}` : ''}
                         </span>
                         <button onClick={() => removeEntity(i)} style={removeBtnStyle}>Remove</button>
                       </div>

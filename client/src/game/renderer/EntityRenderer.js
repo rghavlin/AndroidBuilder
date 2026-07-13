@@ -393,23 +393,33 @@ export const EntityRenderer = {
         spriteKey = typeDef?.spriteKey || 'zombie';
       }
 
+      // Custom NPC icon: authored in the map editor as a literal filename already
+      // shipped in client/public/images/entities/ (e.g. 'soldierzombie', 'player'),
+      // reusing existing art rather than a per-typeId sprite convention. Takes
+      // priority over the generic npc sprite.
+      const npcIconKey = (entity.type === EntityType.NPC && entity.iconId) ? entity.iconId : null;
+      if (npcIconKey) spriteKey = npcIconKey;
+
       let sprite = sprites[spriteKey];
-      
+
       // Type-specific fallbacks
       if (!sprite) {
         if (entity.type === 'item') {
           // Fallback to generic item sprite or item_default
           sprite = sprites['item'] || sprites['item_default'];
-          
+
           if (!sprite) {
             // Trigger lazy-loading for the base item default
             imageLoader.getItemImage('default');
           }
-          
+
           // Trigger lazy-loading for missing specialized sprites (e.g., bed, campfire, toywagon)
           if (effectiveImageId && effectiveImageId !== 'ground_pile' && effectiveImageId !== 'basic') {
             imageLoader.getItemImage(effectiveImageId);
           }
+        } else if (npcIconKey) {
+          // Lazy-load the custom icon directly by its literal filename key.
+          imageLoader.getImage(npcIconKey);
         } else {
           sprite = sprites[entity.type];
           if (!sprite && ['player', 'zombie', 'npc', 'rabbit'].includes(entity.type)) {

@@ -14,6 +14,7 @@ import { InventoryProvider } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { useSpeechBubbles } from './SpeechBubbleContext.jsx';
+import { applyItemGrants } from '../game/utils/applyItemGrants.js';
 import Logger from '../game/utils/Logger.js';
 import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
@@ -417,8 +418,10 @@ const GameContextInner = ({ children }) => {
   }, []);
   
   const [activeNpcDemand, setActiveNpcDemand] = useState(null); // { npc, player }
-  const [activeDialog, setActiveDialog] = useState(null); // { id, steps: [{speaker, text}] }
+  const [activeDialog, setActiveDialog] = useState(null); // { id, steps: [{speaker, text}], next? }
   const [firedDialogIds, setFiredDialogIds] = useState(new Set());
+  const firedDialogIdsRef = useRef(firedDialogIds);
+  firedDialogIdsRef.current = firedDialogIds;
   const isAutosaving = engine.isAutosaving;
   const setIsAutosaving = useCallback((val) => {
     engine.isAutosaving = typeof val === 'function' ? val(engine.isAutosaving) : val;
@@ -1072,12 +1075,42 @@ const GameContextInner = ({ children }) => {
   }, [activeNpcDemand, extortPlayer, playbackTurn, turn, addLog, setTurnPhase]);
 
   const handleDialogDismiss = useCallback(() => {
-    console.log(`[GameContext] Dialog dismissed: "${activeDialog?.id}"`);
+    const dismissed = activeDialog;
+    console.log(`[GameContext] Dialog dismissed: "${dismissed?.id}"`);
     setActiveDialog(null);
     setTurnPhase('PLAYER_TURN');
     engine.turnPhase = 'PLAYER_TURN';
     engine.notifyUpdate();
+    // Event chaining: fire the follow-on event once this dialog closes.
+    if (dismissed?.next) {
+      GameEvents.emit(GAME_EVENT.EVENT_CHAIN_REQUEST, { eventId: dismissed.next });
+    }
   }, [activeDialog, setTurnPhase]);
+
+  // Fire a dialog eventTrigger object (by tile match or by chain-request id).
+  // Handles steps (modal), grants (item drop), one-shot state, and chaining a
+  // grant-only dialog straight through to its follow-on event.
+  const fireDialogTrigger = useCallback((trigger) => {
+    if (!trigger) return;
+    const hasSteps = trigger.steps && trigger.steps.length > 0;
+    const hasGrants = trigger.grants && trigger.grants.length > 0;
+    if (!hasSteps && !hasGrants) return;
+    if (trigger.oneShot && firedDialogIdsRef.current.has(trigger.id)) return;
+    if (trigger.oneShot) setFiredDialogIds(prev => new Set(prev).add(trigger.id));
+
+    if (hasGrants) {
+      applyItemGrants(engine.gameMap, trigger.grants, engine.inventoryManager);
+      engine.notifyUpdate();
+    }
+    if (hasSteps) {
+      console.log(`[GameContext] Dialog fired: "${trigger.id}"`);
+      setActiveDialog({ id: trigger.id, steps: trigger.steps, next: trigger.next });
+      setTurnPhase('PAUSED_FOR_EVENT');
+    } else if (trigger.next) {
+      // Grant-only dialog event: nothing to display, so chain immediately.
+      GameEvents.emit(GAME_EVENT.EVENT_CHAIN_REQUEST, { eventId: trigger.next });
+    }
+  }, [setTurnPhase]);
 
   // Fire the dialog trigger at the player's current tile, ignoring oneShot state.
   // Used by the placeable.help item click so the player can replay the tutorial at will.
@@ -1271,22 +1304,31 @@ const GameContextInner = ({ children }) => {
       const triggers = gameMap.metadata?.eventTriggers;
       if (!triggers || triggers.length === 0) return;
 
-      const trigger = triggers.find(t => t.x === player.x && t.y === player.y);
-      if (!trigger || !trigger.steps || trigger.steps.length === 0) return;
-      if (trigger.oneShot && firedDialogIds.has(trigger.id)) return;
-
-      console.log(`[GameContext] Dialog triggered: "${trigger.id}" at (${player.x}, ${player.y})`);
-      setActiveDialog({ id: trigger.id, steps: trigger.steps });
-      setTurnPhase('PAUSED_FOR_EVENT');
-
-      if (trigger.oneShot) {
-        setFiredDialogIds(prev => new Set(prev).add(trigger.id));
-      }
+      const trigger = triggers.find(t => !t.chainOnly && t.x === player.x && t.y === player.y);
+      if (!trigger) return;
+      console.log(`[GameContext] Dialog trigger at (${player.x}, ${player.y}): "${trigger.id}"`);
+      fireDialogTrigger(trigger);
     };
 
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, checkDialogTrigger);
     return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, checkDialogTrigger);
-  }, [activeDialog, firedDialogIds]);
+  }, [activeDialog, fireDialogTrigger]);
+
+  // Event chaining: another event asked us to fire a dialog eventTrigger by id.
+  useEffect(() => {
+    const onChainRequest = ({ eventId }) => {
+      if (!eventId) return;
+      const triggers = engine.gameMap?.metadata?.eventTriggers;
+      if (!triggers) return;
+      const trigger = triggers.find(t => t.id === eventId);
+      if (trigger) {
+        console.log(`[GameContext] Chain-firing dialog event "${eventId}"`);
+        fireDialogTrigger(trigger);
+      }
+    };
+    GameEvents.on(GAME_EVENT.EVENT_CHAIN_REQUEST, onChainRequest);
+    return () => GameEvents.off(GAME_EVENT.EVENT_CHAIN_REQUEST, onChainRequest);
+  }, [fireDialogTrigger]);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');

@@ -56,6 +56,8 @@ export const GAME_EVENT = {
   // Dialog / Scenario Events
   DIALOG_TRIGGERED: 'dialog_triggered',
   DIALOG_DISMISSED: 'dialog_dismissed',
+  // Event chaining: request that another event (dialog or speech-bubble) fire by id.
+  EVENT_CHAIN_REQUEST: 'event_chain_request',
 
   // Attribute Upgrades
   ATTRIBUTE_ROLL_READY: 'attribute_roll_ready',

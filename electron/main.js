@@ -202,6 +202,27 @@ ipcMain.handle('list-scenarios', async () => {
   }
 });
 
+// Entity image catalog for the map editor's NPC icon picker: lists whatever
+// .png/.jpg/.gif/.svg files actually exist in the entities art folder, so any
+// image dropped in there (new or existing) is immediately pickable with no
+// code changes or manual list-maintenance.
+ipcMain.handle('list-entity-images', async () => {
+  try {
+    const entitiesDir = isDev
+      ? path.join(__dirname, '../client/public/images/entities')
+      : path.join(__dirname, '../dist/images/entities');
+    if (!fs.existsSync(entitiesDir)) return [];
+    const exts = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg']);
+    return fs.readdirSync(entitiesDir)
+      .filter(f => exts.has(path.extname(f).toLowerCase()))
+      .map(f => f.slice(0, -path.extname(f).length))
+      .sort((a, b) => a.localeCompare(b));
+  } catch (error) {
+    console.warn('[Entity Images IPC] Failed to list entity images:', error.message);
+    return [];
+  }
+});
+
 ipcMain.handle('load-scenario', async (event, fileName) => {
   try {
     const filePath = path.join(scenarioDir, fileName);

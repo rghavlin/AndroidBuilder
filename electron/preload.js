@@ -21,5 +21,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadScenarioEditor: (name) => ipcRenderer.invoke('load-scenario-editor', name),
   deleteScenario: (fileName) => ipcRenderer.invoke('delete-scenario', fileName),
   openEditorWindow: () => ipcRenderer.invoke('open-editor-window'),
-  openGameWindow: () => ipcRenderer.invoke('open-game-window')
+  openGameWindow: () => ipcRenderer.invoke('open-game-window'),
+
+  // Map editor: full entity-art catalog for the NPC icon picker.
+  listEntityImages: () => ipcRenderer.invoke('list-entity-images')
 });

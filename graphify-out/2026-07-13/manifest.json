@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1783924009.7960527,
-    "ast_hash": "e8c88acc530cdaadc2e25090cb176c5d",
+    "mtime": 1783934255.3280275,
+    "ast_hash": "bc3a08b1f6c06a6e5a6eb2170861b74d",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1783925313.1877396,
-    "ast_hash": "1d4c04101ec44ebca95df481a283a104",
+    "mtime": 1783932846.2216704,
+    "ast_hash": "043cb19b4c5ce949dc7007e99e71efe3",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -710,8 +710,8 @@
     "semantic_hash": "e512afbbce15e8144de7f976dc2b7c3b"
   },
   "client/src/game/EntityFactory.js": {
-    "mtime": 1783742594.5869794,
-    "ast_hash": "ff6ac594e7b468a17c57a43f2e5529bd",
+    "mtime": 1783934299.339297,
+    "ast_hash": "ba4a0f3021943b88938cd5043f311b65",
     "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
@@ -935,8 +935,8 @@
     "semantic_hash": "6831cf6fbc1fd3152062a0e853450673"
   },
   "client/src/game/entities/Entity.js": {
-    "mtime": 1783920579.808366,
-    "ast_hash": "8d65fc103e0b0bf017657bc7de7d8470",
+    "mtime": 1783934288.444541,
+    "ast_hash": "432ffeb3a2a3ab68a0675f3ebd500834",
     "semantic_hash": ""
   },
   "client/src/game/entities/NPCTypes.js": {
@@ -1105,8 +1105,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1783924591.7595224,
-    "ast_hash": "90f70191b7c5475a0a1da7c712bcac71",
+    "mtime": 1783934309.1598752,
+    "ast_hash": "4b95ee385b5a658d499ba9729345754c",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1180,8 +1180,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1783838068.1133583,
-    "ast_hash": "732ac91235ea32e4beb34d3b78369b0b",
+    "mtime": 1783934326.9332802,
+    "ast_hash": "36742ec7245111ee7aa08c3b7a8f6360",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -1290,9 +1290,9 @@
     "semantic_hash": "a892a3741d4a30226ad60ae8b9345dc8"
   },
   "client/src/game/utils/GameEvents.js": {
-    "mtime": 1783470863.7812366,
-    "ast_hash": "295931709cdfe9103d3bbe61c5d0c642",
-    "semantic_hash": "295931709cdfe9103d3bbe61c5d0c642"
+    "mtime": 1783931659.1942708,
+    "ast_hash": "60ae8d16ff49642555f7fdde7c6812f6",
+    "semantic_hash": ""
   },
   "client/src/game/utils/ImageLoader.js": {
     "mtime": 1782092451.866972,
@@ -1425,8 +1425,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1783925872.654451,
-    "ast_hash": "6a54ec3b4a5b43f630292a47bf25782c",
+    "mtime": 1783934436.677306,
+    "ast_hash": "02100ec533f1f9532a0d2581d46ce46c",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -2715,13 +2715,13 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/SpeechBubbleInput.tsx": {
-    "mtime": 1783924447.1600933,
-    "ast_hash": "c4704667ef81edf5130a3cb59398c636",
+    "mtime": 1783926433.9477024,
+    "ast_hash": "f2cdf75a536316b86ea5564a5d103e1b",
     "semantic_hash": ""
   },
   "client/src/contexts/SpeechBubbleContext.jsx": {
-    "mtime": 1783925888.5753403,
-    "ast_hash": "49244f4de1fa0cef6a32b6ebfd20ef57",
+    "mtime": 1783931764.6948004,
+    "ast_hash": "11756d1d20f3b4f5ace2df045666223f",
     "semantic_hash": ""
   },
   "client/src/game/renderer/SpeechBubbleRenderer.js": {
@@ -2729,39 +2729,34 @@
     "ast_hash": "9fc1a35242f086d1061bb3a82ec1ce2d",
     "semantic_hash": ""
   },
-  "customMaps/basement1.editor.json": {
-    "mtime": 1783925331.838834,
-    "ast_hash": "48ae7b70ba50fa245db259619bfac836",
-    "semantic_hash": ""
-  },
-  "customMaps/basement1.scenario.json": {
-    "mtime": 1783925332.8120427,
-    "ast_hash": "0ffa495fbee0fd0587090ae4c91feb7b",
-    "semantic_hash": ""
-  },
   "customMaps/branchingbasement1.editor.json": {
-    "mtime": 1783925587.1762042,
-    "ast_hash": "ec862b37c5a86ac193e90fef4caac571",
+    "mtime": 1783929491.5027833,
+    "ast_hash": "5d82123edf280cdafd31a0278a6b67b5",
     "semantic_hash": ""
   },
   "customMaps/branchingbasement1.scenario.json": {
-    "mtime": 1783925587.9332232,
-    "ast_hash": "a3fb6b3b95dde7255eab3e9311cfe62f",
-    "semantic_hash": ""
-  },
-  "customMaps/upstairs1.editor.json": {
-    "mtime": 1783920447.3007855,
-    "ast_hash": "ed3da639528a7a750b7e52afee7e1b77",
-    "semantic_hash": ""
-  },
-  "customMaps/upstairs1.scenario.json": {
-    "mtime": 1783920448.2680626,
-    "ast_hash": "cd63cc568edd5cf99112f9402477aad3",
+    "mtime": 1783929491.9834402,
+    "ast_hash": "6f3909eee55f0f77ba4319c471f9dc9e",
     "semantic_hash": ""
   },
   "client/public/sounds/hammer.ogg": {
     "mtime": 1778830444.9370573,
     "ast_hash": "93d388a74edba74374ceafa9347ac25f",
+    "semantic_hash": ""
+  },
+  "client/src/game/utils/applyItemGrants.js": {
+    "mtime": 1783931044.6981103,
+    "ast_hash": "0e59812e5ab7f774ee5ce23b115b421e",
+    "semantic_hash": ""
+  },
+  "customMaps/EventTest1.editor.json": {
+    "mtime": 1783933157.572662,
+    "ast_hash": "2dc86d5e03dba3a74cf02b793b3c7588",
+    "semantic_hash": ""
+  },
+  "customMaps/EventTest1.scenario.json": {
+    "mtime": 1783933158.9495082,
+    "ast_hash": "e442493f25fee6c57494226a97b15f93",
     "semantic_hash": ""
   }
 }

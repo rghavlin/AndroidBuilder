@@ -968,7 +968,9 @@ export class TemplateMapGenerator {
                 e.x, e.y,
                 e.isHostile || false,
                 e.typeId || e.subtype || 'survivor',
-                e.name || null
+                e.name || null,
+                null,
+                e.iconId || null
               );
             }
             if (entity) gameMap.addEntity(entity, e.x, e.y);

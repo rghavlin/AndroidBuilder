@@ -101,7 +101,7 @@ const COMPONENT_NAME_BY_CTOR = new Map(
 );
 
 export const SERIALIZED_FIELDS = [
-  'subtype', 'blocksMovement', 'name', 'isHostile', 'equippedWeaponId',
+  'subtype', 'blocksMovement', 'name', 'isHostile', 'equippedWeaponId', 'iconId',
   'typeId', 'isShopkeeper', 'isTollGuard', 'tollPaid', 'tollSidestep', 'tollTarget',
   'factionId', 'sightRange', 'hearingRangeMultiplier', 'hasExited', 'isActive', 'noLoot', 'deaf',
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',

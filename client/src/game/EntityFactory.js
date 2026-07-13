@@ -149,7 +149,7 @@ export const EntityFactory = {
     return entity;
   },
 
-  createNPC(x, y, isHostile = false, typeId = 'survivor', name = null, id = null) {
+  createNPC(x, y, isHostile = false, typeId = 'survivor', name = null, id = null, iconId = null) {
     const typeDef = getNPCType(typeId);
     const entity = new Entity(id, 'npc', x, y);
     entity.type = 'npc';
@@ -158,6 +158,10 @@ export const EntityFactory = {
     entity.isHostile = isHostile;
     entity.factionId = typeDef.factionId || 'survivors';
     entity.blocksMovement = true;
+    // Custom appearance, independent of typeId (which drives stats/faction).
+    // Reuses existing game art (see NPC_ICON_OPTIONS in the map editor) rather
+    // than a per-typeId sprite convention, since no npc_<typeId> art exists.
+    if (iconId) entity.iconId = iconId;
 
     // Components
     entity.addComponent(new Position({ x, y, level: 0 }));

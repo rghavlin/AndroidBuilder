@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import engine from '../game/GameEngine.js';
+import { applyItemGrants } from '../game/utils/applyItemGrants.js';
 
 /**
  * SpeechBubbleContext - on-map, per-entity speech bubble "conversations".
@@ -57,6 +58,12 @@ export const SpeechBubbleProvider = ({ children }) => {
         // End of conversation: resume gameplay.
         engine.turnPhase = 'PLAYER_TURN';
         engine.notifyUpdate();
+        // Event chaining: fire the follow-on event after this conversation ends.
+        // Deferred out of the state updater to avoid setState-during-render.
+        const nextId = prev.event.next;
+        if (nextId) {
+          setTimeout(() => GameEvents.emit(GAME_EVENT.EVENT_CHAIN_REQUEST, { eventId: nextId }), 0);
+        }
         return null;
       }
       return { ...prev, index: nextIndex };
@@ -80,6 +87,29 @@ export const SpeechBubbleProvider = ({ children }) => {
     setSequence({ event, index: 0 });
   }, []);
 
+  // Fire a bubble event (by tile match or by chain-request id): grants fire
+  // on trigger; dialogue starts a bubble sequence; a grant-only event with a
+  // follow-on chains straight through.
+  const fireBubbleEvent = useCallback((ev) => {
+    if (!ev) return;
+    const hasLines = Array.isArray(ev.lines) && ev.lines.length > 0;
+    const hasGrants = Array.isArray(ev.grants) && ev.grants.length > 0;
+    if (!hasLines && !hasGrants) return;
+    if (ev.oneShot && firedRef.current.has(ev.id)) return;
+    if (ev.oneShot) firedRef.current.add(ev.id);
+
+    if (hasGrants) {
+      applyItemGrants(engine.gameMap, ev.grants, engine.inventoryManager);
+      engine.notifyUpdate();
+    }
+    if (hasLines) {
+      startSequence(ev);
+    } else if (ev.next) {
+      // No conversation to complete, so chain immediately.
+      setTimeout(() => GameEvents.emit(GAME_EVENT.EVENT_CHAIN_REQUEST, { eventId: ev.next }), 0);
+    }
+  }, [startSequence]);
+
   // Trigger detection on player move.
   useEffect(() => {
     const check = () => {
@@ -93,12 +123,14 @@ export const SpeechBubbleProvider = ({ children }) => {
 
       let matched = false;
       for (const ev of events) {
-        if (!ev || !ev.lines || ev.lines.length === 0) continue;
+        if (!ev) continue;
+        const hasLines = Array.isArray(ev.lines) && ev.lines.length > 0;
+        const hasGrants = Array.isArray(ev.grants) && ev.grants.length > 0;
+        if (!hasLines && !hasGrants) continue; // nothing to do
         if (ev.oneShot && firedRef.current.has(ev.id)) continue;
         if (triggerMatches(ev.trigger, player.x, player.y)) {
           console.log(`[SpeechBubbles] Triggered "${ev.id}" at (${player.x}, ${player.y})`);
-          if (ev.oneShot) firedRef.current.add(ev.id);
-          startSequence(ev);
+          fireBubbleEvent(ev);
           matched = true;
           break;
         }
@@ -113,7 +145,23 @@ export const SpeechBubbleProvider = ({ children }) => {
 
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, check);
     return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, check);
-  }, [sequence, startSequence]);
+  }, [sequence, fireBubbleEvent]);
+
+  // Event chaining: another event asked us to fire a bubble event by id.
+  useEffect(() => {
+    const onChainRequest = ({ eventId }) => {
+      if (!eventId) return;
+      const events = engine.gameMap?.metadata?.bubbleEvents;
+      if (!events) return;
+      const ev = events.find(e => e && e.id === eventId);
+      if (ev) {
+        console.log(`[SpeechBubbles] Chain-firing bubble event "${eventId}"`);
+        fireBubbleEvent(ev);
+      }
+    };
+    GameEvents.on(GAME_EVENT.EVENT_CHAIN_REQUEST, onChainRequest);
+    return () => GameEvents.off(GAME_EVENT.EVENT_CHAIN_REQUEST, onChainRequest);
+  }, [fireBubbleEvent]);
 
   const activeBubble = sequence ? sequence.event.lines[sequence.index] : null;
 
