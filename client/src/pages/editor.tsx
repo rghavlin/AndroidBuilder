@@ -3,6 +3,9 @@ import { ScenarioStorage } from '@/game/ScenarioStorage';
 import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
+import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
+import { emptyEvent, type GameEvent } from '@/game/quest/eventTypes';
+import EventWindow from '@/components/MapEditor/EventWindow';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -94,7 +97,7 @@ const PLACE_ICON_TYPES = [
 ];
 
 type Edge = 'n' | 'e' | 's' | 'w';
-type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'event_trigger' | 'map_transition' | 'place_icon' | 'speech_bubble';
+type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'map_transition' | 'place_icon' | 'event_editor';
 
 // On-map, per-entity speech bubbles. A BubbleEvent is a sequence of lines, each
 // anchored to a specific tile/entity, played one at a time when its trigger
@@ -149,6 +152,7 @@ interface ScenarioData {
   lowSpots?: { x: number; y: number }[];
   bubbleEvents?: BubbleEvent[];
   chainDialogEvents?: DialogEventDef[];
+  events?: GameEvent[];
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -196,7 +200,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[] } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[] } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -307,8 +311,22 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     }
   }
 
-  // Event triggers
-  const triggers = scenario.eventTriggers || scenario.metadata?.eventTriggers;
+  // Event triggers. Resolved through the unified GameEvent model so a map
+  // authored with only the new `events[]` shape (Phase 2+) loads correctly
+  // here too. The resolved `unifiedEvents` is kept as the lossless source of
+  // truth for the editor's "Open existing" list; the down-converted legacy
+  // arrays below are a best-effort projection used only for canvas markers,
+  // the tile-info popover, and runtime back-compat — for an event that mixes
+  // dialog + speech steps that projection is necessarily lossy (only one of
+  // the two step kinds survives down-conversion), so it must never be the
+  // thing re-read back into the editor's authored event list.
+  const unifiedEvents = resolveMapEvents({
+    events: scenario.events || scenario.metadata?.events,
+    eventTriggers: scenario.eventTriggers || scenario.metadata?.eventTriggers,
+    bubbleEvents: scenario.bubbleEvents || scenario.metadata?.bubbleEvents,
+  });
+  const { eventTriggers: resolvedEventTriggers, bubbleEvents: resolvedBubbleEvents } = downconvertEvents(unifiedEvents);
+  const triggers = resolvedEventTriggers;
   const chainDialogEvents: DialogEventDef[] = [];
   if (triggers) {
     for (const evt of triggers) {
@@ -356,12 +374,13 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     alwaysDark: scenario.alwaysDark ?? scenario.metadata?.alwaysDark ?? false,
     seed: scenario.seed ?? scenario.metadata?.seed,
     lowSpots: scenario.metadata?.lowSpots || scenario.lowSpots || [],
-    bubbleEvents: scenario.bubbleEvents || scenario.metadata?.bubbleEvents || [],
+    bubbleEvents: resolvedBubbleEvents || [],
     chainDialogEvents,
+    events: unifiedEvents,
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[] } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[] } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -476,11 +495,21 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     }
   }
 
-  // Event Triggers and Map Transitions from map metadata
+  // Event Triggers and Map Transitions from map metadata. Resolved through the
+  // unified GameEvent model (see scenarioToEditorState above for why).
   const metadata = mapData.metadata;
+  // See scenarioToEditorState above: unifiedEvents is the lossless source kept
+  // for the editor's authored event list; the down-converted legacy arrays are
+  // a best-effort projection for canvas/tile-info/runtime back-compat only.
+  const unifiedEvents = resolveMapEvents({
+    events: mapData.events || metadata?.events,
+    eventTriggers: metadata?.eventTriggers,
+    bubbleEvents: mapData.bubbleEvents || metadata?.bubbleEvents,
+  });
+  const { eventTriggers: resolvedEventTriggers2, bubbleEvents: resolvedBubbleEvents2 } = downconvertEvents(unifiedEvents);
   const chainDialogEvents: DialogEventDef[] = [];
-  if (metadata?.eventTriggers) {
-    for (const evt of metadata.eventTriggers) {
+  if (resolvedEventTriggers2) {
+    for (const evt of resolvedEventTriggers2) {
       if (evt.chainOnly || evt.x === undefined || evt.y === undefined) {
         chainDialogEvents.push({ id: evt.id, steps: evt.steps || [], oneShot: evt.oneShot ?? true, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) });
         continue;
@@ -510,8 +539,9 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     alwaysDark: mapData.alwaysDark ?? mapData.metadata?.alwaysDark ?? false,
     seed: mapData.seed ?? mapData.metadata?.seed,
     lowSpots: mapData.metadata?.lowSpots || mapData.lowSpots || [],
-    bubbleEvents: mapData.bubbleEvents || mapData.metadata?.bubbleEvents || [],
+    bubbleEvents: resolvedBubbleEvents2 || [],
     chainDialogEvents,
+    events: unifiedEvents,
   };
 }
 
@@ -652,6 +682,16 @@ function exportScenario(scenario: ScenarioData) {
     })
   );
 
+  // Dual-write the unified GameEvent model alongside the legacy eventTriggers/
+  // bubbleEvents arrays: `scenario.events` (the editor's lossless authored list —
+  // see allEditorEvents) is the canonical source and is what Phase 3's runtime
+  // runner actually reads (resolveMapEvents prefers metadata.events). It is NOT
+  // re-derived from the legacy arrays above — down-converting a mixed
+  // dialog+speech event can only keep one of the two step kinds, which would
+  // silently drop data on every export. Falls back to migrating the legacy
+  // arrays only for a caller that never populated scenario.events.
+  const events = scenario.events ?? migrateLegacyEvents({ eventTriggers, bubbleEvents: scenario.bubbleEvents || [] });
+
   return {
     name: scenario.name,
     width: scenario.width,
@@ -680,6 +720,7 @@ function exportScenario(scenario: ScenarioData) {
     eventTriggers,
     mapTransitions,
     ...(scenario.bubbleEvents && scenario.bubbleEvents.length ? { bubbleEvents: scenario.bubbleEvents } : {}),
+    ...(events.length ? { events } : {}),
   };
 }
 
@@ -695,6 +736,7 @@ export default function MapEditor() {
   const [alwaysDark, setAlwaysDark] = useState(false);
   const [tiles, setTiles] = useState<TileData[][]>(() => createEmptyGrid(20, 20));
   const [buildings, setBuildings] = useState<BuildingMeta[]>([]);
+  const [zoom, setZoom] = useState(1.0);
   const [saveSlots, setSaveSlots] = useState<{ slotName: string; timestamp: number; turn?: number }[]>([]);
   const [loadTab, setLoadTab] = useState<'scenarios' | 'saves'>('scenarios');
   const [showGenPicker, setShowGenPicker] = useState(false);
@@ -723,235 +765,11 @@ export default function MapEditor() {
   const [gunAmmoCount, setGunAmmoCount] = useState<number | ''>('');
   const [gunMagDefId, setGunMagDefId] = useState('');
   const [gunAttachments, setGunAttachments] = useState<Record<string, string>>({});
-  const [triggerId, setTriggerId] = useState('');
-  const [dialogSteps, setDialogSteps] = useState<{ speaker: string; text: string; video?: string }[]>([]);
-  const [dialogOneShot, setDialogOneShot] = useState(true);
-  const [dialogNext, setDialogNext] = useState(''); // chain: fire this event id on close
-  const [editSpeaker, setEditSpeaker] = useState('');
-  const [editText, setEditText] = useState('');
-  const [editVideo, setEditVideo] = useState('');
-  const dialogStepsRef = useRef(dialogSteps);
-  dialogStepsRef.current = dialogSteps;
-
-  // ─── Speech bubble authoring state ───────────────────────────────────
+  // ─── Speech bubble event storage (authored via the unified Event Window) ──
   const [bubbleEvents, setBubbleEvents] = useState<BubbleEvent[]>([]);
-  // Draft (currently-edited) event fields:
-  const [bubbleId, setBubbleId] = useState('');
-  const [bubbleOneShot, setBubbleOneShot] = useState(true);
-  const [bubbleTriggerType, setBubbleTriggerType] = useState<'tile' | 'proximity'>('tile');
-  const [bubbleTriggerRadius, setBubbleTriggerRadius] = useState<number>(2);
-  const [bubbleTrigger, setBubbleTrigger] = useState<{ x: number; y: number } | null>(null);
-  const [bubbleLines, setBubbleLines] = useState<BubbleLine[]>([]);
-  const [bubbleLineSpeaker, setBubbleLineSpeaker] = useState('');
-  const [bubbleLineText, setBubbleLineText] = useState('');
-  const [bubbleNext, setBubbleNext] = useState(''); // chain: fire this event id on completion
-  // What the next map click assigns: the trigger location, or a new line's anchor.
-  const [bubbleClickMode, setBubbleClickMode] = useState<'trigger' | 'anchor' | null>(null);
-  const bubbleEventsRef = useRef(bubbleEvents);
-  bubbleEventsRef.current = bubbleEvents;
-
-  // ─── Item-grant authoring (shared by Event + Speech tools) ───────────
-  // Grants for the modal-dialog event currently being placed, and for the
-  // speech-bubble event draft, respectively.
-  const [dialogGrants, setDialogGrants] = useState<ItemGrant[]>([]);
-  const [bubbleGrants, setBubbleGrants] = useState<ItemGrant[]>([]);
-  const dialogGrantsRef = useRef(dialogGrants);
-  dialogGrantsRef.current = dialogGrants;
-  const dialogNextRef = useRef(dialogNext);
-  dialogNextRef.current = dialogNext;
-  // Pending grant being defined before its tile is picked.
-  const [grantDefId, setGrantDefId] = useState('');
-  const [grantCount, setGrantCount] = useState<number | ''>(1);
-  const [grantPickActive, setGrantPickActive] = useState(false);
-
-  // Route a map click to the pending grant's target tile. Adds to whichever
-  // event's grant list matches the active tool.
-  const handleGrantClick = useCallback((x: number, y: number) => {
-    if (x < 0 || y < 0 || x >= width || y >= height) return;
-    if (!grantDefId) { setStatusMsg('Select an item for the grant first'); setGrantPickActive(false); return; }
-    const grant: ItemGrant = { defId: grantDefId, count: (grantCount === '' ? 1 : grantCount) as number, x, y };
-    if (tool === 'speech_bubble') setBubbleGrants(prev => [...prev, grant]);
-    else setDialogGrants(prev => [...prev, grant]);
-    setGrantPickActive(false);
-    setStatusMsg(`Grant: ${grant.count}× ${grantDefId} → (${x}, ${y})`);
-  }, [width, height, grantDefId, grantCount, tool]);
-
-  // Shared "Give items" UI for both the Event and Speech panels.
-  const renderGrantsSection = (grants: ItemGrant[], setGrants: React.Dispatch<React.SetStateAction<ItemGrant[]>>) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
-      <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Give items (dropped on a tile when triggered)</label>
-      {grants.length === 0 && <div style={{ fontSize: 10, color: '#666' }}>No item grants.</div>}
-      {grants.map((g, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '3px 6px', fontSize: 11 }}>
-          <span style={{ color: '#ccc' }}>
-            {g.count && g.count > 1 ? `${g.count}× ` : ''}{allItems.find(it => it.id === g.defId)?.name || g.defId}
-            <span style={{ color: '#9c6', marginLeft: 6 }}>@ ({g.x}, {g.y})</span>
-          </span>
-          <button onClick={() => setGrants(prev => prev.filter((_, j) => j !== i))} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>Remove</button>
-        </div>
-      ))}
-      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-        <select value={grantDefId} onChange={e => setGrantDefId(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 0 }}>
-          <option value="">— select item —</option>
-          {allItems.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
-        </select>
-        <input type="number" min={1} value={grantCount} onChange={e => setGrantCount(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))} style={{ ...inputStyle, width: 48 }} />
-      </div>
-      <button
-        onClick={() => { if (!grantDefId) setStatusMsg('Select an item first'); else setGrantPickActive(true); }}
-        disabled={!grantDefId}
-        style={btnStyle(grantPickActive ? '#b5651d' : (grantDefId ? '#2a7a2a' : '#333'))}
-      >{grantPickActive ? 'Click the target tile…' : '+ Pick tile & add grant'}</button>
-    </div>
-  );
-
-  // Shared "then trigger another event" chain field for both event panels.
-  const renderChainSection = (value: string, setValue: (v: string) => void) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
-      <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Then trigger event (optional)</label>
-      <input
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        placeholder="event id to fire when this ends"
-        list="known-event-ids"
-        style={{ ...inputStyle }}
-      />
-      <datalist id="known-event-ids">
-        {knownEventIds.map(id => <option key={id} value={id} />)}
-      </datalist>
-      <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
-        Fires the named event (speech or dialog) when this one finishes. Chains any event to any other.
-      </p>
-    </div>
-  );
-
-  const resetBubbleDraft = useCallback(() => {
-    setBubbleId('');
-    setBubbleOneShot(true);
-    setBubbleTriggerType('tile');
-    setBubbleTriggerRadius(2);
-    setBubbleTrigger(null);
-    setBubbleLines([]);
-    setBubbleLineSpeaker('');
-    setBubbleLineText('');
-    setBubbleClickMode(null);
-    setBubbleGrants([]);
-    setBubbleNext('');
-  }, []);
-
-  // Map-click routing while the speech_bubble tool is active.
-  const handleBubbleClick = useCallback((x: number, y: number) => {
-    if (x < 0 || y < 0 || x >= width || y >= height) return;
-    if (bubbleClickMode === 'trigger') {
-      setBubbleTrigger({ x, y });
-      setBubbleClickMode(null);
-      setStatusMsg(`Trigger set at (${x}, ${y})`);
-    } else if (bubbleClickMode === 'anchor') {
-      if (!bubbleLineText.trim()) {
-        setStatusMsg('Enter line text before picking an anchor');
-        setBubbleClickMode(null);
-        return;
-      }
-      const line: BubbleLine = { x, y, text: bubbleLineText.trim() };
-      if (bubbleLineSpeaker.trim()) line.speaker = bubbleLineSpeaker.trim();
-      setBubbleLines(prev => [...prev, line]);
-      setBubbleLineSpeaker('');
-      setBubbleLineText('');
-      setBubbleClickMode(null);
-      setStatusMsg(`Line anchored to entity at (${x}, ${y})`);
-    } else {
-      setStatusMsg('Pick "Set trigger" or "Pick anchor & add" first, then click a tile');
-    }
-  }, [width, height, bubbleClickMode, bubbleLineText, bubbleLineSpeaker]);
-
-  const commitBubbleEvent = useCallback(() => {
-    const id = bubbleId.trim();
-    if (!id) { setStatusMsg('Enter an event ID'); return; }
-    if (!bubbleTrigger) { setStatusMsg('Set a trigger location first'); return; }
-    if (bubbleLines.length === 0 && bubbleGrants.length === 0) { setStatusMsg('Add at least one line or item grant'); return; }
-    const ev: BubbleEvent = {
-      id,
-      oneShot: bubbleOneShot,
-      trigger: {
-        type: bubbleTriggerType,
-        x: bubbleTrigger.x,
-        y: bubbleTrigger.y,
-        ...(bubbleTriggerType === 'proximity' ? { radius: bubbleTriggerRadius } : {}),
-      },
-      lines: bubbleLines,
-      ...(bubbleGrants.length > 0 ? { grants: bubbleGrants } : {}),
-      ...(bubbleNext.trim() ? { next: bubbleNext.trim() } : {}),
-    };
-    setBubbleEvents(prev => [...prev.filter(e => e.id !== id), ev]);
-    setStatusMsg(`Saved speech event "${id}" (${bubbleLines.length} line${bubbleLines.length !== 1 ? 's' : ''})`);
-    resetBubbleDraft();
-  }, [bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius, bubbleTrigger, bubbleLines, bubbleGrants, bubbleNext, resetBubbleDraft]);
-
-  const editBubbleEvent = useCallback((id: string) => {
-    const ev = bubbleEventsRef.current.find(e => e.id === id);
-    if (!ev) return;
-    setBubbleId(ev.id);
-    setBubbleOneShot(ev.oneShot);
-    setBubbleTriggerType(ev.trigger.type);
-    setBubbleTriggerRadius(ev.trigger.radius ?? 2);
-    setBubbleTrigger({ x: ev.trigger.x, y: ev.trigger.y });
-    setBubbleLines(ev.lines.map(l => ({ ...l })));
-    setBubbleGrants(ev.grants ? ev.grants.map(g => ({ ...g })) : []);
-    setBubbleNext(ev.next || '');
-    setBubbleLineSpeaker('');
-    setBubbleLineText('');
-    setBubbleClickMode(null);
-    setTool('speech_bubble');
-    setStatusMsg(`Editing "${id}" — Save event to apply changes`);
-  }, []);
-
-  const deleteBubbleEvent = useCallback((id: string) => {
-    setBubbleEvents(prev => prev.filter(e => e.id !== id));
-    setStatusMsg(`Deleted speech event "${id}"`);
-  }, []);
 
   // ─── Chain-only dialog events (no tile; fired only via chaining) ─────
   const [chainDialogEvents, setChainDialogEvents] = useState<DialogEventDef[]>([]);
-
-  const commitChainDialogEvent = useCallback(() => {
-    const id = triggerId.trim();
-    if (!id) { setStatusMsg('Enter a Trigger ID first'); return; }
-    if (dialogStepsRef.current.length === 0 && dialogGrantsRef.current.length === 0) {
-      setStatusMsg('Add at least one step or item grant'); return;
-    }
-    const ev: DialogEventDef = {
-      id,
-      steps: [...dialogStepsRef.current],
-      oneShot: dialogOneShot,
-      ...(dialogGrantsRef.current.length > 0 ? { grants: [...dialogGrantsRef.current] } : {}),
-      ...(dialogNextRef.current.trim() ? { next: dialogNextRef.current.trim() } : {}),
-    };
-    setChainDialogEvents(prev => [...prev.filter(e => e.id !== id), ev]);
-    setStatusMsg(`Saved chain-only event "${id}" (no tile)`);
-    // Clear the dialog draft.
-    setTriggerId('');
-    setDialogSteps([]);
-    setDialogGrants([]);
-    setDialogNext('');
-    setDialogOneShot(true);
-  }, [triggerId, dialogOneShot]);
-
-  const editChainDialogEvent = useCallback((id: string) => {
-    const ev = chainDialogEvents.find(e => e.id === id);
-    if (!ev) return;
-    setTriggerId(ev.id);
-    setDialogSteps(ev.steps.map(s => ({ ...s })));
-    setDialogOneShot(ev.oneShot);
-    setDialogGrants(ev.grants ? ev.grants.map(g => ({ ...g })) : []);
-    setDialogNext(ev.next || '');
-    setTool('event_trigger');
-    setStatusMsg(`Editing chain-only event "${id}" — Save chain-only event to apply`);
-  }, [chainDialogEvents]);
-
-  const deleteChainDialogEvent = useCallback((id: string) => {
-    setChainDialogEvents(prev => prev.filter(e => e.id !== id));
-    setStatusMsg(`Deleted chain-only event "${id}"`);
-  }, []);
 
   // Known event ids (speech + dialog) for the chain "then trigger" pickers.
   const knownEventIds = useMemo(() => {
@@ -961,6 +779,136 @@ export default function MapEditor() {
     tiles.forEach(row => row.forEach(t => { if (t.eventTrigger?.id) ids.add(t.eventTrigger.id); }));
     return Array.from(ids).sort();
   }, [bubbleEvents, chainDialogEvents, tiles]);
+
+  // ─── Unified Event Window (Phase 2) ───────────────────────────────────
+  // Single "Event" tool: open an existing event or create a new one, editing
+  // through one window regardless of whether it ends up dialog- or
+  // speech-shaped. Storage stays the legacy tiles[].eventTrigger /
+  // chainDialogEvents / bubbleEvents arrays (still what rendering, save/load,
+  // and the runtime all use) — the window just authors GameEvent objects and
+  // down-converts them into that storage via migrateEvents.js.
+  const [eventEditorDraft, setEventEditorDraft] = useState<GameEvent | null>(null);
+  // The id the draft was opened under (null for a brand-new event). Lets
+  // saveEventDraft tell "renamed an existing event" apart from "created a new
+  // one" so a rename removes the OLD id's entries instead of leaving a stale
+  // duplicate behind under the original name.
+  const [eventEditorOriginalId, setEventEditorOriginalId] = useState<string | null>(null);
+  const [eventEditorNewName, setEventEditorNewName] = useState('');
+  const [eventEditorPick, setEventEditorPick] = useState<{ mode: 'placement' } | { mode: 'step'; index: number } | null>(null);
+
+  // All events currently on the map — the lossless source of truth for the
+  // "Open existing" list and for export. NOT derived from the legacy storage
+  // (tiles[].eventTrigger / chainDialogEvents / bubbleEvents) on every render:
+  // that round-trips through downconvertEvents, which can only keep ONE of
+  // {dialog, speech} steps for a mixed event and would silently drop the
+  // other kind the moment it was re-derived. Populated from resolveMapEvents
+  // on map load (see scenarioToEditorState/saveGameMapToEditorState), and
+  // updated directly by saveEventDraft/deleteEventDraft below.
+  const [allEditorEvents, setAllEditorEvents] = useState<GameEvent[]>([]);
+
+  const openExistingEvent = useCallback((id: string) => {
+    const ev = allEditorEvents.find(e => e.id === id);
+    if (ev) {
+      setEventEditorDraft(ev);
+      setEventEditorOriginalId(id);
+    }
+  }, [allEditorEvents]);
+
+  const createNewEvent = useCallback(() => {
+    const name = eventEditorNewName.trim();
+    if (!name) { setStatusMsg('Enter a name for the new event'); return; }
+    if (allEditorEvents.some(e => e.id === name)) { setStatusMsg(`An event named "${name}" already exists — pick Open existing instead`); return; }
+    setEventEditorDraft(emptyEvent(name));
+    setEventEditorOriginalId(null);
+    setEventEditorNewName('');
+  }, [eventEditorNewName, allEditorEvents]);
+
+  // Strip any legacy entries for `id` out of all three storage arrays.
+  const removeEventFromStorage = useCallback((id: string) => {
+    setTiles(prev => {
+      pushUndo(prev, buildingsRef.current);
+      return prev.map(row => row.map(t => (t.eventTrigger?.id === id ? { ...t, eventTrigger: undefined } : t)));
+    });
+    setChainDialogEvents(prev => prev.filter(e => e.id !== id));
+    setBubbleEvents(prev => prev.filter(e => e.id !== id));
+  }, []);
+
+  const saveEventDraft = useCallback(() => {
+    const draft = eventEditorDraft;
+    if (!draft) return;
+    const id = draft.id.trim();
+    if (!id) { setStatusMsg('Enter an event name first'); return; }
+    // Renaming onto another existing event's id would silently clobber it.
+    if (allEditorEvents.some(e => e.id === id && e.id !== eventEditorOriginalId)) {
+      setStatusMsg(`An event named "${id}" already exists — choose a different name`);
+      return;
+    }
+    const normalized: GameEvent = { ...draft, id };
+
+    // Renamed (id changed from what this draft was opened under): remove the
+    // OLD id's entries first, or it's left behind as a stale duplicate.
+    if (eventEditorOriginalId && eventEditorOriginalId !== id) {
+      removeEventFromStorage(eventEditorOriginalId);
+      setAllEditorEvents(prev => prev.filter(e => e.id !== eventEditorOriginalId));
+    }
+
+    removeEventFromStorage(id);
+    const { eventTriggers, bubbleEvents: dcBubbleEvents } = downconvertEvents([normalized]);
+
+    for (const evt of eventTriggers) {
+      if (evt.chainOnly) {
+        setChainDialogEvents(prev => [...prev.filter(e => e.id !== id), { id: evt.id, steps: evt.steps, oneShot: evt.oneShot, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) }]);
+      } else if (evt.x !== undefined && evt.y !== undefined) {
+        setTiles(prev => {
+          const next = prev.map(row => row.map(t => ({ ...t })));
+          if (next[evt.y]?.[evt.x]) {
+            next[evt.y][evt.x].eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) };
+          }
+          return next;
+        });
+      }
+    }
+    for (const evt of dcBubbleEvents) {
+      setBubbleEvents(prev => [...prev.filter(e => e.id !== id), evt]);
+    }
+
+    // Lossless primary write — the actual authored event, unaffected by
+    // downconvertEvents' one-of-{dialog,speech} limitation above.
+    setAllEditorEvents(prev => [...prev.filter(e => e.id !== id), normalized]);
+
+    setStatusMsg(`Saved event "${id}"`);
+    setEventEditorDraft(null);
+    setEventEditorOriginalId(null);
+  }, [eventEditorDraft, eventEditorOriginalId, allEditorEvents, removeEventFromStorage]);
+
+  const deleteEventDraft = useCallback(() => {
+    const draft = eventEditorDraft;
+    if (!draft) return;
+    // Delete by the id it was opened under, so mid-edit renaming the id field
+    // doesn't leave the original entry behind un-deleted.
+    const targetId = eventEditorOriginalId ?? draft.id;
+    removeEventFromStorage(targetId);
+    setAllEditorEvents(prev => prev.filter(e => e.id !== targetId));
+    setStatusMsg(`Deleted event "${targetId}"`);
+    setEventEditorDraft(null);
+    setEventEditorOriginalId(null);
+  }, [eventEditorDraft, eventEditorOriginalId, removeEventFromStorage]);
+
+  // Map-click routing while picking a placement/step coordinate for the open draft.
+  const handleEventEditorPick = useCallback((x: number, y: number) => {
+    setEventEditorDraft(prev => {
+      if (!prev || !eventEditorPick) return prev;
+      if (eventEditorPick.mode === 'placement') {
+        return { ...prev, placement: { ...prev.placement, x, y } };
+      }
+      const idx = eventEditorPick.index;
+      const step = prev.steps[idx];
+      if (!step) return prev;
+      const nextStep = step.type === 'speech' ? { ...step, anchorX: x, anchorY: y } : { ...step, x, y };
+      return { ...prev, steps: prev.steps.map((s, i) => (i === idx ? nextStep : s)) };
+    });
+    setEventEditorPick(null);
+  }, [eventEditorPick]);
 
   const [transitionTargetType, setTransitionTargetType] = useState<'scenario' | 'generator' | 'tutorial_end'>('scenario');
   const [transitionTargetId, setTransitionTargetId] = useState('');
@@ -1200,17 +1148,6 @@ export default function MapEditor() {
             tile.items.push(itemEntry);
           }
           break;
-        case 'event_trigger':
-          if (triggerId && (dialogStepsRef.current.length > 0 || dialogGrantsRef.current.length > 0)) {
-            tile.eventTrigger = {
-              id: triggerId,
-              steps: [...dialogStepsRef.current],
-              oneShot: dialogOneShot,
-              ...(dialogGrantsRef.current.length > 0 ? { grants: [...dialogGrantsRef.current] } : {}),
-              ...(dialogNextRef.current.trim() ? { next: dialogNextRef.current.trim() } : {}),
-            };
-          }
-          break;
         case 'map_transition':
           if (transitionTargetId || transitionTargetType === 'tutorial_end') {
             tile.mapTransition = {
@@ -1241,9 +1178,34 @@ export default function MapEditor() {
 
       next[cy][cx] = tile;
       }
+
+      // Check if we need to remove any empty buildings (buildings that have no floor tiles and no edge walls/doors/windows)
+      if (buildingsRef.current.length > 0) {
+        const remainingBuildings = buildingsRef.current.filter(b => {
+          for (let ty = b.y; ty < b.y + b.height; ty++) {
+            for (let tx = b.x; tx < b.x + b.width; tx++) {
+              if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+                const t = next[ty][tx];
+                if (t.terrain === 'floor') return true;
+                const hasEdge = (['n', 'e', 's', 'w'] as Edge[]).some(e => {
+                  const edge = t.edgeWalls[e];
+                  return edge.wall || edge.door || edge.window;
+                });
+                if (hasEdge) return true;
+              }
+            }
+          }
+          return false;
+        });
+
+        if (remainingBuildings.length !== buildingsRef.current.length) {
+          setBuildings(remainingBuildings);
+        }
+      }
+
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, triggerId, dialogSteps, dialogOneShot, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -1436,68 +1398,6 @@ export default function MapEditor() {
       ctx.setLineDash([]);
     }
 
-    // Speech-bubble authoring markers (draft trigger + anchors, and saved events)
-    if (tool === 'speech_bubble') {
-      // Saved events: faint markers so authors see everything at a glance.
-      ctx.font = 'bold 11px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      for (const ev of bubbleEvents) {
-        ctx.fillStyle = 'rgba(224,176,96,0.5)';
-        ctx.fillText('◆', ev.trigger.x * CELL + CELL / 2, ev.trigger.y * CELL + CELL / 2);
-        ev.lines.forEach((l, idx) => {
-          ctx.fillStyle = 'rgba(224,176,96,0.5)';
-          ctx.fillText(String(idx + 1), l.x * CELL + CELL / 2, l.y * CELL + CELL / 2);
-        });
-      }
-
-      // Draft trigger.
-      if (bubbleTrigger) {
-        ctx.strokeStyle = '#e0b060';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(bubbleTrigger.x * CELL + 2, bubbleTrigger.y * CELL + 2, CELL - 4, CELL - 4);
-        ctx.fillStyle = '#e0b060';
-        ctx.font = 'bold 12px monospace';
-        ctx.fillText('◆', bubbleTrigger.x * CELL + CELL / 2, bubbleTrigger.y * CELL + CELL / 2);
-        if (bubbleTriggerType === 'proximity') {
-          ctx.strokeStyle = 'rgba(224,176,96,0.4)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.arc(bubbleTrigger.x * CELL + CELL / 2, bubbleTrigger.y * CELL + CELL / 2, bubbleTriggerRadius * CELL, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-      }
-
-      // Draft line anchors (numbered in play order).
-      bubbleLines.forEach((l, idx) => {
-        ctx.strokeStyle = '#7bb8ff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(l.x * CELL + 4, l.y * CELL + 4, CELL - 8, CELL - 8);
-        ctx.fillStyle = '#7bb8ff';
-        ctx.font = 'bold 12px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(String(idx + 1), l.x * CELL + CELL / 2, l.y * CELL + CELL / 2);
-      });
-      ctx.lineWidth = 1;
-    }
-
-    // Item-grant target markers (Event + Speech tools).
-    if (tool === 'speech_bubble' || tool === 'event_trigger') {
-      const grants = tool === 'speech_bubble' ? bubbleGrants : dialogGrants;
-      grants.forEach(g => {
-        ctx.strokeStyle = '#3fb950';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(g.x * CELL + 3, g.y * CELL + 3, CELL - 6, CELL - 6);
-        ctx.fillStyle = '#3fb950';
-        ctx.font = 'bold 12px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('G', g.x * CELL + CELL / 2, g.y * CELL + CELL / 2);
-      });
-      ctx.lineWidth = 1;
-    }
-
     // Hover highlight
     if (hoverCell && tool !== 'building_rect') {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
@@ -1511,7 +1411,7 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid, bubbleEvents, bubbleTrigger, bubbleTriggerType, bubbleTriggerRadius, bubbleLines, bubbleGrants, dialogGrants]);
+  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid]);
 
   // ─── Minimap update logic ────────────────────────────────────────────
   const updateMinimapViewport = useCallback(() => {
@@ -1532,8 +1432,8 @@ export default function MapEditor() {
     const clientWidth = container.clientWidth;
     const clientHeight = container.clientHeight;
 
-    const mapTotalW = width * CELL;
-    const mapTotalH = height * CELL;
+    const mapTotalW = width * CELL * zoom;
+    const mapTotalH = height * CELL * zoom;
 
     const viewX = (scrollLeft / mapTotalW) * canvas.width;
     const viewY = (scrollTop / mapTotalH) * canvas.height;
@@ -1554,7 +1454,7 @@ export default function MapEditor() {
     ctx.fillRect(viewX, 0, viewW, viewY);
     // bottom box
     ctx.fillRect(viewX, viewY + viewH, viewW, canvas.height - (viewY + viewH));
-  }, [width, height]);
+  }, [width, height, zoom]);
 
   const handleScroll = useCallback(() => {
     updateMinimapViewport();
@@ -1568,8 +1468,8 @@ export default function MapEditor() {
     const clickX = Math.max(0, Math.min(canvas.width, ((clientX - rect.left) / rect.width) * canvas.width));
     const clickY = Math.max(0, Math.min(canvas.height, ((clientY - rect.top) / rect.height) * canvas.height));
 
-    const mapTotalW = width * CELL;
-    const mapTotalH = height * CELL;
+    const mapTotalW = width * CELL * zoom;
+    const mapTotalH = height * CELL * zoom;
 
     const pctX = clickX / canvas.width;
     const pctY = clickY / canvas.height;
@@ -1577,7 +1477,7 @@ export default function MapEditor() {
     container.scrollLeft = pctX * mapTotalW - container.clientWidth / 2;
     container.scrollTop = pctY * mapTotalH - container.clientHeight / 2;
     updateMinimapViewport();
-  }, [width, height, updateMinimapViewport]);
+  }, [width, height, zoom, updateMinimapViewport]);
 
   const onMinimapMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     isDraggingMinimap.current = true;
@@ -1627,10 +1527,8 @@ export default function MapEditor() {
     if (e.button === 2) return; // right-click handled by onContextMenu
     setInspectTile(null);
     const { x, y } = cellFromEvent(e);
-    if (grantPickActive && (tool === 'speech_bubble' || tool === 'event_trigger')) {
-      handleGrantClick(x, y);
-    } else if (tool === 'speech_bubble') {
-      handleBubbleClick(x, y);
+    if (eventEditorPick) {
+      handleEventEditorPick(x, y);
     } else if (tool === 'building_rect') {
       setBuildStart({ x, y });
     } else {
@@ -1646,7 +1544,10 @@ export default function MapEditor() {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const tile = tiles[y][x];
     const hasDoorOrWindow = (['n', 'e', 's', 'w'] as Edge[]).some(e => tile.edgeWalls[e].door || tile.edgeWalls[e].window);
-    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || !!tile.placeIcon || hasDoorOrWindow;
+    const insideBuilding = buildings.some(b =>
+      x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
+    );
+    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || !!tile.placeIcon || hasDoorOrWindow || insideBuilding;
     if (hasContent) {
       setInspectTile({ x, y, screenX: e.clientX, screenY: e.clientY });
     }
@@ -1674,33 +1575,6 @@ export default function MapEditor() {
     setIsPainting(false);
   };
 
-  // Effective bubble events for serialization: committed events PLUS the current
-  // draft if it's valid (trigger + at least one line). This prevents the common
-  // trap of building a conversation and forgetting to click "Save event" before
-  // publishing. A blank Event ID is auto-named.
-  const getEffectiveBubbleEvents = useCallback((): BubbleEvent[] => {
-    const events = [...bubbleEvents];
-    if (bubbleTrigger && (bubbleLines.length > 0 || bubbleGrants.length > 0)) {
-      const id = bubbleId.trim() || `speech_${events.length + 1}`;
-      const draft: BubbleEvent = {
-        id,
-        oneShot: bubbleOneShot,
-        trigger: {
-          type: bubbleTriggerType,
-          x: bubbleTrigger.x,
-          y: bubbleTrigger.y,
-          ...(bubbleTriggerType === 'proximity' ? { radius: bubbleTriggerRadius } : {}),
-        },
-        lines: bubbleLines,
-        ...(bubbleGrants.length > 0 ? { grants: bubbleGrants } : {}),
-        ...(bubbleNext.trim() ? { next: bubbleNext.trim() } : {}),
-      };
-      const idx = events.findIndex(e => e.id === id);
-      if (idx >= 0) events[idx] = draft; else events.push(draft);
-    }
-    return events;
-  }, [bubbleEvents, bubbleTrigger, bubbleLines, bubbleGrants, bubbleNext, bubbleId, bubbleOneShot, bubbleTriggerType, bubbleTriggerRadius]);
-
   // ─── Save / Load ─────────────────────────────────────────────────────
   const getPlayerSpawn = (): { x: number; y: number } | null => {
     for (let y = 0; y < height; y++) {
@@ -1720,8 +1594,9 @@ export default function MapEditor() {
       alwaysDark: alwaysDark || undefined,
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
-      bubbleEvents: getEffectiveBubbleEvents(),
+      bubbleEvents,
       chainDialogEvents,
+      events: allEditorEvents,
     };
     const exported = exportScenario(scenario);
 
@@ -1745,8 +1620,9 @@ export default function MapEditor() {
       alwaysDark: alwaysDark || undefined,
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
-      bubbleEvents: getEffectiveBubbleEvents(),
+      bubbleEvents,
       chainDialogEvents,
+      events: allEditorEvents,
     };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
@@ -1807,7 +1683,7 @@ export default function MapEditor() {
         setMapLowSpots(editor.lowSpots || []);
         setBubbleEvents((editor as any).bubbleEvents || []);
         setChainDialogEvents((editor as any).chainDialogEvents || []);
-        resetBubbleDraft();
+        setAllEditorEvents((editor as any).events || []);
         setStatusMsg(`Loaded save game map "${label}"`);
         return;
       } catch (err: any) {
@@ -1831,7 +1707,7 @@ export default function MapEditor() {
     setMapLowSpots(editor.lowSpots || []);
     setBubbleEvents((editor as any).bubbleEvents || data.bubbleEvents || []);
     setChainDialogEvents((editor as any).chainDialogEvents || data.chainDialogEvents || []);
-    resetBubbleDraft();
+    setAllEditorEvents((editor as any).events || data.events || []);
     setStatusMsg(`Loaded "${label}"`);
   };
 
@@ -2213,6 +2089,15 @@ export default function MapEditor() {
           </label>
         </div>
 
+        {/* Zoom */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+          <label style={{ fontSize: 11, color: '#888' }}>Zoom</label>
+          <button onClick={() => setZoom(z => Math.max(0.25, z - 0.25))} style={{ ...btnStyle('#555'), padding: '2px 8px', fontSize: 11, margin: 0 }}>Zoom Out</button>
+          <span style={{ fontSize: 11, minWidth: 36, textAlign: 'center', fontWeight: 'bold' }}>{Math.round(zoom * 100)}%</span>
+          <button onClick={() => setZoom(z => Math.min(3.0, z + 0.25))} style={{ ...btnStyle('#555'), padding: '2px 8px', fontSize: 11, margin: 0 }}>Zoom In</button>
+          <button onClick={() => setZoom(1.0)} style={{ ...btnStyle('#444'), padding: '2px 8px', fontSize: 11, margin: 0 }}>Reset</button>
+        </div>
+
         {/* Tools */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           {toolButton('terrain', 'Terrain')}
@@ -2223,8 +2108,7 @@ export default function MapEditor() {
           {toolButton('place_icon', 'Sign')}
           {toolButton('entity', 'Entity')}
           {toolButton('item', 'Item')}
-          {toolButton('event_trigger', 'Event')}
-          {toolButton('speech_bubble', 'Speech')}
+          {toolButton('event_editor', 'Event')}
           {toolButton('map_transition', 'Transition')}
           {toolButton('eraser', 'Eraser')}
         </div>
@@ -2625,219 +2509,37 @@ export default function MapEditor() {
             
           </div>
         )}
-        {tool === 'event_trigger' && (
+        {tool === 'event_editor' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, color: '#888' }}>Trigger ID</label>
-            <input value={triggerId} onChange={e => setTriggerId(e.target.value)} placeholder="e.g. tutorial_intro" style={{ ...inputStyle }} />
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
-              <input type="checkbox" checked={dialogOneShot} onChange={e => setDialogOneShot(e.target.checked)} />
-              One-shot (only triggers once)
-            </label>
-
-            <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
-              <label style={{ fontSize: 11, color: '#888' }}>Dialog Steps</label>
-              {dialogSteps.map((step, i) => (
-                <div key={i} style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
-                  <div style={{ color: '#7bb8ff', fontWeight: 'bold', fontSize: 11 }}>{step.speaker || '(narrator)'}</div>
-                  {step.video && <div style={{ color: '#fa0', fontSize: 10, marginTop: 2 }}>▶ {step.video}</div>}
-                  <div style={{ color: '#ccc', marginTop: 2 }}>{step.text}</div>
-                  <button
-                    onClick={() => setDialogSteps(prev => prev.filter((_, j) => j !== i))}
-                    style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', marginTop: 2 }}
-                  >Remove</button>
-                </div>
-              ))}
+            <label style={{ fontSize: 11, color: '#888' }}>New event name</label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input value={eventEditorNewName} onChange={e => setEventEditorNewName(e.target.value)} placeholder="e.g. guard_intro" style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={createNewEvent} style={btnStyle('#2a7a2a')}>Create</button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
-              <label style={{ fontSize: 11, color: '#888' }}>Add Step</label>
-              <input value={editSpeaker} onChange={e => setEditSpeaker(e.target.value)} placeholder="Speaker (optional)" style={{ ...inputStyle }} />
-              <input
-                value={editVideo}
-                onChange={e => setEditVideo(e.target.value)}
-                placeholder="Video filename (optional, e.g. movement.webm)"
-                style={{ ...inputStyle }}
-              />
-              <textarea
-                value={editText}
-                onChange={e => setEditText(e.target.value)}
-                placeholder="Caption text below video..."
-                rows={2}
-                style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
-              />
-              <button
-                onClick={() => {
-                  if (!editText.trim() && !editVideo.trim()) return;
-                  const step: { speaker: string; text: string; video?: string } = {
-                    speaker: editSpeaker.trim(),
-                    text: editText.trim(),
-                  };
-                  if (editVideo.trim()) step.video = editVideo.trim();
-                  setDialogSteps(prev => [...prev, step]);
-                  setEditText('');
-                  setEditVideo('');
-                }}
-                disabled={!editText.trim() && !editVideo.trim()}
-                style={btnStyle((editText.trim() || editVideo.trim()) ? '#2a7a2a' : '#333')}
-              >+ Add Step</button>
-            </div>
-
-            {renderGrantsSection(dialogGrants, setDialogGrants)}
-
-            {renderChainSection(dialogNext, setDialogNext)}
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
-              <button onClick={commitChainDialogEvent} style={btnStyle('#8a5cd9')}>Save as chain-only event (no tile)</button>
-              <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
-                Either <b>click a tile</b> to place this as a walk-on trigger, <b>or</b> save it as chain-only — an event with no tile that fires only when another event chains to it.
-              </p>
-            </div>
-
-            {chainDialogEvents.length > 0 && (
+            {allEditorEvents.length > 0 && (
               <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
-                <label style={{ fontSize: 11, color: '#888' }}>Chain-only events ({chainDialogEvents.length})</label>
-                {chainDialogEvents.map(ev => (
-                  <div key={ev.id} style={{ background: '#161616', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#b18cf0', fontWeight: 'bold' }}>{ev.id}</span>
-                      <span style={{ color: '#888', fontSize: 10 }}>no tile{ev.oneShot ? ' · one-shot' : ' · repeatable'}</span>
+                <label style={{ fontSize: 11, color: '#888' }}>Open existing ({allEditorEvents.length})</label>
+                {allEditorEvents.map(ev => (
+                  <div key={ev.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#161616', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
+                    <div>
+                      <div style={{ color: '#e0b060', fontWeight: 'bold' }}>{ev.id}</div>
+                      <div style={{ color: '#888', fontSize: 10 }}>
+                        {ev.placement.kind}{ev.placement.x !== undefined ? ` @ (${ev.placement.x},${ev.placement.y})` : ''} · {ev.steps.length} step{ev.steps.length !== 1 ? 's' : ''}
+                      </div>
                     </div>
-                    <div style={{ color: '#aaa', fontSize: 10, marginTop: 1 }}>
-                      {ev.steps.length} step{ev.steps.length !== 1 ? 's' : ''}
-                      {ev.grants?.length ? ` · ${ev.grants.length} grant${ev.grants.length !== 1 ? 's' : ''}` : ''}
-                      {ev.next ? ` · →${ev.next}` : ''}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                      <button onClick={() => editChainDialogEvent(ev.id)} style={{ fontSize: 10, color: '#7bb8ff', background: 'none', border: 'none', cursor: 'pointer' }}>Edit</button>
-                      <button onClick={() => deleteChainDialogEvent(ev.id)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {tool === 'speech_bubble' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, color: '#888' }}>Event ID</label>
-            <input value={bubbleId} onChange={e => setBubbleId(e.target.value)} placeholder="e.g. rooftop_standoff" style={{ ...inputStyle }} />
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
-              <input type="checkbox" checked={bubbleOneShot} onChange={e => setBubbleOneShot(e.target.checked)} />
-              One-shot (only triggers once)
-            </label>
-
-            {/* Trigger */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 6 }}>
-              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Trigger</label>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <input type="radio" name="bubbleTriggerType" checked={bubbleTriggerType === 'tile'} onChange={() => setBubbleTriggerType('tile')} />
-                  Step on tile
-                </label>
-                <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <input type="radio" name="bubbleTriggerType" checked={bubbleTriggerType === 'proximity'} onChange={() => setBubbleTriggerType('proximity')} />
-                  Proximity
-                </label>
-              </div>
-              {bubbleTriggerType === 'proximity' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <label style={{ fontSize: 11, color: '#888' }}>Radius (tiles)</label>
-                  <input type="number" min={1} max={20} value={bubbleTriggerRadius} onChange={e => setBubbleTriggerRadius(Math.max(1, Number(e.target.value) || 1))} style={{ ...inputStyle, width: 60 }} />
-                </div>
-              )}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <button
-                  onClick={() => setBubbleClickMode(m => m === 'trigger' ? null : 'trigger')}
-                  style={btnStyle(bubbleClickMode === 'trigger' ? '#b5651d' : '#333')}
-                >{bubbleClickMode === 'trigger' ? 'Click a tile…' : 'Set trigger location'}</button>
-                <span style={{ fontSize: 11, color: bubbleTrigger ? '#9c6' : '#888' }}>
-                  {bubbleTrigger ? `(${bubbleTrigger.x}, ${bubbleTrigger.y})` : 'not set'}
-                </span>
-              </div>
-            </div>
-
-            {/* Lines */}
-            <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
-              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Lines (each anchored to an entity)</label>
-              {bubbleLines.length === 0 && (
-                <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>No lines yet.</div>
-              )}
-              {bubbleLines.map((line, i) => (
-                <div key={i} style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#7bb8ff', fontWeight: 'bold', fontSize: 11 }}>{line.speaker || '(no speaker)'}</span>
-                    <span style={{ color: '#9c6', fontSize: 10 }}>@ ({line.x}, {line.y})</span>
-                  </div>
-                  <div style={{ color: '#ccc', marginTop: 2 }}>{line.text}</div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                    <button
-                      onClick={() => setBubbleLines(prev => prev.filter((_, j) => j !== i))}
-                      style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}
-                    >Remove</button>
-                    <button
-                      onClick={() => { setBubbleLineSpeaker(line.speaker || ''); setBubbleLineText(line.text); setBubbleLines(prev => prev.filter((_, j) => j !== i)); }}
-                      style={{ fontSize: 10, color: '#7bb8ff', background: 'none', border: 'none', cursor: 'pointer' }}
-                    >Edit</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Add line */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
-              <label style={{ fontSize: 11, color: '#888' }}>Add Line</label>
-              <input value={bubbleLineSpeaker} onChange={e => setBubbleLineSpeaker(e.target.value)} placeholder="Speaker (optional)" style={{ ...inputStyle }} />
-              <textarea
-                value={bubbleLineText}
-                onChange={e => setBubbleLineText(e.target.value)}
-                placeholder="What this entity says…"
-                rows={2}
-                style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
-              />
-              <button
-                onClick={() => { if (bubbleLineText.trim()) setBubbleClickMode('anchor'); else setStatusMsg('Enter line text first'); }}
-                disabled={!bubbleLineText.trim()}
-                style={btnStyle(bubbleClickMode === 'anchor' ? '#b5651d' : (bubbleLineText.trim() ? '#2a7a2a' : '#333'))}
-              >{bubbleClickMode === 'anchor' ? 'Click the entity tile…' : '+ Pick anchor & add line'}</button>
-            </div>
-
-            {renderGrantsSection(bubbleGrants, setBubbleGrants)}
-
-            {renderChainSection(bubbleNext, setBubbleNext)}
-
-            <button onClick={commitBubbleEvent} style={btnStyle('#4a90d9')}>Save event</button>
-            <button onClick={resetBubbleDraft} style={btnStyle('#555')}>Clear draft</button>
-
-            {/* Committed events */}
-            {bubbleEvents.length > 0 && (
-              <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
-                <label style={{ fontSize: 11, color: '#888' }}>Saved speech events ({bubbleEvents.length})</label>
-                {bubbleEvents.map(ev => (
-                  <div key={ev.id} style={{ background: '#161616', border: '1px solid #333', borderRadius: 3, padding: 6, marginTop: 4, fontSize: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#e0b060', fontWeight: 'bold' }}>{ev.id}</span>
-                      <span style={{ color: '#888', fontSize: 10 }}>
-                        {ev.trigger.type === 'proximity' ? `prox r${ev.trigger.radius ?? 1}` : 'tile'} @ ({ev.trigger.x},{ev.trigger.y})
-                      </span>
-                    </div>
-                    <div style={{ color: '#aaa', fontSize: 10, marginTop: 1 }}>
-                      {ev.lines.length} line{ev.lines.length !== 1 ? 's' : ''}{ev.oneShot ? ' · one-shot' : ' · repeatable'}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                      <button onClick={() => editBubbleEvent(ev.id)} style={{ fontSize: 10, color: '#7bb8ff', background: 'none', border: 'none', cursor: 'pointer' }}>Edit</button>
-                      <button onClick={() => deleteBubbleEvent(ev.id)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>Delete</button>
-                    </div>
+                    <button onClick={() => openExistingEvent(ev.id)} style={{ ...btnStyle('#333'), fontSize: 11 }}>Open</button>
                   </div>
                 ))}
               </div>
             )}
 
-            <p style={{ fontSize: 10, color: '#666', margin: 0 }}>
-              Build a conversation: set a trigger tile, then add lines each anchored to an entity. Lines play one at a time as bubbles over each entity. Click <b>Save event</b> before exporting.
-            </p>
+            {eventEditorPick && (
+              <div style={{ borderTop: '1px solid #444', paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <p style={{ fontSize: 11, color: '#e0a020', margin: 0 }}>Click a tile on the map to set the location…</p>
+                <button onClick={() => setEventEditorPick(null)} style={btnStyle('#555')}>Cancel picking</button>
+              </div>
+            )}
           </div>
         )}
 
@@ -3117,6 +2819,21 @@ export default function MapEditor() {
         </div>
       )}
 
+      {/* ─── Unified Event Window ─── */}
+      {eventEditorDraft && !eventEditorPick && (
+        <EventWindow
+          event={eventEditorDraft}
+          onChange={setEventEditorDraft}
+          onSave={saveEventDraft}
+          onCancel={() => { setEventEditorDraft(null); setEventEditorOriginalId(null); }}
+          onDelete={deleteEventDraft}
+          onPickPlacement={() => setEventEditorPick({ mode: 'placement' })}
+          onPickStepCoord={(index) => setEventEditorPick({ mode: 'step', index })}
+          itemOptions={allItems}
+          knownEventIds={knownEventIds}
+        />
+      )}
+
       {/* ─── Loot generator modal ─── */}
       {showLootModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -3298,7 +3015,12 @@ export default function MapEditor() {
           onMouseUp={handleMouseUp}
           onContextMenu={handleContextMenu}
           onMouseLeave={() => { setIsPainting(false); setHoverCell(null); }}
-          style={{ cursor: 'crosshair', imageRendering: 'pixelated' }}
+          style={{ 
+            cursor: 'crosshair', 
+            imageRendering: 'pixelated',
+            width: width * CELL * zoom,
+            height: height * CELL * zoom
+          }}
         />
 
         {/* ─── Floating Minimap ─── */}
@@ -3341,6 +3063,19 @@ export default function MapEditor() {
         const tx = inspectTile.x;
         const ty = inspectTile.y;
 
+        const containingBuildings = buildings.filter(b =>
+          tx >= b.x && tx < b.x + b.width && ty >= b.y && ty < b.y + b.height
+        );
+
+        const removeBuilding = (b: BuildingMeta) => {
+          setTiles(prev => {
+            pushUndo(prev, buildingsRef.current);
+            return prev.map(r => r.map(c => ({ ...c })));
+          });
+          setBuildings(prev => prev.filter(item => item !== b));
+          setInspectTile(null);
+        };
+
         const removeEntity = (idx: number) => {
           setTiles(prev => {
             pushUndo(prev, buildingsRef.current);
@@ -3360,12 +3095,19 @@ export default function MapEditor() {
         };
 
         const removeEvent = () => {
+          const removedId = t.eventTrigger?.id;
           setTiles(prev => {
             pushUndo(prev, buildingsRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             delete next[ty][tx].eventTrigger;
             return next;
           });
+          // Keep the lossless authored list in sync — removing via this
+          // tile-level button must fully delete the event, or it'd linger in
+          // "Open existing" (and get re-exported) even though its tile is gone.
+          if (removedId) {
+            setAllEditorEvents(prev => prev.filter(e => e.id !== removedId));
+          }
         };
 
         const removeTransition = () => {
@@ -3379,13 +3121,18 @@ export default function MapEditor() {
 
         const editEvent = () => {
           if (t.eventTrigger) {
-            setTriggerId(t.eventTrigger.id);
-            setDialogSteps([...t.eventTrigger.steps]);
-            setDialogOneShot(t.eventTrigger.oneShot);
-            setDialogGrants(t.eventTrigger.grants ? [...t.eventTrigger.grants] : []);
-            setDialogNext(t.eventTrigger.next || '');
-            setTool('event_trigger');
-            setStatusMsg(`Editing event "${t.eventTrigger.id}" — modify steps then click a tile to place`);
+            // Look up the lossless authored event by id (allEditorEvents) rather
+            // than reconstructing from tile.eventTrigger alone, which can only
+            // ever hold dialog steps and would silently drop any speech steps
+            // the same event also has.
+            const ev = allEditorEvents.find(e => e.id === t.eventTrigger!.id)
+              ?? migrateLegacyEvents({ eventTriggers: [{ x: tx, y: ty, ...t.eventTrigger }] })[0];
+            if (ev) {
+              setEventEditorDraft(ev);
+              setEventEditorOriginalId(ev.id);
+              setTool('event_editor');
+              setStatusMsg(`Editing event "${ev.id}"`);
+            }
           }
           setInspectTile(null);
         };
@@ -3459,6 +3206,21 @@ export default function MapEditor() {
                 </span>
                 <button onClick={() => setInspectTile(null)} style={{ ...removeBtnStyle, color: '#888' }}>✕</button>
               </div>
+
+              {/* Buildings */}
+              {containingBuildings.length > 0 && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Buildings</div>
+                  {containingBuildings.map((b, idx) => (
+                    <div key={idx} style={rowStyle}>
+                      <span style={{ color: '#ff0' }}>
+                        {b.type} ({b.width}×{b.height})
+                      </span>
+                      <button onClick={() => removeBuilding(b)} style={removeBtnStyle}>Remove Outline</button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Edge Walls (doors / windows) */}
               {(['n', 'e', 's', 'w'] as Edge[]).some(edge => t.edgeWalls[edge].door || t.edgeWalls[edge].window) && (

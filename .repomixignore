@@ -1,0 +1,20 @@
+# Exclude game editor custom maps and scenarios (large JSON files)
+customMaps/
+
+# Exclude Graphify output files (visualization data, HTML, cache)
+graphify-out/
+
+# Exclude build output directories
+dist/
+dist-electron/
+
+# Exclude temporary debug logs
+debug_los_out.txt
+*.log
+
+# Exclude workspace config and temp folders
+.agent/
+.claude/
+.vscode/
+.replit
+.cursorrules

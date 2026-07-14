@@ -70,7 +70,7 @@ export const GameMapProvider = ({ children }) => {
   const handleTileClick = useCallback(async (x, y, player, camera, isPlayerTurn, isMoving, isAutosaving, startAnimatedMovement, isNight = false, isFlashlightOn = false, flashlightRange = 8, isAnimatingZombies = false) => {
     if (!engine.gameMap || !player) return;
 
-    if (!isPlayerTurn || isAutosaving || isMoving || isAnimatingZombies) return;
+    if (!isPlayerTurn || isAutosaving || isMoving || isAnimatingZombies || engine.movementLocked) return;
 
     try {
       const targetTile = engine.gameMap.getTile(x, y);

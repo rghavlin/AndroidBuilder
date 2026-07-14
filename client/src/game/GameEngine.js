@@ -4,6 +4,7 @@ import { LineOfSight } from './utils/LineOfSight.js';
 import { ItemDefs } from './inventory/ItemDefs.js';
 import { ItemTrait } from './inventory/traits.js';
 import { WeatherManager } from './utils/WeatherManager.js';
+import { QuestState } from './quest/QuestState.js';
 import { getSightRangeForHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
 import { getHourFromTurn } from './utils/TimeUtils.js';
 
@@ -101,6 +102,9 @@ class GameEngine extends SafeEventEmitter {
 
     // Phase 24: Interaction State (Silo Bridge)
     this.turnPhase = 'PLAYER_TURN'; // 'PLAYER_TURN', 'SIMULATING', 'ANIMATING', 'PAUSED_FOR_EVENT'
+    // Quest system (Phase 4): gates click-to-move in GameMapContext.handleTileClick.
+    // Set/cleared by EventRunner's lockMovement/unlockMovement steps.
+    this.movementLocked = false;
     this.isSleeping = false;
     this.sleepProgress = 0;
     this.targetingItemInstanceId = null;
@@ -133,6 +137,11 @@ class GameEngine extends SafeEventEmitter {
     // Fresh-game default is null (no item in progress). A loaded save overrides
     // this wholesale via GameSaveSystem (engine.craftingQueue = saveData.craftingQueue).
     this.craftingQueue = null;
+
+    // Quest system: global flags/variables backing event preconditions and quest
+    // progress. Fresh-game default is empty; a loaded save restores it wholesale
+    // via GameSaveSystem (engine.questState.fromJSON(saveData.questState)).
+    this.questState = new QuestState();
 
     // Global event cleanups (Removed this.removeAllListeners() to preserve React Provider context listeners on reset)
 

@@ -261,6 +261,7 @@ export class GameSaveSystem {
         gameRandomState: gameRandom.getState(),
         bookStats: engine.bookStats,
         craftingQueue: engine.craftingQueue,
+        questState: engine.questState ? engine.questState.toJSON() : null,
 
         // Map state (includes all tiles and entities) - this contains positions
         gameMap: gameState.gameMap ? gameState.gameMap.toJSON() : null,
@@ -429,6 +430,12 @@ export class GameSaveSystem {
       }
 
       engine.craftingQueue = saveData.craftingQueue || null;
+
+      // Older saves have no questState — leaves engine.questState at its fresh-reset
+      // empty default, which is the correct behavior for a save predating quests.
+      if (saveData.questState && engine.questState) {
+        engine.questState.fromJSON(saveData.questState);
+      }
 
       // Restore game seed for PRNG continuity
       if (saveData.gameSeed !== undefined && saveData.gameSeed !== null) {

@@ -7,7 +7,7 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
   }
 
   generate(config, builder) {
-    const { tiles, metadata, entities, eventTriggers, bubbleEvents } = this.scenario;
+    const { tiles, metadata, entities, eventTriggers, bubbleEvents, events } = this.scenario;
 
     for (let y = 0; y < tiles.length; y++) {
       for (let x = 0; x < tiles[y].length; x++) {
@@ -37,6 +37,9 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
     if (entities) builder.metadata.entities = entities;
     if (eventTriggers) builder.metadata.eventTriggers = eventTriggers;
     if (bubbleEvents) builder.metadata.bubbleEvents = bubbleEvents;
+    // Unified GameEvent model (dual-written alongside the legacy arrays above —
+    // see QUEST_SYSTEM_PLAN.md §11.2.4). Not yet read by the runtime.
+    if (events) builder.metadata.events = events;
 
     if (this.scenario.mapTransitions) {
       builder.metadata.mapTransitions = this.scenario.mapTransitions;

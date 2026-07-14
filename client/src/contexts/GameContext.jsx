@@ -14,7 +14,8 @@ import { InventoryProvider } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { useSpeechBubbles } from './SpeechBubbleContext.jsx';
-import { applyItemGrants } from '../game/utils/applyItemGrants.js';
+import eventRunner from '../game/quest/EventRunner.js';
+import { resolveMapEvents } from '../game/quest/migrateEvents.js';
 import Logger from '../game/utils/Logger.js';
 import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
@@ -418,10 +419,13 @@ const GameContextInner = ({ children }) => {
   }, []);
   
   const [activeNpcDemand, setActiveNpcDemand] = useState(null); // { npc, player }
-  const [activeDialog, setActiveDialog] = useState(null); // { id, steps: [{speaker, text}], next? }
-  const [firedDialogIds, setFiredDialogIds] = useState(new Set());
-  const firedDialogIdsRef = useRef(firedDialogIds);
-  firedDialogIdsRef.current = firedDialogIds;
+  // activeDialog is derived below from eventRunner's active run (unified event
+  // model — see QUEST_SYSTEM_PLAN.md §6 / client/src/game/quest/EventRunner.js).
+  // { id, steps: [{speaker, text}] } shape kept for DialogOverlay compatibility.
+  const activeDialog = (() => {
+    const step = eventRunner.getActiveDialogStep();
+    return step ? { id: eventRunner.getActiveEventId(), steps: [step] } : null;
+  })();
   const isAutosaving = engine.isAutosaving;
   const setIsAutosaving = useCallback((val) => {
     engine.isAutosaving = typeof val === 'function' ? val(engine.isAutosaving) : val;
@@ -1074,57 +1078,30 @@ const GameContextInner = ({ children }) => {
     }
   }, [activeNpcDemand, extortPlayer, playbackTurn, turn, addLog, setTurnPhase]);
 
+  // Dismiss/advance the currently-showing dialog step. The unified runner
+  // handles turnPhase + chaining/further steps internally.
   const handleDialogDismiss = useCallback(() => {
-    const dismissed = activeDialog;
-    console.log(`[GameContext] Dialog dismissed: "${dismissed?.id}"`);
-    setActiveDialog(null);
-    setTurnPhase('PLAYER_TURN');
-    engine.turnPhase = 'PLAYER_TURN';
-    engine.notifyUpdate();
-    // Event chaining: fire the follow-on event once this dialog closes.
-    if (dismissed?.next) {
-      GameEvents.emit(GAME_EVENT.EVENT_CHAIN_REQUEST, { eventId: dismissed.next });
-    }
-  }, [activeDialog, setTurnPhase]);
+    console.log(`[GameContext] Dialog step dismissed: "${eventRunner.getActiveEventId()}"`);
+    eventRunner.advance();
+  }, []);
 
-  // Fire a dialog eventTrigger object (by tile match or by chain-request id).
-  // Handles steps (modal), grants (item drop), one-shot state, and chaining a
-  // grant-only dialog straight through to its follow-on event.
-  const fireDialogTrigger = useCallback((trigger) => {
-    if (!trigger) return;
-    const hasSteps = trigger.steps && trigger.steps.length > 0;
-    const hasGrants = trigger.grants && trigger.grants.length > 0;
-    if (!hasSteps && !hasGrants) return;
-    if (trigger.oneShot && firedDialogIdsRef.current.has(trigger.id)) return;
-    if (trigger.oneShot) setFiredDialogIds(prev => new Set(prev).add(trigger.id));
-
-    if (hasGrants) {
-      applyItemGrants(engine.gameMap, trigger.grants, engine.inventoryManager);
-      engine.notifyUpdate();
-    }
-    if (hasSteps) {
-      console.log(`[GameContext] Dialog fired: "${trigger.id}"`);
-      setActiveDialog({ id: trigger.id, steps: trigger.steps, next: trigger.next });
-      setTurnPhase('PAUSED_FOR_EVENT');
-    } else if (trigger.next) {
-      // Grant-only dialog event: nothing to display, so chain immediately.
-      GameEvents.emit(GAME_EVENT.EVENT_CHAIN_REQUEST, { eventId: trigger.next });
-    }
-  }, [setTurnPhase]);
-
-  // Fire the dialog trigger at the player's current tile, ignoring oneShot state.
-  // Used by the placeable.help item click so the player can replay the tutorial at will.
+  // Replay just the dialog steps (tutorial video + caption) of the event at the
+  // player's current tile, ignoring repeat:'once' state. Used by the
+  // placeable.help item click. Deliberately does NOT re-run the event's other
+  // steps (speech/give/setFlag/chain/...) — those already happened the first
+  // time and shouldn't fire again just because the player wants to rewatch a
+  // video.
   const fireDialogAtPlayerTile = useCallback(() => {
     const player = engine.player;
     const gameMap = engine.gameMap;
     if (!player || !gameMap) return;
-    const triggers = gameMap.metadata?.eventTriggers;
-    if (!triggers) return;
-    const trigger = triggers.find(t => t.x === player.x && t.y === player.y);
-    if (!trigger || !trigger.steps || trigger.steps.length === 0) return;
-    setActiveDialog({ id: trigger.id, steps: trigger.steps });
-    setTurnPhase('PAUSED_FOR_EVENT');
-  }, [setTurnPhase]);
+    const events = resolveMapEvents(gameMap.metadata);
+    const event = events.find(e => e?.placement?.kind === 'tile' && e.placement.x === player.x && e.placement.y === player.y);
+    if (!event) return;
+    const dialogSteps = (event.steps || []).filter(s => s.type === 'dialog');
+    if (dialogSteps.length === 0) return;
+    eventRunner.runEvent({ ...event, steps: dialogSteps }, { ignoreOnce: true });
+  }, []);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;
@@ -1294,41 +1271,30 @@ const GameContextInner = ({ children }) => {
     };
   }, []);
 
-  // Dialog trigger check on player move
+  // Unified event trigger check on player move (replaces the previously-separate
+  // dialog and speech-bubble trigger detection — one runner, one check). Also
+  // re-checks auto/parallel events and active movement locks here, since
+  // moving is one of the things that can change their eligibility.
   useEffect(() => {
-    const checkDialogTrigger = () => {
+    const checkEventTrigger = () => {
       const player = engine.player;
       const gameMap = engine.gameMap;
-      if (!player || !gameMap || activeDialog) return;
-
-      const triggers = gameMap.metadata?.eventTriggers;
-      if (!triggers || triggers.length === 0) return;
-
-      const trigger = triggers.find(t => !t.chainOnly && t.x === player.x && t.y === player.y);
-      if (!trigger) return;
-      console.log(`[GameContext] Dialog trigger at (${player.x}, ${player.y}): "${trigger.id}"`);
-      fireDialogTrigger(trigger);
+      if (!player || !gameMap) return;
+      eventRunner.checkAndFireAt(player.x, player.y);
+      eventRunner.recheckLocks();
+      eventRunner.checkAutoEvents();
     };
 
-    GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, checkDialogTrigger);
-    return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, checkDialogTrigger);
-  }, [activeDialog, fireDialogTrigger]);
+    GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, checkEventTrigger);
+    return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, checkEventTrigger);
+  }, []);
 
-  // Event chaining: another event asked us to fire a dialog eventTrigger by id.
+  // Check auto/parallel events once the map is ready, so one whose
+  // preconditions are already satisfied fires immediately without requiring
+  // the player to move or touch their inventory first.
   useEffect(() => {
-    const onChainRequest = ({ eventId }) => {
-      if (!eventId) return;
-      const triggers = engine.gameMap?.metadata?.eventTriggers;
-      if (!triggers) return;
-      const trigger = triggers.find(t => t.id === eventId);
-      if (trigger) {
-        console.log(`[GameContext] Chain-firing dialog event "${eventId}"`);
-        fireDialogTrigger(trigger);
-      }
-    };
-    GameEvents.on(GAME_EVENT.EVENT_CHAIN_REQUEST, onChainRequest);
-    return () => GameEvents.off(GAME_EVENT.EVENT_CHAIN_REQUEST, onChainRequest);
-  }, [fireDialogTrigger]);
+    if (isInitialized) eventRunner.checkAutoEvents();
+  }, [isInitialized]);
 
   useEffect(() => {
     console.log('[GameContext] 🏗️ CHECKING FOR EXISTING INITIALIZATION MANAGER...');
@@ -1598,6 +1564,7 @@ const GameContextInner = ({ children }) => {
       turnManager.cancelPlayback();
       audioManager.stopAllSounds();
       engine.reset();
+      eventRunner.reset();
 
       setInitializationState('idle');
       wireManagerEvents(initManagerRef.current, runIdRef.current);
@@ -1972,8 +1939,7 @@ const GameContextInner = ({ children }) => {
     setContextSyncPhase('idle');
     setIsSkillsOpen(false);
     setActiveNpcDemand(null);
-    setActiveDialog(null);
-    setFiredDialogIds(new Set());
+    eventRunner.reset();
     setShowDifficultySelect(false);
     setShowCharacterCreator(false);
     if (typeof handleMapTransitionCancel === 'function') {

@@ -688,6 +688,9 @@ export class TemplateMapGenerator {
     mapData.metadata.entities = scenarioData.entities || [];
     mapData.metadata.eventTriggers = scenarioData.eventTriggers || [];
     mapData.metadata.bubbleEvents = scenarioData.bubbleEvents || [];
+    // Unified GameEvent model (dual-written alongside the legacy arrays above —
+    // see QUEST_SYSTEM_PLAN.md §11.2.4). Not yet read by the runtime.
+    mapData.metadata.events = scenarioData.events || [];
     mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
     if (scenarioData.metadata?.alwaysDark || scenarioData.alwaysDark) {
       mapData.metadata.alwaysDark = true;
