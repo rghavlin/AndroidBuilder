@@ -1913,6 +1913,10 @@ const GameContextInner = ({ children }) => {
     const success = await mapTransitionConfirm(engine.player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn, selectedPrizeId);
 
     if (success) {
+      // Drop any movement/action locks left over from the map just departed —
+      // they're scoped to that map's events and have no way to clear on this one.
+      eventRunner.onMapTransition();
+
       // The new map may define registry flags/vars never touched before —
       // seed them, then re-check auto/parallel events in case seeding just
       // satisfied one's preconditions.

@@ -24,6 +24,7 @@ import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import engine from '../../game/GameEngine.js';
+import eventRunner from '../../game/quest/EventRunner.js';
 import { ZombieTooltip } from './ZombieTooltip';
 import { CropTooltip } from './CropTooltip';
 import { LootTooltip } from './LootTooltip';
@@ -336,6 +337,20 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         cancelTargeting();
       }
       return true; // Click was handled (combat action)
+    }
+
+    // Handle onInteract quest events — e.g. clicking an NPC to have its
+    // instructions repeated. Requires the player be on or adjacent to the
+    // event's placement tile (same reach as the door/window context menus
+    // below), so distant clicks fall through to movement instead.
+    const player = playerRef.current;
+    if (player) {
+      const px = Math.floor(player.x);
+      const py = Math.floor(player.y);
+      const isAdjacentOrOn = Math.abs(x - px) <= 1 && Math.abs(y - py) <= 1;
+      if (isAdjacentOrOn && eventRunner.checkAndFireOnInteract(x, y)) {
+        return true; // Click was handled (onInteract event fired)
+      }
     }
 
     return false; // Click was not handled (allow movement)

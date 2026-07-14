@@ -106,6 +106,42 @@ class EventRunner {
     return !!this.activeRun;
   }
 
+  /**
+   * `firedOnce`/`autoResolved` are the "has this already happened" latches —
+   * without persisting them, a repeat:'once' event replays after every
+   * save/load (see GameSaveSystem: saved alongside questState). The active
+   * run/locks are deliberately NOT persisted: they're mid-turn UI state, not
+   * meaningful to resume across a save boundary.
+   */
+  toJSON() {
+    return {
+      firedOnce: [...this.firedOnce],
+      autoResolved: [...this.autoResolved],
+    };
+  }
+
+  fromJSON(data) {
+    this.firedOnce = new Set(data?.firedOnce || []);
+    this.autoResolved = new Set(data?.autoResolved || []);
+  }
+
+  /**
+   * Call after a successful map transition (see GameContext's
+   * handleMapTransitionConfirm). `activeLocks`/movementLocked/actionsLocked
+   * are scoped to whatever authored the lock on the map just left (e.g. an
+   * NPC's lockMovement `until` the player equips an item) — carrying them
+   * over would leave the player permanently stuck on the new map waiting on
+   * a condition that authored event no longer has any way to satisfy.
+   * `firedOnce`/`autoResolved` are deliberately left untouched: those are
+   * meant to persist for the life of the game, not reset per map (that's
+   * what reset() is for, called only on new game / load).
+   */
+  onMapTransition() {
+    this.activeLocks = [];
+    engine.movementLocked = false;
+    engine.actionsLocked = false;
+  }
+
   _currentStep() {
     if (!this.activeRun) return null;
     const { event, stepIndex } = this.activeRun;
@@ -156,12 +192,12 @@ class EventRunner {
     return evalAll(ev.preconditions, ctx);
   }
 
-  /** First eligible onEnter event whose placement matches (x, y), author order = priority. */
-  _findMatchAt(x, y) {
+  /** First eligible event of `trigger` whose placement matches (x, y), author order = priority. */
+  _findEventAt(x, y, trigger) {
     const events = resolveMapEvents(engine.gameMap?.metadata);
     const ctx = this._ctx();
     for (const ev of events) {
-      if (!ev || ev.trigger !== 'onEnter') continue;
+      if (!ev || ev.trigger !== trigger) continue;
       if (!this._isEligible(ev, ctx)) continue;
       const p = ev.placement;
       if (!p) continue;
@@ -174,6 +210,11 @@ class EventRunner {
       }
     }
     return null;
+  }
+
+  /** First eligible onEnter event whose placement matches (x, y), author order = priority. */
+  _findMatchAt(x, y) {
+    return this._findEventAt(x, y, 'onEnter');
   }
 
   /**
@@ -227,6 +268,20 @@ class EventRunner {
     if (this.activeRun) return;
     const ev = this._findMatchAt(x, y);
     if (ev) this.runEvent(ev);
+  }
+
+  /**
+   * Called when the player clicks a tile (see MapInterface.onCellClick). Fires
+   * the first eligible onInteract event placed there, if any — e.g. clicking an
+   * NPC to replay its instructions. Returns true if the click was consumed
+   * (an event fired), so the caller can skip its move-to-tile fallback.
+   */
+  checkAndFireOnInteract(x, y) {
+    if (this.activeRun) return false;
+    const ev = this._findEventAt(x, y, 'onInteract');
+    if (!ev) return false;
+    this.runEvent(ev);
+    return true;
   }
 
   /**

@@ -942,27 +942,11 @@ export class TemplateMapGenerator {
         }
       }
 
-      // Place placeable.help items on event trigger tiles
-      if (templateMapData.metadata?.eventTriggers?.length > 0) {
-        const { createItemFromDef } = await import('../inventory/ItemDefs.js');
-        const { Item } = await import('../inventory/Item.js');
-        for (const trigger of templateMapData.metadata.eventTriggers) {
-          const tile = gameMap.getTile(trigger.x, trigger.y);
-          if (!tile) continue;
-          const alreadyHasHelp = tile.inventoryItems?.some(i => i.defId === 'placeable.help');
-          if (!alreadyHasHelp) {
-            const helpDef = createItemFromDef('placeable.help');
-            if (helpDef) {
-              const helpItem = new Item(helpDef);
-              helpItem.x = trigger.x;
-              helpItem.y = trigger.y;
-              if (!tile.inventoryItems) tile.inventoryItems = [];
-              tile.inventoryItems.push(helpItem);
-              gameMap.setItemsOnTile(trigger.x, trigger.y, tile.inventoryItems);
-            }
-          }
-        }
-      }
+      // NOTE: previously spawned a 'placeable.help' ("?") item on every legacy
+      // eventTriggers tile as a visual marker. Disabled for the unified
+      // GameEvent system (see QUEST_SYSTEM_PLAN.md) — it doesn't represent
+      // advanced events (preconditions, proximity, chained, non-dialog steps)
+      // correctly. A proper replacement marker is TBD.
 
       // Spawn scenario entities (zombies, NPCs, etc.)
       if (templateMapData.metadata?.entities?.length > 0) {

@@ -1,6 +1,7 @@
 import engine from './GameEngine.js';
 import { gameRandom } from './utils/SeededRandom.js';
 import { CharacterRegistry } from './CharacterRegistry.js';
+import eventRunner from './quest/EventRunner.js';
 
 export const DEFAULT_PLAYER_STATS = {
   hp: 100,
@@ -262,6 +263,7 @@ export class GameSaveSystem {
         bookStats: engine.bookStats,
         craftingQueue: engine.craftingQueue,
         questState: engine.questState ? engine.questState.toJSON() : null,
+        eventRunnerState: eventRunner.toJSON(),
 
         // Map state (includes all tiles and entities) - this contains positions
         gameMap: gameState.gameMap ? gameState.gameMap.toJSON() : null,
@@ -435,6 +437,16 @@ export class GameSaveSystem {
       // empty default, which is the correct behavior for a save predating quests.
       if (saveData.questState && engine.questState) {
         engine.questState.fromJSON(saveData.questState);
+      }
+
+      // Older saves have no eventRunnerState — leaves firedOnce/autoResolved
+      // empty, same as a fresh reset (the correct behavior for a save predating
+      // this field). Restored fresh each load rather than via eventRunner.reset()
+      // so it doesn't clobber state a caller may have already set up this tick.
+      if (saveData.eventRunnerState) {
+        eventRunner.fromJSON(saveData.eventRunnerState);
+      } else {
+        eventRunner.fromJSON(null);
       }
 
       // Restore game seed for PRNG continuity

@@ -10897,6 +10897,7 @@
       "height": 9
     }
   ],
+  "noAutosave": true,
   "lowSpots": [],
   "bubbleEvents": [
     {
@@ -10934,7 +10935,7 @@
       ]
     },
     {
-      "id": "event1",
+      "id": "brainquest",
       "oneShot": true,
       "trigger": {
         "type": "tile",
@@ -11038,7 +11039,74 @@
       ]
     },
     {
-      "id": "event1",
+      "id": "catchyourbreath",
+      "placement": {
+        "kind": "tile",
+        "x": 5,
+        "y": 12
+      },
+      "trigger": "onEnter",
+      "preconditions": [
+        {
+          "kind": "ap",
+          "op": "<",
+          "value": 12
+        }
+      ],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "speech",
+          "text": "I better catch my breath",
+          "anchorX": 5,
+          "anchorY": 12
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "End your turn before going outside to regain Action Points"
+        },
+        {
+          "type": "lockActions",
+          "until": [
+            {
+              "kind": "ap",
+              "op": ">",
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assignquest",
+      "placement": {
+        "kind": "tile",
+        "x": 9,
+        "y": 13
+      },
+      "trigger": "auto",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "startQuest",
+          "questId": "1"
+        },
+        {
+          "type": "setNpcAI",
+          "entityTag": "doc",
+          "enabled": false
+        },
+        {
+          "type": "setNpcAI",
+          "entityTag": "sis",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "id": "brainquest",
       "placement": {
         "kind": "tile",
         "x": 9,
@@ -11108,73 +11176,6 @@
           ]
         }
       ]
-    },
-    {
-      "id": "catchyourbreath",
-      "placement": {
-        "kind": "tile",
-        "x": 5,
-        "y": 12
-      },
-      "trigger": "onEnter",
-      "preconditions": [
-        {
-          "kind": "ap",
-          "op": "<",
-          "value": 12
-        }
-      ],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "speech",
-          "text": "I better catch my breath",
-          "anchorX": 5,
-          "anchorY": 12
-        },
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "End your turn before going outside to regain Action Points"
-        },
-        {
-          "type": "lockActions",
-          "until": [
-            {
-              "kind": "ap",
-              "op": ">",
-              "value": 14
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "assignquest",
-      "placement": {
-        "kind": "tile",
-        "x": 9,
-        "y": 13
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "startQuest",
-          "questId": "1"
-        },
-        {
-          "type": "setNpcAI",
-          "entityTag": "doc",
-          "enabled": false
-        },
-        {
-          "type": "setNpcAI",
-          "entityTag": "sis",
-          "enabled": false
-        }
-      ]
     }
   ],
   "questRegistry": {
@@ -11210,6 +11211,44 @@
                 "defId": "weapon.knife"
               }
             ]
+          },
+          {
+            "id": "3",
+            "text": "get brainstem",
+            "complete": [
+              {
+                "kind": "itemInInventory",
+                "defId": "zombie.brainstem",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "text": "Get the rock",
+            "complete": [
+              {
+                "kind": "itemInInventory",
+                "defId": "crafting.stone",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "text": "Pulp the stem",
+            "complete": [
+              {
+                "kind": "itemInInventory",
+                "defId": "zombie.brainpulp",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "id": "6",
+            "text": "eat the pulp",
+            "complete": []
           }
         ],
         "onComplete": [

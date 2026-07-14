@@ -72,8 +72,11 @@ export class QuestState extends SafeEventEmitter {
       // Loop to advance task(s) if conditions are met
       while (active.currentTaskIndex < def.tasks.length) {
         const currentTask = def.tasks[active.currentTaskIndex];
-        // If task has no conditions or conditions are met, complete it!
-        if (evalAll(currentTask.complete, ctx)) {
+        // A task with no completion conditions is manual-only (advanced via an
+        // explicit setQuestTask step) — evalAll([]) is vacuously true, which
+        // would otherwise auto-complete it (and cascade through the rest of
+        // the quest) the instant it becomes current.
+        if (currentTask.complete?.length > 0 && evalAll(currentTask.complete, ctx)) {
           console.log(`[QuestState] Task completed: Quest ${def.title}, Task: ${currentTask.text}`);
           active.currentTaskIndex++;
           updated = true;

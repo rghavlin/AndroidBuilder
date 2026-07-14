@@ -149,10 +149,14 @@
   "147": "JSON Export Scripts",
   "148": "Entity Fix Scripts",
   "149": "diagnose_sidestep3.mjs",
+  "150": "ScenarioMapGenerator.js",
   "151": "NPM Configuration Testing",
+  "152": "test_shopkeeper_hostility.mjs",
   "153": "verify_army_tent.js",
   "154": "Electron Preload Script",
   "155": "Zombie Spawn Calculation",
+  "156": "test_exhaustive_los.js",
+  "157": "test_exhaustive_los_85.js",
   "158": "Firestation Layout Verification",
   "159": "Special Window Layouts",
   "160": "Book System Verification",
@@ -169,6 +173,5 @@
   "172": "verify_firefighter_spawn.js",
   "174": "verify_worldmanager_populate_p4_02.mjs",
   "175": "tmp_verify_fix.js",
-  "176": ".recordHit",
   "179": "verify_bookstats_init_derived.mjs"
 }
