@@ -1289,11 +1289,15 @@ const GameContextInner = ({ children }) => {
     return () => GameEvents.off(GAME_EVENT.PLAYER_MOVE_ENDED, checkEventTrigger);
   }, []);
 
-  // Check auto/parallel events once the map is ready, so one whose
-  // preconditions are already satisfied fires immediately without requiring
+  // Once the map is ready: seed any never-before-touched flag/var from the
+  // map's Switches & Variables registry (see QuestState.seedFromRegistry),
+  // then check auto/parallel events so one whose preconditions are already
+  // satisfied (possibly BY that seeding) fires immediately without requiring
   // the player to move or touch their inventory first.
   useEffect(() => {
-    if (isInitialized) eventRunner.checkAutoEvents();
+    if (!isInitialized) return;
+    engine.questState?.seedFromRegistry(engine.gameMap?.metadata?.questRegistry);
+    eventRunner.checkAutoEvents();
   }, [isInitialized]);
 
   useEffect(() => {
@@ -1890,6 +1894,12 @@ const GameContextInner = ({ children }) => {
     const success = await mapTransitionConfirm(engine.player, updatePlayerCardinalPositions, cancelMovement, cameraOperations, inventoryManager, turn, selectedPrizeId);
 
     if (success) {
+      // The new map may define registry flags/vars never touched before —
+      // seed them, then re-check auto/parallel events in case seeding just
+      // satisfied one's preconditions.
+      engine.questState?.seedFromRegistry(engine.gameMap?.metadata?.questRegistry);
+      eventRunner.checkAutoEvents();
+
       // Update PlayerContext data after successful transition (no timer)
       updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange(), isNightVisionActual);
       updatePlayerCardinalPositions(engine.gameMap);

@@ -4,7 +4,7 @@ import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
-import { emptyEvent, type GameEvent } from '@/game/quest/eventTypes';
+import { emptyEvent, emptyQuestRegistry, type GameEvent, type QuestRegistry } from '@/game/quest/eventTypes';
 import EventWindow from '@/components/MapEditor/EventWindow';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -153,6 +153,7 @@ interface ScenarioData {
   bubbleEvents?: BubbleEvent[];
   chainDialogEvents?: DialogEventDef[];
   events?: GameEvent[];
+  questRegistry?: QuestRegistry;
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -200,7 +201,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[] } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -377,10 +378,11 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     bubbleEvents: resolvedBubbleEvents || [],
     chainDialogEvents,
     events: unifiedEvents,
+    questRegistry: scenario.questRegistry || scenario.metadata?.questRegistry || emptyQuestRegistry(),
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[] } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -542,6 +544,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     bubbleEvents: resolvedBubbleEvents2 || [],
     chainDialogEvents,
     events: unifiedEvents,
+    questRegistry: mapData.questRegistry || metadata?.questRegistry || emptyQuestRegistry(),
   };
 }
 
@@ -721,6 +724,7 @@ function exportScenario(scenario: ScenarioData) {
     mapTransitions,
     ...(scenario.bubbleEvents && scenario.bubbleEvents.length ? { bubbleEvents: scenario.bubbleEvents } : {}),
     ...(events.length ? { events } : {}),
+    ...(scenario.questRegistry && (scenario.questRegistry.flags.length || scenario.questRegistry.vars.length) ? { questRegistry: scenario.questRegistry } : {}),
   };
 }
 
@@ -805,6 +809,61 @@ export default function MapEditor() {
   // on map load (see scenarioToEditorState/saveGameMapToEditorState), and
   // updated directly by saveEventDraft/deleteEventDraft below.
   const [allEditorEvents, setAllEditorEvents] = useState<GameEvent[]>([]);
+
+  // ─── Switches & Variables registry ────────────────────────────────────
+  // Authored names, independent of any single event — every flag/var picker
+  // in the Event Window (conditions, setFlag/setVar steps) reads from this
+  // instead of free text. Persisted per-map alongside events/bubbleEvents.
+  const [questRegistry, setQuestRegistry] = useState<QuestRegistry>(emptyQuestRegistry());
+  const [showQuestRegistryModal, setShowQuestRegistryModal] = useState(false);
+  const [newFlagName, setNewFlagName] = useState('');
+  const [newFlagDesc, setNewFlagDesc] = useState('');
+  const [newFlagInitial, setNewFlagInitial] = useState(false);
+  const [newVarName, setNewVarName] = useState('');
+  const [newVarDesc, setNewVarDesc] = useState('');
+  const [newVarInitial, setNewVarInitial] = useState<number>(0);
+
+  const addFlagDef = useCallback(() => {
+    const name = newFlagName.trim();
+    if (!name) return;
+    if (questRegistry.flags.some(f => f.name === name)) { setStatusMsg(`Flag "${name}" already exists`); return; }
+    setQuestRegistry(prev => ({ ...prev, flags: [...prev.flags, { name, ...(newFlagDesc.trim() ? { description: newFlagDesc.trim() } : {}), ...(newFlagInitial ? { initialValue: true } : {}) }] }));
+    setNewFlagName('');
+    setNewFlagDesc('');
+    setNewFlagInitial(false);
+  }, [newFlagName, newFlagDesc, newFlagInitial, questRegistry]);
+
+  const removeFlagDef = useCallback((name: string) => {
+    setQuestRegistry(prev => ({ ...prev, flags: prev.flags.filter(f => f.name !== name) }));
+  }, []);
+
+  const updateFlagDef = useCallback((name: string, fields: Partial<{ description: string; initialValue: boolean }>) => {
+    setQuestRegistry(prev => ({
+      ...prev,
+      flags: prev.flags.map(f => f.name === name ? { ...f, ...fields } : f)
+    }));
+  }, []);
+
+  const addVarDef = useCallback(() => {
+    const name = newVarName.trim();
+    if (!name) return;
+    if (questRegistry.vars.some(v => v.name === name)) { setStatusMsg(`Variable "${name}" already exists`); return; }
+    setQuestRegistry(prev => ({ ...prev, vars: [...prev.vars, { name, ...(newVarDesc.trim() ? { description: newVarDesc.trim() } : {}), ...(newVarInitial !== 0 ? { initialValue: newVarInitial } : {}) }] }));
+    setNewVarName('');
+    setNewVarDesc('');
+    setNewVarInitial(0);
+  }, [newVarName, newVarDesc, newVarInitial, questRegistry]);
+
+  const removeVarDef = useCallback((name: string) => {
+    setQuestRegistry(prev => ({ ...prev, vars: prev.vars.filter(v => v.name !== name) }));
+  }, []);
+
+  const updateVarDef = useCallback((name: string, fields: Partial<{ description: string; initialValue: number }>) => {
+    setQuestRegistry(prev => ({
+      ...prev,
+      vars: prev.vars.map(v => v.name === name ? { ...v, ...fields } : v)
+    }));
+  }, []);
 
   const openExistingEvent = useCallback((id: string) => {
     const ev = allEditorEvents.find(e => e.id === id);
@@ -1597,6 +1656,7 @@ export default function MapEditor() {
       bubbleEvents,
       chainDialogEvents,
       events: allEditorEvents,
+      questRegistry,
     };
     const exported = exportScenario(scenario);
 
@@ -1623,6 +1683,7 @@ export default function MapEditor() {
       bubbleEvents,
       chainDialogEvents,
       events: allEditorEvents,
+      questRegistry,
     };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
@@ -1684,6 +1745,7 @@ export default function MapEditor() {
         setBubbleEvents((editor as any).bubbleEvents || []);
         setChainDialogEvents((editor as any).chainDialogEvents || []);
         setAllEditorEvents((editor as any).events || []);
+        setQuestRegistry((editor as any).questRegistry || emptyQuestRegistry());
         setStatusMsg(`Loaded save game map "${label}"`);
         return;
       } catch (err: any) {
@@ -1708,6 +1770,7 @@ export default function MapEditor() {
     setBubbleEvents((editor as any).bubbleEvents || data.bubbleEvents || []);
     setChainDialogEvents((editor as any).chainDialogEvents || data.chainDialogEvents || []);
     setAllEditorEvents((editor as any).events || data.events || []);
+    setQuestRegistry((editor as any).questRegistry || data.questRegistry || emptyQuestRegistry());
     setStatusMsg(`Loaded "${label}"`);
   };
 
@@ -2112,6 +2175,10 @@ export default function MapEditor() {
           {toolButton('map_transition', 'Transition')}
           {toolButton('eraser', 'Eraser')}
         </div>
+
+        <button onClick={() => setShowQuestRegistryModal(true)} style={{ ...btnStyle('#333'), width: '100%' }}>
+          Switches &amp; Variables ({questRegistry.flags.length + questRegistry.vars.length})
+        </button>
 
         {/* Tool-specific options */}
         {tool === 'terrain' && (
@@ -2831,7 +2898,93 @@ export default function MapEditor() {
           onPickStepCoord={(index) => setEventEditorPick({ mode: 'step', index })}
           itemOptions={allItems}
           knownEventIds={knownEventIds}
+          knownFlags={questRegistry.flags.map(f => f.name)}
+          knownVars={questRegistry.vars.map(v => v.name)}
         />
+      )}
+
+      {/* ─── Switches & Variables registry modal ─── */}
+      {showQuestRegistryModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setShowQuestRegistryModal(false)}>
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, width: 580, maxWidth: '95vw', maxHeight: '80vh', overflow: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Switches &amp; Variables</h3>
+            <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
+              Define names here first, then pick them from a dropdown anywhere a condition or setFlag/setVar step needs one — no more free-typed names to misspell.
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Flags (true/false switches)</label>
+              {questRegistry.flags.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>None yet.</div>}
+              {questRegistry.flags.map(f => (
+                <div key={f.name} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
+                  <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.name}>
+                    {f.name}
+                  </div>
+                  <input
+                    value={f.description || ''}
+                    onChange={e => updateFlagDef(f.name, { description: e.target.value })}
+                    placeholder="description (optional)"
+                    style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 80 }}
+                  />
+                  <select
+                    value={String(!!f.initialValue)}
+                    onChange={e => updateFlagDef(f.name, { initialValue: e.target.value === 'true' })}
+                    style={{ ...inputStyle, width: 100, fontSize: 11 }}
+                  >
+                    <option value="false">starts false</option>
+                    <option value="true">starts true</option>
+                  </select>
+                  <button onClick={() => removeFlagDef(f.name)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                <input value={newFlagName} onChange={e => setNewFlagName(e.target.value)} placeholder="e.g. met_mayor" style={{ ...inputStyle, flex: 1 }} />
+                <input value={newFlagDesc} onChange={e => setNewFlagDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
+                <select value={String(newFlagInitial)} onChange={e => setNewFlagInitial(e.target.value === 'true')} style={{ ...inputStyle, width: 90 }}>
+                  <option value="false">starts false</option>
+                  <option value="true">starts true</option>
+                </select>
+                <button onClick={addFlagDef} style={btnStyle('#2a7a2a')}>Add</button>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Variables (numbers)</label>
+              {questRegistry.vars.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>None yet.</div>}
+              {questRegistry.vars.map(v => (
+                <div key={v.name} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
+                  <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v.name}>
+                    {v.name}
+                  </div>
+                  <input
+                    value={v.description || ''}
+                    onChange={e => updateVarDef(v.name, { description: e.target.value })}
+                    placeholder="description (optional)"
+                    style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 80 }}
+                  />
+                  <input
+                    type="number"
+                    value={v.initialValue ?? 0}
+                    onChange={e => updateVarDef(v.name, { initialValue: Number(e.target.value) || 0 })}
+                    placeholder="starts at"
+                    style={{ ...inputStyle, width: 80, fontSize: 11 }}
+                  />
+                  <button onClick={() => removeVarDef(v.name)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                <input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="e.g. reputation" style={{ ...inputStyle, flex: 1 }} />
+                <input value={newVarDesc} onChange={e => setNewVarDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
+                <input type="number" value={newVarInitial} onChange={e => setNewVarInitial(Number(e.target.value) || 0)} placeholder="starts at" style={{ ...inputStyle, width: 80 }} />
+                <button onClick={addVarDef} style={btnStyle('#2a7a2a')}>Add</button>
+              </div>
+            </div>
+
+            <button onClick={() => setShowQuestRegistryModal(false)} style={{ ...btnStyle('#555'), width: '100%', marginTop: 16 }}>Close</button>
+          </div>
+        </div>
       )}
 
       {/* ─── Loot generator modal ─── */}

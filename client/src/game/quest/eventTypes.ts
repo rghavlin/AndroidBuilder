@@ -79,3 +79,33 @@ export function emptyEvent(id: string): GameEvent {
     steps: [],
   };
 }
+
+// ─── Switches & Variables registry (map editor authoring aid) ─────────────
+// Flags/vars themselves are just name-keyed entries on engine.questState at
+// runtime (see QuestState.js) — this registry exists purely so the editor
+// has a place to define names up front and every flag/var picker (condition
+// rows, setFlag/setVar steps) can offer a real dropdown instead of free text.
+// `initialValue` is read once per name by QuestState.seedFromRegistry() when
+// a map loads — it seeds any name never before touched, and never overwrites
+// one already set by prior play (see that method's doc for why).
+
+export interface FlagDef {
+  name: string;
+  description?: string;
+  initialValue?: boolean; // defaults to false if omitted
+}
+
+export interface VarDef {
+  name: string;
+  description?: string;
+  initialValue?: number; // defaults to 0 if omitted
+}
+
+export interface QuestRegistry {
+  flags: FlagDef[];
+  vars: VarDef[];
+}
+
+export function emptyQuestRegistry(): QuestRegistry {
+  return { flags: [], vars: [] };
+}

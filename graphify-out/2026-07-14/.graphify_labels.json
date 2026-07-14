@@ -170,12 +170,11 @@
   "168": "Vite Electron Configuration",
   "169": "Place Icon Serialization",
   "170": "test_save_compression.js",
-  "171": "resolveMapEvents",
   "172": "verify_firefighter_spawn.js",
   "173": "verify_loadmap_dedup_p4_03.mjs",
   "174": "verify_worldmanager_populate_p4_02.mjs",
   "175": "tmp_verify_fix.js",
-  "176": ".recordHit",
   "177": "Quadrant",
+  "178": "verify_production_frontage.js",
   "179": "verify_bookstats_init_derived.mjs"
 }

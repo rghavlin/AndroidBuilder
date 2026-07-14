@@ -688,9 +688,13 @@ export class TemplateMapGenerator {
     mapData.metadata.entities = scenarioData.entities || [];
     mapData.metadata.eventTriggers = scenarioData.eventTriggers || [];
     mapData.metadata.bubbleEvents = scenarioData.bubbleEvents || [];
-    // Unified GameEvent model (dual-written alongside the legacy arrays above —
-    // see QUEST_SYSTEM_PLAN.md §11.2.4). Not yet read by the runtime.
+    // Unified GameEvent model — this is what EventRunner actually reads at
+    // runtime (see QUEST_SYSTEM_PLAN.md §6); the legacy arrays above are kept
+    // for back-compat with older saved maps.
     mapData.metadata.events = scenarioData.events || [];
+    // Switches & Variables registry (editor authoring aid) — read once at map
+    // load to seed initial flag/var values (see QuestState.seedFromRegistry).
+    mapData.metadata.questRegistry = scenarioData.questRegistry || { flags: [], vars: [] };
     mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
     if (scenarioData.metadata?.alwaysDark || scenarioData.alwaysDark) {
       mapData.metadata.alwaysDark = true;

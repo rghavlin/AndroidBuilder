@@ -53,12 +53,14 @@ function emptyCondition(): Condition {
 
 // ─── Condition row editor (reused for preconditions / endWhen / lockMovement.until) ───
 function ConditionRow({
-  cond, onChange, onRemove, itemOptions,
+  cond, onChange, onRemove, itemOptions, knownFlags, knownVars,
 }: {
   cond: Condition;
   onChange: (c: Condition) => void;
   onRemove: () => void;
   itemOptions: { id: string; name: string }[];
+  knownFlags: string[];
+  knownVars: string[];
 }) {
   return (
     <div style={rowStyle}>
@@ -89,7 +91,10 @@ function ConditionRow({
 
       {cond.kind === 'flag' && (
         <>
-          <input style={{ ...inputStyle, width: 130 }} placeholder="flag name" value={cond.flag || ''} onChange={e => onChange({ ...cond, flag: e.target.value })} />
+          <select style={{ ...inputStyle, width: 130 }} value={cond.flag || ''} onChange={e => onChange({ ...cond, flag: e.target.value })}>
+            <option value="">select flag…</option>
+            {knownFlags.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
           <select style={{ ...inputStyle, width: 70 }} value={String(cond.value ?? true)} onChange={e => onChange({ ...cond, value: e.target.value === 'true' })}>
             <option value="true">true</option>
             <option value="false">false</option>
@@ -99,7 +104,10 @@ function ConditionRow({
 
       {cond.kind === 'var' && (
         <>
-          <input style={{ ...inputStyle, width: 110 }} placeholder="var name" value={cond.var || ''} onChange={e => onChange({ ...cond, var: e.target.value })} />
+          <select style={{ ...inputStyle, width: 110 }} value={cond.var || ''} onChange={e => onChange({ ...cond, var: e.target.value })}>
+            <option value="">select variable…</option>
+            {knownVars.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
           <select style={{ ...inputStyle, width: 56 }} value={cond.op || '>='} onChange={e => onChange({ ...cond, op: e.target.value as CompareOp })}>
             {['==', '!=', '>=', '<=', '>', '<'].map(o => <option key={o} value={o}>{o}</option>)}
           </select>
@@ -113,19 +121,26 @@ function ConditionRow({
 }
 
 function ConditionListEditor({
-  conds, onChange, itemOptions,
+  conds, onChange, itemOptions, knownFlags, knownVars,
 }: {
   conds: Condition[];
   onChange: (c: Condition[]) => void;
   itemOptions: { id: string; name: string }[];
+  knownFlags: string[];
+  knownVars: string[];
 }) {
   return (
     <div>
+      {(conds.some(c => c.kind === 'flag') && knownFlags.length === 0) || (conds.some(c => c.kind === 'var') && knownVars.length === 0) ? (
+        <p style={{ fontSize: 10, color: '#c96', margin: '0 0 6px' }}>No flags/variables defined yet — add them via the "Switches &amp; Variables" button in the left panel.</p>
+      ) : null}
       {conds.map((c, i) => (
         <ConditionRow
           key={i}
           cond={c}
           itemOptions={itemOptions}
+          knownFlags={knownFlags}
+          knownVars={knownVars}
           onChange={next => onChange(conds.map((x, j) => (j === i ? next : x)))}
           onRemove={() => onChange(conds.filter((_, j) => j !== i))}
         />
@@ -137,7 +152,7 @@ function ConditionListEditor({
 
 // ─── One step's own editor section ─────────────────────────────────────────
 function StepEditor({
-  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds,
+  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds, knownFlags, knownVars,
 }: {
   step: EventStep;
   index: number;
@@ -149,6 +164,8 @@ function StepEditor({
   onPickCoord: () => void;
   itemOptions: { id: string; name: string }[];
   knownEventIds: string[];
+  knownFlags: string[];
+  knownVars: string[];
 }) {
   const badgeColors: Partial<Record<StepType, string>> = {
     dialog: '#1d4f8a', speech: '#1d4f8a', give: '#1d6b3a', setFlag: '#7a5a12', setVar: '#7a5a12',
@@ -210,31 +227,43 @@ function StepEditor({
       )}
 
       {step.type === 'setFlag' && (
-        <div style={rowStyle}>
-          <input style={{ ...inputStyle, flex: 1 }} placeholder="flag name" value={step.flag || ''} onChange={e => onChange({ ...step, flag: e.target.value })} />
-          <span style={{ fontSize: 11, color: '#888' }}>=</span>
-          <select style={{ ...inputStyle, width: 70 }} value={String(step.value ?? true)} onChange={e => onChange({ ...step, value: e.target.value === 'true' })}>
-            <option value="true">true</option>
-            <option value="false">false</option>
-          </select>
+        <div>
+          {knownFlags.length === 0 && <p style={{ fontSize: 10, color: '#c96', margin: '0 0 6px' }}>No flags defined yet — add one via "Switches &amp; Variables" in the left panel.</p>}
+          <div style={rowStyle}>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.flag || ''} onChange={e => onChange({ ...step, flag: e.target.value })}>
+              <option value="">select flag…</option>
+              {knownFlags.map(f => <option key={f} value={f}>{f}</option>)}
+            </select>
+            <span style={{ fontSize: 11, color: '#888' }}>=</span>
+            <select style={{ ...inputStyle, width: 70 }} value={String(step.value ?? true)} onChange={e => onChange({ ...step, value: e.target.value === 'true' })}>
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </div>
         </div>
       )}
 
       {step.type === 'setVar' && (
-        <div style={rowStyle}>
-          <input style={{ ...inputStyle, flex: 1 }} placeholder="var name" value={step.var || ''} onChange={e => onChange({ ...step, var: e.target.value })} />
-          <select style={{ ...inputStyle, width: 70 }} value={step.op || 'set'} onChange={e => onChange({ ...step, op: e.target.value as 'set' | 'add' })}>
-            <option value="set">set</option>
-            <option value="add">add</option>
-          </select>
-          <input type="number" style={{ ...inputStyle, width: 70 }} value={step.varValue ?? 0} onChange={e => onChange({ ...step, varValue: Number(e.target.value) || 0 })} />
+        <div>
+          {knownVars.length === 0 && <p style={{ fontSize: 10, color: '#c96', margin: '0 0 6px' }}>No variables defined yet — add one via "Switches &amp; Variables" in the left panel.</p>}
+          <div style={rowStyle}>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.var || ''} onChange={e => onChange({ ...step, var: e.target.value })}>
+              <option value="">select variable…</option>
+              {knownVars.map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <select style={{ ...inputStyle, width: 70 }} value={step.op || 'set'} onChange={e => onChange({ ...step, op: e.target.value as 'set' | 'add' })}>
+              <option value="set">set</option>
+              <option value="add">add</option>
+            </select>
+            <input type="number" style={{ ...inputStyle, width: 70 }} value={step.varValue ?? 0} onChange={e => onChange({ ...step, varValue: Number(e.target.value) || 0 })} />
+          </div>
         </div>
       )}
 
       {step.type === 'lockMovement' && (
         <div>
           <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Unlocks when all pass:</div>
-          <ConditionListEditor conds={step.until || []} onChange={c => onChange({ ...step, until: c })} itemOptions={itemOptions} />
+          <ConditionListEditor conds={step.until || []} onChange={c => onChange({ ...step, until: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
         </div>
       )}
 
@@ -272,10 +301,12 @@ export interface EventWindowProps {
   onPickStepCoord: (stepIndex: number) => void;
   itemOptions: { id: string; name: string }[];
   knownEventIds: string[];
+  knownFlags: string[];
+  knownVars: string[];
 }
 
 export default function EventWindow({
-  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds,
+  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars,
 }: EventWindowProps) {
   const setSteps = (steps: EventStep[]) => onChange({ ...event, steps });
   const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel';
@@ -302,7 +333,7 @@ export default function EventWindow({
 
           <div>
             <div style={sectionLabelStyle}>Preconditions <span style={{ color: '#666', fontWeight: 'normal' }}>— all must pass</span></div>
-            <ConditionListEditor conds={event.preconditions} onChange={c => onChange({ ...event, preconditions: c })} itemOptions={itemOptions} />
+            <ConditionListEditor conds={event.preconditions} onChange={c => onChange({ ...event, preconditions: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
@@ -354,7 +385,7 @@ export default function EventWindow({
           {showEndCondition && (
             <div>
               <div style={sectionLabelStyle}>End condition <span style={{ color: '#666', fontWeight: 'normal' }}>— once true, this event stops firing for good</span></div>
-              <ConditionListEditor conds={event.endWhen || []} onChange={c => onChange({ ...event, endWhen: c })} itemOptions={itemOptions} />
+              <ConditionListEditor conds={event.endWhen || []} onChange={c => onChange({ ...event, endWhen: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
             </div>
           )}
 
@@ -368,6 +399,8 @@ export default function EventWindow({
                 total={event.steps.length}
                 itemOptions={itemOptions}
                 knownEventIds={knownEventIds}
+                knownFlags={knownFlags}
+                knownVars={knownVars}
                 onChange={s => setSteps(event.steps.map((x, j) => (j === i ? s : x)))}
                 onRemove={() => setSteps(event.steps.filter((_, j) => j !== i))}
                 onMoveUp={() => { if (i === 0) return; const s = [...event.steps]; [s[i - 1], s[i]] = [s[i], s[i - 1]]; setSteps(s); }}

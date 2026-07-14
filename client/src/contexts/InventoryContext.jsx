@@ -1000,12 +1000,20 @@ export const InventoryProvider = ({ children }) => {
     }
 
     // Perform charging
+    let cranksPerformed = 0;
     for (let i = 0; i < apNeeded; i++) {
+       const anyNeedsCharge = batteries.some(b => {
+         const max = b.capacity || (b.defId === 'tool.high_capacity_battery' ? 400 : (b.defId === 'tool.large_battery' ? 100 : 10));
+         return (b.ammoCount || 0) < max;
+       });
+       if (!anyNeedsCharge) break;
+
        TurnProcessingUtils.chargeBatteries(batteries);
+       cranksPerformed++;
     }
     
-    player.useAP(apNeeded);
-    addLog(`You crank the charger ${apNeeded} times.`, 'item');
+    player.useAP(cranksPerformed);
+    addLog(`You crank the charger ${cranksPerformed} time${cranksPerformed > 1 ? 's' : ''}.`, 'item');
     playSound('Click'); 
     
     engine.notifyUpdate();

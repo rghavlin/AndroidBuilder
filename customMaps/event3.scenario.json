@@ -3029,7 +3029,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "ammo.308-1784004836440-i9ujx",
+            "instanceId": "ammo.308-1784010110373-kzdez",
             "defId": "ammo.308",
             "id": "ammo.308",
             "name": ".308 Ammo",
@@ -4923,10 +4923,38 @@
           "y": 11
         }
       ]
+    },
+    {
+      "chainOnly": true,
+      "id": "ammoFlag",
+      "steps": [],
+      "oneShot": true
     }
   ],
   "mapTransitions": [],
   "events": [
+    {
+      "id": "ammoFlag",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "itemInInventory",
+          "defId": "ammo.308",
+          "count": 1
+        }
+      ],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "setFlag",
+          "flag": "has308ammo",
+          "value": true
+        }
+      ]
+    },
     {
       "id": "event1",
       "placement": {
@@ -4937,9 +4965,9 @@
       "trigger": "onEnter",
       "preconditions": [
         {
-          "kind": "itemInInventory",
-          "defId": "ammo.308",
-          "count": 1
+          "kind": "flag",
+          "flag": "has308ammo",
+          "value": true
         }
       ],
       "repeat": "once",
@@ -4993,5 +5021,13 @@
         }
       ]
     }
-  ]
+  ],
+  "questRegistry": {
+    "flags": [
+      {
+        "name": "has308ammo"
+      }
+    ],
+    "vars": []
+  }
 }

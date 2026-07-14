@@ -1,8 +1,39 @@
 # Quest & Event System — Scoping / Design Doc
 
-> Status: **DRAFT for discussion.** Nothing here is built yet. This is the working
-> document to hang decisions on so we don't have to hold the whole thing in our heads.
+> Status: **Phases 0–4 DONE and verified — the campaign-authoring core works
+> end-to-end.** Phases 5–6 (journal/quests, freeplay) are **NOT STARTED**. See
+> the status summary below, and §9 for full phase-by-phase detail (what was
+> built, how it was verified, every bugfix along the way).
 > Reference model: RPG Maker MZ events (Pages → Conditions → Command List).
+
+## Current status at a glance
+
+| Phase | What | Status |
+|---|---|---|
+| 0 | `QuestState` (flags/vars) + `conditions.js` evaluator | ✅ Done |
+| 1 | Unified `GameEvent` model + legacy migration/dual-write | ✅ Done |
+| 2 | Editor Event Window (unify Event + Speech tools) | ✅ Done, user-confirmed in-app |
+| 3 | Runtime step-interpreter (`EventRunner.js`) | ✅ Done, user-confirmed in-app |
+| 4 | Preconditions, `endWhen`, `auto`/`parallel`, movement lock | ✅ Done, user-confirmed in-app |
+| — | *Add-on:* Switches & Variables registry + initial values | ✅ Done, user-confirmed in-app |
+| 5 | Journal + `Quest` type + quest-advance via steps | ⬜ Not started |
+| 6 | Freeplay random NPC quest generator | ⬜ Not started |
+
+Everything in Phases 0–4 has been exercised live by the user in the actual map
+editor and game (not just verify-script logic): a mixed dialog+speech+give event,
+an `auto` event gated on an inventory precondition flipping a flag, a second
+event gated on that flag, and a registry variable with a non-default starting
+value. Four real bugs were found via that live testing and fixed the same
+session (mixed-event data loss, event rename duplicating instead of renaming,
+the placeable.help item replaying whole events instead of just their dialog, and
+the registry never reaching `gameMap.metadata` at runtime) — see §9 for each.
+
+No live browser testing was available to me directly (this app is too heavy for
+the sandboxed preview tools); all "done" verdicts above are backed by targeted
+Node verify scripts (`scratch/verify_questsystem_p0-4.mjs`, ~100 checks total),
+`npx tsc --noEmit` staying at the same 248 pre-existing errors throughout (diffed
+to confirm zero new ones), `esbuild` syntax-checks on the `.jsx` files `tsc`
+can't cover, and — critically — the user's own in-app testing after each phase.
 
 ---
 
@@ -423,11 +454,78 @@ of existing `.editor.json` files required.
   `GameMapContext.jsx` syntax-checked with `esbuild` (clean, same pre-existing
   unrelated warning). No live browser test — ask the user to verify an
   itemEquipped-gated `auto` event and a `lockMovement`/`until` combo in-app.
-- **Phase 5 — Journal + quests.** `Quest` type, journal UI, quest-advance via steps.
-- **Phase 6 — Freeplay random quests.** NPC-template quest generator (uses Phase 5).
 
-Each phase is independently shippable and testable. Phases 0–4 deliver the campaign
-authoring you need now; 5–6 are the freeplay/journal layer.
+  **Add-on after Phase 4 (user request): Switches & Variables registry.**
+  Flags/vars were purely ad-hoc — free-text names typed into condition rows and
+  `setFlag`/`setVar` steps, with no place to see what exists or set values up
+  front. Added `QuestRegistry` (`{flags: FlagDef[], vars: VarDef[]}`,
+  `FlagDef`/`VarDef = {name, description?}`) to `eventTypes.ts`. New per-map
+  editor state `questRegistry`, managed via a "Switches & Variables" button/modal
+  (add/remove flag or var definitions with an optional description) — persisted
+  the same way `events[]`/`bubbleEvents` already are (both loader functions and
+  both save call sites pass it through; `exportScenario` includes it in its
+  output when non-empty). Every flag/var field in `EventWindow.tsx` (condition
+  rows, `setFlag`/`setVar` steps) was converted from a free-text `<input>` to a
+  `<select>` sourced from the registry (`knownFlags`/`knownVars` props threaded
+  through `ConditionRow`/`ConditionListEditor`/`StepEditor`), with an inline
+  amber hint when the relevant list is empty pointing at the registry button.
+  This is purely an authoring aid — flags/vars are still just name-keyed reads/
+  writes on `engine.questState` at runtime (`QuestState.js`, unchanged); the
+  registry doesn't gate or validate anything at runtime, it only makes the
+  *editor* UI enforce picking from a known list instead of free-typing (typo
+  protection). Scoped to "registry only" — deliberately did not build
+  autocomplete-without-a-registry, non-default initial values, or a live
+  debug/dev-console value readout (all were offered as options; user picked
+  registry only). Verified via `npx tsc --noEmit` (248, unchanged — diffed
+  against the pre-feature baseline to confirm the 3 pre-existing `alwaysDark`
+  errors are the only overlap, no new errors) and the existing Phase 0/1/3/4
+  verify scripts (unaffected, still passing). No live browser test.
+
+  **Add-on (user request, same day): initial values on flag/var creation.**
+  User confirmed the registry works end-to-end in-app (created a flag, an
+  `auto` event that sets it from an `itemInInventory` precondition, and a
+  second event gated on that flag — all worked), then asked for the
+  non-default-initial-value option that had been offered but not built. Added
+  `initialValue?: boolean` to `FlagDef` / `initialValue?: number` to `VarDef`
+  (eventTypes.ts); the registry modal's Add row now has a starts-true/false
+  select for flags and a number input for vars, and each listed entry shows
+  "starts &lt;value&gt;". New `QuestState.seedFromRegistry(registry)`: for
+  each registry name never before touched (checked via `in`, not the boolean/
+  number value — an explicit `false`/`0` still counts as "touched"), sets it
+  to `initialValue` (default `false`/`0`); already-touched names are left
+  alone, so revisiting a map can't clobber a value the player has since
+  changed back toward the registry default. Called from `GameContext.jsx` at
+  both points where a map becomes current: the existing `isInitialized` effect
+  (new game/first map) and right after a successful `mapTransitionConfirm`
+  (every subsequent map change) — both immediately followed by
+  `eventRunner.checkAutoEvents()` in case seeding just satisfied an `auto`
+  event's precondition. Also fixed a gap this surfaced: `questRegistry` was
+  never actually copied onto `gameMap.metadata` by the two map generators
+  (`ScenarioMapGenerator.js`, `TemplateMapGenerator.js`) — only `events` was
+  wired through back in Phase 1; the registry itself would have been
+  `undefined` at runtime despite being correctly saved/loaded in the editor.
+  Fixed by mirroring the existing `events` wiring in both generators (also
+  corrected their stale "not yet read by the runtime" comment on `events`,
+  which Phases 3–4 made false). Verified: `scratch/verify_questsystem_p4.mjs`
+  gained 6 checks for `seedFromRegistry` (seeds untouched names to their
+  initialValue or to false/0 when omitted; never clobbers a name already
+  touched by play, even back toward its own initialValue) — 24 checks total,
+  all passing. `npx tsc --noEmit` unchanged at 248; `GameContext.jsx`/
+  `QuestState.js` syntax-checked clean via `esbuild`. No live browser test.
+- **Phase 5 — NOT STARTED.** Journal + quests. `Quest` type, journal UI,
+  quest-advance via steps. See §7 for the shape already sketched
+  (`Quest {id, title, description, stages: {id, text, complete: Condition[]}[],
+  onComplete?}`) — stages reuse the existing `Condition[]`/`ConditionListEditor`
+  machinery from Phases 0/2/4, and progress reuses the existing `setFlag`/`setVar`
+  steps, so this is mostly new UI (an author-facing Quest editor + an in-game
+  Journal screen) plus a small `Quest[]`/"active quests" data model, not a new
+  engine.
+- **Phase 6 — NOT STARTED.** Freeplay random quests. NPC-template quest
+  generator (uses Phase 5's `Quest`/`GameEvent` shapes).
+
+Each phase is independently shippable and testable. Phases 0–4 (+ the registry
+add-on) deliver the campaign authoring you need now and are done; 5–6 are the
+freeplay/journal layer and haven't been started.
 
 ---
 

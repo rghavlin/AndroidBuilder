@@ -10886,8 +10886,36 @@
   "buildings": [],
   "lowSpots": [],
   "bubbleEvents": [],
-  "chainDialogEvents": [],
+  "chainDialogEvents": [
+    {
+      "id": "ammoFlag",
+      "steps": [],
+      "oneShot": true
+    }
+  ],
   "events": [
+    {
+      "id": "ammoFlag",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "itemInInventory",
+          "defId": "ammo.308",
+          "count": 1
+        }
+      ],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "setFlag",
+          "flag": "has308ammo",
+          "value": true
+        }
+      ]
+    },
     {
       "id": "event1",
       "placement": {
@@ -10898,9 +10926,9 @@
       "trigger": "onEnter",
       "preconditions": [
         {
-          "kind": "itemInInventory",
-          "defId": "ammo.308",
-          "count": 1
+          "kind": "flag",
+          "flag": "has308ammo",
+          "value": true
         }
       ],
       "repeat": "once",
@@ -10954,5 +10982,13 @@
         }
       ]
     }
-  ]
+  ],
+  "questRegistry": {
+    "flags": [
+      {
+        "name": "has308ammo"
+      }
+    ],
+    "vars": []
+  }
 }

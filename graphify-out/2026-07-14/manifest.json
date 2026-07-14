@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784010576.3105278,
-    "ast_hash": "20dd02b35666957ed2a26f9f9977ca38",
+    "mtime": 1784009420.1040726,
+    "ast_hash": "c2c53884769a497534e870eb83d05078",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1784010464.3611324,
-    "ast_hash": "7bd76dd9bf7becbb8146ec650d4dd0f0",
+    "mtime": 1784004129.9315019,
+    "ast_hash": "c1ee96268b16d37d954383fe92e571a9",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -1105,8 +1105,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784010401.0278678,
-    "ast_hash": "81bff047bdd9a3259f2d36e455d9d1e1",
+    "mtime": 1783997895.87858,
+    "ast_hash": "ed099d561aad102239d4a20eed508361",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1145,8 +1145,8 @@
     "semantic_hash": "0f32cda9a8ce4de7834bf2a8ea1f1ed3"
   },
   "client/src/game/map/generators/ScenarioMapGenerator.js": {
-    "mtime": 1784010389.0583797,
-    "ast_hash": "ea1d89dbdd74c3f16125c11705a4c117",
+    "mtime": 1783997895.8791401,
+    "ast_hash": "2bf48d57a9f127d51857b3873b4852b7",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/SplitRoadGenerator.js": {
@@ -1425,8 +1425,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784010526.6812227,
-    "ast_hash": "a612b93f9c4475758845fc9d3d1fa64b",
+    "mtime": 1784009524.797626,
+    "ast_hash": "0997d6732b43cf72d6760c59ea803dc3",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -2750,8 +2750,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/QuestState.js": {
-    "mtime": 1784010434.3831866,
-    "ast_hash": "52f3a2611d220bc316621fe528da8a5c",
+    "mtime": 1783996931.8895087,
+    "ast_hash": "1a0dc9d56c3d086fb208d8aeebec4cac",
     "semantic_hash": ""
   },
   "client/src/game/quest/conditions.js": {
@@ -2790,8 +2790,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
-    "mtime": 1784010416.5770228,
-    "ast_hash": "58055f405781d69809a737ec1f0b365d",
+    "mtime": 1784009252.1784642,
+    "ast_hash": "a4e3ac32486346cfe5639178aceeac85",
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
@@ -2805,18 +2805,18 @@
     "semantic_hash": ""
   },
   "customMaps/event3.editor.json": {
-    "mtime": 1784010109.2029493,
-    "ast_hash": "03b7f780137e709632f8fd9ab70047b9",
+    "mtime": 1784004835.37245,
+    "ast_hash": "e5910cdb3f42a86857b426defc8d7149",
     "semantic_hash": ""
   },
   "customMaps/event3.scenario.json": {
-    "mtime": 1784010110.3775837,
-    "ast_hash": "74201f7ab8c96d75e26452482d13aab2",
+    "mtime": 1784004836.444003,
+    "ast_hash": "4c9e6d0cea28bbacc7de992989a250ae",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p4.mjs": {
-    "mtime": 1784010602.7604756,
-    "ast_hash": "28ab8d68420dd1c56ce2fe738231b7e5",
+    "mtime": 1784004272.9797082,
+    "ast_hash": "12371cb7373f0a0af0e7971db360c134",
     "semantic_hash": ""
   }
 }

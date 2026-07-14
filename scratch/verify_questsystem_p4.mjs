@@ -143,5 +143,28 @@ setEvents([
 eventRunner.checkAndFireAt(6, 6); // setter_ev is all non-blocking steps, resolves synchronously, then _endRun() fires
 assert(eventRunner.getActiveEventId() === 'chained_auto', 'auto event newly eligible after the prior run ends fires immediately, same tick');
 
+// ══════════════════════════════════════════════════════════════════════════
+// QuestState.seedFromRegistry: seeds untouched names, never clobbers touched ones
+// ══════════════════════════════════════════════════════════════════════════
+eventRunner.reset();
+engine.questState.reset();
+
+const registry = {
+  flags: [{ name: 'reg_flag_a', initialValue: true }, { name: 'reg_flag_b' }],
+  vars: [{ name: 'reg_var_a', initialValue: 50 }, { name: 'reg_var_b' }],
+};
+engine.questState.seedFromRegistry(registry);
+assert(engine.questState.getFlag('reg_flag_a') === true, 'seedFromRegistry seeds a flag to its initialValue:true');
+assert(engine.questState.getFlag('reg_flag_b') === false, 'seedFromRegistry seeds a flag with no initialValue to false');
+assert(engine.questState.getVar('reg_var_a') === 50, 'seedFromRegistry seeds a var to its initialValue');
+assert(engine.questState.getVar('reg_var_b') === 0, 'seedFromRegistry seeds a var with no initialValue to 0');
+
+// Player has since changed reg_flag_a to false and reg_var_a to 5 through play.
+engine.questState.setFlag('reg_flag_a', false);
+engine.questState.setVar('reg_var_a', 5);
+engine.questState.seedFromRegistry(registry); // simulate revisiting the same map
+assert(engine.questState.getFlag('reg_flag_a') === false, 'seedFromRegistry does NOT clobber a flag already touched by play, even back toward its own initialValue');
+assert(engine.questState.getVar('reg_var_a') === 5, 'seedFromRegistry does NOT clobber a var already touched by play');
+
 console.log(failures === 0 ? '\nAll checks passed.' : `\n${failures} check(s) FAILED.`);
 process.exit(failures === 0 ? 0 : 1);
