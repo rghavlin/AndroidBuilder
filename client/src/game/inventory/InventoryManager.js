@@ -930,9 +930,9 @@ export class InventoryManager extends SafeEventEmitter {
    */
   isItemEquipped(itemOrId) {
     if (!itemOrId) return false;
-    const targetId = typeof itemOrId === 'string' ? itemOrId : (itemOrId.instanceId || itemOrId.id);
+    const targetId = typeof itemOrId === 'string' ? itemOrId : (itemOrId.instanceId || itemOrId.id || itemOrId.defId);
     return Object.values(this.equipment).some(item => 
-      item && (item.instanceId === targetId || item.id === targetId)
+      item && (item.instanceId === targetId || item.id === targetId || item.defId === targetId)
     );
   }
 

@@ -234,9 +234,10 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Handler for map cell clicks
   const onCellClick = (x: number, y: number) => {
-    // Block all map interactions if it's not the player's turn
-    if (!isPlayerTurn || isAutosaving) {
-      console.debug('[MapInterface] Map click blocked - Not player turn or autosaving');
+    // Block all map interactions if it's not the player's turn, or if a
+    // quest event has locked interactions (see EventRunner's lockActions step)
+    if (!isPlayerTurn || isAutosaving || engine.actionsLocked) {
+      console.debug('[MapInterface] Map click blocked - Not player turn, autosaving, or actions locked');
       return true; // Consume click
     }
 
@@ -342,10 +343,11 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Handler for map cell right clicks
   const onCellRightClick = (x: number, y: number, screenX: number, screenY: number) => {
-    // Block all map interactions if it's not the player's turn
-    if (!isPlayerTurn || isAutosaving) {
-      console.debug('[MapInterface] Map right-click blocked - Not player turn or autosaving');
-      return; 
+    // Block all map interactions if it's not the player's turn, or if a
+    // quest event has locked interactions (see EventRunner's lockActions step)
+    if (!isPlayerTurn || isAutosaving || engine.actionsLocked) {
+      console.debug('[MapInterface] Map right-click blocked - Not player turn, autosaving, or actions locked');
+      return;
     }
 
     // Phase 1: Right-click to cancel targeting (Grenade throw, Shovel dig, Combat aim)

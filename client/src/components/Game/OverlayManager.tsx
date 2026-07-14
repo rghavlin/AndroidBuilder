@@ -10,6 +10,8 @@ import EarbucksShopWindow from './EarbucksShopWindow';
 import TollWindow from './TollWindow';
 import LogHistoryWindow from './LogHistoryWindow';
 import PlayerSkillsWindow from './PlayerSkillsWindow';
+import { JournalUI } from './JournalUI';
+import { GridSizeProvider } from '@/contexts/GridSizeContext';
 import MainMenuWindow from './MainMenuWindow';
 import DragPreviewLayer from '../Inventory/DragPreviewLayer';
 import { MapTransitionDialog } from './MapTransitionDialog';
@@ -47,6 +49,8 @@ export default function OverlayManager() {
     handleDialogDismiss,
     isSkillsOpen,
     toggleSkills,
+    isJournalOpen,
+    closeJournalAndOpenSkills,
     initializeGame,
     enableAutosave,
   } = useGame();
@@ -138,6 +142,33 @@ export default function OverlayManager() {
             isOpen={isSkillsOpen} 
             onClose={toggleSkills} 
           />
+
+          {/* Survivor's Journal */}
+          {isJournalOpen && (
+            <div className="fixed inset-0 z-50 pointer-events-none">
+              <div
+                className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto transition-opacity duration-300"
+                style={{
+                  top: 'var(--header-height, 80px)',
+                  bottom: 'var(--controls-height, 82px)'
+                }}
+                onClick={closeJournalAndOpenSkills}
+              />
+              <GridSizeProvider>
+                <div
+                  className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col overflow-hidden pointer-events-auto"
+                  style={{
+                    top: 'var(--header-height, 80px)',
+                    bottom: 'var(--controls-height, 82px)'
+                  }}
+                  data-testid="player-journal-window"
+                  data-inventory-ui="true"
+                >
+                  <JournalUI onClose={closeJournalAndOpenSkills} />
+                </div>
+              </GridSizeProvider>
+            </div>
+          )}
 
           {/* Map Transition */}
           {mapTransition && mapTransition.isTutorialEnd ? (

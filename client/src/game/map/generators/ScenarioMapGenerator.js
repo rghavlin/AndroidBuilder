@@ -7,7 +7,7 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
   }
 
   generate(config, builder) {
-    const { tiles, metadata, entities, eventTriggers, bubbleEvents, events, questRegistry } = this.scenario;
+    const { tiles, metadata, entities, eventTriggers, bubbleEvents, events, questRegistry, entityRegistry } = this.scenario;
 
     for (let y = 0; y < tiles.length; y++) {
       for (let x = 0; x < tiles[y].length; x++) {
@@ -44,6 +44,7 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
     // Switches & Variables registry (editor authoring aid) — read once at map
     // load to seed initial flag/var values (see QuestState.seedFromRegistry).
     if (questRegistry) builder.metadata.questRegistry = questRegistry;
+    if (entityRegistry) builder.metadata.entityRegistry = entityRegistry;
 
     if (this.scenario.mapTransitions) {
       builder.metadata.mapTransitions = this.scenario.mapTransitions;

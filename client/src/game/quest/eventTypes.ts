@@ -1,7 +1,7 @@
 // Unified event model types for the map editor. Mirrors the plain-object shapes
 // produced/consumed by migrateEvents.js (see QUEST_SYSTEM_PLAN.md §4).
 
-export type ConditionKind = 'none' | 'itemEquipped' | 'itemInInventory' | 'flag' | 'var';
+export type ConditionKind = 'none' | 'itemEquipped' | 'itemInInventory' | 'flag' | 'var' | 'ap';
 export type CompareOp = '==' | '!=' | '>=' | '<=' | '>' | '<';
 
 export interface Condition {
@@ -27,7 +27,9 @@ export type RepeatMode = 'once' | 'everyTime' | 'whileConditions';
 
 export type StepType =
   | 'dialog' | 'speech' | 'give' | 'setFlag' | 'setVar'
-  | 'lockMovement' | 'unlockMovement' | 'wait' | 'chain';
+  | 'lockMovement' | 'unlockMovement' | 'lockActions' | 'unlockActions'
+  | 'wait' | 'chain'
+  | 'moveEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI';
 
 export interface EventStep {
   type: StepType;
@@ -56,6 +58,15 @@ export interface EventStep {
   ms?: number;
   // chain
   eventId?: string;
+  // moveEntity
+  entityTag?: string;
+  targetX?: number;
+  targetY?: number;
+  // startQuest / setQuestTask
+  questId?: string;
+  taskIndex?: number;
+  // setNpcAI (reuses entityTag above)
+  enabled?: boolean;
 }
 
 export interface GameEvent {
@@ -80,6 +91,28 @@ export function emptyEvent(id: string): GameEvent {
   };
 }
 
+// ─── Map Entity Registry ───────────────────────────────────────────────────
+// Holds manual definitions of placed entities (doors, windows, zombies) that
+// the event system can reference. NPCs with names are auto-registered.
+// The tag is a unique name given by the author. At runtime, these are resolved
+// to live instances on the map.
+
+export interface EntityRegistryEntry {
+  tag: string;
+  type: 'door' | 'window' | 'zombie';
+  x: number;
+  y: number;
+  description?: string;
+}
+
+export interface EntityRegistry {
+  entries: EntityRegistryEntry[];
+}
+
+export function emptyEntityRegistry(): EntityRegistry {
+  return { entries: [] };
+}
+
 // ─── Switches & Variables registry (map editor authoring aid) ─────────────
 // Flags/vars themselves are just name-keyed entries on engine.questState at
 // runtime (see QuestState.js) — this registry exists purely so the editor
@@ -101,11 +134,46 @@ export interface VarDef {
   initialValue?: number; // defaults to 0 if omitted
 }
 
+export interface QuestTaskDef {
+  id: string;
+  text: string;
+  complete: Condition[];
+}
+
+// ─── Quest completion rewards ──────────────────────────────────────────────
+// Fired once, when a quest's last task completes (see QuestState.checkQuestProgression).
+// Reuses the same step shapes as EventStep's 'give'/'setFlag'/'setVar' so the
+// editor and runtime can share code; kept as its own narrow type so this list
+// can only ever contain reward-shaped steps (kept extensible for more types later).
+export type QuestRewardType = 'give' | 'setFlag' | 'setVar';
+export interface QuestReward {
+  type: QuestRewardType;
+  // give
+  defId?: string;
+  count?: number;
+  // setFlag
+  flag?: string;
+  value?: boolean;
+  // setVar
+  var?: string;
+  op?: 'set' | 'add';
+  varValue?: number;
+}
+
+export interface QuestDef {
+  id: string;
+  title: string;
+  description: string;
+  tasks: QuestTaskDef[];
+  onComplete?: QuestReward[];
+}
+
 export interface QuestRegistry {
   flags: FlagDef[];
   vars: VarDef[];
+  quests: QuestDef[];
 }
 
 export function emptyQuestRegistry(): QuestRegistry {
-  return { flags: [], vars: [] };
+  return { flags: [], vars: [], quests: [] };
 }

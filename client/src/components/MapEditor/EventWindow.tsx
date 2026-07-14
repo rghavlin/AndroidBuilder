@@ -1,5 +1,5 @@
 import React from 'react';
-import type { GameEvent, EventStep, Condition, ConditionKind, PlacementKind, TriggerType, RepeatMode, StepType, CompareOp } from '@/game/quest/eventTypes';
+import type { GameEvent, EventStep, Condition, ConditionKind, PlacementKind, TriggerType, RepeatMode, StepType, CompareOp, QuestDef, QuestReward, QuestRewardType } from '@/game/quest/eventTypes';
 
 // ─── Local style constants (match editor.tsx's dark theme) ────────────────
 const inputStyle: React.CSSProperties = {
@@ -19,6 +19,7 @@ const CONDITION_KIND_OPTIONS: { id: ConditionKind; label: string }[] = [
   { id: 'itemInInventory', label: 'Player has item in inventory' },
   { id: 'flag', label: 'Flag is' },
   { id: 'var', label: 'Variable' },
+  { id: 'ap', label: 'Player AP' },
 ];
 const STEP_TYPE_OPTIONS: { id: StepType; label: string }[] = [
   { id: 'dialog', label: 'Dialog' },
@@ -28,8 +29,14 @@ const STEP_TYPE_OPTIONS: { id: StepType; label: string }[] = [
   { id: 'setVar', label: 'Set variable' },
   { id: 'lockMovement', label: 'Lock movement' },
   { id: 'unlockMovement', label: 'Unlock movement' },
+  { id: 'lockActions', label: 'Lock movement + interactions' },
+  { id: 'unlockActions', label: 'Unlock movement + interactions' },
   { id: 'wait', label: 'Wait' },
   { id: 'chain', label: 'Chain to event' },
+  { id: 'moveEntity', label: 'Move entity' },
+  { id: 'setNpcAI', label: 'Enable/disable NPC AI' },
+  { id: 'startQuest', label: 'Start quest' },
+  { id: 'setQuestTask', label: 'Set quest task' },
 ];
 
 function emptyStep(type: StepType): EventStep {
@@ -41,8 +48,14 @@ function emptyStep(type: StepType): EventStep {
     case 'setVar': return { type, var: '', op: 'set', varValue: 0 };
     case 'lockMovement': return { type, until: [] };
     case 'unlockMovement': return { type };
+    case 'lockActions': return { type, until: [] };
+    case 'unlockActions': return { type };
     case 'wait': return { type, ms: 500 };
     case 'chain': return { type, eventId: '' };
+    case 'moveEntity': return { type, entityTag: '', targetX: undefined, targetY: undefined };
+    case 'setNpcAI': return { type, entityTag: '', enabled: false };
+    case 'startQuest': return { type, questId: '' };
+    case 'setQuestTask': return { type, questId: '', taskIndex: 0 };
     default: return { type };
   }
 }
@@ -72,6 +85,7 @@ function ConditionRow({
           if (kind === 'itemEquipped' || kind === 'itemInInventory') onChange({ kind, defId: cond.defId || '', count: kind === 'itemInInventory' ? (cond.count || 1) : undefined });
           else if (kind === 'flag') onChange({ kind, flag: cond.flag || '', value: true });
           else if (kind === 'var') onChange({ kind, var: cond.var || '', op: '>=', value: 0 });
+          else if (kind === 'ap') onChange({ kind, op: '<', value: 1 });
           else onChange({ kind: 'none' });
         }}
       >
@@ -115,12 +129,21 @@ function ConditionRow({
         </>
       )}
 
+      {cond.kind === 'ap' && (
+        <>
+          <select style={{ ...inputStyle, width: 56 }} value={cond.op || '<'} onChange={e => onChange({ ...cond, op: e.target.value as CompareOp })}>
+            {['==', '!=', '>=', '<=', '>', '<'].map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <input type="number" min={0} style={{ ...inputStyle, width: 64 }} value={Number(cond.value ?? 0)} onChange={e => onChange({ ...cond, value: Number(e.target.value) || 0 })} />
+        </>
+      )}
+
       <button onClick={onRemove} style={{ ...btnStyle('#552222'), padding: '4px 8px' }} aria-label="Remove condition">✕</button>
     </div>
   );
 }
 
-function ConditionListEditor({
+export function ConditionListEditor({
   conds, onChange, itemOptions, knownFlags, knownVars,
 }: {
   conds: Condition[];
@@ -150,9 +173,120 @@ function ConditionListEditor({
   );
 }
 
+// ─── Quest onComplete reward editor (give item / set flag / set var) ──────
+// Deliberately separate from StepEditor: rewards fire on quest completion,
+// not at an authored map location, so 'give' has no "drop at" tile — it goes
+// straight into the player's inventory (see QuestState._applyRewards). Kept
+// as its own small type (QuestRewardType) rather than the full StepType so
+// this list can't accidentally end up with a dialog/lockMovement/etc step.
+const REWARD_TYPE_OPTIONS: { id: QuestRewardType; label: string }[] = [
+  { id: 'give', label: 'Give item' },
+  { id: 'setFlag', label: 'Set flag' },
+  { id: 'setVar', label: 'Set variable' },
+];
+
+function emptyReward(type: QuestRewardType): QuestReward {
+  switch (type) {
+    case 'give': return { type, defId: '', count: 1 };
+    case 'setFlag': return { type, flag: '', value: true };
+    case 'setVar': return { type, var: '', op: 'set', varValue: 0 };
+    default: return { type };
+  }
+}
+
+function QuestRewardRow({
+  reward, onChange, onRemove, itemOptions, knownFlags, knownVars,
+}: {
+  reward: QuestReward;
+  onChange: (r: QuestReward) => void;
+  onRemove: () => void;
+  itemOptions: { id: string; name: string }[];
+  knownFlags: string[];
+  knownVars: string[];
+}) {
+  return (
+    <div style={rowStyle}>
+      <select
+        style={{ ...inputStyle, width: 110 }}
+        value={reward.type}
+        onChange={e => onChange(emptyReward(e.target.value as QuestRewardType))}
+      >
+        {REWARD_TYPE_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+      </select>
+
+      {reward.type === 'give' && (
+        <>
+          <select style={{ ...inputStyle, flex: 1 }} value={reward.defId || ''} onChange={e => onChange({ ...reward, defId: e.target.value })}>
+            <option value="">select item…</option>
+            {itemOptions.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
+          </select>
+          <input type="number" min={1} style={{ ...inputStyle, width: 56 }} value={reward.count ?? 1} onChange={e => onChange({ ...reward, count: Math.max(1, Number(e.target.value) || 1) })} />
+        </>
+      )}
+
+      {reward.type === 'setFlag' && (
+        <>
+          <select style={{ ...inputStyle, flex: 1 }} value={reward.flag || ''} onChange={e => onChange({ ...reward, flag: e.target.value })}>
+            <option value="">select flag…</option>
+            {knownFlags.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+          <span style={{ fontSize: 11, color: '#888' }}>=</span>
+          <select style={{ ...inputStyle, width: 70 }} value={String(reward.value ?? true)} onChange={e => onChange({ ...reward, value: e.target.value === 'true' })}>
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+        </>
+      )}
+
+      {reward.type === 'setVar' && (
+        <>
+          <select style={{ ...inputStyle, flex: 1 }} value={reward.var || ''} onChange={e => onChange({ ...reward, var: e.target.value })}>
+            <option value="">select variable…</option>
+            {knownVars.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
+          <select style={{ ...inputStyle, width: 70 }} value={reward.op || 'set'} onChange={e => onChange({ ...reward, op: e.target.value as 'set' | 'add' })}>
+            <option value="set">set</option>
+            <option value="add">add</option>
+          </select>
+          <input type="number" style={{ ...inputStyle, width: 70 }} value={reward.varValue ?? 0} onChange={e => onChange({ ...reward, varValue: Number(e.target.value) || 0 })} />
+        </>
+      )}
+
+      <button onClick={onRemove} style={{ ...btnStyle('#552222'), padding: '4px 8px' }} aria-label="Remove reward">✕</button>
+    </div>
+  );
+}
+
+export function QuestRewardEditor({
+  rewards, onChange, itemOptions, knownFlags, knownVars,
+}: {
+  rewards: QuestReward[];
+  onChange: (r: QuestReward[]) => void;
+  itemOptions: { id: string; name: string }[];
+  knownFlags: string[];
+  knownVars: string[];
+}) {
+  return (
+    <div>
+      {rewards.map((r, i) => (
+        <QuestRewardRow
+          key={i}
+          reward={r}
+          itemOptions={itemOptions}
+          knownFlags={knownFlags}
+          knownVars={knownVars}
+          onChange={next => onChange(rewards.map((x, j) => (j === i ? next : x)))}
+          onRemove={() => onChange(rewards.filter((_, j) => j !== i))}
+        />
+      ))}
+      <button onClick={() => onChange([...rewards, emptyReward('give')])} style={{ ...btnStyle('#333'), fontSize: 11 }}>+ Add reward</button>
+    </div>
+  );
+}
+
 // ─── One step's own editor section ─────────────────────────────────────────
 function StepEditor({
-  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds, knownFlags, knownVars,
+  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests,
 }: {
   step: EventStep;
   index: number;
@@ -166,10 +300,13 @@ function StepEditor({
   knownEventIds: string[];
   knownFlags: string[];
   knownVars: string[];
+  knownEntities: { tag: string; label: string }[];
+  knownQuests: QuestDef[];
 }) {
   const badgeColors: Partial<Record<StepType, string>> = {
     dialog: '#1d4f8a', speech: '#1d4f8a', give: '#1d6b3a', setFlag: '#7a5a12', setVar: '#7a5a12',
-    lockMovement: '#7a1e1e', unlockMovement: '#7a1e1e', wait: '#444', chain: '#5a3a7a',
+    lockMovement: '#7a1e1e', unlockMovement: '#7a1e1e', lockActions: '#8a1e3a', unlockActions: '#8a1e3a', wait: '#444', chain: '#5a3a7a',
+    moveEntity: '#2b6b3a', setNpcAI: '#2b6b3a', startQuest: '#4a2582', setQuestTask: '#4a2582',
   };
   const label = STEP_TYPE_OPTIONS.find(o => o.id === step.type)?.label || step.type;
 
@@ -271,6 +408,20 @@ function StepEditor({
         <div style={{ fontSize: 11, color: '#666' }}>No options.</div>
       )}
 
+      {step.type === 'lockActions' && (
+        <div>
+          <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>
+            Blocks movement AND map interactions (doors, windows, NPCs, combat) — End Turn still works.
+            Unlocks when all pass:
+          </div>
+          <ConditionListEditor conds={step.until || []} onChange={c => onChange({ ...step, until: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
+        </div>
+      )}
+
+      {step.type === 'unlockActions' && (
+        <div style={{ fontSize: 11, color: '#666' }}>No options.</div>
+      )}
+
       {step.type === 'wait' && (
         <div style={rowStyle}>
           <input type="number" min={0} step={100} style={{ ...inputStyle, width: 90 }} value={step.ms ?? 500} onChange={e => onChange({ ...step, ms: Math.max(0, Number(e.target.value) || 0) })} />
@@ -284,6 +435,71 @@ function StepEditor({
           <datalist id="event-window-known-ids">
             {knownEventIds.map(id => <option key={id} value={id} />)}
           </datalist>
+        </div>
+      )}
+
+      {step.type === 'moveEntity' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={rowStyle}>
+            <span style={{ fontSize: 11, color: '#888' }}>Target entity:</span>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.entityTag || ''} onChange={e => onChange({ ...step, entityTag: e.target.value })}>
+              <option value="">select entity…</option>
+              {knownEntities.map(ent => <option key={ent.tag} value={ent.tag}>{ent.label}</option>)}
+            </select>
+          </div>
+          <div style={rowStyle}>
+            <span style={{ fontSize: 11, color: '#888' }}>Destination tile:</span>
+            <span style={{ fontSize: 11, color: step.targetX !== undefined ? '#9c6' : '#888' }}>
+              {step.targetX !== undefined ? `(${step.targetX}, ${step.targetY})` : 'not set'}
+            </span>
+            <button onClick={onPickCoord} style={{ ...btnStyle('#333'), fontSize: 11 }}>Pick on map</button>
+          </div>
+        </div>
+      )}
+
+      {step.type === 'setNpcAI' && (
+        <div style={rowStyle}>
+          <span style={{ fontSize: 11, color: '#888' }}>NPC:</span>
+          <select style={{ ...inputStyle, flex: 1 }} value={step.entityTag || ''} onChange={e => onChange({ ...step, entityTag: e.target.value })}>
+            <option value="">select entity…</option>
+            {knownEntities.map(ent => <option key={ent.tag} value={ent.tag}>{ent.label}</option>)}
+          </select>
+          <select style={{ ...inputStyle, width: 130 }} value={String(step.enabled ?? false)} onChange={e => onChange({ ...step, enabled: e.target.value === 'true' })}>
+            <option value="false">Disable AI (stay put)</option>
+            <option value="true">Enable AI (resume normal behavior)</option>
+          </select>
+        </div>
+      )}
+
+      {step.type === 'startQuest' && (
+        <div style={rowStyle}>
+          <span style={{ fontSize: 11, color: '#888' }}>Quest:</span>
+          <select style={{ ...inputStyle, flex: 1 }} value={step.questId || ''} onChange={e => onChange({ ...step, questId: e.target.value })}>
+            <option value="">select quest…</option>
+            {(knownQuests || []).map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
+          </select>
+        </div>
+      )}
+
+      {step.type === 'setQuestTask' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={rowStyle}>
+            <span style={{ fontSize: 11, color: '#888' }}>Quest:</span>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.questId || ''} onChange={e => onChange({ ...step, questId: e.target.value, taskIndex: 0 })}>
+              <option value="">select quest…</option>
+              {(knownQuests || []).map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
+            </select>
+          </div>
+          {step.questId && (
+            <div style={rowStyle}>
+              <span style={{ fontSize: 11, color: '#888' }}>Set task to:</span>
+              <select style={{ ...inputStyle, flex: 1 }} value={step.taskIndex ?? 0} onChange={e => onChange({ ...step, taskIndex: Number(e.target.value) || 0 })}>
+                {((knownQuests || []).find(q => q.id === step.questId)?.tasks || []).map((t, idx) => (
+                  <option key={t.id || idx} value={idx}>{idx}: {t.text}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -303,10 +519,12 @@ export interface EventWindowProps {
   knownEventIds: string[];
   knownFlags: string[];
   knownVars: string[];
+  knownEntities: { tag: string; label: string }[];
+  knownQuests: QuestDef[];
 }
 
 export default function EventWindow({
-  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars,
+  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests,
 }: EventWindowProps) {
   const setSteps = (steps: EventStep[]) => onChange({ ...event, steps });
   const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel';
@@ -343,9 +561,9 @@ export default function EventWindow({
                   const kind = e.target.value as PlacementKind;
                   onChange({ ...event, placement: kind === 'chainOnly' ? { kind } : { kind, x: event.placement.x, y: event.placement.y, ...(kind === 'proximity' ? { radius: event.placement.radius ?? 2 } : {}) } });
                 }}>
-                <option value="tile">Tile</option>
-                <option value="proximity">Proximity</option>
-                <option value="chainOnly">Chain-only (no tile)</option>
+                  <option value="tile">Tile</option>
+                  <option value="proximity">Proximity</option>
+                  <option value="chainOnly">Chain-only (no tile)</option>
               </select>
             </label>
             <label style={{ fontSize: 11, color: '#888' }}>Trigger
@@ -401,6 +619,8 @@ export default function EventWindow({
                 knownEventIds={knownEventIds}
                 knownFlags={knownFlags}
                 knownVars={knownVars}
+                knownEntities={knownEntities}
+                knownQuests={knownQuests}
                 onChange={s => setSteps(event.steps.map((x, j) => (j === i ? s : x)))}
                 onRemove={() => setSteps(event.steps.filter((_, j) => j !== i))}
                 onMoveUp={() => { if (i === 0) return; const s = [...event.steps]; [s[i - 1], s[i]] = [s[i], s[i - 1]]; setSteps(s); }}

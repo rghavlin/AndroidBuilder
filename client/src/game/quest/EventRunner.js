@@ -2,6 +2,7 @@ import engine from '../GameEngine.js';
 import { resolveMapEvents } from './migrateEvents.js';
 import { applyItemGrants } from '../utils/applyItemGrants.js';
 import { evalAll } from './conditions.js';
+import { Pathfinding } from '../utils/Pathfinding.js';
 import Logger from '../utils/Logger.js';
 
 const log = Logger.scope('EventRunner');
@@ -37,10 +38,16 @@ class EventRunner {
     this.activeLocks = [];
     this._onExternalChange = this._onExternalChange.bind(this);
     this._subscribe();
+    engine.on('sync', () => {
+      log.debug('Engine sync detected, re-subscribing event listeners to fresh managers');
+      this._subscribe();
+      this.recheckLocks();
+      this.checkAutoEvents();
+    });
   }
 
   _ctx() {
-    return { inventoryManager: engine.inventoryManager, questState: engine.questState };
+    return { inventoryManager: engine.inventoryManager, questState: engine.questState, player: engine.player };
   }
 
   // engine.inventoryManager / engine.questState are replaced with fresh
@@ -50,16 +57,36 @@ class EventRunner {
     this._unsubscribe();
     this._invMgr = engine.inventoryManager;
     this._qState = engine.questState;
-    if (this._invMgr) this._invMgr.on('inventoryChanged', this._onExternalChange);
+    if (this._invMgr) {
+      this._invMgr.on('inventoryChanged', this._onExternalChange);
+      this._invMgr.on('itemEquipped', this._onExternalChange);
+      this._invMgr.on('itemUnequipped', this._onExternalChange);
+    }
     if (this._qState) this._qState.on('questStateChanged', this._onExternalChange);
   }
 
   _unsubscribe() {
-    if (this._invMgr) this._invMgr.off('inventoryChanged', this._onExternalChange);
+    if (this._invMgr) {
+      this._invMgr.off('inventoryChanged', this._onExternalChange);
+      this._invMgr.off('itemEquipped', this._onExternalChange);
+      this._invMgr.off('itemUnequipped', this._onExternalChange);
+    }
     if (this._qState) this._qState.off('questStateChanged', this._onExternalChange);
   }
 
   _onExternalChange() {
+    if (this._checkingProgress) return;
+    this._checkingProgress = true;
+    try {
+      if (this._qState) {
+        const quests = engine.gameMap?.metadata?.questRegistry?.quests || [];
+        this._qState.checkQuestProgression(quests, this._ctx());
+      }
+    } catch (err) {
+      console.error('[EventRunner] Error checking quest progression:', err);
+    } finally {
+      this._checkingProgress = false;
+    }
     this.recheckLocks();
     this.checkAutoEvents();
   }
@@ -71,6 +98,7 @@ class EventRunner {
     this.autoResolved = new Set();
     this.activeLocks = [];
     engine.movementLocked = false;
+    engine.actionsLocked = false;
     this._subscribe(); // engine.inventoryManager/questState are fresh post-engine.reset()
   }
 
@@ -179,7 +207,7 @@ class EventRunner {
     }
   }
 
-  /** Re-evaluate active lockMovement `until` conditions; auto-clear the gate once satisfied. */
+  /** Re-evaluate active lockMovement/lockActions `until` conditions; auto-clear the gate(s) once satisfied. */
   recheckLocks() {
     if (this.activeLocks.length === 0) return;
     const ctx = this._ctx();
@@ -188,6 +216,7 @@ class EventRunner {
       this.activeLocks = remaining;
       if (this.activeLocks.length === 0) {
         engine.movementLocked = false;
+        engine.actionsLocked = false;
         engine.notifyUpdate();
       }
     }
@@ -282,6 +311,22 @@ class EventRunner {
         this._processCurrentStep();
         return;
 
+      case 'startQuest':
+        if (engine.questState && step.questId) {
+          engine.questState.startQuest(step.questId);
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+
+      case 'setQuestTask':
+        if (engine.questState && step.questId && step.taskIndex !== undefined) {
+          engine.questState.setQuestTask(step.questId, step.taskIndex);
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+
       case 'lockMovement':
         // Enforced at the click-to-move chokepoint (GameMapContext.handleTileClick).
         // If this step carries its own `until` conditions, track them so
@@ -300,6 +345,30 @@ class EventRunner {
         // Explicit unlock always wins now, regardless of any other pending
         // lockMovement `until` conditions still outstanding.
         engine.movementLocked = false;
+        this.activeLocks = [];
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+
+      case 'lockActions':
+        // Superset of lockMovement: also blocks map interactions (door/window/
+        // npc menus, combat & item targeting — see MapInterface.tsx's
+        // onCellClick/onCellRightClick) via engine.actionsLocked. Deliberately
+        // leaves turnPhase/isPlayerTurn alone so End Turn keeps working — the
+        // typical `until` condition here is an 'ap' check, so ending the turn
+        // (which refills AP) is exactly how the author expects this to clear.
+        engine.movementLocked = true;
+        engine.actionsLocked = true;
+        if (step.until && step.until.length > 0) {
+          this.activeLocks.push({ eventId: event.id, until: step.until, locksActions: true });
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+
+      case 'unlockActions':
+        engine.movementLocked = false;
+        engine.actionsLocked = false;
         this.activeLocks = [];
         this.activeRun.stepIndex++;
         this._processCurrentStep();
@@ -326,11 +395,139 @@ class EventRunner {
         return;
       }
 
+      case 'moveEntity': {
+        if (!step.entityTag) {
+          log.warn(`[EventRunner] moveEntity step has no entityTag`);
+          this.activeRun.stepIndex++;
+          this._processCurrentStep();
+          return;
+        }
+        if (step.targetX === undefined || step.targetY === undefined) {
+          log.warn(`[EventRunner] moveEntity step target coordinate is not set`);
+          this.activeRun.stepIndex++;
+          this._processCurrentStep();
+          return;
+        }
+
+        const targetEntity = this._resolveEntity(step.entityTag);
+        if (!targetEntity) {
+          log.warn(`[EventRunner] Could not find entity with tag "${step.entityTag}"`);
+          this.activeRun.stepIndex++;
+          this._processCurrentStep();
+          return;
+        }
+
+        // Calculate path using Pathfinding.findPath
+        const startX = targetEntity.logicalX;
+        const startY = targetEntity.logicalY;
+        const path = Pathfinding.findPath(engine.gameMap, startX, startY, step.targetX, step.targetY, { entity: targetEntity });
+
+        if (!path || path.length <= 1) {
+          log.warn(`[EventRunner] No path found for entity "${step.entityTag}" to (${step.targetX}, ${step.targetY})`);
+          this.activeRun.stepIndex++;
+          this._processCurrentStep();
+          return;
+        }
+
+        // Exclude starting point
+        const walkSteps = path.slice(1);
+        let stepIdx = 0;
+        const runToken = this.activeRun;
+
+        const performStep = () => {
+          if (this.activeRun !== runToken) return; // cancelled/replaced
+          if (stepIdx >= walkSteps.length) {
+            this.activeRun.stepIndex++;
+            this._processCurrentStep();
+            return;
+          }
+
+          const next = walkSteps[stepIdx];
+          const oldX = targetEntity.logicalX;
+          const oldY = targetEntity.logicalY;
+          const moved = engine.gameMap.moveEntity(targetEntity.id, next.x, next.y, { snap: false });
+          if (moved) {
+            targetEntity.movementPath = [{ x: oldX, y: oldY }, { x: next.x, y: next.y }];
+            
+            // Trigger animation if visible/relevant
+            const action = {
+              type: 'MOVE',
+              entityId: targetEntity.id,
+              data: { from: { x: oldX, y: oldY }, to: { x: next.x, y: next.y } }
+            };
+
+            // Let targetEntity play movement animation
+            if (typeof targetEntity.playAction === 'function') {
+              targetEntity.playAction(action).then(() => {
+                stepIdx++;
+                setTimeout(performStep, 30); // slight pause between steps
+              });
+            } else {
+              stepIdx++;
+              setTimeout(performStep, 150); // fallback delay
+            }
+            engine.notifyUpdate();
+          } else {
+            // Reached a blocked tile/fail-safe: force snap
+            targetEntity.moveTo(next.x, next.y);
+            stepIdx++;
+            setTimeout(performStep, 100);
+          }
+        };
+
+        performStep();
+        return;
+      }
+
+      case 'setNpcAI': {
+        if (!step.entityTag) {
+          log.warn(`[EventRunner] setNpcAI step has no entityTag`);
+        } else {
+          const targetEntity = this._resolveEntity(step.entityTag);
+          if (!targetEntity) {
+            log.warn(`[EventRunner] Could not find entity with tag "${step.entityTag}"`);
+          } else {
+            // enabled: true = normal wandering/fleeing/combat AI resumes;
+            // false = scripted (stays put, moved only by moveEntity/dialog steps).
+            targetEntity.aiDisabled = !step.enabled;
+          }
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+      }
+
       default:
         log.warn(`Unsupported step type "${step.type}" — skipping. (Conditional branch is deferred; see QUEST_SYSTEM_PLAN.md §10.)`);
         this.activeRun.stepIndex++;
         this._processCurrentStep();
     }
+  }
+
+  _resolveEntity(tag) {
+    if (tag === 'player') return engine.player;
+
+    // Search by name (NPCs) or by registryTag (Zombies, Doors, Windows, etc.)
+    for (const ent of engine.gameMap.entityMap.values()) {
+      if (ent.name === tag || ent.registryTag === tag) {
+        return ent;
+      }
+    }
+
+    // Fallback: search manually registered entries' coordinates
+    const registry = engine.gameMap.metadata?.entityRegistry;
+    if (registry?.entries) {
+      const entry = registry.entries.find(e => e.tag === tag);
+      if (entry) {
+        for (const ent of engine.gameMap.entityMap.values()) {
+          if (ent.type === entry.type && ent.logicalX === entry.x && ent.logicalY === entry.y) {
+            return ent;
+          }
+        }
+      }
+    }
+
+    return null;
   }
 }
 

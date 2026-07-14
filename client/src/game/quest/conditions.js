@@ -2,7 +2,7 @@
  * Condition evaluator for event preconditions / end-conditions. Engine-free
  * (takes an explicit ctx) so it's unit-testable without booting the game.
  *
- * ctx: { inventoryManager, questState }
+ * ctx: { inventoryManager, questState, player }
  */
 
 function compare(a, op, b) {
@@ -33,6 +33,8 @@ export function evalCondition(cond, ctx) {
       return !!qs && qs.getFlag(cond.flag) === !!cond.value;
     case 'var':
       return !!qs && compare(qs.getVar(cond.var), cond.op, cond.value);
+    case 'ap':
+      return !!ctx?.player && compare(ctx.player.ap, cond.op, cond.value);
     default:
       return false;
   }

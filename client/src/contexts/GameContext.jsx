@@ -397,6 +397,10 @@ const GameContextInner = ({ children }) => {
         engine.player.pendingAPRefill = null;
         updatePlayerStats({ ap: engine.player.ap });
       }
+      // AP just refilled for the new turn — re-evaluate any active lockMovement/
+      // lockActions `until` conditions (e.g. an 'ap' check) now that it's changed.
+      eventRunner.recheckLocks();
+      eventRunner.checkAutoEvents();
     }
 
     engine.turnPhase = nextPhase;
@@ -432,6 +436,7 @@ const GameContextInner = ({ children }) => {
     engine.notifyUpdate();
   }, []);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+  const [isJournalOpen, setIsJournalOpen] = useState(false);
 
   // Unified input-blocking flag: true whenever any modal/dialog is up and
   // gameplay input (inventory clicks/drags, tile clicks, etc.) should be ignored.
@@ -463,6 +468,20 @@ const GameContextInner = ({ children }) => {
 
   const toggleSkills = useCallback(() => {
     setIsSkillsOpen(prev => !prev);
+  }, []);
+
+  const toggleJournal = useCallback(() => {
+    setIsJournalOpen(prev => !prev);
+  }, []);
+
+  const openJournalAndCloseSkills = useCallback(() => {
+    setIsSkillsOpen(false);
+    setIsJournalOpen(true);
+  }, []);
+
+  const closeJournalAndOpenSkills = useCallback(() => {
+    setIsJournalOpen(false);
+    setIsSkillsOpen(true);
   }, []);
 
   const animateVisibleNPCs = useCallback((npcs, playerFOV = null) => {
@@ -1986,6 +2005,10 @@ const GameContextInner = ({ children }) => {
     setIsAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
+    isJournalOpen,
+    toggleJournal,
+    openJournalAndCloseSkills,
+    closeJournalAndOpenSkills,
     isModalBlocking,
     engine,
     enginePulse,
@@ -2068,6 +2091,10 @@ const GameContextInner = ({ children }) => {
     setIsAnimatingZombies,
     isSkillsOpen,
     toggleSkills,
+    isJournalOpen,
+    toggleJournal,
+    openJournalAndCloseSkills,
+    closeJournalAndOpenSkills,
     isModalBlocking,
     activeNpcDemand,
     handleNpcDemandResponse,

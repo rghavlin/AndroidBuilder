@@ -16,6 +16,11 @@ export class AIState {
     this.hasExtorted = properties.hasExtorted || false;
     this.fleeRecoverChance = properties.fleeRecoverChance || 0;
     this.stunnedTurns = properties.stunnedTurns || 0;
+    // Scripted/quest NPCs: when true, NPCAI.executeNPCTurn skips this entity
+    // entirely (no wandering/fleeing/combat AI) so only explicit event steps
+    // (moveEntity, dialog, etc.) control it. See map editor NPC placement and
+    // EventRunner's setNpcAI step.
+    this.aiDisabled = properties.aiDisabled || false;
   }
 
   toJSON() {
@@ -35,7 +40,8 @@ export class AIState {
       hasDemanded: this.hasDemanded,
       hasExtorted: this.hasExtorted,
       fleeRecoverChance: this.fleeRecoverChance,
-      stunnedTurns: this.stunnedTurns
+      stunnedTurns: this.stunnedTurns,
+      aiDisabled: this.aiDisabled
     };
   }
 }

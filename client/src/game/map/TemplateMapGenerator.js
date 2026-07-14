@@ -695,6 +695,7 @@ export class TemplateMapGenerator {
     // Switches & Variables registry (editor authoring aid) — read once at map
     // load to seed initial flag/var values (see QuestState.seedFromRegistry).
     mapData.metadata.questRegistry = scenarioData.questRegistry || { flags: [], vars: [] };
+    mapData.metadata.entityRegistry = scenarioData.entityRegistry || { entries: [] };
     mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
     if (scenarioData.metadata?.alwaysDark || scenarioData.alwaysDark) {
       mapData.metadata.alwaysDark = true;
@@ -862,6 +863,11 @@ export class TemplateMapGenerator {
               false,
               doorData.edge
             );
+            const registry = templateMapData.metadata?.entityRegistry;
+            if (registry?.entries) {
+              const match = registry.entries.find(e => e.type === 'door' && e.x === doorData.x && e.y === doorData.y);
+              if (match) door.registryTag = match.tag;
+            }
             gameMap.addEntity(door, doorData.x, doorData.y);
           } else {
             // It's an open doorway (no physical door), so clear the edge wall!
@@ -891,6 +897,11 @@ export class TemplateMapGenerator {
             windowData.isBroken,
             windowData.edge
           );
+          const registry = templateMapData.metadata?.entityRegistry;
+          if (registry?.entries) {
+            const match = registry.entries.find(e => e.type === 'window' && e.x === windowData.x && e.y === windowData.y);
+            if (match) window.registryTag = match.tag;
+          }
           gameMap.addEntity(window, windowData.x, windowData.y);
 
           // Ensure the window site itself is definitely walkable (floor)
@@ -957,30 +968,37 @@ export class TemplateMapGenerator {
       if (templateMapData.metadata?.entities?.length > 0) {
         const { EntityFactory } = await import('../EntityFactory.js');
         for (const e of templateMapData.metadata.entities) {
-          if (e.type === 'player') continue;
-          try {
-            let entity;
-            if (e.type === 'zombie') {
-              entity = EntityFactory.createZombie(e.x, e.y, e.subtype || 'basic');
-              if (e.hp && entity) {
-                const health = entity.getComponent?.('Health');
-                if (health) { health.current = Math.min(e.hp, health.max); }
+            if (e.type === 'player') continue;
+            try {
+              let entity;
+              if (e.type === 'zombie') {
+                entity = EntityFactory.createZombie(e.x, e.y, e.subtype || 'basic');
+                if (e.hp && entity) {
+                  const health = entity.getComponent?.('Health');
+                  if (health) { health.current = Math.min(e.hp, health.max); }
+                }
+                if (e.noLoot && entity) entity.noLoot = true;
+                if (e.deaf && entity) entity.deaf = true;
+
+                const registry = templateMapData.metadata?.entityRegistry;
+                if (registry?.entries) {
+                  const match = registry.entries.find(me => me.type === 'zombie' && me.x === e.x && me.y === e.y);
+                  if (match) entity.registryTag = match.tag;
+                }
+              } else if (e.type === 'npc') {
+                // Preserve the authored NPC identity (typeId/subtype, name, hostility)
+                // instead of collapsing every scenario NPC to a generic survivor.
+                entity = EntityFactory.createNPC(
+                  e.x, e.y,
+                  e.isHostile || false,
+                  e.typeId || e.subtype || 'survivor',
+                  e.name || null,
+                  null,
+                  e.iconId || null
+                );
+                if (e.aiDisabled && entity) entity.aiDisabled = true;
               }
-              if (e.noLoot && entity) entity.noLoot = true;
-              if (e.deaf && entity) entity.deaf = true;
-            } else if (e.type === 'npc') {
-              // Preserve the authored NPC identity (typeId/subtype, name, hostility)
-              // instead of collapsing every scenario NPC to a generic survivor.
-              entity = EntityFactory.createNPC(
-                e.x, e.y,
-                e.isHostile || false,
-                e.typeId || e.subtype || 'survivor',
-                e.name || null,
-                null,
-                e.iconId || null
-              );
-            }
-            if (entity) gameMap.addEntity(entity, e.x, e.y);
+              if (entity) gameMap.addEntity(entity, e.x, e.y);
           } catch (err) {
             console.warn(`[TemplateMapGenerator] Failed to spawn scenario entity:`, e, err);
           }

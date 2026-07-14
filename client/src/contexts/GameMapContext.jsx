@@ -165,7 +165,7 @@ export const GameMapProvider = ({ children }) => {
       const rabbit = targetTile.contents.find(e => e.type === EntityType.RABBIT);
       setHoveredTile({ 
         x, y, apCost, 
-        canAfford: isPossible && player.ap >= apCost, 
+        canAfford: isPossible && !engine.movementLocked && player.ap >= apCost, 
         zombie: zombie ? { subtype: zombie.subtype, hp: zombie.hp, maxHp: zombie.maxHp, currentAP: zombie.currentAP, maxAP: zombie.maxAP } : (data?.zombie || null),
         rabbit: rabbit ? { id: rabbit.id, type: rabbit.type, hp: rabbit.hp, maxHp: rabbit.maxHp, currentAP: rabbit.currentAP, maxAP: rabbit.maxAP } : (data?.rabbit || null),
         cropInfo: targetTile.cropInfo || data?.cropInfo || null,

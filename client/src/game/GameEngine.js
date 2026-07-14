@@ -105,6 +105,13 @@ class GameEngine extends SafeEventEmitter {
     // Quest system (Phase 4): gates click-to-move in GameMapContext.handleTileClick.
     // Set/cleared by EventRunner's lockMovement/unlockMovement steps.
     this.movementLocked = false;
+    // Quest system: gates map interactions (door/window/npc menus, combat &
+    // item targeting) in MapInterface.tsx's onCellClick/onCellRightClick.
+    // Deliberately separate from turnPhase/isPlayerTurn so the End Turn button
+    // stays enabled while this is set — the intended way out of a lockActions
+    // gate is usually to end the turn (e.g. to refill AP). Set/cleared by
+    // EventRunner's lockActions/unlockActions steps; also implies movementLocked.
+    this.actionsLocked = false;
     this.isSleeping = false;
     this.sleepProgress = 0;
     this.targetingItemInstanceId = null;

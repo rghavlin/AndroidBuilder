@@ -23,6 +23,13 @@ export class NPCAI {
   static executeNPCTurn(npc, gameMap, player, zombies = [], skipAPReset = false) {
     if (!npc || npc.hp <= 0) return { success: false };
 
+    // Scripted/quest NPCs: skip all autonomous behavior (wandering, fleeing,
+    // combat, investigation) so they stay exactly where the map author or an
+    // event's moveEntity step put them. See AIState.aiDisabled.
+    if (npc.aiDisabled) {
+      return { npcId: npc.id, actions: [], apUsed: 0, success: true };
+    }
+
     const turnResult = {
       npcId: npc.id,
       actions: [],

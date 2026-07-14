@@ -16,8 +16,9 @@
 | 3 | Runtime step-interpreter (`EventRunner.js`) | ✅ Done, user-confirmed in-app |
 | 4 | Preconditions, `endWhen`, `auto`/`parallel`, movement lock | ✅ Done, user-confirmed in-app |
 | — | *Add-on:* Switches & Variables registry + initial values | ✅ Done, user-confirmed in-app |
-| 5 | Journal + `Quest` type + quest-advance via steps | ⬜ Not started |
-| 6 | Freeplay random NPC quest generator | ⬜ Not started |
+| 5 | Map Entity Registry & Entity Movement (pathfinding-based) | ✅ Done, verified |
+| 6 | Journal + `Quest` type + quest-advance via steps | ✅ Done, verified |
+| 7 | Freeplay random NPC quest generator | 💤 Deferred |
 
 Everything in Phases 0–4 has been exercised live by the user in the actual map
 editor and game (not just verify-script logic): a mixed dialog+speech+give event,
@@ -512,20 +513,19 @@ of existing `.editor.json` files required.
   touched by play, even back toward its own initialValue) — 24 checks total,
   all passing. `npx tsc --noEmit` unchanged at 248; `GameContext.jsx`/
   `QuestState.js` syntax-checked clean via `esbuild`. No live browser test.
-- **Phase 5 — NOT STARTED.** Journal + quests. `Quest` type, journal UI,
-  quest-advance via steps. See §7 for the shape already sketched
-  (`Quest {id, title, description, stages: {id, text, complete: Condition[]}[],
-  onComplete?}`) — stages reuse the existing `Condition[]`/`ConditionListEditor`
-  machinery from Phases 0/2/4, and progress reuses the existing `setFlag`/`setVar`
-  steps, so this is mostly new UI (an author-facing Quest editor + an in-game
-  Journal screen) plus a small `Quest[]`/"active quests" data model, not a new
-  engine.
-- **Phase 6 — NOT STARTED.** Freeplay random quests. NPC-template quest
+- **Phase 5 — DONE.** Map Entity Registry & NPC/Player Movement.
+  - **Auto-registration for NPCs:** Any NPC with a non-empty name placed on the map is automatically registered as a target.
+  - **Manual registration for others:** Doors, windows, and zombies can be manually registered via the "Map Entities" modal, assigning them a unique tag and mapping to their coordinate. Stamped at spawn time (`TemplateMapGenerator.js`) with `registryTag`.
+  - **Player target:** A special `"player"` target is always available to support force-moving the player.
+  - **"Move entity" event step:** A new `moveEntity` event step type. In event playback, it pathfinds the targeted entity/player to the chosen destination tile, walking step-by-step with movement animations and blocking input until complete.
+  Verified: `scratch/verify_questsystem_p5.mjs` verifies NPC, player, and registered zombie/door/window resolution and simulated path-based step execution.
+- **Phase 6 — COMPLETE.** Journal + quests. `Quest` type, journal UI,
+  quest-advance via steps. Sourced from the map/scenario's Quest Registry (Switches & Variables modal in editor), evaluated reactively, displayed in the Survivor's Journal overlay, and advanced manually via event steps.
+  Verified: `scratch/verify_questsystem_p6.mjs` verifies reactive task progression and serialization.
+- **Phase 7 — DEFERRED.** Freeplay random quests. NPC-template quest
   generator (uses Phase 5's `Quest`/`GameEvent` shapes).
 
-Each phase is independently shippable and testable. Phases 0–4 (+ the registry
-add-on) deliver the campaign authoring you need now and are done; 5–6 are the
-freeplay/journal layer and haven't been started.
+Each phase is independently shippable and testable. Phases 0–6 deliver the campaign authoring and UI you need now and are complete; Phase 7 is the freeplay layer and has been deferred.
 
 ---
 

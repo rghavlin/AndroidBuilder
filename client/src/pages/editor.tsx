@@ -4,8 +4,8 @@ import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
-import { emptyEvent, emptyQuestRegistry, type GameEvent, type QuestRegistry } from '@/game/quest/eventTypes';
-import EventWindow from '@/components/MapEditor/EventWindow';
+import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry } from '@/game/quest/eventTypes';
+import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -154,6 +154,7 @@ interface ScenarioData {
   chainDialogEvents?: DialogEventDef[];
   events?: GameEvent[];
   questRegistry?: QuestRegistry;
+  entityRegistry?: EntityRegistry;
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -201,7 +202,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -379,10 +380,11 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     chainDialogEvents,
     events: unifiedEvents,
     questRegistry: scenario.questRegistry || scenario.metadata?.questRegistry || emptyQuestRegistry(),
+    entityRegistry: scenario.entityRegistry || scenario.metadata?.entityRegistry || emptyEntityRegistry(),
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -545,6 +547,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     chainDialogEvents,
     events: unifiedEvents,
     questRegistry: mapData.questRegistry || metadata?.questRegistry || emptyQuestRegistry(),
+    entityRegistry: mapData.entityRegistry || metadata?.entityRegistry || emptyEntityRegistry(),
   };
 }
 
@@ -724,7 +727,8 @@ function exportScenario(scenario: ScenarioData) {
     mapTransitions,
     ...(scenario.bubbleEvents && scenario.bubbleEvents.length ? { bubbleEvents: scenario.bubbleEvents } : {}),
     ...(events.length ? { events } : {}),
-    ...(scenario.questRegistry && (scenario.questRegistry.flags.length || scenario.questRegistry.vars.length) ? { questRegistry: scenario.questRegistry } : {}),
+    ...(scenario.questRegistry && (scenario.questRegistry.flags.length || scenario.questRegistry.vars.length || (scenario.questRegistry.quests && scenario.questRegistry.quests.length)) ? { questRegistry: scenario.questRegistry } : {}),
+    ...(scenario.entityRegistry && scenario.entityRegistry.entries.length ? { entityRegistry: scenario.entityRegistry } : {}),
   };
 }
 
@@ -759,6 +763,7 @@ export default function MapEditor() {
   const [npcName, setNpcName] = useState('');
   const [npcIsHostile, setNpcIsHostile] = useState(false);
   const [npcIconId, setNpcIconId] = useState('npc');
+  const [npcAiDisabled, setNpcAiDisabled] = useState(false);
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
   const [selectedPlaceIconSubtype, setSelectedPlaceIconSubtype] = useState('grocer');
   const [selectedItem, setSelectedItem] = useState('');
@@ -816,12 +821,199 @@ export default function MapEditor() {
   // instead of free text. Persisted per-map alongside events/bubbleEvents.
   const [questRegistry, setQuestRegistry] = useState<QuestRegistry>(emptyQuestRegistry());
   const [showQuestRegistryModal, setShowQuestRegistryModal] = useState(false);
+
+  // ─── Map Entity Registry ──────────────────────────────────────────────
+  const [entityRegistry, setEntityRegistry] = useState<EntityRegistry>(emptyEntityRegistry());
+  const [showEntityRegistryModal, setShowEntityRegistryModal] = useState(false);
+  const [newEntityTag, setNewEntityTag] = useState('');
+  const [newEntityType, setNewEntityType] = useState<'door' | 'window' | 'zombie'>('door');
+  const [newEntityX, setNewEntityX] = useState<number | ''>('');
+  const [newEntityY, setNewEntityY] = useState<number | ''>('');
+  const [newEntityDesc, setNewEntityDesc] = useState('');
+  const [entityPickMode, setEntityPickMode] = useState(false);
+
+  const addEntityRegistryEntry = useCallback(() => {
+    const tag = newEntityTag.trim();
+    if (!tag) { setStatusMsg('Tag name cannot be empty'); return; }
+    if (newEntityX === '' || newEntityY === '') { setStatusMsg('Please select a tile coordinate on the map'); return; }
+    
+    // Validate uniqueness of tag
+    if (entityRegistry.entries.some(e => e.tag === tag)) {
+      setStatusMsg(`An entity registry entry with tag "${tag}" already exists`);
+      return;
+    }
+    
+    setEntityRegistry(prev => ({
+      ...prev,
+      entries: [...prev.entries, {
+        tag,
+        type: newEntityType,
+        x: Number(newEntityX),
+        y: Number(newEntityY),
+        ...(newEntityDesc.trim() ? { description: newEntityDesc.trim() } : {}),
+      }]
+    }));
+    
+    setNewEntityTag('');
+    setNewEntityX('');
+    setNewEntityY('');
+    setNewEntityDesc('');
+  }, [newEntityTag, newEntityType, newEntityX, newEntityY, newEntityDesc, entityRegistry]);
+
+  const removeEntityRegistryEntry = useCallback((tag: string) => {
+    setEntityRegistry(prev => ({
+      ...prev,
+      entries: prev.entries.filter(e => e.tag !== tag)
+    }));
+  }, []);
+
+  const knownEntities = useMemo(() => {
+    const list: { tag: string; label: string }[] = [{ tag: 'player', label: 'Player' }];
+    
+    // Auto-register NPCs with non-empty names
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const t = tiles[y]?.[x];
+        if (t?.entities) {
+          for (const ent of t.entities) {
+            if (ent.type === 'npc' && ent.name?.trim()) {
+              const name = ent.name.trim();
+              if (!list.some(e => e.tag === name)) {
+                list.push({ tag: name, label: `NPC: ${name} (at ${x},${y})` });
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Add manually registered entities
+    for (const entry of entityRegistry.entries) {
+      if (!list.some(e => e.tag === entry.tag)) {
+        list.push({
+          tag: entry.tag,
+          label: `${entry.type.charAt(0).toUpperCase() + entry.type.slice(1)}: ${entry.tag} (at ${entry.x},${entry.y})`
+        });
+      }
+    }
+    
+    return list;
+  }, [tiles, entityRegistry, width, height]);
   const [newFlagName, setNewFlagName] = useState('');
   const [newFlagDesc, setNewFlagDesc] = useState('');
   const [newFlagInitial, setNewFlagInitial] = useState(false);
   const [newVarName, setNewVarName] = useState('');
   const [newVarDesc, setNewVarDesc] = useState('');
   const [newVarInitial, setNewVarInitial] = useState<number>(0);
+
+  const [registryTab, setRegistryTab] = useState<'flags' | 'vars' | 'quests'>('flags');
+  const [newQuestId, setNewQuestId] = useState('');
+  const [newQuestTitle, setNewQuestTitle] = useState('');
+  const [newQuestDesc, setNewQuestDesc] = useState('');
+  const [newQuestTaskText, setNewQuestTaskText] = useState<{ [questId: string]: string }>({});
+  const [newQuestTaskId, setNewQuestTaskId] = useState<{ [questId: string]: string }>({});
+
+  const addQuestDef = useCallback(() => {
+    const id = newQuestId.trim();
+    const title = newQuestTitle.trim();
+    if (!id || !title) return;
+    if (questRegistry.quests?.some(q => q.id === id)) {
+      setStatusMsg(`Quest "${id}" already exists`);
+      return;
+    }
+    setQuestRegistry(prev => ({
+      ...prev,
+      quests: [
+        ...(prev.quests || []),
+        {
+          id,
+          title,
+          description: newQuestDesc.trim(),
+          tasks: [],
+        }
+      ]
+    }));
+    setNewQuestId('');
+    setNewQuestTitle('');
+    setNewQuestDesc('');
+  }, [newQuestId, newQuestTitle, newQuestDesc, questRegistry]);
+
+  const removeQuestDef = useCallback((id: string) => {
+    setQuestRegistry(prev => ({
+      ...prev,
+      quests: (prev.quests || []).filter(q => q.id !== id)
+    }));
+  }, []);
+
+  const updateQuestDef = useCallback((id: string, fields: Partial<{ title: string; description: string }>) => {
+    setQuestRegistry(prev => ({
+      ...prev,
+      quests: (prev.quests || []).map(q => q.id === id ? { ...q, ...fields } : q)
+    }));
+  }, []);
+
+  const addTaskToQuest = useCallback((questId: string) => {
+    const text = (newQuestTaskText[questId] || '').trim();
+    const id = (newQuestTaskId[questId] || '').trim();
+    if (!text || !id) return;
+
+    setQuestRegistry(prev => {
+      const quests = (prev.quests || []).map(q => {
+        if (q.id === questId) {
+          if (q.tasks.some(t => t.id === id)) {
+            setStatusMsg(`Task ID "${id}" already exists in this quest`);
+            return q;
+          }
+          return {
+            ...q,
+            tasks: [...q.tasks, { id, text, complete: [] }]
+          };
+        }
+        return q;
+      });
+      return { ...prev, quests };
+    });
+
+    setNewQuestTaskText(prev => ({ ...prev, [questId]: '' }));
+    setNewQuestTaskId(prev => ({ ...prev, [questId]: '' }));
+  }, [newQuestTaskText, newQuestTaskId]);
+
+  const removeTaskFromQuest = useCallback((questId: string, taskId: string) => {
+    setQuestRegistry(prev => ({
+      ...prev,
+      quests: (prev.quests || []).map(q => {
+        if (q.id === questId) {
+          return {
+            ...q,
+            tasks: q.tasks.filter(t => t.id !== taskId)
+          };
+        }
+        return q;
+      })
+    }));
+  }, []);
+
+  const updateTaskConditions = useCallback((questId: string, taskId: string, conditions: any[]) => {
+    setQuestRegistry(prev => ({
+      ...prev,
+      quests: (prev.quests || []).map(q => {
+        if (q.id === questId) {
+          return {
+            ...q,
+            tasks: q.tasks.map(t => t.id === taskId ? { ...t, complete: conditions } : t)
+          };
+        }
+        return q;
+      })
+    }));
+  }, []);
+
+  const updateQuestRewards = useCallback((questId: string, rewards: any[]) => {
+    setQuestRegistry(prev => ({
+      ...prev,
+      quests: (prev.quests || []).map(q => q.id === questId ? { ...q, onComplete: rewards } : q)
+    }));
+  }, []);
 
   const addFlagDef = useCallback(() => {
     const name = newFlagName.trim();
@@ -963,7 +1155,14 @@ export default function MapEditor() {
       const idx = eventEditorPick.index;
       const step = prev.steps[idx];
       if (!step) return prev;
-      const nextStep = step.type === 'speech' ? { ...step, anchorX: x, anchorY: y } : { ...step, x, y };
+      let nextStep;
+      if (step.type === 'speech') {
+        nextStep = { ...step, anchorX: x, anchorY: y };
+      } else if (step.type === 'moveEntity') {
+        nextStep = { ...step, targetX: x, targetY: y };
+      } else {
+        nextStep = { ...step, x, y };
+      }
       return { ...prev, steps: prev.steps.map((s, i) => (i === idx ? nextStep : s)) };
     });
     setEventEditorPick(null);
@@ -1174,7 +1373,7 @@ export default function MapEditor() {
             tile.entities = tile.entities.filter(e => e.type !== 'player');
           }
           {
-            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean; typeId?: string; name?: string; isHostile?: boolean; iconId?: string } = { type: selectedEntity };
+            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean; typeId?: string; name?: string; isHostile?: boolean; iconId?: string; aiDisabled?: boolean } = { type: selectedEntity };
             if (selectedEntity === 'zombie') {
               ent.subtype = zombieSubtype;
               if (zombieHp !== '') ent.hp = zombieHp as number;
@@ -1185,6 +1384,7 @@ export default function MapEditor() {
               if (npcName.trim()) ent.name = npcName.trim();
               if (npcIsHostile) ent.isHostile = true;
               if (npcIconId && npcIconId !== 'npc') ent.iconId = npcIconId;
+              if (npcAiDisabled) ent.aiDisabled = true;
             }
             tile.entities.push(ent);
           }
@@ -1264,7 +1464,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, npcAiDisabled, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -1588,6 +1788,11 @@ export default function MapEditor() {
     const { x, y } = cellFromEvent(e);
     if (eventEditorPick) {
       handleEventEditorPick(x, y);
+    } else if (entityPickMode) {
+      setNewEntityX(x);
+      setNewEntityY(y);
+      setEntityPickMode(false);
+      setShowEntityRegistryModal(true);
     } else if (tool === 'building_rect') {
       setBuildStart({ x, y });
     } else {
@@ -1657,6 +1862,7 @@ export default function MapEditor() {
       chainDialogEvents,
       events: allEditorEvents,
       questRegistry,
+      entityRegistry,
     };
     const exported = exportScenario(scenario);
 
@@ -1684,6 +1890,7 @@ export default function MapEditor() {
       chainDialogEvents,
       events: allEditorEvents,
       questRegistry,
+      entityRegistry,
     };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
@@ -1746,6 +1953,7 @@ export default function MapEditor() {
         setChainDialogEvents((editor as any).chainDialogEvents || []);
         setAllEditorEvents((editor as any).events || []);
         setQuestRegistry((editor as any).questRegistry || emptyQuestRegistry());
+        setEntityRegistry((editor as any).entityRegistry || emptyEntityRegistry());
         setStatusMsg(`Loaded save game map "${label}"`);
         return;
       } catch (err: any) {
@@ -1771,6 +1979,7 @@ export default function MapEditor() {
     setChainDialogEvents((editor as any).chainDialogEvents || data.chainDialogEvents || []);
     setAllEditorEvents((editor as any).events || data.events || []);
     setQuestRegistry((editor as any).questRegistry || data.questRegistry || emptyQuestRegistry());
+    setEntityRegistry((editor as any).entityRegistry || data.entityRegistry || emptyEntityRegistry());
     setStatusMsg(`Loaded "${label}"`);
   };
 
@@ -2179,6 +2388,9 @@ export default function MapEditor() {
         <button onClick={() => setShowQuestRegistryModal(true)} style={{ ...btnStyle('#333'), width: '100%' }}>
           Switches &amp; Variables ({questRegistry.flags.length + questRegistry.vars.length})
         </button>
+        <button onClick={() => setShowEntityRegistryModal(true)} style={{ ...btnStyle('#333'), width: '100%', marginTop: 4 }}>
+          Map Entities ({entityRegistry.entries.length})
+        </button>
 
         {/* Tool-specific options */}
         {tool === 'terrain' && (
@@ -2330,6 +2542,10 @@ export default function MapEditor() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
                   <input type="checkbox" checked={npcIsHostile} onChange={e => setNpcIsHostile(e.target.checked)} />
                   Hostile
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={npcAiDisabled} onChange={e => setNpcAiDisabled(e.target.checked)} />
+                  Scripted (stays put — no wandering/fleeing AI until an event moves it)
                 </label>
                 <label style={{ fontSize: 11, color: '#888' }}>Icon</label>
                 <select
@@ -2900,6 +3116,8 @@ export default function MapEditor() {
           knownEventIds={knownEventIds}
           knownFlags={questRegistry.flags.map(f => f.name)}
           knownVars={questRegistry.vars.map(v => v.name)}
+          knownEntities={knownEntities}
+          knownQuests={questRegistry.quests || []}
         />
       )}
 
@@ -2907,83 +3125,271 @@ export default function MapEditor() {
       {showQuestRegistryModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setShowQuestRegistryModal(false)}>
-          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, width: 580, maxWidth: '95vw', maxHeight: '80vh', overflow: 'auto' }}
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, width: 620, maxWidth: '95vw', maxHeight: '85vh', overflow: 'auto' }}
             onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Switches &amp; Variables</h3>
-            <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
-              Define names here first, then pick them from a dropdown anywhere a condition or setFlag/setVar step needs one — no more free-typed names to misspell.
-            </p>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Campaign Database</h3>
 
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Flags (true/false switches)</label>
-              {questRegistry.flags.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>None yet.</div>}
-              {questRegistry.flags.map(f => (
-                <div key={f.name} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
-                  <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.name}>
-                    {f.name}
+            {/* Tab header buttons */}
+            <div style={{ display: 'flex', gap: 6, borderBottom: '1px solid #444', paddingBottom: 8, marginBottom: 12 }}>
+              {(['flags', 'vars', 'quests'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setRegistryTab(tab)}
+                  style={{
+                    ...btnStyle(registryTab === tab ? '#7bb8ff' : '#333'),
+                    color: registryTab === tab ? '#111' : '#eee',
+                    fontWeight: 'bold',
+                    textTransform: 'capitalize',
+                    padding: '4px 10px',
+                  }}
+                >
+                  {tab === 'vars' ? 'variables' : tab}
+                </button>
+              ))}
+            </div>
+
+            {registryTab === 'flags' && (
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
+                  Define boolean switches here (flags that are true or false).
+                </p>
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Flags (true/false switches)</label>
+                {questRegistry.flags.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>None yet.</div>}
+                {questRegistry.flags.map(f => (
+                  <div key={f.name} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
+                    <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.name}>
+                      {f.name}
+                    </div>
+                    <input
+                      value={f.description || ''}
+                      onChange={e => updateFlagDef(f.name, { description: e.target.value })}
+                      placeholder="description (optional)"
+                      style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 80 }}
+                    />
+                    <select
+                      value={String(!!f.initialValue)}
+                      onChange={e => updateFlagDef(f.name, { initialValue: e.target.value === 'true' })}
+                      style={{ ...inputStyle, width: 100, fontSize: 11 }}
+                    >
+                      <option value="false">starts false</option>
+                      <option value="true">starts true</option>
+                    </select>
+                    <button onClick={() => removeFlagDef(f.name)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
                   </div>
-                  <input
-                    value={f.description || ''}
-                    onChange={e => updateFlagDef(f.name, { description: e.target.value })}
-                    placeholder="description (optional)"
-                    style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 80 }}
-                  />
-                  <select
-                    value={String(!!f.initialValue)}
-                    onChange={e => updateFlagDef(f.name, { initialValue: e.target.value === 'true' })}
-                    style={{ ...inputStyle, width: 100, fontSize: 11 }}
-                  >
+                ))}
+                <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                  <input value={newFlagName} onChange={e => setNewFlagName(e.target.value)} placeholder="e.g. met_mayor" style={{ ...inputStyle, flex: 1 }} />
+                  <input value={newFlagDesc} onChange={e => setNewFlagDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
+                  <select value={String(newFlagInitial)} onChange={e => setNewFlagInitial(e.target.value === 'true')} style={{ ...inputStyle, width: 90 }}>
                     <option value="false">starts false</option>
                     <option value="true">starts true</option>
                   </select>
-                  <button onClick={() => removeFlagDef(f.name)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
+                  <button onClick={addFlagDef} style={btnStyle('#2a7a2a')}>Add</button>
                 </div>
-              ))}
-              <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-                <input value={newFlagName} onChange={e => setNewFlagName(e.target.value)} placeholder="e.g. met_mayor" style={{ ...inputStyle, flex: 1 }} />
-                <input value={newFlagDesc} onChange={e => setNewFlagDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
-                <select value={String(newFlagInitial)} onChange={e => setNewFlagInitial(e.target.value === 'true')} style={{ ...inputStyle, width: 90 }}>
-                  <option value="false">starts false</option>
-                  <option value="true">starts true</option>
-                </select>
-                <button onClick={addFlagDef} style={btnStyle('#2a7a2a')}>Add</button>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Variables (numbers)</label>
-              {questRegistry.vars.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>None yet.</div>}
-              {questRegistry.vars.map(v => (
-                <div key={v.name} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
-                  <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v.name}>
-                    {v.name}
+            {registryTab === 'vars' && (
+              <div>
+                <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
+                  Define numerical variables here (numbers like reputation, kills, or ammo counts).
+                </p>
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Variables (numbers)</label>
+                {questRegistry.vars.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>None yet.</div>}
+                {questRegistry.vars.map(v => (
+                  <div key={v.name} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
+                    <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v.name}>
+                      {v.name}
+                    </div>
+                    <input
+                      value={v.description || ''}
+                      onChange={e => updateVarDef(v.name, { description: e.target.value })}
+                      placeholder="description (optional)"
+                      style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 80 }}
+                    />
+                    <input
+                      type="number"
+                      value={v.initialValue ?? 0}
+                      onChange={e => updateVarDef(v.name, { initialValue: Number(e.target.value) || 0 })}
+                      placeholder="starts at"
+                      style={{ ...inputStyle, width: 80, fontSize: 11 }}
+                    />
+                    <button onClick={() => removeVarDef(v.name)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
                   </div>
-                  <input
-                    value={v.description || ''}
-                    onChange={e => updateVarDef(v.name, { description: e.target.value })}
-                    placeholder="description (optional)"
-                    style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 80 }}
-                  />
-                  <input
-                    type="number"
-                    value={v.initialValue ?? 0}
-                    onChange={e => updateVarDef(v.name, { initialValue: Number(e.target.value) || 0 })}
-                    placeholder="starts at"
-                    style={{ ...inputStyle, width: 80, fontSize: 11 }}
-                  />
-                  <button onClick={() => removeVarDef(v.name)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
+                ))}
+                <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                  <input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="e.g. reputation" style={{ ...inputStyle, flex: 1 }} />
+                  <input value={newVarDesc} onChange={e => setNewVarDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
+                  <input type="number" value={newVarInitial} onChange={e => setNewVarInitial(Number(e.target.value) || 0)} placeholder="starts at" style={{ ...inputStyle, width: 80 }} />
+                  <button onClick={addVarDef} style={btnStyle('#2a7a2a')}>Add</button>
                 </div>
-              ))}
-              <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-                <input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="e.g. reputation" style={{ ...inputStyle, flex: 1 }} />
-                <input value={newVarDesc} onChange={e => setNewVarDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
-                <input type="number" value={newVarInitial} onChange={e => setNewVarInitial(Number(e.target.value) || 0)} placeholder="starts at" style={{ ...inputStyle, width: 80 }} />
-                <button onClick={addVarDef} style={btnStyle('#2a7a2a')}>Add</button>
               </div>
-            </div>
+            )}
+
+            {registryTab === 'quests' && (
+              <div>
+                <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
+                  Define campaign quests and their completion tasks.
+                </p>
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold', display: 'block', marginBottom: 8 }}>Quests &amp; Objectives</label>
+                
+                {(!questRegistry.quests || questRegistry.quests.length === 0) && (
+                  <div style={{ fontSize: 11, color: '#666', marginTop: 4, marginBottom: 12 }}>None yet.</div>
+                )}
+                
+                {(questRegistry.quests || []).map(q => (
+                  <div key={q.id} style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, padding: 8, marginBottom: 12 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6, borderBottom: '1px solid #2a2a2a', paddingBottom: 4 }}>
+                      <div style={{ flex: 1, fontSize: 12, fontWeight: 'bold', color: '#7bb8ff' }}>
+                        {q.title} <span style={{ fontSize: 10, color: '#666', fontWeight: 'normal' }}>({q.id})</span>
+                      </div>
+                      <button onClick={() => removeQuestDef(q.id)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>Remove Quest</button>
+                    </div>
+
+                    <div style={{ fontSize: 11, color: '#aaa', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ color: '#666', flexShrink: 0 }}>Description:</span>
+                      <input
+                        style={{ ...inputStyle, flex: 1, fontSize: 11, padding: '2px 4px', height: 22 }}
+                        value={q.description || ''}
+                        onChange={e => updateQuestDef(q.id, { description: e.target.value })}
+                        placeholder="e.g. Find the key in the locked cabinet and escape"
+                      />
+                    </div>
+
+                    {/* Tasks section */}
+                    <div style={{ paddingLeft: 12, borderLeft: '2px solid #444', marginTop: 8 }}>
+                      <span style={{ fontSize: 10, fontWeight: 'bold', color: '#888', display: 'block', marginBottom: 4 }}>Tasks / Stages (Evaluated top-to-bottom):</span>
+                      {q.tasks.length === 0 && <div style={{ fontSize: 10, color: '#555', marginBottom: 6 }}>No tasks added yet.</div>}
+                      {q.tasks.map((t, idx) => (
+                        <div key={t.id || idx} style={{ background: '#222', border: '1px solid #444', borderRadius: 3, padding: 6, marginBottom: 6 }}>
+                          <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginBottom: 4 }}>
+                            <span style={{ fontSize: 10, fontWeight: 'bold', background: '#333', padding: '1px 4px', borderRadius: 2, color: '#ccc' }}>
+                              {idx + 1}
+                            </span>
+                            <div style={{ flex: 1, fontSize: 11, color: '#eee', fontWeight: 'bold' }}>
+                              {t.text} <span style={{ fontSize: 9, color: '#666', fontWeight: 'normal' }}>({t.id})</span>
+                            </div>
+                            <button onClick={() => removeTaskFromQuest(q.id, t.id)} style={{ fontSize: 9, color: '#c44', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                          </div>
+
+                          <div style={{ marginTop: 4 }}>
+                            <span style={{ fontSize: 9, color: '#7bb8ff', display: 'block', marginBottom: 2 }}>Auto-Complete Conditions (AND-linked):</span>
+                            <ConditionListEditor
+                              conds={t.complete || []}
+                              onChange={conds => updateTaskConditions(q.id, t.id, conds)}
+                              itemOptions={allItems}
+                              knownFlags={questRegistry.flags.map(f => f.name)}
+                              knownVars={questRegistry.vars.map(v => v.name)}
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Add Task Form */}
+                      <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+                        <input
+                          style={{ ...inputStyle, width: 100, fontSize: 11 }}
+                          placeholder="task_id"
+                          value={newQuestTaskId[q.id] || ''}
+                          onChange={e => setNewQuestTaskId(prev => ({ ...prev, [q.id]: e.target.value }))}
+                        />
+                        <input
+                          style={{ ...inputStyle, flex: 1, fontSize: 11 }}
+                          placeholder="e.g. Find the rusty key"
+                          value={newQuestTaskText[q.id] || ''}
+                          onChange={e => setNewQuestTaskText(prev => ({ ...prev, [q.id]: e.target.value }))}
+                        />
+                        <button onClick={() => addTaskToQuest(q.id)} style={{ ...btnStyle('#2a7a2a'), padding: '4px 8px', fontSize: 11 }}>Add Task</button>
+                      </div>
+                    </div>
+
+                    {/* On Complete rewards */}
+                    <div style={{ paddingLeft: 12, borderLeft: '2px solid #444', marginTop: 8 }}>
+                      <span style={{ fontSize: 10, fontWeight: 'bold', color: '#888', display: 'block', marginBottom: 4 }}>On Complete <span style={{ fontWeight: 'normal', color: '#666' }}>— runs once, when the last task is done</span>:</span>
+                      <QuestRewardEditor
+                        rewards={q.onComplete || []}
+                        onChange={rewards => updateQuestRewards(q.id, rewards)}
+                        itemOptions={allItems}
+                        knownFlags={questRegistry.flags.map(f => f.name)}
+                        knownVars={questRegistry.vars.map(v => v.name)}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Quest Form */}
+                <div style={{ background: '#1a1a1a', border: '1px dotted #555', borderRadius: 4, padding: 8, marginTop: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 'bold', color: '#7bb8ff', display: 'block', marginBottom: 6 }}>Register New Quest</span>
+                  <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+                    <input style={{ ...inputStyle, width: 120 }} placeholder="quest_id" value={newQuestId} onChange={e => setNewQuestId(e.target.value)} />
+                    <input style={{ ...inputStyle, flex: 1 }} placeholder="Quest Title (e.g. The Escape)" value={newQuestTitle} onChange={e => setNewQuestTitle(e.target.value)} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <input style={{ ...inputStyle, flex: 1 }} placeholder="Short description" value={newQuestDesc} onChange={e => setNewQuestDesc(e.target.value)} />
+                    <button onClick={addQuestDef} style={btnStyle('#2a7a2a')}>Register</button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button onClick={() => setShowQuestRegistryModal(false)} style={{ ...btnStyle('#555'), width: '100%', marginTop: 16 }}>Close</button>
           </div>
+        </div>
+      )}
+
+      {/* ─── Map Entity Registry modal ─── */}
+      {showEntityRegistryModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setShowEntityRegistryModal(false)}>
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, width: 580, maxWidth: '95vw', maxHeight: '80vh', overflow: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Map Entities (Manual Registry)</h3>
+            <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
+              Manually register doors, windows, and zombies that you want to reference in events. NPCs with names are automatically registered.
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, background: '#1a1a1a', padding: 8, border: '1px solid #333', borderRadius: 4, marginBottom: 8 }}>
+                <input style={{ ...inputStyle, width: 100 }} placeholder="unique tag" value={newEntityTag} onChange={e => setNewEntityTag(e.target.value)} />
+                <select style={inputStyle} value={newEntityType} onChange={e => setNewEntityType(e.target.value as any)}>
+                  <option value="door">Door</option>
+                  <option value="window">Window</option>
+                  <option value="zombie">Zombie</option>
+                </select>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: '#888' }}>Tile:</span>
+                  <span style={{ fontSize: 11, color: newEntityX !== '' ? '#9c6' : '#888', minWidth: 40 }}>
+                    {newEntityX !== '' ? `(${newEntityX}, ${newEntityY})` : 'not set'}
+                  </span>
+                  <button onClick={() => { setEntityPickMode(true); setShowEntityRegistryModal(false); }} style={{ ...btnStyle('#333'), padding: '2px 6px', fontSize: 11 }}>Pick</button>
+                </div>
+                <input style={{ ...inputStyle, flex: 1 }} placeholder="description (optional)" value={newEntityDesc} onChange={e => setNewEntityDesc(e.target.value)} />
+                <button onClick={addEntityRegistryEntry} style={btnStyle('#2a7a2a')}>Add</button>
+              </div>
+
+              {entityRegistry.entries.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>No manually registered entities yet.</div>}
+              {entityRegistry.entries.map(e => (
+                <div key={e.tag} style={{ display: 'flex', gap: 6, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 'bold', color: '#ccc', minWidth: 100 }}>{e.tag}</span>
+                  <span style={{ fontSize: 11, color: '#888', background: '#333', padding: '1px 5px', borderRadius: 3 }}>{e.type}</span>
+                  <span style={{ fontSize: 11, color: '#9c6' }}>({e.x}, {e.y})</span>
+                  {e.description && <span style={{ fontSize: 11, color: '#666', fontStyle: 'italic', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description}</span>}
+                  {!e.description && <div style={{ flex: 1 }} />}
+                  <button onClick={() => removeEntityRegistryEntry(e.tag)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={() => setShowEntityRegistryModal(false)} style={{ ...btnStyle('#555'), width: '100%', marginTop: 16 }}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Entity Picking Indicator ─── */}
+      {entityPickMode && (
+        <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', border: '1px solid #7bb8ff', borderRadius: 6, padding: '8px 16px', zIndex: 140, display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+          <span style={{ fontSize: 12, color: '#eee' }}>Click a tile on the map to register it for entity coordinate</span>
+          <button onClick={() => { setEntityPickMode(false); setShowEntityRegistryModal(true); }} style={btnStyle('#555')}>Cancel</button>
         </div>
       )}
 
