@@ -9,7 +9,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 export default function DragPreviewLayer() {
   const inventoryContext = useInventory();
   const { theme } = useTheme();
-  const isLight = theme !== 'dark';
+  const isLight = !theme.startsWith('dark');
   const { dragState, updateDragPosition, rotateDrag, cancelDrag } = inventoryContext;
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);

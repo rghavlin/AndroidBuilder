@@ -31,7 +31,7 @@ export default function SaveGameWindow({ onClose, onSave }: SaveGameWindowProps)
     const [isLoading, setIsLoading] = useState(false);
     const [savingSlot, setSavingSlot] = useState<string | null>(null);
     const { theme } = useTheme();
-    const isLight = theme !== 'dark';
+    const isLight = !theme.startsWith('dark');
 
     const loadSlots = async () => {
         try {

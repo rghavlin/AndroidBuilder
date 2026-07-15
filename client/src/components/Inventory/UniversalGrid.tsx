@@ -1133,7 +1133,7 @@ export default function UniversalGrid({
                   src={itemImageSrc}
                   className={cn(
                     "absolute pointer-events-none select-none max-w-none",
-                    !item.backgroundColor && (themeRef.current !== 'dark' ? "mix-blend-multiply" : "mix-blend-screen")
+                    !item.backgroundColor && (!themeRef.current.startsWith('dark') ? "mix-blend-multiply" : "mix-blend-screen")
                   )}
                   style={{
                     left: `${adjustedLeft - leftPos}px`,

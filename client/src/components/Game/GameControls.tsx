@@ -119,7 +119,7 @@ export default function GameControls({
   
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
   const { theme } = useTheme();
-  const isLight = theme !== 'dark';
+  const isLight = !theme.startsWith('dark');
   const { 
     turn, 
     endTurn, 

@@ -16,7 +16,7 @@ interface ActionSlotButtonProps {
 export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButtonProps) => {
   const { inventoryRef, selectedItem, clearSelected } = useInventory();
   const { theme } = useTheme();
-  const isLight = theme !== 'dark';
+  const isLight = !theme.startsWith('dark');
   const { targetingWeapon, toggleTargeting } = useCombat();
   const { toggleFlashlight, igniteTorch } = useGame();
 

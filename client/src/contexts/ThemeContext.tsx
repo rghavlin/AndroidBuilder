@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 // @ts-ignore
 import { configManager } from '../game/utils/ConfigManager';
 
-export type Theme = 'light' | 'dark' | 'light2';
+export type Theme = 'light' | 'dark' | 'light2' | 'dark2';
 
 interface ThemeContextType {
   theme: Theme;
@@ -36,12 +36,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   };
 
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'light2' : theme === 'light2' ? 'dark' : 'light');
+    setTheme(theme === 'light' ? 'light2' : theme === 'light2' ? 'dark' : theme === 'dark' ? 'dark2' : 'light');
   };
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark', 'light2');
+    root.classList.remove('light', 'dark', 'light2', 'dark2');
     root.classList.add(theme);
   }, [theme]);
 

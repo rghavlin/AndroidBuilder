@@ -119,8 +119,8 @@ const EquipmentSlot = memo(({
                     "w-full h-full object-contain pointer-events-none transition-transform",
                     hasItem && "rounded-full",
                     hasItem 
-                      ? (!item?.backgroundColor && (theme !== 'dark' ? "mix-blend-multiply" : "mix-blend-screen")) 
-                      : (theme !== 'dark' ? "mix-blend-multiply opacity-[0.35]" : "mix-blend-screen opacity-[0.35]")
+                      ? (!item?.backgroundColor && (!theme.startsWith('dark') ? "mix-blend-multiply" : "mix-blend-screen")) 
+                      : (!theme.startsWith('dark') ? "mix-blend-multiply opacity-[0.35]" : "mix-blend-screen opacity-[0.35]")
                   )}
                   style={{
                     filter: !hasItem 

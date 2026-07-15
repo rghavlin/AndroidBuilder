@@ -106,7 +106,7 @@ export default function GroundItemsGrid() {
   // The tile-texture background is a dark-theme-only feature. In the light themes ground slots
   // have a solid background so the texture would be invisible anyway — and the image still bleeds
   // through semi-transparent placement previews. Suppress the URL outside dark mode.
-  const tileImageUrl = (isNoneTileSet || isSpriteSheet || theme !== 'dark') ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
+  const tileImageUrl = (isNoneTileSet || isSpriteSheet || !theme.startsWith('dark')) ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">

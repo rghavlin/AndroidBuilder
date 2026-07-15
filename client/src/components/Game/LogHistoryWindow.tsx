@@ -10,7 +10,7 @@ interface LogHistoryWindowProps {
 }
 
 const getLogColor = (type: string, originalColor: string, theme: string) => {
-    if (theme !== 'dark') {
+    if (!theme.startsWith('dark')) {
         switch (type) {
             case 'combat':
             case 'warning':
@@ -42,7 +42,7 @@ export default function LogHistoryWindow({ onClose }: LogHistoryWindowProps) {
     return (
         <div className={cn(
             "flex flex-col h-full rounded-lg overflow-hidden border border-border",
-            theme !== 'dark' ? "bg-background shadow-lg" : "bg-background/50"
+            !theme.startsWith('dark') ? "bg-background shadow-lg" : "bg-background/50"
         )}>
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border bg-card/30 p-4">
@@ -65,7 +65,7 @@ export default function LogHistoryWindow({ onClose }: LogHistoryWindowProps) {
                 ref={scrollRef}
                 className={cn(
                     "flex-1 overflow-y-auto p-4 custom-scrollbar",
-                    theme !== 'dark' ? "bg-zinc-50" : "bg-black/20"
+                    !theme.startsWith('dark') ? "bg-zinc-50" : "bg-black/20"
                 )}
             >
                 {logs.length === 0 ? (
@@ -80,18 +80,18 @@ export default function LogHistoryWindow({ onClose }: LogHistoryWindowProps) {
                                 key={log.id} 
                                 className={cn(
                                     "border-b pb-2 last:border-0",
-                                    theme !== 'dark' ? "border-zinc-200/60" : "border-white/5"
+                                    !theme.startsWith('dark') ? "border-zinc-200/60" : "border-white/5"
                                 )}
                             >
                                 <div className="flex items-start gap-3">
-                                    <span className={cn("text-[10px] font-mono pt-0.5 shrink-0", theme !== 'dark' ? "text-zinc-400" : "text-zinc-500")}>
+                                    <span className={cn("text-[10px] font-mono pt-0.5 shrink-0", !theme.startsWith('dark') ? "text-zinc-400" : "text-zinc-500")}>
                                         [{log.timestamp}]
                                     </span>
                                     <div 
                                         className="text-xs leading-relaxed break-words font-semibold"
                                         style={{ color: getLogColor(log.type, log.color, theme) }}
                                     >
-                                        <span className={cn("text-[10px] uppercase font-black mr-2", theme !== 'dark' ? "opacity-90" : "opacity-60")}>
+                                        <span className={cn("text-[10px] uppercase font-black mr-2", !theme.startsWith('dark') ? "opacity-90" : "opacity-60")}>
                                             {log.type}
                                         </span>
                                         <span>{log.message}</span>

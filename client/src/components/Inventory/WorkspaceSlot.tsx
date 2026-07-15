@@ -42,7 +42,7 @@ const WorkspaceSlot = memo(({
 }: WorkspaceSlotProps) => {
     const { getContainer, selectItem, selectedItem, placeSelected, inventoryVersion } = useInventory();
     const { theme } = useTheme();
-    const isLight = theme !== 'dark';
+    const isLight = !theme.startsWith('dark');
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     const container = getContainer(containerId);

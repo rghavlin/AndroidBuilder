@@ -19,7 +19,7 @@ const AttachmentSlot = memo(({
 }: AttachmentSlotProps) => {
     const { attachSelectedItemToWeapon, detachItemFromWeapon, selectItem, selectedItem, inventoryVersion } = useInventory();
     const { theme } = useTheme();
-    const isLight = theme !== 'dark';
+    const isLight = !theme.startsWith('dark');
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     // Get current grid slot size dynamically from provider
