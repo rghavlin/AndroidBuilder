@@ -978,8 +978,13 @@ export const InventoryProvider = ({ children }) => {
     
     const player = engine.player;
     const apAvailable = player.ap || 0;
-    const apNeeded = amount === 'max' ? apAvailable : amount;
-    
+    // Each crank costs 1 AP, so the player can only afford whole cranks.
+    // Flooring here prevents cranksPerformed from exceeding the AP the player
+    // actually has (e.g. fractional AP like 4.9), which would make the final
+    // player.useAP() call fail and silently skip the AP deduction.
+    const affordableCranks = Math.floor(apAvailable);
+    const apNeeded = amount === 'max' ? affordableCranks : Math.min(amount, affordableCranks);
+
     if (apNeeded <= 0) {
       addLog("Not enough AP to crank.", 'error');
       playSound('Fail');

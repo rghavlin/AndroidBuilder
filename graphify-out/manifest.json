@@ -25,9 +25,9 @@
     "semantic_hash": "23389c4c34a370518b88accf896d3f49"
   },
   "client/src/components/Game/ActionSlotButton.tsx": {
-    "mtime": 1783223716.2675889,
-    "ast_hash": "6b98ffe77a2db09d8ee60bfa0af252e4",
-    "semantic_hash": "6b98ffe77a2db09d8ee60bfa0af252e4"
+    "mtime": 1784115699.1580362,
+    "ast_hash": "363f3f819d78b6349952ad47fa1f56a0",
+    "semantic_hash": ""
   },
   "client/src/components/Game/BarterWindow.tsx": {
     "mtime": 1779237609.7742736,
@@ -80,9 +80,9 @@
     "semantic_hash": "3ecda95f3b7fdde635f3b6f6e5ffdcea"
   },
   "client/src/components/Game/EarbucksDisplay.tsx": {
-    "mtime": 1783223760.7504103,
-    "ast_hash": "5aaa3385c766702078c4f8c8df65517c",
-    "semantic_hash": "5aaa3385c766702078c4f8c8df65517c"
+    "mtime": 1784115699.1564457,
+    "ast_hash": "b539e191d1d3477c755fbd8ecef0a1f6",
+    "semantic_hash": ""
   },
   "client/src/components/Game/EarbucksShopWindow.tsx": {
     "mtime": 1782720903.604911,
@@ -100,14 +100,14 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/GameControls.tsx": {
-    "mtime": 1783313891.7315314,
-    "ast_hash": "70ccb111360b654db0d64fe69b625d4e",
-    "semantic_hash": "70ccb111360b654db0d64fe69b625d4e"
+    "mtime": 1784115699.1554005,
+    "ast_hash": "173ff965179be59276a4c3cea5875ee6",
+    "semantic_hash": ""
   },
   "client/src/components/Game/GameEventLog.tsx": {
-    "mtime": 1783223730.2434902,
-    "ast_hash": "427b36a307c3d876348cacd3414cd6c3",
-    "semantic_hash": "427b36a307c3d876348cacd3414cd6c3"
+    "mtime": 1784115699.1559284,
+    "ast_hash": "e205a39ffdac4c18b651e201cd00b101",
+    "semantic_hash": ""
   },
   "client/src/components/Game/GameScreen.tsx": {
     "mtime": 1783425235.7781193,
@@ -135,14 +135,14 @@
     "semantic_hash": "78d5408d76917e4f90e142e346b02cfb"
   },
   "client/src/components/Game/LoadGameWindow.tsx": {
-    "mtime": 1783223736.8716283,
-    "ast_hash": "66cc5f454036d544c4bd267309179f45",
-    "semantic_hash": "66cc5f454036d544c4bd267309179f45"
+    "mtime": 1784115699.1554005,
+    "ast_hash": "a1c5b9574d66d32d78619f1c537a8f1a",
+    "semantic_hash": ""
   },
   "client/src/components/Game/LogHistoryWindow.tsx": {
-    "mtime": 1783223752.5313156,
-    "ast_hash": "199fdb4134d18a821719a505bd3973a2",
-    "semantic_hash": "199fdb4134d18a821719a505bd3973a2"
+    "mtime": 1784115699.1538405,
+    "ast_hash": "32533e6e75b1b187eea92a6d97b933d6",
+    "semantic_hash": ""
   },
   "client/src/components/Game/LootTooltip.tsx": {
     "mtime": 1783466075.190238,
@@ -180,9 +180,9 @@
     "semantic_hash": "6cb0e10aaee5e3646f729c705db6a5f0"
   },
   "client/src/components/Game/OptionsWindow.tsx": {
-    "mtime": 1783223589.8887665,
-    "ast_hash": "5ed85d9f3c3b63355ff5bae479177bb5",
-    "semantic_hash": "5ed85d9f3c3b63355ff5bae479177bb5"
+    "mtime": 1784115684.8913994,
+    "ast_hash": "37969f257e856c4cbf949c608537be53",
+    "semantic_hash": ""
   },
   "client/src/components/Game/OverlayManager.tsx": {
     "mtime": 1784072540.7970433,
@@ -205,9 +205,9 @@
     "semantic_hash": "fc74b445520ba039b612000e25789427"
   },
   "client/src/components/Game/SaveGameWindow.tsx": {
-    "mtime": 1783223742.6471133,
-    "ast_hash": "5c19100ca2239e0a96baa49e039c001d",
-    "semantic_hash": "5c19100ca2239e0a96baa49e039c001d"
+    "mtime": 1784115699.1548865,
+    "ast_hash": "c11e4552d7f01bbdf323287a76edbd24",
+    "semantic_hash": ""
   },
   "client/src/components/Game/ScenarioPickerWindow.tsx": {
     "mtime": 1782648690.9165819,
@@ -265,8 +265,8 @@
     "semantic_hash": "cf5b912d3120ccc674493ea6f32386fc"
   },
   "client/src/components/Inventory/AttachmentSlot.tsx": {
-    "mtime": 1784108760.1734118,
-    "ast_hash": "f7b15fd1eea190aee8731641b4b2de55",
+    "mtime": 1784115699.158553,
+    "ast_hash": "313a32e210755c4ae0cd4a8b8d9cc238",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/BackpackGrid.tsx": {
@@ -305,13 +305,13 @@
     "semantic_hash": ""
   },
   "client/src/components/Inventory/DragPreviewLayer.tsx": {
-    "mtime": 1784108765.8090737,
-    "ast_hash": "0ef0b327923dda614f790181ff5859b0",
+    "mtime": 1784115699.1575155,
+    "ast_hash": "d9a8678f3ca08647f6abe5151f4907e1",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/EquipmentSlot.tsx": {
-    "mtime": 1784108726.0241845,
-    "ast_hash": "b63838b04d502cd93ae4db910f2d1b27",
+    "mtime": 1784115699.1575155,
+    "ast_hash": "05aad9ca00b3ec2a9bc35e0f88cb01ad",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/EquipmentSlots.tsx": {
@@ -335,8 +335,8 @@
     "semantic_hash": "b4303319ec9628ea7bb0c91883029d12"
   },
   "client/src/components/Inventory/GroundItemsGrid.tsx": {
-    "mtime": 1783578928.457724,
-    "ast_hash": "548307775a5ffad8c1ed927108f9f488",
+    "mtime": 1784115699.156961,
+    "ast_hash": "dcaef8d92ddb5f622f36d7e57ed4975a",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/InventoryPanel.tsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": "c1f74cbd597d80cca1bfc1b6c5f5cb3b"
   },
   "client/src/components/Inventory/UniversalGrid.tsx": {
-    "mtime": 1784111288.648761,
-    "ast_hash": "a2ae7406b11db9c0ed81682d31c091d1",
+    "mtime": 1784117040.8758497,
+    "ast_hash": "92f92f61bcb0f26f6e35886c8caa2ceb",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/WeaponModPanel.tsx": {
@@ -375,8 +375,8 @@
     "semantic_hash": "ae435a249eff56c4f4e1f07e395e800f"
   },
   "client/src/components/Inventory/WorkspaceSlot.tsx": {
-    "mtime": 1784108751.1000042,
-    "ast_hash": "a6a65b06e0dfcd7264ad9147070d57ee",
+    "mtime": 1784115699.1532946,
+    "ast_hash": "2fe017ca586ff517b855fe6c9dc2f11b",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/constants.ts": {
@@ -655,8 +655,8 @@
     "semantic_hash": "6e101a2bf5eb2c2342cf7276b698bab5"
   },
   "client/src/contexts/InventoryContext.jsx": {
-    "mtime": 1784028911.7800152,
-    "ast_hash": "f6c827d1f957044b5d55322eca779be9",
+    "mtime": 1784159490.8571305,
+    "ast_hash": "4fd1ab236f064c5339b521a64fd575e2",
     "semantic_hash": ""
   },
   "client/src/contexts/LogContext.jsx": {
@@ -680,9 +680,9 @@
     "semantic_hash": ""
   },
   "client/src/contexts/ThemeContext.tsx": {
-    "mtime": 1783223538.2220116,
-    "ast_hash": "1e66502aed89313e93cafa2fe5450d31",
-    "semantic_hash": "1e66502aed89313e93cafa2fe5450d31"
+    "mtime": 1784115674.0444803,
+    "ast_hash": "ebd56c4b8f607ecfce358ded4c69e144",
+    "semantic_hash": ""
   },
   "client/src/contexts/VisualEffectsContext.jsx": {
     "mtime": 1783572939.3765655,

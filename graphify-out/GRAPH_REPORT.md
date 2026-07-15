@@ -1,7 +1,7 @@
 # Graph Report - AndroidBuilder  (2026-07-15)
 
 ## Corpus Check
-- 518 files · ~5,964,566 words
+- 518 files · ~5,964,590 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4f878219`
+- Built from commit: `b84b5f22`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -257,8 +257,8 @@ Cohesion: 0.04
 Nodes (53): dependencies, class-variance-authority, clsx, cmdk, date-fns, embla-carousel-react, framer-motion, @hookform/resolvers (+45 more)
 
 ### Community 12 - "Inventory and Skill Windows"
-Cohesion: 0.10
-Nodes (45): BarterWindow(), BarterWindowProps, EarbucksShopWindow(), InventoryPanel(), MapInterface(), TollWindow(), TollWindowProps, BackpackGrid() (+37 more)
+Cohesion: 0.12
+Nodes (33): BarterWindow(), BarterWindowProps, EarbucksShopWindow(), InventoryPanel(), MapInterface(), TollWindow(), TollWindowProps, BackpackGrid() (+25 more)
 
 ### Community 13 - "Entity and Item Types"
 Cohesion: 0.09
@@ -310,15 +310,15 @@ Nodes (12): hasItemsInside(), InventoryManager, isClothingOrBackpack(), runConta
 
 ### Community 26 - "Action Queue Processing"
 Cohesion: 0.03
-Nodes (72): EquipmentSlot, EquipmentSlotProps, SLOT_INFO, GridSlot, GridSlotProps, ItemTooltip(), ItemTooltipProps, AccordionContent (+64 more)
+Nodes (77): EquipmentSlot, EquipmentSlotProps, SLOT_INFO, GridSlotProps, ItemTooltip(), ItemTooltipProps, WorkspaceSlot, WorkspaceSlotProps (+69 more)
 
 ### Community 27 - "World and Map Transitions"
 Cohesion: 0.11
 Nodes (4): WorldManager, assert(), verify(), runDebug()
 
 ### Community 28 - "Combat and Turn Management"
-Cohesion: 0.08
-Nodes (22): AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar(), SkillProgressBarProps, PlayerSkillsWindowProps, AttachmentSlot (+14 more)
+Cohesion: 0.11
+Nodes (18): AttachmentSlot, AttachmentSlotProps, FloatingContainerOverlay(), FloatingContainerOverlayProps, ItemContextMenuProps, SplitDialog(), WeaponModPanel(), WeaponModPanelProps (+10 more)
 
 ### Community 29 - "Sidebar UI Components"
 Cohesion: 0.06
@@ -417,12 +417,12 @@ Cohesion: 0.12
 Nodes (15): backpack, backpackGrid, consumed, consumedFromGround, deserialized, groundContainer, invManager, itemsInside (+7 more)
 
 ### Community 62 - "Save Game Management"
-Cohesion: 0.12
-Nodes (17): InventoryExtensionWindowProps, ScreenScaler(), ScreenScalerProps, BeltContainerPanel(), BeltContainerPanelProps, FloatingContainer(), FloatingContainerProps, GridSizeContext (+9 more)
+Cohesion: 0.15
+Nodes (14): InventoryExtensionWindowProps, ScreenScaler(), ScreenScalerProps, FloatingContainer(), FloatingContainerProps, GridSizeContext, GridSizeContextType, GridSizeProviderProps (+6 more)
 
 ### Community 65 - "Scenario Map Generation"
-Cohesion: 0.12
-Nodes (16): EarbucksDisplay(), GameEventLog(), GameEventLogProps, getLogColor(), getLogColor(), LogHistoryWindow(), LogHistoryWindowProps, OptionsWindow() (+8 more)
+Cohesion: 0.11
+Nodes (24): EarbucksDisplay(), GameEventLog(), GameEventLogProps, getLogColor(), getLogColor(), LogHistoryWindow(), LogHistoryWindowProps, OptionsWindow() (+16 more)
 
 ### Community 66 - "Form UI Components"
 Cohesion: 0.19
@@ -445,8 +445,8 @@ Cohesion: 0.23
 Nodes (9): CraftingRecipes, runTest(), runVerification(), assert(), verify(), verifyMolotov(), runTest(), hammerRecipe (+1 more)
 
 ### Community 73 - "World Object Spawning"
-Cohesion: 0.40
-Nodes (4): Alert, AlertDescription, AlertTitle, alertVariants
+Cohesion: 0.18
+Nodes (8): AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar(), SkillProgressBarProps, PlayerSkillsWindowProps, TREATMENT_EFFECTS
 
 ### Community 75 - "Map Serialization Tests"
 Cohesion: 0.15
@@ -605,8 +605,8 @@ Cohesion: 0.47
 Nodes (5): apiRequest(), getQueryFn(), queryClient, throwIfResNotOk(), UnauthorizedBehavior
 
 ### Community 129 - "test_frontage_fix.js"
-Cohesion: 0.33
-Nodes (6): ActionSlotButton(), ActionSlotButtonProps, EarbucksShopWindowProps, ShopItemRow(), ShopItemRowProps, useItemImage()
+Cohesion: 0.20
+Nodes (8): Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut()
 
 ### Community 130 - "Entity Transformation Scripts"
 Cohesion: 0.33
@@ -625,8 +625,8 @@ Cohesion: 0.22
 Nodes (8): canSeeBlocked, canSeeWindow, map, player, resultBlocked, resultWindow, windowEntity, zombie
 
 ### Community 134 - "verify_army_tent.js"
-Cohesion: 0.08
-Nodes (21): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps, LootTooltip(), LootTooltipProps (+13 more)
+Cohesion: 0.07
+Nodes (26): ActionSlotButton(), ActionSlotButtonProps, BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps (+18 more)
 
 ### Community 138 - "File Integrity Checks"
 Cohesion: 0.40
@@ -649,8 +649,8 @@ Cohesion: 0.08
 Nodes (12): log, LOG_LEVELS, Logger, dialogOnlySteps, mixedEvent, placedLog, step, fakeInv (+4 more)
 
 ### Community 157 - "command.tsx"
-Cohesion: 0.09
-Nodes (26): DefeatDialog(), DialogOverlayProps, DialogStep, JournalUI(), MapTransitionDialog(), MapTransitionDialogProps, NPCDemandDialog(), NPCDemandDialogProps (+18 more)
+Cohesion: 0.12
+Nodes (21): DefeatDialog(), DialogOverlayProps, DialogStep, JournalUI(), MapTransitionDialog(), MapTransitionDialogProps, NPCDemandDialog(), NPCDemandDialogProps (+13 more)
 
 ### Community 170 - "test_save_compression.js"
 Cohesion: 0.43
