@@ -3027,28 +3027,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "ammo.308-1784026950737-v8vj1",
-            "defId": "ammo.308",
-            "id": "ammo.308",
-            "name": ".308 Ammo",
-            "rarity": "uncommon",
-            "imageId": "308ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 1,
-            "spawnStackMax": 3
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
@@ -4898,8 +4877,8 @@
     "spawnZones": {
       "playerStart": [
         {
-          "x": 9,
-          "y": 13
+          "x": 14,
+          "y": 12
         }
       ]
     }
@@ -4931,12 +4910,32 @@
     },
     {
       "type": "player",
-      "x": 9,
-      "y": 13,
+      "x": 14,
+      "y": 12,
       "subtype": null
     }
   ],
   "eventTriggers": [
+    {
+      "x": 9,
+      "y": 10,
+      "id": "brainquest",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Go out the back door and kill the zombie."
+        }
+      ],
+      "oneShot": true,
+      "grants": [
+        {
+          "defId": "weapon.knife",
+          "count": 1,
+          "x": 9,
+          "y": 11
+        }
+      ]
+    },
     {
       "x": 5,
       "y": 12,
@@ -4950,9 +4949,8 @@
       "oneShot": true
     },
     {
-      "x": 9,
-      "y": 13,
-      "id": "assignquest",
+      "chainOnly": true,
+      "id": "intro",
       "steps": [],
       "oneShot": true
     }
@@ -4992,49 +4990,6 @@
           "text": "u did it"
         }
       ]
-    },
-    {
-      "id": "brainquest",
-      "oneShot": true,
-      "trigger": {
-        "type": "tile",
-        "x": 9,
-        "y": 11
-      },
-      "lines": [
-        {
-          "x": 9,
-          "y": 10,
-          "speaker": "doc",
-          "text": "1"
-        },
-        {
-          "x": 9,
-          "y": 11,
-          "speaker": "player",
-          "text": "2"
-        },
-        {
-          "x": 9,
-          "y": 10,
-          "speaker": "doc",
-          "text": "take this knife"
-        },
-        {
-          "x": 9,
-          "y": 11,
-          "speaker": "player",
-          "text": "thanks"
-        }
-      ],
-      "grants": [
-        {
-          "defId": "weapon.knife",
-          "count": 1,
-          "x": 9,
-          "y": 11
-        }
-      ]
     }
   ],
   "events": [
@@ -5061,38 +5016,6 @@
           "speaker": "sis",
           "anchorX": 13,
           "anchorY": 12
-        }
-      ]
-    },
-    {
-      "id": "sismove",
-      "placement": {
-        "kind": "tile",
-        "x": 12,
-        "y": 12
-      },
-      "trigger": "onEnter",
-      "preconditions": [
-        {
-          "kind": "flag",
-          "flag": "Knife quest complete",
-          "value": true
-        }
-      ],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "speech",
-          "text": "u did it",
-          "speaker": "sis",
-          "anchorX": 13,
-          "anchorY": 12
-        },
-        {
-          "type": "moveEntity",
-          "entityTag": "sis",
-          "targetX": 13,
-          "targetY": 11
         }
       ]
     },
@@ -5137,29 +5060,79 @@
       ]
     },
     {
-      "id": "assignquest",
+      "id": "sismove",
       "placement": {
         "kind": "tile",
-        "x": 9,
-        "y": 13
+        "x": 12,
+        "y": 12
       },
-      "trigger": "auto",
-      "preconditions": [],
+      "trigger": "onEnter",
+      "preconditions": [
+        {
+          "kind": "itemConsumed",
+          "defId": "zombie.brainpulp",
+          "count": 1
+        }
+      ],
       "repeat": "once",
       "steps": [
         {
-          "type": "startQuest",
-          "questId": "1"
+          "type": "speech",
+          "text": "u did it",
+          "speaker": "sis",
+          "anchorX": 13,
+          "anchorY": 12
         },
         {
-          "type": "setNpcAI",
-          "entityTag": "doc",
-          "enabled": false
-        },
-        {
-          "type": "setNpcAI",
+          "type": "moveEntity",
           "entityTag": "sis",
-          "enabled": false
+          "targetX": 13,
+          "targetY": 11
+        }
+      ]
+    },
+    {
+      "id": "makePulp",
+      "placement": {
+        "kind": "tile",
+        "x": 9,
+        "y": 10
+      },
+      "trigger": "onInteract",
+      "preconditions": [
+        {
+          "kind": "itemInInventory",
+          "defId": "zombie.brainstem",
+          "count": 1
+        },
+        {
+          "kind": "itemInInventory",
+          "defId": "crafting.stone",
+          "count": 1
+        }
+      ],
+      "repeat": "whileConditions",
+      "steps": [
+        {
+          "type": "speech",
+          "text": "do the thing",
+          "anchorX": 9,
+          "anchorY": 10
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "do the thing"
+        },
+        {
+          "type": "lockActions",
+          "until": [
+            {
+              "kind": "itemConsumed",
+              "defId": "zombie.brainpulp",
+              "count": 1
+            }
+          ]
         }
       ]
     },
@@ -5168,14 +5141,10 @@
       "placement": {
         "kind": "tile",
         "x": 9,
-        "y": 11
+        "y": 10
       },
-      "trigger": "onEnter",
-      "preconditions": [
-        {
-          "kind": "none"
-        }
-      ],
+      "trigger": "onInteract",
+      "preconditions": [],
       "repeat": "once",
       "steps": [
         {
@@ -5214,12 +5183,6 @@
           "anchorY": 11
         },
         {
-          "type": "moveEntity",
-          "entityTag": "doc",
-          "targetX": 5,
-          "targetY": 8
-        },
-        {
           "type": "setQuestTask",
           "questId": "1",
           "taskIndex": 1
@@ -5232,6 +5195,57 @@
               "defId": "weapon.knife"
             }
           ]
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Go out the back door and kill the zombie."
+        }
+      ]
+    },
+    {
+      "id": "intro",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "controlEntity",
+          "entityTag": "docFrontDoor",
+          "entityAction": "open"
+        },
+        {
+          "type": "speech",
+          "text": "you're here",
+          "speaker": "sis",
+          "anchorX": 13,
+          "anchorY": 12
+        },
+        {
+          "type": "moveEntity",
+          "entityTag": "sis",
+          "targetX": 13,
+          "targetY": 11
+        },
+        {
+          "type": "moveEntity",
+          "entityTag": "player",
+          "targetX": 12,
+          "targetY": 12
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "docFrontDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "moveEntity",
+          "entityTag": "sis",
+          "targetX": 13,
+          "targetY": 12
         }
       ]
     }
@@ -5240,6 +5254,9 @@
     "flags": [
       {
         "name": "Knife quest complete"
+      },
+      {
+        "name": "autoTestDone"
       }
     ],
     "vars": [],
@@ -5306,7 +5323,11 @@
           {
             "id": "6",
             "text": "eat the pulp",
-            "complete": []
+            "complete": [
+              {
+                "kind": "none"
+              }
+            ]
           }
         ],
         "onComplete": [
@@ -5325,6 +5346,12 @@
         "tag": "z1",
         "type": "zombie",
         "x": 2,
+        "y": 12
+      },
+      {
+        "tag": "docFrontDoor",
+        "type": "door",
+        "x": 13,
         "y": 12
       }
     ]

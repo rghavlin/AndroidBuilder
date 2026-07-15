@@ -1,9 +1,11 @@
 # Quest & Event System — Scoping / Design Doc
 
-> Status: **Phases 0–4 DONE and verified — the campaign-authoring core works
-> end-to-end.** Phases 5–6 (journal/quests, freeplay) are **NOT STARTED**. See
-> the status summary below, and §9 for full phase-by-phase detail (what was
-> built, how it was verified, every bugfix along the way).
+> Status: **Phases 0–6 DONE and verified — the campaign-authoring core works
+> end-to-end**, including journal/quests. Phase 7 (freeplay) is deferred.
+> Phase 8 (custom Player Editor — attributes/equipment/inventory) is
+> **PLANNED, NOT STARTED** — see §9 for the scoped plan. See the status
+> summary below, and §9 for full phase-by-phase detail (what was built, how
+> it was verified, every bugfix along the way).
 > Reference model: RPG Maker MZ events (Pages → Conditions → Command List).
 
 ## Current status at a glance
@@ -19,6 +21,7 @@
 | 5 | Map Entity Registry & Entity Movement (pathfinding-based) | ✅ Done, verified |
 | 6 | Journal + `Quest` type + quest-advance via steps | ✅ Done, verified |
 | 7 | Freeplay random NPC quest generator | 💤 Deferred |
+| 8 | Custom Player Editor (attributes/equipment/inventory) | 📝 Planned, not started |
 
 Everything in Phases 0–4 has been exercised live by the user in the actual map
 editor and game (not just verify-script logic): a mixed dialog+speech+give event,
@@ -524,8 +527,149 @@ of existing `.editor.json` files required.
   Verified: `scratch/verify_questsystem_p6.mjs` verifies reactive task progression and serialization.
 - **Phase 7 — DEFERRED.** Freeplay random quests. NPC-template quest
   generator (uses Phase 5's `Quest`/`GameEvent` shapes).
+- **Phase 8 — PLANNED, NOT STARTED.** Custom Player Editor. Not part of the
+  original quest/event scope, but grouped into this doc since it's the next
+  campaign-authoring editor feature and reuses the same conventions
+  (per-map editor state persisted the same way as `questRegistry`/
+  `entityRegistry`; a scenario-level override that short-circuits normal
+  game-start flow, same shape as how `scenarioData` already overrides map
+  generation). Full write-up below.
 
-Each phase is independently shippable and testable. Phases 0–6 deliver the campaign authoring and UI you need now and are complete; Phase 7 is the freeplay layer and has been deferred.
+Each phase is independently shippable and testable. Phases 0–6 deliver the campaign authoring and UI you need now and are complete; Phase 7 is the freeplay layer and has been deferred; Phase 8 is scoped and ready to build.
+
+---
+
+## 12. Phase 8 — Custom Player Editor (planned)
+
+**Goal:** let the map author fully define the starting player for a scenario —
+attributes, derived HP/AP, and a complete equipment + nested-inventory loadout
+(e.g. equip a backpack, then put specific items inside it) — so an authored
+campaign always starts its protagonist exactly as designed, bypassing the
+normal character-creator/easy-start flow.
+
+### 12.1 Findings from the current system (verified against code)
+
+- The player is built in `GameInitializationManager.startInitialization` via
+  `EntityFactory.createPlayer(startX, startY, customStats)`
+  ([GameInitializationManager.js:232](client/src/game/GameInitializationManager.js)).
+  `customStats` carries every attribute (`baseStrength/currentStrength` etc.
+  for STR/AGI/PER/CON, HP/AP, skills as hit-counts+levels, earbucks,
+  infection state) — see `EntityFactory.js:27` onward for the full field list.
+- Starting equipment/inventory is **hardcoded** immediately after player
+  creation ([GameInitializationManager.js:296–361](client/src/game/GameInitializationManager.js)):
+  equips shirt/pants always, and on Easy Start a backpack, then does
+  `backpack.getContainerGrid().addItem(item)` to nest items inside it. **This
+  is the exact nesting primitive the loadout editor needs** — no new game
+  logic required, just author-driven data instead of a hardcoded list.
+- `InventoryManager.toJSON()`/`fromJSON()` ([InventoryManager.js:3002](client/src/game/inventory/InventoryManager.js))
+  already serialize equipment slots + all containers (including nested
+  container grids) losslessly.
+- `InventoryManager.equipItem()` ([InventoryManager.js:464](client/src/game/inventory/InventoryManager.js))
+  is safe to run **headless** — its only `engine` coupling is guarded behind
+  `if (slot === 'armor' && engine.player)`. So the editor can drive a real,
+  throwaway `InventoryManager` as its authoring data model (not a bespoke
+  parallel format), guaranteeing the authored loadout is byte-compatible with
+  what the game deserializes at runtime.
+- `CharacterCreator.tsx` derives HP/AP from attributes via
+  `previewDerivedStats({ constitution, agility, perception })`
+  ([CharacterCreator.tsx:36](client/src/components/Game/CharacterCreator.tsx))
+  and emits `{ strength, agility, perception, constitution, name }` — exactly
+  the `customStats` shape. The editor's attribute panel reuses this same
+  helper so its live preview matches the actual in-game result.
+- Scenarios already flow into game start as `customConfig.scenarioData`
+  ([GameContext.jsx:1644](client/src/contexts/GameContext.jsx), consumed by
+  `GameInitializationManager`) — a `playerSpec` on that same object is a
+  natural, precedented extension point.
+
+### 12.2 Decisions (locked, per user's answers when this was scoped)
+
+1. **Bespoke tree-panel UI**, not a reuse of the in-game drag-and-drop
+   inventory components (those are tightly coupled to
+   GameContext/InventoryContext/`engine` singleton/turn-checks/sounds — too
+   risky to decouple for editor use). The bespoke panel is backed by a real
+   headless `InventoryManager`, so equip/nest/remove are the actual game
+   logic, just driven by editor UI instead of gameplay UI.
+2. **Override-when-present.** If a scenario's `playerSpec.enabled` is true,
+   game start skips the character creator AND the difficulty/easy-start
+   hardcoded equipment entirely — the authored player loads exactly as
+   specified. Scenarios with no spec (or `enabled: false`) keep today's
+   normal new-game flow unchanged.
+3. **Scope of editable fields for v1:** attributes (STR/AGI/PER/CON) with a
+   live HP/AP derived-stat preview identical to the character creator's,
+   plus the full equipment + nested-inventory loadout tree. (Skills/economy/
+   condition/name fields were discussed as options but attributes+HP/AP+
+   loadout is the confirmed v1 scope — extend later if needed.)
+
+### 12.3 Data model
+
+```ts
+interface PlayerSpec {
+  enabled: boolean;                 // editor toggle; false → normal new-game flow
+  name?: string;
+  attributes: { strength: number; agility: number; perception: number; constitution: number };
+  inventory: InventoryManagerJSON;  // exactly InventoryManager.toJSON() output — equipment + nested containers, no bespoke format
+}
+```
+Persisted on the scenario/editor-state the same way `questRegistry`/
+`entityRegistry` already are (both loader functions in `editor.tsx`, both
+save call sites, `exportScenario`). Rides on `scenarioData` only —
+`playerSpec` does **not** need to reach `gameMap.metadata`, since only
+`GameInitializationManager`'s one-time init step consumes it (unlike events/
+quests, which the runtime reads every turn).
+
+### 12.4 Implementation phases
+
+1. **Data model + persistence roundtrip (no UI).** New `PlayerSpec` type;
+   `playerSpec` state in `editor.tsx`; thread through `handleExport`/
+   `handleSaveEditor`/`scenarioToEditorState`/`saveGameMapToEditorState`
+   exactly like `questRegistry`.
+2. **Attribute panel.** "Edit Player" button → modal. STR/AGI/PER/CON
+   inputs; live-derived HP/AP + effect readouts via the shared
+   `previewDerivedStats`/`CombatResolver` helpers already used by
+   `CharacterCreator.tsx` (reuse, don't reimplement).
+3. **Loadout tree editor.** Equipment slots
+   (`backpack, upper_body, lower_body, melee, handgun, long_gun, flashlight,
+   belt, armor`) as item-def dropdowns filtered by `equippableSlot`; any
+   equipped item exposing a container grid (backpack/clothing pockets/belt)
+   expands into an add/remove **Contents** subtree, recursing for nested
+   containers. Every edit mutates a headless `new InventoryManager()` held in
+   a ref; `mgr.toJSON()` is what's stored in `playerSpec.inventory`; on open,
+   rehydrate via `InventoryManager.fromJSON`.
+4. **Runtime wiring (override-when-present).**
+   - `GameContext.jsx`'s `startNewGame`: if
+     `config.scenarioData.playerSpec?.enabled` and no explicit `customStats`
+     was already provided, derive `chosenStats` from the spec's
+     attributes+name and skip both the character-creator promise and the
+     difficulty/easy-start prompt.
+   - `GameInitializationManager.js`'s starting-equipment phase: if
+     `playerSpec.inventory` is present, hydrate the loadout via
+     `InventoryManager.fromJSON` and skip the hardcoded shirt/pants/backpack
+     block entirely. Needs care around exactly where the rehydrated manager
+     gets assigned relative to other `inventoryManager` references captured
+     earlier in init — resolve this during implementation, not blind-guess
+     it up front.
+5. **Verify.** Author a player (custom attributes + a backpack with nested
+   items), export, launch, confirm attributes/HP/AP and that the backpack
+   opens in-game with its nested contents intact. No live browser testing is
+   available in this environment (per standing project note) — verification
+   will be TS-check + targeted Node verify script + handoff to the user for
+   the in-app confirm, same pattern as every prior phase in this doc.
+
+### 12.5 Risks / open items to resolve during implementation
+
+- **Inventory hydration swap ordering** in `GameInitializationManager` (see
+  4 above) — confirm no stale `inventoryManager` reference survives the
+  rehydrate-and-assign.
+- **Item-def slot/container predicates** — confirm the exact `ItemDefs`
+  fields used to determine "equippable in slot X" and "has a container grid"
+  so the dropdown filtering is correct (not just inferred from the two
+  helper functions already in `InventoryManager.js`,
+  `hasItemsInside`/`isClothingOrBackpack`, which exist for a different
+  purpose but hint at the right predicates).
+- **Interaction with save/load** — this only affects *new-game* init; a
+  loaded save already restores inventory from its own save data, so
+  `playerSpec` has no runtime relevance post-start (no conflict to design
+  around).
 
 ---
 

@@ -16,6 +16,11 @@ export class QuestState extends SafeEventEmitter {
     this.vars = {};
     this.activeQuests = {}; // questId -> { questId, currentTaskIndex }
     this.completedQuests = []; // Array of questId strings
+    // defId -> running count of how many the player has consumed (eaten/drunk)
+    // over the whole game. Backs the 'itemConsumed' condition — a monotonic
+    // tally, not inventory count, so "consumed my last pulp" stays true even
+    // once none remain. Recorded by InventoryContext.consumeItem/drinkWater.
+    this.consumed = {};
   }
 
   getFlag(name) {
@@ -38,6 +43,17 @@ export class QuestState extends SafeEventEmitter {
 
   addVar(name, delta) {
     this.setVar(name, this.getVar(name) + (Number(delta) || 0));
+  }
+
+  getConsumed(defId) {
+    return this.consumed[defId] ?? 0;
+  }
+
+  /** Bump the lifetime consumption tally for `defId`. Emits so events/quests re-check. */
+  recordConsumed(defId, count = 1) {
+    if (!defId) return;
+    this.consumed[defId] = (this.consumed[defId] ?? 0) + (Number(count) || 0);
+    this.emit('questStateChanged', { kind: 'consumed', defId });
   }
 
   startQuest(questId) {
@@ -164,6 +180,7 @@ export class QuestState extends SafeEventEmitter {
     this.vars = {};
     this.activeQuests = {};
     this.completedQuests = [];
+    this.consumed = {};
     this.emit('questStateChanged', { kind: 'reset' });
   }
 
@@ -173,6 +190,7 @@ export class QuestState extends SafeEventEmitter {
       vars: { ...this.vars },
       activeQuests: { ...this.activeQuests },
       completedQuests: [...this.completedQuests],
+      consumed: { ...this.consumed },
     };
   }
 
@@ -181,6 +199,7 @@ export class QuestState extends SafeEventEmitter {
     this.vars = { ...(data?.vars || {}) };
     this.activeQuests = { ...(data?.activeQuests || {}) };
     this.completedQuests = [...(data?.completedQuests || [])];
+    this.consumed = { ...(data?.consumed || {}) };
   }
 }
 

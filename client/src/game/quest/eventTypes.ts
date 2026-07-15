@@ -1,7 +1,7 @@
 // Unified event model types for the map editor. Mirrors the plain-object shapes
 // produced/consumed by migrateEvents.js (see QUEST_SYSTEM_PLAN.md §4).
 
-export type ConditionKind = 'none' | 'itemEquipped' | 'itemInInventory' | 'flag' | 'var' | 'ap';
+export type ConditionKind = 'none' | 'itemEquipped' | 'itemInInventory' | 'itemConsumed' | 'flag' | 'var' | 'ap';
 export type CompareOp = '==' | '!=' | '>=' | '<=' | '>' | '<';
 
 export interface Condition {
@@ -29,7 +29,8 @@ export type StepType =
   | 'dialog' | 'speech' | 'give' | 'setFlag' | 'setVar'
   | 'lockMovement' | 'unlockMovement' | 'lockActions' | 'unlockActions'
   | 'wait' | 'chain'
-  | 'moveEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI';
+  | 'moveEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI'
+  | 'controlEntity';
 
 export interface EventStep {
   type: StepType;
@@ -67,6 +68,8 @@ export interface EventStep {
   taskIndex?: number;
   // setNpcAI (reuses entityTag above)
   enabled?: boolean;
+  // controlEntity (reuses entityTag above): open/close/lock/unlock a door or window
+  entityAction?: 'open' | 'close' | 'lock' | 'unlock';
 }
 
 export interface GameEvent {

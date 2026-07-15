@@ -762,7 +762,12 @@ export const InventoryProvider = ({ children }) => {
     
     // 1. Apply Effects
     applyConsumptionEffects(engine.player, item);
-    
+
+    // Record for the quest 'itemConsumed' condition (see QuestState.recordConsumed).
+    // Done before the notifyUpdate below so any auto event gated on it is eligible
+    // by the time the reactive re-check runs.
+    engine.questState?.recordConsumed(item.defId, 1);
+
     // 2. Handle Stacking (Phase 12 Stack Fix)
     if (item.hasTrait(ItemTrait.STACKABLE) && item.stackCount > 1) {
         item.stackCount -= 1;
@@ -852,7 +857,11 @@ export const InventoryProvider = ({ children }) => {
 
     // Apply Hydration
     player.modifyStat('hydration', unitsToDrink * hydrationPerUnit);
-    
+
+    // Record for the quest 'itemConsumed' condition, keyed by the water source's
+    // defId (bottle/puddle/etc), one per unit drunk (see QuestState.recordConsumed).
+    engine.questState?.recordConsumed(item.defId, unitsToDrink);
+
     // BUG FIX: Handle stacked containers correctly by splitting one off
     let itemToDrinkFrom = item;
     const isStacked = item.stackCount > 1;

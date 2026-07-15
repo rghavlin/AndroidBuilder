@@ -17,6 +17,7 @@ const CONDITION_KIND_OPTIONS: { id: ConditionKind; label: string }[] = [
   { id: 'none', label: 'No condition' },
   { id: 'itemEquipped', label: 'Player has item equipped' },
   { id: 'itemInInventory', label: 'Player has item in inventory' },
+  { id: 'itemConsumed', label: 'Player has consumed item' },
   { id: 'flag', label: 'Flag is' },
   { id: 'var', label: 'Variable' },
   { id: 'ap', label: 'Player AP' },
@@ -35,6 +36,7 @@ const STEP_TYPE_OPTIONS: { id: StepType; label: string }[] = [
   { id: 'chain', label: 'Chain to event' },
   { id: 'moveEntity', label: 'Move entity' },
   { id: 'setNpcAI', label: 'Enable/disable NPC AI' },
+  { id: 'controlEntity', label: 'Control door/window' },
   { id: 'startQuest', label: 'Start quest' },
   { id: 'setQuestTask', label: 'Set quest task' },
 ];
@@ -54,6 +56,7 @@ function emptyStep(type: StepType): EventStep {
     case 'chain': return { type, eventId: '' };
     case 'moveEntity': return { type, entityTag: '', targetX: undefined, targetY: undefined };
     case 'setNpcAI': return { type, entityTag: '', enabled: false };
+    case 'controlEntity': return { type, entityTag: '', entityAction: 'open' };
     case 'startQuest': return { type, questId: '' };
     case 'setQuestTask': return { type, questId: '', taskIndex: 0 };
     default: return { type };
@@ -82,7 +85,7 @@ function ConditionRow({
         value={cond.kind}
         onChange={e => {
           const kind = e.target.value as ConditionKind;
-          if (kind === 'itemEquipped' || kind === 'itemInInventory') onChange({ kind, defId: cond.defId || '', count: kind === 'itemInInventory' ? (cond.count || 1) : undefined });
+          if (kind === 'itemEquipped' || kind === 'itemInInventory' || kind === 'itemConsumed') onChange({ kind, defId: cond.defId || '', count: kind === 'itemEquipped' ? undefined : (cond.count || 1) });
           else if (kind === 'flag') onChange({ kind, flag: cond.flag || '', value: true });
           else if (kind === 'var') onChange({ kind, var: cond.var || '', op: '>=', value: 0 });
           else if (kind === 'ap') onChange({ kind, op: '<', value: 1 });
@@ -92,13 +95,13 @@ function ConditionRow({
         {CONDITION_KIND_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
       </select>
 
-      {(cond.kind === 'itemEquipped' || cond.kind === 'itemInInventory') && (
+      {(cond.kind === 'itemEquipped' || cond.kind === 'itemInInventory' || cond.kind === 'itemConsumed') && (
         <select style={{ ...inputStyle, flex: 1 }} value={cond.defId || ''} onChange={e => onChange({ ...cond, defId: e.target.value })}>
           <option value="">select item…</option>
           {itemOptions.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
         </select>
       )}
-      {cond.kind === 'itemInInventory' && (
+      {(cond.kind === 'itemInInventory' || cond.kind === 'itemConsumed') && (
         <input type="number" min={1} style={{ ...inputStyle, width: 56 }} value={cond.count ?? 1}
           onChange={e => onChange({ ...cond, count: Math.max(1, Number(e.target.value) || 1) })} />
       )}
@@ -300,13 +303,13 @@ function StepEditor({
   knownEventIds: string[];
   knownFlags: string[];
   knownVars: string[];
-  knownEntities: { tag: string; label: string }[];
+  knownEntities: { tag: string; label: string; type?: string }[];
   knownQuests: QuestDef[];
 }) {
   const badgeColors: Partial<Record<StepType, string>> = {
     dialog: '#1d4f8a', speech: '#1d4f8a', give: '#1d6b3a', setFlag: '#7a5a12', setVar: '#7a5a12',
     lockMovement: '#7a1e1e', unlockMovement: '#7a1e1e', lockActions: '#8a1e3a', unlockActions: '#8a1e3a', wait: '#444', chain: '#5a3a7a',
-    moveEntity: '#2b6b3a', setNpcAI: '#2b6b3a', startQuest: '#4a2582', setQuestTask: '#4a2582',
+    moveEntity: '#2b6b3a', setNpcAI: '#2b6b3a', controlEntity: '#2b6b3a', startQuest: '#4a2582', setQuestTask: '#4a2582',
   };
   const label = STEP_TYPE_OPTIONS.find(o => o.id === step.type)?.label || step.type;
 
@@ -471,6 +474,22 @@ function StepEditor({
         </div>
       )}
 
+      {step.type === 'controlEntity' && (
+        <div style={rowStyle}>
+          <span style={{ fontSize: 11, color: '#888' }}>Target:</span>
+          <select style={{ ...inputStyle, flex: 1 }} value={step.entityTag || ''} onChange={e => onChange({ ...step, entityTag: e.target.value })}>
+            <option value="">select door/window…</option>
+            {knownEntities.filter(ent => ent.type === 'door' || ent.type === 'window').map(ent => <option key={ent.tag} value={ent.tag}>{ent.label}</option>)}
+          </select>
+          <select style={{ ...inputStyle, width: 110 }} value={step.entityAction || 'open'} onChange={e => onChange({ ...step, entityAction: e.target.value as 'open' | 'close' | 'lock' | 'unlock' })}>
+            <option value="open">Open</option>
+            <option value="close">Close</option>
+            <option value="lock">Lock</option>
+            <option value="unlock">Unlock</option>
+          </select>
+        </div>
+      )}
+
       {step.type === 'startQuest' && (
         <div style={rowStyle}>
           <span style={{ fontSize: 11, color: '#888' }}>Quest:</span>
@@ -519,7 +538,7 @@ export interface EventWindowProps {
   knownEventIds: string[];
   knownFlags: string[];
   knownVars: string[];
-  knownEntities: { tag: string; label: string }[];
+  knownEntities: { tag: string; label: string; type?: string }[];
   knownQuests: QuestDef[];
 }
 

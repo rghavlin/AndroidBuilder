@@ -115,6 +115,21 @@ export class Window extends Entity {
     }
 
     /**
+     * Lock the window. Does not auto-close. Broken windows cannot be locked.
+     * Used by authored events (see EventRunner controlEntity).
+     */
+    lock() {
+        if (this.isBroken) return false;
+        if (!this.isLocked) {
+            this.isLocked = true;
+            this.emitEvent('windowLocked');
+            this.updateBlocking();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Unlock the window
      */
     unlock() {

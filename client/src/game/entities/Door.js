@@ -128,6 +128,20 @@ export class Door extends Entity {
     }
 
     /**
+     * Lock the door. Does not auto-close — a locked-open door simply can't be
+     * re-opened once closed. Used by authored events (see EventRunner controlEntity).
+     */
+    lock() {
+        if (!this.isLocked) {
+            this.isLocked = true;
+            this.emitEvent('doorLocked');
+            this.updateBlocking();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Unlock the door
      */
     unlock() {

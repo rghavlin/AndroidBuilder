@@ -29,6 +29,10 @@ export function evalCondition(cond, ctx) {
       return !!inv && inv.isItemEquipped(cond.defId);
     case 'itemInInventory':
       return !!inv && inv.hasItemByDefId(cond.defId, cond.count ?? 1);
+    case 'itemConsumed':
+      // Lifetime tally (see QuestState.recordConsumed), not current inventory —
+      // stays true after the consumed item is gone.
+      return !!qs && qs.getConsumed(cond.defId) >= (cond.count ?? 1);
     case 'flag':
       return !!qs && qs.getFlag(cond.flag) === !!cond.value;
     case 'var':

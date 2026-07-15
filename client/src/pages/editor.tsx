@@ -868,7 +868,7 @@ export default function MapEditor() {
   }, []);
 
   const knownEntities = useMemo(() => {
-    const list: { tag: string; label: string }[] = [{ tag: 'player', label: 'Player' }];
+    const list: { tag: string; label: string; type?: string }[] = [{ tag: 'player', label: 'Player', type: 'player' }];
     
     // Auto-register NPCs with non-empty names
     for (let y = 0; y < height; y++) {
@@ -879,7 +879,7 @@ export default function MapEditor() {
             if (ent.type === 'npc' && ent.name?.trim()) {
               const name = ent.name.trim();
               if (!list.some(e => e.tag === name)) {
-                list.push({ tag: name, label: `NPC: ${name} (at ${x},${y})` });
+                list.push({ tag: name, label: `NPC: ${name} (at ${x},${y})`, type: 'npc' });
               }
             }
           }
@@ -892,7 +892,8 @@ export default function MapEditor() {
       if (!list.some(e => e.tag === entry.tag)) {
         list.push({
           tag: entry.tag,
-          label: `${entry.type.charAt(0).toUpperCase() + entry.type.slice(1)}: ${entry.tag} (at ${entry.x},${entry.y})`
+          label: `${entry.type.charAt(0).toUpperCase() + entry.type.slice(1)}: ${entry.tag} (at ${entry.x},${entry.y})`,
+          type: entry.type
         });
       }
     }

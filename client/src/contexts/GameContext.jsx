@@ -1971,6 +1971,7 @@ const GameContextInner = ({ children }) => {
     setIsProcessingTurn(false);
     setContextSyncPhase('idle');
     setIsSkillsOpen(false);
+    setIsJournalOpen(false);
     setActiveNpcDemand(null);
     eventRunner.reset();
     setShowDifficultySelect(false);

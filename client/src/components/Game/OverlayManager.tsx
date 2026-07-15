@@ -50,6 +50,7 @@ export default function OverlayManager() {
     isSkillsOpen,
     toggleSkills,
     isJournalOpen,
+    toggleJournal,
     closeJournalAndOpenSkills,
     initializeGame,
     enableAutosave,
@@ -152,7 +153,7 @@ export default function OverlayManager() {
                   top: 'var(--header-height, 80px)',
                   bottom: 'var(--controls-height, 82px)'
                 }}
-                onClick={closeJournalAndOpenSkills}
+                onClick={toggleJournal}
               />
               <GridSizeProvider>
                 <div
@@ -164,7 +165,7 @@ export default function OverlayManager() {
                   data-testid="player-journal-window"
                   data-inventory-ui="true"
                 >
-                  <JournalUI onClose={closeJournalAndOpenSkills} />
+                  <JournalUI onClose={toggleJournal} />
                 </div>
               </GridSizeProvider>
             </div>

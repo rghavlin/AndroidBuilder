@@ -552,6 +552,28 @@ class EventRunner {
         return;
       }
 
+      case 'controlEntity': {
+        // Open/close/lock/unlock a registered door or window. Open is "forced":
+        // it unlocks first so an authored event reliably opens even a locked
+        // target (lock/unlock/close stay explicit, independent actions).
+        const ent = this._resolveEntity(step.entityTag);
+        if (!ent) {
+          log.warn(`[EventRunner] controlEntity: no entity for tag "${step.entityTag}"`);
+        } else {
+          switch (step.entityAction) {
+            case 'open':   if (ent.isLocked) ent.unlock?.(); ent.open?.(); break;
+            case 'close':  ent.close?.(engine.gameMap); break;
+            case 'lock':   ent.lock?.(); break;
+            case 'unlock': ent.unlock?.(); break;
+            default: log.warn(`[EventRunner] controlEntity: unknown action "${step.entityAction}"`);
+          }
+          engine.notifyUpdate();
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+      }
+
       default:
         log.warn(`Unsupported step type "${step.type}" — skipping. (Conditional branch is deferred; see QUEST_SYSTEM_PLAN.md §10.)`);
         this.activeRun.stepIndex++;

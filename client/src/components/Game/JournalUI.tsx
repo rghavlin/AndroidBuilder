@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import engine from '@/game/GameEngine';
-import { BookOpen, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Circle } from 'lucide-react';
+import { BookOpen, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Circle, X } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export const JournalUI = ({ onClose }: { onClose: () => void }) => {
@@ -45,9 +45,10 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
         </div>
         <button
           onClick={onClose}
-          className="text-xs px-2.5 py-1 rounded bg-secondary/40 border border-primary/20 font-mono font-bold text-primary hover:bg-primary/15 transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-md bg-secondary/40 border border-primary/20 hover:bg-primary/15 transition-colors"
+          title="Close Journal"
         >
-          Back to Stats
+          <X className="w-4 h-4 text-primary" />
         </button>
       </div>
 
@@ -57,7 +58,6 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
             <AlertCircle className="w-8 h-8 text-muted-foreground/50 mb-2" />
             <p className="text-sm font-semibold text-foreground/80">No Quests Active</p>
-            <p className="text-xs text-muted-foreground/75 mt-1">Explore the map and talk to NPCs to find objectives.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
