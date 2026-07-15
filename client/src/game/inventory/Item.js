@@ -73,7 +73,8 @@ export class Item extends SafeEventEmitter {
       earbucksValue = undefined,
       transitionTargetId = undefined,
       transitionTargetX = undefined,
-      transitionTargetY = undefined
+      transitionTargetY = undefined,
+      eventId = undefined
     } = config;
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -166,6 +167,9 @@ export class Item extends SafeEventEmitter {
     this.transitionTargetId = transitionTargetId;
     this.transitionTargetX = transitionTargetX;
     this.transitionTargetY = transitionTargetY;
+    // Authored event id this item fires when clicked in the ground container
+    // (placeable.help "?" tutorial item — see UniversalGrid/GameContext.fireHelpEvent).
+    this.eventId = eventId;
 
     // Container properties (single container for backpacks, etc.)
     this._containerGridData = _containerGridData || containerGrid;
@@ -1622,7 +1626,7 @@ export class Item extends SafeEventEmitter {
     'backgroundColor', 'borderColor', 'isOn', 'providesElectricity', 'fireMode',
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
     'zombieSubtype', 'earbucksValue', 'brainstemColors',
-    'transitionTargetId', 'transitionTargetX', 'transitionTargetY'
+    'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId'
   ];
 
   // Serialization

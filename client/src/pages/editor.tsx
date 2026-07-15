@@ -127,7 +127,7 @@ interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
   entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean; typeId?: string; name?: string; isHostile?: boolean; iconId?: string }[];
-  items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number }[];
+  items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number; eventId?: string }[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean; grants?: ItemGrant[]; next?: string };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
   placeIcon?: string;
@@ -233,6 +233,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
               if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
               if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
               if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+              if (it.eventId !== undefined) entry.eventId = it.eventId;
               if (it.condition !== undefined) entry.condition = it.condition;
               if (it.attachments) {
                 const itItemDef = (ItemDefs as any)[entry.defId];
@@ -431,6 +432,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
             if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
             if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
             if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+            if (it.eventId !== undefined) entry.eventId = it.eventId;
             if (it.condition !== undefined) entry.condition = it.condition;
             if (it.attachments) {
               const itItemDef = (ItemDefs as any)[entry.defId];
@@ -586,6 +588,7 @@ function exportScenario(scenario: ScenarioData) {
           if (full && item.transitionTargetId !== undefined) full.transitionTargetId = item.transitionTargetId;
           if (full && item.transitionTargetX !== undefined) full.transitionTargetX = item.transitionTargetX;
           if (full && item.transitionTargetY !== undefined) full.transitionTargetY = item.transitionTargetY;
+          if (full && item.eventId !== undefined) full.eventId = item.eventId;
           if (full && item.batteryCharges !== undefined) {
             const slotInfo = getBatterySlotInfo((ItemDefs as any)[item.defId]);
             if (slotInfo) {
@@ -1174,6 +1177,8 @@ export default function MapEditor() {
   const [transitionLevel, setTransitionLevel] = useState(1);
   const [transitionTargetX, setTransitionTargetX] = useState<number | ''>('');
   const [transitionTargetY, setTransitionTargetY] = useState<number | ''>('');
+  // Authored event fired when the placed "?" help item is clicked in-game.
+  const [helpEventId, setHelpEventId] = useState('');
   const [availableScenarios, setAvailableScenarios] = useState<{ name: string; width: number; height: number; fileName?: string }[]>([]);
   const [exitImage, setExitImage] = useState<HTMLImageElement | null>(null);
   // Full entity-art catalog (every image file in images/entities/), read live
@@ -1211,10 +1216,17 @@ export default function MapEditor() {
 
   // Build categorized item catalog from ItemDefs
   const allItems = useMemo(() => {
+    // Editor-only display names for items whose in-game name is too terse to
+    // find in the alphabetical palette (e.g. the help item's name is literally
+    // "?", which sorts above everything and reads as nothing). The underlying
+    // def name is unchanged — this only relabels the palette entry.
+    const EDITOR_LABELS: Record<string, string> = {
+      'placeable.help': 'Help Trigger (?)',
+    };
     return Object.entries(ItemDefs as Record<string, any>)
       .map(([id, def]) => ({
         id,
-        name: def.name || id,
+        name: EDITOR_LABELS[id] || def.name || id,
         w: def.width || 1,
         h: def.height || 1,
         categories: (def.categories || []) as string[],
@@ -1392,7 +1404,7 @@ export default function MapEditor() {
           break;
         case 'item':
           if (selectedItem) {
-            const itemEntry: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number } = { defId: selectedItem };
+            const itemEntry: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number; eventId?: string } = { defId: selectedItem };
             if (waterFill !== '') itemEntry.ammoCount = waterFill as number;
             if (conditionVal !== '') itemEntry.condition = conditionVal as number;
             if (batteryCharges !== '') itemEntry.batteryCharges = batteryCharges as number;
@@ -1403,6 +1415,7 @@ export default function MapEditor() {
               if (transitionTargetX !== '') itemEntry.transitionTargetX = transitionTargetX as number;
               if (transitionTargetY !== '') itemEntry.transitionTargetY = transitionTargetY as number;
             }
+            if (selectedItem === 'placeable.help' && helpEventId) itemEntry.eventId = helpEventId;
             if (gunMagDefId) itemEntry.gunMagDefId = gunMagDefId;
             if (Object.keys(gunAttachments).some(k => gunAttachments[k])) itemEntry.gunAttachments = { ...gunAttachments };
             tile.items.push(itemEntry);
@@ -1465,7 +1478,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, npcAiDisabled, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, npcAiDisabled, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
@@ -2056,6 +2069,7 @@ export default function MapEditor() {
     if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
     if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
     if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+    if (it.eventId !== undefined) entry.eventId = it.eventId;
     if (it.condition !== undefined) entry.condition = it.condition;
     if (it.attachments) {
       const itItemDef = (ItemDefs as any)[entry.defId];
@@ -2790,7 +2804,33 @@ export default function MapEditor() {
                 </div>
               </div>
             )}
-            
+
+            {selectedItem === 'placeable.help' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Help Item Event</label>
+                <div style={{ fontSize: 10, color: '#888' }}>
+                  Fired when the player clicks this "?" item in their ground container.
+                  Author the event (dialog text / video) in the Event tool first — use a
+                  chain-only event so it doesn't auto-fire on step.
+                </div>
+                <select
+                  value={helpEventId}
+                  onChange={e => setHelpEventId(e.target.value)}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  <option value="">— Select event —</option>
+                  {allEditorEvents.map(ev => (
+                    <option key={ev.id} value={ev.id}>{ev.id}</option>
+                  ))}
+                </select>
+                {helpEventId && !allEditorEvents.some(ev => ev.id === helpEventId) && (
+                  <div style={{ fontSize: 10, color: '#e0a030' }}>
+                    ⚠ "{helpEventId}" isn't in this map's events — it won't fire until an event with that id exists.
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         )}
         {tool === 'event_editor' && (
@@ -3875,6 +3915,7 @@ export default function MapEditor() {
                           {slotInfo && item.batteryCharges !== undefined ? ` · ${item.batteryCharges}/${slotInfo.capacity} chg` : ''}
                           {gunAmmoLabel}
                           {(item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up') && item.transitionTargetId ? ` · ➡ ${item.transitionTargetId} (${item.transitionTargetX ?? '?'},${item.transitionTargetY ?? '?'})` : ''}
+                          {item.defId === 'placeable.help' ? (item.eventId ? ` · ▶ ${item.eventId}` : ' · ▶ (no event)') : ''}
                         </span>
                         <div style={{ display: 'flex', gap: 4 }}>
                           {(item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up') && (

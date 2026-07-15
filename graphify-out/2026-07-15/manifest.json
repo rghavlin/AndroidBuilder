@@ -1425,8 +1425,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784111647.0255005,
-    "ast_hash": "324d0587f6afe421c96498675ffb217e",
+    "mtime": 1784111239.9636772,
+    "ast_hash": "e0155af17d1f3aa359e31c0f316b0bc9",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {

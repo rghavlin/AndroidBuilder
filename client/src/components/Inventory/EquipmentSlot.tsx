@@ -125,7 +125,7 @@ const EquipmentSlot = memo(({
                   style={{
                     filter: !hasItem 
                       ? (theme === 'light2' ? "invert(0.6)" : theme === 'light' ? "invert(1)" : "none")
-                      : (!item?.backgroundColor ? (theme === 'light2' ? "invert(0.75)" : theme === 'light' ? "invert(1) contrast(300%)" : "brightness(2) contrast(300%)") : undefined)
+                      : (theme === 'light2' ? "invert(0.75)" : theme === 'light' ? "invert(1) contrast(300%)" : (!item?.backgroundColor ? "brightness(2) contrast(300%)" : undefined))
                   }}
                 />
               </div>

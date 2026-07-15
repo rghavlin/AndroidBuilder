@@ -101,8 +101,8 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                             onClick={() => setSelectedCharId(char.id)}
                                             className={`p-3.5 rounded-lg border transition-all duration-300 cursor-pointer flex flex-col justify-between ${
                                                 isSelected 
-                                                    ? 'bg-primary/10 border-primary/60 shadow-[0_0_12px_rgba(249,115,22,0.15)]' 
-                                                    : 'bg-card/40 border-border/40 hover:border-primary/30 hover:bg-card/60'
+                                                    ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(34,197,94,0.3)] translate-x-1.5' 
+                                                    : 'bg-card/40 border-border/40 hover:border-primary/30 hover:bg-card/60 hover:translate-x-0.5'
                                             }`}
                                         >
                                             <div className="flex justify-between items-start mb-2">
@@ -110,9 +110,9 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                                     <span className={`font-mono text-base font-black tracking-wide ${isSelected ? 'text-primary' : 'text-foreground'}`}>
                                                         {char.name}
                                                     </span>
-                                                    {char.isInfected && (
-                                                         <span className="inline-flex items-center gap-1 text-[10px] text-destructive font-bold uppercase tracking-wider bg-destructive/10 border border-destructive/20 px-1.5 py-0.5 rounded w-fit">
-                                                             <AlertTriangle className="w-2.5 h-2.5" />
+                                                     {char.isInfected && (
+                                                         <span className="inline-flex items-center gap-1 text-[10px] text-red-400 font-bold uppercase tracking-wider bg-red-950/40 border border-red-500/20 px-1.5 py-0.5 rounded w-fit">
+                                                             <AlertTriangle className="w-2.5 h-2.5 text-red-500" />
                                                              Infected
                                                          </span>
                                                      )}
@@ -165,12 +165,12 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
 
                                     <div>
                                         <span className="text-[10px] uppercase text-muted-foreground block">Infection Status</span>
-                                        {selectedChar.isInfected ? (
-                                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-destructive bg-destructive/15 border border-destructive/30 px-2 py-1 rounded mt-1 select-none animate-pulse">
-                                                 <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />
-                                                 VIRAL INFECTION (Lethal)
-                                             </span>
-                                        ) : (
+                                         {selectedChar.isInfected ? (
+                                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-400 bg-red-950/40 border border-red-500/30 px-2 py-1 rounded mt-1 select-none animate-pulse">
+                                                  <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                                  VIRAL INFECTION (Lethal)
+                                              </span>
+                                         ) : (
                                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-950/20 border border-emerald-500/10 px-2 py-1 rounded mt-1 select-none">
                                                 Healthy
                                             </span>

@@ -13,7 +13,6 @@ import FloatingContainer from '../Inventory/FloatingContainer';
 import ContainerGrid from '../Inventory/ContainerGrid';
 import { Menu, Hammer } from "lucide-react";
 import MainMenuWindow from './MainMenuWindow';
-import { getScaleFactor } from '../../hooks/useWindowSize';
 import { ActionSlotButton } from './ActionSlotButton';
 
 import { imageLoader } from '../../game/utils/ImageLoader';
@@ -548,7 +547,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       {/* Map Display Area */}
       <div
         ref={mapAreaRef}
-        className="flex-1 relative overflow-hidden min-h-0"
+        className="flex-1 relative overflow-hidden min-h-0 isolate"
         style={{ padding: 0, margin: 0 }}
         onClick={handleMapAreaClick}
       >
@@ -1536,23 +1535,13 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   
   if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible && !isRabbitVisible) return null;
 
-  // Calculate absolute screen position by adding container offset
-  let x = screenPos.x * tileSize;
-  let y = screenPos.y * tileSize;
+  // Position in the map container's own (unscaled) coordinate space. The tooltip
+  // is portaled into the map area itself (below) so it is clipped to the map
+  // viewport and cannot bleed over the inventory panel or floating containers.
+  const x = screenPos.x * tileSize;
+  const y = screenPos.y * tileSize;
 
-  if (containerRef.current) {
-    const rect = containerRef.current.getBoundingClientRect();
-    const root = document.getElementById('root');
-    const rootRect = root ? root.getBoundingClientRect() : { left: 0, top: 0 };
-    const scale = getScaleFactor();
-    // Offset relative to the unscaled root/viewport space
-    const layoutLeft = (rect.left - rootRect.left) / scale;
-    const layoutTop = (rect.top - rootRect.top) / scale;
-    x += layoutLeft;
-    y += layoutTop;
-  }
-
-  const tooltipRoot = document.getElementById('tooltip-root');
+  const tooltipRoot = containerRef.current;
   if (!tooltipRoot) return null;
 
   return createPortal(

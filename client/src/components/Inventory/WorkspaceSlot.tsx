@@ -135,7 +135,7 @@ const WorkspaceSlot = memo(({
                                         !item?.backgroundColor && (isLight ? "mix-blend-multiply" : "mix-blend-screen")
                                     )} 
                                      style={{
-                                         filter: (theme === 'light2' && !item?.backgroundColor) ? 'invert(0.75)' : (theme === 'light' && !item?.backgroundColor) ? 'invert(1)' : undefined
+                                         filter: theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
                                      }}
                                 />
                             ) : (

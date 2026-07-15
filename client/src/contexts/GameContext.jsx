@@ -1122,6 +1122,28 @@ const GameContextInner = ({ children }) => {
     eventRunner.runEvent({ ...event, steps: dialogSteps }, { ignoreOnce: true });
   }, []);
 
+  // Fire the event a placed help item ("?") explicitly references by id (see
+  // its editor "Help Item Event" picker → Item.eventId). Like
+  // fireDialogAtPlayerTile, this replays only the event's dialog steps (text +
+  // video) with ignoreOnce so the player can re-open the tutorial at will
+  // without re-running one-shot give/setFlag steps. Unlike that helper it
+  // resolves the event by id rather than by the player's tile, so the item and
+  // the (typically chain-only, non-auto-firing) event needn't share a tile.
+  const fireHelpEvent = useCallback((eventId) => {
+    if (!eventId) return;
+    const gameMap = engine.gameMap;
+    if (!gameMap) return;
+    const events = resolveMapEvents(gameMap.metadata);
+    const event = events.find(e => e?.id === eventId);
+    if (!event) {
+      console.warn(`[GameContext] Help item references unknown event id "${eventId}"`);
+      return;
+    }
+    const dialogSteps = (event.steps || []).filter(s => s.type === 'dialog');
+    if (dialogSteps.length === 0) return;
+    eventRunner.runEvent({ ...event, steps: dialogSteps }, { ignoreOnce: true });
+  }, []);
+
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
     if (!player || !inventoryManager) return;
 
@@ -2076,6 +2098,7 @@ const GameContextInner = ({ children }) => {
     activeDialog,
     handleDialogDismiss,
     fireDialogAtPlayerTile,
+    fireHelpEvent,
     enableAutosave: () => { noAutosaveRef.current = false; },
   }), [
     isInitialized,
@@ -2133,7 +2156,8 @@ const GameContextInner = ({ children }) => {
     isProcessingTurn,
     activeDialog,
     handleDialogDismiss,
-    fireDialogAtPlayerTile
+    fireDialogAtPlayerTile,
+    fireHelpEvent
   ]);
 
   return (

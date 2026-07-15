@@ -101,7 +101,7 @@ export default function UniversalGrid({
   const { playSound } = useAudio();
   const { addLog } = useLog();
   const { setMapTransition } = useGameMap();
-  const { fireDialogAtPlayerTile, isModalBlocking } = useGame();
+  const { fireDialogAtPlayerTile, fireHelpEvent, isModalBlocking } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, { src: string, imageId: string }>>(new Map());
   const itemImagesRef = useRef<Map<string, { src: string, imageId: string }>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -380,9 +380,13 @@ export default function UniversalGrid({
       }
     }
 
-    // Intercept clicks on the help item to replay the tile's tutorial dialog
+    // Intercept clicks on the help item to run its tutorial dialog. A help item
+    // authored in the map editor carries an explicit eventId (the "Help Item
+    // Event" picker); fire that. Fall back to the legacy tile-position lookup
+    // for older help items placed without an explicit event reference.
     if (item && item.defId === 'placeable.help') {
-      fireDialogAtPlayerTile?.();
+      if (item.eventId) fireHelpEvent?.(item.eventId);
+      else fireDialogAtPlayerTile?.();
       return;
     }
 
@@ -789,7 +793,7 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile, isModalBlocking]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile, fireHelpEvent, isModalBlocking]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     if (isModalBlocking) return;
@@ -1139,7 +1143,7 @@ export default function UniversalGrid({
                     objectFit: 'cover',
                     transform: transformStyle,
                     transformOrigin: 'top left',
-                    filter: (themeRef.current === 'light2' && !item.backgroundColor) ? 'invert(0.75)' : (themeRef.current === 'light' && !item.backgroundColor) ? 'invert(1)' : undefined,
+                    filter: themeRef.current === 'light2' ? 'invert(0.75)' : themeRef.current === 'light' ? 'invert(1)' : undefined,
                   }}
                   alt={item.name}
                 />

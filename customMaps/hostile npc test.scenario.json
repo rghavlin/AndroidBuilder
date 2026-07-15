@@ -1,5 +1,5 @@
 {
-  "name": "event3",
+  "name": "hostile npc test",
   "width": 20,
   "height": 20,
   "noAutosave": true,
@@ -1944,7 +1944,7 @@
       {
         "x": 0,
         "y": 8,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1956,7 +1956,7 @@
       {
         "x": 1,
         "y": 8,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1968,7 +1968,7 @@
       {
         "x": 2,
         "y": 8,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1980,7 +1980,7 @@
       {
         "x": 3,
         "y": 8,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1992,7 +1992,7 @@
       {
         "x": 4,
         "y": 8,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2004,21 +2004,21 @@
       {
         "x": 5,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2028,9 +2028,9 @@
       {
         "x": 7,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2040,9 +2040,9 @@
       {
         "x": 8,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2052,9 +2052,9 @@
       {
         "x": 9,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2064,9 +2064,9 @@
       {
         "x": 10,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2076,9 +2076,9 @@
       {
         "x": 11,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2088,9 +2088,9 @@
       {
         "x": 12,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2100,10 +2100,10 @@
       {
         "x": 13,
         "y": 8,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
-          "e": true,
+          "n": false,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -2186,7 +2186,7 @@
       {
         "x": 0,
         "y": 9,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2246,19 +2246,19 @@
       {
         "x": 5,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2270,7 +2270,7 @@
       {
         "x": 7,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2282,7 +2282,7 @@
       {
         "x": 8,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2294,7 +2294,7 @@
       {
         "x": 9,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2306,7 +2306,7 @@
       {
         "x": 10,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2318,7 +2318,7 @@
       {
         "x": 11,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2330,7 +2330,7 @@
       {
         "x": 12,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2342,10 +2342,10 @@
       {
         "x": 13,
         "y": 9,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -2428,7 +2428,7 @@
       {
         "x": 0,
         "y": 10,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2488,19 +2488,19 @@
       {
         "x": 5,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2512,7 +2512,7 @@
       {
         "x": 7,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2524,7 +2524,7 @@
       {
         "x": 8,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2536,7 +2536,7 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2548,7 +2548,7 @@
       {
         "x": 10,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2560,7 +2560,7 @@
       {
         "x": 11,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2572,7 +2572,7 @@
       {
         "x": 12,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2584,10 +2584,10 @@
       {
         "x": 13,
         "y": 10,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -2670,7 +2670,7 @@
       {
         "x": 0,
         "y": 11,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2730,19 +2730,19 @@
       {
         "x": 5,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2754,7 +2754,7 @@
       {
         "x": 7,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2766,7 +2766,7 @@
       {
         "x": 8,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2778,7 +2778,7 @@
       {
         "x": 9,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2790,7 +2790,7 @@
       {
         "x": 10,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2802,7 +2802,7 @@
       {
         "x": 11,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2814,7 +2814,7 @@
       {
         "x": 12,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2826,10 +2826,10 @@
       {
         "x": 13,
         "y": 11,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -2912,7 +2912,7 @@
       {
         "x": 0,
         "y": 12,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2972,19 +2972,19 @@
       {
         "x": 5,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2996,7 +2996,7 @@
       {
         "x": 7,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3008,7 +3008,7 @@
       {
         "x": 8,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3020,37 +3020,19 @@
       {
         "x": 9,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "placeable.help-1784112127592-dxj2k",
-            "defId": "placeable.help",
-            "id": "placeable.help",
-            "name": "?",
-            "rarity": "common",
-            "imageId": "help",
-            "width": 1,
-            "height": 1,
-            "noDrag": true,
-            "traits": [
-              "groundOnly"
-            ],
-            "noLoot": true,
-            "eventId": "helpTest"
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3062,7 +3044,7 @@
       {
         "x": 11,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3074,7 +3056,7 @@
       {
         "x": 12,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3086,10 +3068,10 @@
       {
         "x": 13,
         "y": 12,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3172,7 +3154,7 @@
       {
         "x": 0,
         "y": 13,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3232,19 +3214,19 @@
       {
         "x": 5,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3256,7 +3238,7 @@
       {
         "x": 7,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3268,7 +3250,7 @@
       {
         "x": 8,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3280,7 +3262,7 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3292,7 +3274,7 @@
       {
         "x": 10,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3304,7 +3286,7 @@
       {
         "x": 11,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3316,7 +3298,7 @@
       {
         "x": 12,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3328,10 +3310,10 @@
       {
         "x": 13,
         "y": 13,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3414,7 +3396,7 @@
       {
         "x": 0,
         "y": 14,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3474,19 +3456,19 @@
       {
         "x": 5,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3498,7 +3480,7 @@
       {
         "x": 7,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3510,7 +3492,7 @@
       {
         "x": 8,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3522,7 +3504,7 @@
       {
         "x": 9,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3534,7 +3516,7 @@
       {
         "x": 10,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3546,7 +3528,7 @@
       {
         "x": 11,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3558,7 +3540,7 @@
       {
         "x": 12,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3570,10 +3552,10 @@
       {
         "x": 13,
         "y": 14,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3656,7 +3638,7 @@
       {
         "x": 0,
         "y": 15,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3716,19 +3698,19 @@
       {
         "x": 5,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3740,7 +3722,7 @@
       {
         "x": 7,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3752,7 +3734,7 @@
       {
         "x": 8,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3764,7 +3746,7 @@
       {
         "x": 9,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3776,7 +3758,7 @@
       {
         "x": 10,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3788,7 +3770,7 @@
       {
         "x": 11,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3800,7 +3782,7 @@
       {
         "x": 12,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3812,10 +3794,10 @@
       {
         "x": 13,
         "y": 15,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3898,7 +3880,7 @@
       {
         "x": 0,
         "y": 16,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3910,7 +3892,7 @@
       {
         "x": 1,
         "y": 16,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3922,7 +3904,7 @@
       {
         "x": 2,
         "y": 16,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3934,7 +3916,7 @@
       {
         "x": 3,
         "y": 16,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3946,7 +3928,7 @@
       {
         "x": 4,
         "y": 16,
-        "terrain": "fence",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3958,23 +3940,23 @@
       {
         "x": 5,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
-          "w": true
+          "s": false,
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3982,11 +3964,11 @@
       {
         "x": 7,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3994,11 +3976,11 @@
       {
         "x": 8,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4006,11 +3988,11 @@
       {
         "x": 9,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4018,11 +4000,11 @@
       {
         "x": 10,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4030,11 +4012,11 @@
       {
         "x": 11,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4042,11 +4024,11 @@
       {
         "x": 12,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4054,11 +4036,11 @@
       {
         "x": 13,
         "y": 16,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
-          "s": true,
+          "e": false,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -4864,39 +4846,16 @@
     ]
   ],
   "metadata": {
-    "buildings": [
-      {
-        "type": "residential",
-        "x": 5,
-        "y": 8,
-        "width": 9,
-        "height": 9
-      }
-    ],
+    "buildings": [],
     "specialBuildings": [],
-    "doors": [
-      {
-        "x": 5,
-        "y": 12,
-        "isLocked": false,
-        "isOpen": false,
-        "edge": "w"
-      },
-      {
-        "x": 13,
-        "y": 12,
-        "isLocked": false,
-        "isOpen": false,
-        "edge": "e"
-      }
-    ],
+    "doors": [],
     "windows": [],
     "placeIcons": [],
     "spawnZones": {
       "playerStart": [
         {
-          "x": 14,
-          "y": 12
+          "x": 9,
+          "y": 10
         }
       ]
     }
@@ -4905,501 +4864,18 @@
     {
       "type": "npc",
       "x": 9,
-      "y": 10,
+      "y": 8,
       "subtype": null,
       "typeId": "survivor",
-      "name": "doc",
-      "iconId": "disabled"
-    },
-    {
-      "type": "zombie",
-      "x": 2,
-      "y": 12,
-      "subtype": "basic",
-      "noLoot": true,
-      "deaf": true
-    },
-    {
-      "type": "npc",
-      "x": 13,
-      "y": 12,
-      "subtype": null,
-      "typeId": "survivor",
-      "name": "sis"
+      "isHostile": true
     },
     {
       "type": "player",
-      "x": 14,
-      "y": 12,
+      "x": 9,
+      "y": 10,
       "subtype": null
     }
   ],
-  "eventTriggers": [
-    {
-      "x": 9,
-      "y": 10,
-      "id": "brainquest",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Go out the back door and kill the zombie."
-        }
-      ],
-      "oneShot": true,
-      "grants": [
-        {
-          "defId": "weapon.knife",
-          "count": 1,
-          "x": 9,
-          "y": 11
-        }
-      ]
-    },
-    {
-      "x": 5,
-      "y": 12,
-      "id": "catchyourbreath",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "End your turn before going outside to regain Action Points"
-        }
-      ],
-      "oneShot": true
-    },
-    {
-      "chainOnly": true,
-      "id": "intro",
-      "steps": [],
-      "oneShot": true
-    },
-    {
-      "chainOnly": true,
-      "id": "helpTest",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "help test"
-        }
-      ],
-      "oneShot": true
-    }
-  ],
-  "mapTransitions": [],
-  "bubbleEvents": [
-    {
-      "id": "sisblock",
-      "oneShot": true,
-      "trigger": {
-        "type": "tile",
-        "x": 12,
-        "y": 12
-      },
-      "lines": [
-        {
-          "x": 13,
-          "y": 12,
-          "speaker": "sis",
-          "text": "get the brainstem"
-        }
-      ]
-    },
-    {
-      "id": "sismove",
-      "oneShot": true,
-      "trigger": {
-        "type": "tile",
-        "x": 12,
-        "y": 12
-      },
-      "lines": [
-        {
-          "x": 13,
-          "y": 12,
-          "speaker": "sis",
-          "text": "u did it"
-        }
-      ]
-    }
-  ],
-  "events": [
-    {
-      "id": "sisblock",
-      "placement": {
-        "kind": "tile",
-        "x": 12,
-        "y": 12
-      },
-      "trigger": "onEnter",
-      "preconditions": [
-        {
-          "kind": "flag",
-          "flag": "Knife quest complete",
-          "value": false
-        }
-      ],
-      "repeat": "whileConditions",
-      "steps": [
-        {
-          "type": "speech",
-          "text": "get the brainstem",
-          "speaker": "sis",
-          "anchorX": 13,
-          "anchorY": 12
-        }
-      ]
-    },
-    {
-      "id": "catchyourbreath",
-      "placement": {
-        "kind": "tile",
-        "x": 5,
-        "y": 12
-      },
-      "trigger": "onEnter",
-      "preconditions": [
-        {
-          "kind": "ap",
-          "op": "<",
-          "value": 12
-        }
-      ],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "speech",
-          "text": "I better catch my breath",
-          "anchorX": 5,
-          "anchorY": 12
-        },
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "End your turn before going outside to regain Action Points"
-        },
-        {
-          "type": "lockActions",
-          "until": [
-            {
-              "kind": "ap",
-              "op": ">",
-              "value": 14
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "sismove",
-      "placement": {
-        "kind": "tile",
-        "x": 12,
-        "y": 12
-      },
-      "trigger": "onEnter",
-      "preconditions": [
-        {
-          "kind": "itemConsumed",
-          "defId": "zombie.brainpulp",
-          "count": 1
-        }
-      ],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "speech",
-          "text": "u did it",
-          "speaker": "sis",
-          "anchorX": 13,
-          "anchorY": 12
-        },
-        {
-          "type": "moveEntity",
-          "entityTag": "sis",
-          "targetX": 13,
-          "targetY": 11
-        }
-      ]
-    },
-    {
-      "id": "makePulp",
-      "placement": {
-        "kind": "tile",
-        "x": 9,
-        "y": 10
-      },
-      "trigger": "onInteract",
-      "preconditions": [
-        {
-          "kind": "itemInInventory",
-          "defId": "zombie.brainstem",
-          "count": 1
-        },
-        {
-          "kind": "itemInInventory",
-          "defId": "crafting.stone",
-          "count": 1
-        }
-      ],
-      "repeat": "whileConditions",
-      "steps": [
-        {
-          "type": "speech",
-          "text": "do the thing",
-          "anchorX": 9,
-          "anchorY": 10
-        },
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "do the thing"
-        },
-        {
-          "type": "lockActions",
-          "until": [
-            {
-              "kind": "itemConsumed",
-              "defId": "zombie.brainpulp",
-              "count": 1
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "brainquest",
-      "placement": {
-        "kind": "tile",
-        "x": 9,
-        "y": 10
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "speech",
-          "text": "1",
-          "speaker": "doc",
-          "anchorX": 9,
-          "anchorY": 10
-        },
-        {
-          "type": "speech",
-          "text": "2",
-          "speaker": "player",
-          "anchorX": 9,
-          "anchorY": 11
-        },
-        {
-          "type": "speech",
-          "text": "take this knife",
-          "speaker": "doc",
-          "anchorX": 9,
-          "anchorY": 10
-        },
-        {
-          "type": "give",
-          "defId": "weapon.knife",
-          "count": 1,
-          "x": 9,
-          "y": 11
-        },
-        {
-          "type": "speech",
-          "text": "thanks",
-          "speaker": "player",
-          "anchorX": 9,
-          "anchorY": 11
-        },
-        {
-          "type": "setQuestTask",
-          "questId": "1",
-          "taskIndex": 1
-        },
-        {
-          "type": "lockMovement",
-          "until": [
-            {
-              "kind": "itemEquipped",
-              "defId": "weapon.knife"
-            }
-          ]
-        },
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Go out the back door and kill the zombie."
-        }
-      ]
-    },
-    {
-      "id": "intro",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "controlEntity",
-          "entityTag": "docFrontDoor",
-          "entityAction": "open"
-        },
-        {
-          "type": "speech",
-          "text": "you're here",
-          "speaker": "sis",
-          "anchorX": 13,
-          "anchorY": 12
-        },
-        {
-          "type": "moveEntity",
-          "entityTag": "sis",
-          "targetX": 13,
-          "targetY": 11
-        },
-        {
-          "type": "moveEntity",
-          "entityTag": "player",
-          "targetX": 12,
-          "targetY": 12
-        },
-        {
-          "type": "controlEntity",
-          "entityTag": "docFrontDoor",
-          "entityAction": "close"
-        },
-        {
-          "type": "moveEntity",
-          "entityTag": "sis",
-          "targetX": 13,
-          "targetY": 12
-        }
-      ]
-    },
-    {
-      "id": "helpTest",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "help test"
-        }
-      ]
-    }
-  ],
-  "questRegistry": {
-    "flags": [
-      {
-        "name": "Knife quest complete"
-      },
-      {
-        "name": "autoTestDone"
-      }
-    ],
-    "vars": [],
-    "quests": [
-      {
-        "id": "1",
-        "title": "Equip the knife!",
-        "description": "Equip the knife.",
-        "tasks": [
-          {
-            "id": "1",
-            "text": "get the ammo",
-            "complete": [
-              {
-                "kind": "itemInInventory",
-                "defId": "ammo.308",
-                "count": 1
-              }
-            ]
-          },
-          {
-            "id": "2",
-            "text": "equip the knife",
-            "complete": [
-              {
-                "kind": "itemEquipped",
-                "defId": "weapon.knife"
-              }
-            ]
-          },
-          {
-            "id": "3",
-            "text": "get brainstem",
-            "complete": [
-              {
-                "kind": "itemInInventory",
-                "defId": "zombie.brainstem",
-                "count": 1
-              }
-            ]
-          },
-          {
-            "id": "4",
-            "text": "Get the rock",
-            "complete": [
-              {
-                "kind": "itemInInventory",
-                "defId": "crafting.stone",
-                "count": 1
-              }
-            ]
-          },
-          {
-            "id": "5",
-            "text": "Pulp the stem",
-            "complete": [
-              {
-                "kind": "itemInInventory",
-                "defId": "zombie.brainpulp",
-                "count": 1
-              }
-            ]
-          },
-          {
-            "id": "6",
-            "text": "eat the pulp",
-            "complete": [
-              {
-                "kind": "none"
-              }
-            ]
-          }
-        ],
-        "onComplete": [
-          {
-            "type": "setFlag",
-            "flag": "Knife quest complete",
-            "value": true
-          }
-        ]
-      }
-    ]
-  },
-  "entityRegistry": {
-    "entries": [
-      {
-        "tag": "z1",
-        "type": "zombie",
-        "x": 2,
-        "y": 12
-      },
-      {
-        "tag": "docFrontDoor",
-        "type": "door",
-        "x": 13,
-        "y": 12
-      }
-    ]
-  }
+  "eventTriggers": [],
+  "mapTransitions": []
 }
