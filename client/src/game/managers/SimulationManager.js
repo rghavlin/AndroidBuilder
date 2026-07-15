@@ -1,10 +1,10 @@
 import { AISystem } from '../systems/AISystem.js';
+import { NPCAISystem } from '../systems/NPCAISystem.js';
 import { MovementSystem } from '../systems/MovementSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { VisionSystem } from '../systems/VisionSystem.js';
 import { GameMap } from '../map/GameMap.js';
 import engine from '../GameEngine.js';
-import { NPCAI } from '../ai/NPCAI.js';
 import { RabbitAI } from '../ai/RabbitAI.js';
 import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
@@ -224,28 +224,46 @@ export class SimulationManager {
         }
       });
 
-      // 3. Legacy Processing (NPC Turns) - Runs ONLY after IntentQueue has completely resolved
-      const npcsToProcess = [...npcs];
-      for (const npc of npcsToProcess) {
+      // 3. NPC Turns (ECS intent cycle loop, mirroring the zombie loop above) -
+      // runs ONLY after the zombie IntentQueue has completely resolved.
+      // Wipe last turn's simulated HP so NPC combat rolls start from real HP.
+      zombies.forEach(z => {
+        if (z) delete z.simulatedHp;
+      });
+      for (const npc of npcs) {
         if (npc.hp <= 0) continue;
+        if (typeof npc.startTurn === 'function') npc.startTurn();
+      }
 
-        try {
-          if (typeof npc.startTurn === 'function') npc.startTurn();
-          if (npc.hp <= 0) {
-            continue;
-          }
-          const turnResult = NPCAI.executeNPCTurn(npc, gameMap, player, zombies);
+      // The zombie phase moved entities around, so NPC Vision caches are stale;
+      // force a full recompute before any NPC decision is made.
+      gameMap._visionDirty = true;
 
-          if (turnResult.success && turnResult.actions) {
-            actionQueue.push(...turnResult.actions);
-            const hasDemand = turnResult.actions.some(a => a.type === 'DEMAND');
-            if (hasDemand) {
-              console.log(`[SimulationManager] 🚨 NPC Demand detected for NPC ${npc.id}`);
-              break;
-            }
-          }
-        } catch (err) {
-          console.error(`[SimulationManager] Error processing NPC ${npc.id}:`, err);
+      const npcSimContext = {};
+      let npcCycleCounter = 0;
+      let npcIntentsGenerated = true;
+
+      while (npcIntentsGenerated && npcCycleCounter < maxAICycles) {
+        npcIntentsGenerated = false;
+
+        VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+
+        const npcIntentCount = NPCAISystem.process(ecsEntities, engine.worldManager, engine, actionQueue, intentQueue, npcSimContext);
+
+        if (npcIntentCount === 0) {
+          break;
+        }
+
+        intentQueue.resolve(ecsEntities, engine.worldManager, engine, actionQueue);
+
+        npcIntentsGenerated = true;
+        npcCycleCounter++;
+
+        // A pending demand ends the whole NPC phase: the UI pauses on the
+        // demand dialog and resumes via executeNPCFollowUp after the response.
+        if (npcSimContext.demandPending) {
+          console.log(`[SimulationManager] 🚨 NPC Demand detected for NPC ${npcSimContext.demandPending}`);
+          break;
         }
       }
 
@@ -270,10 +288,44 @@ export class SimulationManager {
   }
 
   /**
-   * Pass-through for single NPC turn execution (e.g. for retaliation retry)
+   * Run a single NPC's remaining turn through the intent pipeline — used for
+   * the retaliation that follows a refused demand. Returns the same
+   * { success, actions } shape the demand-response UI plays back.
    */
-  static executeNPCTurn(npc, gameMap, player, zombies, skipAPReset = false) {
-    return NPCAI.executeNPCTurn(npc, gameMap, player, zombies, skipAPReset);
+  static executeNPCFollowUp(npc, gameMap, player) {
+    const actionQueue = [];
+    if (!npc || npc.hp <= 0 || !player || !gameMap) {
+      return { success: false, actions: actionQueue };
+    }
+
+    GameMap.isSimulating = true;
+    try {
+      const intentQueue = new IntentQueue();
+      const zombies = (gameMap.getEntitiesByType(EntityType.ZOMBIE) || []).filter(z => z && z.hp > 0);
+      zombies.forEach(z => delete z.simulatedHp);
+      const ecsEntities = [player, npc, ...zombies];
+      const simContext = {};
+
+      gameMap._visionDirty = true;
+
+      let cycles = 0;
+      const maxCycles = 25;
+      while (cycles < maxCycles) {
+        VisionSystem.process(ecsEntities, engine.worldManager, engine, actionQueue);
+        const intentCount = NPCAISystem.process(ecsEntities, engine.worldManager, engine, actionQueue, intentQueue, simContext);
+        if (intentCount === 0) break;
+        intentQueue.resolve(ecsEntities, engine.worldManager, engine, actionQueue);
+        cycles++;
+      }
+
+      SimulationManager.checkAndProcessDeaths(gameMap, ecsEntities, intentQueue, actionQueue, player);
+    } catch (err) {
+      console.error(`[SimulationManager] Error in NPC follow-up for ${npc.id}:`, err);
+    } finally {
+      GameMap.isSimulating = false;
+    }
+
+    return { success: true, actions: actionQueue };
   }
 
   static checkAndProcessDeaths(gameMap, ecsEntities, intentQueue, actionQueue, player) {

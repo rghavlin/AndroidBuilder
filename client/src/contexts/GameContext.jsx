@@ -1074,7 +1074,7 @@ const GameContextInner = ({ children }) => {
         setTurnPhase('ANIMATING'); // Lock UI
         engine.turnPhase = 'ANIMATING';
 
-        const retryResult = SimulationManager.executeNPCTurn(npc, engine.gameMap, engine.player, [], true);
+        const retryResult = SimulationManager.executeNPCFollowUp(npc, engine.gameMap, engine.player);
         
         if (retryResult.success && retryResult.actions.length > 0) {
            console.log(`[GameContext] 🏃 NPC ${npc.name} performing ${retryResult.actions.length} follow-up actions...`, retryResult.actions);

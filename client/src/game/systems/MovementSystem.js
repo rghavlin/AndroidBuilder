@@ -1,6 +1,7 @@
 import { FireSystem } from '../systems/FireSystem.js';
 import engine from '../GameEngine.js';
 import { markHeardIfInRange } from '../utils/PlayerHearing.js';
+import { ScentTrail } from '../utils/ScentTrail.js';
 
 const ZOMBIE_MOVE_NOISE = 3;
 
@@ -55,6 +56,12 @@ export class MovementSystem {
       // Perception-based earshot even without line of sight.
       if (entity.type === 'zombie' && engine.player) {
         markHeardIfInRange(entity, engine.player, ZOMBIE_MOVE_NOISE);
+      }
+
+      // Moving NPCs leave scent so zombies can track them (legacy NPCAI dropped
+      // scent on every step; zombie moves deliberately do not).
+      if (entity.type === 'npc') {
+        ScentTrail.dropScent(gameMap, targetX, targetY);
       }
     }
 

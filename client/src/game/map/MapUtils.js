@@ -42,7 +42,7 @@ export function isInsideAnyBuilding(buildings, x, y) {
 /**
  * Find the south-edge transition tile (y = height - 1). Prefers a 'transition'
  * terrain tile; falls back to any walkable edge tile. Shared by NPC pathing
- * (NPCAI) and NPC spawning (NPCSpawner).
+ * (NPCAISystem) and NPC spawning (NPCSpawner).
  * @param {GameMap} gameMap
  * @returns {{x: number, y: number} | null}
  */

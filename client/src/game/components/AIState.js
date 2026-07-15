@@ -16,7 +16,7 @@ export class AIState {
     this.hasExtorted = properties.hasExtorted || false;
     this.fleeRecoverChance = properties.fleeRecoverChance || 0;
     this.stunnedTurns = properties.stunnedTurns || 0;
-    // Scripted/quest NPCs: when true, NPCAI.executeNPCTurn skips this entity
+    // Scripted/quest NPCs: when true, NPCAISystem skips this entity
     // entirely (no wandering/fleeing/combat AI) so only explicit event steps
     // (moveEntity, dialog, etc.) control it. See map editor NPC placement and
     // EventRunner's setNpcAI step.

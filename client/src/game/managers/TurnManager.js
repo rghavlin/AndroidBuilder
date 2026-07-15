@@ -194,7 +194,7 @@ class TurnManager {
             onImpact: () => {
               // Sync the structure's visual state at the moment of impact.
               // NOTE: Structural damage (hp reduction, break/open flags) was already
-              // applied SILENTLY during the simulation phase by AISystem/NPCAI.
+              // applied SILENTLY during the simulation phase by AISystem/NPCAISystem.
               // Here we only need to push those logical changes to the visual layer.
               const toX = data.to?.x ?? data.x;
               const toY = data.to?.y ?? data.y;

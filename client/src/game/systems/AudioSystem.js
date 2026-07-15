@@ -39,11 +39,11 @@ export class AudioSystem {
             // Moving during the player's turn causes visual desyncs (since playback isn't running)
             // and allows players to step onto the same tile.
             //
-            // ZOMBIES ONLY: only zombies move via the intent pipeline. NPCs are informed by the
-            // setNoiseHeard() above and investigate on their own NPCAI turn — enqueuing a MoveIntent
-            // for an NPC here would make it take a free extra step during the zombie cycle (the AP cost
-            // is wiped moments later by npc.startTurn()'s AP refill) and bypass NPCAI's movementPath
-            // oscillation tracking.
+            // ZOMBIES ONLY: NPCs are informed by the setNoiseHeard() above and investigate
+            // during their own NPCAISystem phase — enqueuing a MoveIntent for an NPC here
+            // would make it take a free extra step during the zombie cycle (the AP cost
+            // is wiped moments later by npc.startTurn()'s AP refill) and bypass the NPC
+            // phase's movementPath oscillation tracking.
             const isSimulating = engine && engine.turnPhase === 'SIMULATING';
             const currentAP = entity.currentAP !== undefined ? entity.currentAP : (entity.ap !== undefined ? entity.ap : 0);
             const movable = entity.getComponent('Movable');

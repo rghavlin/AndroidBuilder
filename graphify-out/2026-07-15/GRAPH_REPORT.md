@@ -1,11 +1,11 @@
 # Graph Report - AndroidBuilder  (2026-07-15)
 
 ## Corpus Check
-- 515 files · ~5,936,256 words
+- 515 files · ~5,936,319 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3249 nodes · 8065 edges · 173 communities (113 shown, 60 thin omitted)
+- 3249 nodes · 8065 edges · 177 communities (117 shown, 60 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 123 edges (avg confidence: 0.79)
 - Token cost: 0 input · 0 output
 
@@ -134,6 +134,7 @@
 - Zombie Interaction Testing
 - Consumable
 - EquippedArmor
+- MapCanvas.jsx
 - .getBeltContainers
 - react
 - RoadNetwork
@@ -169,6 +170,7 @@
 - verify_army_tent.js
 - Electron Preload Script
 - verify_random_map_loops.mjs
+- command.tsx
 - Firestation Layout Verification
 - Special Window Layouts
 - Place Icon Serialization
@@ -205,7 +207,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (173 total, 60 thin omitted)
+## Communities (177 total, 60 thin omitted)
 
 ### Community 0 - "Item Components"
 Cohesion: 0.10
@@ -240,8 +242,8 @@ Cohesion: 0.04
 Nodes (53): dependencies, class-variance-authority, clsx, cmdk, date-fns, embla-carousel-react, framer-motion, @hookform/resolvers (+45 more)
 
 ### Community 12 - "Inventory and Skill Windows"
-Cohesion: 0.08
-Nodes (32): BarterWindow(), BarterWindowProps, InventoryExtensionWindowProps, InventoryPanel(), PlayerSkillsWindowProps, TollWindow(), TollWindowProps, BackpackGrid() (+24 more)
+Cohesion: 0.05
+Nodes (72): ActionSlotButton(), ActionSlotButtonProps, BarterWindow(), BarterWindowProps, InventoryExtensionWindowProps, InventoryPanel(), TollWindow(), TollWindowProps (+64 more)
 
 ### Community 14 - "Rabbit AI State"
 Cohesion: 0.09
@@ -269,7 +271,7 @@ Nodes (14): CharacterRegistryWindow(), CharacterRegistry, compressString(), DEFA
 
 ### Community 21 - "World Progression and Spawning"
 Cohesion: 0.06
-Nodes (70): EarbucksShopWindow(), GameScreenContent(), InfectionHUD(), MapInterface(), StartModeDialog(), StartModeDialogProps, CraftingUI(), EquipmentSlots() (+62 more)
+Nodes (69): EarbucksShopWindow(), GameScreenContent(), InfectionHUD(), StartModeDialog(), StartModeDialogProps, CraftingUI(), EquipmentSlots(), ActionContext (+61 more)
 
 ### Community 22 - "Game Initialization Manager"
 Cohesion: 0.10
@@ -284,8 +286,8 @@ Cohesion: 0.05
 Nodes (14): hasItemsInside(), InventoryManager, isClothingOrBackpack(), runContainerTests(), runTest(), run(), run(), testSerialization() (+6 more)
 
 ### Community 26 - "Action Queue Processing"
-Cohesion: 0.02
-Nodes (110): ActionSlotButtonProps, JournalUI(), AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar(), SkillProgressBarProps (+102 more)
+Cohesion: 0.03
+Nodes (64): JournalUI(), AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar(), SkillProgressBarProps, AccordionContent (+56 more)
 
 ### Community 27 - "World and Map Transitions"
 Cohesion: 0.09
@@ -352,8 +354,8 @@ Cohesion: 0.10
 Nodes (20): devDependencies, autoprefixer, cross-env, electron, electron-builder, esbuild, postcss, @replit/vite-plugin-cartographer (+12 more)
 
 ### Community 49 - "Blueprint and Inventory Registry"
-Cohesion: 0.12
-Nodes (14): OptionsWindowProps, CraftingCategory, SelectContent, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator (+6 more)
+Cohesion: 0.08
+Nodes (22): GameEventLog(), GameEventLogProps, getLogColor(), OptionsWindow(), OptionsWindowProps, CraftingCategory, SelectContent, SelectItem (+14 more)
 
 ### Community 50 - "Window and Door Interaction"
 Cohesion: 0.19
@@ -504,8 +506,8 @@ Cohesion: 0.25
 Nodes (3): GameErrorBoundary, Props, State
 
 ### Community 111 - "Navigation Menu Components"
-Cohesion: 0.09
-Nodes (28): ActionSlotButton(), GameControls(), GameControlsProps, STAT_COLORS, StatBar, StatBarProps, GameEventLog(), GameEventLogProps (+20 more)
+Cohesion: 0.18
+Nodes (15): GameControls(), GameControlsProps, STAT_COLORS, StatBar, StatBarProps, MapInterface(), OverlayManager(), SleepModal() (+7 more)
 
 ### Community 112 - "Electron Main Process"
 Cohesion: 0.29
@@ -538,6 +540,10 @@ Nodes (4): ScenarioPickerWindow(), electronStorage, idbStorage, ScenarioStorage
 ### Community 119 - "EquippedArmor"
 Cohesion: 0.33
 Nodes (5): ToggleGroup, ToggleGroupContext, ToggleGroupItem, Toggle, toggleVariants
+
+### Community 120 - "MapCanvas.jsx"
+Cohesion: 0.15
+Nodes (16): drawImprovedCursor(), lastRainUpdate, MapCanvas(), playerRenderScratch, rainParticles, renderRain(), warnedMalformedEntityIds, SpeechBubbleInput() (+8 more)
 
 ### Community 121 - ".getBeltContainers"
 Cohesion: 0.50
@@ -576,8 +582,8 @@ Cohesion: 0.22
 Nodes (8): canSeeBlocked, canSeeWindow, map, player, resultBlocked, resultWindow, windowEntity, zombie
 
 ### Community 134 - "verify_army_tent.js"
-Cohesion: 0.06
-Nodes (38): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps, LootTooltip(), LootTooltipProps (+30 more)
+Cohesion: 0.07
+Nodes (26): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps, getLogColor(), LogHistoryWindow() (+18 more)
 
 ### Community 136 - "Extended LOS Testing"
 Cohesion: 0.19
@@ -598,6 +604,10 @@ Nodes (15): EarbucksDisplay(), TurretAI, engine, ItemDefs, FireMode, SafeEventEm
 ### Community 153 - "verify_army_tent.js"
 Cohesion: 0.20
 Nodes (6): log, applyItemGrants(), dialogOnlySteps, mixedEvent, placedLog, step
+
+### Community 157 - "command.tsx"
+Cohesion: 0.20
+Nodes (8): Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut()
 
 ### Community 170 - "test_save_compression.js"
 Cohesion: 0.43
@@ -623,11 +633,11 @@ Nodes (38): EntityType, NPCTypes, SimulationManager, NOTE: do NOT force itemsMod
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Action Queue Processing` to `verify_army_tent.js`, `Shop and Log UI`, `Inventory and Skill Windows`, `Shop and Pricing Config`, `Character and Menu Windows`, `World Progression and Spawning`, `Sidebar UI Components`, `Loot Generation System`, `Blueprint and Inventory Registry`, `Menubar UI Components`, `Toast Notification State`, `World Object Spawning`, `context-menu.tsx`, `Item Stacking Verification`, `Navigation Menu Components`, `Book Stats Initialization`, `Map Transition Verification`, `EquippedArmor`, `OTP Input Components`?**
+- **Why does `cn()` connect `Action Queue Processing` to `verify_army_tent.js`, `Shop and Log UI`, `Inventory and Skill Windows`, `Shop and Pricing Config`, `Character and Menu Windows`, `World Progression and Spawning`, `Sidebar UI Components`, `command.tsx`, `Loot Generation System`, `Blueprint and Inventory Registry`, `Menubar UI Components`, `Toast Notification State`, `World Object Spawning`, `context-menu.tsx`, `Item Stacking Verification`, `Navigation Menu Components`, `Book Stats Initialization`, `Map Transition Verification`, `EquippedArmor`, `OTP Input Components`?**
   _High betweenness centrality (0.095) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `External Dependencies` to `Project Package Metadata`, `Server and Vite Config`, `OTP Input Components`, `Entity Mocking System`?**
   _High betweenness centrality (0.090) - this node is a cross-community bridge._
-- **Why does `react` connect `Entity Mocking System` to `Toast Notification State`, `verify_army_tent.js`, `Action Intent System`, `External Dependencies`, `Navigation Menu Components`, `World Progression and Spawning`?**
+- **Why does `react` connect `Entity Mocking System` to `Action Intent System`, `Toast Notification State`, `External Dependencies`, `Blueprint and Inventory Registry`, `World Progression and Spawning`, `MapCanvas.jsx`?**
   _High betweenness centrality (0.080) - this node is a cross-community bridge._
 - **What connects `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps` to the rest of the system?**
   _843 weakly-connected nodes found - possible documentation gaps or missing edges._

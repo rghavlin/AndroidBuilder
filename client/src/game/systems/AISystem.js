@@ -6,6 +6,7 @@ import { getZombieType } from '../entities/ZombieTypes.js';
 import { ZOMBIE_INFECTION_CHANCE } from './CombatResolver.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
+import { getMeleeReach } from './AIHelpers.js';
 /**
  * Attempt to lock a zombie onto the freshest nearby scent breadcrumb.
  * On success the breadcrumb is set as a sighted target (a temporary LKP), so the
@@ -32,42 +33,6 @@ function tryFollowScent(entity, zombiePos, gameMap, aiBehavior) {
   entity.setTargetSighted(freshestScent.x, freshestScent.y);
   aiBehavior.alertnessState = 'INVESTIGATING';
   return true;
-}
-
-/**
- * Compute melee reachability from one tile to an adjacent target tile.
- * Shared by the hunting and investigating branches so adjacency / diagonal /
- * structure-blocking rules stay consistent. A diagonal target only counts as a
- * melee option for mutant zombies, and a diagonal that is blocked by walls
- * yields no blocking structure (the caller decides what to do in that case).
- *
- * `canReachTile` indicates whether the zombie could actually step onto the target
- * tile in one move (open and not separated by a solid edge wall) — used to tell a
- * genuinely-adjacent target from one that is walled off.
- *
- * @returns {{ isAdjacent:boolean, isDiagonal:boolean, canMeleeAttack:boolean, blockingStructure:Object|null, canReachTile:boolean }}
- */
-function getMeleeReach(entity, gameMap, fromX, fromY, targetX, targetY) {
-  const absDx = Math.abs(targetX - fromX);
-  const absDy = Math.abs(targetY - fromY);
-  const isAdjacent = (absDx + absDy === 1);
-  const isDiagonal = (absDx === 1 && absDy === 1);
-  const canMeleeAttack = isAdjacent || (isDiagonal && entity.subtype === 'mutant');
-
-  let blockingStructure = null;
-  let canReachTile = false;
-  if (canMeleeAttack) {
-    const targetTile = gameMap.getTile(targetX, targetY);
-    const tileOpen = !!targetTile && targetTile.isWalkable(entity, { ignoreZombies: true });
-    if (isAdjacent) {
-      blockingStructure = Pathfinding.getBlockingStructure(gameMap, fromX, fromY, targetX, targetY);
-      canReachTile = tileOpen && !Pathfinding.isEdgeBlocked(gameMap, fromX, fromY, targetX, targetY, entity, { isZombie: true });
-    } else if (Pathfinding.canMoveDiagonally(gameMap, fromX, fromY, targetX, targetY, entity)) {
-      blockingStructure = Pathfinding.getBlockingStructure(gameMap, fromX, fromY, targetX, targetY);
-      canReachTile = tileOpen;
-    }
-  }
-  return { isAdjacent, isDiagonal, canMeleeAttack, blockingStructure, canReachTile };
 }
 
 function getBeelineIntent(entity, zombiePos, targetX, targetY, gameMap, moveCost) {
