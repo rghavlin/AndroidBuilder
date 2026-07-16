@@ -20,6 +20,7 @@ import engine from '../game/GameEngine.js';
 import { IntentQueue } from '../game/managers/IntentQueue.js';
 import { ExplosionIntent } from '../game/components/ExplosionIntent.js';
 import { CombatResolver } from '../game/systems/CombatResolver.js';
+import { gameRandom } from '../game/utils/SeededRandom.js';
 
 const isWindowTile = (gameMap, x, y) => {
     const tile = gameMap?.getTile(x, y);
@@ -57,12 +58,14 @@ const awardZombieEarbuck = () => {
     // Disabled - earbucks are now harvested from corpses by left-clicking them.
 };
 
-// RNG NOTE: player combat deliberately uses Math.random(), NOT the engine's
-// seeded gameRandom. gameRandom must stay in lockstep across save/load for AI
-// determinism; player actions fire in unpredictable order and count, so routing
-// their hit/crit/damage rolls through gameRandom would desync that stream for the
-// simulation/AI side. Keep the player-driven rolls below on Math.random — do NOT
-// "fix" them to gameRandom.
+// RNG NOTE: player combat rolls go through the seeded gameRandom, matching
+// CombatResolver.rollPlayerMelee / rollPlayerRanged (which already do). This
+// keeps every combat roll on one reproducible stream. It is NOT save-scummable:
+// gameRandom's STATE is checkpointed on save (getState/setState) and resumed on
+// load, rather than re-seeded from the original seed, so a reload continues the
+// exact stream instead of replaying it. Keep the player-driven rolls below on
+// gameRandom too — do NOT reintroduce Math.random (it desyncs headless
+// simulation/replay and this combat stream).
 const CombatContext = createContext();
 
 export const useCombat = () => {
@@ -138,7 +141,7 @@ export const CombatProvider = ({ children }) => {
             const dist = Math.sqrt(Math.pow(entity.x - zombie.x, 2) + Math.pow(entity.y - zombie.y, 2));
             if (dist <= radius) {
                 if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE) {
-                    const damage = Math.floor(Math.random() * (dMax - dMin + 1)) + dMin;
+                    const damage = gameRandom.nextInt(dMin, dMax);
                     
                     if (typeof entity.takeDamage === 'function') {
                         entity.takeDamage(damage, { id: zombie.id, type: EntityType.ZOMBIE, subtype: 'acid' });
@@ -780,14 +783,14 @@ export const CombatProvider = ({ children }) => {
         const squaresAway = Math.floor(distance);
         const baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
         const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
-        const hit = isWindowTarget ? true : Math.random() <= (baseHitChance + accuracyBonus);
+        const hit = isWindowTarget ? true : gameRandom.next() <= (baseHitChance + accuracyBonus);
 
         // 6. Projectile Path Tracking
         ProjectileManager.processProjectilePath(gameMap, player.x, player.y, targetX, targetY);
 
         if (hit) {
             applyHitProgression('ranged', false);
-            const damage = Math.floor(Math.random() * 4) + 1; // 1-4 damage
+            const damage = gameRandom.nextInt(1, 4); // 1-4 damage
             const isKillingBlow = targetEntity && targetEntity.hp <= damage;
 
             // Emit attack event for audio/visuals (using 'melee' type for hit/miss sounds)

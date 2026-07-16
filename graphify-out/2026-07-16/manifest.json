@@ -635,8 +635,8 @@
     "semantic_hash": "32da00638860128668bf6487df2a9a96"
   },
   "client/src/contexts/CombatContext.jsx": {
-    "mtime": 1783839203.7437563,
-    "ast_hash": "854f32ce881d4e03be12b11b16304479",
+    "mtime": 1784178196.5830693,
+    "ast_hash": "dc3d2cc4fed32e0a07819c6d214a859b",
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
@@ -1485,8 +1485,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1784166368.5557506,
-    "ast_hash": "5ec8e4cddc8e995b499dfa4050658d09",
+    "mtime": 1784178698.8574975,
+    "ast_hash": "da7af869080a56bf38a80c49b63b2cf2",
     "semantic_hash": ""
   },
   "postcss.config.js": {
@@ -2895,13 +2895,13 @@
     "semantic_hash": ""
   },
   "test/harness/GameHarness.js": {
-    "mtime": 1784167109.7137475,
-    "ast_hash": "44150a6a6a3d8f0c4eb4992779d782f7",
+    "mtime": 1784178256.01585,
+    "ast_hash": "7a655a241fbfd9bf8c01095259d50d69",
     "semantic_hash": ""
   },
   "test/harness/harness.test.js": {
-    "mtime": 1784166053.6598473,
-    "ast_hash": "e1189aa63c6cc8cac5d14ac33ad657cd",
+    "mtime": 1784178264.369701,
+    "ast_hash": "9cdbc6e334188a134f730953512ae54f",
     "semantic_hash": ""
   },
   "test/fuzz/fuzz.mjs": {
@@ -2917,6 +2917,26 @@
   "test/fuzz/fuzzer.test.js": {
     "mtime": 1784166367.0494533,
     "ast_hash": "6e7bfca8719c200b37bb64188ac35cbe",
+    "semantic_hash": ""
+  },
+  "test/balance/balance.js": {
+    "mtime": 1784179517.707553,
+    "ast_hash": "5582bcb3f06dd521f8058845a99a1824",
+    "semantic_hash": ""
+  },
+  "test/balance/balance.mjs": {
+    "mtime": 1784179577.5157237,
+    "ast_hash": "7c166a97abfb07229b0cddb050e30f29",
+    "semantic_hash": ""
+  },
+  "test/balance/balance.test.js": {
+    "mtime": 1784179599.8288684,
+    "ast_hash": "d0f425a53559953c5d69025858fb9d5a",
+    "semantic_hash": ""
+  },
+  "test/balance/scenarios.js": {
+    "mtime": 1784179544.8443556,
+    "ast_hash": "b9a12bb9dfdd75c28777946436487741",
     "semantic_hash": ""
   }
 }

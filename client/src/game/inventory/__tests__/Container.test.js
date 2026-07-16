@@ -378,7 +378,15 @@ export function runContainerTests() {
     }
   });
 
-  runTest('Blocking non-empty ground container pickup', () => {
+  // A loaded ground backpack behaves differently for the two ground actions:
+  //   - EQUIPPING it is INTENTIONALLY ALLOWED. This powers the backpack-swap
+  //     workflow: open a backpack on the ground, auto-transfer items into it,
+  //     take off the worn backpack, and put on the newly loaded one. equipItem
+  //     deliberately has no "Items inside" guard.
+  //   - MOVING/NESTING it into another inventory container is still blocked
+  //     (moveItem's "Items inside" guard), so you can't stuff a full backpack
+  //     inside another bag.
+  runTest('Loaded ground backpack: equippable, not nestable into inventory', () => {
     const manager = new InventoryManager();
 
     // Create a backpack on the ground
@@ -389,7 +397,7 @@ export function runContainerTests() {
       equippableSlot: 'backpack',
       containerGrid: { width: 4, height: 5 }
     });
-    
+
     // Add backpack to ground
     manager.groundContainer.placeItemAt(bp, 0, 0);
 
@@ -400,21 +408,34 @@ export function runContainerTests() {
       traits: [ItemTrait.STACKABLE],
       stackCount: 10
     });
-    
+
     // Add inner item to backpack grid
     bp.getContainerGrid().addItem(innerItem, 0, 0);
 
-    // Create a player inventory container (e.g. personal inventory or just try to equip it)
-    // equipItem should fail
+    // Equipping a loaded ground backpack is intentionally allowed (swap workflow).
     const equipResult = manager.equipItem(bp, 'backpack');
-    if (equipResult.success) {
-      throw new Error('Equipping backpack with items from ground should have failed');
+    if (!equipResult.success) {
+      throw new Error('Equipping a loaded ground backpack should be allowed: ' + equipResult.reason);
     }
-    if (equipResult.reason !== 'Items inside') {
-      throw new Error('Expected failure reason "Items inside", got: ' + equipResult.reason);
+    if (manager.equipment.backpack !== bp || !bp.isEquipped) {
+      throw new Error('Loaded backpack was not actually equipped');
     }
 
-    // moveItem to an inventory container should also fail
+    // Nesting a loaded backpack into another inventory container is still blocked.
+    // Put a fresh loaded backpack on the ground (the first is now equipped).
+    const bp2 = new Item({
+      instanceId: 'test-bp2',
+      defId: 'backpack.standard',
+      name: 'Standard Backpack',
+      equippableSlot: 'backpack',
+      containerGrid: { width: 4, height: 5 }
+    });
+    manager.groundContainer.placeItemAt(bp2, 0, 0);
+    bp2.getContainerGrid().addItem(
+      new Item({ instanceId: 'inner-item-2', defId: 'ammo.test', traits: [ItemTrait.STACKABLE], stackCount: 10 }),
+      0, 0
+    );
+
     const personalInv = new Container({
       id: 'player_inventory',
       width: 10,
@@ -422,9 +443,9 @@ export function runContainerTests() {
     });
     manager.containers.set('player_inventory', personalInv);
 
-    const moveResult = manager.moveItem('test-bp', 'ground', 'player_inventory', 0, 0);
+    const moveResult = manager.moveItem('test-bp2', 'ground', 'player_inventory', 0, 0);
     if (moveResult.success) {
-      throw new Error('Moving backpack with items from ground should have failed');
+      throw new Error('Nesting a loaded backpack into inventory should have failed');
     }
     if (moveResult.reason !== 'Items inside') {
       throw new Error('Expected failure reason "Items inside", got: ' + moveResult.reason);

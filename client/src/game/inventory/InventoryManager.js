@@ -462,6 +462,11 @@ export class InventoryManager extends SafeEventEmitter {
    * Equip an item to a specific slot
    */
   equipItem(item, slot = null) {
+    // NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem).
+    // Equipping a loaded backpack straight off the ground is a supported workflow:
+    // open a ground backpack, auto-transfer items into it, remove the worn one,
+    // and put on the newly loaded one. Nesting a loaded backpack into another
+    // container is what's blocked — that guard lives in moveItem, not here.
     // Auto-determine slot if not specified
     if (!slot && item.equippableSlot) {
       slot = Array.isArray(item.equippableSlot) ? item.equippableSlot[0] : item.equippableSlot;
