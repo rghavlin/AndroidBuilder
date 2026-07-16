@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGame } from '../../contexts/GameContext.jsx';
-import { Skull, RotateCcw, Plus, XCircle } from "lucide-react";
+import { Skull, RotateCcw, LogOut, XCircle } from "lucide-react";
 
 export default function DefeatDialog() {
-    const { isDefeated, loadGameDirect, initializeGame, setIsDefeated } = useGame();
+    const { isDefeated, loadGameDirect, shutdownGame, setIsDefeated } = useGame();
     const [isLoading, setIsLoading] = useState(false);
 
     if (!isDefeated) return null;
@@ -23,12 +23,11 @@ export default function DefeatDialog() {
         setIsLoading(false);
     };
 
-    const handleNewGame = async () => {
-        setIsLoading(true);
-        console.log('[DefeatDialog] Starting new game...');
-        await initializeGame();
-        setIsDefeated(false);
-        setIsLoading(false);
+    const handleReturnToMenu = () => {
+        console.log('[DefeatDialog] Returning to main menu...');
+        if (shutdownGame) {
+            shutdownGame();
+        }
     };
 
     const handleQuit = () => {
@@ -66,12 +65,12 @@ export default function DefeatDialog() {
                     </Button>
 
                     <Button
-                        onClick={handleNewGame}
+                        onClick={handleReturnToMenu}
                         disabled={isLoading}
                         className="w-full py-6 bg-red-950/40 hover:bg-red-900/60 border border-red-900/20 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
                     >
-                        <Plus className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                        New Game
+                        <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                        Return to Main Menu
                     </Button>
 
                     <Button
