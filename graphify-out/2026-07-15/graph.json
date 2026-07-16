@@ -90,7 +90,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_actionslotbutton",
-      "community": 129,
+      "community": 134,
       "norm_label": "actionslotbutton.tsx"
     },
     {
@@ -100,7 +100,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "client_src_components_game_actionslotbutton_actionslotbuttonprops",
-      "community": 129,
+      "community": 134,
       "norm_label": "actionslotbuttonprops"
     },
     {
@@ -110,7 +110,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "client_src_components_game_actionslotbutton_actionslotbutton",
-      "community": 129,
+      "community": 134,
       "norm_label": "actionslotbutton()"
     },
     {
@@ -540,7 +540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow",
-      "community": 129,
+      "community": 134,
       "norm_label": "earbucksshopwindow.tsx"
     },
     {
@@ -550,7 +550,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow_earbucksshopwindowprops",
-      "community": 129,
+      "community": 134,
       "norm_label": "earbucksshopwindowprops"
     },
     {
@@ -560,7 +560,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow_shopitemrowprops",
-      "community": 129,
+      "community": 134,
       "norm_label": "shopitemrowprops"
     },
     {
@@ -570,7 +570,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow_shopitemrow",
-      "community": 129,
+      "community": 134,
       "norm_label": "shopitemrow()"
     },
     {
@@ -1380,7 +1380,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillsui",
-      "community": 28,
+      "community": 73,
       "norm_label": "playerskillsui.tsx"
     },
     {
@@ -1390,7 +1390,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillsui_skillprogressbarprops",
-      "community": 28,
+      "community": 73,
       "norm_label": "skillprogressbarprops"
     },
     {
@@ -1400,7 +1400,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillsui_skillprogressbar",
-      "community": 28,
+      "community": 73,
       "norm_label": "skillprogressbar()"
     },
     {
@@ -1410,7 +1410,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillsui_compactskillrowprops",
-      "community": 28,
+      "community": 73,
       "norm_label": "compactskillrowprops"
     },
     {
@@ -1420,7 +1420,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillsui_compactskillrow",
-      "community": 28,
+      "community": 73,
       "norm_label": "compactskillrow()"
     },
     {
@@ -1430,7 +1430,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillsui_attributecardprops",
-      "community": 28,
+      "community": 73,
       "norm_label": "attributecardprops"
     },
     {
@@ -1440,7 +1440,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillsui_attributecard",
-      "community": 28,
+      "community": 73,
       "norm_label": "attributecard()"
     },
     {
@@ -1460,7 +1460,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillswindow",
-      "community": 28,
+      "community": 73,
       "norm_label": "playerskillswindow.tsx"
     },
     {
@@ -1470,7 +1470,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillswindow_playerskillswindowprops",
-      "community": 28,
+      "community": 73,
       "norm_label": "playerskillswindowprops"
     },
     {
@@ -1480,7 +1480,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "client_src_components_game_playerskillswindow_playerskillswindow",
-      "community": 28,
+      "community": 73,
       "norm_label": "playerskillswindow()"
     },
     {
@@ -1790,7 +1790,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_tradedialog",
-      "community": 134,
+      "community": 157,
       "norm_label": "tradedialog.tsx"
     },
     {
@@ -1800,7 +1800,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "client_src_components_game_tradedialog_tradedialogprops",
-      "community": 134,
+      "community": 157,
       "norm_label": "tradedialogprops"
     },
     {
@@ -1810,7 +1810,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "client_src_components_game_tradedialog_tradedialog",
-      "community": 134,
+      "community": 157,
       "norm_label": "tradedialog()"
     },
     {
@@ -1960,7 +1960,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_beltcontainerpanel",
-      "community": 62,
+      "community": 65,
       "norm_label": "beltcontainerpanel.tsx"
     },
     {
@@ -1970,7 +1970,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "client_src_components_inventory_beltcontainerpanel_beltcontainerpanelprops",
-      "community": 62,
+      "community": 65,
       "norm_label": "beltcontainerpanelprops"
     },
     {
@@ -1980,7 +1980,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "client_src_components_inventory_beltcontainerpanel_beltcontainerpanel",
-      "community": 62,
+      "community": 65,
       "norm_label": "beltcontainerpanel()"
     },
     {
@@ -2260,7 +2260,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_floatingcontaineroverlay",
-      "community": 12,
+      "community": 28,
       "norm_label": "floatingcontaineroverlay.tsx"
     },
     {
@@ -2270,7 +2270,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "client_src_components_inventory_floatingcontaineroverlay_floatingcontaineroverlayprops",
-      "community": 12,
+      "community": 28,
       "norm_label": "floatingcontaineroverlayprops"
     },
     {
@@ -2280,7 +2280,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "client_src_components_inventory_floatingcontaineroverlay_floatingcontaineroverlay",
-      "community": 12,
+      "community": 28,
       "norm_label": "floatingcontaineroverlay()"
     },
     {
@@ -2310,7 +2310,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "client_src_components_inventory_gridslot_gridslot",
-      "community": 26,
+      "community": 65,
       "norm_label": "gridslot"
     },
     {
@@ -2380,7 +2380,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "client_src_components_inventory_itemcontextmenu_itemcontextmenu",
-      "community": 12,
+      "community": 65,
       "norm_label": "itemcontextmenu()"
     },
     {
@@ -2470,7 +2470,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid",
-      "community": 12,
+      "community": 65,
       "norm_label": "universalgrid.tsx"
     },
     {
@@ -2480,7 +2480,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid_getadjustedbgcolor",
-      "community": 12,
+      "community": 65,
       "norm_label": "getadjustedbgcolor()"
     },
     {
@@ -2490,7 +2490,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid_universalgridprops",
-      "community": 12,
+      "community": 65,
       "norm_label": "universalgridprops"
     },
     {
@@ -2500,7 +2500,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid_universalgrid",
-      "community": 12,
+      "community": 65,
       "norm_label": "universalgrid()"
     },
     {
@@ -2510,7 +2510,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_weaponmodpanel",
-      "community": 12,
+      "community": 28,
       "norm_label": "weaponmodpanel.tsx"
     },
     {
@@ -2520,7 +2520,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "client_src_components_inventory_weaponmodpanel_weaponmodpanelprops",
-      "community": 12,
+      "community": 28,
       "norm_label": "weaponmodpanelprops"
     },
     {
@@ -2530,7 +2530,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "client_src_components_inventory_weaponmodpanel_weaponmodpanel",
-      "community": 12,
+      "community": 28,
       "norm_label": "weaponmodpanel()"
     },
     {
@@ -2540,7 +2540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_workspaceslot",
-      "community": 65,
+      "community": 26,
       "norm_label": "workspaceslot.tsx"
     },
     {
@@ -2550,7 +2550,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "client_src_components_inventory_workspaceslot_getadjustedbgcolor",
-      "community": 65,
+      "community": 26,
       "norm_label": "getadjustedbgcolor()"
     },
     {
@@ -2560,7 +2560,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "client_src_components_inventory_workspaceslot_workspaceslotprops",
-      "community": 65,
+      "community": 26,
       "norm_label": "workspaceslotprops"
     },
     {
@@ -2570,7 +2570,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "client_src_components_inventory_workspaceslot_workspaceslot",
-      "community": 65,
+      "community": 26,
       "norm_label": "workspaceslot"
     },
     {
@@ -2910,7 +2910,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_ui_alert",
-      "community": 73,
+      "community": 26,
       "norm_label": "alert.tsx"
     },
     {
@@ -2920,7 +2920,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "client_src_components_ui_alert_alertvariants",
-      "community": 73,
+      "community": 26,
       "norm_label": "alertvariants"
     },
     {
@@ -2930,7 +2930,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "client_src_components_ui_alert_alert",
-      "community": 73,
+      "community": 26,
       "norm_label": "alert"
     },
     {
@@ -2940,7 +2940,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "client_src_components_ui_alert_alerttitle",
-      "community": 73,
+      "community": 26,
       "norm_label": "alerttitle"
     },
     {
@@ -2950,7 +2950,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "client_src_components_ui_alert_alertdescription",
-      "community": 73,
+      "community": 26,
       "norm_label": "alertdescription"
     },
     {
@@ -3550,7 +3550,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_ui_command",
-      "community": 157,
+      "community": 129,
       "norm_label": "command.tsx"
     },
     {
@@ -3560,7 +3560,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "client_src_components_ui_command_command",
-      "community": 157,
+      "community": 129,
       "norm_label": "command"
     },
     {
@@ -3570,7 +3570,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commanddialog",
-      "community": 157,
+      "community": 129,
       "norm_label": "commanddialog()"
     },
     {
@@ -3580,7 +3580,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commandinput",
-      "community": 157,
+      "community": 129,
       "norm_label": "commandinput"
     },
     {
@@ -3590,7 +3590,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commandlist",
-      "community": 157,
+      "community": 129,
       "norm_label": "commandlist"
     },
     {
@@ -3600,7 +3600,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commandempty",
-      "community": 157,
+      "community": 129,
       "norm_label": "commandempty"
     },
     {
@@ -3610,7 +3610,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commandgroup",
-      "community": 157,
+      "community": 129,
       "norm_label": "commandgroup"
     },
     {
@@ -3620,7 +3620,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commandseparator",
-      "community": 157,
+      "community": 129,
       "norm_label": "commandseparator"
     },
     {
@@ -3630,7 +3630,7 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commanditem",
-      "community": 157,
+      "community": 129,
       "norm_label": "commanditem"
     },
     {
@@ -3640,7 +3640,7 @@
       "source_location": "L125",
       "_origin": "ast",
       "id": "client_src_components_ui_command_commandshortcut",
-      "community": 157,
+      "community": 129,
       "norm_label": "commandshortcut()"
     },
     {
@@ -5620,7 +5620,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_contexts_actioncontext_useaction",
-      "community": 12,
+      "community": 65,
       "norm_label": "useaction()"
     },
     {
@@ -5770,7 +5770,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "client_src_contexts_combatcontext_usecombat",
-      "community": 12,
+      "community": 134,
       "norm_label": "usecombat()"
     },
     {
@@ -5820,7 +5820,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "client_src_contexts_gamecontext_usegame",
-      "community": 12,
+      "community": 157,
       "norm_label": "usegame()"
     },
     {
@@ -5920,7 +5920,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "client_src_contexts_gridsizecontext_usegridsize",
-      "community": 62,
+      "community": 65,
       "norm_label": "usegridsize()"
     },
     {
@@ -20590,7 +20590,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "client_src_game_utils_survivalcascade_treatment_effects",
-      "community": 28,
+      "community": 73,
       "norm_label": "treatment_effects"
     },
     {
@@ -21130,7 +21130,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_hooks_useitemimage",
-      "community": 129,
+      "community": 134,
       "norm_label": "useitemimage.ts"
     },
     {
@@ -21140,7 +21140,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "client_src_hooks_useitemimage_useitemimage",
-      "community": 129,
+      "community": 134,
       "norm_label": "useitemimage()"
     },
     {
@@ -21280,7 +21280,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "client_src_lib_utils_rainbowbackground",
-      "community": 12,
+      "community": 65,
       "norm_label": "rainbowbackground()"
     },
     {
@@ -54514,7 +54514,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/contexts/InventoryContext.jsx",
-      "source_location": "L1124",
+      "source_location": "L1129",
       "weight": 1.0,
       "source": "client_src_contexts_inventorycontext_inventoryprovider",
       "target": "client_src_game_inventory_craftingrecipes_craftingrecipes"
@@ -54536,7 +54536,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/contexts/InventoryContext.jsx",
-      "source_location": "L1064",
+      "source_location": "L1069",
       "weight": 1.0,
       "source": "client_src_contexts_inventorycontext_inventoryprovider",
       "target": "client_src_game_systems_attributeprogressionmanager_attributeprogressionmanager_recordaction"
@@ -54547,7 +54547,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/contexts/InventoryContext.jsx",
-      "source_location": "L1788",
+      "source_location": "L1793",
       "weight": 1.0,
       "source": "client_src_contexts_inventorycontext_inventoryprovider",
       "target": "client_src_game_utils_logger_logger_error"
@@ -54569,7 +54569,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/contexts/InventoryContext.jsx",
-      "source_location": "L1020",
+      "source_location": "L1025",
       "weight": 1.0,
       "source": "client_src_contexts_inventorycontext_inventoryprovider",
       "target": "client_src_game_utils_turnprocessingutils_turnprocessingutils"
@@ -118668,5 +118668,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4f8782192bf308a0832247a4b718bb16aca9e0a7"
+  "built_at_commit": "b84b5f22e5b3c53da7167415f6979aa0ec2d5d60"
 }

@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784110288.254963,
-    "ast_hash": "14a938a8a15a2b7460fcf5f3512fe3e4",
+    "mtime": 1784160595.7338395,
+    "ast_hash": "fd712936fa353f2add38f057bcc63376",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -290,9 +290,9 @@
     "semantic_hash": "9ba6de62b0fda54212f450998df2b505"
   },
   "client/src/components/Inventory/ContainerGrid.tsx": {
-    "mtime": 1777369736.8369973,
-    "ast_hash": "c02a978b7734449764e38b7b7cadb145",
-    "semantic_hash": "c02a978b7734449764e38b7b7cadb145"
+    "mtime": 1784160532.0082388,
+    "ast_hash": "3b69fb5c102e61f1b7759b2c1f48919a",
+    "semantic_hash": ""
   },
   "client/src/components/Inventory/CraftingPanel.tsx": {
     "mtime": 1765436395.6551645,
@@ -655,8 +655,8 @@
     "semantic_hash": "6e101a2bf5eb2c2342cf7276b698bab5"
   },
   "client/src/contexts/InventoryContext.jsx": {
-    "mtime": 1784159490.8571305,
-    "ast_hash": "4fd1ab236f064c5339b521a64fd575e2",
+    "mtime": 1784160466.4343863,
+    "ast_hash": "f5f2096facffa6c57343adeacb40d77d",
     "semantic_hash": ""
   },
   "client/src/contexts/LogContext.jsx": {
@@ -970,9 +970,9 @@
     "semantic_hash": "d342a11f234705f1b3bf03b338da08dc"
   },
   "client/src/game/inventory/Container.js": {
-    "mtime": 1783038438.556566,
-    "ast_hash": "79a1e222b79d89ec3556ac97487705af",
-    "semantic_hash": "79a1e222b79d89ec3556ac97487705af"
+    "mtime": 1784160497.2769046,
+    "ast_hash": "d6775a6bd0273eab0f1345da8c97118c",
+    "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingManager.js": {
     "mtime": 1783836103.1981466,
@@ -990,13 +990,13 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/InventoryManager.js": {
-    "mtime": 1784023711.3423667,
-    "ast_hash": "8653084d2ffcea88c1c96f216321b010",
+    "mtime": 1784160557.111285,
+    "ast_hash": "15a4c6ca64d139dc4e85853a985102bb",
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
-    "mtime": 1784111147.3251545,
-    "ast_hash": "bab378c8a334b3dcafd4c27015fc105e",
+    "mtime": 1784160442.0870683,
+    "ast_hash": "6491c367284b61560a8d4806fc3b8319",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
@@ -1065,8 +1065,8 @@
     "semantic_hash": "a8293cdcb2b67e9281aaafbf0b0b6311"
   },
   "client/src/game/map/GameMap.js": {
-    "mtime": 1783838566.4825492,
-    "ast_hash": "fb08ed32ec304a719df5294abf63f5f6",
+    "mtime": 1784160412.5965195,
+    "ast_hash": "0a8de0ed938a6b2b27c83ed73a6941f5",
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
@@ -1360,8 +1360,8 @@
     "semantic_hash": "d862c67d25b7c90cc47cc8a4c18cf493"
   },
   "client/src/game/utils/TurnProcessingUtils.js": {
-    "mtime": 1783831617.5277762,
-    "ast_hash": "24d5b0989f1999067399567fe800664c",
+    "mtime": 1784160389.1938264,
+    "ast_hash": "9389ac24a304bacf0034a935fd427ab1",
     "semantic_hash": ""
   },
   "client/src/game/utils/VehicleUtils.js": {

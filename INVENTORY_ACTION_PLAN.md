@@ -56,10 +56,10 @@ These three were fixed directly in `InventoryManager.js`:
 ## Suggested priority for the remaining items
 
 - [x] **1. Crank Max AP waste** (clear player-facing bug, small fix) — **Completed**
-- [ ] **2. Consolidate the two turn-processing engines** (structural risk; prevents future drift) — **Pending**
-- [ ] **3. Charger category-vs-defId mismatch and capacity-fallback disagreement** (latent, bite on any new battery def) — **Pending**
-- [ ] **4. Rotation restore-on-failure and the `Item.rotate()` unchecked return** (hardening) — **Pending**
-- [ ] **5. Virtual-source drop rejection and stale-reference tear** (legacy/edge paths) — **Pending**
+- [x] **2. Consolidate the two turn-processing engines** (structural risk; prevents future drift) — **Completed**
+- [x] **3. Charger category-vs-defId mismatch and capacity-fallback disagreement** (latent, bite on any new battery def) — **Completed**
+- [x] **4. Rotation restore-on-failure and the `Item.rotate()` unchecked return** (hardening) — **Completed**
+- [x] **5. Virtual-source drop rejection and stale-reference tear** (legacy/edge paths) — **Completed**
 
 ---
 
@@ -122,7 +122,7 @@ This replaces the existing `player.useAP(apNeeded)` call at L1007, so only the c
 
 ### ACTION 2 — Unify the two turn-processing engines
 
-**Status:** Pending
+**Status:** Completed
 **Priority:** 2 (structural risk — prevents future feature drift)
 **Risk:** Medium — touches the hot path for every tile's turn processing. Needs thorough testing.
 **Files:**
@@ -168,7 +168,7 @@ Delete this deprecated wrapper entirely. It already delegates to `TurnProcessing
 
 ### ACTION 3 — Fix charger category-vs-defId mismatch and capacity fallback disagreement
 
-**Status:** Pending
+**Status:** Completed
 **Priority:** 3 (latent bug — bites on any new battery definition)
 **Risk:** Low — logic change in one central function.
 **Files:**
@@ -220,7 +220,7 @@ Call this from both `chargeBatteries` and `crankCharger` so the two paths can ne
 
 ### ACTION 4 — Harden rotation: restore-on-failure, unchecked `Item.rotate()`, state space, planting parameter
 
-**Status:** Pending
+**Status:** Completed
 **Priority:** 4 (hardening — prevents ghost items and subtle state desyncs)
 **Risk:** Low-to-medium — rotation touches placement which is high-traffic, but changes are defensive guards.
 **Files:**
@@ -297,7 +297,7 @@ const plantSuccess = targetContainer.addItem(tempPlant, plantX, plantY, false);
 
 ### ACTION 5 — Fix boundary check issues
 
-**Status:** Pending
+**Status:** Completed
 **Priority:** 5 (defensive hardening)
 **Risk:** Low — all changes are additional guards, no behavioral change for in-bounds operations.
 **Files:**
@@ -345,7 +345,7 @@ This ensures even `ignoreSize` containers can't write outside their grid allocat
 
 ### ACTION 6 — Fix React state synchronization issues
 
-**Status:** Pending
+**Status:** Completed
 **Priority:** 6 (legacy/edge paths)
 **Risk:** Low-to-medium — touches drag-drop and selection state.
 **Files:**
@@ -417,3 +417,33 @@ Currently `moveItem` only emits `inventoryChanged` in merge/combine branches. Pl
 | `client/src/game/inventory/Item.js` | 4a (rotate rollback) |
 | `client/src/game/inventory/Container.js` | 4c (normalize rotation), 5a (footprint warning), 5b (ignoreSize guard) |
 | `client/src/components/Inventory/ContainerGrid.tsx` | 6a (virtual source fix) |
+
+---
+
+## Completion note
+
+_Date: 2026-07-15_
+
+All actions (1–6) are now implemented. Notes on how the plan was realized:
+
+- **Action 2 was scoped to power *generation* only.** The finding's real drift risk was
+  the power-source / wired-charger / solar-charger gating, which was written inline in
+  both engines. Decay, hotplate drain, and turret drain were *already* shared (both
+  engines route them through `TurnProcessingUtils.processDecay` / `processHotplateDrain`
+  / `processAutoTurretDrain` — the InventoryManager path via `Item.processTurn()`), so
+  re-homing them would have been churn with no de-duplication benefit. The new
+  `TurnProcessingUtils.applyPowerGeneration(itemData, context)` is the single source of
+  truth for power generation; both `InventoryManager._processItemTurnRecursive` and
+  `GameMap._processItemDataTurn` call it, each keeping its own recursion and its own
+  expiration/transform idiom (Item `updateFromDef` / `destroyItem` vs. POJO
+  `_transformItemInPlace` / array filtering). Duck-typed helpers (`hasTraitDuck`,
+  `isBattery`, `chargerContents`) let the shared function operate on both Item instances
+  and POJOs. No behavior change: each per-item effect still runs exactly once per tick.
+- **Action 3** replaced the battery defId whitelist in `chargeBatteries` with a
+  category check (`ItemCategory.BATTERY` / `LARGE_BATTERY`), and extracted
+  `TurnProcessingUtils.getMaxCharge` now shared by `chargeBatteries` and `crankCharger`.
+- **Verification:** `node --check` on all edited `.js` files and an esbuild transform of
+  `InventoryContext.jsx` both pass; `tsc` shows no new errors in `ContainerGrid.tsx`
+  beyond the pre-existing baseline (JS-module-without-declaration warnings). The app is
+  too heavy to drive in the preview harness, so runtime behavior (charging, rotation
+  ghosts, drag-drop) still warrants a manual play-test.

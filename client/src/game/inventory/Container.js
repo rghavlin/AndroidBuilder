@@ -332,6 +332,13 @@ export class Container {
       for (let dx = 0; dx < w; dx++) {
         if (this.isValidPosition(item.x + dx, item.y + dy)) {
           this.grid[item.y + dy][item.x + dx] = itemId;
+        } else {
+          // A dynamically-growing item (e.g. a water puddle whose size scales
+          // with ammoCount) can report a footprint larger than fits near an
+          // edge. We only write in-bounds cells, so the reported size and the
+          // actual occupied cells disagree — surface it instead of silently
+          // truncating.
+          console.warn(`[Container] updateItemFootprint: cell (${item.x + dx}, ${item.y + dy}) out of bounds for ${item.name || itemId} in ${this.id}`);
         }
       }
     }
@@ -369,6 +376,14 @@ export class Container {
 
     if (!itemId) {
       return false;
+    }
+
+    // For ignoreSize slots the bounds check below is skipped, so a stray
+    // out-of-bounds coordinate would reach an unguarded `this.grid[y][x]` write
+    // and throw. Clamp into the allocated grid so the write is always valid.
+    if (this.ignoreSize) {
+      x = Math.max(0, Math.min(x, (this.grid[0]?.length || 1) - 1));
+      y = Math.max(0, Math.min(y, (this.grid.length || 1) - 1));
     }
 
     // Consistently enforce all nesting and type rules
@@ -586,9 +601,10 @@ export class Container {
         const currentHeight = item.getActualHeight();
         const isLandscape = currentWidth > currentHeight;
 
-        const altRotation = isLandscape
-          ? (originalRotation + 90) % 360
-          : (originalRotation - 90 + 360) % 360;
+        // Normalize to the canonical rotation set {0, 90}. For placement, 90 and
+        // 270 swap width/height identically, but rotateSelected / Item.rotate only
+        // toggle 0<->90, and saves shouldn't persist the non-canonical 270.
+        const altRotation = isLandscape ? 90 : 0;
 
         console.log(`[Container] ${this.id}: Item ${item.name} didn't fit at ${originalRotation}deg. Trying auto-rotate to ${altRotation}deg...`);
         item.rotation = altRotation;

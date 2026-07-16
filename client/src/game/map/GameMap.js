@@ -1033,27 +1033,17 @@ export class GameMap extends SafeEventEmitter {
     let itemModified = false;
 
 
-    // --- POWER SOURCE LOGIC ---
-    if (itemData.traits?.includes(ItemTrait.POWER_SOURCE) && itemData.isOn) {
-      if (TurnProcessingUtils.processPowerSource(itemData)) {
-        itemModified = true;
-      }
-    }
-
-    // --- BATTERY CHARGER LOGIC ---
-    if (itemData.defId === 'tool.battery_charger') {
-      if (isPowered) {
-        TurnProcessingUtils.chargeBatteries(gridItems(itemData.containerGrid), 5);
-        itemModified = true;
-      }
-    }
-
-    // --- SOLAR CHARGER LOGIC ---
-    if (itemData.defId === 'tool.solar_charger') {
-      if (isOutdoors && isDaylight) {
-        TurnProcessingUtils.chargeBatteries(gridItems(itemData.containerGrid));
-        itemModified = true;
-      }
+    // --- POWER GENERATION (source / wired charger / solar) ---
+    // Shared with InventoryManager's player-tile engine via TurnProcessingUtils.
+    // Map-side items are never in the player's inventory, so isInPlayerInventory
+    // is always false here; isPowered is threaded down from the tile/parent.
+    if (TurnProcessingUtils.applyPowerGeneration(itemData, {
+      isPowered,
+      isOutdoors,
+      isDaylight,
+      isInPlayerInventory: false,
+    })) {
+      itemModified = true;
     }
 
     // --- HOTPLATE DRAINAGE LOGIC ---

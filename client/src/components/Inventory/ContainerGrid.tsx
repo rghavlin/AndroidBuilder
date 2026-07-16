@@ -25,7 +25,7 @@ export default function ContainerGrid({
   scrollbarGutter = false,
   onBeforeDrop
 }: ContainerGridProps) {
-  const { getContainer, moveItem } = useInventory();
+  const { getContainer, moveItem, inventoryManager } = useInventory();
   const container = getContainer(containerId);
 
   const handleSlotClick = (x: number, y: number) => {
@@ -55,7 +55,11 @@ export default function ContainerGrid({
       return;
     }
 
-    const item = sourceContainer.items.get(itemId);
+    // Virtual containers (equipment slots, item-mod slots) expose an
+    // intentionally empty items Map, so fall back to a global lookup that
+    // searches across all containers before rejecting the drag.
+    const item = sourceContainer.items.get(itemId)
+      ?? inventoryManager?.findItem(itemId)?.item;
     if (!item) {
       console.error('[ContainerGrid] Item not found in source container:', itemId);
       return;

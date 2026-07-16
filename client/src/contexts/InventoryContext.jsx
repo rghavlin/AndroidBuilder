@@ -555,8 +555,22 @@ export const InventoryProvider = ({ children }) => {
         if (item.stackCount > 0) {
             const container = engine.inventoryManager.getContainer(originContainerId);
             if (container) {
-                item.rotation = originalRotation;
-                container.placeItemAt(item, originX, originY);
+                // Re-resolve by instanceId: syncWithMap / refreshGroundItems may have
+                // rebuilt the container from JSON while this item was selected, leaving
+                // our `item` a stale orphan. If the fresh instance is already back in the
+                // container, don't overwrite it.
+                const fresh = container.items.get(item.instanceId) || item;
+                fresh.rotation = originalRotation;
+                if (!container.items.has(fresh.instanceId)) {
+                    // Guard the placement: if the origin cell is now occupied, fall back
+                    // to auto-positioning (then the ground) so the item never becomes a
+                    // ghost with a written footprint but no map entry.
+                    if (!container.placeItemAt(fresh, originX, originY)) {
+                        if (!container.addItem(fresh)) {
+                            engine.inventoryManager.groundContainer?.addItem(fresh);
+                        }
+                    }
+                }
                 engine.notifyUpdate();
             }
         }
@@ -614,8 +628,10 @@ export const InventoryProvider = ({ children }) => {
                 const placementCheck = targetContainer.validatePlacement(tempPlant, plantX, plantY, rotation);
                 
                 if (placementCheck.valid) {
-                    // Add plant to planter box container
-                    const plantSuccess = targetContainer.addItem(tempPlant, plantX, plantY, rotation);
+                    // Add plant to planter box container. addItem's 4th arg is
+                    // allowStacking, not rotation — planting must never stack, so
+                    // pass false explicitly rather than leaking the selection's rotation.
+                    const plantSuccess = targetContainer.addItem(tempPlant, plantX, plantY, false);
                     console.log(`[InventoryContext] Planting ${tempPlant.name} success: ${plantSuccess}`);
 
                     if (plantSuccess) {
@@ -1001,11 +1017,12 @@ export const InventoryProvider = ({ children }) => {
       return { success: false, reason: 'Empty' };
     }
 
-    // Check if any battery needs charging
-    const needsCharging = batteries.some(b => {
-      const max = b.capacity || (b.defId === 'tool.high_capacity_battery' ? 400 : (b.defId === 'tool.large_battery' ? 100 : 10));
-      return (b.ammoCount || 0) < max;
-    });
+    // Check if any battery needs charging. Uses the shared getMaxCharge helper
+    // so the crank UI can never disagree with the automatic chargers about
+    // when a battery is full.
+    const needsCharging = batteries.some(b =>
+      (b.ammoCount || 0) < TurnProcessingUtils.getMaxCharge(b)
+    );
 
     if (!needsCharging) {
       addLog("All batteries are already full.", 'info');
@@ -1016,10 +1033,9 @@ export const InventoryProvider = ({ children }) => {
     // Perform charging
     let cranksPerformed = 0;
     for (let i = 0; i < apNeeded; i++) {
-       const anyNeedsCharge = batteries.some(b => {
-         const max = b.capacity || (b.defId === 'tool.high_capacity_battery' ? 400 : (b.defId === 'tool.large_battery' ? 100 : 10));
-         return (b.ammoCount || 0) < max;
-       });
+       const anyNeedsCharge = batteries.some(b =>
+         (b.ammoCount || 0) < TurnProcessingUtils.getMaxCharge(b)
+       );
        if (!anyNeedsCharge) break;
 
        TurnProcessingUtils.chargeBatteries(batteries);

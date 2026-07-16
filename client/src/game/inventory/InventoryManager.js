@@ -2200,6 +2200,10 @@ export class InventoryManager extends SafeEventEmitter {
       return { success: false, reason: 'Cannot place item' };
     }
 
+    // Emit for plain placements too, so non-React callers of moveItem keep the
+    // inventory pulse counter in sync (the merge/combine branches above already
+    // emit). Idempotent — a following React notifyUpdate() is harmless.
+    this.emit('inventoryChanged');
     return { success: true };
   }
 
@@ -3173,29 +3177,20 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // --- POWER SOURCE LOGIC ---
-    if (item.hasTrait(ItemTrait.POWER_SOURCE) && item.isOn) {
-      TurnProcessingUtils.processPowerSource(item);
-    }
-
-    // --- BATTERY CHARGER LOGIC ---
-    if (item.defId === 'tool.battery_charger') {
-      const chargerContainer = item.getContainerGrid?.();
-      if (chargerContainer && this.isContainerPowered(chargerContainer.id)) {
-        TurnProcessingUtils.chargeBatteries(chargerContainer.getAllItems(), 5);
-      }
-    }
-
-    // --- SOLAR CHARGER LOGIC ---
-    if (item.defId === 'tool.solar_charger') {
-      // Must be outdoors, daylight, and NOT in player inventory
-      if (isOutdoors && isDaylight && !isInPlayerInventory) {
-        const chargerContainer = item.getContainerGrid?.();
-        if (chargerContainer) {
-          TurnProcessingUtils.chargeBatteries(chargerContainer.getAllItems());
-        }
-      }
-    }
+    // --- POWER GENERATION (source / wired charger / solar) ---
+    // Shared with GameMap's map-side engine via TurnProcessingUtils. Powered-ness
+    // for a wired charger is resolved here via the owner-chain walk; the solar and
+    // power-source gates are location flags the unified helper applies.
+    const chargerGrid = item.getContainerGrid?.();
+    const chargerPowered = (item.defId === 'tool.battery_charger' && chargerGrid)
+      ? this.isContainerPowered(chargerGrid.id)
+      : false;
+    TurnProcessingUtils.applyPowerGeneration(item, {
+      isPowered: chargerPowered,
+      isOutdoors,
+      isDaylight,
+      isInPlayerInventory,
+    });
 
     // --- RECURSION ---
     
@@ -3219,15 +3214,6 @@ export class InventoryManager extends SafeEventEmitter {
         pocket.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory, processedItemIds));
       });
     }
-  }
-
-  /**
-   * Helper to charge batteries inside a container
-   * @deprecated - Logic moved to TurnProcessingUtils.chargeBatteries
-   */
-  _chargeBatteries(container) {
-    if (!container) return;
-    TurnProcessingUtils.chargeBatteries(container.getAllItems());
   }
 
   /**

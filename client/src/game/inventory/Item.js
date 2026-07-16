@@ -1159,7 +1159,15 @@ export class Item extends SafeEventEmitter {
       }
 
       this._container.removeItemFromGrid(this);
-      this._container.placeItemAt(this, this.x, this.y);
+      // placeItemAt re-runs validateNesting and can reject even after isAreaFree
+      // passed (e.g. a non-empty nested container). If it fails, the footprint is
+      // already cleared, so roll back the rotation and re-place at the old spot to
+      // avoid leaving a ghost item in the items Map with no grid cells.
+      if (!this._container.placeItemAt(this, this.x, this.y)) {
+        this.rotation = oldRotation;
+        this._container.placeItemAt(this, this.x, this.y);
+        return false;
+      }
     } else {
       this.rotation = newRotation;
     }
