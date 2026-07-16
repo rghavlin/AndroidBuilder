@@ -6,6 +6,26 @@
 
 import { ItemCategory } from '../inventory/traits.js';
 
+/**
+ * SPECIAL_BUILDING_LOOT — per-building-type loot configuration.
+ *
+ * NOTE (P7-12): This table intentionally uses TWO shapes, one per kind of
+ * consumer logic in LootGenerator. This is deliberate, not an inconsistency to
+ * "fix" — the two shapes back genuinely different spawn code paths, and
+ * collapsing them to one schema would mean rewriting that bespoke consumer.
+ *
+ *   1. Weighted-pool array — `[{ key, weight }]`
+ *      Simple weighted random pulls. Used by: grocer, gas_station.
+ *      Consumed via LootGenerator.addItemsFromTable().
+ *
+ *   2. Categorized object — `{ <categoryName>: string[], ..., rules: {...} }`
+ *      Named pools (medical/tools/ammo/guns/tech/...) plus a `rules` block of
+ *      building-specific spawn parameters (e.g. hasGun, hasGrenade, roomLayout,
+ *      guaranteedTech). Used by: firestation, police, army_tent, hardware_store,
+ *      lab. Each drives bespoke per-building logic in LootGenerator (~L968-1247).
+ *
+ * When adding a building type, match whichever shape fits its consumer path.
+ */
 export const SPECIAL_BUILDING_LOOT = {
     grocer: [
         { key: 'food.granolabar', weight: 25 },

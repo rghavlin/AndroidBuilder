@@ -3,8 +3,17 @@
 **STATUS: ✅ ALL 6 PHASES COMPLETE.** Verified via `npm run build` (clean, no
 new errors/warnings from the changed files) and a full Electron playtest —
 several turns, a large zombie group moving smoothly, no visual or behavioral
-regressions. The one deliberate leftover is noted at the bottom (safety
-heartbeat removal).
+regressions.
+
+**Decision (2026-07-15):** The Phase 1 safety heartbeat is **kept permanently**
+as an accepted safety margin, not removed. Rationale: it leaves idle at ~2
+renders/sec (vs. the ~60 we started from — ~97% of the win already captured),
+and the marginal 2→0 gain is negligible on real hardware now that Phase 2
+removed the per-frame allocations. Against that, the heartbeat caps worst-case
+staleness from any missed dirty source at 500ms (self-healing) instead of
+stranding a stale frame until user input. For a turn-based game that's a cheap,
+reversible net worth keeping. Revisit only if idle profiling on a weak target
+machine shows the 2 paints/sec actually costing meaningful CPU/battery.
 
 **Goal:** Keep the game smooth on low-end machines. The render pipeline draws
 efficiently (chunk cache, min-heap A*, sprite caching), but the frame
@@ -116,5 +125,5 @@ Two independent hitch sources in [TileChunkCache.js](client/src/game/renderer/Ti
 
 ## Follow-up (optional, not blocking)
 
-- [ ] Remove the Phase 1 temporary safety heartbeat (500ms fallback render in the `MapCanvas` rAF tick) now that a full playtest hasn't triggered it. One-line change; only do this after further confidence, since it's the last line of defense against a missed dirty source.
-- [ ] (Phase 3 note) Add a Vite `define` to dead-code-eliminate gated log strings from the production bundle — negligible size, deferred as not worth the build-config risk.
+- [x] ~~Remove the Phase 1 temporary safety heartbeat~~ — **Decided to keep it permanently** (see the Decision note at the top). It's a self-healing 500ms safety net; the 2→0 idle-paint gain isn't worth losing the last defense against a missed dirty source. If wanted, `SAFETY_INTERVAL_MS` (500 → 2000) halves-and-then-some the idle cost while retaining the net.
+- [ ] (Phase 3 note) Add a Vite `define` to dead-code-eliminate gated log strings from the production bundle — negligible size, deferred as not worth the build-config risk. (Left open as a genuine optional tidy-up; no runtime cost today since `log.debug` already no-ops in production.)

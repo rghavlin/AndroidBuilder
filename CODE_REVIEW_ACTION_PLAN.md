@@ -354,14 +354,22 @@ Low-risk items to address as you touch adjacent code.
     (preserving length): VisualEffectsContext, LogContext, ItemDefs, NPCSpawner, MusicManager,
     inventory/index (×2), GameEvents, AudioManager, GameInitializationManager.
 
-- [ ] **P7-12** Standardize `SPECIAL_BUILDING_LOOT` table format in LootTables.js
-  - Deferred: the two shapes (weighted `{key,weight}` arrays vs categorized string-arrays + `rules`)
-    back genuinely different spawn logic in LootGenerator (~lines 905-1166). "Standardizing" means
-    rewriting that bespoke consumer code — a real refactor with regression risk, not a polish item.
+- [x] **P7-12** Standardize `SPECIAL_BUILDING_LOOT` table format in LootTables.js
+  - Resolved as WONTFIX-with-docs (2026-07-15): the two shapes (weighted `{key,weight}` arrays vs
+    categorized string-arrays + `rules`) back genuinely different spawn logic in LootGenerator
+    (~lines 968-1247). "Standardizing" means rewriting that bespoke consumer code — a real refactor
+    with regression risk and no functional gain. Added a header doc comment on `SPECIAL_BUILDING_LOOT`
+    documenting the two intended shapes and which buildings/consumer paths use each, so it reads as
+    deliberate rather than accidental.
 
-- [ ] **P7-13** Remove catch-all property copy loop in Item constructor
-  - Deferred: this loop is load-bearing — it round-trips dynamic/custom item properties through
-    serialization. Removing it risks silent data loss; needs a deliberate field allow-list instead.
+- [x] **P7-13** Remove catch-all property copy loop in Item constructor
+  - Resolved as keep-and-instrument (2026-07-15): the loop is load-bearing — it round-trips
+    dynamic/custom item properties through serialization, and it was the path that once let malformed
+    ECS entity fields leak onto items and crash render/save. Removing it needs a deliberate field
+    allow-list (risks silent data loss otherwise). As the incremental step toward that allow-list,
+    added a dev-only warning (once per unrecognized key) at the copy site in Item.js, so drift surfaces
+    loudly and the real allow-list can be built empirically from what actually appears. Behavior
+    unchanged in production.
 
 - [x] **P7-14** Add price validation in EarbucksShopSystem.addItem
   - Done: rejects non-finite or `<= 0` prices with a warning before mutating the catalog.

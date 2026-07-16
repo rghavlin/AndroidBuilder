@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784160595.7338395,
-    "ast_hash": "fd712936fa353f2add38f057bcc63376",
+    "mtime": 1784162210.8885233,
+    "ast_hash": "cd06625286788b0e20e0cab7355e28c0",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -995,8 +995,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
-    "mtime": 1784160442.0870683,
-    "ast_hash": "6491c367284b61560a8d4806fc3b8319",
+    "mtime": 1784162122.1145785,
+    "ast_hash": "02c8d451fe618e3cb781098b507508de",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
@@ -1075,8 +1075,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
-    "mtime": 1783831660.7954383,
-    "ast_hash": "3c4ad63b89f08a85351e7ca726df024f",
+    "mtime": 1784162133.0991285,
+    "ast_hash": "907b1b41fb74d8da894d741a4b1f8f45",
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {

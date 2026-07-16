@@ -8,6 +8,21 @@ import { FactionRegistry } from '../ai/FactionRegistry.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
+
+// P7-13: the Item constructor ends with a catch-all loop that copies any
+// unrecognized config property onto the instance so dynamic/custom item state
+// round-trips through save/load. It's load-bearing (removing it silently drops
+// data) but uncontrolled — it's the path that once let malformed ECS entity
+// fields (e.g. a stray hp:0) leak onto plain items and crash render/save. Until
+// it's replaced by a deliberate allow-list, warn once per unrecognized property
+// (dev only) so drift surfaces loudly and the real allow-list can be built
+// empirically from what actually shows up. The `this[key] === undefined` guard
+// at the copy site means only properties the constructor didn't already handle
+// reach this path, so the warning fires on genuinely unexpected keys, not on
+// the normal explicitly-handled fields.
+const _itemIsDev = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.DEV : false;
+const _warnedCatchAllProps = new Set();
+
 /**
  * Item Instance - Runtime item with state
  */
@@ -372,6 +387,10 @@ export class Item extends SafeEventEmitter {
         key !== 'maxHp' &&
         this[key] === undefined
       ) {
+        if (_itemIsDev && !_warnedCatchAllProps.has(key)) {
+          _warnedCatchAllProps.add(key);
+          console.warn(`[Item] catch-all copied unrecognized config property "${key}" (defId: ${this.defId}). If this is a legitimate item field, give it explicit constructor handling / an allow-list entry; if it's a foreign (e.g. ECS entity) field, it should be excluded. Warned once per key.`);
+        }
         this[key] = value;
       }
     }
