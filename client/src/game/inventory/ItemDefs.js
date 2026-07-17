@@ -591,7 +591,7 @@ export const ItemDefs = {
     condition: 100,
     combat: {
       hitChance: 0.75,
-      damage: { min: 1, max: 6 }
+      damage: { min: 2, max: 7 }
     }
   },
 

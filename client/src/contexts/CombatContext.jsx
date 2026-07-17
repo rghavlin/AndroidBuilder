@@ -15,6 +15,7 @@ import { LineOfSight } from '../game/utils/LineOfSight.js';
 import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { Pathfinding } from '../game/utils/Pathfinding.js';
 import { getAttackableTurretOnTile, removeDestroyedTurret, escalateFactionAgainstPlayer } from '../game/ai/TurretCombat.js';
 import engine from '../game/GameEngine.js';
 import { IntentQueue } from '../game/managers/IntentQueue.js';
@@ -281,7 +282,19 @@ export const CombatProvider = ({ children }) => {
         // the player clicks the tile on their side of the wall (e.g. smashing a
         // window while standing on its sill). Retarget to the structure's anchor
         // tile so the range check, damage, effects, and noise all land correctly.
-        const { targetEntity, turret, structure, structureX, structureY } = resolveTileTarget(gameMap, targetX, targetY, player);
+        let { targetEntity, turret, structure, structureX, structureY } = resolveTileTarget(gameMap, targetX, targetY, player);
+
+        // Redirect melee attack to a closed window if targeting a zombie on the other side
+        if (targetEntity && targetEntity.type === EntityType.ZOMBIE) {
+            const blockingWin = Pathfinding.getBlockingStructure(gameMap, player.x, player.y, targetX, targetY);
+            if (blockingWin && blockingWin.type === EntityType.WINDOW && !blockingWin.isOpen && !blockingWin.isBroken) {
+                structure = blockingWin;
+                structureX = blockingWin.x;
+                structureY = blockingWin.y;
+                targetEntity = null;
+                turret = null;
+            }
+        }
 
         if (!targetEntity && !turret && !structure) return { success: false, reason: 'No target here' };
 
@@ -393,6 +406,13 @@ export const CombatProvider = ({ children }) => {
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
+                    if (structure.isReinforced) {
+                        structure.isReinforced = false;
+                        structure.reinforcementHp = 0;
+                        structure.dirtyVision();
+                        structure.emitEvent('windowReinforcementDestroyed');
+                        structure.updateBlocking();
+                    }
                     GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY }, source: 'player' });
                     addLog(`You smash the window with your ${weapon.name}!`, 'combat');
                     if (weapon.instanceId === 'unarmed') {

@@ -64,3 +64,21 @@ export function findSouthTransitionTile(gameMap) {
   }
   return null;
 }
+
+/**
+ * Check if coordinates (x, y) lie inside the bottom-center starting area of map 1.
+ * @param {GameMap} gameMap - The map reference
+ * @param {number} x - The x-coordinate
+ * @param {number} y - The y-coordinate
+ * @returns {boolean} True if inside the start area, false otherwise.
+ */
+export function isInStartArea(gameMap, x, y) {
+  if (!gameMap) return false;
+  if (gameMap.template === 'branching_road' && (gameMap.mapNumber === 1 || !gameMap.mapNumber)) {
+    const townSquare = gameMap.metadata?.townSquare;
+    const startY = townSquare ? (townSquare.y + townSquare.height) : 154;
+    return x >= 80 && x <= 140 && y >= startY;
+  }
+  return false;
+}
+

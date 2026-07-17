@@ -1,7 +1,7 @@
 import { EntityFactory } from '../EntityFactory.js';
 import { gameRandom } from '../utils/SeededRandom.js';
 import { MAX_VISION_RANGE } from '../config/VisionConfig.js';
-import { isInsideTollGate } from '../map/MapUtils.js';
+import { isInsideTollGate, isInStartArea } from '../map/MapUtils.js';
 import engine from '../GameEngine.js';
 import Logger from '../utils/Logger.js';
 
@@ -137,6 +137,16 @@ export class ZombieReplenishmentSystem {
       subtype = 'swat';
     } else {
       subtype = 'firefighter';
+    }
+
+    if (isInStartArea(gameMap, spawnTile.x, spawnTile.y)) {
+      if (gameRandom.next() < 0.40) {
+        logger.info(`Replenishment skipped in starting area to reduce density.`);
+        return;
+      }
+      if (subtype !== 'basic' && subtype !== 'crawler') {
+        subtype = 'basic';
+      }
     }
 
     const zombieId = `zombie-${subtype}-${Date.now()}-replenish`;

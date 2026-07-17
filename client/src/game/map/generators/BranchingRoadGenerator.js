@@ -135,15 +135,43 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
     // street), so every street develops on BOTH sides.
     this._zoneBandColumns(builder, bands, plaza, width);
 
+    // Guarantee that at least one POI in the starting area (bottom-center corridor) is a grocer or gas station.
+    const residential = builder.metadata.buildings.filter(b => b.type === 'residential');
+    const candidates = residential.filter(b => this.hasRoadFrontage(builder, b, 6));
+    const bottomCenterCandidates = candidates.filter(b => {
+      const isBelowPlaza = b.y >= plaza.bottom;
+      const isNearCenter = Math.abs((b.x + b.width / 2) - centerX) < 30;
+      return isBelowPlaza && isNearCenter;
+    });
+
+    let forcedType = null;
+    if (bottomCenterCandidates.length > 0) {
+      const idx = Math.floor(random() * bottomCenterCandidates.length);
+      const chosenBuilding = bottomCenterCandidates[idx];
+      forcedType = random() < 0.5 ? 'grocer' : 'gas_station';
+      builder.clearArea(chosenBuilding.x, chosenBuilding.y, chosenBuilding.width, chosenBuilding.height);
+      builder.drawSpecialBuilding(chosenBuilding, forcedType);
+    } else {
+      console.warn('[BranchingRoadGenerator] No bottom-center POI candidates found!');
+    }
+
     // Fixed POI mix for this map: 2 each except 1 hardware store, scattered evenly.
+    const types = [
+      'grocer', 'grocer',
+      'firestation', 'firestation',
+      'police', 'police',
+      'gas_station', 'gas_station',
+      'hardware_store'
+    ];
+    if (forcedType) {
+      const typeIdx = types.indexOf(forcedType);
+      if (typeIdx !== -1) {
+        types.splice(typeIdx, 1);
+      }
+    }
+
     this.specializeBuildings(builder, 'branching_road', config.mapNumber || 1, {
-      types: [
-        'grocer', 'grocer',
-        'firestation', 'firestation',
-        'police', 'police',
-        'gas_station', 'gas_station',
-        'hardware_store'
-      ],
+      types: types,
       scatter: true
     });
 

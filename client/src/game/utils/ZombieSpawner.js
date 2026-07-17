@@ -1,5 +1,5 @@
 import { EntityFactory } from '../EntityFactory.js';
-import { isInsideCompound, isInsideTollGate } from '../map/MapUtils.js';
+import { isInsideCompound, isInsideTollGate, isInStartArea } from '../map/MapUtils.js';
 
 import { gameRandom } from './SeededRandom.js';
 /**
@@ -57,6 +57,19 @@ export class ZombieSpawner {
           const isInside = isInsideCompound(compound, x, y) || isInsideTollGate(gameMap.metadata?.tollGate, x, y);
 
           if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0 && !isInside) {
+            if (isInStartArea(gameMap, x, y)) {
+              // Only allow standard (basic) and crawler zombies in start area
+              if (subtype !== 'basic' && subtype !== 'crawler') {
+                attempts++;
+                continue;
+              }
+              // Reduce standard & crawler zombie density in start area by 40%
+              if (gameRandom.next() < 0.40) {
+                spawned = true; // Mark as spawned so we skip this one
+                continue;
+              }
+            }
+
             const zombieId = `zombie-${subtype}-${Date.now()}-${spawnedCount}`;
             if (gameMap.addEntity(EntityFactory.createZombie(x, y, subtype, zombieId), x, y)) {
               spawnedCount++;
@@ -117,10 +130,23 @@ export class ZombieSpawner {
           const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-            const zombieId = `zombie-firefighter-${Date.now()}-${sIdx}-${spawnedForStation}`;
-            if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'firefighter', zombieId), x, y)) {
-              spawnedCount++;
-              spawnedForStation++;
+            if (isInStartArea(gameMap, x, y)) {
+              if (gameRandom.next() < 0.40) {
+                spawnedForStation++;
+                attempts++;
+                continue;
+              }
+              const zombieId = `zombie-basic-${Date.now()}-${sIdx}-${spawnedForStation}`;
+              if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'basic', zombieId), x, y)) {
+                spawnedCount++;
+                spawnedForStation++;
+              }
+            } else {
+              const zombieId = `zombie-firefighter-${Date.now()}-${sIdx}-${spawnedForStation}`;
+              if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'firefighter', zombieId), x, y)) {
+                spawnedCount++;
+                spawnedForStation++;
+              }
             }
           }
           attempts++;
@@ -136,10 +162,22 @@ export class ZombieSpawner {
                 const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
                 const tile = gameMap.getTile(x, y);
                 if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-                    const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
-                    if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'bomb_disposal', zombieId), x, y)) {
-                        spawnedCount++;
+                    if (isInStartArea(gameMap, x, y)) {
+                      if (gameRandom.next() < 0.40) {
                         bdSpawned = true;
+                        break;
+                      }
+                      const zombieId = `zombie-basic-${Date.now()}-${sIdx}`;
+                      if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'basic', zombieId), x, y)) {
+                          spawnedCount++;
+                          bdSpawned = true;
+                      }
+                    } else {
+                      const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
+                      if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'bomb_disposal', zombieId), x, y)) {
+                          spawnedCount++;
+                          bdSpawned = true;
+                      }
                     }
                 }
                 bdAttempts++;
@@ -157,10 +195,23 @@ export class ZombieSpawner {
           const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
           const tile = gameMap.getTile(x, y);
           if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-            const zombieId = `zombie-swat-${Date.now()}-${sIdx}-${spawnedForStation}`;
-            if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'swat', zombieId), x, y)) {
-              spawnedCount++;
-              spawnedForStation++;
+            if (isInStartArea(gameMap, x, y)) {
+              if (gameRandom.next() < 0.40) {
+                spawnedForStation++;
+                attempts++;
+                continue;
+              }
+              const zombieId = `zombie-basic-${Date.now()}-${sIdx}-${spawnedForStation}`;
+              if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'basic', zombieId), x, y)) {
+                spawnedCount++;
+                spawnedForStation++;
+              }
+            } else {
+              const zombieId = `zombie-swat-${Date.now()}-${sIdx}-${spawnedForStation}`;
+              if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'swat', zombieId), x, y)) {
+                spawnedCount++;
+                spawnedForStation++;
+              }
             }
           }
           attempts++;
@@ -176,10 +227,22 @@ export class ZombieSpawner {
                 const y = station.y + 1 + Math.floor(gameRandom.next() * (station.height - 2));
                 const tile = gameMap.getTile(x, y);
                 if (tile && tile.terrain === 'floor' && tile.contents.length === 0) {
-                    const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
-                    if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'bomb_disposal', zombieId), x, y)) {
-                        spawnedCount++;
+                    if (isInStartArea(gameMap, x, y)) {
+                      if (gameRandom.next() < 0.40) {
                         bdSpawned = true;
+                        break;
+                      }
+                      const zombieId = `zombie-basic-${Date.now()}-${sIdx}`;
+                      if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'basic', zombieId), x, y)) {
+                          spawnedCount++;
+                          bdSpawned = true;
+                      }
+                    } else {
+                      const zombieId = `zombie-bombdisposal-${Date.now()}-${sIdx}`;
+                      if (gameMap.addEntity(EntityFactory.createZombie(x, y, 'bomb_disposal', zombieId), x, y)) {
+                          spawnedCount++;
+                          bdSpawned = true;
+                      }
                     }
                 }
                 bdAttempts++;

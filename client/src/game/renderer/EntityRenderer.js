@@ -218,6 +218,14 @@ export const EntityRenderer = {
 
     if (!explored) return;
 
+    // Skip rendering non-dominant items on the same tile to avoid overlapping tokens
+    if (entity.type === 'item' && engine && engine.gameMap) {
+      const dominantItem = getDominantItemCached(engine, Math.round(entity.x), Math.round(entity.y));
+      if (dominantItem && dominantItem.id !== entity.id) {
+        return;
+      }
+    }
+
     // 1. Movement Interpolation (Phase 11 Fix: Prevent Teleportation Flash)
     let renderX = entity.x;
     let renderY = entity.y;

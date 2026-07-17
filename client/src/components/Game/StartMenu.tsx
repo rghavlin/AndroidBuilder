@@ -152,7 +152,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
     >
       {/* Solid black, sharply angled geometric panel behind the menu list to completely obscure the background art */}
       <div 
-        className="absolute right-0 bottom-0 w-[32%] h-[55%] bg-black z-5 pointer-events-none"
+        className="absolute right-0 bottom-0 w-[32%] min-w-[380px] h-[55%] bg-black z-5 pointer-events-none"
         style={{ clipPath: 'polygon(12% 18%, 100% 0, 100% 100%, 0 100%)' }}
       />
 
