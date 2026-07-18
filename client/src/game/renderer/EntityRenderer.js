@@ -55,7 +55,9 @@ let cachedIsLight = false;
 function isLightTheme() {
   const now = performance.now();
   if (now - lastQueryTime > 16) {
-    cachedIsLight = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
+    cachedIsLight = typeof document !== 'undefined' &&
+      (document.documentElement.classList.contains('light') ||
+       document.documentElement.classList.contains('steampunk'));
     lastQueryTime = now;
   }
   return cachedIsLight;

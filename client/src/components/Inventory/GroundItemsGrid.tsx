@@ -1,3 +1,4 @@
+import { isLightTheme } from "@/lib/utils";
 import { useInventory } from "@/contexts/InventoryContext";
 import UniversalGrid from "./UniversalGrid";
 import { useGame } from "@/contexts/GameContext.jsx";
@@ -106,18 +107,18 @@ export default function GroundItemsGrid() {
   // The tile-texture background is a dark-theme-only feature. In the light themes ground slots
   // have a solid background so the texture would be invisible anyway — and the image still bleeds
   // through semi-transparent placement previews. Suppress the URL outside dark mode.
-  const tileImageUrl = (isNoneTileSet || isSpriteSheet || !theme.startsWith('dark')) ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
+  const tileImageUrl = (isNoneTileSet || isSpriteSheet || isLightTheme(theme)) ? undefined : `./images/tiles/${subFolder}${terrain}.png`;
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
       <div className="flex flex-col h-full w-fit mx-auto">
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
-          <h3 className="text-sm font-semibold text-muted-foreground">
+          <h3 className="text-sm font-semibold text-muted-foreground section-plaque">
             GROUND
           </h3>
           <button
             onClick={handleSort}
-            className="text-xs px-2.5 py-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded border border-border transition-colors font-medium cursor-pointer"
+            className="text-xs px-2.5 py-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded border border-border transition-colors font-medium cursor-pointer section-plaque"
           >
             Sort
           </button>

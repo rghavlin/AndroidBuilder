@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect, memo } from 'react';
-import { cn } from "@/lib/utils";
+import { cn, isLightTheme } from "@/lib/utils";
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useSleep } from '../../contexts/SleepContext.jsx';
@@ -49,11 +49,11 @@ interface StatBarProps {
 }
 
 const STAT_COLORS: Record<string, string> = {
-  health: '#C893B3',
-  action: '#B190CD',
-  nutrition: '#639A88',
-  hydration: '#6B9BC3',
-  energy: '#E5B869',
+  health: 'var(--stat-health, #C893B3)',
+  action: 'var(--stat-action, #B190CD)',
+  nutrition: 'var(--stat-nutrition, #639A88)',
+  hydration: 'var(--stat-hydration, #6B9BC3)',
+  energy: 'var(--stat-energy, #E5B869)',
 };
 
 // memo: only re-renders when numeric props change, not on every movement frame
@@ -82,7 +82,7 @@ const StatBar = memo(({ label, current, max, isLight, suffix, className, overlay
         </span>
       </div>
       <div className={cn(
-        "h-2 w-full rounded-full overflow-hidden border p-[1px]",
+        "h-2 w-full rounded-full overflow-hidden border p-[1px] stat-bar-container",
         isLight ? "bg-muted border-border" : "bg-zinc-800/80 border-white/5"
       )}>
         {/* Both fills are absolutely positioned within this same content box so
@@ -90,7 +90,7 @@ const StatBar = memo(({ label, current, max, isLight, suffix, className, overlay
             the health fill beneath it, instead of stacking side by side. */}
         <div className="relative h-full w-full">
           <div
-            className="absolute inset-0 h-full rounded-full transition-all duration-500 ease-out"
+            className={cn("absolute inset-0 h-full rounded-full transition-all duration-500 ease-out stat-bar-fill", `stat-bar-fill-${statKey}`)}
             style={{
               width: `${Math.min(100, Math.max(0, (current / max) * 100))}%`,
               backgroundColor: barColor
@@ -119,7 +119,7 @@ export default function GameControls({
   
   const { playerStats, isMoving: isAnimatingMovement } = usePlayer();
   const { theme } = useTheme();
-  const isLight = !theme.startsWith('dark');
+  const isLight = isLightTheme(theme);
   const { 
     turn, 
     endTurn, 
@@ -198,7 +198,7 @@ export default function GameControls({
                     src={endTurnImage} 
                     alt="End Turn" 
                     className="w-full h-full object-contain" 
-                    style={{ filter: isLight ? 'invert(1)' : 'none' }}
+                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : isLight ? 'invert(1)' : 'none' }}
                   />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
@@ -232,7 +232,7 @@ export default function GameControls({
                     src={sleepImage} 
                     alt="Sleep" 
                     className="w-full h-full object-contain" 
-                    style={{ filter: isLight ? 'invert(1)' : 'none' }}
+                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : isLight ? 'invert(1)' : 'none' }}
                   />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">SLEEP</span>
@@ -272,9 +272,10 @@ export default function GameControls({
                     alt="Crafting"
                     className={cn(
                       "w-full h-full object-contain p-1 grayscale",
-                      !isLight && "invert",
+                      !isLight && theme !== 'steampunk' && "invert",
                       isExtensionOpen ? "opacity-100" : "opacity-40"
                     )}
+                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : undefined }}
                   />
                 ) : (
                   <span className="text-[10px] font-black leading-tight text-white/60">CRAFT</span>
@@ -314,9 +315,10 @@ export default function GameControls({
                     alt="Skills"
                     className={cn(
                       "w-full h-full object-contain p-1 grayscale",
-                      !isLight && "invert",
+                      !isLight && theme !== 'steampunk' && "invert",
                       isSkillsOpen ? "opacity-100" : "opacity-40"
                     )}
+                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : undefined }}
                   />
                 ) : (
                   <span className="text-[10px] font-black leading-tight text-white/60">CHR</span>
@@ -346,7 +348,7 @@ export default function GameControls({
               <div className="flex items-center gap-1.5 overflow-hidden">
                 {currentStats.condition !== 'Bleeding' && (
                   <span className={cn(
-                    "text-[8px] font-bold px-1 rounded-sm uppercase tracking-tighter whitespace-nowrap",
+                    "condition-pill text-[8px] font-bold px-1 rounded-sm uppercase tracking-tighter whitespace-nowrap",
                     currentStats.condition === 'Normal' ? "bg-muted text-muted-foreground/60 dark:bg-white/5 dark:text-white/40" : "bg-amber-500/20 text-amber-500"
                   )}>
                     {currentStats.condition}

@@ -63,7 +63,8 @@
   --hairline: hsl(240 5.9% 90%);
 }
 
-.dark, .dark2 {
+.dark,
+.dark2 {
   --background: hsl(240 10% 7%);
   --foreground: hsl(0 0% 95%);
   --card: hsl(240 10% 10%);
@@ -99,6 +100,7 @@
   * {
     @apply border-border;
   }
+
   html,
   body,
   #root {
@@ -108,6 +110,7 @@
     padding: 0;
     overflow: hidden;
   }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
     user-select: none;
@@ -117,14 +120,14 @@
 
 @layer components {
   .game-grid-pattern {
-    background-image: 
-      linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
     background-size: 40px 40px;
   }
-  
 
-  
+
+
   .stat-display {
     font-family: var(--font-mono);
     font-size: clamp(0.75rem, 1.5vw, 1rem);
@@ -138,36 +141,37 @@
     -webkit-user-select: none;
   }
 
-  input, textarea {
+  input,
+  textarea {
     user-select: text;
     -webkit-user-select: text;
   }
-  
+
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(240 6% 20%) hsl(240 10% 10%);
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 12px;
     height: 12px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: hsl(240 10% 10%);
     border-radius: 6px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: hsl(240 6% 20%);
     border-radius: 6px;
     border: 2px solid hsl(240 10% 10%);
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(240 5% 25%);
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-corner {
     background: hsl(240 10% 10%);
   }
@@ -195,46 +199,54 @@
 
   /* Utility to hide scrollbars while maintaining functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
+
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
+    display: none;
+    /* Safari and Chrome */
   }
 
   /* --- SKEUOMORPHIC UI CLASSES --- */
-  
+
   /* Dark mode panels (original styles) */
-  .dark .metal-panel, .metal-panel {
-    background: 
-      linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.4) 100%),
-      repeating-linear-gradient(90deg, rgba(20,20,20,0.8) 0px, rgba(40,40,40,0.8) 2px, rgba(20,20,20,0.8) 4px),
+  .dark .metal-panel,
+  .metal-panel {
+    background:
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.4) 100%),
+      repeating-linear-gradient(90deg, rgba(20, 20, 20, 0.8) 0px, rgba(40, 40, 40, 0.8) 2px, rgba(20, 20, 20, 0.8) 4px),
       radial-gradient(circle at center, #2a2a2a 0%, #111 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 5px 15px rgba(0,0,0,0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 5px 15px rgba(0, 0, 0, 0.5);
     border: 1px solid #1a1a1a;
   }
 
   .dark2 .metal-panel {
     background: var(--card);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 5px 15px rgba(0,0,0,0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 5px 15px rgba(0, 0, 0, 0.5);
     border: 1px solid #1a1a1a;
   }
 
-  .dark .inset-slot, .inset-slot {
+  .dark .inset-slot,
+  .inset-slot {
     background: radial-gradient(circle at center, #242429 0%, #0c0c0f 100%);
-    box-shadow: inset 0 4px 8px rgba(0,0,0,0.95), inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.95), inset 0 1px 2px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.05);
     border: 1px solid #2d2d35;
   }
 
-  .dark .transparent-ground-slot, .transparent-ground-slot {
+  .dark .transparent-ground-slot,
+  .transparent-ground-slot {
     background: rgba(12, 12, 15, 0.4);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(45, 45, 53, 0.7);
   }
 
-  .dark .equipment-slot-metal, .equipment-slot-metal {
+  .dark .equipment-slot-metal,
+  .equipment-slot-metal {
     background: linear-gradient(to bottom, #3a3a40 0%, #1c1c22 100%);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 2px 4px rgba(0,0,0,0.6);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 4px rgba(0, 0, 0, 0.6);
     border: 1px solid #33333b;
     border-radius: 8px;
   }
@@ -325,49 +337,49 @@
 
   .empty-slot {
     background: radial-gradient(circle at center, #242429 0%, #0c0c0f 100%);
-    box-shadow: inset 0 4px 8px rgba(0,0,0,0.95), inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.95), inset 0 1px 2px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.05);
     border: 1px solid #2d2d35;
   }
-  
+
   .equipment-slot-metal.active {
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 0 8px rgba(250, 204, 21, 0.6);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 0 8px rgba(250, 204, 21, 0.6);
     border-color: #facc15;
   }
 
   .metal-button {
     background: linear-gradient(to bottom, #444 0%, #222 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.8);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.8);
     border: 1px solid #111;
     color: #e5e5e5;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.8);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
     transition: all 0.1s ease;
   }
 
   .metal-button:active {
     background: linear-gradient(to bottom, #222 0%, #333 100%);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
     transform: translateY(1px);
   }
 
   .metal-button-green {
     background: linear-gradient(to bottom, #22c55e 0%, #15803d 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.8), 0 0 10px rgba(34, 197, 94, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 10px rgba(34, 197, 94, 0.4);
     border: 1px solid #064e3b;
     color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     transition: all 0.1s ease;
   }
-  
+
   .metal-button-green:active {
     background: linear-gradient(to bottom, #15803d 0%, #166534 100%);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
     transform: translateY(1px);
   }
 
   .glowing-border-active {
     border-color: #facc15 !important;
     box-shadow: inset 0 0 10px rgba(250, 204, 21, 0.1), 0 0 8px rgba(250, 204, 21, 0.6) !important;
-    background: linear-gradient(to bottom, rgba(250, 204, 21, 0.05) 0%, rgba(0,0,0,0.4) 100%) !important;
+    background: linear-gradient(to bottom, rgba(250, 204, 21, 0.05) 0%, rgba(0, 0, 0, 0.4) 100%) !important;
   }
 
   .light .glowing-border-active {
@@ -384,30 +396,67 @@
 
   .sunken-item-slab {
     border: 1px solid #050505;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
     overflow: hidden;
   }
 
-
   @keyframes item-blink {
-    0% { opacity: 0.4; filter: brightness(0.8); }
-    50% { opacity: 1; filter: brightness(1.8); }
-    100% { opacity: 0.4; filter: brightness(0.8); }
+    0% {
+      opacity: 0.4;
+      filter: brightness(0.8);
+    }
+
+    50% {
+      opacity: 1;
+      filter: brightness(1.8);
+    }
+
+    100% {
+      opacity: 0.4;
+      filter: brightness(0.8);
+    }
   }
 
   @keyframes vehicle-pull-blink {
-    0%, 100% { border-color: rgba(250, 204, 21, 0.3); box-shadow: 0 0 4px rgba(250, 204, 21, 0.1); }
-    50% { border-color: rgba(250, 204, 21, 1); box-shadow: 0 0 10px rgba(250, 204, 21, 0.6), inset 0 0 6px rgba(250, 204, 21, 0.15); }
+
+    0%,
+    100% {
+      border-color: rgba(250, 204, 21, 0.3);
+      box-shadow: 0 0 4px rgba(250, 204, 21, 0.1);
+    }
+
+    50% {
+      border-color: rgba(250, 204, 21, 1);
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.6), inset 0 0 6px rgba(250, 204, 21, 0.15);
+    }
   }
 
   @keyframes vehicle-pull-blink-light {
-    0%, 100% { border-color: rgba(99, 154, 136, 0.3); box-shadow: 0 0 4px rgba(99, 154, 136, 0.1); }
-    50% { border-color: rgba(99, 154, 136, 1); box-shadow: 0 0 10px rgba(99, 154, 136, 0.6), inset 0 0 6px rgba(99, 154, 136, 0.15); }
+
+    0%,
+    100% {
+      border-color: rgba(99, 154, 136, 0.3);
+      box-shadow: 0 0 4px rgba(99, 154, 136, 0.1);
+    }
+
+    50% {
+      border-color: rgba(99, 154, 136, 1);
+      box-shadow: 0 0 10px rgba(99, 154, 136, 0.6), inset 0 0 6px rgba(99, 154, 136, 0.15);
+    }
   }
 
   @keyframes vehicle-ride-blink {
-    0%, 100% { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 4px rgba(59, 130, 246, 0.1); }
-    50% { border-color: rgba(59, 130, 246, 1); box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), inset 0 0 6px rgba(59, 130, 246, 0.15); }
+
+    0%,
+    100% {
+      border-color: rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    50% {
+      border-color: rgba(59, 130, 246, 1);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), inset 0 0 6px rgba(59, 130, 246, 0.15);
+    }
   }
 
   .vehicle-pull-border {
@@ -434,13 +483,16 @@
   }
 
   @keyframes turn-processing-blink {
-    0%, 100% { 
-      opacity: 0.3; 
+
+    0%,
+    100% {
+      opacity: 0.3;
       transform: translateX(-4px) skewX(-10deg);
       filter: blur(0.5px);
     }
-    50% { 
-      opacity: 1; 
+
+    50% {
+      opacity: 1;
       transform: translateX(4px) skewX(-10deg);
       filter: blur(0px);
     }
@@ -464,18 +516,23 @@
   /* --- LIGHT2 (NEUMORPHIC LIGHT) THEME OVERRIDES --- */
 
   .light2 {
-    --background: hsl(210 20% 96%);      /* Clean soft blue-gray background */
-    --foreground: hsl(220 20% 15%);      /* Soft charcoal text */
-    --card: hsl(0 0% 100%);              /* White cards */
+    --background: hsl(210 20% 96%);
+    /* Clean soft blue-gray background */
+    --foreground: hsl(220 20% 15%);
+    /* Soft charcoal text */
+    --card: hsl(0 0% 100%);
+    /* White cards */
     --card-foreground: hsl(220 20% 15%);
     --popover: hsl(0 0% 100%);
     --popover-foreground: hsl(220 20% 15%);
-    --primary: hsl(142 40% 45%);         /* Muted brand color */
+    --primary: hsl(142 40% 45%);
+    /* Muted brand color */
     --secondary: hsl(210 20% 94%);
     --secondary-foreground: hsl(220 20% 20%);
     --muted: hsl(210 20% 94%);
     --muted-foreground: hsl(220 10% 50%);
-    --accent: hsl(38 92% 55%);           /* Gold highlight */
+    --accent: hsl(38 92% 55%);
+    /* Gold highlight */
     --accent-foreground: hsl(220 20% 15%);
     --border: hsl(210 15% 88%);
     --input: hsl(210 15% 88%);
@@ -501,7 +558,7 @@
     padding: 12px !important;
   }
 
-  .light2 [data-testid="unified-clothing-panel"] > div > .border-b {
+  .light2 [data-testid="unified-clothing-panel"]>div>.border-b {
     border: none !important;
     background: #ffffff !important;
     border-radius: 12px !important;
@@ -555,6 +612,7 @@
     border-radius: 9999px !important;
     overflow: visible !important;
   }
+
   .light2 .empty-slot.rounded-lg {
     border-radius: 9999px !important;
   }
@@ -657,6 +715,403 @@
     background: hsl(210 20% 96%);
   }
 
+  /* --- STEAMPUNK (BRUSHED STEEL / BRASS) THEME OVERRIDES --- */
+
+  .steampunk {
+    --background: hsl(220 3% 72%);
+    /* Brushed steel */
+    --foreground: hsl(222 6% 15%);
+    /* Dark graphite text */
+    --card: hsl(220 3% 78%);
+    --card-foreground: hsl(222 6% 15%);
+    --popover: hsl(220 3% 80%);
+    --popover-foreground: hsl(222 6% 15%);
+    --primary: hsl(44 55% 47%);
+    /* Brass */
+    --primary-foreground: hsl(42 45% 10%);
+    --secondary: hsl(220 3% 68%);
+    --secondary-foreground: hsl(222 6% 18%);
+    --muted: hsl(220 3% 66%);
+    --muted-foreground: hsl(222 5% 32%);
+    --accent: hsl(44 55% 47%);
+    --accent-foreground: hsl(42 45% 10%);
+    --destructive: hsl(4 55% 42%);
+    --destructive-foreground: hsl(0 0% 96%);
+    --border: hsl(220 3% 50%);
+    --input: hsl(220 3% 58%);
+    --ring: hsl(44 55% 47%);
+    --sidebar: hsl(220 3% 74%);
+    --sidebar-foreground: hsl(222 6% 15%);
+    --sidebar-primary: hsl(44 55% 47%);
+    --sidebar-primary-foreground: hsl(42 45% 10%);
+    --sidebar-accent: hsl(220 3% 68%);
+    --sidebar-accent-foreground: hsl(222 6% 18%);
+    --sidebar-border: hsl(220 3% 50%);
+    --sidebar-ring: hsl(44 55% 47%);
+    --track: hsl(220 4% 46%);
+    --hairline: hsl(220 4% 40% / 0.5);
+
+    /* Steampunk-only knobs, referenced from components via var().
+       Icons are white-line art; invert+grayscale turns them into dark
+       graphite engravings that read on the silver slabs under multiply. */
+    --sp-icon-filter: invert(0.78) grayscale(1) contrast(1.05);
+    --sp-icon-filter-empty: invert(0.8) grayscale(1);
+    --sp-slab: linear-gradient(145deg, #dfe0e3 0%, #c7c8cc 55%, #b2b3b7 100%);
+    --stat-health: #4f9e5c;
+    --stat-action: #e6e7e9;
+    --stat-nutrition: #c8862f;
+    --stat-hydration: #3d7ab5;
+    --stat-energy: #d3aa3c;
+  }
+
+  /* Brushed steel panels with corner screws */
+  .steampunk .metal-panel {
+    background:
+      /* Corner screws */
+      radial-gradient(circle 5px at 14px 14px, #6f7074 2.5px, #e6e7ea 3.25px, #909195 4.5px, transparent 5.5px),
+      radial-gradient(circle 5px at calc(100% - 14px) 14px, #6f7074 2.5px, #e6e7ea 3.25px, #909195 4.5px, transparent 5.5px),
+      radial-gradient(circle 5px at 14px calc(100% - 14px), #6f7074 2.5px, #e6e7ea 3.25px, #909195 4.5px, transparent 5.5px),
+      radial-gradient(circle 5px at calc(100% - 14px) calc(100% - 14px), #6f7074 2.5px, #e6e7ea 3.25px, #909195 4.5px, transparent 5.5px),
+      /* Horizontal brushed striations */
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
+      /* Diagonal sheen */
+      linear-gradient(155deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.12) 35%, rgba(0, 0, 0, 0.04) 70%, rgba(0, 0, 0, 0.14) 100%),
+      /* Base steel */
+      linear-gradient(to bottom, #cbccd0 0%, #b9babe 50%, #a8a9ad 100%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+      0 4px 10px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid #7f8084 !important;
+  }
+
+  /* Dark graphite recessed grid cells (equipment circles are styled separately below) */
+  .steampunk .inset-slot:not([data-testid^="equipment-slot-"]),
+  .steampunk .empty-slot:not([data-testid^="equipment-slot-"]),
+  .steampunk .transparent-ground-slot {
+    background: linear-gradient(to bottom, #58595d 0%, #68696d 100%) !important;
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.55),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+      0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    border: 1px solid #4a4b4f !important;
+  }
+
+  /* Placement highlights */
+  .steampunk .empty-slot.placement-preview-valid,
+  .steampunk .inset-slot.placement-preview-valid,
+  .steampunk .transparent-ground-slot.placement-preview-valid {
+    background: rgba(47, 158, 79, 0.6) !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(74, 222, 128, 0.8) !important;
+  }
+
+  .steampunk .empty-slot.placement-preview-invalid,
+  .steampunk .inset-slot.placement-preview-invalid,
+  .steampunk .transparent-ground-slot.placement-preview-invalid {
+    background: rgba(192, 57, 43, 0.6) !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(248, 113, 113, 0.8) !important;
+  }
+
+  /* Occupied grid cells stay neutral so item slabs read cleanly */
+  .steampunk .occupied-slot {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Embossed steel square buttons (menu button, action slots) */
+  .steampunk .equipment-slot-metal {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
+      linear-gradient(145deg, #d6d7da 0%, #b8b9bd 55%, #97989c 100%) !important;
+    box-shadow:
+      inset 0 2px 2px rgba(255, 255, 255, 0.65),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.3),
+      inset 2px 0 2px rgba(255, 255, 255, 0.25),
+      inset -2px 0 3px rgba(0, 0, 0, 0.15),
+      0 3px 6px rgba(0, 0, 0, 0.45) !important;
+    border: 1px solid #75767a !important;
+    border-radius: 10px;
+  }
+
+  .steampunk .equipment-slot-metal.active {
+    border: 2px solid hsl(44 55% 47%) !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.55),
+      0 0 10px rgba(193, 159, 69, 0.6) !important;
+  }
+
+  /* Equipment bar: circular embossed steel coins */
+  .steampunk [data-testid="equipment-slots"] .flex-shrink-0 {
+    border-radius: 9999px !important;
+    overflow: visible !important;
+  }
+
+  .steampunk .empty-slot.rounded-lg {
+    border-radius: 9999px !important;
+  }
+
+  /* No !important here: the green/red equip-feedback hover utilities and
+     inline item background colors must still be able to win. */
+  .steampunk [data-testid="equipment-slots"] .empty-slot {
+    background: radial-gradient(circle at 35% 30%, #dadbde 0%, #bcbdc1 45%, #96979b 100%);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.7),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.25),
+      0 2px 5px rgba(0, 0, 0, 0.4);
+    border: 2px solid #828387;
+  }
+
+  /* Occupied coins: background left un-!important so item colors (green/red
+     medical etc.) applied inline can still show through. */
+  .steampunk [data-testid="equipment-slots"] .inset-slot {
+    background: radial-gradient(circle at 35% 30%, #dadbde 0%, #bcbdc1 45%, #96979b 100%);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.7),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.3),
+      0 2px 5px rgba(0, 0, 0, 0.4);
+    border: 2px solid #828387;
+  }
+
+  /* Selected equipment coin: crimson */
+  .steampunk [data-testid="equipment-slots"] .active {
+    background: radial-gradient(circle at 35% 30%, #d9534f 0%, #b02a25 55%, #7f1d19 100%) !important;
+    border: 2px solid #6e1713 !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.35),
+      0 0 10px rgba(190, 60, 50, 0.6) !important;
+  }
+
+  /* Item slabs: raised polished-steel cards */
+  .steampunk .sunken-item-slab {
+    border: 1px solid #8b8c90 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.25),
+      0 2px 4px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 6px !important;
+    overflow: hidden;
+  }
+
+  /* Soften the heavy "sunken" inner-shadow overlay so slabs read as raised metal */
+  .steampunk div.absolute.inset-0.pointer-events-none.z-10 {
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  /* Brass buttons (windows, dialogs, Sort etc.) */
+  .steampunk .metal-button {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0px, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 3px),
+      linear-gradient(to bottom, #dcbe62 0%, #c19f45 55%, #9a7c2e 100%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(90, 70, 20, 0.5),
+      0 2px 5px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid #7a6120 !important;
+    color: #3a2d0e !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    border-radius: 8px !important;
+    transition: all 0.12s ease !important;
+  }
+
+  .steampunk .metal-button:hover {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 3px),
+      linear-gradient(to bottom, #e7ca70 0%, #ccaa4e 55%, #a68737 100%) !important;
+  }
+
+  .steampunk .metal-button:active {
+    background: linear-gradient(to bottom, #9a7c2e 0%, #c19f45 100%) !important;
+    box-shadow: inset 0 2px 5px rgba(60, 45, 12, 0.6) !important;
+    transform: translateY(1px) !important;
+  }
+
+  .steampunk .metal-button-green {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0px, rgba(255, 255, 255, 0.07) 1px, transparent 1px, transparent 3px),
+      linear-gradient(to bottom, #4caf6d 0%, #2e7d4f 60%, #1f5c39 100%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      inset 0 -1px 0 rgba(10, 40, 22, 0.6),
+      0 2px 6px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid #173d27 !important;
+    color: #f2f7f0 !important;
+    text-shadow: 0 1px 1px rgba(10, 30, 18, 0.7) !important;
+    border-radius: 8px !important;
+    transition: all 0.12s ease !important;
+  }
+
+  .steampunk .metal-button-green:hover {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.09) 0px, rgba(255, 255, 255, 0.09) 1px, transparent 1px, transparent 3px),
+      linear-gradient(to bottom, #58bd7c 0%, #348a59 60%, #256642 100%) !important;
+  }
+
+  .steampunk .metal-button-green:active {
+    background: linear-gradient(to bottom, #1f5c39 0%, #2e7d4f 100%) !important;
+    box-shadow: inset 0 2px 5px rgba(8, 30, 17, 0.7) !important;
+    transform: translateY(1px) !important;
+  }
+
+  /* Brass label plaques (section headers, GROUND, Sort) */
+  .steampunk .section-plaque {
+    background: linear-gradient(to bottom, #dcbe62 0%, #c19f45 55%, #a08233 100%) !important;
+    color: #3a2d0e !important;
+    border: 1px solid #7a6120 !important;
+    border-radius: 6px !important;
+    padding: 3px 10px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(80, 60, 15, 0.4),
+      0 2px 4px rgba(0, 0, 0, 0.35) !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    display: inline-block;
+  }
+
+  .steampunk .section-plaque .text-muted-foreground {
+    color: #5a4716 !important;
+  }
+
+  /* Ground items grid: steel embossed buttons (Sort keeps its brass plaque) */
+  .steampunk [data-testid="ground-items-grid"] button:not(.section-plaque) {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
+      linear-gradient(145deg, #d6d7da 0%, #b8b9bd 55%, #9b9ca0 100%) !important;
+    border: 1px solid #75767a !important;
+    color: #2c2d31 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 8px !important;
+    transition: all 0.12s ease !important;
+  }
+
+  .steampunk [data-testid="ground-items-grid"] button:not(.section-plaque):hover {
+    background: linear-gradient(145deg, #e0e1e4 0%, #c2c3c7 55%, #a5a6aa 100%) !important;
+  }
+
+  .steampunk [data-testid="ground-items-grid"] button:not(.section-plaque):active {
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(1px) !important;
+  }
+
+  /* Brass selection highlights */
+  .steampunk .selected-item-overlay {
+    border-color: hsl(44 55% 47%) !important;
+    box-shadow: 0 0 0 2px rgba(193, 159, 69, 0.55) !important;
+    animation: item-blink 1.5s infinite ease-in-out !important;
+  }
+
+  .steampunk .glowing-border-active {
+    border-color: hsl(44 55% 47%) !important;
+    box-shadow: inset 0 0 10px rgba(193, 159, 69, 0.15), 0 0 10px rgba(193, 159, 69, 0.55) !important;
+    background: linear-gradient(to bottom, rgba(193, 159, 69, 0.1) 0%, rgba(60, 50, 20, 0.2) 100%) !important;
+  }
+
+  /* Stack/ammo badges: machined graphite pills */
+  .steampunk .sunken-item-slab span.bg-black\/85,
+  .steampunk .sunken-item-slab span.bg-black\/90,
+  .steampunk [data-testid^="equipment-slot"] span.bg-black\/85,
+  .steampunk [data-inventory-ui="true"] span.bg-black\/85 {
+    background: linear-gradient(to bottom, #4e4f53 0%, #333438 100%) !important;
+    color: #e8e9ec !important;
+    border: 1px solid #26272a !important;
+    border-radius: 9999px !important;
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+  }
+
+  /* Header/footer: brushed steel bars */
+  .steampunk .unified-header {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
+      linear-gradient(to bottom, #cfd0d4 0%, #b4b5b9 100%) !important;
+    border-bottom: 2px solid #7e7f83 !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .steampunk .unified-footer {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
+      linear-gradient(to bottom, #b4b5b9 0%, #cfd0d4 100%) !important;
+    border-top: 2px solid #7e7f83 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  }
+
+  /* Header icons/labels: dark graphite on steel */
+  .steampunk .unified-header svg {
+    color: #3f4044;
+  }
+
+  .steampunk [data-testid="equipment-slots"] h2 {
+    color: #4a4b4f;
+  }
+
+  /* Footer action buttons (End Turn, Sleep, Craft, Character): embossed brass */
+  .steampunk .unified-footer button[data-testid^="button-"] {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0px, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 3px),
+      linear-gradient(145deg, #dcbe62 0%, #c19f45 55%, #9a7c2e 100%) !important;
+    border: 1px solid #7a6120 !important;
+    box-shadow:
+      inset 0 2px 2px rgba(255, 255, 255, 0.55),
+      inset 0 -2px 3px rgba(90, 70, 20, 0.45),
+      0 3px 6px rgba(0, 0, 0, 0.4) !important;
+    border-radius: 10px !important;
+  }
+
+  .steampunk .unified-footer button[data-testid^="button-"]:hover:not(:disabled) {
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 3px),
+      linear-gradient(145deg, #e7ca70 0%, #ccaa4e 55%, #a68737 100%) !important;
+  }
+
+  .steampunk .unified-footer button[data-testid^="button-"]:active:not(:disabled) {
+    box-shadow: inset 0 2px 5px rgba(60, 45, 12, 0.6) !important;
+  }
+
+  /* Steel scrollbars */
+  .steampunk .custom-scrollbar {
+    scrollbar-color: #85868a #b6b7bb;
+  }
+
+  .steampunk .custom-scrollbar::-webkit-scrollbar-track {
+    background: #b6b7bb;
+  }
+
+  .steampunk .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #94959a, #75767a);
+    border: 2px solid #b6b7bb;
+  }
+
+  .steampunk .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #a2a3a8, #828387);
+  }
+
+  .steampunk .custom-scrollbar::-webkit-scrollbar-corner {
+    background: #b6b7bb;
+  }
+
+  /* Vehicle borders on the steel palette */
+  .steampunk .vehicle-pull-border {
+    border: 2px solid rgba(193, 159, 69, 0.4);
+    animation: vehicle-pull-blink 1.5s ease-in-out infinite;
+    z-index: 15 !important;
+  }
+
+  .steampunk .vehicle-ride-border {
+    border: 2px solid rgba(59, 130, 246, 0.4);
+    animation: vehicle-ride-blink 1.5s ease-in-out infinite;
+    z-index: 15 !important;
+  }
+
   .menu-btn-stencil {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-weight: 900;
@@ -689,5 +1144,361 @@
     cursor: not-allowed;
     transform: none;
   }
-}
 
+  /* --- METALLIC (TACTICAL DARK MODE) THEME OVERRIDES --- */
+
+  .metallic {
+    --background: hsl(0 0% 0%);
+    /* Deep jet-black */
+    --foreground: hsl(0 0% 95%);
+    /* Razor-sharp white */
+    --card: hsl(0 0% 6%);
+    --card-foreground: hsl(0 0% 95%);
+    --popover: hsl(0 0% 6%);
+    --popover-foreground: hsl(0 0% 95%);
+    --primary: hsl(0 0% 30%);
+    /* Matte charcoal gray */
+    --primary-foreground: hsl(0 0% 95%);
+    --secondary: hsl(0 0% 12%);
+    --secondary-foreground: hsl(0 0% 95%);
+    --muted: hsl(0 0% 15%);
+    --muted-foreground: hsl(0 0% 70%);
+    --accent: hsl(0 0% 30%);
+    --accent-foreground: hsl(0 0% 95%);
+    --destructive: hsl(0 80% 40%);
+    --destructive-foreground: hsl(0 0% 98%);
+    --border: hsl(0 0% 15%);
+    --input: hsl(0 0% 10%);
+    --ring: hsl(120 100% 40%);
+    /* Toxic green interaction glows */
+    --sidebar: hsl(0 0% 6%);
+    --sidebar-foreground: hsl(0 0% 95%);
+    --sidebar-primary: hsl(0 0% 30%);
+    --sidebar-primary-foreground: hsl(0 0% 95%);
+    --sidebar-accent: hsl(0 0% 12%);
+    --sidebar-accent-foreground: hsl(0 0% 95%);
+    --sidebar-border: hsl(0 0% 15%);
+    --sidebar-ring: hsl(120 100% 40%);
+    --track: hsl(0 0% 10%);
+    --hairline: hsl(0 0% 20% / 0.5);
+
+    /* Metallic specific variables */
+    --metallic-icon-filter: drop-shadow(-1px -1px 2px rgba(255, 255, 255, 0.4)) drop-shadow(1px 2px 3px rgba(0, 0, 0, 1));
+    /* Dark gunmetal slab for items without a colored background; icons stay
+       white with the embossed drop-shadow filter, matching colored items.
+       Dark top-left -> lighter bottom-right reads as recessed, not raised. */
+    --metallic-slab: linear-gradient(145deg, #26282c 0%, #44464a 100%);
+    --stat-health: #ef4444;
+    /* red */
+    --stat-action: #d4d4d8;
+    --stat-nutrition: #22c55e;
+    /* green */
+    --stat-hydration: #3b82f6;
+    /* blue */
+    --stat-energy: #eab308;
+    /* gold */
+  }
+
+  /* Global Overrides to force deep dark mode on elements that might use light defaults */
+  .metallic body {
+    background-color: #000 !important;
+    color: #f5f5f5 !important;
+  }
+
+  .metallic .bg-white,
+  .metallic .bg-zinc-50,
+  .metallic .bg-zinc-100 {
+    background-color: #1a1a1a !important;
+  }
+
+  .metallic .text-zinc-500,
+  .metallic .text-zinc-600 {
+    color: #a1a1aa !important;
+  }
+
+  /* Matte charcoal gray material with fine brushed finish and screws */
+  .metallic .metal-panel,
+  .metallic .unified-header,
+  .metallic .unified-footer {
+    background:
+      radial-gradient(circle 4px at 12px 12px, #1a1a1a 2px, #333 3px, #111 4px, transparent 4.5px),
+      radial-gradient(circle 4px at calc(100% - 12px) 12px, #1a1a1a 2px, #333 3px, #111 4px, transparent 4.5px),
+      radial-gradient(circle 4px at 12px calc(100% - 12px), #1a1a1a 2px, #333 3px, #111 4px, transparent 4.5px),
+      radial-gradient(circle 4px at calc(100% - 12px) calc(100% - 12px), #1a1a1a 2px, #333 3px, #111 4px, transparent 4.5px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 2px),
+      radial-gradient(circle at top left, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+      linear-gradient(to bottom, #2a2a2a 0%, #1c1c1c 100%) !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.15),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+      0 10px 20px rgba(0, 0, 0, 0.9) !important;
+    border: 1px solid #000 !important;
+    color: #f5f5f5 !important;
+  }
+
+  /* Deeply recessed dark panels (map + history stay near-black) */
+  .metallic [data-testid="map-container"],
+  .metallic .history-panel-class,
+  /* Target the history panel */
+  .metallic .unified-history {
+    background: #050505 !important;
+    box-shadow:
+      inset 0 10px 20px rgba(0, 0, 0, 1),
+      inset 0 2px 10px rgba(0, 0, 0, 0.9),
+      0 1px 1px rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid #000 !important;
+  }
+
+  /* Inventory + ground panels: brushed gunmetal-silver so dark slots and
+     silver item slabs both read against them */
+  .metallic [data-testid="unified-clothing-panel"],
+  .metallic [data-testid="ground-items-grid"],
+  .metallic [data-inventory-ui="true"]:not(.sunken-item-slab) {
+    background:
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at top left, rgba(255, 255, 255, 0.10) 0%, transparent 55%),
+      linear-gradient(to bottom, #595b60 0%, #4a4c50 55%, #3e4044 100%) !important;
+    box-shadow:
+      inset 0 2px 6px rgba(0, 0, 0, 0.55),
+      0 1px 1px rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid #1c1d1f !important;
+  }
+
+  /* Deeply recessed slots */
+  .metallic .inset-slot:not([data-testid^="equipment-slot-"]),
+  .metallic .empty-slot:not([data-testid^="equipment-slot-"]),
+  .metallic .transparent-ground-slot {
+    background: #0a0b0c !important;
+    box-shadow:
+      inset 0 6px 12px rgba(0, 0, 0, 1),
+      inset 0 2px 6px rgba(0, 0, 0, 0.9),
+      0 1px 1px rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid #26282b !important;
+    border-radius: 4px;
+  }
+
+  /* Active glow for selected elements */
+  .metallic .empty-slot.placement-preview-valid,
+  .metallic .inset-slot.placement-preview-valid,
+  .metallic .transparent-ground-slot.placement-preview-valid {
+    background: rgba(34, 197, 94, 0.2) !important;
+    box-shadow: inset 0 0 15px rgba(34, 197, 94, 0.5) !important;
+    border: 1px solid #22c55e !important;
+  }
+
+  .metallic .empty-slot.placement-preview-invalid,
+  .metallic .inset-slot.placement-preview-invalid,
+  .metallic .transparent-ground-slot.placement-preview-invalid {
+    background: rgba(220, 38, 38, 0.2) !important;
+    box-shadow: inset 0 0 15px rgba(220, 38, 38, 0.5) !important;
+    border: 1px solid #dc2626 !important;
+  }
+
+  .metallic .occupied-slot {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Raised/embossed equipment slots */
+  .metallic .equipment-slot-metal {
+    background: linear-gradient(135deg, #333 0%, #1a1a1a 100%) !important;
+    box-shadow:
+      inset 0 1px 2px rgba(255, 255, 255, 0.2),
+      inset -1px -1px 2px rgba(0, 0, 0, 0.8),
+      0 4px 6px rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid #000 !important;
+    border-radius: 8px;
+  }
+
+  .metallic .equipment-slot-metal.active {
+    border: 1px solid #10b981 !important;
+    /* Toxic green glow */
+    box-shadow:
+      inset 0 0 10px rgba(16, 185, 129, 0.4),
+      0 0 15px rgba(16, 185, 129, 0.6) !important;
+  }
+
+  /* High-relief metallic coins/models for items.
+     No background here: the component supplies it inline — silver slab
+     (var(--metallic-slab)) for plain items, the item's own color otherwise. */
+  .metallic .sunken-item-slab {
+    border: 1px solid #111 !important;
+    box-shadow:
+      inset 0 6px 12px rgba(0, 0, 0, 1),
+      inset 0 1px 3px rgba(0, 0, 0, 0.8),
+      0 1px 1px rgba(255, 255, 255, 0.08) !important;
+    border-radius: 6px !important;
+  }
+
+  /* Metallic Buttons */
+  .metallic .metal-button {
+    background: linear-gradient(180deg, #3a3a3a 0%, #222 100%) !important;
+    border: 1px solid #000 !important;
+    color: #f4f4f5 !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 0 1px 2px #000 !important;
+    transition: all 0.1s ease !important;
+  }
+
+  .metallic .metal-button:hover {
+    background: linear-gradient(180deg, #4a4a4a 0%, #2c2c2c 100%) !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.25),
+      0 2px 5px rgba(0, 0, 0, 0.9) !important;
+  }
+
+  .metallic .metal-button:active {
+    background: linear-gradient(180deg, #1c1c1c 0%, #2a2a2a 100%) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+    transform: translateY(1px) !important;
+  }
+
+  /* Ground items button */
+  .metallic [data-testid="ground-items-grid"] button {
+    background: linear-gradient(180deg, #3a3a3a 0%, #222 100%) !important;
+    border: 1px solid #000 !important;
+    color: #f4f4f5 !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.8) !important;
+    transition: all 0.1s ease !important;
+  }
+
+  .metallic [data-testid="ground-items-grid"] button:hover {
+    background: linear-gradient(180deg, #4a4a4a 0%, #2c2c2c 100%) !important;
+  }
+
+  .metallic [data-testid="ground-items-grid"] button:active {
+    background: linear-gradient(180deg, #1c1c1c 0%, #2a2a2a 100%) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+    transform: translateY(1px) !important;
+  }
+
+  /* Dark header plaques with a machined silver rim (Upper Body, GROUND, Sort) */
+  .metallic .section-plaque {
+    background: linear-gradient(to bottom, #232427 0%, #17181a 100%) !important;
+    color: #e4e4e7 !important;
+    border: 1px solid #6b6d71 !important;
+    border-radius: 5px !important;
+    padding: 3px 10px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 1px 2px rgba(0, 0, 0, 0.6) !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px #000 !important;
+    display: inline-block;
+  }
+
+  .metallic .section-plaque .text-muted-foreground {
+    color: #a1a1aa !important;
+  }
+
+  /* Glowing Overlays */
+  .metallic .selected-item-overlay {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.8) !important;
+    animation: item-blink 1.5s infinite ease-in-out !important;
+  }
+
+  .metallic [data-testid="equipment-slots"] .flex-shrink-0 {
+    border-radius: 8px !important;
+  }
+
+  .metallic .empty-slot.rounded-lg {
+    border-radius: 8px !important;
+  }
+
+  .metallic [data-testid="equipment-slots"] .empty-slot {
+    background: #0a0a0a;
+    box-shadow:
+      inset 0 4px 8px rgba(0, 0, 0, 0.9),
+      0 1px 1px rgba(255, 255, 255, 0.08);
+    border: 1px solid #000;
+  }
+
+  /* Status Bars - glowing effects */
+  .metallic .stat-bar-container {
+    background: #000 !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 1), 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid #111 !important;
+  }
+
+  .metallic .stat-bar-fill-health {
+    background: #ef4444 !important;
+    box-shadow: inset 0 0 4px #fff, 0 0 12px rgba(239, 68, 68, 0.9) !important;
+  }
+
+  .metallic .stat-bar-fill-nutrition {
+    background: #22c55e !important;
+    box-shadow: inset 0 0 4px #fff, 0 0 12px rgba(34, 197, 94, 0.9) !important;
+  }
+
+  .metallic .stat-bar-fill-hydration {
+    background: #3b82f6 !important;
+    box-shadow: inset 0 0 4px #fff, 0 0 12px rgba(59, 130, 246, 0.9) !important;
+  }
+
+  .metallic .stat-bar-fill-energy {
+    background: #eab308 !important;
+    box-shadow: inset 0 0 4px #fff, 0 0 12px rgba(234, 179, 8, 0.9) !important;
+  }
+
+  .metallic .stat-bar-fill-action {
+    background: #d4d4d8 !important;
+    box-shadow: inset 0 0 4px #fff, 0 0 12px rgba(212, 212, 216, 0.9) !important;
+  }
+
+  /* Luminous Category Fields */
+  .metallic .inset-slot.category-food,
+  .metallic .sunken-item-slab.category-food,
+  .metallic .empty-slot.category-food {
+    background: radial-gradient(circle at center, rgba(34, 197, 94, 0.25) 0%, rgba(20, 83, 45, 0.4) 100%), #0a0a0a !important;
+    box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.25), inset 0 6px 12px rgba(0,0,0,1), inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 1px rgba(255,255,255,0.08) !important;
+  }
+
+  .metallic .inset-slot.category-medical,
+  .metallic .sunken-item-slab.category-medical,
+  .metallic .empty-slot.category-medical {
+    background: radial-gradient(circle at center, rgba(239, 68, 68, 0.25) 0%, rgba(127, 29, 29, 0.4) 100%), #0a0a0a !important;
+    box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.25), inset 0 6px 12px rgba(0,0,0,1), inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 1px rgba(255,255,255,0.08) !important;
+  }
+
+  .metallic .inset-slot.item-special-blue,
+  .metallic .sunken-item-slab.item-special-blue,
+  .metallic .empty-slot.item-special-blue {
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.25) 0%, rgba(30, 58, 138, 0.4) 100%), #0a0a0a !important;
+    box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.25), inset 0 6px 12px rgba(0,0,0,1), inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 1px rgba(255,255,255,0.08) !important;
+  }
+
+  /* Embossed white icons on the dark equipment-bar tiles.
+     Grid item icons get the same filter inline from the components. */
+  .metallic .equipment-slot-metal img,
+  .metallic [data-testid^="equipment-slot"] img {
+    filter: var(--metallic-icon-filter) !important;
+  }
+
+  /* Condition pill next to the health bar */
+  .metallic .condition-pill {
+    background: #1b1c1e !important;
+    color: #a1a1aa !important;
+    border: 1px solid #3f4144 !important;
+  }
+
+  /* Black & white pill badges for Stack/Ammo overlays */
+  .metallic .sunken-item-slab span.bg-black\/85,
+  .metallic .sunken-item-slab span.bg-black\/90,
+  .metallic [data-testid^="equipment-slot"] span.bg-black\/85,
+  .metallic [data-inventory-ui="true"] span.bg-black\/85 {
+    background: #09090b !important;
+    color: #fafafa !important;
+    border: 1px solid #52525b !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+    font-weight: 700 !important;
+  }
+}

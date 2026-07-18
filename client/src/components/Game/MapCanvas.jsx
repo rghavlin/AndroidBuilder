@@ -139,7 +139,22 @@ export default function MapCanvas({
 
   // Define terrain colors (Grayscale Retro Palette for fallback)
   const isLightMode = document.documentElement.classList.contains('light');
-  const terrainColors = isLightMode ? {
+  const isSteampunkMode = document.documentElement.classList.contains('steampunk');
+  const terrainColors = isSteampunkMode ? {
+    'grass': '#8a7d5a',
+    'floor': '#b0a288',
+    'wall': '#5c4a32',
+    'road': '#6b5f4a',
+    'sidewalk': '#9c8f74',
+    'fence': '#4a3a26',
+    'building': '#7a6a50',
+    'tent_wall': '#8a7a5c',
+    'window': '#b0a288',
+    'water': '#4a5c6a',
+    'sand': '#a89a7c',
+    'tree': '#4d5c3a',
+    'default': '#6b5f4a'
+  } : isLightMode ? {
     'grass': '#e2e8f0',
     'floor': '#f1f5f9',
     'wall': '#475569',
@@ -267,13 +282,14 @@ export default function MapCanvas({
       camera.updateViewportSize(logicalWidth, logicalHeight, baseTileSize);
 
       const isLight = document.documentElement.classList.contains('light');
-      const currentTheme = isLight ? 'light' : 'dark';
+      const isSteampunk = document.documentElement.classList.contains('steampunk');
+      const currentTheme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
       if (currentTheme !== lastThemeRef.current) {
         chunkCacheRef.current.invalidateAll();
         lastThemeRef.current = currentTheme;
       }
 
-      ctx.fillStyle = isLight ? '#f5f5f7' : '#111';
+      ctx.fillStyle = isSteampunk ? '#2a2118' : (isLight ? '#f5f5f7' : '#111');
       ctx.fillRect(0, 0, physicalWidth, physicalHeight);
 
       // 4. Rendering Layers

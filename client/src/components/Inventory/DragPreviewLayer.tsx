@@ -1,3 +1,4 @@
+import { isLightTheme } from "@/lib/utils";
 
 import { useEffect, useState } from "react";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -9,7 +10,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 export default function DragPreviewLayer() {
   const inventoryContext = useInventory();
   const { theme } = useTheme();
-  const isLight = !theme.startsWith('dark');
+  const isLight = isLightTheme(theme);
   const { dragState, updateDragPosition, rotateDrag, cancelDrag } = inventoryContext;
   const { fixedSlotSize } = useGridSize();
   const [itemImage, setItemImage] = useState<string | null>(null);
@@ -95,6 +96,7 @@ export default function DragPreviewLayer() {
         top: `${top}px`,
         width: `${pixelWidth}px`,
         height: `${pixelHeight}px`,
+        background: theme === 'metallic' ? (item?.backgroundColor ?? 'var(--metallic-slab)') : undefined,
       }}
     >
       {itemImage ? (
@@ -105,7 +107,7 @@ export default function DragPreviewLayer() {
           className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? (isLight ? 'mix-blend-multiply' : 'mix-blend-screen') : ''}`}
           style={{
             transform: `rotate(${rotation}deg)`,
-            filter: theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
+            filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : theme === 'metallic' ? 'var(--metallic-icon-filter)' : theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
           }}
         />
       ) : (

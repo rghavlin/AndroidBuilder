@@ -47,6 +47,23 @@ const LIGHT_TERRAIN_COLORS = {
   'dirt': '#e2e8f0'
 };
 
+// Steampunk: warm sepia/bronze palette
+const STEAMPUNK_TERRAIN_COLORS = {
+  'grass': '#8a7d5a',
+  'road': '#6b5f4a',
+  'transition': '#6b5f4a',
+  'sidewalk': '#9c8f74',
+  'wall': '#5c4a32',
+  'building': '#7a6a50',
+  'fence': '#4a3a26',
+  'tree': '#4d5c3a',
+  'tent_wall': '#8a7a5c',
+  'tent_floor': '#a89a7c',
+  'floor': '#b0a288',
+  'water': '#4a5c6a',
+  'dirt': '#7a6a50'
+};
+
 const GRASS_VARIANTS = [
   { col: 0, row: 15 }, { col: 1, row: 15 }, { col: 2, row: 15 }, { col: 3, row: 15 },
   { col: 0, row: 14 }, { col: 1, row: 14 }, { col: 2, row: 14 }, { col: 3, row: 14 }
@@ -63,8 +80,9 @@ export const TileRenderer = {
     // 1. Draw Terrain (If explored)
     if (isExplored) {
         const isLight = document.documentElement.classList.contains('light');
+        const isSteampunk = document.documentElement.classList.contains('steampunk');
         // Use structural mapping for important types to guarantee visibility
-        const colors = isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS;
+        const colors = isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
         ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
         ctx.fillRect(screenX, screenY, tileSize, tileSize);
@@ -339,7 +357,8 @@ export const TileRenderer = {
 
     // Base colour (always drawn — unexplored tiles are masked by MapCanvas)
     const isLight = document.documentElement.classList.contains('light');
-    const colors = isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS;
+    const isSteampunk = document.documentElement.classList.contains('steampunk');
+    const colors = isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
     const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
     ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
     ctx.fillRect(screenX, screenY, tileSize, tileSize);

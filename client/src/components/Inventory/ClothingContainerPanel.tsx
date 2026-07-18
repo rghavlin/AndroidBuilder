@@ -61,7 +61,7 @@ export default function ClothingContainerPanel({
         onClick={handleToggle}
         className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent/50 transition-colors"
       >
-        <span className="text-sm font-medium">
+        <span className="text-sm font-medium section-plaque">
           {title}
           {equippedItem && <span className="text-muted-foreground ml-2">({equippedItem.name})</span>}
           {!equippedItem && !hasContent && <span className="text-muted-foreground ml-2">(None)</span>}

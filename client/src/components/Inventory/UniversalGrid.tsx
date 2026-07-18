@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { getCategoryClass } from "@/lib/utils";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import GridSlot from "./GridSlot";
 import { ItemContextMenu } from "./ItemContextMenu";
@@ -25,7 +26,12 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { rainbowBackground } from "@/lib/utils";
 
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
-  if (!bgColor) return theme === 'light2' ? 'rgba(255, 255, 255, 0.15)' : 'var(--card)';
+  if (!bgColor) {
+    if (theme === 'light2') return 'rgba(255, 255, 255, 0.15)';
+    if (theme === 'steampunk') return 'var(--sp-slab)';
+    if (theme === 'metallic') return 'var(--metallic-slab)';
+    return 'var(--card)';
+  }
   const lower = bgColor.toLowerCase();
   if (theme === 'light2') {
     if (lower === '#006b18') return '#7BA899';
@@ -38,6 +44,12 @@ const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
     if (lower === '#8a0303') return '#C15C5C';
     if (lower === '#0a2e5c') return '#5C8AB3';
     if (lower === '#1e1b4b') return '#C7D2FE';
+  } else if (theme === 'steampunk') {
+    if (lower === '#006b18') return '#2e9e4f';
+    if (lower === '#8a0303') return '#c0392b';
+    if (lower === '#0a2e5c') return '#3a6ea5';
+    if (lower === '#5c653a') return '#7a8450';
+    if (lower === '#1e1b4b') return '#5c5a8a';
   }
   return bgColor;
 };
@@ -1097,6 +1109,7 @@ export default function UniversalGrid({
           <div
             className={cn(
               "absolute select-none z-10 transition-all duration-200 rounded-[3px] sunken-item-slab",
+              getCategoryClass(item),
               "cursor-grab active:cursor-grabbing",
               hoveredItem === itemId ? "brightness-125 scale-[1.01]" : "",
               isItemSelected ? (themeRef.current === 'light2' ? "ring-2 ring-[#E2A73F] border-[#E2A73F] selected-item-overlay" : themeRef.current === 'light' ? "ring-2 ring-black border-black selected-item-overlay" : "ring-2 ring-accent border-accent selected-item-overlay") : "",
@@ -1133,7 +1146,7 @@ export default function UniversalGrid({
                   src={itemImageSrc}
                   className={cn(
                     "absolute pointer-events-none select-none max-w-none",
-                    !item.backgroundColor && (!themeRef.current.startsWith('dark') ? "mix-blend-multiply" : "mix-blend-screen")
+                    !item.backgroundColor && (!themeRef.current.startsWith('dark') && themeRef.current !== 'metallic' ? "mix-blend-multiply" : "mix-blend-screen")
                   )}
                   style={{
                     left: `${adjustedLeft - leftPos}px`,
@@ -1143,7 +1156,7 @@ export default function UniversalGrid({
                     objectFit: 'cover',
                     transform: transformStyle,
                     transformOrigin: 'top left',
-                    filter: themeRef.current === 'light2' ? 'invert(0.75)' : themeRef.current === 'light' ? 'invert(1)' : undefined,
+                    filter: themeRef.current === 'steampunk' ? 'var(--sp-icon-filter)' : themeRef.current === 'metallic' ? 'var(--metallic-icon-filter)' : themeRef.current === 'light2' ? 'invert(0.75)' : themeRef.current === 'light' ? 'invert(1)' : undefined,
                   }}
                   alt={item.name}
                 />

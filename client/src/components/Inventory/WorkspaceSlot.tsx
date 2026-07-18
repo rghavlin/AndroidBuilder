@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, memo, useRef, useMemo } from 'react';
-import { cn } from "@/lib/utils";
+import { cn, isLightTheme } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
@@ -8,7 +8,7 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
-    if (!bgColor) return undefined;
+    if (!bgColor) return theme === 'metallic' ? 'var(--metallic-slab)' : undefined;
     const lower = bgColor.toLowerCase();
     if (theme === 'light2') {
         if (lower === '#006b18') return '#7BA899';
@@ -21,6 +21,12 @@ const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
         if (lower === '#8a0303') return '#C15C5C';
         if (lower === '#0a2e5c') return '#5C8AB3';
         if (lower === '#1e1b4b') return '#C7D2FE';
+    } else if (theme === 'steampunk') {
+        if (lower === '#006b18') return '#2e9e4f';
+        if (lower === '#8a0303') return '#c0392b';
+        if (lower === '#0a2e5c') return '#3a6ea5';
+        if (lower === '#5c653a') return '#7a8450';
+        if (lower === '#1e1b4b') return '#5c5a8a';
     }
     return bgColor;
 };
@@ -42,7 +48,7 @@ const WorkspaceSlot = memo(({
 }: WorkspaceSlotProps) => {
     const { getContainer, selectItem, selectedItem, placeSelected, inventoryVersion } = useInventory();
     const { theme } = useTheme();
-    const isLight = !theme.startsWith('dark');
+    const isLight = isLightTheme(theme);
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     const container = getContainer(containerId);
@@ -133,9 +139,9 @@ const WorkspaceSlot = memo(({
                                     className={cn(
                                         "w-full h-full object-contain p-1", 
                                         !item?.backgroundColor && (isLight ? "mix-blend-multiply" : "mix-blend-screen")
-                                    )} 
+                                    )}
                                      style={{
-                                         filter: theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
+                                         filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : theme === 'metallic' ? 'var(--metallic-icon-filter)' : theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
                                      }}
                                 />
                             ) : (

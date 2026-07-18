@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react';
-import { cn } from "@/lib/utils";
+import { cn, isLightTheme } from "@/lib/utils";
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -19,7 +19,7 @@ const AttachmentSlot = memo(({
 }: AttachmentSlotProps) => {
     const { attachSelectedItemToWeapon, detachItemFromWeapon, selectItem, selectedItem, inventoryVersion } = useInventory();
     const { theme } = useTheme();
-    const isLight = !theme.startsWith('dark');
+    const isLight = isLightTheme(theme);
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     // Get current grid slot size dynamically from provider
@@ -105,7 +105,7 @@ const AttachmentSlot = memo(({
                                             selectedItem?.item?.instanceId === attachedItem.instanceId && "opacity-40 grayscale-[50%]"
                                         )}
                                         style={{
-                                             filter: theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
+                                             filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
                                          }}
                                     />
                                 ) : (

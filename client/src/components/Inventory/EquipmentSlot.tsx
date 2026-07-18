@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { cn } from "@/lib/utils";
+import { cn, isLightTheme, getCategoryClass } from "@/lib/utils";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemTooltip } from "./ItemTooltip";
 import { useItemImage } from '../../hooks/useItemImage';
@@ -20,6 +20,12 @@ const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
     if (lower === '#8a0303') return '#C15C5C';
     if (lower === '#0a2e5c') return '#5C8AB3';
     if (lower === '#1e1b4b') return '#C7D2FE';
+  } else if (theme === 'steampunk') {
+    if (lower === '#006b18') return '#2e9e4f';
+    if (lower === '#8a0303') return '#c0392b';
+    if (lower === '#0a2e5c') return '#3a6ea5';
+    if (lower === '#5c653a') return '#7a8450';
+    if (lower === '#1e1b4b') return '#5c5a8a';
   }
   return bgColor;
 };
@@ -86,7 +92,7 @@ const EquipmentSlot = memo(({
           <div
             className={cn(
               "w-full h-full",
-              hasItem ? "inset-slot rounded-full" : "empty-slot rounded-lg text-zinc-500",
+              hasItem ? cn("inset-slot rounded-full", getCategoryClass(item)) : cn("empty-slot rounded-lg text-zinc-500", getCategoryClass(item)),
               "flex flex-col items-center justify-center cursor-pointer",
               "hover:brightness-110 transition-all",
               "relative overflow-hidden isolate", // Clip image to rounded corners
@@ -119,13 +125,13 @@ const EquipmentSlot = memo(({
                     "w-full h-full object-contain pointer-events-none transition-transform",
                     hasItem && "rounded-full",
                     hasItem 
-                      ? (!item?.backgroundColor && (!theme.startsWith('dark') ? "mix-blend-multiply" : "mix-blend-screen")) 
-                      : (!theme.startsWith('dark') ? "mix-blend-multiply opacity-[0.35]" : "mix-blend-screen opacity-[0.35]")
+                      ? (!item?.backgroundColor && (isLightTheme(theme) ? "mix-blend-multiply" : "mix-blend-screen")) 
+                      : (isLightTheme(theme) ? "mix-blend-multiply opacity-[0.35]" : "mix-blend-screen opacity-[0.35]")
                   )}
                   style={{
                     filter: !hasItem 
-                      ? (theme === 'light2' ? "invert(0.6)" : theme === 'light' ? "invert(1)" : "none")
-                      : (theme === 'light2' ? "invert(0.75)" : theme === 'light' ? "invert(1) contrast(300%)" : (!item?.backgroundColor ? "brightness(2) contrast(300%)" : undefined))
+                      ? (theme === 'steampunk' ? "var(--sp-icon-filter-empty)" : theme === 'light2' ? "invert(0.6)" : theme === 'light' ? "invert(1)" : "none")
+                      : (theme === 'steampunk' ? "var(--sp-icon-filter)" : theme === 'light2' ? "invert(0.75)" : theme === 'light' ? "invert(1) contrast(300%)" : (!item?.backgroundColor ? "brightness(2) contrast(300%)" : undefined))
                   }}
                 />
               </div>

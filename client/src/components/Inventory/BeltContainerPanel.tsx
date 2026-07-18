@@ -77,7 +77,7 @@ export default function BeltContainerPanel({
         onClick={handleToggle}
         className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent/50 transition-colors bg-muted/40"
       >
-        <span className="text-sm font-medium">
+        <span className="text-sm font-medium section-plaque">
           Belt <span className="text-muted-foreground ml-2">({beltItem.name})</span>
         </span>
         {isCollapsed ? (

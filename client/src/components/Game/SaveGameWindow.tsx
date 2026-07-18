@@ -1,3 +1,4 @@
+import { isLightTheme } from "@/lib/utils";
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -31,7 +32,7 @@ export default function SaveGameWindow({ onClose, onSave }: SaveGameWindowProps)
     const [isLoading, setIsLoading] = useState(false);
     const [savingSlot, setSavingSlot] = useState<string | null>(null);
     const { theme } = useTheme();
-    const isLight = !theme.startsWith('dark');
+    const isLight = isLightTheme(theme);
 
     const loadSlots = async () => {
         try {

@@ -4,7 +4,7 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { ItemContextMenu } from '../Inventory/ItemContextMenu';
 import { ItemTooltip } from '../Inventory/ItemTooltip';
 import { useItemImage } from '../../hooks/useItemImage';
-import { cn } from "@/lib/utils";
+import { cn, isLightTheme } from "@/lib/utils";
 import { ItemTrait } from "@/game/inventory/traits";
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -16,7 +16,7 @@ interface ActionSlotButtonProps {
 export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButtonProps) => {
   const { inventoryRef, selectedItem, clearSelected } = useInventory();
   const { theme } = useTheme();
-  const isLight = !theme.startsWith('dark');
+  const isLight = isLightTheme(theme);
   const { targetingWeapon, toggleTargeting } = useCombat();
   const { toggleFlashlight, igniteTorch } = useGame();
 
@@ -99,7 +99,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
                 isLight ? "mix-blend-multiply" : "mix-blend-screen"
               )}
               style={{
-                filter: isLight ? "invert(1)" : "brightness(2) contrast(300%)"
+                filter: theme === 'steampunk' ? "var(--sp-icon-filter)" : isLight ? "invert(1)" : "brightness(2) contrast(300%)"
               }}
             />
           </div>

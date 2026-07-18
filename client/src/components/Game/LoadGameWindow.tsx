@@ -1,3 +1,4 @@
+import { isLightTheme } from "@/lib/utils";
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -36,7 +37,7 @@ const formatTimestamp = (ts: number) =>
 
 export default function LoadGameWindow({ onClose, onLoad }: LoadGameWindowProps) {
     const { theme } = useTheme();
-    const isLight = !theme.startsWith('dark');
+    const isLight = isLightTheme(theme);
 
     const defaultSlots: DisplaySlot[] = [
         { slotId: 'autosave', label: 'Slot 1: Autosave', description: 'Most Recent Save', saveData: null },

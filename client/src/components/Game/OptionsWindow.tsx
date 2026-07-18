@@ -273,6 +273,8 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                     <SelectItem value="dark2">Dark Theme 2</SelectItem>
                                                     <SelectItem value="light">Light Theme</SelectItem>
                                                     <SelectItem value="light2">Neumorphic Light</SelectItem>
+                                                    <SelectItem value="steampunk">Steampunk</SelectItem>
+                                                    <SelectItem value="metallic">Metallic Theme</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
