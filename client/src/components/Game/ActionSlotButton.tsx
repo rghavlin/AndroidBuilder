@@ -80,12 +80,16 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
               ? "!border-2 !border-solid !border-[#C15C5C] shadow-[inset_0_0_10px_rgba(193,92,92,0.15),0_0_8px_rgba(193,92,92,0.5)]"
               : "!border-red-500 shadow-[inset_0_0_10px_rgba(239,68,68,0.3),0_0_8px_rgba(239,68,68,0.5)]"
           ),
+          // Stable hook so theme CSS (metallic) can restyle the state with
+          // enough specificity to beat its own equipment-slot-metal override
+          item && isTargeting && "action-targeting",
           // Flashlight ON state: Bright yellow/cyan outline/glow
           isFlashlightActive && (
             isLight
               ? "!border-2 !border-solid !border-[#639A88] shadow-[inset_0_0_10px_rgba(99,154,136,0.15),0_0_8px_rgba(99,154,136,0.5)]"
               : "!border-cyan-400 shadow-[inset_0_0_10px_rgba(34,211,238,0.3),0_0_10px_rgba(34,211,238,0.4)]"
-          )
+          ),
+          isFlashlightActive && "action-flashlight-on"
         )}
       >
         {item && imageSrc && imageSrc !== 'failed' ? (

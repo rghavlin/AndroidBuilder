@@ -75,6 +75,9 @@ interface UniversalGridProps {
   onBeforeDrop?: (itemId: string, fromId: string, toId: string) => boolean;
   isTransparentGround?: boolean;
   tileImageUrl?: string;
+  /* Overlay grids (wagon/sled/planter) sit on top of the vehicle art:
+     opt out of theme panel chrome so the art stays visible underneath */
+  transparentChrome?: boolean;
 }
 
 export default function UniversalGrid({
@@ -99,6 +102,7 @@ export default function UniversalGrid({
   "data-testid": testId,
   isTransparentGround = false,
   tileImageUrl,
+  transparentChrome = false,
 }: UniversalGridProps) {
   const totalSlots = width * height;
   const { theme } = useTheme();
@@ -1285,7 +1289,7 @@ export default function UniversalGrid({
     return (
       <div className="relative overflow-visible">
         <div
-          className="grid flex-shrink-0"
+          className={cn("grid flex-shrink-0", isTransparentGround && tileImageUrl && "tile-backed-grid", transparentChrome && "overlay-grid")}
           style={{
             gridTemplateColumns: `repeat(${width}, ${slotSize}px)`,
             gridTemplateRows: `repeat(${height}, ${slotSize}px)`,
@@ -1320,8 +1324,9 @@ export default function UniversalGrid({
   return (
     <div
       className={cn(
-        "flex flex-col", 
-        (gridType === 'fixed' && !enableScroll) ? 'flex-shrink-0' : 'flex-1 min-h-0', 
+        "flex flex-col",
+        (gridType === 'fixed' && !enableScroll) ? 'flex-shrink-0' : 'flex-1 min-h-0',
+        transparentChrome && "overlay-grid",
         className
       )}
       style={{

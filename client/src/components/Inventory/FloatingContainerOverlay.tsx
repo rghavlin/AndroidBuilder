@@ -517,8 +517,9 @@ export default function FloatingContainerOverlay({
                   width={containerGrid.width}
                   height={containerGrid.height}
                   gridType="fixed"
-                  slotClassName={cn(isPlanter ? "bg-white/10 border border-white/30" : "!bg-none !bg-black/20 !shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] !border-white/10 hover:!bg-black/40")}
+                  slotClassName={cn("overlay-grid-slot", isPlanter ? "bg-white/10 border border-white/30" : "!bg-none !bg-black/20 !shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] !border-white/10 hover:!bg-black/40")}
                   className={isPlanter ? "" : "h-full w-full"}
+                  transparentChrome
                   onSlotClick={onSlotClick}
                 />
               </div>

@@ -96,6 +96,62 @@
   --hairline: hsl(0 0% 100% / 0.05);
 }
 
+/* Metallic theme tokens. MUST stay unlayered: the light :root block above is
+   unlayered, and unlayered declarations beat anything inside @layer on the
+   same element (html) regardless of specificity — defining these inside
+   @layer utilities silently resolves every token to the light values. */
+.metallic {
+  --background: hsl(0 0% 0%);
+  /* Deep jet-black */
+  --foreground: hsl(0 0% 95%);
+  /* Razor-sharp white */
+  --card: hsl(0 0% 6%);
+  --card-foreground: hsl(0 0% 95%);
+  --popover: hsl(0 0% 6%);
+  --popover-foreground: hsl(0 0% 95%);
+  --primary: hsl(0 0% 30%);
+  /* Matte charcoal gray */
+  --primary-foreground: hsl(0 0% 95%);
+  --secondary: hsl(0 0% 12%);
+  --secondary-foreground: hsl(0 0% 95%);
+  --muted: hsl(0 0% 15%);
+  --muted-foreground: hsl(0 0% 70%);
+  --accent: hsl(0 0% 30%);
+  --accent-foreground: hsl(0 0% 95%);
+  --destructive: hsl(0 80% 40%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(0 0% 15%);
+  --input: hsl(0 0% 10%);
+  --ring: hsl(120 100% 40%);
+  /* Toxic green interaction glows */
+  --sidebar: hsl(0 0% 6%);
+  --sidebar-foreground: hsl(0 0% 95%);
+  --sidebar-primary: hsl(0 0% 30%);
+  --sidebar-primary-foreground: hsl(0 0% 95%);
+  --sidebar-accent: hsl(0 0% 12%);
+  --sidebar-accent-foreground: hsl(0 0% 95%);
+  --sidebar-border: hsl(0 0% 15%);
+  --sidebar-ring: hsl(120 100% 40%);
+  --track: hsl(0 0% 10%);
+  --hairline: hsl(0 0% 20% / 0.5);
+
+  /* Metallic specific variables */
+  --metallic-icon-filter: drop-shadow(-1px -1px 2px rgba(255, 255, 255, 0.4)) drop-shadow(1px 2px 3px rgba(0, 0, 0, 1));
+  /* Dark gunmetal slab for items without a colored background; icons stay
+     white with the embossed drop-shadow filter, matching colored items.
+     Dark top-left -> lighter bottom-right reads as recessed, not raised. */
+  --metallic-slab: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.3) 100%), linear-gradient(145deg, #1c1d20 0%, #26272b 55%, #303236 100%);
+  --stat-health: #ef4444;
+  /* red */
+  --stat-action: #d4d4d8;
+  --stat-nutrition: #22c55e;
+  /* green */
+  --stat-hydration: #3b82f6;
+  /* blue */
+  --stat-energy: #eab308;
+  /* gold */
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -1145,59 +1201,9 @@
     transform: none;
   }
 
-  /* --- METALLIC (TACTICAL DARK MODE) THEME OVERRIDES --- */
-
-  .metallic {
-    --background: hsl(0 0% 0%);
-    /* Deep jet-black */
-    --foreground: hsl(0 0% 95%);
-    /* Razor-sharp white */
-    --card: hsl(0 0% 6%);
-    --card-foreground: hsl(0 0% 95%);
-    --popover: hsl(0 0% 6%);
-    --popover-foreground: hsl(0 0% 95%);
-    --primary: hsl(0 0% 30%);
-    /* Matte charcoal gray */
-    --primary-foreground: hsl(0 0% 95%);
-    --secondary: hsl(0 0% 12%);
-    --secondary-foreground: hsl(0 0% 95%);
-    --muted: hsl(0 0% 15%);
-    --muted-foreground: hsl(0 0% 70%);
-    --accent: hsl(0 0% 30%);
-    --accent-foreground: hsl(0 0% 95%);
-    --destructive: hsl(0 80% 40%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 15%);
-    --input: hsl(0 0% 10%);
-    --ring: hsl(120 100% 40%);
-    /* Toxic green interaction glows */
-    --sidebar: hsl(0 0% 6%);
-    --sidebar-foreground: hsl(0 0% 95%);
-    --sidebar-primary: hsl(0 0% 30%);
-    --sidebar-primary-foreground: hsl(0 0% 95%);
-    --sidebar-accent: hsl(0 0% 12%);
-    --sidebar-accent-foreground: hsl(0 0% 95%);
-    --sidebar-border: hsl(0 0% 15%);
-    --sidebar-ring: hsl(120 100% 40%);
-    --track: hsl(0 0% 10%);
-    --hairline: hsl(0 0% 20% / 0.5);
-
-    /* Metallic specific variables */
-    --metallic-icon-filter: drop-shadow(-1px -1px 2px rgba(255, 255, 255, 0.4)) drop-shadow(1px 2px 3px rgba(0, 0, 0, 1));
-    /* Dark gunmetal slab for items without a colored background; icons stay
-       white with the embossed drop-shadow filter, matching colored items.
-       Dark top-left -> lighter bottom-right reads as recessed, not raised. */
-    --metallic-slab: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.3) 100%), linear-gradient(145deg, #1c1d20 0%, #26272b 55%, #303236 100%);
-    --stat-health: #ef4444;
-    /* red */
-    --stat-action: #d4d4d8;
-    --stat-nutrition: #22c55e;
-    /* green */
-    --stat-hydration: #3b82f6;
-    /* blue */
-    --stat-energy: #eab308;
-    /* gold */
-  }
+  /* --- METALLIC (TACTICAL DARK MODE) THEME OVERRIDES ---
+     Note: the .metallic token variables live in the UNLAYERED block near the
+     top of this file (after .dark2) — they must not move back inside a layer. */
 
   /* Global Overrides to force deep dark mode on elements that might use light defaults */
   .metallic body {
@@ -1253,7 +1259,7 @@
      silver item slabs both read against them */
   .metallic [data-testid="unified-clothing-panel"],
   .metallic [data-testid="ground-items-grid"],
-  .metallic [data-inventory-ui="true"]:not(.sunken-item-slab) {
+  .metallic [data-inventory-ui="true"]:not(.sunken-item-slab):not(.tile-backed-grid):not(.crafting-window):not(.overlay-grid) {
     background:
       repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 3px),
       radial-gradient(circle at top left, rgba(255, 255, 255, 0.10) 0%, transparent 55%),
@@ -1266,8 +1272,7 @@
 
   /* Deeply recessed slots */
   .metallic .inset-slot:not([data-testid^="equipment-slot-"]),
-  .metallic .empty-slot:not([data-testid^="equipment-slot-"]),
-  .metallic .transparent-ground-slot {
+  .metallic .empty-slot:not([data-testid^="equipment-slot-"]) {
     background: #0a0b0c !important;
     box-shadow:
       inset 0 6px 12px rgba(0, 0, 0, 1),
@@ -1275,6 +1280,67 @@
       0 1px 1px rgba(255, 255, 255, 0.18) !important;
     border: 1px solid #26282b !important;
     border-radius: 4px;
+  }
+
+  /* Keep floating overlay grids mostly transparent so they don't block the view */
+  .metallic .overlay-grid-slot.inset-slot:not(.placement-preview-valid):not(.placement-preview-invalid) {
+    background: rgba(0, 0, 0, 0.4) !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Ground container: dark machined frame with an attached header bar
+     for the GROUND label and Sort button */
+  .metallic .ground-frame {
+    border: 3px solid #0d0e10 !important;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, #2c2d31 0%, #222327 100%);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.08),
+      0 4px 10px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
+
+  .metallic .ground-frame-header {
+    margin-bottom: 0 !important;
+    padding: 6px 10px;
+    background: linear-gradient(to bottom, #35373b 0%, #202225 100%);
+    border-bottom: 2px solid #0d0e10;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  }
+
+  .metallic .ground-frame-body {
+    border: none !important;
+    border-radius: 0 !important;
+    background: #050505 !important;
+  }
+
+  /* Ground slots sit over the player-tile texture: keep them mostly
+     transparent so the terrain shows through, with a recessed rim */
+  .metallic .transparent-ground-slot {
+    background: rgba(4, 5, 6, 0.35) !important;
+    box-shadow:
+      inset 0 4px 8px rgba(0, 0, 0, 0.7),
+      inset 0 1px 3px rgba(0, 0, 0, 0.6),
+      0 1px 1px rgba(255, 255, 255, 0.10) !important;
+    border: 1px solid rgba(0, 0, 0, 0.55) !important;
+    border-radius: 4px;
+  }
+
+  /* Vehicle/planter overlay grids (wagon, sled, turret): slots must stay
+     translucent so the vehicle art shows through — out-specify the opaque
+     empty/inset-slot rules above */
+  .metallic .empty-slot.overlay-grid-slot,
+  .metallic .inset-slot.overlay-grid-slot,
+  .metallic .transparent-ground-slot.overlay-grid-slot {
+    background: rgba(0, 0, 0, 0.22) !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .metallic .empty-slot.overlay-grid-slot:hover,
+  .metallic .inset-slot.overlay-grid-slot:hover,
+  .metallic .transparent-ground-slot.overlay-grid-slot:hover {
+    background: rgba(0, 0, 0, 0.42) !important;
   }
 
   /* Active glow for selected elements */
@@ -1309,6 +1375,22 @@
       0 4px 6px rgba(0, 0, 0, 0.6) !important;
     border: 1px solid #000 !important;
     border-radius: 8px;
+  }
+
+  /* Action-slot states (targeting / flashlight): must out-specify the base
+     equipment-slot-metal border/shadow override above */
+  .metallic .equipment-slot-metal.action-targeting {
+    border: 1px solid #ef4444 !important;
+    box-shadow:
+      inset 0 0 10px rgba(239, 68, 68, 0.4),
+      0 0 12px rgba(239, 68, 68, 0.6) !important;
+  }
+
+  .metallic .equipment-slot-metal.action-flashlight-on {
+    border: 1px solid #22d3ee !important;
+    box-shadow:
+      inset 0 0 10px rgba(34, 211, 238, 0.35),
+      0 0 12px rgba(34, 211, 238, 0.5) !important;
   }
 
   .metallic .equipment-slot-metal.active {
@@ -1484,11 +1566,220 @@
     filter: var(--metallic-icon-filter) !important;
   }
 
+  /* Interaction states: icons idle at light gray (#E0E0E0 via brightness),
+     easing to pure white on slot hover */
+  .metallic .sunken-item-slab img:not(.non-item) {
+    filter: var(--metallic-icon-filter) brightness(0.88) !important;
+    transition: filter 0.18s ease !important;
+  }
+
+  .metallic .sunken-item-slab:hover img:not(.non-item) {
+    filter: var(--metallic-icon-filter) brightness(1) !important;
+  }
+
+  /* Keep the slab itself steady on hover — only the icon brightens */
+  .metallic .sunken-item-slab.brightness-125 {
+    filter: none !important;
+  }
+
+  /* --- Character Abilities window --- */
+  .metallic .abilities-window {
+    background: #141518 !important;
+    border: 1px solid #55575b !important;
+    backdrop-filter: none !important;
+  }
+
+  .metallic .abilities-header {
+    background: linear-gradient(to bottom, #26272b 0%, #17181a 100%) !important;
+    border-bottom: 1px solid #000 !important;
+  }
+
+  /* Headings and labels that use foreground utilities render too dark in
+     metallic — force them light (attribute values keep their own colors) */
+  .metallic .abilities-window h2,
+  .metallic .abilities-window h3,
+  .metallic .abilities-window [class*="text-foreground"]:not(.attr-value) {
+    color: #e8e9eb !important;
+  }
+
+  .metallic .abilities-window [class*="text-muted-foreground"] {
+    color: #a6a7ab !important;
+  }
+
+  .metallic .abilities-window .attr-card,
+  .metallic .abilities-window .abilities-section {
+    background: #191a1e !important;
+    border: 1px solid #63656a !important;
+    border-radius: 10px !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .metallic .abilities-window .attr-card:hover {
+    border-color: #8a8c91 !important;
+  }
+
+  /* Big attribute numbers: red with a soft glow (buffed stays emerald) */
+  .metallic .attr-value {
+    color: #ef4444 !important;
+    text-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  }
+
+  .metallic .attr-value.text-emerald-400 {
+    color: #34d399 !important;
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.45);
+  }
+
+  .metallic .abilities-window .skill-row {
+    background: #1e1f24 !important;
+    border: 1px solid #55575b !important;
+  }
+
+  .metallic .abilities-window .skill-row:hover {
+    border-color: #82848a !important;
+    background: #24252a !important;
+  }
+
+  .metallic .abilities-window .lvl-pill {
+    background: #1b1c1e !important;
+    color: #e5e5e5 !important;
+    border: 1px solid #55575b !important;
+  }
+
+  /* Skill metric accents: gold instead of green */
+  .metallic .abilities-window [class*="text-green-500"] {
+    color: #f0b429 !important;
+  }
+
+  /* Journal button and name label: green accents */
+  .metallic .journal-btn {
+    background: rgba(34, 197, 94, 0.10) !important;
+    border: 1px solid rgba(34, 197, 94, 0.45) !important;
+  }
+
+  .metallic .journal-btn,
+  .metallic .journal-btn * {
+    color: #4ade80 !important;
+  }
+
+  .metallic .char-name-label {
+    background: #0d0e10 !important;
+    border: 1px solid rgba(34, 197, 94, 0.45) !important;
+  }
+
+  .metallic .char-name-label span {
+    color: #4ade80 !important;
+  }
+
+  /* --- Crafting / Cooking window: match the abilities-window palette --- */
+  .metallic .crafting-window {
+    background: #141518 !important;
+    border: 1px solid #55575b !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .metallic .crafting-window .recipe-list {
+    background: #101114 !important;
+    border-right: 1px solid #3f4144 !important;
+  }
+
+  /* primary-token text is near-invisible dark gray in metallic — remap the
+     window's primary accents to the abilities-window green */
+  .metallic .crafting-window [class*="text-primary"] {
+    color: #4ade80 !important;
+  }
+
+  .metallic .crafting-window [class*="border-primary"] {
+    border-color: rgba(34, 197, 94, 0.35) !important;
+  }
+
+  .metallic .crafting-window [class*="bg-primary"] {
+    background-color: rgba(34, 197, 94, 0.10) !important;
+  }
+
+  /* AP-cost spinner: foreground token resolves too dark in metallic */
+  .metallic .crafting-window input {
+    color: #e8e9eb !important;
+    background: #0d0e10 !important;
+    border-color: #55575b !important;
+    color-scheme: dark;
+  }
+
+  .metallic .crafting-window .missing-warning {
+    background: rgba(127, 29, 29, 0.35) !important;
+    border: 1px solid rgba(239, 68, 68, 0.5) !important;
+    color: #fca5a5 !important;
+    box-shadow: none !important;
+  }
+
+  /* Green action buttons/tabs: translucent green with green border,
+     like the abilities-window Journal button (placed after the generic
+     bg-primary remap so it wins) */
+  .metallic .metal-button-green {
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.20) 0%, rgba(34, 197, 94, 0.08) 100%) !important;
+    border: 1px solid rgba(34, 197, 94, 0.5) !important;
+    color: #4ade80 !important;
+    text-shadow: none !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.08),
+      0 2px 4px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .metallic .metal-button-green:hover {
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.30) 0%, rgba(34, 197, 94, 0.14) 100%) !important;
+    border-color: rgba(34, 197, 94, 0.7) !important;
+    color: #86efac !important;
+  }
+
+  .metallic .metal-button-green:active {
+    background: rgba(34, 197, 94, 0.12) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7) !important;
+    transform: translateY(1px) !important;
+  }
+
+  .metallic .metal-button-green:disabled {
+    opacity: 0.45 !important;
+  }
+
+  /* Tooltips / popovers: dark surface, light text (popover + foreground
+     tokens resolve wrong in metallic) */
+  .metallic .bg-popover {
+    background-color: #141518 !important;
+    color: #e8e9eb !important;
+    border-color: #55575b !important;
+  }
+
+  .metallic [class*="text-popover-foreground"] {
+    color: #e8e9eb !important;
+  }
+
+  .metallic .bg-popover [class*="text-foreground"] {
+    color: #e8e9eb !important;
+  }
+
+  .metallic .bg-popover [class*="text-muted-foreground"] {
+    color: #a6a7ab !important;
+  }
+
+  .metallic .bg-popover [class*="bg-muted"] {
+    background-color: #2c2d31 !important;
+  }
+
+  .metallic .bg-popover [class*="border-border"] {
+    border-color: #3f4144 !important;
+  }
+
   /* Condition pill next to the health bar */
   .metallic .condition-pill {
     background: #1b1c1e !important;
     color: #a1a1aa !important;
     border: 1px solid #3f4144 !important;
+  }
+
+  /* Vehicles on the ground shouldn't have a background slab; they just show the sprite on the grid */
+  .metallic .sunken-item-slab.category-vehicle {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   /* Black & white pill badges for Stack/Ammo overlays */

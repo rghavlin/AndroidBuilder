@@ -271,7 +271,7 @@ export default function CraftingUI() {
 
     return (
         <div 
-            className="flex flex-col h-full metal-panel overflow-hidden"
+            className="flex flex-col h-full metal-panel overflow-hidden crafting-window"
             data-inventory-ui="true"
         >
             {/* Header Tabs */}
@@ -304,7 +304,7 @@ export default function CraftingUI() {
 
             <div className="flex-1 flex min-h-0">
                 {/* Left Side: Recipe List */}
-                <div className="w-1/3 border-r border-border flex flex-col min-w-0 bg-card/20">
+                <div className="w-1/3 border-r border-border flex flex-col min-w-0 bg-card/20 recipe-list">
                     <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                         {filteredRecipes.length === 0 ? (
                             <div className="p-4 text-center text-xs text-muted-foreground">
@@ -553,7 +553,7 @@ export default function CraftingUI() {
                                                 )}
 
                                                 {!craftingStatus.canCraft && craftingStatus.missing.length > 0 && (
-                                                    <div className="mt-2 text-[9px] text-red-300 font-medium animate-in fade-in slide-in-from-top-1 text-center max-w-[100px] leading-tight text-white shadow-[0_0_10px_rgba(239,68,68,0.2)] bg-red-950/40 rounded p-1">
+                                                    <div className="mt-2 text-[9px] text-red-300 font-medium animate-in fade-in slide-in-from-top-1 text-center max-w-[100px] leading-tight text-white shadow-[0_0_10px_rgba(239,68,68,0.2)] bg-red-950/40 rounded p-1 missing-warning">
                                                         Missing: {craftingStatus.missing.join(', ')}
                                                     </div>
                                                 )}

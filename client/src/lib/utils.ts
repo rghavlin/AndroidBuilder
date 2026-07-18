@@ -28,8 +28,10 @@ export function getCategoryClass(item: any): string {
   // Use hasCategory function if available, otherwise check categories array directly
   const isFood = item.hasCategory?.('food') || item.categories?.includes('food') || item.categories?.includes('consumable');
   const isMedical = item.hasCategory?.('medical') || item.categories?.includes('medical');
+  const isVehicle = item.hasCategory?.('vehicle') || item.categories?.includes('vehicle') || item.hasTrait?.('vehicle');
   
   if (isFood) return 'category-food';
   if (isMedical) return 'category-medical';
+  if (isVehicle) return 'category-vehicle';
   return '';
 }

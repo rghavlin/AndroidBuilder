@@ -111,8 +111,8 @@ export default function GroundItemsGrid() {
 
   return (
     <div className="w-1/2 p-3 flex flex-col h-full" data-testid="ground-items-grid">
-      <div className="flex flex-col h-full w-fit mx-auto">
-        <div className="flex items-center justify-between mb-3 flex-shrink-0">
+      <div className="flex flex-col h-full w-fit mx-auto ground-frame">
+        <div className="flex items-center justify-between mb-3 flex-shrink-0 ground-frame-header">
           <h3 className="text-sm font-semibold text-muted-foreground section-plaque">
             GROUND
           </h3>
@@ -124,7 +124,7 @@ export default function GroundItemsGrid() {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 rounded border border-border overflow-hidden relative bg-background">
+        <div className="flex-1 min-h-0 rounded border border-border overflow-hidden relative bg-background ground-frame-body">
           <UniversalGrid
             containerId={groundContainer.id}
             width={groundContainer.width}

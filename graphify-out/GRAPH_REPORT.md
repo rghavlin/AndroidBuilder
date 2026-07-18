@@ -1,7 +1,7 @@
 # Graph Report - AndroidBuilder  (2026-07-18)
 
 ## Corpus Check
-- 537 files · ~5,923,663 words
+- 537 files · ~5,923,748 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `06c12cb4`
+- Built from commit: `74129d9c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
