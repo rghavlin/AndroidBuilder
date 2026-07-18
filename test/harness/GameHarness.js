@@ -42,7 +42,7 @@ import { SICKNESS_TURNS } from '../../client/src/game/systems/CombatSystem.js';
 import { ExplosionSystem } from '../../client/src/game/systems/ExplosionSystem.js';
 import { ItemDefs, createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
 import { Item } from '../../client/src/game/inventory/Item.js';
-import { ItemTrait } from '../../client/src/game/inventory/traits.js';
+import { ItemTrait, ItemCategory } from '../../client/src/game/inventory/traits.js';
 import { LineOfSight } from '../../client/src/game/utils/LineOfSight.js';
 import engine from '../../client/src/game/GameEngine.js';
 
@@ -206,6 +206,8 @@ export class GameHarness {
       const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
       if (finalDamage > 0) target.takeDamage(finalDamage, player);
     }
+    // Melee vs an entity emits no noise in the live game (CombatContext only
+    // emits for structure hits), so nothing to mirror here.
     return { ok: true, hit, isCrit, damage };
   }
 
@@ -277,6 +279,16 @@ export class GameHarness {
       const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
       if (finalDamage > 0) target.takeDamage(finalDamage, player);
     }
+
+    // Mirror CombatContext.performRangedAttack: every shot emits noise at the
+    // PLAYER's position (suppressor cuts the radius to 3). This is what pulls
+    // nearby zombies toward gunfire — without it, balance sims understate
+    // ranged difficulty.
+    const barrelSlot = weapon.attachmentSlots?.find((s) => s.id === 'barrel');
+    const isSuppressed = barrelSlot && weapon.attachments?.[barrelSlot.id]?.categories?.includes(ItemCategory.SUPPRESSOR);
+    const noiseRadius = isSuppressed ? 3 : (stats.noiseRadius || 10);
+    this.gameMap.emitNoise?.(p.x, p.y, noiseRadius);
+
     return { ok: true, hit, isCrit, damage };
   }
 
@@ -389,6 +401,10 @@ export class GameHarness {
       damage = gameRandom.nextInt(1, 4);
       target.takeDamage(damage, player);
     }
+    // Mirror performStoneThrow's noise: impact at the target tile, plus a
+    // quieter grunt/throw sound at the player's tile.
+    this.gameMap.emitNoise?.(targetX, targetY, 3);
+    this.gameMap.emitNoise?.(p.x, p.y, 1);
     return { ok: true, hit, damage };
   }
 
