@@ -18,6 +18,9 @@ const LOOT_CONSTANTS = {
 // Progressive food scarcity: 40% base rejection on Map 1, +5% per map, capped at 85%.
 const FOOD_SCARCITY = { base: 0.4, perMap: 0.05, max: 0.85 };
 
+// Room-specific loot chance (35%)
+const ROOM_LOOT_CHANCE = 0.35;
+
 /**
  * Chance (0..max) that a food drop is rejected on a given map, rising with depth.
  * Shared by generateRandomItems() and generateZombieLoot().
@@ -214,7 +217,10 @@ export class LootGenerator {
         // 4. Final Pass: Apply map-wide unique loot rules
         this.applyMapWideUniqueRules(gameMap, mapNumber);
 
-        // 5. Extra Pass: Spawn additional sticks and stones on grass tiles
+        // 5. Room-Specific Pass: Spawn additional specialized items in kitchens, bathrooms, and closets
+        this.spawnRoomSpecificLoot(gameMap, mapNumber);
+
+        // 6. Extra Pass: Spawn additional sticks and stones on grass tiles
         let grassTilesCount = 0;
         let sticksSpawned = 0;
         let stonesSpawned = 0;
@@ -246,7 +252,7 @@ export class LootGenerator {
         }
         console.log(`[LootGenerator] Grass Pass: Spawned ${sticksSpawned} sticks and ${stonesSpawned} stones on ${grassTilesCount} empty grass tiles.`);
 
-        // 6. Decorative floorplan furniture outlines (after ALL item spawning,
+        // 7. Decorative floorplan furniture outlines (after ALL item spawning,
         // so real items — lootable beds, planks, safes — can be avoided).
         planFurniture(gameMap);
     }
@@ -1718,6 +1724,134 @@ export class LootGenerator {
             });
         }
     }
+
+    /**
+     * Pick a weighted random item key from a given list based on rarity and location bias
+     */
+    getWeightedRandomKeyFromList(keys, location = 'inside', mapNumber = 1) {
+        if (keys.length === 0) return null;
+        
+        const totalWeight = keys.reduce((sum, key) => {
+            const def = ItemDefs[key];
+            const rarity = def.rarity || Rarity.COMMON;
+            let weight = RarityWeights[rarity] || 100;
+
+            if (def.spawnBias) {
+                weight *= (def.spawnBias[location] ?? 1);
+            }
+
+            return sum + weight;
+        }, 0);
+
+        if (totalWeight <= 0) {
+            return keys[gameRandom.nextInt(0, keys.length - 1)];
+        }
+
+        let random = gameRandom.next() * totalWeight;
+        for (const key of keys) {
+            const def = ItemDefs[key];
+            const rarity = def.rarity || Rarity.COMMON;
+            let weight = RarityWeights[rarity] || 100;
+
+            if (def.spawnBias) {
+                weight *= (def.spawnBias[location] ?? 1);
+            }
+
+            if (random < weight) return key;
+            random -= weight;
+        }
+        return keys[0];
+    }
+
+    /**
+     * Dedicated pass over kitchens, bathrooms, and closets to spawn additional specialized loot
+     */
+    spawnRoomSpecificLoot(gameMap, mapNumber = 1) {
+        this.initItemKeys();
+
+        // 1. Filter item lists for kitchens, bathrooms, and closets
+        const kitchenKeys = this.itemKeys.filter(key => {
+            const def = ItemDefs[key];
+            if (def.noLoot) return false;
+            const isFood = !key.endsWith('seeds') && ((def.id && def.id.startsWith('food.')) || (def.categories && def.categories.includes(ItemCategory.FOOD)));
+            const isKnife = (def.id && def.id.includes('knife')) || (def.categories && def.categories.includes(ItemCategory.KNIFE));
+            const isPotOrPan = (def.categories && def.categories.includes(ItemCategory.COOKING_POT)) || key === 'tool.cooking_pot' || key === 'weapon.frying_pan';
+            const isLunchbox = key === 'container.lunchbox';
+            return isFood || isKnife || isPotOrPan || isLunchbox;
+        });
+
+        const bathroomKeys = this.itemKeys.filter(key => {
+            const def = ItemDefs[key];
+            if (def.noLoot) return false;
+            return (def.id && def.id.startsWith('medical.')) || (def.categories && def.categories.includes(ItemCategory.MEDICAL)) || (def.traits && def.traits.includes(ItemTrait.MEDICAL));
+        });
+
+        const closetKeys = this.itemKeys.filter(key => {
+            const def = ItemDefs[key];
+            if (def.noLoot) return false;
+            const isClothing = (def.id && def.id.startsWith('clothing.')) || (def.categories && def.categories.includes(ItemCategory.CLOTHING));
+            const isTape = key === 'crafting.tape';
+            const isWire = key === 'crafting.wire';
+            const isHammer = (def.categories && def.categories.includes(ItemCategory.HAMMER)) || key === 'weapon.hammer' || key === 'weapon.makeshift_hammer';
+            const isWrench = key === 'weapon.wrench';
+            const isToolbox = key === 'container.toolbox';
+            return isClothing || isTape || isWire || isHammer || isWrench || isToolbox;
+        });
+
+        // 2. Iterate through all buildings
+        const buildings = gameMap.buildings || [];
+        buildings.forEach((building, bIdx) => {
+            if (!building.rooms || building.rooms.length === 0) return;
+
+            building.rooms.forEach((room, rIdx) => {
+                const role = room.role;
+                if (role !== 'kitchen' && role !== 'bathroom' && role !== 'closet') return;
+
+                // Roll for spawn chance
+                if (gameRandom.next() >= ROOM_LOOT_CHANCE) return;
+
+                // Find eligible floor tiles inside this room
+                const eligibleTiles = [];
+                for (let y = room.minY; y <= room.maxY; y++) {
+                    for (let x = room.minX; x <= room.maxX; x++) {
+                        const tile = gameMap.getTile(x, y);
+                        // Must be floor and not in door buffer zone
+                        if (tile && tile.terrain === 'floor' && !this.isNearDoor(gameMap, x, y)) {
+                            eligibleTiles.push({ x, y });
+                        }
+                    }
+                }
+
+                if (eligibleTiles.length === 0) return;
+
+                // Pick a pool based on room role
+                let pool = [];
+                if (role === 'kitchen') pool = kitchenKeys;
+                else if (role === 'bathroom') pool = bathroomKeys;
+                else if (role === 'closet') pool = closetKeys;
+
+                if (pool.length === 0) return;
+
+                // Pick a weighted random item
+                const pickedKey = this.getWeightedRandomKeyFromList(pool, 'inside', mapNumber);
+                if (!pickedKey) return;
+
+                const itemData = createItemFromDef(pickedKey);
+                if (itemData) {
+                    const item = new Item(itemData);
+                    LootGenerator.applySpawnDefaults(item, false);
+
+                    // Pick random tile
+                    const tilePos = eligibleTiles[gameRandom.nextInt(0, eligibleTiles.length - 1)];
+                    const currentItems = gameMap.getItemsOnTile(tilePos.x, tilePos.y) || [];
+                    gameMap.setItemsOnTile(tilePos.x, tilePos.y, [...currentItems, item]);
+
+                    console.log(`[LootGenerator] Room-Specific Pass (Building ${bIdx + 1}, ${role} room): Placed ${item.name} at (${tilePos.x}, ${tilePos.y})`);
+                }
+            });
+        });
+    }
+
 
     /**
      * Apply Easy Start rules to the starting home building:

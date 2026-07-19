@@ -80,6 +80,11 @@ export const GameMapProvider = ({ children }) => {
         if (!tile.flags || !tile.flags.explored) return false;
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
 
+        // If the player is riding a golf cart, floor tiles are unwalkable
+        if (tile.terrain === 'floor' && engine?.riding?.item?.defId === 'vehicle.golf_cart') {
+          return false;
+        }
+
         const blockedByTurret = tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player));
         if (blockedByTurret) return false;
 
@@ -140,6 +145,12 @@ export const GameMapProvider = ({ children }) => {
       const entityFilter = (tile) => {
         if (!tile.flags || !tile.flags.explored) return false;
         if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
+
+        // If the player is riding a golf cart, floor tiles are unwalkable
+        if (tile.terrain === 'floor' && engine?.riding?.item?.defId === 'vehicle.golf_cart') {
+          return false;
+        }
+
         const blockedByEntity = tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door');
         const blockedByTurret = tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player));
         return !blockedByEntity && !blockedByTurret;
