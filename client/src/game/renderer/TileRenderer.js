@@ -64,6 +64,22 @@ const STEAMPUNK_TERRAIN_COLORS = {
   'dirt': '#7a6a50'
 };
 
+const BW_TERRAIN_COLORS = {
+  'grass': '#2c2c2c',       // Dark charcoal base
+  'road': '#3a3a3a',        // Mid-dark gray
+  'transition': '#3a3a3a',
+  'sidewalk': '#555555',    // Medium gray
+  'wall': '#999999',        // Bright gray for high contrast structure
+  'building': '#4d4d4d',    // Solid mid-gray
+  'fence': '#666666',       // Light mid-gray
+  'tree': '#111111',        // Almost black
+  'tent_wall': '#888888',
+  'tent_floor': '#1c1c1c',  // Very dark floor
+  'floor': '#1a1a1a',       // Dark floor for blueprint style
+  'water': '#101010',       // Darkest
+  'dirt': '#2a2a2a'         // Dark charcoal
+};
+
 const GRASS_VARIANTS = [
   { col: 0, row: 15 }, { col: 1, row: 15 }, { col: 2, row: 15 }, { col: 3, row: 15 },
   { col: 0, row: 14 }, { col: 1, row: 14 }, { col: 2, row: 14 }, { col: 3, row: 14 }
@@ -82,7 +98,7 @@ export const TileRenderer = {
         const isLight = document.documentElement.classList.contains('light');
         const isSteampunk = document.documentElement.classList.contains('steampunk');
         // Use structural mapping for important types to guarantee visibility
-        const colors = isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
+        const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
         ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
         ctx.fillRect(screenX, screenY, tileSize, tileSize);
@@ -161,7 +177,7 @@ export const TileRenderer = {
         }
 
         // Step B.5: Draw Decoration Layer (on top of terrain, below walls/fog)
-        if (tile.decoration && imageLoader.tileSet !== 'none' && !engine.renderDebugColors) {
+        if (tile.decoration && !engine.renderDebugColors) {
             let decorType = 'outdoor';
             if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration)) {
                 decorType = 'indoor';
@@ -215,7 +231,7 @@ export const TileRenderer = {
                 // Two-tone wall: a dark casing under a lighter core, so the wall
                 // reads against BOTH dark backgrounds (road) and light ones (floor),
                 // and stays distinct from the near-white window frames.
-                const isBW = imageLoader.tileSet === 'b&w';
+                const isBW = imageLoader.tileSet === 'none' || imageLoader.tileSet === 'b&w';
                 const coreColor = isBW ? '#bfbfbf' : '#a83838';
                 const casingColor = isBW ? '#1c1c1c' : '#2a0a0a';
                 const coreW = Math.max(6, Math.floor(tileSize * 0.16));
@@ -358,7 +374,7 @@ export const TileRenderer = {
     // Base colour (always drawn — unexplored tiles are masked by MapCanvas)
     const isLight = document.documentElement.classList.contains('light');
     const isSteampunk = document.documentElement.classList.contains('steampunk');
-    const colors = isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
+    const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
     const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
     ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
     ctx.fillRect(screenX, screenY, tileSize, tileSize);
@@ -417,7 +433,7 @@ export const TileRenderer = {
     }
 
     // Decoration layer
-    if (tile.decoration && imageLoader.tileSet !== 'none' && !engine.renderDebugColors) {
+    if (tile.decoration && !engine.renderDebugColors) {
       let decorType = 'outdoor';
       if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration)) {
         decorType = 'indoor';
@@ -449,7 +465,7 @@ export const TileRenderer = {
         const cellSize = 128;
         ctx.drawImage(sheet, bitmask * cellSize, 0, cellSize, cellSize, screenX, screenY, tileSize, tileSize);
       } else {
-        const isBW = imageLoader.tileSet === 'b&w';
+        const isBW = imageLoader.tileSet === 'none' || imageLoader.tileSet === 'b&w';
         const coreColor   = isBW ? '#bfbfbf' : '#a83838';
         const casingColor = isBW ? '#1c1c1c' : '#2a0a0a';
         const coreW   = Math.max(6, Math.floor(tileSize * 0.16));
@@ -695,31 +711,39 @@ export const TileRenderer = {
       ctx.lineTo(x + tileSize, y + pad * 1.5 + h * 0.8);
       ctx.stroke();
     } else if (type === 'couch') {
-      const w = tileSize * 2 - pad * 2;
-      const h = tileSize * 2 - pad * 2;
-      const thick = tileSize * 0.6;
-      const backThick = thick * 0.45;
-      // Main L-shape outline
+      const w = tileSize * 3 - pad * 2;
+      const h = tileSize * 1 - pad * 2;
+      const armW = tileSize * 0.3; // Armrest width
+      const backThick = tileSize * 0.3; // Backrest thickness
+
+      // Base outline (full body of the couch)
+      ctx.fillRect(x + pad, y + pad, w, h);
+      ctx.strokeRect(x + pad, y + pad, w, h);
+
+      // Backrest horizontal line (between the armrests)
       ctx.beginPath();
-      ctx.moveTo(x + pad, y + pad);
-      ctx.lineTo(x + pad + w, y + pad);
-      ctx.lineTo(x + pad + w, y + pad + thick);
-      ctx.lineTo(x + pad + thick, y + pad + thick);
-      ctx.lineTo(x + pad + thick, y + pad + h);
-      ctx.lineTo(x + pad, y + pad + h);
-      ctx.closePath();
-      ctx.fill();
+      ctx.moveTo(x + pad + armW, y + pad + backThick);
+      ctx.lineTo(x + pad + w - armW, y + pad + backThick);
       ctx.stroke();
-      // Inner back-cushion line to give the L-shape thickness
+
+      // Armrest side vertical lines
       ctx.beginPath();
-      ctx.moveTo(x + pad + backThick, y + pad + backThick);
-      ctx.lineTo(x + pad + w - backThick, y + pad + backThick);
-      ctx.lineTo(x + pad + w - backThick, y + pad + thick - backThick);
-      ctx.lineTo(x + pad + thick - backThick, y + pad + thick - backThick);
-      ctx.lineTo(x + pad + thick - backThick, y + pad + h - backThick);
-      ctx.lineTo(x + pad + backThick, y + pad + h - backThick);
-      ctx.closePath();
+      ctx.moveTo(x + pad + armW, y + pad);
+      ctx.lineTo(x + pad + armW, y + pad + h);
       ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + pad + w - armW, y + pad);
+      ctx.lineTo(x + pad + w - armW, y + pad + h);
+      ctx.stroke();
+
+      // Seat cushion dividers (divide the remaining width into 3)
+      const seatW = (w - armW * 2) / 3;
+      for (let i = 1; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + pad + armW + seatW * i, y + pad + backThick);
+        ctx.lineTo(x + pad + armW + seatW * i, y + pad + h);
+        ctx.stroke();
+      }
     } else if (type === 'counter') {
       // Kitchen counter (2x1): worktop with a sink basin and a 4-burner cooktop.
       const w = tileSize * 2 - pad * 2;

@@ -20,7 +20,7 @@ import { makeGameMapGrid, findRooms, assignRoles } from './RoomGraph.js';
 export const FURNITURE_FOOTPRINTS = {
   bed: { w: 2, h: 3 },
   table: { w: 2, h: 3 },
-  couch: { w: 2, h: 2 },
+  couch: { w: 3, h: 1 },
   desk: { w: 2, h: 1 },
   counter: { w: 2, h: 1 },
   bathtub: { w: 1, h: 2 },
@@ -72,7 +72,7 @@ function roomCanHold(room, type) {
     case 'bed':
       return minSpan >= 2 && maxSpan >= 3;
     case 'couch':
-      return minSpan >= 2 && maxSpan >= 2;
+      return minSpan >= 2 && maxSpan >= 3;
     case 'desk':
     case 'counter':
     case 'bathtub':

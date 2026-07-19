@@ -295,7 +295,7 @@ export class TemplateMapGenerator {
 
     this.placeWildCrops(mapData);
     this.placeOutdoorDecorations(mapData);
-    this.placeIndoorDecorations(mapData);
+    // this.placeIndoorDecorations(mapData);
     this.placeRoadAndSidewalkDecorations(mapData);
 
     console.log(`[TemplateMapGenerator] Generated '${templateName}' map using ${generator ? 'Strategy' : 'Legacy'} engine`);
