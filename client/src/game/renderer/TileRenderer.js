@@ -511,5 +511,133 @@ export const TileRenderer = {
       ctx.fillRect(screenX, screenY, tileSize, tileSize);
     }
     ctx.restore();
+  },
+
+  /**
+   * Draw one floorplan furniture piece (from gameMap.furniture) in world-pixel
+   * space. piece = {type, x, y, w, h, rot}: x/y anchor tile of the ROTATED
+   * footprint, w/h rotated footprint in tiles, rot = quarter-turns clockwise.
+   * Called once per piece from MapCanvas (not per-tile), so multi-tile shapes
+   * aren't overpainted by neighbours or clipped at chunk boundaries.
+   */
+  drawFurniture: (ctx, piece, tileSize) => {
+    const px = piece.x * tileSize;
+    const py = piece.y * tileSize;
+    const wpx = piece.w * tileSize;
+    const hpx = piece.h * tileSize;
+    const rot = piece.rot || 0;
+    // Base (unrotated) pixel dims: swapped for 90°/270° rotations
+    const bw = (rot % 2) ? hpx : wpx;
+    const bh = (rot % 2) ? wpx : hpx;
+
+    ctx.save();
+    ctx.translate(px + wpx / 2, py + hpx / 2);
+    ctx.rotate(rot * Math.PI / 2);
+    TileRenderer.drawCADDecoration(ctx, -bw / 2, -bh / 2, tileSize, piece.type);
+    ctx.restore();
+  },
+
+  /**
+   * Procedurally draw CAD-style multi-tile furniture outlines at pixel origin
+   * (x, y) in base orientation ("head" at top). Sizes derive from tileSize
+   * (bed/table 2x3 tiles, couch 2x2, desk 2x1, bathtub 1x2, toilet 1x1).
+   */
+  drawCADDecoration: (ctx, x, y, tileSize, type) => {
+    ctx.save();
+
+    // Architect blueprint style: dark stroke on light floor, or light stroke on dark floor
+    const isLight = document.documentElement.classList.contains('light');
+    const isSteampunk = document.documentElement.classList.contains('steampunk');
+    
+    if (isLight) {
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    } else if (isSteampunk) {
+        ctx.strokeStyle = 'rgba(60, 40, 20, 0.8)';
+        ctx.fillStyle = 'rgba(60, 40, 20, 0.1)';
+    } else {
+        // Dark mode - white/light grey lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    }
+
+    ctx.lineWidth = Math.max(1, Math.floor(tileSize * 0.05));
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    
+    const pad = tileSize * 0.1;
+    
+    if (type === 'bed') {
+      const w = tileSize * 2 - pad * 2;
+      const h = tileSize * 3 - pad * 2;
+      ctx.fillRect(x + pad, y + pad, w, h);
+      ctx.strokeRect(x + pad, y + pad, w, h);
+      const pillowW = (w - pad * 3) / 2;
+      const pillowH = h * 0.15;
+      ctx.strokeRect(x + pad * 2, y + pad * 2, pillowW, pillowH);
+      ctx.strokeRect(x + pad * 3 + pillowW, y + pad * 2, pillowW, pillowH);
+      ctx.beginPath();
+      ctx.moveTo(x + pad, y + pad + h * 0.35);
+      ctx.lineTo(x + pad + w, y + pad + h * 0.35);
+      ctx.stroke();
+    } else if (type === 'table') {
+      // 6-person dining table (spans 2x3 tiles)
+      const tablePad = tileSize * 0.3;
+      const tW = tileSize * 2 - tablePad * 2;
+      const tH = tileSize * 3 - tablePad * 2;
+      ctx.fillRect(x + tablePad, y + tablePad, tW, tH);
+      ctx.strokeRect(x + tablePad, y + tablePad, tW, tH);
+      
+      const chairW = tileSize * 0.4;
+      const chairH = tileSize * 0.4;
+      ctx.strokeRect(x + tileSize - chairW/2, y + pad, chairW, chairH);
+      ctx.strokeRect(x + tileSize - chairW/2, y + tileSize * 3 - pad - chairH, chairW, chairH);
+      ctx.strokeRect(x + pad, y + tileSize - chairH/2, chairW, chairH);
+      ctx.strokeRect(x + pad, y + tileSize * 2 - chairH/2, chairW, chairH);
+      ctx.strokeRect(x + tileSize * 2 - pad - chairW, y + tileSize - chairH/2, chairW, chairH);
+      ctx.strokeRect(x + tileSize * 2 - pad - chairW, y + tileSize * 2 - chairH/2, chairW, chairH);
+    } else if (type === 'bathtub') {
+      const w = tileSize * 1 - pad * 2;
+      const h = tileSize * 2 - pad * 2;
+      ctx.fillRect(x + pad, y + pad, w, h);
+      ctx.strokeRect(x + pad, y + pad, w, h);
+      const rim = tileSize * 0.15;
+      ctx.strokeRect(x + pad + rim, y + pad + rim, w - rim*2, h - rim*2);
+      ctx.beginPath();
+      ctx.arc(x + tileSize/2, y + pad + rim * 2 + tileSize*0.1, tileSize * 0.08, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (type === 'toilet') {
+      const w = tileSize * 1 - pad * 2;
+      const h = tileSize * 1 - pad * 2;
+      ctx.fillRect(x + pad, y + pad, w, h * 0.3);
+      ctx.strokeRect(x + pad, y + pad, w, h * 0.3);
+      ctx.beginPath();
+      ctx.ellipse(x + tileSize/2, y + pad + h * 0.65, w * 0.35, h * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (type === 'desk') {
+      const w = tileSize * 2 - pad * 2;
+      const h = tileSize * 1 - pad * 2;
+      ctx.fillRect(x + pad, y + pad, w, h);
+      ctx.strokeRect(x + pad, y + pad, w, h);
+      ctx.strokeRect(x + tileSize - tileSize*0.3, y + pad * 1.5, tileSize*0.6, h * 0.3);
+      ctx.strokeRect(x + tileSize - tileSize*0.25, y + pad * 2 + h * 0.3, tileSize*0.5, h * 0.4);
+    } else if (type === 'couch') {
+      const w = tileSize * 2 - pad * 2;
+      const h = tileSize * 2 - pad * 2;
+      const thick = tileSize * 0.6;
+      ctx.beginPath();
+      ctx.moveTo(x + pad, y + pad);
+      ctx.lineTo(x + pad + w, y + pad);
+      ctx.lineTo(x + pad + w, y + pad + thick);
+      ctx.lineTo(x + pad + thick, y + pad + thick);
+      ctx.lineTo(x + pad + thick, y + pad + h);
+      ctx.lineTo(x + pad, y + pad + h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    
+    ctx.restore();
   }
 };

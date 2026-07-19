@@ -2497,7 +2497,7 @@
       "label": "UniversalGrid()",
       "file_type": "code",
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L80",
+      "source_location": "L83",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid_universalgrid",
       "community": 65,
@@ -46995,7 +46995,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L80",
+      "source_location": "L83",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid",
       "target": "client_src_components_inventory_universalgrid_universalgrid",
@@ -47445,7 +47445,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L1132",
+      "source_location": "L1136",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_components_inventory_universalgrid_getadjustedbgcolor",
@@ -47457,7 +47457,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L111",
+      "source_location": "L115",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_actioncontext_useaction"
@@ -47468,7 +47468,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L113",
+      "source_location": "L117",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_audiocontext_useaudio"
@@ -47479,7 +47479,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L112",
+      "source_location": "L116",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_combatcontext_usecombat"
@@ -47490,7 +47490,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L116",
+      "source_location": "L120",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_gamecontext_usegame"
@@ -47501,7 +47501,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L115",
+      "source_location": "L119",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_gamemapcontext_usegamemap"
@@ -47512,7 +47512,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L109",
+      "source_location": "L113",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_gridsizecontext_usegridsize"
@@ -47523,7 +47523,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L110",
+      "source_location": "L114",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_inventorycontext_useinventory"
@@ -47534,7 +47534,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L114",
+      "source_location": "L118",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_logcontext_uselog"
@@ -47545,7 +47545,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L104",
+      "source_location": "L108",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_contexts_themecontext_usetheme"
@@ -47556,7 +47556,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L903",
+      "source_location": "L907",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_game_entities_entity_entity_gridx"
@@ -47567,7 +47567,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L904",
+      "source_location": "L908",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_game_entities_entity_entity_gridy"
@@ -47578,7 +47578,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L278",
+      "source_location": "L282",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_game_entities_entity_entity_x"
@@ -47589,7 +47589,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L278",
+      "source_location": "L282",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_game_entities_entity_entity_y"
@@ -47600,7 +47600,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L490",
+      "source_location": "L494",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_game_inventory_itemdefs_createitemfromdef"
@@ -47611,7 +47611,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L547",
+      "source_location": "L551",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_game_systems_attributeprogressionmanager_attributeprogressionmanager_recordaction"
@@ -47622,7 +47622,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L244",
+      "source_location": "L248",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_game_utils_logger_logger_error"
@@ -47633,7 +47633,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L882",
+      "source_location": "L886",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_hooks_usewindowsize_getscalefactor"
@@ -47644,7 +47644,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L1110",
+      "source_location": "L1114",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_lib_utils_cn"
@@ -47655,7 +47655,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L1112",
+      "source_location": "L1116",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_lib_utils_getcategoryclass"
@@ -47666,7 +47666,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/UniversalGrid.tsx",
-      "source_location": "L1131",
+      "source_location": "L1135",
       "weight": 1.0,
       "source": "client_src_components_inventory_universalgrid_universalgrid",
       "target": "client_src_lib_utils_rainbowbackground"
@@ -123570,5 +123570,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "06c12cb41b79ed2f52f5f16d9e2ce6ca0f619a68"
+  "built_at_commit": "74129d9c53b8589c6ca2a56152618eeedf6375c0"
 }

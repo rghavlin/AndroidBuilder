@@ -376,6 +376,16 @@ export default function MapCanvas({
       // Keep a margin ring of off-screen chunks so small pans don't rebuild them.
       chunkCache.evictOffscreen(startCX, endCX, startCY, endCY);
 
+      // Pass 1a.5: Floorplan furniture outlines. Drawn once per piece (not
+      // per-tile) so multi-tile shapes aren't overpainted by neighbouring
+      // tiles or clipped at chunk boundaries. Pass 1b's fog/unexplored fills
+      // paint on top, so visibility works per-tile automatically.
+      for (const piece of (gameMap.furniture || [])) {
+        if (piece.x + piece.w - 1 < extendedBounds.startX || piece.x > extendedBounds.endX ||
+            piece.y + piece.h - 1 < extendedBounds.startY || piece.y > extendedBounds.endY) continue;
+        TileRenderer.drawFurniture(ctx, piece, rTileSize);
+      }
+
       // Pass 1b: Dynamic per-tile overlays (fog of war, unexplored, night tint, fire).
       // These are all simple fillRect calls — fast even at maximum zoom-out.
       for (let worldY = extendedBounds.startY; worldY <= extendedBounds.endY; worldY++) {

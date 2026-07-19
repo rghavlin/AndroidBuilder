@@ -1796,4 +1796,19 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
     font-weight: 700 !important;
   }
+
+  /* Vehicle pull/ride borders in metallic: the category-vehicle reset above
+     removes the border, so we explicitly restore a high-contrast static gold
+     (pull) / blue (ride) border so players can see when a wagon is active. */
+  .metallic .sunken-item-slab.vehicle-pull-border {
+    border: 2px solid #facc15 !important;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.6), inset 0 0 6px rgba(250, 204, 21, 0.15) !important;
+    z-index: 15 !important;
+  }
+
+  .metallic .sunken-item-slab.vehicle-ride-border {
+    border: 2px solid #3b82f6 !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), inset 0 0 6px rgba(59, 130, 246, 0.15) !important;
+    z-index: 15 !important;
+  }
 }

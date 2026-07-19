@@ -43,6 +43,7 @@ export class GameMap extends SafeEventEmitter {
     // map area (critical for large maps). Rebuilt from tiles on deserialize.
     this.activeScents = new Set();
     this.buildings = []; // Standardized building metadata
+    this.furniture = []; // Decorative floorplan furniture outlines: {type, x, y, w, h, rot}
     this.lowSpots = []; // Phase 25: Designated tiles for water accumulation
     this.mapNumber = 1;
     this.template = 'road'; // Template used to generate this map
@@ -1333,6 +1334,7 @@ export class GameMap extends SafeEventEmitter {
       activeFires: Array.from(this.activeFires),
       scentSequenceCounter: this.scentSequenceCounter,
       buildings: this.buildings,
+      furniture: this.furniture || [],
       lowSpots: this.lowSpots,
       mapNumber: this.mapNumber,
       template: this.template
@@ -1501,6 +1503,7 @@ export class GameMap extends SafeEventEmitter {
   static async fromJSONSelective(data, options = {}) {
     const gameMap = new GameMap(data.width, data.height);
     gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
+    gameMap.furniture = data.furniture || [];
     gameMap.lowSpots = data.lowSpots || [];
     gameMap.mapNumber = data.mapNumber || 1;
     gameMap.template = data.template || 'road';
@@ -1521,6 +1524,7 @@ export class GameMap extends SafeEventEmitter {
     const gameMap = new GameMap(data.width, data.height);
     gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
     gameMap.buildings = data.buildings || [];
+    gameMap.furniture = data.furniture || [];
     gameMap.lowSpots = data.lowSpots || [];
     gameMap.mapNumber = data.mapNumber || 1;
     gameMap.template = data.template || 'road';

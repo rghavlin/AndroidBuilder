@@ -5,6 +5,7 @@ import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREM
 import { ZombieTypes } from '../entities/ZombieTypes.js';
 import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.js';
 import { isInsideCompound, isInsideAnyBuilding, isInsideTollGate } from './MapUtils.js';
+import { planFurniture } from './FurniturePlanner.js';
 
 
 import { gameRandom } from '../utils/SeededRandom.js';
@@ -244,6 +245,10 @@ export class LootGenerator {
             }
         }
         console.log(`[LootGenerator] Grass Pass: Spawned ${sticksSpawned} sticks and ${stonesSpawned} stones on ${grassTilesCount} empty grass tiles.`);
+
+        // 6. Decorative floorplan furniture outlines (after ALL item spawning,
+        // so real items — lootable beds, planks, safes — can be avoided).
+        planFurniture(gameMap);
     }
 
     /**

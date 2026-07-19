@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784345475.5283957,
-    "ast_hash": "ecb32b4c17d186da34c2c7148d63c9ab",
+    "mtime": 1784417214.2056503,
+    "ast_hash": "6d6e7978f792ae4bdc6c06294c79c0e9",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1784352100.9708421,
-    "ast_hash": "61e7b3b14ae999f0d1be317a51bc8007",
+    "mtime": 1784417014.1041386,
+    "ast_hash": "4e682787ca8c514ea3c27a51898116ac",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -1065,13 +1065,13 @@
     "semantic_hash": "a8293cdcb2b67e9281aaafbf0b0b6311"
   },
   "client/src/game/map/GameMap.js": {
-    "mtime": 1784160412.5965195,
-    "ast_hash": "0a8de0ed938a6b2b27c83ed73a6941f5",
+    "mtime": 1784416936.0679424,
+    "ast_hash": "1016e56bd1482e5986a95fdc48c7c676",
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
-    "mtime": 1783943201.0806015,
-    "ast_hash": "e412bfb734321e6f1931134984f4769e",
+    "mtime": 1784417020.6560686,
+    "ast_hash": "4cf17cfbc776e10efe78dfc94d8ee1ea",
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
@@ -1175,7 +1175,7 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1784352100.9781234,
+    "mtime": 1784415761.444336,
     "ast_hash": "b7d4765d52856216cc0f499f578022cf",
     "semantic_hash": ""
   },
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784352100.9791226,
-    "ast_hash": "c046e2b13e12e852a0c3bb5eaa19454c",
+    "mtime": 1784417003.1250434,
+    "ast_hash": "df3aa2ec0c867b3acb1ac49709707c23",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -2942,6 +2942,16 @@
   "test/systems/window_combat_redirection.test.js": {
     "mtime": 1784186387.5774045,
     "ast_hash": "9ffbc1031c88fd1a4dd8f228874c7340",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/FurniturePlanner.js": {
+    "mtime": 1784416970.819598,
+    "ast_hash": "4ac1b82d509cd5256a2b3a713b43fe99",
+    "semantic_hash": ""
+  },
+  "test/map/furniturePlanner.test.js": {
+    "mtime": 1784417100.1075869,
+    "ast_hash": "43f07eaca4a35802c41e7147763709a8",
     "semantic_hash": ""
   }
 }
