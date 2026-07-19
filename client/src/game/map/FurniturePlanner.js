@@ -52,6 +52,7 @@ const FURNISH_PLAN = {
     { type: 'table', strategy: 'center', minArea: 12 },
   ],
   hall: [],
+  closet: [],
 };
 
 const HEAD_SIDE = ['n', 'e', 's', 'w']; // side the piece's head faces per rotation

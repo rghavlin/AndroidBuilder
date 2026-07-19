@@ -11,7 +11,7 @@ import { gameRandom } from '../utils/SeededRandom.js';
  *   {
  *     id, width, height,
  *     grid: [ "112233", ... ],   // one char per interior tile = a ROOM INSTANCE
- *     legend: { '1':'living', '2':'kitchen', '3':'bedroom', '4':'bathroom', ... },
+ *     legend: { '1':'living', '2':'kitchen', '3':'bedroom', '4':'bathroom', '5':'closet', ... },
  *     doors: [ {x, y, edge} ],   // interior doorways (canonical coords)
  *     furniture: [ {type, x, y, rot} ], // canonical top-left + rotation
  *   }
@@ -94,7 +94,7 @@ const RANCH_2BED_1BATH = {
     'AAAAAAWWWBBBBB', // y3
     'AAAAAAWWWBBBBB', // y4
     'AAAAAAWWWBBBBB', // y5
-    'AAAAAAWWWBBBBB', // y6
+    'AAAAAAACCHBBBB', // y6  (closet C, hall extension H)
     'HHHHHHHHHHHHHH', // y7  (hall)
     'HHHHHHHHHHHHHH', // y8
     'LLLLLLLLKKKKKK', // y9
@@ -103,11 +103,12 @@ const RANCH_2BED_1BATH = {
     'LLLLLLLLKKKKKK', // y12
     'LLLLLLLLKKKKKK', // y13 (south / front — entrance opens into L or K)
   ],
-  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', C: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
   doors: [
     { x: 2, y: 7, edge: 'n' },   // bedroom A  <-> hall
     { x: 11, y: 7, edge: 'n' },  // bedroom B  <-> hall
-    { x: 7, y: 7, edge: 'n' },   // bathroom W <-> hall
+    { x: 6, y: 7, edge: 'n' },   // closet C   <-> hall
+    { x: 8, y: 6, edge: 'n' },   // bathroom W <-> hall (via H extension)
     { x: 3, y: 9, edge: 'n' },   // living L   <-> hall
     { x: 10, y: 9, edge: 'n' },  // kitchen K  <-> hall
   ],
@@ -116,7 +117,7 @@ const RANCH_2BED_1BATH = {
     { type: 'bed', x: 0, y: 0, rot: 0 },
     // bedroom B (x9..13, y0..6): bed in NE corner
     { type: 'bed', x: 12, y: 0, rot: 0 },
-    // bathroom W (x6..8, y0..6): toilet NW corner, bathtub against east wall
+    // bathroom W (x6..8, y0..5): toilet NW corner, bathtub against east wall
     { type: 'toilet', x: 6, y: 0, rot: 0 },
     { type: 'bathtub', x: 8, y: 0, rot: 0 },
     // living L (x0..7, y9..13): couch backing the hall wall, table centred
@@ -132,12 +133,12 @@ const RANCH_1BED_OPEN = {
   width: 14,
   height: 14,
   grid: [
-    'AAAAAAAWWWWBBB', // y0  A=bedroom, W=bathroom, B=hall-closet-ish -> make bedroom
-    'AAAAAAAWWWWBBB',
-    'AAAAAAAWWWWBBB',
-    'AAAAAAAWWWWBBB',
-    'AAAAAAAWWWWBBB',
-    'AAAAAAAWWWWBBB',
+    'AAAAAAAWWWBBBB', // y0  A=bedroom, W=bathroom, B=bedroom
+    'AAAAAAAWWWBBBB',
+    'AAAAAAAWWWBBBB',
+    'AAAAAAAWWWBBBB',
+    'AAAAAAAWWWCBBB', // y4  closet C sits beside the bathroom
+    'AAAAAAAWWWCBBB', // y5
     'HHHHHHHHHHHHHH', // y6 hall
     'HHHHHHHHHHHHHH', // y7
     'KKKKKLLLLLLLLL', // y8
@@ -147,10 +148,11 @@ const RANCH_1BED_OPEN = {
     'KKKKKLLLLLLLLL', // y12
     'KKKKKLLLLLLLLL', // y13
   ],
-  legend: { A: 'bedroom', W: 'bathroom', B: 'bedroom', H: 'hall', K: 'kitchen', L: 'living' },
+  legend: { A: 'bedroom', W: 'bathroom', B: 'bedroom', C: 'closet', H: 'hall', K: 'kitchen', L: 'living' },
   doors: [
     { x: 3, y: 6, edge: 'n' },   // bedroom A <-> hall
     { x: 11, y: 6, edge: 'n' },  // bedroom B <-> hall
+    { x: 10, y: 6, edge: 'n' },  // closet C   <-> hall
     { x: 8, y: 6, edge: 'n' },   // bathroom W <-> hall
     { x: 2, y: 8, edge: 'n' },   // kitchen K <-> hall
     { x: 9, y: 8, edge: 'n' },   // living L <-> hall

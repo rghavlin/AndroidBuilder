@@ -155,13 +155,14 @@ export class MapBuilder {
     else { entranceX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); entranceY = y; entranceEdge = 'n'; }
 
     this.setTerrain(entranceX, entranceY, 'floor');
-    this.metadata.doors.push({ 
-      x: entranceX, 
-      y: entranceY, 
-      isLocked: gameRandom.next() < 0.2, 
+    const entranceDoor = {
+      x: entranceX,
+      y: entranceY,
+      isLocked: gameRandom.next() < 0.2,
       isOpen: false,
       edge: entranceEdge
-    });
+    };
+    this.metadata.doors.push(entranceDoor);
 
     // Back door logic: Place on the opposite wall of the frontage
     let backX, backY, backEdge;
@@ -171,16 +172,17 @@ export class MapBuilder {
     else { backX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); backY = y + h - 1; backEdge = 's'; }
 
     this.setTerrain(backX, backY, 'floor');
-    this.metadata.doors.push({
+    const backDoor = {
       x: backX,
       y: backY,
       isLocked: gameRandom.next() < 0.4, // Back doors are slightly more likely to be locked
       isOpen: false,
       edge: backEdge
-    });
+    };
+    this.metadata.doors.push(backDoor);
 
     this.registerBuilding(type, x, y, w, h, { entranceX, entranceY, backX, backY, frontage });
-    
+
     // Subdivide and add windows (if residential or starting_home)
     if (type === 'residential' || type === 'starting_home') {
       if (orientedPlan) {
@@ -189,7 +191,63 @@ export class MapBuilder {
         this.subdivideBuilding(x, y, w, h);
         this.designateRooms(x, y);
       }
+
+      // Bathrooms and closets should never open directly to the outside.
+      const building = this.metadata.buildings.find(b => b.x === x && b.y === y);
+      if (building) {
+        this.relocateExteriorDoor(entranceDoor, building, backDoor);
+        this.relocateExteriorDoor(backDoor, building, entranceDoor);
+        building.entranceX = entranceDoor.x;
+        building.entranceY = entranceDoor.y;
+        building.backX = backDoor.x;
+        building.backY = backDoor.y;
+      }
+
       this.placeWindows(x, y, w, h);
+    }
+  }
+
+  /**
+   * Return the role of the room that contains (x,y) according to the building's
+   * authoritative room list. Authoritative rooms are rectangular in current
+   * layouts, so a bounding-box test is sufficient.
+   */
+  getRoomRoleAt(building, x, y) {
+    if (!building.rooms) return null;
+    const room = building.rooms.find(r => x >= r.minX && x <= r.maxX && y >= r.minY && y <= r.maxY);
+    return room ? room.role : null;
+  }
+
+  /**
+   * If an exterior door sits in a bathroom or closet, slide it along its wall
+   * to the nearest tile that is not one of those roles.
+   */
+  relocateExteriorDoor(door, building, otherDoor) {
+    const excluded = new Set(['bathroom', 'closet']);
+    const role = this.getRoomRoleAt(building, door.x, door.y);
+    if (!excluded.has(role)) return;
+
+    const horizontal = door.edge === 'n' || door.edge === 's';
+    const min = horizontal ? building.x + 2 : building.y + 2;
+    const max = horizontal
+      ? building.x + building.width - 1 - 2
+      : building.y + building.height - 1 - 2;
+    const current = horizontal ? door.x : door.y;
+
+    const candidates = [];
+    for (let v = min; v <= max; v++) candidates.push(v);
+    candidates.sort((a, b) => Math.abs(a - current) - Math.abs(b - current));
+
+    for (const v of candidates) {
+      const cx = horizontal ? v : door.x;
+      const cy = horizontal ? door.y : v;
+      if (otherDoor && cx === otherDoor.x && cy === otherDoor.y) continue;
+      const r = this.getRoomRoleAt(building, cx, cy);
+      if (!excluded.has(r)) {
+        door.x = cx;
+        door.y = cy;
+        return;
+      }
     }
   }
 

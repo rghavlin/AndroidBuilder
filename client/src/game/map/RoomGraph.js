@@ -7,7 +7,7 @@
  * A "room" is a flood-filled connected component of floor tiles bounded by edge
  * walls. Partition walls remain present under doorways (the door is a separate
  * entity/metadata), so a doorway still separates two rooms. Roles:
- *   living | bedroom | bathroom | kitchen | hall
+ *   living | bedroom | bathroom | kitchen | hall | closet
  *
  * Callers supply a lightweight `grid` adapter so this works against both
  * MapBuilder's in-progress layout array and a finished GameMap. Nothing here
