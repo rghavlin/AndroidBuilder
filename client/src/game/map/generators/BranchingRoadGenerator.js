@@ -146,9 +146,10 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
 
     let forcedType = null;
     if (bottomCenterCandidates.length > 0) {
-      const idx = Math.floor(random() * bottomCenterCandidates.length);
-      const chosenBuilding = bottomCenterCandidates[idx];
       forcedType = random() < 0.5 ? 'grocer' : 'gas_station';
+      // Put the forced POI on the largest bottom-center lot so a grocer fits.
+      const [pair] = this.sizeAwareSpecialPairs(bottomCenterCandidates, [forcedType]);
+      const chosenBuilding = pair ? pair.lot : bottomCenterCandidates[0];
       builder.clearArea(chosenBuilding.x, chosenBuilding.y, chosenBuilding.width, chosenBuilding.height);
       builder.drawSpecialBuilding(chosenBuilding, forcedType);
     } else {

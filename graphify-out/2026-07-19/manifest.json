@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784453111.8913507,
-    "ast_hash": "41b844a6f3995d4b8a6c67651480ef4d",
+    "mtime": 1784453557.821209,
+    "ast_hash": "27958bb549b8528334a5ad997fd7a17b",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1120,8 +1120,8 @@
     "semantic_hash": "62789c218e1f072e06d200f513ea311b"
   },
   "client/src/game/map/generators/BranchingRoadGenerator.js": {
-    "mtime": 1784191903.6748717,
-    "ast_hash": "a0dc9465c23378baec7164d1fb9704b6",
+    "mtime": 1784453516.8283522,
+    "ast_hash": "be25603bab3529f652bbc4a14cd5abac",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/LabMapGenerator.js": {
@@ -2965,8 +2965,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FloorplanRegistry.js": {
-    "mtime": 1784453023.7561853,
-    "ast_hash": "ae0e8ab347568e5c13f274d877e17d49",
+    "mtime": 1784453490.58223,
+    "ast_hash": "15e49bd380c45fce197ff6b1986bd777",
     "semantic_hash": ""
   },
   "test/map/floorplanRegistry.test.js": {
@@ -2992,21 +2992,6 @@
   "tmp/check_furniture_violations.mjs": {
     "mtime": 1784448848.8473213,
     "ast_hash": "1a4e0e84cbe7b24bd4bec1ad3d099890",
-    "semantic_hash": ""
-  },
-  "scratch/tmp_adopt.mjs": {
-    "mtime": 1784452796.2817447,
-    "ast_hash": "7344a26b324b1f8c8001585979e30808",
-    "semantic_hash": ""
-  },
-  "scratch/tmp_check.mjs": {
-    "mtime": 1784452627.2525983,
-    "ast_hash": "52ff528167720752217907122e440eee",
-    "semantic_hash": ""
-  },
-  "scratch/tmp_minsize.mjs": {
-    "mtime": 1784453116.2813046,
-    "ast_hash": "9e12becc66d28e4eaf2639541c8632d3",
     "semantic_hash": ""
   }
 }

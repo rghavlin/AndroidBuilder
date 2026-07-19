@@ -1,4 +1,4 @@
-import { isSpecialBuilding } from './BuildingTypes.js';
+import { isSpecialBuilding, SPECIAL_BUILDING_SPECS } from './BuildingTypes.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 import { makeLayoutGrid, findRooms, assignRoles, toSlimRoom } from './RoomGraph.js';
 import { pickFloorplan, orientFloorplan, FLOORPLAN_FOOTPRINTS } from './FloorplanRegistry.js';
@@ -388,14 +388,14 @@ export class MapBuilder {
   drawSpecialBuilding(b, type) {
     let { x, y, width, height, frontage } = b;
 
-    // Phase: Gas Station Custom Setback, Size & Parking Lot
-    if (type === 'gas_station') {
-        // Force smaller size for gas stations
+    // Standardize the footprint: shrink the reserved lot down to the type's
+    // canonical size and re-anchor it against the road-facing edge (centered
+    // along the frontage). Every special of a given type ends up identical.
+    const spec = SPECIAL_BUILDING_SPECS[type];
+    if (spec) {
         const oldW = width, oldH = height;
-        width = 10;
-        height = 10;
-        
-        // Re-center or align based on frontage
+        width = Math.min(spec.width, oldW);
+        height = Math.min(spec.height, oldH);
         if (frontage === 'east' || frontage === 'west') {
             y += Math.floor((oldH - height) / 2);
             if (frontage === 'east') x += (oldW - width);
@@ -403,7 +403,10 @@ export class MapBuilder {
             x += Math.floor((oldW - width) / 2);
             if (frontage === 'south') y += (oldH - height);
         }
+    }
 
+    // Phase: Gas Station Parking Lot (setback + apron in front of the pumps)
+    if (type === 'gas_station') {
         // Shift building to be 1 tile further AWAY from the road (if bounds allow)
         if (frontage === 'east' && x > 0) x -= 1;
         else if (frontage === 'west' && x + width < this.width) x += 1;

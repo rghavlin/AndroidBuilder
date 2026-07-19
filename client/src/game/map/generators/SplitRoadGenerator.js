@@ -150,18 +150,16 @@ export class SplitRoadGenerator extends BaseMapGenerator {
     let candidateBuildings = buildings.filter(b => b.type === 'residential');
 
     if (candidateBuildings.length >= 1) {
-        const selectedIdx = gameRandom.nextInt(0, candidateBuildings.length - 1);
-        const b = candidateBuildings[selectedIdx];
-        
-        // Remove from residential list in metadata so it doesn't get treated as one
-        builder.metadata.buildings = builder.metadata.buildings.filter(item => item !== b);
-
         const types = this.getSpecialBuildingTypes(context.mapNumber, 'split_road', 1);
-        const type = types[0];
-        
-        // Cleanup and draw
-        builder.clearArea(b.x, b.y, b.width, b.height);
-        builder.drawSpecialBuilding(b, type);
+        // Pick a lot that fits the type's standardized footprint.
+        const [pair] = this.selectSpecialLots(candidateBuildings, types);
+        if (pair) {
+            const { lot: b, type } = pair;
+            // Remove from residential list so it doesn't get treated as one.
+            builder.metadata.buildings = builder.metadata.buildings.filter(item => item !== b);
+            builder.clearArea(b.x, b.y, b.width, b.height);
+            builder.drawSpecialBuilding(b, type);
+        }
     }
   }
 

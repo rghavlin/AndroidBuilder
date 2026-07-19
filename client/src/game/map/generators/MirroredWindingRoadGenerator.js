@@ -140,11 +140,10 @@ export class MirroredWindingRoadGenerator extends BaseMapGenerator {
 
     // B. Special Buildings (Quota based on area)
     if (totalSpecials > 0 && specialPool.length > 0) {
-        const extraPool = this.getRandomSubarray(specialPool, totalSpecials);
         const extraTypes = this.getSpecialBuildingTypes(mapNumber, 'mirrored_winding_road', totalSpecials);
-        extraPool.forEach((b, i) => {
-            selected.push({ building: b, type: extraTypes[i] });
-        });
+        for (const { lot: b, type } of this.selectSpecialLots(specialPool, extraTypes)) {
+            selected.push({ building: b, type });
+        }
     }
 
     // 3. EXECUTION

@@ -1,8 +1,53 @@
 import { gameRandom } from '../../utils/SeededRandom.js';
+import { SPECIAL_BUILDING_SPECS } from '../BuildingTypes.js';
 /**
  * BaseMapGenerator - Strategy interface for map generation
  */
 export class BaseMapGenerator {
+  /**
+   * Pair special-building types to lots so the LARGEST types land on the LARGEST
+   * lots — this guarantees each type's standardized footprint fits the lot it is
+   * drawn on. Returns [{ lot, type }] (index-zipped after sorting both by size).
+   * Types beyond the available lots (or vice versa) are dropped.
+   */
+  sizeAwareSpecialPairs(lots, types) {
+    const area = (t) => { const s = SPECIAL_BUILDING_SPECS[t]; return s ? s.width * s.height : 0; };
+    const lotsSorted = [...lots].sort((a, b) => (b.width * b.height) - (a.width * a.height));
+    const typesSorted = [...types].filter(Boolean).sort((a, b) => area(b) - area(a));
+    const pairs = [];
+    for (let i = 0; i < typesSorted.length && i < lotsSorted.length; i++) {
+      pairs.push({ lot: lotsSorted[i], type: typesSorted[i] });
+    }
+    return pairs;
+  }
+
+  /**
+   * Choose which lots host which special-building types, drawing from the FULL
+   * candidate pool so a large type (grocer) can find a lot big enough for its
+   * standardized footprint. Assigns the largest types first, each to a random
+   * lot that FITS its spec (keeps placement varied), falling back to the largest
+   * remaining lot only when nothing fits. Returns [{ lot, type }]; consumed lots
+   * are not reused. Prefer this over pre-selecting a random subset then pairing.
+   */
+  selectSpecialLots(candidates, types) {
+    const specOf = (t) => SPECIAL_BUILDING_SPECS[t];
+    const fits = (lot, t) => { const s = specOf(t); return !s || (lot.width >= s.width && lot.height >= s.height); };
+    const area = (t) => { const s = specOf(t); return s ? s.width * s.height : 0; };
+    const typesSorted = [...types].filter(Boolean).sort((a, b) => area(b) - area(a));
+    const pool = [...candidates];
+    const pairs = [];
+    for (const type of typesSorted) {
+      if (pool.length === 0) break;
+      const fitting = pool.filter((l) => fits(l, type));
+      const lot = fitting.length > 0
+        ? fitting[gameRandom.nextInt(0, fitting.length - 1)]
+        : pool.reduce((a, b) => ((b.width * b.height) > (a.width * a.height) ? b : a));
+      pairs.push({ lot, type });
+      pool.splice(pool.indexOf(lot), 1);
+    }
+    return pairs;
+  }
+
   /**
    * Main generation entry point
    * @param {Object} config - Generation parameters
@@ -210,12 +255,10 @@ export class BaseMapGenerator {
       ? this._selectScattered(candidates, types.length)
       : this.getRandomSubarray(candidates, types.length);
 
-    selected.forEach((b, i) => {
-      const type = types[i];
-      if (!type) return;
+    for (const { lot: b, type } of this.sizeAwareSpecialPairs(selected, types)) {
       builder.clearArea(b.x, b.y, b.width, b.height);
       builder.drawSpecialBuilding(b, type);
-    });
+    }
   }
 
   /**

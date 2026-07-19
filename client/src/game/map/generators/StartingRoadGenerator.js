@@ -100,17 +100,14 @@ export class StartingRoadGenerator extends BaseMapGenerator {
         const area = width * builder.height;
         const selectedCount = Math.max(1, Math.floor(area / 5000));
         
-        const selected = this.getRandomSubarray(candidateBuildings, selectedCount);
         const types = this.getSpecialBuildingTypes(mapNumber, 'road', selectedCount);
 
-        selected.forEach((b, i) => {
-            const type = types[i];
-            
+        for (const { lot: b, type } of this.selectSpecialLots(candidateBuildings, types)) {
             // Thorough cleanup
             builder.clearArea(b.x, b.y, b.width, b.height);
 
             builder.drawSpecialBuilding(b, type);
-        });
+        }
     }
   }
 
