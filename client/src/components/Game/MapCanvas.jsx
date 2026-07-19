@@ -58,6 +58,11 @@ export default function MapCanvas({
   const lastZoomChangeAtRef = useRef(0);
   const zoomPendingRef = useRef(false);
   const lastThemeRef = useRef(null);
+  // Offscreen canvases for the smooth fog/lighting overlay (sized to viewport).
+  // lightingCanvas holds the final fog layer; lightMaskCanvas holds the sharp
+  // per-tile visibility mask that we blur once to feather the fog boundary.
+  const lightingCanvasRef = useRef(null);
+  const lightMaskCanvasRef = useRef(null);
 
   const renderMapRef = useRef(null);
   const handleMouseMoveRef = useRef(null);
@@ -386,38 +391,108 @@ export default function MapCanvas({
         TileRenderer.drawFurniture(ctx, piece, rTileSize);
       }
 
-      // Pass 1b: Dynamic per-tile overlays (fog of war, unexplored, night tint, fire).
-      // These are all simple fillRect calls — fast even at maximum zoom-out.
+      // Pass 1b: Unexplored tiles stay hard black. Visible/fire overlays are
+      // handled with a smooth radial lighting pass after this layer restores.
       for (let worldY = extendedBounds.startY; worldY <= extendedBounds.endY; worldY++) {
         for (let worldX = extendedBounds.startX; worldX <= extendedBounds.endX; worldX++) {
           const tile = gameMap.getTile(worldX, worldY);
-          if (!tile) continue;
+          if (!tile || tile.flags?.explored) continue;
 
           const screenX = worldX * rTileSize;
           const screenY = worldY * rTileSize;
-
-          if (!tile.flags?.explored) {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
-          } else {
-            const isVisible = visibleTileSet.has(`${worldX},${worldY}`);
-            if (!isVisible) {
-              ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-              ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
-            } else if (isNight || gameMap?.metadata?.alwaysDark) {
-              ctx.fillStyle = 'rgba(0, 5, 20, 0.3)';
-              ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
-            }
-            if (tile.fireTurns > 0) {
-              frameRenderFlags.hasPulser = true; // animating fire-tile glow
-              const pulse = 0.35 + Math.sin(currentTime / 180) * 0.15;
-              ctx.fillStyle = `rgba(249, 115, 22, ${pulse})`;
-              ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
-            }
-          }
+          ctx.fillStyle = '#000';
+          ctx.fillRect(screenX, screenY, rTileSize, rTileSize);
         }
       }
 
+      ctx.restore();
+
+      // Pass 1c: Smooth lighting / fog overlay in screen space.
+      // Rather than stacking a radial gradient per tile (which pools into a
+      // visible per-tile checkerboard and bleeds a full tile past walls), we:
+      //   1. rasterise the visible tiles as flat opaque squares into a mask,
+      //   2. blur that mask ONCE to feather only the outer boundary,
+      //   3. use it to subtract fog (source-out) so the lit region is uniform
+      //      inside and softly faded at its edge.
+      const isDark = isNight || gameMap?.metadata?.alwaysDark;
+      const overlayColor = isDark ? 'rgba(0, 5, 20, 0.55)' : 'rgba(0, 0, 0, 0.45)';
+      // Day: fully clear visible tiles. Night: leave a subtle blue tint so
+      // visible areas still feel dim, matching the old 0.3 tint.
+      const eraseStrength = isDark ? 0.45 : 1.0;
+      // Feather radius for the fog boundary. Kept well under a tile so the soft
+      // edge doesn't spill across a whole wall into the fog beyond it.
+      const featherPx = Math.max(1, rTileSize * 0.35);
+
+      let lightingCanvas = lightingCanvasRef.current;
+      if (!lightingCanvas) {
+        lightingCanvas = document.createElement('canvas');
+        lightingCanvasRef.current = lightingCanvas;
+      }
+      let lightMaskCanvas = lightMaskCanvasRef.current;
+      if (!lightMaskCanvas) {
+        lightMaskCanvas = document.createElement('canvas');
+        lightMaskCanvasRef.current = lightMaskCanvas;
+      }
+      const lctx = lightingCanvas.getContext('2d');
+      const mctx = lightMaskCanvas.getContext('2d');
+      if (lightingCanvas.width !== physicalWidth || lightingCanvas.height !== physicalHeight) {
+        lightingCanvas.width = physicalWidth;
+        lightingCanvas.height = physicalHeight;
+      }
+      if (lightMaskCanvas.width !== physicalWidth || lightMaskCanvas.height !== physicalHeight) {
+        lightMaskCanvas.width = physicalWidth;
+        lightMaskCanvas.height = physicalHeight;
+      }
+
+      // Step 1: sharp visibility mask — one flat opaque square per visible tile.
+      // Flat fills mean the lit interior is perfectly uniform (no per-tile pools).
+      mctx.setTransform(1, 0, 0, 1, 0, 0);
+      mctx.filter = 'none';
+      mctx.globalCompositeOperation = 'source-over';
+      mctx.clearRect(0, 0, physicalWidth, physicalHeight);
+      mctx.fillStyle = `rgba(0, 0, 0, ${eraseStrength})`;
+      const fov = engine.playerFieldOfView || playerFieldOfView || [];
+      for (const pos of fov) {
+        const wx = Math.round(pos.x);
+        const wy = Math.round(pos.y);
+        if (wx < extendedBounds.startX || wx > extendedBounds.endX ||
+            wy < extendedBounds.startY || wy > extendedBounds.endY) continue;
+        const sx = wx * rTileSize + globalOffsetX;
+        const sy = wy * rTileSize + globalOffsetY;
+        mctx.fillRect(sx, sy, rTileSize, rTileSize);
+      }
+
+      // Step 2: paint fog everywhere, then blur the mask in as we subtract it.
+      // 'source-out' keeps the fog only where the (blurred) mask is transparent,
+      // scaling fog alpha by 1 - maskAlpha, giving a feathered visible boundary.
+      lctx.setTransform(1, 0, 0, 1, 0, 0);
+      lctx.filter = 'none';
+      lctx.globalCompositeOperation = 'source-over';
+      lctx.clearRect(0, 0, physicalWidth, physicalHeight);
+      lctx.filter = `blur(${featherPx}px)`;
+      lctx.drawImage(lightMaskCanvas, 0, 0);
+      lctx.filter = 'none';
+      lctx.globalCompositeOperation = 'source-out';
+      lctx.fillStyle = overlayColor;
+      lctx.fillRect(0, 0, physicalWidth, physicalHeight);
+      lctx.globalCompositeOperation = 'source-over';
+
+      ctx.drawImage(lightingCanvas, 0, 0);
+
+      // Pass 1d: Fire overlay (drawn after lighting so it glows through fog).
+      ctx.save();
+      ctx.translate(globalOffsetX, globalOffsetY);
+      for (let worldY = extendedBounds.startY; worldY <= extendedBounds.endY; worldY++) {
+        for (let worldX = extendedBounds.startX; worldX <= extendedBounds.endX; worldX++) {
+          const tile = gameMap.getTile(worldX, worldY);
+          if (!tile || tile.fireTurns <= 0 || !tile.flags?.explored) continue;
+
+          frameRenderFlags.hasPulser = true; // animating fire-tile glow
+          const pulse = 0.35 + Math.sin(currentTime / 180) * 0.15;
+          ctx.fillStyle = `rgba(249, 115, 22, ${pulse})`;
+          ctx.fillRect(worldX * rTileSize, worldY * rTileSize, rTileSize, rTileSize);
+        }
+      }
       ctx.restore();
 
       // Layer 2 & 3: World Entities (Categorized by Z-Order)

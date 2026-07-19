@@ -545,23 +545,26 @@ export const TileRenderer = {
   drawCADDecoration: (ctx, x, y, tileSize, type) => {
     ctx.save();
 
-    // Architect blueprint style: dark stroke on light floor, or light stroke on dark floor
+    // Architect blueprint style: high-contrast strokes so furniture reads clearly
+    // against both dark and light floors. Fills stay subtle so only the lines pop.
     const isLight = document.documentElement.classList.contains('light');
     const isSteampunk = document.documentElement.classList.contains('steampunk');
-    
+
     if (isLight) {
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
     } else if (isSteampunk) {
-        ctx.strokeStyle = 'rgba(60, 40, 20, 0.8)';
-        ctx.fillStyle = 'rgba(60, 40, 20, 0.1)';
+        ctx.strokeStyle = 'rgba(60, 40, 20, 0.9)';
+        ctx.fillStyle = 'rgba(60, 40, 20, 0.08)';
     } else {
-        // Dark mode - white/light grey lines
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        // Dark mode - architectural lines. Slightly translucent so they read as
+        // drawn-on blueprint ink rather than glowing neon against the dark floor.
+        ctx.strokeStyle = 'rgba(229, 229, 229, 0.6)';
+        // Faint cool-blue fill to lean the palette toward true blueprint paper.
+        ctx.fillStyle = 'rgba(120, 160, 220, 0.06)';
     }
 
-    ctx.lineWidth = Math.max(1, Math.floor(tileSize * 0.05));
+    ctx.lineWidth = Math.max(1.5, Math.floor(tileSize * 0.055));
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     
@@ -570,15 +573,31 @@ export const TileRenderer = {
     if (type === 'bed') {
       const w = tileSize * 2 - pad * 2;
       const h = tileSize * 3 - pad * 2;
+      // mattress
       ctx.fillRect(x + pad, y + pad, w, h);
       ctx.strokeRect(x + pad, y + pad, w, h);
+      // headboard
+      ctx.beginPath();
+      ctx.moveTo(x + pad, y + pad + h * 0.06);
+      ctx.lineTo(x + pad + w, y + pad + h * 0.06);
+      ctx.stroke();
+      // pillows
       const pillowW = (w - pad * 3) / 2;
       const pillowH = h * 0.15;
       ctx.strokeRect(x + pad * 2, y + pad * 2, pillowW, pillowH);
       ctx.strokeRect(x + pad * 3 + pillowW, y + pad * 2, pillowW, pillowH);
+      // sheet/blanket divider
       ctx.beginPath();
       ctx.moveTo(x + pad, y + pad + h * 0.35);
       ctx.lineTo(x + pad + w, y + pad + h * 0.35);
+      ctx.stroke();
+      // footboard legs
+      const leg = tileSize * 0.12;
+      ctx.beginPath();
+      ctx.moveTo(x + pad + leg, y + pad + h);
+      ctx.lineTo(x + pad + leg, y + pad + h + leg);
+      ctx.moveTo(x + pad + w - leg, y + pad + h);
+      ctx.lineTo(x + pad + w - leg, y + pad + h + leg);
       ctx.stroke();
     } else if (type === 'table') {
       // 6-person dining table (spans 2x3 tiles)
@@ -587,15 +606,42 @@ export const TileRenderer = {
       const tH = tileSize * 3 - tablePad * 2;
       ctx.fillRect(x + tablePad, y + tablePad, tW, tH);
       ctx.strokeRect(x + tablePad, y + tablePad, tW, tH);
-      
-      const chairW = tileSize * 0.4;
-      const chairH = tileSize * 0.4;
+      // center detail
+      ctx.beginPath();
+      ctx.ellipse(x + tileSize, y + tileSize * 1.5, tW * 0.15, tH * 0.1, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const chairW = tileSize * 0.45;
+      const chairH = tileSize * 0.35;
+      const backThick = tileSize * 0.08;
+      // top/bottom chairs (horizontal backs)
       ctx.strokeRect(x + tileSize - chairW/2, y + pad, chairW, chairH);
+      ctx.beginPath();
+      ctx.moveTo(x + tileSize - chairW/2, y + pad + backThick);
+      ctx.lineTo(x + tileSize + chairW/2, y + pad + backThick);
+      ctx.stroke();
+
       ctx.strokeRect(x + tileSize - chairW/2, y + tileSize * 3 - pad - chairH, chairW, chairH);
-      ctx.strokeRect(x + pad, y + tileSize - chairH/2, chairW, chairH);
-      ctx.strokeRect(x + pad, y + tileSize * 2 - chairH/2, chairW, chairH);
-      ctx.strokeRect(x + tileSize * 2 - pad - chairW, y + tileSize - chairH/2, chairW, chairH);
-      ctx.strokeRect(x + tileSize * 2 - pad - chairW, y + tileSize * 2 - chairH/2, chairW, chairH);
+      ctx.beginPath();
+      ctx.moveTo(x + tileSize - chairW/2, y + tileSize * 3 - pad - backThick);
+      ctx.lineTo(x + tileSize + chairW/2, y + tileSize * 3 - pad - backThick);
+      ctx.stroke();
+
+      // left/right chairs (vertical backs) - two on each long side
+      const sideChairs = [
+        { cx: x + pad, cy: y + tileSize - chairH/2 },
+        { cx: x + pad, cy: y + tileSize * 2 - chairH/2 },
+        { cx: x + tileSize * 2 - pad - chairH, cy: y + tileSize - chairH/2 },
+        { cx: x + tileSize * 2 - pad - chairH, cy: y + tileSize * 2 - chairH/2 }
+      ];
+      for (const c of sideChairs) {
+        ctx.strokeRect(c.cx, c.cy, chairH, chairW);
+        const backX = c.cx < x + tileSize ? c.cx + backThick : c.cx + chairH - backThick;
+        ctx.beginPath();
+        ctx.moveTo(backX, c.cy);
+        ctx.lineTo(backX, c.cy + chairW);
+        ctx.stroke();
+      }
     } else if (type === 'bathtub') {
       const w = tileSize * 1 - pad * 2;
       const h = tileSize * 2 - pad * 2;
@@ -603,29 +649,57 @@ export const TileRenderer = {
       ctx.strokeRect(x + pad, y + pad, w, h);
       const rim = tileSize * 0.15;
       ctx.strokeRect(x + pad + rim, y + pad + rim, w - rim*2, h - rim*2);
+      // drain
       ctx.beginPath();
-      ctx.arc(x + tileSize/2, y + pad + rim * 2 + tileSize*0.1, tileSize * 0.08, 0, Math.PI * 2);
+      ctx.arc(x + tileSize/2, y + pad + h - rim * 2, tileSize * 0.06, 0, Math.PI * 2);
+      ctx.stroke();
+      // faucet
+      ctx.beginPath();
+      ctx.moveTo(x + tileSize/2, y + pad + rim);
+      ctx.lineTo(x + tileSize/2, y + pad + rim * 1.6);
+      ctx.lineTo(x + tileSize/2 + rim * 0.8, y + pad + rim * 1.3);
       ctx.stroke();
     } else if (type === 'toilet') {
       const w = tileSize * 1 - pad * 2;
       const h = tileSize * 1 - pad * 2;
+      // tank
       ctx.fillRect(x + pad, y + pad, w, h * 0.3);
       ctx.strokeRect(x + pad, y + pad, w, h * 0.3);
+      // bowl
       ctx.beginPath();
       ctx.ellipse(x + tileSize/2, y + pad + h * 0.65, w * 0.35, h * 0.35, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.stroke();
+      // seat line
+      ctx.beginPath();
+      ctx.ellipse(x + tileSize/2, y + pad + h * 0.65, w * 0.22, h * 0.22, 0, 0, Math.PI * 2);
       ctx.stroke();
     } else if (type === 'desk') {
       const w = tileSize * 2 - pad * 2;
       const h = tileSize * 1 - pad * 2;
       ctx.fillRect(x + pad, y + pad, w, h);
       ctx.strokeRect(x + pad, y + pad, w, h);
-      ctx.strokeRect(x + tileSize - tileSize*0.3, y + pad * 1.5, tileSize*0.6, h * 0.3);
-      ctx.strokeRect(x + tileSize - tileSize*0.25, y + pad * 2 + h * 0.3, tileSize*0.5, h * 0.4);
+      // monitor
+      const monW = tileSize * 0.6;
+      const monH = h * 0.35;
+      ctx.strokeRect(x + tileSize - monW/2, y + pad + h * 0.1, monW, monH);
+      // keyboard
+      ctx.beginPath();
+      ctx.moveTo(x + tileSize - monW * 0.6, y + pad + h * 0.65);
+      ctx.lineTo(x + tileSize + monW * 0.6, y + pad + h * 0.65);
+      ctx.stroke();
+      // drawer unit
+      ctx.strokeRect(x + tileSize - tileSize*0.3, y + pad * 1.5 + h * 0.55, tileSize*0.6, h * 0.25);
+      ctx.beginPath();
+      ctx.moveTo(x + tileSize, y + pad * 1.5 + h * 0.55);
+      ctx.lineTo(x + tileSize, y + pad * 1.5 + h * 0.8);
+      ctx.stroke();
     } else if (type === 'couch') {
       const w = tileSize * 2 - pad * 2;
       const h = tileSize * 2 - pad * 2;
       const thick = tileSize * 0.6;
+      const backThick = thick * 0.45;
+      // Main L-shape outline
       ctx.beginPath();
       ctx.moveTo(x + pad, y + pad);
       ctx.lineTo(x + pad + w, y + pad);
@@ -635,6 +709,16 @@ export const TileRenderer = {
       ctx.lineTo(x + pad, y + pad + h);
       ctx.closePath();
       ctx.fill();
+      ctx.stroke();
+      // Inner back-cushion line to give the L-shape thickness
+      ctx.beginPath();
+      ctx.moveTo(x + pad + backThick, y + pad + backThick);
+      ctx.lineTo(x + pad + w - backThick, y + pad + backThick);
+      ctx.lineTo(x + pad + w - backThick, y + pad + thick - backThick);
+      ctx.lineTo(x + pad + thick - backThick, y + pad + thick - backThick);
+      ctx.lineTo(x + pad + thick - backThick, y + pad + h - backThick);
+      ctx.lineTo(x + pad + backThick, y + pad + h - backThick);
+      ctx.closePath();
       ctx.stroke();
     }
     

@@ -52,8 +52,54 @@ function edgeBlocked(gameMap, x, y, dir) {
 }
 
 /**
+ * Classify a room by shape. Hallways are narrow corridors (often 2 tiles wide)
+ * or very small connector rooms; they should not receive large furniture.
+ */
+function classifyRoom(room) {
+  const width = room.maxX - room.minX + 1;
+  const height = room.maxY - room.minY + 1;
+  const minSpan = Math.min(width, height);
+  const maxSpan = Math.max(width, height);
+  const aspect = maxSpan / Math.max(1, minSpan);
+
+  // Generated hallways are 2 tiles across; small elongated rooms are also halls.
+  if (minSpan <= 2 || (aspect >= 2.5 && room.area <= 12)) {
+    return 'hall';
+  }
+  return 'room';
+}
+
+/**
+ * Check whether a room's bounding box is large enough for a given furniture
+ * piece to look sensible (not just physically fit).
+ */
+function roomCanHold(room, type) {
+  if (room.type === 'hall') return false;
+
+  const width = room.maxX - room.minX + 1;
+  const height = room.maxY - room.minY + 1;
+  const minSpan = Math.min(width, height);
+  const maxSpan = Math.max(width, height);
+
+  switch (type) {
+    case 'table':
+    case 'bed':
+      return minSpan >= 2 && maxSpan >= 3;
+    case 'couch':
+      return minSpan >= 2 && maxSpan >= 2;
+    case 'desk':
+    case 'bathtub':
+      return maxSpan >= 2;
+    case 'toilet':
+      return true;
+    default:
+      return true;
+  }
+}
+
+/**
  * Flood-fill the building interior into rooms separated by edge walls.
- * @returns {Array<{tiles: Set<string>, minX, minY, maxX, maxY, area: number}>}
+ * @returns {Array<{tiles: Set<string>, minX, minY, maxX, maxY, area: number, type: string}>}
  */
 function findRooms(gameMap, building) {
   const minX = building.x + 1, maxX = building.x + building.width - 2;
@@ -92,6 +138,7 @@ function findRooms(gameMap, building) {
         }
       }
       room.area = room.tiles.size;
+      room.type = classifyRoom(room);
       rooms.push(room);
     }
   }
@@ -188,12 +235,20 @@ export function planFurniture(gameMap) {
 
     const occupied = new Set();
     const place = (room, type) => {
+      if (!room || !roomCanHold(room, type)) return;
       const piece = tryPlace(gameMap, room, occupied, type);
       if (piece) gameMap.furniture.push(piece);
     };
 
-    const livingRoom = findEntranceRoom(gameMap, building, rooms)
-      || rooms.reduce((a, b) => (b.area > a.area ? b : a));
+    // Don't let the entrance hallway become the living room; pick the largest
+    // proper room, falling back to the largest room of any kind.
+    let livingRoom = findEntranceRoom(gameMap, building, rooms);
+    if (!livingRoom || livingRoom.type === 'hall') {
+      const properRooms = rooms.filter(r => r.type !== 'hall');
+      livingRoom = properRooms.length > 0
+        ? properRooms.reduce((a, b) => (b.area > a.area ? b : a))
+        : rooms.reduce((a, b) => (b.area > a.area ? b : a));
+    }
 
     if (rooms.length === 1) {
       place(livingRoom, 'couch');
@@ -202,7 +257,8 @@ export function planFurniture(gameMap) {
     }
 
     const others = rooms.filter(r => r !== livingRoom);
-    const smallRooms = others.filter(r => r.area <= 9);
+    // Bathrooms must be proper rooms; hallways can't host plumbing fixtures.
+    const smallRooms = others.filter(r => r.type !== 'hall' && r.area <= 9);
     const bathroom = smallRooms.length > 0
       ? smallRooms.reduce((a, b) => (b.area < a.area ? b : a))
       : null;
@@ -214,9 +270,9 @@ export function planFurniture(gameMap) {
       place(bathroom, 'bathtub');
     }
     for (const room of others) {
-      if (room === bathroom) continue;
+      if (room === bathroom || room.type === 'hall') continue;
       place(room, 'bed');
-      if (room.area >= 12) place(room, 'desk');
+      if (room.area >= 10) place(room, 'desk');
     }
   }
 
