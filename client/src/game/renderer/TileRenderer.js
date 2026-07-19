@@ -710,6 +710,31 @@ export const TileRenderer = {
       ctx.moveTo(x + tileSize, y + pad * 1.5 + h * 0.55);
       ctx.lineTo(x + tileSize, y + pad * 1.5 + h * 0.8);
       ctx.stroke();
+    } else if (type === 'chair') {
+      const w = tileSize * 1 - pad * 2;
+      const h = tileSize * 1 - pad * 2;
+      const armW = tileSize * 0.3; // Armrest width
+      const backThick = tileSize * 0.3; // Backrest thickness
+
+      // Base outline (full body of the chair)
+      ctx.fillRect(x + pad, y + pad, w, h);
+      ctx.strokeRect(x + pad, y + pad, w, h);
+
+      // Backrest horizontal line (between the armrests)
+      ctx.beginPath();
+      ctx.moveTo(x + pad + armW, y + pad + backThick);
+      ctx.lineTo(x + pad + w - armW, y + pad + backThick);
+      ctx.stroke();
+
+      // Armrest side vertical lines
+      ctx.beginPath();
+      ctx.moveTo(x + pad + armW, y + pad);
+      ctx.lineTo(x + pad + armW, y + pad + h);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + pad + w - armW, y + pad);
+      ctx.lineTo(x + pad + w - armW, y + pad + h);
+      ctx.stroke();
     } else if (type === 'couch') {
       const w = tileSize * 3 - pad * 2;
       const h = tileSize * 1 - pad * 2;

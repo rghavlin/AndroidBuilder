@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784431428.1233096,
-    "ast_hash": "84fab33d47eff9188fe0052ecb4ee1b6",
+    "mtime": 1784436120.427502,
+    "ast_hash": "16a0ac24cd4e17855ab77b13e7dc9cfa",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784431201.9982615,
-    "ast_hash": "61935145fcf129e31f9bdc34198f2121",
+    "mtime": 1784435121.7011933,
+    "ast_hash": "c5770774e50a9d26cf6f009c102ddb4d",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784429466.3570874,
-    "ast_hash": "85b18f9a6b35697c49c5cd83c64c17d2",
+    "mtime": 1784433302.5453734,
+    "ast_hash": "7ca66f18d4be69c53eef42a52665e022",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -2945,8 +2945,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FurniturePlanner.js": {
-    "mtime": 1784431222.2983332,
-    "ast_hash": "ec33d17eb179ac46aeb7619166804cee",
+    "mtime": 1784433278.2693799,
+    "ast_hash": "de861739805b3b42e9487ee79fda2a12",
     "semantic_hash": ""
   },
   "test/map/furniturePlanner.test.js": {
@@ -2955,23 +2955,23 @@
     "semantic_hash": ""
   },
   "client/src/game/map/RoomGraph.js": {
-    "mtime": 1784430080.5099611,
-    "ast_hash": "943df31f12cb0cf1bf66b459945630cc",
+    "mtime": 1784432493.3350267,
+    "ast_hash": "c0f29bd735d907de6a9c34ba4f7ef7c1",
     "semantic_hash": ""
   },
   "scratch/verify_furniture_placement.mjs": {
-    "mtime": 1784431254.4971733,
-    "ast_hash": "2a4d91b8b4587c8cb3cc32b9548a2cc3",
+    "mtime": 1784434588.7534776,
+    "ast_hash": "055866b3f4500776d295d5e0fb2382fc",
     "semantic_hash": ""
   },
   "client/src/game/map/FloorplanRegistry.js": {
-    "mtime": 1784431038.4949584,
-    "ast_hash": "a76b5bc6b66d39211bb1c848dc5f19a1",
+    "mtime": 1784436040.8717468,
+    "ast_hash": "4af791ddc1cf93788cc98dc9229f575a",
     "semantic_hash": ""
   },
   "test/map/floorplanRegistry.test.js": {
-    "mtime": 1784431485.3254337,
-    "ast_hash": "0a1e3ecc3aadd51fd0b74adf7948f3c2",
+    "mtime": 1784435156.0898209,
+    "ast_hash": "47730059a1a834b6c0694216e8ae9e7e",
     "semantic_hash": ""
   }
 }

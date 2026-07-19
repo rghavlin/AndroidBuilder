@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   rotateFloorplanCW, rotateFloorplan, orientFloorplan,
-  FLOORPLAN_FOOTPRINTS, FLOORPLANS, pickFloorplan,
+  FLOORPLAN_FOOTPRINTS, FLOORPLANS, pickFloorplan, validateFloorplan,
 } from '../../client/src/game/map/FloorplanRegistry.js';
 import { gameRandom } from '../../client/src/game/utils/SeededRandom.js';
 import { MapBuilder } from '../../client/src/game/map/MapBuilder.js';
@@ -93,6 +93,45 @@ describe('FloorplanRegistry authored plans', () => {
     }
   });
 
+  it('every authored floorplan is topologically valid (no sealed rooms)', () => {
+    for (const p of FLOORPLANS) {
+      const v = validateFloorplan(p);
+      expect(v.ok, `${p.id}: ${v.errors.join('; ')}`).toBe(true);
+    }
+  });
+
+  it('closet doors open into a bedroom, never into a bathroom', () => {
+    for (const p of FLOORPLANS) {
+      const at = (x, y) => (p.grid[y] ? p.grid[y][x] : null);
+      const nbr = (d) => d.edge === 'n' ? { x: d.x, y: d.y - 1 }
+        : d.edge === 's' ? { x: d.x, y: d.y + 1 }
+        : d.edge === 'e' ? { x: d.x + 1, y: d.y } : { x: d.x - 1, y: d.y };
+      for (const d of p.doors) {
+        const a = p.legend[at(d.x, d.y)];
+        const n = nbr(d);
+        const b = p.legend[at(n.x, n.y)];
+        const roles = [a, b];
+        if (roles.includes('closet')) {
+          expect(roles, `${p.id} closet door ${JSON.stringify(d)}`).toContain('bedroom');
+          expect(roles).not.toContain('bathroom');
+        }
+      }
+    }
+  });
+
+  it('validateFloorplan flags a sealed room', () => {
+    const sealed = {
+      id: 'sealed', width: 4, height: 4,
+      grid: ['LLLL', 'LWWL', 'LWWL', 'LLLL'], // W bathroom fully enclosed, no door
+      legend: { L: 'living', W: 'bathroom' },
+      doors: [],
+      furniture: [],
+    };
+    const v = validateFloorplan(sealed);
+    expect(v.ok).toBe(false);
+    expect(v.errors.some(e => /unreachable/.test(e))).toBe(true);
+  });
+
   it('orientFloorplan matches expected dims per frontage', () => {
     const p = FLOORPLANS[0];
     expect(orientFloorplan(p, 'south').width).toBe(p.width);
@@ -108,11 +147,14 @@ describe('FloorplanRegistry authored plans', () => {
     mb.drawBuilding(4, 4, 20, 18, 'south', 'residential');
     const b = mb.metadata.buildings.find(x => x.x === 4 && x.y === 4);
     expect(b).toBeDefined();
-    // Adopted a floorplan (shrunk to the plan footprint).
+    // Adopted a floorplan (shrunk to some authored plan footprint that fits).
     expect(b.furniturePlan).toBeDefined();
     expect(b.furniturePlan.length).toBeGreaterThan(0);
-    expect(b.width).toBe(14);
-    expect(b.height).toBe(14);
+    const sizeKey = `${b.width}x${b.height}`;
+    const authoredSizes = new Set(FLOORPLANS.flatMap(p => [`${p.width}x${p.height}`, `${p.height}x${p.width}`]));
+    expect(authoredSizes.has(sizeKey), `stamped size ${sizeKey} matches an authored plan`).toBe(true);
+    expect(b.width).toBeLessThanOrEqual(20);
+    expect(b.height).toBeLessThanOrEqual(18);
 
     // Roles include a dedicated bathroom, and it has a toilet + bathtub baked in.
     const roles = new Set((b.rooms || []).map(r => r.role));
@@ -146,6 +188,17 @@ describe('FloorplanRegistry authored plans', () => {
     // Each authored room's seed tile is reachable.
     for (const r of (b.rooms || [])) {
       expect(seen.has(`${r.seedX},${r.seedY}`), `room ${r.role} reachable`).toBe(true);
+    }
+
+    // No exterior door (entrance/back) opens into a bathroom.
+    const bathroomTiles = new Set();
+    for (const r of (b.rooms || [])) {
+      if (r.role !== 'bathroom') continue;
+      for (let yy = r.minY; yy <= r.maxY; yy++)
+        for (let xx = r.minX; xx <= r.maxX; xx++) bathroomTiles.add(`${xx},${yy}`);
+    }
+    for (const key of [`${b.entranceX},${b.entranceY}`, `${b.backX},${b.backY}`]) {
+      expect(bathroomTiles.has(key), `exterior door at ${key} in a bathroom`).toBe(false);
     }
   });
 

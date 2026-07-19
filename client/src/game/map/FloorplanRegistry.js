@@ -78,6 +78,7 @@ export const FLOORPLAN_FOOTPRINTS = {
   counter: { w: 2, h: 1 },
   bathtub: { w: 1, h: 2 },
   toilet: { w: 1, h: 1 },
+  chair: { w: 1, h: 1 },
 };
 
 // --- Authored floorplans (canonical: front door faces SOUTH) --------------
@@ -86,15 +87,18 @@ const RANCH_2BED_1BATH = {
   id: 'ranch_2bed_1bath',
   width: 14,
   height: 14,
-  //        0123456789012 3
+  // Closets (C, D) are clean 2x2 nooks carved INSIDE the bedrooms, so the
+  // bedroom/bathroom walls stay straight and each closet door opens into its
+  // own bedroom. The bathroom (W) reaches the hall for its (interior) door.
+  //        01234567890123
   grid: [
-    'AAAAAAWWWBBBBB', // y0  (north / back)
-    'AAAAAAWWWBBBBB', // y1
-    'AAAAAAWWWBBBBB', // y2
-    'AAAAAAWWWBBBBB', // y3
-    'AAAAAAWWWBBBBB', // y4
-    'AAAAAAWWWBBBBB', // y5
-    'AAAAAAACCHBBBB', // y6  (closet C, hall extension H)
+    'AAAACCWWDDBBBB', // y0  (north / back)  C=closet in A, D=closet in B
+    'AAAACCWWDDBBBB', // y1
+    'AAAAAAWWBBBBBB', // y2
+    'AAAAAAWWBBBBBB', // y3
+    'AAAAAAWWBBBBBB', // y4
+    'AAAAAAWWBBBBBB', // y5
+    'AAAAAAWWBBBBBB', // y6  (W reaches the hall here)
     'HHHHHHHHHHHHHH', // y7  (hall)
     'HHHHHHHHHHHHHH', // y8
     'LLLLLLLLKKKKKK', // y9
@@ -103,27 +107,29 @@ const RANCH_2BED_1BATH = {
     'LLLLLLLLKKKKKK', // y12
     'LLLLLLLLKKKKKK', // y13 (south / front — entrance opens into L or K)
   ],
-  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', C: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
   doors: [
     { x: 2, y: 7, edge: 'n' },   // bedroom A  <-> hall
     { x: 11, y: 7, edge: 'n' },  // bedroom B  <-> hall
-    { x: 6, y: 7, edge: 'n' },   // closet C   <-> hall
-    { x: 8, y: 6, edge: 'n' },   // bathroom W <-> hall (via H extension)
+    { x: 6, y: 7, edge: 'n' },   // bathroom W <-> hall
+    { x: 4, y: 2, edge: 'n' },   // closet C   <-> bedroom A
+    { x: 8, y: 2, edge: 'n' },   // closet D   <-> bedroom B
     { x: 3, y: 9, edge: 'n' },   // living L   <-> hall
     { x: 10, y: 9, edge: 'n' },  // kitchen K  <-> hall
   ],
   furniture: [
-    // bedroom A (x0..5, y0..6): bed in NW corner, head north
-    { type: 'bed', x: 0, y: 0, rot: 0 },
-    // bedroom B (x9..13, y0..6): bed in NE corner
-    { type: 'bed', x: 12, y: 0, rot: 0 },
-    // bathroom W (x6..8, y0..5): toilet NW corner, bathtub against east wall
+    // bedroom A (x0..5): bed on the north wall, east of its closet
+    { type: 'bed', x: 0, y: 3, rot: 0 },
+    // bedroom B (x8..13): bed in the NE, west of its closet
+    { type: 'bed', x: 12, y: 3, rot: 0 },
+    // bathroom W (x6..7, y0..6): toilet NW corner, bathtub down the east wall
     { type: 'toilet', x: 6, y: 0, rot: 0 },
-    { type: 'bathtub', x: 8, y: 0, rot: 0 },
-    // living L (x0..7, y9..13): couch backing the hall wall, table centred
+    { type: 'bathtub', x: 7, y: 5, rot: 0 },
+    // living L (x0..7, y9..13): couch backing the hall wall, chair on east wall
     { type: 'couch', x: 1, y: 9, rot: 0 },
-    { type: 'table', x: 3, y: 10, rot: 0 },
-    // kitchen K (x8..13, y9..13): counter backing the hall wall
+    { type: 'chair', x: 7, y: 10, rot: 1 },
+    // kitchen K (x8..13, y9..13): counter backing the hall wall, table centred
+    { type: 'table', x: 10, y: 10, rot: 0 },
     { type: 'counter', x: 8, y: 9, rot: 0 },
   ],
 };
@@ -132,13 +138,16 @@ const RANCH_1BED_OPEN = {
   id: 'ranch_1bed_open',
   width: 14,
   height: 14,
+  // Closets (C, D) are clean 2x2 nooks in the NW/NE corners of the bedrooms,
+  // doors opening into their bedrooms. Bathroom (W) reaches the hall.
+  //        01234567890123
   grid: [
-    'AAAAAAAWWWBBBB', // y0  A=bedroom, W=bathroom, B=bedroom
-    'AAAAAAAWWWBBBB',
-    'AAAAAAAWWWBBBB',
-    'AAAAAAAWWWBBBB',
-    'AAAAAAAWWWCBBB', // y4  closet C sits beside the bathroom
-    'AAAAAAAWWWCBBB', // y5
+    'CCAAAAAWWWBBDD', // y0  C=closet in A, D=closet in B
+    'CCAAAAAWWWBBDD', // y1
+    'AAAAAAAWWWBBBB', // y2
+    'AAAAAAAWWWBBBB', // y3
+    'AAAAAAAWWWBBBB', // y4
+    'AAAAAAAWWWBBBB', // y5
     'HHHHHHHHHHHHHH', // y6 hall
     'HHHHHHHHHHHHHH', // y7
     'KKKKKLLLLLLLLL', // y8
@@ -148,27 +157,301 @@ const RANCH_1BED_OPEN = {
     'KKKKKLLLLLLLLL', // y12
     'KKKKKLLLLLLLLL', // y13
   ],
-  legend: { A: 'bedroom', W: 'bathroom', B: 'bedroom', C: 'closet', H: 'hall', K: 'kitchen', L: 'living' },
+  legend: { A: 'bedroom', W: 'bathroom', B: 'bedroom', C: 'closet', D: 'closet', H: 'hall', K: 'kitchen', L: 'living' },
   doors: [
     { x: 3, y: 6, edge: 'n' },   // bedroom A <-> hall
     { x: 11, y: 6, edge: 'n' },  // bedroom B <-> hall
-    { x: 10, y: 6, edge: 'n' },  // closet C   <-> hall
+    { x: 0, y: 2, edge: 'n' },   // closet C   <-> bedroom A
+    { x: 13, y: 2, edge: 'n' },  // closet D   <-> bedroom B
     { x: 8, y: 6, edge: 'n' },   // bathroom W <-> hall
     { x: 2, y: 8, edge: 'n' },   // kitchen K <-> hall
     { x: 9, y: 8, edge: 'n' },   // living L <-> hall
   ],
   furniture: [
-    { type: 'bed', x: 0, y: 0, rot: 0 },       // bedroom A NW corner
-    { type: 'bed', x: 11, y: 0, rot: 0 },      // bedroom B corner
+    { type: 'bed', x: 5, y: 0, rot: 0 },       // bedroom A, north wall east of closet
+    { type: 'bed', x: 10, y: 0, rot: 0 },      // bedroom B, north wall west of closet
     { type: 'toilet', x: 7, y: 0, rot: 0 },    // bathroom
-    { type: 'bathtub', x: 9, y: 0, rot: 0 },
+    { type: 'bathtub', x: 9, y: 4, rot: 0 },
     { type: 'counter', x: 0, y: 8, rot: 0 },   // kitchen counter on hall wall
     { type: 'couch', x: 6, y: 8, rot: 0 },     // living couch on hall wall
     { type: 'table', x: 8, y: 10, rot: 0 },    // living table
   ],
 };
 
-const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN];
+/**
+ * Validate an authored floorplan's topology. Catches the classes of authoring
+ * mistakes that produce broken houses at runtime:
+ *  - a room with no way in (e.g. a sealed bathroom),
+ *  - a door placed somewhere that isn't a wall between two rooms,
+ *  - a room char that isn't one contiguous region.
+ * Reachability is measured from the FRONT (south-edge) rooms, which is where the
+ * building entrance opens. Returns { ok, errors }.
+ */
+export function validateFloorplan(plan) {
+  const errors = [];
+  const { width: W, height: H, grid, legend } = plan;
+  const at = (x, y) => (x >= 0 && x < W && y >= 0 && y < H ? grid[y][x] : null);
+
+  if (grid.length !== H) errors.push(`grid has ${grid.length} rows, expected ${H}`);
+  for (const row of grid) if (row.length !== W) errors.push(`row "${row}" width ${row.length}, expected ${W}`);
+
+  // Contiguity: each distinct char must be a single connected region.
+  const seen = new Set();
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const c = at(x, y);
+      const key = `${x},${y}`;
+      if (seen.has(key)) continue;
+      // flood this char
+      const q = [{ x, y }]; seen.add(key);
+      while (q.length) {
+        const cur = q.pop();
+        for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+          const nx = cur.x + dx, ny = cur.y + dy, nk = `${nx},${ny}`;
+          if (at(nx, ny) === c && !seen.has(nk)) { seen.add(nk); q.push({ x: nx, y: ny }); }
+        }
+      }
+    }
+  }
+  const charCells = new Map();
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const c = at(x, y);
+    if (!legend[c]) errors.push(`char '${c}' at (${x},${y}) missing from legend`);
+    if (!charCells.has(c)) charCells.set(c, []);
+    charCells.get(c).push({ x, y });
+  }
+  // A char is non-contiguous if a fresh flood from its first cell misses any cell.
+  for (const [c, cells] of charCells) {
+    const start = cells[0];
+    const reach = new Set([`${start.x},${start.y}`]);
+    const q = [start];
+    while (q.length) {
+      const cur = q.pop();
+      for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+        const nx = cur.x + dx, ny = cur.y + dy, nk = `${nx},${ny}`;
+        if (at(nx, ny) === c && !reach.has(nk)) { reach.add(nk); q.push({ x: nx, y: ny }); }
+      }
+    }
+    if (reach.size !== cells.length) errors.push(`room '${c}' (${legend[c]}) is not one contiguous region`);
+  }
+
+  // Room adjacency graph from interior doors.
+  const neighborOf = (d) => {
+    if (d.edge === 'n') return { x: d.x, y: d.y - 1 };
+    if (d.edge === 's') return { x: d.x, y: d.y + 1 };
+    if (d.edge === 'e') return { x: d.x + 1, y: d.y };
+    return { x: d.x - 1, y: d.y };
+  };
+  const adj = new Map(); // char -> Set(char)
+  const link = (a, b) => {
+    if (!adj.has(a)) adj.set(a, new Set());
+    if (!adj.has(b)) adj.set(b, new Set());
+    adj.get(a).add(b); adj.get(b).add(a);
+  };
+  for (const d of plan.doors) {
+    const a = at(d.x, d.y);
+    const n = neighborOf(d);
+    const b = at(n.x, n.y);
+    if (a === null || b === null) { errors.push(`door ${JSON.stringify(d)} points off-grid`); continue; }
+    if (a === b) { errors.push(`door ${JSON.stringify(d)} is inside room '${a}', not on a wall`); continue; }
+    link(a, b);
+  }
+
+  // Reachability from front (south-edge) rooms.
+  const frontChars = new Set();
+  for (let x = 0; x < W; x++) frontChars.add(at(x, H - 1));
+  const reached = new Set(frontChars);
+  const stack = [...frontChars];
+  while (stack.length) {
+    const c = stack.pop();
+    for (const nb of (adj.get(c) || [])) if (!reached.has(nb)) { reached.add(nb); stack.push(nb); }
+  }
+  for (const c of charCells.keys()) {
+    if (!reached.has(c)) errors.push(`room '${c}' (${legend[c]}) is unreachable from the entrance`);
+  }
+
+  return { ok: errors.length === 0, errors };
+}
+
+// Compact 1-bedroom for the many small (12x12+) lots. Closet nook in the
+// bedroom, bathroom reaches the hall.
+const COTTAGE_1BED = {
+  id: 'cottage_1bed',
+  width: 12,
+  height: 12,
+  //        012345678901
+  grid: [
+    'CCAAAAAAAWWW', // y0  C=closet in A, W=bathroom
+    'CCAAAAAAAWWW', // y1
+    'AAAAAAAAAWWW', // y2
+    'AAAAAAAAAWWW', // y3
+    'AAAAAAAAAWWW', // y4
+    'HHHHHHHHHHHH', // y5  hall
+    'HHHHHHHHHHHH', // y6
+    'LLLLLLLKKKKK', // y7  L=living, K=kitchen
+    'LLLLLLLKKKKK', // y8
+    'LLLLLLLKKKKK', // y9
+    'LLLLLLLKKKKK', // y10
+    'LLLLLLLKKKKK', // y11 (front — entrance opens into L or K)
+  ],
+  legend: { A: 'bedroom', C: 'closet', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 4, y: 5, edge: 'n' },   // bedroom A <-> hall
+    { x: 10, y: 5, edge: 'n' },  // bathroom W <-> hall
+    { x: 0, y: 2, edge: 'n' },   // closet C <-> bedroom A
+    { x: 3, y: 7, edge: 'n' },   // living L <-> hall
+    { x: 9, y: 7, edge: 'n' },   // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 7, y: 0, rot: 0 },     // bedroom A, north wall by the bath
+    { type: 'toilet', x: 9, y: 0, rot: 0 },  // bathroom
+    { type: 'bathtub', x: 11, y: 3, rot: 0 },
+    { type: 'couch', x: 1, y: 7, rot: 0 },   // living couch on hall wall
+    { type: 'counter', x: 7, y: 7, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 8, y: 9, rot: 0 },   // kitchen table
+  ],
+};
+
+// Second 12x12 variant for variety: full-width living room at the front, with
+// the kitchen, bathroom and bedroom (+ closet nook) ranged across the back.
+const COTTAGE_OPEN_LIVING = {
+  id: 'cottage_open_living',
+  width: 12,
+  height: 12,
+  //        012345678901
+  grid: [
+    'KKKKKWWWAAAA', // y0  K=kitchen, W=bathroom, A=bedroom
+    'KKKKKWWWAAAA', // y1
+    'KKKKKWWWAAAA', // y2
+    'KKKKKWWWCCAA', // y3  C=closet nook in bedroom A
+    'KKKKKWWWCCAA', // y4
+    'HHHHHHHHHHHH', // y5  hall
+    'HHHHHHHHHHHH', // y6
+    'LLLLLLLLLLLL', // y7  living (full width, front)
+    'LLLLLLLLLLLL', // y8
+    'LLLLLLLLLLLL', // y9
+    'LLLLLLLLLLLL', // y10
+    'LLLLLLLLLLLL', // y11 (front — entrance opens into L)
+  ],
+  legend: { K: 'kitchen', W: 'bathroom', A: 'bedroom', C: 'closet', H: 'hall', L: 'living' },
+  doors: [
+    { x: 2, y: 5, edge: 'n' },   // kitchen K <-> hall
+    { x: 6, y: 5, edge: 'n' },   // bathroom W <-> hall
+    { x: 10, y: 5, edge: 'n' },  // bedroom A <-> hall
+    { x: 8, y: 3, edge: 'n' },   // closet C <-> bedroom A
+    { x: 6, y: 7, edge: 'n' },   // living L <-> hall
+  ],
+  furniture: [
+    { type: 'counter', x: 0, y: 0, rot: 0 },  // kitchen counter on north wall
+    { type: 'table', x: 2, y: 2, rot: 0 },    // kitchen table
+    { type: 'toilet', x: 5, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 7, y: 0, rot: 0 },
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom A, north wall
+    { type: 'couch', x: 1, y: 7, rot: 0 },    // living couch on hall wall
+    { type: 'table', x: 5, y: 9, rot: 0 },    // living table
+    { type: 'chair', x: 9, y: 7, rot: 0 },    // living chair
+  ],
+};
+
+// Wide 2-bed bungalow for the wide-but-short lots (width 16-22, height 12-13).
+// Two bedrooms with closet nooks flank a central bathroom; living + kitchen
+// span the front.
+const BUNGALOW_2BED_WIDE = {
+  id: 'bungalow_2bed_wide',
+  width: 18,
+  height: 12,
+  //        012345678901234567
+  grid: [
+    'CCAAAAAWWWBBBBBBDD', // y0  C/D=closets, A/B=bedrooms, W=bathroom
+    'CCAAAAAWWWBBBBBBDD', // y1
+    'AAAAAAAWWWBBBBBBBB', // y2
+    'AAAAAAAWWWBBBBBBBB', // y3
+    'AAAAAAAWWWBBBBBBBB', // y4
+    'HHHHHHHHHHHHHHHHHH', // y5  hall
+    'HHHHHHHHHHHHHHHHHH', // y6
+    'LLLLLLLLLLKKKKKKKK', // y7  L=living, K=kitchen
+    'LLLLLLLLLLKKKKKKKK', // y8
+    'LLLLLLLLLLKKKKKKKK', // y9
+    'LLLLLLLLLLKKKKKKKK', // y10
+    'LLLLLLLLLLKKKKKKKK', // y11 (front — entrance opens into L or K)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 3, y: 5, edge: 'n' },   // bedroom A <-> hall
+    { x: 13, y: 5, edge: 'n' },  // bedroom B <-> hall
+    { x: 8, y: 5, edge: 'n' },   // bathroom W <-> hall
+    { x: 0, y: 2, edge: 'n' },   // closet C <-> bedroom A
+    { x: 17, y: 2, edge: 'n' },  // closet D <-> bedroom B
+    { x: 4, y: 7, edge: 'n' },   // living L <-> hall
+    { x: 13, y: 7, edge: 'n' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 5, y: 0, rot: 0 },      // bedroom A, north wall by the bath
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B, north wall by the bath
+    { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 9, y: 3, rot: 0 },
+    { type: 'couch', x: 1, y: 7, rot: 0 },    // living couch on hall wall
+    { type: 'table', x: 5, y: 9, rot: 0 },    // living table
+    { type: 'chair', x: 8, y: 7, rot: 0 },    // living chair
+    { type: 'counter', x: 10, y: 7, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 13, y: 9, rot: 0 },   // kitchen table
+  ],
+};
+
+// Taller 2-bed for the ~18% of lots that are 15-16 high. Same clean back-half
+// pattern as RANCH_2BED_1BATH, stretched vertically.
+const RANCH_2BED_1BATH_TALL = {
+  id: 'ranch_2bed_1bath_tall',
+  width: 14,
+  height: 16,
+  //        01234567890123
+  grid: [
+    'AAAACCWWDDBBBB', // y0
+    'AAAACCWWDDBBBB', // y1
+    'AAAAAAWWBBBBBB', // y2
+    'AAAAAAWWBBBBBB', // y3
+    'AAAAAAWWBBBBBB', // y4
+    'AAAAAAWWBBBBBB', // y5
+    'AAAAAAWWBBBBBB', // y6
+    'AAAAAAWWBBBBBB', // y7
+    'HHHHHHHHHHHHHH', // y8  hall
+    'HHHHHHHHHHHHHH', // y9
+    'LLLLLLLLKKKKKK', // y10
+    'LLLLLLLLKKKKKK', // y11
+    'LLLLLLLLKKKKKK', // y12
+    'LLLLLLLLKKKKKK', // y13
+    'LLLLLLLLKKKKKK', // y14
+    'LLLLLLLLKKKKKK', // y15
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 8, edge: 'n' },   // bedroom A <-> hall
+    { x: 11, y: 8, edge: 'n' },  // bedroom B <-> hall
+    { x: 6, y: 8, edge: 'n' },   // bathroom W <-> hall
+    { x: 4, y: 2, edge: 'n' },   // closet C <-> bedroom A
+    { x: 8, y: 2, edge: 'n' },   // closet D <-> bedroom B
+    { x: 3, y: 10, edge: 'n' },  // living L <-> hall
+    { x: 10, y: 10, edge: 'n' }, // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 3, rot: 0 },
+    { type: 'bed', x: 12, y: 3, rot: 0 },
+    { type: 'toilet', x: 6, y: 0, rot: 0 },
+    { type: 'bathtub', x: 7, y: 6, rot: 0 },
+    { type: 'couch', x: 1, y: 10, rot: 0 },
+    { type: 'chair', x: 7, y: 11, rot: 1 },
+    { type: 'table', x: 10, y: 11, rot: 0 },
+    { type: 'counter', x: 8, y: 10, rot: 0 },
+  ],
+};
+
+const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE];
+
+// Fail fast in dev if a floorplan is authored broken (sealed room, etc.).
+for (const p of FLOORPLANS) {
+  const v = validateFloorplan(p);
+  if (!v.ok) console.error(`[FloorplanRegistry] INVALID floorplan '${p.id}':\n  - ${v.errors.join('\n  - ')}`);
+}
 
 // Index by "WxH" (canonical size) for snap-to-nearest lookup.
 const BY_SIZE = new Map();
@@ -183,16 +466,19 @@ const SIZES = [...new Set(FLOORPLANS.map(p => `${p.width}x${p.height}`))]
   .sort((a, b) => (b.w * b.h) - (a.w * a.h));
 
 /**
- * Pick an authored floorplan that fits within a lot of (maxW x maxH), snapping
- * DOWN to the largest authored footprint that fits either as-authored or rotated
- * 90°. Returns { plan, needsSwap } or null when nothing fits. Seed-stable.
- * `needsSwap` is informational; orientation is applied later via frontage.
+ * Pick an authored floorplan that fits a lot of (maxW x maxH) once oriented to
+ * `frontage`. The plan is rotated by frontage at stamp time (even turns keep the
+ * canonical dims, odd turns swap them), so the fit test must use those ORIENTED
+ * dims — otherwise a portrait plan could be stamped landscape and overflow the
+ * lot. Snaps DOWN to the largest-area authored plan that fits. Seed-stable.
+ * Returns { plan } or null when nothing fits.
  */
-export function pickFloorplan(maxW, maxH) {
+export function pickFloorplan(maxW, maxH, frontage = 'south') {
+  const swap = ((FRONTAGE_TURNS[frontage] ?? 0) % 2) === 1;
   for (const s of SIZES) {
-    const fitsDirect = s.w <= maxW && s.h <= maxH;
-    const fitsRot = s.h <= maxW && s.w <= maxH;
-    if (!fitsDirect && !fitsRot) continue;
+    const ow = swap ? s.h : s.w;
+    const oh = swap ? s.w : s.h;
+    if (ow > maxW || oh > maxH) continue;
     const options = BY_SIZE.get(s.key);
     const plan = options[gameRandom.nextInt(0, options.length - 1)];
     return { plan };

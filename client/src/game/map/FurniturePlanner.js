@@ -25,6 +25,7 @@ export const FURNITURE_FOOTPRINTS = {
   counter: { w: 2, h: 1 },
   bathtub: { w: 1, h: 2 },
   toilet: { w: 1, h: 1 },
+  chair: { w: 1, h: 1 },
 };
 
 // Per-role furnishing plan. Each entry names a piece, the placement strategy
@@ -79,6 +80,7 @@ function roomCanHold(room, type) {
     case 'bathtub':
       return maxSpan >= 2;
     case 'toilet':
+    case 'chair':
       return true;
     default:
       return true;

@@ -129,7 +129,7 @@ export class MapBuilder {
     // Falls back to procedural subdivision when nothing fits (see below).
     let orientedPlan = null;
     if (type === 'residential' || type === 'starting_home') {
-      const picked = pickFloorplan(w, h);
+      const picked = pickFloorplan(w, h, frontage);
       if (picked) {
         orientedPlan = orientFloorplan(picked.plan, frontage);
         w = orientedPlan.width;
@@ -154,6 +154,13 @@ export class MapBuilder {
     else if (frontage === 'south') { entranceX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); entranceY = y + h - 1; entranceEdge = 's'; }
     else { entranceX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); entranceY = y; entranceEdge = 'n'; }
 
+    // For authored floorplans, keep exterior doors off bathrooms/closets (a
+    // bathroom must never open to the outside; a closet is a poor front door).
+    if (orientedPlan) {
+      const nudged = this._doorOffPrivateRoom(orientedPlan, x, y, entranceEdge, entranceX, entranceY);
+      entranceX = nudged.x; entranceY = nudged.y;
+    }
+
     this.setTerrain(entranceX, entranceY, 'floor');
     const entranceDoor = {
       x: entranceX,
@@ -170,6 +177,11 @@ export class MapBuilder {
     else if (frontage === 'west') { backX = x + w - 1; backY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); backEdge = 'e'; }
     else if (frontage === 'south') { backX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); backY = y; backEdge = 'n'; }
     else { backX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); backY = y + h - 1; backEdge = 's'; }
+
+    if (orientedPlan) {
+      const nudged = this._doorOffPrivateRoom(orientedPlan, x, y, backEdge, backX, backY);
+      backX = nudged.x; backY = nudged.y;
+    }
 
     this.setTerrain(backX, backY, 'floor');
     const backDoor = {
@@ -249,6 +261,33 @@ export class MapBuilder {
         return;
       }
     }
+  }
+
+  /**
+   * Slide an exterior door along its edge to the nearest tile whose floorplan
+   * role isn't 'bathroom' or 'closet'. Deterministic (no RNG) so map seeds stay
+   * stable. (px,py) is the door tile in map coords; returns adjusted map coords.
+   */
+  _doorOffPrivateRoom(plan, bx, by, edge, px, py) {
+    const roleAt = (lx, ly) =>
+      (plan.grid[ly] && plan.grid[ly][lx] ? plan.legend[plan.grid[ly][lx]] : undefined);
+    const isPrivate = (r) => r === 'bathroom' || r === 'closet';
+    const horizontal = (edge === 'n' || edge === 's');
+    const fixed = horizontal ? (py - by) : (px - bx); // the constant local coord
+    const start = horizontal ? (px - bx) : (py - by);  // local coord we slide
+    const len = horizontal ? plan.width : plan.height;
+    const roleFor = (v) => (horizontal ? roleAt(v, fixed) : roleAt(fixed, v));
+
+    if (!isPrivate(roleFor(start))) return { x: px, y: py };
+    for (let d = 1; d < len; d++) {
+      for (const v of [start - d, start + d]) {
+        if (v < 1 || v >= len - 1) continue; // keep off the very corners
+        if (!isPrivate(roleFor(v))) {
+          return horizontal ? { x: bx + v, y: py } : { x: px, y: by + v };
+        }
+      }
+    }
+    return { x: px, y: py }; // nothing better; leave as-is
   }
 
   /**

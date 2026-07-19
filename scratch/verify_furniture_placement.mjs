@@ -16,6 +16,7 @@ let wallPieceTotal = 0, wallPieceFlush = 0; // couch/bathtub/counter flush to a 
 let clusterViolations = 0;
 let furnitureTotal = 0, mapsWithFurniture = 0;
 let buildingsFloorplan = 0, buildingsWithBathroom = 0;
+let bathTotal = 0, bathReachable = 0, bathUnreachable = 0, bathExteriorDoor = 0;
 
 const gen = new TemplateMapGenerator();
 
@@ -37,6 +38,22 @@ for (let i = 0; i < 40; i++) {
     for (const r of (b.rooms || [])) {
       roomsSeen++;
       roleCounts[r.role] = (roleCounts[r.role] || 0) + 1;
+    }
+  }
+
+  // Bathroom integrity on stamped floorplans: reachable + no exterior door.
+  for (const b of residential.filter(bb => bb.furniturePlan)) {
+    const hasDoor = (px, py) => { const t = gameMap.getTile(px, py); return !!(t && t.contents && t.contents.some(e => e.type === 'door')); };
+    const inB = (px, py) => px >= b.x && px < b.x + b.width && py >= b.y && py < b.y + b.height;
+    const start = { x: b.entranceX, y: b.entranceY };
+    const seenT = new Set([`${start.x},${start.y}`]); const q = [start];
+    const dd = [[0,-1,'n','s'],[1,0,'e','w'],[0,1,'s','n'],[-1,0,'w','e']];
+    while (q.length) { const c = q.pop(); for (const [dx,dy,e,o] of dd) { const nx=c.x+dx, ny=c.y+dy; if(!inB(nx,ny))continue; const k=`${nx},${ny}`; if(seenT.has(k))continue; const t=gameMap.getTile(nx,ny); if(!t||t.terrain!=='floor')continue; const walled=grid.edgeWallAt(c.x,c.y,e)||grid.edgeWallAt(nx,ny,o); const doored=hasDoor(c.x,c.y)||hasDoor(nx,ny); if(walled&&!doored)continue; seenT.add(k); q.push({x:nx,y:ny}); } }
+    for (const r of (b.rooms||[]).filter(r=>r.role==='bathroom')) {
+      bathTotal++;
+      if (seenT.has(`${r.seedX},${r.seedY}`)) bathReachable++; else bathUnreachable++;
+      const ext = new Set([`${b.entranceX},${b.entranceY}`,`${b.backX},${b.backY}`]);
+      for (let yy=r.minY; yy<=r.maxY; yy++) for (let xx=r.minX; xx<=r.maxX; xx++) if (ext.has(`${xx},${yy}`)) bathExteriorDoor++;
     }
   }
 
@@ -119,6 +136,7 @@ log('=== Room role distribution (persisted building.rooms) ===');
 log(`buildings=${buildingsSeen} rooms=${roomsSeen}`);
 log(`  using authored floorplan: ${buildingsFloorplan}/${buildingsSeen} (${(100*buildingsFloorplan/buildingsSeen).toFixed(1)}%)`);
 log(`  with a bathroom:          ${buildingsWithBathroom}/${buildingsSeen} (${(100*buildingsWithBathroom/buildingsSeen).toFixed(1)}%)`);
+log(`  floorplan bathrooms: total=${bathTotal} reachable=${bathReachable} UNREACHABLE=${bathUnreachable} exteriorDoor=${bathExteriorDoor} (want unreachable=0, exteriorDoor=0)`);
 for (const [role, n] of Object.entries(roleCounts).sort((a, b) => b[1] - a[1])) {
   log(`  ${role.padEnd(9)} ${n}  (${(100 * n / roomsSeen).toFixed(1)}%)`);
 }
