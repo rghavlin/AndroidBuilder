@@ -248,6 +248,22 @@ function tryPlaceStrategic(gameMap, grid, room, occupied, type, strategy) {
 }
 
 /**
+ * Validate a baked floorplan furniture piece: its whole footprint sits on
+ * building floor and never straddles an internal edge wall. Guards against an
+ * authoring slip rendering off-map or across a wall.
+ */
+function furniturePieceOnFloor(grid, p) {
+  for (let y = p.y; y < p.y + p.h; y++) {
+    for (let x = p.x; x < p.x + p.w; x++) {
+      if (grid.terrainAt(x, y) !== 'floor') return false;
+      if (x + 1 < p.x + p.w && (grid.edgeWallAt(x, y, 'e') || grid.edgeWallAt(x + 1, y, 'w'))) return false;
+      if (y + 1 < p.y + p.h && (grid.edgeWallAt(x, y, 's') || grid.edgeWallAt(x, y + 1, 'n'))) return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Resolve each room's role. Uses the authoritative roles MapBuilder persisted on
  * building.rooms when present, otherwise classifies here for graceful fallback.
  */
@@ -283,6 +299,15 @@ export function planFurniture(gameMap) {
   );
 
   for (const building of buildings) {
+    // Authored floorplan: furniture is baked in — stamp it verbatim (validated
+    // to sit on real building floor) instead of running heuristic placement.
+    if (building.furniturePlan && building.furniturePlan.length) {
+      for (const p of building.furniturePlan) {
+        if (furniturePieceOnFloor(grid, p)) gameMap.furniture.push({ ...p });
+      }
+      continue;
+    }
+
     const rooms = findRooms(grid, building);
     if (rooms.length === 0) continue;
     resolveRoles(building, rooms);

@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784425079.9979012,
-    "ast_hash": "bc93bec00031b738db8821e711196af1",
+    "mtime": 1784431428.1233096,
+    "ast_hash": "84fab33d47eff9188fe0052ecb4ee1b6",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784424600.2082415,
-    "ast_hash": "18bad5024933a7dcf32a40687b14b6a9",
+    "mtime": 1784431201.9982615,
+    "ast_hash": "61935145fcf129e31f9bdc34198f2121",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784025306.9973493,
-    "ast_hash": "f3c38cc7b1e742e4588128391dc93c3a",
+    "mtime": 1784425622.9479651,
+    "ast_hash": "a7b9dd95646c7739737d16869a8903d8",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784424762.5266612,
-    "ast_hash": "2a5a5d6c967d93cc9ea2fa0a0e505e18",
+    "mtime": 1784429466.3570874,
+    "ast_hash": "85b18f9a6b35697c49c5cd83c64c17d2",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -2945,8 +2945,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FurniturePlanner.js": {
-    "mtime": 1784425187.4134195,
-    "ast_hash": "1024453f170da7ae7c42efb55f447a44",
+    "mtime": 1784431222.2983332,
+    "ast_hash": "ec33d17eb179ac46aeb7619166804cee",
     "semantic_hash": ""
   },
   "test/map/furniturePlanner.test.js": {
@@ -2955,13 +2955,23 @@
     "semantic_hash": ""
   },
   "client/src/game/map/RoomGraph.js": {
-    "mtime": 1784424589.0781603,
-    "ast_hash": "444aeb0e3191be7ec9df5e5e2ebd3e49",
+    "mtime": 1784430080.5099611,
+    "ast_hash": "943df31f12cb0cf1bf66b459945630cc",
     "semantic_hash": ""
   },
   "scratch/verify_furniture_placement.mjs": {
-    "mtime": 1784424937.4327278,
-    "ast_hash": "d1d33f84776be20abd12f41ec6d57f1f",
+    "mtime": 1784431254.4971733,
+    "ast_hash": "2a4d91b8b4587c8cb3cc32b9548a2cc3",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/FloorplanRegistry.js": {
+    "mtime": 1784431038.4949584,
+    "ast_hash": "a76b5bc6b66d39211bb1c848dc5f19a1",
+    "semantic_hash": ""
+  },
+  "test/map/floorplanRegistry.test.js": {
+    "mtime": 1784431485.3254337,
+    "ast_hash": "0a1e3ecc3aadd51fd0b74adf7948f3c2",
     "semantic_hash": ""
   }
 }

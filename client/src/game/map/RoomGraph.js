@@ -14,6 +14,11 @@
  * mutates the map; callers decide what to persist.
  */
 
+// Rooms at or below this many tiles can be tagged as a bathroom (on the
+// full-footprint area scale). Provisional until layout generation carves
+// dedicated small bathrooms.
+export const BATHROOM_MAX_AREA = 16;
+
 export const DIRS = [
   { dx: 0, dy: -1, edge: 'n', opposite: 's' },
   { dx: 1, dy: 0, edge: 'e', opposite: 'w' },
@@ -72,13 +77,20 @@ export function edgeBlocked(grid, x, y, dir) {
   return grid.edgeWallAt(x, y, dir.edge) || grid.edgeWallAt(x + dir.dx, y + dir.dy, dir.opposite);
 }
 
-/** Interior bounding box of a building (excludes the perimeter wall ring). */
+/**
+ * Bounding box of a building's floor area. Residential buildings (drawBuilding)
+ * floor the ENTIRE footprint and hang the exterior walls as edge walls on that
+ * outer tile ring, so the ring is real, usable floor — rooms must include it or
+ * furniture ends up one tile shy of the exterior wall. We span the full
+ * footprint and let findRooms' `terrain === 'floor'` test drop any genuinely
+ * non-floor perimeter (e.g. a solid wall ring or a hand-built test map).
+ */
 export function interiorBounds(building) {
   return {
-    minX: building.x + 1,
-    maxX: building.x + building.width - 2,
-    minY: building.y + 1,
-    maxY: building.y + building.height - 2,
+    minX: building.x,
+    maxX: building.x + building.width - 1,
+    minY: building.y,
+    maxY: building.y + building.height - 1,
   };
 }
 
@@ -189,12 +201,18 @@ export function assignRoles(building, rooms) {
 
   const rest = proper.filter(r => r !== living);
 
-  // Bathroom: smallest enclosed room of at most 9 tiles.
+  // Bathroom: the smallest enclosed room, but only when doing so still leaves the
+  // home a bedroom (rest.length >= 2) and the room is genuinely small on the
+  // corrected area scale. NOTE: current layouts rarely produce small rooms, so
+  // bathrooms stay rare until layout generation carves dedicated ones — see the
+  // planned "more bathrooms" work.
   let bathroom = null;
-  const small = rest.filter(r => r.area <= 9);
-  if (small.length > 0) {
-    bathroom = small.reduce((a, b) => (b.area < a.area ? b : a));
-    bathroom.role = 'bathroom';
+  if (rest.length >= 2) {
+    const small = rest.filter(r => r.area <= BATHROOM_MAX_AREA);
+    if (small.length > 0) {
+      bathroom = small.reduce((a, b) => (b.area < a.area ? b : a));
+      bathroom.role = 'bathroom';
+    }
   }
 
   const remaining = rest.filter(r => r !== bathroom);

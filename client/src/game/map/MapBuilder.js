@@ -1,6 +1,7 @@
 import { isSpecialBuilding } from './BuildingTypes.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 import { makeLayoutGrid, findRooms, assignRoles, toSlimRoom } from './RoomGraph.js';
+import { pickFloorplan, orientFloorplan, FLOORPLAN_FOOTPRINTS } from './FloorplanRegistry.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -123,6 +124,19 @@ export class MapBuilder {
    * Place a building footprint
    */
   drawBuilding(x, y, w, h, frontage, type = 'residential') {
+    // Standardized floorplans: for residential lots, try to snap the footprint
+    // down to an authored floorplan (oriented to the frontage) and stamp it.
+    // Falls back to procedural subdivision when nothing fits (see below).
+    let orientedPlan = null;
+    if (type === 'residential' || type === 'starting_home') {
+      const picked = pickFloorplan(w, h);
+      if (picked) {
+        orientedPlan = orientFloorplan(picked.plan, frontage);
+        w = orientedPlan.width;
+        h = orientedPlan.height;
+      }
+    }
+
     for (let ty = y; ty < y + h; ty++) {
       for (let tx = x; tx < x + w; tx++) {
         this.setTerrain(tx, ty, 'floor');
@@ -169,9 +183,82 @@ export class MapBuilder {
     
     // Subdivide and add windows (if residential or starting_home)
     if (type === 'residential' || type === 'starting_home') {
-      this.subdivideBuilding(x, y, w, h);
+      if (orientedPlan) {
+        this.stampFloorplan(x, y, orientedPlan);
+      } else {
+        this.subdivideBuilding(x, y, w, h);
+        this.designateRooms(x, y);
+      }
       this.placeWindows(x, y, w, h);
-      this.designateRooms(x, y);
+    }
+  }
+
+  /**
+   * Stamp an authored, frontage-oriented floorplan at building origin (x,y):
+   * interior partition walls (between differing room chars), interior doors,
+   * authoritative room roles (building.rooms), and baked furniture
+   * (building.furniturePlan, consumed later by FurniturePlanner). The building
+   * shell (perimeter walls, entrance, back door) is already drawn.
+   */
+  stampFloorplan(x, y, plan) {
+    const charAt = (px, py) => (plan.grid[py] ? plan.grid[py][px] : undefined);
+
+    // Interior partition walls: a wall sits between two adjacent cells whose
+    // room char differs. Set both sides so rendering/queries agree.
+    for (let py = 0; py < plan.height; py++) {
+      for (let px = 0; px < plan.width; px++) {
+        const c = charAt(px, py);
+        if (px + 1 < plan.width && charAt(px + 1, py) !== c) {
+          this.setEdgeWall(x + px, y + py, 'e', true);
+          this.setEdgeWall(x + px + 1, y + py, 'w', true);
+        }
+        if (py + 1 < plan.height && charAt(px, py + 1) !== c) {
+          this.setEdgeWall(x + px, y + py, 's', true);
+          this.setEdgeWall(x + px, y + py + 1, 'n', true);
+        }
+      }
+    }
+
+    // Interior doors (carve the partition edge and record door metadata).
+    for (const d of plan.doors) {
+      this.metadata.doors.push({ x: x + d.x, y: y + d.y, isLocked: false, isOpen: false, edge: d.edge });
+    }
+
+    // Room roles: group cells by char (each char = one room instance).
+    const groups = new Map();
+    for (let py = 0; py < plan.height; py++) {
+      for (let px = 0; px < plan.width; px++) {
+        const c = charAt(px, py);
+        if (!groups.has(c)) groups.set(c, []);
+        groups.get(c).push({ x: x + px, y: y + py });
+      }
+    }
+    const rooms = [];
+    for (const [c, cells] of groups) {
+      const role = (plan.legend && plan.legend[c]) || 'bedroom';
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, sx = 0, sy = 0;
+      for (const cell of cells) {
+        minX = Math.min(minX, cell.x); maxX = Math.max(maxX, cell.x);
+        minY = Math.min(minY, cell.y); maxY = Math.max(maxY, cell.y);
+        sx += cell.x; sy += cell.y;
+      }
+      const cx = sx / cells.length, cy = sy / cells.length;
+      let seed = cells[0], bestD = Infinity;
+      for (const cell of cells) {
+        const d = (cell.x - cx) ** 2 + (cell.y - cy) ** 2;
+        if (d < bestD) { bestD = d; seed = cell; }
+      }
+      rooms.push({ role, minX, minY, maxX, maxY, area: cells.length, seedX: seed.x, seedY: seed.y });
+    }
+    const building = this.metadata.buildings.find(b => b.x === x && b.y === y);
+    if (building) {
+      building.rooms = rooms;
+      building.furniturePlan = plan.furniture.map(f => {
+        const base = FLOORPLAN_FOOTPRINTS[f.type] || { w: 1, h: 1 };
+        const fw = (f.rot % 2) ? base.h : base.w;
+        const fh = (f.rot % 2) ? base.w : base.h;
+        return { type: f.type, x: x + f.x, y: y + f.y, w: fw, h: fh, rot: f.rot };
+      });
     }
   }
 

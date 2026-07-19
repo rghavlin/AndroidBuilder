@@ -12,8 +12,10 @@ let buildingsSeen = 0, roomsSeen = 0;
 let overlaps = 0, straddles = 0, outOfRoom = 0;
 let deskTotal = 0, deskCorner = 0;
 let tableTotal = 0, tableFloating = 0;
+let wallPieceTotal = 0, wallPieceFlush = 0; // couch/bathtub/counter flush to a REAL edge wall
 let clusterViolations = 0;
 let furnitureTotal = 0, mapsWithFurniture = 0;
+let buildingsFloorplan = 0, buildingsWithBathroom = 0;
 
 const gen = new TemplateMapGenerator();
 
@@ -30,6 +32,8 @@ for (let i = 0; i < 40; i++) {
   // Role distribution from persisted building.rooms
   for (const b of residential) {
     buildingsSeen++;
+    if (b.furniturePlan) buildingsFloorplan++;
+    if ((b.rooms || []).some(r => r.role === 'bathroom')) buildingsWithBathroom++;
     for (const r of (b.rooms || [])) {
       roomsSeen++;
       roleCounts[r.role] = (roleCounts[r.role] || 0) + 1;
@@ -78,6 +82,17 @@ for (let i = 0; i < 40; i++) {
       };
       if ((c.n && c.e) || (c.e && c.s) || (c.s && c.w) || (c.w && c.n)) deskCorner++;
     }
+    // Wall/corner pieces should back onto a REAL edge wall on the map.
+    if (p.type === 'couch' || p.type === 'bathtub' || p.type === 'counter') {
+      wallPieceTotal++;
+      const sideHasWall = {
+        n: Array.from({ length: p.w }, (_, k) => grid.edgeWallAt(p.x + k, p.y, 'n')).some(Boolean),
+        s: Array.from({ length: p.w }, (_, k) => grid.edgeWallAt(p.x + k, p.y + p.h - 1, 's')).some(Boolean),
+        w: Array.from({ length: p.h }, (_, k) => grid.edgeWallAt(p.x, p.y + k, 'w')).some(Boolean),
+        e: Array.from({ length: p.h }, (_, k) => grid.edgeWallAt(p.x + p.w - 1, p.y + k, 'e')).some(Boolean),
+      };
+      if (sideHasWall.n || sideHasWall.s || sideHasWall.w || sideHasWall.e) wallPieceFlush++;
+    }
     if (p.type === 'table') {
       tableTotal++;
       let touches = 0;
@@ -102,6 +117,8 @@ for (let i = 0; i < 40; i++) {
 
 log('=== Room role distribution (persisted building.rooms) ===');
 log(`buildings=${buildingsSeen} rooms=${roomsSeen}`);
+log(`  using authored floorplan: ${buildingsFloorplan}/${buildingsSeen} (${(100*buildingsFloorplan/buildingsSeen).toFixed(1)}%)`);
+log(`  with a bathroom:          ${buildingsWithBathroom}/${buildingsSeen} (${(100*buildingsWithBathroom/buildingsSeen).toFixed(1)}%)`);
 for (const [role, n] of Object.entries(roleCounts).sort((a, b) => b[1] - a[1])) {
   log(`  ${role.padEnd(9)} ${n}  (${(100 * n / roomsSeen).toFixed(1)}%)`);
 }
@@ -110,6 +127,7 @@ log(`maps with furniture: ${mapsWithFurniture}/40, total pieces: ${furnitureTota
 log(`overlaps: ${overlaps}  (want 0)`);
 log(`wall-straddles: ${straddles}  (want 0)`);
 log(`pieces outside any room: ${outOfRoom}  (want 0)`);
+log(`wall pieces flush to a REAL edge wall: ${wallPieceFlush}/${wallPieceTotal}  (want all)`);
 log(`corner desks/counters: ${deskCorner}/${deskTotal}  (want high)`);
 log(`floating tables (no wall contact): ${tableFloating}/${tableTotal}  (want most)`);
 log(`furniture pairs touching (cluster): ${clusterViolations}  (lower better; some ok in tight rooms)`);
