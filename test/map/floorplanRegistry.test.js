@@ -200,6 +200,22 @@ describe('FloorplanRegistry authored plans', () => {
     for (const key of [`${b.entranceX},${b.entranceY}`, `${b.backX},${b.backY}`]) {
       expect(bathroomTiles.has(key), `exterior door at ${key} in a bathroom`).toBe(false);
     }
+
+    // Interior doorways must not leave a wall on the NEIGHBOUR side, or the map
+    // renders a wall remnant in the opening once the door opens. (The door's own
+    // edge stays set — the door entity suppresses it — so rooms still separate.)
+    const OPP = { n: 's', s: 'n', e: 'w', w: 'e' };
+    const NB = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
+    const ext = new Set([`${b.entranceX},${b.entranceY}`, `${b.backX},${b.backY}`]);
+    const interiorDoors = mb.metadata.doors.filter(d =>
+      d.x > b.x && d.x < b.x + b.width - 1 && d.y > b.y && d.y < b.y + b.height - 1 &&
+      !ext.has(`${d.x},${d.y}`));
+    expect(interiorDoors.length).toBeGreaterThan(0);
+    for (const d of interiorDoors) {
+      const [ndx, ndy] = NB[d.edge];
+      expect(wallAt(d.x + ndx, d.y + ndy, OPP[d.edge]),
+        `neighbour wall cleared at door ${JSON.stringify(d)}`).toBe(false);
+    }
   });
 
   it('pickFloorplan snaps down and is seed-stable', () => {

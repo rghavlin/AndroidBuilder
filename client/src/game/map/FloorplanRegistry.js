@@ -398,6 +398,52 @@ const BUNGALOW_2BED_WIDE = {
   ],
 };
 
+// Wide 3-bed bungalow for the widest lots (width 20-22, height 12-13). Uses the
+// extra width for a third bedroom; central bathroom, living + kitchen up front.
+const BUNGALOW_3BED_WIDE = {
+  id: 'bungalow_3bed_wide',
+  width: 20,
+  height: 12,
+  //        01234567890123456789
+  grid: [
+    'CCAAAAWWWBBBBBEEEEDD', // y0  C/D=closets, A/B/E=bedrooms, W=bathroom
+    'CCAAAAWWWBBBBBEEEEDD', // y1
+    'AAAAAAWWWBBBBBEEEEEE', // y2
+    'AAAAAAWWWBBBBBEEEEEE', // y3
+    'AAAAAAWWWBBBBBEEEEEE', // y4
+    'HHHHHHHHHHHHHHHHHHHH', // y5  hall
+    'HHHHHHHHHHHHHHHHHHHH', // y6
+    'LLLLLLLLLLLLKKKKKKKK', // y7  L=living, K=kitchen
+    'LLLLLLLLLLLLKKKKKKKK', // y8
+    'LLLLLLLLLLLLKKKKKKKK', // y9
+    'LLLLLLLLLLLLKKKKKKKK', // y10
+    'LLLLLLLLLLLLKKKKKKKK', // y11 (front — entrance opens into L or K)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', E: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 3, y: 5, edge: 'n' },   // bedroom A <-> hall
+    { x: 11, y: 5, edge: 'n' },  // bedroom B (middle) <-> hall
+    { x: 16, y: 5, edge: 'n' },  // bedroom E <-> hall
+    { x: 7, y: 5, edge: 'n' },   // bathroom W <-> hall
+    { x: 0, y: 2, edge: 'n' },   // closet C <-> bedroom A
+    { x: 19, y: 2, edge: 'n' },  // closet D <-> bedroom E
+    { x: 5, y: 7, edge: 'n' },   // living L <-> hall
+    { x: 15, y: 7, edge: 'n' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 4, y: 0, rot: 0 },      // bedroom A
+    { type: 'bed', x: 9, y: 0, rot: 0 },      // bedroom B (middle)
+    { type: 'bed', x: 14, y: 0, rot: 0 },     // bedroom E
+    { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 8, y: 3, rot: 0 },
+    { type: 'couch', x: 1, y: 7, rot: 0 },    // living couch on hall wall
+    { type: 'table', x: 5, y: 9, rot: 0 },    // living table
+    { type: 'chair', x: 9, y: 7, rot: 0 },    // living chair
+    { type: 'counter', x: 12, y: 7, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 15, y: 9, rot: 0 },   // kitchen table
+  ],
+};
+
 // Taller 2-bed for the ~18% of lots that are 15-16 high. Same clean back-half
 // pattern as RANCH_2BED_1BATH, stretched vertically.
 const RANCH_2BED_1BATH_TALL = {
@@ -445,7 +491,7 @@ const RANCH_2BED_1BATH_TALL = {
   ],
 };
 
-const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE];
+const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_WIDE];
 
 // Fail fast in dev if a floorplan is authored broken (sealed room, etc.).
 for (const p of FLOORPLANS) {

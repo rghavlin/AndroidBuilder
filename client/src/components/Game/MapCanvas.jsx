@@ -4,7 +4,6 @@ import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { useCamera } from '../../contexts/CameraContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
-import { TileRenderer } from '../../game/renderer/TileRenderer.js';
 import { TileChunkCache, TILE_CHUNK_SIZE } from '../../game/renderer/TileChunkCache.js';
 import { EntityRenderer, getDominantItemInTile, frameRenderFlags } from '../../game/renderer/EntityRenderer.js';
 import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
@@ -49,6 +48,10 @@ export default function MapCanvas({
   const canvasRef = useRef(null);
   const dimensionsRef = useRef({ width: 0, height: 0, dpr: 1 }); // Phase 12 & 15: Track for optimized resizing
   const chunkCacheRef = useRef(new TileChunkCache());
+  // Static furniture is baked into chunk canvases, so build a spatial index
+  // (chunk key -> overlapping pieces) once per furniture array.
+  const furnitureIndexRef = useRef(null);
+  const lastFurnitureRef = useRef(null);
   // Perf Phase 5: zoom-settle state. Chunks are (re)built at `builtTileSizeRef`;
   // while the live `rTileSize` differs (an in-progress zoom gesture) we scale-blit
   // the existing chunks and only rebuild crisp once the gesture has been idle for
@@ -300,6 +303,28 @@ export default function MapCanvas({
       // 4. Rendering Layers
       const currentTime = performance.now();
       const visibleTiles = camera.getVisibleTiles();
+
+      // Build (or reuse) a spatial index for static furniture so chunk caching
+      // can bake the outlines instead of redrawing them every frame.
+      const furniture = gameMap.furniture || [];
+      if (furniture !== lastFurnitureRef.current) {
+        const index = new Map();
+        for (const piece of furniture) {
+          const minCX = Math.floor(piece.x / TILE_CHUNK_SIZE);
+          const maxCX = Math.floor((piece.x + piece.w - 1) / TILE_CHUNK_SIZE);
+          const minCY = Math.floor(piece.y / TILE_CHUNK_SIZE);
+          const maxCY = Math.floor((piece.y + piece.h - 1) / TILE_CHUNK_SIZE);
+          for (let cy = minCY; cy <= maxCY; cy++) {
+            for (let cx = minCX; cx <= maxCX; cx++) {
+              const key = `${cx},${cy}`;
+              if (!index.has(key)) index.set(key, []);
+              index.get(key).push(piece);
+            }
+          }
+        }
+        furnitureIndexRef.current = index;
+        lastFurnitureRef.current = furniture;
+      }
       const extraTiles = Math.ceil(2 / zoom) + 1;
       const extendedBounds = {
         startX: Math.max(0, visibleTiles.startX - extraTiles),
@@ -374,22 +399,16 @@ export default function MapCanvas({
             }
             // Not cached yet (e.g. just scrolled into view) — build at current size.
           }
-          const chunkCanvas = chunkCache.getChunk(cx, cy, rTileSize, gameMap, engine, imageLoader.images);
+          const chunkCanvas = chunkCache.getChunk(cx, cy, rTileSize, gameMap, engine, imageLoader.images, furnitureIndexRef.current, currentTheme);
           ctx.drawImage(chunkCanvas, dx, dy);
         }
       }
       // Keep a margin ring of off-screen chunks so small pans don't rebuild them.
       chunkCache.evictOffscreen(startCX, endCX, startCY, endCY);
 
-      // Pass 1a.5: Floorplan furniture outlines. Drawn once per piece (not
-      // per-tile) so multi-tile shapes aren't overpainted by neighbouring
-      // tiles or clipped at chunk boundaries. Pass 1b's fog/unexplored fills
-      // paint on top, so visibility works per-tile automatically.
-      for (const piece of (gameMap.furniture || [])) {
-        if (piece.x + piece.w - 1 < extendedBounds.startX || piece.x > extendedBounds.endX ||
-            piece.y + piece.h - 1 < extendedBounds.startY || piece.y > extendedBounds.endY) continue;
-        TileRenderer.drawFurniture(ctx, piece, rTileSize);
-      }
+      // Pass 1a.5: Floorplan furniture outlines are now baked into the chunk
+      // canvases above, so they cost nothing per frame. They still sit before
+      // the unexplored/fog passes, so visibility works per-tile automatically.
 
       // Pass 1b: Unexplored tiles stay hard black. Visible/fire overlays are
       // handled with a smooth radial lighting pass after this layer restores.

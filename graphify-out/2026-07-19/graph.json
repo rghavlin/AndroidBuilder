@@ -110,7 +110,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "client_src_components_game_actionslotbutton_actionslotbutton",
-      "community": 65,
+      "community": 26,
       "norm_label": "actionslotbutton()"
     },
     {
@@ -9290,7 +9290,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_config_mapgenconfig",
-      "community": 13,
+      "community": 1,
       "norm_label": "mapgenconfig.js"
     },
     {
@@ -9300,7 +9300,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_config_mapgenconfig_map_gen_config",
-      "community": 13,
+      "community": 1,
       "norm_label": "map_gen_config"
     },
     {
@@ -11580,7 +11580,7 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "client_src_game_inventory_inventorymanager_inventorymanager_syncwithmap",
-      "community": 57,
+      "community": 186,
       "norm_label": ".syncwithmap()"
     },
     {
@@ -13770,7 +13770,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_buildingtypes",
-      "community": 13,
+      "community": 1,
       "norm_label": "buildingtypes.js"
     },
     {
@@ -13780,7 +13780,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "client_src_game_map_buildingtypes_buildingtypes",
-      "community": 13,
+      "community": 1,
       "norm_label": "buildingtypes"
     },
     {
@@ -13790,7 +13790,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "client_src_game_map_buildingtypes_isspecialbuilding",
-      "community": 13,
+      "community": 1,
       "norm_label": "isspecialbuilding()"
     },
     {
@@ -14910,7 +14910,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder",
-      "community": 13,
+      "community": 1,
       "norm_label": "mapbuilder.js"
     },
     {
@@ -15047,7 +15047,7 @@
       "label": ".designateRooms()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L378",
+      "source_location": "L368",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_designaterooms",
       "community": 86,
@@ -15057,7 +15057,7 @@
       "label": ".drawSpecialBuilding()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L390",
+      "source_location": "L380",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_drawspecialbuilding",
       "community": 38,
@@ -15067,7 +15067,7 @@
       "label": ".drawArmyTent()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L565",
+      "source_location": "L555",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_drawarmytent",
       "community": 38,
@@ -15077,7 +15077,7 @@
       "label": ".registerBuilding()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L593",
+      "source_location": "L583",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_registerbuilding",
       "community": 38,
@@ -15087,7 +15087,7 @@
       "label": ".placeWindows()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L605",
+      "source_location": "L595",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_placewindows",
       "community": 38,
@@ -15097,7 +15097,7 @@
       "label": ".subdivideBuilding()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L658",
+      "source_location": "L648",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_subdividebuilding",
       "community": 38,
@@ -15107,7 +15107,7 @@
       "label": ".generateCentralHallwayLayout()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L683",
+      "source_location": "L673",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_generatecentralhallwaylayout",
       "community": 38,
@@ -15117,7 +15117,7 @@
       "label": ".generateLivingRoomHubLayout()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L801",
+      "source_location": "L791",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_generatelivingroomhublayout",
       "community": 38,
@@ -15127,7 +15127,7 @@
       "label": ".generateLCorridorLayout()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L891",
+      "source_location": "L881",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_generatelcorridorlayout",
       "community": 38,
@@ -15137,7 +15137,7 @@
       "label": ".generateDirectPartitionLayout()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1002",
+      "source_location": "L992",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_generatedirectpartitionlayout",
       "community": 38,
@@ -15147,7 +15147,7 @@
       "label": ".placeBuildingsFromAnchor()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1041",
+      "source_location": "L1031",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_placebuildingsfromanchor",
       "community": 38,
@@ -15157,7 +15157,7 @@
       "label": ".getFinalMapData()",
       "file_type": "code",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1136",
+      "source_location": "L1126",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder_mapbuilder_getfinalmapdata",
       "community": 111,
@@ -15540,7 +15540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_templatemapgenerator",
-      "community": 13,
+      "community": 61,
       "norm_label": "templatemapgenerator.js"
     },
     {
@@ -15690,7 +15690,7 @@
       "source_location": "L603",
       "_origin": "ast",
       "id": "client_src_game_map_templatemapgenerator_templatemapgenerator_registerbuilding",
-      "community": 13,
+      "community": 1,
       "norm_label": "._registerbuilding()"
     },
     {
@@ -15730,7 +15730,7 @@
       "source_location": "L682",
       "_origin": "ast",
       "id": "client_src_game_map_templatemapgenerator_templatemapgenerator_generatefromscenario",
-      "community": 61,
+      "community": 13,
       "norm_label": ".generatefromscenario()"
     },
     {
@@ -15760,7 +15760,7 @@
       "source_location": "L945",
       "_origin": "ast",
       "id": "client_src_game_map_templatemapgenerator_rationale_945",
-      "community": 13,
+      "community": 61,
       "norm_label": "note: previously spawned a 'placeable.help' (\"?\") item on every legacy"
     },
     {
@@ -16160,7 +16160,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_generators_labmapgenerator",
-      "community": 150,
+      "community": 61,
       "norm_label": "labmapgenerator.js"
     },
     {
@@ -16170,7 +16170,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "client_src_game_map_generators_labmapgenerator_layout",
-      "community": 150,
+      "community": 61,
       "norm_label": "layout"
     },
     {
@@ -16430,7 +16430,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_generators_scenariomapgenerator",
-      "community": 61,
+      "community": 13,
       "norm_label": "scenariomapgenerator.js"
     },
     {
@@ -16440,7 +16440,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "client_src_game_map_generators_scenariomapgenerator_scenariomapgenerator",
-      "community": 61,
+      "community": 13,
       "norm_label": "scenariomapgenerator"
     },
     {
@@ -16450,7 +16450,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "client_src_game_map_generators_scenariomapgenerator_scenariomapgenerator_constructor",
-      "community": 61,
+      "community": 13,
       "norm_label": ".constructor()"
     },
     {
@@ -16460,7 +16460,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "client_src_game_map_generators_scenariomapgenerator_scenariomapgenerator_generate",
-      "community": 61,
+      "community": 13,
       "norm_label": ".generate()"
     },
     {
@@ -16470,7 +16470,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "client_src_game_map_generators_scenariomapgenerator_scenariomapgenerator_getstartposition",
-      "community": 61,
+      "community": 13,
       "norm_label": ".getstartposition()"
     },
     {
@@ -23920,7 +23920,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scratch_debug_terrain",
-      "community": 13,
+      "community": 1,
       "norm_label": "debug_terrain.js"
     },
     {
@@ -25620,7 +25620,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scratch_test_global_alert",
-      "community": 173,
+      "community": 44,
       "norm_label": "test_global_alert.mjs"
     },
     {
@@ -25630,7 +25630,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "scratch_test_global_alert_map",
-      "community": 173,
+      "community": 44,
       "norm_label": "map"
     },
     {
@@ -25640,7 +25640,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "scratch_test_global_alert_player",
-      "community": 173,
+      "community": 44,
       "norm_label": "player"
     },
     {
@@ -25650,7 +25650,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "scratch_test_global_alert_zombie",
-      "community": 173,
+      "community": 44,
       "norm_label": "zombie"
     },
     {
@@ -25660,7 +25660,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "scratch_test_global_alert_tracker",
-      "community": 173,
+      "community": 44,
       "norm_label": "tracker"
     },
     {
@@ -26370,7 +26370,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "scratch_test_turret_firing_runtest",
-      "community": 57,
+      "community": 186,
       "norm_label": "runtest()"
     },
     {
@@ -28020,7 +28020,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scratch_verify_loadmap_dedup_p4_03",
-      "community": 33,
+      "community": 44,
       "norm_label": "verify_loadmap_dedup_p4_03.mjs"
     },
     {
@@ -28030,7 +28030,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "scratch_verify_loadmap_dedup_p4_03_assert",
-      "community": 33,
+      "community": 44,
       "norm_label": "assert()"
     },
     {
@@ -28040,7 +28040,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "scratch_verify_loadmap_dedup_p4_03_players",
-      "community": 33,
+      "community": 44,
       "norm_label": "players()"
     },
     {
@@ -28050,7 +28050,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "scratch_verify_loadmap_dedup_p4_03_zombies",
-      "community": 33,
+      "community": 44,
       "norm_label": "zombies()"
     },
     {
@@ -28060,7 +28060,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "scratch_verify_loadmap_dedup_p4_03_gm",
-      "community": 33,
+      "community": 44,
       "norm_label": "gm"
     },
     {
@@ -28070,7 +28070,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "scratch_verify_loadmap_dedup_p4_03_wm",
-      "community": 33,
+      "community": 44,
       "norm_label": "wm"
     },
     {
@@ -28140,7 +28140,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scratch_verify_map_gen_constants",
-      "community": 13,
+      "community": 1,
       "norm_label": "verify_map_gen_constants.mjs"
     },
     {
@@ -28150,7 +28150,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "scratch_verify_map_gen_constants_assert",
-      "community": 13,
+      "community": 1,
       "norm_label": "assert()"
     },
     {
@@ -30510,7 +30510,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "scratch_verify_turret_firing_error_assert",
-      "community": 57,
+      "community": 186,
       "norm_label": "assert()"
     },
     {
@@ -30520,7 +30520,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "scratch_verify_turret_firing_error_verify",
-      "community": 57,
+      "community": 186,
       "norm_label": "verify()"
     },
     {
@@ -32080,7 +32080,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_systems_fire_test",
-      "community": 15,
+      "community": 14,
       "norm_label": "fire.test.js"
     },
     {
@@ -32090,7 +32090,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "test_systems_fire_test_assert",
-      "community": 15,
+      "community": 14,
       "norm_label": "assert()"
     },
     {
@@ -32220,7 +32220,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tmp_bench_mapgen",
-      "community": 86,
+      "community": 61,
       "norm_label": "bench_mapgen.mjs"
     },
     {
@@ -32230,7 +32230,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "tmp_bench_mapgen_templates",
-      "community": 86,
+      "community": 61,
       "norm_label": "templates"
     },
     {
@@ -32240,7 +32240,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "tmp_bench_mapgen_tmg",
-      "community": 86,
+      "community": 61,
       "norm_label": "tmg"
     },
     {
@@ -32690,7 +32690,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tmp_test_buildings",
-      "community": 13,
+      "community": 111,
       "norm_label": "tmp_test_buildings.js"
     },
     {
@@ -32770,7 +32770,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "tmp_test_buildings_testgeneration",
-      "community": 13,
+      "community": 111,
       "norm_label": "testgeneration()"
     },
     {
@@ -33480,7 +33480,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tmp_window_test",
-      "community": 13,
+      "community": 38,
       "norm_label": "tmp_window_test.js"
     },
     {
@@ -34090,7 +34090,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "verify_phase_4",
-      "community": 14,
+      "community": 33,
       "norm_label": "verify_phase_4.mjs"
     },
     {
@@ -34100,7 +34100,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "verify_phase_4_assert",
-      "community": 14,
+      "community": 33,
       "norm_label": "assert()"
     },
     {
@@ -34110,7 +34110,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "verify_phase_4_map",
-      "community": 14,
+      "community": 33,
       "norm_label": "map"
     },
     {
@@ -34120,7 +34120,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "verify_phase_4_player",
-      "community": 14,
+      "community": 33,
       "norm_label": "player"
     },
     {
@@ -34130,7 +34130,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "verify_phase_4_zombie",
-      "community": 14,
+      "community": 33,
       "norm_label": "zombie"
     },
     {
@@ -34140,7 +34140,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "verify_phase_4_activezombie",
-      "community": 14,
+      "community": 33,
       "norm_label": "activezombie"
     },
     {
@@ -34150,7 +34150,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "verify_phase_4_ecsentities",
-      "community": 14,
+      "community": 33,
       "norm_label": "ecsentities"
     },
     {
@@ -34160,7 +34160,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "verify_phase_4_intentqueue",
-      "community": 14,
+      "community": 33,
       "norm_label": "intentqueue"
     },
     {
@@ -34170,7 +34170,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "verify_phase_4_actionqueue",
-      "community": 14,
+      "community": 33,
       "norm_label": "actionqueue"
     },
     {
@@ -34180,7 +34180,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "verify_phase_4_diedany",
-      "community": 14,
+      "community": 33,
       "norm_label": "diedany"
     },
     {
@@ -34190,7 +34190,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "verify_phase_4_tile22",
-      "community": 14,
+      "community": 33,
       "norm_label": "tile22"
     },
     {
@@ -34200,7 +34200,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "verify_phase_4_npc",
-      "community": 14,
+      "community": 33,
       "norm_label": "npc"
     },
     {
@@ -34210,7 +34210,7 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "verify_phase_4_itemdef",
-      "community": 14,
+      "community": 33,
       "norm_label": "itemdef"
     },
     {
@@ -34220,7 +34220,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "verify_phase_4_item",
-      "community": 14,
+      "community": 33,
       "norm_label": "item"
     },
     {
@@ -34230,7 +34230,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "verify_phase_4_npcdiedany",
-      "community": 14,
+      "community": 33,
       "norm_label": "npcdiedany"
     },
     {
@@ -34240,7 +34240,7 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "verify_phase_4_tile44",
-      "community": 14,
+      "community": 33,
       "norm_label": "tile44"
     },
     {
@@ -34250,7 +34250,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "verify_phase_4_rabbit",
-      "community": 14,
+      "community": 33,
       "norm_label": "rabbit"
     },
     {
@@ -34260,7 +34260,7 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "verify_phase_4_rabbitdied",
-      "community": 14,
+      "community": 33,
       "norm_label": "rabbitdied"
     },
     {
@@ -34270,7 +34270,7 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "verify_phase_4_tile55",
-      "community": 14,
+      "community": 33,
       "norm_label": "tile55"
     },
     {
@@ -34280,7 +34280,7 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "verify_phase_4_rabbit2",
-      "community": 14,
+      "community": 33,
       "norm_label": "rabbit2"
     },
     {
@@ -34290,7 +34290,7 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "verify_phase_4_explosionintent",
-      "community": 14,
+      "community": 33,
       "norm_label": "explosionintent"
     },
     {
@@ -34300,7 +34300,7 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "verify_phase_4_tile66",
-      "community": 14,
+      "community": 33,
       "norm_label": "tile66"
     },
     {
@@ -34360,7 +34360,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "verify_saveload",
-      "community": 73,
+      "community": 173,
       "norm_label": "verify_saveload.mjs"
     },
     {
@@ -34370,7 +34370,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "verify_saveload_runtest",
-      "community": 73,
+      "community": 173,
       "norm_label": "runtest()"
     },
     {
@@ -73635,7 +73635,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1142",
+      "source_location": "L1132",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_getfinalmapdata",
       "target": "client_src_game_entities_entity_entity_x"
@@ -73877,7 +73877,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1142",
+      "source_location": "L1132",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_getfinalmapdata",
       "target": "client_src_game_entities_entity_entity_y"
@@ -90270,7 +90270,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L597",
+      "source_location": "L587",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_registerbuilding",
       "target": "client_src_game_map_buildingtypes_isspecialbuilding"
@@ -95815,7 +95815,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L378",
+      "source_location": "L368",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_designaterooms",
@@ -95835,7 +95835,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L565",
+      "source_location": "L555",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_drawarmytent",
@@ -95865,7 +95865,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L390",
+      "source_location": "L380",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_drawspecialbuilding",
@@ -95885,7 +95885,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L683",
+      "source_location": "L673",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatecentralhallwaylayout",
@@ -95895,7 +95895,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1002",
+      "source_location": "L992",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatedirectpartitionlayout",
@@ -95905,7 +95905,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L891",
+      "source_location": "L881",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatelcorridorlayout",
@@ -95915,7 +95915,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L801",
+      "source_location": "L791",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatelivingroomhublayout",
@@ -95925,7 +95925,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1136",
+      "source_location": "L1126",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_getfinalmapdata",
@@ -95955,7 +95955,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1041",
+      "source_location": "L1031",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_placebuildingsfromanchor",
@@ -95965,7 +95965,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L605",
+      "source_location": "L595",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_placewindows",
@@ -95975,7 +95975,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L593",
+      "source_location": "L583",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_registerbuilding",
@@ -96025,7 +96025,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L658",
+      "source_location": "L648",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder",
       "target": "client_src_game_map_mapbuilder_mapbuilder_subdividebuilding",
@@ -96146,7 +96146,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L422",
+      "source_location": "L412",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawspecialbuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_fill",
@@ -96157,7 +96157,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L416",
+      "source_location": "L406",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawspecialbuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_cleararea",
@@ -96168,7 +96168,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L571",
+      "source_location": "L561",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawarmytent",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setterrain",
@@ -96201,7 +96201,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L436",
+      "source_location": "L426",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawspecialbuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setterrain",
@@ -96234,7 +96234,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1108",
+      "source_location": "L1098",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_placebuildingsfromanchor",
       "target": "client_src_game_map_mapbuilder_mapbuilder_getterrain",
@@ -96245,7 +96245,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L572",
+      "source_location": "L562",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawarmytent",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setedgewall",
@@ -96267,7 +96267,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L438",
+      "source_location": "L428",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawspecialbuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setedgewall",
@@ -96278,7 +96278,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L701",
+      "source_location": "L691",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_generatecentralhallwaylayout",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setedgewall",
@@ -96289,7 +96289,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1018",
+      "source_location": "L1008",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_generatedirectpartitionlayout",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setedgewall",
@@ -96300,7 +96300,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L922",
+      "source_location": "L912",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_generatelcorridorlayout",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setedgewall",
@@ -96311,7 +96311,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L818",
+      "source_location": "L808",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_generatelivingroomhublayout",
       "target": "client_src_game_map_mapbuilder_mapbuilder_setedgewall",
@@ -96410,7 +96410,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L1117",
+      "source_location": "L1107",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_placebuildingsfromanchor",
       "target": "client_src_game_map_mapbuilder_mapbuilder_drawbuilding",
@@ -96444,7 +96444,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L383",
+      "source_location": "L373",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_designaterooms",
       "target": "client_src_game_map_roomgraph_assignroles"
@@ -96455,7 +96455,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L382",
+      "source_location": "L372",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_designaterooms",
       "target": "client_src_game_map_roomgraph_findrooms"
@@ -96466,7 +96466,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L381",
+      "source_location": "L371",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_designaterooms",
       "target": "client_src_game_map_roomgraph_makelayoutgrid"
@@ -96477,7 +96477,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L384",
+      "source_location": "L374",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_designaterooms",
       "target": "client_src_game_map_roomgraph_toslimroom"
@@ -96487,7 +96487,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L486",
+      "source_location": "L476",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawspecialbuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_registerbuilding",
@@ -96498,7 +96498,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L587",
+      "source_location": "L577",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_drawarmytent",
       "target": "client_src_game_map_mapbuilder_mapbuilder_registerbuilding",
@@ -96521,7 +96521,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L639",
+      "source_location": "L629",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_placewindows",
       "target": "client_src_game_utils_seededrandom_seededrandom_pick"
@@ -96542,7 +96542,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L674",
+      "source_location": "L664",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_subdividebuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatecentralhallwaylayout",
@@ -96553,7 +96553,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L670",
+      "source_location": "L660",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_subdividebuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatedirectpartitionlayout",
@@ -96564,7 +96564,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L678",
+      "source_location": "L668",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_subdividebuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatelcorridorlayout",
@@ -96575,7 +96575,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/MapBuilder.js",
-      "source_location": "L676",
+      "source_location": "L666",
       "weight": 1.0,
       "source": "client_src_game_map_mapbuilder_mapbuilder_subdividebuilding",
       "target": "client_src_game_map_mapbuilder_mapbuilder_generatelivingroomhublayout",

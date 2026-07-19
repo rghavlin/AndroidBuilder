@@ -335,9 +335,11 @@ export const TileRenderer = {
         }
 
         // Step C: Add subtle grid line for clarity (only in debug or highly zoomed)
-        ctx.strokeStyle = engine.renderDebugColors ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)';
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(screenX, screenY, tileSize, tileSize);
+        if (engine.renderDebugColors) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(screenX, screenY, tileSize, tileSize);
+        }
     } else {
         // Unexplored is pitch black
         ctx.fillStyle = '#000';
@@ -505,9 +507,11 @@ export const TileRenderer = {
     }
 
     // Subtle grid line (same as drawTile)
-    ctx.strokeStyle = engine.renderDebugColors ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)';
-    ctx.lineWidth = 0.5;
-    ctx.strokeRect(screenX, screenY, tileSize, tileSize);
+    if (engine.renderDebugColors) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(screenX, screenY, tileSize, tileSize);
+    }
   },
 
   /**
@@ -533,10 +537,12 @@ export const TileRenderer = {
    * Draw one floorplan furniture piece (from gameMap.furniture) in world-pixel
    * space. piece = {type, x, y, w, h, rot}: x/y anchor tile of the ROTATED
    * footprint, w/h rotated footprint in tiles, rot = quarter-turns clockwise.
-   * Called once per piece from MapCanvas (not per-tile), so multi-tile shapes
-   * aren't overpainted by neighbours or clipped at chunk boundaries.
+   *
+   * `theme` is one of 'light' | 'steampunk' | 'dark'. Passing it avoids a
+   * DOM classList query for every piece, which matters when hundreds of pieces
+   * are drawn per frame.
    */
-  drawFurniture: (ctx, piece, tileSize) => {
+  drawFurniture: (ctx, piece, tileSize, theme) => {
     const px = piece.x * tileSize;
     const py = piece.y * tileSize;
     const wpx = piece.w * tileSize;
@@ -549,7 +555,7 @@ export const TileRenderer = {
     ctx.save();
     ctx.translate(px + wpx / 2, py + hpx / 2);
     ctx.rotate(rot * Math.PI / 2);
-    TileRenderer.drawCADDecoration(ctx, -bw / 2, -bh / 2, tileSize, piece.type);
+    TileRenderer.drawCADDecoration(ctx, -bw / 2, -bh / 2, tileSize, piece.type, theme);
     ctx.restore();
   },
 
@@ -558,18 +564,23 @@ export const TileRenderer = {
    * (x, y) in base orientation ("head" at top). Sizes derive from tileSize
    * (bed/table 2x3 tiles, couch 2x2, desk 2x1, bathtub 1x2, toilet 1x1).
    */
-  drawCADDecoration: (ctx, x, y, tileSize, type) => {
+  drawCADDecoration: (ctx, x, y, tileSize, type, theme) => {
     ctx.save();
 
     // Architect blueprint style: high-contrast strokes so furniture reads clearly
     // against both dark and light floors. Fills stay subtle so only the lines pop.
-    const isLight = document.documentElement.classList.contains('light');
-    const isSteampunk = document.documentElement.classList.contains('steampunk');
+    // `theme` is usually provided by the caller (MapCanvas) so we don't query the
+    // DOM for every single piece; fall back to DOM only for standalone callers.
+    if (!theme) {
+      const isLight = document.documentElement.classList.contains('light');
+      const isSteampunk = document.documentElement.classList.contains('steampunk');
+      theme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
+    }
 
-    if (isLight) {
+    if (theme === 'light') {
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
         ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
-    } else if (isSteampunk) {
+    } else if (theme === 'steampunk') {
         ctx.strokeStyle = 'rgba(60, 40, 20, 0.9)';
         ctx.fillStyle = 'rgba(60, 40, 20, 0.08)';
     } else {

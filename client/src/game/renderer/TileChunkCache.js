@@ -76,8 +76,12 @@ export class TileChunkCache {
   /**
    * Return the offscreen canvas for the given chunk, re-rendering only when
    * the chunk is dirty or the physical tile size has changed.
+   *
+   * `furnitureIndex` is an optional Map from "cx,cy" chunk keys to arrays of
+   * furniture pieces overlapping that chunk. When provided, pieces are baked
+   * into the chunk so they don't have to be redrawn every frame.
    */
-  getChunk(cx, cy, rTileSize, gameMap, engine, sprites) {
+  getChunk(cx, cy, rTileSize, gameMap, engine, sprites, furnitureIndex, theme) {
     const key = `${cx},${cy}`;
     const existing = this._chunks.get(key);
 
@@ -114,6 +118,19 @@ export class TileChunkCache {
           TileRenderer.drawTileStatic(ctx, localX, localY, worldX, worldY, rTileSize, tile, engine, sprites);
         }
       }
+    }
+
+    // Bake static furniture outlines into the chunk. Furniture uses world-pixel
+    // coordinates, so we temporarily translate the chunk origin to world space,
+    // draw the overlapping pieces, then restore.
+    const chunkFurniture = furnitureIndex?.get(key);
+    if (chunkFurniture && chunkFurniture.length > 0) {
+      ctx.save();
+      ctx.translate(-startWorldX * rTileSize, -startWorldY * rTileSize);
+      for (const piece of chunkFurniture) {
+        TileRenderer.drawFurniture(ctx, piece, rTileSize, theme);
+      }
+      ctx.restore();
     }
 
     entry.tileSize = rTileSize;

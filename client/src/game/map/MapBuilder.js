@@ -316,9 +316,19 @@ export class MapBuilder {
       }
     }
 
-    // Interior doors (carve the partition edge and record door metadata).
+    // Interior doors. The partition wall was set on BOTH tiles of the boundary,
+    // but a door entity only suppresses the wall on ITS OWN tile/edge in the
+    // renderer, so the neighbour tile's opposite edge would still draw a wall
+    // in the doorway. Match the procedural convention: keep the wall on the
+    // door's own edge (so flood-fill still separates the rooms and a closed
+    // door blocks) and clear only the neighbour's opposite edge.
+    const OPP = { n: 's', s: 'n', e: 'w', w: 'e' };
+    const NB = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
     for (const d of plan.doors) {
-      this.metadata.doors.push({ x: x + d.x, y: y + d.y, isLocked: false, isOpen: false, edge: d.edge });
+      const mx = x + d.x, my = y + d.y;
+      this.metadata.doors.push({ x: mx, y: my, isLocked: false, isOpen: false, edge: d.edge });
+      const [ndx, ndy] = NB[d.edge];
+      this.setEdgeWall(mx + ndx, my + ndy, OPP[d.edge], false);
     }
 
     // Room roles: group cells by char (each char = one room instance).

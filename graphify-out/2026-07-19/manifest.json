@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784442108.2390432,
-    "ast_hash": "111dedc531ea5d1d4d80a0d4143b4583",
+    "mtime": 1784435121.7011933,
+    "ast_hash": "c5770774e50a9d26cf6f009c102ddb4d",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -2970,8 +2970,8 @@
     "semantic_hash": ""
   },
   "test/map/floorplanRegistry.test.js": {
-    "mtime": 1784442255.7891152,
-    "ast_hash": "067dceac143d54ce1df4a3aaf9dc541a",
+    "mtime": 1784435156.0898209,
+    "ast_hash": "47730059a1a834b6c0694216e8ae9e7e",
     "semantic_hash": ""
   },
   "tmp/bench_houses.mjs": {
