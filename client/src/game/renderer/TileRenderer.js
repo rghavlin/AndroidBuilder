@@ -65,25 +65,48 @@ const STEAMPUNK_TERRAIN_COLORS = {
 };
 
 const BW_TERRAIN_COLORS = {
-  'grass': '#2c2c2c',       // Dark charcoal base
-  'road': '#3a3a3a',        // Mid-dark gray
-  'transition': '#3a3a3a',
+  'grass': '#4a4c4f',       // Lighter outdoor grass, clearly distinct from indoor floors
+  'road': '#3a3a3c',        // Mid-dark gray road
+  'transition': '#3a3a3c',
   'sidewalk': '#555555',    // Medium gray
-  'wall': '#999999',        // Bright gray for high contrast structure
-  'building': '#4d4d4d',    // Solid mid-gray
+  'wall': '#9a9a9e',        // Bright cool gray for high contrast structure
+  'building': '#2e2e30',    // Building mass, darker than road so roofs/exteriors read as architecture
   'fence': '#666666',       // Light mid-gray
   'tree': '#111111',        // Almost black
   'tent_wall': '#888888',
-  'tent_floor': '#1c1c1c',  // Very dark floor
-  'floor': '#1a1a1a',       // Dark floor for blueprint style
+  'tent_floor': '#242528',  // Dark floor with cool tint
+  'floor': '#242528',       // Dark indoor floor for blueprint style
   'water': '#101010',       // Darkest
-  'dirt': '#2a2a2a'         // Dark charcoal
+  'dirt': '#3a3a3c'         // Earthy mid-gray, distinct from grass
 };
 
 const GRASS_VARIANTS = [
   { col: 0, row: 15 }, { col: 1, row: 15 }, { col: 2, row: 15 }, { col: 3, row: 15 },
   { col: 0, row: 14 }, { col: 1, row: 14 }, { col: 2, row: 14 }, { col: 3, row: 14 }
 ];
+
+/**
+ * Draw a simple no-texture grass pattern: a few short vertical strokes so grass
+ * tiles read as vegetation rather than a flat color patch. Positions are
+ * deterministic from tile coordinates.
+ */
+function drawNoTextureGrass(ctx, screenX, screenY, tileSize, x, y) {
+  const count = 3 + (Math.abs((x * 13) ^ (y * 7)) % 4);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.lineWidth = Math.max(1, Math.floor(tileSize * 0.06));
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < count; i++) {
+    const hx = Math.abs((x * 31 + y * 17 + i * 11) % 100);
+    const hy = Math.abs((x * 17 + y * 31 + i * 13) % 100);
+    const px = screenX + (hx / 100) * tileSize;
+    const py = screenY + (hy / 100) * tileSize;
+    const bladeH = tileSize * (0.15 + (hx % 10) / 100);
+    ctx.moveTo(px, py + bladeH / 2);
+    ctx.lineTo(px, py - bladeH / 2);
+  }
+  ctx.stroke();
+}
 
 export const TileRenderer = {
   /**
@@ -102,6 +125,20 @@ export const TileRenderer = {
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
         ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
         ctx.fillRect(screenX, screenY, tileSize, tileSize);
+
+        // Subtle per-tile floor variation for the grayscale no-texture mode.
+        // This breaks up large uniform rooms so they don't look like a flat void.
+        if (tile.terrain === 'floor' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
+            const hash = Math.abs((x * 31) ^ (y * 17)) % 16;
+            const alpha = 0.015 + (hash / 16) * 0.035;
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.fillRect(screenX, screenY, tileSize, tileSize);
+        }
+
+        // Simple grass blade pattern when no tile sprites are loaded.
+        if (tile.terrain === 'grass' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
+            drawNoTextureGrass(ctx, screenX, screenY, tileSize, x, y);
+        }
 
         // Step B: Draw Texture Layer (On top of base color) - Skipped in Debug Mode
         if (sprites && !engine.renderDebugColors) {
@@ -381,6 +418,19 @@ export const TileRenderer = {
     ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
     ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
+    // Subtle per-tile floor variation for the grayscale no-texture mode.
+    if (tile.terrain === 'floor' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
+      const hash = Math.abs((worldX * 31) ^ (worldY * 17)) % 16;
+      const alpha = 0.015 + (hash / 16) * 0.035;
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.fillRect(screenX, screenY, tileSize, tileSize);
+    }
+
+    // Simple grass blade pattern when no tile sprites are loaded.
+    if (tile.terrain === 'grass' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
+      drawNoTextureGrass(ctx, screenX, screenY, tileSize, worldX, worldY);
+    }
+
     // Texture layer
     if (sprites && !engine.renderDebugColors) {
       const isColorOnly = ['window'].includes(tile.terrain);
@@ -555,6 +605,11 @@ export const TileRenderer = {
     ctx.save();
     ctx.translate(px + wpx / 2, py + hpx / 2);
     ctx.rotate(rot * Math.PI / 2);
+    // Small drop shadow to ground the furniture against dark floors.
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = tileSize * 0.12;
+    ctx.shadowOffsetY = tileSize * 0.12;
     TileRenderer.drawCADDecoration(ctx, -bw / 2, -bh / 2, tileSize, piece.type, theme);
     ctx.restore();
   },
@@ -578,20 +633,19 @@ export const TileRenderer = {
     }
 
     if (theme === 'light') {
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
     } else if (theme === 'steampunk') {
-        ctx.strokeStyle = 'rgba(60, 40, 20, 0.9)';
-        ctx.fillStyle = 'rgba(60, 40, 20, 0.08)';
+        ctx.strokeStyle = 'rgba(60, 40, 20, 0.95)';
+        ctx.fillStyle = 'rgba(60, 40, 20, 0.1)';
     } else {
-        // Dark mode - architectural lines. Slightly translucent so they read as
-        // drawn-on blueprint ink rather than glowing neon against the dark floor.
-        ctx.strokeStyle = 'rgba(229, 229, 229, 0.6)';
-        // Faint cool-blue fill to lean the palette toward true blueprint paper.
-        ctx.fillStyle = 'rgba(120, 160, 220, 0.06)';
+        // Dark / grayscale mode - crisp blueprint lines that read against dark floors.
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        // Cool blueprint fill, stronger than before so furniture reads as a solid surface.
+        ctx.fillStyle = 'rgba(120, 160, 220, 0.12)';
     }
 
-    ctx.lineWidth = Math.max(1.5, Math.floor(tileSize * 0.055));
+    ctx.lineWidth = Math.max(2, Math.floor(tileSize * 0.08));
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     

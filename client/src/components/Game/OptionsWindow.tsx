@@ -224,7 +224,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                     <SelectItem value="standard">Color</SelectItem>
                                                     <SelectItem value="b&w">Black and White</SelectItem>
                                                     <SelectItem value="custom">Custom</SelectItem>
-                                                    <SelectItem value="none">None (Colors Only)</SelectItem>
+                                                    <SelectItem value="none">Grayscale (No Textures)</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <Button 
@@ -236,7 +236,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                         </div>
                                         <p className="text-[10px] text-muted-foreground/60 italic px-1">
                                             {tempTileSet === 'none' 
-                                                ? "Textures disabled. Rendering with base terrain colors." 
+                                                ? "Grayscale tiles rendered from the built-in palette. No image textures." 
                                                 : tempTileSet === 'spritesheet'
                                                 ? "Textures will be loaded from the master sprite sheet: ./images/tiles/tileset2.png"
                                                 : `Textures will be loaded from: ./images/tiles/${tempTileSet === 'standard' ? '' : tempTileSet + '/'}`}

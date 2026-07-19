@@ -5,6 +5,7 @@ import {
 } from '../../client/src/game/map/FloorplanRegistry.js';
 import { gameRandom } from '../../client/src/game/utils/SeededRandom.js';
 import { MapBuilder } from '../../client/src/game/map/MapBuilder.js';
+import { makeLayoutGrid } from '../../client/src/game/map/RoomGraph.js';
 
 // Occupied tiles of a furniture piece given a footprint table.
 function occupiedTiles(piece) {
@@ -15,6 +16,71 @@ function occupiedTiles(piece) {
   for (let y = piece.y; y < piece.y + h; y++)
     for (let x = piece.x; x < piece.x + w; x++) tiles.add(`${x},${y}`);
   return tiles;
+}
+
+// Build a MapBuilder-style grid adapter from an authored floorplan so we can
+// verify that each furniture piece is on a floor tile and does not straddle an
+// interior wall or sit on/adjacent to a door tile.
+function buildPlanGrid(plan) {
+  const W = plan.width, H = plan.height;
+  const layout = Array.from({ length: H }, () =>
+    Array.from({ length: W }, () => ({ terrain: 'floor', edgeWalls: { n: false, e: false, s: false, w: false } }))
+  );
+  // Perimeter walls
+  for (let y = 0; y < H; y++) {
+    layout[y][0].edgeWalls.w = true;
+    layout[y][W - 1].edgeWalls.e = true;
+  }
+  for (let x = 0; x < W; x++) {
+    layout[0][x].edgeWalls.n = true;
+    layout[H - 1][x].edgeWalls.s = true;
+  }
+  // Interior partitions between differing room chars
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const c = plan.grid[y][x];
+      if (x + 1 < W && plan.grid[y][x + 1] !== c) {
+        layout[y][x].edgeWalls.e = true;
+        layout[y][x + 1].edgeWalls.w = true;
+      }
+      if (y + 1 < H && plan.grid[y + 1][x] !== c) {
+        layout[y][x].edgeWalls.s = true;
+        layout[y + 1][x].edgeWalls.n = true;
+      }
+    }
+  }
+  // Include the exterior entrance/back doors too — furniture must clear those
+  // as well, not just interior doorways.
+  const doors = plan.doors.map(d => ({ x: d.x, y: d.y, edge: d.edge }));
+  if (plan.entrance) doors.push({ x: plan.entrance.x, y: plan.entrance.y, edge: plan.entrance.edge });
+  if (plan.back) doors.push({ x: plan.back.x, y: plan.back.y, edge: plan.back.edge });
+  return makeLayoutGrid(layout, doors);
+}
+
+function assertFurnitureClear(plan, grid) {
+  for (const f of plan.furniture) {
+    const base = FLOORPLAN_FOOTPRINTS[f.type];
+    expect(base, `${plan.id} ${f.type} footprint`).toBeDefined();
+    const fw = (f.rot % 2) ? base.h : base.w;
+    const fh = (f.rot % 2) ? base.w : base.h;
+    expect(f.x + fw).toBeLessThanOrEqual(plan.width);
+    expect(f.y + fh).toBeLessThanOrEqual(plan.height);
+
+    for (let y = f.y; y < f.y + fh; y++) {
+      for (let x = f.x; x < f.x + fw; x++) {
+        expect(grid.terrainAt(x, y), `${plan.id} ${f.type} tile (${x},${y}) must be floor`).toBe('floor');
+        expect(grid.doorAt(x, y), `${plan.id} ${f.type} overlaps a door tile at (${x},${y})`).toBe(false);
+        if (x + 1 < f.x + fw) {
+          expect(grid.edgeWallAt(x, y, 'e') || grid.edgeWallAt(x + 1, y, 'w'),
+            `${plan.id} ${f.type} straddles an E/W wall`).toBe(false);
+        }
+        if (y + 1 < f.y + fh) {
+          expect(grid.edgeWallAt(x, y, 's') || grid.edgeWallAt(x, y + 1, 'n'),
+            `${plan.id} ${f.type} straddles an N/S wall`).toBe(false);
+        }
+      }
+    }
+  }
 }
 
 describe('FloorplanRegistry rotation', () => {
@@ -227,5 +293,15 @@ describe('FloorplanRegistry authored plans', () => {
     expect(a.plan.id).toBe(b.plan.id);
     // A lot smaller than any authored plan yields null.
     expect(pickFloorplan(5, 5)).toBeNull();
+  });
+
+  it('every authored plan furniture is clear of walls and doors in all orientations', () => {
+    for (const frontage of ['south', 'west', 'north', 'east']) {
+      for (const plan of FLOORPLANS) {
+        const oriented = orientFloorplan(plan, frontage);
+        const grid = buildPlanGrid(oriented);
+        assertFurnitureClear(oriented, grid);
+      }
+    }
   });
 });

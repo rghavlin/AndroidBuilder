@@ -149,17 +149,15 @@ export class MapBuilder {
 
     // Entrance logic
     let entranceX, entranceY, entranceEdge;
-    if (frontage === 'east') { entranceX = x + w - 1; entranceY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); entranceEdge = 'e'; }
+    if (orientedPlan && orientedPlan.entrance) {
+      // Use the authored, frontage-oriented entrance position.
+      entranceX = x + orientedPlan.entrance.x;
+      entranceY = y + orientedPlan.entrance.y;
+      entranceEdge = orientedPlan.entrance.edge;
+    } else if (frontage === 'east') { entranceX = x + w - 1; entranceY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); entranceEdge = 'e'; }
     else if (frontage === 'west') { entranceX = x; entranceY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); entranceEdge = 'w'; }
     else if (frontage === 'south') { entranceX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); entranceY = y + h - 1; entranceEdge = 's'; }
     else { entranceX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); entranceY = y; entranceEdge = 'n'; }
-
-    // For authored floorplans, keep exterior doors off bathrooms/closets (a
-    // bathroom must never open to the outside; a closet is a poor front door).
-    if (orientedPlan) {
-      const nudged = this._doorOffPrivateRoom(orientedPlan, x, y, entranceEdge, entranceX, entranceY);
-      entranceX = nudged.x; entranceY = nudged.y;
-    }
 
     this.setTerrain(entranceX, entranceY, 'floor');
     const entranceDoor = {
@@ -171,17 +169,17 @@ export class MapBuilder {
     };
     this.metadata.doors.push(entranceDoor);
 
-    // Back door logic: Place on the opposite wall of the frontage
+    // Back door logic: place on the opposite wall of the frontage.
     let backX, backY, backEdge;
-    if (frontage === 'east') { backX = x; backY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); backEdge = 'w'; }
+    if (orientedPlan && orientedPlan.back) {
+      // Use the authored, frontage-oriented back door position.
+      backX = x + orientedPlan.back.x;
+      backY = y + orientedPlan.back.y;
+      backEdge = orientedPlan.back.edge;
+    } else if (frontage === 'east') { backX = x; backY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); backEdge = 'w'; }
     else if (frontage === 'west') { backX = x + w - 1; backY = y + 2 + Math.floor(gameRandom.next() * (h - 4)); backEdge = 'e'; }
     else if (frontage === 'south') { backX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); backY = y; backEdge = 'n'; }
     else { backX = x + 2 + Math.floor(gameRandom.next() * (w - 4)); backY = y + h - 1; backEdge = 's'; }
-
-    if (orientedPlan) {
-      const nudged = this._doorOffPrivateRoom(orientedPlan, x, y, backEdge, backX, backY);
-      backX = nudged.x; backY = nudged.y;
-    }
 
     this.setTerrain(backX, backY, 'floor');
     const backDoor = {

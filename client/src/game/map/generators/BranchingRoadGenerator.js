@@ -250,7 +250,10 @@ export class BranchingRoadGenerator extends BaseMapGenerator {
 
   /** Place the row(s) of buildings in one column between edges a (left) and b (right). */
   _fillColumn(builder, a, b, top, bottom) {
-    const DEPTH_MIN = 8, DEPTH_MAX = 18;
+    // Floor of 10 so every house is at least 10 deep — the smallest authored
+    // floorplan is 10x10, so narrower lots (which would fall back to procedural,
+    // bathroom-less houses) are skipped instead.
+    const DEPTH_MIN = 10, DEPTH_MAX = 18;
     const gx0 = a.road ? a.x + a.hs + 1 : a.x;  // first grass column
     const gx1 = b.road ? b.x - b.hs - 1 : b.x;  // last grass column
     const grassW = gx1 - gx0 + 1;

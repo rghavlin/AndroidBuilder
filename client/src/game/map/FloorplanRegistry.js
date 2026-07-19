@@ -13,6 +13,8 @@ import { gameRandom } from '../utils/SeededRandom.js';
  *     grid: [ "112233", ... ],   // one char per interior tile = a ROOM INSTANCE
  *     legend: { '1':'living', '2':'kitchen', '3':'bedroom', '4':'bathroom', '5':'closet', ... },
  *     doors: [ {x, y, edge} ],   // interior doorways (canonical coords)
+ *     entrance: { x, y, edge },   // exterior front door (canonical south wall)
+ *     back: { x, y, edge },      // exterior back door (canonical north wall)
  *     furniture: [ {type, x, y, rot} ], // canonical top-left + rotation
  *   }
  *
@@ -33,6 +35,8 @@ export function rotateFloorplanCW(plan) {
     }
   }
   const doors = plan.doors.map(d => ({ x: H - 1 - d.y, y: d.x, edge: EDGE_CW[d.edge] }));
+  const entrance = plan.entrance ? { x: H - 1 - plan.entrance.y, y: plan.entrance.x, edge: EDGE_CW[plan.entrance.edge] } : undefined;
+  const back = plan.back ? { x: H - 1 - plan.back.y, y: plan.back.x, edge: EDGE_CW[plan.back.edge] } : undefined;
   const furniture = plan.furniture.map(f => {
     const base = FLOORPLAN_FOOTPRINTS[f.type] || { w: 1, h: 1 };
     const fw = (f.rot % 2) ? base.h : base.w;
@@ -50,6 +54,8 @@ export function rotateFloorplanCW(plan) {
     grid: grid.map(row => row.join('')),
     legend: plan.legend,
     doors,
+    entrance,
+    back,
     furniture,
   };
 }
@@ -125,8 +131,8 @@ const RANCH_2BED_1BATH = {
     // bathroom W (x6..7, y0..6): toilet NW corner, bathtub down the east wall
     { type: 'toilet', x: 6, y: 0, rot: 0 },
     { type: 'bathtub', x: 7, y: 5, rot: 0 },
-    // living L (x0..7, y9..13): couch backing the hall wall, chair on east wall
-    { type: 'couch', x: 1, y: 9, rot: 0 },
+    // living L (x0..7, y9..13): couch on the south wall (east of the entrance), chair on east wall
+    { type: 'couch', x: 4, y: 13, rot: 0 },
     { type: 'chair', x: 7, y: 10, rot: 1 },
     // kitchen K (x8..13, y9..13): counter backing the hall wall, table centred
     { type: 'table', x: 10, y: 10, rot: 0 },
@@ -168,7 +174,7 @@ const RANCH_1BED_OPEN = {
     { x: 9, y: 8, edge: 'n' },   // living L <-> hall
   ],
   furniture: [
-    { type: 'bed', x: 5, y: 0, rot: 0 },       // bedroom A, north wall east of closet
+    { type: 'bed', x: 3, y: 0, rot: 0 },       // bedroom A, north wall (west of the back door)
     { type: 'bed', x: 10, y: 0, rot: 0 },      // bedroom B, north wall west of closet
     { type: 'toilet', x: 7, y: 0, rot: 0 },    // bathroom
     { type: 'bathtub', x: 9, y: 4, rot: 0 },
@@ -257,17 +263,88 @@ export function validateFloorplan(plan) {
     link(a, b);
   }
 
-  // Reachability from front (south-edge) rooms.
-  const frontChars = new Set();
-  for (let x = 0; x < W; x++) frontChars.add(at(x, H - 1));
-  const reached = new Set(frontChars);
-  const stack = [...frontChars];
-  while (stack.length) {
-    const c = stack.pop();
-    for (const nb of (adj.get(c) || [])) if (!reached.has(nb)) { reached.add(nb); stack.push(nb); }
+  // Exterior doors: must be present, on the correct walls, and in public rooms
+  // (entrance must never be in a bathroom/closet; back door is also kept out of
+  // those because a closet/bathroom back door is undesirable).
+  const isPrivate = (role) => role === 'bathroom' || role === 'closet';
+  if (!plan.entrance) {
+    errors.push('missing entrance');
+  } else {
+    const e = plan.entrance;
+    if (e.edge !== 's' || e.y !== H - 1 || e.x < 1 || e.x >= W - 1) {
+      errors.push(`entrance ${JSON.stringify(e)} must be on the south wall, not in a corner`);
+    }
+    if (isPrivate(legend[at(e.x, e.y)])) {
+      errors.push(`entrance ${JSON.stringify(e)} opens into a private room '${legend[at(e.x, e.y)]}'`);
+    }
+  }
+  if (!plan.back) {
+    errors.push('missing back door');
+  } else {
+    const b = plan.back;
+    if (b.edge !== 'n' || b.y !== 0 || b.x < 1 || b.x >= W - 1) {
+      errors.push(`back door ${JSON.stringify(b)} must be on the north wall, not in a corner`);
+    }
+    if (isPrivate(legend[at(b.x, b.y)])) {
+      errors.push(`back door ${JSON.stringify(b)} opens into a private room '${legend[at(b.x, b.y)]}'`);
+    }
+  }
+
+  // Exterior doors must not overlap an interior door tile.
+  const doorTileSet = new Set(plan.doors.map(d => `${d.x},${d.y}`));
+  if (plan.entrance && doorTileSet.has(`${plan.entrance.x},${plan.entrance.y}`)) {
+    errors.push('entrance overlaps an interior door tile');
+  }
+  if (plan.back && doorTileSet.has(`${plan.back.x},${plan.back.y}`)) {
+    errors.push('back door overlaps an interior door tile');
+  }
+
+  // Reachability from the entrance room.
+  const entranceChar = plan.entrance ? at(plan.entrance.x, plan.entrance.y) : null;
+  const reached = new Set();
+  if (entranceChar) {
+    reached.add(entranceChar);
+    const stack = [entranceChar];
+    while (stack.length) {
+      const c = stack.pop();
+      for (const nb of (adj.get(c) || [])) if (!reached.has(nb)) { reached.add(nb); stack.push(nb); }
+    }
   }
   for (const c of charCells.keys()) {
     if (!reached.has(c)) errors.push(`room '${c}' (${legend[c]}) is unreachable from the entrance`);
+  }
+
+  // Furniture: every piece must sit fully in bounds, entirely within ONE room
+  // (never straddling a wall), never overlap another piece, and never cover a
+  // door tile (interior, entrance, or back). This lets the stamp place all
+  // furniture verbatim with no runtime overlap/placement checks.
+  const doorTileSetAll = new Set(plan.doors.map(d => `${d.x},${d.y}`));
+  if (plan.entrance) doorTileSetAll.add(`${plan.entrance.x},${plan.entrance.y}`);
+  if (plan.back) doorTileSetAll.add(`${plan.back.x},${plan.back.y}`);
+  const occupied = new Map(); // "x,y" -> label of the piece already there
+  for (const f of (plan.furniture || [])) {
+    const label = `${f.type}@(${f.x},${f.y})`;
+    const base = FLOORPLAN_FOOTPRINTS[f.type];
+    if (!base) { errors.push(`furniture ${label} has no known footprint`); continue; }
+    const fw = (f.rot % 2) ? base.h : base.w;
+    const fh = (f.rot % 2) ? base.w : base.h;
+    if (f.x < 0 || f.y < 0 || f.x + fw > W || f.y + fh > H) {
+      errors.push(`furniture ${label} (${fw}x${fh}) is out of bounds`);
+      continue;
+    }
+    const roomChars = new Set();
+    for (let yy = f.y; yy < f.y + fh; yy++) {
+      for (let xx = f.x; xx < f.x + fw; xx++) {
+        const k = `${xx},${yy}`;
+        roomChars.add(at(xx, yy));
+        if (occupied.has(k)) errors.push(`furniture ${label} overlaps ${occupied.get(k)} at ${k}`);
+        else occupied.set(k, label);
+        if (doorTileSetAll.has(k)) errors.push(`furniture ${label} sits on a door tile ${k}`);
+      }
+    }
+    if (roomChars.size > 1) {
+      errors.push(`furniture ${label} spans rooms {${[...roomChars].join(',')}} (straddles a wall)`);
+    }
   }
 
   return { ok: errors.length === 0, errors };
@@ -306,9 +383,9 @@ const COTTAGE_1BED = {
     { type: 'bed', x: 7, y: 0, rot: 0 },     // bedroom A, north wall by the bath
     { type: 'toilet', x: 9, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 11, y: 3, rot: 0 },
-    { type: 'couch', x: 1, y: 7, rot: 0 },   // living couch on hall wall
+    { type: 'couch', x: 4, y: 11, rot: 0 },   // living couch on the south wall (east of the entrance)
     { type: 'counter', x: 7, y: 7, rot: 0 }, // kitchen counter on hall wall
-    { type: 'table', x: 8, y: 9, rot: 0 },   // kitchen table
+    { type: 'table', x: 8, y: 8, rot: 0 },   // kitchen table centered, not against the wall
   ],
 };
 
@@ -343,12 +420,12 @@ const COTTAGE_OPEN_LIVING = {
   ],
   furniture: [
     { type: 'counter', x: 0, y: 0, rot: 0 },  // kitchen counter on north wall
-    { type: 'table', x: 2, y: 2, rot: 0 },    // kitchen table
+    { type: 'table', x: 2, y: 1, rot: 0 },    // kitchen table floated off the hall wall
     { type: 'toilet', x: 5, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 7, y: 0, rot: 0 },
     { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom A, north wall
     { type: 'couch', x: 1, y: 7, rot: 0 },    // living couch on hall wall
-    { type: 'table', x: 5, y: 9, rot: 0 },    // living table
+    { type: 'table', x: 5, y: 8, rot: 0 },    // living table centered, not against the south wall
     { type: 'chair', x: 9, y: 7, rot: 0 },    // living chair
   ],
 };
@@ -391,10 +468,10 @@ const BUNGALOW_2BED_WIDE = {
     { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 9, y: 3, rot: 0 },
     { type: 'couch', x: 1, y: 7, rot: 0 },    // living couch on hall wall
-    { type: 'table', x: 5, y: 9, rot: 0 },    // living table
+    { type: 'table', x: 5, y: 8, rot: 0 },    // living table centered, not against the south wall
     { type: 'chair', x: 8, y: 7, rot: 0 },    // living chair
     { type: 'counter', x: 10, y: 7, rot: 0 }, // kitchen counter on hall wall
-    { type: 'table', x: 13, y: 9, rot: 0 },   // kitchen table
+    { type: 'table', x: 13, y: 8, rot: 0 },   // kitchen table centered, not against the south wall
   ],
 };
 
@@ -437,10 +514,10 @@ const BUNGALOW_3BED_WIDE = {
     { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 8, y: 3, rot: 0 },
     { type: 'couch', x: 1, y: 7, rot: 0 },    // living couch on hall wall
-    { type: 'table', x: 5, y: 9, rot: 0 },    // living table
+    { type: 'table', x: 5, y: 8, rot: 0 },    // living table centered, not against the south wall
     { type: 'chair', x: 9, y: 7, rot: 0 },    // living chair
     { type: 'counter', x: 12, y: 7, rot: 0 }, // kitchen counter on hall wall
-    { type: 'table', x: 15, y: 9, rot: 0 },   // kitchen table
+    { type: 'table', x: 15, y: 8, rot: 0 },   // kitchen table centered, not against the south wall
   ],
 };
 
@@ -484,14 +561,466 @@ const RANCH_2BED_1BATH_TALL = {
     { type: 'bed', x: 12, y: 3, rot: 0 },
     { type: 'toilet', x: 6, y: 0, rot: 0 },
     { type: 'bathtub', x: 7, y: 6, rot: 0 },
-    { type: 'couch', x: 1, y: 10, rot: 0 },
+    { type: 'couch', x: 5, y: 10, rot: 0 },
     { type: 'chair', x: 7, y: 11, rot: 1 },
     { type: 'table', x: 10, y: 11, rot: 0 },
     { type: 'counter', x: 8, y: 10, rot: 0 },
   ],
 };
 
-const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_WIDE];
+// Taller 12-wide 2-bedroom cottage for 12x16 lots; keeps the same back-half
+// bedroom pattern but adds a generous living/kitchen front with centered tables.
+const COTTAGE_2BED_TALL = {
+  id: 'cottage_2bed_tall',
+  width: 12,
+  height: 16,
+  //        012345678901
+  grid: [
+    'CCAAAWWBBBBB', // y0  C=closet, A=bedroom, W=bathroom, B=bedroom
+    'CCAAAWWBBBBB', // y1
+    'AAAAAWWBBBBB', // y2
+    'AAAAAWWBBBBB', // y3
+    'AAAAAWWBBBBB', // y4
+    'AAAAAWWBBBBB', // y5
+    'HHHHHHHHHHHH', // y6  hall
+    'HHHHHHHHHHHH', // y7
+    'LLLLLLKKKKKK', // y8  L=living, K=kitchen
+    'LLLLLLKKKKKK', // y9
+    'LLLLLLKKKKKK', // y10
+    'LLLLLLKKKKKK', // y11
+    'LLLLLLKKKKKK', // y12
+    'LLLLLLKKKKKK', // y13
+    'LLLLLLKKKKKK', // y14
+    'LLLLLLKKKKKK', // y15
+  ],
+  legend: { C: 'closet', A: 'bedroom', W: 'bathroom', B: 'bedroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 1, edge: 'w' },   // closet C   <-> bedroom A
+    { x: 3, y: 6, edge: 'n' },   // bedroom A  <-> hall
+    { x: 5, y: 6, edge: 'n' },   // bathroom W <-> hall
+    { x: 9, y: 6, edge: 'n' },   // bedroom B  <-> hall
+    { x: 3, y: 8, edge: 'n' },   // living L   <-> hall
+    { x: 8, y: 8, edge: 'n' },   // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 3, y: 0, rot: 0 },      // bedroom A, north wall
+    { type: 'bed', x: 9, y: 0, rot: 0 },      // bedroom B, north wall
+    { type: 'toilet', x: 5, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 6, y: 1, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 0, y: 15, rot: 0 },   // living couch on south wall (west of the entrance)
+    { type: 'table', x: 2, y: 10, rot: 0 },   // living table, centered
+    { type: 'counter', x: 6, y: 8, rot: 0 },  // kitchen counter on hall wall
+    { type: 'table', x: 8, y: 10, rot: 0 },   // kitchen table, centered
+  ],
+};
+
+// Wide-but-short 14x12 2-bedroom ranch; fills the gap between 12x12 cottages
+// and 14x14 ranches, with a living room table and a compact kitchen counter.
+const RANCH_2BED_WIDE = {
+  id: 'ranch_2bed_wide',
+  width: 14,
+  height: 12,
+  //        01234567890123
+  grid: [
+    'CCAAAAAWWBBBBB', // y0  C=closet, A=bedroom, W=bathroom, B=bedroom
+    'CCAAAAAWWBBBBB', // y1
+    'AAAAAAAWWBBBBB', // y2
+    'AAAAAAAWWBBBBB', // y3
+    'AAAAAAAWWBBBBB', // y4
+    'HHHHHHHHHHHHHH', // y5  hall
+    'HHHHHHHHHHHHHH', // y6
+    'LLLLLLLLLKKKKK', // y7  L=living, K=kitchen
+    'LLLLLLLLLKKKKK', // y8
+    'LLLLLLLLLKKKKK', // y9
+    'LLLLLLLLLKKKKK', // y10
+    'LLLLLLLLLKKKKK', // y11
+  ],
+  legend: { C: 'closet', A: 'bedroom', W: 'bathroom', B: 'bedroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 1, edge: 'w' },   // closet C   <-> bedroom A
+    { x: 3, y: 5, edge: 'n' },   // bedroom A  <-> hall
+    { x: 7, y: 5, edge: 'n' },   // bathroom W <-> hall
+    { x: 11, y: 5, edge: 'n' },   // bedroom B  <-> hall
+    { x: 3, y: 7, edge: 'n' },   // living L   <-> hall
+    { x: 11, y: 7, edge: 'n' },   // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 5, y: 0, rot: 0 },      // bedroom A, north wall (east of the back door)
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B, north wall
+    { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 8, y: 2, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 6, y: 11, rot: 0 },   // living couch on south wall (clear of the table)
+    { type: 'table', x: 3, y: 8, rot: 0 },    // living table, centered
+    { type: 'counter', x: 9, y: 7, rot: 0 },  // kitchen counter on hall wall
+  ],
+};
+
+// 16x12 2-bedroom bungalow for medium-wide lots; mirrors the 18x12 plan but
+// shrinks the footprint so 16-deep lots do not fall back to a 12x12 cottage.
+const BUNGALOW_2BED_LARGE = {
+  id: 'bungalow_2bed_large',
+  width: 16,
+  height: 12,
+  //        0123456789012345
+  grid: [
+    'CCAAAAWWBBBBBBDD', // y0  C/D=closets, A/B=bedrooms, W=bathroom
+    'CCAAAAWWBBBBBBDD', // y1
+    'AAAAAAWWBBBBBBBB', // y2
+    'AAAAAAWWBBBBBBBB', // y3
+    'AAAAAAWWBBBBBBBB', // y4
+    'HHHHHHHHHHHHHHHH', // y5  hall
+    'HHHHHHHHHHHHHHHH', // y6
+    'LLLLLLLLLLKKKKKK', // y7  L=living, K=kitchen
+    'LLLLLLLLLLKKKKKK', // y8
+    'LLLLLLLLLLKKKKKK', // y9
+    'LLLLLLLLLLKKKKKK', // y10
+    'LLLLLLLLLLKKKKKK', // y11
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 1, edge: 'w' },   // closet C   <-> bedroom A
+    { x: 3, y: 5, edge: 'n' },   // bedroom A  <-> hall
+    { x: 6, y: 5, edge: 'n' },   // bathroom W <-> hall
+    { x: 10, y: 5, edge: 'n' },   // bedroom B  <-> hall
+    { x: 13, y: 1, edge: 'e' },   // closet D   <-> bedroom B
+    { x: 3, y: 7, edge: 'n' },   // living L   <-> hall
+    { x: 12, y: 7, edge: 'n' },   // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 4, y: 0, rot: 0 },      // bedroom A, north wall (east of the back door)
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B, north wall
+    { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 7, y: 2, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 7, y: 11, rot: 0 },   // living couch on south wall (clear of the table)
+    { type: 'table', x: 4, y: 8, rot: 0 },    // living table, centered
+    { type: 'counter', x: 10, y: 7, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 12, y: 8, rot: 0 },   // kitchen table, centered
+  ],
+};
+
+// 16x16 square 3-bedroom ranch; a third bedroom takes the place of one of the
+// back rooms while still leaving a 10x8 living room and a 6x8 kitchen.
+const RANCH_3BED = {
+  id: 'ranch_3bed',
+  width: 16,
+  height: 16,
+  //        0123456789012345
+  grid: [
+    'CCAAAAWWWBBBBEEE', // y0  C=closet, A/B/E=bedrooms, W=bathroom
+    'CCAAAAWWWBBBBEEE', // y1
+    'AAAAAAAWWBBBBEEE', // y2
+    'AAAAAAAWWBBBBEEE', // y3
+    'AAAAAAAWWBBBBEEE', // y4
+    'AAAAAAAWWBBBBEEE', // y5
+    'HHHHHHHHHHHHHHHH', // y6  hall
+    'HHHHHHHHHHHHHHHH', // y7
+    'LLLLLLLLLLKKKKKK', // y8  L=living, K=kitchen
+    'LLLLLLLLLLKKKKKK', // y9
+    'LLLLLLLLLLKKKKKK', // y10
+    'LLLLLLLLLLKKKKKK', // y11
+    'LLLLLLLLLLKKKKKK', // y12
+    'LLLLLLLLLLKKKKKK', // y13
+    'LLLLLLLLLLKKKKKK', // y14
+    'LLLLLLLLLLKKKKKK', // y15
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', E: 'bedroom', W: 'bathroom', C: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 1, edge: 'w' },   // closet C   <-> bedroom A
+    { x: 3, y: 6, edge: 'n' },   // bedroom A  <-> hall
+    { x: 7, y: 6, edge: 'n' },   // bathroom W <-> hall
+    { x: 10, y: 6, edge: 'n' },   // bedroom B  <-> hall
+    { x: 14, y: 6, edge: 'n' },   // bedroom E  <-> hall
+    { x: 3, y: 8, edge: 'n' },   // living L   <-> hall
+    { x: 12, y: 8, edge: 'n' },   // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 4, y: 0, rot: 0 },      // bedroom A (east of the back door)
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B
+    { type: 'bed', x: 14, y: 0, rot: 0 },     // bedroom E
+    { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 8, y: 2, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 5, y: 15, rot: 0 },   // living couch on south wall (east of the entrance)
+    { type: 'table', x: 3, y: 10, rot: 0 },   // living table, centered
+    { type: 'counter', x: 10, y: 8, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 12, y: 10, rot: 0 },  // kitchen table, centered
+  ],
+};
+
+// 20x14 3-bedroom ranch for the largest standard lots; gives a spacious
+// 10x6 living room and kitchen, with all three bedrooms sharing a central bath.
+const RANCH_3BED_TALL = {
+  id: 'ranch_3bed_tall',
+  width: 20,
+  height: 14,
+  //        01234567890123456789
+  grid: [
+    'CCAAAAAWWWBBBBBDDEEE', // y0  C/D=closets, A/B/E=bedrooms, W=bathroom
+    'CCAAAAAWWWBBBBBDDEEE', // y1
+    'AAAAAAAWWWBBBBBDDEEE', // y2
+    'AAAAAAAWWWBBBBBDDEEE', // y3
+    'AAAAAAAWWWBBBBBDDEEE', // y4
+    'AAAAAAAWWWBBBBBDDEEE', // y5
+    'HHHHHHHHHHHHHHHHHHHH', // y6  hall
+    'HHHHHHHHHHHHHHHHHHHH', // y7
+    'LLLLLLLLLLKKKKKKKKKK', // y8  L=living, K=kitchen
+    'LLLLLLLLLLKKKKKKKKKK', // y9
+    'LLLLLLLLLLKKKKKKKKKK', // y10
+    'LLLLLLLLLLKKKKKKKKKK', // y11
+    'LLLLLLLLLLKKKKKKKKKK', // y12
+    'LLLLLLLLLLKKKKKKKKKK', // y13
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', E: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 1, edge: 'w' },   // closet C   <-> bedroom A
+    { x: 3, y: 6, edge: 'n' },   // bedroom A  <-> hall
+    { x: 8, y: 6, edge: 'n' },   // bathroom W <-> hall
+    { x: 11, y: 6, edge: 'n' },   // bedroom B  <-> hall
+    { x: 14, y: 1, edge: 'e' },   // closet D   <-> bedroom B
+    { x: 17, y: 6, edge: 'n' },   // bedroom E  <-> hall
+    { x: 3, y: 8, edge: 'n' },   // living L   <-> hall
+    { x: 13, y: 8, edge: 'n' },   // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 5, y: 0, rot: 0 },      // bedroom A (east of the back door)
+    { type: 'bed', x: 11, y: 0, rot: 0 },     // bedroom B
+    { type: 'bed', x: 17, y: 0, rot: 0 },     // bedroom E
+    { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 9, y: 2, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 5, y: 13, rot: 0 },   // living couch on south wall (east of the entrance)
+    { type: 'table', x: 3, y: 9, rot: 0 },    // living table, centered
+    { type: 'counter', x: 10, y: 8, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 12, y: 9, rot: 0 },   // kitchen table, centered
+  ],
+};
+
+// 22x12 3-bedroom bungalow for the widest lots; the extra width is split evenly
+// between a 12-wide living room and a 10-wide kitchen.
+const BUNGALOW_3BED_EXTRA_WIDE = {
+  id: 'bungalow_3bed_extra_wide',
+  width: 22,
+  height: 12,
+  //        0123456789012345678901
+  grid: [
+    'CCAAAAAWWWBBBBBDDEEEEE', // y0  C/D=closets, A/B/E=bedrooms, W=bathroom
+    'CCAAAAAWWWBBBBBDDEEEEE', // y1
+    'AAAAAAAWWWBBBBBDDEEEEE', // y2
+    'AAAAAAAWWWBBBBBDDEEEEE', // y3
+    'AAAAAAAWWWBBBBBDDEEEEE', // y4
+    'HHHHHHHHHHHHHHHHHHHHHH', // y5  hall
+    'HHHHHHHHHHHHHHHHHHHHHH', // y6
+    'LLLLLLLLLLLLKKKKKKKKKK', // y7  L=living, K=kitchen
+    'LLLLLLLLLLLLKKKKKKKKKK', // y8
+    'LLLLLLLLLLLLKKKKKKKKKK', // y9
+    'LLLLLLLLLLLLKKKKKKKKKK', // y10
+    'LLLLLLLLLLLLKKKKKKKKKK', // y11
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', E: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 1, edge: 'w' },   // closet C   <-> bedroom A
+    { x: 3, y: 5, edge: 'n' },   // bedroom A  <-> hall
+    { x: 8, y: 5, edge: 'n' },   // bathroom W <-> hall
+    { x: 11, y: 5, edge: 'n' },   // bedroom B  <-> hall
+    { x: 14, y: 1, edge: 'e' },   // closet D   <-> bedroom B
+    { x: 18, y: 5, edge: 'n' },   // bedroom E  <-> hall
+    { x: 3, y: 7, edge: 'n' },   // living L   <-> hall
+    { x: 16, y: 7, edge: 'n' },   // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 5, y: 0, rot: 0 },      // bedroom A (east of the back door)
+    { type: 'bed', x: 11, y: 0, rot: 0 },     // bedroom B
+    { type: 'bed', x: 18, y: 0, rot: 0 },     // bedroom E
+    { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 9, y: 2, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 7, y: 11, rot: 0 },   // living couch on south wall (clear of the table)
+    { type: 'table', x: 4, y: 8, rot: 0 },    // living table, centered
+    { type: 'counter', x: 12, y: 7, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 15, y: 8, rot: 0 },   // kitchen table, centered
+  ],
+};
+
+// --- Small tier (height 10) for the small lots on branching_road/starting_road.
+// A 1-row hall keeps a full bedroom/bath back and living/kitchen front in only
+// 10 rows. Rotation (west/east frontage) covers the narrow-tall lots too.
+
+const SMALL_1BED_10 = {
+  id: 'small_1bed_10',
+  width: 10,
+  height: 10,
+  //        0123456789
+  grid: [
+    'AAAAAAAWWW', // y0  A=bedroom, W=bathroom
+    'AAAAAAAWWW', // y1
+    'AAAAAAAWWW', // y2
+    'AAAAAAAWWW', // y3
+    'HHHHHHHHHH', // y4  hall (1 row)
+    'LLLLLLKKKK', // y5  L=living, K=kitchen
+    'LLLLLLKKKK', // y6
+    'LLLLLLKKKK', // y7
+    'LLLLLLKKKK', // y8
+    'LLLLLLKKKK', // y9
+  ],
+  legend: { A: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 3, y: 4, edge: 'n' },  // bedroom A <-> hall
+    { x: 8, y: 4, edge: 'n' },  // bathroom W <-> hall
+    { x: 2, y: 5, edge: 'n' },  // living L <-> hall
+    { x: 8, y: 5, edge: 'n' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },     // bedroom A
+    { type: 'toilet', x: 7, y: 0, rot: 0 },  // bathroom
+    { type: 'bathtub', x: 9, y: 2, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 3, y: 9, rot: 0 },   // living couch on south wall
+    { type: 'counter', x: 6, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 7, y: 7, rot: 0 },   // kitchen table
+  ],
+};
+
+const SMALL_2BED_12 = {
+  id: 'small_2bed_12',
+  width: 12,
+  height: 10,
+  //        012345678901
+  grid: [
+    'AAAAAWWBBBBB', // y0  A/B=bedrooms, W=bathroom
+    'AAAAAWWBBBBB', // y1
+    'AAAAAWWBBBBB', // y2
+    'AAAAAWWBBBBB', // y3
+    'HHHHHHHHHHHH', // y4  hall
+    'LLLLLLKKKKKK', // y5  L=living, K=kitchen
+    'LLLLLLKKKKKK', // y6
+    'LLLLLLKKKKKK', // y7
+    'LLLLLLKKKKKK', // y8
+    'LLLLLLKKKKKK', // y9
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 4, edge: 'n' },  // bedroom A <-> hall
+    { x: 5, y: 4, edge: 'n' },  // bathroom W <-> hall
+    { x: 9, y: 4, edge: 'n' },  // bedroom B <-> hall
+    { x: 2, y: 5, edge: 'n' },  // living L <-> hall
+    { x: 9, y: 5, edge: 'n' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },     // bedroom A
+    { type: 'bed', x: 10, y: 0, rot: 0 },    // bedroom B
+    { type: 'toilet', x: 5, y: 0, rot: 0 },  // bathroom
+    { type: 'bathtub', x: 6, y: 2, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 3, y: 9, rot: 0 },   // living couch on south wall
+    { type: 'counter', x: 6, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 8, y: 7, rot: 0 },   // kitchen table
+  ],
+};
+
+const SMALL_2BED_14 = {
+  id: 'small_2bed_14',
+  width: 14,
+  height: 10,
+  //        01234567890123
+  grid: [
+    'AAAAAAAWWBBBBB', // y0  A/B=bedrooms, W=bathroom
+    'AAAAAAAWWBBBBB', // y1
+    'AAAAAAAWWBBBBB', // y2
+    'AAAAAAAWWBBBBB', // y3
+    'HHHHHHHHHHHHHH', // y4  hall
+    'LLLLLLLKKKKKKK', // y5  L=living, K=kitchen
+    'LLLLLLLKKKKKKK', // y6
+    'LLLLLLLKKKKKKK', // y7
+    'LLLLLLLKKKKKKK', // y8
+    'LLLLLLLKKKKKKK', // y9
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 3, y: 4, edge: 'n' },   // bedroom A <-> hall
+    { x: 7, y: 4, edge: 'n' },   // bathroom W <-> hall
+    { x: 11, y: 4, edge: 'n' },  // bedroom B <-> hall
+    { x: 3, y: 5, edge: 'n' },   // living L <-> hall
+    { x: 10, y: 5, edge: 'n' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },     // bedroom A
+    { type: 'bed', x: 12, y: 0, rot: 0 },    // bedroom B
+    { type: 'toilet', x: 7, y: 0, rot: 0 },  // bathroom
+    { type: 'bathtub', x: 8, y: 2, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 4, y: 9, rot: 0 },   // living couch on south wall
+    { type: 'counter', x: 7, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 10, y: 7, rot: 0 },  // kitchen table
+  ],
+};
+
+const SMALL_2BED_16 = {
+  id: 'small_2bed_16',
+  width: 16,
+  height: 10,
+  //        0123456789012345
+  grid: [
+    'CCAAAAWWBBBBBBDD', // y0  C/D=closets, A/B=bedrooms, W=bathroom
+    'CCAAAAWWBBBBBBDD', // y1
+    'AAAAAAWWBBBBBBBB', // y2
+    'AAAAAAWWBBBBBBBB', // y3
+    'HHHHHHHHHHHHHHHH', // y4  hall
+    'LLLLLLLLKKKKKKKK', // y5  L=living, K=kitchen
+    'LLLLLLLLKKKKKKKK', // y6
+    'LLLLLLLLKKKKKKKK', // y7
+    'LLLLLLLLKKKKKKKK', // y8
+    'LLLLLLLLKKKKKKKK', // y9
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', C: 'closet', D: 'closet', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 3, y: 4, edge: 'n' },   // bedroom A <-> hall
+    { x: 6, y: 4, edge: 'n' },   // bathroom W <-> hall
+    { x: 11, y: 4, edge: 'n' },  // bedroom B <-> hall
+    { x: 0, y: 2, edge: 'n' },   // closet C <-> bedroom A
+    { x: 15, y: 2, edge: 'n' },  // closet D <-> bedroom B
+    { x: 3, y: 5, edge: 'n' },   // living L <-> hall
+    { x: 11, y: 5, edge: 'n' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 4, y: 0, rot: 0 },     // bedroom A (east of the back door)
+    { type: 'bed', x: 10, y: 0, rot: 0 },    // bedroom B
+    { type: 'toilet', x: 6, y: 0, rot: 0 },  // bathroom
+    { type: 'bathtub', x: 7, y: 2, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 5, y: 9, rot: 0 },   // living couch on south wall
+    { type: 'counter', x: 8, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'table', x: 11, y: 7, rot: 0 },  // kitchen table
+  ],
+};
+
+// Exterior doors for each floorplan, in canonical (front=south) orientation.
+// Entrance is always on the south wall; back door is always on the north wall.
+// Both are placed in public rooms (living/kitchen/hall) or bedrooms for the back
+// door, never in bathrooms or closets.
+const EXTERIOR_DOORS = {
+  ranch_2bed_1bath: { entrance: { x: 3, y: 13, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  ranch_1bed_open: { entrance: { x: 9, y: 13, edge: 's' }, back: { x: 5, y: 0, edge: 'n' } },
+  cottage_1bed: { entrance: { x: 3, y: 11, edge: 's' }, back: { x: 5, y: 0, edge: 'n' } },
+  cottage_open_living: { entrance: { x: 5, y: 11, edge: 's' }, back: { x: 9, y: 0, edge: 'n' } },
+  ranch_2bed_1bath_tall: { entrance: { x: 3, y: 15, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  bungalow_2bed_wide: { entrance: { x: 4, y: 11, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  bungalow_3bed_wide: { entrance: { x: 5, y: 11, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  cottage_2bed_tall: { entrance: { x: 3, y: 15, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  ranch_2bed_wide: { entrance: { x: 4, y: 11, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  bungalow_2bed_large: { entrance: { x: 4, y: 11, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  ranch_3bed: { entrance: { x: 4, y: 15, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  ranch_3bed_tall: { entrance: { x: 4, y: 13, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  bungalow_3bed_extra_wide: { entrance: { x: 5, y: 11, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  small_1bed_10: { entrance: { x: 2, y: 9, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  small_2bed_12: { entrance: { x: 2, y: 9, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  small_2bed_14: { entrance: { x: 3, y: 9, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  small_2bed_16: { entrance: { x: 4, y: 9, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+};
+
+const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_WIDE, COTTAGE_2BED_TALL, RANCH_2BED_WIDE, BUNGALOW_2BED_LARGE, RANCH_3BED, RANCH_3BED_TALL, BUNGALOW_3BED_EXTRA_WIDE, SMALL_1BED_10, SMALL_2BED_12, SMALL_2BED_14, SMALL_2BED_16];
+
+// Attach exterior doors to each floorplan object so rotation and consumers can
+// treat them as a single structure.
+for (const p of FLOORPLANS) {
+  const ext = EXTERIOR_DOORS[p.id];
+  if (ext) {
+    p.entrance = ext.entrance;
+    p.back = ext.back;
+  }
+}
 
 // Fail fast in dev if a floorplan is authored broken (sealed room, etc.).
 for (const p of FLOORPLANS) {

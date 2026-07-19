@@ -27,7 +27,7 @@ class ConfigManager {
      */
     getDefaults() {
         return {
-            tileSet: 'b&w',
+            tileSet: 'none',
             theme: 'dark',
             masterVolume: 0.8,
             musicVolume: 0.5,

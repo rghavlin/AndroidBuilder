@@ -89,19 +89,27 @@ function roomCanHold(room, type) {
 
 /**
  * Hard placement constraints: footprint on room floor, unoccupied, no items
- * beneath, clear of doorways, and not straddling an internal edge wall.
+ * beneath, clear of doorways and private-room nooks (closets/bathrooms),
+ * and not straddling an internal edge wall.
  */
-function footprintPlaceable(gameMap, grid, room, occupied, ax, ay, fw, fh) {
+function footprintPlaceable(gameMap, grid, room, occupied, privateRoomTiles, ax, ay, fw, fh) {
   for (let y = ay; y < ay + fh; y++) {
     for (let x = ax; x < ax + fw; x++) {
       if (!room.tiles.has(`${x},${y}`)) return false;
       if (occupied.has(`${x},${y}`)) return false;
       const items = gameMap.getItemsOnTile ? gameMap.getItemsOnTile(x, y) : [];
       if (items && items.length > 0) return false;
-      // Keep a one-tile berth around every doorway so nothing blocks traffic.
+      // Keep a one-tile berth around every doorway and private room so nothing
+      // blocks traffic or jams a closet/bathroom corner. Only enforce the
+      // private-room berth for ring tiles that belong to a different room;
+      // otherwise bathroom/closet fixtures could never be placed inside them.
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
-          if (grid.doorAt(x + dx, y + dy)) return false;
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx, ny = y + dy;
+          const nKey = `${nx},${ny}`;
+          if (grid.doorAt(nx, ny)) return false;
+          if (!room.tiles.has(nKey) && privateRoomTiles.has(nKey)) return false;
         }
       }
       if (x + 1 < ax + fw && grid.edgeWallAt(x, y, 'e')) return false;
@@ -165,10 +173,9 @@ function scoreCandidate(room, ax, ay, fw, fh, rot, strategy) {
       if (!hasCorner || !headFlush) return { ok: false, score: 0 };
       return { ok: true, score: 200 + contactCount };
     case 'center':
-      // Free-standing with clearance. Prefer fully detached; fall back to at
-      // most one wall touch in rooms too tight to float furniture.
+      // Free-standing with clearance on all sides; dining tables should never
+      // end up against a wall (the renderer draws chairs on all four edges).
       if (contactCount === 0) return { ok: true, score: 300 + openness };
-      if (contactCount === 1) return { ok: true, score: 150 + openness };
       return { ok: false, score: 0 };
     default:
       return { ok: true, score: 1 };
@@ -209,7 +216,7 @@ function spreadFromOccupied(occupied, ax, ay, fw, fh) {
  * from other furniture (anti-cluster), relaxing to touching only if nothing
  * else fits. Marks occupancy and returns the piece, or null if nothing fits.
  */
-function tryPlaceStrategic(gameMap, grid, room, occupied, type, strategy) {
+function tryPlaceStrategic(gameMap, grid, room, occupied, privateRoomTiles, type, strategy) {
   const base = FURNITURE_FOOTPRINTS[type];
   if (!base) return null;
 
@@ -220,7 +227,7 @@ function tryPlaceStrategic(gameMap, grid, room, occupied, type, strategy) {
       const fh = (rot % 2) ? base.w : base.h;
       for (let ay = room.minY; ay <= room.maxY - fh + 1; ay++) {
         for (let ax = room.minX; ax <= room.maxX - fw + 1; ax++) {
-          if (!footprintPlaceable(gameMap, grid, room, occupied, ax, ay, fw, fh)) continue;
+          if (!footprintPlaceable(gameMap, grid, room, occupied, privateRoomTiles, ax, ay, fw, fh)) continue;
           if (!clearOfOccupied(occupied, ax, ay, fw, fh, gap)) continue;
           const { ok, score } = scoreCandidate(room, ax, ay, fw, fh, rot, strategy);
           if (ok) {
@@ -248,22 +255,6 @@ function tryPlaceStrategic(gameMap, grid, room, occupied, type, strategy) {
     return { type, x: pick.ax, y: pick.ay, w: pick.fw, h: pick.fh, rot: pick.rot };
   }
   return null;
-}
-
-/**
- * Validate a baked floorplan furniture piece: its whole footprint sits on
- * building floor and never straddles an internal edge wall. Guards against an
- * authoring slip rendering off-map or across a wall.
- */
-function furniturePieceOnFloor(grid, p) {
-  for (let y = p.y; y < p.y + p.h; y++) {
-    for (let x = p.x; x < p.x + p.w; x++) {
-      if (grid.terrainAt(x, y) !== 'floor') return false;
-      if (x + 1 < p.x + p.w && (grid.edgeWallAt(x, y, 'e') || grid.edgeWallAt(x + 1, y, 'w'))) return false;
-      if (y + 1 < p.y + p.h && (grid.edgeWallAt(x, y, 's') || grid.edgeWallAt(x, y + 1, 'n'))) return false;
-    }
-  }
-  return true;
 }
 
 /**
@@ -302,12 +293,11 @@ export function planFurniture(gameMap) {
   );
 
   for (const building of buildings) {
-    // Authored floorplan: furniture is baked in — stamp it verbatim (validated
-    // to sit on real building floor) instead of running heuristic placement.
+    // Authored floorplan: furniture is baked in at fixed, non-overlapping
+    // positions (guaranteed by validateFloorplan at authoring time), so it is
+    // stamped verbatim with no per-piece placement check — nothing is dropped.
     if (building.furniturePlan && building.furniturePlan.length) {
-      for (const p of building.furniturePlan) {
-        if (furniturePieceOnFloor(grid, p)) gameMap.furniture.push({ ...p });
-      }
+      for (const p of building.furniturePlan) gameMap.furniture.push({ ...p });
       continue;
     }
 
@@ -315,13 +305,22 @@ export function planFurniture(gameMap) {
     if (rooms.length === 0) continue;
     resolveRoles(building, rooms);
 
+    // Treat closet and bathroom tiles as off-limits for neighbouring-room
+    // furniture so beds/couches don't jam against their corners or doorways.
+    const privateRoomTiles = new Set();
+    for (const r of rooms) {
+      if (r.role === 'closet' || r.role === 'bathroom') {
+        for (const key of r.tiles) privateRoomTiles.add(key);
+      }
+    }
+
     const occupied = new Set();
     for (const room of rooms) {
       const plan = FURNISH_PLAN[room.role] || [];
       for (const entry of plan) {
         if (!roomCanHold(room, entry.type)) continue;
         if (entry.minArea && room.area < entry.minArea) continue;
-        const piece = tryPlaceStrategic(gameMap, grid, room, occupied, entry.type, entry.strategy);
+        const piece = tryPlaceStrategic(gameMap, grid, room, occupied, privateRoomTiles, entry.type, entry.strategy);
         if (piece) gameMap.furniture.push(piece);
       }
     }
