@@ -596,6 +596,35 @@ export const EntityRenderer = {
           ctx.restore();
         }
 
+        // Draw metallic background plate for player
+        if (entity.type === EntityType.PLAYER) {
+          ctx.save();
+          // Dark metallic gradient background
+          const bgGrad = ctx.createLinearGradient(drawX, drawY, drawX, drawY + drawSize);
+          bgGrad.addColorStop(0, '#334155');
+          bgGrad.addColorStop(1, '#0f172a');
+          ctx.fillStyle = bgGrad;
+          ctx.fillRect(drawX, drawY, drawSize, drawSize);
+
+          // Subtle horizontal ridges for texture
+          ctx.fillStyle = 'rgba(0,0,0,0.2)';
+          for (let i = 2; i < drawSize; i += 4) {
+            ctx.fillRect(drawX, drawY + i, drawSize, 1.5);
+          }
+
+          // Subtle inner glow
+          const glowGrad = ctx.createRadialGradient(
+            drawX + drawSize/2, drawY + drawSize/2, 0,
+            drawX + drawSize/2, drawY + drawSize/2, drawSize/2
+          );
+          glowGrad.addColorStop(0, 'rgba(56, 189, 248, 0.15)'); // faint blue glow in center
+          glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = glowGrad;
+          ctx.fillRect(drawX, drawY, drawSize, drawSize);
+          
+          ctx.restore();
+        }
+
         // Apply health tinting for player icon
         const currentHp = entity.hp ?? entity._hp;
         const currentMaxHp = entity.maxHp ?? entity._maxHp;
@@ -646,7 +675,37 @@ export const EntityRenderer = {
         }
         
         // Square 'Picture Frame' for Player, Zombies and Rabbits (distinct silver game piece outline)
-        if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE || entity.type === EntityType.RABBIT) {
+        if (entity.type === EntityType.PLAYER) {
+          ctx.save();
+          
+          // Outer dark bevel
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+          ctx.lineWidth = 5;
+          ctx.strokeRect(drawX, drawY, drawSize, drawSize);
+
+          // Complex metallic gradient for the player frame
+          const grad = ctx.createLinearGradient(drawX, drawY, drawX + drawSize, drawY + drawSize);
+          grad.addColorStop(0, '#ffffff');   // bright top-left
+          grad.addColorStop(0.3, '#94a3b8'); // mid gray
+          grad.addColorStop(0.5, '#cbd5e1'); // reflection
+          grad.addColorStop(0.8, '#475569'); // dark gray
+          grad.addColorStop(1, '#0f172a');   // deep shadow bottom-right
+
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 3;
+          ctx.strokeRect(drawX, drawY, drawSize, drawSize);
+
+          // Corner rivets to emphasize the metallic/industrial look
+          ctx.fillStyle = '#0f172a'; // dark rivet color
+          const r = 1.5;
+          const inset = 3;
+          ctx.beginPath(); ctx.arc(drawX + inset, drawY + inset, r, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(drawX + drawSize - inset, drawY + inset, r, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(drawX + inset, drawY + drawSize - inset, r, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(drawX + drawSize - inset, drawY + drawSize - inset, r, 0, Math.PI * 2); ctx.fill();
+
+          ctx.restore();
+        } else if (entity.type === EntityType.ZOMBIE || entity.type === EntityType.RABBIT) {
           ctx.save();
           
           // Draw outer high-contrast border
