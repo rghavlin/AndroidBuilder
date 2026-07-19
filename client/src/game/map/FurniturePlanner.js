@@ -1,4 +1,5 @@
 import { gameRandom } from '../utils/SeededRandom.js';
+import { makeGameMapGrid, findRooms, assignRoles } from './RoomGraph.js';
 
 /**
  * FurniturePlanner - Places decorative floorplan-style furniture outlines in
@@ -9,6 +10,10 @@ import { gameRandom } from '../utils/SeededRandom.js';
  * rot is quarter-turns clockwise (0-3) from the base orientation ("head" at
  * top). x/y anchor the top-left of the ROTATED footprint; w/h are the rotated
  * footprint in tiles.
+ *
+ * Room roles come from building.rooms (tagged authoritatively at generation by
+ * MapBuilder). When that data is absent (e.g. hand-built test maps), we fall
+ * back to classifying rooms here so behaviour degrades gracefully.
  */
 
 // Base (unrotated) footprints in tiles, matching TileRenderer's drawings.
@@ -17,65 +22,46 @@ export const FURNITURE_FOOTPRINTS = {
   table: { w: 2, h: 3 },
   couch: { w: 2, h: 2 },
   desk: { w: 2, h: 1 },
+  counter: { w: 2, h: 1 },
   bathtub: { w: 1, h: 2 },
   toilet: { w: 1, h: 1 },
 };
 
-const DIRS = [
-  { dx: 0, dy: -1, edge: 'n', opposite: 's' },
-  { dx: 1, dy: 0, edge: 'e', opposite: 'w' },
-  { dx: 0, dy: 1, edge: 's', opposite: 'n' },
-  { dx: -1, dy: 0, edge: 'w', opposite: 'e' },
-];
+// Per-role furnishing plan. Each entry names a piece, the placement strategy
+// that decides where it looks right, and an optional minimum room area.
+//   wall   - backs flush against a wall (couches, baths)
+//   corner - tucked into a corner, two perpendicular walls (desks, beds, counters)
+//   center - stands free with clearance on all sides (dining tables)
+const FURNISH_PLAN = {
+  living: [
+    { type: 'couch', strategy: 'wall' },
+    { type: 'table', strategy: 'center' },
+  ],
+  bedroom: [
+    { type: 'bed', strategy: 'corner' },
+    // Only add a desk when the room is roomy enough to keep a gap from the bed,
+    // so bedrooms don't become a bed+desk cluster.
+    { type: 'desk', strategy: 'corner', minArea: 14 },
+  ],
+  bathroom: [
+    { type: 'toilet', strategy: 'corner' },
+    { type: 'bathtub', strategy: 'wall' },
+  ],
+  kitchen: [
+    { type: 'counter', strategy: 'corner' },
+    { type: 'table', strategy: 'center', minArea: 12 },
+  ],
+  hall: [],
+};
 
-function hasDoorOnTile(gameMap, x, y) {
-  const tile = gameMap.getTile(x, y);
-  return !!(tile && tile.contents && tile.contents.some(e => e.type === 'door'));
-}
-
-function isNearDoor(gameMap, x, y) {
-  for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -1; dx <= 1; dx++) {
-      if (hasDoorOnTile(gameMap, x + dx, y + dy)) return true;
-    }
-  }
-  return false;
-}
-
-// Raw edge-wall check between two adjacent tiles (doors/windows still count as
-// boundaries — a doorway separates rooms for classification purposes).
-function edgeBlocked(gameMap, x, y, dir) {
-  const a = gameMap.getTile(x, y);
-  const b = gameMap.getTile(x + dir.dx, y + dir.dy);
-  if (!a || !b) return true;
-  return !!(a.edgeWalls?.[dir.edge] || b.edgeWalls?.[dir.opposite]);
-}
-
-/**
- * Classify a room by shape. Hallways are narrow corridors (often 2 tiles wide)
- * or very small connector rooms; they should not receive large furniture.
- */
-function classifyRoom(room) {
-  const width = room.maxX - room.minX + 1;
-  const height = room.maxY - room.minY + 1;
-  const minSpan = Math.min(width, height);
-  const maxSpan = Math.max(width, height);
-  const aspect = maxSpan / Math.max(1, minSpan);
-
-  // Generated hallways are 2 tiles across; small elongated rooms are also halls.
-  if (minSpan <= 2 || (aspect >= 2.5 && room.area <= 12)) {
-    return 'hall';
-  }
-  return 'room';
-}
+const HEAD_SIDE = ['n', 'e', 's', 'w']; // side the piece's head faces per rotation
 
 /**
- * Check whether a room's bounding box is large enough for a given furniture
- * piece to look sensible (not just physically fit).
+ * Whether a room's bounding box is large enough for a given furniture piece to
+ * look sensible (not merely physically fit).
  */
 function roomCanHold(room, type) {
-  if (room.type === 'hall') return false;
-
+  if (room.shape === 'hall') return false;
   const width = room.maxX - room.minX + 1;
   const height = room.maxY - room.minY + 1;
   const minSpan = Math.min(width, height);
@@ -88,6 +74,7 @@ function roomCanHold(room, type) {
     case 'couch':
       return minSpan >= 2 && maxSpan >= 2;
     case 'desk':
+    case 'counter':
     case 'bathtub':
       return maxSpan >= 2;
     case 'toilet':
@@ -98,123 +85,188 @@ function roomCanHold(room, type) {
 }
 
 /**
- * Flood-fill the building interior into rooms separated by edge walls.
- * @returns {Array<{tiles: Set<string>, minX, minY, maxX, maxY, area: number, type: string}>}
+ * Hard placement constraints: footprint on room floor, unoccupied, no items
+ * beneath, clear of doorways, and not straddling an internal edge wall.
  */
-function findRooms(gameMap, building) {
-  const minX = building.x + 1, maxX = building.x + building.width - 2;
-  const minY = building.y + 1, maxY = building.y + building.height - 2;
-  const visited = new Set();
-  const rooms = [];
-
-  for (let y = minY; y <= maxY; y++) {
-    for (let x = minX; x <= maxX; x++) {
-      const key = `${x},${y}`;
-      if (visited.has(key)) continue;
-      const startTile = gameMap.getTile(x, y);
-      if (!startTile || startTile.terrain !== 'floor') continue;
-
-      const room = { tiles: new Set(), minX: x, minY: y, maxX: x, maxY: y, area: 0 };
-      const queue = [{ x, y }];
-      visited.add(key);
-      while (queue.length > 0) {
-        const cur = queue.pop();
-        room.tiles.add(`${cur.x},${cur.y}`);
-        room.minX = Math.min(room.minX, cur.x);
-        room.maxX = Math.max(room.maxX, cur.x);
-        room.minY = Math.min(room.minY, cur.y);
-        room.maxY = Math.max(room.maxY, cur.y);
-
-        for (const dir of DIRS) {
-          const nx = cur.x + dir.dx, ny = cur.y + dir.dy;
-          const nKey = `${nx},${ny}`;
-          if (nx < minX || nx > maxX || ny < minY || ny > maxY) continue;
-          if (visited.has(nKey)) continue;
-          const nTile = gameMap.getTile(nx, ny);
-          if (!nTile || nTile.terrain !== 'floor') continue;
-          if (edgeBlocked(gameMap, cur.x, cur.y, dir)) continue;
-          visited.add(nKey);
-          queue.push({ x: nx, y: ny });
-        }
-      }
-      room.area = room.tiles.size;
-      room.type = classifyRoom(room);
-      rooms.push(room);
-    }
-  }
-  return rooms;
-}
-
-/**
- * Check whether a footprint can sit at (ax, ay) in the room.
- * headDir: which way the piece's head faces after rotation (0=N,1=E,2=S,3=W);
- * the head edge must be flush against a room boundary.
- */
-function footprintFits(gameMap, room, occupied, ax, ay, fw, fh, rot) {
+function footprintPlaceable(gameMap, grid, room, occupied, ax, ay, fw, fh) {
   for (let y = ay; y < ay + fh; y++) {
     for (let x = ax; x < ax + fw; x++) {
       if (!room.tiles.has(`${x},${y}`)) return false;
       if (occupied.has(`${x},${y}`)) return false;
       const items = gameMap.getItemsOnTile ? gameMap.getItemsOnTile(x, y) : [];
       if (items && items.length > 0) return false;
-      if (isNearDoor(gameMap, x, y)) return false;
-      // No internal edge walls straddled by the footprint
-      if (x + 1 < ax + fw && edgeBlocked(gameMap, x, y, DIRS[1])) return false;
-      if (y + 1 < ay + fh && edgeBlocked(gameMap, x, y, DIRS[2])) return false;
+      // Keep a one-tile berth around every doorway so nothing blocks traffic.
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (grid.doorAt(x + dx, y + dy)) return false;
+        }
+      }
+      if (x + 1 < ax + fw && grid.edgeWallAt(x, y, 'e')) return false;
+      if (x + 1 < ax + fw && grid.edgeWallAt(x + 1, y, 'w')) return false;
+      if (y + 1 < ay + fh && grid.edgeWallAt(x, y, 's')) return false;
+      if (y + 1 < ay + fh && grid.edgeWallAt(x, y + 1, 'n')) return false;
     }
   }
+  return true;
+}
 
-  // Head edge flush against a room boundary (every tile beyond it outside the room)
-  const headTiles = [];
-  if (rot === 0) { for (let x = ax; x < ax + fw; x++) headTiles.push(`${x},${ay - 1}`); }
-  else if (rot === 1) { for (let y = ay; y < ay + fh; y++) headTiles.push(`${ax + fw},${y}`); }
-  else if (rot === 2) { for (let x = ax; x < ax + fw; x++) headTiles.push(`${x},${ay + fh}`); }
-  else { for (let y = ay; y < ay + fh; y++) headTiles.push(`${ax - 1},${y}`); }
-  return headTiles.every(key => !room.tiles.has(key));
+/** Which faces of the footprint back onto a room boundary (wall or exterior). */
+function contactSides(room, ax, ay, fw, fh) {
+  const inRoom = (x, y) => room.tiles.has(`${x},${y}`);
+  let n = true, s = true, e = true, w = true;
+  for (let x = ax; x < ax + fw; x++) {
+    if (inRoom(x, ay - 1)) n = false;
+    if (inRoom(x, ay + fh)) s = false;
+  }
+  for (let y = ay; y < ay + fh; y++) {
+    if (inRoom(ax - 1, y)) w = false;
+    if (inRoom(ax + fw, y)) e = false;
+  }
+  return { n, s, e, w };
+}
+
+/** Count of surrounding-ring tiles that are room floor — higher = more central. */
+function ringOpenness(room, ax, ay, fw, fh) {
+  const inRoom = (x, y) => room.tiles.has(`${x},${y}`);
+  let open = 0;
+  for (let x = ax - 1; x <= ax + fw; x++) {
+    if (inRoom(x, ay - 1)) open++;
+    if (inRoom(x, ay + fh)) open++;
+  }
+  for (let y = ay; y < ay + fh; y++) {
+    if (inRoom(ax - 1, y)) open++;
+    if (inRoom(ax + fw, y)) open++;
+  }
+  return open;
 }
 
 /**
- * Try to place one piece of the given type in the room. Marks occupancy and
- * returns the piece, or null if nothing fits.
+ * Score a candidate placement for a strategy. Returns {ok, score}; higher score
+ * is a better spot. `ok:false` means the candidate violates the strategy.
  */
-function tryPlace(gameMap, room, occupied, type) {
+function scoreCandidate(room, ax, ay, fw, fh, rot, strategy) {
+  const c = contactSides(room, ax, ay, fw, fh);
+  const contactCount = (c.n ? 1 : 0) + (c.s ? 1 : 0) + (c.e ? 1 : 0) + (c.w ? 1 : 0);
+  const hasCorner = (c.n && c.e) || (c.e && c.s) || (c.s && c.w) || (c.w && c.n);
+  const headFlush = c[HEAD_SIDE[rot]];
+  const openness = ringOpenness(room, ax, ay, fw, fh);
+
+  switch (strategy) {
+    case 'wall':
+      // Back (head) against a wall; prefer more wall contact, penalise corners
+      // slightly so wall pieces spread out rather than all bunching in corners.
+      if (!headFlush) return { ok: false, score: 0 };
+      return { ok: true, score: 100 + contactCount * 2 - (hasCorner ? 1 : 0) };
+    case 'corner':
+      // Two perpendicular walls; head against a wall for directional pieces.
+      if (!hasCorner || !headFlush) return { ok: false, score: 0 };
+      return { ok: true, score: 200 + contactCount };
+    case 'center':
+      // Free-standing with clearance. Prefer fully detached; fall back to at
+      // most one wall touch in rooms too tight to float furniture.
+      if (contactCount === 0) return { ok: true, score: 300 + openness };
+      if (contactCount === 1) return { ok: true, score: 150 + openness };
+      return { ok: false, score: 0 };
+    default:
+      return { ok: true, score: 1 };
+  }
+}
+
+/** True if the footprint keeps `gap` empty tiles clear of existing furniture. */
+function clearOfOccupied(occupied, ax, ay, fw, fh, gap) {
+  for (let y = ay - gap; y < ay + fh + gap; y++) {
+    for (let x = ax - gap; x < ax + fw + gap; x++) {
+      if (occupied.has(`${x},${y}`)) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Chebyshev distance from the footprint centre to the nearest existing furniture
+ * tile (capped). Used as a tiebreaker so pieces spread out across a room rather
+ * than bunching near the first one placed. Returns a large value when the room
+ * is otherwise empty.
+ */
+function spreadFromOccupied(occupied, ax, ay, fw, fh) {
+  if (occupied.size === 0) return 99;
+  const cx = ax + (fw - 1) / 2;
+  const cy = ay + (fh - 1) / 2;
+  let best = 99;
+  for (const key of occupied) {
+    const [ox, oy] = key.split(',').map(Number);
+    const d = Math.max(Math.abs(ox - cx), Math.abs(oy - cy));
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+/**
+ * Place one piece of `type` in `room` using `strategy`. Prefers a one-tile gap
+ * from other furniture (anti-cluster), relaxing to touching only if nothing
+ * else fits. Marks occupancy and returns the piece, or null if nothing fits.
+ */
+function tryPlaceStrategic(gameMap, grid, room, occupied, type, strategy) {
   const base = FURNITURE_FOOTPRINTS[type];
   if (!base) return null;
 
-  const rotations = gameRandom.shuffle([0, 1, 2, 3]);
-  for (const rot of rotations) {
-    const fw = (rot % 2) ? base.h : base.w;
-    const fh = (rot % 2) ? base.w : base.h;
-    const candidates = [];
-    for (let ay = room.minY; ay <= room.maxY - fh + 1; ay++) {
-      for (let ax = room.minX; ax <= room.maxX - fw + 1; ax++) {
-        if (footprintFits(gameMap, room, occupied, ax, ay, fw, fh, rot)) {
-          candidates.push({ ax, ay });
+  for (const gap of [1, 0]) {
+    const scored = [];
+    for (const rot of [0, 1, 2, 3]) {
+      const fw = (rot % 2) ? base.h : base.w;
+      const fh = (rot % 2) ? base.w : base.h;
+      for (let ay = room.minY; ay <= room.maxY - fh + 1; ay++) {
+        for (let ax = room.minX; ax <= room.maxX - fw + 1; ax++) {
+          if (!footprintPlaceable(gameMap, grid, room, occupied, ax, ay, fw, fh)) continue;
+          if (!clearOfOccupied(occupied, ax, ay, fw, fh, gap)) continue;
+          const { ok, score } = scoreCandidate(room, ax, ay, fw, fh, rot, strategy);
+          if (ok) {
+            const spread = spreadFromOccupied(occupied, ax, ay, fw, fh);
+            scored.push({ ax, ay, fw, fh, rot, score, spread });
+          }
         }
       }
     }
-    if (candidates.length > 0) {
-      const pick = candidates[gameRandom.nextInt(0, candidates.length - 1)];
-      for (let y = pick.ay; y < pick.ay + fh; y++) {
-        for (let x = pick.ax; x < pick.ax + fw; x++) {
-          occupied.add(`${x},${y}`);
-        }
+    if (scored.length === 0) continue;
+
+    // Strategy score first, then maximise separation from existing furniture, then
+    // a deterministic order with a random tie-break among the truly-equal spots.
+    scored.sort((a, b) =>
+      b.score - a.score || b.spread - a.spread || a.ay - b.ay || a.ax - b.ax || a.rot - b.rot);
+    const best = scored[0];
+    const tied = scored.filter(s => s.score === best.score && s.spread === best.spread);
+    const pick = tied[gameRandom.nextInt(0, tied.length - 1)];
+
+    for (let y = pick.ay; y < pick.ay + pick.fh; y++) {
+      for (let x = pick.ax; x < pick.ax + pick.fw; x++) {
+        occupied.add(`${x},${y}`);
       }
-      return { type, x: pick.ax, y: pick.ay, w: fw, h: fh, rot };
     }
+    return { type, x: pick.ax, y: pick.ay, w: pick.fw, h: pick.fh, rot: pick.rot };
   }
   return null;
 }
 
-/** Find the room containing the interior tile just inside the building entrance. */
-function findEntranceRoom(gameMap, building, rooms) {
-  if (building.entranceX === undefined || building.entranceY === undefined) return null;
-  for (const dir of DIRS) {
-    const key = `${building.entranceX + dir.dx},${building.entranceY + dir.dy}`;
-    const room = rooms.find(r => r.tiles.has(key));
-    if (room) return room;
+/**
+ * Resolve each room's role. Uses the authoritative roles MapBuilder persisted on
+ * building.rooms when present, otherwise classifies here for graceful fallback.
+ */
+function resolveRoles(building, rooms) {
+  let usedPersisted = false;
+  if (building.rooms && building.rooms.length) {
+    for (const slim of building.rooms) {
+      const rr = rooms.find(r => r.tiles.has(`${slim.seedX},${slim.seedY}`));
+      if (rr) { rr.role = slim.role; usedPersisted = true; }
+    }
   }
-  return null;
+  if (!usedPersisted) {
+    assignRoles(building, rooms);
+    return;
+  }
+  // Any room the persisted set didn't cover: sensible default by shape.
+  for (const r of rooms) {
+    if (!r.role) r.role = r.shape === 'hall' ? 'hall' : 'bedroom';
+  }
 }
 
 /**
@@ -225,54 +277,25 @@ function findEntranceRoom(gameMap, building, rooms) {
  */
 export function planFurniture(gameMap) {
   gameMap.furniture = [];
+  const grid = makeGameMapGrid(gameMap);
   const buildings = (gameMap.buildings || []).filter(
     b => b.type === 'residential' || b.type === 'starting_home'
   );
 
   for (const building of buildings) {
-    const rooms = findRooms(gameMap, building);
+    const rooms = findRooms(grid, building);
     if (rooms.length === 0) continue;
+    resolveRoles(building, rooms);
 
     const occupied = new Set();
-    const place = (room, type) => {
-      if (!room || !roomCanHold(room, type)) return;
-      const piece = tryPlace(gameMap, room, occupied, type);
-      if (piece) gameMap.furniture.push(piece);
-    };
-
-    // Don't let the entrance hallway become the living room; pick the largest
-    // proper room, falling back to the largest room of any kind.
-    let livingRoom = findEntranceRoom(gameMap, building, rooms);
-    if (!livingRoom || livingRoom.type === 'hall') {
-      const properRooms = rooms.filter(r => r.type !== 'hall');
-      livingRoom = properRooms.length > 0
-        ? properRooms.reduce((a, b) => (b.area > a.area ? b : a))
-        : rooms.reduce((a, b) => (b.area > a.area ? b : a));
-    }
-
-    if (rooms.length === 1) {
-      place(livingRoom, 'couch');
-      place(livingRoom, 'table');
-      continue;
-    }
-
-    const others = rooms.filter(r => r !== livingRoom);
-    // Bathrooms must be proper rooms; hallways can't host plumbing fixtures.
-    const smallRooms = others.filter(r => r.type !== 'hall' && r.area <= 9);
-    const bathroom = smallRooms.length > 0
-      ? smallRooms.reduce((a, b) => (b.area < a.area ? b : a))
-      : null;
-
-    place(livingRoom, 'couch');
-    place(livingRoom, 'table');
-    if (bathroom) {
-      place(bathroom, 'toilet');
-      place(bathroom, 'bathtub');
-    }
-    for (const room of others) {
-      if (room === bathroom || room.type === 'hall') continue;
-      place(room, 'bed');
-      if (room.area >= 10) place(room, 'desk');
+    for (const room of rooms) {
+      const plan = FURNISH_PLAN[room.role] || [];
+      for (const entry of plan) {
+        if (!roomCanHold(room, entry.type)) continue;
+        if (entry.minArea && room.area < entry.minArea) continue;
+        const piece = tryPlaceStrategic(gameMap, grid, room, occupied, entry.type, entry.strategy);
+        if (piece) gameMap.furniture.push(piece);
+      }
     }
   }
 

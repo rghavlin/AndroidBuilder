@@ -1,5 +1,6 @@
 import { isSpecialBuilding } from './BuildingTypes.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
+import { makeLayoutGrid, findRooms, assignRoles, toSlimRoom } from './RoomGraph.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -170,7 +171,23 @@ export class MapBuilder {
     if (type === 'residential' || type === 'starting_home') {
       this.subdivideBuilding(x, y, w, h);
       this.placeWindows(x, y, w, h);
+      this.designateRooms(x, y);
     }
+  }
+
+  /**
+   * Flood-fill a just-subdivided residential building into rooms and tag each
+   * with an authoritative role (living/bedroom/bathroom/kitchen/hall). Stored
+   * as a slim descriptor on building.rooms so downstream systems (furniture,
+   * loot, spawns) share one source of truth instead of re-guessing.
+   */
+  designateRooms(x, y) {
+    const building = this.metadata.buildings.find(b => b.x === x && b.y === y);
+    if (!building) return;
+    const grid = makeLayoutGrid(this.layout, this.metadata.doors);
+    const rooms = findRooms(grid, building);
+    assignRoles(building, rooms);
+    building.rooms = rooms.map(toSlimRoom);
   }
 
   /**

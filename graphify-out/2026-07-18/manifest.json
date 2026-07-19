@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1784417014.1041386,
-    "ast_hash": "4e682787ca8c514ea3c27a51898116ac",
+    "mtime": 1784421675.2225387,
+    "ast_hash": "c53fc1a12997f4015729ed7284eb8bcf",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784417003.1250434,
-    "ast_hash": "df3aa2ec0c867b3acb1ac49709707c23",
+    "mtime": 1784422438.9559612,
+    "ast_hash": "c354f6be22fa9d07b56088932b8e83bb",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -2945,8 +2945,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FurniturePlanner.js": {
-    "mtime": 1784416970.819598,
-    "ast_hash": "4ac1b82d509cd5256a2b3a713b43fe99",
+    "mtime": 1784420134.4160194,
+    "ast_hash": "cfb27b6fd2d5cfdae0a800068535a602",
     "semantic_hash": ""
   },
   "test/map/furniturePlanner.test.js": {

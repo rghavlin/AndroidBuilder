@@ -1,8 +1,31 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GameMap } from '../../client/src/game/map/GameMap.js';
 import { planFurniture, FURNITURE_FOOTPRINTS } from '../../client/src/game/map/FurniturePlanner.js';
+import { makeGameMapGrid, findRooms, assignRoles } from '../../client/src/game/map/RoomGraph.js';
 import { createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
 import { gameRandom } from '../../client/src/game/utils/SeededRandom.js';
+
+// Classify the test map's rooms the same way FurniturePlanner does (no
+// persisted building.rooms here), so assertions can reference roles/tiles
+// instead of brittle coordinates.
+function roleOf(map, building, x, y) {
+  const rooms = findRooms(makeGameMapGrid(map), building);
+  assignRoles(building, rooms);
+  const room = rooms.find(r => r.tiles.has(`${x},${y}`));
+  return room ? room.role : null;
+}
+function roomWithRole(map, building, role) {
+  const rooms = findRooms(makeGameMapGrid(map), building);
+  assignRoles(building, rooms);
+  return rooms.find(r => r.role === role) || null;
+}
+function pieceTiles(piece) {
+  const t = [];
+  for (let y = piece.y; y < piece.y + piece.h; y++) {
+    for (let x = piece.x; x < piece.x + piece.w; x++) t.push(`${x},${y}`);
+  }
+  return t;
+}
 
 /**
  * Builds a 20x20 map with one hand-made residential house at (2,2), 12x12:
@@ -115,28 +138,75 @@ describe('FurniturePlanner', () => {
     }
   });
 
-  it('assigns room roles: couch/table in entrance room, toilet/bathtub in the small room, bed elsewhere', () => {
+  it('places each piece within the correctly-roled room', () => {
     const map = buildTestMap();
+    const building = map.buildings[0];
     planFurniture(map);
 
     const byType = Object.fromEntries(map.furniture.map(p => [p.type, p]));
 
-    // Living area = left room (x 3..7): couch anchors there
+    // Living pieces sit in the living room (left, entrance side).
     expect(byType.couch).toBeDefined();
-    expect(byType.couch.x + byType.couch.w - 1).toBeLessThanOrEqual(7);
+    for (const t of pieceTiles(byType.couch)) {
+      const [x, y] = t.split(',').map(Number);
+      expect(roleOf(map, building, x, y)).toBe('living');
+    }
 
-    // Bathroom = 3x3 bottom-right corner room (x 10..12, y 10..12)
+    // Bathroom fixtures sit in the bathroom (smallest <=9 room).
     expect(byType.toilet).toBeDefined();
-    expect(byType.toilet.x).toBeGreaterThanOrEqual(10);
-    expect(byType.toilet.y).toBeGreaterThanOrEqual(10);
     expect(byType.bathtub).toBeDefined();
-    expect(byType.bathtub.x).toBeGreaterThanOrEqual(10);
-    expect(byType.bathtub.y).toBeGreaterThanOrEqual(10);
+    for (const p of [byType.toilet, byType.bathtub]) {
+      for (const t of pieceTiles(p)) {
+        const [x, y] = t.split(',').map(Number);
+        expect(roleOf(map, building, x, y)).toBe('bathroom');
+      }
+    }
 
-    // Bedroom = right-top room (x 8..12, y 3..9): bed anchors there
+    // Bed sits in the bedroom.
     expect(byType.bed).toBeDefined();
-    expect(byType.bed.x).toBeGreaterThanOrEqual(8);
-    expect(byType.bed.y + byType.bed.h - 1).toBeLessThanOrEqual(9);
+    for (const t of pieceTiles(byType.bed)) {
+      const [x, y] = t.split(',').map(Number);
+      expect(roleOf(map, building, x, y)).toBe('bedroom');
+    }
+  });
+
+  it('adopts authoritative roles from building.rooms when present', () => {
+    const map = buildTestMap();
+    const building = map.buildings[0];
+    // Pretend MapBuilder tagged the left room a kitchen; furniture should follow.
+    const living = roomWithRole(map, building, 'living');
+    building.rooms = [{ role: 'kitchen', seedX: living.seedX, seedY: living.seedY,
+                        minX: living.minX, minY: living.minY, maxX: living.maxX,
+                        maxY: living.maxY, area: living.area }];
+    planFurniture(map);
+
+    // A counter (kitchen-only piece) should now appear in that room.
+    const counter = map.furniture.find(p => p.type === 'counter');
+    expect(counter).toBeDefined();
+    for (const t of pieceTiles(counter)) {
+      const [x, y] = t.split(',').map(Number);
+      expect(living.tiles.has(`${x},${y}`)).toBe(true);
+    }
+  });
+
+  it('corner-strategy pieces tuck against two perpendicular walls', () => {
+    const map = buildTestMap();
+    const building = map.buildings[0];
+    planFurniture(map);
+
+    const bedroom = roomWithRole(map, building, 'bedroom');
+    const bed = map.furniture.find(p => p.type === 'bed');
+    expect(bed).toBeDefined();
+
+    const inRoom = (x, y) => bedroom.tiles.has(`${x},${y}`);
+    const c = {
+      n: !Array.from({ length: bed.w }, (_, i) => inRoom(bed.x + i, bed.y - 1)).some(Boolean),
+      s: !Array.from({ length: bed.w }, (_, i) => inRoom(bed.x + i, bed.y + bed.h)).some(Boolean),
+      w: !Array.from({ length: bed.h }, (_, i) => inRoom(bed.x - 1, bed.y + i)).some(Boolean),
+      e: !Array.from({ length: bed.h }, (_, i) => inRoom(bed.x + bed.w, bed.y + i)).some(Boolean),
+    };
+    const hasCorner = (c.n && c.e) || (c.e && c.s) || (c.s && c.w) || (c.w && c.n);
+    expect(hasCorner).toBe(true);
   });
 
   it('avoids tiles that already hold items', () => {

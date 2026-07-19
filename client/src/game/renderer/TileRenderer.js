@@ -720,8 +720,32 @@ export const TileRenderer = {
       ctx.lineTo(x + pad + backThick, y + pad + h - backThick);
       ctx.closePath();
       ctx.stroke();
+    } else if (type === 'counter') {
+      // Kitchen counter (2x1): worktop with a sink basin and a 4-burner cooktop.
+      const w = tileSize * 2 - pad * 2;
+      const h = tileSize * 1 - pad * 2;
+      ctx.fillRect(x + pad, y + pad, w, h);
+      ctx.strokeRect(x + pad, y + pad, w, h);
+      // Sink basin (left half)
+      const basinW = tileSize * 0.5;
+      const basinH = h * 0.5;
+      ctx.strokeRect(x + tileSize * 0.5 - basinW / 2, y + pad + (h - basinH) / 2, basinW, basinH);
+      // Faucet tick above the basin
+      ctx.beginPath();
+      ctx.arc(x + tileSize * 0.5, y + pad + (h - basinH) / 2, tileSize * 0.05, 0, Math.PI * 2);
+      ctx.stroke();
+      // Cooktop (right half): four burner rings
+      const burnR = tileSize * 0.11;
+      const cx = x + tileSize * 1.5;
+      const cy = y + pad + h / 2;
+      const off = tileSize * 0.22;
+      for (const [ox, oy] of [[-off, -off * (h < off * 2 ? 0.6 : 1)], [off, -off * (h < off * 2 ? 0.6 : 1)], [-off, off * (h < off * 2 ? 0.6 : 1)], [off, off * (h < off * 2 ? 0.6 : 1)]]) {
+        ctx.beginPath();
+        ctx.arc(cx + ox, cy + oy, burnR, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
-    
+
     ctx.restore();
   }
 };

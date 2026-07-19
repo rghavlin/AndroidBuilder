@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784417214.2056503,
-    "ast_hash": "6d6e7978f792ae4bdc6c06294c79c0e9",
+    "mtime": 1784425079.9979012,
+    "ast_hash": "bc93bec00031b738db8821e711196af1",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1080,9 +1080,9 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1782216735.6182654,
-    "ast_hash": "6e11b059af885ebfead0f576b4e67e5f",
-    "semantic_hash": "6e11b059af885ebfead0f576b4e67e5f"
+    "mtime": 1784424600.2082415,
+    "ast_hash": "18bad5024933a7dcf32a40687b14b6a9",
+    "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
     "mtime": 1781655042.4961662,
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784422438.9559612,
-    "ast_hash": "c354f6be22fa9d07b56088932b8e83bb",
+    "mtime": 1784424762.5266612,
+    "ast_hash": "2a5a5d6c967d93cc9ea2fa0a0e505e18",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -2945,13 +2945,23 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FurniturePlanner.js": {
-    "mtime": 1784420134.4160194,
-    "ast_hash": "cfb27b6fd2d5cfdae0a800068535a602",
+    "mtime": 1784425187.4134195,
+    "ast_hash": "1024453f170da7ae7c42efb55f447a44",
     "semantic_hash": ""
   },
   "test/map/furniturePlanner.test.js": {
-    "mtime": 1784417100.1075869,
-    "ast_hash": "43f07eaca4a35802c41e7147763709a8",
+    "mtime": 1784424792.3922765,
+    "ast_hash": "d2a69db283e29251b1f575a6091b69e2",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/RoomGraph.js": {
+    "mtime": 1784424589.0781603,
+    "ast_hash": "444aeb0e3191be7ec9df5e5e2ebd3e49",
+    "semantic_hash": ""
+  },
+  "scratch/verify_furniture_placement.mjs": {
+    "mtime": 1784424937.4327278,
+    "ast_hash": "d1d33f84776be20abd12f41ec6d57f1f",
     "semantic_hash": ""
   }
 }
