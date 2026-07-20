@@ -173,6 +173,7 @@
   "171": ".moveItem",
   "172": "MinHeap",
   "173": "Pathfinding.js",
+  "174": ".toJSON",
   "175": "MockGameMap",
   "176": "TestMapBuilder",
   "177": "Quadrant",
@@ -180,6 +181,9 @@
   "179": ".onItemCrafted",
   "180": "MusicManager",
   "181": "react",
+  "182": "test_noise.js",
+  "183": "test_noise_assert.js",
+  "184": "verify_saveload.mjs",
   "186": ".dropScent",
   "188": "verify_random_map_loops.mjs",
   "194": "TileRenderer.js"

@@ -678,8 +678,8 @@ export const EntityRenderer = {
         if (entity.type === EntityType.PLAYER) {
           ctx.save();
           
-          // Outer dark bevel
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+          // Outer dark bevel (softened to reduce the heavy shadow effect)
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
           ctx.lineWidth = 5;
           ctx.strokeRect(drawX, drawY, drawSize, drawSize);
 
@@ -689,14 +689,14 @@ export const EntityRenderer = {
           grad.addColorStop(0.3, '#94a3b8'); // mid gray
           grad.addColorStop(0.5, '#cbd5e1'); // reflection
           grad.addColorStop(0.8, '#475569'); // dark gray
-          grad.addColorStop(1, '#0f172a');   // deep shadow bottom-right
+          grad.addColorStop(1, '#334155');   // softened shadow bottom-right
 
           ctx.strokeStyle = grad;
           ctx.lineWidth = 3;
           ctx.strokeRect(drawX, drawY, drawSize, drawSize);
 
           // Corner rivets to emphasize the metallic/industrial look
-          ctx.fillStyle = '#0f172a'; // dark rivet color
+          ctx.fillStyle = '#334155'; // softened rivet color
           const r = 1.5;
           const inset = 3;
           ctx.beginPath(); ctx.arc(drawX + inset, drawY + inset, r, 0, Math.PI * 2); ctx.fill();

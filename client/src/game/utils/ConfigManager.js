@@ -33,7 +33,8 @@ class ConfigManager {
             musicVolume: 0.5,
             sfxVolume: 1.0,
             showTutorials: true,
-            highQuality: true
+            highQuality: true,
+            furnitureOpacity: 0.85
         };
     }
 

@@ -169,9 +169,18 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
         audioManager.playOneShot('Click', { volume: 0.5 });
     };
 
+    const [furnitureOpacity, setFurnitureOpacity] = useState(configManager.get('furnitureOpacity') ?? 0.85);
+
+    const handleFurnitureOpacityChange = (vals: number[]) => {
+        const val = vals[0];
+        setFurnitureOpacity(val);
+        configManager.set('furnitureOpacity', val);
+        window.dispatchEvent(new CustomEvent('config-changed', { detail: { key: 'furnitureOpacity', value: val } }));
+    };
+
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-background/90 backdrop-blur-md pointer-events-auto animate-in fade-in zoom-in duration-200">
-            <Card className="w-[500px] bg-card border-2 border-primary/20 shadow-2xl relative overflow-hidden">
+            <Card className="w-[500px] h-[550px] flex flex-col bg-card border-2 border-primary/20 shadow-2xl relative overflow-hidden">
                 {/* Decorative Background */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -196,8 +205,8 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                     </div>
                 </CardHeader>
 
-                <CardContent className="pt-6">
-                    <Tabs defaultValue="audio" className="w-full" onValueChange={setActiveTab}>
+                <CardContent className="pt-6 flex-1 flex flex-col overflow-hidden">
+                    <Tabs defaultValue="audio" className="w-full flex-1 flex flex-col overflow-hidden" onValueChange={setActiveTab}>
                         <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
                             <TabsTrigger value="audio" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
                                 <Volume2 className="w-4 h-4" />
@@ -209,10 +218,10 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                             </TabsTrigger>
                         </TabsList>
 
-                        <div className="min-h-[200px] flex items-center justify-center p-8 bg-muted/20 rounded-2xl border border-dashed border-border/50">
+                        <div className="flex-1 min-h-0 bg-muted/20 rounded-2xl border border-dashed border-border/50 p-6 overflow-y-auto custom-scrollbar flex flex-col">
 
                             <TabsContent value="graphics" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
-                                <div className="space-y-6">
+                                <div className="space-y-6 py-1">
                                     <div className="flex flex-col gap-3">
                                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Map Tile Set</label>
                                         <div className="flex gap-2">
@@ -282,12 +291,33 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                             Switch between Dark, Dark 2, Light, and Neumorphic Light interface modes.
                                         </p>
                                     </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex justify-between items-center px-1">
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Furniture Opacity</label>
+                                            <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-0.5 rounded-md border border-border/40">
+                                                {Math.round(furnitureOpacity * 100)}%
+                                            </span>
+                                        </div>
+                                        <div className="px-1 py-1">
+                                            <Slider 
+                                                value={[furnitureOpacity]} 
+                                                min={0.0}
+                                                max={1.0} 
+                                                step={0.05} 
+                                                onValueChange={handleFurnitureOpacityChange} 
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground/60 italic px-1">
+                                            Adjust transparency of the blueprint-style furniture outlines.
+                                        </p>
+                                    </div>
                                 </div>
                             </TabsContent>
 
 
                             <TabsContent value="audio" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
-                                <div className="space-y-6">
+                                <div className="space-y-6 py-1">
                                     <div className="flex flex-col gap-4">
                                         
                                         <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
@@ -311,7 +341,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                              </TabsContent>
 
                             <TabsContent value="saves" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
-                                <div className="space-y-6">
+                                <div className="space-y-6 py-1">
                                     <div className="flex flex-col gap-3">
                                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">File Actions</label>
                                         <div className="flex gap-4">
@@ -402,7 +432,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
 
                                     <div className="flex flex-col gap-3">
                                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Local Browser Saves</label>
-                                        <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                                        <div className="space-y-2">
                                             {savesList.length === 0 ? (
                                                 <p className="text-sm text-muted-foreground/60 italic text-center py-4">
                                                     No local save slots found.

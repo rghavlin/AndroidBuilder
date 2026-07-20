@@ -10,6 +10,7 @@ import { EffectRenderer } from '../../game/renderer/EffectRenderer.js';
 import { SpeechBubbleRenderer } from '../../game/renderer/SpeechBubbleRenderer.js';
 import { useSpeechBubbles } from '../../contexts/SpeechBubbleContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
+import { configManager } from '../../game/utils/ConfigManager.js';
 import { EntityType } from '../../game/entities/Entity.js';
 import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 import engine from '../../game/GameEngine.js';
@@ -61,6 +62,7 @@ export default function MapCanvas({
   const lastZoomChangeAtRef = useRef(0);
   const zoomPendingRef = useRef(false);
   const lastThemeRef = useRef(null);
+  const lastFurnitureOpacityRef = useRef(null);
   // Offscreen canvases for the smooth fog/lighting overlay (sized to viewport).
   // lightingCanvas holds the final fog layer; lightMaskCanvas holds the sharp
   // per-tile visibility mask that we blur once to feather the fog boundary.
@@ -135,6 +137,18 @@ export default function MapCanvas({
     };
     return () => { imageLoader.onImageLoaded = null; };
   }, []);
+
+  // Sync config updates (like furniture opacity) directly in real-time
+  useEffect(() => {
+    const handleConfigChange = (e) => {
+      if (e.detail?.key === 'furnitureOpacity') {
+        chunkCacheRef.current.invalidateAll();
+        requestRender();
+      }
+    };
+    window.addEventListener('config-changed', handleConfigChange);
+    return () => window.removeEventListener('config-changed', handleConfigChange);
+  }, [requestRender]);
 
   const [isDragging, setIsDragging] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
@@ -295,6 +309,12 @@ export default function MapCanvas({
       if (currentTheme !== lastThemeRef.current) {
         chunkCacheRef.current.invalidateAll();
         lastThemeRef.current = currentTheme;
+      }
+
+      const currentFurnitureOpacity = configManager.get('furnitureOpacity') ?? 0.85;
+      if (currentFurnitureOpacity !== lastFurnitureOpacityRef.current) {
+        chunkCacheRef.current.invalidateAll();
+        lastFurnitureOpacityRef.current = currentFurnitureOpacity;
       }
 
       ctx.fillStyle = isSteampunk ? '#2a2118' : (isLight ? '#f5f5f7' : '#111');

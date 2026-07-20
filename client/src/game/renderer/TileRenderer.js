@@ -2,6 +2,7 @@
  * TileRenderer - Pure rendering functions for map terrain and overlays
  */
 import { imageLoader } from '../../game/utils/ImageLoader.js';
+import { configManager } from '../../game/utils/ConfigManager.js';
 
 // Grid coordinates on the 16x16 sprite sheet (2048x2048 total size, 128x128 per tile)
 const SPRITE_ATLAS_MAP = {
@@ -17,16 +18,16 @@ const SPRITE_ATLAS_MAP = {
 
 const TERRAIN_COLORS = {
   'grass': '#1a3c1a',
-  'road': '#2d2d2d',
-  'transition': '#2d2d2d',
+  'road': '#262626',
+  'transition': '#262626',
   'sidewalk': '#555',
   'wall': '#888',     // High-contrast structural gray
-  'building': '#777', // Concrete/Building gray
+  'building': '#6a6a6a', // Concrete/Building gray, slightly darker for contrast
   'fence': '#4a3728', 
   'tree': '#064e3b',
   'tent_wall': '#78716c',
   'tent_floor': '#5b4d3d', 
-  'floor': '#333', 
+  'floor': '#3a3a3a', // Raised from pure #333 so procedural detail reads
   'water': '#1a3c5a',
   'dirt': '#3d2b1f'
 };
@@ -66,16 +67,16 @@ const STEAMPUNK_TERRAIN_COLORS = {
 
 const BW_TERRAIN_COLORS = {
   'grass': '#4a4c4f',       // Lighter outdoor grass, clearly distinct from indoor floors
-  'road': '#3a3a3c',        // Mid-dark gray road
-  'transition': '#3a3a3c',
+  'road': '#363638',        // Mid-dark gray road, slightly darker than floor for contrast
+  'transition': '#363638',
   'sidewalk': '#555555',    // Medium gray
   'wall': '#9a9a9e',        // Bright cool gray for high contrast structure
-  'building': '#2e2e30',    // Building mass, darker than road so roofs/exteriors read as architecture
+  'building': '#2a2a2c',    // Building mass, darker than road so roofs/exteriors read as architecture
   'fence': '#666666',       // Light mid-gray
   'tree': '#111111',        // Almost black
   'tent_wall': '#888888',
-  'tent_floor': '#242528',  // Dark floor with cool tint
-  'floor': '#242528',       // Dark indoor floor for blueprint style
+  'tent_floor': '#2a2c2f',  // Dark floor with cool tint
+  'floor': '#282a2d',       // Slightly raised dark indoor floor so details show
   'water': '#101010',       // Darkest
   'dirt': '#3a3a3c'         // Earthy mid-gray, distinct from grass
 };
@@ -108,6 +109,86 @@ function drawNoTextureGrass(ctx, screenX, screenY, tileSize, x, y) {
   ctx.stroke();
 }
 
+/**
+ * Draw a subtle tactical tile pattern on floor tiles to break up flat color.
+ * Uses deterministic pseudo-random values from tile coordinates so the detail
+ * is stable across chunk rebuilds and zooms.
+ */
+function drawFloorTilePattern(ctx, screenX, screenY, tileSize, x, y, theme) {
+  const hash = Math.abs((x * 31) ^ (y * 17));
+  const baseAlpha = theme === 'light' ? 0.05 : 0.07;
+  const lineAlpha = baseAlpha + (hash % 5) / 400;
+
+  ctx.save();
+  ctx.lineCap = 'butt';
+  ctx.lineJoin = 'miter';
+
+  // Very subtle panel / grout lines so large rooms read as tiled concrete.
+  ctx.strokeStyle = theme === 'light' ? `rgba(0,0,0,${lineAlpha})` : `rgba(255,255,255,${lineAlpha})`;
+  ctx.lineWidth = Math.max(1, Math.floor(tileSize * 0.03));
+  const pad = tileSize * 0.12;
+  ctx.strokeRect(screenX + pad, screenY + pad, tileSize - pad * 2, tileSize - pad * 2);
+
+  // A few tiny scuff marks / stains.
+  const scuffs = 2 + (hash % 3);
+  ctx.fillStyle = theme === 'light' ? `rgba(0,0,0,${lineAlpha * 0.6})` : `rgba(255,255,255,${lineAlpha * 0.6})`;
+  for (let i = 0; i < scuffs; i++) {
+    const sx = screenX + ((hash + i * 47) % 100) / 100 * tileSize;
+    const sy = screenY + ((hash + i * 73) % 100) / 100 * tileSize;
+    const sw = tileSize * (0.08 + ((hash + i * 13) % 6) / 100);
+    const sh = tileSize * 0.03;
+    ctx.fillRect(sx, sy, sw, sh);
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draw drop shadows beneath wall edges to give walls visual weight and separate
+ * them from the floor.
+ */
+function drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme) {
+  const shadowSize = Math.max(2, Math.floor(tileSize * 0.12));
+  const shadowAlpha = theme === 'light' ? 0.14 : 0.32;
+
+  ctx.save();
+  ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+
+  if (hasN) ctx.fillRect(screenX, screenY, tileSize, shadowSize);
+  if (hasS) ctx.fillRect(screenX, screenY + tileSize - shadowSize, tileSize, shadowSize);
+  if (hasW) ctx.fillRect(screenX, screenY, shadowSize, tileSize);
+  if (hasE) ctx.fillRect(screenX + tileSize - shadowSize, screenY, shadowSize, tileSize);
+
+  ctx.restore();
+}
+
+/**
+ * Darken the inner corners where walls meet to create ambient occlusion and
+ * make corners read as solid architectural joins.
+ */
+function drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme) {
+  const cornerSize = Math.max(4, Math.floor(tileSize * 0.22));
+  const aoAlpha = theme === 'light' ? 0.1 : 0.28;
+
+  ctx.save();
+  ctx.fillStyle = `rgba(0, 0, 0, ${aoAlpha})`;
+
+  const corners = [
+    [hasN && hasW, screenX, screenY],
+    [hasN && hasE, screenX + tileSize - cornerSize, screenY],
+    [hasS && hasW, screenX, screenY + tileSize - cornerSize],
+    [hasS && hasE, screenX + tileSize - cornerSize, screenY + tileSize - cornerSize]
+  ];
+
+  for (const [active, cx, cy] of corners) {
+    if (active) {
+      ctx.fillRect(cx, cy, cornerSize, cornerSize);
+    }
+  }
+
+  ctx.restore();
+}
+
 export const TileRenderer = {
   /**
    * Draw a single map tile (Terrain, Fog, FOV)
@@ -120,6 +201,7 @@ export const TileRenderer = {
     if (isExplored) {
         const isLight = document.documentElement.classList.contains('light');
         const isSteampunk = document.documentElement.classList.contains('steampunk');
+        const theme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
         // Use structural mapping for important types to guarantee visibility
         const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
@@ -130,9 +212,12 @@ export const TileRenderer = {
         // This breaks up large uniform rooms so they don't look like a flat void.
         if (tile.terrain === 'floor' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
             const hash = Math.abs((x * 31) ^ (y * 17)) % 16;
-            const alpha = 0.015 + (hash / 16) * 0.035;
+            const alpha = 0.025 + (hash / 16) * 0.045;
             ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
             ctx.fillRect(screenX, screenY, tileSize, tileSize);
+
+            // Tactical tile pattern: faint grout lines and scuff marks.
+            drawFloorTilePattern(ctx, screenX, screenY, tileSize, x, y, theme);
         }
 
         // Simple grass blade pattern when no tile sprites are loaded.
@@ -247,6 +332,10 @@ export const TileRenderer = {
         const hasW = hasEdgeWall(tile, 'w') || (engine && engine.gameMap && hasEdgeWall(engine.gameMap.getTile(x - 1, y), 'e'));
 
         if (hasN || hasE || hasS || hasW) {
+            // Drop-shadow and corner occlusion give walls weight before the wall lines are drawn.
+            drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
+            drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
+
             const sheet = (imageLoader.tileSet === 'spritesheet') ? sprites?.['tile_spritesheet'] : null;
             if (sheet) {
                 const bitmask = (hasN ? 1 : 0) +
@@ -413,6 +502,7 @@ export const TileRenderer = {
     // Base colour (always drawn — unexplored tiles are masked by MapCanvas)
     const isLight = document.documentElement.classList.contains('light');
     const isSteampunk = document.documentElement.classList.contains('steampunk');
+    const theme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
     const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
     const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
     ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
@@ -421,9 +511,12 @@ export const TileRenderer = {
     // Subtle per-tile floor variation for the grayscale no-texture mode.
     if (tile.terrain === 'floor' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
       const hash = Math.abs((worldX * 31) ^ (worldY * 17)) % 16;
-      const alpha = 0.015 + (hash / 16) * 0.035;
+      const alpha = 0.025 + (hash / 16) * 0.045;
       ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
       ctx.fillRect(screenX, screenY, tileSize, tileSize);
+
+      // Tactical tile pattern: faint grout lines and scuff marks.
+      drawFloorTilePattern(ctx, screenX, screenY, tileSize, worldX, worldY, theme);
     }
 
     // Simple grass blade pattern when no tile sprites are loaded.
@@ -511,6 +604,10 @@ export const TileRenderer = {
     const hasW = hasEdgeWall(tile, 'w') || (engine?.gameMap && hasEdgeWall(engine.gameMap.getTile(worldX - 1, worldY), 'e'));
 
     if (hasN || hasE || hasS || hasW) {
+      // Drop-shadow and corner occlusion give walls weight before the wall lines are drawn.
+      drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
+      drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
+
       const sheet = (imageLoader.tileSet === 'spritesheet') ? sprites?.['tile_spritesheet'] : null;
       if (sheet) {
         const bitmask = (hasN ? 1 : 0) + (hasE ? 2 : 0) + (hasS ? 4 : 0) + (hasW ? 8 : 0);
@@ -605,6 +702,11 @@ export const TileRenderer = {
     ctx.save();
     ctx.translate(px + wpx / 2, py + hpx / 2);
     ctx.rotate(rot * Math.PI / 2);
+
+    // Apply transparent styling for CAD-style furniture outlines
+    const furnitureOpacity = configManager.get('furnitureOpacity') ?? 0.85;
+    ctx.globalAlpha = furnitureOpacity;
+
     // Small drop shadow to ground the furniture against dark floors.
     ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
     ctx.shadowBlur = 0;
@@ -634,18 +736,18 @@ export const TileRenderer = {
 
     if (theme === 'light') {
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
     } else if (theme === 'steampunk') {
         ctx.strokeStyle = 'rgba(60, 40, 20, 0.95)';
-        ctx.fillStyle = 'rgba(60, 40, 20, 0.1)';
+        ctx.fillStyle = 'rgba(60, 40, 20, 0.12)';
     } else {
         // Dark / grayscale mode - crisp blueprint lines that read against dark floors.
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
         // Cool blueprint fill, stronger than before so furniture reads as a solid surface.
-        ctx.fillStyle = 'rgba(120, 160, 220, 0.12)';
+        ctx.fillStyle = 'rgba(120, 160, 220, 0.16)';
     }
 
-    ctx.lineWidth = Math.max(2, Math.floor(tileSize * 0.08));
+    ctx.lineWidth = Math.max(2.5, Math.floor(tileSize * 0.09));
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     

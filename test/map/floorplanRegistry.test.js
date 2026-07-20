@@ -185,6 +185,38 @@ describe('FloorplanRegistry authored plans', () => {
     }
   });
 
+  it('every authored hall is at least 2 tiles wide', () => {
+    for (const p of FLOORPLANS) {
+      const at = (x, y) => (x >= 0 && x < p.width && y >= 0 && y < p.height ? p.grid[y][x] : null);
+      for (const [c, role] of Object.entries(p.legend)) {
+        if (role !== 'hall') continue;
+        for (let y = 0; y < p.height; y++) {
+          for (let x = 0; x < p.width; x++) {
+            if (at(x, y) !== c) continue;
+            const in2x2 = [[0, 0], [-1, 0], [0, -1], [-1, -1]].some(([ox, oy]) =>
+              at(x + ox, y + oy) === c && at(x + ox + 1, y + oy) === c &&
+              at(x + ox, y + oy + 1) === c && at(x + ox + 1, y + oy + 1) === c);
+            expect(in2x2, `${p.id}: hall '${c}' is 1 tile wide at (${x},${y})`).toBe(true);
+          }
+        }
+      }
+    }
+  });
+
+  it('validateFloorplan flags a 1-tile-wide hall', () => {
+    const narrow = {
+      id: 'narrow', width: 6, height: 6,
+      grid: ['AAAAAA', 'AAAAAA', 'HHHHHH', 'LLLLLL', 'LLLLLL', 'LLLLLL'],
+      legend: { A: 'bedroom', H: 'hall', L: 'living' },
+      doors: [{ x: 2, y: 2, edge: 'n' }, { x: 2, y: 3, edge: 'n' }],
+      entrance: { x: 2, y: 5, edge: 's' }, back: { x: 2, y: 0, edge: 'n' },
+      furniture: [],
+    };
+    const v = validateFloorplan(narrow);
+    expect(v.ok).toBe(false);
+    expect(v.errors.some(e => /narrower than 2/.test(e))).toBe(true);
+  });
+
   it('validateFloorplan flags a sealed room', () => {
     const sealed = {
       id: 'sealed', width: 4, height: 4,

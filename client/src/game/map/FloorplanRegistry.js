@@ -132,7 +132,7 @@ const RANCH_2BED_1BATH = {
     { type: 'toilet', x: 6, y: 0, rot: 0 },
     { type: 'bathtub', x: 7, y: 5, rot: 0 },
     // living L (x0..7, y9..13): couch on the south wall (east of the entrance), chair on east wall
-    { type: 'couch', x: 4, y: 13, rot: 0 },
+    { type: 'couch', x: 4, y: 13, rot: 2 },
     { type: 'chair', x: 7, y: 10, rot: 1 },
     // kitchen K (x8..13, y9..13): counter backing the hall wall, table centred
     { type: 'table', x: 10, y: 10, rot: 0 },
@@ -314,6 +314,23 @@ export function validateFloorplan(plan) {
     if (!reached.has(c)) errors.push(`room '${c}' (${legend[c]}) is unreachable from the entrance`);
   }
 
+  // Halls must be at least 2 tiles wide everywhere — a 1-tile corridor reads as a
+  // gap between rooms rather than a hallway. Every hall tile must belong to some
+  // 2x2 block of hall tiles, which catches a narrow run of any shape.
+  for (const [c, cells] of charCells) {
+    if (legend[c] !== 'hall') continue;
+    const inHall = (x, y) => at(x, y) === c;
+    for (const { x, y } of cells) {
+      const in2x2 = [[0, 0], [-1, 0], [0, -1], [-1, -1]].some(([ox, oy]) =>
+        inHall(x + ox, y + oy) && inHall(x + ox + 1, y + oy) &&
+        inHall(x + ox, y + oy + 1) && inHall(x + ox + 1, y + oy + 1));
+      if (!in2x2) {
+        errors.push(`hall '${c}' is narrower than 2 tiles at (${x},${y})`);
+        break; // one report per hall is enough
+      }
+    }
+  }
+
   // Furniture: every piece must sit fully in bounds, entirely within ONE room
   // (never straddling a wall), never overlap another piece, and never cover a
   // door tile (interior, entrance, or back). This lets the stamp place all
@@ -383,7 +400,7 @@ const COTTAGE_1BED = {
     { type: 'bed', x: 7, y: 0, rot: 0 },     // bedroom A, north wall by the bath
     { type: 'toilet', x: 9, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 11, y: 3, rot: 0 },
-    { type: 'couch', x: 4, y: 11, rot: 0 },   // living couch on the south wall (east of the entrance)
+    { type: 'couch', x: 4, y: 11, rot: 2 },   // living couch on the south wall (east of the entrance)
     { type: 'counter', x: 7, y: 7, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 8, y: 8, rot: 0 },   // kitchen table centered, not against the wall
   ],
@@ -607,7 +624,7 @@ const COTTAGE_2BED_TALL = {
     { type: 'bed', x: 9, y: 0, rot: 0 },      // bedroom B, north wall
     { type: 'toilet', x: 5, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 6, y: 1, rot: 0 },  // bathroom, east wall
-    { type: 'couch', x: 0, y: 15, rot: 0 },   // living couch on south wall (west of the entrance)
+    { type: 'couch', x: 0, y: 15, rot: 2 },   // living couch on south wall (west of the entrance)
     { type: 'table', x: 2, y: 10, rot: 0 },   // living table, centered
     { type: 'counter', x: 6, y: 8, rot: 0 },  // kitchen counter on hall wall
     { type: 'table', x: 8, y: 10, rot: 0 },   // kitchen table, centered
@@ -649,7 +666,7 @@ const RANCH_2BED_WIDE = {
     { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B, north wall
     { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 8, y: 2, rot: 0 },  // bathroom, east wall
-    { type: 'couch', x: 6, y: 11, rot: 0 },   // living couch on south wall (clear of the table)
+    { type: 'couch', x: 6, y: 11, rot: 2 },   // living couch on south wall (clear of the table)
     { type: 'table', x: 3, y: 8, rot: 0 },    // living table, centered
     { type: 'counter', x: 9, y: 7, rot: 0 },  // kitchen counter on hall wall
   ],
@@ -691,7 +708,7 @@ const BUNGALOW_2BED_LARGE = {
     { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B, north wall
     { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 7, y: 2, rot: 0 },  // bathroom, east wall
-    { type: 'couch', x: 7, y: 11, rot: 0 },   // living couch on south wall (clear of the table)
+    { type: 'couch', x: 7, y: 11, rot: 2 },   // living couch on south wall (clear of the table)
     { type: 'table', x: 4, y: 8, rot: 0 },    // living table, centered
     { type: 'counter', x: 10, y: 7, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 12, y: 8, rot: 0 },   // kitchen table, centered
@@ -739,7 +756,7 @@ const RANCH_3BED = {
     { type: 'bed', x: 14, y: 0, rot: 0 },     // bedroom E
     { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 8, y: 2, rot: 0 },  // bathroom, east wall
-    { type: 'couch', x: 5, y: 15, rot: 0 },   // living couch on south wall (east of the entrance)
+    { type: 'couch', x: 5, y: 15, rot: 2 },   // living couch on south wall (east of the entrance)
     { type: 'table', x: 3, y: 10, rot: 0 },   // living table, centered
     { type: 'counter', x: 10, y: 8, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 12, y: 10, rot: 0 },  // kitchen table, centered
@@ -786,7 +803,7 @@ const RANCH_3BED_TALL = {
     { type: 'bed', x: 17, y: 0, rot: 0 },     // bedroom E
     { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 9, y: 2, rot: 0 },  // bathroom, east wall
-    { type: 'couch', x: 5, y: 13, rot: 0 },   // living couch on south wall (east of the entrance)
+    { type: 'couch', x: 5, y: 13, rot: 2 },   // living couch on south wall (east of the entrance)
     { type: 'table', x: 3, y: 9, rot: 0 },    // living table, centered
     { type: 'counter', x: 10, y: 8, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 12, y: 9, rot: 0 },   // kitchen table, centered
@@ -831,7 +848,7 @@ const BUNGALOW_3BED_EXTRA_WIDE = {
     { type: 'bed', x: 18, y: 0, rot: 0 },     // bedroom E
     { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
     { type: 'bathtub', x: 9, y: 2, rot: 0 },  // bathroom, east wall
-    { type: 'couch', x: 7, y: 11, rot: 0 },   // living couch on south wall (clear of the table)
+    { type: 'couch', x: 7, y: 11, rot: 2 },   // living couch on south wall (clear of the table)
     { type: 'table', x: 4, y: 8, rot: 0 },    // living table, centered
     { type: 'counter', x: 12, y: 7, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 15, y: 8, rot: 0 },   // kitchen table, centered
@@ -852,9 +869,9 @@ const SMALL_1BED_10 = {
     'AAAAAAAWWW', // y1
     'AAAAAAAWWW', // y2
     'AAAAAAAWWW', // y3
-    'HHHHHHHHHH', // y4  hall (1 row)
-    'LLLLLLKKKK', // y5  L=living, K=kitchen
-    'LLLLLLKKKK', // y6
+    'HHHHHHHHHH', // y4  hall (2 rows)
+    'HHHHHHHHHH', // y5
+    'LLLLLLKKKK', // y6  L=living, K=kitchen
     'LLLLLLKKKK', // y7
     'LLLLLLKKKK', // y8
     'LLLLLLKKKK', // y9
@@ -863,15 +880,15 @@ const SMALL_1BED_10 = {
   doors: [
     { x: 3, y: 4, edge: 'n' },  // bedroom A <-> hall
     { x: 8, y: 4, edge: 'n' },  // bathroom W <-> hall
-    { x: 2, y: 5, edge: 'n' },  // living L <-> hall
-    { x: 8, y: 5, edge: 'n' },  // kitchen K <-> hall
+    { x: 2, y: 6, edge: 'n' },  // living L <-> hall
+    { x: 8, y: 6, edge: 'n' },  // kitchen K <-> hall
   ],
   furniture: [
     { type: 'bed', x: 0, y: 0, rot: 0 },     // bedroom A
     { type: 'toilet', x: 7, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 9, y: 2, rot: 0 }, // bathroom, east wall
-    { type: 'couch', x: 3, y: 9, rot: 0 },   // living couch on south wall
-    { type: 'counter', x: 6, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'couch', x: 3, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'counter', x: 6, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 7, y: 7, rot: 0 },   // kitchen table
   ],
 };
@@ -886,9 +903,9 @@ const SMALL_2BED_12 = {
     'AAAAAWWBBBBB', // y1
     'AAAAAWWBBBBB', // y2
     'AAAAAWWBBBBB', // y3
-    'HHHHHHHHHHHH', // y4  hall
-    'LLLLLLKKKKKK', // y5  L=living, K=kitchen
-    'LLLLLLKKKKKK', // y6
+    'HHHHHHHHHHHH', // y4  hall (2 rows)
+    'HHHHHHHHHHHH', // y5
+    'LLLLLLKKKKKK', // y6  L=living, K=kitchen
     'LLLLLLKKKKKK', // y7
     'LLLLLLKKKKKK', // y8
     'LLLLLLKKKKKK', // y9
@@ -898,16 +915,16 @@ const SMALL_2BED_12 = {
     { x: 2, y: 4, edge: 'n' },  // bedroom A <-> hall
     { x: 5, y: 4, edge: 'n' },  // bathroom W <-> hall
     { x: 9, y: 4, edge: 'n' },  // bedroom B <-> hall
-    { x: 2, y: 5, edge: 'n' },  // living L <-> hall
-    { x: 9, y: 5, edge: 'n' },  // kitchen K <-> hall
+    { x: 2, y: 6, edge: 'n' },  // living L <-> hall
+    { x: 9, y: 6, edge: 'n' },  // kitchen K <-> hall
   ],
   furniture: [
     { type: 'bed', x: 0, y: 0, rot: 0 },     // bedroom A
     { type: 'bed', x: 10, y: 0, rot: 0 },    // bedroom B
     { type: 'toilet', x: 5, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 6, y: 2, rot: 0 }, // bathroom, east wall
-    { type: 'couch', x: 3, y: 9, rot: 0 },   // living couch on south wall
-    { type: 'counter', x: 6, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'couch', x: 3, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'counter', x: 6, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 8, y: 7, rot: 0 },   // kitchen table
   ],
 };
@@ -922,9 +939,9 @@ const SMALL_2BED_14 = {
     'AAAAAAAWWBBBBB', // y1
     'AAAAAAAWWBBBBB', // y2
     'AAAAAAAWWBBBBB', // y3
-    'HHHHHHHHHHHHHH', // y4  hall
-    'LLLLLLLKKKKKKK', // y5  L=living, K=kitchen
-    'LLLLLLLKKKKKKK', // y6
+    'HHHHHHHHHHHHHH', // y4  hall (2 rows)
+    'HHHHHHHHHHHHHH', // y5
+    'LLLLLLLKKKKKKK', // y6  L=living, K=kitchen
     'LLLLLLLKKKKKKK', // y7
     'LLLLLLLKKKKKKK', // y8
     'LLLLLLLKKKKKKK', // y9
@@ -934,16 +951,16 @@ const SMALL_2BED_14 = {
     { x: 3, y: 4, edge: 'n' },   // bedroom A <-> hall
     { x: 7, y: 4, edge: 'n' },   // bathroom W <-> hall
     { x: 11, y: 4, edge: 'n' },  // bedroom B <-> hall
-    { x: 3, y: 5, edge: 'n' },   // living L <-> hall
-    { x: 10, y: 5, edge: 'n' },  // kitchen K <-> hall
+    { x: 3, y: 6, edge: 'n' },   // living L <-> hall
+    { x: 10, y: 6, edge: 'n' },  // kitchen K <-> hall
   ],
   furniture: [
     { type: 'bed', x: 0, y: 0, rot: 0 },     // bedroom A
     { type: 'bed', x: 12, y: 0, rot: 0 },    // bedroom B
     { type: 'toilet', x: 7, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 8, y: 2, rot: 0 }, // bathroom, east wall
-    { type: 'couch', x: 4, y: 9, rot: 0 },   // living couch on south wall
-    { type: 'counter', x: 7, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'couch', x: 4, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'counter', x: 7, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 10, y: 7, rot: 0 },  // kitchen table
   ],
 };
@@ -958,9 +975,9 @@ const SMALL_2BED_16 = {
     'CCAAAAWWBBBBBBDD', // y1
     'AAAAAAWWBBBBBBBB', // y2
     'AAAAAAWWBBBBBBBB', // y3
-    'HHHHHHHHHHHHHHHH', // y4  hall
-    'LLLLLLLLKKKKKKKK', // y5  L=living, K=kitchen
-    'LLLLLLLLKKKKKKKK', // y6
+    'HHHHHHHHHHHHHHHH', // y4  hall (2 rows)
+    'HHHHHHHHHHHHHHHH', // y5
+    'LLLLLLLLKKKKKKKK', // y6  L=living, K=kitchen
     'LLLLLLLLKKKKKKKK', // y7
     'LLLLLLLLKKKKKKKK', // y8
     'LLLLLLLLKKKKKKKK', // y9
@@ -972,16 +989,16 @@ const SMALL_2BED_16 = {
     { x: 11, y: 4, edge: 'n' },  // bedroom B <-> hall
     { x: 0, y: 2, edge: 'n' },   // closet C <-> bedroom A
     { x: 15, y: 2, edge: 'n' },  // closet D <-> bedroom B
-    { x: 3, y: 5, edge: 'n' },   // living L <-> hall
-    { x: 11, y: 5, edge: 'n' },  // kitchen K <-> hall
+    { x: 3, y: 6, edge: 'n' },   // living L <-> hall
+    { x: 11, y: 6, edge: 'n' },  // kitchen K <-> hall
   ],
   furniture: [
     { type: 'bed', x: 4, y: 0, rot: 0 },     // bedroom A (east of the back door)
     { type: 'bed', x: 10, y: 0, rot: 0 },    // bedroom B
     { type: 'toilet', x: 6, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 7, y: 2, rot: 0 }, // bathroom, east wall
-    { type: 'couch', x: 5, y: 9, rot: 0 },   // living couch on south wall
-    { type: 'counter', x: 8, y: 5, rot: 0 }, // kitchen counter on hall wall
+    { type: 'couch', x: 5, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'counter', x: 8, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 11, y: 7, rot: 0 },  // kitchen table
   ],
 };

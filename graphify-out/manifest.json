@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784454612.0053973,
-    "ast_hash": "61782c2fdbf39e428658ed233072ddb0",
+    "mtime": 1784510017.6567068,
+    "ast_hash": "2e2f72f132f70575e94e3c628fa251b9",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1784440643.4814868,
-    "ast_hash": "10f8ce753c82aa93fad0b20471521b93",
+    "mtime": 1784465034.0267575,
+    "ast_hash": "2ff9a21b55d40bab00761f16cd0b21c8",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -180,8 +180,8 @@
     "semantic_hash": "6cb0e10aaee5e3646f729c705db6a5f0"
   },
   "client/src/components/Game/OptionsWindow.tsx": {
-    "mtime": 1784444002.8542473,
-    "ast_hash": "d662e7b46535eb2264f3d37a5c230339",
+    "mtime": 1784492107.2395337,
+    "ast_hash": "1d8a59c32d0a20c854bd0713343202ea",
     "semantic_hash": ""
   },
   "client/src/components/Game/OverlayManager.tsx": {
@@ -645,8 +645,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
-    "mtime": 1784023711.3398283,
-    "ast_hash": "06fb2f5760ebc82e5208a459669b006e",
+    "mtime": 1784460175.500906,
+    "ast_hash": "7ff8d63e970b0a14d2c9ef7acee8b012",
     "semantic_hash": ""
   },
   "client/src/contexts/GridSizeContext.tsx": {
@@ -1070,8 +1070,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
-    "mtime": 1784417020.6560686,
-    "ast_hash": "4cf17cfbc776e10efe78dfc94d8ee1ea",
+    "mtime": 1784463321.7906938,
+    "ast_hash": "d4cb9b278199ae49c0cc123c4e7c1462",
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1784440643.5081835,
-    "ast_hash": "b7d4765d52856216cc0f499f578022cf",
+    "mtime": 1784490209.4507675,
+    "ast_hash": "e7da598e024d14ba89ae52a2324c5c28",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784444495.7062736,
-    "ast_hash": "aba8e5fc5193817c3557506aa2befef7",
+    "mtime": 1784465019.2465732,
+    "ast_hash": "4ce6cf9efa3ada3c192088ab4dc541a3",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -1270,8 +1270,8 @@
     "semantic_hash": "e2747e585c4f9bafa9fb69c7c0134529"
   },
   "client/src/game/utils/ConfigManager.js": {
-    "mtime": 1784443971.385971,
-    "ast_hash": "efacd76a142ca717fdef2ca78be9077d",
+    "mtime": 1784465012.401882,
+    "ast_hash": "ccec3388ea9647033b652f2f716dc55d",
     "semantic_hash": ""
   },
   "client/src/game/utils/EdgeStructure.js": {
@@ -2965,13 +2965,13 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FloorplanRegistry.js": {
-    "mtime": 1784453490.58223,
-    "ast_hash": "15e49bd380c45fce197ff6b1986bd777",
+    "mtime": 1784508829.292795,
+    "ast_hash": "51309e52df123271212c38bc84699e84",
     "semantic_hash": ""
   },
   "test/map/floorplanRegistry.test.js": {
-    "mtime": 1784452232.7819805,
-    "ast_hash": "42a1f5c13adccdfb76f4476f965f2cac",
+    "mtime": 1784510054.918109,
+    "ast_hash": "e278512d7ce6e02ad68a5a8d56fd2048",
     "semantic_hash": ""
   },
   "tmp/bench_houses.mjs": {
@@ -2992,6 +2992,16 @@
   "tmp/check_furniture_violations.mjs": {
     "mtime": 1784448848.8473213,
     "ast_hash": "1a4e0e84cbe7b24bd4bec1ad3d099890",
+    "semantic_hash": ""
+  },
+  "scratch/process_jimp.js": {
+    "mtime": 1784455606.823988,
+    "ast_hash": "661d03ed9e8efbef1f4582a8e09fd5a1",
+    "semantic_hash": ""
+  },
+  "test/map/roomLoot.test.js": {
+    "mtime": 1784463328.1667376,
+    "ast_hash": "633ba4d28702b15871eb656f07621e9a",
     "semantic_hash": ""
   }
 }

@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784453557.821209,
-    "ast_hash": "27958bb549b8528334a5ad997fd7a17b",
+    "mtime": 1784454612.0053973,
+    "ast_hash": "61782c2fdbf39e428658ed233072ddb0",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1060,9 +1060,9 @@
     "semantic_hash": "f60fe02f8ee600520fc604347da59634"
   },
   "client/src/game/map/BuildingTypes.js": {
-    "mtime": 1780704232.3549256,
-    "ast_hash": "a8293cdcb2b67e9281aaafbf0b0b6311",
-    "semantic_hash": "a8293cdcb2b67e9281aaafbf0b0b6311"
+    "mtime": 1784454266.3810685,
+    "ast_hash": "bd7a8436740d3a658270fbad6e8423f6",
+    "semantic_hash": ""
   },
   "client/src/game/map/GameMap.js": {
     "mtime": 1784416936.0679424,
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784448705.4432056,
-    "ast_hash": "faf08238367d278efb24d3ca5f65a176",
+    "mtime": 1784454283.5517025,
+    "ast_hash": "c736ecbabc29666c1c73c664a837066f",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -1115,13 +1115,13 @@
     "semantic_hash": "77a993f037b5c9d15ffe66f91e305837"
   },
   "client/src/game/map/generators/BaseMapGenerator.js": {
-    "mtime": 1783052374.564545,
-    "ast_hash": "62789c218e1f072e06d200f513ea311b",
-    "semantic_hash": "62789c218e1f072e06d200f513ea311b"
+    "mtime": 1784454711.8027782,
+    "ast_hash": "e2c246a22cf969d38eda97fbcb5aee0c",
+    "semantic_hash": ""
   },
   "client/src/game/map/generators/BranchingRoadGenerator.js": {
-    "mtime": 1784453516.8283522,
-    "ast_hash": "be25603bab3529f652bbc4a14cd5abac",
+    "mtime": 1784454487.6464167,
+    "ast_hash": "b6e8b3e4a359ae2cf160c39bb5a392ae",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/LabMapGenerator.js": {
@@ -1130,14 +1130,14 @@
     "semantic_hash": "c83483a42f179a1d7bd4c9461f81f02c"
   },
   "client/src/game/map/generators/MirroredWindingRoadGenerator.js": {
-    "mtime": 1782210696.9508114,
-    "ast_hash": "b94b34e0a284513287aaf4e0d589a83d",
-    "semantic_hash": "b94b34e0a284513287aaf4e0d589a83d"
+    "mtime": 1784454740.9829774,
+    "ast_hash": "58b0ea41f2544625a18dcb6f471777cc",
+    "semantic_hash": ""
   },
   "client/src/game/map/generators/RoadGenerator.js": {
-    "mtime": 1782210696.9497755,
-    "ast_hash": "0f32cda9a8ce4de7834bf2a8ea1f1ed3",
-    "semantic_hash": "0f32cda9a8ce4de7834bf2a8ea1f1ed3"
+    "mtime": 1784454720.363384,
+    "ast_hash": "ce7037681e3f894592ad327fea65ad61",
+    "semantic_hash": ""
   },
   "client/src/game/map/generators/ScenarioMapGenerator.js": {
     "mtime": 1784023711.3433678,
@@ -1145,19 +1145,19 @@
     "semantic_hash": ""
   },
   "client/src/game/map/generators/SplitRoadGenerator.js": {
-    "mtime": 1782210696.9513693,
-    "ast_hash": "99cff48aff975c61cb6f2c7a9fec743a",
-    "semantic_hash": "99cff48aff975c61cb6f2c7a9fec743a"
+    "mtime": 1784454756.5965993,
+    "ast_hash": "bb37296b9c32204bda8570286c00b029",
+    "semantic_hash": ""
   },
   "client/src/game/map/generators/StartingRoadGenerator.js": {
-    "mtime": 1783066638.2481294,
-    "ast_hash": "ad224ce1e117c3c1631db9f8dbf13851",
-    "semantic_hash": "ad224ce1e117c3c1631db9f8dbf13851"
+    "mtime": 1784454725.8367279,
+    "ast_hash": "a82705f128a36f60af5ea0b367d9e150",
+    "semantic_hash": ""
   },
   "client/src/game/map/generators/WindingRoadGenerator.js": {
-    "mtime": 1782210696.9502952,
-    "ast_hash": "43d21d98ba45dd363a47e0e4571b3372",
-    "semantic_hash": "43d21d98ba45dd363a47e0e4571b3372"
+    "mtime": 1784454734.3378806,
+    "ast_hash": "7c0c64177ba241efbbcb6887099b2b4e",
+    "semantic_hash": ""
   },
   "client/src/game/map/verify_loot.js": {
     "mtime": 1770885491.9399927,
