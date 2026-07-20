@@ -152,3 +152,22 @@ In the production release, the player will be able to choose from three distinct
 * **In-Game Availability:** The Map Editor will be fully included in the production release.
 * **User Customization:** Players will have full access to the Map Editor to design, save, and load their own custom maps, operating with the same workflows currently available in the development build.
 
+---
+
+## 5. Gameplay Description
+
+Based on reference gameplay (e.g., `Gameplay1.webm`), the core experience is a 2D top-down, grid-based, turn-based survival RPG with a stylized monochromatic aesthetic.
+
+### Core Game Loop
+* **Exploration & Looting:** Players navigate grid-based environments (buildings, streets), interacting with objects like doors and safes. Safes can be opened using lockpicks crafted from scavenged materials.
+* **Inventory Management:** The game uses a slot-based and grid-based inventory system (Upper Body, Lower Body, Backpack, Belt slots). Players constantly manage limited space, moving and stacking items.
+* **Turn-Based Combat:** Combat and movement utilize Action Points (AP). Players must manage their AP strategically when engaging various enemy types (Zombies, Crawlers, Peeper Zombies, Runners, Fat Zombies, and Acid Zombies).
+* **Survival Mechanics:** Four primary meters govern survival: **Health, Nutrition, Hydration, and Energy**. Energy depletion requires the player to find safe spots to sleep (using beds or bedrolls) to restore stamina and AP limits.
+* **Crafting & Farming:** Scavenged items are used to craft tools, weapons (e.g., spears, makeshift bags), and campfires. A shovel can be used to dig soil, allowing the player to plant seeds (corn, tomatoes) for sustainable food sources.
+* **NPC Interaction:** Players can trade with "Survivor" NPCs using currency ("Earbucks") to acquire essential items, ammo, seeds, and crafting materials.
+
+### Difficulty and Challenge
+The game presents a moderately to highly difficult survival challenge:
+* **Lethal Threats:** Certain enemies (like Acid Zombies) can kill the player very quickly if engaged poorly. The game mitigates instant failure by providing a "Replay Last Turn" feature.
+* **Status Effects:** Getting attacked can result in deadly conditions such as a "Viral Infection" (e.g., Lethal in 24h). This forces the player into an urgent triage situation where they must craft specific cures, like "Brainstem Stew" cooked at a campfire using zombie parts.
+* **Resource Scarcity:** Strict management of Action Points during combat, careful inventory organization, and consistent upkeep of hunger/thirst/energy meters form the crux of the challenge.

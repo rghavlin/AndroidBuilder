@@ -6,6 +6,7 @@ import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
 import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry } from '@/game/quest/eventTypes';
 import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
+import { TileRenderer } from '@/game/renderer/TileRenderer';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ interface BuildingMeta {
   type: string;
   x: number; y: number;
   width: number; height: number;
+  furniturePlan?: { type: string; x: number; y: number; w: number; h: number; rot?: number }[];
 }
 
 interface ScenarioData {
@@ -1249,6 +1251,7 @@ export default function MapEditor() {
   const [buildStart, setBuildStart] = useState<{ x: number; y: number } | null>(null);
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
   const [showGrid, setShowGrid] = useState(true);
+  const [showFurniture, setShowFurniture] = useState(true);
   const [statusMsg, setStatusMsg] = useState('');
   const [showLoadPicker, setShowLoadPicker] = useState(false);
   const [savedScenarios, setSavedScenarios] = useState<{ name: string; width: number; height: number }[]>([]);
@@ -1562,6 +1565,13 @@ export default function MapEditor() {
     });
     ctx.lineWidth = 1;
 
+    // Furniture outlines (template-generated buildings; matches in-game CAD style)
+    if (showFurniture) {
+      buildings.forEach(b => {
+        b.furniturePlan?.forEach(piece => TileRenderer.drawFurniture(ctx, piece, CELL, 'dark'));
+      });
+    }
+
     // Pass 2: edges, entities, items, events (drawn on top of building outlines)
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -1641,7 +1651,7 @@ export default function MapEditor() {
         }
       }
     }
-  }, [tiles, buildings, width, height, showGrid, exitImage]);
+  }, [tiles, buildings, width, height, showGrid, showFurniture, exitImage]);
 
   // ─── Main Canvas Render (Dynamic Overlays) ───────────────────────────
   useEffect(() => {
@@ -1684,7 +1694,7 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid]);
+  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid, showFurniture]);
 
   // ─── Minimap update logic ────────────────────────────────────────────
   const updateMinimapViewport = useCallback(() => {
@@ -1783,7 +1793,7 @@ export default function MapEditor() {
   // Hook into offscreen redraw to keep minimap synced
   useEffect(() => {
     updateMinimapViewport();
-  }, [tiles, buildings, width, height, showGrid, exitImage, updateMinimapViewport]);
+  }, [tiles, buildings, width, height, showGrid, showFurniture, exitImage, updateMinimapViewport]);
 
   // ─── Mouse handlers ──────────────────────────────────────────────────
   const cellFromEvent = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2373,6 +2383,10 @@ export default function MapEditor() {
           <label style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
             <input type="checkbox" checked={showGrid} onChange={e => setShowGrid(e.target.checked)} />
             Grid
+          </label>
+          <label style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <input type="checkbox" checked={showFurniture} onChange={e => setShowFurniture(e.target.checked)} />
+            Furniture
           </label>
         </div>
 
