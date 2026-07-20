@@ -72,7 +72,7 @@ const BW_TERRAIN_COLORS = {
   'sidewalk': '#555555',    // Medium gray
   'wall': '#9a9a9e',        // Bright cool gray for high contrast structure
   'building': '#2a2a2c',    // Building mass, darker than road so roofs/exteriors read as architecture
-  'fence': '#666666',       // Light mid-gray
+  'fence': '#222222',       // Very dark gray/iron
   'tree': '#111111',        // Almost black
   'tent_wall': '#888888',
   'tent_floor': '#2a2c2f',  // Dark floor with cool tint
@@ -107,6 +107,25 @@ function drawNoTextureGrass(ctx, screenX, screenY, tileSize, x, y) {
     ctx.lineTo(px, py - bladeH / 2);
   }
   ctx.stroke();
+}
+
+/**
+ * Draw a simple no-texture fence pattern: a diagonal cross-hatch to look like chainlink.
+ */
+function drawNoTextureFence(ctx, screenX, screenY, tileSize, theme) {
+  ctx.save();
+  ctx.strokeStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = Math.max(1, Math.floor(tileSize * 0.05));
+  ctx.beginPath();
+  // Draw an X
+  ctx.moveTo(screenX, screenY);
+  ctx.lineTo(screenX + tileSize, screenY + tileSize);
+  ctx.moveTo(screenX + tileSize, screenY);
+  ctx.lineTo(screenX, screenY + tileSize);
+  // Draw a border box
+  ctx.rect(screenX, screenY, tileSize, tileSize);
+  ctx.stroke();
+  ctx.restore();
 }
 
 /**
@@ -223,6 +242,11 @@ export const TileRenderer = {
         // Simple grass blade pattern when no tile sprites are loaded.
         if (tile.terrain === 'grass' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
             drawNoTextureGrass(ctx, screenX, screenY, tileSize, x, y);
+        }
+
+        // Simple chainlink fence pattern when no tile sprites are loaded.
+        if (tile.terrain === 'fence' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
+            drawNoTextureFence(ctx, screenX, screenY, tileSize, theme);
         }
 
         // Step B: Draw Texture Layer (On top of base color) - Skipped in Debug Mode

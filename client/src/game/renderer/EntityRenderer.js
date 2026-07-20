@@ -1057,7 +1057,23 @@ export const EntityRenderer = {
     const subtype = entity.subtype || 'default';
     const sprite = sprites[`place_icon_${subtype}`] || sprites['place_icon'];
     
-    if (sprite) {
+    if (subtype === 'barrier') {
+      const drawSize = tileSize * 0.9;
+      const offsetX = x + (tileSize - drawSize) / 2;
+      const offsetY = y + (tileSize - drawSize) / 2;
+      
+      // Dark background with slight orange tinge
+      ctx.fillStyle = '#26160a';
+      ctx.fillRect(offsetX, offsetY, drawSize, drawSize);
+      
+      if (sprite) {
+        ctx.drawImage(sprite, offsetX, offsetY, drawSize, drawSize);
+      }
+      
+      ctx.strokeStyle = '#110a05';
+      ctx.lineWidth = Math.max(1, tileSize * 0.05);
+      ctx.strokeRect(offsetX, offsetY, drawSize, drawSize);
+    } else if (sprite) {
       ctx.drawImage(sprite, x, y, tileSize, tileSize);
     } else {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
