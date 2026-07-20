@@ -290,6 +290,7 @@ The game loop is explicit and state-machine-driven:
   - `*.scenario.json` — runtime scenario data (tiles, terrain, entities).
   - `*.editor.json` — editor state / metadata.
 - The editor can launch a game window and uses the Electron IPC `list-entity-images` handler to populate the NPC icon picker from `client/public/images/entities/`.
+- Scenario `metadata.buildings` entries may carry a `furniturePlan` (`{type, x, y, w, h, rot}[]`, baked by `MapBuilder.stampFloorplan`). The editor draws these as furniture outlines, and `TemplateMapGenerator.applyToGameMap` stamps them verbatim into `gameMap.furniture` at load so they render in-game (scenario load paths skip `spawnLoot`/`planFurniture`).
 
 ## 10. Useful Commands Quick Reference
 
