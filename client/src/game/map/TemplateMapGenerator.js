@@ -735,6 +735,39 @@ export class TemplateMapGenerator {
   /**
    * Apply template-generated map data to a GameMap instance
    */
+  /**
+   * Give an authored NPC its map-editor loadout: carried items plus the weapon
+   * it fights with. The equipped weapon drives NPCAISystem's choice of attack —
+   * one with rangedStats makes the NPC shoot, anything else makes it close to
+   * melee range. The whole inventory is what the NPC drops when killed
+   * (Entity.die emits `npcDied` with it), so authored loot rides along.
+   *
+   * @param {Entity} npc
+   * @param {Array<Object>} loadout - serialized items (Item.fromJSON shape)
+   * @param {number} [equippedIndex] - index into `loadout`; -1/absent = unarmed
+   */
+  async applyNpcLoadout(npc, loadout, equippedIndex) {
+    if (!npc.inventory) return;
+    const { Item } = await import('../inventory/Item.js');
+
+    const added = [];
+    for (const itemData of loadout) {
+      try {
+        const item = Item.fromJSON(itemData);
+        // Track what actually fit: a full container would otherwise shift the
+        // equipped index onto the wrong item.
+        added.push(npc.inventory.addItem(item) ? item : null);
+      } catch (err) {
+        console.warn(`[TemplateMapGenerator] Failed to build NPC loadout item:`, itemData, err);
+        added.push(null);
+      }
+    }
+
+    const idx = equippedIndex ?? -1;
+    const weapon = idx >= 0 && idx < added.length ? added[idx] : null;
+    if (weapon) npc.equippedWeaponId = weapon.instanceId;
+  }
+
   async applyToGameMap(gameMap, templateMapData) {
     try {
       if (!templateMapData || !templateMapData.tiles) {
@@ -1002,6 +1035,9 @@ export class TemplateMapGenerator {
                 if (e.attackOnSight && entity) {
                   entity.attackOnSight = true;
                   entity.isHostile = true;
+                }
+                if (entity && Array.isArray(e.inventory) && e.inventory.length > 0) {
+                  await this.applyNpcLoadout(entity, e.inventory, e.equippedIndex);
                 }
               }
               if (entity) gameMap.addEntity(entity, e.x, e.y);

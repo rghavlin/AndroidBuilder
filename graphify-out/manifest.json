@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784537486.428716,
-    "ast_hash": "bd31ef1b9b525bfeafad1d19af56107c",
+    "mtime": 1784540904.5995145,
+    "ast_hash": "a56ef86d93d8e74a72820be3434e6d87",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784537366.4485126,
-    "ast_hash": "c9e1c12e58c059547e4ed3bf106b89ee",
+    "mtime": 1784540476.773601,
+    "ast_hash": "12abbb07237921bf2a3a67f32832cab5",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1420,8 +1420,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784537501.2184038,
-    "ast_hash": "ac007d9fdddc8e38b0eeb407c861974d",
+    "mtime": 1784540682.60032,
+    "ast_hash": "e0a700367fa1de48ec9280e9af351e37",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -3005,13 +3005,13 @@
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.editor.json": {
-    "mtime": 1784536721.065878,
-    "ast_hash": "3bc4b0fc689bdda450c4a4de11fd2c72",
+    "mtime": 1784539594.390598,
+    "ast_hash": "8e258d2d539bfa02a3ba819db088f3e2",
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.scenario.json": {
-    "mtime": 1784536721.507228,
-    "ast_hash": "117b75bb407e167c539867321ffb1802",
+    "mtime": 1784539594.5716488,
+    "ast_hash": "9f4aca10675be38dfe44a1852fc951f1",
     "semantic_hash": ""
   },
   "scratch/check_template_furniture_plan.mjs": {
@@ -3027,6 +3027,11 @@
   "test/systems/npcAttackOnSight.test.js": {
     "mtime": 1784538070.2406728,
     "ast_hash": "919ed54a9c8d4a0ea2a34000eabde07c",
+    "semantic_hash": ""
+  },
+  "test/systems/npcLoadout.test.js": {
+    "mtime": 1784541082.6470807,
+    "ast_hash": "e9e5f4846380ef3170f233b5ec1b258d",
     "semantic_hash": ""
   }
 }

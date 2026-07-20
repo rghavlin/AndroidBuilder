@@ -166,21 +166,42 @@ interface BubbleEvent {
 
 interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; }
 
+// An authored item, as configured in the editor's item controls. Used both for
+// items lying on a tile and for the items in an NPC's loadout.
+interface EditorItem {
+  defId: string;
+  ammoCount?: number;
+  condition?: number;
+  batteryCharges?: number;
+  gunAmmoCount?: number;
+  gunMagDefId?: string;
+  gunAttachments?: Record<string, string>;
+  transitionTargetId?: string;
+  transitionTargetX?: number;
+  transitionTargetY?: number;
+  eventId?: string;
+}
+
 // One authored entity on a tile. NPC-only flags:
 //   isHostile     — extorts the player first (demand dialog), then fights
 //   attackOnSight — skips the demand and hunts to the death (implies isHostile)
 //   aiDisabled    — scripted/quest NPC, no autonomous AI at all
+//   inventory     — carried items; these are what the NPC drops on death
+//   equippedIndex — index into `inventory` of the weapon the NPC fights with.
+//                   A ranged weapon there makes the AI shoot; a melee weapon
+//                   (or none) makes it close to melee range. See NPCAISystem.
 interface EntityData {
   type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean;
   typeId?: string; name?: string; isHostile?: boolean; attackOnSight?: boolean;
   iconId?: string; aiDisabled?: boolean;
+  inventory?: EditorItem[]; equippedIndex?: number;
 }
 
 interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
   entities: EntityData[];
-  items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number; eventId?: string }[];
+  items: EditorItem[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean; grants?: ItemGrant[]; next?: string };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
   placeIcon?: string;
@@ -358,6 +379,8 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         attackOnSight: e.attackOnSight || undefined,
         iconId: e.iconId || undefined,
         aiDisabled: e.aiDisabled || undefined,
+        inventory: e.inventory?.length ? e.inventory.map(itemToEditorEntry) : undefined,
+        equippedIndex: e.equippedIndex,
       });
     }
   }
@@ -537,6 +560,12 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
               // entity they sit under components.AIState rather than top level
               // (unlike isHostile, which is a SERIALIZED_FIELDS entry).
               const aiState = e.components?.AIState || {};
+              // A live NPC's carried items serialize as inventory.items (a
+              // Container); equippedWeaponId points at one by instanceId.
+              const carried: any[] = e.inventory?.items || [];
+              const equippedIdx = e.equippedWeaponId
+                ? carried.findIndex((it: any) => it.instanceId === e.equippedWeaponId)
+                : -1;
               tiles[y][x].entities.push({
                 type: 'npc',
                 typeId: e.typeId,
@@ -545,6 +574,8 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
                 attackOnSight: e.attackOnSight ?? aiState.attackOnSight,
                 iconId: e.iconId,
                 aiDisabled: e.aiDisabled ?? aiState.aiDisabled,
+                inventory: carried.length ? carried.map(itemToEditorEntry) : undefined,
+                equippedIndex: equippedIdx,
               });
             } else if (e.type === 'rabbit') {
               tiles[y][x].entities.push({ type: 'rabbit' });
@@ -633,6 +664,104 @@ function getBatterySlotInfo(def: any): { slotId: string; batteryDefId: string; c
   return { slotId: slot.id, batteryDefId, capacity: batteryDef?.capacity ?? (isLarge ? 100 : 10) };
 }
 
+// ─── Item (de)serialization shared by tiles and NPC loadouts ─────────────
+
+// EditorItem -> full item JSON (the shape Item.fromJSON / setItemsOnTile want),
+// expanding the editor's flat knobs into real attachment items.
+function buildFullItem(item: EditorItem): any {
+  const full = createItemFromDef(item.defId);
+  if (!full) return { defId: item.defId, quantity: 1 };
+
+  if (item.ammoCount !== undefined) full.ammoCount = item.ammoCount;
+  if (item.condition !== undefined) full.condition = item.condition;
+  if (item.transitionTargetId !== undefined) full.transitionTargetId = item.transitionTargetId;
+  if (item.transitionTargetX !== undefined) full.transitionTargetX = item.transitionTargetX;
+  if (item.transitionTargetY !== undefined) full.transitionTargetY = item.transitionTargetY;
+  if (item.eventId !== undefined) full.eventId = item.eventId;
+
+  if (item.batteryCharges !== undefined) {
+    const slotInfo = getBatterySlotInfo((ItemDefs as any)[item.defId]);
+    if (slotInfo) {
+      const batteryItem = createItemFromDef(slotInfo.batteryDefId);
+      if (batteryItem) {
+        batteryItem.ammoCount = item.batteryCharges;
+        if (!full.attachments) full.attachments = {};
+        full.attachments[slotInfo.slotId] = batteryItem;
+      }
+    }
+  }
+
+  if (item.gunAmmoCount !== undefined) {
+    const gunDef = (ItemDefs as any)[item.defId];
+    if (gunDef?.directLoad) {
+      const ammoItem = createItemFromDef(gunDef.directLoad.ammoId);
+      if (ammoItem) {
+        ammoItem.stackCount = item.gunAmmoCount;
+        if (!full.attachments) full.attachments = {};
+        full.attachments[gunDef.directLoad.slotId] = ammoItem;
+      }
+    } else if (item.gunMagDefId) {
+      const mag = createItemFromDef(item.gunMagDefId);
+      if (mag) {
+        mag.ammoCount = item.gunAmmoCount;
+        if (!full.attachments) full.attachments = {};
+        full.attachments['ammo'] = mag;
+      }
+    }
+  }
+
+  if (item.gunAttachments) {
+    for (const [slotId, attDefId] of Object.entries(item.gunAttachments)) {
+      if (attDefId) {
+        const att = createItemFromDef(attDefId);
+        if (att) {
+          if (!full.attachments) full.attachments = {};
+          full.attachments[slotId] = att;
+        }
+      }
+    }
+  }
+
+  return full;
+}
+
+// The inverse of buildFullItem: collapse a serialized item back into the flat
+// EditorItem knobs so a loaded map is editable again.
+function itemToEditorEntry(it: any): EditorItem {
+  const entry: EditorItem = { defId: it.defId || it.id };
+  if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
+  if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
+  if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
+  if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+  if (it.eventId !== undefined) entry.eventId = it.eventId;
+  if (it.condition !== undefined) entry.condition = it.condition;
+
+  if (it.attachments) {
+    const itemDef = (ItemDefs as any)[entry.defId];
+    const slotInfo = getBatterySlotInfo(itemDef);
+    if (slotInfo && it.attachments[slotInfo.slotId]?.ammoCount !== undefined) {
+      entry.batteryCharges = it.attachments[slotInfo.slotId].ammoCount;
+    }
+    if (itemDef?.categories?.includes(ItemCategory.GUN)) {
+      const ammoAtt = it.attachments['ammo'];
+      if (ammoAtt) {
+        if (itemDef.directLoad) {
+          entry.gunAmmoCount = ammoAtt.stackCount ?? 0;
+        } else {
+          entry.gunMagDefId = ammoAtt.defId;
+          entry.gunAmmoCount = ammoAtt.ammoCount ?? 0;
+        }
+      }
+      const nonAmmo: Record<string, string> = {};
+      for (const [slotId, att] of Object.entries(it.attachments as Record<string, any>)) {
+        if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
+      }
+      if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
+    }
+  }
+  return entry;
+}
+
 // ─── Export: convert editor state → MapBuilder-compatible JSON ───────────
 
 function exportScenario(scenario: ScenarioData) {
@@ -646,56 +775,7 @@ function exportScenario(scenario: ScenarioData) {
       };
       const tile: any = { x, y, terrain: t.terrain, edgeWalls, contents: [] };
       if (t.items.length > 0) {
-        tile.inventoryItems = t.items.map(item => {
-          const full = createItemFromDef(item.defId);
-          if (full && item.ammoCount !== undefined) full.ammoCount = item.ammoCount;
-          if (full && item.condition !== undefined) full.condition = item.condition;
-          if (full && item.transitionTargetId !== undefined) full.transitionTargetId = item.transitionTargetId;
-          if (full && item.transitionTargetX !== undefined) full.transitionTargetX = item.transitionTargetX;
-          if (full && item.transitionTargetY !== undefined) full.transitionTargetY = item.transitionTargetY;
-          if (full && item.eventId !== undefined) full.eventId = item.eventId;
-          if (full && item.batteryCharges !== undefined) {
-            const slotInfo = getBatterySlotInfo((ItemDefs as any)[item.defId]);
-            if (slotInfo) {
-              const batteryItem = createItemFromDef(slotInfo.batteryDefId);
-              if (batteryItem) {
-                batteryItem.ammoCount = item.batteryCharges;
-                if (!full.attachments) full.attachments = {};
-                full.attachments[slotInfo.slotId] = batteryItem;
-              }
-            }
-          }
-          if (full && item.gunAmmoCount !== undefined) {
-            const gunDef = (ItemDefs as any)[item.defId];
-            if (gunDef?.directLoad) {
-              const ammoItem = createItemFromDef(gunDef.directLoad.ammoId);
-              if (ammoItem) {
-                ammoItem.stackCount = item.gunAmmoCount;
-                if (!full.attachments) full.attachments = {};
-                full.attachments[gunDef.directLoad.slotId] = ammoItem;
-              }
-            } else if (item.gunMagDefId) {
-              const mag = createItemFromDef(item.gunMagDefId);
-              if (mag) {
-                mag.ammoCount = item.gunAmmoCount;
-                if (!full.attachments) full.attachments = {};
-                full.attachments['ammo'] = mag;
-              }
-            }
-          }
-          if (full && item.gunAttachments) {
-            for (const [slotId, attDefId] of Object.entries(item.gunAttachments)) {
-              if (attDefId) {
-                const att = createItemFromDef(attDefId);
-                if (att) {
-                  if (!full.attachments) full.attachments = {};
-                  full.attachments[slotId] = att;
-                }
-              }
-            }
-          }
-          return full || { defId: item.defId, quantity: 1 };
-        });
+        tile.inventoryItems = t.items.map(buildFullItem);
       }
       return tile;
     })
@@ -731,6 +811,12 @@ function exportScenario(scenario: ScenarioData) {
           ...(e.attackOnSight ? { attackOnSight: true } : {}),
           ...(e.iconId ? { iconId: e.iconId } : {}),
           ...(e.aiDisabled ? { aiDisabled: true } : {}),
+          // NPC loadout: full item JSON (same shape as tile items) plus which
+          // slot is equipped. This is also what the NPC drops when killed.
+          ...(e.inventory?.length ? {
+            inventory: e.inventory.map(buildFullItem),
+            equippedIndex: e.equippedIndex ?? -1,
+          } : {}),
         });
       });
     })
@@ -836,6 +922,15 @@ export default function MapEditor() {
   const [npcIconId, setNpcIconId] = useState('npc');
   const [npcAiDisabled, setNpcAiDisabled] = useState(false);
   const [npcAttackOnSight, setNpcAttackOnSight] = useState(false);
+  // Loadout carried by NEWLY stamped NPCs (the brush default). Editing an
+  // already-placed NPC's loadout goes through loadoutModal.target instead.
+  const [npcLoadout, setNpcLoadout] = useState<EditorItem[]>([]);
+  const [npcEquippedIndex, setNpcEquippedIndex] = useState(-1);
+  // Open loadout editor. target === null edits the brush default above;
+  // otherwise it edits entity `idx` on tile (x, y).
+  const [loadoutModal, setLoadoutModal] = useState<
+    { items: EditorItem[]; equippedIndex: number; target: { x: number; y: number; idx: number } | null } | null
+  >(null);
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
   const [selectedPlaceIconSubtype, setSelectedPlaceIconSubtype] = useState('grocer');
   const [selectedItem, setSelectedItem] = useState('');
@@ -1506,13 +1601,17 @@ export default function MapEditor() {
               if (npcAttackOnSight) ent.attackOnSight = true;
               if (npcIconId && npcIconId !== 'npc') ent.iconId = npcIconId;
               if (npcAiDisabled) ent.aiDisabled = true;
+              if (npcLoadout.length > 0) {
+                ent.inventory = npcLoadout.map(it => ({ ...it }));
+                ent.equippedIndex = npcEquippedIndex;
+              }
             }
             tile.entities.push(ent);
           }
           break;
         case 'item':
           if (selectedItem) {
-            const itemEntry: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number; eventId?: string } = { defId: selectedItem };
+            const itemEntry: EditorItem = { defId: selectedItem };
             if (waterFill !== '') itemEntry.ammoCount = waterFill as number;
             if (conditionVal !== '') itemEntry.condition = conditionVal as number;
             if (batteryCharges !== '') itemEntry.batteryCharges = batteryCharges as number;
@@ -1586,7 +1685,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcAttackOnSight, npcIconId, npcAiDisabled, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcAttackOnSight, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Furniture stamp tool ────────────────────────────────────────────
   // Validates and places a loose furniture stamp at (x, y). Lives outside
@@ -2468,6 +2567,248 @@ export default function MapEditor() {
   };
 
   // ─── UI ───────────────────────────────────────────────────────────────
+  // Snapshot the current item controls as an EditorItem. Returns null when no
+  // item is selected. Mirrors what the item tool writes onto a tile, minus the
+  // tile-only extras (stairs targets, help event id).
+  const draftItemFromControls = (): EditorItem | null => {
+    if (!selectedItem) return null;
+    const draft: EditorItem = { defId: selectedItem };
+    if (waterFill !== '') draft.ammoCount = waterFill as number;
+    if (conditionVal !== '') draft.condition = conditionVal as number;
+    if (batteryCharges !== '') draft.batteryCharges = batteryCharges as number;
+    if (gunAmmoCount !== '') draft.gunAmmoCount = gunAmmoCount as number;
+    if (gunMagDefId) draft.gunMagDefId = gunMagDefId;
+    if (Object.keys(gunAttachments).some(k => gunAttachments[k])) draft.gunAttachments = { ...gunAttachments };
+    return draft;
+  };
+
+  // Open the loadout editor on the brush default, or on a placed NPC.
+  const openLoadoutEditor = (target: { x: number; y: number; idx: number } | null) => {
+    if (target) {
+      const ent = tilesRef.current[target.y]?.[target.x]?.entities[target.idx];
+      setLoadoutModal({
+        items: (ent?.inventory || []).map(it => ({ ...it })),
+        equippedIndex: ent?.equippedIndex ?? -1,
+        target,
+      });
+    } else {
+      setLoadoutModal({
+        items: npcLoadout.map(it => ({ ...it })),
+        equippedIndex: npcEquippedIndex,
+        target: null,
+      });
+    }
+  };
+
+  // Commit the modal's draft back to whatever it was opened on.
+  const saveLoadoutEditor = () => {
+    if (!loadoutModal) return;
+    const { items, equippedIndex, target } = loadoutModal;
+    if (!target) {
+      setNpcLoadout(items);
+      setNpcEquippedIndex(equippedIndex);
+      setStatusMsg(`NPC loadout set (${items.length} item(s))`);
+    } else {
+      pushUndo(tilesRef.current, buildingsRef.current, furnitureRef.current);
+      setTiles(prev => prev.map((row, y) => row.map((t, x) => {
+        if (x !== target.x || y !== target.y) return t;
+        const entities = t.entities.map((e, i) =>
+          i === target.idx
+            ? { ...e, inventory: items.length ? items : undefined, equippedIndex: items.length ? equippedIndex : undefined }
+            : e
+        );
+        return { ...t, entities };
+      })));
+      setStatusMsg(`Loadout updated (${items.length} item(s))`);
+    }
+    setLoadoutModal(null);
+  };
+
+  // Short human label for a loadout row, e.g. `Hunting Rifle · 5 rds · 80%`.
+  const describeLoadoutItem = (it: EditorItem) => {
+    const def = (ItemDefs as any)[it.defId];
+    const bits: string[] = [def?.name || it.defId];
+    if (it.gunAmmoCount !== undefined) bits.push(`${it.gunAmmoCount} rds`);
+    if (it.batteryCharges !== undefined) bits.push(`${it.batteryCharges} chg`);
+    if (it.condition !== undefined) bits.push(`${it.condition}%`);
+    return bits.join(' · ');
+  };
+
+  // True when the def can be used as the equipped weapon (drives ranged vs melee
+  // in NPCAISystem); anything else equips as a club at best, so we warn.
+  const isWeaponDef = (defId: string) => {
+    const def = (ItemDefs as any)[defId];
+    return !!(def?.rangedStats || def?.combat?.damage || def?.damage);
+  };
+
+  // Item selection + per-item configuration (condition, battery, gun mag /
+  // ammo / attachments). Shared verbatim by the item tool panel and the NPC
+  // loadout editor, both of which drive the same selectedItem/* state.
+  const renderItemControls = () => (
+    <>
+      <label style={{ fontSize: 11, color: '#888' }}>Category</label>
+              <select
+                value={itemCategory}
+                onChange={e => { setItemCategory(e.target.value); setSelectedItem(''); }}
+                style={{ ...inputStyle, width: '100%' }}
+              >
+                <option value="">All Categories</option>
+                {itemCategories.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <label style={{ fontSize: 11, color: '#888' }}>Item</label>
+              <select
+                value={selectedItem}
+                onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); setBatteryCharges(''); setGunAmmoCount(''); setGunMagDefId(''); setGunAttachments({}); }}
+                style={{ ...inputStyle, width: '100%' }}
+              >
+                <option value="">— Select item —</option>
+                {filteredItems.map(it => (
+                  <option key={it.id} value={it.id}>{it.name} ({it.w}x{it.h})</option>
+                ))}
+              </select>
+              {selectedItem && (
+                <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                  {(() => { const def = (ItemDefs as any)[selectedItem]; return def ? `${def.name} — ${def.width}x${def.height}` : ''; })()}
+                </div>
+              )}
+              {(() => {
+                const def = (ItemDefs as any)[selectedItem];
+                const isWater = def?.traits?.includes(ItemTrait.WATER_CONTAINER);
+                const isFuel = def?.traits?.includes(ItemTrait.FUEL_CONTAINER);
+                if (!isWater && !isFuel) return null;
+                const cap: number = def.capacity ?? 0;
+                const label = isFuel ? `Fuel units (blank = empty, max ${cap})` : `Water units (blank = full, max ${cap})`;
+                const placeholder = isFuel ? '0' : String(cap);
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                    <label style={{ fontSize: 11, color: '#888' }}>{label}</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={cap}
+                      value={waterFill}
+                      onChange={e => setWaterFill(e.target.value === '' ? '' : Math.min(Number(e.target.value), cap))}
+                      placeholder={placeholder}
+                      style={{ ...inputStyle, width: '100%' }}
+                    />
+                  </div>
+                );
+              })()}
+              {(() => {
+                const def = (ItemDefs as any)[selectedItem];
+                const isDegradable = def?.traits?.includes(ItemTrait.DEGRADABLE);
+                if (!isDegradable) return null;
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                    <label style={{ fontSize: 11, color: '#888' }}>Condition % (blank = 100%)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={conditionVal}
+                      onChange={e => setConditionVal(e.target.value === '' ? '' : Math.min(100, Math.max(0, Number(e.target.value))))}
+                      placeholder="100"
+                      style={{ ...inputStyle, width: '100%' }}
+                    />
+                  </div>
+                );
+              })()}
+              {(() => {
+                const def = (ItemDefs as any)[selectedItem];
+                const slotInfo = getBatterySlotInfo(def);
+                if (!slotInfo) return null;
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                    <label style={{ fontSize: 11, color: '#888' }}>Battery charges (blank = no battery, max {slotInfo.capacity})</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={slotInfo.capacity}
+                      value={batteryCharges}
+                      onChange={e => setBatteryCharges(e.target.value === '' ? '' : Math.min(Number(e.target.value), slotInfo.capacity))}
+                      placeholder="blank = no battery"
+                      style={{ ...inputStyle, width: '100%' }}
+                    />
+                  </div>
+                );
+              })()}
+              {(() => {
+                const def = (ItemDefs as any)[selectedItem];
+                if (!def?.categories?.includes(ItemCategory.GUN)) return null;
+                const slots: any[] = def.attachmentSlots || [];
+                const directLoad = def.directLoad;
+                const ammoSlot = slots.find((s: any) => s.id === 'ammo');
+                const nonAmmoSlots = slots.filter((s: any) => s.id !== 'ammo');
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                    <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Gun Loadout</label>
+  
+                    {/* Non-ammo attachment slots (barrel, sight, etc.) */}
+                    {nonAmmoSlots.map((slot: any) => {
+                      const allowed = allItems.filter(it => {
+                        const itDef = (ItemDefs as any)[it.id];
+                        return slot.allowedItems?.includes(it.id) ||
+                          slot.allowedCategories?.some((cat: string) => itDef?.categories?.includes(cat));
+                      });
+                      return (
+                        <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <label style={{ fontSize: 11, color: '#888' }}>{slot.name}</label>
+                          <select
+                            value={gunAttachments[slot.id] || ''}
+                            onChange={e => setGunAttachments(prev => ({ ...prev, [slot.id]: e.target.value }))}
+                            style={{ ...inputStyle, width: '100%' }}
+                          >
+                            <option value="">— None —</option>
+                            {allowed.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
+                          </select>
+                        </div>
+                      );
+                    })}
+  
+                    {/* Ammo slot */}
+                    {ammoSlot && !directLoad && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <label style={{ fontSize: 11, color: '#888' }}>{ammoSlot.name}</label>
+                        <select
+                          value={gunMagDefId}
+                          onChange={e => { setGunMagDefId(e.target.value); setGunAmmoCount(''); }}
+                          style={{ ...inputStyle, width: '100%' }}
+                        >
+                          <option value="">— No magazine —</option>
+                          {ammoSlot.allowedItems?.map((id: string) => {
+                            const magDef = (ItemDefs as any)[id];
+                            return <option key={id} value={id}>{magDef?.name || id}</option>;
+                          })}
+                        </select>
+                      </div>
+                    )}
+                    {ammoSlot && (directLoad || gunMagDefId) && (() => {
+                      const capacity = directLoad
+                        ? directLoad.capacity
+                        : ((ItemDefs as any)[gunMagDefId]?.capacity ?? 0);
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <label style={{ fontSize: 11, color: '#888' }}>Rounds loaded (blank = empty, max {capacity})</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={capacity}
+                            value={gunAmmoCount}
+                            onChange={e => setGunAmmoCount(e.target.value === '' ? '' : Math.min(Number(e.target.value), capacity))}
+                            placeholder="0"
+                            style={{ ...inputStyle, width: '100%' }}
+                          />
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              })()}
+    </>
+  );
+
   const toolButton = (mode: ToolMode, label: string) => (
     <button
       key={mode}
@@ -2739,6 +3080,16 @@ export default function MapEditor() {
                   <input type="checkbox" checked={npcAttackOnSight} onChange={e => setNpcAttackOnSight(e.target.checked)} />
                   Attack on sight (no demand — hunts and fights to the death)
                 </label>
+                <button onClick={() => openLoadoutEditor(null)} style={{ ...btnStyle('#46607a'), width: '100%' }}>
+                  Loadout… ({npcLoadout.length} item{npcLoadout.length === 1 ? '' : 's'}
+                  {npcEquippedIndex >= 0 && npcLoadout[npcEquippedIndex]
+                    ? `, wielding ${(ItemDefs as any)[npcLoadout[npcEquippedIndex].defId]?.name || '?'}`
+                    : ', unarmed'})
+                </button>
+                <p style={{ fontSize: 11, color: '#888', margin: 0 }}>
+                  Carried items are dropped on death. The equipped weapon decides how the NPC fights:
+                  a gun makes it shoot from range, a melee weapon makes it close in.
+                </p>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
                   <input type="checkbox" checked={npcAiDisabled} onChange={e => setNpcAiDisabled(e.target.checked)} />
                   Scripted (stays put — no wandering/fleeing AI until an event moves it)
@@ -2823,166 +3174,7 @@ export default function MapEditor() {
 
         {tool === 'item' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, color: '#888' }}>Category</label>
-            <select
-              value={itemCategory}
-              onChange={e => { setItemCategory(e.target.value); setSelectedItem(''); }}
-              style={{ ...inputStyle, width: '100%' }}
-            >
-              <option value="">All Categories</option>
-              {itemCategories.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <label style={{ fontSize: 11, color: '#888' }}>Item</label>
-            <select
-              value={selectedItem}
-              onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); setBatteryCharges(''); setGunAmmoCount(''); setGunMagDefId(''); setGunAttachments({}); }}
-              style={{ ...inputStyle, width: '100%' }}
-            >
-              <option value="">— Select item —</option>
-              {filteredItems.map(it => (
-                <option key={it.id} value={it.id}>{it.name} ({it.w}x{it.h})</option>
-              ))}
-            </select>
-            {selectedItem && (
-              <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
-                {(() => { const def = (ItemDefs as any)[selectedItem]; return def ? `${def.name} — ${def.width}x${def.height}` : ''; })()}
-              </div>
-            )}
-            {(() => {
-              const def = (ItemDefs as any)[selectedItem];
-              const isWater = def?.traits?.includes(ItemTrait.WATER_CONTAINER);
-              const isFuel = def?.traits?.includes(ItemTrait.FUEL_CONTAINER);
-              if (!isWater && !isFuel) return null;
-              const cap: number = def.capacity ?? 0;
-              const label = isFuel ? `Fuel units (blank = empty, max ${cap})` : `Water units (blank = full, max ${cap})`;
-              const placeholder = isFuel ? '0' : String(cap);
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
-                  <label style={{ fontSize: 11, color: '#888' }}>{label}</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={cap}
-                    value={waterFill}
-                    onChange={e => setWaterFill(e.target.value === '' ? '' : Math.min(Number(e.target.value), cap))}
-                    placeholder={placeholder}
-                    style={{ ...inputStyle, width: '100%' }}
-                  />
-                </div>
-              );
-            })()}
-            {(() => {
-              const def = (ItemDefs as any)[selectedItem];
-              const isDegradable = def?.traits?.includes(ItemTrait.DEGRADABLE);
-              if (!isDegradable) return null;
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
-                  <label style={{ fontSize: 11, color: '#888' }}>Condition % (blank = 100%)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={conditionVal}
-                    onChange={e => setConditionVal(e.target.value === '' ? '' : Math.min(100, Math.max(0, Number(e.target.value))))}
-                    placeholder="100"
-                    style={{ ...inputStyle, width: '100%' }}
-                  />
-                </div>
-              );
-            })()}
-            {(() => {
-              const def = (ItemDefs as any)[selectedItem];
-              const slotInfo = getBatterySlotInfo(def);
-              if (!slotInfo) return null;
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
-                  <label style={{ fontSize: 11, color: '#888' }}>Battery charges (blank = no battery, max {slotInfo.capacity})</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={slotInfo.capacity}
-                    value={batteryCharges}
-                    onChange={e => setBatteryCharges(e.target.value === '' ? '' : Math.min(Number(e.target.value), slotInfo.capacity))}
-                    placeholder="blank = no battery"
-                    style={{ ...inputStyle, width: '100%' }}
-                  />
-                </div>
-              );
-            })()}
-            {(() => {
-              const def = (ItemDefs as any)[selectedItem];
-              if (!def?.categories?.includes(ItemCategory.GUN)) return null;
-              const slots: any[] = def.attachmentSlots || [];
-              const directLoad = def.directLoad;
-              const ammoSlot = slots.find((s: any) => s.id === 'ammo');
-              const nonAmmoSlots = slots.filter((s: any) => s.id !== 'ammo');
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
-                  <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Gun Loadout</label>
-
-                  {/* Non-ammo attachment slots (barrel, sight, etc.) */}
-                  {nonAmmoSlots.map((slot: any) => {
-                    const allowed = allItems.filter(it => {
-                      const itDef = (ItemDefs as any)[it.id];
-                      return slot.allowedItems?.includes(it.id) ||
-                        slot.allowedCategories?.some((cat: string) => itDef?.categories?.includes(cat));
-                    });
-                    return (
-                      <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <label style={{ fontSize: 11, color: '#888' }}>{slot.name}</label>
-                        <select
-                          value={gunAttachments[slot.id] || ''}
-                          onChange={e => setGunAttachments(prev => ({ ...prev, [slot.id]: e.target.value }))}
-                          style={{ ...inputStyle, width: '100%' }}
-                        >
-                          <option value="">— None —</option>
-                          {allowed.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
-                        </select>
-                      </div>
-                    );
-                  })}
-
-                  {/* Ammo slot */}
-                  {ammoSlot && !directLoad && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <label style={{ fontSize: 11, color: '#888' }}>{ammoSlot.name}</label>
-                      <select
-                        value={gunMagDefId}
-                        onChange={e => { setGunMagDefId(e.target.value); setGunAmmoCount(''); }}
-                        style={{ ...inputStyle, width: '100%' }}
-                      >
-                        <option value="">— No magazine —</option>
-                        {ammoSlot.allowedItems?.map((id: string) => {
-                          const magDef = (ItemDefs as any)[id];
-                          return <option key={id} value={id}>{magDef?.name || id}</option>;
-                        })}
-                      </select>
-                    </div>
-                  )}
-                  {ammoSlot && (directLoad || gunMagDefId) && (() => {
-                    const capacity = directLoad
-                      ? directLoad.capacity
-                      : ((ItemDefs as any)[gunMagDefId]?.capacity ?? 0);
-                    return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <label style={{ fontSize: 11, color: '#888' }}>Rounds loaded (blank = empty, max {capacity})</label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={capacity}
-                          value={gunAmmoCount}
-                          onChange={e => setGunAmmoCount(e.target.value === '' ? '' : Math.min(Number(e.target.value), capacity))}
-                          placeholder="0"
-                          style={{ ...inputStyle, width: '100%' }}
-                        />
-                      </div>
-                    );
-                  })()}
-                </div>
-              );
-            })()}
+            {renderItemControls()}
             
             {(selectedItem === 'placeable.stairs_down' || selectedItem === 'placeable.stairs_up') && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
@@ -3726,6 +3918,94 @@ export default function MapEditor() {
       )}
 
       {/* ─── Zombie generator modal ─── */}
+      {loadoutModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setLoadoutModal(null)}>
+          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, width: 460, maxHeight: '85vh', overflow: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 4px', fontSize: 16, color: '#7bb8ff' }}>🎒 NPC Loadout</h3>
+            <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 12px' }}>
+              {loadoutModal.target
+                ? `Editing the NPC placed at (${loadoutModal.target.x}, ${loadoutModal.target.y}).`
+                : 'Default loadout given to every NPC you place from now on.'}
+              {' '}Everything here drops when the NPC dies.
+            </p>
+
+            {/* Current contents */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>
+                Carried ({loadoutModal.items.length})
+              </label>
+              {loadoutModal.items.length === 0 && (
+                <div style={{ fontSize: 11, color: '#666', fontStyle: 'italic' }}>Empty — the NPC fights unarmed and drops nothing.</div>
+              )}
+              {loadoutModal.items.map((it, i) => {
+                const equipped = loadoutModal.equippedIndex === i;
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#2a2a2a', border: `1px solid ${equipped ? '#7bb8ff' : '#444'}`, borderRadius: 4, padding: '4px 8px' }}>
+                    <span style={{ flex: 1, fontSize: 12, color: equipped ? '#7bb8ff' : '#ddd' }}>
+                      {describeLoadoutItem(it)}
+                    </span>
+                    <button
+                      onClick={() => setLoadoutModal(m => m && ({ ...m, equippedIndex: equipped ? -1 : i }))}
+                      title={isWeaponDef(it.defId) ? 'Fight with this item' : 'Not a weapon — equipping it will not give the NPC an attack'}
+                      style={{ ...btnStyle(equipped ? '#4a90d9' : '#444'), fontSize: 11, padding: '2px 8px' }}
+                    >
+                      {equipped ? 'Equipped' : 'Equip'}
+                    </button>
+                    <button
+                      onClick={() => setLoadoutModal(m => m && ({
+                        ...m,
+                        items: m.items.filter((_, j) => j !== i),
+                        // Keep the equipped pointer on the same item as rows shift.
+                        equippedIndex: m.equippedIndex === i ? -1 : (m.equippedIndex > i ? m.equippedIndex - 1 : m.equippedIndex),
+                      }))}
+                      style={{ background: 'none', border: 'none', color: '#c44', cursor: 'pointer', fontSize: 11, padding: '2px 6px' }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+              {loadoutModal.equippedIndex >= 0 && !isWeaponDef(loadoutModal.items[loadoutModal.equippedIndex]?.defId || '') && (
+                <div style={{ fontSize: 11, color: '#e0a070' }}>
+                  ⚠ The equipped item has no weapon stats — this NPC will have no effective attack.
+                </div>
+              )}
+            </div>
+
+            {/* Add an item, using the same controls as the item tool */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #444', paddingTop: 10 }}>
+              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>Add item</label>
+              {renderItemControls()}
+              <button
+                disabled={!selectedItem}
+                onClick={() => {
+                  const draft = draftItemFromControls();
+                  if (!draft) return;
+                  setLoadoutModal(m => {
+                    if (!m) return m;
+                    const items = [...m.items, draft];
+                    // First weapon added auto-equips: the common case is one gun
+                    // or one blade, and forgetting to equip it is a silent dud.
+                    const equippedIndex = m.equippedIndex < 0 && isWeaponDef(draft.defId) ? items.length - 1 : m.equippedIndex;
+                    return { ...m, items, equippedIndex };
+                  });
+                }}
+                style={{ ...btnStyle(selectedItem ? '#3a7a3a' : '#333'), width: '100%', marginTop: 6, cursor: selectedItem ? 'pointer' : 'not-allowed' }}
+              >
+                + Add to loadout
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button onClick={saveLoadoutEditor} style={{ ...btnStyle('#4a90d9'), flex: 1 }}>Save</button>
+              <button onClick={() => setLoadoutModal(null)} style={{ ...btnStyle('#555'), flex: 1 }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showZombieModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setShowZombieModal(false)}>
@@ -4110,7 +4390,22 @@ export default function MapEditor() {
                           {ent.type === 'npc' && ent.attackOnSight ? ` · attacks on sight` : ''}
                           {ent.type === 'npc' && ent.aiDisabled ? ` · scripted` : ''}
                           {ent.type === 'npc' && ent.iconId ? ` · icon:${ent.iconId}` : ''}
+                          {ent.type === 'npc' && ent.inventory?.length
+                            ? ` · ${ent.inventory.length} item${ent.inventory.length === 1 ? '' : 's'}${
+                                ent.equippedIndex !== undefined && ent.equippedIndex >= 0 && ent.inventory[ent.equippedIndex]
+                                  ? ` (${(ItemDefs as any)[ent.inventory[ent.equippedIndex].defId]?.name || '?'})`
+                                  : ''
+                              }`
+                            : ''}
                         </span>
+                        {ent.type === 'npc' && (
+                          <button
+                            onClick={() => openLoadoutEditor({ x: tx, y: ty, idx: i })}
+                            style={{ ...removeBtnStyle, color: '#7bb8ff' }}
+                          >
+                            Loadout
+                          </button>
+                        )}
                         <button onClick={() => removeEntity(i)} style={removeBtnStyle}>Remove</button>
                       </div>
                     );

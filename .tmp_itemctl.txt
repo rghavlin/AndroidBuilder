@@ -1,0 +1,159 @@
+            <select
+              value={itemCategory}
+              onChange={e => { setItemCategory(e.target.value); setSelectedItem(''); }}
+              style={{ ...inputStyle, width: '100%' }}
+            >
+              <option value="">All Categories</option>
+              {itemCategories.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <label style={{ fontSize: 11, color: '#888' }}>Item</label>
+            <select
+              value={selectedItem}
+              onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); setBatteryCharges(''); setGunAmmoCount(''); setGunMagDefId(''); setGunAttachments({}); }}
+              style={{ ...inputStyle, width: '100%' }}
+            >
+              <option value="">— Select item —</option>
+              {filteredItems.map(it => (
+                <option key={it.id} value={it.id}>{it.name} ({it.w}x{it.h})</option>
+              ))}
+            </select>
+            {selectedItem && (
+              <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                {(() => { const def = (ItemDefs as any)[selectedItem]; return def ? `${def.name} — ${def.width}x${def.height}` : ''; })()}
+              </div>
+            )}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              const isWater = def?.traits?.includes(ItemTrait.WATER_CONTAINER);
+              const isFuel = def?.traits?.includes(ItemTrait.FUEL_CONTAINER);
+              if (!isWater && !isFuel) return null;
+              const cap: number = def.capacity ?? 0;
+              const label = isFuel ? `Fuel units (blank = empty, max ${cap})` : `Water units (blank = full, max ${cap})`;
+              const placeholder = isFuel ? '0' : String(cap);
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>{label}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={cap}
+                    value={waterFill}
+                    onChange={e => setWaterFill(e.target.value === '' ? '' : Math.min(Number(e.target.value), cap))}
+                    placeholder={placeholder}
+                    style={{ ...inputStyle, width: '100%' }}
+                  />
+                </div>
+              );
+            })()}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              const isDegradable = def?.traits?.includes(ItemTrait.DEGRADABLE);
+              if (!isDegradable) return null;
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Condition % (blank = 100%)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={conditionVal}
+                    onChange={e => setConditionVal(e.target.value === '' ? '' : Math.min(100, Math.max(0, Number(e.target.value))))}
+                    placeholder="100"
+                    style={{ ...inputStyle, width: '100%' }}
+                  />
+                </div>
+              );
+            })()}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              const slotInfo = getBatterySlotInfo(def);
+              if (!slotInfo) return null;
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#888' }}>Battery charges (blank = no battery, max {slotInfo.capacity})</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={slotInfo.capacity}
+                    value={batteryCharges}
+                    onChange={e => setBatteryCharges(e.target.value === '' ? '' : Math.min(Number(e.target.value), slotInfo.capacity))}
+                    placeholder="blank = no battery"
+                    style={{ ...inputStyle, width: '100%' }}
+                  />
+                </div>
+              );
+            })()}
+            {(() => {
+              const def = (ItemDefs as any)[selectedItem];
+              if (!def?.categories?.includes(ItemCategory.GUN)) return null;
+              const slots: any[] = def.attachmentSlots || [];
+              const directLoad = def.directLoad;
+              const ammoSlot = slots.find((s: any) => s.id === 'ammo');
+              const nonAmmoSlots = slots.filter((s: any) => s.id !== 'ammo');
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Gun Loadout</label>
+
+                  {/* Non-ammo attachment slots (barrel, sight, etc.) */}
+                  {nonAmmoSlots.map((slot: any) => {
+                    const allowed = allItems.filter(it => {
+                      const itDef = (ItemDefs as any)[it.id];
+                      return slot.allowedItems?.includes(it.id) ||
+                        slot.allowedCategories?.some((cat: string) => itDef?.categories?.includes(cat));
+                    });
+                    return (
+                      <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <label style={{ fontSize: 11, color: '#888' }}>{slot.name}</label>
+                        <select
+                          value={gunAttachments[slot.id] || ''}
+                          onChange={e => setGunAttachments(prev => ({ ...prev, [slot.id]: e.target.value }))}
+                          style={{ ...inputStyle, width: '100%' }}
+                        >
+                          <option value="">— None —</option>
+                          {allowed.map(it => <option key={it.id} value={it.id}>{it.name}</option>)}
+                        </select>
+                      </div>
+                    );
+                  })}
+
+                  {/* Ammo slot */}
+                  {ammoSlot && !directLoad && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <label style={{ fontSize: 11, color: '#888' }}>{ammoSlot.name}</label>
+                      <select
+                        value={gunMagDefId}
+                        onChange={e => { setGunMagDefId(e.target.value); setGunAmmoCount(''); }}
+                        style={{ ...inputStyle, width: '100%' }}
+                      >
+                        <option value="">— No magazine —</option>
+                        {ammoSlot.allowedItems?.map((id: string) => {
+                          const magDef = (ItemDefs as any)[id];
+                          return <option key={id} value={id}>{magDef?.name || id}</option>;
+                        })}
+                      </select>
+                    </div>
+                  )}
+                  {ammoSlot && (directLoad || gunMagDefId) && (() => {
+                    const capacity = directLoad
+                      ? directLoad.capacity
+                      : ((ItemDefs as any)[gunMagDefId]?.capacity ?? 0);
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <label style={{ fontSize: 11, color: '#888' }}>Rounds loaded (blank = empty, max {capacity})</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={capacity}
+                          value={gunAmmoCount}
+                          onChange={e => setGunAmmoCount(e.target.value === '' ? '' : Math.min(Number(e.target.value), capacity))}
+                          placeholder="0"
+                          style={{ ...inputStyle, width: '100%' }}
+                        />
+                      </div>
+                    );
+                  })()}
+                </div>
+              );
+            })()}
