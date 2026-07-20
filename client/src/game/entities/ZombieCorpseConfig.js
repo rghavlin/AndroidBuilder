@@ -34,7 +34,7 @@ export function getBrainstemOverrides(zombieSubtype) {
     : 'Zombie brainstem';
   return {
     name: prettyName,
-    zombieSubtype: zombieSubtype || 'basic',
+    zombieSubtype: hasColor ? zombieSubtype : 'basic',
     ...(hasColor && { backgroundColor: config.backgroundColor }),
   };
 }
@@ -69,7 +69,7 @@ export function getBrainPulpOverrides(zombieSubtype) {
     : 'Zombie brain pulp';
   return {
     name: prettyName,
-    zombieSubtype: zombieSubtype || 'basic',
+    zombieSubtype: hasColor ? zombieSubtype : 'basic',
     ...(hasColor && { backgroundColor: config.backgroundColor }),
   };
 }

@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784510017.6567068,
-    "ast_hash": "2e2f72f132f70575e94e3c628fa251b9",
+    "mtime": 1784515245.1381853,
+    "ast_hash": "7aa7acecf6ba9d018c429f3cde11f2df",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784454283.5517025,
-    "ast_hash": "c736ecbabc29666c1c73c664a837066f",
+    "mtime": 1784513458.5293908,
+    "ast_hash": "00a6030cacdf34cd6c71520afbf03042",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -2965,8 +2965,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FloorplanRegistry.js": {
-    "mtime": 1784508829.292795,
-    "ast_hash": "51309e52df123271212c38bc84699e84",
+    "mtime": 1784511709.890371,
+    "ast_hash": "8095f04b4c4a249fc2b32763b0abba0c",
     "semantic_hash": ""
   },
   "test/map/floorplanRegistry.test.js": {

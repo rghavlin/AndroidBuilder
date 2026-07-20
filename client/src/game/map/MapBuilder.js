@@ -357,6 +357,7 @@ export class MapBuilder {
     }
     const building = this.metadata.buildings.find(b => b.x === x && b.y === y);
     if (building) {
+      building.floorplanId = plan.id; // which authored plan this house came from
       building.rooms = rooms;
       building.furniturePlan = plan.furniture.map(f => {
         const base = FLOORPLAN_FOOTPRINTS[f.type] || { w: 1, h: 1 };

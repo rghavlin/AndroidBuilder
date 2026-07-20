@@ -1003,6 +1003,136 @@ const SMALL_2BED_16 = {
   ],
 };
 
+// --- Hall archetype variants -------------------------------------------
+// The plans above all use a hall running PARALLEL to the street (back rooms /
+// hall / front rooms). These run the hall PERPENDICULAR to the street (front
+// door opens straight down a centre hall, rooms branching off both sides) or
+// bend it into an L, for layout variety at the most common house sizes.
+
+const CENTER_HALL_12 = {
+  id: 'center_hall_12',
+  width: 12,
+  height: 12,
+  // Centre hall runs south->north (perpendicular to the street). Front and back
+  // doors are aligned through it.
+  //        012345678901
+  grid: [
+    'AAAAAHHBBBBB', // y0  A=bedroom, B=bedroom, H=centre hall
+    'AAAAAHHBBBBB', // y1
+    'AAAAAHHBBBBB', // y2
+    'AAAAAHHBBBBB', // y3
+    'AAAAAHHWWWWW', // y4  W=bathroom
+    'AAAAAHHWWWWW', // y5
+    'AAAAAHHWWWWW', // y6
+    'LLLLLHHKKKKK', // y7  L=living, K=kitchen
+    'LLLLLHHKKKKK', // y8
+    'LLLLLHHKKKKK', // y9
+    'LLLLLHHKKKKK', // y10
+    'LLLLLHHKKKKK', // y11 (front — entrance opens into the hall)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 5, y: 3, edge: 'w' },  // bedroom A <-> hall
+    { x: 6, y: 1, edge: 'e' },  // bedroom B <-> hall
+    { x: 6, y: 5, edge: 'e' },  // bathroom W <-> hall
+    { x: 5, y: 9, edge: 'w' },  // living L <-> hall
+    { x: 6, y: 9, edge: 'e' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 7, y: 4, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 11, y: 5, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 1, y: 11, rot: 2 },   // living couch on south wall
+    { type: 'counter', x: 7, y: 7, rot: 0 },  // kitchen counter on hall wall
+    { type: 'table', x: 9, y: 8, rot: 0 },    // kitchen table
+  ],
+};
+
+const CENTER_HALL_14 = {
+  id: 'center_hall_14',
+  width: 14,
+  height: 14,
+  //        01234567890123
+  grid: [
+    'AAAAAAHHBBBBBB', // y0  centre hall runs the full depth
+    'AAAAAAHHBBBBBB', // y1
+    'AAAAAAHHBBBBBB', // y2
+    'AAAAAAHHBBBBBB', // y3
+    'AAAAAAHHBBBBBB', // y4
+    'AAAAAAHHWWWWWW', // y5  W=bathroom
+    'AAAAAAHHWWWWWW', // y6
+    'LLLLLLHHWWWWWW', // y7
+    'LLLLLLHHWWWWWW', // y8
+    'LLLLLLHHKKKKKK', // y9
+    'LLLLLLHHKKKKKK', // y10
+    'LLLLLLHHKKKKKK', // y11
+    'LLLLLLHHKKKKKK', // y12
+    'LLLLLLHHKKKKKK', // y13 (front — entrance opens into the hall)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 6, y: 3, edge: 'w' },   // bedroom A <-> hall
+    { x: 7, y: 2, edge: 'e' },   // bedroom B <-> hall
+    { x: 7, y: 6, edge: 'e' },   // bathroom W <-> hall
+    { x: 6, y: 10, edge: 'w' },  // living L <-> hall
+    { x: 7, y: 11, edge: 'e' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A
+    { type: 'bed', x: 12, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 8, y: 5, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 13, y: 7, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 1, y: 13, rot: 2 },   // living couch on south wall
+    { type: 'table', x: 2, y: 9, rot: 0 },    // living table
+    { type: 'counter', x: 8, y: 9, rot: 0 },  // kitchen counter on hall wall
+    { type: 'table', x: 11, y: 10, rot: 0 },  // kitchen table
+  ],
+};
+
+const L_HALL_14 = {
+  id: 'l_hall_14',
+  width: 14,
+  height: 14,
+  // L-shaped hall: enters from the front door up the west side, then turns east
+  // along the middle to serve the three back rooms.
+  //        01234567890123
+  grid: [
+    'AAAAAAWWWWBBBB', // y0  A=bedroom, W=bathroom, B=bedroom
+    'AAAAAAWWWWBBBB', // y1
+    'AAAAAAWWWWBBBB', // y2
+    'AAAAAAWWWWBBBB', // y3
+    'AAAAAAWWWWBBBB', // y4
+    'AAAAAAWWWWBBBB', // y5
+    'HHHHHHHHHHHHHH', // y6  L: horizontal leg
+    'HHHHHHHHHHHHHH', // y7
+    'HHLLLLLLLKKKKK', // y8  L: vertical leg down the west side
+    'HHLLLLLLLKKKKK', // y9
+    'HHLLLLLLLKKKKK', // y10
+    'HHLLLLLLLKKKKK', // y11
+    'HHLLLLLLLKKKKK', // y12
+    'HHLLLLLLLKKKKK', // y13 (front — entrance opens into the hall leg)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 6, edge: 'n' },   // bedroom A <-> hall
+    { x: 7, y: 6, edge: 'n' },   // bathroom W <-> hall
+    { x: 11, y: 6, edge: 'n' },  // bedroom B <-> hall
+    { x: 3, y: 8, edge: 'n' },   // living L <-> hall
+    { x: 11, y: 8, edge: 'n' },  // kitchen K <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A
+    { type: 'bed', x: 12, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 9, y: 2, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 3, y: 13, rot: 2 },   // living couch on south wall
+    { type: 'table', x: 6, y: 9, rot: 0 },    // living table
+    { type: 'counter', x: 9, y: 8, rot: 0 },  // kitchen counter on hall wall
+    { type: 'table', x: 11, y: 10, rot: 0 },  // kitchen table
+  ],
+};
+
 // Exterior doors for each floorplan, in canonical (front=south) orientation.
 // Entrance is always on the south wall; back door is always on the north wall.
 // Both are placed in public rooms (living/kitchen/hall) or bedrooms for the back
@@ -1025,9 +1155,15 @@ const EXTERIOR_DOORS = {
   small_2bed_12: { entrance: { x: 2, y: 9, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
   small_2bed_14: { entrance: { x: 3, y: 9, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
   small_2bed_16: { entrance: { x: 4, y: 9, edge: 's' }, back: { x: 3, y: 0, edge: 'n' } },
+  // Centre-hall plans: front and back doors line up through the hall.
+  center_hall_12: { entrance: { x: 5, y: 11, edge: 's' }, back: { x: 5, y: 0, edge: 'n' } },
+  center_hall_14: { entrance: { x: 6, y: 13, edge: 's' }, back: { x: 6, y: 0, edge: 'n' } },
+  // L-hall: entrance at the foot of the hall's vertical leg; the hall never
+  // reaches the back wall, so the back door opens into bedroom A.
+  l_hall_14: { entrance: { x: 1, y: 13, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
 };
 
-const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_WIDE, COTTAGE_2BED_TALL, RANCH_2BED_WIDE, BUNGALOW_2BED_LARGE, RANCH_3BED, RANCH_3BED_TALL, BUNGALOW_3BED_EXTRA_WIDE, SMALL_1BED_10, SMALL_2BED_12, SMALL_2BED_14, SMALL_2BED_16];
+const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_WIDE, COTTAGE_2BED_TALL, RANCH_2BED_WIDE, BUNGALOW_2BED_LARGE, RANCH_3BED, RANCH_3BED_TALL, BUNGALOW_3BED_EXTRA_WIDE, SMALL_1BED_10, SMALL_2BED_12, SMALL_2BED_14, SMALL_2BED_16, CENTER_HALL_12, CENTER_HALL_14, L_HALL_14];
 
 // Attach exterior doors to each floorplan object so rotation and consumers can
 // treat them as a single structure.
