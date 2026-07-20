@@ -23,6 +23,9 @@ export class MapBuilder {
       doors: [],
       windows: [],
       placeIcons: [],
+      // Loose furniture outlines stamped in the map editor, independent of any
+      // building's furniturePlan (see FurniturePlanner for the footprint specs).
+      furniture: [],
       spawnZones: {}
     };
   }

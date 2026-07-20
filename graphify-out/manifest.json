@@ -960,8 +960,8 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/ZombieCorpseConfig.js": {
-    "mtime": 1783766535.9580321,
-    "ast_hash": "30992e2b34817ad4b0614f701202fc79",
+    "mtime": 1784518244.6306446,
+    "ast_hash": "bacb10d631cb594196bf0e4932223da4",
     "semantic_hash": ""
   },
   "client/src/game/entities/ZombieTypes.js": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784513458.5293908,
-    "ast_hash": "00a6030cacdf34cd6c71520afbf03042",
+    "mtime": 1784536355.9700477,
+    "ast_hash": "ec9db9769478c5a0d12f54e7f1101277",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784425622.9479651,
-    "ast_hash": "a7b9dd95646c7739737d16869a8903d8",
+    "mtime": 1784536367.9365954,
+    "ast_hash": "e7a818dfe0e285f385e19a9cd6e837ad",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1140,8 +1140,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/generators/ScenarioMapGenerator.js": {
-    "mtime": 1784023711.3433678,
-    "ast_hash": "619647c19ee8a80bf269fe0b3e22bfeb",
+    "mtime": 1784536355.9930544,
+    "ast_hash": "283cb8a0ab4612b0ea3c2a3ce07f8bc4",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/SplitRoadGenerator.js": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1784490209.4507675,
-    "ast_hash": "e7da598e024d14ba89ae52a2324c5c28",
+    "mtime": 1784527706.3611908,
+    "ast_hash": "2c73bc72de540fac2dcc7f05dfe59513",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784465019.2465732,
-    "ast_hash": "4ce6cf9efa3ada3c192088ab4dc541a3",
+    "mtime": 1784527254.2501726,
+    "ast_hash": "ab3c01362011dc0333f8aa44a13a8e45",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -1420,8 +1420,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784111647.0255005,
-    "ast_hash": "324d0587f6afe421c96498675ffb217e",
+    "mtime": 1784536557.4211519,
+    "ast_hash": "e73b5a8d57461cf074d1456a07d098e7",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -3002,6 +3002,26 @@
   "test/map/roomLoot.test.js": {
     "mtime": 1784463328.1667376,
     "ast_hash": "633ba4d28702b15871eb656f07621e9a",
+    "semantic_hash": ""
+  },
+  "customMaps/generated_branching_roadTEST.editor.json": {
+    "mtime": 1784526964.8590157,
+    "ast_hash": "09d9dfd64244b00793046cdef0d61df1",
+    "semantic_hash": ""
+  },
+  "customMaps/generated_branching_roadTEST.scenario.json": {
+    "mtime": 1784526251.418201,
+    "ast_hash": "11035a33d4557ead33b2932af24a0815",
+    "semantic_hash": ""
+  },
+  "scratch/check_template_furniture_plan.mjs": {
+    "mtime": 1784523625.863759,
+    "ast_hash": "44e624b363122191babd4c87f841315d",
+    "semantic_hash": ""
+  },
+  "test/map/scenarioFurniture.test.js": {
+    "mtime": 1784536380.7588215,
+    "ast_hash": "71aa5534ec025834481914f0ddd99eaf",
     "semantic_hash": ""
   }
 }

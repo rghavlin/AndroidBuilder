@@ -933,17 +933,22 @@ export class TemplateMapGenerator {
         gameMap.metadata = templateMapData.metadata;
         if (templateMapData.metadata.buildings) {
           gameMap.buildings = templateMapData.metadata.buildings;
-          // Decorative floorplan furniture outlines: stamp verbatim so maps
-          // generated/saved by the map editor keep their furniture when loaded
-          // for play. No procedural fallback and no gameRandom use here —
-          // planFurniture (via LootGenerator.spawnLoot) owns that on procedural
-          // paths and resets gameMap.furniture before replanning.
-          gameMap.furniture = [];
-          for (const b of gameMap.buildings) {
-            if (Array.isArray(b.furniturePlan)) {
-              for (const p of b.furniturePlan) gameMap.furniture.push({ ...p });
-            }
+        }
+        // Decorative floorplan furniture outlines: stamp verbatim so maps
+        // generated/saved by the map editor keep their furniture when loaded
+        // for play. Two sources — each building's furniturePlan, plus the loose
+        // pieces stamped by hand with the editor's furniture tool. No procedural
+        // fallback and no gameRandom use here — planFurniture (via
+        // LootGenerator.spawnLoot) owns that on procedural paths and resets
+        // gameMap.furniture before replanning.
+        gameMap.furniture = [];
+        for (const b of (gameMap.buildings || [])) {
+          if (Array.isArray(b.furniturePlan)) {
+            for (const p of b.furniturePlan) gameMap.furniture.push({ ...p });
           }
+        }
+        if (Array.isArray(templateMapData.metadata.furniture)) {
+          for (const p of templateMapData.metadata.furniture) gameMap.furniture.push({ ...p });
         }
         if (templateMapData.metadata.specialBuildings) {
           gameMap.specialBuildings = templateMapData.metadata.specialBuildings;

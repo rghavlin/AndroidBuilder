@@ -70,4 +70,45 @@ describe('Scenario furniture outlines', () => {
     const loaded = await GameMap.fromJSON(JSON.parse(JSON.stringify(gameMap.toJSON())));
     expect(loaded.furniture).toEqual(gameMap.furniture);
   });
+
+  // Loose stamps: the editor's furniture tool writes metadata.furniture, which
+  // is independent of any building so it must survive a scenario with no
+  // buildings at all.
+  it('stamps loose metadata.furniture with no buildings present', async () => {
+    const loose = [
+      { type: 'bed', x: 2, y: 2, w: 2, h: 3, rot: 0 },
+      { type: 'couch', x: 5, y: 1, w: 1, h: 3, rot: 1 },
+    ];
+    const gameMap = await loadScenario({
+      name: 'loose_furniture_only',
+      width: 12,
+      height: 12,
+      tiles: emptyTiles(12, 12),
+      metadata: { furniture: loose },
+    });
+
+    expect(gameMap.furniture).toEqual(loose);
+  });
+
+  it('combines building furniturePlan and loose stamps, and round-trips both', async () => {
+    const tmg = new TemplateMapGenerator();
+    const gen = tmg.generateFromTemplate('starting_road', { mapNumber: 1 });
+    const buildings = gen.metadata.buildings;
+    const loose = [{ type: 'toilet', x: 0, y: 0, w: 1, h: 1, rot: 0 }];
+
+    const gameMap = await loadScenario({
+      name: 'furniture_mixed',
+      width: gen.width,
+      height: gen.height,
+      tiles: emptyTiles(gen.width, gen.height),
+      metadata: { buildings, furniture: loose },
+    });
+
+    const planned = buildings.flatMap(b => (b.furniturePlan || []).map(p => ({ ...p })));
+    expect(planned.length).toBeGreaterThan(0);
+    expect(gameMap.furniture).toEqual([...planned, ...loose]);
+
+    const loaded = await GameMap.fromJSON(JSON.parse(JSON.stringify(gameMap.toJSON())));
+    expect(loaded.furniture).toEqual(gameMap.furniture);
+  });
 });

@@ -7,6 +7,7 @@ import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game
 import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry } from '@/game/quest/eventTypes';
 import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
 import { TileRenderer } from '@/game/renderer/TileRenderer';
+import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -97,8 +98,48 @@ const PLACE_ICON_TYPES = [
   { id: 'barrier',        label: 'Barrier',             symbol: 'B', color: '#888' },
 ];
 
+// ─── Furniture stamp tool ────────────────────────────────────────────────
+
+// A placed furniture outline (loose stamp or floorplan-baked plan entry).
+// x/y = top-left of the rotated footprint in tiles; w/h = rotated dims;
+// rot = quarter-turns clockwise (matches GameMap.furniture / TileRenderer).
+interface FurniturePiece { type: string; x: number; y: number; w: number; h: number; rot?: number }
+
+const FOOTPRINTS = FURNITURE_FOOTPRINTS as Record<string, { w: number; h: number }>;
+
+const FURNITURE_STAMP_TYPES: { id: string; label: string }[] =
+  Object.entries(FOOTPRINTS).map(([id, f]) => ({
+    id,
+    label: `${id.charAt(0).toUpperCase()}${id.slice(1)} (${f.w}×${f.h})`,
+  }));
+
+// Footprint in tiles after rotation (odd quarter-turns swap w/h).
+function rotatedFootprint(type: string, rot: number): { w: number; h: number } {
+  const base = FOOTPRINTS[type] || { w: 1, h: 1 };
+  return (rot % 2) ? { w: base.h, h: base.w } : { w: base.w, h: base.h };
+}
+
+function rectsOverlap(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }): boolean {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+}
+
+const pieceKey = (p: FurniturePiece) => `${p.type}:${p.x}:${p.y}:${p.w}:${p.h}:${p.rot || 0}`;
+
+// gameMap.furniture is the FLAT list: every building's furniturePlan already
+// stamped, plus any loose editor stamps. The editor keeps those two sources
+// apart (plans stay on their building), so when importing a save/gameMap we
+// subtract the planned pieces to recover just the loose ones — otherwise they'd
+// render and export twice.
+function looseFurnitureFrom(flat: FurniturePiece[], buildings: any[]): FurniturePiece[] {
+  const planned = new Set<string>();
+  for (const b of buildings || []) {
+    for (const p of (b.furniturePlan || [])) planned.add(pieceKey(p));
+  }
+  return planned.size ? flat.filter(p => !planned.has(pieceKey(p))) : flat;
+}
+
 type Edge = 'n' | 'e' | 's' | 'w';
-type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'eraser' | 'map_transition' | 'place_icon' | 'event_editor';
+type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'furniture' | 'eraser' | 'map_transition' | 'place_icon' | 'event_editor';
 
 // On-map, per-entity speech bubbles. A BubbleEvent is a sequence of lines, each
 // anchored to a specific tile/entity, played one at a time when its trigger
@@ -138,7 +179,7 @@ interface BuildingMeta {
   type: string;
   x: number; y: number;
   width: number; height: number;
-  furniturePlan?: { type: string; x: number; y: number; w: number; h: number; rot?: number }[];
+  furniturePlan?: FurniturePiece[];
 }
 
 interface ScenarioData {
@@ -157,6 +198,7 @@ interface ScenarioData {
   events?: GameEvent[];
   questRegistry?: QuestRegistry;
   entityRegistry?: EntityRegistry;
+  furniture?: FurniturePiece[];
 }
 
 function createEmptyTile(terrain = 'grass'): TileData {
@@ -204,7 +246,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry; furniture?: FurniturePiece[] } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -384,10 +426,11 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     events: unifiedEvents,
     questRegistry: scenario.questRegistry || scenario.metadata?.questRegistry || emptyQuestRegistry(),
     entityRegistry: scenario.entityRegistry || scenario.metadata?.entityRegistry || emptyEntityRegistry(),
+    furniture: scenario.metadata?.furniture || [],
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry; furniture?: FurniturePiece[] } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -552,6 +595,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     events: unifiedEvents,
     questRegistry: mapData.questRegistry || metadata?.questRegistry || emptyQuestRegistry(),
     entityRegistry: mapData.entityRegistry || metadata?.entityRegistry || emptyEntityRegistry(),
+    furniture: looseFurnitureFrom(mapData.furniture || metadata?.furniture || [], mapData.buildings || []),
   };
 }
 
@@ -715,6 +759,7 @@ function exportScenario(scenario: ScenarioData) {
       alwaysDark: scenario.alwaysDark,
       buildings: scenario.buildings,
       seed: scenario.seed,
+      furniture: scenario.furniture || [],
       specialBuildings: scenario.buildings.filter(b =>
         ['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store', 'lab'].includes(b.type)
       ),
@@ -1083,7 +1128,7 @@ export default function MapEditor() {
   // Strip any legacy entries for `id` out of all three storage arrays.
   const removeEventFromStorage = useCallback((id: string) => {
     setTiles(prev => {
-      pushUndo(prev, buildingsRef.current);
+      pushUndo(prev, buildingsRef.current, furnitureRef.current);
       return prev.map(row => row.map(t => (t.eventTrigger?.id === id ? { ...t, eventTrigger: undefined } : t)));
     });
     setChainDialogEvents(prev => prev.filter(e => e.id !== id));
@@ -1252,6 +1297,9 @@ export default function MapEditor() {
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
   const [showGrid, setShowGrid] = useState(true);
   const [showFurniture, setShowFurniture] = useState(true);
+  const [furniture, setFurniture] = useState<FurniturePiece[]>([]);
+  const [furnitureType, setFurnitureType] = useState('bed');
+  const [furnitureRot, setFurnitureRot] = useState(0);
   const [statusMsg, setStatusMsg] = useState('');
   const [showLoadPicker, setShowLoadPicker] = useState(false);
   const [savedScenarios, setSavedScenarios] = useState<{ name: string; width: number; height: number }[]>([]);
@@ -1282,12 +1330,16 @@ export default function MapEditor() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLCanvasElement>(null);
   const isDraggingMinimap = useRef(false);
-  const undoStack = useRef<{ tiles: TileData[][]; buildings: BuildingMeta[] }[]>([]);
+  const undoStack = useRef<{ tiles: TileData[][]; buildings: BuildingMeta[]; furniture: FurniturePiece[] }[]>([]);
   const strokeUndoPushed = useRef(false);
   const buildingsRef = useRef(buildings);
   buildingsRef.current = buildings;
-  const pushUndo = useCallback((tileSnap: TileData[][], buildingSnap: BuildingMeta[]) => {
-    undoStack.current.push({ tiles: tileSnap, buildings: buildingSnap });
+  const furnitureRef = useRef(furniture);
+  furnitureRef.current = furniture;
+  const tilesRef = useRef(tiles);
+  tilesRef.current = tiles;
+  const pushUndo = useCallback((tileSnap: TileData[][], buildingSnap: BuildingMeta[], furnitureSnap: FurniturePiece[]) => {
+    undoStack.current.push({ tiles: tileSnap, buildings: buildingSnap, furniture: furnitureSnap });
     if (undoStack.current.length > 50) undoStack.current.shift();
   }, []);
   const handleUndo = useCallback(() => {
@@ -1295,21 +1347,30 @@ export default function MapEditor() {
     if (prev) {
       setTiles(prev.tiles);
       setBuildings(prev.buildings);
+      setFurniture(prev.furniture);
       setStatusMsg('Undo');
     }
   }, []);
 
-  // ─── Ctrl+Z undo shortcut ─────────────────────────────────────────
+  // ─── Keyboard shortcuts (Ctrl+Z undo, R rotate furniture) ─────────
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
+        return;
+      }
+      // Bare R rotates the furniture stamp, but not while typing in a field.
+      const target = e.target as HTMLElement | null;
+      const typing = !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+      if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'r' || e.key === 'R') && tool === 'furniture') {
+        e.preventDefault();
+        setFurnitureRot(r => (r + 1) % 4);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleUndo]);
+  }, [handleUndo, tool]);
 
   // ─── Resize ──────────────────────────────────────────────────────────
   const resizeMap = useCallback((newW: number, newH: number) => {
@@ -1331,11 +1392,30 @@ export default function MapEditor() {
   const applyTool = useCallback((x: number, y: number) => {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
 
-    setTiles(prev => {
-      if (!strokeUndoPushed.current) {
-        pushUndo(prev, buildingsRef.current);
-        strokeUndoPushed.current = true;
+    // Undo snapshot for the whole stroke. Taken here rather than inside the
+    // setTiles updater below because the eraser mutates furniture before that
+    // updater runs — snapshotting in there would capture the post-erase list.
+    if (!strokeUndoPushed.current) {
+      pushUndo(tilesRef.current, buildingsRef.current, furnitureRef.current);
+      strokeUndoPushed.current = true;
+    }
+
+    // Eraser also removes loose furniture stamps intersecting the brush. Done
+    // out here for the same reason: updaters may run more than once, so nesting
+    // a setState in one is not safe.
+    if (tool === 'eraser') {
+      const eraseHalf = Math.floor(brushSize / 2);
+      const brushRect = { x: x - eraseHalf, y: y - eraseHalf, w: brushSize, h: brushSize };
+      const remaining = furnitureRef.current.filter(p => !rectsOverlap(p, brushRect));
+      if (remaining.length !== furnitureRef.current.length) {
+        setStatusMsg(`Erased ${furnitureRef.current.length - remaining.length} furniture piece(s)`);
+        // Keep the ref in step so the rest of this stroke sees the erased list.
+        furnitureRef.current = remaining;
+        setFurniture(remaining);
       }
+    }
+
+    setTiles(prev => {
       const next = prev.map(row => row.map(t => ({ ...t })));
 
       const useBrush = tool === 'terrain' || tool === 'eraser';
@@ -1483,6 +1563,31 @@ export default function MapEditor() {
     });
   }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, npcAiDisabled, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
+  // ─── Furniture stamp tool ────────────────────────────────────────────
+  // Validates and places a loose furniture stamp at (x, y). Lives outside
+  // applyTool: placement appends to the furniture array, which must not run
+  // inside a state updater (React may invoke updaters more than once).
+  const stampFurniture = useCallback((x: number, y: number) => {
+    const { w, h } = rotatedFootprint(furnitureType, furnitureRot);
+    const piece: FurniturePiece = { type: furnitureType, x, y, w, h, rot: furnitureRot };
+
+    if (x < 0 || y < 0 || x + w > width || y + h > height) {
+      setStatusMsg('Furniture does not fit there');
+      return;
+    }
+    const overlapsPlaced = furnitureRef.current.some(p => rectsOverlap(p, piece));
+    const overlapsPlanned = buildingsRef.current.some(b =>
+      (b.furniturePlan || []).some(p => rectsOverlap(p, piece)));
+    if (overlapsPlaced || overlapsPlanned) {
+      setStatusMsg('Furniture overlaps an existing piece');
+      return;
+    }
+
+    pushUndo(tiles, buildingsRef.current, furnitureRef.current);
+    setFurniture(prev => [...prev, piece]);
+    setStatusMsg(`Stamped ${furnitureType} at (${x},${y})`);
+  }, [furnitureType, furnitureRot, width, height, tiles]);
+
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
     if (!buildStart) return;
@@ -1499,7 +1604,7 @@ export default function MapEditor() {
     }
 
     setTiles(prev => {
-      pushUndo(prev, buildingsRef.current);
+      pushUndo(prev, buildingsRef.current, furnitureRef.current);
       const next = prev.map(row => row.map(t => {
         const edgeWalls: any = {};
         (['n', 'e', 's', 'w'] as Edge[]).forEach(e => edgeWalls[e] = { ...t.edgeWalls[e] });
@@ -1565,11 +1670,12 @@ export default function MapEditor() {
     });
     ctx.lineWidth = 1;
 
-    // Furniture outlines (template-generated buildings; matches in-game CAD style)
+    // Furniture outlines (template-generated buildings + loose stamps; matches in-game CAD style)
     if (showFurniture) {
       buildings.forEach(b => {
         b.furniturePlan?.forEach(piece => TileRenderer.drawFurniture(ctx, piece, CELL, 'dark'));
       });
+      furniture.forEach(piece => TileRenderer.drawFurniture(ctx, piece, CELL, 'dark'));
     }
 
     // Pass 2: edges, entities, items, events (drawn on top of building outlines)
@@ -1651,7 +1757,7 @@ export default function MapEditor() {
         }
       }
     }
-  }, [tiles, buildings, width, height, showGrid, showFurniture, exitImage]);
+  }, [tiles, buildings, furniture, width, height, showGrid, showFurniture, exitImage]);
 
   // ─── Main Canvas Render (Dynamic Overlays) ───────────────────────────
   useEffect(() => {
@@ -1681,8 +1787,26 @@ export default function MapEditor() {
       ctx.setLineDash([]);
     }
 
+    // Furniture stamp ghost: outline of the selected piece under the cursor,
+    // with a dashed footprint rect (green = placeable, red = blocked)
+    if (tool === 'furniture' && hoverCell) {
+      const { w, h } = rotatedFootprint(furnitureType, furnitureRot);
+      const ghost: FurniturePiece = { type: furnitureType, x: hoverCell.x, y: hoverCell.y, w, h, rot: furnitureRot };
+      const blocked =
+        ghost.x < 0 || ghost.y < 0 || ghost.x + w > width || ghost.y + h > height ||
+        furniture.some(p => rectsOverlap(p, ghost)) ||
+        buildings.some(b => (b.furniturePlan || []).some(p => rectsOverlap(p, ghost)));
+      TileRenderer.drawFurniture(ctx, ghost, CELL, 'dark');
+      ctx.strokeStyle = blocked ? '#f44336' : '#4caf50';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(ghost.x * CELL, ghost.y * CELL, w * CELL, h * CELL);
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1;
+    }
+
     // Hover highlight
-    if (hoverCell && tool !== 'building_rect') {
+    if (hoverCell && tool !== 'building_rect' && tool !== 'furniture') {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
       const useBrush = tool === 'terrain' || tool === 'eraser';
       if (useBrush && brushSize > 1) {
@@ -1694,7 +1818,7 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, showGrid, showFurniture]);
+  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, furniture, furnitureType, furnitureRot, showGrid, showFurniture]);
 
   // ─── Minimap update logic ────────────────────────────────────────────
   const updateMinimapViewport = useCallback(() => {
@@ -1793,7 +1917,7 @@ export default function MapEditor() {
   // Hook into offscreen redraw to keep minimap synced
   useEffect(() => {
     updateMinimapViewport();
-  }, [tiles, buildings, width, height, showGrid, showFurniture, exitImage, updateMinimapViewport]);
+  }, [tiles, buildings, furniture, width, height, showGrid, showFurniture, exitImage, updateMinimapViewport]);
 
   // ─── Mouse handlers ──────────────────────────────────────────────────
   const cellFromEvent = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1819,6 +1943,8 @@ export default function MapEditor() {
       setShowEntityRegistryModal(true);
     } else if (tool === 'building_rect') {
       setBuildStart({ x, y });
+    } else if (tool === 'furniture') {
+      stampFurniture(x, y);
     } else {
       strokeUndoPushed.current = false;
       setIsPainting(true);
@@ -1835,7 +1961,8 @@ export default function MapEditor() {
     const insideBuilding = buildings.some(b =>
       x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
     );
-    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || !!tile.placeIcon || hasDoorOrWindow || insideBuilding;
+    const onFurniture = furniture.some(p => x >= p.x && x < p.x + p.w && y >= p.y && y < p.y + p.h);
+    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || !!tile.placeIcon || hasDoorOrWindow || insideBuilding || onFurniture;
     if (hasContent) {
       setInspectTile({ x, y, screenX: e.clientX, screenY: e.clientY });
     }
@@ -1887,6 +2014,7 @@ export default function MapEditor() {
       events: allEditorEvents,
       questRegistry,
       entityRegistry,
+      furniture,
     };
     const exported = exportScenario(scenario);
 
@@ -1915,6 +2043,7 @@ export default function MapEditor() {
       events: allEditorEvents,
       questRegistry,
       entityRegistry,
+      furniture,
     };
     try {
       await ScenarioStorage.saveEditorState(scenarioName, editorState);
@@ -1978,6 +2107,7 @@ export default function MapEditor() {
         setAllEditorEvents((editor as any).events || []);
         setQuestRegistry((editor as any).questRegistry || emptyQuestRegistry());
         setEntityRegistry((editor as any).entityRegistry || emptyEntityRegistry());
+        setFurniture((editor as any).furniture || []);
         setStatusMsg(`Loaded save game map "${label}"`);
         return;
       } catch (err: any) {
@@ -2004,6 +2134,7 @@ export default function MapEditor() {
     setAllEditorEvents((editor as any).events || data.events || []);
     setQuestRegistry((editor as any).questRegistry || data.questRegistry || emptyQuestRegistry());
     setEntityRegistry((editor as any).entityRegistry || data.entityRegistry || emptyEntityRegistry());
+    setFurniture((editor as any).furniture || data.furniture || []);
     setStatusMsg(`Loaded "${label}"`);
   };
 
@@ -2164,7 +2295,7 @@ export default function MapEditor() {
         })
       );
 
-      pushUndo(tiles, buildings);
+      pushUndo(tiles, buildings, furniture);
       setTiles(newTiles);
       setMapLowSpots(gameMap.lowSpots || []);
       setStatusMsg(`Loot generated using seed ${finalSeed}! (Amount level: ${lootAmount})`);
@@ -2274,7 +2405,7 @@ export default function MapEditor() {
         })
       );
 
-      pushUndo(tiles, buildings);
+      pushUndo(tiles, buildings, furniture);
       setTiles(newTiles);
       setStatusMsg(`Spawned ${spawnedCount} zombies using seed ${finalSeed}! (Density level: ${zombieDensity})`);
       setShowZombieModal(false);
@@ -2304,8 +2435,9 @@ export default function MapEditor() {
 
   const handleClear = () => {
     requestConfirm('Clear entire map?', () => {
-      setTiles(prev => { pushUndo(prev, buildingsRef.current); return createEmptyGrid(width, height); });
+      setTiles(prev => { pushUndo(prev, buildingsRef.current, furnitureRef.current); return createEmptyGrid(width, height); });
       setBuildings([]);
+      setFurniture([]);
       setStatusMsg('Map cleared');
     });
   };
@@ -2406,6 +2538,7 @@ export default function MapEditor() {
           {toolButton('edge_door', 'Door')}
           {toolButton('edge_window', 'Window')}
           {toolButton('building_rect', 'Building')}
+          {toolButton('furniture', 'Furniture')}
           {toolButton('place_icon', 'Sign')}
           {toolButton('entity', 'Entity')}
           {toolButton('item', 'Item')}
@@ -2609,6 +2742,32 @@ export default function MapEditor() {
               ))}
             </select>
             <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>Click and drag on the grid to draw a building rectangle (min 3×3). Walls + floor auto-placed.</p>
+          </div>
+        )}
+
+        {tool === 'furniture' && (
+          <div>
+            <label style={{ fontSize: 11, color: '#888' }}>Furniture Type</label>
+            <select
+              value={furnitureType}
+              onChange={e => setFurnitureType(e.target.value)}
+              style={{ ...inputStyle, width: '100%', marginTop: 4 }}
+            >
+              {FURNITURE_STAMP_TYPES.map(ft => (
+                <option key={ft.id} value={ft.id}>{ft.label}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => setFurnitureRot(r => (r + 1) % 4)}
+              style={{ ...btnStyle('#555'), width: '100%', marginTop: 6 }}
+            >
+              Rotate 90° [R] (now {rotatedFootprint(furnitureType, furnitureRot).w}×{rotatedFootprint(furnitureType, furnitureRot).h})
+            </button>
+            <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>
+              Click to stamp the outlined piece. Red outline = blocked (overlap or out of bounds).
+              To remove: use the Eraser tool, or right-click a tile and use Remove in the Furniture section.
+              {' '}<span style={{ color: '#8fd0c8' }}>{furniture.length} stamped</span>.
+            </p>
           </div>
         )}
 
@@ -3681,9 +3840,22 @@ export default function MapEditor() {
           tx >= b.x && tx < b.x + b.width && ty >= b.y && ty < b.y + b.height
         );
 
+        // Loose stamps covering this tile. Pieces baked into a building's
+        // furniturePlan aren't listed — those belong to the building and go
+        // away with it.
+        const containingFurniture = furniture.filter(p =>
+          tx >= p.x && tx < p.x + p.w && ty >= p.y && ty < p.y + p.h
+        );
+
+        const removeFurniture = (piece: FurniturePiece) => {
+          pushUndo(tilesRef.current, buildingsRef.current, furnitureRef.current);
+          setFurniture(prev => prev.filter(item => item !== piece));
+          setStatusMsg(`Removed ${piece.type} at (${piece.x},${piece.y})`);
+        };
+
         const removeBuilding = (b: BuildingMeta) => {
           setTiles(prev => {
-            pushUndo(prev, buildingsRef.current);
+            pushUndo(prev, buildingsRef.current, furnitureRef.current);
             return prev.map(r => r.map(c => ({ ...c })));
           });
           setBuildings(prev => prev.filter(item => item !== b));
@@ -3692,7 +3864,7 @@ export default function MapEditor() {
 
         const removeEntity = (idx: number) => {
           setTiles(prev => {
-            pushUndo(prev, buildingsRef.current);
+            pushUndo(prev, buildingsRef.current, furnitureRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             next[ty][tx].entities.splice(idx, 1);
             return next;
@@ -3701,7 +3873,7 @@ export default function MapEditor() {
 
         const removeItem = (idx: number) => {
           setTiles(prev => {
-            pushUndo(prev, buildingsRef.current);
+            pushUndo(prev, buildingsRef.current, furnitureRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             next[ty][tx].items.splice(idx, 1);
             return next;
@@ -3711,7 +3883,7 @@ export default function MapEditor() {
         const removeEvent = () => {
           const removedId = t.eventTrigger?.id;
           setTiles(prev => {
-            pushUndo(prev, buildingsRef.current);
+            pushUndo(prev, buildingsRef.current, furnitureRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             delete next[ty][tx].eventTrigger;
             return next;
@@ -3726,7 +3898,7 @@ export default function MapEditor() {
 
         const removeTransition = () => {
           setTiles(prev => {
-            pushUndo(prev, buildingsRef.current);
+            pushUndo(prev, buildingsRef.current, furnitureRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
             delete next[ty][tx].mapTransition;
             return next;
@@ -3831,6 +4003,21 @@ export default function MapEditor() {
                         {b.type} ({b.width}×{b.height})
                       </span>
                       <button onClick={() => removeBuilding(b)} style={removeBtnStyle}>Remove Outline</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Furniture stamps */}
+              {containingFurniture.length > 0 && (
+                <div style={sectionStyle}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Furniture</div>
+                  {containingFurniture.map((p, idx) => (
+                    <div key={idx} style={rowStyle}>
+                      <span style={{ color: '#8fd0c8' }}>
+                        {p.type} ({p.w}×{p.h}){p.rot ? ` ↻${p.rot * 90}°` : ''}
+                      </span>
+                      <button onClick={() => removeFurniture(p)} style={removeBtnStyle}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -3982,7 +4169,7 @@ export default function MapEditor() {
                   <button
                     onClick={() => {
                       setTiles(prev => {
-                        pushUndo(prev, buildingsRef.current);
+                        pushUndo(prev, buildingsRef.current, furnitureRef.current);
                         const next = prev.map(r => r.map(tile => ({ ...tile, edgeWalls: { ...tile.edgeWalls }, entities: [...tile.entities], items: [...tile.items] })));
                         delete next[inspectTile!.y][inspectTile!.x].placeIcon;
                         return next;

@@ -30,6 +30,7 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
       if (metadata.buildings) builder.metadata.buildings = metadata.buildings;
       if (metadata.specialBuildings) builder.metadata.specialBuildings = metadata.specialBuildings;
       if (metadata.placeIcons) builder.metadata.placeIcons = metadata.placeIcons;
+      if (metadata.furniture) builder.metadata.furniture = metadata.furniture;
       if (metadata.spawnZones) builder.metadata.spawnZones = metadata.spawnZones;
       if (metadata.lowSpots) builder.metadata.lowSpots = metadata.lowSpots;
     }
