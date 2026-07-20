@@ -35,7 +35,7 @@ const STEP_TYPE_OPTIONS: { id: StepType; label: string }[] = [
   { id: 'wait', label: 'Wait' },
   { id: 'chain', label: 'Chain to event' },
   { id: 'moveEntity', label: 'Move entity' },
-  { id: 'setNpcAI', label: 'Enable/disable NPC AI' },
+  { id: 'setNpcAI', label: 'Set NPC AI mode' },
   { id: 'controlEntity', label: 'Control door/window' },
   { id: 'startQuest', label: 'Start quest' },
   { id: 'setQuestTask', label: 'Set quest task' },
@@ -55,7 +55,7 @@ function emptyStep(type: StepType): EventStep {
     case 'wait': return { type, ms: 500 };
     case 'chain': return { type, eventId: '' };
     case 'moveEntity': return { type, entityTag: '', targetX: undefined, targetY: undefined };
-    case 'setNpcAI': return { type, entityTag: '', enabled: false };
+    case 'setNpcAI': return { type, entityTag: '', aiMode: 'disabled' };
     case 'controlEntity': return { type, entityTag: '', entityAction: 'open' };
     case 'startQuest': return { type, questId: '' };
     case 'setQuestTask': return { type, questId: '', taskIndex: 0 };
@@ -467,9 +467,20 @@ function StepEditor({
             <option value="">select entity…</option>
             {knownEntities.map(ent => <option key={ent.tag} value={ent.tag}>{ent.label}</option>)}
           </select>
-          <select style={{ ...inputStyle, width: 130 }} value={String(step.enabled ?? false)} onChange={e => onChange({ ...step, enabled: e.target.value === 'true' })}>
-            <option value="false">Disable AI (stay put)</option>
-            <option value="true">Enable AI (resume normal behavior)</option>
+          {/* Legacy steps carry only `enabled`; show the mode it maps to and
+              write both fields so the event keeps working if opened by an
+              older build. */}
+          <select
+            style={{ ...inputStyle, width: 190 }}
+            value={step.aiMode || (step.enabled ? 'normal' : 'disabled')}
+            onChange={e => {
+              const aiMode = e.target.value as 'disabled' | 'normal' | 'attackOnSight';
+              onChange({ ...step, aiMode, enabled: aiMode !== 'disabled' });
+            }}
+          >
+            <option value="disabled">Disable AI (stay put)</option>
+            <option value="normal">Enable AI (resume normal behavior)</option>
+            <option value="attackOnSight">Attack on sight (hunt to the death)</option>
           </select>
         </div>
       )}

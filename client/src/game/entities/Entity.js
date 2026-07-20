@@ -1139,7 +1139,8 @@ defineAccessors(Entity, 'AIState', AIState, {
   hasExtorted: false,
   fleeRecoverChance: 0,
   stunnedTurns: 0,
-  aiDisabled: false
+  aiDisabled: false,
+  attackOnSight: false
 });
 
 defineAccessors(Entity, 'Burnable', Burnable, {

@@ -66,7 +66,10 @@ export interface EventStep {
   // startQuest / setQuestTask
   questId?: string;
   taskIndex?: number;
-  // setNpcAI (reuses entityTag above)
+  // setNpcAI (reuses entityTag above). `aiMode` is the current 3-state form;
+  // `enabled` is the legacy 2-state field kept so older authored events still
+  // run (EventRunner derives the mode from it when aiMode is absent).
+  aiMode?: 'disabled' | 'normal' | 'attackOnSight';
   enabled?: boolean;
   // controlEntity (reuses entityTag above): open/close/lock/unlock a door or window
   entityAction?: 'open' | 'close' | 'lock' | 'unlock';

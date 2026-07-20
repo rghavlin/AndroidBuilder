@@ -8,6 +8,31 @@ import Logger from '../utils/Logger.js';
 const log = Logger.scope('EventRunner');
 
 /**
+ * Apply a setNpcAI step's AI mode to an NPC. Exported so the mode table has one
+ * home and can be unit-tested without standing up a whole event run.
+ *
+ * Three modes; events authored before the mode existed carry only the `enabled`
+ * boolean, so derive from that when `aiMode` is absent:
+ *   disabled      - scripted: stays put, moved only by moveEntity/dialog steps
+ *   normal        - wandering/fleeing/extortion AI resumes
+ *   attackOnSight - hunts the player to the death, never demands loot first
+ */
+export function applyNpcAIMode(entity, step) {
+  const mode = step.aiMode || (step.enabled ? 'normal' : 'disabled');
+  if (mode === 'disabled') {
+    entity.aiDisabled = true;
+    return mode;
+  }
+  entity.aiDisabled = false;
+  entity.attackOnSight = (mode === 'attackOnSight');
+  // Attacking implies hostility. Switching back to 'normal' deliberately leaves
+  // isHostile alone, so an authored hostile de-escalates to demand-first
+  // behavior rather than turning friendly.
+  if (mode === 'attackOnSight') entity.isHostile = true;
+  return mode;
+}
+
+/**
  * Single runtime runner for all authored events (unified GameEvent[] — see
  * QUEST_SYSTEM_PLAN.md §6). Replaces the previously-separate modal-dialog
  * (GameContext.fireDialogTrigger) and speech-bubble (SpeechBubbleContext)
@@ -542,9 +567,7 @@ class EventRunner {
           if (!targetEntity) {
             log.warn(`[EventRunner] Could not find entity with tag "${step.entityTag}"`);
           } else {
-            // enabled: true = normal wandering/fleeing/combat AI resumes;
-            // false = scripted (stays put, moved only by moveEntity/dialog steps).
-            targetEntity.aiDisabled = !step.enabled;
+            applyNpcAIMode(targetEntity, step);
           }
         }
         this.activeRun.stepIndex++;

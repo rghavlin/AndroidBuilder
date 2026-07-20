@@ -997,6 +997,12 @@ export class TemplateMapGenerator {
                   e.iconId || null
                 );
                 if (e.aiDisabled && entity) entity.aiDisabled = true;
+                // Attack-on-sight implies hostility, so authors only have to
+                // tick one box in the editor.
+                if (e.attackOnSight && entity) {
+                  entity.attackOnSight = true;
+                  entity.isHostile = true;
+                }
               }
               if (entity) gameMap.addEntity(entity, e.x, e.y);
           } catch (err) {

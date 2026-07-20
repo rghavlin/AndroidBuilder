@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784515245.1381853,
-    "ast_hash": "7aa7acecf6ba9d018c429f3cde11f2df",
+    "mtime": 1784537486.428716,
+    "ast_hash": "bd31ef1b9b525bfeafad1d19af56107c",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -775,8 +775,8 @@
     "semantic_hash": "a27fd3cd73ef276606f443c5fac4bbec"
   },
   "client/src/game/components/AIState.js": {
-    "mtime": 1784114525.5330355,
-    "ast_hash": "8123adde931f1d7811d239169f56609c",
+    "mtime": 1784537311.7753284,
+    "ast_hash": "158eb573439091dc2d8f863eacd9599d",
     "semantic_hash": ""
   },
   "client/src/game/components/ActionPoints.js": {
@@ -930,8 +930,8 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/Entity.js": {
-    "mtime": 1784111147.3416662,
-    "ast_hash": "7a994bdfb917bbbb58259ee2efe95779",
+    "mtime": 1784537313.1036386,
+    "ast_hash": "5b75112aa0668fafa037f9cc847a04ec",
     "semantic_hash": ""
   },
   "client/src/game/entities/NPCTypes.js": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784536367.9365954,
-    "ast_hash": "e7a818dfe0e285f385e19a9cd6e837ad",
+    "mtime": 1784537366.4485126,
+    "ast_hash": "c9e1c12e58c059547e4ed3bf106b89ee",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1420,8 +1420,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784536557.4211519,
-    "ast_hash": "e73b5a8d57461cf074d1456a07d098e7",
+    "mtime": 1784537501.2184038,
+    "ast_hash": "ac007d9fdddc8e38b0eeb407c861974d",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -2770,18 +2770,18 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/EventWindow.tsx": {
-    "mtime": 1784074953.548766,
-    "ast_hash": "9d51dd27cc04cfceeeac7bde03bc0973",
+    "mtime": 1784538002.5519311,
+    "ast_hash": "3032cfdc4c866988a477108f5493170e",
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
-    "mtime": 1784074873.9596221,
-    "ast_hash": "168fa63cd63d9a7cc9f51b838fc6764c",
+    "mtime": 1784537973.0092378,
+    "ast_hash": "745cfb8ffd1720b81618eebc411dcaae",
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1784074899.0270529,
-    "ast_hash": "46aceb014ff4981bd4265b53de2c9047",
+    "mtime": 1784538054.7565327,
+    "ast_hash": "a23d8c586e33d27a1e141b79a5eb87c2",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -2825,8 +2825,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/NPCAISystem.js": {
-    "mtime": 1784114379.7719798,
-    "ast_hash": "c17b52cac5504031fa9a744619f32841",
+    "mtime": 1784537364.4001355,
+    "ast_hash": "7b551df1b949fadb9906f88213294a43",
     "semantic_hash": ""
   },
   "test/inventory/container.test.js": {
@@ -3005,13 +3005,13 @@
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.editor.json": {
-    "mtime": 1784526964.8590157,
-    "ast_hash": "09d9dfd64244b00793046cdef0d61df1",
+    "mtime": 1784536721.065878,
+    "ast_hash": "3bc4b0fc689bdda450c4a4de11fd2c72",
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.scenario.json": {
-    "mtime": 1784526251.418201,
-    "ast_hash": "11035a33d4557ead33b2932af24a0815",
+    "mtime": 1784536721.507228,
+    "ast_hash": "117b75bb407e167c539867321ffb1802",
     "semantic_hash": ""
   },
   "scratch/check_template_furniture_plan.mjs": {
@@ -3022,6 +3022,11 @@
   "test/map/scenarioFurniture.test.js": {
     "mtime": 1784536380.7588215,
     "ast_hash": "71aa5534ec025834481914f0ddd99eaf",
+    "semantic_hash": ""
+  },
+  "test/systems/npcAttackOnSight.test.js": {
+    "mtime": 1784538070.2406728,
+    "ast_hash": "919ed54a9c8d4a0ea2a34000eabde07c",
     "semantic_hash": ""
   }
 }

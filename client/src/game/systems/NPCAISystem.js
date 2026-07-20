@@ -23,6 +23,9 @@ const MAX_NPC_CYCLES_PER_TURN = 20;
  * NPCs drain their AP across cycles exactly like zombies do.
  *
  * Behavior priorities (ported from the legacy NPCAI turn loop):
+ *   0. Attack-on-sight hostiles (AIState.attackOnSight) short-circuit the whole
+ *      list: hunt and kill the player, fight zombies instead of fleeing them,
+ *      and never escape off the map. See huntPlayer.
  *   1. Flee visible/remembered zombies (repulsion vector), stand ground when
  *      surrounded, last-resort melee/ranged combat when cornered.
  *   2. Hostile player interaction: walk to a cardinal attack slot, DEMAND once,
@@ -118,6 +121,22 @@ export class NPCAISystem {
    */
   static decide(ctx, simContext) {
     const { npc, gameMap, player, zombies } = ctx;
+
+    // Priority 0: attack-on-sight hostiles. No extortion, no fleeing and no
+    // escaping off the map — they close on the player and fight to the death
+    // with whatever they hold. When the player is unknown or unreachable they
+    // fall through to fight zombies / investigate, but never travel south.
+    if (npc.attackOnSight && npc.isHostileTo(player)) {
+      if (this.huntPlayer(ctx)) return;
+
+      const aggroThreats = this.evaluateZombieThreats(npc, gameMap, zombies);
+      if (aggroThreats.length > 0) {
+        this.lastResortCombat(ctx, aggroThreats);
+        return;
+      }
+      if (npc.heardNoise) this.investigate(ctx);
+      return;
+    }
 
     // Priority 1/2: zombie threats — flee, stand ground when surrounded,
     // last-resort combat when cornered.
@@ -394,6 +413,76 @@ export class NPCAISystem {
 
     // Burn remaining AP (wait/hunker down); emits nothing, ending this NPC's turn.
     npc.ap = 0;
+  }
+
+  /**
+   * Attack-on-sight hunting: engage the player immediately, no demand and no
+   * disengaging. Shoots from range when armed, melees from a cardinal attack
+   * slot otherwise, and pursues the last known position once line of sight
+   * breaks so cover only buys the player a moment.
+   *
+   * Unlike hostilePlayer this never sets simContext.demandPending, so several
+   * attack-on-sight NPCs all act in the same turn.
+   *
+   * @returns {boolean} true when this branch acted; false when the player has
+   *   never been seen or is currently unreachable.
+   */
+  static huntPlayer(ctx) {
+    const { npc, gameMap, player } = ctx;
+
+    const canSee = this.canSeePlayer(npc, gameMap, player);
+    if (canSee) {
+      // Refresh the last known position directly rather than through
+      // Entity.setTargetSighted, which fires a zombie-specific event.
+      npc.lastSeen = true;
+      npc.targetSightedCoords = { x: player.logicalX, y: player.logicalY };
+    }
+
+    // 1. Melee from an adjacent attack position.
+    if (isMeleeAttackPosition(npc, gameMap, npc.logicalX, npc.logicalY, player)) {
+      npc.behaviorState = 'attacking';
+      if (this.npcAttack(ctx, player, false)) return true;
+    }
+
+    // 2. Shoot on sight when holding a ranged weapon and inside its range.
+    if (canSee) {
+      const weapon = npc.getEquippedWeapon();
+      const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
+      const isRanged = weapon && (weaponDef?.rangedStats || weapon.rangedStats);
+      if (isRanged) {
+        const maxRange = weaponDef?.rangedStats?.maxRange ?? weapon?.rangedStats?.maxRange ?? 8;
+        if (npc.getDistanceTo(player.logicalX, player.logicalY) <= maxRange) {
+          npc.behaviorState = 'attacking';
+          if (this.npcAttack(ctx, player, true)) return true;
+        }
+      }
+    }
+
+    // 3. Close on the player: a free cardinal slot beside them while visible.
+    if (canSee) {
+      npc.behaviorState = 'hunting';
+      const slotPath = findAttackSlotPath(gameMap, npc, player);
+      if (slotPath && slotPath.path.length > 1) {
+        return this.stepAlongPath(ctx, slotPath.path[1]);
+      }
+      return false;
+    }
+
+    // 4. Out of sight: press on toward the last known position, forgetting it
+    //    on arrival so the NPC doesn't loop on an empty tile.
+    if (!npc.lastSeen) return false;
+    const lkp = npc.targetSightedCoords;
+    if (!lkp || (npc.logicalX === lkp.x && npc.logicalY === lkp.y)) {
+      npc.lastSeen = false;
+      return false;
+    }
+
+    npc.behaviorState = 'hunting';
+    const path = Pathfinding.findPath(gameMap, npc.logicalX, npc.logicalY, lkp.x, lkp.y, { entity: npc });
+    if (path && path.length > 1 && this.stepAlongPath(ctx, path[1])) return true;
+
+    npc.lastSeen = false; // unreachable — stop chasing a ghost
+    return false;
   }
 
   /**

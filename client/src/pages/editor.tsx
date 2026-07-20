@@ -165,10 +165,21 @@ interface BubbleEvent {
 }
 
 interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; }
+
+// One authored entity on a tile. NPC-only flags:
+//   isHostile     — extorts the player first (demand dialog), then fights
+//   attackOnSight — skips the demand and hunts to the death (implies isHostile)
+//   aiDisabled    — scripted/quest NPC, no autonomous AI at all
+interface EntityData {
+  type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean;
+  typeId?: string; name?: string; isHostile?: boolean; attackOnSight?: boolean;
+  iconId?: string; aiDisabled?: boolean;
+}
+
 interface TileData {
   terrain: string;
   edgeWalls: Record<Edge, EdgeState>;
-  entities: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean; typeId?: string; name?: string; isHostile?: boolean; iconId?: string }[];
+  entities: EntityData[];
   items: { defId: string; ammoCount?: number; condition?: number; batteryCharges?: number; gunAmmoCount?: number; gunMagDefId?: string; gunAttachments?: Record<string, string>; transitionTargetId?: string; transitionTargetX?: number; transitionTargetY?: number; eventId?: string }[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean; grants?: ItemGrant[]; next?: string };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
@@ -344,7 +355,9 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         typeId: e.typeId || undefined,
         name: e.name || undefined,
         isHostile: e.isHostile || undefined,
+        attackOnSight: e.attackOnSight || undefined,
         iconId: e.iconId || undefined,
+        aiDisabled: e.aiDisabled || undefined,
       });
     }
   }
@@ -520,12 +533,18 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
                 deaf: e.deaf,
               });
             } else if (e.type === 'npc') {
+              // attackOnSight/aiDisabled are AIState fields, so in a serialized
+              // entity they sit under components.AIState rather than top level
+              // (unlike isHostile, which is a SERIALIZED_FIELDS entry).
+              const aiState = e.components?.AIState || {};
               tiles[y][x].entities.push({
                 type: 'npc',
                 typeId: e.typeId,
                 name: e.name,
                 isHostile: e.isHostile,
+                attackOnSight: e.attackOnSight ?? aiState.attackOnSight,
                 iconId: e.iconId,
+                aiDisabled: e.aiDisabled ?? aiState.aiDisabled,
               });
             } else if (e.type === 'rabbit') {
               tiles[y][x].entities.push({ type: 'rabbit' });
@@ -709,7 +728,9 @@ function exportScenario(scenario: ScenarioData) {
           ...(e.typeId ? { typeId: e.typeId } : {}),
           ...(e.name ? { name: e.name } : {}),
           ...(e.isHostile ? { isHostile: true } : {}),
+          ...(e.attackOnSight ? { attackOnSight: true } : {}),
           ...(e.iconId ? { iconId: e.iconId } : {}),
+          ...(e.aiDisabled ? { aiDisabled: true } : {}),
         });
       });
     })
@@ -814,6 +835,7 @@ export default function MapEditor() {
   const [npcIsHostile, setNpcIsHostile] = useState(false);
   const [npcIconId, setNpcIconId] = useState('npc');
   const [npcAiDisabled, setNpcAiDisabled] = useState(false);
+  const [npcAttackOnSight, setNpcAttackOnSight] = useState(false);
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
   const [selectedPlaceIconSubtype, setSelectedPlaceIconSubtype] = useState('grocer');
   const [selectedItem, setSelectedItem] = useState('');
@@ -1469,7 +1491,7 @@ export default function MapEditor() {
             tile.entities = tile.entities.filter(e => e.type !== 'player');
           }
           {
-            const ent: { type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean; typeId?: string; name?: string; isHostile?: boolean; iconId?: string; aiDisabled?: boolean } = { type: selectedEntity };
+            const ent: EntityData = { type: selectedEntity };
             if (selectedEntity === 'zombie') {
               ent.subtype = zombieSubtype;
               if (zombieHp !== '') ent.hp = zombieHp as number;
@@ -1478,7 +1500,10 @@ export default function MapEditor() {
             } else if (selectedEntity === 'npc') {
               ent.typeId = npcTypeId;
               if (npcName.trim()) ent.name = npcName.trim();
-              if (npcIsHostile) ent.isHostile = true;
+              // Attack-on-sight implies hostile; keep both flags on the entity
+              // so older readers that only know isHostile still treat it right.
+              if (npcIsHostile || npcAttackOnSight) ent.isHostile = true;
+              if (npcAttackOnSight) ent.attackOnSight = true;
               if (npcIconId && npcIconId !== 'npc') ent.iconId = npcIconId;
               if (npcAiDisabled) ent.aiDisabled = true;
             }
@@ -1561,7 +1586,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcIconId, npcAiDisabled, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcAttackOnSight, npcIconId, npcAiDisabled, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Furniture stamp tool ────────────────────────────────────────────
   // Validates and places a loose furniture stamp at (x, y). Lives outside
@@ -2702,8 +2727,17 @@ export default function MapEditor() {
                   style={{ ...inputStyle, width: '100%' }}
                 />
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={npcIsHostile} onChange={e => setNpcIsHostile(e.target.checked)} />
-                  Hostile
+                  <input
+                    type="checkbox"
+                    checked={npcIsHostile || npcAttackOnSight}
+                    disabled={npcAttackOnSight}
+                    onChange={e => setNpcIsHostile(e.target.checked)}
+                  />
+                  Hostile (demands loot first, then fights)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#e07070', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={npcAttackOnSight} onChange={e => setNpcAttackOnSight(e.target.checked)} />
+                  Attack on sight (no demand — hunts and fights to the death)
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
                   <input type="checkbox" checked={npcAiDisabled} onChange={e => setNpcAiDisabled(e.target.checked)} />
@@ -4072,7 +4106,9 @@ export default function MapEditor() {
                           {ent.deaf ? ` · deaf` : ''}
                           {ent.type === 'npc' && ent.name ? ` · "${ent.name}"` : ''}
                           {ent.type === 'npc' && ent.typeId ? ` · ${ent.typeId}` : ''}
-                          {ent.type === 'npc' && ent.isHostile ? ` · hostile` : ''}
+                          {ent.type === 'npc' && ent.isHostile && !ent.attackOnSight ? ` · hostile` : ''}
+                          {ent.type === 'npc' && ent.attackOnSight ? ` · attacks on sight` : ''}
+                          {ent.type === 'npc' && ent.aiDisabled ? ` · scripted` : ''}
                           {ent.type === 'npc' && ent.iconId ? ` · icon:${ent.iconId}` : ''}
                         </span>
                         <button onClick={() => removeEntity(i)} style={removeBtnStyle}>Remove</button>
